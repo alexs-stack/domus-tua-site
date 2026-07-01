@@ -96,6 +96,7 @@ export default function Contact() {
                   <button
                     key={opt.key}
                     type="button"
+                    aria-pressed={intent === opt.key}
                     onClick={() => setIntent(opt.key)}
                     className={`rounded-xl py-2.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                       intent === opt.key ? "bg-red text-white" : "text-stone hover:text-ink"

@@ -106,7 +106,7 @@ export default function CookiePage() {
 
             {/* ⚠️ Avviso interno: testo da validare con un legale prima del go-live. */}
             <div className="mt-6 rounded-2xl border border-line bg-cream-deep px-5 py-4 text-sm leading-relaxed text-graphite">
-              Questa policy descrive l'uso dei cookie sul sito. I contenuti sono forniti a
+              Questa policy descrive l’uso dei cookie sul sito. I contenuti sono forniti a
               titolo indicativo e devono essere allineati ai cookie effettivamente installati
               e verificati da un consulente legale prima della pubblicazione.
             </div>

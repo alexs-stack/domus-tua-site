@@ -9,6 +9,7 @@ import Stats from "../components/Stats";
 import Team from "../components/Team";
 import Reveal from "../components/Reveal";
 import Contact from "../components/Contact";
+import SectionDivider from "../components/SectionDivider";
 import { site } from "../lib/site";
 
 export const metadata: Metadata = {
@@ -60,13 +61,13 @@ export default function ChiSiamoPage() {
                 </h2>
                 <div className="mt-6 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
                   <p>
-                    Domus Tua nasce dalla visione di Raffaela Rizza: un'agenzia immobiliare
+                    Domus Tua nasce dalla visione di Raffaela Rizza: un’agenzia immobiliare
                     indipendente dove la compravendita non è una transazione, ma un passaggio
                     importante nella vita delle persone.
                   </p>
                   <p>
                     In oltre quindici anni abbiamo costruito un metodo che unisce cura, documenti,
-                    marketing e tecnologia. Restando però fedeli a ciò che conta di più: l'ascolto e
+                    marketing e tecnologia. Restando però fedeli a ciò che conta di più: l’ascolto e
                     la fiducia.
                   </p>
                 </div>
@@ -97,6 +98,9 @@ export default function ChiSiamoPage() {
 
         <Stats />
         <Team />
+        <div className="bg-cream-deep">
+          <SectionDivider tone="cream-deep" />
+        </div>
         <Contact />
       </main>
       <Footer />

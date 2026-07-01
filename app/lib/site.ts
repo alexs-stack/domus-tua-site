@@ -20,7 +20,9 @@ export const site = {
   email: { label: "info@domustua.com", href: "mailto:info@domustua.com" },
   rating: "4.9",
   reviewsCount: "500+",
-  authority: "L'agenzia immobiliare indipendente più recensita della provincia di Varese.",
+  // Claim descrittivo/verificabile (non superlativo assoluto senza fonte, art. 2598 c.c.).
+  // Se il cliente documenta il primato "più recensita", si può ripristinare la versione forte.
+  authority: "Tra le agenzie immobiliari indipendenti più recensite della provincia di Varese.",
   // Link recensioni / video (verificare l'URL Google preciso con il cliente)
   googleReviewsUrl:
     "https://www.google.com/search?q=Domus+Tua+Immobiliare+Tradate+recensioni",

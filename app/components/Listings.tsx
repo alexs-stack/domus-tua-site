@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Reveal from "./Reveal";
 import { ArrowRight } from "./Icons";
 import PropertyCard from "./PropertyCard";
@@ -16,10 +17,10 @@ export default async function Listings() {
             </h2>
           </Reveal>
           <Reveal delay={100}>
-            <a href="/case" className="group inline-flex items-center gap-2 text-sm font-semibold text-ink">
+            <Link href="/case" className="group inline-flex items-center gap-2 text-sm font-semibold text-ink">
               Vedi tutte le case
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </a>
+            </Link>
           </Reveal>
         </div>
 

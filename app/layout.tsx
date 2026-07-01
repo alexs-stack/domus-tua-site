@@ -21,8 +21,10 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.domustua.com"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
     template: "%s · Domus Tua Immobiliare",
@@ -45,6 +47,15 @@ export const metadata: Metadata = {
     title: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
     description:
       "Un metodo completo per vendere e acquistare casa con cura, trasparenza e assistenza fino al rogito. Tradate (VA), dal 2007.",
+    // OG provvisorio (foto reale). Ideale: /public/og-image.png dedicato 1200x630. Vedi docs.
+    images: [
+      {
+        url: "/images/hero_01_attico_travi_salotto.jpg",
+        width: 1920,
+        height: 1067,
+        alt: "Domus Tua Immobiliare — Tradate",
+      },
+    ],
   },
 };
 

@@ -10,6 +10,7 @@ import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
+import SectionDivider from "../components/SectionDivider";
 
 export const metadata: Metadata = {
   title: "Vendere casa a Tradate, senza stress",
@@ -108,6 +109,9 @@ export default function VendiPage() {
         <DomusDocProtocol tone="cream" />
         <FeaturedTestimonial />
         <Reviews />
+        <div className="bg-cream-deep">
+          <SectionDivider tone="cream-deep" />
+        </div>
         <Contact />
       </main>
       <Footer />

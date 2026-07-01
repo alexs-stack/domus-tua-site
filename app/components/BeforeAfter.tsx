@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import Reveal from "./Reveal";
+import { ArrowUpRight, Check } from "./Icons";
 
 const pairs = [
   {
@@ -82,7 +84,7 @@ export default function BeforeAfter() {
                     setActive(i);
                     setPos(52);
                   }}
-                  className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ${
+                  className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                     active === i
                       ? "bg-red text-white"
                       : "text-graphite hover:bg-paper"
@@ -162,6 +164,30 @@ export default function BeforeAfter() {
               </div>
             </div>
           </div>
+        </Reveal>
+
+        <Reveal className="mt-8 flex flex-col items-start justify-between gap-6 border-t border-line pt-8 sm:flex-row sm:items-center">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+            {["Prima impressione più forte", "Più interesse qualificato", "Meno tempo sul mercato"].map(
+              (b) => (
+                <li key={b} className="flex items-center gap-2 text-sm text-graphite">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-soft text-red-dark">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  {b}
+                </li>
+              )
+            )}
+          </ul>
+          <Link
+            href="/vendi"
+            className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+          >
+            Scopri come valorizziamo il tuo immobile
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          </Link>
         </Reveal>
       </div>
     </section>

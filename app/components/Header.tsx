@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Logo } from "./Logo";
 import { ArrowUpRight, Whatsapp } from "./Icons";
 import { nav, site } from "../lib/site";
@@ -32,20 +33,20 @@ export default function Header() {
             : "border border-transparent bg-paper/30 py-3 backdrop-blur-sm"
         }`}
       >
-        <a href="/" className="shrink-0" aria-label="Domus Tua, vai alla home">
+        <Link href="/" className="shrink-0" aria-label="Domus Tua, vai alla home">
           <Logo />
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-1 lg:flex">
           {nav.map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className="rounded-full px-3.5 py-2 text-[0.82rem] font-medium text-graphite transition-colors duration-300 hover:bg-cream-deep hover:text-ink"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -60,7 +61,7 @@ export default function Header() {
             <Whatsapp className="h-5 w-5" />
           </a>
 
-          <a
+          <Link
             href="/#contatti"
             className="group hidden items-center gap-2 rounded-full bg-red py-2.5 pl-5 pr-2.5 text-[0.85rem] font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] sm:flex"
           >
@@ -68,7 +69,7 @@ export default function Header() {
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
               <ArrowUpRight className="h-4 w-4" />
             </span>
-          </a>
+          </Link>
 
           {/* Hamburger */}
           <button
@@ -101,7 +102,7 @@ export default function Header() {
       >
         <nav className="flex flex-col">
           {nav.map((item, i) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
@@ -111,19 +112,19 @@ export default function Header() {
               style={{ transitionDelay: open ? `${120 + i * 55}ms` : "0ms" }}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="mt-auto flex flex-col gap-3 pt-8">
-          <a
+          <Link
             href="/#contatti"
             onClick={() => setOpen(false)}
             className="flex items-center justify-center gap-2 rounded-full bg-red py-4 text-base font-semibold text-white"
           >
             Valuta la tua casa
             <ArrowUpRight className="h-4 w-4" />
-          </a>
+          </Link>
           <a
             href={site.whatsapp.href}
             target="_blank"

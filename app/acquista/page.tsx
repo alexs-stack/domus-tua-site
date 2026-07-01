@@ -11,6 +11,7 @@ import { getVisibleListings } from "../lib/listings";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
+import SectionDivider from "../components/SectionDivider";
 
 export const metadata: Metadata = {
   title: "Comprare casa a Tradate, con sicurezza",
@@ -111,6 +112,9 @@ export default async function AcquistaPage() {
         />
         <DomusDocProtocol tone="cream" />
         <Reviews />
+        <div className="bg-cream-deep">
+          <SectionDivider tone="cream-deep" />
+        </div>
         <Contact />
       </main>
       <Footer />

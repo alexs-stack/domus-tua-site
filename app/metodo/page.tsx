@@ -9,6 +9,7 @@ import DomusDocProtocol from "../components/DomusDocProtocol";
 import OpenDomus from "../components/OpenDomus";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
+import SectionDivider from "../components/SectionDivider";
 
 export const metadata: Metadata = {
   title: "Il Metodo Domus Tua",
@@ -62,6 +63,9 @@ export default function MetodoPage() {
         <DomusDocProtocol tone="cream" />
         <OpenDomus />
         <Reviews />
+        <div className="bg-cream-deep">
+          <SectionDivider tone="cream-deep" />
+        </div>
         <Contact />
       </main>
       <Footer />

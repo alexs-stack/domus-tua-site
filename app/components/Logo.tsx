@@ -48,8 +48,8 @@ export function Logo({
 }) {
   // Original-first: se configurato, usa l'asset ufficiale del cliente.
   if (brand.useOriginalLogo) {
-    // eslint-disable-next-line @next/next/no-img-element
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={light ? brand.logoLight : brand.logo}
         alt="Domus Tua Immobiliare"

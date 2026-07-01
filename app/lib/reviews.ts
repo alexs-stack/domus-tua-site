@@ -2,6 +2,8 @@
 // Testi ripresi dal fallback statico di app/components/Reviews.tsx.
 // Rating, date, source e verified sono valori plausibili a scopo dimostrativo.
 
+import { site } from "./site";
+
 export type ReviewCategory = "Venditori" | "Acquirenti" | "Open Domus" | "Esperienza";
 
 export type ReviewSource = "Google" | "Trustindex";
@@ -109,8 +111,9 @@ export const reviews: Review[] = [
   },
 ];
 
+// Fonte unica: rating e conteggio vengono da site.ts (niente numeri duplicati/divergenti).
 export const reviewSummary = {
-  rating: "4.9",
-  count: "500+",
+  rating: site.rating,
+  count: site.reviewsCount,
   label: "recensioni verificate",
-} as const;
+};

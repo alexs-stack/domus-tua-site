@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -52,13 +53,13 @@ export default async function PropertyPage({
       <main className="flex-1 bg-paper">
         <div className="mx-auto max-w-[1240px] px-5 pt-32 sm:px-8 sm:pt-36">
           {/* Breadcrumb */}
-          <a
+          <Link
             href="/case"
             className="group inline-flex items-center gap-2 text-sm font-medium text-stone transition-colors hover:text-ink"
           >
             <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-300 group-hover:-translate-x-1" />
             Tutte le case
-          </a>
+          </Link>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>

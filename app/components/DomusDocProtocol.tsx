@@ -32,6 +32,11 @@ export default function DomusDocProtocol({
             <div className="relative grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
               {/* Intro */}
               <div>
+                {/* Sigillo D.O.C. — firma visiva del protocollo */}
+                <div className="mb-6 flex h-16 w-16 flex-col items-center justify-center rounded-full border-2 border-red text-red">
+                  <SegnoDomus className="h-3 w-8" embrace={false} />
+                  <span className="mt-0.5 text-[0.58rem] font-bold tracking-[0.14em]">D.O.C.</span>
+                </div>
                 <span className="eyebrow">Protocollo proprietario</span>
                 <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]">
                   Domus D.O.C.

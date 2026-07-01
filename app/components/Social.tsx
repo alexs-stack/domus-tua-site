@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
-import { Instagram, Facebook, TikTok, YouTube, ArrowUpRight } from "./Icons";
+import { Instagram, Facebook, TikTok, YouTube } from "./Icons";
 import { site } from "../lib/site";
 import { IframeWidget } from "./WidgetEmbeds";
 

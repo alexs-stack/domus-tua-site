@@ -35,7 +35,7 @@ export default function Reviews() {
             </h2>
             <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-stone">
               Ogni recensione è una storia di fiducia, cura e accompagnamento. Oltre 500 famiglie
-              hanno vissuto un modo diverso di affrontare la vendita e l'acquisto.
+              hanno vissuto un modo diverso di affrontare la vendita e l’acquisto.
             </p>
           </Reveal>
 
@@ -85,8 +85,16 @@ export default function Reviews() {
           </Reveal>
         ) : (
           <>
+            {/* Nota onestà: finché il widget Trustindex non è collegato, queste sono demo. */}
+            <Reveal className="mt-10">
+              <p className="inline-flex items-center gap-2 rounded-full border border-line bg-cream px-4 py-2 text-[0.8rem] text-stone">
+                <span className="h-1.5 w-1.5 rounded-full bg-red" />
+                Esempi dimostrativi: le recensioni reali di Google/Trustindex verranno collegate al
+                lancio.
+              </p>
+            </Reveal>
             {/* Filtri categoria */}
-            <Reveal className="mt-12">
+            <Reveal className="mt-6">
               <div className="flex flex-wrap gap-2">
                 {filters.map((f) => (
                   <button

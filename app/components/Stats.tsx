@@ -13,7 +13,7 @@ type Stat = {
 const stats: Stat[] = [
   { count: { value: years, suffix: "+" }, label: "Anni di esperienza, dal 2007" },
   { count: { value: Number(site.rating), decimals: 1, suffix: "/5" }, label: "Rating medio sulle recensioni" },
-  { count: { value: 500, suffix: "+" }, label: "Recensioni di clienti reali" },
+  { count: { value: Number.parseInt(site.reviewsCount, 10) || 500, suffix: "+" }, label: "Recensioni di clienti reali" },
   { text: "Tradate", label: "Radici locali, provincia di Varese" },
 ];
 
