@@ -193,17 +193,19 @@ export default function Reviews() {
           </Reveal>
         </div>
 
-        {site.embeds.trustindexWidget ? (
+        {site.embeds.trustindexLoader ? (
           <Reveal className="mt-12">
             <h3 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
               {c.realReviews}
             </h3>
             <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-line bg-paper">
+              {/* Loader Trustindex dentro un srcDoc UTF-8: charset corretto (niente mojibake)
+                  e document.currentScript valido (script statico) → il widget si renderizza. */}
               <iframe
-                src={site.embeds.trustindexWidget}
+                srcDoc={`<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>html,body{margin:0;padding:0;background:transparent;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}</style></head><body><script src="${site.embeds.trustindexLoader}"></script></body></html>`}
                 title={c.iframeTitle}
                 loading="lazy"
-                className="h-[640px] w-full"
+                className="h-[720px] w-full"
                 style={{ border: 0 }}
               />
             </div>

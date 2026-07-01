@@ -49,10 +49,11 @@ export const site = {
   // ───────────────────────────────────────────────────────────
   embeds: {
     // Widget Trustindex REALE di Domus Tua (recensioni Google verificate).
-    // Usiamo l'URL content.html del widget in un iframe: l'embed inline via loader.js non
-    // renderizza in una SPA (document.currentScript è null per gli script iniettati).
-    // Hash widget: 3e10adc2514d705589260c30307 (dal sito ufficiale domustua.com).
-    trustindexWidget: "https://cdn.trustindex.io/widgets/3e/3e10adc2514d705589260c30307/content.html",
+    // Caricato via loader.js ufficiale DENTRO un iframe srcDoc con <meta charset="utf-8">
+    // (vedi Reviews.tsx): document.currentScript è valido (script statico nel srcDoc) e gli
+    // accenti restano corretti. NON iframare content.html raw: è servito senza charset →
+    // mojibake (Ã¨, â€™). Hash widget: 3e10adc2514d705589260c30307 (da domustua.com).
+    trustindexLoader: "https://cdn.trustindex.io/loader.js?3e10adc2514d705589260c30307",
     instagramIframe: "",
   },
 } as const;
