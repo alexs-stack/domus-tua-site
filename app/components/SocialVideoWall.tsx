@@ -61,7 +61,7 @@ function VideoCard({ v, small }: { v: Vid; small?: boolean }) {
         />
         <span className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/15 to-transparent" />
         <PlayBadge small={small} />
-        <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-red">
+        <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-red">
           {v.kind}
         </span>
         <p className={`absolute inset-x-4 bottom-4 font-medium text-white ${small ? "text-sm" : "text-lg sm:text-xl"}`}>
@@ -100,8 +100,8 @@ export default function SocialVideoWall() {
 
         {/* Muro video asimmetrico */}
         <Reveal delay={100} className="mt-12">
-          <div className="grid gap-4 lg:grid-cols-3 lg:grid-rows-2">
-            <div className="lg:col-span-2 lg:row-span-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
+            <div className="sm:col-span-2 lg:col-span-2 lg:row-span-2">
               <VideoCard v={featured} />
             </div>
             <VideoCard v={wall[0]} small />

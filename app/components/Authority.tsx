@@ -82,14 +82,14 @@ export default function Authority() {
                 </p>
               </div>
 
-              <ul className="mt-6 grid grid-cols-3 gap-3 text-center">
+              <ul className="mt-6 grid grid-cols-3 gap-2 text-center sm:gap-3">
                 {[
                   { v: `${years}+`, l: "anni" },
                   { v: site.reviewsCount, l: "recensioni" },
-                  { v: "#1", l: "in provincia" },
+                  { v: site.rating, l: "rating medio" },
                 ].map((s) => (
                   <li key={s.l} className="rounded-2xl bg-cream-deep px-2 py-4">
-                    <span className="tnum block font-display text-2xl font-medium text-red">
+                    <span className="tnum block font-display text-xl font-medium text-red sm:text-2xl">
                       {s.v}
                     </span>
                     <span className="mt-1 block text-[0.72rem] uppercase tracking-wide text-stone">

@@ -26,7 +26,7 @@ export default function Reviews() {
 
   return (
     <section id="recensioni" className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <Reveal>
             <span className="eyebrow">Recensioni</span>
@@ -92,7 +92,7 @@ export default function Reviews() {
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
+                    className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                       filter === f
                         ? "border-red bg-red text-white"
                         : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
@@ -107,8 +107,12 @@ export default function Reviews() {
             {/* Griglia recensioni */}
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {shown.map((r, i) => (
-                <Reveal key={r.id} delay={(i % 3) * 80}>
-                  <figure className="flex h-full flex-col rounded-[1.75rem] border border-line bg-cream p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/30">
+                <Reveal key={r.id} delay={(i % 3) * 80} className={i === 0 ? "lg:col-span-2" : ""}>
+                  <figure
+                    className={`flex h-full flex-col rounded-[1.75rem] border border-line p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/30 hover:shadow-[0_30px_60px_-30px_rgba(26,24,22,0.35)] ${
+                      i === 0 ? "bg-cream-deep sm:p-8" : "bg-cream"
+                    }`}
+                  >
                     {/* header: fonte + rating */}
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-[0.78rem] font-semibold text-graphite">
@@ -121,12 +125,16 @@ export default function Reviews() {
                       </span>
                     </div>
 
-                    <blockquote className="mt-4 flex-1 text-[0.96rem] leading-relaxed text-graphite">
+                    <blockquote
+                      className={`mt-4 flex-1 leading-relaxed text-graphite ${
+                        i === 0 ? "font-display text-xl sm:text-2xl" : "text-[0.96rem]"
+                      }`}
+                    >
                       “{r.text}”
                     </blockquote>
 
                     <figcaption className="mt-6 flex items-center gap-3 border-t border-line pt-5">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-red-soft font-display text-base font-semibold text-red">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-red-soft font-display text-base font-semibold text-red-dark">
                         {r.name.charAt(0)}
                       </span>
                       <span className="flex-1 leading-tight">

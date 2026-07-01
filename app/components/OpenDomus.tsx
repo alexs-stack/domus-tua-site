@@ -63,7 +63,7 @@ export default function OpenDomus() {
             <ul className="mt-8 grid gap-x-6 gap-y-4 sm:grid-cols-2">
               {benefits.map((b) => (
                 <li key={b} className="flex items-start gap-3 text-[0.92rem] text-graphite">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
                     <Check className="h-3 w-3" />
                   </span>
                   {b}

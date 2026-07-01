@@ -6,7 +6,7 @@ const variantClass: Record<Variant, string> = {
   // pill leggibile sopra le foto
   onImage: "bg-paper/95 text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]",
   // accento brand
-  soft: "bg-red-soft text-red",
+  soft: "bg-red-soft text-red-dark",
   // neutro su superficie chiara
   outline: "border border-line bg-paper text-graphite",
 };

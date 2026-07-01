@@ -23,7 +23,7 @@ const channels = [
 export default function Social() {
   return (
     <section className="bg-cream">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           {/* Left: pitch + canali */}
           <Reveal>

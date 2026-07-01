@@ -29,7 +29,7 @@ export default function Highlights({
           {items.map((it, i) => (
             <Reveal key={it.title} delay={i * 90}>
               <article className="group flex h-full flex-col rounded-[1.75rem] border border-line bg-paper p-7 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-soft text-red">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-soft text-red-dark">
                   <Check className="h-5 w-5" />
                 </span>
                 <h3 className="mt-6 font-display text-xl font-medium leading-snug tracking-tight text-ink">

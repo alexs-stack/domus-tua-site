@@ -19,6 +19,7 @@ const contacts = [
 
 export default function Contact() {
   const [intent, setIntent] = useState<"Vendere" | "Acquistare">("Vendere");
+  const [sent, setSent] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +35,7 @@ export default function Contact() {
         `\n(Richiesta dal sito)`
     );
     window.open(`https://wa.me/393466042314?text=${text}`, "_blank", "noopener,noreferrer");
+    setSent(true);
   }
 
   return (
@@ -62,7 +64,7 @@ export default function Contact() {
                   rel="noopener noreferrer"
                   className="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-4 transition-colors duration-300 hover:border-red/40"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
                     <c.icon className="h-5 w-5" />
                   </span>
                   <span className="leading-tight">
@@ -83,7 +85,7 @@ export default function Contact() {
                     key={opt}
                     type="button"
                     onClick={() => setIntent(opt)}
-                    className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-all duration-300 ${
+                    className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                       intent === opt ? "bg-red text-white" : "text-stone hover:text-ink"
                     }`}
                   >
@@ -108,7 +110,7 @@ export default function Contact() {
                   name="note"
                   rows={3}
                   placeholder="Raccontaci qualcosa in più…"
-                  className="rounded-2xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 outline-none transition-colors focus:border-red"
+                  className="rounded-2xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                 />
               </div>
 
@@ -121,9 +123,22 @@ export default function Contact() {
                   <ArrowUpRight className="h-4 w-4" />
                 </span>
               </button>
-              <p className="text-center text-[0.72rem] text-stone">
-                Inviando accetti di essere ricontattato. Nessuno spam, mai.
-              </p>
+              {sent ? (
+                <p
+                  role="status"
+                  className="rounded-2xl border border-red/25 bg-red-soft/60 px-4 py-3 text-center text-sm text-red-dark"
+                >
+                  Stiamo aprendo WhatsApp. Se non si apre,{" "}
+                  <a href={site.whatsapp.href} className="font-semibold underline">
+                    scrivici al {site.whatsapp.label}
+                  </a>
+                  .
+                </p>
+              ) : (
+                <p className="text-center text-[0.72rem] text-stone">
+                  Inviando accetti di essere ricontattato. Nessuno spam, mai.
+                </p>
+              )}
             </form>
           </div>
         </div>
@@ -156,7 +171,7 @@ function Field({
         type={type}
         placeholder={placeholder}
         required={required}
-        className="rounded-2xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 outline-none transition-colors focus:border-red"
+        className="rounded-2xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
       />
     </div>
   );

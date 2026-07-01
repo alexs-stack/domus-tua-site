@@ -3,7 +3,7 @@ import { ArrowUpRight } from "./Icons";
 
 const steps = [
   { n: "01", title: "Analisi e valutazione", copy: "Studiamo l'immobile e il mercato locale per definire il giusto valore e la strategia migliore." },
-  { n: "02", title: "Verifica documentale", copy: "Controlliamo conformità, titoli e documenti per arrivare alla vendita senza sorprese." },
+  { n: "02", title: "Verifica documentale", copy: "Esaminiamo titoli, conformità e documenti prima di partire, per arrivare alla firma senza sorprese." },
   { n: "03", title: "Preparazione immobile", copy: "Valorizziamo gli spazi con consigli mirati e, dove serve, home staging." },
   { n: "04", title: "Foto, video e rendering", copy: "Raccontiamo la casa con materiali professionali: servizi fotografici, video emozionali e virtual rendering." },
   { n: "05", title: "Strategia marketing", copy: "Costruiamo campagne multicanale per portare l'immobile davanti agli acquirenti giusti." },
@@ -15,7 +15,7 @@ const steps = [
 export default function Method() {
   return (
     <section id="metodo" className="relative bg-cream-deep text-ink">
-      <div className="mx-auto grid max-w-[1240px] gap-12 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+      <div className="mx-auto grid max-w-5xl gap-12 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         {/* Intro sticky */}
         <div className="lg:sticky lg:top-28 lg:self-start">
           <Reveal>

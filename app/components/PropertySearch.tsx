@@ -89,7 +89,7 @@ export default function PropertySearch() {
     }));
 
   const pill = (active: boolean) =>
-    `rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ${
+    `rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
       active
         ? "border-red bg-red text-white"
         : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
@@ -106,10 +106,10 @@ export default function PropertySearch() {
                 value={nl}
                 onChange={(e) => setNl(e.target.value)}
                 placeholder="Es. trilocale con giardino a Tradate sotto 300.000 €"
-                className="w-full flex-1 bg-transparent text-base text-ink outline-none placeholder:text-stone/60"
+                className="w-full flex-1 rounded-lg bg-transparent text-base text-ink placeholder:text-stone/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
                 aria-label="Descrivi la casa che cerchi"
               />
-              <span className="flex shrink-0 items-center gap-2 self-start rounded-full bg-red-soft px-3.5 py-2 text-[0.72rem] font-semibold uppercase tracking-wide text-red sm:self-auto">
+              <span className="flex shrink-0 items-center gap-2 self-start rounded-full bg-red-soft px-3.5 py-2 text-[0.72rem] font-semibold uppercase tracking-wide text-red-dark sm:self-auto">
                 Ricerca intelligente in arrivo
               </span>
             </div>
@@ -150,7 +150,7 @@ export default function PropertySearch() {
               <select
                 value={f.comune}
                 onChange={(e) => setF((s) => ({ ...s, comune: e.target.value }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-red"
+                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
               >
                 {comuni.map((c) => (
                   <option key={c} value={c}>
@@ -164,7 +164,7 @@ export default function PropertySearch() {
               <select
                 value={f.maxBudget}
                 onChange={(e) => setF((s) => ({ ...s, maxBudget: Number(e.target.value) }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-red"
+                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
               >
                 {budgetOptions.map((b) => (
                   <option key={b.value} value={b.value}>
@@ -178,7 +178,7 @@ export default function PropertySearch() {
               <select
                 value={f.minRooms}
                 onChange={(e) => setF((s) => ({ ...s, minRooms: Number(e.target.value) }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-red"
+                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
               >
                 {roomOptions.map((r) => (
                   <option key={r.value} value={r.value}>

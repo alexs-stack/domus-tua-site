@@ -138,7 +138,7 @@ export default function Hero() {
             </div>
 
             {/* Tag fondatrice */}
-            <div className="absolute -bottom-4 left-4 rounded-2xl border border-line bg-paper px-5 py-3.5 shadow-[0_24px_50px_-30px_rgba(26,24,22,0.55)] sm:left-6">
+            <div className="absolute -bottom-4 left-4 rounded-3xl border border-line bg-paper px-5 py-3.5 shadow-[0_24px_50px_-30px_rgba(26,24,22,0.55)] sm:left-6">
               <p className="font-display text-lg font-medium leading-none text-ink">Raffaela Rizza</p>
               <p className="mt-1.5 text-[0.8rem] text-stone">Fondatrice · con te dal {site.since}</p>
             </div>

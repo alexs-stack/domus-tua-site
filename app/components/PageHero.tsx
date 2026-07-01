@@ -38,7 +38,7 @@ export default function PageHero({
 
       <div className="relative mx-auto w-full max-w-[1240px] px-5 pb-14 pt-36 sm:px-8 sm:pb-20">
         <div className="max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-cream/20 bg-ink/30 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-cream backdrop-blur-md">
+          <span className="inline-flex items-center gap-2 rounded-full border border-cream/40 bg-ink/40 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-cream backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-red" />
             {eyebrow}
           </span>

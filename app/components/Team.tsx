@@ -75,7 +75,7 @@ export default function Team() {
                   <span className="block font-semibold text-ink">Raffaela Rizza e il team</span>
                   Nella nostra sede di Tradate
                 </span>
-                <span className="shrink-0 rounded-full bg-red-soft px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-red">
+                <span className="shrink-0 rounded-full bg-red-soft px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
                   Dal 2007
                 </span>
               </figcaption>

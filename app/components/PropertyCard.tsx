@@ -33,13 +33,13 @@ export default function PropertyCard({ p }: { p: Property }) {
         </h3>
 
         <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[0.82rem] text-stone">
-          <span className="inline-flex items-center gap-1.5">
+          <span className="tnum inline-flex items-center gap-1.5">
             <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
           </span>
-          <span className="inline-flex items-center gap-1.5">
+          <span className="tnum inline-flex items-center gap-1.5">
             <Rooms className="h-4 w-4 text-graphite" /> {p.rooms}
           </span>
-          <span className="inline-flex items-center gap-1.5">
+          <span className="tnum inline-flex items-center gap-1.5">
             <Bed className="h-4 w-4 text-graphite" /> {p.beds}
           </span>
         </div>
