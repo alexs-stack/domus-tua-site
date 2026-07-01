@@ -23,9 +23,8 @@ export const site = {
   // Claim descrittivo/verificabile (non superlativo assoluto senza fonte, art. 2598 c.c.).
   // Se il cliente documenta il primato "più recensita", si può ripristinare la versione forte.
   authority: "Tra le agenzie immobiliari indipendenti più recensite della provincia di Varese.",
-  // Link recensioni / video (verificare l'URL Google preciso con il cliente)
-  googleReviewsUrl:
-    "https://www.google.com/search?q=Domus+Tua+Immobiliare+Tradate+recensioni",
+  // Google Business reale (CID ricavato dal Maps embed del sito ufficiale Domus Tua).
+  googleReviewsUrl: "https://www.google.com/maps?cid=1402630747648240075",
   // Canali social reali. ⚠️ Facebook e TikTok da confermare con il cliente.
   social: {
     instagram: {
@@ -47,7 +46,11 @@ export const site = {
   //    es. "https://cdn.lightwidget.com/widgets/XXXXXXXX.html"
   // ───────────────────────────────────────────────────────────
   embeds: {
-    trustindexSrc: "",
+    // Widget Trustindex REALE di Domus Tua (recensioni Google verificate).
+    // Usiamo l'URL content.html del widget in un iframe: l'embed inline via loader.js non
+    // renderizza in una SPA (document.currentScript è null per gli script iniettati).
+    // Hash widget: 3e10adc2514d705589260c30307 (dal sito ufficiale domustua.com).
+    trustindexWidget: "https://cdn.trustindex.io/widgets/3e/3e10adc2514d705589260c30307/content.html",
     instagramIframe: "",
   },
 } as const;

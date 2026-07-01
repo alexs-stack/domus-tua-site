@@ -8,26 +8,22 @@ import { useEffect, useRef, useState } from "react";
  */
 export function ScriptWidget({ src }: { src: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  const injected = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || !src) return;
-    el.innerHTML = "";
+    if (!el || !src || injected.current) return;
+    // Iniezione singola, senza clear in cleanup: così il widget (es. Trustindex) non
+    // viene rimosso dal doppio-mount di React StrictMode in sviluppo.
+    injected.current = true;
     const s = document.createElement("script");
     s.src = src;
     s.async = true;
     s.defer = true;
     el.appendChild(s);
-    return () => {
-      el.innerHTML = "";
-    };
   }, [src]);
 
-  return (
-    <div ref={ref} className="min-h-[120px]">
-      <p className="py-8 text-center text-sm text-stone">Carico le recensioni…</p>
-    </div>
-  );
+  return <div ref={ref} className="min-h-[120px]" />;
 }
 
 /**

@@ -4,7 +4,6 @@ import { useState } from "react";
 import Reveal from "./Reveal";
 import { Star, Google, ArrowUpRight, Check } from "./Icons";
 import { site } from "../lib/site";
-import { ScriptWidget } from "./WidgetEmbeds";
 import { reviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
 
 const filters: ("Tutte" | ReviewCategory)[] = [
@@ -74,13 +73,19 @@ export default function Reviews() {
           </Reveal>
         </div>
 
-        {site.embeds.trustindexSrc ? (
+        {site.embeds.trustindexWidget ? (
           <Reveal className="mt-12">
             <h3 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
               Le recensioni reali dei nostri clienti
             </h3>
-            <div className="mt-6 rounded-[1.75rem] border border-line bg-cream p-4 sm:p-6">
-              <ScriptWidget src={site.embeds.trustindexSrc} />
+            <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-line bg-paper">
+              <iframe
+                src={site.embeds.trustindexWidget}
+                title="Recensioni Google verificate di Domus Tua (Trustindex)"
+                loading="lazy"
+                className="h-[640px] w-full"
+                style={{ border: 0 }}
+              />
             </div>
           </Reveal>
         ) : (
