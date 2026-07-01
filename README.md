@@ -5,10 +5,17 @@ Sito premium per Domus Tua Immobiliare (Tradate, VA). Next.js 16 (App Router) ·
 ## Avvio
 
 ```bash
-npm run dev      # sviluppo → http://localhost:3000
-npm run build    # build di produzione
-npm start        # serve la build
+npm run dev        # sviluppo → http://localhost:3000
+npm run build      # build di produzione
+npm start          # serve la build
+npm run typecheck  # tsc --noEmit
+npm run check      # lint + typecheck + build (usato anche in CI)
 ```
+
+Variabili d'ambiente: copia `.env.example` in `.env.local` e compila. Chiavi principali:
+`NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_USE_REALSMART`, `NEXT_PUBLIC_PREVIEW_BADGE`,
+`NEXT_PUBLIC_ENABLE_I18N`, `REALSMART_*` (server-only), `CONTACT_*`. Vedi
+[docs/env-and-deploy.md](docs/env-and-deploy.md).
 
 ## Design system
 
@@ -70,9 +77,28 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 
 ## Documentazione
 
-| Doc | Contenuto |
-|---|---|
-| [docs/logo-assets.md](docs/logo-assets.md) | **Logo ufficiale** (original-first): file richiesti, dimensioni, sfondo trasparente, varianti, favicon. *Non ridisegnare il logo in MVP.* |
+**Brand & identità**
+- [docs/logo-assets.md](docs/logo-assets.md) — **Logo ufficiale** (original-first): file richiesti, dimensioni, sfondo trasparente, varianti, favicon. *Non ridisegnare il logo in MVP.*
+- [docs/segno-domus.md](docs/segno-domus.md) — sistema visivo differenziante Segno Domus (componenti, uso web/brochure/video, overuse)
+- [docs/brand-direction.md](docs/brand-direction.md) · [docs/brand-motif.md](docs/brand-motif.md) · [docs/DESIGN.md](docs/DESIGN.md)
+
+**Media**
+- [docs/hero-video.md](docs/hero-video.md) — hero cinematico: file video/poster, compressione, mobile
+- [docs/media-optimization.md](docs/media-optimization.md) — immagini, video, YouTube lazy, naming
+
+**Contenuti & integrazioni**
+- [docs/realsmart-integration-notes.md](docs/realsmart-integration-notes.md) · [docs/realsmart-client-questions.md](docs/realsmart-client-questions.md) · [docs/realsmart-security.md](docs/realsmart-security.md) — feed immobili RealSmart
+- [docs/reviews-integration.md](docs/reviews-integration.md) — recensioni Google/Trustindex
+- [docs/form-backend-next-step.md](docs/form-backend-next-step.md) · [docs/forms-crm-notes.md](docs/forms-crm-notes.md) — lead capture → email/CRM
+- [docs/i18n.md](docs/i18n.md) — multilingua IT/EN/FR/DE/ES (flag `NEXT_PUBLIC_ENABLE_I18N`)
+
+**Delivery & operatività**
+- [docs/env-and-deploy.md](docs/env-and-deploy.md) — variabili d'ambiente, Vercel, preview vs produzione
+- [docs/production-readiness.md](docs/production-readiness.md) — checklist di lancio
+- [docs/client-assets-needed.md](docs/client-assets-needed.md) — **asset da chiedere al cliente** (3 priorità)
+- [docs/client-review-script.md](docs/client-review-script.md) — talk-track per la call di presentazione
+- [docs/phase-plan.md](docs/phase-plan.md) — Fase 1 (sito) vs Fase 2 (AI/CRM)
+- [docs/questions-for-client.md](docs/questions-for-client.md) — domande aperte per il cliente
 
 ## Prossimi passi (dal brief)
 

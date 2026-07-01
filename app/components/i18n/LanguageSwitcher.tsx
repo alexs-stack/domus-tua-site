@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale } from "./LocaleProvider";
 import { locales, localeNames, localeShort } from "../../lib/i18n/dictionaries";
 
+// Feature flag i18n: quando NEXT_PUBLIC_ENABLE_I18N === "false" lo switch lingua
+// non viene renderizzato (sito solo-italiano). Se la variabile è assente o "true"
+// il comportamento resta invariato. Vedi docs/i18n.md.
+const I18N_DISABLED = process.env.NEXT_PUBLIC_ENABLE_I18N === "false";
+
 function Globe({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -25,6 +30,10 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
     document.addEventListener("pointerdown", onDoc);
     return () => document.removeEventListener("pointerdown", onDoc);
   }, []);
+
+  // Gate dietro feature flag: hook sempre eseguiti sopra (ordine invariato), poi
+  // non renderizziamo nulla quando l'i18n è disattivato.
+  if (I18N_DISABLED) return null;
 
   const base = light ? "border-cream/25 text-cream/90 hover:border-cream/60" : "border-line text-graphite hover:border-red hover:text-red";
 

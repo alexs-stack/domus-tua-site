@@ -7,8 +7,10 @@
 // con la chiamata al feed/endpoint RealSmart. Il contratto di ritorno resta invariato.
 // Dettagli, domande aperte e checklist: docs/realsmart-integration-notes.md.
 
+import { getRealSmartConfig } from "./env";
 import { getMockRealSmartListings } from "./mocks";
 import { normalizeRealSmartListing } from "./normalize";
+import { parseRealSmartPayload } from "./parse";
 import type { NormalizedProperty, RealSmartListingRaw } from "./types";
 
 /**
@@ -34,27 +36,42 @@ const HIDDEN_STATUSES: ReadonlySet<NormalizedProperty["status"]> = new Set([
 /**
  * Recupera gli annunci in forma GREZZA dalla sorgente.
  *
- * OGGI: mock locali.
+ * OGGI: modalità mock. Se l'integrazione live NON è attiva
+ * (NEXT_PUBLIC_USE_REALSMART !== "true"), ritorna subito i mock locali.
  *
- * DOMANI (esempio con feed JSON dedicato):
- *
- *   const endpoint = process.env.REALSMART_FEED_URL;      // ← env, non hardcodato
- *   if (!endpoint) return getMockRealSmartListings();      // fallback difensivo
- *   const res = await fetch(endpoint, {
- *     headers: { Authorization: `Bearer ${process.env.REALSMART_API_KEY ?? ""}` },
- *     // Cache ISR di Next: rivalida in background ogni REVALIDATE_SECONDS.
- *     next: { revalidate: REVALIDATE_SECONDS, tags: ["realsmart-listings"] },
- *   });
- *   if (!res.ok) throw new Error(`RealSmart feed ${res.status}`);
- *   const data = (await res.json()) as unknown;
- *   return parseRealSmartPayload(data); // ← mappatura payload → RealSmartListingRaw[]
+ * DOMANI (con feed live attivo): quando avremo endpoint/auth reali, la fetch qui sotto
+ * va COMPLETATA. Il payload grezzo (unknown) passa SEMPRE per parseRealSmartPayload(),
+ * che lo trasforma in RealSmartListingRaw[] in modo difensivo (mai throw su dati sporchi).
  *
  * NB: endpoint, schema di auth e forma del payload sono ANCORA IGNOTI.
- *     Vanno confermati con RealSmart/cliente prima di scrivere il parser reale.
+ *     Vanno confermati con RealSmart/cliente (docs/realsmart-client-questions.md)
+ *     prima di attivare NEXT_PUBLIC_USE_REALSMART="true" in produzione.
  */
 async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
-  // TODO(realsmart): sostituire con la fetch reale quando endpoint/auth saranno noti.
-  return getMockRealSmartListings();
+  const config = getRealSmartConfig();
+
+  // Modalità mock (default): nessuna credenziale richiesta, nessuna rete.
+  if (!config.useRealSmart) {
+    return getMockRealSmartListings();
+  }
+
+  // Modalità live: getRealSmartConfig() ha già garantito la presenza delle env obbligatorie.
+  // TODO(realsmart): completare la fetch reale quando endpoint/auth saranno confermati.
+  // Esempio di forma attesa (endpoint/headers/paginazione ancora da definire col cliente):
+  //
+  //   const res = await fetch(config.feedUrl!, {
+  //     headers: config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : undefined,
+  //     // Cache ISR di Next: rivalida in background ogni REVALIDATE_SECONDS.
+  //     next: { revalidate: REVALIDATE_SECONDS, tags: ["realsmart-listings"] },
+  //   });
+  //   if (!res.ok) throw new Error(`RealSmart feed ${res.status}`);
+  //   const payload = (await res.json()) as unknown;
+  //   return parseRealSmartPayload(payload); // ← unico confine payload → RealSmartListingRaw[]
+  //
+  // Finché la fetch reale non è cablata, riusiamo i mock come payload di prova
+  // ma li facciamo comunque passare dal parser, così il percorso live resta verificabile.
+  const placeholderPayload: unknown = { listings: getMockRealSmartListings() };
+  return parseRealSmartPayload(placeholderPayload);
 }
 
 /**

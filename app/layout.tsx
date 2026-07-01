@@ -3,6 +3,7 @@ import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { site } from "./lib/site";
 import { LocaleProvider } from "./components/i18n/LocaleProvider";
+import PreviewBadge from "./components/PreviewBadge";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -109,7 +110,10 @@ export default function RootLayout({
         />
         <div className="grain" aria-hidden />
         <div className="scroll-progress" aria-hidden />
-        <LocaleProvider>{children}</LocaleProvider>
+        <LocaleProvider>
+          {children}
+          <PreviewBadge />
+        </LocaleProvider>
       </body>
     </html>
   );

@@ -1,3 +1,9 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️  DATI DEMO — DA SOSTITUIRE prima del "live".
+// Recensioni rappresentative a scopo di preview/presentazione, non reali.
+// Sorgente reale: widget Trustindex + profilo Google (vedi docs/client-assets-needed.md, Priorità 1).
+// Non citare come testimonianze reali in demo col cliente.
+// ═══════════════════════════════════════════════════════════════════════════
 // DATI DEMO rappresentativi — da sostituire con recensioni reali Google/Trustindex.
 // Testi ripresi dal fallback statico di app/components/Reviews.tsx.
 // Rating, date, source e verified sono valori plausibili a scopo dimostrativo.

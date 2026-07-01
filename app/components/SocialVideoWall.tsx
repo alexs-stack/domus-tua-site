@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Reveal from "./Reveal";
-import { Play, ArrowUpRight, Instagram, Star } from "./Icons";
+import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
+import { SegnoDomusBadge } from "./BrandMotif";
+import { Play, ArrowUpRight, Instagram, YouTube, Star } from "./Icons";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -17,37 +19,53 @@ type Vid = {
 
 const yt = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
+// Reel/verticale in evidenza: player leggero (carica l'iframe solo al click).
+// TODO: replace with client-selected featured video id + timestamp
+const FEATURED_YT_ID = "gYePYQHNTUM";
+
 // Video reali dal canale YouTube di Domus Tua.
 const featured: Vid = {
   titleKey: "vFeatured",
-  thumb: "/images/reali/video/recensione-teresa.jpg",
+  thumb: "/images/reali/video/recensione-teresa.jpg", // clip source TODO
   href: yt("gYePYQHNTUM"),
   kind: "recensione",
 };
 
+// Card verticale stile reel/social, per dare ritmo al muro.
+const reel: Vid = {
+  titleKey: "vReel",
+  thumb: "/images/reali/video/villa-lago.jpg", // clip source TODO
+  href: yt("X8dRz1629F0"),
+  kind: "dietro",
+};
+
 const wall: Vid[] = [
-  { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt("BEmbT6WbZ-c"), kind: "recensione" },
-  { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt("PRB3exiOa3I"), kind: "dietro" },
-  { titleKey: "vMozart", thumb: "/images/reali/video/mozart.jpg", href: yt("X8dRz1629F0"), kind: "tour" },
-  { titleKey: "vDomotica", thumb: "/images/reali/video/domotica.jpg", href: yt("E70G5l_CTWg"), kind: "tour" },
-  { titleKey: "vVeranda", thumb: "/images/reali/video/veranda-vedano.jpg", href: yt("qXYpUw3QC2E"), kind: "tour" },
-  { titleKey: "vQuadrilocale", thumb: "/images/reali/video/quadrilocale-giardino.jpg", href: yt("rARkECgXUbU"), kind: "tour" },
+  { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt("BEmbT6WbZ-c"), kind: "recensione" }, // clip source TODO
+  { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt("PRB3exiOa3I"), kind: "dietro" }, // clip source TODO
+  { titleKey: "vMozart", thumb: "/images/reali/video/mozart.jpg", href: yt("X8dRz1629F0"), kind: "tour" }, // clip source TODO
+  { titleKey: "vDomotica", thumb: "/images/reali/video/domotica.jpg", href: yt("E70G5l_CTWg"), kind: "tour" }, // clip source TODO
+  { titleKey: "vVeranda", thumb: "/images/reali/video/veranda-vedano.jpg", href: yt("qXYpUw3QC2E"), kind: "tour" }, // clip source TODO
+  { titleKey: "vQuadrilocale", thumb: "/images/reali/video/quadrilocale-giardino.jpg", href: yt("rARkECgXUbU"), kind: "tour" }, // clip source TODO
 ];
 
 const copy = {
   it: {
     eyebrow: "La nostra energia",
-    title: "Ci vedi prima ancora di conoscerci.",
+    title: "La nostra energia si vede prima ancora della visita.",
     subtitle:
       "Video emozionali, Open Domus, social e contenuti raccontano ogni casa con la cura che merita. È così che i nostri clienti si fidano di noi ancora prima della prima visita.",
-    chip1: "Emotional video real estate",
-    chip2: "Open Domus",
-    chip3: "Centinaia di video",
-    chip4: "Social preview",
+    metricNote: site.videosCountNote,
+    featuredEyebrow: "Video in evidenza",
+    reelBadge: "Reel",
+    catRecensioni: "Video recensioni",
+    catOpenDomus: "Open Domus",
+    catTour: "Tour immobiliari",
+    catDietro: "Dietro le quinte",
     kindRecensione: "Video recensione",
     kindTour: "Tour immobiliare",
     kindDietro: "Dietro le quinte",
     vFeatured: "La storia di Teresa: venduta al primo Open Domus",
+    vReel: "Un giorno di Open Domus, in un minuto",
     vOpenDomus: "Venduto al primo Open Domus",
     vCinema: "Domus Tua al cinema, su Prime Video",
     vMozart: "Villa Mozart, Tradate",
@@ -60,17 +78,21 @@ const copy = {
   },
   en: {
     eyebrow: "Our energy",
-    title: "You see us before you even meet us.",
+    title: "Our energy shows even before the viewing.",
     subtitle:
-      "Emotional videos, Open Domus, social media and content tell the story of every home with the care it deserves. That's how our clients trust us even before the first viewing.",
-    chip1: "Emotional video real estate",
-    chip2: "Open Domus",
-    chip3: "Hundreds of videos",
-    chip4: "Social preview",
+      "Emotional videos, Open Domus, social media and content tell the story of every home with the care it deserves. That’s how our clients trust us even before the first viewing.",
+    metricNote: "videos across tours, reviews and Open Domus",
+    featuredEyebrow: "Featured video",
+    reelBadge: "Reel",
+    catRecensioni: "Video reviews",
+    catOpenDomus: "Open Domus",
+    catTour: "Property tours",
+    catDietro: "Behind the scenes",
     kindRecensione: "Video review",
     kindTour: "Property tour",
     kindDietro: "Behind the scenes",
-    vFeatured: "Teresa's story: sold at the very first Open Domus",
+    vFeatured: "Teresa’s story: sold at the very first Open Domus",
+    vReel: "A day of Open Domus, in one minute",
     vOpenDomus: "Sold at the very first Open Domus",
     vCinema: "Domus Tua at the cinema, on Prime Video",
     vMozart: "Villa Mozart, Tradate",
@@ -83,17 +105,21 @@ const copy = {
   },
   fr: {
     eyebrow: "Notre énergie",
-    title: "Vous nous voyez avant même de nous connaître.",
+    title: "Notre énergie se voit avant même la visite.",
     subtitle:
-      "Vidéos émotionnelles, Open Domus, réseaux sociaux et contenus racontent chaque maison avec le soin qu'elle mérite. C'est ainsi que nos clients nous font confiance avant même la première visite.",
-    chip1: "Emotional video real estate",
-    chip2: "Open Domus",
-    chip3: "Des centaines de vidéos",
-    chip4: "Social preview",
+      "Vidéos émotionnelles, Open Domus, réseaux sociaux et contenus racontent chaque maison avec le soin qu’elle mérite. C’est ainsi que nos clients nous font confiance avant même la première visite.",
+    metricNote: "vidéos entre visites, témoignages et Open Domus",
+    featuredEyebrow: "Vidéo à la une",
+    reelBadge: "Reel",
+    catRecensioni: "Vidéos témoignages",
+    catOpenDomus: "Open Domus",
+    catTour: "Visites immobilières",
+    catDietro: "Dans les coulisses",
     kindRecensione: "Vidéo témoignage",
     kindTour: "Visite immobilière",
     kindDietro: "Dans les coulisses",
-    vFeatured: "L'histoire de Teresa : vendue dès le premier Open Domus",
+    vFeatured: "L’histoire de Teresa : vendue dès le premier Open Domus",
+    vReel: "Une journée d’Open Domus, en une minute",
     vOpenDomus: "Vendu dès le premier Open Domus",
     vCinema: "Domus Tua au cinéma, sur Prime Video",
     vMozart: "Villa Mozart, Tradate",
@@ -106,17 +132,21 @@ const copy = {
   },
   de: {
     eyebrow: "Unsere Energie",
-    title: "Sie sehen uns, noch bevor Sie uns kennenlernen.",
+    title: "Unsere Energie sieht man schon vor der Besichtigung.",
     subtitle:
       "Emotionale Videos, Open Domus, Social Media und Inhalte erzählen jedes Zuhause mit der Sorgfalt, die es verdient. So vertrauen uns unsere Kunden schon vor der ersten Besichtigung.",
-    chip1: "Emotional video real estate",
-    chip2: "Open Domus",
-    chip3: "Hunderte von Videos",
-    chip4: "Social preview",
+    metricNote: "Videos zwischen Touren, Erfahrungsberichten und Open Domus",
+    featuredEyebrow: "Video im Fokus",
+    reelBadge: "Reel",
+    catRecensioni: "Video-Erfahrungsberichte",
+    catOpenDomus: "Open Domus",
+    catTour: "Immobilien-Touren",
+    catDietro: "Hinter den Kulissen",
     kindRecensione: "Video-Erfahrungsbericht",
     kindTour: "Immobilien-Tour",
     kindDietro: "Hinter den Kulissen",
     vFeatured: "Die Geschichte von Teresa: schon beim ersten Open Domus verkauft",
+    vReel: "Ein Tag Open Domus, in einer Minute",
     vOpenDomus: "Schon beim ersten Open Domus verkauft",
     vCinema: "Domus Tua im Kino, auf Prime Video",
     vMozart: "Villa Mozart, Tradate",
@@ -129,17 +159,21 @@ const copy = {
   },
   es: {
     eyebrow: "Nuestra energía",
-    title: "Nos ves antes incluso de conocernos.",
+    title: "Nuestra energía se nota antes incluso de la visita.",
     subtitle:
       "Vídeos emocionales, Open Domus, redes sociales y contenidos cuentan cada casa con el cuidado que merece. Así es como nuestros clientes confían en nosotros incluso antes de la primera visita.",
-    chip1: "Emotional video real estate",
-    chip2: "Open Domus",
-    chip3: "Cientos de vídeos",
-    chip4: "Social preview",
+    metricNote: "vídeos entre tours, reseñas y Open Domus",
+    featuredEyebrow: "Vídeo destacado",
+    reelBadge: "Reel",
+    catRecensioni: "Vídeo reseñas",
+    catOpenDomus: "Open Domus",
+    catTour: "Tours inmobiliarios",
+    catDietro: "Detrás de las cámaras",
     kindRecensione: "Vídeo reseña",
     kindTour: "Tour inmobiliario",
     kindDietro: "Detrás de las cámaras",
     vFeatured: "La historia de Teresa: vendida en el primer Open Domus",
+    vReel: "Un día de Open Domus, en un minuto",
     vOpenDomus: "Vendido en el primer Open Domus",
     vCinema: "Domus Tua en el cine, en Prime Video",
     vMozart: "Villa Mozart, Tradate",
@@ -200,37 +234,91 @@ function VideoCard({ v, small, c }: { v: Vid; small?: boolean; c: Copy }) {
   );
 }
 
+// Card verticale stile reel/social (9:16), per far sentire la sezione "social".
+function ReelCard({ v, c }: { v: Vid; c: Copy }) {
+  const title = c[v.titleKey as keyof Copy];
+  return (
+    <a
+      href={v.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative block overflow-hidden rounded-[1.5rem] border border-line bg-ink"
+    >
+      <div className="relative aspect-[9/16] w-full">
+        <Image
+          src={v.thumb}
+          alt={title}
+          fill
+          sizes="(max-width:1024px) 50vw, 320px"
+          className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+        />
+        <span className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-ink/5" />
+        <span className="absolute left-3 top-3 rounded-full bg-red px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white">
+          {c.reelBadge}
+        </span>
+        <PlayBadge small />
+        <p className="absolute inset-x-4 bottom-4 text-sm font-medium leading-snug text-white">{title}</p>
+      </div>
+    </a>
+  );
+}
+
 export default function SocialVideoWall() {
   const { locale } = useLocale();
   const c = copy[locale];
-  const chips = [c.chip1, c.chip2, c.chip3, c.chip4];
+  const categories = [c.catRecensioni, c.catOpenDomus, c.catTour, c.catDietro];
 
   return (
     <section className="bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-28">
         <Reveal className="max-w-3xl">
-          <span className="eyebrow">{c.eyebrow}</span>
+          <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>
           <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
             {c.title}
           </h2>
           <p className="mt-5 text-[1.02rem] leading-relaxed text-stone sm:text-lg">
             {c.subtitle}
           </p>
+
+          {/* Metrica: quanti video raccontano Domus Tua */}
+          <div className="mt-7 flex items-baseline gap-3">
+            <span className="font-display text-5xl font-medium leading-none text-red sm:text-6xl">
+              {site.videosCountLabel}
+            </span>
+            <span className="max-w-[16rem] text-sm leading-snug text-graphite">{c.metricNote}</span>
+          </div>
+
+          {/* Pills categorie */}
           <div className="mt-6 flex flex-wrap gap-2">
-            {chips.map((chip) => (
+            {categories.map((cat) => (
               <span
-                key={chip}
+                key={cat}
                 className="flex items-center gap-2 rounded-full border border-line bg-paper px-3.5 py-1.5 text-[0.8rem] font-medium text-graphite"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-red" />
-                {chip}
+                {cat}
               </span>
             ))}
           </div>
         </Reveal>
 
-        {/* Muro video asimmetrico */}
-        <Reveal delay={100} className="mt-12">
+        {/* Video in evidenza (player leggero) + reel verticale */}
+        <Reveal delay={80} className="mt-12">
+          <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr]">
+            <div>
+              <span className="eyebrow">{c.featuredEyebrow}</span>
+              <div className="mt-3">
+                {/* Carica l'iframe SOLO al click: nessun player pesante al mount. */}
+                <LazyYouTubeEmbed id={FEATURED_YT_ID} title={c.vFeatured} />
+              </div>
+              <p className="mt-3 text-sm font-medium text-ink">{c.vFeatured}</p>
+            </div>
+            <ReelCard v={reel} c={c} />
+          </div>
+        </Reveal>
+
+        {/* Muro video asimmetrico (thumbnail → YouTube, nessun iframe autoloaded) */}
+        <Reveal delay={120} className="mt-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
             <div className="sm:col-span-2 lg:col-span-2 lg:row-span-2">
               <VideoCard v={featured} c={c} />
@@ -266,7 +354,7 @@ export default function SocialVideoWall() {
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
             >
-              {c.ctaWatch}
+              <YouTube className="h-4 w-4" /> {c.ctaWatch}
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                 <ArrowUpRight className="h-4 w-4" />
               </span>

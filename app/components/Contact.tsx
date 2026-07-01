@@ -2,158 +2,238 @@
 
 import { useState } from "react";
 import { Phone, Whatsapp, Mail, Pin, ArrowUpRight } from "./Icons";
+import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
+import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
+import { formatLeadMessage, type Lead, type LeadIntent } from "../lib/forms/lead";
 import WordReveal from "./WordReveal";
 import { useLocale } from "./i18n/LocaleProvider";
 
-// Percorsi lead. `msg` alimenta il messaggio WhatsApp; `key` è il tipo lead
-// (utile per una futura integrazione CRM: lead type + source page + immobile selezionato).
+// Percorsi lead. `key` è il tipo lead (LeadIntent) — utile per una futura integrazione
+// CRM: lead type + source page + immobile selezionato (vedi docs/form-backend-next-step.md).
 const leadOptions = [
-  { key: "Vendere", label: "Vendo casa", msg: "Vorrei vendere casa" },
-  { key: "Acquistare", label: "Cerco casa", msg: "Sto cercando casa" },
-  { key: "Open Domus", label: "Open Domus", msg: "Vorrei informazioni su Open Domus" },
-  { key: "Altro", label: "Altro", msg: "Vorrei informazioni" },
+  { key: "seller" },
+  { key: "buyer" },
+  { key: "question" },
+  { key: "open-domus" },
 ] as const;
-type Intent = (typeof leadOptions)[number]["key"];
 
 const copy = {
   it: {
     eyebrow: "Parla con Domus Tua",
+    badge: "Primo passo",
     title: "Inizia dal primo passo: una valutazione seria della tua casa.",
     subcopy:
       "Raccontaci il tuo immobile o cosa stai cercando. Ti aiuteremo a capire valore, possibilità e il percorso migliore, senza impegno.",
-    leadVendere: "Vendo casa",
-    leadAcquistare: "Cerco casa",
+    leadSeller: "Voglio vendere",
+    leadBuyer: "Cerco casa",
+    leadQuestion: "Ho una domanda",
     leadOpenDomus: "Open Domus",
-    leadAltro: "Altro",
     nameLabel: "Nome e cognome",
     namePlaceholder: "Es. Maria Rossi",
-    phoneLabel: "Telefono",
-    phonePlaceholder: "Es. 333 1234567",
-    placeLabelSell: "Dove si trova l'immobile",
-    placeLabelBuy: "Zona che cerchi",
-    placePlaceholder: "Es. Tradate, centro",
+    contactLabel: "Telefono o email",
+    contactPlaceholder: "Es. 333 1234567 o maria@email.it",
+    placeLabelSell: "Comune dell’immobile",
+    placeLabelBuy: "Zona desiderata",
+    placeLabelOpen: "Zona di interesse",
+    placePlaceholderSell: "Es. Tradate, centro",
+    placePlaceholderBuy: "Es. Tradate, Varese e dintorni",
+    typeLabel: "Tipologia",
+    typePlaceholder: "Es. Trilocale, villa, ufficio",
+    budgetLabel: "Budget indicativo",
+    budgetPlaceholder: "Es. fino a 250.000 €",
+    featuresLabel: "Caratteristiche",
+    featuresPlaceholder: "Es. giardino, box, ascensore",
     messageLabel: "Messaggio",
-    messagePlaceholder: "Raccontaci qualcosa in più…",
-    submit: "Richiedi una valutazione",
+    messagePlaceholderSell: "Raccontaci qualcosa in più sull’immobile…",
+    messagePlaceholderQuestion: "Come possiamo aiutarti?",
+    submitSeller: "Richiedi una valutazione",
+    submitBuyer: "Trova la casa giusta",
+    submitQuestion: "Invia la richiesta",
+    submitOpenDomus: "Scopri Open Domus",
+    errName: "Inserisci il tuo nome.",
+    errContact: "Lasciaci un telefono o un’email per ricontattarti.",
     sentPrefix: "Stiamo aprendo WhatsApp. Se non si apre,",
     sentLink: "scrivici al",
-    privacy: "Inviando accetti di essere ricontattato. Nessuno spam, mai.",
+    gdpr: "Usiamo i tuoi dati solo per rispondere alla tua richiesta.",
     contactPhoneSub: "Lun–Sab",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Scrivici una mail",
   },
   en: {
     eyebrow: "Talk to Domus Tua",
+    badge: "First step",
     title: "Start with the first step: a serious valuation of your home.",
     subcopy:
-      "Tell us about your property or what you're looking for. We'll help you understand its value, your options and the best path forward, with no obligation.",
-    leadVendere: "Selling my home",
-    leadAcquistare: "Looking for a home",
+      "Tell us about your property or what you’re looking for. We’ll help you understand its value, your options and the best path forward, with no obligation.",
+    leadSeller: "I want to sell",
+    leadBuyer: "Looking for a home",
+    leadQuestion: "I have a question",
     leadOpenDomus: "Open Domus",
-    leadAltro: "Other",
     nameLabel: "Full name",
     namePlaceholder: "E.g. Maria Rossi",
-    phoneLabel: "Phone",
-    phonePlaceholder: "E.g. 333 1234567",
-    placeLabelSell: "Where the property is located",
-    placeLabelBuy: "Area you're looking in",
-    placePlaceholder: "E.g. Tradate, centre",
+    contactLabel: "Phone or email",
+    contactPlaceholder: "E.g. 333 1234567 or maria@email.it",
+    placeLabelSell: "Where the property is",
+    placeLabelBuy: "Preferred area",
+    placeLabelOpen: "Area of interest",
+    placePlaceholderSell: "E.g. Tradate, centre",
+    placePlaceholderBuy: "E.g. Tradate, Varese and nearby",
+    typeLabel: "Property type",
+    typePlaceholder: "E.g. two-bed flat, villa, office",
+    budgetLabel: "Indicative budget",
+    budgetPlaceholder: "E.g. up to €250,000",
+    featuresLabel: "Features",
+    featuresPlaceholder: "E.g. garden, garage, lift",
     messageLabel: "Message",
-    messagePlaceholder: "Tell us a little more…",
-    submit: "Request a valuation",
-    sentPrefix: "We're opening WhatsApp. If it doesn't open,",
+    messagePlaceholderSell: "Tell us a little more about the property…",
+    messagePlaceholderQuestion: "How can we help you?",
+    submitSeller: "Request a valuation",
+    submitBuyer: "Find the right home",
+    submitQuestion: "Send your request",
+    submitOpenDomus: "Discover Open Domus",
+    errName: "Please enter your name.",
+    errContact: "Leave us a phone number or an email so we can reply.",
+    sentPrefix: "We’re opening WhatsApp. If it doesn’t open,",
     sentLink: "message us at",
-    privacy: "By sending you agree to be contacted back. No spam, ever.",
+    gdpr: "We use your data only to reply to your request.",
     contactPhoneSub: "Mon–Sat",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Send us an email",
   },
   fr: {
     eyebrow: "Parlez à Domus Tua",
+    badge: "Première étape",
     title: "Commencez par la première étape : une estimation sérieuse de votre bien.",
     subcopy:
       "Parlez-nous de votre bien ou de ce que vous recherchez. Nous vous aiderons à en comprendre la valeur, les possibilités et la meilleure voie à suivre, sans engagement.",
-    leadVendere: "Je vends",
-    leadAcquistare: "Je cherche",
+    leadSeller: "Je veux vendre",
+    leadBuyer: "Je cherche",
+    leadQuestion: "J’ai une question",
     leadOpenDomus: "Open Domus",
-    leadAltro: "Autre",
     nameLabel: "Nom et prénom",
     namePlaceholder: "Ex. Maria Rossi",
-    phoneLabel: "Téléphone",
-    phonePlaceholder: "Ex. 333 1234567",
+    contactLabel: "Téléphone ou e-mail",
+    contactPlaceholder: "Ex. 333 1234567 ou maria@email.it",
     placeLabelSell: "Où se situe le bien",
-    placeLabelBuy: "Secteur recherché",
-    placePlaceholder: "Ex. Tradate, centre",
+    placeLabelBuy: "Secteur souhaité",
+    placeLabelOpen: "Secteur d’intérêt",
+    placePlaceholderSell: "Ex. Tradate, centre",
+    placePlaceholderBuy: "Ex. Tradate, Varese et alentours",
+    typeLabel: "Type de bien",
+    typePlaceholder: "Ex. trois-pièces, villa, bureau",
+    budgetLabel: "Budget indicatif",
+    budgetPlaceholder: "Ex. jusqu’à 250 000 €",
+    featuresLabel: "Caractéristiques",
+    featuresPlaceholder: "Ex. jardin, garage, ascenseur",
     messageLabel: "Message",
-    messagePlaceholder: "Dites-nous en un peu plus…",
-    submit: "Demander une estimation",
-    sentPrefix: "Nous ouvrons WhatsApp. S'il ne s'ouvre pas,",
+    messagePlaceholderSell: "Dites-nous en un peu plus sur le bien…",
+    messagePlaceholderQuestion: "Comment pouvons-nous vous aider ?",
+    submitSeller: "Demander une estimation",
+    submitBuyer: "Trouver le bon logement",
+    submitQuestion: "Envoyer la demande",
+    submitOpenDomus: "Découvrir Open Domus",
+    errName: "Veuillez indiquer votre nom.",
+    errContact: "Laissez-nous un téléphone ou un e-mail pour vous recontacter.",
+    sentPrefix: "Nous ouvrons WhatsApp. S’il ne s’ouvre pas,",
     sentLink: "écrivez-nous au",
-    privacy: "En envoyant, vous acceptez d'être recontacté. Jamais de spam.",
+    gdpr: "Nous utilisons vos données uniquement pour répondre à votre demande.",
     contactPhoneSub: "Lun–Sam",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Écrivez-nous un e-mail",
   },
   de: {
     eyebrow: "Sprechen Sie mit Domus Tua",
+    badge: "Erster Schritt",
     title: "Beginnen Sie mit dem ersten Schritt: einer fundierten Bewertung Ihrer Immobilie.",
     subcopy:
       "Erzählen Sie uns von Ihrer Immobilie oder wonach Sie suchen. Wir helfen Ihnen, Wert, Möglichkeiten und den besten Weg zu verstehen – unverbindlich.",
-    leadVendere: "Ich verkaufe",
-    leadAcquistare: "Ich suche",
+    leadSeller: "Ich möchte verkaufen",
+    leadBuyer: "Ich suche",
+    leadQuestion: "Ich habe eine Frage",
     leadOpenDomus: "Open Domus",
-    leadAltro: "Sonstiges",
     nameLabel: "Vor- und Nachname",
     namePlaceholder: "Z. B. Maria Rossi",
-    phoneLabel: "Telefon",
-    phonePlaceholder: "Z. B. 333 1234567",
+    contactLabel: "Telefon oder E-Mail",
+    contactPlaceholder: "Z. B. 333 1234567 oder maria@email.it",
     placeLabelSell: "Wo sich die Immobilie befindet",
-    placeLabelBuy: "Gesuchte Gegend",
-    placePlaceholder: "Z. B. Tradate, Zentrum",
+    placeLabelBuy: "Gewünschte Gegend",
+    placeLabelOpen: "Gegend von Interesse",
+    placePlaceholderSell: "Z. B. Tradate, Zentrum",
+    placePlaceholderBuy: "Z. B. Tradate, Varese und Umgebung",
+    typeLabel: "Immobilientyp",
+    typePlaceholder: "Z. B. Dreizimmerwohnung, Villa, Büro",
+    budgetLabel: "Richtbudget",
+    budgetPlaceholder: "Z. B. bis 250.000 €",
+    featuresLabel: "Ausstattung",
+    featuresPlaceholder: "Z. B. Garten, Garage, Aufzug",
     messageLabel: "Nachricht",
-    messagePlaceholder: "Erzählen Sie uns etwas mehr…",
-    submit: "Bewertung anfordern",
+    messagePlaceholderSell: "Erzählen Sie uns etwas mehr über die Immobilie…",
+    messagePlaceholderQuestion: "Wie können wir Ihnen helfen?",
+    submitSeller: "Bewertung anfordern",
+    submitBuyer: "Das passende Zuhause finden",
+    submitQuestion: "Anfrage senden",
+    submitOpenDomus: "Open Domus entdecken",
+    errName: "Bitte geben Sie Ihren Namen ein.",
+    errContact: "Hinterlassen Sie uns eine Telefonnummer oder E-Mail für den Rückruf.",
     sentPrefix: "Wir öffnen WhatsApp. Falls es sich nicht öffnet,",
     sentLink: "schreiben Sie uns an",
-    privacy: "Mit dem Absenden erklären Sie sich mit einer Kontaktaufnahme einverstanden. Niemals Spam.",
+    gdpr: "Wir verwenden Ihre Daten ausschließlich zur Beantwortung Ihrer Anfrage.",
     contactPhoneSub: "Mo–Sa",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Schreiben Sie uns eine E-Mail",
   },
   es: {
     eyebrow: "Habla con Domus Tua",
+    badge: "Primer paso",
     title: "Empieza por el primer paso: una valoración seria de tu casa.",
     subcopy:
       "Cuéntanos sobre tu inmueble o qué estás buscando. Te ayudaremos a entender su valor, las posibilidades y el mejor camino, sin compromiso.",
-    leadVendere: "Vendo casa",
-    leadAcquistare: "Busco casa",
+    leadSeller: "Quiero vender",
+    leadBuyer: "Busco casa",
+    leadQuestion: "Tengo una pregunta",
     leadOpenDomus: "Open Domus",
-    leadAltro: "Otro",
     nameLabel: "Nombre y apellidos",
     namePlaceholder: "Ej. Maria Rossi",
-    phoneLabel: "Teléfono",
-    phonePlaceholder: "Ej. 333 1234567",
-    placeLabelSell: "Dónde se encuentra el inmueble",
-    placeLabelBuy: "Zona que buscas",
-    placePlaceholder: "Ej. Tradate, centro",
+    contactLabel: "Teléfono o correo",
+    contactPlaceholder: "Ej. 333 1234567 o maria@email.it",
+    placeLabelSell: "Dónde está el inmueble",
+    placeLabelBuy: "Zona deseada",
+    placeLabelOpen: "Zona de interés",
+    placePlaceholderSell: "Ej. Tradate, centro",
+    placePlaceholderBuy: "Ej. Tradate, Varese y alrededores",
+    typeLabel: "Tipología",
+    typePlaceholder: "Ej. piso de tres ambientes, villa, oficina",
+    budgetLabel: "Presupuesto orientativo",
+    budgetPlaceholder: "Ej. hasta 250.000 €",
+    featuresLabel: "Características",
+    featuresPlaceholder: "Ej. jardín, garaje, ascensor",
     messageLabel: "Mensaje",
-    messagePlaceholder: "Cuéntanos algo más…",
-    submit: "Solicita una valoración",
+    messagePlaceholderSell: "Cuéntanos algo más sobre el inmueble…",
+    messagePlaceholderQuestion: "¿Cómo podemos ayudarte?",
+    submitSeller: "Solicita una valoración",
+    submitBuyer: "Encuentra la casa ideal",
+    submitQuestion: "Enviar la solicitud",
+    submitOpenDomus: "Descubre Open Domus",
+    errName: "Introduce tu nombre.",
+    errContact: "Déjanos un teléfono o un correo para poder responderte.",
     sentPrefix: "Estamos abriendo WhatsApp. Si no se abre,",
     sentLink: "escríbenos al",
-    privacy: "Al enviar aceptas ser contactado. Nada de spam, nunca.",
+    gdpr: "Usamos tus datos solo para responder a tu solicitud.",
     contactPhoneSub: "Lun–Sáb",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Escríbenos un correo",
   },
 } as const;
 
+type Copy = (typeof copy)[keyof typeof copy];
+
 export default function Contact() {
   const { locale } = useLocale();
   const c = copy[locale];
-  const [intent, setIntent] = useState<Intent>("Vendere");
+  const [intent, setIntent] = useState<LeadIntent>("seller");
   const [sent, setSent] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; contact?: string }>({});
 
   const contacts = [
     { icon: Phone, label: site.phone.label, sub: c.contactPhoneSub, href: site.phone.href },
@@ -167,29 +247,51 @@ export default function Contact() {
     },
   ];
 
-  const leadLabels: Record<Intent, string> = {
-    Vendere: c.leadVendere,
-    Acquistare: c.leadAcquistare,
-    "Open Domus": c.leadOpenDomus,
-    Altro: c.leadAltro,
+  const leadLabels: Record<LeadIntent, string> = {
+    seller: c.leadSeller,
+    buyer: c.leadBuyer,
+    question: c.leadQuestion,
+    "open-domus": c.leadOpenDomus,
+  };
+
+  const submitLabels: Record<LeadIntent, string> = {
+    seller: c.submitSeller,
+    buyer: c.submitBuyer,
+    question: c.submitQuestion,
+    "open-domus": c.submitOpenDomus,
   };
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const name = (data.get("name") as string) || "";
-    const place = (data.get("place") as string) || "";
-    const note = (data.get("note") as string) || "";
-    const opt = leadOptions.find((o) => o.key === intent) ?? leadOptions[0];
-    // CRM-ready: lead type = intent. In futuro qui si allegheranno source page e immobile.
-    const text = encodeURIComponent(
-      `Ciao Domus Tua, sono ${name}. ${opt.msg}` +
-        (place ? ` (zona: ${place})` : "") +
-        ".\n" +
-        (note ? `${note}\n` : "") +
-        `(Richiesta dal sito · ${intent})`
-    );
-    window.open(`https://wa.me/393466042314?text=${text}`, "_blank", "noopener,noreferrer");
+    const val = (k: string) => ((data.get(k) as string) || "").trim();
+
+    const name = val("name");
+    const contact = val("contact");
+
+    // Validazione client-side: nome + contatto obbligatori.
+    const nextErrors: { name?: string; contact?: string } = {};
+    if (!name) nextErrors.name = c.errName;
+    if (!contact) nextErrors.contact = c.errContact;
+    if (nextErrors.name || nextErrors.contact) {
+      setErrors(nextErrors);
+      return;
+    }
+    setErrors({});
+
+    const lead: Lead = {
+      intent,
+      name,
+      contact,
+      place: val("place") || undefined,
+      propertyType: val("propertyType") || undefined,
+      budget: val("budget") || undefined,
+      features: val("features") || undefined,
+      message: val("message") || undefined,
+    };
+
+    const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
+    window.open(url, "_blank", "noopener,noreferrer");
     setSent(true);
   }
 
@@ -199,7 +301,10 @@ export default function Contact() {
         <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
           {/* Left: pitch + contatti */}
           <div>
-            <span className="eyebrow">{c.eyebrow}</span>
+            <div>
+              <SegnoDomusBadge>{c.badge}</SegnoDomusBadge>
+            </div>
+            <span className="eyebrow mt-4">{c.eyebrow}</span>
             <WordReveal
               as="h2"
               className="mt-5 block font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.2rem]"
@@ -210,20 +315,20 @@ export default function Contact() {
             </p>
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2">
-              {contacts.map((c) => (
+              {contacts.map((item) => (
                 <a
-                  key={c.label}
-                  href={c.href}
-                  target={c.href.startsWith("http") ? "_blank" : undefined}
+                  key={item.label}
+                  href={item.href}
+                  target={item.href.startsWith("http") ? "_blank" : undefined}
                   rel="noopener noreferrer"
                   className="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-4 transition-colors duration-300 hover:border-red/40"
                 >
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                    <c.icon className="h-5 w-5" />
+                    <item.icon className="h-5 w-5" />
                   </span>
                   <span className="leading-tight">
-                    <span className="block text-sm font-semibold text-ink">{c.label}</span>
-                    <span className="block text-[0.78rem] text-stone">{c.sub}</span>
+                    <span className="block text-sm font-semibold text-ink">{item.label}</span>
+                    <span className="block text-[0.78rem] text-stone">{item.sub}</span>
                   </span>
                 </a>
               ))}
@@ -232,7 +337,7 @@ export default function Contact() {
 
           {/* Right: form */}
           <div className="rounded-[2rem] border border-line bg-paper p-6 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
               <div className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-cream p-1.5 sm:grid-cols-4">
                 {leadOptions.map((opt) => (
                   <button
@@ -249,31 +354,30 @@ export default function Contact() {
                 ))}
               </div>
 
-              <Field name="name" label={c.nameLabel} placeholder={c.namePlaceholder} required />
-              <Field name="phone" label={c.phoneLabel} placeholder={c.phonePlaceholder} type="tel" required />
+              {/* Nome + contatto: sempre presenti e obbligatori. */}
               <Field
-                name="place"
-                label={intent === "Vendere" ? c.placeLabelSell : c.placeLabelBuy}
-                placeholder={c.placePlaceholder}
+                name="name"
+                label={c.nameLabel}
+                placeholder={c.namePlaceholder}
+                required
+                error={errors.name}
               />
-              <div className="flex flex-col gap-2">
-                <label htmlFor="note" className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
-                  {c.messageLabel}
-                </label>
-                <textarea
-                  id="note"
-                  name="note"
-                  rows={3}
-                  placeholder={c.messagePlaceholder}
-                  className="rounded-2xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
-                />
-              </div>
+              <Field
+                name="contact"
+                label={c.contactLabel}
+                placeholder={c.contactPlaceholder}
+                required
+                error={errors.contact}
+              />
+
+              {/* Campi dinamici per intento. */}
+              <IntentFields intent={intent} c={c} />
 
               <button
                 type="submit"
                 className="group mt-1 flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-6 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
               >
-                {c.submit}
+                {submitLabels[intent]}
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                   <ArrowUpRight className="h-4 w-4" />
                 </span>
@@ -291,7 +395,7 @@ export default function Contact() {
                 </p>
               ) : (
                 <p className="text-center text-[0.72rem] text-stone">
-                  {c.privacy}
+                  {c.gdpr}
                 </p>
               )}
             </form>
@@ -302,18 +406,54 @@ export default function Contact() {
   );
 }
 
+// Campi mostrati in base all'intento selezionato.
+// SELLER   → comune immobile, tipologia, messaggio
+// BUYER    → zona desiderata, tipologia, budget, caratteristiche
+// QUESTION → (solo nome + contatto + messaggio)
+// OPEN DOMUS → zona di interesse
+function IntentFields({ intent, c }: { intent: LeadIntent; c: Copy }) {
+  if (intent === "seller") {
+    return (
+      <>
+        <Field name="place" label={c.placeLabelSell} placeholder={c.placePlaceholderSell} />
+        <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
+        <TextArea name="message" label={c.messageLabel} placeholder={c.messagePlaceholderSell} />
+      </>
+    );
+  }
+  if (intent === "buyer") {
+    return (
+      <>
+        <Field name="place" label={c.placeLabelBuy} placeholder={c.placePlaceholderBuy} />
+        <Field name="budget" label={c.budgetLabel} placeholder={c.budgetPlaceholder} />
+        <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
+        <Field name="features" label={c.featuresLabel} placeholder={c.featuresPlaceholder} />
+      </>
+    );
+  }
+  if (intent === "open-domus") {
+    return <Field name="place" label={c.placeLabelOpen} placeholder={c.placePlaceholderBuy} />;
+  }
+  // question
+  return (
+    <TextArea name="message" label={c.messageLabel} placeholder={c.messagePlaceholderQuestion} />
+  );
+}
+
 function Field({
   name,
   label,
   placeholder,
   type = "text",
   required,
+  error,
 }: {
   name: string;
   label: string;
   placeholder?: string;
   type?: string;
   required?: boolean;
+  error?: string;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -326,6 +466,40 @@ function Field({
         type={type}
         placeholder={placeholder}
         required={required}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${name}-error` : undefined}
+        className={`rounded-2xl border bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+          error ? "border-red" : "border-line"
+        }`}
+      />
+      {error ? (
+        <span id={`${name}-error`} role="alert" className="text-[0.72rem] text-red-dark">
+          {error}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function TextArea({
+  name,
+  label,
+  placeholder,
+}: {
+  name: string;
+  label: string;
+  placeholder?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor={name} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
+        {label}
+      </label>
+      <textarea
+        id={name}
+        name={name}
+        rows={3}
+        placeholder={placeholder}
         className="rounded-2xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
       />
     </div>

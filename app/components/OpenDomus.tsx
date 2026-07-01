@@ -3,14 +3,15 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
 import { ArrowUpRight, Check, Play } from "./Icons";
+import { SegnoDomusCorner } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 
 const copy = {
   it: {
-    eyebrow: "Asset proprietario",
+    eyebrow: "Il nostro format esclusivo",
     title: "Open Domus: un’esperienza preparata per vendere meglio.",
     intro:
-      "Un format evoluto di visita che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la classica visita in un momento più consapevole, ordinato e professionale, per chi vende e per chi cerca casa.",
+      "Non una semplice visita, ma un format proprietario di Domus Tua che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la classica visita in un momento consapevole, ordinato e professionale, per chi vende e per chi cerca casa.",
     benefits: [
       "Immobile preparato e valorizzato prima dell'evento",
       "Materiali informativi e documentazione disponibili",
@@ -26,10 +27,10 @@ const copy = {
     imageAlt: "Raffaela Rizza con Teresa, cliente che ha venduto al primo Open Domus",
   },
   en: {
-    eyebrow: "Proprietary asset",
+    eyebrow: "Our signature format",
     title: "Open Domus: an experience designed to sell better.",
     intro:
-      "An evolved viewing format that combines preparation, hospitality, documentation and pre-qualification. It turns the classic viewing into a more considered, orderly and professional moment, for those who are selling and those who are looking for a home.",
+      "Not just a viewing, but a format proprietary to Domus Tua that combines preparation, hospitality, documentation and pre-qualification. It turns the classic viewing into a considered, orderly and professional moment, for those who are selling and those who are looking for a home.",
     benefits: [
       "Property prepared and enhanced ahead of the event",
       "Informational materials and documentation available",
@@ -45,10 +46,10 @@ const copy = {
     imageAlt: "Raffaela Rizza with Teresa, the client who sold at the first Open Domus",
   },
   fr: {
-    eyebrow: "Atout exclusif",
+    eyebrow: "Notre format signature",
     title: "Open Domus : une expérience pensée pour mieux vendre.",
     intro:
-      "Un format de visite évolué qui allie préparation, accueil, documentation et préqualification. Il transforme la visite classique en un moment plus réfléchi, ordonné et professionnel, pour ceux qui vendent comme pour ceux qui cherchent un logement.",
+      "Pas une simple visite, mais un format propre à Domus Tua qui allie préparation, accueil, documentation et préqualification. Il transforme la visite classique en un moment réfléchi, ordonné et professionnel, pour ceux qui vendent comme pour ceux qui cherchent un logement.",
     benefits: [
       "Bien immobilier préparé et valorisé avant l'événement",
       "Supports d'information et documentation disponibles",
@@ -64,10 +65,10 @@ const copy = {
     imageAlt: "Raffaela Rizza avec Teresa, la cliente qui a vendu au premier Open Domus",
   },
   de: {
-    eyebrow: "Exklusiver Vorteil",
+    eyebrow: "Unser eigenes Format",
     title: "Open Domus: ein Erlebnis, das auf besseren Verkauf ausgelegt ist.",
     intro:
-      "Ein weiterentwickeltes Besichtigungsformat, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die klassische Besichtigung in einen bewussteren, geordneteren und professionelleren Moment – für alle, die verkaufen, und für alle, die ein Zuhause suchen.",
+      "Keine gewöhnliche Besichtigung, sondern ein Domus Tua eigenes Format, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die klassische Besichtigung in einen bewussten, geordneten und professionellen Moment – für alle, die verkaufen, und für alle, die ein Zuhause suchen.",
     benefits: [
       "Immobilie vor dem Termin vorbereitet und aufgewertet",
       "Informationsmaterial und Unterlagen verfügbar",
@@ -83,10 +84,10 @@ const copy = {
     imageAlt: "Raffaela Rizza mit Teresa, der Kundin, die beim ersten Open Domus verkauft hat",
   },
   es: {
-    eyebrow: "Activo exclusivo",
+    eyebrow: "Nuestro formato exclusivo",
     title: "Open Domus: una experiencia preparada para vender mejor.",
     intro:
-      "Un formato de visita evolucionado que combina preparación, acogida, documentación y precualificación. Transforma la visita clásica en un momento más consciente, ordenado y profesional, para quien vende y para quien busca casa.",
+      "No una simple visita, sino un formato propio de Domus Tua que combina preparación, acogida, documentación y precualificación. Transforma la visita clásica en un momento consciente, ordenado y profesional, para quien vende y para quien busca casa.",
     benefits: [
       "Inmueble preparado y revalorizado antes del evento",
       "Materiales informativos y documentación disponibles",
@@ -114,6 +115,7 @@ export default function OpenDomus() {
           {/* Visual */}
           <Reveal className="order-2 lg:order-1">
             <div className="relative rounded-[2rem] border border-line bg-cream p-2">
+              <SegnoDomusCorner className="left-3.5 top-3.5 z-10" rotate={0} />
               <a
                 href="https://www.youtube.com/watch?v=gYePYQHNTUM"
                 target="_blank"

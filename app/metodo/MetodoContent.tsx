@@ -11,6 +11,8 @@ import OpenDomus from "../components/OpenDomus";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
+import { SegnoDomusBadge } from "../components/BrandMotif";
+import { ArrowUpRight } from "../components/Icons";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
 const copy = {
@@ -41,6 +43,11 @@ const copy = {
     item3Title: "Assistenza fino al rogito",
     item3Copy:
       "Un riferimento umano in ogni passaggio, dalla prima telefonata alla firma.",
+    docEyebrow: "Al centro del metodo",
+    docTitle: "Domus D.O.C., la nostra garanzia di fiducia.",
+    docCopy:
+      "Ogni fase del metodo confluisce nel protocollo Domus di Origine Certificata: documenti, conformità, trasparenza, preparazione e tutela verificati prima di mettere in vendita.",
+    docLink: "Scopri il protocollo Domus D.O.C.",
   },
   en: {
     heroEyebrow: "The Domus Tua system",
@@ -69,6 +76,11 @@ const copy = {
     item3Title: "Support through to the deed",
     item3Copy:
       "A human point of reference at every step, from the first phone call to the signature.",
+    docEyebrow: "At the heart of the method",
+    docTitle: "Domus D.O.C., our promise of trust.",
+    docCopy:
+      "Every phase of the method flows into the Domus of Certified Origin protocol: documents, compliance, transparency, preparation and protection all verified before listing.",
+    docLink: "Discover the Domus D.O.C. protocol",
   },
   fr: {
     heroEyebrow: "Le système Domus Tua",
@@ -97,6 +109,11 @@ const copy = {
     item3Title: "Un accompagnement jusqu’à l’acte",
     item3Copy:
       "Un interlocuteur humain à chaque étape, du premier appel à la signature.",
+    docEyebrow: "Au cœur de la méthode",
+    docTitle: "Domus D.O.C., notre garantie de confiance.",
+    docCopy:
+      "Chaque phase de la méthode se rejoint dans le protocole Domus d’Origine Certifiée : documents, conformité, transparence, préparation et protection vérifiés avant la mise en vente.",
+    docLink: "Découvrir le protocole Domus D.O.C.",
   },
   de: {
     heroEyebrow: "Das Domus-Tua-System",
@@ -125,6 +142,11 @@ const copy = {
     item3Title: "Begleitung bis zum Notartermin",
     item3Copy:
       "Ein menschlicher Ansprechpartner bei jedem Schritt, vom ersten Anruf bis zur Unterschrift.",
+    docEyebrow: "Im Zentrum der Methode",
+    docTitle: "Domus D.O.C., unser Versprechen für Vertrauen.",
+    docCopy:
+      "Jede Phase der Methode mündet in das Protokoll Domus mit zertifizierter Herkunft: Unterlagen, Konformität, Transparenz, Vorbereitung und Schutz werden vor dem Verkauf geprüft.",
+    docLink: "Das Protokoll Domus D.O.C. entdecken",
   },
   es: {
     heroEyebrow: "El sistema Domus Tua",
@@ -153,6 +175,11 @@ const copy = {
     item3Title: "Acompañamiento hasta la escritura",
     item3Copy:
       "Una referencia humana en cada paso, desde la primera llamada hasta la firma.",
+    docEyebrow: "En el centro del método",
+    docTitle: "Domus D.O.C., nuestra garantía de confianza.",
+    docCopy:
+      "Cada fase del método confluye en el protocolo Domus de Origen Certificado: documentos, conformidad, transparencia, preparación y protección verificados antes de poner en venta.",
+    docLink: "Descubre el protocolo Domus D.O.C.",
   },
 };
 
@@ -196,7 +223,30 @@ export default function MetodoContent() {
         />
 
         <Method />
-        <DomusDocProtocol tone="cream" />
+
+        {/* Ponte narrativo verso il protocollo Domus D.O.C. */}
+        <section className="bg-cream">
+          <div className="mx-auto max-w-[1240px] px-5 pt-20 sm:px-8 sm:pt-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <SegnoDomusBadge className="mx-auto">{c.docEyebrow}</SegnoDomusBadge>
+              <h2 className="mt-5 font-display text-3xl font-medium leading-[1.1] tracking-tight text-ink balance sm:text-4xl">
+                {c.docTitle}
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-[1.02rem] leading-relaxed text-stone">
+                {c.docCopy}
+              </p>
+              <a
+                href="#domus-doc"
+                className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red-dark transition-colors hover:text-red"
+              >
+                {c.docLink}
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <DomusDocProtocol tone="cream" id="domus-doc" />
         <OpenDomus />
         <Reviews />
         <div className="bg-cream-deep">

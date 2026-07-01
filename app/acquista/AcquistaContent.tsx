@@ -10,6 +10,9 @@ import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
+import Reveal from "../components/Reveal";
+import { Check, ArrowRight } from "../components/Icons";
+import { SegnoDomusCorner, SegnoDomusBadge } from "../components/BrandMotif";
 import type { Property } from "../lib/properties";
 
 const copy = {
@@ -84,6 +87,28 @@ const copy = {
       context: "Acquisto seguito fino al rogito, Tradate",
       alt: "Il team Domus Tua con una cliente nella sede di Tradate",
     },
+    reassure: {
+      eyebrow: "Al tuo fianco",
+      title: "Tu cerchi casa. Al resto pensiamo noi.",
+      intro:
+        "Comprare bene significa avere qualcuno che ti guida davvero. Ecco cosa facciamo per te, dalla prima visita alle chiavi.",
+      list: [
+        "Visite organizzate su misura, senza appuntamenti a vuoto.",
+        "Informazioni chiare su ogni immobile, prima ancora di entrare.",
+        "Documenti condivisi con te non appena disponibili.",
+        "Assistenza nella proposta, per presentarla nel modo giusto.",
+        "Accompagnamento fino al rogito, con te in ogni firma.",
+      ],
+      ctaTitle: "Lasciaci la tua richiesta",
+      ctaCopy:
+        "Raccontaci che casa cerchi: zona, budget, ciò che conta per te. Ti richiamiamo noi.",
+      ctaLabel: "Lasciaci la tua richiesta",
+      offlineNote:
+        "Non trovi ciò che cerchi tra gli annunci? Molte case non sono ancora online: raccontaci cosa desideri e la troviamo noi per te.",
+      aiBadge: "In arrivo",
+      aiText:
+        "Presto potrai cercare casa scrivendo o parlando come faresti con noi.",
+    },
   },
   en: {
     hero: {
@@ -155,6 +180,28 @@ const copy = {
       author: "Domus Tua client",
       context: "Purchase followed through to closing, Tradate",
       alt: "The Domus Tua team with a client at the Tradate office",
+    },
+    reassure: {
+      eyebrow: "By your side",
+      title: "You look for a home. We take care of the rest.",
+      intro:
+        "Buying well means having someone who truly guides you. Here is what we do for you, from the first viewing to the keys.",
+      list: [
+        "Viewings arranged around you, with no wasted appointments.",
+        "Clear information on every property, before you even step inside.",
+        "Documents shared with you as soon as they are available.",
+        "Support with the offer, so it is presented the right way.",
+        "Guidance all the way to closing, beside you at every signature.",
+      ],
+      ctaTitle: "Leave us your request",
+      ctaCopy:
+        "Tell us what you’re looking for: area, budget, what matters to you. We’ll call you back.",
+      ctaLabel: "Leave us your request",
+      offlineNote:
+        "Can’t find what you want among the listings? Many homes aren’t online yet: tell us what you’re after and we’ll find it for you.",
+      aiBadge: "Coming soon",
+      aiText:
+        "Soon you’ll be able to search for a home by writing or speaking, just as you would with us.",
     },
   },
   fr: {
@@ -228,6 +275,28 @@ const copy = {
       context: "Achat suivi jusqu’à l’acte, Tradate",
       alt: "L’équipe Domus Tua avec une cliente au bureau de Tradate",
     },
+    reassure: {
+      eyebrow: "À vos côtés",
+      title: "Vous cherchez une maison. Nous nous occupons du reste.",
+      intro:
+        "Bien acheter, c’est avoir quelqu’un qui vous guide vraiment. Voici ce que nous faisons pour vous, de la première visite jusqu’aux clés.",
+      list: [
+        "Des visites organisées sur mesure, sans rendez-vous inutiles.",
+        "Des informations claires sur chaque bien, avant même d’entrer.",
+        "Des documents partagés avec vous dès qu’ils sont disponibles.",
+        "Un accompagnement pour l’offre, afin de la présenter comme il faut.",
+        "Un suivi jusqu’à l’acte, à vos côtés à chaque signature.",
+      ],
+      ctaTitle: "Laissez-nous votre demande",
+      ctaCopy:
+        "Dites-nous ce que vous cherchez : secteur, budget, ce qui compte pour vous. Nous vous rappelons.",
+      ctaLabel: "Laissez-nous votre demande",
+      offlineNote:
+        "Vous ne trouvez pas votre bonheur parmi les annonces ? Beaucoup de biens ne sont pas encore en ligne : dites-nous ce que vous souhaitez et nous le trouvons pour vous.",
+      aiBadge: "Bientôt",
+      aiText:
+        "Bientôt, vous pourrez chercher une maison en écrivant ou en parlant, comme vous le feriez avec nous.",
+    },
   },
   de: {
     hero: {
@@ -299,6 +368,28 @@ const copy = {
       author: "Kunde von Domus Tua",
       context: "Kauf bis zum Notartermin begleitet, Tradate",
       alt: "Das Team von Domus Tua mit einer Kundin im Büro in Tradate",
+    },
+    reassure: {
+      eyebrow: "An Ihrer Seite",
+      title: "Sie suchen ein Zuhause. Um den Rest kümmern wir uns.",
+      intro:
+        "Gut zu kaufen heißt, jemanden an der Seite zu haben, der Sie wirklich führt. Das tun wir für Sie, von der ersten Besichtigung bis zu den Schlüsseln.",
+      list: [
+        "Besichtigungen, die auf Sie zugeschnitten sind – keine vergeblichen Termine.",
+        "Klare Informationen zu jeder Immobilie, noch bevor Sie eintreten.",
+        "Unterlagen, die wir mit Ihnen teilen, sobald sie verfügbar sind.",
+        "Unterstützung beim Angebot, damit es richtig vorgelegt wird.",
+        "Begleitung bis zum Notartermin, an Ihrer Seite bei jeder Unterschrift.",
+      ],
+      ctaTitle: "Hinterlassen Sie uns Ihre Anfrage",
+      ctaCopy:
+        "Sagen Sie uns, was Sie suchen: Lage, Budget, was Ihnen wichtig ist. Wir rufen Sie zurück.",
+      ctaLabel: "Anfrage hinterlassen",
+      offlineNote:
+        "Sie finden nicht das Passende unter den Anzeigen? Viele Immobilien sind noch nicht online: Sagen Sie uns, was Sie sich wünschen, und wir finden es für Sie.",
+      aiBadge: "Demnächst",
+      aiText:
+        "Bald können Sie ein Zuhause suchen, indem Sie schreiben oder sprechen – so, wie Sie es mit uns tun würden.",
     },
   },
   es: {
@@ -372,6 +463,28 @@ const copy = {
       context: "Compra acompañada hasta la escritura, Tradate",
       alt: "El equipo de Domus Tua con una clienta en la sede de Tradate",
     },
+    reassure: {
+      eyebrow: "A tu lado",
+      title: "Tú buscas casa. Del resto nos ocupamos nosotros.",
+      intro:
+        "Comprar bien significa tener a alguien que te guíe de verdad. Esto es lo que hacemos por ti, desde la primera visita hasta las llaves.",
+      list: [
+        "Visitas organizadas a tu medida, sin citas en vano.",
+        "Información clara de cada inmueble, antes incluso de entrar.",
+        "Documentos compartidos contigo en cuanto están disponibles.",
+        "Asistencia en la propuesta, para presentarla como corresponde.",
+        "Acompañamiento hasta la escritura, contigo en cada firma.",
+      ],
+      ctaTitle: "Déjanos tu solicitud",
+      ctaCopy:
+        "Cuéntanos qué casa buscas: zona, presupuesto, lo que te importa. Te llamamos nosotros.",
+      ctaLabel: "Déjanos tu solicitud",
+      offlineNote:
+        "¿No encuentras lo que buscas entre los anuncios? Muchas casas aún no están online: cuéntanos qué deseas y la encontramos por ti.",
+      aiBadge: "Muy pronto",
+      aiText:
+        "Pronto podrás buscar casa escribiendo o hablando, como lo harías con nosotros.",
+    },
   },
 };
 
@@ -421,6 +534,65 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
         intro={c.steps.intro}
         rows={buySteps}
       />
+
+      <section className="bg-paper">
+        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+          <div className="grid gap-14 lg:grid-cols-[1fr_0.92fr] lg:items-start lg:gap-20">
+            {/* Rassicurazione: cosa facciamo per te */}
+            <Reveal>
+              <span className="eyebrow">{c.reassure.eyebrow}</span>
+              <h2 className="mt-5 max-w-lg font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+                {c.reassure.title}
+              </h2>
+              <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-stone">
+                {c.reassure.intro}
+              </p>
+              <ul className="mt-9 space-y-4">
+                {c.reassure.list.map((item) => (
+                  <li key={item} className="flex items-start gap-3.5">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
+                      <Check className="h-4 w-4" />
+                    </span>
+                    <span className="text-[0.98rem] leading-relaxed text-ink/85">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+
+            {/* Card lead acquirente + teaser AI */}
+            <Reveal delay={120} className="lg:pt-2">
+              <div className="relative overflow-hidden rounded-[2rem] border border-line bg-cream p-8 sm:p-10">
+                <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
+                <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.7rem]">
+                  {c.reassure.ctaTitle}
+                </h3>
+                <p className="mt-3 text-[0.98rem] leading-relaxed text-stone">
+                  {c.reassure.ctaCopy}
+                </p>
+                <a
+                  href="#contatti"
+                  className="group mt-7 inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-dark"
+                >
+                  {c.reassure.ctaLabel}
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+
+                <p className="mt-7 border-t border-line pt-6 text-[0.9rem] leading-relaxed text-stone">
+                  {c.reassure.offlineNote}
+                </p>
+
+                {/* Teaser AI in arrivo — nessuna funzione vocale reale, solo anticipazione */}
+                <div className="mt-7 rounded-[1.5rem] border border-dashed border-red/25 bg-paper/70 p-5">
+                  <SegnoDomusBadge>{c.reassure.aiBadge}</SegnoDomusBadge>
+                  <p className="mt-3.5 text-[0.95rem] leading-relaxed text-ink/80">
+                    {c.reassure.aiText}
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
 
       <PropertySearch properties={listings} />
       <FeaturedTestimonial
