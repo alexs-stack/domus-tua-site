@@ -5,6 +5,7 @@ import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
 import PropertySearch from "../components/PropertySearch";
 import Contact from "../components/Contact";
+import { getVisibleListings } from "../lib/listings";
 
 export const metadata: Metadata = {
   title: "Case in vendita a Tradate e provincia",
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
     "Le case selezionate da Domus Tua: appartamenti, attici e ville a Tradate e in provincia di Varese. Immobili raccontati con cura, documenti verificati.",
 };
 
-export default function CasePage() {
+export default async function CasePage() {
+  const listings = await getVisibleListings();
   return (
     <>
       <Header />
@@ -32,7 +34,7 @@ export default function CasePage() {
           primary={{ label: "Cerca con noi", href: "#contatti" }}
           secondary={{ label: "Parla con un consulente", href: "/contatti" }}
         />
-        <PropertySearch />
+        <PropertySearch properties={listings} />
         <Contact />
       </main>
       <Footer />

@@ -6,11 +6,12 @@ import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyGallery from "../../components/PropertyGallery";
 import Contact from "../../components/Contact";
 import { ArrowRight, ArrowUpRight, Check, Whatsapp } from "../../components/Icons";
-import { getProperty, properties } from "../../lib/properties";
+import { getVisibleListings, getVisibleListing } from "../../lib/listings";
 import { site } from "../../lib/site";
 
-export function generateStaticParams() {
-  return properties.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const list = await getVisibleListings();
+  return list.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -19,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const p = getProperty(slug);
+  const p = await getVisibleListing(slug);
   if (!p) return { title: "Immobile non trovato" };
   return {
     title: `${p.title}, ${p.zone}`,
@@ -33,7 +34,7 @@ export default async function PropertyPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const p = getProperty(slug);
+  const p = await getVisibleListing(slug);
   if (!p) notFound();
 
   const specs = [

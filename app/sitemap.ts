@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { properties } from "./lib/properties";
+import { getVisibleListings } from "./lib/listings";
 
 const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
 
@@ -18,9 +18,10 @@ const routes = [
   "/cookie",
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const listings = await getVisibleListings();
   const pages = routes.map((r) => ({ url: `${base}${r}`, changeFrequency: "monthly" as const }));
-  const casePages = properties.map((p) => ({
+  const casePages = listings.map((p) => ({
     url: `${base}/case/${p.slug}`,
     changeFrequency: "weekly" as const,
   }));

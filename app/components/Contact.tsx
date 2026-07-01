@@ -17,8 +17,18 @@ const contacts = [
   },
 ];
 
+// Percorsi lead. `msg` alimenta il messaggio WhatsApp; `key` è il tipo lead
+// (utile per una futura integrazione CRM: lead type + source page + immobile selezionato).
+const leadOptions = [
+  { key: "Vendere", label: "Vendo casa", msg: "Vorrei vendere casa" },
+  { key: "Acquistare", label: "Cerco casa", msg: "Sto cercando casa" },
+  { key: "Open Domus", label: "Open Domus", msg: "Vorrei informazioni su Open Domus" },
+  { key: "Altro", label: "Altro", msg: "Vorrei informazioni" },
+] as const;
+type Intent = (typeof leadOptions)[number]["key"];
+
 export default function Contact() {
-  const [intent, setIntent] = useState<"Vendere" | "Acquistare">("Vendere");
+  const [intent, setIntent] = useState<Intent>("Vendere");
   const [sent, setSent] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -27,12 +37,14 @@ export default function Contact() {
     const name = (data.get("name") as string) || "";
     const place = (data.get("place") as string) || "";
     const note = (data.get("note") as string) || "";
+    const opt = leadOptions.find((o) => o.key === intent) ?? leadOptions[0];
+    // CRM-ready: lead type = intent. In futuro qui si allegheranno source page e immobile.
     const text = encodeURIComponent(
-      `Ciao Domus Tua, sono ${name}. Vorrei ${intent.toLowerCase()} casa` +
-        (place ? ` a ${place}` : "") +
+      `Ciao Domus Tua, sono ${name}. ${opt.msg}` +
+        (place ? ` (zona: ${place})` : "") +
         ".\n" +
-        (note ? `${note}` : "") +
-        `\n(Richiesta dal sito)`
+        (note ? `${note}\n` : "") +
+        `(Richiesta dal sito · ${intent})`
     );
     window.open(`https://wa.me/393466042314?text=${text}`, "_blank", "noopener,noreferrer");
     setSent(true);
@@ -79,17 +91,17 @@ export default function Contact() {
           {/* Right: form */}
           <div className="rounded-[2rem] border border-line bg-paper p-6 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8">
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <div className="flex gap-2 rounded-full border border-line bg-cream p-1.5">
-                {(["Vendere", "Acquistare"] as const).map((opt) => (
+              <div className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-cream p-1.5 sm:grid-cols-4">
+                {leadOptions.map((opt) => (
                   <button
-                    key={opt}
+                    key={opt.key}
                     type="button"
-                    onClick={() => setIntent(opt)}
-                    className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                      intent === opt ? "bg-red text-white" : "text-stone hover:text-ink"
+                    onClick={() => setIntent(opt.key)}
+                    className={`rounded-xl py-2.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                      intent === opt.key ? "bg-red text-white" : "text-stone hover:text-ink"
                     }`}
                   >
-                    {opt} casa
+                    {opt.label}
                   </button>
                 ))}
               </div>

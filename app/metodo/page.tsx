@@ -34,7 +34,7 @@ export default function MetodoPage() {
           image="/images/hero_01_attico_travi_salotto.jpg"
           alt="Attico con travi a vista e salotto elegante"
           primary={{ label: "Inizia dal tuo immobile", href: "#contatti" }}
-          secondary={{ label: "Vedi gli otto passi", href: "#metodo" }}
+          secondary={{ label: "Vedi i nove passi", href: "#metodo" }}
         />
 
         <Highlights

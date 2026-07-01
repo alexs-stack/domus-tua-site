@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Reveal from "./Reveal";
 import PropertyCard from "./PropertyCard";
 import { ArrowRight } from "./Icons";
-import { properties, type Property } from "../lib/properties";
+import type { Property } from "../lib/properties";
 
 // Filtri MVP client-side. Pronto per collegarsi ai dati live RealSmart:
 // vedi app/lib/realsmart/ e docs/realsmart-integration-notes.md.
@@ -40,7 +40,6 @@ const roomOptions = [
   { label: "4+", value: 4 },
 ];
 
-const comuni = ["Tutti", ...Array.from(new Set(properties.map((p) => p.zone.split(",")[0].trim())))];
 const types: PropertyFilters["type"][] = ["Tutte", "Appartamento", "Attico", "Villa"];
 
 function roomsNum(p: Property) {
@@ -50,7 +49,7 @@ function haystack(p: Property) {
   return `${p.features.join(" ")} ${p.excerpt} ${p.badges.join(" ")}`.toLowerCase();
 }
 
-export default function PropertySearch() {
+export default function PropertySearch({ properties }: { properties: Property[] }) {
   const [nl, setNl] = useState("");
   const [f, setF] = useState<PropertyFilters>({
     contract: "Tutte",
@@ -60,6 +59,11 @@ export default function PropertySearch() {
     minRooms: 0,
     features: [],
   });
+
+  const comuni = useMemo(
+    () => ["Tutti", ...Array.from(new Set(properties.map((p) => p.zone.split(",")[0].trim())))],
+    [properties]
+  );
 
   const shown = useMemo(() => {
     return properties.filter((p) => {
@@ -78,7 +82,7 @@ export default function PropertySearch() {
       }
       return true;
     });
-  }, [f]);
+  }, [f, properties]);
 
   const toggleFeature = (label: string) =>
     setF((s) => ({

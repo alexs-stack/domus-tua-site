@@ -7,6 +7,7 @@ import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import PropertySearch from "../components/PropertySearch";
 import DomusDocProtocol from "../components/DomusDocProtocol";
+import { getVisibleListings } from "../lib/listings";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
@@ -48,7 +49,8 @@ const buySteps = [
   },
 ];
 
-export default function AcquistaPage() {
+export default async function AcquistaPage() {
+  const listings = await getVisibleListings();
   return (
     <>
       <Header />
@@ -98,7 +100,7 @@ export default function AcquistaPage() {
           rows={buySteps}
         />
 
-        <PropertySearch />
+        <PropertySearch properties={listings} />
         <FeaturedTestimonial
           quote="Ci siamo sentiti accompagnati in ogni passaggio, fino al rogito. Informazioni chiare e trasparenza totale: abbiamo scelto senza ansie."
           author="Cliente Domus Tua"

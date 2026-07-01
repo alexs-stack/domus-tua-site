@@ -1,4 +1,6 @@
-// ⚠️ DATI DEMO — immobili fittizi da sostituire con quelli reali (gestionale / Real Smart).
+// ⚠️ DATI DEMO / FIXTURE — immobili fittizi. NON importare direttamente nei componenti visibili:
+// passa sempre dalla facciata app/lib/listings.ts (getVisibleListings). Quando RealSmart sarà
+// collegato, la facciata userà getLiveListings() e questo file resta solo come fallback/demo.
 // Le immagini riutilizzano la libreria asset esistente.
 
 export type Property = {
@@ -6,7 +8,7 @@ export type Property = {
   title: string;
   zone: string;
   type: "Appartamento" | "Attico" | "Villa";
-  status: "Vendita";
+  status: "Vendita" | "Affitto";
   price: string;
   priceValue: number;
   sqm: string;

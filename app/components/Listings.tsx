@@ -1,10 +1,10 @@
 import Reveal from "./Reveal";
 import { ArrowRight } from "./Icons";
 import PropertyCard from "./PropertyCard";
-import { properties } from "../lib/properties";
+import { getVisibleListings } from "../lib/listings";
 
-export default function Listings() {
-  const featured = properties.slice(0, 3);
+export default async function Listings() {
+  const featured = (await getVisibleListings()).slice(0, 3);
   return (
     <section id="case" className="bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">

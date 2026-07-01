@@ -1,6 +1,7 @@
 // Logo Domus Tua — evoluzione del concetto cuore/casa.
 // Mark: tetto + cuore racchiusi in una forma pulita. Wordmark: Domus (grafite) + Tua (rosso),
-// payoff IMMOBILIARE spaziato.
+// payoff IMMOBILIARE spaziato. Original-first: vedi app/lib/brand.ts + docs/logo-assets.md.
+import { brand } from "../lib/brand";
 
 export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
   return (
@@ -45,6 +46,19 @@ export function Logo({
   withPayoff?: boolean;
   light?: boolean;
 }) {
+  // Original-first: se configurato, usa l'asset ufficiale del cliente.
+  if (brand.useOriginalLogo) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={light ? brand.logoLight : brand.logo}
+        alt="Domus Tua Immobiliare"
+        width={brand.width}
+        height={brand.height}
+        className={className}
+      />
+    );
+  }
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <LogoMark className="h-9 w-9 shrink-0" />
