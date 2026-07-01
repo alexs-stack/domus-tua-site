@@ -2,6 +2,7 @@
 
 import Reveal from "../components/Reveal";
 import { Pin, ArrowUpRight } from "../components/Icons";
+import { SegnoDomusDivider } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
@@ -102,6 +103,7 @@ export default function ContattiContent() {
       {/* Mappa + orari */}
       <section className="bg-paper">
         <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
+          <SegnoDomusDivider className="mb-12 sm:mb-14" />
           <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:gap-12">
             <Reveal>
               <div className="overflow-hidden rounded-[2rem] border border-line bg-cream-deep">

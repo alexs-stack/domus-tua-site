@@ -55,7 +55,7 @@ export default function Hero() {
             </a>
             <a
               href="#acquista"
-              className="group flex items-center justify-center gap-1.5 px-2 py-4 text-base font-medium text-stone transition-colors hover:text-ink"
+              className="group flex items-center justify-center gap-1.5 px-2 py-4 text-base font-medium text-stone transition-colors duration-300 hover:text-ink"
             >
               {d.hero.ctaCerco}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -120,7 +120,7 @@ export default function Hero() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Guarda i video di Domus Tua"
-                  className="group/vid absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-paper/90 py-1.5 pl-1.5 pr-3.5 text-[0.78rem] font-semibold text-ink shadow-[0_10px_30px_-12px_rgba(26,24,22,0.6)] backdrop-blur-sm transition-colors hover:text-red"
+                  className="group/vid absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-paper/90 py-1.5 pl-1.5 pr-3.5 text-[0.78rem] font-semibold text-ink shadow-[0_10px_30px_-12px_rgba(26,24,22,0.6)] backdrop-blur-sm transition-colors duration-300 hover:text-red"
                 >
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover/vid:scale-110">
                     <Play className="h-3 w-3" />

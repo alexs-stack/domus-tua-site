@@ -9,14 +9,20 @@ export default function PropertyGallery({ images, title }: { images: string[]; t
   return (
     <div className="rounded-[2rem] border border-line bg-cream p-2">
       <div className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)]">
-        <Image
-          src={images[active]}
-          alt={`${title} — immagine ${active + 1}`}
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 760px"
-          className="object-cover"
-        />
+        {images.map((img, i) => (
+          <Image
+            key={img + i}
+            src={img}
+            alt={active === i ? `${title} — immagine ${i + 1}` : ""}
+            fill
+            priority={i === active}
+            sizes="(max-width: 1024px) 100vw, 760px"
+            aria-hidden={active !== i}
+            className={`object-cover transition-opacity duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              active === i ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
       </div>
       {images.length > 1 && (
         <div className="mt-2 grid grid-cols-4 gap-2">

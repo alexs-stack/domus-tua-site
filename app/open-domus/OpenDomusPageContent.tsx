@@ -719,7 +719,7 @@ export default function OpenDomusPageContent() {
 
       {/* Sottotitolo / claim di prodotto */}
       <section className="bg-ink">
-        <div className="mx-auto max-w-[1240px] px-5 py-14 sm:px-8 sm:py-16">
+        <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
           <Reveal className="flex flex-col items-center text-center">
             <SegnoDomusBadge light>Open Domus</SegnoDomusBadge>
             <p className="mt-6 max-w-3xl font-display text-2xl font-medium leading-[1.2] tracking-tight text-cream balance sm:text-[2rem]">
@@ -931,14 +931,14 @@ export default function OpenDomusPageContent() {
                       onClick={() => setOpenFaq(isOpen ? -1 : i)}
                       aria-expanded={isOpen}
                       aria-controls={`faq-panel-${i}`}
-                      className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
+                      className="group flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors duration-300 hover:bg-cream-deep"
                     >
                       <span className="font-display text-lg font-medium leading-snug tracking-tight text-ink">
                         {item.q}
                       </span>
                       <span
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-red transition-transform duration-300 ${
-                          isOpen ? "rotate-90 bg-red-soft" : "bg-paper"
+                          isOpen ? "rotate-90 bg-red-soft" : "bg-paper group-hover:bg-red-soft"
                         }`}
                       >
                         <ArrowRight className="h-4 w-4" />
@@ -967,7 +967,7 @@ export default function OpenDomusPageContent() {
 
       {/* CTA finale */}
       <section className="bg-ink">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
           <Reveal className="flex flex-col items-center text-center">
             <SegnoDomusDivider className="mb-8 w-full max-w-sm opacity-80" />
             <h2 className="max-w-2xl font-display text-3xl font-medium leading-[1.08] tracking-tight text-cream balance sm:text-[2.6rem]">

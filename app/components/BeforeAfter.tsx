@@ -257,7 +257,7 @@ export default function BeforeAfter() {
                   aria-valuemax={100}
                   aria-valuenow={Math.round(pos)}
                   onKeyDown={onKeyDown}
-                  className="pointer-events-auto absolute top-1/2 left-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border border-line bg-paper shadow-[0_10px_30px_-12px_rgba(26,24,22,0.6)]"
+                  className="pointer-events-auto absolute top-1/2 left-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border border-line bg-paper shadow-[0_10px_30px_-12px_rgba(26,24,22,0.6)] outline-none focus-visible:ring-2 focus-visible:ring-red focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                 >
                   <svg viewBox="0 0 24 24" className="h-5 w-5 text-graphite" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M9 7 4 12l5 5M15 7l5 5-5 5" />

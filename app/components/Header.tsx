@@ -84,7 +84,7 @@ export default function Header() {
             aria-label={open ? "Chiudi menu" : "Apri menu"}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink lg:hidden"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink transition-all duration-300 hover:border-red hover:text-red active:scale-95 lg:hidden"
           >
             <span className="relative block h-3 w-5">
               <span
@@ -131,7 +131,7 @@ export default function Header() {
           <Link
             href="/#contatti"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center gap-2 rounded-full bg-red py-4 text-base font-semibold text-white"
+            className="flex items-center justify-center gap-2 rounded-full bg-red py-4 text-base font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
           >
             {d.header.valuta}
             <ArrowUpRight className="h-4 w-4" />
@@ -140,7 +140,7 @@ export default function Header() {
             href={site.whatsapp.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-4 text-base font-semibold text-ink"
+            className="flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-4 text-base font-semibold text-ink transition-colors duration-300 hover:border-red active:scale-[0.98]"
           >
             <Whatsapp className="h-5 w-5 text-red" /> {d.header.whatsapp}
           </a>

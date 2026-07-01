@@ -46,7 +46,7 @@ export default function ListingsHeader() {
         </h2>
       </Reveal>
       <Reveal delay={100}>
-        <Link href="/case" className="group inline-flex items-center gap-2 text-sm font-semibold text-ink">
+        <Link href="/case" className="group inline-flex items-center gap-2 text-sm font-semibold text-ink transition-colors hover:text-red">
           {c.seeAll}
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
         </Link>

@@ -84,7 +84,7 @@ export default function FeaturedTestimonial(props: Props) {
 
   return (
     <section className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <Reveal>
           <div className="grid items-stretch gap-6 overflow-hidden rounded-[2rem] border border-line bg-cream lg:grid-cols-[1.05fr_0.95fr]">
             {/* Citazione */}

@@ -201,7 +201,7 @@ export default function Services() {
                 alt={c.featureAlt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 760px"
-                className="object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-7 sm:p-9">

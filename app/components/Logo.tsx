@@ -67,7 +67,7 @@ function LogoMissing({ light = false }: { light?: boolean }) {
 function TextWordmark({ light = false }: { light?: boolean }) {
   return (
     <span className="font-display text-[1.4rem] font-semibold tracking-tight" aria-label="Domus Tua Immobiliare">
-      <span style={{ color: light ? "#f3eee5" : "var(--color-graphite)" }}>Domus</span>
+      <span style={{ color: light ? "var(--color-cream-deep)" : "var(--color-graphite)" }}>Domus</span>
       <span style={{ color: "var(--color-red)" }}>Tua</span>
     </span>
   );
@@ -135,7 +135,7 @@ function LogoMarkWordmark({ className = "", light = false }: { className?: strin
       <LogoMark className="h-9 w-9 shrink-0" />
       <span className="flex flex-col leading-none">
         <span className="font-display text-[1.45rem] font-semibold tracking-tight">
-          <span style={{ color: light ? "#f3eee5" : "var(--color-graphite)" }}>Domus</span>
+          <span style={{ color: light ? "var(--color-cream-deep)" : "var(--color-graphite)" }}>Domus</span>
           <span style={{ color: "var(--color-red)" }}>Tua</span>
         </span>
         <span

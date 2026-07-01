@@ -146,7 +146,7 @@ export default function Reviews() {
 
   return (
     <section id="recensioni" className="bg-paper">
-      <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
@@ -226,9 +226,9 @@ export default function Reviews() {
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                    className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                       filter === f
-                        ? "border-red bg-red text-white"
+                        ? "border-red bg-red text-white hover:bg-red-dark"
                         : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
                     }`}
                   >

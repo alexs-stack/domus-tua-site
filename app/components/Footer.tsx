@@ -72,7 +72,7 @@ export default function Footer() {
             <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
               {nav.map((n) => (
                 <li key={n.href}>
-                  <a href={n.href} className="text-sm text-cream/70 transition-colors hover:text-cream">
+                  <a href={n.href} className="text-sm text-cream/70 transition-colors duration-300 hover:text-cream">
                     {d.nav[n.key]}
                   </a>
                 </li>
@@ -101,7 +101,7 @@ export default function Footer() {
             </ul>
             <a
               href="#contatti"
-              className="mt-6 inline-flex rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-red hover:text-white"
+              className="mt-6 inline-flex rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-ink transition-colors duration-300 hover:bg-red hover:text-white"
             >
               {d.footer.valuta}
             </a>

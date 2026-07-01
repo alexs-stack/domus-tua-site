@@ -125,7 +125,7 @@ export default function DomusDocProtocol({
   const bg = tone === "paper" ? "bg-paper" : tone === "cream-deep" ? "bg-cream-deep" : "bg-cream";
   return (
     <section id={id} className={bg}>
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <Reveal>
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
             {/* watermark motif */}

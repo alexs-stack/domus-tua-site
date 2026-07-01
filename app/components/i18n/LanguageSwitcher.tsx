@@ -51,32 +51,33 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
         {localeShort[locale]}
       </button>
 
-      {open && (
-        <ul
-          role="listbox"
-          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-40 overflow-hidden rounded-2xl border border-line bg-paper py-1.5 shadow-[0_24px_50px_-24px_rgba(26,24,22,0.5)]"
-        >
-          {locales.map((l) => (
-            <li key={l}>
-              <button
-                type="button"
-                role="option"
-                aria-selected={l === locale}
-                onClick={() => {
-                  setLocale(l);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center justify-between px-4 py-2 text-left text-sm transition-colors ${
-                  l === locale ? "font-semibold text-red" : "text-graphite hover:bg-cream-deep hover:text-ink"
-                }`}
-              >
-                {localeNames[l]}
-                <span className="text-[0.68rem] font-semibold text-stone">{localeShort[l]}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul
+        role="listbox"
+        aria-hidden={!open}
+        className={`absolute right-0 top-[calc(100%+0.5rem)] z-50 w-40 origin-top-right overflow-hidden rounded-2xl border border-line bg-paper py-1.5 shadow-[0_24px_50px_-24px_rgba(26,24,22,0.5)] transition-all duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none invisible -translate-y-1 scale-95 opacity-0"
+        }`}
+      >
+        {locales.map((l) => (
+          <li key={l}>
+            <button
+              type="button"
+              role="option"
+              aria-selected={l === locale}
+              onClick={() => {
+                setLocale(l);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center justify-between px-4 py-2 text-left text-sm transition-colors ${
+                l === locale ? "font-semibold text-red" : "text-graphite hover:bg-cream-deep hover:text-ink"
+              }`}
+            >
+              {localeNames[l]}
+              <span className="text-[0.68rem] font-semibold text-stone">{localeShort[l]}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

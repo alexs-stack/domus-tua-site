@@ -300,9 +300,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     }));
 
   const pill = (active: boolean) =>
-    `rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+    `rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
       active
-        ? "border-red bg-red text-white"
+        ? "border-red bg-red text-white hover:bg-red-dark"
         : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
     }`;
 
@@ -358,7 +358,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <select
                 value={f.comune}
                 onChange={(e) => setF((s) => ({ ...s, comune: e.target.value }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
               >
                 {comuni.map((z) => (
                   <option key={z} value={z}>
@@ -372,7 +372,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <select
                 value={f.maxBudget}
                 onChange={(e) => setF((s) => ({ ...s, maxBudget: Number(e.target.value) }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
               >
                 {budgetOptions.map((b) => (
                   <option key={b.value} value={b.value}>
@@ -386,7 +386,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <select
                 value={f.minRooms}
                 onChange={(e) => setF((s) => ({ ...s, minRooms: Number(e.target.value) }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
               >
                 {roomOptions.map((r) => (
                   <option key={r.value} value={r.value}>
@@ -438,7 +438,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
             <p className="mt-2 text-stone">{c.emptyBody}</p>
             <a
               href="#contatti"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-dark"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors duration-300 hover:bg-red-dark"
             >
               {c.emptyCta}
             </a>

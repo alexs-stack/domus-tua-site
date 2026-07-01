@@ -147,7 +147,7 @@ export default function Social() {
                     alt=""
                     fill
                     sizes="(max-width: 640px) 33vw, 220px"
-                    className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+                    className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
                   />
                   <span className="absolute inset-0 flex items-center justify-center bg-red/0 text-white opacity-0 transition-all duration-300 group-hover:bg-red/45 group-hover:opacity-100">
                     <Instagram className="h-7 w-7" />

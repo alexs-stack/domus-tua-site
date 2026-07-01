@@ -229,7 +229,7 @@ export default function MetodoContent() {
           <div className="mx-auto max-w-[1240px] px-5 pt-20 sm:px-8 sm:pt-24">
             <div className="mx-auto max-w-2xl text-center">
               <SegnoDomusBadge className="mx-auto">{c.docEyebrow}</SegnoDomusBadge>
-              <h2 className="mt-5 font-display text-3xl font-medium leading-[1.1] tracking-tight text-ink balance sm:text-4xl">
+              <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
                 {c.docTitle}
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-[1.02rem] leading-relaxed text-stone">
