@@ -5,6 +5,7 @@ import Authority from "./components/Authority";
 import Paths from "./components/Paths";
 import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
+import DomusDocProtocol from "./components/DomusDocProtocol";
 import Services from "./components/Services";
 import BeforeAfter from "./components/BeforeAfter";
 import SocialVideoWall from "./components/SocialVideoWall";
@@ -26,12 +27,13 @@ export default function Home() {
         <Hero />
         <Stats />
         <Authority />
+        <SocialVideoWall />
         <Paths />
         <Method />
         <OpenDomus />
+        <DomusDocProtocol tone="cream-deep" />
         <Services />
         <BeforeAfter />
-        <SocialVideoWall />
         <Listings />
         <FeaturedTestimonial />
         <div className="bg-paper">

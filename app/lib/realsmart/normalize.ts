@@ -57,12 +57,16 @@ function normalizeContract(raw: string | undefined): ContractType {
   return raw?.toLowerCase() === "affitto" ? "affitto" : "vendita";
 }
 
-/** Normalizza lo stato: default "published" se assente/non riconosciuto. */
+/**
+ * Normalizza lo stato. Uno stato assente/non riconosciuto NON deve pubblicare per errore
+ * (rischio: mostrare un immobile venduto): default "draft" (nascosto dalla lista pubblica).
+ * Mappare gli stati reali del feed RealSmart prima del go-live.
+ */
 function normalizeStatus(raw: string | undefined): ListingStatus {
   if (raw && VALID_STATUSES.has(raw)) {
     return raw as ListingStatus;
   }
-  return "published";
+  return "draft";
 }
 
 /** Ordina i media per `ordine` crescente (undefined in coda) mantenendo stabilità. */

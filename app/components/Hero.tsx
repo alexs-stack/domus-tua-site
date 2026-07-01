@@ -3,18 +3,10 @@ import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import WordReveal from "./WordReveal";
 import Reveal from "./Reveal";
+import { SegnoDomus } from "./BrandMotif";
+import { heroMedia } from "../lib/media";
 
-const trust = [
-  "Agenzia indipendente a Tradate",
-  "Documenti verificati",
-  "Assistenza fino al rogito",
-];
-
-// Video-ready: metti un file in /public/videos/hero.mp4 (o .webm) e imposta qui il path
-// per far partire una clip nel riquadro (poster = foto di Raffaela come fallback).
-// Consigliato: 15-35s, mp4/webm, Raffaella/team/Open Domus/visite/momenti clienti.
-// NB: quando attivi il video, valuta di mettere Hero come client per fermarlo su prefers-reduced-motion.
-const heroVideo = "";
+const trust = ["Video immobiliari", "Open Domus", "Domus D.O.C.", "Tradate · Varese"];
 
 export default function Hero() {
   return (
@@ -30,6 +22,7 @@ export default function Hero() {
       <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 pb-20 pt-32 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:pb-28 lg:pt-36">
         {/* Testo */}
         <div className="hero-parallax">
+          <SegnoDomus className="segno-draw mb-5 h-5 w-16" embrace={false} />
           <span className="eyebrow">Agenzia immobiliare · Tradate dal {site.since}</span>
 
           <h1 className="mt-6 font-display text-[2.7rem] font-medium leading-[1.02] tracking-[-0.02em] balance sm:text-6xl lg:text-[4.3rem]">
@@ -80,9 +73,12 @@ export default function Hero() {
                   <Star key={i} className="h-4 w-4 text-red" />
                 ))}
               </span>
-              <span className="text-sm font-semibold text-ink">
-                {site.rating}/5 · oltre 500 recensioni
-              </span>
+              <a
+                href="#recensioni"
+                className="text-sm font-semibold text-ink underline-offset-2 hover:underline"
+              >
+                {site.rating}/5 su Google · oltre 500 recensioni
+              </a>
             </span>
             {trust.map((t) => (
               <span key={t} className="text-[0.82rem] font-medium text-stone">
@@ -97,23 +93,24 @@ export default function Hero() {
           <div className="relative">
             <div className="rounded-[2.2rem] border border-line bg-paper p-2 shadow-[0_50px_100px_-60px_rgba(26,24,22,0.6)]">
               <div className="relative aspect-[4/5] overflow-hidden rounded-[calc(2.2rem-0.5rem)] sm:aspect-[5/5]">
-                {heroVideo ? (
+                {heroMedia.enabled ? (
                   <video
                     className="h-full w-full object-cover"
                     style={{ objectPosition: "52% 22%" }}
-                    poster="/images/reali/raffaela-ritratto.jpg"
+                    poster={heroMedia.poster}
                     autoPlay
                     muted
                     loop
                     playsInline
                     preload="metadata"
                   >
-                    <source src={heroVideo} />
+                    <source src={heroMedia.webm} type="video/webm" />
+                    <source src={heroMedia.mp4} type="video/mp4" />
                   </video>
                 ) : (
                   <Image
-                    src="/images/reali/raffaela-ritratto.jpg"
-                    alt="Raffaela Rizza, fondatrice di Domus Tua, nella sede di Tradate"
+                    src={heroMedia.poster}
+                    alt={heroMedia.posterAlt}
                     fill
                     priority
                     sizes="(max-width: 1024px) 100vw, 560px"

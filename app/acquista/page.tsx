@@ -6,6 +6,7 @@ import PageHero from "../components/PageHero";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import PropertySearch from "../components/PropertySearch";
+import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
@@ -106,6 +107,7 @@ export default function AcquistaPage() {
           alt="Il team Domus Tua con una cliente nella sede di Tradate"
           videoHref="https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE"
         />
+        <DomusDocProtocol tone="cream" />
         <Reviews />
         <Contact />
       </main>

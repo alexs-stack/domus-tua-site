@@ -116,7 +116,12 @@ export default function Reviews() {
                     {/* header: fonte + rating */}
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-[0.78rem] font-semibold text-graphite">
-                        <Google className="h-4 w-4" /> {r.source}
+                        {r.source === "Google" ? (
+                          <Google className="h-4 w-4" />
+                        ) : (
+                          <Star className="h-3.5 w-3.5 text-red" />
+                        )}
+                        Recensione {r.source}
                       </span>
                       <span className="flex gap-0.5" aria-label={`${r.rating} su 5`}>
                         {Array.from({ length: r.rating }).map((_, k) => (
@@ -153,6 +158,16 @@ export default function Reviews() {
                           {r.place} · {formatDate(r.date)}
                         </span>
                       </span>
+                      {r.source === "Google" && (
+                        <a
+                          href={site.googleReviewsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 text-[0.72rem] font-semibold text-red-dark underline-offset-2 hover:underline"
+                        >
+                          Leggi su Google
+                        </a>
+                      )}
                     </figcaption>
                   </figure>
                 </Reveal>

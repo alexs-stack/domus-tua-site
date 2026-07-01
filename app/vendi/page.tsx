@@ -6,6 +6,7 @@ import PageHero from "../components/PageHero";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import BeforeAfter from "../components/BeforeAfter";
+import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
@@ -104,6 +105,7 @@ export default function VendiPage() {
         />
 
         <BeforeAfter />
+        <DomusDocProtocol tone="cream" />
         <FeaturedTestimonial />
         <Reviews />
         <Contact />

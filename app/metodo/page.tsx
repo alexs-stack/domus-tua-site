@@ -5,6 +5,7 @@ import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
 import Highlights from "../components/Highlights";
 import Method from "../components/Method";
+import DomusDocProtocol from "../components/DomusDocProtocol";
 import OpenDomus from "../components/OpenDomus";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
@@ -58,6 +59,7 @@ export default function MetodoPage() {
         />
 
         <Method />
+        <DomusDocProtocol tone="cream" />
         <OpenDomus />
         <Reviews />
         <Contact />

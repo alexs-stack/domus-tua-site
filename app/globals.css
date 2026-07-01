@@ -281,6 +281,36 @@ body {
   }
 }
 
+/* ---------- Segno Domus: pattern & disegno ---------- */
+/* Texture di sfondo tenue con la linea-tetto (usare con parsimonia su bande piene) */
+.motif-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120'%3E%3Cpath d='M20 70 L80 30 L140 70' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 160px 120px;
+  background-repeat: repeat;
+}
+
+/* Animazione "disegno" della linea-tetto (solo Hero) */
+@keyframes dt-segno-draw {
+  from {
+    stroke-dashoffset: 120;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.segno-draw path {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: dt-segno-draw 1.5s var(--ease-out-expo) 0.3s forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .segno-draw path {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+}
+
 /* ---------- Utility: hairline ---------- */
 .hairline {
   background: linear-gradient(
