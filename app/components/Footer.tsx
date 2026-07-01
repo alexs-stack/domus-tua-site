@@ -1,7 +1,10 @@
+"use client";
+
 import { Logo } from "./Logo";
 import { Phone, Whatsapp, Mail, Pin, Instagram, Facebook, TikTok, YouTube } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
 import { nav, site } from "../lib/site";
+import { useDict } from "./i18n/LocaleProvider";
 
 const socials = [
   { icon: Instagram, label: "Instagram", href: site.social.instagram.href },
@@ -11,6 +14,7 @@ const socials = [
 ];
 
 export default function Footer() {
+  const d = useDict();
   return (
     <footer className="bg-graphite text-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
@@ -63,13 +67,13 @@ export default function Footer() {
           {/* Nav */}
           <div>
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-cream/40">
-              Naviga
+              {d.footer.naviga}
             </p>
             <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
               {nav.map((n) => (
                 <li key={n.href}>
                   <a href={n.href} className="text-sm text-cream/70 transition-colors hover:text-cream">
-                    {n.label}
+                    {d.nav[n.key]}
                   </a>
                 </li>
               ))}
@@ -79,27 +83,27 @@ export default function Footer() {
           {/* Orari */}
           <div>
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-cream/40">
-              Orari
+              {d.footer.orari}
             </p>
             <ul className="mt-5 flex flex-col gap-2 text-sm text-cream/70">
               <li className="flex justify-between gap-4">
-                <span>Lun – Ven</span>
+                <span>{d.footer.monFri}</span>
                 <span className="tnum text-cream">9:00 – 12:30 · 15:00 – 19:00</span>
               </li>
               <li className="flex justify-between gap-4">
-                <span>Sabato</span>
+                <span>{d.footer.sat}</span>
                 <span className="tnum text-cream">9:00 – 12:30</span>
               </li>
               <li className="flex justify-between gap-4">
-                <span>Domenica</span>
-                <span className="text-cream/50">Su appuntamento</span>
+                <span>{d.footer.sun}</span>
+                <span className="text-cream/50">{d.footer.onAppt}</span>
               </li>
             </ul>
             <a
               href="#contatti"
               className="mt-6 inline-flex rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-red hover:text-white"
             >
-              Valuta la tua casa
+              {d.footer.valuta}
             </a>
           </div>
         </div>
@@ -109,9 +113,9 @@ export default function Footer() {
             © {new Date().getFullYear()} {site.legal} · P.IVA {site.vat}
           </p>
           <div className="flex gap-5">
-            <a href="/privacy" className="hover:text-cream">Privacy</a>
-            <a href="/cookie" className="hover:text-cream">Cookie</a>
-            <a href="/contatti" className="hover:text-cream">Contatti</a>
+            <a href="/privacy" className="hover:text-cream">{d.footer.privacy}</a>
+            <a href="/cookie" className="hover:text-cream">{d.footer.cookie}</a>
+            <a href="/contatti" className="hover:text-cream">{d.footer.contatti}</a>
           </div>
         </div>
       </div>

@@ -57,12 +57,12 @@ export const site = {
 
 // Href assoluti verso le pagine dedicate.
 export const nav = [
-  { label: "Vendi", href: "/vendi" },
-  { label: "Acquista", href: "/acquista" },
-  { label: "Metodo Domus", href: "/metodo" },
-  { label: "Open Domus", href: "/open-domus" },
-  { label: "Case", href: "/case" },
-  { label: "Recensioni", href: "/recensioni" },
-  { label: "Chi siamo", href: "/chi-siamo" },
-  { label: "Contatti", href: "/contatti" },
+  { key: "vendi", label: "Vendi", href: "/vendi" },
+  { key: "acquista", label: "Acquista", href: "/acquista" },
+  { key: "metodo", label: "Metodo Domus", href: "/metodo" },
+  { key: "openDomus", label: "Open Domus", href: "/open-domus" },
+  { key: "case", label: "Case", href: "/case" },
+  { key: "recensioni", label: "Recensioni", href: "/recensioni" },
+  { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo" },
+  { key: "contatti", label: "Contatti", href: "/contatti" },
 ] as const;

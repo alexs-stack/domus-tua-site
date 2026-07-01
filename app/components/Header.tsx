@@ -5,10 +5,13 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { ArrowUpRight, Whatsapp } from "./Icons";
 import { nav, site } from "../lib/site";
+import { useDict } from "./i18n/LocaleProvider";
+import LanguageSwitcher from "./i18n/LanguageSwitcher";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const d = useDict();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -45,7 +48,7 @@ export default function Header() {
               href={item.href}
               className="rounded-full px-3.5 py-2 text-[0.82rem] font-medium text-graphite transition-colors duration-300 hover:bg-cream-deep hover:text-ink"
             >
-              {item.label}
+              {d.nav[item.key]}
             </Link>
           ))}
         </nav>
@@ -55,17 +58,21 @@ export default function Header() {
             href={site.whatsapp.href}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Scrivici su WhatsApp"
+            aria-label={d.header.whatsapp}
             className="hidden h-11 w-11 items-center justify-center rounded-full border border-line text-graphite transition-all duration-300 hover:border-red hover:text-red sm:flex"
           >
             <Whatsapp className="h-5 w-5" />
           </a>
 
+          <div className="hidden sm:block">
+            <LanguageSwitcher />
+          </div>
+
           <Link
             href="/#contatti"
             className="group hidden items-center gap-2 rounded-full bg-red py-2.5 pl-5 pr-2.5 text-[0.85rem] font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] sm:flex"
           >
-            Valuta la tua casa
+            {d.header.valuta}
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
               <ArrowUpRight className="h-4 w-4" />
             </span>
@@ -111,7 +118,7 @@ export default function Header() {
               }`}
               style={{ transitionDelay: open ? `${120 + i * 55}ms` : "0ms" }}
             >
-              {item.label}
+              {d.nav[item.key]}
             </Link>
           ))}
         </nav>
@@ -122,7 +129,7 @@ export default function Header() {
             onClick={() => setOpen(false)}
             className="flex items-center justify-center gap-2 rounded-full bg-red py-4 text-base font-semibold text-white"
           >
-            Valuta la tua casa
+            {d.header.valuta}
             <ArrowUpRight className="h-4 w-4" />
           </Link>
           <a
@@ -131,8 +138,11 @@ export default function Header() {
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-4 text-base font-semibold text-ink"
           >
-            <Whatsapp className="h-5 w-5 text-red" /> Scrivici su WhatsApp
+            <Whatsapp className="h-5 w-5 text-red" /> {d.header.whatsapp}
           </a>
+          <div className="pt-2">
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
     </header>

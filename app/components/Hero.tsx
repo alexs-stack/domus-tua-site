@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
 import { site } from "../lib/site";
@@ -5,10 +7,11 @@ import WordReveal from "./WordReveal";
 import Reveal from "./Reveal";
 import { SegnoDomus } from "./BrandMotif";
 import { heroMedia } from "../lib/media";
-
-const trust = ["Video immobiliari", "Open Domus", "Domus D.O.C.", "Tradate · Varese"];
+import { useDict } from "./i18n/LocaleProvider";
 
 export default function Hero() {
+  const d = useDict();
+  const trust = d.hero.chips;
   return (
     <section id="top" className="relative overflow-hidden bg-cream">
       {/* alone caldo */}
@@ -23,22 +26,15 @@ export default function Hero() {
         {/* Testo */}
         <div className="hero-parallax">
           <SegnoDomus className="segno-draw mb-5 h-5 w-16" embrace={false} />
-          <span className="eyebrow">Agenzia immobiliare · Tradate dal {site.since}</span>
+          <span className="eyebrow">{d.hero.eyebrow}</span>
 
           <h1 className="mt-6 font-display text-[2.7rem] font-medium leading-[1.02] tracking-[-0.02em] balance sm:text-6xl lg:text-[4.3rem]">
-            <WordReveal as="span" className="block text-ink" text="Vendere casa, senza stress." />
-            <WordReveal
-              as="span"
-              className="block text-red"
-              text="Acquistare casa, con sicurezza."
-              startDelay={260}
-            />
+            <WordReveal as="span" className="block text-ink" text={d.hero.title1} />
+            <WordReveal as="span" className="block text-red" text={d.hero.title2} startDelay={260} />
           </h1>
 
           <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-stone sm:text-lg">
-            Dal {site.since} mettiamo le persone prima degli immobili. Ti accompagniamo passo dopo
-            passo, dalla valutazione al rogito, unendo calore umano e strumenti innovativi: rendering,
-            video, home staging e Open Domus.
+            {d.hero.subcopy}
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -46,7 +42,7 @@ export default function Hero() {
               href="#contatti"
               className="group flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
             >
-              Valuta il tuo immobile
+              {d.hero.ctaValuta}
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                 <ArrowUpRight className="h-4 w-4" />
               </span>
@@ -55,13 +51,13 @@ export default function Hero() {
               href="#metodo"
               className="flex items-center justify-center gap-2 rounded-full border border-ink/15 bg-paper px-7 py-4 text-base font-semibold text-ink transition-all duration-300 hover:border-red hover:text-red"
             >
-              Scopri il Metodo
+              {d.hero.ctaMetodo}
             </a>
             <a
               href="#acquista"
               className="group flex items-center justify-center gap-1.5 px-2 py-4 text-base font-medium text-stone transition-colors hover:text-ink"
             >
-              Cerco casa
+              {d.hero.ctaCerco}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </a>
           </div>
@@ -77,7 +73,7 @@ export default function Hero() {
                 href="#recensioni"
                 className="text-sm font-semibold text-ink underline-offset-2 hover:underline"
               >
-                {site.rating}/5 su Google · oltre 500 recensioni
+                {site.rating}/5 {d.hero.ratingSuffix}
               </a>
             </span>
             {trust.map((t) => (
@@ -129,7 +125,7 @@ export default function Hero() {
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover/vid:scale-110">
                     <Play className="h-3 w-3" />
                   </span>
-                  Guarda i video
+                  {d.hero.watch}
                 </a>
               </div>
             </div>
@@ -137,7 +133,7 @@ export default function Hero() {
             {/* Tag fondatrice */}
             <div className="absolute -bottom-4 left-4 rounded-3xl border border-line bg-paper px-5 py-3.5 shadow-[0_24px_50px_-30px_rgba(26,24,22,0.55)] sm:left-6">
               <p className="font-display text-lg font-medium leading-none text-ink">Raffaela Rizza</p>
-              <p className="mt-1.5 text-[0.8rem] text-stone">Fondatrice · con te dal {site.since}</p>
+              <p className="mt-1.5 text-[0.8rem] text-stone">{d.hero.founderRole}</p>
             </div>
 
             {/* Chip reputazione */}

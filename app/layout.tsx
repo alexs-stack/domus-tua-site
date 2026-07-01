@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { site } from "./lib/site";
+import { LocaleProvider } from "./components/i18n/LocaleProvider";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -106,7 +107,7 @@ export default function RootLayout({
         />
         <div className="grain" aria-hidden />
         <div className="scroll-progress" aria-hidden />
-        {children}
+        <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>
   );
