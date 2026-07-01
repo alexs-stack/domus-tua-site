@@ -7,6 +7,7 @@ import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
 import Services from "./components/Services";
 import BeforeAfter from "./components/BeforeAfter";
+import SocialVideoWall from "./components/SocialVideoWall";
 import Listings from "./components/Listings";
 import FeaturedTestimonial from "./components/FeaturedTestimonial";
 import Reviews from "./components/Reviews";
@@ -15,6 +16,7 @@ import Team from "./components/Team";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import WhatsAppFloat from "./components/WhatsAppFloat";
+import SectionDivider from "./components/SectionDivider";
 
 export default function Home() {
   return (
@@ -29,10 +31,17 @@ export default function Home() {
         <OpenDomus />
         <Services />
         <BeforeAfter />
+        <SocialVideoWall />
         <Listings />
         <FeaturedTestimonial />
+        <div className="bg-paper">
+          <SectionDivider tone="paper" />
+        </div>
         <Reviews />
         <Social />
+        <div className="bg-cream">
+          <SectionDivider tone="cream" />
+        </div>
         <Team />
         <Contact />
       </main>

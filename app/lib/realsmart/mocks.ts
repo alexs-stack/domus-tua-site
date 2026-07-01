@@ -1,0 +1,240 @@
+// Mock realistici in forma GREZZA (RealSmartListingRaw), come li esporrebbe il gestionale.
+// Servono a sviluppare/normalizzare il sito prima di avere l'integrazione reale.
+// I temi riprendono quelli di app/lib/properties.ts (attico travi, trilocale, villa, ...).
+//
+// ⚠️ Dati fittizi. Le immagini riutilizzano la libreria asset esistente in /public/images.
+// Da sostituire con il feed reale RealSmart: vedi docs/realsmart-integration-notes.md.
+
+import type { RealSmartListingRaw } from "./types";
+
+export function getMockRealSmartListings(): RealSmartListingRaw[] {
+  return [
+    {
+      codice: "DT-1043",
+      riferimento: "RIF. 1043",
+      titolo: "Attico con travi a vista",
+      descrizione:
+        "Nel cuore di Tradate, un attico che unisce il calore del legno a vista alla luce di ampie vetrate. Open space living-cucina arioso e tre camere riservate. Impianti recenti e documentazione completa e verificata.",
+      prezzo: 420000,
+      tipologia: "Attico",
+      contratto: "vendita",
+      localita: {
+        comune: "Tradate",
+        provincia: "VA",
+        zona: "centro",
+      },
+      mq: 145,
+      locali: 4,
+      camere: 3,
+      bagni: 2,
+      piano: "Attico",
+      classeEnergetica: "A",
+      caratteristiche: [
+        "Open space living con camino",
+        "Cucina abitabile di design",
+        "Terrazzo abitabile",
+        "Travi a vista restaurate",
+        "Posto auto coperto",
+        "In esclusiva",
+        "Documenti verificati",
+      ],
+      statoPubblicazione: "published",
+      media: [
+        { url: "/images/hero_02_attico_travi_living.jpg", tipo: "foto", ordine: 1, didascalia: "Living con travi a vista" },
+        { url: "/images/hero_01_attico_travi_salotto.jpg", tipo: "foto", ordine: 2 },
+        { url: "/images/premium_03_cucina_moderna.jpg", tipo: "foto", ordine: 3 },
+        { url: "/images/rendering_03_master_bedroom_legno.jpg", tipo: "foto", ordine: 4 },
+      ],
+      dataPubblicazione: "2026-04-12T09:00:00Z",
+      dataAggiornamento: "2026-06-20T15:30:00Z",
+    },
+    {
+      codice: "DT-1088",
+      riferimento: "RIF. 1088",
+      titolo: "Trilocale luminoso ristrutturato",
+      descrizione:
+        "Un trilocale che non chiede nulla: ristrutturato di recente con materiali di qualità e una distribuzione intelligente degli spazi. Soggiorno luminoso, due camere e doppi servizi. Ideale come prima casa o investimento.",
+      prezzo: "245.000",
+      tipologia: "Appartamento",
+      contratto: "vendita",
+      localita: {
+        comune: "Venegono Superiore",
+        provincia: "VA",
+      },
+      mq: 95,
+      locali: 3,
+      camere: 2,
+      bagni: 2,
+      piano: 2,
+      classeEnergetica: "C",
+      caratteristiche: [
+        "Soggiorno open space",
+        "Doppi servizi",
+        "Cantina e ripostiglio",
+        "Infissi a taglio termico",
+        "Riscaldamento autonomo",
+        "Virtual tour disponibile",
+        "Open Domus in programma",
+      ],
+      statoPubblicazione: "published",
+      media: [
+        { url: "/images/premium_01_living_tv_divano.jpg", tipo: "foto", ordine: 1 },
+        { url: "/images/rendering_01_living_divano_grigio.jpg", tipo: "foto", ordine: 2 },
+        { url: "/images/rendering_02_bedroom_minimal.jpg", tipo: "foto", ordine: 3 },
+        { url: "/images/rendering_05_bagno_after.jpg", tipo: "foto", ordine: 4 },
+      ],
+      dataPubblicazione: "2026-05-03T08:00:00Z",
+      dataAggiornamento: "2026-06-28T10:15:00Z",
+    },
+    {
+      codice: "DT-1102",
+      riferimento: "RIF. 1102",
+      titolo: "Villa moderna con giardino",
+      descrizione:
+        "Una villa pensata per la famiglia: zona giorno generosa affacciata sul giardino, quattro camere e tre bagni. Spazi esterni con privacy e luce in ogni stagione. Soluzione indipendente con ampi parcheggi.",
+      prezzo: 590000,
+      tipologia: "Villa",
+      contratto: "vendita",
+      localita: {
+        comune: "Castiglione Olona",
+        provincia: "VA",
+      },
+      mq: 210,
+      locali: 5,
+      camere: 4,
+      bagni: 3,
+      piano: "Su due livelli",
+      classeEnergetica: "A",
+      caratteristiche: [
+        "Giardino privato 400 m²",
+        "Zona giorno open space",
+        "Quattro camere matrimoniali",
+        "Taverna e lavanderia",
+        "Doppio box auto",
+        "Impianto fotovoltaico",
+        "In esclusiva",
+      ],
+      statoPubblicazione: "published",
+      media: [
+        { url: "/images/premium_04_living_libreria.jpg", tipo: "foto", ordine: 1 },
+        { url: "/images/premium_05_living_accenti_senape.jpg", tipo: "foto", ordine: 2 },
+        { url: "/images/hero_03_attico_dining_living.jpg", tipo: "foto", ordine: 3 },
+        { url: "/images/rendering_04_camera_luce_naturale.jpg", tipo: "foto", ordine: 4 },
+      ],
+      dataPubblicazione: "2026-05-18T07:30:00Z",
+      dataAggiornamento: "2026-06-15T12:00:00Z",
+    },
+    {
+      codice: "DT-1119",
+      riferimento: "RIF. 1119",
+      titolo: "Bilocale luminoso con balcone",
+      descrizione:
+        "Un bilocale efficiente e luminoso, con soggiorno affacciato sul balcone e camera matrimoniale. Spazi ottimizzati e facili da personalizzare, in palazzina ordinata e ben tenuta.",
+      prezzo: 165000,
+      tipologia: "Appartamento",
+      contratto: "vendita",
+      localita: {
+        comune: "Vedano Olona",
+        provincia: "VA",
+      },
+      mq: 62,
+      locali: 2,
+      camere: 1,
+      bagni: 1,
+      piano: 1,
+      classeEnergetica: "B",
+      caratteristiche: [
+        "Balcone abitabile",
+        "Camera matrimoniale",
+        "Cantina di proprietà",
+        "Basse spese condominiali",
+        "Documenti verificati",
+      ],
+      // Esempio di annuncio sotto proposta: il sito deriverà il badge "Sotto proposta".
+      statoPubblicazione: "reserved",
+      media: [
+        { url: "/images/rendering_01_living_divano_grigio.jpg", tipo: "foto", ordine: 1 },
+        { url: "/images/rendering_02_bedroom_minimal.jpg", tipo: "foto", ordine: 2 },
+        { url: "/images/rendering_05_bagno_after.jpg", tipo: "foto", ordine: 3 },
+      ],
+      dataPubblicazione: "2026-03-22T09:45:00Z",
+      dataAggiornamento: "2026-06-30T16:20:00Z",
+    },
+    {
+      codice: "DT-1125",
+      riferimento: "RIF. 1125",
+      titolo: "Quadrilocale con vista aperta",
+      descrizione:
+        "Quadrilocale spazioso e luminoso, con tripla esposizione e una vista aperta sul verde. Zona giorno ampia, tre camere e doppi servizi. Soluzione ideale per famiglie che cercano spazio e luce.",
+      // Prezzo assente di proposito: il sito mostrerà "Prezzo su richiesta".
+      tipologia: "Appartamento",
+      contratto: "vendita",
+      localita: {
+        comune: "Lonate Ceppino",
+        provincia: "VA",
+      },
+      mq: 118,
+      locali: 4,
+      camere: 3,
+      bagni: 2,
+      piano: 3,
+      classeEnergetica: "B",
+      caratteristiche: [
+        "Terrazzo panoramico",
+        "Tripla esposizione",
+        "Tre camere",
+        "Doppi servizi",
+        "Box e posto auto",
+        "Open Domus in programma",
+      ],
+      statoPubblicazione: "published",
+      media: [
+        { url: "/images/premium_05_living_accenti_senape.jpg", tipo: "foto", ordine: 1 },
+        { url: "/images/premium_02_living_dining_piante.jpg", tipo: "foto", ordine: 2 },
+        // Media senza ordine esplicito: la normalizzazione lo mette in coda.
+        { url: "/images/rendering_04_camera_luce_naturale.jpg", tipo: "foto" },
+        // Planimetria: esclusa dalla gallery foto del sito.
+        { url: "/images/before_after_02_living_after.jpg", tipo: "planimetria", ordine: 9 },
+      ],
+      dataPubblicazione: "2026-06-01T08:00:00Z",
+      dataAggiornamento: "2026-06-25T11:10:00Z",
+    },
+    {
+      codice: "DT-1131",
+      riferimento: "RIF. 1131",
+      titolo: "Attico con zona pranzo conviviale",
+      descrizione:
+        "Un attico che fa della convivialità il suo punto di forza: zona pranzo ampia aperta sul living, perfetta per ricevere. Tre camere e due bagni. Finiture curate e luminosità in ogni ambiente.",
+      prezzo: 465000,
+      tipologia: "Attico",
+      contratto: "vendita",
+      localita: {
+        comune: "Tradate",
+        provincia: "VA",
+      },
+      mq: 160,
+      locali: 5,
+      camere: 3,
+      bagni: 2,
+      piano: "Attico",
+      classeEnergetica: "A",
+      caratteristiche: [
+        "Living a doppia altezza",
+        "Grande zona pranzo",
+        "Tre camere",
+        "Terrazzo",
+        "Cantina e box",
+        "In esclusiva",
+        "Virtual tour disponibile",
+      ],
+      statoPubblicazione: "published",
+      media: [
+        { url: "/images/hero_03_attico_dining_living.jpg", tipo: "foto", ordine: 1 },
+        { url: "/images/hero_04_living_moderno_bianco.jpg", tipo: "foto", ordine: 2 },
+        { url: "/images/premium_03_cucina_moderna.jpg", tipo: "foto", ordine: 3 },
+      ],
+      dataPubblicazione: "2026-04-28T09:20:00Z",
+      dataAggiornamento: "2026-06-18T14:00:00Z",
+    },
+  ];
+}

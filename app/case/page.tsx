@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
-import CaseExplorer from "../components/CaseExplorer";
+import PropertySearch from "../components/PropertySearch";
 import Contact from "../components/Contact";
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export default function CasePage() {
           primary={{ label: "Cerca con noi", href: "#contatti" }}
           secondary={{ label: "Parla con un consulente", href: "/contatti" }}
         />
-        <CaseExplorer />
+        <PropertySearch />
         <Contact />
       </main>
       <Footer />

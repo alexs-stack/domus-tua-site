@@ -1,5 +1,6 @@
 import { Logo } from "./Logo";
 import { Phone, Whatsapp, Mail, Pin, Instagram, Facebook, TikTok, YouTube } from "./Icons";
+import { SegnoDomus } from "./BrandMotif";
 import { nav, site } from "../lib/site";
 
 const socials = [
@@ -17,7 +18,8 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Logo light />
-            <p className="mt-6 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
+            <SegnoDomus className="mt-6 h-5 w-14" embrace={false} />
+            <p className="mt-4 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
               Con Domus Tua è facile vendere ed è sicuro acquistare.
             </p>
             <div className="mt-7 flex flex-col gap-3 text-sm text-cream/70">
@@ -107,9 +109,9 @@ export default function Footer() {
             © {new Date().getFullYear()} {site.legal} · P.IVA {site.vat}
           </p>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-cream">Privacy</a>
-            <a href="#" className="hover:text-cream">Cookie</a>
-            <a href="#contatti" className="hover:text-cream">Contatti</a>
+            <a href="/privacy" className="hover:text-cream">Privacy</a>
+            <a href="/cookie" className="hover:text-cream">Cookie</a>
+            <a href="/contatti" className="hover:text-cream">Contatti</a>
           </div>
         </div>
       </div>

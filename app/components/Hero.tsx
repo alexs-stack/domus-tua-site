@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowUpRight, ArrowRight, Star } from "./Icons";
+import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import WordReveal from "./WordReveal";
 import Reveal from "./Reveal";
@@ -9,6 +9,12 @@ const trust = [
   "Documenti verificati",
   "Assistenza fino al rogito",
 ];
+
+// Video-ready: metti un file in /public/videos/hero.mp4 (o .webm) e imposta qui il path
+// per far partire una clip nel riquadro (poster = foto di Raffaela come fallback).
+// Consigliato: 15-35s, mp4/webm, Raffaella/team/Open Domus/visite/momenti clienti.
+// NB: quando attivi il video, valuta di mettere Hero come client per fermarlo su prefers-reduced-motion.
+const heroVideo = "";
 
 export default function Hero() {
   return (
@@ -91,15 +97,43 @@ export default function Hero() {
           <div className="relative">
             <div className="rounded-[2.2rem] border border-line bg-paper p-2 shadow-[0_50px_100px_-60px_rgba(26,24,22,0.6)]">
               <div className="relative aspect-[4/5] overflow-hidden rounded-[calc(2.2rem-0.5rem)] sm:aspect-[5/5]">
-                <Image
-                  src="/images/reali/raffaela-ritratto.jpg"
-                  alt="Raffaela Rizza, fondatrice di Domus Tua, nella sede di Tradate"
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 560px"
-                  className="object-cover"
-                  style={{ objectPosition: "52% 22%" }}
-                />
+                {heroVideo ? (
+                  <video
+                    className="h-full w-full object-cover"
+                    style={{ objectPosition: "52% 22%" }}
+                    poster="/images/reali/raffaela-ritratto.jpg"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  >
+                    <source src={heroVideo} />
+                  </video>
+                ) : (
+                  <Image
+                    src="/images/reali/raffaela-ritratto.jpg"
+                    alt="Raffaela Rizza, fondatrice di Domus Tua, nella sede di Tradate"
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 560px"
+                    className="object-cover"
+                    style={{ objectPosition: "52% 22%" }}
+                  />
+                )}
+                {/* affordance video */}
+                <a
+                  href="https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Guarda i video di Domus Tua"
+                  className="group/vid absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-paper/90 py-1.5 pl-1.5 pr-3.5 text-[0.78rem] font-semibold text-ink shadow-[0_10px_30px_-12px_rgba(26,24,22,0.6)] backdrop-blur-sm transition-colors hover:text-red"
+                >
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover/vid:scale-110">
+                    <Play className="h-3 w-3" />
+                  </span>
+                  Guarda i video
+                </a>
               </div>
             </div>
 

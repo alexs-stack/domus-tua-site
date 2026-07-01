@@ -5,7 +5,7 @@ import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
-import Listings from "../components/Listings";
+import PropertySearch from "../components/PropertySearch";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
@@ -97,7 +97,7 @@ export default function AcquistaPage() {
           rows={buySteps}
         />
 
-        <Listings />
+        <PropertySearch />
         <FeaturedTestimonial
           quote="Ci siamo sentiti accompagnati in ogni passaggio, fino al rogito. Informazioni chiare e trasparenza totale: abbiamo scelto senza ansie."
           author="Cliente Domus Tua"
