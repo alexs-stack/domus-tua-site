@@ -395,7 +395,10 @@ export default function Contact() {
                 </p>
               ) : (
                 <p className="text-center text-[0.72rem] text-stone">
-                  {c.gdpr}
+                  {c.gdpr}{" "}
+                  <a href="/privacy" className="underline underline-offset-2 hover:text-ink">
+                    Privacy
+                  </a>
                 </p>
               )}
             </form>

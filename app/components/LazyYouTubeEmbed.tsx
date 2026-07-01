@@ -15,9 +15,8 @@ type Props = {
 export default function LazyYouTubeEmbed({ id, title }: Props) {
   const [active, setActive] = useState(false);
 
-  // La thumbnail arriva da i.ytimg.com, host non incluso nei remotePatterns del
-  // progetto: `unoptimized` la serve così com'è (niente 400 dall'Image Optimizer),
-  // mantenendo comunque next/image con fill + sizes.
+  // La thumbnail arriva da i.ytimg.com (host abilitato nei remotePatterns di next.config):
+  // next/image la ottimizza (avif/webp) con fill + sizes.
   const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   const embed = `https://www.youtube.com/embed/${id}?autoplay=1`;
 
@@ -43,7 +42,6 @@ export default function LazyYouTubeEmbed({ id, title }: Props) {
             src={thumb}
             alt={title}
             fill
-            unoptimized
             sizes="(max-width:768px) 100vw, (max-width:1240px) 60vw, 720px"
             className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
           />
