@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
-import PageHero from "../components/PageHero";
-import PropertySearch from "../components/PropertySearch";
-import Contact from "../components/Contact";
+import CaseContent from "./CaseContent";
 import { getVisibleListings } from "../lib/listings";
 
 export const metadata: Metadata = {
@@ -19,23 +17,7 @@ export default async function CasePage() {
     <>
       <Header />
       <main className="flex-1">
-        <PageHero
-          eyebrow="Le nostre case"
-          title={
-            <>
-              Case selezionate,
-              <br />
-              <span className="text-red-soft">raccontate con cura.</span>
-            </>
-          }
-          subcopy="Ogni immobile è verificato, preparato e raccontato con materiali professionali. Trova la casa giusta, con tutte le informazioni che contano."
-          image="/images/premium_04_living_libreria.jpg"
-          alt="Living elegante con libreria"
-          primary={{ label: "Cerca con noi", href: "#contatti" }}
-          secondary={{ label: "Parla con un consulente", href: "/contatti" }}
-        />
-        <PropertySearch properties={listings} />
-        <Contact />
+        <CaseContent properties={listings} />
       </main>
       <Footer />
       <WhatsAppFloat />

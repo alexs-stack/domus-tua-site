@@ -1,17 +1,112 @@
+"use client";
+
 import Image from "next/image";
 import Reveal from "./Reveal";
 import { ArrowUpRight, Check, Play } from "./Icons";
+import { useLocale } from "./i18n/LocaleProvider";
 
-const benefits = [
-  "Immobile preparato e valorizzato prima dell'evento",
-  "Materiali informativi e documentazione disponibili",
-  "Acquirenti più consapevoli e prequalificati",
-  "Visite organizzate, ordinate e senza caos",
-  "Feedback raccolti per migliorare la strategia",
-  "Possibilità di proposta più rapida e concreta",
-];
+const copy = {
+  it: {
+    eyebrow: "Asset proprietario",
+    title: "Open Domus: un’esperienza preparata per vendere meglio.",
+    intro:
+      "Un format evoluto di visita che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la classica visita in un momento più consapevole, ordinato e professionale, per chi vende e per chi cerca casa.",
+    benefits: [
+      "Immobile preparato e valorizzato prima dell'evento",
+      "Materiali informativi e documentazione disponibili",
+      "Acquirenti più consapevoli e prequalificati",
+      "Visite organizzate, ordinate e senza caos",
+      "Feedback raccolti per migliorare la strategia",
+      "Possibilità di proposta più rapida e concreta",
+    ],
+    cta: "Scopri Open Domus",
+    cardTitle: "Venduta al primo Open Domus.",
+    cardText: "La storia vera di Teresa, raccontata da lei.",
+    videoAria: "Guarda la storia di Teresa, venduta al primo Open Domus",
+    imageAlt: "Raffaela Rizza con Teresa, cliente che ha venduto al primo Open Domus",
+  },
+  en: {
+    eyebrow: "Proprietary asset",
+    title: "Open Domus: an experience designed to sell better.",
+    intro:
+      "An evolved viewing format that combines preparation, hospitality, documentation and pre-qualification. It turns the classic viewing into a more considered, orderly and professional moment, for those who are selling and those who are looking for a home.",
+    benefits: [
+      "Property prepared and enhanced ahead of the event",
+      "Informational materials and documentation available",
+      "More informed and pre-qualified buyers",
+      "Viewings organised, orderly and free of chaos",
+      "Feedback collected to refine the strategy",
+      "Room for a faster, more concrete offer",
+    ],
+    cta: "Discover Open Domus",
+    cardTitle: "Sold at the very first Open Domus.",
+    cardText: "Teresa's true story, told in her own words.",
+    videoAria: "Watch Teresa's story, sold at the first Open Domus",
+    imageAlt: "Raffaela Rizza with Teresa, the client who sold at the first Open Domus",
+  },
+  fr: {
+    eyebrow: "Atout exclusif",
+    title: "Open Domus : une expérience pensée pour mieux vendre.",
+    intro:
+      "Un format de visite évolué qui allie préparation, accueil, documentation et préqualification. Il transforme la visite classique en un moment plus réfléchi, ordonné et professionnel, pour ceux qui vendent comme pour ceux qui cherchent un logement.",
+    benefits: [
+      "Bien immobilier préparé et valorisé avant l'événement",
+      "Supports d'information et documentation disponibles",
+      "Des acquéreurs plus avertis et préqualifiés",
+      "Visites organisées, ordonnées et sans chaos",
+      "Retours recueillis pour affiner la stratégie",
+      "La possibilité d'une offre plus rapide et concrète",
+    ],
+    cta: "Découvrir Open Domus",
+    cardTitle: "Vendue dès le premier Open Domus.",
+    cardText: "La véritable histoire de Teresa, racontée par elle-même.",
+    videoAria: "Regardez l'histoire de Teresa, vendue au premier Open Domus",
+    imageAlt: "Raffaela Rizza avec Teresa, la cliente qui a vendu au premier Open Domus",
+  },
+  de: {
+    eyebrow: "Exklusiver Vorteil",
+    title: "Open Domus: ein Erlebnis, das auf besseren Verkauf ausgelegt ist.",
+    intro:
+      "Ein weiterentwickeltes Besichtigungsformat, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die klassische Besichtigung in einen bewussteren, geordneteren und professionelleren Moment – für alle, die verkaufen, und für alle, die ein Zuhause suchen.",
+    benefits: [
+      "Immobilie vor dem Termin vorbereitet und aufgewertet",
+      "Informationsmaterial und Unterlagen verfügbar",
+      "Bewusstere und vorqualifizierte Käufer",
+      "Besichtigungen organisiert, geordnet und ohne Chaos",
+      "Feedback gesammelt, um die Strategie zu verbessern",
+      "Möglichkeit für ein schnelleres, konkreteres Angebot",
+    ],
+    cta: "Open Domus entdecken",
+    cardTitle: "Beim ersten Open Domus verkauft.",
+    cardText: "Die wahre Geschichte von Teresa, von ihr selbst erzählt.",
+    videoAria: "Sehen Sie die Geschichte von Teresa, verkauft beim ersten Open Domus",
+    imageAlt: "Raffaela Rizza mit Teresa, der Kundin, die beim ersten Open Domus verkauft hat",
+  },
+  es: {
+    eyebrow: "Activo exclusivo",
+    title: "Open Domus: una experiencia preparada para vender mejor.",
+    intro:
+      "Un formato de visita evolucionado que combina preparación, acogida, documentación y precualificación. Transforma la visita clásica en un momento más consciente, ordenado y profesional, para quien vende y para quien busca casa.",
+    benefits: [
+      "Inmueble preparado y revalorizado antes del evento",
+      "Materiales informativos y documentación disponibles",
+      "Compradores más conscientes y precualificados",
+      "Visitas organizadas, ordenadas y sin caos",
+      "Comentarios recogidos para mejorar la estrategia",
+      "Posibilidad de una propuesta más rápida y concreta",
+    ],
+    cta: "Descubre Open Domus",
+    cardTitle: "Vendida en el primer Open Domus.",
+    cardText: "La historia real de Teresa, contada por ella misma.",
+    videoAria: "Mira la historia de Teresa, vendida en el primer Open Domus",
+    imageAlt: "Raffaela Rizza con Teresa, la clienta que vendió en el primer Open Domus",
+  },
+};
 
 export default function OpenDomus() {
+  const { locale } = useLocale();
+  const c = copy[locale];
+
   return (
     <section id="open-domus" className="bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
@@ -23,12 +118,12 @@ export default function OpenDomus() {
                 href="https://www.youtube.com/watch?v=gYePYQHNTUM"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Guarda la storia di Teresa, venduta al primo Open Domus"
+                aria-label={c.videoAria}
                 className="group relative block aspect-[4/5] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[5/5]"
               >
                 <Image
                   src="/images/reali/open-domus-teresa.jpg"
-                  alt="Raffaela Rizza con Teresa, cliente che ha venduto al primo Open Domus"
+                  alt={c.imageAlt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 600px"
                   className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
@@ -40,9 +135,9 @@ export default function OpenDomus() {
               </a>
               {/* card flottante */}
               <div className="absolute -bottom-5 left-5 right-5 rounded-2xl border border-line bg-paper px-5 py-4 shadow-[0_30px_60px_-40px_rgba(26,24,22,0.6)] sm:left-auto sm:right-6 sm:w-64">
-                <p className="font-display text-lg font-medium text-ink">Venduta al primo Open Domus.</p>
+                <p className="font-display text-lg font-medium text-ink">{c.cardTitle}</p>
                 <p className="mt-1 text-sm text-stone">
-                  La storia vera di Teresa, raccontata da lei.
+                  {c.cardText}
                 </p>
               </div>
             </div>
@@ -50,18 +145,16 @@ export default function OpenDomus() {
 
           {/* Content */}
           <Reveal className="order-1 lg:order-2" delay={100}>
-            <span className="eyebrow">Asset proprietario</span>
+            <span className="eyebrow">{c.eyebrow}</span>
             <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-              Open Domus: un’esperienza preparata per vendere meglio.
+              {c.title}
             </h2>
             <p className="mt-6 max-w-lg text-[1.02rem] leading-relaxed text-stone">
-              Un format evoluto di visita che unisce preparazione, accoglienza, documentazione e
-              prequalifica. Trasforma la classica visita in un momento più consapevole, ordinato e
-              professionale, per chi vende e per chi cerca casa.
+              {c.intro}
             </p>
 
             <ul className="mt-8 grid gap-x-6 gap-y-4 sm:grid-cols-2">
-              {benefits.map((b) => (
+              {c.benefits.map((b) => (
                 <li key={b} className="flex items-start gap-3 text-[0.92rem] text-graphite">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
                     <Check className="h-3 w-3" />
@@ -75,7 +168,7 @@ export default function OpenDomus() {
               href="#contatti"
               className="group mt-10 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
             >
-              Scopri Open Domus
+              {c.cta}
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                 <ArrowUpRight className="h-4 w-4" />
               </span>
