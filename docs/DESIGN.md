@@ -155,3 +155,24 @@ estratti in primitive riutilizzabili, senza cambiare l'aspetto:
 
 Nota: non introdurre dipendenze nuove; queste primitive vanno costruite con Tailwind v4 e i token
 già definiti in `globals.css`.
+
+## Primitive implementate (`app/components/primitives/`)
+
+Disponibili e pronte all'uso (codificano i pattern esistenti, nessun cambio visivo all'adozione):
+
+- **`Container`** — `mx-auto max-w-[1240px] px-5 sm:px-8`.
+- **`Section`** — `<section>` + `Container`; props `tone` (`paper`/`cream`/`cream-deep`/`ink`),
+  `spacing` (`normal` = `py-24 sm:py-32`, `compact` = `py-16 sm:py-20`), `id`.
+- **`Button`** — props `variant` (`primary`/`outline`/`dark`), `size` (`sm`/`md`), `icon`
+  (cerchietto button-in-button); rende `<a>` se c'è `href`, altrimenti `<button>`.
+- **`Card`** — superficie `rounded-[2rem] border-line`, `tone`, `padded`.
+- **`Badge`** — pill `variant` (`onImage`/`soft`/`outline`).
+
+Adozione di riferimento: `PropertyCard` usa `Badge variant="onImage"`. La migrazione dei restanti
+componenti (Paths, Contact, Services, ecc.) va fatta in modo incrementale con QA visivo, per evitare
+regressioni sull'UI già rifinita.
+
+## Il Segno Domus (elemento differenziante)
+
+Vedi `docs/brand-motif.md`. Implementato in `app/components/BrandMotif.tsx` (`SegnoDomus`,
+`MotifCorner`) e `SectionDivider.tsx`. Presente nel footer e nei divisori di sezione della home.

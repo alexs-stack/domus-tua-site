@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ArrowUpRight, Bed, Ruler, Rooms } from "./Icons";
+import Badge from "./primitives/Badge";
 import type { Property } from "../lib/properties";
 
 export default function PropertyCard({ p }: { p: Property }) {
@@ -18,12 +19,9 @@ export default function PropertyCard({ p }: { p: Property }) {
         />
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           {p.badges.map((b) => (
-            <span
-              key={b}
-              className="rounded-full bg-paper/95 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]"
-            >
+            <Badge key={b} variant="onImage">
               {b}
-            </span>
+            </Badge>
           ))}
         </div>
       </div>
