@@ -1,0 +1,294 @@
+@import "tailwindcss";
+
+/* ============================================================
+   DOMUS TUA — DESIGN SYSTEM
+   Editorial Luxury × fiducia locale. Palette: rosso / grigio / bianco caldo.
+   No oro, no blu. Serif Fraunces (display) + Plus Jakarta Sans (UI).
+   ============================================================ */
+
+@theme inline {
+  /* Brand */
+  --color-red: #d20a0a;
+  --color-red-dark: #a30707;
+  --color-red-soft: #fbeaea;
+
+  /* Neutrals — warm */
+  --color-ink: #1a1816;
+  --color-graphite: #46423d;
+  --color-stone: #6b665f;
+  --color-line: #e7e2da;
+  --color-cream: #faf7f1;
+  --color-cream-deep: #f3eee5;
+  --color-paper: #fffdfa;
+
+  /* Fonts (provided by next/font on <body>) */
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-jakarta);
+
+  /* Motion */
+  --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  --background: #fffdfa;
+  --foreground: #1a1816;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+/* Focus visibile coerente col brand (a11y) */
+:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+/* Su superfici scure, anello chiaro per contrasto */
+.bg-ink :focus-visible,
+.text-cream :focus-visible {
+  outline-color: var(--color-red-soft);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* clip: niente scroll orizzontale, senza creare uno scroll container */
+  overflow-x: clip;
+}
+
+:where([id]) {
+  scroll-margin-top: 6.5rem;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv01";
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-red);
+  color: #fff;
+}
+
+/* ---------- Typography helpers ---------- */
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-red);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.eyebrow--center::before {
+  display: none;
+}
+
+/* Variante per sezioni scure (definita dopo .eyebrow → vince per ordine sorgente) */
+.eyebrow-light {
+  color: var(--color-red-soft);
+}
+
+/* Balanced headings */
+.balance {
+  text-wrap: balance;
+}
+
+/* ---------- Film grain (fixed, perf-safe) ---------- */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Scroll reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(2.5rem);
+  filter: blur(6px);
+  transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo),
+    filter 0.9s var(--ease-out-expo);
+  will-change: transform, opacity;
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  /* Ferma animazioni continue e scroll-driven */
+  .marquee-track,
+  .ken-burns,
+  .scroll-progress,
+  .hero-parallax {
+    animation: none !important;
+  }
+  /* Titoli e contenuti restano visibili senza movimento */
+  .word-reveal .w {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Cifre tabellari per prezzi, statistiche, dati */
+.tnum {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---------- Word reveal (titoli editoriali) ---------- */
+.word-reveal .w {
+  display: inline-block;
+  margin-right: 0.26em;
+  transform: translateY(0.5em);
+  opacity: 0;
+  transition: transform 0.85s var(--ease-out-expo), opacity 0.85s var(--ease-out-expo);
+  will-change: transform, opacity;
+}
+.word-reveal.is-in .w {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ---------- Barra di progresso scroll (scroll-driven, progressive) ---------- */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2.5px;
+  z-index: 70;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--color-red-dark), var(--color-red));
+}
+@keyframes dt-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes dt-hero-rise {
+  to {
+    transform: translateY(-8%);
+    opacity: 0.55;
+  }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-progress {
+      animation: dt-progress linear both;
+      animation-timeline: scroll(root);
+    }
+    .hero-parallax {
+      animation: dt-hero-rise linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+  }
+}
+
+/* ---------- Marquee ---------- */
+@keyframes dt-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: dt-marquee 38s linear infinite;
+}
+
+/* ---------- Subtle float ---------- */
+@keyframes dt-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- Ken Burns cinematografico (hero) ---------- */
+@keyframes dt-kenburns {
+  from {
+    transform: scale(1.06) translateY(0);
+  }
+  to {
+    transform: scale(1.14) translateY(-1.5%);
+  }
+}
+.ken-burns {
+  animation: dt-kenburns 18s var(--ease-out-expo) forwards;
+  transform-origin: 60% 40%;
+  will-change: transform;
+}
+
+/* Indicatore di scroll */
+@keyframes dt-scrollcue {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+
+/* ---------- Utility: hairline ---------- */
+.hairline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-line) 18%,
+    var(--color-line) 82%,
+    transparent
+  );
+  height: 1px;
+}
