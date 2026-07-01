@@ -1,5 +1,5 @@
 import Header from "./components/Header";
-import Hero from "./components/Hero";
+import HeroCinematic from "./components/HeroCinematic";
 import HomeSearchGateway from "./components/HomeSearchGateway";
 import Stats from "./components/Stats";
 import Authority from "./components/Authority";
@@ -25,7 +25,7 @@ export default function Home() {
     <>
       <Header />
       <main className="flex-1">
-        <Hero />
+        <HeroCinematic />
         <HomeSearchGateway />
         <Stats />
         <Authority />

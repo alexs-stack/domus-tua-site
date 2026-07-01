@@ -68,6 +68,12 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 - **Form contatti**: ora apre WhatsApp precompilato (nessun backend). Da collegare a email/CRM.
 - **Orari** in footer: placeholder plausibili, da confermare.
 
+## Documentazione
+
+| Doc | Contenuto |
+|---|---|
+| [docs/logo-assets.md](docs/logo-assets.md) | **Logo ufficiale** (original-first): file richiesti, dimensioni, sfondo trasparente, varianti, favicon. *Non ridisegnare il logo in MVP.* |
+
 ## Prossimi passi (dal brief)
 
 Pagine MVP successive: Vendi, Acquista, Metodo, Open Domus, Servizi, Listing/Scheda immobile, Recensioni, Chi siamo, Contatti. I componenti sono pensati per essere riusati su queste pagine.

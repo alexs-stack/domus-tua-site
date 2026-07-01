@@ -15,3 +15,18 @@ export const heroMedia = {
   posterAlt: "Raffaela Rizza, fondatrice di Domus Tua, nella sede di Tradate",
   youtube: "https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE",
 } as const;
+
+// Hero CINEMATICO full-bleed (HeroCinematic.tsx). Vedi docs/hero-video.md.
+// Il video parte solo su desktop e senza prefers-reduced-motion; se i file /media mancano
+// o il video fallisce, resta il `base` (foto reale di Raffaella + team) come poster.
+// Per andare "live": metti i file in /public/media e imposta enabled: true.
+export const heroCinematic = {
+  enabled: false,
+  mp4: "/media/domus-hero.mp4",
+  webm: "/media/domus-hero.webm",
+  poster: "/media/domus-hero-poster.jpg",
+  // Fallback sempre presente: fondatrice + team (foto reale già in repo).
+  base: "/images/reali/raffaela-team-sede.jpg",
+  baseAlt: "Raffaela Rizza e il team Domus Tua nella sede di Tradate",
+  youtube: "https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE",
+} as const;

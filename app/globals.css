@@ -311,6 +311,20 @@ body {
   }
 }
 
+/* Disegno "al passaggio": la linea-tetto si ridisegna in hover (divisori, badge) */
+@media (prefers-reduced-motion: no-preference) {
+  .segno-hover-draw path:first-child {
+    stroke-dasharray: 120;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.7s var(--ease-out-expo);
+  }
+  .group:hover .segno-hover-draw path:first-child,
+  .segno-hover-draw:hover path:first-child {
+    stroke-dashoffset: 120;
+    animation: dt-segno-draw 0.9s var(--ease-out-expo) forwards;
+  }
+}
+
 /* ---------- Utility: hairline ---------- */
 .hairline {
   background: linear-gradient(

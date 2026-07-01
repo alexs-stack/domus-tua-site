@@ -1,173 +1,69 @@
-# Logo — asset ufficiali e sostituzione
+# Logo — asset ufficiali (ORIGINAL-FIRST)
 
-Oggi il sito usa un logo **ricostruito in codice** (SVG inline) dentro
-`app/components/Logo.tsx`: un mark "tetto + cuore" e un wordmark "Domus" (grafite) + "Tua"
-(rosso) con payoff "IMMOBILIARE". Funziona ed è on-brand, ma **non è il logo ufficiale del
-cliente**. Questa guida spiega cosa chiedere al cliente e come sostituirlo senza rischi.
-
----
-
-## 1. Regola per l'MVP: NON ridisegnare il logo
-
-**In fase MVP non si reinventa né si "migliora" il logo.** Il mark attuale è una resa
-fedele-ma-approssimata, pensata per non lasciare buchi in attesa dell'asset vero. Non va
-usato come identità definitiva.
-
-- ❌ Non creare varianti nuove del simbolo.
-- ❌ Non cambiare proporzioni, font o colori "a occhio".
-- ✅ Chiedere al cliente il **file originale del logo** e sostituirlo 1:1.
-
-I colori attuali sono corretti e **vanno mantenuti**: grafite per "Domus", rosso per
-"Tua", stone per il payoff. Sono già i token del design system (`--color-graphite`,
-`--color-red`, `--color-stone`) e coerenti con il brand rosso/grigio/bianco caldo (niente
-oro/blu/nero). Se l'asset ufficiale del cliente arriva con colori leggermente diversi,
-allinearsi ai suoi valori originali ma restando dentro la palette del brand.
+> **Direttiva cliente (non negoziabile): NON ridisegnare il logo in MVP.**
+> Il logo ufficiale Domus Tua è già usato su tutti i materiali del cliente e deve restare
+> l'identità del sito. Il codice è già configurato per usarlo come **default**: basta
+> depositare i file in `/public`.
 
 ---
 
-## 2. Cosa chiedere al cliente
+## 1. File richiesti dal cliente
 
-Richiedere a Domus Tua (Raffaella / referente) il **logo originale**, in ordine di
-preferenza:
+Deposita questi file in `public/` con **esattamente** questi nomi (il codice li cerca già):
 
-1. **SVG** — formato ideale per il web: vettoriale, nitido a ogni dimensione, leggero,
-   colori editabili. È quello che useremo.
-2. **PDF vettoriale** — ottimo per far ricavare un SVG pulito.
-3. **AI / EPS** (file sorgente Illustrator) — il master da cui esportare qualsiasi
-   formato.
+| File | Uso | Note |
+|------|-----|------|
+| `public/logo-domustua-original.svg` | Header (su sfondo chiaro) | versione **a colori** |
+| `public/logo-domustua-original-light.svg` | Footer (su sfondo scuro grafite) | versione **chiara/monocromatica** |
+| `public/favicon.ico` | Favicon browser + avatar | multi-size 16/32/48 |
 
-Da chiedere insieme al file:
+Formati, in ordine di preferenza per farci ricavare gli SVG puliti: **SVG** → **PDF vettoriale** → **AI/EPS**. Evitare PNG/JPG come asset primario (raster, sgranano, colore non editabile).
 
-- Versioni disponibili: **a colori**, **monocromatica** (per fondi scuri / stampa), e
-  l'eventuale **solo simbolo** (senza testo) per favicon e usi piccoli.
-- **Codici colore ufficiali** (HEX/RGB per web, eventuale Pantone/CMYK per stampa) per
-  verificare che i nostri token combacino.
-- **Font del wordmark** (nome esatto), se il logo è testo vivo e non tracciato.
-- **Area di rispetto e dimensione minima**, se esiste un manuale/brand book.
+### Requisiti degli asset
 
-> Evitare PNG/JPG del logo come asset primario: sono raster, sgranano se ingranditi e non
-> permettono di cambiare colore. Un PNG ad alta risoluzione va bene solo come ripiego
-> temporaneo, non come soluzione.
+- **Sfondo trasparente** (obbligatorio): niente riquadro bianco/colorato dietro il logo.
+- **Vettoriale** (SVG), testo tracciato *oppure* font incorporato/segnalato.
+- **Due varianti**: chiaro/colore per fondi chiari (header), chiara per fondi scuri (footer).
+- **Solo simbolo** (senza wordmark), se esiste: utile per favicon e usi piccoli.
+- **Codici colore ufficiali** (HEX/RGB, eventuale Pantone/CMYK) per verificare che combacino con i token del brand (`--color-red`, `--color-graphite`, `--color-stone`). Restare dentro la palette rosso/grigio/bianco caldo: **no oro, no blu, no nero luxury**.
 
----
+### Dimensioni
 
-## 3. Dove salvare gli asset
-
-Percorsi consigliati in `public/`:
-
-```
-public/logo-domustua.svg          ← logo completo a colori (principale)
-public/logo-domustua-light.svg    ← versione per fondi scuri (usata nel Footer)
-public/logo-domustua-mark.svg     ← solo simbolo (opzionale: favicon, usi piccoli)
-```
-
-I file in `public/` sono serviti dalla root, quindi si referenziano come
-`/logo-domustua.svg`.
+- Il componente rende il logo a **176 × 42 px** di default (`brand.width`/`brand.height` in `app/lib/brand.ts`). Regolare lì se l'aspect ratio ufficiale è diverso — l'SVG scala nitido comunque.
+- **Favicon**: `favicon.ico` multi-size (almeno 32×32). Opzionale `apple-touch-icon` 180×180.
+- **Avatar social / OG**: quadrato 512×512 dal solo simbolo (vedi anche `og-image` in `docs/` per l'immagine di condivisione 1200×630).
 
 ---
 
-## 4. Dove viene usato il logo oggi
+## 2. Come funziona nel codice (già pronto)
 
-Il componente vive in `app/components/Logo.tsx` ed esporta due funzioni:
-
-- `Logo` — wordmark + mark + payoff (usato in header).
-- `LogoMark` — solo il simbolo.
-
-Punti di utilizzo attuali (da qui in poi tutto passa dal componente, quindi si aggiorna in
-un solo posto):
-
-- `app/components/Header.tsx` → riga 36: `<Logo />`
-- `app/components/Footer.tsx` → riga 20: `<Logo light />` (variante per fondo scuro)
-
-Il prop `light` serve al footer per schiarire testo/payoff su sfondo scuro: la versione
-reale dovrà gestire lo stesso caso (vedi sotto).
+- **`app/lib/brand.ts`** — `useOriginalLogo: true` (default). Contiene i percorsi ufficiali e `favicon`. `showLogoDevPlaceholder` decide quando mostrare il placeholder.
+- **`app/components/Logo.tsx`** — rende `<img>` con l'asset ufficiale (variante `light` per il footer). Se il file **manca** (404):
+  - in **dev/preview** (`NEXT_PUBLIC_PREVIEW_BADGE=true` o sviluppo) mostra un placeholder onesto **“Logo ufficiale mancante”** — mai un logo finto ridisegnato;
+  - in **produzione reale** ripiega su un wordmark testuale minimale (solo il *nome* "Domus Tua", non un mark inventato).
+- **`LogoMark`** (il mark casa+cuore ricostruito in codice) resta esportato **solo come fallback interno di sviluppo**, attivabile con `useOriginalLogo: false`. **Non è il default e non va usato in presentazione cliente.**
+- **`app/layout.tsx`** — `metadata.icons` punta a `/favicon.ico`.
+- **Header/Footer** rendono già `<Logo />` e `<Logo light />`: appena i file sono in `public/`, il logo ufficiale compare ovunque senza altre modifiche.
 
 ---
 
-## 5. Come sostituire il logo con l'asset reale
+## 3. Messa in opera (quando arrivano i file)
 
-L'obiettivo è cambiare **solo** l'interno di `Logo.tsx`, senza toccare Header/Footer né i
-loro layout. Due strade:
-
-### Opzione A — Servire il file SVG del cliente (consigliata)
-
-Sostituisci il contenuto renderizzato dal componente con un `<img>` che punta all'asset
-reale. Manteniamo la stessa firma (`className`, `light`) così i chiamanti non cambiano.
-
-```tsx
-// app/components/Logo.tsx
-export function Logo({
-  className = "",
-  withPayoff = true, // mantenuto per compatibilità con i chiamanti
-  light = false,
-}: {
-  className?: string;
-  withPayoff?: boolean;
-  light?: boolean;
-}) {
-  return (
-    <img
-      src={light ? "/logo-domustua-light.svg" : "/logo-domustua.svg"}
-      alt="Domus Tua Immobiliare"
-      className={`h-11 w-auto ${className}`}
-    />
-  );
-}
-```
-
-Se serve anche il solo simbolo, aggiorna `LogoMark` per puntare a
-`/logo-domustua-mark.svg` con lo stesso schema.
-
-**Attenzione:** con `<img>` i colori del logo sono "cotti" dentro il file SVG del cliente,
-quindi servono davvero due file (a colori + light) per gestire header e footer. Se invece
-il logo deve cambiare colore via CSS, usa l'Opzione B.
-
-### Opzione B — Inline dell'SVG del cliente (colori controllati via token)
-
-Se il cliente fornisce un SVG **pulito** e vogliamo che i colori siano guidati dai nostri
-token (una sola sorgente, niente file "light" separato), incolla i `path` ufficiali
-dentro il JSX al posto di quelli attuali e sostituisci i valori `fill`/`stroke` fissi con
-le CSS variable già in uso:
-
-- `var(--color-graphite)` per la parte grafite del wordmark/simbolo
-- `var(--color-red)` per la parte rossa
-- `var(--color-stone)` per il payoff
-- per la versione `light`, usa i valori chiari già presenti nel componente
-  (`#f3eee5`, `rgba(243,238,229,0.6)`)
-
-Questo mantiene un solo componente che si adatta a fondo chiaro/scuro via prop `light`,
-esattamente come oggi. Richiede però che l'SVG del cliente sia ordinato (path nominati,
-niente gruppi/maschere superflue).
-
-### In entrambi i casi
-
-- **Non modificare** `Header.tsx` e `Footer.tsx`: continuano a chiamare `<Logo />` e
-  `<Logo light />` senza saperne di più.
-- Verifica l'**allineamento verticale** e le dimensioni: il logo attuale è alto ~`h-9`
-  (36px) con payoff sotto. Regola `h-*` finché l'ingombro combacia con quello attuale,
-  così il layout dell'header non "salta".
-- Controlla il logo su **entrambi i fondi** (header chiaro, footer scuro) e su mobile.
+1. Copia i file in `public/` con i nomi esatti della tabella (§1).
+2. Ricarica: header e footer mostrano subito il logo ufficiale; il placeholder sparisce.
+3. Verifica su **fondo chiaro (header)** e **fondo scuro (footer)** + **mobile**.
+4. Se l'aspect ratio è diverso, regola `brand.width`/`brand.height` in `app/lib/brand.ts`.
+5. **Non** modificare `Header.tsx`/`Footer.tsx`.
 
 ---
 
-## 6. Favicon e social (nota per dopo)
+## 4. Checklist consegna
 
-Quando arriva il **solo simbolo** vettoriale, generane anche:
-
-- `app/icon.svg` (o `.png` 512×512) per la favicon/app icon di Next.js
-- l'immagine Open Graph, se si vuole il simbolo nella condivisione social
-
-Non è bloccante per l'MVP, ma va messo a valle della consegna dell'asset ufficiale.
-
----
-
-## 7. Checklist
-
-- [ ] Richiesto al cliente il logo originale (SVG/PDF/AI) + versione mono + solo simbolo
-- [ ] Verificati i codici colore ufficiali contro i token del brand
-- [ ] Salvati gli asset in `public/logo-domustua*.svg`
-- [ ] Aggiornato **solo** `app/components/Logo.tsx` (Opzione A o B)
-- [ ] Mantenuti i colori/palette attuali (grafite/rosso/stone, no oro/blu/nero)
-- [ ] Verificato header (fondo chiaro) e footer (`light`, fondo scuro) + mobile
-- [ ] `Header.tsx` e `Footer.tsx` NON modificati
-- [ ] (Dopo MVP) favicon `app/icon.svg` dal solo simbolo
+- [ ] Ricevuti dal cliente: `logo-domustua-original.svg`, `logo-domustua-original-light.svg`, `favicon.ico`
+- [ ] Sfondo trasparente verificato su tutti i file
+- [ ] Codici colore allineati ai token del brand (rosso/grigio/stone)
+- [ ] File depositati in `public/` con i nomi esatti
+- [ ] Verificato header (chiaro), footer (`light`, scuro), mobile
+- [ ] Favicon visibile nel tab del browser
+- [ ] (Opzionale) solo-simbolo per avatar social/OG 512×512
+- [ ] Confermato: **logo NON ridisegnato** — è l'asset ufficiale del cliente

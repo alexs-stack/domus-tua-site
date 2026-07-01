@@ -29,6 +29,13 @@ export const Star = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const Search = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-3.5-3.5" />
+  </svg>
+);
+
 export const Check = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M4 12.5l5 5 11-11" />

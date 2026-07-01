@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Reveal from "./Reveal";
 import PropertyCard from "./PropertyCard";
 import { ArrowRight } from "./Icons";
@@ -60,10 +60,32 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     features: [],
   });
 
-  const comuni = useMemo(
-    () => ["Tutti", ...Array.from(new Set(properties.map((p) => p.zone.split(",")[0].trim())))],
-    [properties]
-  );
+  // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
+  // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const q = sp.get("q");
+    const type = sp.get("type");
+    const budget = sp.get("budget");
+    const rooms = sp.get("rooms");
+    const comune = sp.get("comune");
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (q) setNl(q);
+    setF((s) => ({
+      ...s,
+      type: type && (types as string[]).includes(type) ? (type as PropertyFilters["type"]) : s.type,
+      maxBudget: budget ? Number(budget) || 0 : s.maxBudget,
+      minRooms: rooms ? Number(rooms) || 0 : s.minRooms,
+      comune: comune || s.comune,
+    }));
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  const comuni = useMemo(() => {
+    const base = ["Tutti", ...Array.from(new Set(properties.map((p) => p.zone.split(",")[0].trim())))];
+    // Include il comune cercato anche se nessun immobile combacia (mostra il blocco "nessun risultato").
+    return base.includes(f.comune) ? base : [...base, f.comune];
+  }, [properties, f.comune]);
 
   const shown = useMemo(() => {
     return properties.filter((p) => {

@@ -42,6 +42,8 @@ export const metadata: Metadata = {
     "Open Domus",
     "home staging",
   ],
+  // Favicon ufficiale del cliente (da depositare in /public/favicon.ico — vedi docs/logo-assets.md).
+  icons: { icon: "/favicon.ico", shortcut: "/favicon.ico", apple: "/favicon.ico" },
   openGraph: {
     type: "website",
     locale: "it_IT",
