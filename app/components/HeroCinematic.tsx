@@ -141,7 +141,7 @@ export default function HeroCinematic() {
       <SegnoDomusVideoFrame />
 
       {/* Contenuto */}
-      <div className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-36 sm:px-8 sm:pb-20">
+      <div className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-36">
         <div className="max-w-3xl">
           <SegnoDomusBadge light className="backdrop-blur-sm">{c.badge}</SegnoDomusBadge>
 

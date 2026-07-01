@@ -83,6 +83,7 @@ export default function Header() {
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Chiudi menu" : "Apri menu"}
             aria-expanded={open}
+            aria-controls="mobile-menu"
             className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink lg:hidden"
           >
             <span className="relative block h-3 w-5">
@@ -103,6 +104,9 @@ export default function Header() {
 
       {/* Mobile overlay */}
       <div
+        id="mobile-menu"
+        aria-hidden={!open}
+        inert={!open ? true : undefined}
         className={`fixed inset-0 z-40 flex flex-col bg-cream/90 px-6 pb-10 pt-28 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] lg:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}

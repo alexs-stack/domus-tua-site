@@ -96,16 +96,16 @@ export default function PropertyCard({ p }: { p: Property }) {
         </h3>
 
         <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.82rem] text-stone">
-          <span className="tnum inline-flex items-center gap-1.5">
+          <span className="tnum inline-flex items-center gap-1.5" aria-label={p.sqm}>
             <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
           </span>
-          <span className="tnum inline-flex items-center gap-1.5">
+          <span className="tnum inline-flex items-center gap-1.5" aria-label={p.rooms}>
             <Rooms className="h-4 w-4 text-graphite" /> {p.rooms}
           </span>
-          <span className="tnum inline-flex items-center gap-1.5">
+          <span className="tnum inline-flex items-center gap-1.5" aria-label={p.beds}>
             <Bed className="h-4 w-4 text-graphite" /> {p.beds}
           </span>
-          <span className="tnum inline-flex items-center gap-1.5">
+          <span className="tnum inline-flex items-center gap-1.5" aria-label={p.baths}>
             <span className="h-1 w-1 rounded-full bg-graphite/50" aria-hidden /> {p.baths}
           </span>
         </div>

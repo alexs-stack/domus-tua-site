@@ -930,6 +930,7 @@ export default function OpenDomusPageContent() {
                       type="button"
                       onClick={() => setOpenFaq(isOpen ? -1 : i)}
                       aria-expanded={isOpen}
+                      aria-controls={`faq-panel-${i}`}
                       className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
                     >
                       <span className="font-display text-lg font-medium leading-snug tracking-tight text-ink">
@@ -944,6 +945,8 @@ export default function OpenDomusPageContent() {
                       </span>
                     </button>
                     <div
+                      id={`faq-panel-${i}`}
+                      aria-hidden={!isOpen}
                       className={`grid transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                         isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
                       }`}

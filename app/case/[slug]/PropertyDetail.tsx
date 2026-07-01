@@ -245,7 +245,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
 
           {/* Sticky card */}
           <aside className="lg:sticky lg:top-28 lg:self-start">
-            <div className="rounded-[2rem] border border-line bg-cream p-7">
+            <div className="rounded-[2rem] border border-line bg-cream p-7 pb-24 sm:pb-7">
               <div className="flex flex-wrap gap-2">
                 {p.badges.map((b) => (
                   <span
