@@ -243,7 +243,7 @@ export default function Reviews() {
               {shown.map((r, i) => (
                 <Reveal key={r.id} delay={(i % 3) * 80} className={i === 0 ? "lg:col-span-2" : ""}>
                   <figure
-                    className={`flex h-full flex-col rounded-[1.75rem] border border-line p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/30 hover:shadow-[0_30px_60px_-30px_rgba(26,24,22,0.35)] ${
+                    className={`flex h-full flex-col rounded-[1.75rem] border border-line p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/30 hover:shadow-[var(--shadow-card-hover)] ${
                       i === 0 ? "bg-cream-deep sm:p-8" : "bg-cream"
                     }`}
                   >

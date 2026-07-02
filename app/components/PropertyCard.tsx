@@ -55,7 +55,7 @@ export default function PropertyCard({ p }: { p: Property }) {
   return (
     <a
       href={`/case/${p.slug}`}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-line bg-paper transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/20 hover:shadow-[0_44px_90px_-52px_rgba(26,24,22,0.55)]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-line bg-paper transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/20 hover:shadow-[var(--shadow-card-hover)]"
     >
       {/* Immagine più grande e curata */}
       <div className="relative aspect-[3/2] overflow-hidden">

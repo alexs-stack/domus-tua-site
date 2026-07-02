@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import PropertyGallery from "../../components/PropertyGallery";
+import PropertyCard from "../../components/PropertyCard";
+import Badge from "../../components/primitives/Badge";
 import Contact from "../../components/Contact";
 import { SegnoDomusBadge, SegnoDomusCorner, SegnoDomusDivider } from "../../components/BrandMotif";
 import { ArrowRight, ArrowUpRight, Check, Whatsapp } from "../../components/Icons";
@@ -248,12 +249,9 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
             <div className="rounded-[2rem] border border-line bg-cream p-7 pb-24 sm:pb-7">
               <div className="flex flex-wrap gap-2">
                 {p.badges.map((b) => (
-                  <span
-                    key={b}
-                    className="rounded-full bg-paper px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-graphite"
-                  >
+                  <Badge key={b} variant="outline">
                     {b}
-                  </span>
+                  </Badge>
                 ))}
               </div>
 
@@ -311,32 +309,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         {relatedItems.length > 0 && (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {relatedItems.map((r) => (
-              <Link
-                key={r.slug}
-                href={`/case/${r.slug}`}
-                className="group flex flex-col overflow-hidden rounded-[1.75rem] border border-line bg-paper transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/20 hover:shadow-[0_36px_70px_-52px_rgba(26,24,22,0.5)]"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={r.cover}
-                    alt={r.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
-                    className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
-                  />
-                </div>
-                <div className="flex flex-1 flex-col p-5">
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-red">
-                    {r.zone}
-                  </p>
-                  <h3 className="mt-1.5 font-display text-lg font-medium leading-tight tracking-tight text-ink">
-                    {r.title}
-                  </h3>
-                  <span className="tnum mt-auto pt-4 font-display text-xl font-medium text-ink">
-                    {r.price}
-                  </span>
-                </div>
-              </Link>
+              <PropertyCard key={r.slug} p={r} />
             ))}
           </div>
         )}

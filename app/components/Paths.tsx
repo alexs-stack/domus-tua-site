@@ -190,7 +190,7 @@ export default function Paths() {
             const t = c.paths[p.id];
             return (
               <Reveal key={p.id} delay={i * 120} id={p.id}>
-                <article className="group h-full rounded-[2rem] border border-line bg-cream p-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-[0_40px_80px_-50px_rgba(26,24,22,0.5)]">
+                <article className="group h-full rounded-[2rem] border border-line bg-cream p-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)]">
                   <a href={p.href}>
                   <div className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)]">
                     <Image

@@ -28,6 +28,16 @@
   /* Motion */
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Radius scale (card surfaces / form fields) */
+  --radius-card: 1.75rem;
+  --radius-card-lg: 2rem;
+  --radius-field: 0.75rem;
+
+  /* Shadow scale — one cohesive elevation ramp (warm ink shadow) */
+  --shadow-card: 0 30px 60px -32px rgba(26, 24, 22, 0.35);
+  --shadow-card-hover: 0 40px 80px -40px rgba(26, 24, 22, 0.45);
+  --shadow-float: 0 40px 90px -48px rgba(26, 24, 22, 0.5);
 }
 
 :root {
