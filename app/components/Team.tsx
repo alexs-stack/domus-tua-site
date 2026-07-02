@@ -135,7 +135,7 @@ export default function Team() {
                 aria-label={c.videoAria}
               >
                 <Image
-                  src="/images/reali/raffaela-team-sede.jpg"
+                  src="/images/reali/raffaela-founder.jpg"
                   alt={c.imageAlt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 520px"

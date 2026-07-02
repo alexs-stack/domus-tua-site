@@ -13,11 +13,14 @@
 // non è il default e non va usato in presentazione cliente.
 export const brand = {
   useOriginalLogo: true,
-  logo: "/logo-domustua-original.svg", // colori — header su sfondo chiaro
-  logoLight: "/logo-domustua-original-light.svg", // chiaro — footer su sfondo scuro
+  // Logo UFFICIALE reale (da domustua.com): PNG trasparente 500×92, colori del brand.
+  logo: "/logo-domustua-original.png", // header su sfondo chiaro
+  // Nessuna variante chiara fornita: nel footer scuro il logo va su una chip chiara
+  // (vedi Footer.tsx). Chiedere al cliente un SVG + versione monocromatica chiara.
+  logoLight: "/logo-domustua-original.png",
   favicon: "/favicon.ico",
-  width: 176,
-  height: 42,
+  width: 200,
+  height: 37,
 } as const;
 
 // Mostra il placeholder "logo mancante" solo in sviluppo o in preview (mai in produzione

@@ -21,7 +21,11 @@ export default function Footer() {
         <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
           {/* Brand */}
           <div>
-            <Logo light />
+            {/* Logo a colori su chip chiara: leggibile sul footer scuro finché non arriva
+                una variante monocromatica chiara dal cliente. */}
+            <span className="inline-flex rounded-xl bg-paper px-3.5 py-2.5">
+              <Logo light />
+            </span>
             <SegnoDomus className="mt-6 h-5 w-14" embrace={false} />
             <p className="mt-4 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
               Con Domus Tua è facile vendere ed è sicuro acquistare.
