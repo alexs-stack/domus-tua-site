@@ -4,6 +4,7 @@ import "./globals.css";
 import { site } from "./lib/site";
 import { LocaleProvider } from "./components/i18n/LocaleProvider";
 import PreviewBadge from "./components/PreviewBadge";
+import CookieConsent from "./components/CookieConsent";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -113,6 +114,7 @@ export default function RootLayout({
         <LocaleProvider>
           {children}
           <PreviewBadge />
+          <CookieConsent />
         </LocaleProvider>
       </body>
     </html>

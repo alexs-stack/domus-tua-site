@@ -27,16 +27,32 @@ export const site = {
   authority: "Tra le agenzie immobiliari indipendenti più recensite della provincia di Varese.",
   // Google Business reale (CID ricavato dal Maps embed del sito ufficiale Domus Tua).
   googleReviewsUrl: "https://www.google.com/maps?cid=1402630747648240075",
-  // Canali social reali. ⚠️ Facebook e TikTok da confermare con il cliente.
+  // Canali social REALI di Domus Tua Tradate (verificati).
   social: {
     instagram: {
       label: "Instagram",
       handle: "@domustuaimmobiliare_tradate",
       href: "https://www.instagram.com/domustuaimmobiliare_tradate/",
     },
-    facebook: { label: "Facebook", href: "https://www.facebook.com/DomusTuaImmobiliare" },
+    facebook: { label: "Facebook", href: "https://www.facebook.com/domustuaimmobiliaretradate/" },
     tiktok: { label: "TikTok", href: "https://www.tiktok.com/@domustuaimmobiliare" },
     youtube: { label: "YouTube", href: "https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE" },
+  },
+
+  // Video REALI dal canale YouTube Domus Tua (@DOMUSTUASRLIMMOBILIARE), verificati.
+  // Sorgente unica usata da SocialVideoWall + FeaturedTestimonial. Il cliente può
+  // sostituire/aggiungere ID e timestamp; qui usiamo clip già pubbliche del canale.
+  videos: {
+    // Storia di successo — "Venduta al primo Open Domus" (villa di Roberta).
+    featured: { id: "-82TSzY_TDE", title: "Villa di Roberta, venduta al primo Open Domus" },
+    // Video recensioni reali.
+    reviews: [
+      { id: "eKwNiDl0Buo", title: "Recensione — Felicemente venduta" },
+      { id: "RU-31QWTXuk", title: "Recensione — Serenamente venduta" },
+      { id: "tCWd90eY8-Y", title: "Recensione — Facile vendere, sicuro acquistare" },
+    ],
+    // Testimonianza cliente (acquisto + vendita al primo Open Domus).
+    testimonial: { id: "ceAu37wLTb4", title: "Carmine racconta la sua esperienza con Domus Tua" },
   },
 
   // ───────────────────────────────────────────────────────────

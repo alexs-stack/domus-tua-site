@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
 import { Star, Play, Quote } from "./Icons";
+import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
 type Props = {
@@ -77,7 +78,7 @@ export default function FeaturedTestimonial(props: Props) {
     context: c.context,
     image: "/images/reali/recensione-clienti.jpg",
     alt: c.alt,
-    videoHref: "https://www.youtube.com/watch?v=BEmbT6WbZ-c",
+    videoHref: `https://www.youtube.com/watch?v=${site.videos.testimonial.id}`,
   };
 
   const { quote, author, context, image, alt, videoHref } = { ...defaults, ...props };

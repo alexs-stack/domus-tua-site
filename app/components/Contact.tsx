@@ -5,7 +5,7 @@ import { Phone, Whatsapp, Mail, Pin, ArrowUpRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
-import { formatLeadMessage, type Lead, type LeadIntent } from "../lib/forms/lead";
+import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import WordReveal from "./WordReveal";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -288,8 +288,13 @@ export default function Contact() {
       budget: val("budget") || undefined,
       features: val("features") || undefined,
       message: val("message") || undefined,
+      sourcePage: typeof window !== "undefined" ? window.location.pathname : undefined,
     };
 
+    // Cattura server-side (Google Sheet se configurato) — best-effort, non blocca il flusso.
+    void submitLead(lead);
+
+    // Canale immediato: WhatsApp precompilato.
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
     window.open(url, "_blank", "noopener,noreferrer");
     setSent(true);

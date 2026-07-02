@@ -5,6 +5,48 @@ supereremo l'MVP. Confronta le destinazioni possibili con pro/contro e indica il
 
 ---
 
+## ✅ ATTIVO ORA: Google Sheet (via Google Apps Script)
+
+Il form ora fa **due cose** al submit: (1) apre WhatsApp precompilato (canale immediato) e
+(2) invia il lead a `POST /api/lead`, che lo inoltra a un **Google Sheet** se il webhook è
+configurato. Codice: `app/api/lead/route.ts`, `app/lib/forms/lead.ts` (`submitLead`),
+form in `app/components/Contact.tsx`. L'invio è best-effort: se il webhook non è configurato
+o fallisce, il WhatsApp funziona comunque (nessun blocco).
+
+**Attivazione (≈5 minuti, lato cliente/agenzia):**
+
+1. Crea un Google Sheet nuovo (es. "Domus Tua — Lead sito").
+2. Estensioni → **Apps Script**, incolla questo script e salva:
+
+   ```js
+   function doPost(e) {
+     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Lead')
+       || SpreadsheetApp.getActiveSpreadsheet().insertSheet('Lead');
+     const d = JSON.parse(e.postData.contents || '{}');
+     if (sheet.getLastRow() === 0) {
+       sheet.appendRow(['createdAt','intent','name','contact','place','propertyType','budget','features','message','sourcePage','propertyRef']);
+     }
+     sheet.appendRow([d.createdAt||'', d.intent||'', d.name||'', d.contact||'', d.place||'',
+       d.propertyType||'', d.budget||'', d.features||'', d.message||'', d.sourcePage||'', d.propertyRef||'']);
+     return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+   }
+   ```
+
+3. **Distribuisci → Nuova distribuzione → Tipo: App web**. Esegui come *te stesso*,
+   accesso *Chiunque*. Copia l'URL della Web App (`https://script.google.com/macros/s/…/exec`).
+4. Incolla quell'URL nella variabile d'ambiente **`SHEETS_WEBHOOK_URL`** (Vercel → Settings →
+   Environment Variables, oppure `.env.local` in dev). È **server-only**: non ha prefisso
+   `NEXT_PUBLIC_`, quindi non finisce nel bundle client.
+5. Redeploy. Da quel momento ogni lead compare come riga nel foglio (oltre al WhatsApp).
+
+> Nota GDPR: aggiungere in cima al foglio/informativa la base giuridica (consenso/legittimo
+> interesse) e definire una retention. Il microcopy privacy + link è già nel form.
+
+Questo è pensato come **ponte**: `/api/lead` può poi instradare anche verso email/CRM/RealSmart
+(vedi sotto) senza toccare il form.
+
+---
+
 ## Da dove partiamo (stato attuale — MVP)
 
 Il form in `app/components/Contact.tsx` ha **tre intenti chiari** (`Voglio vendere` / `Cerco casa` /

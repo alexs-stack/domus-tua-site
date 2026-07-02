@@ -1,14 +1,10 @@
-// Modello del lead e formattazione del messaggio WhatsApp.
+// Modello del lead, formattazione del messaggio WhatsApp e invio al backend.
 //
-// Stato attuale (MVP): il lead NON viene salvato da nessuna parte. `formatLeadMessage`
-// costruisce solo il testo che viene precompilato in WhatsApp (vedi ./whatsapp.ts).
-//
-// TODO (backend lead — vedi docs/form-backend-next-step.md):
-//   Quando si aggiunge una destinazione server (email transazionale, Google Sheets,
-//   Supabase o CRM/RealSmart), questo stesso oggetto `Lead` è il payload da inviare.
-//   Aggiungere allora i campi di contesto (`sourcePage`, `propertyRef`, `consent`,
-//   `createdAt`) e una funzione `submitLead(lead): Promise<...>` accanto a questo file,
-//   mantenendo `formatLeadMessage` per il canale WhatsApp.
+// Stato: il lead viene (a) inviato a `/api/lead` che, se `SHEETS_WEBHOOK_URL` è
+// configurato, lo salva su un Google Sheet (vedi docs/form-backend-next-step.md), e
+// (b) precompilato in WhatsApp (formatLeadMessage + ./whatsapp.ts) come canale immediato.
+// L'invio al backend è best-effort: se non configurato o fallisce, il WhatsApp funziona
+// comunque. In futuro `/api/lead` può instradare anche verso email/CRM/RealSmart.
 
 /** Tre intenti chiari + Open Domus (allineati alle tab del form). */
 export type LeadIntent = "seller" | "buyer" | "question" | "open-domus";
@@ -95,4 +91,23 @@ export function formatLeadMessage(lead: Lead): string {
   lines.push(`(Richiesta dal sito · ${INTENT_LABEL[lead.intent]}${source})`);
 
   return lines.join("\n");
+}
+
+/**
+ * Invia il lead al backend (`/api/lead` → Google Sheet se configurato). Best-effort:
+ * non lancia mai — in caso di errore/backend non configurato ritorna { ok: false } e il
+ * chiamante prosegue col fallback WhatsApp. Da usare lato client nel form contatti.
+ */
+export async function submitLead(lead: Lead): Promise<{ ok: boolean }> {
+  try {
+    const res = await fetch("/api/lead", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(lead),
+    });
+    const data = (await res.json().catch(() => ({ ok: false }))) as { ok?: boolean };
+    return { ok: !!data.ok };
+  } catch {
+    return { ok: false };
+  }
 }

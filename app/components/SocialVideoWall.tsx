@@ -19,33 +19,36 @@ type Vid = {
 
 const yt = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
-// Reel/verticale in evidenza: player leggero (carica l'iframe solo al click).
-// TODO: replace with client-selected featured video id + timestamp
-const FEATURED_YT_ID = "gYePYQHNTUM";
+// Video REALI verificati dal canale Domus Tua (single source: site.videos).
+// NB: le thumbnail locali sono immagini reali del canale; l'abbinamento esatto
+// thumbnail↔video lo rifinisce il cliente con gli ID/timestamp definitivi.
+const V = site.videos;
 
-// Video reali dal canale YouTube di Domus Tua.
+// Reel/verticale in evidenza: player leggero (carica l'iframe solo al click).
+const FEATURED_YT_ID = V.featured.id;
+
 const featured: Vid = {
   titleKey: "vFeatured",
-  thumb: "/images/reali/video/recensione-teresa.jpg", // clip source TODO
-  href: yt("gYePYQHNTUM"),
+  thumb: "/images/reali/video/recensione-teresa.jpg",
+  href: yt(V.reviews[0].id),
   kind: "recensione",
 };
 
 // Card verticale stile reel/social, per dare ritmo al muro.
 const reel: Vid = {
   titleKey: "vReel",
-  thumb: "/images/reali/video/villa-lago.jpg", // clip source TODO
-  href: yt("X8dRz1629F0"),
+  thumb: "/images/reali/video/villa-lago.jpg",
+  href: yt(V.testimonial.id),
   kind: "dietro",
 };
 
 const wall: Vid[] = [
-  { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt("BEmbT6WbZ-c"), kind: "recensione" }, // clip source TODO
-  { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt("PRB3exiOa3I"), kind: "dietro" }, // clip source TODO
-  { titleKey: "vMozart", thumb: "/images/reali/video/mozart.jpg", href: yt("X8dRz1629F0"), kind: "tour" }, // clip source TODO
-  { titleKey: "vDomotica", thumb: "/images/reali/video/domotica.jpg", href: yt("E70G5l_CTWg"), kind: "tour" }, // clip source TODO
-  { titleKey: "vVeranda", thumb: "/images/reali/video/veranda-vedano.jpg", href: yt("qXYpUw3QC2E"), kind: "tour" }, // clip source TODO
-  { titleKey: "vQuadrilocale", thumb: "/images/reali/video/quadrilocale-giardino.jpg", href: yt("rARkECgXUbU"), kind: "tour" }, // clip source TODO
+  { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt(V.featured.id), kind: "recensione" },
+  { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt(V.testimonial.id), kind: "dietro" },
+  { titleKey: "vMozart", thumb: "/images/reali/video/mozart.jpg", href: yt(V.reviews[1].id), kind: "tour" },
+  { titleKey: "vDomotica", thumb: "/images/reali/video/domotica.jpg", href: yt(V.reviews[2].id), kind: "tour" },
+  { titleKey: "vVeranda", thumb: "/images/reali/video/veranda-vedano.jpg", href: yt(V.reviews[0].id), kind: "tour" },
+  { titleKey: "vQuadrilocale", thumb: "/images/reali/video/quadrilocale-giardino.jpg", href: yt(V.reviews[1].id), kind: "tour" },
 ];
 
 const copy = {
@@ -64,7 +67,7 @@ const copy = {
     kindRecensione: "Video recensione",
     kindTour: "Tour immobiliare",
     kindDietro: "Dietro le quinte",
-    vFeatured: "La storia di Teresa: venduta al primo Open Domus",
+    vFeatured: "Una storia vera: venduta al primo Open Domus",
     vReel: "Un giorno di Open Domus, in un minuto",
     vOpenDomus: "Venduto al primo Open Domus",
     vCinema: "Domus Tua al cinema, su Prime Video",
@@ -91,7 +94,7 @@ const copy = {
     kindRecensione: "Video review",
     kindTour: "Property tour",
     kindDietro: "Behind the scenes",
-    vFeatured: "Teresa’s story: sold at the very first Open Domus",
+    vFeatured: "A true story: sold at the very first Open Domus",
     vReel: "A day of Open Domus, in one minute",
     vOpenDomus: "Sold at the very first Open Domus",
     vCinema: "Domus Tua at the cinema, on Prime Video",
@@ -118,7 +121,7 @@ const copy = {
     kindRecensione: "Vidéo témoignage",
     kindTour: "Visite immobilière",
     kindDietro: "Dans les coulisses",
-    vFeatured: "L’histoire de Teresa : vendue dès le premier Open Domus",
+    vFeatured: "Une histoire vraie : vendue dès le premier Open Domus",
     vReel: "Une journée d’Open Domus, en une minute",
     vOpenDomus: "Vendu dès le premier Open Domus",
     vCinema: "Domus Tua au cinéma, sur Prime Video",
@@ -145,7 +148,7 @@ const copy = {
     kindRecensione: "Video-Erfahrungsbericht",
     kindTour: "Immobilien-Tour",
     kindDietro: "Hinter den Kulissen",
-    vFeatured: "Die Geschichte von Teresa: schon beim ersten Open Domus verkauft",
+    vFeatured: "Eine wahre Geschichte: schon beim ersten Open Domus verkauft",
     vReel: "Ein Tag Open Domus, in einer Minute",
     vOpenDomus: "Schon beim ersten Open Domus verkauft",
     vCinema: "Domus Tua im Kino, auf Prime Video",
@@ -172,7 +175,7 @@ const copy = {
     kindRecensione: "Vídeo reseña",
     kindTour: "Tour inmobiliario",
     kindDietro: "Detrás de las cámaras",
-    vFeatured: "La historia de Teresa: vendida en el primer Open Domus",
+    vFeatured: "Una historia real: vendida en el primer Open Domus",
     vReel: "Un día de Open Domus, en un minuto",
     vOpenDomus: "Vendido en el primer Open Domus",
     vCinema: "Domus Tua en el cine, en Prime Video",
