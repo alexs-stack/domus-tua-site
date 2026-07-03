@@ -45,9 +45,9 @@ const reel: Vid = {
 const wall: Vid[] = [
   { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt(V.featured.id), kind: "recensione" },
   { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt(V.testimonial.id), kind: "dietro" },
-  { titleKey: "vMozart", thumb: "/images/reali/video/mozart.jpg", href: yt(V.reviews[1].id), kind: "tour" },
+  { titleKey: "vMozart", thumb: "/images/reali/villa-tramonto.jpg", href: yt(V.reviews[1].id), kind: "tour" },
   { titleKey: "vDomotica", thumb: "/images/reali/video/domotica.jpg", href: yt(V.reviews[2].id), kind: "tour" },
-  { titleKey: "vVeranda", thumb: "/images/reali/video/veranda-vedano.jpg", href: yt(V.reviews[0].id), kind: "tour" },
+  { titleKey: "vVeranda", thumb: "/images/reali/piscina-lusso.jpg", href: yt(V.reviews[0].id), kind: "tour" },
   { titleKey: "vQuadrilocale", thumb: "/images/reali/video/quadrilocale-giardino.jpg", href: yt(V.reviews[1].id), kind: "tour" },
 ];
 

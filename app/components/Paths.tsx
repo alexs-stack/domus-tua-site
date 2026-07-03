@@ -9,12 +9,12 @@ const paths = [
   {
     id: "vendi",
     href: "/vendi",
-    image: "/images/premium_02_living_dining_piante.jpg",
+    image: "/images/reali/handshake.jpg",
   },
   {
     id: "acquista",
     href: "/acquista",
-    image: "/images/hero_05_living_cucina_tavolo.jpg",
+    image: "/images/reali/villa-pool.jpg",
   },
 ] as const;
 

@@ -49,6 +49,14 @@ const copy = {
         copy: "Trasparenza totale e rispetto delle persone, sempre. Anche quando è più difficile.",
       },
     ],
+    squadraEyebrow: "La nostra squadra",
+    squadraTitle: "Volti veri, dietro ogni chiave consegnata.",
+    squadraCopy:
+      "Siamo un gruppo affiatato che ascolta, consiglia e accompagna ogni famiglia con la stessa cura. Un impegno riconosciuto anche a livello nazionale.",
+    squadraTrioAlt: "Il team Domus Tua in studio",
+    squadraRedAlt: "Gli agenti Domus Tua in blazer rosso nella sede",
+    squadraPremioAlt: "Raffaela Rizza con il riconoscimento TOP AGENCY",
+    squadraPremioCaption: "Riconoscimento TOP AGENCY",
   },
   en: {
     heroEyebrow: "About us",
@@ -87,6 +95,14 @@ const copy = {
         copy: "Total transparency and respect for people, always. Even when it is harder.",
       },
     ],
+    squadraEyebrow: "Our team",
+    squadraTitle: "Real faces, behind every set of keys handed over.",
+    squadraCopy:
+      "We are a close-knit group that listens, advises and accompanies every family with the same care. A commitment recognised at national level too.",
+    squadraTrioAlt: "The Domus Tua team in the studio",
+    squadraRedAlt: "The Domus Tua agents in red blazers at the office",
+    squadraPremioAlt: "Raffaela Rizza with the TOP AGENCY recognition",
+    squadraPremioCaption: "TOP AGENCY recognition",
   },
   fr: {
     heroEyebrow: "Qui sommes-nous",
@@ -125,6 +141,14 @@ const copy = {
         copy: "Transparence totale et respect des personnes, toujours. Même quand c’est plus difficile.",
       },
     ],
+    squadraEyebrow: "Notre équipe",
+    squadraTitle: "Des visages réels, derrière chaque clé remise.",
+    squadraCopy:
+      "Nous sommes une équipe soudée qui écoute, conseille et accompagne chaque famille avec le même soin. Un engagement reconnu aussi au niveau national.",
+    squadraTrioAlt: "L’équipe Domus Tua en studio",
+    squadraRedAlt: "Les agents Domus Tua en blazer rouge à l’agence",
+    squadraPremioAlt: "Raffaela Rizza avec la distinction TOP AGENCY",
+    squadraPremioCaption: "Distinction TOP AGENCY",
   },
   de: {
     heroEyebrow: "Über uns",
@@ -163,6 +187,14 @@ const copy = {
         copy: "Vollständige Transparenz und Respekt gegenüber den Menschen, immer. Auch wenn es schwerer fällt.",
       },
     ],
+    squadraEyebrow: "Unser Team",
+    squadraTitle: "Echte Gesichter, hinter jedem übergebenen Schlüssel.",
+    squadraCopy:
+      "Wir sind ein eingespieltes Team, das jeder Familie mit derselben Sorgfalt zuhört, sie berät und begleitet. Ein Engagement, das auch auf nationaler Ebene anerkannt wird.",
+    squadraTrioAlt: "Das Domus Tua Team im Studio",
+    squadraRedAlt: "Die Domus Tua Berater in roten Blazern im Büro",
+    squadraPremioAlt: "Raffaela Rizza mit der Auszeichnung TOP AGENCY",
+    squadraPremioCaption: "Auszeichnung TOP AGENCY",
   },
   es: {
     heroEyebrow: "Quiénes somos",
@@ -201,6 +233,14 @@ const copy = {
         copy: "Transparencia total y respeto por las personas, siempre. Incluso cuando es más difícil.",
       },
     ],
+    squadraEyebrow: "Nuestro equipo",
+    squadraTitle: "Rostros reales, detrás de cada llave entregada.",
+    squadraCopy:
+      "Somos un grupo unido que escucha, aconseja y acompaña a cada familia con el mismo cuidado. Un compromiso reconocido también a nivel nacional.",
+    squadraTrioAlt: "El equipo de Domus Tua en el estudio",
+    squadraRedAlt: "Los agentes de Domus Tua con blazer rojo en la oficina",
+    squadraPremioAlt: "Raffaela Rizza con el reconocimiento TOP AGENCY",
+    squadraPremioCaption: "Reconocimiento TOP AGENCY",
   },
 };
 
@@ -255,6 +295,60 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         title={c.valoriTitle}
         items={c.valori}
       />
+
+      {/* La nostra squadra */}
+      <section className="bg-paper">
+        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+          <Reveal className="max-w-2xl">
+            <span className="eyebrow">{c.squadraEyebrow}</span>
+            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]">
+              {c.squadraTitle}
+            </h2>
+            <p className="mt-6 text-[1.02rem] leading-relaxed text-stone">
+              {c.squadraCopy}
+            </p>
+          </Reveal>
+
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <Reveal delay={0}>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line">
+                <Image
+                  src="/images/reali/team-trio.jpg"
+                  alt={c.squadraTrioAlt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                  className="object-cover object-center"
+                />
+              </div>
+            </Reveal>
+            <Reveal delay={100}>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line">
+                <Image
+                  src="/images/reali/team-red.jpg"
+                  alt={c.squadraRedAlt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                  className="object-cover object-center"
+                />
+              </div>
+            </Reveal>
+            <Reveal delay={200}>
+              <figure className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line">
+                <Image
+                  src="/images/reali/premio-top-agency.jpg"
+                  alt={c.squadraPremioAlt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                  className="object-cover object-center"
+                />
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent px-4 pb-3 pt-10 text-xs font-medium uppercase tracking-[0.14em] text-cream">
+                  {c.squadraPremioCaption}
+                </figcaption>
+              </figure>
+            </Reveal>
+          </div>
+        </div>
+      </section>
 
       <Stats />
       <Team />

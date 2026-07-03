@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Phone, Whatsapp, Mail, Pin, ArrowUpRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
@@ -59,6 +60,7 @@ const copy = {
     contactPhoneSub: "Lun–Sab",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Scrivici una mail",
+    keysAlt: "Raffaela Rizza con le chiavi di casa",
   },
   en: {
     eyebrow: "Talk to Domus Tua",
@@ -100,6 +102,7 @@ const copy = {
     contactPhoneSub: "Mon–Sat",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Send us an email",
+    keysAlt: "Raffaela Rizza holding the keys to a home",
   },
   fr: {
     eyebrow: "Parlez à Domus Tua",
@@ -141,6 +144,7 @@ const copy = {
     contactPhoneSub: "Lun–Sam",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Écrivez-nous un e-mail",
+    keysAlt: "Raffaela Rizza tenant les clés d’une maison",
   },
   de: {
     eyebrow: "Sprechen Sie mit Domus Tua",
@@ -182,6 +186,7 @@ const copy = {
     contactPhoneSub: "Mo–Sa",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Schreiben Sie uns eine E-Mail",
+    keysAlt: "Raffaela Rizza mit den Schlüsseln eines Hauses",
   },
   es: {
     eyebrow: "Habla con Domus Tua",
@@ -223,6 +228,7 @@ const copy = {
     contactPhoneSub: "Lun–Sáb",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Escríbenos un correo",
+    keysAlt: "Raffaela Rizza con las llaves de una casa",
   },
 } as const;
 
@@ -318,6 +324,17 @@ export default function Contact() {
             <p className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone">
               {c.subcopy}
             </p>
+
+            <figure className="mt-8 w-full max-w-[15rem] overflow-hidden rounded-[1.5rem] border border-line">
+              <Image
+                src="/images/reali/raffaela-keys.jpg"
+                alt={c.keysAlt}
+                width={480}
+                height={640}
+                sizes="(min-width: 1024px) 15rem, 60vw"
+                className="h-auto w-full object-cover"
+              />
+            </figure>
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2">
               {contacts.map((item) => (
