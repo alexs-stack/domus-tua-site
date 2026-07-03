@@ -24,7 +24,7 @@ const copy = {
     rooms: "Locali",
     features: "Caratteristiche",
     contractLabels: { Tutte: "Tutte", Vendita: "Vendita", Affitto: "Affitto" },
-    typeLabels: { Tutte: "Tutte", Appartamento: "Appartamento", Attico: "Attico", Villa: "Villa" },
+    typeLabels: { Tutte: "Tutte", Appartamento: "Appartamento", Attico: "Attico", Villa: "Villa", Commerciale: "Commerciale", Terreno: "Terreno" },
     zoneAll: "Tutti",
     featureLabels: {
       Giardino: "Giardino",
@@ -59,7 +59,7 @@ const copy = {
     rooms: "Rooms",
     features: "Features",
     contractLabels: { Tutte: "All", Vendita: "For sale", Affitto: "To rent" },
-    typeLabels: { Tutte: "All", Appartamento: "Apartment", Attico: "Penthouse", Villa: "Villa" },
+    typeLabels: { Tutte: "All", Appartamento: "Apartment", Attico: "Penthouse", Villa: "Villa", Commerciale: "Commercial", Terreno: "Land" },
     zoneAll: "All",
     featureLabels: {
       Giardino: "Garden",
@@ -94,7 +94,7 @@ const copy = {
     rooms: "Pièces",
     features: "Caractéristiques",
     contractLabels: { Tutte: "Tous", Vendita: "À vendre", Affitto: "À louer" },
-    typeLabels: { Tutte: "Tous", Appartamento: "Appartement", Attico: "Attique", Villa: "Villa" },
+    typeLabels: { Tutte: "Tous", Appartamento: "Appartement", Attico: "Attique", Villa: "Villa", Commerciale: "Commercial", Terreno: "Terrain" },
     zoneAll: "Tous",
     featureLabels: {
       Giardino: "Jardin",
@@ -129,7 +129,7 @@ const copy = {
     rooms: "Zimmer",
     features: "Ausstattung",
     contractLabels: { Tutte: "Alle", Vendita: "Zum Kauf", Affitto: "Zur Miete" },
-    typeLabels: { Tutte: "Alle", Appartamento: "Wohnung", Attico: "Penthouse", Villa: "Villa" },
+    typeLabels: { Tutte: "Alle", Appartamento: "Wohnung", Attico: "Penthouse", Villa: "Villa", Commerciale: "Gewerbe", Terreno: "Grundstück" },
     zoneAll: "Alle",
     featureLabels: {
       Giardino: "Garten",
@@ -164,7 +164,7 @@ const copy = {
     rooms: "Habitaciones",
     features: "Características",
     contractLabels: { Tutte: "Todos", Vendita: "En venta", Affitto: "En alquiler" },
-    typeLabels: { Tutte: "Todos", Appartamento: "Piso", Attico: "Ático", Villa: "Villa" },
+    typeLabels: { Tutte: "Todos", Appartamento: "Piso", Attico: "Ático", Villa: "Villa", Commerciale: "Comercial", Terreno: "Terreno" },
     zoneAll: "Todas",
     featureLabels: {
       Giardino: "Jardín",

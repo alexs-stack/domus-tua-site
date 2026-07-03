@@ -7,6 +7,7 @@
 // con la chiamata al feed/endpoint RealSmart. Il contratto di ritorno resta invariato.
 // Dettagli, domande aperte e checklist: docs/realsmart-integration-notes.md.
 
+import { unstable_cache } from "next/cache";
 import { XMLParser } from "fast-xml-parser";
 import { getRealSmartConfig } from "./env";
 import { getMockRealSmartListings } from "./mocks";
@@ -60,9 +61,10 @@ async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
   // getRealSmartConfig() garantisce config.feedUrl (default al feed pubblico dell'agenzia).
   const res = await fetch(config.feedUrl!, {
     headers: config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : undefined,
-    // Cache ISR di Next: rivalida in background ogni REVALIDATE_SECONDS (il feed è aggiornato
-    // ~5 volte al giorno lato RealSmart, quindi un polling frequente è inutile ma innocuo).
-    next: { revalidate: REVALIDATE_SECONDS, tags: ["realsmart-listings"] },
+    // Il feed grezzo è ~2.6MB (oltre il limite di 2MB della Data Cache di Next): NON lo
+    // memorizziamo qui (no-store). A cachare è unstable_cache sul RISULTATO normalizzato
+    // (molto più piccolo), condiviso tra worker/richieste e rivalidato ogni REVALIDATE_SECONDS.
+    cache: "no-store",
   });
   if (!res.ok) throw new Error(`RealSmart feed ${res.status}`);
   const xml = await res.text(); // decodifica UTF-8 corretta (niente mojibake da iframe)
@@ -80,23 +82,12 @@ async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
  *
  * In caso di errore della sorgente reale, il fallback ai mock evita una pagina vuota.
  */
-// Memo di processo: il feed pesa ~2.6MB (oltre il limite di 2MB della Data Cache di Next,
-// quindi la fetch non è memorizzabile lì). Senza questo memo, ogni pagina generata rifà la
-// fetch dell'intero feed. Con il memo, il feed viene scaricato UNA volta per processo warm
-// (build o istanza serverless) e riusato per REVALIDATE_SECONDS.
-let _memo: { at: number; data: NormalizedProperty[] } | null = null;
-
-export async function getLiveListings(): Promise<NormalizedProperty[]> {
-  if (_memo && Date.now() - _memo.at < REVALIDATE_SECONDS * 1000) {
-    return _memo.data;
-  }
-
+async function loadListings(): Promise<NormalizedProperty[]> {
   let raw: RealSmartListingRaw[];
   try {
     raw = await fetchRawListings();
   } catch {
     // Fallback difensivo: meglio i mock che una lista vuota / errore in pagina.
-    // In produzione qui si aggiungerà logging/alerting.
     raw = getMockRealSmartListings();
   }
 
@@ -106,7 +97,7 @@ export async function getLiveListings(): Promise<NormalizedProperty[]> {
 
   // Ordina per data di aggiornamento (ISO 8601 → confronto lessicografico OK),
   // le stringhe vuote finiscono in coda.
-  const sorted = normalized.sort((a, b) => {
+  return normalized.sort((a, b) => {
     const ka = a.updatedAt || a.publishedAt;
     const kb = b.updatedAt || b.publishedAt;
     if (ka === kb) return 0;
@@ -114,7 +105,15 @@ export async function getLiveListings(): Promise<NormalizedProperty[]> {
     if (!kb) return -1;
     return kb.localeCompare(ka); // più recente prima
   });
-
-  _memo = { at: Date.now(), data: sorted };
-  return sorted;
 }
+
+/**
+ * Immobili pubblicabili sul sito, in forma pulita e filtrata.
+ * Cache condivisa (unstable_cache) sul RISULTATO normalizzato (~1MB, ben sotto il limite):
+ * una sola elaborazione per finestra REVALIDATE_SECONDS, riusata da tutte le pagine e
+ * invalidabile on-demand via tag "realsmart-listings". Fallback ai mock su errore feed.
+ */
+export const getLiveListings = unstable_cache(loadListings, ["realsmart-listings-v1"], {
+  revalidate: REVALIDATE_SECONDS,
+  tags: ["realsmart-listings"],
+});
