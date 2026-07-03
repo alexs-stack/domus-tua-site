@@ -46,7 +46,12 @@ function readEnv(name: string): string | undefined {
  * TODO(realsmart): rivedere in base alla modalità reale (feed/API/FTP) una volta confermata.
  * Per ora lo scenario di partenza è "feed via URL", quindi REALSMART_FEED_URL è il minimo.
  */
-const REQUIRED_WHEN_LIVE = ["REALSMART_FEED_URL"] as const;
+const REQUIRED_WHEN_LIVE = [] as const;
+
+// Feed XML pubblico dell'agenzia generato da RealSmart (solo immobili attivi, ~5 update/giorno).
+// È un URL PUBBLICO (non un segreto): lo teniamo come default e lo si può sovrascrivere con
+// REALSMART_FEED_URL. Configurato in RealSmart → Esportazione annunci → "Invio XML al tuo sito".
+const DEFAULT_FEED_URL = "https://www.gestim2002.it/portali/immobili_724.xml";
 
 /**
  * Costruisce e valida la configurazione RealSmart dalle env var.
@@ -61,11 +66,12 @@ const REQUIRED_WHEN_LIVE = ["REALSMART_FEED_URL"] as const;
  * non lancia mai, coerentemente col fallback difensivo del client.
  */
 export function getRealSmartConfig(): RealSmartConfig {
-  const useRealSmart = process.env.NEXT_PUBLIC_USE_REALSMART === "true";
+  // Default ON: abbiamo un feed pubblico reale. Si disattiva solo con "false" esplicito.
+  const useRealSmart = process.env.NEXT_PUBLIC_USE_REALSMART !== "false";
 
   const config: RealSmartConfig = {
     useRealSmart,
-    feedUrl: readEnv("REALSMART_FEED_URL"),
+    feedUrl: readEnv("REALSMART_FEED_URL") ?? DEFAULT_FEED_URL,
     apiKey: readEnv("REALSMART_API_KEY"),
     apiBase: readEnv("REALSMART_API_BASE"),
     webhookSecret: readEnv("REALSMART_WEBHOOK_SECRET"),

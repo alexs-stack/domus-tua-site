@@ -13,7 +13,7 @@ export type Property = {
   slug: string;
   title: string;
   zone: string;
-  type: "Appartamento" | "Attico" | "Villa";
+  type: "Appartamento" | "Attico" | "Villa" | "Commerciale" | "Terreno";
   status: "Vendita" | "Affitto";
   price: string;
   priceValue: number;

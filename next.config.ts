@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "i.ytimg.com" },
       { protocol: "https", hostname: "img.youtube.com" },
+      // Foto immobili dal feed RealSmart (gestionale = source of truth).
+      { protocol: "https", hostname: "cloud2.realsmart.it" },
+      { protocol: "https", hostname: "*.realsmart.it" },
     ],
   },
 };

@@ -162,13 +162,16 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     address: addressRaw && addressRaw.length > 0 ? addressRaw : undefined,
     sqm: toNumber(raw.mq),
     rooms: toNumber(raw.locali),
+    bedrooms: toNumber(raw.camere),
     baths: toNumber(raw.bagni),
     floor: typeof raw.piano === "number" ? String(raw.piano) : raw.piano?.trim() || undefined,
     energyClass: raw.classeEnergetica?.trim() || undefined,
     features,
     images,
     status,
-    badges: deriveBadges(status, features, contract),
+    badges: raw.inEvidenza
+      ? Array.from(new Set(["In evidenza", ...deriveBadges(status, features, contract)]))
+      : deriveBadges(status, features, contract),
     publishedAt: raw.dataPubblicazione?.trim() ?? "",
     updatedAt: raw.dataAggiornamento?.trim() ?? "",
     sourceRef: {

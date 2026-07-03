@@ -223,7 +223,7 @@ const roomOptions = [
   { label: "4+", value: 4 },
 ];
 
-const types: PropertyFilters["type"][] = ["Tutte", "Appartamento", "Attico", "Villa"];
+const types: PropertyFilters["type"][] = ["Tutte", "Appartamento", "Attico", "Villa", "Commerciale", "Terreno"];
 
 function roomsNum(p: Property) {
   return parseInt(p.rooms, 10) || 0;
@@ -347,7 +347,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
             </span>
             {types.map((t) => (
               <button key={t} onClick={() => setF((s) => ({ ...s, type: t }))} className={pill(f.type === t)}>
-                {c.typeLabels[t]}
+                {(c.typeLabels as Record<string, string>)[t] ?? t}
               </button>
             ))}
           </div>

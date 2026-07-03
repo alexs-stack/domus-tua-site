@@ -1,200 +1,114 @@
-// Parsing difensivo: da payload GREZZO e non fidato (unknown) a RealSmartListingRaw[].
+// Parsing del feed XML RealSmart (interscambio) → RealSmartListingRaw[].
 //
-// Confine di fiducia: tutto ciò che entra qui arriva da una sorgente esterna (feed/API/file)
-// e NON è verificato. Questo modulo è l'unico punto in cui `unknown` diventa `RealSmartListingRaw`.
+// Sorgente reale: feed pubblico generato da RealSmart per il sito dell'agenzia
+// (es. https://www.gestim2002.it/portali/immobili_724.xml), aggiornato più volte al giorno,
+// contiene SOLO immobili attivi. Struttura: <Dati><immobili><immobile>…</immobile></immobili></Dati>.
 //
-// Regole:
-//  - NON lancia MAI su input malformato: filtra/salta le voci non valide e prosegue.
-//  - Una voce senza i campi minimi obbligatori (`codice`, `titolo`) viene scartata.
-//  - I campi opzionali restano permissivi (number|string) come nel tipo raw: la pulizia
-//    numerica/formattazione avviene a valle in normalize.ts.
-//
-// ⚠️ STATO ATTUALE: supporta SOLO la forma del payload mock/sample
-// (vedi app/lib/realsmart/__fixtures__/sample-feed.json e app/lib/realsmart/mocks.ts),
-// cioè un oggetto { listings: [...] } oppure direttamente un array di annunci.
-//
-// TODO(realsmart): quando riceveremo lo schema reale (XML/JSON) da RealSmart/cliente
-// (vedi docs/realsmart-client-questions.md), estendere/riscrivere questo parser:
-//  - se XML: aggiungere uno step di deserializzazione XML → oggetto PRIMA di queste guardie;
-//  - mappare i nomi dei campi reali del feed sui nomi di RealSmartListingRaw;
-//  - gestire eventuali involucri (envelope) e paginazione.
-// I nomi dei campi qui usati sono quelli dei nostri mock e NON sono ancora confermati.
+// Questa funzione riceve l'oggetto già prodotto da fast-xml-parser (in client.ts) e lo
+// trasforma nella forma grezza RealSmartListingRaw, in modo DIFENSIVO: mai throw su dati
+// sporchi, entry non valide scartate.
 
-import type {
-  ListingStatus,
-  RealSmartListingRaw,
-  RealSmartLocation,
-  RealSmartMedia,
-} from "./types";
+import type { RealSmartListingRaw, RealSmartMedia } from "./types";
 
-// ─────────────────────────────────────────────────────────────
-// Helper di validazione difensiva — piccoli, puri, riusabili.
-// ─────────────────────────────────────────────────────────────
-
-/** True se il valore è un oggetto non-null e non-array (una "mappa" di proprietà). */
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+// ── Helper difensivi ─────────────────────────────────────────────────────────
+function isRecord(x: unknown): x is Record<string, unknown> {
+  return typeof x === "object" && x !== null && !Array.isArray(x);
 }
-
-/** Ritorna la stringa (trimmata) se non vuota, altrimenti undefined. */
-export function asString(value: unknown): string | undefined {
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
+function asArray<T = unknown>(x: unknown): T[] {
+  if (Array.isArray(x)) return x as T[];
+  if (x === undefined || x === null || x === "") return [];
+  return [x as T];
+}
+/** Valore testuale ripulito; undefined se vuoto. CDATA e numeri gestiti da fast-xml-parser. */
+function str(x: unknown): string | undefined {
+  if (x === undefined || x === null) return undefined;
+  const s = String(x).trim();
+  return s.length > 0 ? s : undefined;
+}
+function isSi(x: unknown): boolean {
+  return typeof x === "string" ? /^s[iì]$/i.test(x.trim()) : false;
+}
+function toNum(x: unknown): number {
+  if (typeof x === "number") return Number.isFinite(x) ? x : 0;
+  if (typeof x === "string") {
+    const d = x.replace(/[^\d]/g, "");
+    return d ? Number.parseInt(d, 10) : 0;
   }
-  return undefined;
+  return 0;
 }
 
-/**
- * Ritorna un valore numerico "grezzo" preservando la permissività del tipo raw:
- *  - number finito → number
- *  - string non vuota → string (la conversione a number avviene in normalize.ts)
- *  - tutto il resto → undefined
- * NB: non converte le stringhe in numeri di proposito, per non perdere formati come "420.000".
- */
-export function asNumber(value: unknown): number | string | undefined {
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : undefined;
-  }
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  }
-  return undefined;
+/** Converte una data RealSmart "dd/mm/yyyy[ hh:mm:ss]" in ISO 8601 (stringa vuota se non valida). */
+function itDateToIso(input: string | undefined): string {
+  if (!input) return "";
+  const m = input.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}):(\d{2}))?/);
+  if (!m) return "";
+  const [, dd, mm, yyyy, hh = "00", mi = "00", ss = "00"] = m;
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
 }
 
-/** Ritorna l'array se il valore è un array, altrimenti un array vuoto (mai undefined/throw). */
-export function asArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
+/** Deriva le caratteristiche (features) dai flag dell'immobile, allineate ai filtri del sito. */
+function deriveFeatures(im: Record<string, unknown>): string[] {
+  const f: string[] = [];
+  if (isSi(im.Giardino)) f.push("Giardino");
+  if (isSi(im.Box) || isSi(im.PostoAuto)) f.push("Box / posto auto");
+  if (isSi(im.Terrazzo)) f.push("Terrazzo");
+  if (isSi(im.Ascensore)) f.push("Ascensore");
+  if (isSi(im.AriaCondizionata)) f.push("Aria condizionata");
+  if (toNum(im.Bagni) >= 2) f.push("Doppi servizi");
+  return f;
 }
 
-/** Come asArray ma preserva `undefined` (utile per campi opzionali che vogliamo omettere). */
-function asOptionalArray(value: unknown): unknown[] | undefined {
-  return Array.isArray(value) ? value : undefined;
-}
+/** Mappa un singolo <immobile> nella forma grezza RealSmartListingRaw. */
+function mapImmobile(im: Record<string, unknown>): RealSmartListingRaw | null {
+  const codice = str(im.Codice) ?? str(im.Riferimento);
+  if (!codice) return null; // senza chiave, entry inutile → scartata
 
-// ─────────────────────────────────────────────────────────────
-// Parser dei sotto-oggetti.
-// ─────────────────────────────────────────────────────────────
-
-/** Localizzazione: richiede almeno `comune` e `provincia` (stringhe). */
-function parseLocation(value: unknown): RealSmartLocation | undefined {
-  if (!isRecord(value)) return undefined;
-  const comune = asString(value.comune);
-  const provincia = asString(value.provincia);
-  if (!comune || !provincia) return undefined;
-  return {
-    comune,
-    provincia,
-    indirizzo: asString(value.indirizzo),
-    cap: asString(value.cap),
-    zona: asString(value.zona),
-  };
-}
-
-/** Un media valido richiede almeno `url` (stringa). Le voci senza url sono scartate. */
-function parseMedia(value: unknown): RealSmartMedia | undefined {
-  if (!isRecord(value)) return undefined;
-  const url = asString(value.url);
-  if (!url) return undefined;
-  const ordine = value.ordine;
-  return {
-    url,
-    tipo: asString(value.tipo),
-    ordine: typeof ordine === "number" && Number.isFinite(ordine) ? ordine : undefined,
-    didascalia: asString(value.didascalia),
-  };
-}
-
-/** Array di media: scarta le voci invalide; undefined se il campo non è un array. */
-function parseMediaArray(value: unknown): RealSmartMedia[] | undefined {
-  const arr = asOptionalArray(value);
-  if (arr === undefined) return undefined;
-  const media = arr
-    .map(parseMedia)
-    .filter((m): m is RealSmartMedia => m !== undefined);
-  return media;
-}
-
-/** Array di caratteristiche: tiene solo le stringhe non vuote. */
-function parseFeatures(value: unknown): string[] | undefined {
-  const arr = asOptionalArray(value);
-  if (arr === undefined) return undefined;
-  const features = arr
-    .map(asString)
-    .filter((f): f is string => f !== undefined);
-  return features;
-}
-
-/**
- * Parsing di un singolo annuncio grezzo.
- * Ritorna undefined (→ voce scartata) se mancano i campi minimi obbligatori.
- * NON valida l'enum di stato qui: `statoPubblicazione` resta grezzo e viene
- * normalizzato/difeso in normalize.ts (uno stato ignoto lì diventa "draft", quindi nascosto).
- */
-function parseListing(value: unknown): RealSmartListingRaw | undefined {
-  if (!isRecord(value)) return undefined;
-
-  // Campi minimi obbligatori: senza questi l'annuncio non è utilizzabile.
-  const codice = asString(value.codice);
-  const titolo = asString(value.titolo);
-  if (!codice || !titolo) return undefined;
-
-  const contratto = asString(value.contratto);
-  const statoPubblicazione = asString(value.statoPubblicazione) as
-    | ListingStatus
-    | string
-    | undefined;
+  const fotoUrls = asArray(isRecord(im.ElencoFoto) ? im.ElencoFoto.Foto : undefined)
+    .map((u) => str(u))
+    .filter((u): u is string => !!u && /^https?:\/\//i.test(u));
+  const media: RealSmartMedia[] = fotoUrls.map((url, i) => ({ url, tipo: "foto", ordine: i }));
 
   return {
     codice,
-    riferimento: asString(value.riferimento),
-    titolo,
-    descrizione: asString(value.descrizione),
-    prezzo: asNumber(value.prezzo),
-    tipologia: asString(value.tipologia),
-    contratto,
-    localita: parseLocation(value.localita),
-    mq: asNumber(value.mq),
-    locali: asNumber(value.locali),
-    bagni: asNumber(value.bagni),
-    camere: asNumber(value.camere),
-    piano: asNumber(value.piano),
-    classeEnergetica: asString(value.classeEnergetica),
-    caratteristiche: parseFeatures(value.caratteristiche),
-    statoPubblicazione,
-    media: parseMediaArray(value.media),
-    dataPubblicazione: asString(value.dataPubblicazione),
-    dataAggiornamento: asString(value.dataAggiornamento),
+    riferimento: str(im.Riferimento),
+    titolo: str(im.Titolo) ?? str(im.Tipologia) ?? "Immobile",
+    descrizione: str(im.AnnuncioCompleto),
+    prezzo: (im.Costo as number | string) ?? (im.ValoreCosto as number | string),
+    tipologia: str(im.Tipologia),
+    contratto: str(im.Contratto)?.toLowerCase(),
+    localita: {
+      comune: str(im.Comune) ?? "",
+      provincia: "",
+      indirizzo: str(im.Indirizzo),
+      cap: str(im.CAP),
+      zona: str(im.Zona),
+    },
+    mq: toNum(im.Mq),
+    locali: toNum(im.Locali),
+    bagni: toNum(im.Bagni),
+    camere: toNum(im.Camere),
+    piano: str(im.Piano),
+    classeEnergetica: str(im.ClasseImmobile),
+    caratteristiche: deriveFeatures(im),
+    // Il feed contiene SOLO immobili attivi → published (evita il default "draft" = nascosto).
+    statoPubblicazione: "published",
+    inEvidenza: isSi(im.Evidenza),
+    media,
+    dataPubblicazione: itDateToIso(str(im.DataInserimento)),
+    dataAggiornamento: itDateToIso(str(im.UltimaModifica)),
   };
 }
 
 /**
- * Estrae l'array di annunci grezzi da un payload sconosciuto.
- *
- * Forme supportate (mock/sample):
- *  - un array diretto: `[ {...}, {...} ]`
- *  - un envelope: `{ "listings": [ {...} ] }`
- *
- * Qualsiasi altra forma → array vuoto (nessun throw).
- * TODO(realsmart): adattare quando conosceremo l'envelope reale del feed.
- */
-function extractRawArray(payload: unknown): unknown[] {
-  if (Array.isArray(payload)) return payload;
-  if (isRecord(payload) && Array.isArray(payload.listings)) {
-    return payload.listings;
-  }
-  return [];
-}
-
-/**
- * Parsa un payload grezzo (unknown) in RealSmartListingRaw[].
- *
- * Contratto: MAI lancia. Su input malformato ritorna il sottoinsieme valido
- * (potenzialmente un array vuoto). Le voci invalide vengono semplicemente saltate.
+ * Trasforma l'oggetto prodotto da fast-xml-parser (feed RealSmart) in RealSmartListingRaw[].
+ * Accetta l'inviluppo <Dati><immobili><immobile>. Difensiva: ritorna [] su payload inatteso.
  */
 export function parseRealSmartPayload(payload: unknown): RealSmartListingRaw[] {
-  return extractRawArray(payload)
-    .map(parseListing)
-    .filter((l): l is RealSmartListingRaw => l !== undefined);
+  if (!isRecord(payload)) return [];
+  const dati = isRecord(payload.Dati) ? payload.Dati : payload;
+  const immobiliNode = isRecord(dati.immobili) ? dati.immobili.immobile : undefined;
+  const immobili = asArray<Record<string, unknown>>(immobiliNode).filter(isRecord);
+  return immobili
+    .map(mapImmobile)
+    .filter((x): x is RealSmartListingRaw => x !== null);
 }

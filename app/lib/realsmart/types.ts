@@ -78,6 +78,8 @@ export interface RealSmartListingRaw {
   caratteristiche?: string[];
   /** Stato pubblicazione grezzo (default: published se assente). */
   statoPubblicazione?: ListingStatus | string;
+  /** In evidenza (dal flag Evidenza del feed) → badge "In evidenza". */
+  inEvidenza?: boolean;
   /** Media associati (foto, planimetrie, tour). */
   media?: RealSmartMedia[];
   /** Date in formato ISO 8601 se disponibili. */
@@ -117,6 +119,8 @@ export interface NormalizedProperty {
   sqm: number;
   /** Numero locali (0 se ignoto). */
   rooms: number;
+  /** Numero camere da letto (0 se ignoto). */
+  bedrooms: number;
   /** Numero bagni (0 se ignoto). */
   baths: number;
   floor?: string;

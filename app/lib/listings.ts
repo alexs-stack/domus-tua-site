@@ -11,7 +11,9 @@ import { properties, getProperty, type Property } from "./properties";
 import { getLiveListings } from "./realsmart/client";
 import { normalizedToProperty } from "./realsmart/toProperty";
 
-const USE_REALSMART = process.env.NEXT_PUBLIC_USE_REALSMART === "true";
+// Default ON: il feed RealSmart reale è collegato. Si torna alla fixture demo solo
+// impostando NEXT_PUBLIC_USE_REALSMART="false" (utile per sviluppo offline).
+const USE_REALSMART = process.env.NEXT_PUBLIC_USE_REALSMART !== "false";
 
 export async function getVisibleListings(): Promise<Property[]> {
   if (USE_REALSMART) {
