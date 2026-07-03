@@ -25,8 +25,8 @@ export const heroCinematic = {
   mp4: "/media/domus-hero.mp4",
   webm: "/media/domus-hero.webm",
   poster: "/media/domus-hero-poster.jpg",
-  // Fallback sempre presente: fondatrice + team (foto reale già in repo).
+  // Fallback sempre presente: Raffaela Rizza con un cliente, in sede (foto reale).
   base: "/images/reali/raffaela-team-sede.jpg",
-  baseAlt: "Raffaela Rizza e il team Domus Tua nella sede di Tradate",
+  baseAlt: "Raffaela Rizza di Domus Tua con una cliente, nella sede di Tradate",
   youtube: "https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE",
 } as const;

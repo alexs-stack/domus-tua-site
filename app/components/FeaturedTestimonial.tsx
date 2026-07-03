@@ -76,7 +76,7 @@ export default function FeaturedTestimonial(props: Props) {
     quote: c.quote,
     author: c.author,
     context: c.context,
-    image: "/images/reali/recensione-clienti.jpg",
+    image: "/images/reali/consulenza.jpg",
     alt: c.alt,
     videoHref: `https://www.youtube.com/watch?v=${site.videos.testimonial.id}`,
   };
