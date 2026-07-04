@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
 import { ArrowUpRight, Play, Quote } from "./Icons";
+import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 
 const copy = {
@@ -19,6 +20,8 @@ const copy = {
     captionName: "Raffaela Rizza e il team",
     captionPlace: "Nella nostra sede di Tradate",
     badge: "Dal 2007",
+    founderAlt: "Raffaela Rizza, founder di Domus Tua",
+    founderCaption: "Founder & CEO",
     rosterTitle: "Il team",
     rosterIntro: "Un’agenzia a guida femminile che mette le persone al centro. Volti veri, competenze vere.",
     roles: {
@@ -43,6 +46,8 @@ const copy = {
     captionName: "Raffaela Rizza and the team",
     captionPlace: "At our office in Tradate",
     badge: "Since 2007",
+    founderAlt: "Raffaela Rizza, founder of Domus Tua",
+    founderCaption: "Founder & CEO",
     rosterTitle: "The team",
     rosterIntro: "A woman-led agency that puts people first. Real faces, real expertise.",
     roles: {
@@ -67,6 +72,8 @@ const copy = {
     captionName: "Raffaela Rizza et l’équipe",
     captionPlace: "Dans nos locaux à Tradate",
     badge: "Depuis 2007",
+    founderAlt: "Raffaela Rizza, fondatrice de Domus Tua",
+    founderCaption: "Fondatrice & CEO",
     rosterTitle: "L’équipe",
     rosterIntro: "Une agence dirigée par des femmes qui place les personnes au centre. Des visages vrais, des compétences vraies.",
     roles: {
@@ -91,6 +98,8 @@ const copy = {
     captionName: "Raffaela Rizza und das Team",
     captionPlace: "In unserem Büro in Tradate",
     badge: "Seit 2007",
+    founderAlt: "Raffaela Rizza, Gründerin von Domus Tua",
+    founderCaption: "Gründerin & CEO",
     rosterTitle: "Das Team",
     rosterIntro: "Eine von Frauen geführte Agentur, die den Menschen in den Mittelpunkt stellt. Echte Gesichter, echte Kompetenzen.",
     roles: {
@@ -115,6 +124,8 @@ const copy = {
     captionName: "Raffaela Rizza y el equipo",
     captionPlace: "En nuestra sede de Tradate",
     badge: "Desde 2007",
+    founderAlt: "Raffaela Rizza, fundadora de Domus Tua",
+    founderCaption: "Fundadora & CEO",
     rosterTitle: "El equipo",
     rosterIntro: "Una agencia dirigida por mujeres que pone a las personas en el centro. Rostros reales, competencias reales.",
     roles: {
@@ -133,7 +144,7 @@ export default function Team() {
   const c = copy[locale];
 
   const roster = [
-    { name: "Raffaela Rizza", role: c.roles.founder },
+    { name: "Raffaela Rizza", role: c.roles.founder, founder: true },
     { name: "Paloma Cavalcante", role: c.roles.office },
     { name: "Eleonora D’Agati", role: c.roles.architect },
     { name: "Viola Benatti", role: c.roles.frontOffice },
@@ -170,8 +181,9 @@ export default function Team() {
                 {c.quote}
               </blockquote>
               <figcaption className="mt-4 flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red font-display text-base font-semibold text-white">
+                <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-cream-deep font-display text-base font-semibold text-graphite ring-1 ring-inset ring-line">
                   RR
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red" aria-hidden="true" />
                 </span>
                 <span className="leading-tight">
                   <span className="block text-sm font-semibold text-ink">Raffaela Rizza</span>
@@ -181,15 +193,31 @@ export default function Team() {
             </figure>
 
             <div className="mt-9 max-w-xl">
-              <p className="text-sm font-semibold text-ink">{c.rosterTitle}</p>
-              <p className="mt-2 text-[0.95rem] leading-relaxed text-stone">
+              <div className="flex items-center gap-3">
+                <p className="eyebrow">{c.rosterTitle}</p>
+                <span className="h-px flex-1 bg-line" aria-hidden="true" />
+              </div>
+              <p className="mt-3 text-[0.95rem] leading-relaxed text-stone">
                 {c.rosterIntro}
               </p>
-              <ul className="mt-5 grid gap-x-6 gap-y-4 sm:grid-cols-2">
-                {roster.map((member) => (
-                  <li key={member.name} className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red font-display text-base font-semibold text-white">
+              <ul className="mt-6 grid gap-x-7 gap-y-px sm:grid-cols-2">
+                {roster.map((member, i) => (
+                  <li
+                    key={member.name}
+                    className="flex items-center gap-3.5 border-t border-line/70 py-3.5 sm:first:border-t-0 sm:[&:nth-child(2)]:border-t-0"
+                  >
+                    <span
+                      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] font-display text-[0.95rem] font-semibold text-graphite ring-1 ring-inset ring-line ${
+                        i % 2 === 0 ? "bg-paper" : "bg-cream-deep"
+                      }`}
+                    >
                       {initials(member.name)}
+                      {member.founder && (
+                        <span
+                          className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red ring-2 ring-cream"
+                          aria-hidden="true"
+                        />
+                      )}
                     </span>
                     <span className="leading-tight">
                       <span className="block text-sm font-semibold text-ink">{member.name}</span>
@@ -241,6 +269,28 @@ export default function Team() {
                   {c.badge}
                 </span>
               </figcaption>
+            </figure>
+
+            <figure className="group mt-5 overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
+              <div className="relative aspect-[5/4] overflow-hidden rounded-[calc(2rem-0.5rem)]">
+                <Image
+                  src="/images/reali/raffaela-founder.jpg"
+                  alt={c.founderAlt}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 520px"
+                  className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                />
+                <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ink/55 to-transparent" />
+                <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5">
+                  <span className="leading-tight text-paper">
+                    <span className="block font-display text-lg font-medium">Raffaela Rizza</span>
+                    <span className="block text-[0.8rem] text-paper/80">{c.founderCaption}</span>
+                  </span>
+                  <span className="mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-paper/90">
+                    <SegnoDomus className="h-3.5 w-3.5 text-red" />
+                  </span>
+                </figcaption>
+              </div>
             </figure>
           </Reveal>
         </div>

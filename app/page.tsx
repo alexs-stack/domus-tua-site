@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
 import HomeSearchGateway from "./components/HomeSearchGateway";
@@ -19,6 +20,21 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import SectionDivider from "./components/SectionDivider";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
+  },
+  description:
+    "Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. 4.9/5 da oltre 500 recensioni.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
+    description:
+      "Un metodo completo per vendere e acquistare casa con cura, trasparenza e assistenza fino al rogito. Tradate (VA), dal 2007.",
+    images: ["/images/hero_01_attico_travi_salotto.jpg"],
+  },
+};
 
 export default function Home() {
   return (

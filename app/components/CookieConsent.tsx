@@ -3,7 +3,7 @@
 // Banner consenso cookie (GDPR/ePrivacy). MVP: il sito non carica ancora script di
 // tracciamento; il banner registra la scelta in un cookie `dt_consent` e fa da gate per
 // eventuali analytics futuri (caricarli solo se dt_consent=accepted). Multilingua.
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -57,29 +57,78 @@ export default function CookieConsent() {
   const c = copy[locale];
   const [show, setShow] = useState(false);
 
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const acceptRef = useRef<HTMLButtonElement | null>(null);
+  // Elemento a cui restituire il focus alla chiusura (chi aveva il focus prima del banner).
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     const decided = document.cookie.split("; ").some((r) => r.startsWith(`${COOKIE}=`));
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!decided) setShow(true);
   }, []);
 
-  if (!show) return null;
+  // All'apertura: memorizza il focus corrente e spostalo sull'azione primaria (Accetta).
+  useEffect(() => {
+    if (!show) return;
+    const active = document.activeElement;
+    returnFocusRef.current = active instanceof HTMLElement ? active : null;
+    acceptRef.current?.focus();
+  }, [show]);
 
-  const choose = (v: "accepted" | "rejected") => {
+  const choose = useCallback((v: "accepted" | "rejected") => {
     setConsent(v);
     setShow(false);
-  };
+    // Ripristina il focus a chi lo aveva prima (o al body come fallback sicuro).
+    const target = returnFocusRef.current;
+    if (target && document.contains(target)) target.focus();
+    else document.body.focus();
+    returnFocusRef.current = null;
+  }, []);
+
+  // Trap del Tab all'interno del banner mentre è mostrato: ciclo tra il primo e l'ultimo
+  // elemento focalizzabile senza uscire dal dialog.
+  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab") return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const focusable = panel.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const activeEl = document.activeElement;
+    if (e.shiftKey) {
+      if (activeEl === first || !panel.contains(activeEl)) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else if (activeEl === last || !panel.contains(activeEl)) {
+      e.preventDefault();
+      first.focus();
+    }
+  }, []);
+
+  if (!show) return null;
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
-      aria-label={c.aria}
+      aria-modal="true"
+      aria-labelledby="cookie-consent-title"
+      aria-describedby="cookie-consent-desc"
+      onKeyDown={onKeyDown}
       className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-paper/95 p-4 shadow-[0_30px_70px_-30px_rgba(26,24,22,0.5)] backdrop-blur-xl sm:inset-x-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:p-5"
     >
+      <h2 id="cookie-consent-title" className="sr-only">
+        {c.aria}
+      </h2>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
           <SegnoDomus className="mt-0.5 hidden h-4 w-9 shrink-0 sm:block" embrace={false} />
-          <p className="text-[0.86rem] leading-relaxed text-graphite">
+          <p id="cookie-consent-desc" className="text-[0.86rem] leading-relaxed text-graphite">
             {c.text}{" "}
             <Link href="/cookie" className="font-semibold text-red underline underline-offset-2 hover:text-red-dark">
               {c.policy}
@@ -95,6 +144,7 @@ export default function CookieConsent() {
             {c.reject}
           </button>
           <button
+            ref={acceptRef}
             type="button"
             onClick={() => choose("accepted")}
             className="rounded-full bg-red px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"

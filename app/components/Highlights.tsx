@@ -1,5 +1,5 @@
 import Reveal from "./Reveal";
-import { Check } from "./Icons";
+import { SegnoDomus } from "./BrandMotif";
 
 export default function Highlights({
   eyebrow,
@@ -25,21 +25,34 @@ export default function Highlights({
           {intro && <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{intro}</p>}
         </Reveal>
 
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
+        {/* Lista editoriale numerata: righe asimmetriche separate da hairline,
+            l'indice tabellare in rosso è l'unico accento (no card identiche). */}
+        <ol className="mt-14 border-t border-line sm:mt-16">
           {items.map((it, i) => (
-            <Reveal key={it.title} delay={i * 90}>
-              <article className="group flex h-full flex-col rounded-[1.75rem] border border-line bg-paper p-7 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                  <Check className="h-5 w-5" />
+            <Reveal
+              as="li"
+              key={it.title}
+              delay={i * 90}
+              className="group grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
+            >
+              <div className="flex flex-col items-start gap-3">
+                <SegnoDomus
+                  className="h-4 w-11 opacity-70 transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:opacity-100"
+                  embrace={false}
+                />
+                <span className="tnum font-display text-3xl font-medium leading-none text-red sm:text-4xl md:text-5xl">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
-                <h3 className="mt-6 font-display text-xl font-medium leading-snug tracking-tight text-ink">
+              </div>
+              <div className="max-w-xl pt-0.5">
+                <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink sm:text-2xl">
                   {it.title}
                 </h3>
-                <p className="mt-2 text-[0.92rem] leading-relaxed text-stone">{it.copy}</p>
-              </article>
+                <p className="mt-2.5 text-[0.98rem] leading-relaxed text-stone">{it.copy}</p>
+              </div>
             </Reveal>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );

@@ -254,10 +254,22 @@ const copy = {
 
 type Copy = (typeof copy)[keyof typeof copy];
 
-export default function Contact() {
+// Props opzionali per il prefill da scheda immobile. Quando il form parte da una
+// listing (`/case/<slug>`) la CTA "Richiedi una visita" apre già l'intento giusto
+// (di norma "buyer" / cerca casa), collega il riferimento immobile al lead e può
+// suggerire la zona. Senza props il comportamento di default (no-listing) resta invariato.
+export default function Contact({
+  initialIntent,
+  propertyRef,
+  initialPlace,
+}: {
+  initialIntent?: LeadIntent;
+  propertyRef?: string;
+  initialPlace?: string;
+} = {}) {
   const { locale } = useLocale();
   const c = copy[locale];
-  const [intent, setIntent] = useState<LeadIntent>("seller");
+  const [intent, setIntent] = useState<LeadIntent>(initialIntent ?? "seller");
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; contact?: string; consent?: string }>({});
 
@@ -321,6 +333,8 @@ export default function Contact() {
       message: val("message") || undefined,
       consent: true,
       sourcePage: typeof window !== "undefined" ? window.location.pathname : undefined,
+      // Riferimento immobile: presente solo se il form parte da una scheda listing.
+      propertyRef: propertyRef || undefined,
     };
 
     // Cattura server-side (Google Sheet se configurato) — best-effort, non blocca il flusso.
@@ -423,8 +437,9 @@ export default function Contact() {
                 error={errors.contact}
               />
 
-              {/* Campi dinamici per intento. */}
-              <IntentFields intent={intent} c={c} />
+              {/* Campi dinamici per intento. `initialPlace` (zona della scheda) precompila
+                  la zona desiderata quando il form parte da un immobile. */}
+              <IntentFields intent={intent} c={c} initialPlace={initialPlace} />
 
               {/* Consenso privacy: obbligatorio perché il lead viene salvato (GDPR). */}
               <div>
@@ -485,7 +500,15 @@ export default function Contact() {
 // BUYER    → zona desiderata, tipologia, budget, caratteristiche
 // QUESTION → (solo nome + contatto + messaggio)
 // OPEN DOMUS → zona di interesse
-function IntentFields({ intent, c }: { intent: LeadIntent; c: Copy }) {
+function IntentFields({
+  intent,
+  c,
+  initialPlace,
+}: {
+  intent: LeadIntent;
+  c: Copy;
+  initialPlace?: string;
+}) {
   if (intent === "seller") {
     return (
       <>
@@ -498,7 +521,12 @@ function IntentFields({ intent, c }: { intent: LeadIntent; c: Copy }) {
   if (intent === "buyer") {
     return (
       <>
-        <Field name="place" label={c.placeLabelBuy} placeholder={c.placePlaceholderBuy} />
+        <Field
+          name="place"
+          label={c.placeLabelBuy}
+          placeholder={c.placePlaceholderBuy}
+          defaultValue={initialPlace}
+        />
         <Field name="budget" label={c.budgetLabel} placeholder={c.budgetPlaceholder} />
         <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
         <Field name="features" label={c.featuresLabel} placeholder={c.featuresPlaceholder} />
@@ -521,6 +549,7 @@ function Field({
   type = "text",
   required,
   error,
+  defaultValue,
 }: {
   name: string;
   label: string;
@@ -528,6 +557,7 @@ function Field({
   type?: string;
   required?: boolean;
   error?: string;
+  defaultValue?: string;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -539,6 +569,7 @@ function Field({
         name={name}
         type={type}
         placeholder={placeholder}
+        defaultValue={defaultValue}
         required={required}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}

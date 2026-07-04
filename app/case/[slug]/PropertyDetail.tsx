@@ -328,7 +328,9 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         </section>
       )}
 
-      <Contact />
+      {/* Dalla scheda l'intento parte da "cerco casa" (buyer), il lead porta il
+          riferimento immobile e la zona precompila la zona desiderata. */}
+      <Contact initialIntent="buyer" propertyRef={`${p.title} (${p.slug})`} initialPlace={p.zone} />
     </main>
   );
 }

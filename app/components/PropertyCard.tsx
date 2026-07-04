@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight, Bed, Ruler, Rooms } from "./Icons";
+import { ArrowUpRight, Bed, Ruler, Rooms, Check } from "./Icons";
 import Badge from "./primitives/Badge";
 import { SegnoDomusCorner } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -14,26 +15,36 @@ const copy = {
     cta: "Scopri la casa",
     forSale: "In vendita",
     forRent: "In affitto",
+    share: "Condividi",
+    shared: "Link copiato",
   },
   en: {
     cta: "Discover the home",
     forSale: "For sale",
     forRent: "For rent",
+    share: "Share",
+    shared: "Link copied",
   },
   fr: {
     cta: "Découvrir la maison",
     forSale: "À vendre",
     forRent: "À louer",
+    share: "Partager",
+    shared: "Lien copié",
   },
   de: {
     cta: "Das Zuhause entdecken",
     forSale: "Zu verkaufen",
     forRent: "Zu vermieten",
+    share: "Teilen",
+    shared: "Link kopiert",
   },
   es: {
     cta: "Descubre la casa",
     forSale: "En venta",
     forRent: "En alquiler",
+    share: "Compartir",
+    shared: "Enlace copiado",
   },
 };
 
@@ -51,6 +62,7 @@ export default function PropertyCard({ p }: { p: Property }) {
   const { locale } = useLocale();
   const c = copy[locale];
   const statusLabel = p.status === "Affitto" ? c.forRent : c.forSale;
+  const [copied, setCopied] = useState(false);
 
   // Mostriamo al massimo 2 badge sull'immagine, dando priorità a quelli "forti"
   // (accento rosso) senza riordinare gli altri. Non aggiungiamo mai badge nuovi.
@@ -58,11 +70,28 @@ export default function PropertyCard({ p }: { p: Property }) {
     .sort((a, b) => Number(strongBadges.has(b)) - Number(strongBadges.has(a)))
     .slice(0, 2);
 
+  // Condivisione: Web Share API dove disponibile, altrimenti copia il link negli appunti.
+  async function handleShare() {
+    const url =
+      typeof window !== "undefined" ? `${window.location.origin}/case/${p.slug}` : `/case/${p.slug}`;
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: p.title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // Utente ha annullato o API non disponibile: nessun errore visibile.
+    }
+  }
+
+  // Card con "stretched link": il contenitore è un <div>, la CTA porta un ::after che
+  // copre tutta la card (l'intera card è cliccabile), mentre il pulsante Condividi vive
+  // sopra (z-10) come vero <button>, senza annidare interattivi dentro un <a>.
   return (
-    <a
-      href={`/case/${p.slug}`}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-line bg-paper transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/20 hover:shadow-[var(--shadow-card-hover)]"
-    >
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-line bg-paper transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/20 hover:shadow-[var(--shadow-card-hover)]">
       {/* Immagine più grande e curata */}
       <div className="relative aspect-[3/2] overflow-hidden">
         <Image
@@ -79,6 +108,25 @@ export default function PropertyCard({ p }: { p: Property }) {
         <div className="absolute left-4 top-4">
           <Badge variant="onImage">{statusLabel}</Badge>
         </div>
+
+        {/* Condividi — vero pulsante sopra lo stretched link (z-10), area tap 44px */}
+        <button
+          type="button"
+          onClick={handleShare}
+          aria-label={copied ? c.shared : c.share}
+          className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper/90 text-ink shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)] backdrop-blur-sm transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+        >
+          {copied ? (
+            <Check className="h-[18px] w-[18px]" />
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden>
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+            </svg>
+          )}
+        </button>
 
         {/* Badge dal gestionale (Open Domus, Documenti verificati, In evidenza…) */}
         {shownBadges.length > 0 && (
@@ -142,14 +190,19 @@ export default function PropertyCard({ p }: { p: Property }) {
           >
             {p.price}
           </span>
-          <span className="inline-flex items-center gap-2 text-[0.8rem] font-semibold text-graphite transition-colors duration-300 group-hover:text-red">
+          {/* CTA = stretched link: il ::after copre l'intera card */}
+          <a
+            href={`/case/${p.slug}`}
+            aria-label={`${c.cta}: ${p.title}`}
+            className="inline-flex items-center gap-2 text-[0.8rem] font-semibold text-graphite transition-colors duration-300 after:absolute after:inset-0 after:content-[''] group-hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          >
             {c.cta}
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream-deep text-ink transition-all duration-300 group-hover:bg-red group-hover:text-white">
               <ArrowUpRight className="h-4 w-4" />
             </span>
-          </span>
+          </a>
         </div>
       </div>
-    </a>
+    </div>
   );
 }

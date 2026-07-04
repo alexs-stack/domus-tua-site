@@ -292,7 +292,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Selling without a method",
       title: "What you risk when you sell without a method",
       intro:
-        "We’re not saying this to scare you, but to prepare you. These are the things we most often see happen to people who sell on their own — and that the right method almost always prevents.",
+        "We’re not saying this to scare you, but to prepare you. These are the things we most often see happen to people who sell on their own, and that the right method almost always prevents.",
       items: [
         {
           title: "The wrong price",

@@ -93,18 +93,36 @@ export default function HeroCinematic() {
 
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
   // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto (leggera).
+  // Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
+  // selezione della sorgente non entra nel percorso critico dell'immagine LCP.
   useEffect(() => {
     if (!heroCinematic.enabled) return;
     const okMotion = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
     const okWidth = window.matchMedia("(min-width: 768px)").matches;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (okMotion && okWidth) setPlayVideo(true);
+    if (!okMotion || !okWidth) return;
+
+    // Rimanda il mount del video oltre il paint LCP.
+    let raf = 0;
+    let idleId = 0;
+    // Feature-detect via "in": i tipi DOM danno requestIdleCallback come sempre presente,
+    // ma alcuni browser (Safari datati) non ce l'hanno, quindi serve il fallback setTimeout.
+    const hasIdle = "requestIdleCallback" in window;
+    if (hasIdle) {
+      idleId = window.requestIdleCallback(() => setPlayVideo(true), { timeout: 2500 });
+    } else {
+      raf = window.setTimeout(() => setPlayVideo(true), 1200);
+    }
+
+    return () => {
+      if (hasIdle) window.cancelIdleCallback(idleId);
+      else window.clearTimeout(raf);
+    };
   }, []);
 
   const chips = ["Open Domus", "Domus D.O.C.", c.place];
 
   return (
-    <section id="top" className="relative flex min-h-[92vh] w-full items-end overflow-hidden bg-ink text-cream">
+    <section id="top" className="relative flex min-h-[92dvh] w-full items-end overflow-hidden bg-ink text-cream">
       {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
       <Image
         src={heroCinematic.base}

@@ -132,7 +132,7 @@ export default function Method() {
           {c.steps.map((s, i) => (
             <Reveal key={stepNumbers[i]} delay={i * 60} as="li">
               <div className="group flex gap-6 border-t border-line py-7 transition-colors duration-500 hover:border-red/30">
-                <span className="font-display text-2xl font-medium text-red/35 transition-colors duration-500 group-hover:text-red sm:text-3xl">
+                <span className="font-display text-2xl font-medium text-graphite transition-colors duration-500 group-hover:text-red sm:text-3xl">
                   {stepNumbers[i]}
                 </span>
                 <div className="flex-1">

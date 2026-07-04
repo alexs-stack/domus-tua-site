@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { ArrowUpRight, Whatsapp } from "./Icons";
@@ -12,6 +12,8 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const d = useDict();
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -24,6 +26,58 @@ export default function Header() {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  // Accessibilità menu mobile: Escape chiude, focus intrappolato dentro il
+  // pannello, focus sul primo elemento all'apertura e ripristino sul toggle
+  // alla chiusura.
+  useEffect(() => {
+    if (!open) return;
+
+    const menu = menuRef.current;
+    if (!menu) return;
+
+    const focusables = () =>
+      Array.from(
+        menu.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+
+    // Sposta il focus sul primo elemento interattivo del menu.
+    focusables()[0]?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = focusables();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey) {
+        if (active === first || !menu.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !menu.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    // Copia il ref in una variabile locale per la cleanup (evita il warning ref-in-cleanup).
+    const toggle = toggleRef.current;
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      // Ripristina il focus sul pulsante hamburger alla chiusura.
+      toggle?.focus();
     };
   }, [open]);
 
@@ -80,6 +134,7 @@ export default function Header() {
 
           {/* Hamburger */}
           <button
+            ref={toggleRef}
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Chiudi menu" : "Apri menu"}
             aria-expanded={open}
@@ -104,6 +159,7 @@ export default function Header() {
 
       {/* Mobile overlay */}
       <div
+        ref={menuRef}
         id="mobile-menu"
         aria-hidden={!open}
         inert={!open ? true : undefined}

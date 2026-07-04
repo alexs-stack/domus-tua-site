@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   title: "Servizi immobiliari, oltre l'annuncio",
   description:
     "I servizi Domus Tua: valutazione, servizi tecnici e legali, rendering e virtual rendering, home staging, emotional video, marketing e Open Domus. Valorizziamo, proteggiamo e raccontiamo la tua casa.",
+  alternates: { canonical: "/servizi" },
+  openGraph: {
+    title: "Servizi immobiliari, oltre l'annuncio",
+    description:
+      "I servizi Domus Tua: valutazione, servizi tecnici e legali, rendering e virtual rendering, home staging, emotional video, marketing e Open Domus. Valorizziamo, proteggiamo e raccontiamo la tua casa.",
+    images: ["/images/hero_01_attico_travi_salotto.jpg"],
+  },
 };
 
 export default function ServiziPage() {

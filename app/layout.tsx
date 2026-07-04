@@ -2,10 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { site } from "./lib/site";
+import { defaultLocale, type Locale } from "./lib/i18n/dictionaries";
 import { LocaleProvider } from "./components/i18n/LocaleProvider";
 import PreviewBadge from "./components/PreviewBadge";
 import CookieConsent from "./components/CookieConsent";
-import Assistant from "./components/Assistant";
+import AssistantMount from "./components/AssistantMount";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -28,6 +29,16 @@ const jakarta = Plus_Jakarta_Sans({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
 
+// Skip-link (chrome accessibile). Reso lato server con la lingua di default; l’etichetta
+// esiste in tutte e cinque le lingue per parità i18n e per un futuro rendering per-locale.
+const skipToContent: Record<Locale, string> = {
+  it: "Salta al contenuto",
+  en: "Skip to content",
+  fr: "Aller au contenu",
+  de: "Zum Inhalt springen",
+  es: "Saltar al contenido",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -36,6 +47,9 @@ export const metadata: Metadata = {
   },
   description:
     "Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. 4.9/5 da oltre 500 recensioni.",
+  alternates: {
+    canonical: "/",
+  },
   keywords: [
     "agenzia immobiliare Tradate",
     "vendere casa Tradate",
@@ -108,7 +122,13 @@ export default function RootLayout({
       lang="it"
       className={`${fraunces.variable} ${jakarta.variable} antialiased`}
     >
-      <body className="flex min-h-screen flex-col bg-paper text-ink">
+      <body className="flex min-h-dvh flex-col bg-paper text-ink">
+        <a
+          href="#main"
+          className="sr-only rounded-full bg-ink px-5 py-3 font-medium text-cream shadow-lg focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]"
+        >
+          {skipToContent[defaultLocale]}
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -116,10 +136,12 @@ export default function RootLayout({
         <div className="grain" aria-hidden />
         <div className="scroll-progress" aria-hidden />
         <LocaleProvider>
-          {children}
+          <div id="main" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
+            {children}
+          </div>
           <PreviewBadge />
           <CookieConsent />
-          <Assistant />
+          <AssistantMount />
         </LocaleProvider>
       </body>
     </html>

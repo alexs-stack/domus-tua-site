@@ -316,8 +316,8 @@ export default function PropertySearch({ properties }: { properties: Property[] 
 
   const bySlug = useMemo(() => new Map(properties.map((p) => [p.slug, p])), [properties]);
 
-  async function runSearch() {
-    const q = nl.trim();
+  async function runSearch(query?: string) {
+    const q = (query ?? nl).trim();
     if (!q || searching) return;
     setSearching(true);
     setAiError(false);
@@ -352,6 +352,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
 
   // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
   // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
+  // Se arriva ?q= dalla ricerca in home, avvia la ricerca AI una sola volta (auto-run alla conversione).
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const q = sp.get("q");
@@ -369,6 +370,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       comune: comune || s.comune,
     }));
     /* eslint-enable react-hooks/set-state-in-effect */
+    // La query esplicita è passata a runSearch: lo stato nl non è ancora aggiornato in questo tick.
+    if (q?.trim()) void runSearch(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Al cambio filtri (o risultato AI) riparti dalle prime 24 case.
@@ -425,7 +429,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     }));
 
   const pill = (active: boolean) =>
-    `rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+    `inline-flex min-h-[44px] items-center rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
       active
         ? "border-red bg-red text-white hover:bg-red-dark"
         : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
@@ -496,7 +500,13 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               {c.contract}
             </span>
             {(["Tutte", "Vendita", "Affitto"] as const).map((v) => (
-              <button key={v} onClick={() => setF((s) => ({ ...s, contract: v }))} className={pill(f.contract === v)}>
+              <button
+                key={v}
+                type="button"
+                aria-pressed={f.contract === v}
+                onClick={() => setF((s) => ({ ...s, contract: v }))}
+                className={pill(f.contract === v)}
+              >
                 {c.contractLabels[v]}
               </button>
             ))}
@@ -507,7 +517,13 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               {c.type}
             </span>
             {types.map((t) => (
-              <button key={t} onClick={() => setF((s) => ({ ...s, type: t }))} className={pill(f.type === t)}>
+              <button
+                key={t}
+                type="button"
+                aria-pressed={f.type === t}
+                onClick={() => setF((s) => ({ ...s, type: t }))}
+                className={pill(f.type === t)}
+              >
                 {(c.typeLabels as Record<string, string>)[t] ?? t}
               </button>
             ))}
@@ -563,7 +579,13 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               {c.features}
             </span>
             {featureOptions.map((o) => (
-              <button key={o.label} onClick={() => toggleFeature(o.label)} className={pill(f.features.includes(o.label))}>
+              <button
+                key={o.label}
+                type="button"
+                aria-pressed={f.features.includes(o.label)}
+                onClick={() => toggleFeature(o.label)}
+                className={pill(f.features.includes(o.label))}
+              >
                 {c.featureLabels[o.label] ?? o.label}
               </button>
             ))}

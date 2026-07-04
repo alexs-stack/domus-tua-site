@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "Informativa sul trattamento dei dati personali di Domus Tua srl ai sensi del Regolamento UE 2016/679 (GDPR).",
+  // Testo placeholder non ancora validato da legale/DPO: escluso dall'indicizzazione
+  // finché non sarà finalizzato. I link restano seguibili.
+  robots: { index: false, follow: true },
 };
 
 // ⚠️ ATTENZIONE: testo placeholder redatto per finalità di impaginazione.

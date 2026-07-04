@@ -76,12 +76,12 @@ const copy = {
   },
   fr: {
     eyebrow: "Services Domus",
-    title: "Tout ce qu'il faut pour valoriser, protéger et raconter votre maison.",
+    title: "Tout ce qu’il faut pour valoriser, protéger et raconter votre maison.",
     featureBadge: "Service phare",
     featureTitle: "Rendu et rendu virtuel",
     featureCopy:
       "Voir le potentiel du bien avant même les travaux.",
-    featureAlt: "Rendu photoréaliste d'un salon moderne",
+    featureAlt: "Rendu photoréaliste d’un salon moderne",
     services: [
       {
         title: "Services techniques et juridiques",
@@ -221,7 +221,7 @@ export default function Services() {
           {c.services.map((s, i) => (
             <Reveal key={s.title} delay={i * 70}>
               <article className="group flex h-full flex-col justify-between rounded-[2rem] border border-line bg-paper p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40">
-                <span className="font-display text-sm font-semibold text-red/60">
+                <span className="font-display text-sm font-semibold text-red">
                   0{i + 1}
                 </span>
                 <div className="mt-8">

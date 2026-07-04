@@ -2,7 +2,7 @@
 
 import Reveal from "./Reveal";
 import { SegnoDomus, SegnoDomusBadge } from "./BrandMotif";
-import { Check, ArrowUpRight, Star } from "./Icons";
+import { Check, ArrowUpRight, ArrowRight, Star } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 
 const copy = {
@@ -133,7 +133,7 @@ export default function DomusDocProtocol({
               <SegnoDomus className="h-40 w-72" embrace={false} />
             </span>
 
-            <div className="relative grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+            <div className="relative grid gap-y-12 lg:grid-cols-[0.95fr_1px_1.05fr] lg:gap-x-14 lg:gap-y-0">
               {/* Intro */}
               <div>
                 {/* Sigillo D.O.C. — firma visiva del protocollo */}
@@ -150,20 +150,25 @@ export default function DomusDocProtocol({
                   {c.intro}
                 </p>
 
-                <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-line bg-cream p-5">
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-red-dark">
+                {/* Due prospettive, un solo protocollo — pannello unico diviso da hairline */}
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2">
+                  {/* Per chi vende — accento uscente, colonna in evidenza */}
+                  <div className="sm:pr-6">
+                    <p className="flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-red-dark">
+                      <ArrowUpRight className="h-3.5 w-3.5" />
                       {c.sellerLabel}
                     </p>
-                    <p className="mt-2 text-sm leading-relaxed text-graphite">
+                    <p className="mt-3 text-sm leading-relaxed text-graphite">
                       {c.sellerText}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-line bg-cream p-5">
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-red-dark">
+                  {/* Per chi compra — accento entrante, tono di garanzia più quieto */}
+                  <div className="mt-6 border-t border-line pt-6 sm:mt-0 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+                    <p className="flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-stone">
+                      <ArrowRight className="h-3.5 w-3.5 text-red" />
                       {c.buyerLabel}
                     </p>
-                    <p className="mt-2 text-sm leading-relaxed text-graphite">
+                    <p className="mt-3 text-sm leading-relaxed text-stone">
                       {c.buyerText}
                     </p>
                   </div>
@@ -180,14 +185,19 @@ export default function DomusDocProtocol({
                 </a>
               </div>
 
-              {/* Pilastri */}
-              <ul className="flex flex-col gap-3">
+              {/* Divisore verticale hairline tra intro e pilastri (solo desktop) */}
+              <div className="hidden lg:block" aria-hidden>
+                <span className="block h-full w-px bg-gradient-to-b from-transparent via-line to-transparent" />
+              </div>
+
+              {/* Pilastri — righe divise da hairline, non card annidate */}
+              <ul className="flex flex-col">
                 {c.pillars.map((p, i) => (
                   <li
                     key={p.t}
-                    className="flex items-start gap-4 rounded-2xl border border-line bg-cream p-5 transition-colors duration-300 hover:border-red/30"
+                    className="group flex items-start gap-4 border-t border-line py-4 first:border-t-0 first:pt-0"
                   >
-                    <span className="tnum flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-soft font-display text-sm font-semibold text-red-dark">
+                    <span className="tnum mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-soft font-display text-sm font-semibold text-red-dark transition-colors duration-300 group-hover:bg-red group-hover:text-white">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div>
@@ -199,8 +209,8 @@ export default function DomusDocProtocol({
                     </div>
                   </li>
                 ))}
-                <li className="mt-1 flex items-center gap-2 pl-1 text-[0.8rem] text-stone">
-                  <Star className="h-3.5 w-3.5 text-red" />
+                <li className="mt-4 flex items-center gap-2 border-t border-line pt-4 text-[0.8rem] text-stone">
+                  <Star className="h-3.5 w-3.5 shrink-0 text-red" />
                   {c.footnote}
                 </li>
               </ul>

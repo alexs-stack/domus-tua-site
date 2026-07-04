@@ -2,19 +2,20 @@
 
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
+import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 
 type Stat = {
   labelKey: "people" | "deals" | "sold" | "valued";
-  count?: { value: number; decimals?: number; suffix?: string };
-  text?: string;
+  count: { value: number; decimals?: number; suffix?: string };
 };
 
-const stats: Stat[] = [
+/** La cifra maggiore fa da stat "eroe"; le altre tre stanno in una riga secondaria. */
+const heroStat: Stat = { count: { value: 269395 }, labelKey: "valued" };
+const secondaryStats: Stat[] = [
   { count: { value: 6433 }, labelKey: "people" },
   { count: { value: 1523 }, labelKey: "deals" },
   { count: { value: 92, suffix: "%" }, labelKey: "sold" },
-  { count: { value: 269395 }, labelKey: "valued" },
 ];
 
 /** Locale del sito → BCP-47 per il raggruppamento delle migliaia (269395 → "269.395"). */
@@ -28,6 +29,7 @@ const intlLocale: Record<string, string> = {
 
 const copy = {
   it: {
+    eyebrow: "I numeri di Domus Tua",
     labels: {
       people: "Persone felici",
       deals: "Transazioni concluse",
@@ -46,6 +48,7 @@ const copy = {
     ],
   },
   en: {
+    eyebrow: "The Domus Tua numbers",
     labels: {
       people: "Happy people",
       deals: "Deals closed",
@@ -64,6 +67,7 @@ const copy = {
     ],
   },
   fr: {
+    eyebrow: "Les chiffres de Domus Tua",
     labels: {
       people: "Personnes satisfaites",
       deals: "Transactions conclues",
@@ -82,6 +86,7 @@ const copy = {
     ],
   },
   de: {
+    eyebrow: "Die Zahlen von Domus Tua",
     labels: {
       people: "Zufriedene Menschen",
       deals: "Abgeschlossene Transaktionen",
@@ -100,6 +105,7 @@ const copy = {
     ],
   },
   es: {
+    eyebrow: "Los números de Domus Tua",
     labels: {
       people: "Personas felices",
       deals: "Transacciones cerradas",
@@ -126,12 +132,46 @@ export default function Stats() {
   return (
     <section className="border-b border-line bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
-          {stats.map((s, i) => (
-            <Reveal key={s.labelKey} delay={i * 90}>
-              <div className="flex flex-col">
-                <span className="font-display text-5xl font-medium tracking-tight text-ink sm:text-6xl">
-                  {s.count ? (
+        <div className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center lg:gap-x-16">
+          {/* Stat eroe: la cifra maggiore, con eyebrow e Segno Domus come accento minimo */}
+          <Reveal>
+            <div className="flex flex-col">
+              <span className="eyebrow eyebrow--center gap-3">
+                <SegnoDomus className="h-3.5 w-9" embrace={false} />
+                {c.eyebrow}
+              </span>
+              <span className="mt-5 font-display text-[3.4rem] font-medium leading-none tracking-tight text-ink sm:text-7xl lg:text-[5.5rem]">
+                <CountUp
+                  value={heroStat.count.value}
+                  decimals={heroStat.count.decimals}
+                  suffix={heroStat.count.suffix}
+                  group
+                  locale={intlLocale[locale]}
+                />
+              </span>
+              <span className="mt-3 text-sm leading-snug text-stone">
+                {c.labels[heroStat.labelKey]}
+              </span>
+            </div>
+          </Reveal>
+
+          {/* Divisore tra eroe e riga secondaria (hairline su mobile/tablet, bordo verticale su desktop) */}
+          <div className="hairline my-9 lg:hidden" />
+
+          {/* Riga secondaria: tre cifre inline separate da divisori hairline */}
+          <div className="grid grid-cols-3 lg:border-l lg:border-line lg:pl-16">
+            {secondaryStats.map((s, i) => (
+              <Reveal
+                key={s.labelKey}
+                delay={90 + i * 90}
+                className={
+                  i > 0
+                    ? "border-l border-line pl-4 sm:pl-6"
+                    : "pr-4 sm:pr-6"
+                }
+              >
+                <div className="flex flex-col">
+                  <span className="font-display text-3xl font-medium leading-none tracking-tight text-ink sm:text-4xl lg:text-5xl">
                     <CountUp
                       value={s.count.value}
                       decimals={s.count.decimals}
@@ -139,16 +179,14 @@ export default function Stats() {
                       group
                       locale={intlLocale[locale]}
                     />
-                  ) : (
-                    s.text
-                  )}
-                </span>
-                <span className="mt-3 max-w-[14rem] text-sm leading-snug text-stone">
-                  {c.labels[s.labelKey]}
-                </span>
-              </div>
-            </Reveal>
-          ))}
+                  </span>
+                  <span className="mt-2.5 text-xs leading-snug text-stone sm:text-sm">
+                    {c.labels[s.labelKey]}
+                  </span>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </div>
 
