@@ -1,11 +1,14 @@
 // Dati di contatto e costanti del brand Domus Tua.
-// NB: i numeri "trust" (4.9/5, 500+ recensioni) sono indicati come reali nel brief.
-// I dati immobili e le recensioni nel sito sono DEMO da sostituire con quelli reali.
+// Dati societari/contatti/orari VERIFICATI dal sito ufficiale domustua.com + Registro Imprese
+// (lug 2026). Recensioni: 4,9/5 su Google, ~531 recensioni (fonte Trustindex, giu 2026).
+// I dati immobili e le recensioni testuali nel sito sono DEMO da sostituire con quelli reali.
 
 export const site = {
   name: "Domus Tua",
   legal: "Domus Tua srl Società unipersonale",
   vat: "03836560122",
+  rea: "VA 382680",
+  capital: "25.000", // capitale sociale interamente versato (€)
   since: 2007,
   address: {
     street: "Corso Bernacchi 91",
@@ -18,8 +21,15 @@ export const site = {
     href: "https://wa.me/393466042314?text=Ciao%20Domus%20Tua%2C%20vorrei%20informazioni",
   },
   email: { label: "info@domustua.com", href: "mailto:info@domustua.com" },
+  // Orari reali (fonte: domustua.com/contatti). Pomeriggio = 14:30 (non 15:00).
+  hours: {
+    weekdays: "9:00 – 12:30 · 14:30 – 19:00",
+    saturday: "9:00 – 12:30",
+  },
+  // Spec orari per i dati strutturati (schema.org openingHours).
+  openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 14:30-19:00", "Sa 09:00-12:30"],
   rating: "4.9",
-  reviewsCount: "500+",
+  reviewsCount: "531",
   videosCountLabel: "440+",
   videosCountNote: "video tra tour, recensioni e Open Domus",
   // Claim descrittivo/verificabile (non superlativo assoluto senza fonte, art. 2598 c.c.).

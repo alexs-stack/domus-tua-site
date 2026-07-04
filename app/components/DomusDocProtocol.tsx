@@ -10,7 +10,7 @@ const copy = {
     eyebrow: "Protocollo proprietario",
     subtitle: "La casa di origine certificata",
     intro:
-      "Il primo protocollo del territorio che certifica ogni immobile prima della vendita: si controlla prima, non dopo. Chi compra non ha sorprese; chi vende ha una trattativa più solida e tempi più rapidi.",
+      "Il protocollo proprietario che unisce due garanzie: prima della vendita verifichiamo origine e conformità della casa, poi la valorizziamo con l’intero pacchetto di servizi Domus Tua. Si controlla prima, non dopo: chi compra non ha sorprese, chi vende ha una trattativa più solida e tempi più rapidi.",
     sellerLabel: "Per chi vende",
     sellerText:
       "Trattative che non saltano per un documento mancante, acquirenti più sicuri e quindi offerte più concrete, tempi più rapidi e tutto pronto per il rogito.",
@@ -25,13 +25,13 @@ const copy = {
       { t: "Provenienza e gravami", d: "Titolo di proprietà, successioni, ipoteche e vincoli verificati e in ordine." },
       { t: "Documentazione completa", d: "Tutti i documenti raccolti e pronti per il notaio, prima della vendita." },
     ],
-    footnote: "Protocollo applicato a ogni incarico Domus Tua.",
+    footnote: "Un unico pacchetto per ogni incarico Domus Tua: verifiche certificate e servizi completi.",
   },
   en: {
     eyebrow: "Proprietary protocol",
     subtitle: "The home of certified origin",
     intro:
-      "The first protocol in the area that certifies every property before the sale: we check beforehand, not after. Buyers face no surprises; sellers get a stronger negotiation and faster timelines.",
+      "The proprietary protocol that brings together two guarantees: before the sale we verify the home’s origin and compliance, then we showcase it with the full Domus Tua package of services. We check beforehand, not after: buyers face no surprises, sellers get a stronger negotiation and faster timelines.",
     sellerLabel: "For sellers",
     sellerText:
       "Negotiations that don’t collapse over a missing document, more confident buyers and therefore more concrete offers, faster timelines and everything ready for the deed.",
@@ -46,13 +46,13 @@ const copy = {
       { t: "Provenance and encumbrances", d: "Title of ownership, inheritances, mortgages and charges verified and in order." },
       { t: "Complete documentation", d: "Every document gathered and ready for the notary, before the sale." },
     ],
-    footnote: "A protocol applied to every Domus Tua mandate.",
+    footnote: "One package for every Domus Tua mandate: certified checks and complete services.",
   },
   fr: {
     eyebrow: "Protocole propriétaire",
     subtitle: "La maison d’origine certifiée",
     intro:
-      "Le premier protocole du territoire qui certifie chaque bien avant la vente : on contrôle avant, pas après. L’acquéreur n’a aucune surprise ; le vendeur bénéficie d’une négociation plus solide et de délais plus courts.",
+      "Le protocole propriétaire qui réunit deux garanties : avant la vente, nous vérifions l’origine et la conformité du bien, puis nous le valorisons avec l’ensemble des services Domus Tua. On contrôle avant, pas après : l’acquéreur n’a aucune surprise, le vendeur bénéficie d’une négociation plus solide et de délais plus courts.",
     sellerLabel: "Pour les vendeurs",
     sellerText:
       "Des négociations qui ne capotent pas pour un document manquant, des acquéreurs plus sûrs et donc des offres plus concrètes, des délais plus courts et tout prêt pour l’acte.",
@@ -67,13 +67,13 @@ const copy = {
       { t: "Provenance et charges", d: "Titre de propriété, successions, hypothèques et servitudes vérifiés et en ordre." },
       { t: "Documentation complète", d: "Tous les documents réunis et prêts pour le notaire, avant la vente." },
     ],
-    footnote: "Un protocole appliqué à chaque mandat Domus Tua.",
+    footnote: "Un seul pack pour chaque mandat Domus Tua : vérifications certifiées et services complets.",
   },
   de: {
     eyebrow: "Eigenes Protokoll",
     subtitle: "Das Haus mit zertifizierter Herkunft",
     intro:
-      "Das erste Protokoll der Region, das jede Immobilie vor dem Verkauf zertifiziert: Es wird vorher geprüft, nicht danach. Käufer erleben keine Überraschungen; Verkäufer erhalten eine solidere Verhandlung und kürzere Fristen.",
+      "Das eigene Protokoll, das zwei Garantien vereint: Vor dem Verkauf prüfen wir Herkunft und Konformität der Immobilie, dann setzen wir sie mit dem gesamten Leistungspaket von Domus Tua in Szene. Es wird vorher geprüft, nicht danach: Käufer erleben keine Überraschungen, Verkäufer erhalten eine solidere Verhandlung und kürzere Fristen.",
     sellerLabel: "Für Verkäufer",
     sellerText:
       "Verhandlungen, die nicht an einem fehlenden Dokument scheitern, sicherere Käufer und damit konkretere Angebote, kürzere Fristen und alles bereit für den Notartermin.",
@@ -88,13 +88,13 @@ const copy = {
       { t: "Herkunft und Belastungen", d: "Eigentumstitel, Erbfolgen, Hypotheken und Belastungen geprüft und in Ordnung." },
       { t: "Vollständige Unterlagen", d: "Alle Dokumente gesammelt und bereit für den Notar, vor dem Verkauf." },
     ],
-    footnote: "Ein Protokoll, das bei jedem Domus-Tua-Auftrag angewendet wird.",
+    footnote: "Ein Paket für jeden Domus-Tua-Auftrag: zertifizierte Prüfungen und vollständige Leistungen.",
   },
   es: {
     eyebrow: "Protocolo propietario",
     subtitle: "La casa de origen certificado",
     intro:
-      "El primer protocolo del territorio que certifica cada inmueble antes de la venta: se comprueba antes, no después. Quien compra no tiene sorpresas; quien vende cuenta con una negociación más sólida y plazos más rápidos.",
+      "El protocolo propietario que une dos garantías: antes de la venta verificamos el origen y la conformidad de la casa, y después la valorizamos con el paquete completo de servicios Domus Tua. Se comprueba antes, no después: quien compra no tiene sorpresas y quien vende cuenta con una negociación más sólida y plazos más rápidos.",
     sellerLabel: "Para quien vende",
     sellerText:
       "Negociaciones que no se caen por un documento que falta, compradores más seguros y por tanto ofertas más concretas, plazos más rápidos y todo listo para la escritura.",
@@ -109,7 +109,7 @@ const copy = {
       { t: "Procedencia y cargas", d: "Título de propiedad, sucesiones, hipotecas y gravámenes verificados y en orden." },
       { t: "Documentación completa", d: "Todos los documentos reunidos y listos para el notario, antes de la venta." },
     ],
-    footnote: "Un protocolo aplicado a cada encargo de Domus Tua.",
+    footnote: "Un único paquete para cada encargo de Domus Tua: verificaciones certificadas y servicios completos.",
   },
 } as const;
 

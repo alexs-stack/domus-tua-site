@@ -92,11 +92,11 @@ export default function Footer() {
             <ul className="mt-5 flex flex-col gap-2 text-sm text-cream/70">
               <li className="flex justify-between gap-4">
                 <span>{d.footer.monFri}</span>
-                <span className="tnum text-cream">9:00 – 12:30 · 15:00 – 19:00</span>
+                <span className="tnum text-cream">{site.hours.weekdays}</span>
               </li>
               <li className="flex justify-between gap-4">
                 <span>{d.footer.sat}</span>
-                <span className="tnum text-cream">9:00 – 12:30</span>
+                <span className="tnum text-cream">{site.hours.saturday}</span>
               </li>
               <li className="flex justify-between gap-4">
                 <span>{d.footer.sun}</span>
@@ -114,7 +114,7 @@ export default function Footer() {
 
         <div className="mt-14 flex flex-col gap-4 border-t border-cream/12 pt-7 text-[0.78rem] text-cream/65 sm:flex-row sm:items-center sm:justify-between">
           <p className="tnum">
-            © {new Date().getFullYear()} {site.legal} · P.IVA {site.vat}
+            © {new Date().getFullYear()} {site.legal} · P.IVA {site.vat} · REA {site.rea} · Cap. € {site.capital} i.v.
           </p>
           <div className="flex gap-5">
             <a href="/privacy" className="hover:text-cream">{d.footer.privacy}</a>

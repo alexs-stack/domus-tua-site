@@ -65,12 +65,15 @@ export const metadata: Metadata = {
   },
 };
 
-// Dati strutturati per SEO locale (Google). Orari/geo: coordinate reali dal profilo Google;
-// gli orari sono da confermare col cliente. aggregateRating volutamente omesso (policy Google).
+// Dati strutturati per SEO locale (Google). Dati societari/orari/geo VERIFICATI
+// (domustua.com + Registro Imprese). aggregateRating volutamente omesso (policy Google).
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "RealEstateAgent",
   name: "Domus Tua Immobiliare",
+  legalName: site.legal,
+  vatID: site.vat,
+  foundingDate: String(site.since),
   url: siteUrl,
   image: `${siteUrl}/images/reali/raffaela-ritratto.jpg`,
   telephone: "+390331844898",
@@ -85,7 +88,7 @@ const jsonLd = {
   },
   geo: { "@type": "GeoCoordinates", latitude: 45.7114282, longitude: 8.905019 },
   areaServed: "Tradate e provincia di Varese",
-  openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 15:00-19:00", "Sa 09:00-12:30"],
+  openingHours: site.openingHours,
   sameAs: [
     site.social.instagram.href,
     site.social.facebook.href,
