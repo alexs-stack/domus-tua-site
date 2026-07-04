@@ -7,6 +7,7 @@ import { ArrowRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { Property } from "../lib/properties";
+import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
 
 // Dizionario UI inline. Le VALUE dei filtri (contract/type/feature) restano in italiano
 // perché confrontate con i dati (p.status, p.type, featureOptions.match); qui traduciamo
@@ -15,8 +16,13 @@ const copy = {
   it: {
     nlPlaceholder: "Es. trilocale con giardino a Tradate sotto 300.000 €",
     nlAria: "Descrivi la casa che cerchi",
-    smartBadge: "Ricerca intelligente in arrivo",
-    teaser: "Presto potrai cercare casa scrivendo come parleresti a noi. Intanto usa i filtri qui sotto.",
+    smartBadge: "Ricerca intelligente",
+    teaser: "Scrivi come parleresti a noi e premi Invio: pensiamo noi a trovare le case giuste.",
+    searchAria: "Avvia la ricerca",
+    searching: "Cerco…",
+    aiResultPrefix: "Risultati per",
+    aiClear: "Annulla",
+    aiError: "Ricerca non riuscita. Usa i filtri qui sotto.",
     contract: "Contratto",
     type: "Tipologia",
     zone: "Zona",
@@ -54,8 +60,13 @@ const copy = {
   en: {
     nlPlaceholder: "E.g. two-bed with garden in Tradate under €300,000",
     nlAria: "Describe the home you’re looking for",
-    smartBadge: "Smart search coming soon",
-    teaser: "Soon you’ll be able to search for a home just as you’d describe it to us. For now, use the filters below.",
+    smartBadge: "Smart search",
+    teaser: "Write it as you’d tell us and press Enter: we’ll find the right homes.",
+    searchAria: "Start the search",
+    searching: "Searching…",
+    aiResultPrefix: "Results for",
+    aiClear: "Clear",
+    aiError: "Search failed. Use the filters below.",
     contract: "Contract",
     type: "Type",
     zone: "Area",
@@ -93,8 +104,13 @@ const copy = {
   fr: {
     nlPlaceholder: "Ex. trois-pièces avec jardin à Tradate sous 300 000 €",
     nlAria: "Décrivez la maison que vous cherchez",
-    smartBadge: "Recherche intelligente à venir",
-    teaser: "Bientôt, vous pourrez chercher un bien en l’écrivant comme vous nous le diriez. En attendant, utilisez les filtres ci-dessous.",
+    smartBadge: "Recherche intelligente",
+    teaser: "Écrivez comme vous nous le diriez, puis appuyez sur Entrée : nous trouvons les bons biens.",
+    searchAria: "Lancer la recherche",
+    searching: "Recherche…",
+    aiResultPrefix: "Résultats pour",
+    aiClear: "Effacer",
+    aiError: "Recherche impossible. Utilisez les filtres ci-dessous.",
     contract: "Contrat",
     type: "Type",
     zone: "Secteur",
@@ -132,8 +148,13 @@ const copy = {
   de: {
     nlPlaceholder: "Z. B. Dreizimmerwohnung mit Garten in Tradate unter 300.000 €",
     nlAria: "Beschreiben Sie das Zuhause, das Sie suchen",
-    smartBadge: "Intelligente Suche kommt bald",
-    teaser: "Bald können Sie ein Zuhause suchen, indem Sie es einfach so beschreiben, wie Sie es uns sagen würden. Nutzen Sie bis dahin die Filter unten.",
+    smartBadge: "Intelligente Suche",
+    teaser: "Schreiben Sie es, wie Sie es uns sagen würden, und drücken Sie Enter: wir finden die passenden Objekte.",
+    searchAria: "Suche starten",
+    searching: "Suche…",
+    aiResultPrefix: "Ergebnisse für",
+    aiClear: "Zurücksetzen",
+    aiError: "Suche fehlgeschlagen. Nutzen Sie die Filter unten.",
     contract: "Vertrag",
     type: "Objektart",
     zone: "Gebiet",
@@ -171,8 +192,13 @@ const copy = {
   es: {
     nlPlaceholder: "P. ej. piso de tres ambientes con jardín en Tradate por menos de 300.000 €",
     nlAria: "Describe la casa que buscas",
-    smartBadge: "Búsqueda inteligente en camino",
-    teaser: "Pronto podrás buscar casa escribiéndolo como nos lo contarías. Mientras tanto, usa los filtros de abajo.",
+    smartBadge: "Búsqueda inteligente",
+    teaser: "Escríbelo como nos lo contarías y pulsa Intro: encontramos las casas adecuadas.",
+    searchAria: "Iniciar la búsqueda",
+    searching: "Buscando…",
+    aiResultPrefix: "Resultados para",
+    aiClear: "Borrar",
+    aiError: "Búsqueda fallida. Usa los filtros de abajo.",
     contract: "Contrato",
     type: "Tipología",
     zone: "Zona",
@@ -247,6 +273,21 @@ const roomOptions = [
 
 const types: PropertyFilters["type"][] = ["Tutte", "Appartamento", "Attico", "Villa", "Commerciale", "Terreno"];
 
+/** Mappa i filtri estratti dall'AI (ParsedSearch) sullo shape dei filtri del client, con clamp. */
+function toFilters(parsed: ParsedSearch): PropertyFilters {
+  const type = parsed.type && (types as string[]).includes(parsed.type) ? parsed.type : "Tutte";
+  const contract =
+    parsed.contract === "Vendita" || parsed.contract === "Affitto" ? parsed.contract : "Tutte";
+  return {
+    contract,
+    type: type as PropertyFilters["type"],
+    comune: parsed.comune || "Tutti",
+    maxBudget: parsed.maxBudget && parsed.maxBudget > 0 ? parsed.maxBudget : 0,
+    minRooms: parsed.minRooms && parsed.minRooms > 0 ? parsed.minRooms : 0,
+    features: (parsed.features || []).filter((x) => featureOptions.some((o) => o.label === x)),
+  };
+}
+
 function roomsNum(p: Property) {
   return parseInt(p.rooms, 10) || 0;
 }
@@ -267,6 +308,47 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     features: [],
   });
   const [visible, setVisible] = useState(24);
+  const [searching, setSearching] = useState(false);
+  const [aiError, setAiError] = useState(false);
+  // Risultato della ricerca AI: query mostrata + slug ordinati per rilevanza + firma dei filtri
+  // applicati (per capire quando l'utente modifica un filtro a mano e uscire dalla modalità AI).
+  const [ai, setAi] = useState<{ query: string; slugs: string[]; key: string } | null>(null);
+
+  const bySlug = useMemo(() => new Map(properties.map((p) => [p.slug, p])), [properties]);
+
+  async function runSearch() {
+    const q = nl.trim();
+    if (!q || searching) return;
+    setSearching(true);
+    setAiError(false);
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ q }),
+      });
+      const data = (await res.json()) as SearchResponse;
+      if (data.ok && data.filters) {
+        const mapped = toFilters(data.filters);
+        setF(mapped);
+        setAi({ query: q, slugs: data.rankedSlugs ?? [], key: JSON.stringify(mapped) });
+      } else {
+        setAiError(true);
+      }
+    } catch {
+      setAiError(true);
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  const clearAi = () => {
+    setAi(null);
+    setAiError(false);
+    setNl("");
+    // "Annulla" = torna a sfogliare tutto: azzera anche i filtri impostati dalla ricerca.
+    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minRooms: 0, features: [] });
+  };
 
   // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
   // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
@@ -289,11 +371,18 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
-  // Al cambio filtri riparti dalle prime 24 case.
+  // Al cambio filtri (o risultato AI) riparti dalle prime 24 case.
   useEffect(() => {
     /* eslint-disable-next-line react-hooks/set-state-in-effect */
     setVisible(24);
-  }, [f]);
+  }, [f, ai]);
+
+  // Se l'utente modifica un filtro a mano, esci dalla modalità AI (torna al filtro client).
+  // La ricerca AI imposta f = mapped e ai.key = JSON(mapped): finché combaciano, resta attiva.
+  useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
+    if (ai && JSON.stringify(f) !== ai.key) setAi(null);
+  }, [f, ai]);
 
   const comuni = useMemo(() => {
     const derived = Array.from(new Set(properties.map((p) => p.zone.split(",")[0].trim()))).sort((a, b) =>
@@ -305,6 +394,10 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   }, [properties, f.comune]);
 
   const shown = useMemo(() => {
+    // Modalità AI: mostra gli immobili nell'ordine di rilevanza deciso dal server.
+    if (ai) {
+      return ai.slugs.map((s) => bySlug.get(s)).filter((p): p is Property => !!p);
+    }
     return properties.filter((p) => {
       if (f.contract !== "Tutte" && p.status !== f.contract) return false;
       if (f.type !== "Tutte" && p.type !== f.type) return false;
@@ -321,7 +414,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       }
       return true;
     });
-  }, [f, properties]);
+  }, [f, properties, ai, bySlug]);
 
   const toggleFeature = (label: string) =>
     setF((s) => ({
@@ -341,23 +434,59 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   return (
     <section className="bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        {/* Ricerca in linguaggio naturale (teaser AI) */}
+        {/* Ricerca in linguaggio naturale (AI) */}
         <Reveal>
           <div className="rounded-[2rem] border border-line bg-paper p-2 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)]">
-            <div className="flex flex-col gap-3 rounded-[calc(2rem-0.5rem)] bg-cream p-5 sm:flex-row sm:items-center sm:p-6">
+            <div className="flex flex-col gap-3 rounded-[calc(2rem-0.5rem)] bg-cream p-5 sm:flex-row sm:items-center sm:p-4 sm:pl-6">
+              <SegnoDomusBadge className="shrink-0 self-start border-red/25 bg-red-soft text-red-dark sm:self-auto">
+                {c.smartBadge}
+              </SegnoDomusBadge>
               <input
                 value={nl}
                 onChange={(e) => setNl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void runSearch();
+                  }
+                }}
                 placeholder={c.nlPlaceholder}
                 className="w-full flex-1 rounded-lg bg-transparent text-base text-ink placeholder:text-stone/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
                 aria-label={c.nlAria}
               />
-              <SegnoDomusBadge className="shrink-0 self-start border-red/25 bg-red-soft text-red-dark sm:self-auto">
-                {c.smartBadge}
-              </SegnoDomusBadge>
+              <button
+                type="button"
+                onClick={() => void runSearch()}
+                disabled={searching || !nl.trim()}
+                aria-label={c.searchAria}
+                className="grid h-11 w-11 shrink-0 place-items-center self-start rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
+              >
+                {searching ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  <ArrowRight className="h-5 w-5" />
+                )}
+              </button>
             </div>
           </div>
-          <p className="mt-3 pl-2 text-[0.82rem] text-stone">{c.teaser}</p>
+          {ai ? (
+            <p className="mt-3 flex flex-wrap items-center gap-2 pl-2 text-[0.82rem] text-stone">
+              <span>
+                {c.aiResultPrefix}: <span className="font-semibold text-ink">“{ai.query}”</span>
+              </span>
+              <button
+                type="button"
+                onClick={clearAi}
+                className="underline underline-offset-2 hover:text-ink"
+              >
+                {c.aiClear}
+              </button>
+            </p>
+          ) : aiError ? (
+            <p className="mt-3 pl-2 text-[0.82rem] text-red-dark">{c.aiError}</p>
+          ) : (
+            <p className="mt-3 pl-2 text-[0.82rem] text-stone">{c.teaser}</p>
+          )}
         </Reveal>
 
         {/* Filtri */}
