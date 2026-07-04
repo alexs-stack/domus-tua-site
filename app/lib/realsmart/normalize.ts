@@ -52,6 +52,28 @@ function slugify(input: string): string {
     .replace(/-{2,}/g, "-"); // collassa trattini multipli
 }
 
+/**
+ * Rende sentence-case un titolo che arriva quasi tutto in MAIUSCOLO dal feed
+ * (es. "TERRENO EDIFICABILE A 5 MIN. DAL CENTRO"). Si attiva SOLO quando almeno
+ * il 70% delle lettere è maiuscolo: i titoli già in mixed-case restano intatti.
+ * Minuscolizza tutto, poi capitalizza la prima lettera della stringa e la prima
+ * lettera dopo ogni terminatore di frase (. ! ?).
+ */
+function titleize(input: string): string {
+  const letters = input.match(/\p{L}/gu) ?? [];
+  if (letters.length === 0) return input;
+
+  const upper = letters.filter((ch) => ch !== ch.toLowerCase()).length;
+  // Se meno del 70% delle lettere è maiuscolo, il titolo è già mixed-case: non tocchiamo nulla.
+  if (upper / letters.length < 0.7) return input;
+
+  const lowered = input.toLowerCase();
+  // Capitalizza la prima lettera della stringa e la prima lettera dopo . ! ?
+  return lowered.replace(/(^\s*|[.!?]\s+)(\p{L})/gu, (_match, prefix, letter) => {
+    return prefix + (letter as string).toUpperCase();
+  });
+}
+
 /** Normalizza il contratto: default "vendita" se assente/non riconosciuto. */
 function normalizeContract(raw: string | undefined): ContractType {
   return raw?.toLowerCase() === "affitto" ? "affitto" : "vendita";
@@ -151,7 +173,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   return {
     id: raw.codice,
     slug,
-    title,
+    title: titleize(title),
     description: raw.descrizione?.trim() ?? "",
     price,
     priceLabel,

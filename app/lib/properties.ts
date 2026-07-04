@@ -27,6 +27,7 @@ export type Property = {
   excerpt: string;
   description: string[];
   features: string[];
+  energyClass?: string;
 };
 
 export const properties: Property[] = [

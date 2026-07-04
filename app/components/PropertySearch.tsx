@@ -38,14 +38,18 @@ const copy = {
       "Fino a 350.000 €": "Fino a 350.000 €",
       "Fino a 500.000 €": "Fino a 500.000 €",
       "Fino a 750.000 €": "Fino a 750.000 €",
+      "Fino a 1.000.000 €": "Fino a 1.000.000 €",
+      "Fino a 1.500.000 €": "Fino a 1.500.000 €",
     } as Record<string, string>,
     roomsAny: "Qualsiasi",
     resultsOne: "immobile trovato",
     resultsMany: "immobili trovati",
     notFound: "Non trovi la casa giusta? Dillo a noi",
     emptyTitle: "Nessun immobile con questi filtri.",
-    emptyBody: "Raccontaci cosa cerchi: molte case non sono ancora online, le troviamo noi per te.",
+    emptyBody: "Con questi filtri non c’è nulla al momento. Raccontaci cosa cerchi: seguiamo anche richieste su misura e trattative riservate, e ti avvisiamo appena arriva.",
     emptyCta: "Cerco casa con Domus Tua",
+    showMore: "Mostra altre case",
+    showingHint: "Mostrando {n} di {tot}",
   },
   en: {
     nlPlaceholder: "E.g. two-bed with garden in Tradate under €300,000",
@@ -73,14 +77,18 @@ const copy = {
       "Fino a 350.000 €": "Up to €350,000",
       "Fino a 500.000 €": "Up to €500,000",
       "Fino a 750.000 €": "Up to €750,000",
+      "Fino a 1.000.000 €": "Up to €1,000,000",
+      "Fino a 1.500.000 €": "Up to €1,500,000",
     } as Record<string, string>,
     roomsAny: "Any",
     resultsOne: "home found",
     resultsMany: "homes found",
     notFound: "Can’t find the right home? Tell us",
     emptyTitle: "No homes match these filters.",
-    emptyBody: "Tell us what you’re looking for: many homes aren’t online yet, and we’ll find them for you.",
+    emptyBody: "Nothing matches these filters right now. Tell us what you’re after: we also handle bespoke requests and private, off-market deals, and we’ll let you know the moment one comes in.",
     emptyCta: "Find my home with Domus Tua",
+    showMore: "Show more homes",
+    showingHint: "Showing {n} of {tot}",
   },
   fr: {
     nlPlaceholder: "Ex. trois-pièces avec jardin à Tradate sous 300 000 €",
@@ -108,14 +116,18 @@ const copy = {
       "Fino a 350.000 €": "Jusqu’à 350 000 €",
       "Fino a 500.000 €": "Jusqu’à 500 000 €",
       "Fino a 750.000 €": "Jusqu’à 750 000 €",
+      "Fino a 1.000.000 €": "Jusqu’à 1 000 000 €",
+      "Fino a 1.500.000 €": "Jusqu’à 1 500 000 €",
     } as Record<string, string>,
     roomsAny: "Indifférent",
     resultsOne: "bien trouvé",
     resultsMany: "biens trouvés",
     notFound: "Vous ne trouvez pas le bon bien ? Dites-le-nous",
     emptyTitle: "Aucun bien ne correspond à ces filtres.",
-    emptyBody: "Dites-nous ce que vous cherchez : beaucoup de biens ne sont pas encore en ligne, nous les trouvons pour vous.",
+    emptyBody: "Rien ne correspond à ces filtres pour le moment. Dites-nous ce que vous cherchez : nous suivons aussi les demandes sur mesure et les transactions confidentielles, et nous vous prévenons dès qu’un bien arrive.",
     emptyCta: "Je cherche avec Domus Tua",
+    showMore: "Voir plus de biens",
+    showingHint: "Affichage de {n} sur {tot}",
   },
   de: {
     nlPlaceholder: "Z. B. Dreizimmerwohnung mit Garten in Tradate unter 300.000 €",
@@ -143,14 +155,18 @@ const copy = {
       "Fino a 350.000 €": "Bis 350.000 €",
       "Fino a 500.000 €": "Bis 500.000 €",
       "Fino a 750.000 €": "Bis 750.000 €",
+      "Fino a 1.000.000 €": "Bis 1.000.000 €",
+      "Fino a 1.500.000 €": "Bis 1.500.000 €",
     } as Record<string, string>,
     roomsAny: "Beliebig",
     resultsOne: "Objekt gefunden",
     resultsMany: "Objekte gefunden",
     notFound: "Nicht das richtige Zuhause dabei? Sagen Sie es uns",
     emptyTitle: "Kein Objekt passt zu diesen Filtern.",
-    emptyBody: "Sagen Sie uns, was Sie suchen: Viele Objekte sind noch nicht online – wir finden sie für Sie.",
+    emptyBody: "Mit diesen Filtern gibt es gerade nichts. Sagen Sie uns, was Sie suchen: Wir betreuen auch maßgeschneiderte Anfragen und diskrete Verhandlungen und melden uns, sobald etwas hereinkommt.",
     emptyCta: "Zuhause finden mit Domus Tua",
+    showMore: "Mehr Immobilien anzeigen",
+    showingHint: "{n} von {tot} werden angezeigt",
   },
   es: {
     nlPlaceholder: "P. ej. piso de tres ambientes con jardín en Tradate por menos de 300.000 €",
@@ -178,14 +194,18 @@ const copy = {
       "Fino a 350.000 €": "Hasta 350.000 €",
       "Fino a 500.000 €": "Hasta 500.000 €",
       "Fino a 750.000 €": "Hasta 750.000 €",
+      "Fino a 1.000.000 €": "Hasta 1.000.000 €",
+      "Fino a 1.500.000 €": "Hasta 1.500.000 €",
     } as Record<string, string>,
     roomsAny: "Cualquiera",
     resultsOne: "inmueble encontrado",
     resultsMany: "inmuebles encontrados",
     notFound: "¿No encuentras la casa adecuada? Cuéntanoslo",
     emptyTitle: "Ningún inmueble con estos filtros.",
-    emptyBody: "Cuéntanos qué buscas: muchas casas aún no están online, las encontramos nosotros por ti.",
+    emptyBody: "Con estos filtros no hay nada por ahora. Cuéntanos qué buscas: también gestionamos peticiones a medida y operaciones confidenciales, y te avisamos en cuanto llegue.",
     emptyCta: "Busco casa con Domus Tua",
+    showMore: "Ver más casas",
+    showingHint: "Mostrando {n} de {tot}",
   },
 } as const;
 
@@ -213,6 +233,8 @@ const budgetOptions = [
   { label: "Fino a 350.000 €", value: 350000 },
   { label: "Fino a 500.000 €", value: 500000 },
   { label: "Fino a 750.000 €", value: 750000 },
+  { label: "Fino a 1.000.000 €", value: 1000000 },
+  { label: "Fino a 1.500.000 €", value: 1500000 },
 ];
 
 const roomOptions = [
@@ -244,6 +266,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     minRooms: 0,
     features: [],
   });
+  const [visible, setVisible] = useState(24);
 
   // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
   // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
@@ -266,8 +289,17 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
+  // Al cambio filtri riparti dalle prime 24 case.
+  useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
+    setVisible(24);
+  }, [f]);
+
   const comuni = useMemo(() => {
-    const base = ["Tutti", ...Array.from(new Set(properties.map((p) => p.zone.split(",")[0].trim())))];
+    const derived = Array.from(new Set(properties.map((p) => p.zone.split(",")[0].trim()))).sort((a, b) =>
+      a.localeCompare(b, "it"),
+    );
+    const base = ["Tutti", ...derived]; // "Tutti" resta fisso in cima, il resto ordinato alfabeticamente.
     // Include il comune cercato anche se nessun immobile combacia (mostra il blocco "nessun risultato").
     return base.includes(f.comune) ? base : [...base, f.comune];
   }, [properties, f.comune]);
@@ -277,7 +309,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       if (f.contract !== "Tutte" && p.status !== f.contract) return false;
       if (f.type !== "Tutte" && p.type !== f.type) return false;
       if (f.comune !== "Tutti" && p.zone.split(",")[0].trim() !== f.comune) return false;
-      if (f.maxBudget && p.priceValue > f.maxBudget) return false;
+      if (f.maxBudget && (p.priceValue <= 0 || p.priceValue > f.maxBudget)) return false;
       if (f.minRooms && roomsNum(p) < f.minRooms) return false;
       if (f.features.length) {
         const hay = haystack(p);
@@ -425,13 +457,30 @@ export default function PropertySearch({ properties }: { properties: Property[] 
         </div>
 
         {shown.length > 0 ? (
-          <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {shown.map((p, i) => (
-              <Reveal key={p.slug} delay={(i % 3) * 90}>
-                <PropertyCard p={p} />
-              </Reveal>
-            ))}
-          </div>
+          <>
+            <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {shown.slice(0, visible).map((p, i) => (
+                <Reveal key={p.slug} delay={(i % 3) * 90}>
+                  <PropertyCard p={p} />
+                </Reveal>
+              ))}
+            </div>
+            {visible < shown.length && (
+              <div className="mt-10 flex flex-col items-center gap-3">
+                <button
+                  onClick={() => setVisible((v) => v + 24)}
+                  className="rounded-full border border-line bg-paper px-7 py-3 text-sm font-semibold text-ink transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-red active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                >
+                  {c.showMore}
+                </button>
+                <p className="text-[0.82rem] text-stone">
+                  {c.showingHint
+                    .replace("{n}", String(Math.min(visible, shown.length)))
+                    .replace("{tot}", String(shown.length))}
+                </p>
+              </div>
+            )}
+          </>
         ) : (
           <div className="mt-6 rounded-[1.75rem] border border-line bg-paper p-10 text-center">
             <p className="font-display text-2xl font-medium text-ink">{c.emptyTitle}</p>

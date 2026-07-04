@@ -34,10 +34,16 @@ export default async function PropertyPage({
   const p = await getVisibleListing(slug);
   if (!p) notFound();
 
+  const all = await getVisibleListings();
+  const related = [
+    ...all.filter((r) => r.slug !== p.slug && r.zone === p.zone),
+    ...all.filter((r) => r.slug !== p.slug && r.zone !== p.zone),
+  ].slice(0, 3);
+
   return (
     <>
       <Header />
-      <PropertyDetail p={p} />
+      <PropertyDetail p={p} related={related} />
       <Footer />
       <WhatsAppFloat />
     </>

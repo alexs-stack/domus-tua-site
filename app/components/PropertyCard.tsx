@@ -52,6 +52,12 @@ export default function PropertyCard({ p }: { p: Property }) {
   const c = copy[locale];
   const statusLabel = p.status === "Affitto" ? c.forRent : c.forSale;
 
+  // Mostriamo al massimo 2 badge sull'immagine, dando priorità a quelli "forti"
+  // (accento rosso) senza riordinare gli altri. Non aggiungiamo mai badge nuovi.
+  const shownBadges = [...p.badges]
+    .sort((a, b) => Number(strongBadges.has(b)) - Number(strongBadges.has(a)))
+    .slice(0, 2);
+
   return (
     <a
       href={`/case/${p.slug}`}
@@ -75,10 +81,18 @@ export default function PropertyCard({ p }: { p: Property }) {
         </div>
 
         {/* Badge dal gestionale (Open Domus, Documenti verificati, In evidenza…) */}
-        {p.badges.length > 0 && (
+        {shownBadges.length > 0 && (
           <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
-            {p.badges.map((b) => (
-              <Badge key={b} variant="onImage" className={strongBadges.has(b) ? "bg-red text-white" : ""}>
+            {shownBadges.map((b) => (
+              <Badge
+                key={b}
+                variant="onImage"
+                className={
+                  strongBadges.has(b)
+                    ? "bg-red text-white shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]"
+                    : ""
+                }
+              >
                 {b}
               </Badge>
             ))}
@@ -91,27 +105,43 @@ export default function PropertyCard({ p }: { p: Property }) {
         <SegnoDomusCorner className="right-4 top-5 opacity-60" rotate={90} />
 
         <p className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-red">{p.zone}</p>
-        <h3 className="mt-2 max-w-[88%] font-display text-2xl font-medium leading-tight tracking-tight text-ink">
+        <h3 className="mt-2 line-clamp-2 max-w-[88%] font-display text-2xl font-medium leading-tight tracking-tight text-ink">
           {p.title}
         </h3>
 
         <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.82rem] text-stone">
-          <span className="tnum inline-flex items-center gap-1.5" aria-label={p.sqm}>
-            <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
-          </span>
-          <span className="tnum inline-flex items-center gap-1.5" aria-label={p.rooms}>
-            <Rooms className="h-4 w-4 text-graphite" /> {p.rooms}
-          </span>
-          <span className="tnum inline-flex items-center gap-1.5" aria-label={p.beds}>
-            <Bed className="h-4 w-4 text-graphite" /> {p.beds}
-          </span>
-          <span className="tnum inline-flex items-center gap-1.5" aria-label={p.baths}>
-            <span className="h-1 w-1 rounded-full bg-graphite/50" aria-hidden /> {p.baths}
-          </span>
+          {p.sqm !== "—" && (
+            <span className="tnum inline-flex items-center gap-1.5">
+              <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
+            </span>
+          )}
+          {p.rooms !== "—" && (
+            <span className="tnum inline-flex items-center gap-1.5">
+              <Rooms className="h-4 w-4 text-graphite" /> {p.rooms}
+            </span>
+          )}
+          {p.beds !== "—" && (
+            <span className="tnum inline-flex items-center gap-1.5">
+              <Bed className="h-4 w-4 text-graphite" /> {p.beds}
+            </span>
+          )}
+          {p.baths !== "—" && (
+            <span className="tnum inline-flex items-center gap-1.5">
+              <span className="h-1 w-1 rounded-full bg-graphite/50" aria-hidden /> {p.baths}
+            </span>
+          )}
         </div>
 
         <div className="mt-auto flex items-end justify-between gap-4 border-t border-line pt-5">
-          <span className="tnum font-display text-2xl font-medium text-ink">{p.price}</span>
+          <span
+            className={
+              /\d/.test(p.price)
+                ? "tnum font-display text-2xl font-medium text-ink"
+                : "text-base font-semibold text-ink"
+            }
+          >
+            {p.price}
+          </span>
           <span className="inline-flex items-center gap-2 text-[0.8rem] font-semibold text-graphite transition-colors duration-300 group-hover:text-red">
             {c.cta}
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream-deep text-ink transition-all duration-300 group-hover:bg-red group-hover:text-white">

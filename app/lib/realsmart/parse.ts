@@ -88,7 +88,14 @@ function mapImmobile(im: Record<string, unknown>): RealSmartListingRaw | null {
     bagni: toNum(im.Bagni),
     camere: toNum(im.Camere),
     piano: str(im.Piano),
-    classeEnergetica: str(im.ClasseImmobile),
+    // NB: ClasseImmobile è la CLASSE dell'immobile (signorile/civile/economico), NON la
+    // classe ENERGETICA (che è regolamentata: A4..G). Accettiamo solo un valore energetico
+    // valido; altrimenti undefined → la spec "Classe energetica" non viene mostrata
+    // (meglio nessun dato che un'etichetta energetica errata/non conforme).
+    classeEnergetica: (() => {
+      const cls = str(im.ClasseImmobile);
+      return cls && /^[A-G][1-4]?\+?$/i.test(cls) ? cls.toUpperCase() : undefined;
+    })(),
     caratteristiche: deriveFeatures(im),
     // Il feed contiene SOLO immobili attivi → published (evita il default "draft" = nascosto).
     statoPubblicazione: "published",

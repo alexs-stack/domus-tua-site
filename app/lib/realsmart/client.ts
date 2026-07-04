@@ -95,9 +95,12 @@ async function loadListings(): Promise<NormalizedProperty[]> {
     .map(normalizeRealSmartListing)
     .filter((p) => !HIDDEN_STATUSES.has(p.status));
 
-  // Ordina per data di aggiornamento (ISO 8601 → confronto lessicografico OK),
-  // le stringhe vuote finiscono in coda.
+  // Ordina prima gli immobili "In evidenza", poi per data di aggiornamento
+  // (ISO 8601 → confronto lessicografico OK), le stringhe vuote finiscono in coda.
   return normalized.sort((a, b) => {
+    const fa = a.badges.includes("In evidenza") ? 0 : 1;
+    const fb = b.badges.includes("In evidenza") ? 0 : 1;
+    if (fa !== fb) return fa - fb; // "In evidenza" prima
     const ka = a.updatedAt || a.publishedAt;
     const kb = b.updatedAt || b.publishedAt;
     if (ka === kb) return 0;
@@ -113,7 +116,7 @@ async function loadListings(): Promise<NormalizedProperty[]> {
  * una sola elaborazione per finestra REVALIDATE_SECONDS, riusata da tutte le pagine e
  * invalidabile on-demand via tag "realsmart-listings". Fallback ai mock su errore feed.
  */
-export const getLiveListings = unstable_cache(loadListings, ["realsmart-listings-v1"], {
+export const getLiveListings = unstable_cache(loadListings, ["realsmart-listings-v2"], {
   revalidate: REVALIDATE_SECONDS,
   tags: ["realsmart-listings"],
 });

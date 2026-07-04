@@ -20,9 +20,34 @@ function tidy(text: string): string {
   return text.replace(/([.!?;:])([A-ZÀ-ÖØ-Þ])/g, "$1 $2").replace(/\s{2,}/g, " ").trim();
 }
 
+/** Coda di boilerplate commerciale dell'agenzia da rimuovere dalla descrizione. */
+const BOILERPLATE_TAILS: RegExp[] = [
+  /con Domus Tua è\s+facile vendere.*$/i,
+  /ascolta il tuo cuore.*$/i,
+  /da oltre\s+\d+\s+anni al tuo fianco\.?\s*$/i,
+  /sicuro acquistar\w*\.?\s*$/i,
+];
+
+/** Rimuove iterativamente le code di boilerplate commerciale (anche combinate) e ripulisce. */
+function stripBoilerplate(text: string): string {
+  let out = text;
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const re of BOILERPLATE_TAILS) {
+      const next = out.replace(re, "");
+      if (next !== out) {
+        out = next.trim();
+        changed = true;
+      }
+    }
+  }
+  return out.trim();
+}
+
 /** Spezza una descrizione lunga in paragrafi leggibili (~3 frasi ciascuno). */
 function toParagraphs(text: string): string[] {
-  const clean = tidy(text);
+  const clean = stripBoilerplate(tidy(text));
   if (!clean) return [];
   // Se ci sono già a capo, rispettali.
   const byNewline = clean.split(/\n+/).map((p) => p.trim()).filter(Boolean);
@@ -36,12 +61,28 @@ function toParagraphs(text: string): string[] {
   return paras.filter(Boolean);
 }
 
+/** Estratto per frasi intere (mai tagliato a metà frase/parola). */
 function excerptFrom(text: string): string {
-  const clean = tidy(text);
-  if (clean.length <= 170) return clean;
-  const cut = clean.slice(0, 170);
-  const lastSpace = cut.lastIndexOf(" ");
-  return `${cut.slice(0, lastSpace > 120 ? lastSpace : 170)}…`;
+  const clean = stripBoilerplate(tidy(text));
+  if (!clean) return "";
+  const sentences = clean.match(/[^.!?]+[.!?]+/g) ?? [clean];
+  const first = sentences[0].trim();
+  // Prima frase già troppo lunga: taglia all'ultimo spazio e aggiungi "…".
+  if (first.length > 170) {
+    const cut = first.slice(0, 170);
+    const lastSpace = cut.lastIndexOf(" ");
+    return `${cut.slice(0, lastSpace > 120 ? lastSpace : 170).trim()}…`;
+  }
+  // Accumula frasi intere finché non si raggiungono ~150 caratteri.
+  let out = "";
+  for (const s of sentences) {
+    const sentence = s.trim();
+    const candidate = out ? `${out} ${sentence}` : sentence;
+    if (out && candidate.length > 150) break;
+    out = candidate;
+    if (out.length >= 150) break;
+  }
+  return out;
 }
 
 export function normalizedToProperty(n: NormalizedProperty): Property {
@@ -63,8 +104,9 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     badges: n.badges,
     cover,
     gallery: n.images.length ? n.images.map((i) => i.src) : [cover],
-    excerpt: paragraphs[0] ? excerptFrom(paragraphs[0]) : n.title,
+    excerpt: excerptFrom(n.description) || n.title,
     description: paragraphs,
     features: n.features,
+    energyClass: n.energyClass,
   };
 }

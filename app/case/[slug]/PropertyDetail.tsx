@@ -23,6 +23,7 @@ const copy = {
     specBaths: "Bagni",
     specType: "Tipologia",
     specStatus: "Stato",
+    specEnergy: "Classe energetica",
     requestVisit: "Richiedi una visita",
     whatsapp: "Scrivici su WhatsApp",
     safetyEyebrow: "Domus D.O.C.",
@@ -45,6 +46,7 @@ const copy = {
     specBaths: "Bathrooms",
     specType: "Type",
     specStatus: "Status",
+    specEnergy: "Energy class",
     requestVisit: "Request a viewing",
     whatsapp: "Message us on WhatsApp",
     safetyEyebrow: "Domus D.O.C.",
@@ -67,6 +69,7 @@ const copy = {
     specBaths: "Salles de bain",
     specType: "Type",
     specStatus: "Statut",
+    specEnergy: "Classe énergétique",
     requestVisit: "Demander une visite",
     whatsapp: "Écrivez-nous sur WhatsApp",
     safetyEyebrow: "Domus D.O.C.",
@@ -89,6 +92,7 @@ const copy = {
     specBaths: "Badezimmer",
     specType: "Typ",
     specStatus: "Status",
+    specEnergy: "Energieklasse",
     requestVisit: "Besichtigung anfragen",
     whatsapp: "Schreiben Sie uns auf WhatsApp",
     safetyEyebrow: "Domus D.O.C.",
@@ -111,6 +115,7 @@ const copy = {
     specBaths: "Baños",
     specType: "Tipo",
     specStatus: "Estado",
+    specEnergy: "Clase energética",
     requestVisit: "Solicita una visita",
     whatsapp: "Escríbenos por WhatsApp",
     safetyEyebrow: "Domus D.O.C.",
@@ -131,14 +136,18 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   const { locale } = useLocale();
   const c = copy[locale];
 
+  // Dati reali RealSmart: Terreno/Commerciale hanno locali/camere/bagni a "—".
+  // Filtriamo gli spec vuoti o "—" così la striscia non mostra clutter di trattini.
+  // Tipologia sopravvive sempre (union type, mai vuoto); il prezzo è renderizzato a parte.
   const specs = [
+    { label: c.specType, value: p.type },
     { label: c.specSqm, value: p.sqm },
     { label: c.specRooms, value: p.rooms },
     { label: c.specBeds, value: p.beds },
     { label: c.specBaths, value: p.baths },
-    { label: c.specType, value: p.type },
     { label: c.specStatus, value: p.status },
-  ];
+    { label: c.specEnergy, value: p.energyClass },
+  ].filter((s) => s.label === c.specType || (s.value && s.value !== "—"));
 
   // Related: solo altre case fornite via props (stessa sorgente). Mai fetch/invenzione.
   const relatedItems = (related ?? []).filter((r) => r.slug !== p.slug).slice(0, 3);
@@ -200,19 +209,23 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
               ))}
             </div>
 
-            <h2 className="mt-12 font-display text-2xl font-medium tracking-tight text-ink">
-              {c.features}
-            </h2>
-            <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-              {p.features.map((f) => (
-                <li key={f} className="flex items-start gap-3 text-[0.95rem] text-graphite">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  {f}
-                </li>
-              ))}
-            </ul>
+            {p.features.length > 0 && (
+              <>
+                <h2 className="mt-12 font-display text-2xl font-medium tracking-tight text-ink">
+                  {c.features}
+                </h2>
+                <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {p.features.map((f) => (
+                    <li key={f} className="flex items-start gap-3 text-[0.95rem] text-graphite">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
+                        <Check className="h-3 w-3" />
+                      </span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
 
             {/* Blocco sicurezza / documenti — legato a Domus D.O.C. */}
             <div className="relative mt-12 overflow-hidden rounded-[2rem] border border-line bg-cream p-7 sm:p-9">
@@ -290,30 +303,30 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         </div>
       </div>
 
-      {/* Related properties strip (solo se fornite via props) o link a /case */}
-      <section className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
-        <SegnoDomusDivider className="mb-12" />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
-            {c.related}
-          </h2>
-          <Link
-            href="/case"
-            className="group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
-          >
-            {c.viewAll}
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-        </div>
+      {/* Related properties strip: solo se fornite via props (stessa sorgente). */}
+      {relatedItems.length > 0 && (
+        <section className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
+          <SegnoDomusDivider className="mb-12" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
+              {c.related}
+            </h2>
+            <Link
+              href="/case"
+              className="group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+            >
+              {c.viewAll}
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </div>
 
-        {relatedItems.length > 0 && (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {relatedItems.map((r) => (
               <PropertyCard key={r.slug} p={r} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <Contact />
     </main>
