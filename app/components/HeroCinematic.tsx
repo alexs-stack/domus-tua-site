@@ -101,7 +101,13 @@ export default function HeroCinematic() {
     if (okMotion && okWidth) setPlayVideo(true);
   }, []);
 
-  const chips = ["Open Domus", "Domus D.O.C.", c.place];
+  // Chip di prova: gli asset proprietari sono cliccabili verso le rispettive sezioni
+  // (hero solo in homepage → ancore same-page). Il luogo resta statico.
+  const chips: { label: string; href?: string }[] = [
+    { label: "Open Domus", href: "#open-domus" },
+    { label: "Domus D.O.C.", href: "#domus-doc" },
+    { label: c.place },
+  ];
 
   return (
     <section id="top" className="relative flex min-h-[92vh] w-full items-end overflow-hidden bg-ink text-cream">
@@ -206,11 +212,21 @@ export default function HeroCinematic() {
               </span>
             </a>
             <span className="text-sm font-medium text-cream/75">{c.reviews}</span>
-            {chips.map((t) => (
-              <span key={t} className="text-[0.82rem] font-medium text-cream/70">
-                {t}
-              </span>
-            ))}
+            {chips.map((ch) =>
+              ch.href ? (
+                <a
+                  key={ch.label}
+                  href={ch.href}
+                  className="text-[0.82rem] font-medium text-cream/70 underline-offset-4 transition-colors duration-300 hover:text-cream hover:underline"
+                >
+                  {ch.label}
+                </a>
+              ) : (
+                <span key={ch.label} className="text-[0.82rem] font-medium text-cream/70">
+                  {ch.label}
+                </span>
+              )
+            )}
           </div>
         </div>
       </div>
