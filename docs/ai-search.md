@@ -48,8 +48,27 @@ Sono **server-only** (niente prefisso `NEXT_PUBLIC_`): non finiscono mai nel bun
 - Ogni errore/timeout degrada al livello inferiore (AI → locale, semantico → parole chiave) e,
   in ultima istanza, ai filtri manuali. La ricerca non si rompe mai.
 
+## Assistente conversazionale (Livello C) — FATTO
+
+Chat on-brand (`app/components/Assistant.tsx`, montata nel layout) che dialoga, cerca case
+(riusando la pipeline sopra tramite lo strumento `search_listings`) e risponde su Domus D.O.C.,
+servizi, Open Domus, metodo, contatti/orari. In 5 lingue, con schede immobile mostrate in chat.
+
+- Backend: `POST /api/assistant` → `app/lib/ai/assistant.ts` (loop con lo strumento, max 3 giri)
+  + `app/lib/ai/knowledge.ts` (conoscenza dell'agenzia nel system prompt, corpus piccolo = niente
+  vector DB). Modello: `AI_ASSISTANT_MODEL` (default Claude Haiku 4.5).
+- **Opt-in**: la chat compare solo se `NEXT_PUBLIC_ENABLE_ASSISTANT="true"` (flag client) E c'è
+  `ANTHROPIC_API_KEY` (server). Senza chiave l'assistente risponde con un messaggio di cortesia
+  (usa i filtri / WhatsApp). Attivazione: imposta entrambe le variabili su Vercel + redeploy.
+- Guardrail: max 24 messaggi e 1000 caratteri per messaggio, cronologia troncata agli ultimi 12
+  turni, timeout 20s, il modello non inventa immobili/prezzi (solo ciò che lo strumento restituisce),
+  nessuna consulenza legale/fiscale (rimanda al team).
+- Non ancora fatto: streaming token-by-token (oggi risposta completa con indicatore "sta scrivendo"),
+  rate limiting per IP.
+
 ## Possibili estensioni (Fase 2+)
 
-- Rate limiting per IP sull'endpoint (oggi mitigato da lunghezza + timeout + fallback).
+- Streaming delle risposte dell'assistente (SSE) per un effetto "digita".
+- Rate limiting per IP sugli endpoint (oggi mitigato da lunghezza + timeout + fallback).
 - Cache delle query identiche.
-- Assistente conversazionale (chat che affina la ricerca e risponde a domande sull'immobile/zona).
+- Memoria lead: salvare le conversazioni interessate come lead (collegamento a /api/lead).
