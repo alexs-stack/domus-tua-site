@@ -24,9 +24,9 @@ o fallisce, il WhatsApp funziona comunque (nessun blocco).
        || SpreadsheetApp.getActiveSpreadsheet().insertSheet('Lead');
      const d = JSON.parse(e.postData.contents || '{}');
      if (sheet.getLastRow() === 0) {
-       sheet.appendRow(['createdAt','intent','name','contact','place','propertyType','budget','features','message','sourcePage','propertyRef']);
+       sheet.appendRow(['createdAt','intent','name','contact','consent','place','propertyType','budget','features','message','sourcePage','propertyRef']);
      }
-     sheet.appendRow([d.createdAt||'', d.intent||'', d.name||'', d.contact||'', d.place||'',
+     sheet.appendRow([d.createdAt||'', d.intent||'', d.name||'', d.contact||'', d.consent?'sì':'', d.place||'',
        d.propertyType||'', d.budget||'', d.features||'', d.message||'', d.sourcePage||'', d.propertyRef||'']);
      return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
    }
@@ -39,8 +39,10 @@ o fallisce, il WhatsApp funziona comunque (nessun blocco).
    `NEXT_PUBLIC_`, quindi non finisce nel bundle client.
 5. Redeploy. Da quel momento ogni lead compare come riga nel foglio (oltre al WhatsApp).
 
-> Nota GDPR: aggiungere in cima al foglio/informativa la base giuridica (consenso/legittimo
-> interesse) e definire una retention. Il microcopy privacy + link è già nel form.
+> Nota GDPR: il form ora ha una **checkbox di consenso obbligatoria** (con link a `/privacy`) e
+> registra `consent` nel foglio. Resta da definire con il cliente la **retention** (per quanto si
+> conservano i lead) e chi ha accesso al foglio. Anti-spam: campo **honeypot** (`company`) filtrato
+> lato server (`app/api/lead/route.ts`), più timeout di 8s sul webhook.
 
 Questo è pensato come **ponte**: `/api/lead` può poi instradare anche verso email/CRM/RealSmart
 (vedi sotto) senza toccare il form.

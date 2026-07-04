@@ -23,7 +23,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "bad-payload" }, { status: 400 });
   }
 
-  const record = { ...(body as Record<string, unknown>), createdAt: new Date().toISOString() };
+  const payload = body as Record<string, unknown>;
+
+  // Anti-spam honeypot: il campo "company" è nascosto nel form, un umano non lo compila.
+  // Se valorizzato è un bot → fingiamo successo e NON scriviamo sul foglio.
+  if (typeof payload.company === "string" && payload.company.trim() !== "") {
+    return NextResponse.json({ ok: true });
+  }
+
+  // Non inoltriamo il campo honeypot al foglio.
+  const { company: _hp, ...clean } = payload;
+  void _hp;
+  const record = { ...clean, createdAt: new Date().toISOString() };
 
   if (!WEBHOOK) {
     // Backend non ancora configurato: non persistiamo, ma non blocchiamo il flusso.
@@ -36,6 +47,8 @@ export async function POST(req: Request) {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(record),
+      // Apps Script può essere lento a freddo: non teniamo appesa la richiesta.
+      signal: AbortSignal.timeout(8000),
     });
     return NextResponse.json({ ok: res.ok });
   } catch (err) {

@@ -57,6 +57,10 @@ const copy = {
     sentPrefix: "Stiamo aprendo WhatsApp. Se non si apre,",
     sentLink: "scrivici al",
     gdpr: "Usiamo i tuoi dati solo per rispondere alla tua richiesta.",
+    consentPre: "Ho letto l’",
+    consentLinkText: "informativa privacy",
+    consentPost: " e acconsento al trattamento dei miei dati per essere ricontattato.",
+    errConsent: "Per procedere accetta l’informativa privacy.",
     contactPhoneSub: "Lun–Sab",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Scrivici una mail",
@@ -99,6 +103,10 @@ const copy = {
     sentPrefix: "We’re opening WhatsApp. If it doesn’t open,",
     sentLink: "message us at",
     gdpr: "We use your data only to reply to your request.",
+    consentPre: "I have read the ",
+    consentLinkText: "privacy policy",
+    consentPost: " and consent to the processing of my data to be contacted back.",
+    errConsent: "Please accept the privacy policy to continue.",
     contactPhoneSub: "Mon–Sat",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Send us an email",
@@ -141,6 +149,10 @@ const copy = {
     sentPrefix: "Nous ouvrons WhatsApp. S’il ne s’ouvre pas,",
     sentLink: "écrivez-nous au",
     gdpr: "Nous utilisons vos données uniquement pour répondre à votre demande.",
+    consentPre: "J’ai lu la ",
+    consentLinkText: "politique de confidentialité",
+    consentPost: " et je consens au traitement de mes données pour être recontacté.",
+    errConsent: "Veuillez accepter la politique de confidentialité pour continuer.",
     contactPhoneSub: "Lun–Sam",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Écrivez-nous un e-mail",
@@ -183,6 +195,10 @@ const copy = {
     sentPrefix: "Wir öffnen WhatsApp. Falls es sich nicht öffnet,",
     sentLink: "schreiben Sie uns an",
     gdpr: "Wir verwenden Ihre Daten ausschließlich zur Beantwortung Ihrer Anfrage.",
+    consentPre: "Ich habe die ",
+    consentLinkText: "Datenschutzerklärung",
+    consentPost: " gelesen und willige in die Verarbeitung meiner Daten zur Kontaktaufnahme ein.",
+    errConsent: "Bitte akzeptieren Sie die Datenschutzerklärung, um fortzufahren.",
     contactPhoneSub: "Mo–Sa",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Schreiben Sie uns eine E-Mail",
@@ -225,6 +241,10 @@ const copy = {
     sentPrefix: "Estamos abriendo WhatsApp. Si no se abre,",
     sentLink: "escríbenos al",
     gdpr: "Usamos tus datos solo para responder a tu solicitud.",
+    consentPre: "He leído la ",
+    consentLinkText: "política de privacidad",
+    consentPost: " y doy mi consentimiento al tratamiento de mis datos para que me contacten.",
+    errConsent: "Para continuar, acepta la política de privacidad.",
     contactPhoneSub: "Lun–Sáb",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Escríbenos un correo",
@@ -239,7 +259,7 @@ export default function Contact() {
   const c = copy[locale];
   const [intent, setIntent] = useState<LeadIntent>("seller");
   const [sent, setSent] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; contact?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; contact?: string; consent?: string }>({});
 
   const contacts = [
     { icon: Phone, label: site.phone.label, sub: c.contactPhoneSub, href: site.phone.href },
@@ -272,14 +292,19 @@ export default function Contact() {
     const data = new FormData(e.currentTarget);
     const val = (k: string) => ((data.get(k) as string) || "").trim();
 
+    // Honeypot anti-spam: un umano non vede/compila "company". Se pieno → bot, esci in silenzio.
+    if (val("company")) return;
+
     const name = val("name");
     const contact = val("contact");
+    const consent = data.get("consent") != null;
 
-    // Validazione client-side: nome + contatto obbligatori.
-    const nextErrors: { name?: string; contact?: string } = {};
+    // Validazione client-side: nome + contatto + consenso privacy obbligatori.
+    const nextErrors: { name?: string; contact?: string; consent?: string } = {};
     if (!name) nextErrors.name = c.errName;
     if (!contact) nextErrors.contact = c.errContact;
-    if (nextErrors.name || nextErrors.contact) {
+    if (!consent) nextErrors.consent = c.errConsent;
+    if (nextErrors.name || nextErrors.contact || nextErrors.consent) {
       setErrors(nextErrors);
       return;
     }
@@ -294,6 +319,7 @@ export default function Contact() {
       budget: val("budget") || undefined,
       features: val("features") || undefined,
       message: val("message") || undefined,
+      consent: true,
       sourcePage: typeof window !== "undefined" ? window.location.pathname : undefined,
     };
 
@@ -360,6 +386,11 @@ export default function Contact() {
           {/* Right: form */}
           <div className="rounded-[2rem] border border-line bg-paper p-6 pb-28 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8 sm:pb-8">
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+              {/* Honeypot anti-spam: fuori schermo, non focusabile, ignorato dagli screen reader. */}
+              <div aria-hidden className="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
+                <label htmlFor="company">Company</label>
+                <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+              </div>
               <div className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-cream p-1.5 sm:grid-cols-4">
                 {leadOptions.map((opt) => (
                   <button
@@ -395,6 +426,31 @@ export default function Contact() {
               {/* Campi dinamici per intento. */}
               <IntentFields intent={intent} c={c} />
 
+              {/* Consenso privacy: obbligatorio perché il lead viene salvato (GDPR). */}
+              <div>
+                <label className="flex items-start gap-3 text-[0.8rem] leading-relaxed text-stone">
+                  <input
+                    type="checkbox"
+                    name="consent"
+                    aria-invalid={errors.consent ? true : undefined}
+                    aria-describedby={errors.consent ? "consent-error" : undefined}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-line accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                  />
+                  <span>
+                    {c.consentPre}
+                    <a href="/privacy" className="underline underline-offset-2 hover:text-ink">
+                      {c.consentLinkText}
+                    </a>
+                    {c.consentPost}
+                  </span>
+                </label>
+                {errors.consent ? (
+                  <span id="consent-error" role="alert" className="mt-2 block text-[0.72rem] text-red-dark">
+                    {errors.consent}
+                  </span>
+                ) : null}
+              </div>
+
               <button
                 type="submit"
                 className="group mt-1 flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-6 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
@@ -415,14 +471,7 @@ export default function Contact() {
                   </a>
                   .
                 </p>
-              ) : (
-                <p className="text-center text-[0.72rem] text-stone">
-                  {c.gdpr}{" "}
-                  <a href="/privacy" className="underline underline-offset-2 hover:text-ink">
-                    Privacy
-                  </a>
-                </p>
-              )}
+              ) : null}
             </form>
           </div>
         </div>

@@ -30,6 +30,9 @@ export type Lead = {
   features?: string;
   /** SELLER + QUESTION: messaggio libero. */
   message?: string;
+  // ── Consenso privacy (obbligatorio quando il lead viene SALVATO su server) ──
+  /** true se l'utente ha spuntato il consenso al trattamento (link all'informativa). */
+  consent?: boolean;
   // ── Contesto (riservato al futuro backend, oggi non usato) ─────────────────
   /** Pagina di origine del lead (es. "/vendi", "/case/<slug>"). */
   sourcePage?: string;
