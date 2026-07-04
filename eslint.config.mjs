@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Build output anywhere (es. worktree annidati creati dagli agenti sotto .claude/).
+    "**/.next/**",
+    ".claude/**",
   ]),
 ]);
 

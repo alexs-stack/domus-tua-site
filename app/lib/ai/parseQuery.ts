@@ -9,54 +9,63 @@ import { ANTHROPIC_API_KEY, AI_SEARCH_MODEL, aiParseEnabled } from "./config";
 import type { FeatureLabel, ParsedSearch, SearchFacets } from "./types";
 
 const TYPES = ["Appartamento", "Attico", "Villa", "Commerciale", "Terreno"] as const;
+type PropType = (typeof TYPES)[number];
+
+// Sinonimi multilingua (IT primario + EN/FR/DE/ES) per il parser locale.
+// Uso i confini di parola (\b) per evitare falsi positivi (es. "local" dentro "locali",
+// "como" dentro "comodo"). Prima corrispondenza vince.
+const CONTRACT_PATTERNS: [RegExp, "Vendita" | "Affitto"][] = [
+  [/\b(affitt\w*|locazion\w*|for rent|to rent|(?:à )?louer|location|mieten?|miete|alquiler|arrendar)\b/i, "Affitto"],
+  [/\b(vend\w*|acquist\w*|compr\w*|for sale|to buy|(?:à )?vendre|vente|kauf\w*|verkauf\w*|venta|comprar)\b/i, "Vendita"],
+];
+
+const TYPE_PATTERNS: [RegExp, PropType][] = [
+  [/\b(attic[oi]|penthouse|mansard[ae]|dachwohnung|[aá]tico)\b/i, "Attico"],
+  [/\b(terren[oi]|edificabil[ei]|lotto|land|plot|terrain|grundst[uü]ck)\b/i, "Terreno"],
+  [/\b(negozi[oi]|uffici[oi]|capannon[ei]|commerciale|laboratori[oi]|magazzino|showroom|shop|store|office|warehouse|bureau|gewerbe)\b/i, "Commerciale"],
+  [/\b(appartament[oi]|apartment|appartement|wohnung|apartamento|flat|bilocal[ei]|trilocal[ei]|quadrilocal[ei]|monolocal[ei]|loft|duplex)\b/i, "Appartamento"],
+  // NB: niente "casa" generico qui (mapparlo a Villa escluderebbe gli appartamenti da "cerco casa").
+  [/\b(villa|villett[ae]|ville|house|maison|haus|casale|cascina|rustico|schiera|porzione|bifamiliar[ei]|trifamiliar[ei]|terratetto)\b/i, "Villa"],
+];
 
 // Mappa parola chiave -> caratteristica (per il parser locale).
 const FEATURE_KEYWORDS: Record<FeatureLabel, string[]> = {
-  Giardino: ["giardino", "giardin"],
-  "Box / posto auto": ["box", "posto auto", "garage", "autorimessa"],
-  Terrazzo: ["terrazzo", "terrazza", "terrazz"],
-  "Doppi servizi": ["doppi servizi", "due bagni", "2 bagni", "secondo bagno"],
+  Giardino: ["giardin", "garden", "jardin", "jardín", "garten"],
+  "Box / posto auto": ["box", "posto auto", "posto macchina", "garage", "autorimessa", "parcheggio", "parking", "stellplatz", "cochera"],
+  Terrazzo: ["terrazz", "terrace", "terrasse", "terraza"],
+  "Doppi servizi": ["doppi servizi", "due bagni", "2 bagni", "secondo bagno", "two bathrooms", "2 bathrooms"],
 };
 
-// Parole -> tipologia (parser locale).
-const TYPE_KEYWORDS: Record<string, (typeof TYPES)[number]> = {
-  attico: "Attico",
-  mansarda: "Attico",
-  villa: "Villa",
-  villetta: "Villa",
-  schiera: "Villa",
-  rustico: "Villa",
-  casa: "Villa",
-  terreno: "Terreno",
-  terreni: "Terreno",
-  negozio: "Commerciale",
-  ufficio: "Commerciale",
-  capannone: "Commerciale",
-  commerciale: "Commerciale",
-  laboratorio: "Commerciale",
-  appartamento: "Appartamento",
-  bilocale: "Appartamento",
-  trilocale: "Appartamento",
-  quadrilocale: "Appartamento",
-  monolocale: "Appartamento",
-};
-
+// Parole composte che indicano un numero minimo di locali.
 const ROOM_WORDS: Record<string, number> = {
   monolocale: 1,
   bilocale: 2,
   trilocale: 3,
   quadrilocale: 4,
-  cinque: 5,
+};
+const WORD_NUM: Record<string, number> = {
+  uno: 1, una: 1, due: 2, tre: 3, quattro: 4, cinque: 5, sei: 6,
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
 };
 
-/** Estrae un tetto di prezzo da testo tipo "250mila", "250.000", "250k", "fino a 300 mila €". */
+// Rumore da escludere dalle keyword di ranking (non discriminante).
+const STOPWORDS = new Set([
+  "cerco", "cerca", "cercasi", "cerchiamo", "vorrei", "voglio", "casa", "immobile", "immobili",
+  "zona", "con", "per", "una", "uno", "che", "del", "della", "dei", "delle", "nel", "nella",
+  "sono", "vicino", "near", "looking", "want", "with", "the", "and", "for", "suche", "busco", "cherche",
+]);
+
+/** Estrae un tetto di prezzo: "250mila", "250.000", "250k", "1,2 milioni", "mezzo milione". */
 function parseBudget(q: string): number | undefined {
-  const s = q.toLowerCase().replace(/\./g, "").replace(/\s+/g, " ");
-  // "250 mila" / "250mila" / "250k"
-  const mila = s.match(/(\d{1,4})\s*(mila|k)\b/);
-  if (mila) return parseInt(mila[1], 10) * 1000;
-  // numero "grande" esplicito (>= 10.000)
-  const big = s.match(/(\d{5,7})\s*(?:€|euro)?/);
+  const s = q.toLowerCase();
+  if (/mezzo milione/.test(s)) return 500000;
+  const mil = s.match(/(\d+(?:[.,]\d+)?)\s*(?:mil(?:ione|ioni)?|mln|millions?)\b/);
+  if (mil) return Math.round(parseFloat(mil[1].replace(",", ".")) * 1_000_000);
+  const mila = s.match(/(\d{1,4}(?:[.,]\d+)?)\s*(?:mila|k)\b/);
+  if (mila) return Math.round(parseFloat(mila[1].replace(",", ".")) * 1000);
+  // Numero esplicito, tolti i separatori delle migliaia ("250.000" / "250 000" -> 250000).
+  const cleaned = s.replace(/(\d)[.  ](?=\d{3}\b)/g, "$1");
+  const big = cleaned.match(/(\d{5,7})/);
   if (big) {
     const n = parseInt(big[1], 10);
     if (n >= 10000) return n;
@@ -64,40 +73,56 @@ function parseBudget(q: string): number | undefined {
   return undefined;
 }
 
-/** Parser locale deterministico: nessuna chiave richiesta. */
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Parser locale deterministico: nessuna chiave richiesta. Copre IT + EN/FR/DE/ES di base. */
 export function parseQueryLocal(query: string, facets: SearchFacets): ParsedSearch {
   const q = query.toLowerCase();
   const out: ParsedSearch = {};
 
   // Contratto
-  if (/\baffitt|\blocazion|\bin affitto\b/.test(q)) out.contract = "Affitto";
-  else if (/\bvend|\bacquist|\bcompr/.test(q)) out.contract = "Vendita";
+  for (const [re, contract] of CONTRACT_PATTERNS) {
+    if (re.test(q)) {
+      out.contract = contract;
+      break;
+    }
+  }
 
-  // Tipologia (prima corrispondenza)
-  for (const [word, type] of Object.entries(TYPE_KEYWORDS)) {
-    if (q.includes(word)) {
+  // Tipologia (prima corrispondenza, per confine di parola)
+  for (const [re, type] of TYPE_PATTERNS) {
+    if (re.test(q)) {
       out.type = type;
       break;
     }
   }
 
-  // Comune: cerca il nome di un comune disponibile dentro la frase
-  const comune = facets.comuni.find((c) => c !== "Tutti" && q.includes(c.toLowerCase()));
+  // Comune: confine di parola, preferendo il nome più lungo (es. "Venegono Inferiore").
+  const comune = facets.comuni
+    .filter((c) => c !== "Tutti")
+    .filter((c) => new RegExp(`\\b${escapeRe(c.toLowerCase())}\\b`, "i").test(q))
+    .sort((a, b) => b.length - a.length)[0];
   if (comune) out.comune = comune;
 
   // Budget
   const budget = parseBudget(q);
   if (budget) out.maxBudget = budget;
 
-  // Locali: parole (bilocale...) o "N locali"
+  // Locali: parole composte (bilocale...) poi "N locali/vani/stanze/camere" (numero o parola).
   for (const [word, n] of Object.entries(ROOM_WORDS)) {
     if (q.includes(word)) {
       out.minRooms = n;
       break;
     }
   }
-  const nLocali = q.match(/(\d)\s*locali/);
-  if (nLocali) out.minRooms = parseInt(nLocali[1], 10);
+  const rooms = q.match(
+    /(\d+|uno|una|due|tre|quattro|cinque|sei|one|two|three|four|five|six)\s*\+?\s*(?:local[ei]|van[oi]|stanz[ae]|camer[ae]|bedrooms?|rooms?|zimmer|pi[eè]ces?|habitaci[oó]n(?:es)?)/,
+  );
+  if (rooms) {
+    const n = parseInt(rooms[1], 10) || WORD_NUM[rooms[1]];
+    if (n) out.minRooms = n;
+  }
 
   // Caratteristiche
   const features = (Object.keys(FEATURE_KEYWORDS) as FeatureLabel[]).filter((label) =>
@@ -105,10 +130,10 @@ export function parseQueryLocal(query: string, facets: SearchFacets): ParsedSear
   );
   if (features.length) out.features = features;
 
-  // La frase intera resta come query semantica; parole >3 lettere come keyword.
+  // La frase intera resta come query semantica; token >3 lettere (senza stopword) come keyword.
   out.semanticQuery = query.trim();
   out.keywords = Array.from(
-    new Set(q.split(/[^a-zàèéìòù]+/i).filter((w) => w.length > 3)),
+    new Set(q.split(/[^a-zàèéìòùáíóúäöüñç]+/i).filter((w) => w.length > 3 && !STOPWORDS.has(w))),
   ).slice(0, 12);
 
   return out;
