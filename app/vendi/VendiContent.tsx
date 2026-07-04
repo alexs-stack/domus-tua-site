@@ -78,33 +78,33 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         </>
       ),
       subcopy:
-        "Non mettiamo semplicemente online il tuo immobile. Lo prepariamo, lo raccontiamo e lo vendiamo con metodo, riducendo errori, tempi morti e incertezze.",
+        "La tua casa merita di essere venduta bene, non in fretta. Non la mettiamo semplicemente online: la prepariamo, la raccontiamo e la vendiamo con metodo, riducendo errori, tempi morti e incertezze.",
       alt: "Living luminoso con zona pranzo",
       primaryLabel: "Valuta il tuo immobile",
       secondaryLabel: "Come funziona",
       trust: [
-        "Valutazione senza impegno",
-        "Documenti verificati",
-        "Assistenza fino al rogito",
+        "Valutazione gratuita e senza impegno",
+        "Nessun costo anticipato, paghi solo a vendita conclusa",
+        "Foto, video, home staging e certificazione inclusi",
       ],
     },
     highlights: {
       eyebrow: "Perché affidarti a noi",
-      title: "Vendere da soli può costare caro. Con metodo, no.",
+      title: "Vendere casa non è mettere un cartello.",
       intro:
-        "Prezzo sbagliato, documenti incompleti e acquirenti non qualificati sono le tre trappole più comuni. Il metodo Domus Tua le trasforma in altrettanti punti di forza.",
+        "Dietro una vendita che va a buon fine ci sono tre leve, non un annuncio. Il metodo Domus Tua le governa tutte e tre, ed è così che il 92% dei nostri immobili viene venduto.",
       items: [
         {
-          title: "Il valore giusto",
-          copy: "Una valutazione professionale evita di svendere o di restare mesi sul mercato a prezzo fuori target.",
+          title: "Il prezzo giusto",
+          copy: "Una valutazione professionale su dati reali: né troppo alto, così l’immobile non resta fermo, né troppo basso, così non lasci valore sul tavolo.",
         },
         {
-          title: "Documenti a posto",
-          copy: "Verifichiamo tutto prima: niente sorprese che bloccano la trattativa o il rogito.",
+          title: "L’immobile certificato",
+          copy: "Con il protocollo Domus D.O.C. verifichiamo la conformità a monte: documenti a posto prima di andare sul mercato, niente sorprese in trattativa.",
         },
         {
-          title: "Acquirenti giusti",
-          copy: "Prequalifichiamo chi visita e gestiamo le proposte con trasparenza, tutelando i tuoi interessi.",
+          title: "Il marketing che vende",
+          copy: "Foto, video emozionale, home staging e campagne mirate raccontano la casa e la portano davanti agli acquirenti giusti.",
         },
       ],
     },
@@ -172,7 +172,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Sono rischi reali, ma quasi sempre evitabili. Ecco cosa facciamo, con calma e in anticipo, per proteggere la tua vendita.",
+        "Con Domus D.O.C. vendi senza sorprese: tempi più rapidi, trattative più solide, zero sorprese al rogito. Ecco cosa facciamo, con calma e in anticipo, per proteggere la tua vendita.",
     },
     prep: {
       eyebrow: "Prima di pubblicare",
@@ -222,33 +222,33 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         </>
       ),
       subcopy:
-        "We don’t simply list your property online. We prepare it, tell its story and sell it with a proven method, cutting out mistakes, wasted time and uncertainty.",
+        "Your home deserves to be sold well, not in a hurry. We don’t simply list it online: we prepare it, tell its story and sell it with a proven method, cutting out mistakes, wasted time and uncertainty.",
       alt: "Bright living area with dining space",
       primaryLabel: "Get your valuation",
       secondaryLabel: "How it works",
       trust: [
-        "No-obligation valuation",
-        "Verified documents",
-        "Support through to completion",
+        "Free, no-obligation valuation",
+        "No upfront costs, you pay only once the sale is closed",
+        "Photography, video, home staging and certification included",
       ],
     },
     highlights: {
       eyebrow: "Why entrust it to us",
-      title: "Selling on your own can cost you dearly. With a method, it won’t.",
+      title: "Selling a home isn’t just putting up a sign.",
       intro:
-        "The wrong price, incomplete paperwork and unqualified buyers are the three most common pitfalls. The Domus Tua method turns each of them into a genuine strength.",
+        "Behind a sale that goes through there are three levers, not a listing. The Domus Tua method governs all three, and that’s how 92% of our properties get sold.",
       items: [
         {
-          title: "The right value",
-          copy: "A professional valuation keeps you from underselling or sitting on the market for months at an off-target price.",
+          title: "The right price",
+          copy: "A professional valuation based on real data: not too high, so the property doesn’t sit on the market, and not too low, so you don’t leave value on the table.",
         },
         {
-          title: "Paperwork in order",
-          copy: "We check everything upfront: no surprises that could stall the negotiation or the final deed.",
+          title: "The certified property",
+          copy: "With the Domus D.O.C. protocol we verify compliance upfront: paperwork in order before going to market, no surprises during the negotiation.",
         },
         {
-          title: "The right buyers",
-          copy: "We pre-qualify every viewer and handle offers transparently, always protecting your interests.",
+          title: "Marketing that sells",
+          copy: "Photography, emotive video, home staging and targeted campaigns tell the home’s story and put it in front of the right buyers.",
         },
       ],
     },
@@ -316,7 +316,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "These are real risks, but almost always avoidable. Here’s what we do — calmly and ahead of time — to protect your sale.",
+        "With Domus D.O.C. you sell with no surprises: faster timelines, stronger negotiations, zero surprises at completion. Here’s what we do, calmly and ahead of time, to protect your sale.",
     },
     prep: {
       eyebrow: "Before we publish",
@@ -366,33 +366,33 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         </>
       ),
       subcopy:
-        "Nous ne nous contentons pas de mettre votre bien en ligne. Nous le préparons, le mettons en valeur et le vendons avec méthode, en réduisant erreurs, temps morts et incertitudes.",
+        "Votre bien mérite d’être vendu au juste prix, pas à la hâte. Nous ne nous contentons pas de le mettre en ligne : nous le préparons, le mettons en valeur et le vendons avec méthode, en réduisant erreurs, temps morts et incertitudes.",
       alt: "Séjour lumineux avec coin repas",
       primaryLabel: "Estimez votre bien",
       secondaryLabel: "Comment ça marche",
       trust: [
-        "Estimation sans engagement",
-        "Documents vérifiés",
-        "Accompagnement jusqu’à l’acte",
+        "Estimation gratuite et sans engagement",
+        "Aucuns frais d’avance, vous ne payez qu’à la vente conclue",
+        "Photos, vidéo, home staging et certification inclus",
       ],
     },
     highlights: {
       eyebrow: "Pourquoi nous faire confiance",
-      title: "Vendre seul peut coûter cher. Avec méthode, non.",
+      title: "Vendre un bien, ce n’est pas planter une pancarte.",
       intro:
-        "Prix erroné, dossier incomplet et acquéreurs non qualifiés sont les trois pièges les plus courants. La méthode Domus Tua en fait autant d’atouts.",
+        "Derrière une vente qui aboutit, il y a trois leviers, pas une simple annonce. La méthode Domus Tua les maîtrise tous les trois, et c’est ainsi que 92 % de nos biens sont vendus.",
       items: [
         {
-          title: "La juste valeur",
-          copy: "Une estimation professionnelle évite de brader ou de rester des mois sur le marché à un prix hors cible.",
+          title: "Le juste prix",
+          copy: "Une estimation professionnelle fondée sur des données réelles : ni trop élevé, pour que le bien ne stagne pas, ni trop bas, pour ne pas laisser de valeur sur la table.",
         },
         {
-          title: "Un dossier en règle",
-          copy: "Nous vérifions tout en amont : aucune surprise susceptible de bloquer la négociation ou l’acte.",
+          title: "Le bien certifié",
+          copy: "Avec le protocole Domus D.O.C., nous vérifions la conformité en amont : dossier en règle avant la mise sur le marché, aucune surprise en négociation.",
         },
         {
-          title: "Les bons acquéreurs",
-          copy: "Nous préqualifions les visiteurs et gérons les offres en toute transparence, en protégeant vos intérêts.",
+          title: "Le marketing qui vend",
+          copy: "Photos, vidéo émotionnelle, home staging et campagnes ciblées racontent le bien et le placent devant les bons acquéreurs.",
         },
       ],
     },
@@ -460,7 +460,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Ce sont des risques réels, mais presque toujours évitables. Voici ce que nous faisons, sereinement et en amont, pour protéger votre vente.",
+        "Avec Domus D.O.C., vous vendez sans surprises : des délais plus courts, des négociations plus solides, zéro surprise à l’acte. Voici ce que nous faisons, sereinement et en amont, pour protéger votre vente.",
     },
     prep: {
       eyebrow: "Avant la mise en ligne",
@@ -510,33 +510,33 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         </>
       ),
       subcopy:
-        "Wir stellen Ihre Immobilie nicht einfach online. Wir bereiten sie auf, erzählen ihre Geschichte und verkaufen sie mit Methode – und reduzieren so Fehler, Leerlauf und Unsicherheiten.",
+        "Ihr Zuhause verdient es, gut verkauft zu werden, nicht in Eile. Wir stellen es nicht einfach online: Wir bereiten es auf, erzählen seine Geschichte und verkaufen es mit Methode und reduzieren so Fehler, Leerlauf und Unsicherheiten.",
       alt: "Helles Wohnzimmer mit Essbereich",
       primaryLabel: "Immobilie bewerten lassen",
       secondaryLabel: "So funktioniert es",
       trust: [
-        "Bewertung unverbindlich",
-        "Geprüfte Unterlagen",
-        "Begleitung bis zum Notartermin",
+        "Kostenlose, unverbindliche Bewertung",
+        "Keine Vorabkosten, Sie zahlen erst nach erfolgtem Verkauf",
+        "Fotos, Video, Home Staging und Zertifizierung inklusive",
       ],
     },
     highlights: {
       eyebrow: "Warum Sie uns vertrauen können",
-      title: "Allein zu verkaufen kann teuer werden. Mit Methode nicht.",
+      title: "Eine Immobilie zu verkaufen heißt nicht, ein Schild aufzustellen.",
       intro:
-        "Der falsche Preis, unvollständige Unterlagen und unqualifizierte Käufer sind die drei häufigsten Fallen. Die Domus-Tua-Methode macht aus jeder von ihnen eine echte Stärke.",
+        "Hinter einem gelungenen Verkauf stehen drei Hebel, nicht ein Inserat. Die Domus-Tua-Methode steuert alle drei, und so werden 92 % unserer Immobilien verkauft.",
       items: [
         {
-          title: "Der richtige Wert",
-          copy: "Eine professionelle Bewertung verhindert, dass Sie unter Wert verkaufen oder monatelang zum falschen Preis am Markt bleiben.",
+          title: "Der richtige Preis",
+          copy: "Eine professionelle Bewertung auf Basis echter Daten: nicht zu hoch, damit die Immobilie nicht liegen bleibt, und nicht zu niedrig, damit Sie keinen Wert verschenken.",
         },
         {
-          title: "Unterlagen in Ordnung",
-          copy: "Wir prüfen alles vorab: keine Überraschungen, die die Verhandlung oder den Notartermin blockieren.",
+          title: "Die zertifizierte Immobilie",
+          copy: "Mit dem Domus-D.O.C.-Protokoll prüfen wir die Konformität vorab: Unterlagen in Ordnung, bevor es an den Markt geht, keine Überraschungen in der Verhandlung.",
         },
         {
-          title: "Die richtigen Käufer",
-          copy: "Wir qualifizieren jeden Interessenten vor und behandeln Angebote transparent – stets zum Schutz Ihrer Interessen.",
+          title: "Marketing, das verkauft",
+          copy: "Fotos, emotionales Video, Home Staging und gezielte Kampagnen erzählen die Immobilie und bringen sie vor die richtigen Käufer.",
         },
       ],
     },
@@ -604,7 +604,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Das sind reale Risiken, aber fast immer vermeidbar. Hier ist, was wir in Ruhe und rechtzeitig tun, um Ihren Verkauf zu schützen.",
+        "Mit Domus D.O.C. verkaufen Sie ohne Überraschungen: schnellere Abläufe, solidere Verhandlungen, keine Überraschungen beim Notartermin. Hier ist, was wir in Ruhe und rechtzeitig tun, um Ihren Verkauf zu schützen.",
     },
     prep: {
       eyebrow: "Vor der Veröffentlichung",
@@ -654,33 +654,33 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         </>
       ),
       subcopy:
-        "No nos limitamos a publicar tu inmueble en internet. Lo preparamos, lo presentamos y lo vendemos con método, reduciendo errores, tiempos muertos e incertidumbres.",
+        "Tu casa merece venderse bien, no con prisas. No nos limitamos a publicarla en internet: la preparamos, la presentamos y la vendemos con método, reduciendo errores, tiempos muertos e incertidumbres.",
       alt: "Salón luminoso con zona de comedor",
       primaryLabel: "Valora tu inmueble",
       secondaryLabel: "Cómo funciona",
       trust: [
-        "Valoración sin compromiso",
-        "Documentos verificados",
-        "Acompañamiento hasta la escritura",
+        "Valoración gratuita y sin compromiso",
+        "Sin costes por adelantado, pagas solo con la venta cerrada",
+        "Fotos, vídeo, home staging y certificación incluidos",
       ],
     },
     highlights: {
       eyebrow: "Por qué confiar en nosotros",
-      title: "Vender por tu cuenta puede salir caro. Con método, no.",
+      title: "Vender una casa no es poner un cartel.",
       intro:
-        "El precio equivocado, la documentación incompleta y los compradores no cualificados son las tres trampas más habituales. El método Domus Tua las convierte en otros tantos puntos fuertes.",
+        "Detrás de una venta que sale bien hay tres palancas, no un anuncio. El método Domus Tua gobierna las tres, y así es como se vende el 92 % de nuestros inmuebles.",
       items: [
         {
-          title: "El valor justo",
-          copy: "Una valoración profesional evita malvender o quedarte meses en el mercado a un precio fuera de objetivo.",
+          title: "El precio justo",
+          copy: "Una valoración profesional sobre datos reales: ni demasiado alto, para que el inmueble no se quede parado, ni demasiado bajo, para que no dejes valor sobre la mesa.",
         },
         {
-          title: "Documentos en regla",
-          copy: "Lo verificamos todo antes: sin sorpresas que bloqueen la negociación o la escritura.",
+          title: "El inmueble certificado",
+          copy: "Con el protocolo Domus D.O.C. verificamos la conformidad de antemano: documentos en regla antes de salir al mercado, sin sorpresas en la negociación.",
         },
         {
-          title: "Los compradores adecuados",
-          copy: "Precualificamos a quien visita y gestionamos las ofertas con transparencia, protegiendo tus intereses.",
+          title: "El marketing que vende",
+          copy: "Fotos, vídeo emocional, home staging y campañas dirigidas cuentan la casa y la ponen ante los compradores adecuados.",
         },
       ],
     },
@@ -748,7 +748,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Son riesgos reales, pero casi siempre evitables. Esto es lo que hacemos, con calma y por adelantado, para proteger tu venta.",
+        "Con Domus D.O.C. vendes sin sorpresas: plazos más rápidos, negociaciones más sólidas, cero sorpresas en la escritura. Esto es lo que hacemos, con calma y por adelantado, para proteger tu venta.",
     },
     prep: {
       eyebrow: "Antes de publicar",

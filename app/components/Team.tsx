@@ -19,6 +19,16 @@ const copy = {
     captionName: "Raffaela Rizza e il team",
     captionPlace: "Nella nostra sede di Tradate",
     badge: "Dal 2007",
+    rosterTitle: "Il team",
+    rosterIntro: "Un’agenzia a guida femminile che mette le persone al centro. Volti veri, competenze vere.",
+    roles: {
+      founder: "Founder & CEO",
+      office: "Office Manager",
+      architect: "Architetto",
+      frontOffice: "Front Office",
+      executive: "Executive",
+      homeStager: "Home Stager",
+    },
   },
   en: {
     eyebrow: "About us",
@@ -33,6 +43,16 @@ const copy = {
     captionName: "Raffaela Rizza and the team",
     captionPlace: "At our office in Tradate",
     badge: "Since 2007",
+    rosterTitle: "The team",
+    rosterIntro: "A woman-led agency that puts people first. Real faces, real expertise.",
+    roles: {
+      founder: "Founder & CEO",
+      office: "Office Manager",
+      architect: "Architect",
+      frontOffice: "Front Office",
+      executive: "Executive",
+      homeStager: "Home Stager",
+    },
   },
   fr: {
     eyebrow: "Qui sommes-nous",
@@ -47,6 +67,16 @@ const copy = {
     captionName: "Raffaela Rizza et l’équipe",
     captionPlace: "Dans nos locaux à Tradate",
     badge: "Depuis 2007",
+    rosterTitle: "L’équipe",
+    rosterIntro: "Une agence dirigée par des femmes qui place les personnes au centre. Des visages vrais, des compétences vraies.",
+    roles: {
+      founder: "Founder & CEO",
+      office: "Office Manager",
+      architect: "Architecte",
+      frontOffice: "Front Office",
+      executive: "Executive",
+      homeStager: "Home Stager",
+    },
   },
   de: {
     eyebrow: "Über uns",
@@ -61,6 +91,16 @@ const copy = {
     captionName: "Raffaela Rizza und das Team",
     captionPlace: "In unserem Büro in Tradate",
     badge: "Seit 2007",
+    rosterTitle: "Das Team",
+    rosterIntro: "Eine von Frauen geführte Agentur, die den Menschen in den Mittelpunkt stellt. Echte Gesichter, echte Kompetenzen.",
+    roles: {
+      founder: "Founder & CEO",
+      office: "Office Manager",
+      architect: "Architektin",
+      frontOffice: "Front Office",
+      executive: "Executive",
+      homeStager: "Home Stager",
+    },
   },
   es: {
     eyebrow: "Quiénes somos",
@@ -75,12 +115,38 @@ const copy = {
     captionName: "Raffaela Rizza y el equipo",
     captionPlace: "En nuestra sede de Tradate",
     badge: "Desde 2007",
+    rosterTitle: "El equipo",
+    rosterIntro: "Una agencia dirigida por mujeres que pone a las personas en el centro. Rostros reales, competencias reales.",
+    roles: {
+      founder: "Founder & CEO",
+      office: "Office Manager",
+      architect: "Arquitecta",
+      frontOffice: "Front Office",
+      executive: "Executive",
+      homeStager: "Home Stager",
+    },
   },
 };
 
 export default function Team() {
   const { locale } = useLocale();
   const c = copy[locale];
+
+  const roster = [
+    { name: "Raffaela Rizza", role: c.roles.founder },
+    { name: "Paloma Cavalcante", role: c.roles.office },
+    { name: "Eleonora D’Agati", role: c.roles.architect },
+    { name: "Viola Benatti", role: c.roles.frontOffice },
+    { name: "Tiziana Galeone", role: c.roles.executive },
+    { name: "Katya Fedrigo", role: c.roles.homeStager },
+  ];
+
+  const initials = (name: string) =>
+    name
+      .split(" ")
+      .map((part) => part.charAt(0))
+      .slice(0, 2)
+      .join("");
 
   return (
     <section id="chi-siamo" className="bg-cream">
@@ -113,6 +179,26 @@ export default function Team() {
                 </span>
               </figcaption>
             </figure>
+
+            <div className="mt-9 max-w-xl">
+              <p className="text-sm font-semibold text-ink">{c.rosterTitle}</p>
+              <p className="mt-2 text-[0.95rem] leading-relaxed text-stone">
+                {c.rosterIntro}
+              </p>
+              <ul className="mt-5 grid gap-x-6 gap-y-4 sm:grid-cols-2">
+                {roster.map((member) => (
+                  <li key={member.name} className="flex items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red font-display text-base font-semibold text-white">
+                      {initials(member.name)}
+                    </span>
+                    <span className="leading-tight">
+                      <span className="block text-sm font-semibold text-ink">{member.name}</span>
+                      <span className="block text-[0.8rem] text-stone">{member.role}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <a
               href="#contatti"

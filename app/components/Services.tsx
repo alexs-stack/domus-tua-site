@@ -12,28 +12,28 @@ const copy = {
     featureBadge: "Servizio di punta",
     featureTitle: "Rendering e virtual rendering",
     featureCopy:
-      "Trasformiamo planimetrie e immobili da ristrutturare in immagini desiderabili. Il potenziale diventa visibile, e vendibile.",
+      "Vedere il potenziale dell’immobile prima ancora dei lavori.",
     featureAlt: "Rendering fotorealistico di un living moderno",
     services: [
       {
-        title: "Valutazione immobile",
-        copy: "Stima professionale basata su mercato locale, caratteristiche reali e potenziale.",
-      },
-      {
-        title: "Servizi tecnici, amministrativi e legali",
-        copy: "Verifiche documentali e supporto su conformità, titoli e pratiche.",
+        title: "Servizi tecnico-legali",
+        copy: "Consulenza catastale, urbanistica e amministrativa.",
       },
       {
         title: "Home staging",
-        copy: "Allestimenti che valorizzano gli spazi e accelerano la vendita.",
+        copy: "Valorizzare gli spazi per vendere prima e meglio.",
       },
       {
         title: "Emotional video real estate",
-        copy: "Video emozionali che raccontano la casa, non solo le sue stanze.",
+        copy: "Raccontare la casa con un film, non con due foto.",
       },
       {
         title: "Contenuti e campagne marketing",
-        copy: "Produzione creativa e campagne multicanale per i giusti acquirenti.",
+        copy: "Visibilità mirata sui canali che contano.",
+      },
+      {
+        title: "Open Domus",
+        copy: "L’esperienza di visita che fa innamorare gli acquirenti.",
       },
     ],
     docEyebrow: "Protocollo Domus D.O.C.",
@@ -46,28 +46,28 @@ const copy = {
     featureBadge: "Signature service",
     featureTitle: "Rendering and virtual rendering",
     featureCopy:
-      "We turn floor plans and properties to be renovated into desirable images. Potential becomes visible, and sellable.",
+      "Seeing a property’s potential before the work even begins.",
     featureAlt: "Photorealistic rendering of a modern living room",
     services: [
       {
-        title: "Property valuation",
-        copy: "Professional appraisal based on the local market, actual features and true potential.",
-      },
-      {
-        title: "Technical, administrative and legal services",
-        copy: "Document checks and support on compliance, titles and paperwork.",
+        title: "Technical and legal services",
+        copy: "Cadastral, planning and administrative advice.",
       },
       {
         title: "Home staging",
-        copy: "Set-ups that showcase spaces and speed up the sale.",
+        copy: "Enhancing spaces to sell sooner and better.",
       },
       {
         title: "Emotional video real estate",
-        copy: "Emotional videos that tell the story of the home, not just its rooms.",
+        copy: "Telling the story of a home with a film, not two photos.",
       },
       {
         title: "Content and marketing campaigns",
-        copy: "Creative production and multichannel campaigns for the right buyers.",
+        copy: "Targeted visibility on the channels that matter.",
+      },
+      {
+        title: "Open Domus",
+        copy: "The viewing experience that makes buyers fall in love.",
       },
     ],
     docEyebrow: "Domus D.O.C. Protocol",
@@ -80,28 +80,28 @@ const copy = {
     featureBadge: "Service phare",
     featureTitle: "Rendu et rendu virtuel",
     featureCopy:
-      "Nous transformons plans et biens à rénover en images désirables. Le potentiel devient visible, et vendable.",
+      "Voir le potentiel du bien avant même les travaux.",
     featureAlt: "Rendu photoréaliste d'un salon moderne",
     services: [
       {
-        title: "Évaluation du bien",
-        copy: "Estimation professionnelle fondée sur le marché local, les caractéristiques réelles et le potentiel.",
-      },
-      {
-        title: "Services techniques, administratifs et juridiques",
-        copy: "Vérifications documentaires et accompagnement sur la conformité, les titres et les démarches.",
+        title: "Services techniques et juridiques",
+        copy: "Conseil cadastral, urbanistique et administratif.",
       },
       {
         title: "Home staging",
-        copy: "Des aménagements qui valorisent les espaces et accélèrent la vente.",
+        copy: "Valoriser les espaces pour vendre plus vite et mieux.",
       },
       {
         title: "Emotional video real estate",
-        copy: "Des vidéos émotionnelles qui racontent la maison, pas seulement ses pièces.",
+        copy: "Raconter la maison avec un film, pas avec deux photos.",
       },
       {
         title: "Contenus et campagnes marketing",
-        copy: "Production créative et campagnes multicanales pour les bons acquéreurs.",
+        copy: "Une visibilité ciblée sur les canaux qui comptent.",
+      },
+      {
+        title: "Open Domus",
+        copy: "L’expérience de visite qui fait tomber les acquéreurs amoureux.",
       },
     ],
     docEyebrow: "Protocole Domus D.O.C.",
@@ -114,28 +114,28 @@ const copy = {
     featureBadge: "Spitzenleistung",
     featureTitle: "Rendering und Virtual Rendering",
     featureCopy:
-      "Wir verwandeln Grundrisse und sanierungsbedürftige Immobilien in begehrenswerte Bilder. Das Potenzial wird sichtbar – und verkäuflich.",
+      "Das Potenzial der Immobilie sehen, noch bevor die Arbeiten beginnen.",
     featureAlt: "Fotorealistisches Rendering eines modernen Wohnzimmers",
     services: [
       {
-        title: "Immobilienbewertung",
-        copy: "Professionelle Schätzung auf Basis des lokalen Marktes, realer Merkmale und des Potenzials.",
-      },
-      {
-        title: "Technische, administrative und rechtliche Dienstleistungen",
-        copy: "Dokumentenprüfung und Unterstützung bei Konformität, Titeln und Formalitäten.",
+        title: "Technische und rechtliche Dienstleistungen",
+        copy: "Beratung zu Kataster, Baurecht und Verwaltung.",
       },
       {
         title: "Home Staging",
-        copy: "Inszenierungen, die Räume aufwerten und den Verkauf beschleunigen.",
+        copy: "Räume aufwerten, um schneller und besser zu verkaufen.",
       },
       {
         title: "Emotional Video Real Estate",
-        copy: "Emotionale Videos, die die Geschichte des Zuhauses erzählen, nicht nur seine Räume.",
+        copy: "Die Immobilie mit einem Film erzählen, nicht mit zwei Fotos.",
       },
       {
         title: "Inhalte und Marketingkampagnen",
-        copy: "Kreative Produktion und Multichannel-Kampagnen für die richtigen Käufer.",
+        copy: "Gezielte Sichtbarkeit auf den Kanälen, die zählen.",
+      },
+      {
+        title: "Open Domus",
+        copy: "Das Besichtigungserlebnis, das Käufer verliebt macht.",
       },
     ],
     docEyebrow: "Domus D.O.C. Protokoll",
@@ -148,28 +148,28 @@ const copy = {
     featureBadge: "Servicio estrella",
     featureTitle: "Renderizado y renderizado virtual",
     featureCopy:
-      "Transformamos planos e inmuebles a reformar en imágenes deseables. El potencial se vuelve visible, y vendible.",
+      "Ver el potencial del inmueble antes incluso de las obras.",
     featureAlt: "Renderizado fotorrealista de un salón moderno",
     services: [
       {
-        title: "Valoración del inmueble",
-        copy: "Tasación profesional basada en el mercado local, las características reales y el potencial.",
-      },
-      {
-        title: "Servicios técnicos, administrativos y legales",
-        copy: "Verificaciones documentales y apoyo en conformidad, títulos y trámites.",
+        title: "Servicios técnicos y legales",
+        copy: "Asesoramiento catastral, urbanístico y administrativo.",
       },
       {
         title: "Home staging",
-        copy: "Montajes que realzan los espacios y aceleran la venta.",
+        copy: "Valorizar los espacios para vender antes y mejor.",
       },
       {
         title: "Emotional video real estate",
-        copy: "Vídeos emocionales que cuentan la historia de la casa, no solo sus habitaciones.",
+        copy: "Contar la casa con una película, no con dos fotos.",
       },
       {
         title: "Contenidos y campañas de marketing",
-        copy: "Producción creativa y campañas multicanal para los compradores adecuados.",
+        copy: "Visibilidad selectiva en los canales que importan.",
+      },
+      {
+        title: "Open Domus",
+        copy: "La experiencia de visita que enamora a los compradores.",
       },
     ],
     docEyebrow: "Protocolo Domus D.O.C.",

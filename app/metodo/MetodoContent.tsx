@@ -30,10 +30,10 @@ const copy = {
     heroAlt: "Attico con travi a vista e salotto elegante",
     heroPrimary: "Inizia dal tuo immobile",
     heroSecondary: "Vedi i nove passi",
-    highlightsEyebrow: "Tre pilastri",
+    highlightsEyebrow: "Cinque fasi, una garanzia",
     highlightsTitle: "Cura, trasparenza, accompagnamento.",
     highlightsIntro:
-      "Tre principi attraversano ogni fase del metodo e fanno la differenza tra mettere una casa sul mercato e venderla davvero bene.",
+      "Il metodo si sviluppa in cinque fasi ancorate al protocollo Domus D.O.C.: intervista analitica per capire la tua casa, i tuoi obiettivi e i tuoi tempi; valutazione e certificazione D.O.C., con stima professionale sul valore reale e verifica tecnico-legale; Marketing+ con foto, video emozionale, home staging e campagne mirate su portali e social; il sistema Open Domus, con visite organizzate e selezionate senza viavai di curiosi; e la multi-proposta, che mette più offerte a confronto per vendere al prezzo concordato.",
     item1Title: "Documenti verificati",
     item1Copy:
       "Controlliamo tutto prima: conformità, titoli, pratiche. Si arriva al rogito senza sorprese.",
@@ -46,7 +46,7 @@ const copy = {
     docEyebrow: "Al centro del metodo",
     docTitle: "Domus D.O.C., la nostra garanzia di fiducia.",
     docCopy:
-      "Ogni fase del metodo confluisce nel protocollo Domus di Origine Certificata: documenti, conformità, trasparenza, preparazione e tutela verificati prima di mettere in vendita.",
+      "Ogni fase del metodo confluisce nel protocollo Domus di Origine Certificata: dalla valutazione e certificazione D.O.C. fino alla multi-proposta, documenti, conformità, trasparenza, preparazione e tutela sono verificati prima di mettere in vendita.",
     docLink: "Scopri il protocollo Domus D.O.C.",
   },
   en: {
@@ -63,10 +63,10 @@ const copy = {
     heroAlt: "Penthouse with exposed beams and an elegant living room",
     heroPrimary: "Start with your property",
     heroSecondary: "See the nine steps",
-    highlightsEyebrow: "Three pillars",
+    highlightsEyebrow: "Five phases, one guarantee",
     highlightsTitle: "Care, transparency, guidance.",
     highlightsIntro:
-      "Three principles run through every phase of the method and make the difference between putting a home on the market and selling it truly well.",
+      "The method unfolds in five phases anchored to the Domus D.O.C. protocol: an analytical interview to understand your home, your goals and your timing; valuation and D.O.C. certification, with a professional estimate of the real value and a technical and legal check; Marketing+ with photography, an emotional video, home staging and targeted campaigns across portals and social; the Open Domus system, with organised and selected viewings and no parade of the merely curious; and the multi-offer stage, which puts several offers side by side to sell at the agreed price.",
     item1Title: "Verified documents",
     item1Copy:
       "We check everything up front: compliance, titles, procedures. You reach the deed with no surprises.",
@@ -79,7 +79,7 @@ const copy = {
     docEyebrow: "At the heart of the method",
     docTitle: "Domus D.O.C., our promise of trust.",
     docCopy:
-      "Every phase of the method flows into the Domus of Certified Origin protocol: documents, compliance, transparency, preparation and protection all verified before listing.",
+      "Every phase of the method flows into the Domus of Certified Origin protocol: from valuation and D.O.C. certification through to the multi-offer stage, documents, compliance, transparency, preparation and protection are all verified before listing.",
     docLink: "Discover the Domus D.O.C. protocol",
   },
   fr: {
@@ -96,10 +96,10 @@ const copy = {
     heroAlt: "Attique avec poutres apparentes et salon élégant",
     heroPrimary: "Commencez par votre bien",
     heroSecondary: "Voir les neuf étapes",
-    highlightsEyebrow: "Trois piliers",
+    highlightsEyebrow: "Cinq phases, une garantie",
     highlightsTitle: "Soin, transparence, accompagnement.",
     highlightsIntro:
-      "Trois principes traversent chaque phase de la méthode et font toute la différence entre mettre une maison sur le marché et la vendre vraiment bien.",
+      "La méthode se déploie en cinq phases ancrées au protocole Domus D.O.C. : un entretien analytique pour comprendre votre bien, vos objectifs et vos délais ; l’estimation et la certification D.O.C., avec une évaluation professionnelle de la valeur réelle et une vérification technique et juridique ; Marketing+ avec photos, vidéo émotionnelle, home staging et campagnes ciblées sur les portails et les réseaux ; le système Open Domus, avec des visites organisées et sélectionnées, sans défilé de curieux ; et la multi-proposition, qui met plusieurs offres en regard pour vendre au prix convenu.",
     item1Title: "Documents vérifiés",
     item1Copy:
       "Nous vérifions tout en amont : conformité, titres, démarches. On arrive à l’acte sans mauvaises surprises.",
@@ -112,7 +112,7 @@ const copy = {
     docEyebrow: "Au cœur de la méthode",
     docTitle: "Domus D.O.C., notre garantie de confiance.",
     docCopy:
-      "Chaque phase de la méthode se rejoint dans le protocole Domus d’Origine Certifiée : documents, conformité, transparence, préparation et protection vérifiés avant la mise en vente.",
+      "Chaque phase de la méthode se rejoint dans le protocole Domus d’Origine Certifiée : de l’estimation et la certification D.O.C. jusqu’à la multi-proposition, documents, conformité, transparence, préparation et protection sont vérifiés avant la mise en vente.",
     docLink: "Découvrir le protocole Domus D.O.C.",
   },
   de: {
@@ -129,10 +129,10 @@ const copy = {
     heroAlt: "Penthouse mit sichtbaren Balken und elegantem Wohnzimmer",
     heroPrimary: "Beginnen Sie mit Ihrer Immobilie",
     heroSecondary: "Die neun Schritte ansehen",
-    highlightsEyebrow: "Drei Säulen",
+    highlightsEyebrow: "Fünf Phasen, eine Garantie",
     highlightsTitle: "Sorgfalt, Transparenz, Begleitung.",
     highlightsIntro:
-      "Drei Prinzipien ziehen sich durch jede Phase der Methode und machen den Unterschied, ob man ein Haus nur auf den Markt bringt oder es wirklich gut verkauft.",
+      "Die Methode entfaltet sich in fünf Phasen, verankert im Protokoll Domus D.O.C.: ein analytisches Gespräch, um Ihre Immobilie, Ihre Ziele und Ihren Zeitrahmen zu verstehen; Bewertung und D.O.C.-Zertifizierung, mit einer professionellen Schätzung des realen Werts und einer technisch-rechtlichen Prüfung; Marketing+ mit Fotos, emotionalem Video, Home Staging und gezielten Kampagnen auf Portalen und Social Media; das System Open Domus, mit organisierten und ausgewählten Besichtigungen ohne Kommen und Gehen Neugieriger; und die Multi-Angebot-Phase, die mehrere Angebote gegenüberstellt, um zum vereinbarten Preis zu verkaufen.",
     item1Title: "Geprüfte Unterlagen",
     item1Copy:
       "Wir prüfen alles vorab: Konformität, Eigentumstitel, Verfahren. So kommt man ohne Überraschungen zum Notartermin.",
@@ -145,7 +145,7 @@ const copy = {
     docEyebrow: "Im Zentrum der Methode",
     docTitle: "Domus D.O.C., unser Versprechen für Vertrauen.",
     docCopy:
-      "Jede Phase der Methode mündet in das Protokoll Domus mit zertifizierter Herkunft: Unterlagen, Konformität, Transparenz, Vorbereitung und Schutz werden vor dem Verkauf geprüft.",
+      "Jede Phase der Methode mündet in das Protokoll Domus mit zertifizierter Herkunft: von der Bewertung und D.O.C.-Zertifizierung bis zur Multi-Angebot-Phase werden Unterlagen, Konformität, Transparenz, Vorbereitung und Schutz vor dem Verkauf geprüft.",
     docLink: "Das Protokoll Domus D.O.C. entdecken",
   },
   es: {
@@ -162,10 +162,10 @@ const copy = {
     heroAlt: "Ático con vigas a la vista y salón elegante",
     heroPrimary: "Empieza por tu inmueble",
     heroSecondary: "Ver los nueve pasos",
-    highlightsEyebrow: "Tres pilares",
+    highlightsEyebrow: "Cinco fases, una garantía",
     highlightsTitle: "Cuidado, transparencia, acompañamiento.",
     highlightsIntro:
-      "Tres principios recorren cada fase del método y marcan la diferencia entre poner una casa en el mercado y venderla realmente bien.",
+      "El método se desarrolla en cinco fases ancladas al protocolo Domus D.O.C.: una entrevista analítica para entender tu casa, tus objetivos y tus tiempos; valoración y certificación D.O.C., con una estimación profesional del valor real y una verificación técnica y legal; Marketing+ con fotos, vídeo emotivo, home staging y campañas específicas en portales y redes; el sistema Open Domus, con visitas organizadas y seleccionadas, sin ir y venir de curiosos; y la multipropuesta, que pone varias ofertas en comparación para vender al precio acordado.",
     item1Title: "Documentos verificados",
     item1Copy:
       "Lo comprobamos todo antes: conformidad, títulos, trámites. Se llega a la escritura sin sorpresas.",
@@ -178,7 +178,7 @@ const copy = {
     docEyebrow: "En el centro del método",
     docTitle: "Domus D.O.C., nuestra garantía de confianza.",
     docCopy:
-      "Cada fase del método confluye en el protocolo Domus de Origen Certificado: documentos, conformidad, transparencia, preparación y protección verificados antes de poner en venta.",
+      "Cada fase del método confluye en el protocolo Domus de Origen Certificado: desde la valoración y certificación D.O.C. hasta la multipropuesta, los documentos, la conformidad, la transparencia, la preparación y la protección se verifican antes de poner en venta.",
     docLink: "Descubre el protocolo Domus D.O.C.",
   },
 };

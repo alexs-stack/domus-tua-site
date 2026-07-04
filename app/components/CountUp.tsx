@@ -9,6 +9,10 @@ type Props = {
   suffix?: string;
   duration?: number;
   className?: string;
+  /** Raggruppa le migliaia (es. 269395 → "269.395"). Off di default per non toccare gli altri usi. */
+  group?: boolean;
+  /** Locale BCP-47 per il raggruppamento (es. "it-IT"). Usato solo se group=true. */
+  locale?: string;
 };
 
 /**
@@ -22,9 +26,19 @@ export default function CountUp({
   suffix = "",
   duration = 1500,
   className = "",
+  group = false,
+  locale,
 }: Props) {
   const ref = useRef<HTMLSpanElement | null>(null);
   const [display, setDisplay] = useState(0);
+
+  const format = (n: number) =>
+    group
+      ? n.toLocaleString(locale, {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        })
+      : n.toFixed(decimals);
 
   useEffect(() => {
     const el = ref.current;
@@ -71,7 +85,7 @@ export default function CountUp({
   return (
     <span ref={ref} className={`tnum ${className}`}>
       {prefix}
-      {display.toFixed(decimals)}
+      {format(display)}
       {suffix}
     </span>
   );

@@ -332,7 +332,8 @@ export default function SocialVideoWall() {
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {wall.slice(2).map((v) => (
-              <VideoCard key={v.href} v={v} small c={c} />
+              // key su titleKey (univoco): più href puntano allo stesso video reale
+              <VideoCard key={v.titleKey} v={v} small c={c} />
             ))}
           </div>
         </Reveal>

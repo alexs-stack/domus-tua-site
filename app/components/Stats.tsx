@@ -2,31 +2,37 @@
 
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
-import { site } from "./../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
-const years = new Date().getFullYear() - site.since;
-
 type Stat = {
-  labelKey: "years" | "rating" | "reviews" | "roots";
+  labelKey: "people" | "deals" | "sold" | "valued";
   count?: { value: number; decimals?: number; suffix?: string };
   text?: string;
 };
 
 const stats: Stat[] = [
-  { count: { value: years, suffix: "+" }, labelKey: "years" },
-  { count: { value: Number(site.rating), decimals: 1, suffix: "/5" }, labelKey: "rating" },
-  { count: { value: Number.parseInt(site.reviewsCount, 10) || 500, suffix: "+" }, labelKey: "reviews" },
-  { text: "Tradate", labelKey: "roots" },
+  { count: { value: 6433 }, labelKey: "people" },
+  { count: { value: 1523 }, labelKey: "deals" },
+  { count: { value: 92, suffix: "%" }, labelKey: "sold" },
+  { count: { value: 269395 }, labelKey: "valued" },
 ];
+
+/** Locale del sito → BCP-47 per il raggruppamento delle migliaia (269395 → "269.395"). */
+const intlLocale: Record<string, string> = {
+  it: "it-IT",
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  es: "es-ES",
+};
 
 const copy = {
   it: {
     labels: {
-      years: "Anni di esperienza, dal 2007",
-      rating: "Rating medio sulle recensioni",
-      reviews: "Recensioni di clienti reali",
-      roots: "Radici locali, provincia di Varese",
+      people: "Persone felici",
+      deals: "Transazioni concluse",
+      sold: "Immobili venduti",
+      valued: "Mq valutati",
     },
     tokens: [
       "Valutazione professionale",
@@ -41,10 +47,10 @@ const copy = {
   },
   en: {
     labels: {
-      years: "Years of experience, since 2007",
-      rating: "Average rating from reviews",
-      reviews: "Reviews from real clients",
-      roots: "Local roots, province of Varese",
+      people: "Happy people",
+      deals: "Deals closed",
+      sold: "Properties sold",
+      valued: "Sq m appraised",
     },
     tokens: [
       "Professional valuation",
@@ -59,10 +65,10 @@ const copy = {
   },
   fr: {
     labels: {
-      years: "Années d'expérience, depuis 2007",
-      rating: "Note moyenne des avis",
-      reviews: "Avis de clients réels",
-      roots: "Racines locales, province de Varese",
+      people: "Personnes satisfaites",
+      deals: "Transactions conclues",
+      sold: "Biens vendus",
+      valued: "M² estimés",
     },
     tokens: [
       "Estimation professionnelle",
@@ -77,10 +83,10 @@ const copy = {
   },
   de: {
     labels: {
-      years: "Jahre Erfahrung, seit 2007",
-      rating: "Durchschnittsbewertung der Rezensionen",
-      reviews: "Bewertungen echter Kunden",
-      roots: "Lokal verwurzelt, Provinz Varese",
+      people: "Zufriedene Menschen",
+      deals: "Abgeschlossene Transaktionen",
+      sold: "Verkaufte Immobilien",
+      valued: "Bewertete m²",
     },
     tokens: [
       "Professionelle Bewertung",
@@ -95,10 +101,10 @@ const copy = {
   },
   es: {
     labels: {
-      years: "Años de experiencia, desde 2007",
-      rating: "Valoración media de las reseñas",
-      reviews: "Reseñas de clientes reales",
-      roots: "Raíces locales, provincia de Varese",
+      people: "Personas felices",
+      deals: "Transacciones cerradas",
+      sold: "Inmuebles vendidos",
+      valued: "M² tasados",
     },
     tokens: [
       "Tasación profesional",
@@ -130,6 +136,8 @@ export default function Stats() {
                       value={s.count.value}
                       decimals={s.count.decimals}
                       suffix={s.count.suffix}
+                      group
+                      locale={intlLocale[locale]}
                     />
                   ) : (
                     s.text
