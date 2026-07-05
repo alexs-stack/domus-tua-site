@@ -14,7 +14,6 @@ export const metadata: Metadata = {
     title: "Contatti",
     description:
       "Domus Tua Immobiliare, Corso Bernacchi 91, Tradate (VA). Telefono 0331 844898, WhatsApp 346 6042314. Scrivici per una valutazione o per cercare casa.",
-    images: ["/images/hero_01_attico_travi_salotto.jpg"],
   },
 };
 

@@ -32,7 +32,6 @@ export const metadata: Metadata = {
     title: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
     description:
       "Un metodo completo per vendere e acquistare casa con cura, trasparenza e assistenza fino al rogito. Tradate (VA), dal 2007.",
-    images: ["/images/hero_01_attico_travi_salotto.jpg"],
   },
 };
 

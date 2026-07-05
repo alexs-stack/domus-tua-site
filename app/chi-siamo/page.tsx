@@ -14,7 +14,6 @@ export const metadata: Metadata = {
     title: "Chi siamo",
     description:
       "Dal 2007 a Tradate, Domus Tua è l'agenzia immobiliare indipendente nata dalla visione di Raffaela Rizza. Professionalità, innovazione e integrità al servizio delle persone.",
-    images: ["/images/hero_01_attico_travi_salotto.jpg"],
   },
 };
 

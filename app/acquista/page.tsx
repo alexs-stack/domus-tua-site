@@ -14,7 +14,6 @@ export const metadata: Metadata = {
     title: "Comprare casa a Tradate, con sicurezza",
     description:
       "Acquista casa con Domus Tua: ricerca mirata, informazioni chiare prima della visita, documentazione verificata e assistenza in ogni passaggio fino al rogito.",
-    images: ["/images/hero_01_attico_travi_salotto.jpg"],
   },
 };
 
