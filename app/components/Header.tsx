@@ -82,16 +82,23 @@ export default function Header() {
   }, [open]);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4">
+    <header
+      className={`fixed inset-x-0 top-0 z-50 flex justify-center px-4 transition-colors duration-500 ${
+        scrolled ? "" : "bg-gradient-to-b from-ink/45 via-ink/12 to-transparent pb-6"
+      }`}
+    >
       <div
         className={`mt-3 flex w-full max-w-[1240px] items-center justify-between gap-4 rounded-full px-3 pl-5 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           scrolled
             ? "border border-line/70 bg-paper/80 py-2 shadow-[0_18px_50px_-28px_rgba(26,24,22,0.45)] backdrop-blur-xl"
-            : "border border-transparent bg-paper/30 py-3 backdrop-blur-sm"
+            : "border border-white/10 bg-ink/10 py-3 backdrop-blur-md"
         }`}
       >
         <Link href="/" className="shrink-0" aria-label="Domus Tua, vai alla home">
-          <Logo />
+          {/* Sopra l'hero scuro il logo diventa una silhouette chiara; da scrollato torna a colori. */}
+          <span className={scrolled ? "" : "[filter:brightness(0)_invert(1)]"}>
+            <Logo />
+          </span>
         </Link>
 
         {/* Desktop nav */}
@@ -100,7 +107,11 @@ export default function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-full px-3.5 py-2 text-[0.82rem] font-medium text-graphite transition-colors duration-300 hover:bg-cream-deep hover:text-ink"
+              className={`rounded-full px-3.5 py-2 text-[0.82rem] font-medium transition-colors duration-300 ${
+                scrolled
+                  ? "text-graphite hover:bg-cream-deep hover:text-ink"
+                  : "text-cream/90 hover:bg-cream/15 hover:text-white"
+              }`}
             >
               {d.nav[item.key]}
             </Link>
@@ -113,13 +124,17 @@ export default function Header() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={d.header.whatsapp}
-            className="hidden h-11 w-11 items-center justify-center rounded-full border border-line text-graphite transition-all duration-300 hover:border-red hover:text-red sm:flex"
+            className={`hidden h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 sm:flex ${
+              scrolled
+                ? "border-line text-graphite hover:border-red hover:text-red"
+                : "border-cream/40 text-cream hover:border-cream hover:text-white"
+            }`}
           >
             <Whatsapp className="h-5 w-5" />
           </a>
 
           <div className="hidden sm:block">
-            <LanguageSwitcher />
+            <LanguageSwitcher light={!scrolled} />
           </div>
 
           <Link
@@ -139,7 +154,11 @@ export default function Header() {
             aria-label={open ? "Chiudi menu" : "Apri menu"}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink transition-all duration-300 hover:border-red hover:text-red active:scale-95 lg:hidden"
+            className={`relative flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 active:scale-95 lg:hidden ${
+              scrolled
+                ? "border-line text-ink hover:border-red hover:text-red"
+                : "border-cream/40 text-cream hover:border-cream"
+            }`}
           >
             <span className="relative block h-3 w-5">
               <span

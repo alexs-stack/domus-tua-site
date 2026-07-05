@@ -25,8 +25,9 @@ export const heroCinematic = {
   mp4: "/media/domus-hero.mp4",
   webm: "/media/domus-hero.webm",
   poster: "/media/domus-hero-poster.jpg",
-  // Fallback sempre presente: Raffaela Rizza con un cliente, in sede (foto reale).
-  base: "/images/reali/raffaela-team-sede.jpg",
-  baseAlt: "Raffaela Rizza di Domus Tua con una cliente, nella sede di Tradate",
+  // Fallback sempre presente: villa reale al tramonto con piscina illuminata (foto reale).
+  // Immagine cinematografica, coerente col taglio "HeroCinematic" e col velo scuro del testo.
+  base: "/images/reali/villa-tramonto.jpg",
+  baseAlt: "Villa con piscina illuminata al tramonto, immobile di pregio a Tradate",
   youtube: "https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE",
 } as const;
