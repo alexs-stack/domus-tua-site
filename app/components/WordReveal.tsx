@@ -10,6 +10,8 @@ type Props = {
   stagger?: number;
   /** ritardo iniziale prima della prima parola (ms) */
   startDelay?: number;
+  /** Above-the-fold (es. H1 hero): mostra subito il testo (SSR visibile) per non ritardare l'LCP. */
+  immediate?: boolean;
 };
 
 /**
@@ -22,11 +24,15 @@ export default function WordReveal({
   className = "",
   stagger = 42,
   startDelay = 0,
+  immediate = false,
 }: Props) {
   const ref = useRef<HTMLElement | null>(null);
-  const [shown, setShown] = useState(false);
+  // In modalità `immediate` il testo è già "is-in" al primo render (anche in SSR):
+  // resta leggibile subito, senza attendere l'IntersectionObserver, e non ritarda l'LCP.
+  const [shown, setShown] = useState(immediate);
 
   useEffect(() => {
+    if (immediate) return;
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(
@@ -42,7 +48,7 @@ export default function WordReveal({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [immediate]);
 
   const words = text.split(" ");
 

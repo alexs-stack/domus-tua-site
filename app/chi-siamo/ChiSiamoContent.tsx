@@ -267,7 +267,7 @@ export default function ChiSiamoContent({ since }: { since: number }) {
             <Reveal>
               <div className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line">
                 <Image
-                  src="/images/reali/open-domus-teresa.jpg"
+                  src="/images/reali/villa-pool.jpg"
                   alt={c.storiaImageAlt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 560px"

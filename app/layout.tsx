@@ -7,6 +7,7 @@ import { LocaleProvider } from "./components/i18n/LocaleProvider";
 import PreviewBadge from "./components/PreviewBadge";
 import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
+import MobileActionBar from "./components/MobileActionBar";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -59,8 +60,8 @@ export const metadata: Metadata = {
     "Open Domus",
     "home staging",
   ],
-  // Favicon ufficiale del cliente (da depositare in /public/favicon.ico — vedi docs/logo-assets.md).
-  icons: { icon: "/favicon.ico", shortcut: "/favicon.ico", apple: "/favicon.ico" },
+  // Le icone (favicon + apple-touch) sono generate dalle file-convention app/icon.tsx e
+  // app/apple-icon.tsx (monogramma di marca via next/og): niente metadata manuale qui.
   openGraph: {
     type: "website",
     locale: "it_IT",
@@ -134,6 +135,7 @@ export default function RootLayout({
           <PreviewBadge />
           <CookieConsent />
           <AssistantMount />
+          <MobileActionBar />
         </LocaleProvider>
       </body>
     </html>

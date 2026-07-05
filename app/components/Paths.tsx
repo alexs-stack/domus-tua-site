@@ -9,7 +9,7 @@ const paths = [
   {
     id: "vendi",
     href: "/vendi",
-    image: "/images/reali/handshake.jpg",
+    image: "/images/reali/consulenza.jpg",
   },
   {
     id: "acquista",

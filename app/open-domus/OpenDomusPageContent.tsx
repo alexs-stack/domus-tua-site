@@ -816,7 +816,7 @@ export default function OpenDomusPageContent() {
                 className="group relative block aspect-video overflow-hidden rounded-[2rem] border border-cream/15"
               >
                 <Image
-                  src="/images/reali/open-domus-teresa.jpg"
+                  src="/images/reali/raffaela-founder.jpg"
                   alt={c.videoImageAlt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 680px"

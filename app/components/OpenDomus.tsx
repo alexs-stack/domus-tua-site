@@ -144,7 +144,7 @@ export default function OpenDomus() {
                 className="group relative block aspect-[4/5] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[5/5]"
               >
                 <Image
-                  src="/images/reali/open-domus-teresa.jpg"
+                  src="/images/reali/raffaela-founder.jpg"
                   alt={c.imageAlt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 600px"

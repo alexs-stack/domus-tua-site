@@ -170,8 +170,8 @@ export default function HeroCinematic() {
           <SegnoDomusBadge light className="backdrop-blur-sm">{c.badge}</SegnoDomusBadge>
 
           <h1 className="mt-6 font-display text-[2.5rem] font-medium leading-[1.02] tracking-[-0.02em] text-cream balance sm:text-6xl lg:text-[4.2rem]">
-            <WordReveal as="span" className="block" text={c.title1} />
-            <WordReveal as="span" className="block text-red-soft" text={c.title2} startDelay={240} />
+            <WordReveal as="span" className="block" text={c.title1} immediate />
+            <WordReveal as="span" className="block text-red-soft" text={c.title2} immediate />
           </h1>
 
           <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg">

@@ -599,7 +599,7 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
         quote={c.testimonial.quote}
         author={c.testimonial.author}
         context={c.testimonial.context}
-        image="/images/reali/open-domus-teresa.jpg"
+        image="/images/reali/consulenza.jpg"
         alt={c.testimonial.alt}
         videoHref="https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE"
       />

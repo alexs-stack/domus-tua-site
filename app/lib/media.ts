@@ -25,9 +25,9 @@ export const heroCinematic = {
   mp4: "/media/domus-hero.mp4",
   webm: "/media/domus-hero.webm",
   poster: "/media/domus-hero-poster.jpg",
-  // Fallback sempre presente: villa reale al tramonto con piscina illuminata (foto reale).
-  // Immagine cinematografica, coerente col taglio "HeroCinematic" e col velo scuro del testo.
-  base: "/images/reali/villa-tramonto.jpg",
-  baseAlt: "Villa con piscina illuminata al tramonto, immobile di pregio a Tradate",
+  // Fallback sempre presente (foto reale). Villa di pregio, luminosa, con Raffaela Rizza
+  // in primo piano: calda, umana e "founder-led", coerente col brand e col velo scuro del testo.
+  base: "/images/reali/villa-pool.jpg",
+  baseAlt: "Raffaela Rizza davanti a una villa di pregio con piscina, a Tradate",
   youtube: "https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE",
 } as const;
