@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
@@ -8,7 +9,7 @@ import { Play, ArrowUpRight, Instagram, YouTube, Star } from "./Icons";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
-type VidKind = "recensione" | "tour" | "dietro";
+type VidKind = "recensione" | "opendomus" | "tour" | "dietro";
 
 type Vid = {
   titleKey: string;
@@ -39,11 +40,11 @@ const reel: Vid = {
   titleKey: "vReel",
   thumb: "/images/reali/video/villa-lago.jpg",
   href: yt(V.testimonial.id),
-  kind: "dietro",
+  kind: "opendomus",
 };
 
 const wall: Vid[] = [
-  { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt(V.featured.id), kind: "recensione" },
+  { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt(V.featured.id), kind: "opendomus" },
   { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt(V.testimonial.id), kind: "dietro" },
   { titleKey: "vMozart", thumb: "/images/reali/villa-tramonto.jpg", href: yt(V.reviews[1].id), kind: "tour" },
   { titleKey: "vDomotica", thumb: "/images/reali/video/domotica.jpg", href: yt(V.reviews[2].id), kind: "tour" },
@@ -60,6 +61,7 @@ const copy = {
     metricNote: site.videosCountNote,
     featuredEyebrow: "Video in evidenza",
     reelBadge: "Reel",
+    catTutti: "Tutti",
     catRecensioni: "Video recensioni",
     catOpenDomus: "Open Domus",
     catTour: "Tour immobiliari",
@@ -87,6 +89,7 @@ const copy = {
     metricNote: "videos across tours, reviews and Open Domus",
     featuredEyebrow: "Featured video",
     reelBadge: "Reel",
+    catTutti: "All",
     catRecensioni: "Video reviews",
     catOpenDomus: "Open Domus",
     catTour: "Property tours",
@@ -114,6 +117,7 @@ const copy = {
     metricNote: "vidéos entre visites, témoignages et Open Domus",
     featuredEyebrow: "Vidéo à la une",
     reelBadge: "Reel",
+    catTutti: "Tous",
     catRecensioni: "Vidéos témoignages",
     catOpenDomus: "Open Domus",
     catTour: "Visites immobilières",
@@ -141,6 +145,7 @@ const copy = {
     metricNote: "Videos zwischen Touren, Erfahrungsberichten und Open Domus",
     featuredEyebrow: "Video im Fokus",
     reelBadge: "Reel",
+    catTutti: "Alle",
     catRecensioni: "Video-Erfahrungsberichte",
     catOpenDomus: "Open Domus",
     catTour: "Immobilien-Touren",
@@ -168,6 +173,7 @@ const copy = {
     metricNote: "vídeos entre tours, reseñas y Open Domus",
     featuredEyebrow: "Vídeo destacado",
     reelBadge: "Reel",
+    catTutti: "Todos",
     catRecensioni: "Vídeo reseñas",
     catOpenDomus: "Open Domus",
     catTour: "Tours inmobiliarios",
@@ -192,7 +198,16 @@ const copy = {
 type Copy = (typeof copy)[keyof typeof copy];
 
 function kindLabel(c: Copy, kind: VidKind) {
-  return kind === "recensione" ? c.kindRecensione : kind === "tour" ? c.kindTour : c.kindDietro;
+  switch (kind) {
+    case "recensione":
+      return c.kindRecensione;
+    case "opendomus":
+      return c.catOpenDomus; // "Open Domus" (nome-brand)
+    case "tour":
+      return c.kindTour;
+    default:
+      return c.kindDietro;
+  }
 }
 
 function PlayBadge({ small }: { small?: boolean }) {
@@ -269,7 +284,17 @@ function ReelCard({ v, c }: { v: Vid; c: Copy }) {
 export default function SocialVideoWall() {
   const { locale } = useLocale();
   const c = copy[locale];
-  const categories = [c.catRecensioni, c.catOpenDomus, c.catTour, c.catDietro];
+  // Le pill categoria sono un vero filtro della collezione ("all" = tutto).
+  const [active, setActive] = useState<"all" | VidKind>("all");
+  const filters: { key: "all" | VidKind; label: string }[] = [
+    { key: "all", label: c.catTutti },
+    { key: "recensione", label: c.catRecensioni },
+    { key: "opendomus", label: c.catOpenDomus },
+    { key: "tour", label: c.catTour },
+    { key: "dietro", label: c.catDietro },
+  ];
+  const gridItems: Vid[] = [featured, ...wall];
+  const visible = active === "all" ? gridItems : gridItems.filter((v) => v.kind === active);
 
   return (
     <section className="bg-cream">
@@ -290,19 +315,6 @@ export default function SocialVideoWall() {
             </span>
             <span className="max-w-[16rem] text-sm leading-snug text-graphite">{c.metricNote}</span>
           </div>
-
-          {/* Pills categorie */}
-          <div className="mt-6 flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <span
-                key={cat}
-                className="flex items-center gap-2 rounded-full border border-line bg-paper px-3.5 py-1.5 text-[0.8rem] font-medium text-graphite"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-red" />
-                {cat}
-              </span>
-            ))}
-          </div>
         </Reveal>
 
         {/* Video in evidenza (player leggero) + reel verticale */}
@@ -320,18 +332,30 @@ export default function SocialVideoWall() {
           </div>
         </Reveal>
 
-        {/* Muro video asimmetrico (thumbnail → YouTube, nessun iframe autoloaded) */}
-        <Reveal delay={120} className="mt-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
-            <div className="sm:col-span-2 lg:col-span-2 lg:row-span-2">
-              <VideoCard v={featured} c={c} />
-            </div>
-            <VideoCard v={wall[0]} small c={c} />
-            <VideoCard v={wall[1]} small c={c} />
+        {/* Collezione filtrabile per categoria (thumbnail → YouTube, nessun iframe autoloaded) */}
+        <Reveal delay={120} className="mt-10">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label={c.eyebrow}>
+            {filters.map((f) => {
+              const on = active === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setActive(f.key)}
+                  aria-pressed={on}
+                  className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition-all duration-300 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                    on ? "border-red bg-red text-white" : "border-line bg-paper text-graphite hover:border-red hover:text-red"
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-white" : "bg-red"}`} />
+                  {f.label}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {wall.slice(2).map((v) => (
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((v) => (
               // key su titleKey (univoco): più href puntano allo stesso video reale
               <VideoCard key={v.titleKey} v={v} small c={c} />
             ))}

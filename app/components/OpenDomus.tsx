@@ -12,13 +12,17 @@ const copy = {
     title: "Open Domus: un’esperienza preparata per vendere meglio.",
     intro:
       "Non una semplice visita, ma un format proprietario di Domus Tua che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la classica visita in un momento consapevole, ordinato e professionale, per chi vende e per chi cerca casa.",
-    benefits: [
+    sellerLabel: "Per chi vende",
+    buyerLabel: "Per chi compra",
+    sellerBenefits: [
       "Immobile preparato e valorizzato prima dell'evento",
-      "Materiali informativi e documentazione disponibili",
-      "Acquirenti più consapevoli e prequalificati",
-      "Visite organizzate, ordinate e senza caos",
-      "Feedback raccolti per migliorare la strategia",
-      "Possibilità di proposta più rapida e concreta",
+      "Acquirenti prequalificati e visite senza caos",
+      "Feedback raccolti e proposta più rapida e concreta",
+    ],
+    buyerBenefits: [
+      "Vedi la casa al suo meglio, con luce e ordine curati",
+      "Documentazione e informazioni disponibili già in visita",
+      "Nessuna pressione: capisci con calma se è la casa giusta",
     ],
     cta: "Scopri Open Domus",
     cardTitle: "Venduta al primo Open Domus.",
@@ -31,13 +35,17 @@ const copy = {
     title: "Open Domus: an experience designed to sell better.",
     intro:
       "Not just a viewing, but a format proprietary to Domus Tua that combines preparation, hospitality, documentation and pre-qualification. It turns the classic viewing into a considered, orderly and professional moment, for those who are selling and those who are looking for a home.",
-    benefits: [
+    sellerLabel: "For sellers",
+    buyerLabel: "For buyers",
+    sellerBenefits: [
       "Property prepared and enhanced ahead of the event",
-      "Informational materials and documentation available",
-      "More informed and pre-qualified buyers",
-      "Viewings organised, orderly and free of chaos",
-      "Feedback collected to refine the strategy",
-      "Room for a faster, more concrete offer",
+      "Pre-qualified buyers and viewings free of chaos",
+      "Feedback collected and a faster, more concrete offer",
+    ],
+    buyerBenefits: [
+      "See the home at its best, with light and order cared for",
+      "Documentation and information available during the viewing",
+      "No pressure: understand calmly if it's the right home",
     ],
     cta: "Discover Open Domus",
     cardTitle: "Sold at the very first Open Domus.",
@@ -50,13 +58,17 @@ const copy = {
     title: "Open Domus : une expérience pensée pour mieux vendre.",
     intro:
       "Pas une simple visite, mais un format propre à Domus Tua qui allie préparation, accueil, documentation et préqualification. Il transforme la visite classique en un moment réfléchi, ordonné et professionnel, pour ceux qui vendent comme pour ceux qui cherchent un logement.",
-    benefits: [
-      "Bien immobilier préparé et valorisé avant l'événement",
-      "Supports d'information et documentation disponibles",
-      "Des acquéreurs plus avertis et préqualifiés",
-      "Visites organisées, ordonnées et sans chaos",
-      "Retours recueillis pour affiner la stratégie",
-      "La possibilité d'une offre plus rapide et concrète",
+    sellerLabel: "Pour les vendeurs",
+    buyerLabel: "Pour les acquéreurs",
+    sellerBenefits: [
+      "Bien préparé et valorisé avant l'événement",
+      "Acquéreurs préqualifiés et visites sans chaos",
+      "Retours recueillis et offre plus rapide et concrète",
+    ],
+    buyerBenefits: [
+      "Voyez la maison sous son meilleur jour, lumière et ordre soignés",
+      "Documentation et informations disponibles dès la visite",
+      "Sans pression : comprenez sereinement si c'est la bonne maison",
     ],
     cta: "Découvrir Open Domus",
     cardTitle: "Vendue dès le premier Open Domus.",
@@ -69,13 +81,17 @@ const copy = {
     title: "Open Domus: ein Erlebnis, das auf besseren Verkauf ausgelegt ist.",
     intro:
       "Keine gewöhnliche Besichtigung, sondern ein Domus Tua eigenes Format, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die klassische Besichtigung in einen bewussten, geordneten und professionellen Moment – für alle, die verkaufen, und für alle, die ein Zuhause suchen.",
-    benefits: [
+    sellerLabel: "Für Verkäufer",
+    buyerLabel: "Für Käufer",
+    sellerBenefits: [
       "Immobilie vor dem Termin vorbereitet und aufgewertet",
-      "Informationsmaterial und Unterlagen verfügbar",
-      "Bewusstere und vorqualifizierte Käufer",
-      "Besichtigungen organisiert, geordnet und ohne Chaos",
-      "Feedback gesammelt, um die Strategie zu verbessern",
-      "Möglichkeit für ein schnelleres, konkreteres Angebot",
+      "Vorqualifizierte Käufer und Besichtigungen ohne Chaos",
+      "Feedback gesammelt und ein schnelleres, konkreteres Angebot",
+    ],
+    buyerBenefits: [
+      "Sehen Sie das Zuhause von seiner besten Seite, Licht und Ordnung gepflegt",
+      "Unterlagen und Informationen schon bei der Besichtigung verfügbar",
+      "Ohne Druck: in Ruhe verstehen, ob es das richtige Zuhause ist",
     ],
     cta: "Open Domus entdecken",
     cardTitle: "Beim ersten Open Domus verkauft.",
@@ -88,13 +104,17 @@ const copy = {
     title: "Open Domus: una experiencia preparada para vender mejor.",
     intro:
       "No una simple visita, sino un formato propio de Domus Tua que combina preparación, acogida, documentación y precualificación. Transforma la visita clásica en un momento consciente, ordenado y profesional, para quien vende y para quien busca casa.",
-    benefits: [
+    sellerLabel: "Para quien vende",
+    buyerLabel: "Para quien compra",
+    sellerBenefits: [
       "Inmueble preparado y revalorizado antes del evento",
-      "Materiales informativos y documentación disponibles",
-      "Compradores más conscientes y precualificados",
-      "Visitas organizadas, ordenadas y sin caos",
-      "Comentarios recogidos para mejorar la estrategia",
-      "Posibilidad de una propuesta más rápida y concreta",
+      "Compradores precualificados y visitas sin caos",
+      "Comentarios recogidos y una propuesta más rápida y concreta",
+    ],
+    buyerBenefits: [
+      "Ve la casa en su mejor versión, con luz y orden cuidados",
+      "Documentación e información disponibles ya en la visita",
+      "Sin presión: entiende con calma si es la casa adecuada",
     ],
     cta: "Descubre Open Domus",
     cardTitle: "Vendida en el primer Open Domus.",
@@ -155,16 +175,29 @@ export default function OpenDomus() {
               {c.intro}
             </p>
 
-            <ul className="mt-8 grid gap-x-6 gap-y-4 sm:grid-cols-2">
-              {c.benefits.map((b) => (
-                <li key={b} className="flex items-start gap-3 text-[0.92rem] text-graphite">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  {b}
-                </li>
+            {/* Doppio valore: Open Domus lavora sia per chi vende sia per chi compra. */}
+            <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2">
+              {[
+                { label: c.sellerLabel, items: c.sellerBenefits },
+                { label: c.buyerLabel, items: c.buyerBenefits },
+              ].map((grp) => (
+                <div key={grp.label}>
+                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-red-dark">
+                    {grp.label}
+                  </p>
+                  <ul className="mt-3 flex flex-col gap-3">
+                    {grp.items.map((b) => (
+                      <li key={b} className="flex items-start gap-3 text-[0.92rem] text-graphite">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
+                          <Check className="h-3 w-3" />
+                        </span>
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
 
             <a
               href="#contatti"

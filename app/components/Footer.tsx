@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Logo } from "./Logo";
 import { Phone, Whatsapp, Mail, Pin, Instagram, Facebook, TikTok, YouTube } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
@@ -81,6 +82,13 @@ export default function Footer() {
                   </a>
                 </li>
               ))}
+              {/* Domus D.O.C. — asset proprietario (nome-brand, invariato tra le lingue).
+                  Punta alla sezione protocollo in homepage; discoverabile da ogni pagina. */}
+              <li>
+                <Link href="/#domus-doc" className="text-sm text-cream/70 transition-colors duration-300 hover:text-cream">
+                  Domus D.O.C.
+                </Link>
+              </li>
             </ul>
           </div>
 
