@@ -15,8 +15,10 @@ export type ParsedSearch = {
   type?: "Tutte" | Property["type"];
   /** Deve combaciare con un comune disponibile; altrimenti ignorato dal client. */
   comune?: string;
-  /** Tetto di prezzo in euro. 0 = nessun limite. */
+  /** Tetto di prezzo in euro (per "sotto/fino a X"). 0 = nessun limite. */
   maxBudget?: number;
+  /** Prezzo minimo in euro (per "sopra/oltre/almeno X"). 0 = nessun minimo. */
+  minBudget?: number;
   /** Locali minimi. 0 = qualsiasi. */
   minRooms?: number;
   /** Sottoinsieme delle etichette caratteristiche. */

@@ -32,6 +32,7 @@ export function applyFilters(properties: Property[], f: ParsedSearch): Property[
     if (f.type && f.type !== "Tutte" && p.type !== f.type) return false;
     if (f.comune && f.comune !== "Tutti" && p.zone.split(",")[0].trim() !== f.comune) return false;
     if (f.maxBudget && (p.priceValue <= 0 || p.priceValue > f.maxBudget)) return false;
+    if (f.minBudget && (p.priceValue <= 0 || p.priceValue < f.minBudget)) return false;
     if (f.minRooms && roomsNum(p) < f.minRooms) return false;
     if (f.features && f.features.length) {
       const hay = haystack(p);

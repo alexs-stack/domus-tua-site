@@ -55,22 +55,45 @@ const STOPWORDS = new Set([
   "sono", "vicino", "near", "looking", "want", "with", "the", "and", "for", "suche", "busco", "cherche",
 ]);
 
-/** Estrae un tetto di prezzo: "250mila", "250.000", "250k", "1,2 milioni", "mezzo milione". */
-function parseBudget(q: string): number | undefined {
-  const s = q.toLowerCase();
-  if (/mezzo milione/.test(s)) return 500000;
-  const mil = s.match(/(\d+(?:[.,]\d+)?)\s*(?:mil(?:ione|ioni)?|mln|millions?)\b/);
-  if (mil) return Math.round(parseFloat(mil[1].replace(",", ".")) * 1_000_000);
-  const mila = s.match(/(\d{1,4}(?:[.,]\d+)?)\s*(?:mila|k)\b/);
-  if (mila) return Math.round(parseFloat(mila[1].replace(",", ".")) * 1000);
-  // Numero esplicito, tolti i separatori delle migliaia ("250.000" / "250 000" -> 250000).
-  const cleaned = s.replace(/(\d)[.  ](?=\d{3}\b)/g, "$1");
-  const big = cleaned.match(/(\d{5,7})/);
-  if (big) {
-    const n = parseInt(big[1], 10);
-    if (n >= 10000) return n;
+// Qualificatori di direzione del prezzo (multilingua IT/EN/FR/DE/ES).
+const PRICE_MIN_RE = /\b(sopra|oltre|almeno|minimo|pi[uù]\s+di|a\s+partire\s+da|over|above|at\s+least|from|plus\s+de|[àa]\s+partir\s+de|desde|m[aá]s\s+de|ab|mindestens)\b/i;
+const PRICE_MAX_RE = /\b(sotto|fino\s+a|entro|max(?:imo|imum)?|massimo|meno\s+di|non\s+pi[uù]\s+di|under|up\s+to|less\s+than|jusqu.?\s*[àa]|bis(?:\s+zu)?|hasta|menos\s+de)\b/i;
+const PRICE_RANGE_RE = /\b(tra|fra|between|entre|zwischen)\b/i;
+
+/** Tutti gli importi "prezzo" (>= 10.000 €) nella frase, in ordine di comparsa. */
+function extractAmounts(s: string): number[] {
+  // Normalizza i separatori delle migliaia (250.000 / 250 000 -> 250000), preserva i decimali per k/mil.
+  const norm = s.replace(/(\d)[.  ](?=\d{3}\b)/g, "$1");
+  const out: number[] = [];
+  // "mila"/"k" PRIMA delle forme milione (altrimenti "mila" verrebbe letto come "mil" = milione).
+  const re = /(\d+(?:[.,]\d+)?)\s*(mila|k|milioni|milione|mln|millions?|mil)?/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(norm)) !== null) {
+    let n = parseFloat(m[1].replace(",", "."));
+    const unit = (m[2] || "").toLowerCase();
+    if (unit === "mila" || unit === "k") n *= 1000;
+    else if (unit) n *= 1_000_000; // qualsiasi forma di "milione"
+    if (n >= 10000) out.push(Math.round(n));
   }
-  return undefined;
+  return out;
+}
+
+/**
+ * Interpreta il prezzo con la DIREZIONE: "sotto/fino a X" -> max, "sopra/oltre/almeno X" -> min,
+ * "tra X e Y" -> intervallo. Un singolo numero senza qualificatore è, di norma, un tetto di spesa.
+ * Gestisce anche "mezzo milione", "250k", "1,2 milioni", "250.000".
+ */
+function parseBudget(q: string): { min?: number; max?: number } {
+  const s = q.toLowerCase();
+  const amounts = extractAmounts(s);
+  if (/mezzo\s+milione/.test(s)) amounts.unshift(500000);
+  if (!amounts.length) return {};
+  if (PRICE_RANGE_RE.test(s) && amounts.length >= 2) {
+    return { min: Math.min(amounts[0], amounts[1]), max: Math.max(amounts[0], amounts[1]) };
+  }
+  const amount = amounts[0];
+  if (PRICE_MIN_RE.test(s) && !PRICE_MAX_RE.test(s)) return { min: amount };
+  return { max: amount };
 }
 
 function escapeRe(s: string): string {
@@ -105,9 +128,10 @@ export function parseQueryLocal(query: string, facets: SearchFacets): ParsedSear
     .sort((a, b) => b.length - a.length)[0];
   if (comune) out.comune = comune;
 
-  // Budget
+  // Budget (con direzione: "sotto/fino a" -> tetto, "sopra/oltre/almeno" -> minimo, "tra X e Y" -> intervallo)
   const budget = parseBudget(q);
-  if (budget) out.maxBudget = budget;
+  if (budget.max) out.maxBudget = budget.max;
+  if (budget.min) out.minBudget = budget.min;
 
   // Locali: parole composte (bilocale...) poi "N locali/vani/stanze/camere" (numero o parola).
   for (const [word, n] of Object.entries(ROOM_WORDS)) {
@@ -150,7 +174,8 @@ const SET_FILTERS_TOOL = {
       contract: { type: "string", enum: ["Tutte", "Vendita", "Affitto"] },
       type: { type: "string", enum: ["Tutte", ...TYPES] },
       comune: { type: "string", description: "Uno dei comuni disponibili forniti, oppure ometti." },
-      maxBudget: { type: "number", description: "Tetto di prezzo in euro, 0 se non indicato." },
+      maxBudget: { type: "number", description: "Tetto di prezzo in euro, per 'sotto/fino a/entro X'. 0 se non indicato." },
+      minBudget: { type: "number", description: "Prezzo MINIMO in euro, per 'sopra/oltre/almeno/più di X'. Per 'tra X e Y' usa minBudget=X e maxBudget=Y. 0 se non indicato." },
       minRooms: { type: "number", description: "Numero minimo di locali, 0 se non indicato." },
       features: { type: "array", items: { type: "string", enum: ["Giardino", "Box / posto auto", "Terrazzo", "Doppi servizi"] } },
       keywords: { type: "array", items: { type: "string" }, description: "Termini concreti utili al match testuale." },
@@ -165,6 +190,7 @@ function buildSystemPrompt(facets: SearchFacets): string {
     "Sei l'assistente di ricerca di un'agenzia immobiliare italiana (zona Tradate/Varese).",
     "Trasforma la richiesta dell'utente in filtri, chiamando lo strumento set_filters.",
     "Valorizza SOLO i campi di cui sei ragionevolmente sicuro; ometti gli altri.",
+    "Prezzo: 'sotto/fino a/entro X' -> maxBudget; 'sopra/oltre/almeno/più di X' -> minBudget; 'tra X e Y' -> minBudget=X, maxBudget=Y.",
     "Metti i vincoli concreti nei filtri (tipo, comune, prezzo, locali, caratteristiche) e",
     "la parte descrittiva/di gusto in semanticQuery (es. 'luminoso, tranquillo, vista aperta').",
     `Comuni disponibili: ${facets.comuni.filter((c) => c !== "Tutti").join(", ")}.`,
@@ -223,6 +249,7 @@ function sanitize(raw: Record<string, unknown>, facets: SearchFacets, query: str
   }
 
   if (typeof raw.maxBudget === "number" && raw.maxBudget > 0) out.maxBudget = Math.round(raw.maxBudget);
+  if (typeof raw.minBudget === "number" && raw.minBudget > 0) out.minBudget = Math.round(raw.minBudget);
   if (typeof raw.minRooms === "number" && raw.minRooms > 0) out.minRooms = Math.round(raw.minRooms);
 
   if (Array.isArray(raw.features)) {

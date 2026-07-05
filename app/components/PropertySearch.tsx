@@ -30,6 +30,9 @@ const copy = {
     rooms: "Locali",
     features: "Caratteristiche",
     manualReset: "Azzera filtri",
+    budgetUpTo: "Fino a",
+    priceFrom: "da",
+    priceRemove: "Rimuovi il prezzo minimo",
     contractLabels: { Tutte: "Tutte", Vendita: "Vendita", Affitto: "Affitto" },
     typeLabels: { Tutte: "Tutte", Appartamento: "Appartamento", Attico: "Attico", Villa: "Villa", Commerciale: "Commerciale", Terreno: "Terreno" },
     zoneAll: "Tutti",
@@ -75,6 +78,9 @@ const copy = {
     rooms: "Rooms",
     features: "Features",
     manualReset: "Reset filters",
+    budgetUpTo: "Up to",
+    priceFrom: "from",
+    priceRemove: "Remove minimum price",
     contractLabels: { Tutte: "All", Vendita: "For sale", Affitto: "To rent" },
     typeLabels: { Tutte: "All", Appartamento: "Apartment", Attico: "Penthouse", Villa: "Villa", Commerciale: "Commercial", Terreno: "Land" },
     zoneAll: "All",
@@ -120,6 +126,9 @@ const copy = {
     rooms: "Pièces",
     features: "Caractéristiques",
     manualReset: "Réinitialiser",
+    budgetUpTo: "Jusqu’à",
+    priceFrom: "à partir de",
+    priceRemove: "Retirer le prix minimum",
     contractLabels: { Tutte: "Tous", Vendita: "À vendre", Affitto: "À louer" },
     typeLabels: { Tutte: "Tous", Appartamento: "Appartement", Attico: "Attique", Villa: "Villa", Commerciale: "Commercial", Terreno: "Terrain" },
     zoneAll: "Tous",
@@ -165,6 +174,9 @@ const copy = {
     rooms: "Zimmer",
     features: "Ausstattung",
     manualReset: "Filter zurücksetzen",
+    budgetUpTo: "Bis",
+    priceFrom: "ab",
+    priceRemove: "Mindestpreis entfernen",
     contractLabels: { Tutte: "Alle", Vendita: "Zum Kauf", Affitto: "Zur Miete" },
     typeLabels: { Tutte: "Alle", Appartamento: "Wohnung", Attico: "Penthouse", Villa: "Villa", Commerciale: "Gewerbe", Terreno: "Grundstück" },
     zoneAll: "Alle",
@@ -210,6 +222,9 @@ const copy = {
     rooms: "Habitaciones",
     features: "Características",
     manualReset: "Restablecer filtros",
+    budgetUpTo: "Hasta",
+    priceFrom: "desde",
+    priceRemove: "Quitar el precio mínimo",
     contractLabels: { Tutte: "Todos", Vendita: "En venta", Affitto: "En alquiler" },
     typeLabels: { Tutte: "Todos", Appartamento: "Piso", Attico: "Ático", Villa: "Villa", Commerciale: "Comercial", Terreno: "Terreno" },
     zoneAll: "Todas",
@@ -247,9 +262,13 @@ export type PropertyFilters = {
   type: "Tutte" | Property["type"];
   comune: string;
   maxBudget: number; // 0 = nessun limite
+  minBudget: number; // 0 = nessun minimo
   minRooms: number; // 0 = qualsiasi
   features: string[];
 };
+
+// Formattazione prezzo per lingua (raggruppamento migliaia coerente col locale).
+const LOCALE_TAG: Record<string, string> = { it: "it-IT", en: "en-GB", fr: "fr-FR", de: "de-DE", es: "es-ES" };
 
 const featureOptions = [
   { label: "Giardino", match: ["giardino"] },
@@ -288,6 +307,7 @@ function toFilters(parsed: ParsedSearch): PropertyFilters {
     type: type as PropertyFilters["type"],
     comune: parsed.comune || "Tutti",
     maxBudget: parsed.maxBudget && parsed.maxBudget > 0 ? parsed.maxBudget : 0,
+    minBudget: parsed.minBudget && parsed.minBudget > 0 ? parsed.minBudget : 0,
     minRooms: parsed.minRooms && parsed.minRooms > 0 ? parsed.minRooms : 0,
     features: (parsed.features || []).filter((x) => featureOptions.some((o) => o.label === x)),
   };
@@ -309,9 +329,11 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     type: "Tutte",
     comune: "Tutti",
     maxBudget: 0,
+    minBudget: 0,
     minRooms: 0,
     features: [],
   });
+  const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
   const [visible, setVisible] = useState(24);
   const [searching, setSearching] = useState(false);
   const [aiError, setAiError] = useState(false);
@@ -352,7 +374,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     setAiError(false);
     setNl("");
     // "Annulla" = torna a sfogliare tutto: azzera anche i filtri impostati dalla ricerca.
-    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minRooms: 0, features: [] });
+    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, features: [] });
   };
 
   // Vero quando un qualsiasi filtro manuale differisce dai default (abilita "Azzera filtri").
@@ -361,11 +383,12 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     f.type !== "Tutte" ||
     f.comune !== "Tutti" ||
     f.maxBudget !== 0 ||
+    f.minBudget !== 0 ||
     f.minRooms !== 0 ||
     f.features.length > 0;
 
   const resetFilters = () =>
-    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minRooms: 0, features: [] });
+    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, features: [] });
 
   // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
   // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
@@ -383,6 +406,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       ...s,
       type: type && (types as string[]).includes(type) ? (type as PropertyFilters["type"]) : s.type,
       maxBudget: budget ? Number(budget) || 0 : s.maxBudget,
+      minBudget: sp.get("minBudget") ? Number(sp.get("minBudget")) || 0 : s.minBudget,
       minRooms: rooms ? Number(rooms) || 0 : s.minRooms,
       comune: comune || s.comune,
     }));
@@ -424,6 +448,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       if (f.type !== "Tutte" && p.type !== f.type) return false;
       if (f.comune !== "Tutti" && p.zone.split(",")[0].trim() !== f.comune) return false;
       if (f.maxBudget && (p.priceValue <= 0 || p.priceValue > f.maxBudget)) return false;
+      if (f.minBudget && (p.priceValue <= 0 || p.priceValue < f.minBudget)) return false;
       if (f.minRooms && roomsNum(p) < f.minRooms) return false;
       if (f.features.length) {
         const hay = haystack(p);
@@ -444,6 +469,12 @@ export default function PropertySearch({ properties }: { properties: Property[] 
         ? s.features.filter((x) => x !== label)
         : [...s.features, label],
     }));
+
+  // Opzioni budget localizzate + eventuale valore fuori-bucket (es. "sotto 300.000") dalla ricerca.
+  const budgetChoices = budgetOptions.map((b) => ({ value: b.value, label: c.budgetLabels[b.label] ?? b.label }));
+  if (f.maxBudget > 0 && !budgetOptions.some((b) => b.value === f.maxBudget)) {
+    budgetChoices.push({ value: f.maxBudget, label: `${c.budgetUpTo} ${money(f.maxBudget)} €` });
+  }
 
   const pill = (active: boolean) =>
     `inline-flex min-h-[44px] items-center rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
@@ -572,9 +603,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
                   f.maxBudget !== 0 ? "border-red/45 font-medium" : ""
                 }`}
               >
-                {budgetOptions.map((b) => (
+                {budgetChoices.map((b) => (
                   <option key={b.value} value={b.value}>
-                    {c.budgetLabels[b.label] ?? b.label}
+                    {b.label}
                   </option>
                 ))}
               </select>
@@ -622,6 +653,16 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <span className="font-semibold text-ink">{shown.length}</span>{" "}
               {shown.length === 1 ? c.resultsOne : c.resultsMany}
             </p>
+            {f.minBudget > 0 && (
+              <button
+                type="button"
+                onClick={() => setF((s) => ({ ...s, minBudget: 0 }))}
+                aria-label={c.priceRemove}
+                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+              >
+                {c.priceFrom} {money(f.minBudget)} €<span aria-hidden>×</span>
+              </button>
+            )}
             {!ai && filtersActive && (
               <button
                 type="button"
