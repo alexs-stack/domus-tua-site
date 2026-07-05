@@ -29,6 +29,7 @@ const copy = {
     budget: "Budget",
     rooms: "Locali",
     features: "Caratteristiche",
+    manualReset: "Azzera filtri",
     contractLabels: { Tutte: "Tutte", Vendita: "Vendita", Affitto: "Affitto" },
     typeLabels: { Tutte: "Tutte", Appartamento: "Appartamento", Attico: "Attico", Villa: "Villa", Commerciale: "Commerciale", Terreno: "Terreno" },
     zoneAll: "Tutti",
@@ -73,6 +74,7 @@ const copy = {
     budget: "Budget",
     rooms: "Rooms",
     features: "Features",
+    manualReset: "Reset filters",
     contractLabels: { Tutte: "All", Vendita: "For sale", Affitto: "To rent" },
     typeLabels: { Tutte: "All", Appartamento: "Apartment", Attico: "Penthouse", Villa: "Villa", Commerciale: "Commercial", Terreno: "Land" },
     zoneAll: "All",
@@ -117,6 +119,7 @@ const copy = {
     budget: "Budget",
     rooms: "Pièces",
     features: "Caractéristiques",
+    manualReset: "Réinitialiser",
     contractLabels: { Tutte: "Tous", Vendita: "À vendre", Affitto: "À louer" },
     typeLabels: { Tutte: "Tous", Appartamento: "Appartement", Attico: "Attique", Villa: "Villa", Commerciale: "Commercial", Terreno: "Terrain" },
     zoneAll: "Tous",
@@ -161,6 +164,7 @@ const copy = {
     budget: "Budget",
     rooms: "Zimmer",
     features: "Ausstattung",
+    manualReset: "Filter zurücksetzen",
     contractLabels: { Tutte: "Alle", Vendita: "Zum Kauf", Affitto: "Zur Miete" },
     typeLabels: { Tutte: "Alle", Appartamento: "Wohnung", Attico: "Penthouse", Villa: "Villa", Commerciale: "Gewerbe", Terreno: "Grundstück" },
     zoneAll: "Alle",
@@ -205,6 +209,7 @@ const copy = {
     budget: "Presupuesto",
     rooms: "Habitaciones",
     features: "Características",
+    manualReset: "Restablecer filtros",
     contractLabels: { Tutte: "Todos", Vendita: "En venta", Affitto: "En alquiler" },
     typeLabels: { Tutte: "Todos", Appartamento: "Piso", Attico: "Ático", Villa: "Villa", Commerciale: "Comercial", Terreno: "Terreno" },
     zoneAll: "Todas",
@@ -349,6 +354,18 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     // "Annulla" = torna a sfogliare tutto: azzera anche i filtri impostati dalla ricerca.
     setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minRooms: 0, features: [] });
   };
+
+  // Vero quando un qualsiasi filtro manuale differisce dai default (abilita "Azzera filtri").
+  const filtersActive =
+    f.contract !== "Tutte" ||
+    f.type !== "Tutte" ||
+    f.comune !== "Tutti" ||
+    f.maxBudget !== 0 ||
+    f.minRooms !== 0 ||
+    f.features.length > 0;
+
+  const resetFilters = () =>
+    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minRooms: 0, features: [] });
 
   // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
   // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
@@ -535,7 +552,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <select
                 value={f.comune}
                 onChange={(e) => setF((s) => ({ ...s, comune: e.target.value }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                  f.comune !== "Tutti" ? "border-red/45 font-medium" : ""
+                }`}
               >
                 {comuni.map((z) => (
                   <option key={z} value={z}>
@@ -549,7 +568,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <select
                 value={f.maxBudget}
                 onChange={(e) => setF((s) => ({ ...s, maxBudget: Number(e.target.value) }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                  f.maxBudget !== 0 ? "border-red/45 font-medium" : ""
+                }`}
               >
                 {budgetOptions.map((b) => (
                   <option key={b.value} value={b.value}>
@@ -563,7 +584,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <select
                 value={f.minRooms}
                 onChange={(e) => setF((s) => ({ ...s, minRooms: Number(e.target.value) }))}
-                className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                  f.minRooms !== 0 ? "border-red/45 font-medium" : ""
+                }`}
               >
                 {roomOptions.map((r) => (
                   <option key={r.value} value={r.value}>
@@ -594,10 +617,21 @@ export default function PropertySearch({ properties }: { properties: Property[] 
 
         {/* Risultati */}
         <div className="mt-10 flex items-center justify-between gap-4">
-          <p className="text-sm text-stone">
-            <span className="font-semibold text-ink">{shown.length}</span>{" "}
-            {shown.length === 1 ? c.resultsOne : c.resultsMany}
-          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-sm text-stone">
+              <span className="font-semibold text-ink">{shown.length}</span>{" "}
+              {shown.length === 1 ? c.resultsOne : c.resultsMany}
+            </p>
+            {!ai && filtersActive && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="text-sm text-stone underline underline-offset-2 transition-colors duration-300 hover:text-ink"
+              >
+                {c.manualReset}
+              </button>
+            )}
+          </div>
           <a
             href="#contatti"
             className="group inline-flex items-center gap-1.5 text-sm font-semibold text-red hover:text-red-dark"
@@ -609,7 +643,12 @@ export default function PropertySearch({ properties }: { properties: Property[] 
 
         {shown.length > 0 ? (
           <>
-            <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div
+              aria-busy={searching}
+              className={`mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3 ${
+                searching ? "opacity-50 transition-opacity duration-300" : "transition-opacity duration-300"
+              }`}
+            >
               {shown.slice(0, visible).map((p, i) => (
                 <Reveal key={p.slug} delay={(i % 3) * 90}>
                   <PropertyCard p={p} />

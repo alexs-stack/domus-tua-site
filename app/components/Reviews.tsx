@@ -274,7 +274,11 @@ export default function Reviews() {
                     </blockquote>
 
                     <figcaption className="mt-6 flex items-center gap-3 border-t border-line pt-5">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-red-soft font-display text-base font-semibold text-red-dark">
+                      <span
+                        className={`flex h-10 w-10 items-center justify-center rounded-full bg-cream-deep font-display text-base font-semibold text-graphite ring-1 ring-inset ring-line ${
+                          i === 0 ? "sm:h-12 sm:w-12 sm:text-lg" : ""
+                        }`}
+                      >
                         {r.name.charAt(0)}
                       </span>
                       <span className="flex-1 leading-tight">

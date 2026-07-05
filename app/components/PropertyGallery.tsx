@@ -75,6 +75,11 @@ export default function PropertyGallery({ images, title }: { images: string[]; t
             preload={!hasInteracted}
           />
         )}
+        {images.length > 1 && (
+          <span className="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cream backdrop-blur-sm">
+            {active + 1}/{images.length}
+          </span>
+        )}
       </div>
       {images.length > 1 && (
         <div
@@ -106,7 +111,7 @@ export default function PropertyGallery({ images, title }: { images: string[]; t
                 fill
                 loading="lazy"
                 sizes="(max-width: 1024px) 25vw, 120px"
-                className="object-cover"
+                className={`object-cover transition-transform duration-500 ease-soft ${active === i ? "scale-[1.06]" : "scale-100"}`}
               />
             </button>
           ))}

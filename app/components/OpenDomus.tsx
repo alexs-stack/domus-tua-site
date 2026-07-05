@@ -187,8 +187,8 @@ export default function OpenDomus() {
                   </p>
                   <ul className="mt-3 flex flex-col gap-3">
                     {grp.items.map((b) => (
-                      <li key={b} className="flex items-start gap-3 text-[0.92rem] text-graphite">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
+                      <li key={b} className="group/row flex items-start gap-3 text-[0.92rem] text-graphite transition-colors duration-300 hover:text-ink">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark transition-colors duration-300 group-hover/row:bg-red group-hover/row:text-cream">
                           <Check className="h-3 w-3" />
                         </span>
                         {b}
@@ -201,10 +201,10 @@ export default function OpenDomus() {
 
             <a
               href="#contatti"
-              className="group mt-10 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              className="group mt-10 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-cream transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
             >
               {c.cta}
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                 <ArrowUpRight className="h-4 w-4" />
               </span>
             </a>

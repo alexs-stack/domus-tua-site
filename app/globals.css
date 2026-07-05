@@ -291,6 +291,19 @@ body {
   }
 }
 
+/* Entrata morbida del blocco copy dell'hero (sotto l'H1, che resta immediate per l'LCP).
+   Sotto prefers-reduced-motion la regola globale la neutralizza (snap allo stato finale). */
+@keyframes dt-fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ---------- Segno Domus: pattern & disegno ---------- */
 /* Texture di sfondo tenue con la linea-tetto (usare con parsimonia su bande piene) */
 .motif-pattern {

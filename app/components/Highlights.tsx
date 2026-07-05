@@ -32,7 +32,7 @@ export default function Highlights({
             <Reveal
               as="li"
               key={it.title}
-              delay={i * 90}
+              delay={i * 45}
               className="group grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
             >
               <div className="flex flex-col items-start gap-3">

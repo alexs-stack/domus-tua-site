@@ -91,7 +91,7 @@ export default function PropertyCard({ p }: { p: Property }) {
   // copre tutta la card (l'intera card è cliccabile), mentre il pulsante Condividi vive
   // sopra (z-10) come vero <button>, senza annidare interattivi dentro un <a>.
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-line bg-paper transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/20 hover:shadow-[var(--shadow-card-hover)]">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-line bg-paper transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/20 hover:shadow-[var(--shadow-card-hover)] active:scale-[0.98]">
       {/* Immagine più grande e curata */}
       <div className="relative aspect-[3/2] overflow-hidden">
         <Image

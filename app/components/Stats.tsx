@@ -136,7 +136,7 @@ export default function Stats() {
           {/* Stat eroe: la cifra maggiore, con eyebrow e Segno Domus come accento minimo */}
           <Reveal>
             <div className="flex flex-col">
-              <span className="eyebrow eyebrow--center gap-3">
+              <span className="eyebrow gap-3">
                 <SegnoDomus className="h-3.5 w-9" embrace={false} />
                 {c.eyebrow}
               </span>

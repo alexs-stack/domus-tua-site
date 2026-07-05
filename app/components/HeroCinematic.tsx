@@ -174,12 +174,18 @@ export default function HeroCinematic() {
             <WordReveal as="span" className="block text-red-soft" text={c.title2} immediate />
           </h1>
 
-          <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg">
+          <p
+            className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg"
+            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "0ms" }}
+          >
             {c.subcopy}
           </p>
 
           {/* Founder label */}
-          <p className="mt-5 flex items-center gap-2.5 text-sm font-medium text-cream/80">
+          <p
+            className="mt-5 flex items-center gap-2.5 text-sm font-medium text-cream/80"
+            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "60ms" }}
+          >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red font-display text-xs font-semibold text-white">
               RR
             </span>
@@ -187,7 +193,10 @@ export default function HeroCinematic() {
           </p>
 
           {/* CTA */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div
+            className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "120ms" }}
+          >
             <a
               href="#contatti"
               className="group flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
@@ -218,7 +227,10 @@ export default function HeroCinematic() {
           </div>
 
           {/* Trust chips */}
-          <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-cream/15 pt-6">
+          <div
+            className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-cream/15 pt-6"
+            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "180ms" }}
+          >
             <a href="#recensioni" className="flex items-center gap-2 hover:opacity-90">
               <span className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -248,6 +260,13 @@ export default function HeroCinematic() {
           </div>
         </div>
       </div>
+
+      {/* Scroll cue: sottile linea verticale, solo desktop (reduced-motion gestito globalmente) */}
+      <span
+        aria-hidden
+        className="absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 md:block h-8 w-px bg-cream/40"
+        style={{ animation: "dt-scrollcue 1.8s var(--ease-soft) infinite" }}
+      />
     </section>
   );
 }

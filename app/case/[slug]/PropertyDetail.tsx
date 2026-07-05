@@ -183,7 +183,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
 
         {/* Key facts strip sotto la gallery */}
         <div className="mt-6 overflow-x-auto">
-          <dl className="flex min-w-max gap-8 rounded-[1.75rem] border border-line bg-cream px-7 py-5 sm:min-w-0 sm:justify-between">
+          <dl className="flex min-w-max gap-8 rounded-[2rem] border border-line bg-cream px-7 py-5 sm:min-w-0 sm:justify-between">
             {specs.map((s) => (
               <div key={s.label} className="shrink-0">
                 <dt className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-stone">
@@ -283,7 +283,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
 
               <a
                 href="#contatti"
-                className="group mt-7 flex items-center justify-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+                className="group mt-7 flex items-center justify-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-soft hover:bg-red-dark active:scale-[0.98]"
               >
                 {c.requestVisit}
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
@@ -294,7 +294,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                 href={site.whatsapp.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-3.5 text-sm font-semibold text-ink transition-colors hover:border-red hover:text-red"
+                className="mt-3 flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-3.5 text-sm font-semibold text-ink transition-all duration-300 ease-soft hover:border-red hover:text-red active:scale-[0.98]"
               >
                 <Whatsapp className="h-5 w-5 text-red" /> {c.whatsapp}
               </a>

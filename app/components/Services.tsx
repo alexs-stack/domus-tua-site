@@ -205,7 +205,7 @@ export default function Services() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-7 sm:p-9">
-                <span className="rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-white">
+                <span className="rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-cream">
                   {c.featureBadge}
                 </span>
                 <h3 className="mt-4 max-w-md font-display text-3xl font-medium leading-tight text-cream sm:text-4xl">
@@ -221,7 +221,7 @@ export default function Services() {
           {c.services.map((s, i) => (
             <Reveal key={s.title} delay={i * 70}>
               <article className="group flex h-full flex-col justify-between rounded-[2rem] border border-line bg-paper p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40">
-                <span className="font-display text-sm font-semibold text-red">
+                <span className="tnum font-display text-sm font-semibold text-red transition-colors duration-500 group-hover:text-red-dark">
                   0{i + 1}
                 </span>
                 <div className="mt-8">

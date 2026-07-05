@@ -84,14 +84,14 @@ export default function Header() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 flex justify-center px-4 transition-colors duration-500 ${
-        scrolled ? "" : "bg-gradient-to-b from-ink/45 via-ink/12 to-transparent pb-6"
+        scrolled ? "" : "bg-gradient-to-b from-ink/60 via-ink/20 to-transparent pb-6"
       }`}
     >
       <div
         className={`mt-3 flex w-full max-w-[1240px] items-center justify-between gap-4 rounded-full px-3 pl-5 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           scrolled
             ? "border border-line/70 bg-paper/80 py-2 shadow-[0_18px_50px_-28px_rgba(26,24,22,0.45)] backdrop-blur-xl"
-            : "border border-white/10 bg-ink/10 py-3 backdrop-blur-md"
+            : "border border-white/15 bg-ink/20 py-3 backdrop-blur-md"
         }`}
       >
         <Link href="/" className="shrink-0" aria-label="Domus Tua, vai alla home">

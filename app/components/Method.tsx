@@ -130,7 +130,7 @@ export default function Method() {
         {/* Timeline */}
         <ol className="flex flex-col">
           {c.steps.map((s, i) => (
-            <Reveal key={stepNumbers[i]} delay={i * 60} as="li">
+            <Reveal key={stepNumbers[i]} delay={Math.min(i, 6) * 45} as="li">
               <div className="group flex gap-6 border-t border-line py-7 transition-colors duration-500 hover:border-red/30">
                 <span className="font-display text-2xl font-medium text-graphite transition-colors duration-500 group-hover:text-red sm:text-3xl">
                   {stepNumbers[i]}

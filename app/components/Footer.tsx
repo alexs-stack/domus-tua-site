@@ -71,7 +71,7 @@ export default function Footer() {
 
           {/* Nav */}
           <div>
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-cream/60">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-cream/75">
               {d.footer.naviga}
             </p>
             <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
@@ -94,7 +94,7 @@ export default function Footer() {
 
           {/* Orari */}
           <div>
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-cream/60">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-cream/75">
               {d.footer.orari}
             </p>
             <ul className="mt-5 flex flex-col gap-2 text-sm text-cream/70">
@@ -120,7 +120,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-4 border-t border-cream/12 pt-7 text-[0.78rem] text-cream/65 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col gap-4 border-t border-cream/20 pt-7 text-[0.78rem] text-cream/65 sm:flex-row sm:items-center sm:justify-between">
           <p className="tnum">
             © {new Date().getFullYear()} {site.legal} · P.IVA {site.vat} · REA {site.rea} · Cap. € {site.capital} i.v.
           </p>

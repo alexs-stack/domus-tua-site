@@ -573,7 +573,7 @@ function Field({
         required={required}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}
-        className={`rounded-xl border bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+        className={`rounded-xl border bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
           error ? "border-red" : "border-line"
         }`}
       />
@@ -605,7 +605,7 @@ function TextArea({
         name={name}
         rows={3}
         placeholder={placeholder}
-        className="rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+        className="rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
       />
     </div>
   );
