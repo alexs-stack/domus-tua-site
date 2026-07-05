@@ -33,6 +33,7 @@ const copy = {
     budgetUpTo: "Fino a",
     priceFrom: "da",
     priceRemove: "Rimuovi il prezzo minimo",
+    remove: "Rimuovi",
     contractLabels: { Tutte: "Tutte", Vendita: "Vendita", Affitto: "Affitto" },
     typeLabels: { Tutte: "Tutte", Appartamento: "Appartamento", Attico: "Attico", Villa: "Villa", Commerciale: "Commerciale", Terreno: "Terreno" },
     zoneAll: "Tutti",
@@ -81,6 +82,7 @@ const copy = {
     budgetUpTo: "Up to",
     priceFrom: "from",
     priceRemove: "Remove minimum price",
+    remove: "Remove",
     contractLabels: { Tutte: "All", Vendita: "For sale", Affitto: "To rent" },
     typeLabels: { Tutte: "All", Appartamento: "Apartment", Attico: "Penthouse", Villa: "Villa", Commerciale: "Commercial", Terreno: "Land" },
     zoneAll: "All",
@@ -129,6 +131,7 @@ const copy = {
     budgetUpTo: "Jusqu’à",
     priceFrom: "à partir de",
     priceRemove: "Retirer le prix minimum",
+    remove: "Retirer",
     contractLabels: { Tutte: "Tous", Vendita: "À vendre", Affitto: "À louer" },
     typeLabels: { Tutte: "Tous", Appartamento: "Appartement", Attico: "Attique", Villa: "Villa", Commerciale: "Commercial", Terreno: "Terrain" },
     zoneAll: "Tous",
@@ -177,6 +180,7 @@ const copy = {
     budgetUpTo: "Bis",
     priceFrom: "ab",
     priceRemove: "Mindestpreis entfernen",
+    remove: "Entfernen",
     contractLabels: { Tutte: "Alle", Vendita: "Zum Kauf", Affitto: "Zur Miete" },
     typeLabels: { Tutte: "Alle", Appartamento: "Wohnung", Attico: "Penthouse", Villa: "Villa", Commerciale: "Gewerbe", Terreno: "Grundstück" },
     zoneAll: "Alle",
@@ -225,6 +229,7 @@ const copy = {
     budgetUpTo: "Hasta",
     priceFrom: "desde",
     priceRemove: "Quitar el precio mínimo",
+    remove: "Quitar",
     contractLabels: { Tutte: "Todos", Vendita: "En venta", Affitto: "En alquiler" },
     typeLabels: { Tutte: "Todos", Appartamento: "Piso", Attico: "Ático", Villa: "Villa", Commerciale: "Comercial", Terreno: "Terreno" },
     zoneAll: "Todas",
@@ -264,6 +269,8 @@ export type PropertyFilters = {
   maxBudget: number; // 0 = nessun limite
   minBudget: number; // 0 = nessun minimo
   minRooms: number; // 0 = qualsiasi
+  minSqm: number; // 0 = qualsiasi (m²)
+  maxSqm: number; // 0 = qualsiasi (m²)
   features: string[];
 };
 
@@ -309,6 +316,8 @@ function toFilters(parsed: ParsedSearch): PropertyFilters {
     maxBudget: parsed.maxBudget && parsed.maxBudget > 0 ? parsed.maxBudget : 0,
     minBudget: parsed.minBudget && parsed.minBudget > 0 ? parsed.minBudget : 0,
     minRooms: parsed.minRooms && parsed.minRooms > 0 ? parsed.minRooms : 0,
+    minSqm: parsed.minSqm && parsed.minSqm > 0 ? parsed.minSqm : 0,
+    maxSqm: parsed.maxSqm && parsed.maxSqm > 0 ? parsed.maxSqm : 0,
     features: (parsed.features || []).filter((x) => featureOptions.some((o) => o.label === x)),
   };
 }
@@ -331,6 +340,8 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     maxBudget: 0,
     minBudget: 0,
     minRooms: 0,
+    minSqm: 0,
+    maxSqm: 0,
     features: [],
   });
   const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
@@ -374,7 +385,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     setAiError(false);
     setNl("");
     // "Annulla" = torna a sfogliare tutto: azzera anche i filtri impostati dalla ricerca.
-    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, features: [] });
+    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, minSqm: 0, maxSqm: 0, features: [] });
   };
 
   // Vero quando un qualsiasi filtro manuale differisce dai default (abilita "Azzera filtri").
@@ -385,10 +396,12 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     f.maxBudget !== 0 ||
     f.minBudget !== 0 ||
     f.minRooms !== 0 ||
+    f.minSqm !== 0 ||
+    f.maxSqm !== 0 ||
     f.features.length > 0;
 
   const resetFilters = () =>
-    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, features: [] });
+    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, minSqm: 0, maxSqm: 0, features: [] });
 
   // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
   // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
@@ -450,6 +463,11 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       if (f.maxBudget && (p.priceValue <= 0 || p.priceValue > f.maxBudget)) return false;
       if (f.minBudget && (p.priceValue <= 0 || p.priceValue < f.minBudget)) return false;
       if (f.minRooms && roomsNum(p) < f.minRooms) return false;
+      if (f.minSqm || f.maxSqm) {
+        const sq = parseInt(p.sqm, 10) || 0;
+        if (f.minSqm && (sq <= 0 || sq < f.minSqm)) return false;
+        if (f.maxSqm && (sq <= 0 || sq > f.maxSqm)) return false;
+      }
       if (f.features.length) {
         const hay = haystack(p);
         const ok = f.features.every((label) => {
@@ -661,6 +679,26 @@ export default function PropertySearch({ properties }: { properties: Property[] 
                 className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
               >
                 {c.priceFrom} {money(f.minBudget)} €<span aria-hidden>×</span>
+              </button>
+            )}
+            {f.minSqm > 0 && (
+              <button
+                type="button"
+                onClick={() => setF((s) => ({ ...s, minSqm: 0 }))}
+                aria-label={`${c.remove}: ${c.priceFrom} ${f.minSqm} m²`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+              >
+                {c.priceFrom} {f.minSqm} m²<span aria-hidden>×</span>
+              </button>
+            )}
+            {f.maxSqm > 0 && (
+              <button
+                type="button"
+                onClick={() => setF((s) => ({ ...s, maxSqm: 0 }))}
+                aria-label={`${c.remove}: ${c.budgetUpTo} ${f.maxSqm} m²`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+              >
+                {c.budgetUpTo} {f.maxSqm} m²<span aria-hidden>×</span>
               </button>
             )}
             {!ai && filtersActive && (

@@ -21,6 +21,10 @@ export type ParsedSearch = {
   minBudget?: number;
   /** Locali minimi. 0 = qualsiasi. */
   minRooms?: number;
+  /** Superficie minima in m². 0 = qualsiasi. */
+  minSqm?: number;
+  /** Superficie massima in m². 0 = qualsiasi. */
+  maxSqm?: number;
   /** Sottoinsieme delle etichette caratteristiche. */
   features?: FeatureLabel[];
   /** Termini liberi per il match testuale/ranking (es. "luminoso", "vista", "ristrutturato"). */

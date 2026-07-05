@@ -21,6 +21,9 @@ const FEATURE_MATCH: Record<string, string[]> = {
 function roomsNum(p: Property) {
   return parseInt(p.rooms, 10) || 0;
 }
+function sqmNum(p: Property) {
+  return parseInt(p.sqm, 10) || 0; // "120 m²" -> 120; "—" -> 0
+}
 function haystack(p: Property) {
   return `${p.features.join(" ")} ${p.excerpt} ${p.badges.join(" ")}`.toLowerCase();
 }
@@ -34,6 +37,8 @@ export function applyFilters(properties: Property[], f: ParsedSearch): Property[
     if (f.maxBudget && (p.priceValue <= 0 || p.priceValue > f.maxBudget)) return false;
     if (f.minBudget && (p.priceValue <= 0 || p.priceValue < f.minBudget)) return false;
     if (f.minRooms && roomsNum(p) < f.minRooms) return false;
+    if (f.minSqm && (sqmNum(p) <= 0 || sqmNum(p) < f.minSqm)) return false;
+    if (f.maxSqm && (sqmNum(p) <= 0 || sqmNum(p) > f.maxSqm)) return false;
     if (f.features && f.features.length) {
       const hay = haystack(p);
       const ok = f.features.every((label) => {
