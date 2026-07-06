@@ -105,9 +105,9 @@ const copy = {
       ctaLabel: "Lasciaci la tua richiesta",
       offlineNote:
         "Non trovi ciò che cerchi tra gli annunci? Molte case non sono ancora online: raccontaci cosa desideri e la troviamo noi per te.",
-      aiBadge: "In arrivo",
+      aiBadge: "Ricerca intelligente",
       aiText:
-        "Presto potrai cercare casa scrivendo o parlando come faresti con noi.",
+        "Cerca casa scrivendo come parleresti a noi: provala nella ricerca qui sotto.",
     },
   },
   en: {
@@ -199,9 +199,9 @@ const copy = {
       ctaLabel: "Leave us your request",
       offlineNote:
         "Can’t find what you want among the listings? Many homes aren’t online yet: tell us what you’re after and we’ll find it for you.",
-      aiBadge: "Coming soon",
+      aiBadge: "Smart search",
       aiText:
-        "Soon you’ll be able to search for a home by writing or speaking, just as you would with us.",
+        "Search for a home by writing just as you’d talk to us: try it in the search below.",
     },
   },
   fr: {
@@ -293,9 +293,9 @@ const copy = {
       ctaLabel: "Laissez-nous votre demande",
       offlineNote:
         "Vous ne trouvez pas votre bonheur parmi les annonces ? Beaucoup de biens ne sont pas encore en ligne : dites-nous ce que vous souhaitez et nous le trouvons pour vous.",
-      aiBadge: "Bientôt",
+      aiBadge: "Recherche intelligente",
       aiText:
-        "Bientôt, vous pourrez chercher une maison en écrivant ou en parlant, comme vous le feriez avec nous.",
+        "Cherchez un bien en écrivant comme vous nous parleriez : essayez-la dans la recherche ci-dessous.",
     },
   },
   de: {
@@ -387,9 +387,9 @@ const copy = {
       ctaLabel: "Anfrage hinterlassen",
       offlineNote:
         "Sie finden nicht das Passende unter den Anzeigen? Viele Immobilien sind noch nicht online: Sagen Sie uns, was Sie sich wünschen, und wir finden es für Sie.",
-      aiBadge: "Demnächst",
+      aiBadge: "Intelligente Suche",
       aiText:
-        "Bald können Sie ein Zuhause suchen, indem Sie schreiben oder sprechen – so, wie Sie es mit uns tun würden.",
+        "Suchen Sie ein Zuhause, indem Sie schreiben, wie Sie mit uns sprechen würden: gleich unten ausprobieren.",
     },
   },
   es: {
@@ -481,9 +481,9 @@ const copy = {
       ctaLabel: "Déjanos tu solicitud",
       offlineNote:
         "¿No encuentras lo que buscas entre los anuncios? Muchas casas aún no están online: cuéntanos qué deseas y la encontramos por ti.",
-      aiBadge: "Muy pronto",
+      aiBadge: "Búsqueda inteligente",
       aiText:
-        "Pronto podrás buscar casa escribiendo o hablando, como lo harías con nosotros.",
+        "Busca casa escribiendo como nos hablarías: pruébala en el buscador de abajo.",
     },
   },
 };
@@ -581,7 +581,7 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
                   {c.reassure.offlineNote}
                 </p>
 
-                {/* Teaser AI in arrivo — nessuna funzione vocale reale, solo anticipazione */}
+                {/* Richiamo alla ricerca intelligente (attiva) resa più in basso da <PropertySearch> */}
                 <div className="mt-7 rounded-[1.5rem] border border-dashed border-red/25 bg-paper/70 p-5">
                   <SegnoDomusBadge>{c.reassure.aiBadge}</SegnoDomusBadge>
                   <p className="mt-3.5 text-[0.95rem] leading-relaxed text-ink/80">
