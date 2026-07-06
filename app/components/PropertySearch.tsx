@@ -33,6 +33,9 @@ const copy = {
     budgetUpTo: "Fino a",
     priceFrom: "da",
     priceRemove: "Rimuovi il prezzo minimo",
+    availabilityLabel: "Disponibilità",
+    availAvailable: "Disponibili",
+    availSold: "Venduti",
     remove: "Rimuovi",
     contractLabels: { Tutte: "Tutte", Vendita: "Vendita", Affitto: "Affitto" },
     typeLabels: { Tutte: "Tutte", Appartamento: "Appartamento", Attico: "Attico", Villa: "Villa", Commerciale: "Commerciale", Terreno: "Terreno" },
@@ -82,6 +85,9 @@ const copy = {
     budgetUpTo: "Up to",
     priceFrom: "from",
     priceRemove: "Remove minimum price",
+    availabilityLabel: "Availability",
+    availAvailable: "Available",
+    availSold: "Sold",
     remove: "Remove",
     contractLabels: { Tutte: "All", Vendita: "For sale", Affitto: "To rent" },
     typeLabels: { Tutte: "All", Appartamento: "Apartment", Attico: "Penthouse", Villa: "Villa", Commerciale: "Commercial", Terreno: "Land" },
@@ -131,6 +137,9 @@ const copy = {
     budgetUpTo: "Jusqu’à",
     priceFrom: "à partir de",
     priceRemove: "Retirer le prix minimum",
+    availabilityLabel: "Disponibilité",
+    availAvailable: "Disponibles",
+    availSold: "Vendus",
     remove: "Retirer",
     contractLabels: { Tutte: "Tous", Vendita: "À vendre", Affitto: "À louer" },
     typeLabels: { Tutte: "Tous", Appartamento: "Appartement", Attico: "Attique", Villa: "Villa", Commerciale: "Commercial", Terreno: "Terrain" },
@@ -180,6 +189,9 @@ const copy = {
     budgetUpTo: "Bis",
     priceFrom: "ab",
     priceRemove: "Mindestpreis entfernen",
+    availabilityLabel: "Verfügbarkeit",
+    availAvailable: "Verfügbar",
+    availSold: "Verkauft",
     remove: "Entfernen",
     contractLabels: { Tutte: "Alle", Vendita: "Zum Kauf", Affitto: "Zur Miete" },
     typeLabels: { Tutte: "Alle", Appartamento: "Wohnung", Attico: "Penthouse", Villa: "Villa", Commerciale: "Gewerbe", Terreno: "Grundstück" },
@@ -229,6 +241,9 @@ const copy = {
     budgetUpTo: "Hasta",
     priceFrom: "desde",
     priceRemove: "Quitar el precio mínimo",
+    availabilityLabel: "Disponibilidad",
+    availAvailable: "Disponibles",
+    availSold: "Vendidos",
     remove: "Quitar",
     contractLabels: { Tutte: "Todos", Vendita: "En venta", Affitto: "En alquiler" },
     typeLabels: { Tutte: "Todos", Appartamento: "Piso", Attico: "Ático", Villa: "Villa", Commerciale: "Comercial", Terreno: "Terreno" },
@@ -272,6 +287,7 @@ export type PropertyFilters = {
   minSqm: number; // 0 = qualsiasi (m²)
   maxSqm: number; // 0 = qualsiasi (m²)
   features: string[];
+  availability: "available" | "sold"; // "available" = solo disponibili (default, nasconde i venduti)
 };
 
 // Formattazione prezzo per lingua (raggruppamento migliaia coerente col locale).
@@ -319,6 +335,7 @@ function toFilters(parsed: ParsedSearch): PropertyFilters {
     minSqm: parsed.minSqm && parsed.minSqm > 0 ? parsed.minSqm : 0,
     maxSqm: parsed.maxSqm && parsed.maxSqm > 0 ? parsed.maxSqm : 0,
     features: (parsed.features || []).filter((x) => featureOptions.some((o) => o.label === x)),
+    availability: "available", // la ricerca AI mostra solo disponibili (i venduti sono esclusi a monte)
   };
 }
 
@@ -343,6 +360,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     minSqm: 0,
     maxSqm: 0,
     features: [],
+    availability: "available",
   });
   const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
   const [visible, setVisible] = useState(24);
@@ -385,7 +403,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     setAiError(false);
     setNl("");
     // "Annulla" = torna a sfogliare tutto: azzera anche i filtri impostati dalla ricerca.
-    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, minSqm: 0, maxSqm: 0, features: [] });
+    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, minSqm: 0, maxSqm: 0, features: [], availability: "available" });
   };
 
   // Vero quando un qualsiasi filtro manuale differisce dai default (abilita "Azzera filtri").
@@ -398,10 +416,11 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     f.minRooms !== 0 ||
     f.minSqm !== 0 ||
     f.maxSqm !== 0 ||
+    f.availability !== "available" ||
     f.features.length > 0;
 
   const resetFilters = () =>
-    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, minSqm: 0, maxSqm: 0, features: [] });
+    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, minSqm: 0, maxSqm: 0, features: [], availability: "available" });
 
   // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
   // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
@@ -457,6 +476,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       return ai.slugs.map((s) => bySlug.get(s)).filter((p): p is Property => !!p);
     }
     return properties.filter((p) => {
+      // Disponibilità: di default nascondi i venduti; "Venduti" mostra solo quelli.
+      if (f.availability === "available" && p.sold) return false;
+      if (f.availability === "sold" && !p.sold) return false;
       if (f.contract !== "Tutte" && p.status !== f.contract) return false;
       if (f.type !== "Tutte" && p.type !== f.type) return false;
       if (f.comune !== "Tutti" && p.zone.split(",")[0].trim() !== f.comune) return false;
@@ -577,6 +599,26 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               </button>
             ))}
           </div>
+
+          {/* Disponibilità: appare solo se c'è almeno un immobile venduto (default: nasconde i venduti). */}
+          {properties.some((p) => p.sold) && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
+                {c.availabilityLabel}
+              </span>
+              {(["available", "sold"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={f.availability === v}
+                  onClick={() => setF((s) => ({ ...s, availability: v }))}
+                  className={pill(f.availability === v)}
+                >
+                  {v === "available" ? c.availAvailable : c.availSold}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-2">
             <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">

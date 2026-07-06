@@ -56,6 +56,8 @@ const strongBadges = new Set([
   "In evidenza",
   "Nuova proposta",
   "Sotto proposta",
+  "Venduto",
+  "Affittato",
 ]);
 
 export default function PropertyCard({ p }: { p: Property }) {

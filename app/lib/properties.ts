@@ -28,6 +28,8 @@ export type Property = {
   description: string[];
   features: string[];
   energyClass?: string;
+  /** true se l'immobile è venduto/affittato (da nascondere di default nelle ricerche). */
+  sold?: boolean;
 };
 
 export const properties: Property[] = [

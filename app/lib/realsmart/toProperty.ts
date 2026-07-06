@@ -89,6 +89,15 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
   const cover = n.images[0]?.src ?? "/images/premium_01_living_tv_divano.jpg";
   const beds = n.bedrooms > 0 ? n.bedrooms : Math.max(0, n.rooms - 1);
   const paragraphs = toParagraphs(n.description);
+  // Venduto/affittato: da status del gestionale, da badge derivato, o dal titolo "VENDUTO ..."
+  // (il feed forza "published", ma alcune agenzie lasciano gli immobili venduti come vetrina).
+  const sold =
+    n.status === "sold" ||
+    n.badges.includes("Venduto") ||
+    n.badges.includes("Affittato") ||
+    /\bvendut[oaie]\b/i.test(n.title);
+  const soldBadge = n.contract === "affitto" ? "Affittato" : "Venduto";
+  const badges = sold && !n.badges.includes(soldBadge) ? [soldBadge, ...n.badges] : n.badges;
   return {
     slug: n.slug,
     title: n.title,
@@ -101,12 +110,13 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     rooms: n.rooms ? `${n.rooms} ${n.rooms === 1 ? "locale" : "locali"}` : "—",
     beds: beds ? `${beds} ${beds === 1 ? "camera" : "camere"}` : "—",
     baths: n.baths ? `${n.baths} ${n.baths === 1 ? "bagno" : "bagni"}` : "—",
-    badges: n.badges,
+    badges,
     cover,
     gallery: n.images.length ? n.images.map((i) => i.src) : [cover],
     excerpt: excerptFrom(n.description) || n.title,
     description: paragraphs,
     features: n.features,
     energyClass: n.energyClass,
+    sold,
   };
 }
