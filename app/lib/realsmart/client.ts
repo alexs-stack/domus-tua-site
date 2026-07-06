@@ -65,6 +65,9 @@ async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
     // memorizziamo qui (no-store). A cachare è unstable_cache sul RISULTATO normalizzato
     // (molto più piccolo), condiviso tra worker/richieste e rivalidato ogni REVALIDATE_SECONDS.
     cache: "no-store",
+    // Timeout duro: se il feed è lento/irraggiungibile la fetch NON deve appendere il build
+    // (SSG di ~186 pagine /case) fino al timeout della piattaforma. Su errore -> fallback ai mock.
+    signal: AbortSignal.timeout(15000),
   });
   if (!res.ok) throw new Error(`RealSmart feed ${res.status}`);
   const xml = await res.text(); // decodifica UTF-8 corretta (niente mojibake da iframe)
