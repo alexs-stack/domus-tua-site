@@ -125,9 +125,9 @@ export default function Footer() {
             © {new Date().getFullYear()} {site.legal} · P.IVA {site.vat} · REA {site.rea} · Cap. € {site.capital} i.v.
           </p>
           <div className="flex gap-5">
-            <a href="/privacy" className="hover:text-cream">{d.footer.privacy}</a>
-            <a href="/cookie" className="hover:text-cream">{d.footer.cookie}</a>
-            <a href="/contatti" className="hover:text-cream">{d.footer.contatti}</a>
+            <a href="/privacy" className="link-underline hover:text-cream">{d.footer.privacy}</a>
+            <a href="/cookie" className="link-underline hover:text-cream">{d.footer.cookie}</a>
+            <a href="/contatti" className="link-underline hover:text-cream">{d.footer.contatti}</a>
           </div>
         </div>
       </div>

@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Reveal from "./Reveal";
-import { ArrowUpRight, Check, Play } from "./Icons";
-import { SegnoDomusCorner } from "./BrandMotif";
+import { ArrowUpRight, Play } from "./Icons";
+import { SegnoDomusCorner, SegnoTick } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 
 const copy = {
@@ -189,7 +189,7 @@ export default function OpenDomus() {
                     {grp.items.map((b) => (
                       <li key={b} className="group/row flex items-start gap-3 text-[0.92rem] text-graphite transition-colors duration-300 hover:text-ink">
                         <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark transition-colors duration-300 group-hover/row:bg-red group-hover/row:text-cream">
-                          <Check className="h-3 w-3" />
+                          <SegnoTick className="h-3 w-3" />
                         </span>
                         {b}
                       </li>

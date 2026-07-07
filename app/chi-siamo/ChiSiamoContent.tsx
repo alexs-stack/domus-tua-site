@@ -281,7 +281,8 @@ export default function ChiSiamoContent({ since }: { since: number }) {
                 {c.storiaTitle(since)}
               </h2>
               <div className="mt-6 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
-                <p>{c.storiaP1}</p>
+                {/* Capolettera editoriale: usato UNA sola volta nel sito, qui sulla storia. */}
+                <p className="dropcap">{c.storiaP1}</p>
                 <p>{c.storiaP2}</p>
               </div>
             </Reveal>

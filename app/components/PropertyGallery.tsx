@@ -32,7 +32,7 @@ function ActiveImage({
       // exclusive, so keep exactly one of them set.
       {...(preload ? { preload: true } : { loading: "eager" as const })}
       sizes="(max-width: 1024px) 100vw, 760px"
-      className={`object-cover transition-opacity duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+      className={`photo-warm object-cover transition-opacity duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
         shown ? "opacity-100" : "opacity-0"
       }`}
     />

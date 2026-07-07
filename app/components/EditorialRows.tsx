@@ -51,7 +51,7 @@ export default function EditorialRows({
                       alt={r.alt}
                       fill
                       sizes="(max-width: 1024px) 100vw, 560px"
-                      className="object-cover"
+                      className="photo-warm object-cover"
                     />
                   </div>
                   <div className={reversed ? "lg:pr-6" : "lg:pl-6"}>

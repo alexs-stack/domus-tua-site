@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { SegnoDomus } from "./components/BrandMotif";
 import { ArrowUpRight, ArrowRight } from "./components/Icons";
 
 export const metadata: Metadata = {
@@ -16,12 +17,13 @@ export default function NotFound() {
       <main className="flex flex-1 items-center bg-cream">
         <div className="mx-auto w-full max-w-[1240px] px-5 py-32 pt-40 sm:px-8 sm:py-40">
           <div className="max-w-2xl">
+            <SegnoDomus className="mb-6 h-7 w-16" embrace={false} />
             <span className="eyebrow">Errore 404</span>
 
             <h1 className="mt-6 font-display text-[2.8rem] font-medium leading-[1.02] tracking-[-0.02em] text-ink balance sm:text-6xl lg:text-[4.6rem]">
-              Pagina non
+              Questa pagina ha
               <br />
-              <span className="text-red">trovata.</span>
+              <span className="italic text-red">cambiato casa.</span>
             </h1>
 
             <p className="mt-6 max-w-lg text-[1.05rem] leading-relaxed text-stone sm:text-lg">
@@ -40,10 +42,10 @@ export default function NotFound() {
                 </span>
               </Link>
               <Link
-                href="/contatti"
+                href="/case"
                 className="group flex items-center justify-center gap-1.5 rounded-full border border-line bg-paper px-7 py-4 text-base font-semibold text-ink transition-all duration-300 hover:border-red/40"
               >
-                Vai ai contatti
+                Cerca una casa
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
             </div>

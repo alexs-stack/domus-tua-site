@@ -5,8 +5,8 @@ import PropertyGallery from "../../components/PropertyGallery";
 import PropertyCard from "../../components/PropertyCard";
 import Badge from "../../components/primitives/Badge";
 import Contact from "../../components/Contact";
-import { SegnoDomusBadge, SegnoDomusCorner, SegnoDomusDivider } from "../../components/BrandMotif";
-import { ArrowRight, ArrowUpRight, Check, Whatsapp } from "../../components/Icons";
+import { SegnoDomusBadge, SegnoDomusCorner, SegnoDomusDivider, SegnoTick } from "../../components/BrandMotif";
+import { ArrowRight, ArrowUpRight, Whatsapp } from "../../components/Icons";
 import { site } from "../../lib/site";
 import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
 import type { Property } from "../../lib/properties";
@@ -343,7 +343,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-3 text-[0.95rem] text-graphite">
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
-                        <Check className="h-3 w-3" />
+                        <SegnoTick className="h-3 w-3" />
                       </span>
                       {f}
                     </li>
@@ -366,7 +366,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                 {c.safetyPoints.map((point) => (
                   <li key={point} className="inline-flex items-center gap-2 text-[0.9rem] text-ink">
                     <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
-                      <Check className="h-3 w-3" />
+                      <SegnoTick className="h-3 w-3" />
                     </span>
                     {point}
                   </li>
@@ -433,7 +433,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                   {c.assistPoints.map((point) => (
                     <li key={point} className="flex items-start gap-2.5 text-[0.9rem] text-graphite">
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
-                        <Check className="h-3 w-3" />
+                        <SegnoTick className="h-3 w-3" />
                       </span>
                       {point}
                     </li>

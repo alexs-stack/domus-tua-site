@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { SegnoDomus } from "./components/BrandMotif";
 import { ArrowUpRight, ArrowRight } from "./components/Icons";
 
 export default function Error({
@@ -24,6 +25,7 @@ export default function Error({
       <main className="flex flex-1 items-center bg-cream">
         <div className="mx-auto w-full max-w-[1240px] px-5 py-32 pt-40 sm:px-8 sm:py-40">
           <div className="max-w-2xl">
+            <SegnoDomus className="mb-6 h-7 w-16" embrace={false} />
             <span className="eyebrow">Qualcosa è andato storto</span>
 
             <h1 className="mt-6 font-display text-[2.8rem] font-medium leading-[1.02] tracking-[-0.02em] text-ink balance sm:text-6xl lg:text-[4.4rem]">

@@ -11,8 +11,8 @@ import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
-import { Check, ArrowRight, Whatsapp } from "../components/Icons";
-import { SegnoDomusCorner, SegnoDomusBadge } from "../components/BrandMotif";
+import { ArrowRight, Whatsapp } from "../components/Icons";
+import { SegnoDomusCorner, SegnoDomusBadge, SegnoTick } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import type { Property } from "../lib/properties";
@@ -564,7 +564,7 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
                 {c.reassure.list.map((item) => (
                   <li key={item} className="flex items-start gap-3.5">
                     <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                      <Check className="h-4 w-4" />
+                      <SegnoTick className="h-4 w-4" />
                     </span>
                     <span className="text-[0.98rem] leading-relaxed text-ink/85">{item}</span>
                   </li>

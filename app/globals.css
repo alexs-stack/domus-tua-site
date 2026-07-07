@@ -473,3 +473,34 @@ body {
   position: relative;
   z-index: 1;
 }
+
+/* Sottolineatura inline che si "disegna" da sinistra all'hover/focus — craft, non rumore.
+   Da usare sui link testuali inline (footer legale, "leggi di più", ancore nel testo). */
+.link-underline {
+  background-image: linear-gradient(var(--color-red), var(--color-red));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1.5px;
+  transition: background-size 0.4s var(--ease-out-expo), color 0.3s ease;
+  padding-bottom: 1px;
+}
+.link-underline:hover,
+.link-underline:focus-visible {
+  background-size: 100% 1.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .link-underline {
+    transition: none;
+  }
+}
+
+/* Capolettera editoriale — UNA sola volta per pagina (eleganza, mai vezzo ripetuto). */
+.dropcap::first-letter {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: 3.4em;
+  line-height: 0.82;
+  float: left;
+  margin: 0.05em 0.12em 0 0;
+  color: var(--color-red);
+}
