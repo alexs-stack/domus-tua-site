@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Reveal from "./Reveal";
-import { Star, Play, Quote } from "./Icons";
+import { Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -92,9 +92,12 @@ export default function FeaturedTestimonial(props: Props) {
             <div className="flex flex-col justify-between p-8 sm:p-12">
               <div>
                 <span className="eyebrow">{c.eyebrow}</span>
-                <Quote className="mt-6 h-10 w-10 text-red/25" />
+                {/* Segno tipografico editoriale: virgoletta rossa fuori scala. */}
+                <span aria-hidden className="mt-2 block font-display text-[5.5rem] italic leading-[0.5] text-red/20">
+                  “
+                </span>
                 <blockquote className="mt-4 font-display text-2xl font-medium leading-[1.25] tracking-tight text-ink sm:text-[2rem]">
-                  “{quote}”
+                  {quote}
                 </blockquote>
                 <span className="mt-6 flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -129,7 +132,7 @@ export default function FeaturedTestimonial(props: Props) {
                 alt={alt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 560px"
-                className="object-cover object-center"
+                className="photo-warm object-cover object-center"
               />
               <span className="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent lg:bg-gradient-to-l" />
               <a

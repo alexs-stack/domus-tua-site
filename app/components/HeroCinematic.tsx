@@ -10,6 +10,7 @@ import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import { heroCinematic } from "../lib/media";
 import WordReveal from "./WordReveal";
+import Signature from "./Signature";
 import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -171,7 +172,7 @@ export default function HeroCinematic() {
 
           <h1 className="mt-6 font-display text-[2.5rem] font-medium leading-[1.02] tracking-[-0.02em] text-cream balance sm:text-6xl lg:text-[4.2rem]">
             <WordReveal as="span" className="block" text={c.title1} immediate />
-            <WordReveal as="span" className="block text-red-soft" text={c.title2} immediate />
+            <WordReveal as="span" className="block italic text-red-soft" text={c.title2} immediate />
           </h1>
 
           <p
@@ -190,6 +191,8 @@ export default function HeroCinematic() {
               RR
             </span>
             {c.founder}
+            {/* Firma della fondatrice (placeholder, da sostituire con quella reale) */}
+            <Signature light className="ml-1 hidden h-8 w-auto opacity-90 sm:block" />
           </p>
 
           {/* CTA */}

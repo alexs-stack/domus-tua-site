@@ -85,7 +85,7 @@ export default function HomeSearchGateway() {
     "rounded-xl border border-line bg-cream px-3.5 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red";
 
   return (
-    <section id="cerca" className="bg-cream-deep">
+    <section id="cerca" className="bg-cream-deep segno-ambient">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
           {/* Buyer search */}

@@ -12,14 +12,19 @@
   --color-red-dark: #a30707;
   --color-red-soft: #fbeaea;
 
-  /* Neutrals — warm */
+  /* Neutrals — warm limestone/sand (base più calda: via il look "bianco clinico").
+     `paper` resta quasi-bianco: le card risaltano sulle sezioni sabbia = profondità naturale. */
   --color-ink: #1a1816;
   --color-graphite: #46423d;
   --color-stone: #6b665f;
-  --color-line: #e7e2da;
-  --color-cream: #faf7f1;
-  --color-cream-deep: #f3eee5;
-  --color-paper: #fffdfa;
+  --color-line: #e6ddce;
+  --color-cream: #f5efe3;
+  --color-cream-deep: #ece3d2;
+  --color-paper: #fffdf8;
+
+  /* Darks caldi (bordeaux/espresso) — profondità nelle sezioni scure, mai grigio/nero piatto */
+  --color-espresso: #1c1512;
+  --color-wine: #2a100f;
 
   /* Fonts (provided by next/font on <body>) */
   --font-display: var(--font-fraunces);
@@ -34,10 +39,13 @@
   --radius-card-lg: 2rem;
   --radius-field: 0.75rem;
 
-  /* Shadow scale — one cohesive elevation ramp (warm ink shadow) */
-  --shadow-card: 0 30px 60px -32px rgba(26, 24, 22, 0.35);
-  --shadow-card-hover: 0 40px 80px -40px rgba(26, 24, 22, 0.45);
-  --shadow-float: 0 40px 90px -48px rgba(26, 24, 22, 0.5);
+  /* Shadow scale — calda e a più strati (profondità "costosa", non grigio piatto).
+     Ombra ravvicinata (contatto) + ombra ampia (elevazione) + alone rosso appena percettibile. */
+  --shadow-card: 0 1px 2px rgba(42, 16, 14, 0.05), 0 16px 34px -22px rgba(42, 16, 14, 0.26),
+    0 36px 64px -44px rgba(150, 30, 26, 0.12);
+  --shadow-card-hover: 0 2px 4px rgba(42, 16, 14, 0.07), 0 24px 50px -26px rgba(42, 16, 14, 0.32),
+    0 48px 90px -50px rgba(150, 30, 26, 0.16);
+  --shadow-float: 0 4px 10px rgba(42, 16, 14, 0.1), 0 30px 70px -34px rgba(42, 16, 14, 0.42);
 }
 
 :root {
@@ -90,6 +98,9 @@ body {
 .font-display {
   font-family: var(--font-display), Georgia, serif;
   font-optical-sizing: auto;
+  /* SOFT ammorbidisce i terminali di Fraunces → serif più caldo/umano, non "default".
+     opsz resta automatico (non elencato qui) e il peso resta guidato da font-weight. */
+  font-variation-settings: "SOFT" 46;
 }
 
 .eyebrow {
@@ -126,12 +137,13 @@ body {
 }
 
 /* ---------- Film grain (fixed, perf-safe) ---------- */
+/* Texture tattile "carta/intonaco": alza appena il grain per togliere il look piatto. */
 .grain {
   position: fixed;
   inset: 0;
   z-index: 60;
   pointer-events: none;
-  opacity: 0.035;
+  opacity: 0.06;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -358,4 +370,106 @@ body {
     transparent
   );
   height: 1px;
+}
+
+/* ============================================================
+   PROFONDITÀ & ATMOSFERA
+   Le bande piene non sono tinte piatte: luce direzionale (dall'alto),
+   un alito caldo di rosso e darks bordeaux/espresso. Tutto in-brand
+   (rosso/grigio/bianco caldo), nessun oro/blu. Applicato globalmente
+   sulle utility di sfondo → nessuna modifica ai componenti.
+   ============================================================ */
+
+/* Sezioni chiare: bloom di luce dall'alto (quasi-bianco) + velatura calda rossa in basso
+   a destra + leggera messa a terra in fondo → luce direzionale e volume, non tinta piatta. */
+.bg-cream,
+.bg-cream-deep {
+  background-image:
+    radial-gradient(125% 80% at 50% -12%, rgba(255, 253, 247, 0.95), rgba(255, 253, 247, 0) 55%),
+    radial-gradient(85% 70% at 88% 118%, rgba(200, 30, 20, 0.055), transparent 60%),
+    linear-gradient(180deg, transparent 72%, rgba(70, 66, 61, 0.045));
+}
+
+/* Carta (card e superfici in evidenza): solo luce morbida dall'alto, resta pulita e "alzata". */
+.bg-paper {
+  background-image: radial-gradient(120% 90% at 50% -10%, #ffffff, rgba(255, 255, 255, 0) 55%);
+}
+
+/* Sezioni scure: non nero piatto ma espresso caldo con un bagliore bordeaux
+   in alto a sinistra e una vignettatura profonda in basso a destra. */
+.bg-ink {
+  background-color: var(--color-espresso);
+  background-image:
+    radial-gradient(95% 130% at 12% -10%, rgba(150, 26, 24, 0.3), transparent 55%),
+    radial-gradient(90% 120% at 102% 112%, rgba(24, 12, 12, 0.9), transparent 60%);
+}
+
+/* Footer/graphite: appena scaldato da un alone rosso profondo. */
+.bg-graphite {
+  background-image: radial-gradient(90% 120% at 15% 0%, rgba(150, 26, 24, 0.16), transparent 55%);
+}
+
+/* Opt-in: bagliore caldo più marcato per bande "hero-adjacent" (ricerca, contatti). */
+.bg-warm-glow {
+  background-image:
+    radial-gradient(60% 60% at 15% 0%, rgba(210, 10, 10, 0.06), transparent 60%),
+    radial-gradient(55% 70% at 100% 100%, rgba(210, 10, 10, 0.05), transparent 62%);
+}
+
+/* Opt-in: filigrana architettonica "Segno Domus" (linea-tetto ripetuta) come texture
+   ambientale. Rossa e tenue: personalità proprietaria senza rubare la scena al contenuto. */
+.segno-ambient {
+  position: relative;
+  isolation: isolate;
+}
+.segno-ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.9;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='210'%3E%3Cpath d='M36 140 L150 56 L264 140' fill='none' stroke='%23c81e14' stroke-opacity='0.085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 300px 210px;
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 78%);
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 78%);
+}
+
+/* Cornice ad arco (eco degli archi della villa): frame architettonico per un'immagine "firma". */
+.arch-frame {
+  border-top-left-radius: 46% 60%;
+  border-top-right-radius: 46% 60%;
+  border-bottom-left-radius: var(--radius-card);
+  border-bottom-right-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/* Grading caldo, coerente, sulle foto → look art-directed, non stock. Tenue e reversibile.
+   Neutralizzato con prefers-reduced-* no: è puramente cromatico, resta sempre. */
+.photo-warm {
+  filter: saturate(1.06) contrast(1.02) sepia(0.05) brightness(1.01);
+}
+
+/* Motivo di luogo: sottili "curve di livello" (topografia di Tradate/laghi varesini) come
+   texture ambientale. Firma locale che nessun competitor può copiare. Opt-in su bande scure. */
+.topo-ambient {
+  position: relative;
+  isolation: isolate;
+}
+.topo-ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='360'%3E%3Cg fill='none' stroke='%23f3eee5' stroke-opacity='0.06' stroke-width='1.4'%3E%3Cpath d='M-20 90 Q140 40 300 92 T620 96'/%3E%3Cpath d='M-20 140 Q150 92 300 142 T620 150'/%3E%3Cpath d='M-20 196 Q160 150 300 196 T620 206'/%3E%3Cpath d='M-20 252 Q150 210 300 252 T620 262'/%3E%3Cpath d='M-20 308 Q150 268 300 306 T620 318'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 560px 360px;
+  -webkit-mask-image: radial-gradient(120% 120% at 85% 20%, #000, transparent 75%);
+  mask-image: radial-gradient(120% 120% at 85% 20%, #000, transparent 75%);
+}
+/* Il contenuto del footer resta sopra la texture (isolation crea lo stacking context). */
+.topo-ambient > * {
+  position: relative;
+  z-index: 1;
 }

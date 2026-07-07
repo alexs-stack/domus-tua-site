@@ -1,8 +1,8 @@
 "use client";
 
 import Reveal from "./Reveal";
-import { SegnoDomus, SegnoDomusBadge } from "./BrandMotif";
-import { Check, ArrowUpRight, ArrowRight, Star } from "./Icons";
+import { SegnoDomus, SegnoDomusBadge, SegnoTick } from "./BrandMotif";
+import { ArrowUpRight, ArrowRight, Star } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 
 // Domus D.O.C. — Domus di Origine Certificata.
@@ -267,7 +267,7 @@ export default function DomusDocProtocol({
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-red-dark" />
+                        <SegnoTick className="h-4 w-4 text-red-dark" />
                         <p className="font-display text-lg font-medium text-ink">{p.t}</p>
                       </div>
                     </div>

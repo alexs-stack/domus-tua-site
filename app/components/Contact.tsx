@@ -8,6 +8,7 @@ import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import WordReveal from "./WordReveal";
+import Signature from "./Signature";
 import { useLocale } from "./i18n/LocaleProvider";
 
 // Percorsi lead. `key` è il tipo lead (LeadIntent) — utile per una futura integrazione
@@ -386,16 +387,18 @@ export default function Contact({
               {c.subcopy}
             </p>
 
-            <figure className="mt-8 w-full max-w-[15rem] overflow-hidden rounded-[1.5rem] border border-line">
+            <figure className="arch-frame mt-8 w-full max-w-[15rem] border border-line">
               <Image
                 src="/images/reali/raffaela-keys.jpg"
                 alt={c.keysAlt}
                 width={480}
                 height={640}
                 sizes="(min-width: 1024px) 15rem, 60vw"
-                className="h-auto w-full object-cover"
+                className="photo-warm h-auto w-full object-cover"
               />
             </figure>
+            {/* Firma della fondatrice (placeholder, da sostituire con quella reale) */}
+            <Signature className="mt-5 h-9 w-auto" />
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2">
               {contacts.map((item) => (

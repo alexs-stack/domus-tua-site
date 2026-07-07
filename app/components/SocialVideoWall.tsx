@@ -303,7 +303,7 @@ export default function SocialVideoWall() {
   const visible = active === "all" ? gridItems : gridItems.filter((v) => v.kind === active);
 
   return (
-    <section className="bg-cream">
+    <section className="bg-cream segno-ambient">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <Reveal className="max-w-3xl">
           <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>

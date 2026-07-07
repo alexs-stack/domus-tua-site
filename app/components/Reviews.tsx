@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Reveal from "./Reveal";
 import { Star, Google, ArrowUpRight, Check } from "./Icons";
 import { site } from "../lib/site";
@@ -152,6 +152,22 @@ export default function Reviews() {
   // "esempi dimostrativi") compaiono solo in anteprima. Vedi docs/reviews-integration.md.
   const PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_BADGE === "true";
 
+  // Auto-altezza del widget Trustindex: lo srcDoc misura la propria altezza e la posta al
+  // parent (niente box vuoto sotto le card). Fallback iniziale contenuto, poi si adatta.
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [frameH, setFrameH] = useState(480);
+  useEffect(() => {
+    function onMsg(e: MessageEvent) {
+      if (e.source !== frameRef.current?.contentWindow) return;
+      const d = e.data as { type?: string; h?: number };
+      if (d?.type === "dt-ti-height" && typeof d.h === "number") {
+        setFrameH(Math.max(240, Math.min(1800, Math.round(d.h))));
+      }
+    }
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
+
   return (
     <section id="recensioni" className="bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
@@ -207,15 +223,17 @@ export default function Reviews() {
             <h3 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
               {c.realReviews}
             </h3>
-            <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-line bg-paper">
-              {/* Loader Trustindex dentro un srcDoc UTF-8: charset corretto (niente mojibake)
-                  e document.currentScript valido (script statico) → il widget si renderizza. */}
+            {/* Nessun box: il widget vive direttamente sulla sezione. Altezza dinamica (auto-resize)
+                → niente spazio vuoto sotto le card. Loader Trustindex dentro un srcDoc UTF-8
+                (charset corretto, document.currentScript valido) + script che posta l'altezza. */}
+            <div className="mt-6">
               <iframe
-                srcDoc={`<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>html,body{margin:0;padding:0;background:transparent;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}</style></head><body><script src="${site.embeds.trustindexLoader}"></script></body></html>`}
+                ref={frameRef}
+                srcDoc={`<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>html,body{margin:0;padding:0;background:transparent;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}</style></head><body><script src="${site.embeds.trustindexLoader}"></script><script>(function(){function p(){try{var h=document.body.scrollHeight;if(h>0)parent.postMessage({type:'dt-ti-height',h:h},'*');}catch(e){}}if(window.ResizeObserver){new ResizeObserver(p).observe(document.body);}window.addEventListener('load',p);[300,800,1500,2500,4000].forEach(function(t){setTimeout(p,t);});})();</script></body></html>`}
                 title={c.iframeTitle}
                 loading="lazy"
-                className="h-[720px] w-full"
-                style={{ border: 0 }}
+                className="w-full"
+                style={{ border: 0, height: frameH }}
               />
             </div>
           </Reveal>

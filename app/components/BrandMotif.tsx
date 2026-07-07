@@ -43,6 +43,15 @@ export function SegnoDomus({ className = "h-4 w-10", embrace = true }: MotifProp
 // Alias semantico: la linea-tetto come elemento a sé.
 export const SegnoDomusLine = SegnoDomus;
 
+// ── Segno "tick": mini linea-tetto come punto elenco di marca (sostituisce il ✓ generico) ──
+export function SegnoTick({ className = "h-3.5 w-3.5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 15 L12 7 L20 15" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 // ── Accento d'angolo semplice (in trasparenza), per card/superfici ───────────
 export function MotifCorner({ className = "" }: { className?: string }) {
   return (

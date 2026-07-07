@@ -17,7 +17,7 @@ const socials = [
 export default function Footer() {
   const d = useDict();
   return (
-    <footer className="bg-graphite text-cream">
+    <footer className="topo-ambient bg-graphite text-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
           {/* Brand */}

@@ -101,7 +101,7 @@ export default function PropertyCard({ p }: { p: Property }) {
           alt={p.title}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 420px"
-          className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
+          className="photo-warm object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
         />
         {/* Velo per leggibilità delle pill e senso di selezione */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent" />

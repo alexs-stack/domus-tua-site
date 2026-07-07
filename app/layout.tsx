@@ -20,7 +20,10 @@ const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
   display: "swap",
+  // opsz = ottica per dimensione (titoli grandi), SOFT = terminali morbidi (calore),
+  // italic = corsivo vero (accenti editoriali) invece del finto slant sintetico.
   axes: ["opsz", "SOFT"],
+  style: ["normal", "italic"],
 });
 
 const jakarta = Plus_Jakarta_Sans({
