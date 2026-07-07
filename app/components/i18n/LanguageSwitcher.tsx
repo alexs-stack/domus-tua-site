@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale } from "./LocaleProvider";
 import { locales, localeNames, localeShort } from "../../lib/i18n/dictionaries";
 
-// Feature flag i18n: quando NEXT_PUBLIC_ENABLE_I18N === "false" lo switch lingua
-// non viene renderizzato (sito solo-italiano). Se la variabile è assente o "true"
-// il comportamento resta invariato. Vedi docs/i18n.md.
-const I18N_DISABLED = process.env.NEXT_PUBLIC_ENABLE_I18N === "false";
+// Feature flag i18n — OPT-IN: lo switch lingua compare SOLO con NEXT_PUBLIC_ENABLE_I18N === "true".
+// Default (variabile assente o "false") = sito solo-italiano: scelta sicura per la prima
+// presentazione, coerente con /api/health e col badge di anteprima (che leggono lo stesso flag
+// come "true"). Per abilitare le lingue in futuro basta impostare la env a "true" (nessun
+// refactor). Vedi docs/i18n.md e docs/client-demo-mode.md.
+const I18N_ENABLED = process.env.NEXT_PUBLIC_ENABLE_I18N === "true";
 
 function Globe({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -32,8 +34,8 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
   }, []);
 
   // Gate dietro feature flag: hook sempre eseguiti sopra (ordine invariato), poi
-  // non renderizziamo nulla quando l'i18n è disattivato.
-  if (I18N_DISABLED) return null;
+  // non renderizziamo nulla quando l'i18n non è esplicitamente abilitato.
+  if (!I18N_ENABLED) return null;
 
   const base = light ? "border-cream/25 text-cream/90 hover:border-cream/60" : "border-line text-graphite hover:border-red hover:text-red";
 

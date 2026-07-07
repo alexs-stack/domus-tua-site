@@ -184,7 +184,17 @@ in una vista apposita. Da confermare col cliente se desiderato.
 
 - Se la sorgente reale è irraggiungibile o risponde con errore, `getLiveListings()` **ripiega
   sui mock** invece di mostrare una pagina vuota o un errore (già implementato con `try/catch`).
-- In produzione: aggiungere **logging/alerting** sul fallback per accorgersi dei disservizi.
+- **Logging attivo (fatto):** ogni fallback logga il motivo lato server —
+  `"[realsmart] feed non disponibile → fallback ai mock: <messaggio>"` (`client.ts`). Mai esposto
+  al client.
+- **Va MONITORATO.** Il fallback evita la pagina bianca, ma **maschera** un feed rotto: se non lo
+  guardi, potresti presentare **mock demo credendoli reali**. Regola: prima di ogni call cliente,
+  `GET /api/health` (`listingsMode` deve essere `realsmart`) **e** un'occhiata ai log per il
+  messaggio di fallback. In produzione ad alto valore: aggiungere **alerting** su quel log.
+- **Preview:** il badge di anteprima mostra la modalità **prevista** (`Immobili: RealSmart live`),
+  non l'esito runtime — con `unstable_cache` il "wasFallback" per-richiesta è inaffidabile
+  (vedi `app/lib/listings.ts`). Quindi la modalità è nel badge, ma il **fallback effettivo** si
+  verifica dai log, non dal badge.
 - I mock restano utili anche in dev/preview e per i test di regressione della normalizzazione.
 
 ---

@@ -2,14 +2,22 @@
 // Tutti i componenti/pagine devono leggere gli immobili da qui (mai importare
 // direttamente app/lib/properties.ts).
 //
-// OGGI: ritorna la fixture demo ricca (gallery, descrizioni, ecc.).
-// LIVE: imposta NEXT_PUBLIC_USE_REALSMART="true" (quando client.ts fetchRawListings
-//       è collegato al feed reale) → gli immobili arrivano da getLiveListings()
-//       normalizzati in Property. Vedi docs/realsmart-integration-notes.md.
+// DEFAULT (live): gli immobili arrivano dal feed XML pubblico RealSmart via getLiveListings(),
+//       normalizzati in Property. Per lo sviluppo offline si torna alla fixture demo ricca
+//       impostando NEXT_PUBLIC_USE_REALSMART="false". Vedi docs/realsmart-integration-notes.md.
 
 import { properties, getProperty, type Property } from "./properties";
 import { getLiveListings } from "./realsmart/client";
 import { normalizedToProperty } from "./realsmart/toProperty";
+
+// Stato server-safe della sorgente dati (modalità PREVISTA + feed configurato). Riesportato
+// qui perché la facade è il punto unico da cui leggere gli immobili.
+// NB: `wasFallback` (una singola richiesta è caduta nei mock?) NON è esposto: nel flusso con
+// unstable_cache è inaffidabile. Il fallback effettivo si monitora dai log server
+// ("[realsmart] feed non disponibile → fallback ai mock", vedi client.ts). Il badge di
+// anteprima mostra quindi la modalità prevista, non l'esito runtime.
+export { getListingDataSourceStatus } from "./realsmart/status";
+export type { ListingDataSourceStatus } from "./realsmart/status";
 
 // Default ON: il feed RealSmart reale è collegato. Si torna alla fixture demo solo
 // impostando NEXT_PUBLIC_USE_REALSMART="false" (utile per sviluppo offline).

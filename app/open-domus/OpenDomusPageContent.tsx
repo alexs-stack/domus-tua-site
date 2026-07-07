@@ -76,6 +76,11 @@ const copy = {
         copy: "Raccogliamo i feedback e gestiamo le proposte con trasparenza. Spesso la proposta giusta arriva più in fretta del previsto.",
         alt: "Soggiorno arredato",
       },
+      {
+        title: "Dalla proposta al rogito",
+        copy: "Accettata la proposta, ti accompagniamo in ogni adempimento fino alla firma dal notaio: documenti, tempi e serenità. Non lasciamo nulla al caso.",
+        alt: "Consegna delle chiavi al rogito",
+      },
     ],
 
     compareEyebrow: "La differenza",
@@ -208,6 +213,11 @@ const copy = {
         title: "Feedback and offers",
         copy: "We gather feedback and handle offers with transparency. Often the right offer arrives sooner than expected.",
         alt: "Furnished living room",
+      },
+      {
+        title: "From offer to deed",
+        copy: "Once the offer is accepted, we guide you through every step up to signing at the notary: documents, timing and peace of mind. We leave nothing to chance.",
+        alt: "Handing over the keys at the deed",
       },
     ],
 
@@ -342,6 +352,11 @@ const copy = {
         copy: "Nous recueillons les retours et gérons les offres en toute transparence. Souvent, la bonne offre arrive plus vite que prévu.",
         alt: "Salon meublé",
       },
+      {
+        title: "De l’offre à l’acte",
+        copy: "Une fois l’offre acceptée, nous vous accompagnons dans chaque démarche jusqu’à la signature chez le notaire : documents, délais et sérénité. Nous ne laissons rien au hasard.",
+        alt: "Remise des clés à l’acte",
+      },
     ],
 
     compareEyebrow: "La différence",
@@ -474,6 +489,11 @@ const copy = {
         title: "Rückmeldungen und Angebote",
         copy: "Wir sammeln die Rückmeldungen und behandeln die Angebote transparent. Oft kommt das richtige Angebot schneller als gedacht.",
         alt: "Eingerichtetes Wohnzimmer",
+      },
+      {
+        title: "Vom Angebot bis zum Notartermin",
+        copy: "Sobald das Angebot angenommen ist, begleiten wir Sie bei jedem Schritt bis zur Unterschrift beim Notar: Unterlagen, Fristen und Gelassenheit. Wir überlassen nichts dem Zufall.",
+        alt: "Schlüsselübergabe beim Notartermin",
       },
     ],
 
@@ -608,6 +628,11 @@ const copy = {
         copy: "Recogemos los comentarios y gestionamos las propuestas con transparencia. A menudo la propuesta adecuada llega antes de lo previsto.",
         alt: "Salón amueblado",
       },
+      {
+        title: "De la propuesta a la escritura",
+        copy: "Aceptada la propuesta, te acompañamos en cada trámite hasta la firma ante notario: documentos, plazos y tranquilidad. No dejamos nada al azar.",
+        alt: "Entrega de llaves en la escritura",
+      },
     ],
 
     compareEyebrow: "La diferencia",
@@ -690,6 +715,7 @@ const phaseMeta = [
   { n: "02", image: "/images/premium_02_living_dining_piante.jpg" },
   { n: "03", image: "/images/hero_05_living_cucina_tavolo.jpg" },
   { n: "04", image: "/images/premium_01_living_tv_divano.jpg" },
+  { n: "05", image: "/images/reali/raffaela-keys.jpg" },
 ];
 
 export default function OpenDomusPageContent() {

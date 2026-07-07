@@ -118,5 +118,6 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     features: n.features,
     energyClass: n.energyClass,
     sold,
+    ref: n.sourceRef.riferimento,
   };
 }

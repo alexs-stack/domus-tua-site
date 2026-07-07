@@ -166,10 +166,43 @@ esiste un team che lavora la pipeline.
 
 ---
 
+## Validazione lato server (attiva) — `app/lib/forms/validateLead.ts`
+
+Prima di persistere sul foglio, `/api/lead` passa il payload da `validateLead()`. Regole:
+
+| Campo | Regola |
+|---|---|
+| `intent` | **obbligatorio**, uno di `seller` / `buyer` / `question` / `open-domus` → altrimenti `invalid-intent` |
+| `name` | **obbligatorio**, max **120** caratteri → altrimenti `missing-name` |
+| `contact` | **obbligatorio**, max **160** → altrimenti `missing-contact` |
+| `place` | opzionale, max **160** |
+| `propertyType` | opzionale, max **120** |
+| `budget` | opzionale, max **80** |
+| `features` | opzionale, max **300** |
+| `message` | opzionale, max **1200** |
+| `consent` | se **presente** deve essere `true` → altrimenti `missing-consent` |
+
+- **Whitelist:** oltre ai campi sopra si conservano solo i metadata `sourcePage`, `propertySlug`
+  (alias accettato: `propertyRef`) e `locale`. Ogni **altro campo è scartato** (niente colonne
+  spurie / injection nel foglio).
+- **Cap di lunghezza:** i valori oltre il massimo vengono **troncati** (difesa da payload abnormi),
+  non generano errore — così l'input reale non si rompe mai.
+- **Errori "safe":** `bad-payload`, `invalid-intent`, `missing-name`, `missing-contact`,
+  `missing-consent` (stringhe stabili, nessun dettaglio interno).
+- **Anti-abuso:** honeypot (`company`) + rate limit **8 invii / 10 min per IP** (429). Dettagli in
+  `docs/security-and-abuse.md`.
+- **Privacy log:** in produzione, se il webhook manca, **non** si logga PII (solo `intent`).
+
+Il **flusso WhatsApp lato client non è toccato**: la validazione riguarda solo il salvataggio server.
+
+---
+
 ## File coinvolti
 
 - `app/components/Contact.tsx` — form con intenti + campi dinamici (MVP WhatsApp).
 - `app/lib/forms/lead.ts` — tipo `Lead` + `formatLeadMessage` (payload backend-ready, con TODO).
+- `app/lib/forms/validateLead.ts` — **validazione + whitelist + cap** del payload server-side.
 - `app/lib/forms/whatsapp.ts` — `buildWhatsAppUrl` (canale immediato, resta valido).
+- `app/lib/security/rateLimit.ts` — rate limit per IP di `/api/lead` e `/api/search`.
 - `docs/forms-crm-notes.md` — note storiche su form/CRM e segmentazione lead.
 - `docs/realsmart-integration-notes.md` / `docs/realsmart-client-questions.md` — contesto RealSmart.

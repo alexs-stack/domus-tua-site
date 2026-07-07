@@ -28,6 +28,27 @@ prodotto, Raffaela è il volto.
 
 ---
 
+## 0-bis. Come inquadrare i contenuti in anteprima (onestà)
+
+In anteprima (build con `NEXT_PUBLIC_PREVIEW_BADGE=true`) in basso a sinistra compare un
+piccolo badge **"Preview — contenuti in verifica"**. Cliccandolo si apre una **checklist
+interna** che dice, in tempo reale, cosa è già collegato e cosa è ancora demo: **Logo**,
+**Immobili** (RealSmart live vs mock), **Recensioni** (Trustindex live vs fallback),
+**Hero video** (video vs poster), **Lead** (Google Sheet + WhatsApp / solo WhatsApp).
+
+Regola d'oro con il cliente: **non spacciare mai il demo per reale**. Quando si arriva su una
+parte ancora provvisoria, dire una frase semplice e trasparente, ad esempio:
+
+> *"Questa è la forma finale; il contenuto qui è un segnaposto onesto — lo accendiamo con i
+> vostri dati reali appena ce li passate."*
+
+Cosa **non** fare: leggere una recensione demo come se fosse di un cliente vero, citare numeri
+non verificati come definitivi, far credere che il video hero sia già online. Il badge serve
+proprio a ricordarlo a noi durante la call: è **invisibile in produzione** (`=false`), quindi
+il cliente finale non lo vedrà mai. La honesty non toglie forza alla demo — la rende credibile.
+
+---
+
 ## 1. Hero cinematico + direzione video
 
 **Mostra:** l'apertura della homepage (`HeroCinematic`).

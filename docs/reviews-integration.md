@@ -4,13 +4,18 @@ Le recensioni sono un asset di credibilità enorme per Domus Tua e devono risult
 Google/Trustindex**, non testimonianze decorative.
 
 ## Stato attuale
-- `app/lib/reviews.ts` contiene **8 recensioni DEMO** (rating, data, fonte Google/Trustindex,
-  `verified`). Sono rappresentative, **da sostituire** con recensioni reali.
-- `app/components/Reviews.tsx` mostra: badge fonte per card ("Recensione Google"/"Recensione
-  Trustindex"), rating a stelle, data, spunta "verificato", link "Leggi su Google", tab per
-  categoria (Venditori/Acquirenti/Open Domus/Esperienza) e la card riepilogo 4.9/5.
-- `app/lib/site.ts` → `googleReviewsUrl` (oggi una ricerca Google generica) e `embeds.trustindexSrc`
-  (vuoto).
+- `app/lib/site.ts` → `embeds.trustindexLoader` è **valorizzato** con il loader reale Trustindex di
+  Domus Tua. Quindi `Reviews.tsx` mostra il **widget reale** (recensioni Google verificate), non le
+  card demo. `googleReviewsUrl` usa il **CID Google reale** ricavato dal Maps embed del sito ufficiale.
+- `app/lib/reviews.ts` contiene **8 recensioni DEMO** usate SOLO come fallback in anteprima.
+- `app/components/Reviews.tsx` — logica a 3 rami:
+  1. `embeds.trustindexLoader` valorizzato → **widget Trustindex reale** (in un iframe `srcDoc`
+     UTF-8, contenuto in una sezione premium). Mostra la riga "Recensioni Google verificate tramite
+     Trustindex.".
+  2. loader assente **e** `NEXT_PUBLIC_PREVIEW_BADGE=true` → griglia demo + tab categoria
+     (Venditori/Acquirenti/Open Domus/Esperienza) + nota "esempi dimostrativi". **Solo anteprima.**
+  3. loader assente in **produzione** → **nessuna recensione demo**: solo rating 4.9/5 + CTA
+     "Leggi tutte le recensioni su Google". Così non si spaccia mai il demo per reale.
 
 ## Andare live — 2 opzioni
 
@@ -32,4 +37,19 @@ Google/Trustindex**, non testimonianze decorative.
 
 ## Nota
 Le recensioni demo sono marcate come tali nei commenti di `app/lib/reviews.ts`. Non presentare i
-testi demo come reali in una demo cliente senza dirlo.
+testi demo come reali in una demo cliente senza dirlo. In produzione le card demo **non** vengono
+mai mostrate (vedi ramo 3 sopra).
+
+## Checklist di lancio (recensioni)
+Da spuntare sul **dominio di produzione finale** prima del go-live:
+
+- [ ] **Widget Trustindex** si carica e renderizza sul **dominio di produzione** (alcuni widget sono
+      vincolati al dominio: verificare che l'hash sia abilitato per `www.domustua.com`, non solo per
+      il sito attuale/preview).
+- [ ] **Google Maps CID** — `googleReviewsUrl` (`?cid=…` in `site.ts`) apre il **profilo Google
+      Business reale** di Domus Tua Tradate, non una ricerca generica.
+- [ ] **Rating e numero** (`app/lib/reviews.ts` → `reviewSummary`) allineati al valore reale mostrato
+      da Google/Trustindex (oggi 4,9/5 · ~531).
+- [ ] **Nessuna recensione demo visibile** in produzione: con `NEXT_PUBLIC_PREVIEW_BADGE=false` e
+      widget attivo, la griglia demo non deve comparire.
+- [ ] La riga "Recensioni Google verificate tramite Trustindex." è presente e corretta.

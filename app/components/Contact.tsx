@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Phone, Whatsapp, Mail, Pin, ArrowUpRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
@@ -272,6 +272,18 @@ export default function Contact({
   const [intent, setIntent] = useState<LeadIntent>(initialIntent ?? "seller");
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; contact?: string; consent?: string }>({});
+
+  // Deep-link: /contatti?intent=buyer (o seller/question/open-domus) preseleziona il tab giusto,
+  // quando non è già forzato via prop (es. dalla scheda immobile). Utile per le CTA "Cerco casa"
+  // che arrivano da altre pagine (es. /acquista). Letto solo lato client (no mismatch di hydration).
+  useEffect(() => {
+    if (initialIntent) return;
+    const qi = new URLSearchParams(window.location.search).get("intent");
+    if (qi === "seller" || qi === "buyer" || qi === "question" || qi === "open-domus") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIntent(qi);
+    }
+  }, [initialIntent]);
 
   const contacts = [
     { icon: Phone, label: site.phone.label, sub: c.contactPhoneSub, href: site.phone.href },

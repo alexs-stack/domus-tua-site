@@ -44,7 +44,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Quali cookie utilizziamo, perché lo facciamo e come puoi gestire in ogni momento le tue preferenze.",
       alt: "Salotto luminoso di un attico con travi a vista",
-      primaryLabel: "Contattaci",
+      primaryLabel: "Parla con Domus Tua",
       secondaryLabel: "Privacy Policy",
     },
     lastUpdate: "Ultimo aggiornamento: luglio 2026",
@@ -118,7 +118,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Which cookies we use, why we use them and how you can manage your preferences at any time.",
       alt: "Bright penthouse living room with exposed beams",
-      primaryLabel: "Get in touch",
+      primaryLabel: "Talk to Domus Tua",
       secondaryLabel: "Privacy Policy",
     },
     lastUpdate: "Last updated: July 2026",
@@ -192,7 +192,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Quels cookies nous utilisons, pourquoi nous le faisons et comment gérer vos préférences à tout moment.",
       alt: "Salon lumineux d’un attique avec poutres apparentes",
-      primaryLabel: "Contactez-nous",
+      primaryLabel: "Parler à Domus Tua",
       secondaryLabel: "Politique de confidentialité",
     },
     lastUpdate: "Dernière mise à jour : juillet 2026",
@@ -266,7 +266,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Welche Cookies wir verwenden, warum wir das tun und wie Sie Ihre Einstellungen jederzeit verwalten können.",
       alt: "Helles Wohnzimmer eines Penthouses mit sichtbaren Balken",
-      primaryLabel: "Kontakt aufnehmen",
+      primaryLabel: "Mit Domus Tua sprechen",
       secondaryLabel: "Datenschutzerklärung",
     },
     lastUpdate: "Letzte Aktualisierung: Juli 2026",
@@ -340,7 +340,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Qué cookies utilizamos, por qué lo hacemos y cómo puedes gestionar tus preferencias en cualquier momento.",
       alt: "Salón luminoso de un ático con vigas a la vista",
-      primaryLabel: "Contáctanos",
+      primaryLabel: "Habla con Domus Tua",
       secondaryLabel: "Política de privacidad",
     },
     lastUpdate: "Última actualización: julio de 2026",

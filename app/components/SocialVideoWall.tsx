@@ -21,8 +21,13 @@ type Vid = {
 const yt = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
 // Video REALI verificati dal canale Domus Tua (single source: site.videos).
-// NB: le thumbnail locali sono immagini reali del canale; l'abbinamento esatto
-// thumbnail↔video lo rifinisce il cliente con gli ID/timestamp definitivi.
+//
+// TODO(cliente): l'abbinamento thumbnail ↔ video è provvisorio. Prima del go-live il cliente
+// deve confermare, per OGNI item qui sotto (featured, reel, wall):
+//   • l'ID YouTube definitivo (o il timestamp del segmento da usare come clip);
+//   • la thumbnail approvata (oggi usiamo frame/immagini reali del canale come segnaposto);
+//   • il titolo mostrato in card.
+// Finché non arriva la conferma, restano queste clip pubbliche reali del canale.
 const V = site.videos;
 
 // Reel/verticale in evidenza: player leggero (carica l'iframe solo al click).
@@ -43,6 +48,7 @@ const reel: Vid = {
   kind: "opendomus",
 };
 
+// TODO(cliente): confermare per ogni card ID/timestamp + thumbnail approvati (vedi nota sopra).
 const wall: Vid[] = [
   { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt(V.featured.id), kind: "opendomus" },
   { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt(V.testimonial.id), kind: "dietro" },

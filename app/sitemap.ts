@@ -3,6 +3,9 @@ import { getVisibleListings } from "./lib/listings";
 
 const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
 
+// Solo pagine INDICIZZABILI. /privacy e /cookie sono escluse finché restano `noindex`
+// (testo legale placeholder da validare): rimetterle qui quando saranno finalizzate e indicizzabili
+// — includere URL noindex nel sitemap è una segnalazione contraddittoria per i crawler.
 const routes = [
   "",
   "/vendi",
@@ -14,8 +17,6 @@ const routes = [
   "/recensioni",
   "/chi-siamo",
   "/contatti",
-  "/privacy",
-  "/cookie",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

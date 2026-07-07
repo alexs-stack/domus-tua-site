@@ -8,6 +8,7 @@ import PreviewBadge from "./components/PreviewBadge";
 import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
+import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -110,6 +111,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Calcolato lato server: legge anche env server-only (es. SHEETS_WEBHOOK_URL) senza
+  // esporne i valori. Il badge di anteprima riceve solo la checklist derivata (booleani).
+  const checklist = demoChecklist(getDemoStatus());
   return (
     <html
       lang="it"
@@ -132,7 +136,7 @@ export default function RootLayout({
           <div id="main" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
             {children}
           </div>
-          <PreviewBadge />
+          <PreviewBadge checklist={checklist} />
           <CookieConsent />
           <AssistantMount />
           <MobileActionBar />

@@ -11,10 +11,10 @@
 // attiva (NEXT_PUBLIC_USE_REALSMART === "true"). In modalità mock non serve alcuna credenziale,
 // così sviluppo/preview girano senza segreti.
 //
-// TODO(realsmart): il set di variabili obbligatorie dipende dalla modalità reale scelta
-// (feed URL vs API REST vs FTP), ancora da confermare col cliente/RealSmart
-// (vedi docs/realsmart-client-questions.md). Qui assumiamo lo scenario più probabile:
-// un feed/endpoint via URL con eventuale API key. Adeguare quando lo schema sarà noto.
+// Scenario ATTIVO: feed XML pubblico via URL (REALSMART_FEED_URL, con default nel codice) —
+// collegato e funzionante, non richiede API key. Gli scenari alternativi (API REST, FTP)
+// restano previsti nel tipo ma non sono in uso. Resta da validare col cliente il MAPPING dei
+// campi, non la modalità (docs/realsmart-live-validation.md).
 
 /** Configurazione tipizzata consumata dal client RealSmart. */
 export interface RealSmartConfig {
@@ -43,8 +43,9 @@ function readEnv(name: string): string | undefined {
 
 /**
  * Variabili OBBLIGATORIE quando l'integrazione live è attiva.
- * TODO(realsmart): rivedere in base alla modalità reale (feed/API/FTP) una volta confermata.
- * Per ora lo scenario di partenza è "feed via URL", quindi REALSMART_FEED_URL è il minimo.
+ * Lo scenario attivo è "feed via URL" e REALSMART_FEED_URL ha un DEFAULT pubblico nel codice
+ * (DEFAULT_FEED_URL): nessuna variabile è quindi strettamente obbligatoria per andare live.
+ * L'array resta come gancio se un domani si passasse ad auth/API che richiedono credenziali.
  */
 const REQUIRED_WHEN_LIVE = [] as const;
 

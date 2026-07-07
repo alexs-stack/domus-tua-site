@@ -40,7 +40,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Come Domus Tua raccoglie, utilizza e protegge i tuoi dati personali. La tua fiducia merita trasparenza, in ogni passaggio.",
       alt: "Salotto luminoso di un attico con travi a vista",
-      primaryLabel: "Contattaci",
+      primaryLabel: "Parla con Domus Tua",
       secondaryLabel: "Cookie Policy",
     },
     lastUpdated: "Ultimo aggiornamento: luglio 2026",
@@ -114,7 +114,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "How Domus Tua collects, uses and protects your personal data. Your trust deserves transparency, at every step.",
       alt: "Bright penthouse living room with exposed beams",
-      primaryLabel: "Contact us",
+      primaryLabel: "Talk to Domus Tua",
       secondaryLabel: "Cookie Policy",
     },
     lastUpdated: "Last updated: July 2026",
@@ -188,7 +188,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Comment Domus Tua collecte, utilise et protège vos données personnelles. Votre confiance mérite de la transparence, à chaque étape.",
       alt: "Salon lumineux d’un attique aux poutres apparentes",
-      primaryLabel: "Contactez-nous",
+      primaryLabel: "Parler à Domus Tua",
       secondaryLabel: "Politique de cookies",
     },
     lastUpdated: "Dernière mise à jour : juillet 2026",
@@ -262,7 +262,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Wie Domus Tua Ihre personenbezogenen Daten erhebt, verwendet und schützt. Ihr Vertrauen verdient Transparenz, in jedem Schritt.",
       alt: "Helles Wohnzimmer eines Penthouses mit sichtbaren Balken",
-      primaryLabel: "Kontaktieren Sie uns",
+      primaryLabel: "Mit Domus Tua sprechen",
       secondaryLabel: "Cookie-Richtlinie",
     },
     lastUpdated: "Letzte Aktualisierung: Juli 2026",
@@ -336,7 +336,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Cómo Domus Tua recopila, utiliza y protege tus datos personales. Tu confianza merece transparencia, en cada paso.",
       alt: "Salón luminoso de un ático con vigas a la vista",
-      primaryLabel: "Contáctanos",
+      primaryLabel: "Habla con Domus Tua",
       secondaryLabel: "Política de cookies",
     },
     lastUpdated: "Última actualización: julio de 2026",

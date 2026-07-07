@@ -6,6 +6,8 @@ import PropertyCard from "./PropertyCard";
 import { ArrowRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
+import { site } from "../lib/site";
+import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import type { Property } from "../lib/properties";
 import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
 
@@ -20,9 +22,9 @@ const copy = {
     teaser: "Scrivi come parleresti a noi e premi Invio: pensiamo noi a trovare le case giuste.",
     searchAria: "Avvia la ricerca",
     searching: "Cerco…",
-    aiResultPrefix: "Risultati per",
+    aiResultPrefix: "Hai cercato",
     aiClear: "Annulla",
-    aiError: "Ricerca non riuscita. Usa i filtri qui sotto.",
+    aiError: "Non sono riuscito a interpretarla bene: puoi usare i filtri qui sotto.",
     contract: "Contratto",
     type: "Tipologia",
     zone: "Zona",
@@ -59,9 +61,9 @@ const copy = {
     resultsOne: "immobile trovato",
     resultsMany: "immobili trovati",
     notFound: "Non trovi la casa giusta? Dillo a noi",
-    emptyTitle: "Nessun immobile con questi filtri.",
-    emptyBody: "Con questi filtri non c’è nulla al momento. Raccontaci cosa cerchi: seguiamo anche richieste su misura e trattative riservate, e ti avvisiamo appena arriva.",
-    emptyCta: "Cerco casa con Domus Tua",
+    emptyTitle: "Non c’è online? Potrebbe arrivare.",
+    emptyBody: "Raccontaci cosa cerchi: molte richieste vengono seguite prima ancora che l’immobile arrivi online.",
+    emptyCta: "Lasciaci la tua richiesta",
     showMore: "Mostra altre case",
     showingHint: "Mostrando {n} di {tot}",
   },
@@ -72,9 +74,9 @@ const copy = {
     teaser: "Write it as you’d tell us and press Enter: we’ll find the right homes.",
     searchAria: "Start the search",
     searching: "Searching…",
-    aiResultPrefix: "Results for",
+    aiResultPrefix: "You searched",
     aiClear: "Clear",
-    aiError: "Search failed. Use the filters below.",
+    aiError: "I couldn’t quite read that: use the filters below.",
     contract: "Contract",
     type: "Type",
     zone: "Area",
@@ -111,9 +113,9 @@ const copy = {
     resultsOne: "home found",
     resultsMany: "homes found",
     notFound: "Can’t find the right home? Tell us",
-    emptyTitle: "No homes match these filters.",
-    emptyBody: "Nothing matches these filters right now. Tell us what you’re after: we also handle bespoke requests and private, off-market deals, and we’ll let you know the moment one comes in.",
-    emptyCta: "Find my home with Domus Tua",
+    emptyTitle: "Not online yet? It might be soon.",
+    emptyBody: "Tell us what you’re after: many requests are handled before the home even goes online.",
+    emptyCta: "Send us your request",
     showMore: "Show more homes",
     showingHint: "Showing {n} of {tot}",
   },
@@ -124,9 +126,9 @@ const copy = {
     teaser: "Écrivez comme vous nous le diriez, puis appuyez sur Entrée : nous trouvons les bons biens.",
     searchAria: "Lancer la recherche",
     searching: "Recherche…",
-    aiResultPrefix: "Résultats pour",
+    aiResultPrefix: "Vous avez cherché",
     aiClear: "Effacer",
-    aiError: "Recherche impossible. Utilisez les filtres ci-dessous.",
+    aiError: "Je n’ai pas bien compris : utilisez les filtres ci-dessous.",
     contract: "Contrat",
     type: "Type",
     zone: "Secteur",
@@ -163,9 +165,9 @@ const copy = {
     resultsOne: "bien trouvé",
     resultsMany: "biens trouvés",
     notFound: "Vous ne trouvez pas le bon bien ? Dites-le-nous",
-    emptyTitle: "Aucun bien ne correspond à ces filtres.",
-    emptyBody: "Rien ne correspond à ces filtres pour le moment. Dites-nous ce que vous cherchez : nous suivons aussi les demandes sur mesure et les transactions confidentielles, et nous vous prévenons dès qu’un bien arrive.",
-    emptyCta: "Je cherche avec Domus Tua",
+    emptyTitle: "Pas encore en ligne ? Cela peut arriver.",
+    emptyBody: "Dites-nous ce que vous cherchez : de nombreuses demandes sont suivies avant même que le bien n’arrive en ligne.",
+    emptyCta: "Envoyez-nous votre demande",
     showMore: "Voir plus de biens",
     showingHint: "Affichage de {n} sur {tot}",
   },
@@ -176,9 +178,9 @@ const copy = {
     teaser: "Schreiben Sie es, wie Sie es uns sagen würden, und drücken Sie Enter: wir finden die passenden Objekte.",
     searchAria: "Suche starten",
     searching: "Suche…",
-    aiResultPrefix: "Ergebnisse für",
+    aiResultPrefix: "Ihre Suche",
     aiClear: "Zurücksetzen",
-    aiError: "Suche fehlgeschlagen. Nutzen Sie die Filter unten.",
+    aiError: "Das habe ich nicht ganz verstanden: nutzen Sie die Filter unten.",
     contract: "Vertrag",
     type: "Objektart",
     zone: "Gebiet",
@@ -228,9 +230,9 @@ const copy = {
     teaser: "Escríbelo como nos lo contarías y pulsa Intro: encontramos las casas adecuadas.",
     searchAria: "Iniciar la búsqueda",
     searching: "Buscando…",
-    aiResultPrefix: "Resultados para",
+    aiResultPrefix: "Has buscado",
     aiClear: "Borrar",
-    aiError: "Búsqueda fallida. Usa los filtros de abajo.",
+    aiError: "No lo he interpretado bien: usa los filtros de abajo.",
     contract: "Contrato",
     type: "Tipología",
     zone: "Zona",
@@ -267,9 +269,9 @@ const copy = {
     resultsOne: "inmueble encontrado",
     resultsMany: "inmuebles encontrados",
     notFound: "¿No encuentras la casa adecuada? Cuéntanoslo",
-    emptyTitle: "Ningún inmueble con estos filtros.",
-    emptyBody: "Con estos filtros no hay nada por ahora. Cuéntanos qué buscas: también gestionamos peticiones a medida y operaciones confidenciales, y te avisamos en cuanto llegue.",
-    emptyCta: "Busco casa con Domus Tua",
+    emptyTitle: "¿Todavía no está online? Puede que llegue.",
+    emptyBody: "Cuéntanos qué buscas: muchas peticiones las seguimos antes incluso de que el inmueble llegue a estar online.",
+    emptyCta: "Envíanos tu solicitud",
     showMore: "Ver más casas",
     showingHint: "Mostrando {n} de {tot}",
   },
@@ -522,6 +524,16 @@ export default function PropertySearch({ properties }: { properties: Property[] 
         ? "border-red bg-red text-white hover:bg-red-dark"
         : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
     }`;
+
+  // Empty-state / "non trovi la casa giusta": WhatsApp buyer precompilato con la frase cercata =
+  // massima conversione anche a zero risultati (canale immediato, intento acquirente esplicito).
+  // TODO(analytics): tracciare l'evento "search_no_results" (query + n. filtri attivi) quando
+  // shown.length === 0, per misurare la domanda insoddisfatta e alimentare gli acquisti su misura.
+  const buyerQuery = (ai?.query || nl).trim();
+  const buyerWaUrl = buildWhatsAppUrl(
+    site.whatsapp.href,
+    `Ciao Domus Tua, sto cercando casa${buyerQuery ? ` — ho cercato: "${buyerQuery}"` : ""}. Non l'ho ancora trovata sul sito, potete aiutarmi?`,
+  );
 
   return (
     <section className="bg-cream">
@@ -795,9 +807,12 @@ export default function PropertySearch({ properties }: { properties: Property[] 
         ) : (
           <div className="mt-6 rounded-[1.75rem] border border-line bg-paper p-10 text-center">
             <p className="font-display text-2xl font-medium text-ink">{c.emptyTitle}</p>
-            <p className="mt-2 text-stone">{c.emptyBody}</p>
+            <p className="mx-auto mt-2 max-w-xl text-stone">{c.emptyBody}</p>
+            {/* CTA a intento acquirente su WhatsApp, precompilato con la frase cercata. */}
             <a
-              href="#contatti"
+              href={buyerWaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors duration-300 hover:bg-red-dark"
             >
               {c.emptyCta}

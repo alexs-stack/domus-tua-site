@@ -22,7 +22,8 @@ const copy = {
     subtitle:
       "Ogni recensione è una storia di fiducia, cura e accompagnamento. Oltre 500 famiglie hanno vissuto un modo diverso di affrontare la vendita e l’acquisto.",
     averageOver: (count: number | string) => `Media su oltre ${count} recensioni`,
-    seeAllGoogle: "Vedi tutte su Google",
+    seeAllGoogle: "Leggi tutte le recensioni su Google",
+    verifiedVia: "Recensioni Google verificate tramite Trustindex.",
     realReviews: "Le recensioni reali dei nostri clienti",
     iframeTitle: "Recensioni Google verificate di Domus Tua (Trustindex)",
     demoBanner:
@@ -45,7 +46,8 @@ const copy = {
     subtitle:
       "Every review is a story of trust, care and guidance. More than 500 families have experienced a different way to approach selling and buying.",
     averageOver: (count: number | string) => `Average across more than ${count} reviews`,
-    seeAllGoogle: "See all on Google",
+    seeAllGoogle: "Read all reviews on Google",
+    verifiedVia: "Google reviews verified via Trustindex.",
     realReviews: "Real reviews from our clients",
     iframeTitle: "Verified Google reviews of Domus Tua (Trustindex)",
     demoBanner:
@@ -68,7 +70,8 @@ const copy = {
     subtitle:
       "Chaque avis est une histoire de confiance, d’attention et d’accompagnement. Plus de 500 familles ont vécu une autre façon d’aborder la vente et l’achat.",
     averageOver: (count: number | string) => `Moyenne sur plus de ${count} avis`,
-    seeAllGoogle: "Voir tous les avis sur Google",
+    seeAllGoogle: "Lire tous les avis sur Google",
+    verifiedVia: "Avis Google vérifiés via Trustindex.",
     realReviews: "Les avis authentiques de nos clients",
     iframeTitle: "Avis Google vérifiés de Domus Tua (Trustindex)",
     demoBanner:
@@ -91,7 +94,8 @@ const copy = {
     subtitle:
       "Jede Bewertung ist eine Geschichte von Vertrauen, Sorgfalt und Begleitung. Mehr als 500 Familien haben eine andere Art erlebt, Verkauf und Kauf anzugehen.",
     averageOver: (count: number | string) => `Durchschnitt aus über ${count} Bewertungen`,
-    seeAllGoogle: "Alle auf Google ansehen",
+    seeAllGoogle: "Alle Bewertungen auf Google lesen",
+    verifiedVia: "Google-Bewertungen, verifiziert über Trustindex.",
     realReviews: "Die echten Bewertungen unserer Kunden",
     iframeTitle: "Verifizierte Google-Bewertungen von Domus Tua (Trustindex)",
     demoBanner:
@@ -114,7 +118,8 @@ const copy = {
     subtitle:
       "Cada reseña es una historia de confianza, cuidado y acompañamiento. Más de 500 familias han vivido una forma diferente de afrontar la venta y la compra.",
     averageOver: (count: number | string) => `Media sobre más de ${count} reseñas`,
-    seeAllGoogle: "Ver todas en Google",
+    seeAllGoogle: "Leer todas las reseñas en Google",
+    verifiedVia: "Reseñas de Google verificadas mediante Trustindex.",
     realReviews: "Las reseñas reales de nuestros clientes",
     iframeTitle: "Reseñas de Google verificadas de Domus Tua (Trustindex)",
     demoBanner:
@@ -143,6 +148,9 @@ export default function Reviews() {
   const c = copy[locale];
   const [filter, setFilter] = useState<(typeof filters)[number]>("Tutte");
   const shown = filter === "Tutte" ? reviews : reviews.filter((r) => r.category === filter);
+  // In produzione NON mostriamo mai recensioni demo come reali: le card di esempio (con nota
+  // "esempi dimostrativi") compaiono solo in anteprima. Vedi docs/reviews-integration.md.
+  const PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_BADGE === "true";
 
   return (
     <section id="recensioni" className="bg-paper">
@@ -178,6 +186,7 @@ export default function Reviews() {
                   </p>
                 </div>
               </div>
+              <p className="mt-4 text-[0.8rem] text-stone">{c.verifiedVia}</p>
               <a
                 href={site.googleReviewsUrl}
                 target="_blank"
@@ -210,9 +219,11 @@ export default function Reviews() {
               />
             </div>
           </Reveal>
-        ) : (
+        ) : PREVIEW ? (
           <>
-            {/* Nota onestà: finché il widget Trustindex non è collegato, queste sono demo. */}
+            {/* Nota onestà: finché il widget Trustindex non è collegato, queste sono demo.
+                Questo ramo è raggiungibile SOLO in anteprima (NEXT_PUBLIC_PREVIEW_BADGE=true):
+                in produzione non mostriamo mai recensioni demo come reali. */}
             <Reveal className="mt-10">
               <p className="inline-flex items-center gap-2 rounded-full border border-line bg-cream px-4 py-2 text-[0.8rem] text-stone">
                 <span className="h-1.5 w-1.5 rounded-full bg-red" />
@@ -313,6 +324,26 @@ export default function Reviews() {
               ))}
             </div>
           </>
+        ) : (
+          /* Produzione senza widget: nessuna recensione demo, solo prova reale (rating + Google). */
+          <Reveal className="mt-10">
+            <div className="rounded-[1.75rem] border border-line bg-cream p-8 text-center">
+              <p className="mx-auto max-w-md text-[0.98rem] leading-relaxed text-graphite">
+                {c.verifiedVia}
+              </p>
+              <a
+                href={site.googleReviewsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mt-5 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
+              >
+                {c.seeAllGoogle}
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </span>
+              </a>
+            </div>
+          </Reveal>
         )}
       </div>
     </section>

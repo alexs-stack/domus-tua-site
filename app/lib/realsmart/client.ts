@@ -1,11 +1,15 @@
 // Client RealSmart — punto di ingresso unico per gli immobili "live" del sito.
 //
-// STATO ATTUALE: nessuna API reale collegata. getLiveListings() ritorna i mock
-// normalizzati, così il resto del sito può già consumare NormalizedProperty[].
+// STATO: feed XML pubblico RealSmart COLLEGATO. getLiveListings() scarica, parsa e normalizza
+// gli annunci reali dell'agenzia; mapping e campi sono da validare col cliente prima del
+// lancio definitivo (checklist: docs/realsmart-live-validation.md). Su errore del feed,
+// fallback difensivo ai mock per non mostrare mai una pagina vuota.
 //
-// QUANDO ARRIVERÀ L'INTEGRAZIONE REALE: sostituire il corpo di fetchRawListings()
-// con la chiamata al feed/endpoint RealSmart. Il contratto di ritorno resta invariato.
-// Dettagli, domande aperte e checklist: docs/realsmart-integration-notes.md.
+// Comportamento per ambiente (flag NEXT_PUBLIC_USE_REALSMART):
+//   • dev locale: default mock possibile (USE_REALSMART="false") per lavorare offline;
+//   • Vercel preview: RealSmart live se il feed è stabile (USE_REALSMART="true"/assente);
+//   • produzione: RealSmart live (default ON).
+// Dettagli, domande aperte e note: docs/realsmart-integration-notes.md.
 
 import { unstable_cache } from "next/cache";
 import { XMLParser } from "fast-xml-parser";
@@ -38,16 +42,16 @@ const HIDDEN_STATUSES: ReadonlySet<NormalizedProperty["status"]> = new Set([
 /**
  * Recupera gli annunci in forma GREZZA dalla sorgente.
  *
- * OGGI: modalità mock. Se l'integrazione live NON è attiva
- * (NEXT_PUBLIC_USE_REALSMART !== "true"), ritorna subito i mock locali.
+ * MODALITÀ MOCK (NEXT_PUBLIC_USE_REALSMART="false"): ritorna i mock locali, nessuna rete —
+ * utile per sviluppo offline.
  *
- * DOMANI (con feed live attivo): quando avremo endpoint/auth reali, la fetch qui sotto
- * va COMPLETATA. Il payload grezzo (unknown) passa SEMPRE per parseRealSmartPayload(),
- * che lo trasforma in RealSmartListingRaw[] in modo difensivo (mai throw su dati sporchi).
+ * MODALITÀ LIVE (default): scarica il feed XML pubblico RealSmart, lo parsa e lo normalizza.
+ * Il payload grezzo (unknown) passa SEMPRE per parseRealSmartPayload(), che lo trasforma in
+ * RealSmartListingRaw[] in modo difensivo (mai throw su dati sporchi).
  *
- * NB: endpoint, schema di auth e forma del payload sono ANCORA IGNOTI.
- *     Vanno confermati con RealSmart/cliente (docs/realsmart-client-questions.md)
- *     prima di attivare NEXT_PUBLIC_USE_REALSMART="true" in produzione.
+ * NB: il feed è collegato e funzionante. Ciò che resta da confermare col cliente è il
+ *     MAPPING dei campi (non l'endpoint): province, classe energetica ed eventuali campi
+ *     mancanti. Checklist di validazione live: docs/realsmart-live-validation.md.
  */
 async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
   const config = getRealSmartConfig();
@@ -89,8 +93,16 @@ async function loadListings(): Promise<NormalizedProperty[]> {
   let raw: RealSmartListingRaw[];
   try {
     raw = await fetchRawListings();
-  } catch {
+  } catch (err) {
     // Fallback difensivo: meglio i mock che una lista vuota / errore in pagina.
+    // Logghiamo il MOTIVO (server-only, mai esposto al client) per poter MONITORARE i
+    // fallback: il badge di anteprima mostra la modalità PREVISTA (RealSmart), non se una
+    // singola build/finestra di cache è caduta nei mock. Un fallback ripetuto nei log =
+    // il feed è instabile e va indagato prima del lancio.
+    console.error(
+      "[realsmart] feed non disponibile → fallback ai mock:",
+      err instanceof Error ? err.message : err,
+    );
     raw = getMockRealSmartListings();
   }
 

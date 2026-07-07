@@ -11,8 +11,10 @@ import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
-import { Check, ArrowRight } from "../components/Icons";
+import { Check, ArrowRight, Whatsapp } from "../components/Icons";
 import { SegnoDomusCorner, SegnoDomusBadge } from "../components/BrandMotif";
+import { site } from "../lib/site";
+import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import type { Property } from "../lib/properties";
 
 const copy = {
@@ -89,9 +91,9 @@ const copy = {
     },
     reassure: {
       eyebrow: "Al tuo fianco",
-      title: "Tu cerchi casa. Al resto pensiamo noi.",
+      title: "La casa giusta non si trova solo con un filtro.",
       intro:
-        "Comprare bene significa avere qualcuno che ti guida davvero. Ecco cosa facciamo per te, dalla prima visita alle chiavi.",
+        "Un filtro trova annunci; noi ti aiutiamo a interpretarli, organizziamo le visite, verifichiamo i documenti e ti seguiamo fino alla proposta e al rogito. Ecco cosa facciamo per te.",
       list: [
         "Visite organizzate su misura, senza appuntamenti a vuoto.",
         "Informazioni chiare su ogni immobile, prima ancora di entrare.",
@@ -104,10 +106,10 @@ const copy = {
         "Raccontaci che casa cerchi: zona, budget, ciò che conta per te. Ti richiamiamo noi.",
       ctaLabel: "Lasciaci la tua richiesta",
       offlineNote:
-        "Non trovi ciò che cerchi tra gli annunci? Molte case non sono ancora online: raccontaci cosa desideri e la troviamo noi per te.",
+        "Non trovi ciò che cerchi tra gli annunci? Molte richieste vengono seguite prima ancora che l’immobile arrivi online: raccontaci cosa desideri.",
       aiBadge: "Ricerca intelligente",
       aiText:
-        "Cerca casa scrivendo come parleresti a noi: provala nella ricerca qui sotto.",
+        "Cerca casa scrivendo come parleresti a noi: provala nella ricerca intelligente qui sopra.",
     },
   },
   en: {
@@ -183,9 +185,9 @@ const copy = {
     },
     reassure: {
       eyebrow: "By your side",
-      title: "You look for a home. We take care of the rest.",
+      title: "The right home isn’t found with a filter alone.",
       intro:
-        "Buying well means having someone who truly guides you. Here is what we do for you, from the first viewing to the keys.",
+        "A filter finds listings; we help you interpret them, arrange the viewings, verify the documents and support you through to the offer and closing. Here’s what we do for you.",
       list: [
         "Viewings arranged around you, with no wasted appointments.",
         "Clear information on every property, before you even step inside.",
@@ -198,10 +200,10 @@ const copy = {
         "Tell us what you’re looking for: area, budget, what matters to you. We’ll call you back.",
       ctaLabel: "Leave us your request",
       offlineNote:
-        "Can’t find what you want among the listings? Many homes aren’t online yet: tell us what you’re after and we’ll find it for you.",
+        "Can’t find what you want among the listings? Many requests are handled before a home even goes online: tell us what you’re after.",
       aiBadge: "Smart search",
       aiText:
-        "Search for a home by writing just as you’d talk to us: try it in the search below.",
+        "Search for a home by writing just as you’d talk to us: try the smart search above.",
     },
   },
   fr: {
@@ -277,9 +279,9 @@ const copy = {
     },
     reassure: {
       eyebrow: "À vos côtés",
-      title: "Vous cherchez une maison. Nous nous occupons du reste.",
+      title: "Le bon bien ne se trouve pas avec un simple filtre.",
       intro:
-        "Bien acheter, c’est avoir quelqu’un qui vous guide vraiment. Voici ce que nous faisons pour vous, de la première visite jusqu’aux clés.",
+        "Un filtre trouve des annonces ; nous vous aidons à les interpréter, organisons les visites, vérifions les documents et vous accompagnons jusqu’à l’offre et l’acte. Voici ce que nous faisons pour vous.",
       list: [
         "Des visites organisées sur mesure, sans rendez-vous inutiles.",
         "Des informations claires sur chaque bien, avant même d’entrer.",
@@ -292,10 +294,10 @@ const copy = {
         "Dites-nous ce que vous cherchez : secteur, budget, ce qui compte pour vous. Nous vous rappelons.",
       ctaLabel: "Laissez-nous votre demande",
       offlineNote:
-        "Vous ne trouvez pas votre bonheur parmi les annonces ? Beaucoup de biens ne sont pas encore en ligne : dites-nous ce que vous souhaitez et nous le trouvons pour vous.",
+        "Vous ne trouvez pas votre bonheur parmi les annonces ? Beaucoup de demandes sont suivies avant même la mise en ligne d’un bien : dites-nous ce que vous souhaitez.",
       aiBadge: "Recherche intelligente",
       aiText:
-        "Cherchez un bien en écrivant comme vous nous parleriez : essayez-la dans la recherche ci-dessous.",
+        "Cherchez un bien en écrivant comme vous nous parleriez : essayez la recherche intelligente ci-dessus.",
     },
   },
   de: {
@@ -371,9 +373,9 @@ const copy = {
     },
     reassure: {
       eyebrow: "An Ihrer Seite",
-      title: "Sie suchen ein Zuhause. Um den Rest kümmern wir uns.",
+      title: "Das richtige Zuhause findet man nicht mit einem Filter allein.",
       intro:
-        "Gut zu kaufen heißt, jemanden an der Seite zu haben, der Sie wirklich führt. Das tun wir für Sie, von der ersten Besichtigung bis zu den Schlüsseln.",
+        "Ein Filter findet Anzeigen; wir helfen Ihnen, sie einzuordnen, organisieren die Besichtigungen, prüfen die Unterlagen und begleiten Sie bis zum Angebot und Notartermin. Das tun wir für Sie.",
       list: [
         "Besichtigungen, die auf Sie zugeschnitten sind – keine vergeblichen Termine.",
         "Klare Informationen zu jeder Immobilie, noch bevor Sie eintreten.",
@@ -386,10 +388,10 @@ const copy = {
         "Sagen Sie uns, was Sie suchen: Lage, Budget, was Ihnen wichtig ist. Wir rufen Sie zurück.",
       ctaLabel: "Anfrage hinterlassen",
       offlineNote:
-        "Sie finden nicht das Passende unter den Anzeigen? Viele Immobilien sind noch nicht online: Sagen Sie uns, was Sie sich wünschen, und wir finden es für Sie.",
+        "Sie finden nicht das Passende unter den Anzeigen? Viele Anfragen betreuen wir, bevor eine Immobilie überhaupt online geht: Sagen Sie uns, was Sie sich wünschen.",
       aiBadge: "Intelligente Suche",
       aiText:
-        "Suchen Sie ein Zuhause, indem Sie schreiben, wie Sie mit uns sprechen würden: gleich unten ausprobieren.",
+        "Suchen Sie ein Zuhause, indem Sie schreiben, wie Sie mit uns sprechen würden: gleich oben ausprobieren.",
     },
   },
   es: {
@@ -465,9 +467,9 @@ const copy = {
     },
     reassure: {
       eyebrow: "A tu lado",
-      title: "Tú buscas casa. Del resto nos ocupamos nosotros.",
+      title: "La casa adecuada no se encuentra solo con un filtro.",
       intro:
-        "Comprar bien significa tener a alguien que te guíe de verdad. Esto es lo que hacemos por ti, desde la primera visita hasta las llaves.",
+        "Un filtro encuentra anuncios; nosotros te ayudamos a interpretarlos, organizamos las visitas, verificamos los documentos y te acompañamos hasta la propuesta y la escritura. Esto es lo que hacemos por ti.",
       list: [
         "Visitas organizadas a tu medida, sin citas en vano.",
         "Información clara de cada inmueble, antes incluso de entrar.",
@@ -480,10 +482,10 @@ const copy = {
         "Cuéntanos qué casa buscas: zona, presupuesto, lo que te importa. Te llamamos nosotros.",
       ctaLabel: "Déjanos tu solicitud",
       offlineNote:
-        "¿No encuentras lo que buscas entre los anuncios? Muchas casas aún no están online: cuéntanos qué deseas y la encontramos por ti.",
+        "¿No encuentras lo que buscas entre los anuncios? Muchas peticiones las seguimos antes incluso de que el inmueble esté online: cuéntanos qué deseas.",
       aiBadge: "Búsqueda inteligente",
       aiText:
-        "Busca casa escribiendo como nos hablarías: pruébala en el buscador de abajo.",
+        "Busca casa escribiendo como nos hablarías: pruébala en el buscador inteligente de arriba.",
     },
   },
 };
@@ -507,6 +509,12 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
     alt: r.alt,
   }));
 
+  // WhatsApp acquirente precompilato (canale immediato, oltre al form).
+  const buyerWa = buildWhatsAppUrl(
+    site.whatsapp.href,
+    "Ciao Domus Tua, sto cercando casa: vorrei raccontarvi zona, budget e cosa conta per me.",
+  );
+
   return (
     <main className="flex-1">
       <PageHero
@@ -519,6 +527,11 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
         secondary={{ label: c.hero.secondaryLabel, href: "#case" }}
         trust={c.hero.trust}
       />
+
+      {/* Ricerca in alto: chi compra deve poter cercare subito (#case = target dell'hero). */}
+      <div id="case">
+        <PropertySearch properties={listings} />
+      </div>
 
       <Highlights
         eyebrow={c.highlights.eyebrow}
@@ -569,13 +582,24 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
                 <p className="mt-3 text-[0.98rem] leading-relaxed text-stone">
                   {c.reassure.ctaCopy}
                 </p>
-                <a
-                  href="#contatti"
-                  className="group mt-7 inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-dark"
-                >
-                  {c.reassure.ctaLabel}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </a>
+                <div className="mt-7 flex flex-wrap items-center gap-3">
+                  <a
+                    href="#contatti"
+                    className="group inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-dark"
+                  >
+                    {c.reassure.ctaLabel}
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </a>
+                  {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
+                  <a
+                    href={buyerWa}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-3 text-sm font-semibold text-ink transition-colors hover:border-red hover:text-red"
+                  >
+                    <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
+                  </a>
+                </div>
 
                 <p className="mt-7 border-t border-line pt-6 text-[0.9rem] leading-relaxed text-stone">
                   {c.reassure.offlineNote}
@@ -594,7 +618,6 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
         </div>
       </section>
 
-      <PropertySearch properties={listings} />
       <FeaturedTestimonial
         quote={c.testimonial.quote}
         author={c.testimonial.author}
@@ -608,7 +631,8 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
       <div className="bg-cream-deep">
         <SectionDivider tone="cream-deep" />
       </div>
-      <Contact />
+      {/* Pagina acquirente: il form parte già sull'intento "cerco casa". */}
+      <Contact initialIntent="buyer" />
     </main>
   );
 }

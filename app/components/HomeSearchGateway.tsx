@@ -3,7 +3,7 @@
 // Ricerca "sopra la piega": mini-ricerca funzionale per chi compra + scorciatoia per chi vende.
 // Al submit naviga a /case con query params (q, comune, budget, type, rooms) che PropertySearch
 // legge e pre-imposta. La ricerca in linguaggio naturale resta un teaser (nessuna finta AI).
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Reveal from "./Reveal";
@@ -15,26 +15,36 @@ const local = {
     zona: "Comune o zona", zonaPh: "Es. Tradate", tipologia: "Tipologia", budget: "Budget max", locali: "Locali",
     anyType: "Tutte", anyBudget: "Nessun limite", anyRooms: "Qualsiasi", search: "Cerca casa",
     types: ["Appartamento", "Attico", "Villa"],
+    chipsLabel: "Prova:",
+    chips: ["Trilocale con giardino", "Villa a Tradate", "Attico con terrazzo", "Casa sotto 300.000 €"],
   },
   en: {
     zona: "Town or area", zonaPh: "E.g. Tradate", tipologia: "Type", budget: "Max budget", locali: "Rooms",
     anyType: "All", anyBudget: "No limit", anyRooms: "Any", search: "Search homes",
     types: ["Apartment", "Penthouse", "Villa"],
+    chipsLabel: "Try:",
+    chips: ["Two-bed with garden", "Villa in Tradate", "Penthouse with terrace", "Home under €300,000"],
   },
   fr: {
     zona: "Commune ou secteur", zonaPh: "Ex. Tradate", tipologia: "Type", budget: "Budget max", locali: "Pièces",
     anyType: "Tous", anyBudget: "Sans limite", anyRooms: "Indifférent", search: "Chercher un bien",
     types: ["Appartement", "Attique", "Villa"],
+    chipsLabel: "Essayez :",
+    chips: ["Trois-pièces avec jardin", "Villa à Tradate", "Attique avec terrasse", "Maison sous 300 000 €"],
   },
   de: {
     zona: "Ort oder Gegend", zonaPh: "Z. B. Tradate", tipologia: "Typ", budget: "Max. Budget", locali: "Zimmer",
     anyType: "Alle", anyBudget: "Kein Limit", anyRooms: "Beliebig", search: "Immobilien suchen",
     types: ["Wohnung", "Penthouse", "Villa"],
+    chipsLabel: "Beispiele:",
+    chips: ["Dreizimmer mit Garten", "Villa in Tradate", "Penthouse mit Terrasse", "Haus unter 300.000 €"],
   },
   es: {
     zona: "Municipio o zona", zonaPh: "Ej. Tradate", tipologia: "Tipo", budget: "Presupuesto máx.", locali: "Estancias",
     anyType: "Todas", anyBudget: "Sin límite", anyRooms: "Cualquiera", search: "Buscar casa",
     types: ["Piso", "Ático", "Villa"],
+    chipsLabel: "Prueba:",
+    chips: ["Piso de 3 ambientes con jardín", "Villa en Tradate", "Ático con terraza", "Casa por menos de 300.000 €"],
   },
 };
 
@@ -52,6 +62,7 @@ export default function HomeSearchGateway() {
   const router = useRouter();
 
   const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const [comune, setComune] = useState("");
   const [type, setType] = useState("");
   const [budget, setBudget] = useState("0");
@@ -96,6 +107,7 @@ export default function HomeSearchGateway() {
               <div className="mt-5 flex items-center gap-2 rounded-2xl border border-line bg-cream p-3">
                 <Search className="ml-1 h-5 w-5 shrink-0 text-stone" />
                 <input
+                  ref={inputRef}
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder={d.search.nlPlaceholder}
@@ -104,6 +116,25 @@ export default function HomeSearchGateway() {
                 />
               </div>
               <p className="mt-2 pl-1 text-[0.8rem] text-stone">{d.search.nlHint}</p>
+
+              {/* Chip di esempio: cliccando si compila l'input in linguaggio naturale (nessun
+                  auto-invio: l'utente può ritoccare la frase prima di cercare). */}
+              <div className="mt-3 flex flex-wrap items-center gap-2 pl-1">
+                <span className="text-[0.72rem] font-medium text-stone/80">{c.chipsLabel}</span>
+                {c.chips.map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => {
+                      setQ(chip);
+                      inputRef.current?.focus();
+                    }}
+                    className="inline-flex min-h-[40px] items-center rounded-full border border-line bg-cream px-3.5 py-2 text-[0.8rem] text-graphite transition-colors duration-300 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
 
               {/* filtri classici */}
               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

@@ -30,6 +30,8 @@ export type Property = {
   energyClass?: string;
   /** true se l'immobile è venduto/affittato (da nascondere di default nelle ricerche). */
   sold?: boolean;
+  /** Riferimento commerciale mostrato all'utente (es. "1043"), se fornito dal gestionale. */
+  ref?: string;
 };
 
 export const properties: Property[] = [

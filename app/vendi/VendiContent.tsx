@@ -64,6 +64,7 @@ type Copy = {
     proof: string;
     ctaLabel: string;
   };
+  openDomus: { text: string; cta: string };
 };
 
 const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
@@ -210,6 +211,10 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         "È lo stesso metodo che i venditori raccontano nelle loro recensioni, che dà vita agli eventi Open Domus e che porta alla certificazione Domus D.O.C.",
       ctaLabel: "Richiedi una valutazione seria",
     },
+    openDomus: {
+      text: "Il momento clou della vendita è l’Open Domus: un evento che concentra gli acquirenti giusti e accelera le proposte.",
+      cta: "Vorrei vendere con Open Domus",
+    },
   },
   en: {
     hero: {
@@ -353,6 +358,10 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       proof:
         "It’s the same method sellers describe in their reviews, that brings the Open Domus events to life and that leads to the Domus D.O.C. certification.",
       ctaLabel: "Request a serious valuation",
+    },
+    openDomus: {
+      text: "The high point of the sale is Open Domus: an event that concentrates the right buyers and speeds up offers.",
+      cta: "I’d like to sell with Open Domus",
     },
   },
   fr: {
@@ -498,6 +507,10 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         "C’est la même méthode que les vendeurs racontent dans leurs avis, qui donne vie aux événements Open Domus et qui mène à la certification Domus D.O.C.",
       ctaLabel: "Demandez une estimation sérieuse",
     },
+    openDomus: {
+      text: "Le point fort de la vente, c’est l’Open Domus : un événement qui concentre les bons acquéreurs et accélère les offres.",
+      cta: "Je veux vendre avec Open Domus",
+    },
   },
   de: {
     hero: {
@@ -641,6 +654,10 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       proof:
         "Es ist dieselbe Methode, die Verkäufer in ihren Bewertungen beschreiben, die die Open-Domus-Events zum Leben erweckt und die zur Zertifizierung Domus D.O.C. führt.",
       ctaLabel: "Seriöse Bewertung anfragen",
+    },
+    openDomus: {
+      text: "Der Höhepunkt des Verkaufs ist Open Domus: ein Event, das die richtigen Käufer bündelt und die Angebote beschleunigt.",
+      cta: "Ich möchte mit Open Domus verkaufen",
     },
   },
   es: {
@@ -786,6 +803,10 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         "Es el mismo método que los vendedores cuentan en sus reseñas, que da vida a los eventos Open Domus y que conduce a la certificación Domus D.O.C.",
       ctaLabel: "Solicita una valoración seria",
     },
+    openDomus: {
+      text: "El momento clave de la venta es el Open Domus: un evento que concentra a los compradores adecuados y acelera las ofertas.",
+      cta: "Quiero vender con Open Domus",
+    },
   },
 };
 
@@ -926,6 +947,26 @@ export default function VendiContent() {
         rows={c.sellSteps}
         tone="cream"
       />
+
+      {/* CTA Open Domus per il venditore — collega l'asset proprietario alla vendita. */}
+      <section className="bg-ink">
+        <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
+          <Reveal className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-cream balance sm:text-[1.9rem]">
+              {c.openDomus.text}
+            </p>
+            <a
+              href="/open-domus"
+              className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+            >
+              {c.openDomus.cta}
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                <ArrowUpRight className="h-4 w-4" />
+              </span>
+            </a>
+          </Reveal>
+        </div>
+      </section>
 
       <BeforeAfter />
       <DomusDocProtocol tone="cream" />
