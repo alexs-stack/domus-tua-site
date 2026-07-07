@@ -20,6 +20,7 @@ export default function MobileActionBar() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [show, setShow] = useState(false);
+  const [atContact, setAtContact] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setShow(window.scrollY > 520);
@@ -28,10 +29,26 @@ export default function MobileActionBar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Nascondi la barra quando la sezione contatti è in vista: lì c'è già il form con la sua CTA,
+  // così la barra ("Valuta gratis") non compete né copre il modulo. Su pagine senza #contatti
+  // (osservatore non agganciato) il comportamento resta invariato.
+  useEffect(() => {
+    const el = document.getElementById("contatti");
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => setAtContact(entry.isIntersecting),
+      { rootMargin: "0px 0px -35% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const visible = show && !atContact;
+
   return (
     <div
       className={`fixed inset-x-3 z-40 flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] sm:hidden ${
-        show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
+        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       }`}
       style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >

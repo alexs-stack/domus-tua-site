@@ -271,6 +271,7 @@ export default function Contact({
   const c = copy[locale];
   const [intent, setIntent] = useState<LeadIntent>(initialIntent ?? "seller");
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; contact?: string; consent?: string }>({});
 
   // Deep-link: /contatti?intent=buyer (o seller/question/open-domus) preseleziona il tab giusto,
@@ -330,6 +331,12 @@ export default function Contact({
     if (!consent) nextErrors.consent = c.errConsent;
     if (nextErrors.name || nextErrors.contact || nextErrors.consent) {
       setErrors(nextErrors);
+      // A11y: porta il focus sul primo campo non valido (dopo il re-render).
+      const form = e.currentTarget;
+      const firstInvalid = nextErrors.name ? "name" : nextErrors.contact ? "contact" : "consent";
+      requestAnimationFrame(() =>
+        form.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus(),
+      );
       return;
     }
     setErrors({});
@@ -350,9 +357,11 @@ export default function Contact({
     };
 
     // Cattura server-side (Google Sheet se configurato) — best-effort, non blocca il flusso.
-    void submitLead(lead);
+    // `submitting` disabilita il bottone durante la scrittura (niente doppio invio) e dà feedback.
+    setSubmitting(true);
+    void submitLead(lead).finally(() => setSubmitting(false));
 
-    // Canale immediato: WhatsApp precompilato.
+    // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
     window.open(url, "_blank", "noopener,noreferrer");
     setSent(true);
@@ -439,6 +448,7 @@ export default function Contact({
                 label={c.nameLabel}
                 placeholder={c.namePlaceholder}
                 required
+                autoComplete="name"
                 error={errors.name}
               />
               <Field
@@ -480,11 +490,17 @@ export default function Contact({
 
               <button
                 type="submit"
-                className="group mt-1 flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-6 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+                disabled={submitting}
+                aria-busy={submitting}
+                className="group mt-1 flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-6 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {submitLabels[intent]}
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
+                  {submitting ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  ) : (
+                    <ArrowUpRight className="h-4 w-4" />
+                  )}
                 </span>
               </button>
               {sent ? (
@@ -562,6 +578,7 @@ function Field({
   required,
   error,
   defaultValue,
+  autoComplete,
 }: {
   name: string;
   label: string;
@@ -570,6 +587,7 @@ function Field({
   required?: boolean;
   error?: string;
   defaultValue?: string;
+  autoComplete?: string;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -583,6 +601,7 @@ function Field({
         placeholder={placeholder}
         defaultValue={defaultValue}
         required={required}
+        autoComplete={autoComplete}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}
         className={`rounded-xl border bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${

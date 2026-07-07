@@ -214,7 +214,7 @@ const copy = {
 // getVisibleListings (oggi fixture demo, domani RealSmart). Qui nessun dato viene
 // inventato: la striscia "related" è opzionale e, se assente, mostra solo il link a /case.
 export default function PropertyDetail({ p, related }: { p: Property; related?: Property[] }) {
-  const { locale } = useLocale();
+  const { locale, d } = useLocale();
   const c = copy[locale];
 
   // Dati reali RealSmart: Terreno/Commerciale hanno locali/camere/bagni a "—".
@@ -247,14 +247,21 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   return (
     <main className="flex-1 bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 pt-32 sm:px-8 sm:pt-36">
-        {/* Breadcrumb */}
-        <Link
-          href="/case"
-          className="group inline-flex items-center gap-2 text-sm font-medium text-stone transition-colors hover:text-ink"
-        >
-          <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-300 group-hover:-translate-x-1" />
-          {c.backToAll}
-        </Link>
+        {/* Breadcrumb: orientamento Home › Case › immobile corrente (allineato al JSON-LD). */}
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-stone">
+          <Link href="/" className="transition-colors hover:text-ink">
+            Domus Tua
+          </Link>
+          <span aria-hidden className="text-line">/</span>
+          <Link href="/case" className="inline-flex items-center gap-1.5 transition-colors hover:text-ink">
+            <ArrowRight className="h-3.5 w-3.5 rotate-180" aria-hidden />
+            {d.nav.case}
+          </Link>
+          <span aria-hidden className="text-line">/</span>
+          <span aria-current="page" className="max-w-[16rem] truncate font-medium text-graphite">
+            {p.title}
+          </span>
+        </nav>
 
         {/* Stato "venduto": messaggio chiaro + CTA "cerco una casa simile" (WhatsApp).
             Difensivo: oggi gli immobili venduti sono esclusi dalle pagine generate, ma se il

@@ -120,7 +120,7 @@ export default function HomeSearchGateway() {
               {/* Chip di esempio: cliccando si compila l'input in linguaggio naturale (nessun
                   auto-invio: l'utente può ritoccare la frase prima di cercare). */}
               <div className="mt-3 flex flex-wrap items-center gap-2 pl-1">
-                <span className="text-[0.72rem] font-medium text-stone/80">{c.chipsLabel}</span>
+                <span className="text-[0.72rem] font-medium text-stone">{c.chipsLabel}</span>
                 {c.chips.map((chip) => (
                   <button
                     key={chip}

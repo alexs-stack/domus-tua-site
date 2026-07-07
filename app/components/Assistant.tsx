@@ -381,7 +381,7 @@ export default function Assistant() {
               <SendIcon className="h-5 w-5" />
             </button>
           </form>
-          <p className="bg-cream px-4 pb-3 text-center text-[0.68rem] leading-snug text-stone/80">{c.disclaimer}</p>
+          <p className="bg-cream px-4 pb-3 text-center text-[0.68rem] leading-snug text-stone">{c.disclaimer}</p>
         </div>
       )}
     </>

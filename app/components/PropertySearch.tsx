@@ -573,6 +573,8 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               </button>
             </div>
           </div>
+          {/* Regione live: annuncia a screen reader il passaggio teaser → risultato/errore. */}
+          <div role="status" aria-live="polite">
           {ai ? (
             <p className="mt-3 flex flex-wrap items-center gap-2 pl-2 text-[0.82rem] text-stone">
               <span>
@@ -591,6 +593,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
           ) : (
             <p className="mt-3 pl-2 text-[0.82rem] text-stone">{c.teaser}</p>
           )}
+          </div>
         </Reveal>
 
         {/* Filtri */}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { ArrowUpRight, Whatsapp } from "./Icons";
 import { nav, site } from "../lib/site";
@@ -12,6 +13,9 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const d = useDict();
+  const pathname = usePathname();
+  // Voce di nav attiva: match esatto o prefisso di sezione (es. /case/<slug> → "Case" attivo).
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
 
@@ -103,19 +107,29 @@ export default function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-1 lg:flex">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`rounded-full px-3.5 py-2 text-[0.82rem] font-medium transition-colors duration-300 ${
-                scrolled
-                  ? "text-graphite hover:bg-cream-deep hover:text-ink"
-                  : "text-cream/90 hover:bg-cream/15 hover:text-white"
-              }`}
-            >
-              {d.nav[item.key]}
-            </Link>
-          ))}
+          {nav.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`rounded-full px-3.5 py-2 text-[0.82rem] transition-colors duration-300 ${
+                  active ? "font-semibold" : "font-medium"
+                } ${
+                  scrolled
+                    ? active
+                      ? "bg-red-soft text-red-dark"
+                      : "text-graphite hover:bg-cream-deep hover:text-ink"
+                    : active
+                      ? "bg-cream/20 text-white"
+                      : "text-cream/90 hover:bg-cream/15 hover:text-white"
+                }`}
+              >
+                {d.nav[item.key]}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -187,19 +201,23 @@ export default function Header() {
         }`}
       >
         <nav className="flex flex-col">
-          {nav.map((item, i) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className={`border-b border-line/70 py-4 font-display text-3xl font-medium text-ink transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                open ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-              }`}
-              style={{ transitionDelay: open ? `${120 + i * 55}ms` : "0ms" }}
-            >
-              {d.nav[item.key]}
-            </Link>
-          ))}
+          {nav.map((item, i) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                aria-current={active ? "page" : undefined}
+                className={`border-b border-line/70 py-4 font-display text-3xl font-medium transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  active ? "text-red" : "text-ink"
+                } ${open ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
+                style={{ transitionDelay: open ? `${120 + i * 55}ms` : "0ms" }}
+              >
+                {d.nav[item.key]}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="mt-auto flex flex-col gap-3 pt-8">
