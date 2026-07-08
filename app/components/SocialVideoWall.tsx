@@ -37,7 +37,7 @@ const FEATURED_YT_ID = V.featured.id;
 // accanto al video). Thumbnail PULITA (foto reale del team), senza testo "cotto" nell'immagine.
 const reel: Vid = {
   titleKey: "vReel",
-  thumb: "/images/reali/team-red.jpg",
+  thumb: "/images/reali/team-group.jpg",
   href: yt(V.testimonial.id),
   kind: "opendomus",
 };
@@ -293,7 +293,8 @@ export default function SocialVideoWall() {
         <Reveal delay={80} className="mt-12">
           <span className="eyebrow">{c.featuredEyebrow}</span>
           <div className="mt-4 grid items-center gap-6 lg:grid-cols-[1.65fr_1fr] lg:gap-10">
-            <LazyYouTubeEmbed id={FEATURED_YT_ID} title={c.vFeatured} />
+            {/* Poster curato 16:9 (foto reale del team) → niente bande nere da video verticale. */}
+            <LazyYouTubeEmbed id={FEATURED_YT_ID} title={c.vFeatured} poster="/images/reali/raffaela-team-sede.jpg" />
             <div>
               <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.9rem]">
                 {c.vFeatured}
