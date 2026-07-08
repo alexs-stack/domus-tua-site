@@ -33,17 +33,11 @@ const V = site.videos;
 // Reel/verticale in evidenza: player leggero (carica l'iframe solo al click).
 const FEATURED_YT_ID = V.featured.id;
 
-const featured: Vid = {
-  titleKey: "vFeatured",
-  thumb: "/images/reali/video/recensione-teresa.jpg",
-  href: yt(V.reviews[0].id),
-  kind: "recensione",
-};
-
-// Card verticale stile reel/social, per dare ritmo al muro.
+// Reel social — ora entra nella collezione qui sotto (niente più card verticale sproporzionata
+// accanto al video). Thumbnail PULITA (foto reale del team), senza testo "cotto" nell'immagine.
 const reel: Vid = {
   titleKey: "vReel",
-  thumb: "/images/reali/video/villa-lago.jpg",
+  thumb: "/images/reali/team-red.jpg",
   href: yt(V.testimonial.id),
   kind: "opendomus",
 };
@@ -258,35 +252,6 @@ function VideoCard({ v, small, c }: { v: Vid; small?: boolean; c: Copy }) {
   );
 }
 
-// Card verticale stile reel/social (9:16), per far sentire la sezione "social".
-function ReelCard({ v, c }: { v: Vid; c: Copy }) {
-  const title = c[v.titleKey as keyof Copy];
-  return (
-    <a
-      href={v.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group relative block overflow-hidden rounded-[1.5rem] border border-line bg-ink"
-    >
-      <div className="relative aspect-[9/16] w-full">
-        <Image
-          src={v.thumb}
-          alt={title}
-          fill
-          sizes="(max-width:1024px) 50vw, 320px"
-          className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-        />
-        <span className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-ink/5" />
-        <span className="absolute left-3 top-3 rounded-full bg-red px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white">
-          {c.reelBadge}
-        </span>
-        <PlayBadge small />
-        <p className="absolute inset-x-4 bottom-4 text-sm font-medium leading-snug text-white">{title}</p>
-      </div>
-    </a>
-  );
-}
-
 export default function SocialVideoWall() {
   const { locale } = useLocale();
   const c = copy[locale];
@@ -299,7 +264,7 @@ export default function SocialVideoWall() {
     { key: "tour", label: c.catTour },
     { key: "dietro", label: c.catDietro },
   ];
-  const gridItems: Vid[] = [featured, ...wall];
+  const gridItems: Vid[] = [reel, ...wall];
   const visible = active === "all" ? gridItems : gridItems.filter((v) => v.kind === active);
 
   return (
@@ -323,18 +288,28 @@ export default function SocialVideoWall() {
           </div>
         </Reveal>
 
-        {/* Video in evidenza (player leggero) + reel verticale */}
+        {/* Video in evidenza: player leggero (iframe solo al click) + titolo e CTA a fianco,
+            verticalmente centrati. Blocco bilanciato, niente accostamento sproporzionato. */}
         <Reveal delay={80} className="mt-12">
-          <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr]">
+          <span className="eyebrow">{c.featuredEyebrow}</span>
+          <div className="mt-4 grid items-center gap-6 lg:grid-cols-[1.65fr_1fr] lg:gap-10">
+            <LazyYouTubeEmbed id={FEATURED_YT_ID} title={c.vFeatured} />
             <div>
-              <span className="eyebrow">{c.featuredEyebrow}</span>
-              <div className="mt-3">
-                {/* Carica l'iframe SOLO al click: nessun player pesante al mount. */}
-                <LazyYouTubeEmbed id={FEATURED_YT_ID} title={c.vFeatured} />
-              </div>
-              <p className="mt-3 text-sm font-medium text-ink">{c.vFeatured}</p>
+              <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.9rem]">
+                {c.vFeatured}
+              </h3>
+              <a
+                href={site.social.youtube.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
+                <YouTube className="h-4 w-4" /> {c.ctaWatch}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
             </div>
-            <ReelCard v={reel} c={c} />
           </div>
         </Reveal>
 
