@@ -12,11 +12,12 @@ import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
-import { ArrowUpRight, Check } from "../components/Icons";
+import { ArrowUpRight } from "../components/Icons";
 import {
   SegnoDomusBadge,
   SegnoDomusCorner,
   SegnoDomusDivider,
+  SegnoTick,
 } from "../components/BrandMotif";
 
 type SellStep = {
@@ -877,7 +878,7 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
                     {it.n}
                   </span>
                   <span className="flex h-7 w-7 items-center justify-center rounded-full border border-red/20 text-red">
-                    <Check className="h-4 w-4" />
+                    <SegnoTick className="h-4 w-4" />
                   </span>
                 </div>
                 <h3 className="mt-6 font-display text-xl font-medium leading-snug tracking-tight text-ink">

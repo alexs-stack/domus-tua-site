@@ -15,6 +15,7 @@ import {
   SegnoDomusBadge,
   SegnoDomusCorner,
   SegnoDomusDivider,
+  SegnoTick,
 } from "../components/BrandMotif";
 
 const copy = {
@@ -906,7 +907,7 @@ export default function OpenDomusPageContent() {
                   {c.sellerItems.map((item) => (
                     <li key={item} className="flex items-start gap-3 text-[0.95rem] leading-snug text-graphite">
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                        <Check className="h-3 w-3" />
+                        <SegnoTick className="h-3 w-3" />
                       </span>
                       {item}
                     </li>
@@ -924,7 +925,7 @@ export default function OpenDomusPageContent() {
                   {c.buyerItems.map((item) => (
                     <li key={item} className="flex items-start gap-3 text-[0.95rem] leading-snug text-graphite">
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                        <Check className="h-3 w-3" />
+                        <SegnoTick className="h-3 w-3" />
                       </span>
                       {item}
                     </li>
