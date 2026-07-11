@@ -160,6 +160,25 @@ async function main() {
   const reservedCount = Object.values(items).filter((i) => i.state === "reserved").length;
   const sortedItems: Record<string, Item> = {};
   for (const k of Object.keys(items).sort()) sortedItems[k] = items[k];
+
+  const errors = Object.values(items).filter((i) => i.error).length;
+  console.log(
+    `[detect-sold] fatto: ${soldCount} venduti, ${reservedCount} in trattativa / ${listings.length} (riusati ${reused}, errori ${errors})`,
+  );
+
+  // Riscrivi SOLO se lo stato è cambiato davvero: `generatedAt` da solo non deve generare
+  // commit/deploy a vuoto (lo scheduler gira ogni poche ore). Confronto items + counts.
+  const unchanged =
+    prev !== null &&
+    JSON.stringify(prev.items) === JSON.stringify(sortedItems) &&
+    prev.counts?.sold === soldCount &&
+    prev.counts?.reserved === reservedCount &&
+    prev.counts?.total === listings.length;
+  if (unchanged) {
+    console.log(`[detect-sold] nessuna variazione di stato → file invariato (${OUT_PATH})`);
+    return;
+  }
+
   const store: Store = {
     generatedAt: new Date().toISOString(),
     feed,
@@ -167,11 +186,6 @@ async function main() {
     items: sortedItems,
   };
   writeFileSync(OUT_PATH, JSON.stringify(store, null, 2) + "\n");
-
-  const errors = Object.values(items).filter((i) => i.error).length;
-  console.log(
-    `[detect-sold] fatto: ${soldCount} venduti, ${reservedCount} in trattativa / ${listings.length} (riusati ${reused}, errori ${errors})`,
-  );
   console.log(`[detect-sold] scritto ${OUT_PATH}`);
 }
 
