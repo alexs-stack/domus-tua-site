@@ -44,3 +44,6 @@ next-env.d.ts
 # asset di lavoro non necessari nel repo
 /_assets_raw
 /public/images/reali/yt
+
+# dati lingua tesseract scaricati da scripts/detect-sold.ts (rigenerabili)
+*.traineddata
