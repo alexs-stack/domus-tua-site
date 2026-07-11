@@ -474,7 +474,7 @@ export default function Contact({
                     name="consent"
                     aria-invalid={errors.consent ? true : undefined}
                     aria-describedby={errors.consent ? "consent-error" : undefined}
-                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-line accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                    className="mt-0.5 h-5 w-5 shrink-0 rounded border-line accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                   />
                   <span>
                     {c.consentPre}

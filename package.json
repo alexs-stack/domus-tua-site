@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test:parser": "npx --yes tsx scripts/test-parser.ts",
+    "detect-sold": "npx --yes tsx scripts/detect-sold.ts",
     "check": "npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {
@@ -24,7 +25,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4",
+    "tesseract.js": "^7.0.0",
     "typescript": "^5"
   }
 }

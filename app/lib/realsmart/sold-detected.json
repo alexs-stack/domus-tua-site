@@ -1,0 +1,1151 @@
+{
+  "generatedAt": "2026-07-11T18:29:04.937Z",
+  "feed": "https://www.gestim2002.it/portali/immobili_724.xml",
+  "counts": {
+    "total": 190,
+    "sold": 164,
+    "reserved": 3
+  },
+  "items": {
+    "1505": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2832695.jpg",
+      "text": "VENDUTO"
+    },
+    "1618": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523738.jpg",
+      "text": "FRE TN RE FIG E VENDUTO"
+    },
+    "1638": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523737.jpg",
+      "text": "OE VENDUTO TT Y"
+    },
+    "1640": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523736.jpg",
+      "text": "VENDUTO"
+    },
+    "1665": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523723.jpg",
+      "text": "PY RE FI CG VENDUTO EL"
+    },
+    "1722": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523722.jpg",
+      "text": "A Y PEL CG VENDUTO W"
+    },
+    "1735": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523720.jpg",
+      "text": "FY PIVY RO LO I CG VENDUTO A A TW RY PREUN TXLG"
+    },
+    "1740": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523719.jpg",
+      "text": "VENDUTO PRA POS TA"
+    },
+    "1748": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523679.jpg",
+      "text": "AA I EI TE IF CG VENDUTO EA NLY GB GT JI"
+    },
+    "1750": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523652.jpg",
+      "text": "TOA A VENDUTO NJ"
+    },
+    "1751": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523651.jpg",
+      "text": "HIL NK GC VENDUTO X LI"
+    },
+    "1768": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523643.jpg",
+      "text": "A Y VENDUTO OE V T"
+    },
+    "1771": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523641.jpg",
+      "text": "C VENDUTO OU YILD TH"
+    },
+    "1778": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523638.jpg",
+      "text": "VENDUTO"
+    },
+    "1783": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523629.jpg",
+      "text": "LN VENDUTO WR"
+    },
+    "1784": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523630.jpg",
+      "text": "A NB VENDUTO"
+    },
+    "1790": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523637.jpg",
+      "text": "BL AL A VENDUTO TA"
+    },
+    "1791": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523636.jpg",
+      "text": "HAE RV VENDUTO"
+    },
+    "1792": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523635.jpg",
+      "text": "EU VENDUTO"
+    },
+    "1795": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523634.jpg",
+      "text": "IIL VEND TIE UR LL TO"
+    },
+    "1802": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2666356.jpg",
+      "text": "VENDUTO"
+    },
+    "1806": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523626.jpg",
+      "text": "FR VENDUTO"
+    },
+    "1808": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523621.jpg",
+      "text": "BE WP BY G CG VENDUTO"
+    },
+    "1809": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523622.jpg",
+      "text": "IS LI H A EP TY WE HU A L EO I EN BE WAT CG PY VENDUTO BLA L"
+    },
+    "1813": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523618.jpg",
+      "text": "VENDUTO"
+    },
+    "1814": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523617.jpg",
+      "text": "GC VENDUTO E"
+    },
+    "1816": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523623.jpg",
+      "text": "ALY Y LS RE OD CG VENDUTO"
+    },
+    "1823": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523616.jpg",
+      "text": "HD BORN OL RALLY I EP RF OG TOU A S FO IE VENDUTO LSA"
+    },
+    "1824": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523615.jpg",
+      "text": "VENDUTO"
+    },
+    "1825": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523495.jpg",
+      "text": "A VENDUTO"
+    },
+    "1829": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523485.jpg",
+      "text": "CFO TIN PRY IR TT A RA VENDUTO I YW PRE"
+    },
+    "1830": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523483.jpg",
+      "text": "VENDUTO"
+    },
+    "1834": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523482.jpg",
+      "text": "CA VENDUTO"
+    },
+    "1835": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523481.jpg",
+      "text": "E VENDUTO PTY TYY OD FY"
+    },
+    "1836": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523480.jpg",
+      "text": "VENDUTO"
+    },
+    "1838": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523478.jpg",
+      "text": "VENDUTO"
+    },
+    "1839": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523459.jpg",
+      "text": "EN J K HIP LEA VENDUTO"
+    },
+    "1840": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523458.jpg",
+      "text": "VENDUTO"
+    },
+    "1843": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523431.jpg",
+      "text": "VENDUTO"
+    },
+    "1844": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523392.jpg",
+      "text": "VENDUTO"
+    },
+    "1846": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523377.jpg",
+      "text": "FE GC VENDUTO"
+    },
+    "1847": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523374.jpg",
+      "text": "A VENDUTO"
+    },
+    "1848": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523324.jpg",
+      "text": "VENDUTO"
+    },
+    "1849": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523322.jpg",
+      "text": "VENDUTO"
+    },
+    "1850": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523263.jpg",
+      "text": "ANT PE N EERDERK I VENDUTO"
+    },
+    "1851": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523258.jpg",
+      "text": "OL VENDUTO"
+    },
+    "1854": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523221.jpg",
+      "text": "A VENDUTO"
+    },
+    "1855": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523220.jpg",
+      "text": "VENDUTO"
+    },
+    "1857": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-1902504.jpg",
+      "text": ""
+    },
+    "1859": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523219.jpg",
+      "text": "I VENDUTO"
+    },
+    "1860": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523217.jpg",
+      "text": "VENDUTO"
+    },
+    "1861": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523216.jpg",
+      "text": "N TE JA VENDUTO"
+    },
+    "1862": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523215.jpg",
+      "text": "ANY VENDUTO"
+    },
+    "1863": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523214.jpg",
+      "text": "RE Q VENDUTO RL AR"
+    },
+    "1864": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2426822.jpg",
+      "text": "A EO A REY A HT K"
+    },
+    "1865": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523213.jpg",
+      "text": "PR TR A VENDUTO SY PI SH SHE A EE AFI MEE A SRA RN NN MA YY "
+    },
+    "1866": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523212.jpg",
+      "text": "P VENDUTO"
+    },
+    "1867": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523211.jpg",
+      "text": "ET TTT TTT GT VENDUTO LO"
+    },
+    "1868": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523210.jpg",
+      "text": "A VENDU YY"
+    },
+    "1870": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523208.jpg",
+      "text": "VENDUTO"
+    },
+    "1872": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523207.jpg",
+      "text": "LIL VENDUTO"
+    },
+    "1873": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523195.jpg",
+      "text": "A VENDUTO PR EO"
+    },
+    "1875": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523193.jpg",
+      "text": "VENDUTO"
+    },
+    "1876": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523192.jpg",
+      "text": "ET VENDUTO EE A NN"
+    },
+    "1877": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523190.jpg",
+      "text": "I VENDUTO"
+    },
+    "1878": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523189.jpg",
+      "text": "VENDUTO ES IS TH AIG"
+    },
+    "1881": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523129.jpg",
+      "text": "VENDUTO"
+    },
+    "1882": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523128.jpg",
+      "text": "A ALI A YA BO VENDUTO"
+    },
+    "1883": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523127.jpg",
+      "text": "ANT VENDUTO"
+    },
+    "1884": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523126.jpg",
+      "text": "AM I Y JU PR ES YT AX V CG VENDUTO PRA SIN EFA A OO A"
+    },
+    "1887": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523124.jpg",
+      "text": "P AAD V FLA ENDU RO X UE I DL"
+    },
+    "1889": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523121.jpg",
+      "text": "IL VENDUTO"
+    },
+    "1891": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2882084.jpg",
+      "text": ""
+    },
+    "1892": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523120.jpg",
+      "text": "VENDUTO"
+    },
+    "1895": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2570905.jpg",
+      "text": "O VENDUTO"
+    },
+    "1896": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523116.jpg",
+      "text": "WU VENDUTO"
+    },
+    "1897": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523111.jpg",
+      "text": "VENDUTO"
+    },
+    "1898": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523110.jpg",
+      "text": "RIE BO VENDUTO"
+    },
+    "1899": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523109.jpg",
+      "text": "VENDUTO"
+    },
+    "1900": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523106.jpg",
+      "text": "GAME VENDUTO"
+    },
+    "1901": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523104.jpg",
+      "text": "P E VENDUTO"
+    },
+    "1902": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523074.jpg",
+      "text": "KOTE VENDUTO R SE"
+    },
+    "1903": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523073.jpg",
+      "text": "VENDUTO"
+    },
+    "1904": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523063.jpg",
+      "text": "A A THAM VENDUTO A"
+    },
+    "1905": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523053.jpg",
+      "text": "J X AN AE PP EE I ER F CC VENDUTO OW"
+    },
+    "1906": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523049.jpg",
+      "text": "VENDUTO"
+    },
+    "1907": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523019.jpg",
+      "text": "RS VENDUTO"
+    },
+    "1908": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523016.jpg",
+      "text": "FL ENA RV F FZ VEND UTO"
+    },
+    "1909": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2165371.jpg",
+      "text": ""
+    },
+    "1910": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523015.jpg",
+      "text": "PA LIM GY I VENDUTO"
+    },
+    "1911": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523013.jpg",
+      "text": "PV VE N DUTO"
+    },
+    "1912": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2646518.jpg",
+      "text": "TE A EEE GK TAT THE CG VENDUTO"
+    },
+    "1913": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523011.jpg",
+      "text": "LU VENDUTO"
+    },
+    "1914": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523010.jpg",
+      "text": "REMW IN HAG FT PO HE FA VENDUTO ZEON VB"
+    },
+    "1918": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523009.jpg",
+      "text": "GC VENDUTO"
+    },
+    "1920": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523007.jpg",
+      "text": "VENDUTO"
+    },
+    "1922": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523006.jpg",
+      "text": "FOD VENDUTO"
+    },
+    "1925": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523005.jpg",
+      "text": "Q NY WR VENDUTO"
+    },
+    "1926": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2555003.jpg",
+      "text": "VENDUTO VI W AXIN"
+    },
+    "1927": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2522964.jpg",
+      "text": "M TW L EL RIE ID PD ON E VENDUTO"
+    },
+    "1931": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2522961.jpg",
+      "text": "D VENDUTO OAN NN"
+    },
+    "1933": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2695601.jpg",
+      "text": "V VENDUTO"
+    },
+    "1934": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2522960.jpg",
+      "text": "ATA VENDUTO"
+    },
+    "1938": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2522901.jpg",
+      "text": "A FY D IY LA WN OH NG B Y FA WE ER VENDUTO OR A LX"
+    },
+    "1940": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2666355.jpg",
+      "text": "J A VENDUTO"
+    },
+    "1942": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2666354.jpg",
+      "text": "VENDUTO"
+    },
+    "1946": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2522898.jpg",
+      "text": "VENDUTO ETN S"
+    },
+    "1947": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2646517.jpg",
+      "text": "VENDUTO"
+    },
+    "1948": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2352337.jpg",
+      "text": "AR AY TU I LJ J J HE CRYER G ID"
+    },
+    "1952": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2361880.jpg",
+      "text": "FR"
+    },
+    "1954": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2617104.jpg",
+      "text": "BI A P HK A WAT CITA PSY SEE UE AA A PT CG VENDUTO EAS A KS "
+    },
+    "1955": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2695600.jpg",
+      "text": "VENDUTO"
+    },
+    "1956": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2979908.jpg",
+      "text": "VENDUTO"
+    },
+    "1958": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2666353.jpg",
+      "text": "VENDUTO"
+    },
+    "1959": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2858347.jpg",
+      "text": "HG ED ARS TEER LE EH TY FR SE HY ZA A BL EI F EP AP HAO A FU"
+    },
+    "1960": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2973763.jpg",
+      "text": "VENDUTO"
+    },
+    "1962": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2721116.jpg",
+      "text": "HE F VENDUTO"
+    },
+    "1964": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2728344.jpg",
+      "text": "WE RY PRELIMINARE"
+    },
+    "1965": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933963.jpg",
+      "text": "A VENDUTO"
+    },
+    "1966": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2655722.jpg",
+      "text": "VENDUTO"
+    },
+    "1967": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933962.jpg",
+      "text": "M VENDUTO"
+    },
+    "1968": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2570789.jpg",
+      "text": "VENDUTO"
+    },
+    "1969": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2588084.jpg",
+      "text": "LEE SE A I CIE VENDUTO"
+    },
+    "1970": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2858291.jpg",
+      "text": "GC VENDUTO OF I"
+    },
+    "1973": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2420437.jpg",
+      "text": "BE HI IAL SN EN"
+    },
+    "1976": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2617090.jpg",
+      "text": "I NS LY A ALE A VENDUTO WO"
+    },
+    "1977": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2427115.jpg",
+      "text": "W"
+    },
+    "1978": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2646516.jpg",
+      "text": "H CL I VENDUTO"
+    },
+    "1979": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2972868.jpg",
+      "text": "MY C VENPUROR OE"
+    },
+    "1981": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2646540.jpg",
+      "text": "OD X A I I SP VE NDUTO B"
+    },
+    "1982": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2646541.jpg",
+      "text": "A VENDUTO"
+    },
+    "1985": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2522845.jpg",
+      "text": "A V VENDUTO"
+    },
+    "1986": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2858290.jpg",
+      "text": "SX VENDUTO"
+    },
+    "1987": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2979795.jpg",
+      "text": "ETRY SA RD C VENDUTO JJ"
+    },
+    "1988": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2646539.jpg",
+      "text": "AVES VENDUTO"
+    },
+    "1989": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2799720.jpg",
+      "text": "VENDUTO"
+    },
+    "1991": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2895485.jpg",
+      "text": "JERE VENDUTO"
+    },
+    "1993": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2695599.jpg",
+      "text": "VENDUTO"
+    },
+    "1996": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2764543.jpg",
+      "text": "MI VENDUTO I"
+    },
+    "1997": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2165371.jpg",
+      "text": ""
+    },
+    "1998": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2946929.jpg",
+      "text": "VENDUTO"
+    },
+    "1999": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2895487.jpg",
+      "text": "VENDUTA"
+    },
+    "2000": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2666243.jpg",
+      "text": "RE DAA PRELIMINARE"
+    },
+    "2001": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2973965.jpg",
+      "text": "ERA PN SA ENDUTO I AH"
+    },
+    "2004": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2858289.jpg",
+      "text": "RJ PITRE VENDUTO"
+    },
+    "2005": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2581008.jpg",
+      "text": "AD O A J YE"
+    },
+    "2006": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933960.jpg",
+      "text": "B VENDUTO"
+    },
+    "2009": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2858287.jpg",
+      "text": "EH A LJ AP VENDUTO"
+    },
+    "2010": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933959.jpg",
+      "text": "A C VENDUTO I"
+    },
+    "2011": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933957.jpg",
+      "text": "A IA DID RIR LL Y C VENDUTO TA EH A J"
+    },
+    "2012": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2705449.jpg",
+      "text": "NIL P HI VENDUTO"
+    },
+    "2014": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2829100.jpg",
+      "text": "VENDUTO NY PO AA"
+    },
+    "2015": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2895495.jpg",
+      "text": "VENDUTA"
+    },
+    "2016": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2779162.jpg",
+      "text": "I JI VENDUTO ED"
+    },
+    "2017": {
+      "sold": false,
+      "state": "reserved",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2872292.jpg",
+      "text": "IN TRATTATIVA"
+    },
+    "2018": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2895494.jpg",
+      "text": "LE VENDUTO"
+    },
+    "2019": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2858286.jpg",
+      "text": "A EM GE A TOMES PI VO VY Y AM ES WA CG VENDUTO OE KD FE WW O"
+    },
+    "2020": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933956.jpg",
+      "text": "RE YO YE G VENDUTO"
+    },
+    "2022": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933955.jpg",
+      "text": "BY FB VENDUTO"
+    },
+    "2023": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2895493.jpg",
+      "text": "BE VENDUTO"
+    },
+    "2025": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2858285.jpg",
+      "text": "J B I PRELIMINARE"
+    },
+    "2026": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933954.jpg",
+      "text": "VENDUTO"
+    },
+    "2028": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933953.jpg",
+      "text": "ED HAND VENDUTO"
+    },
+    "2029": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2952821.jpg",
+      "text": "VENDUTO"
+    },
+    "2030": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2836038.jpg",
+      "text": "AI A A IG EL"
+    },
+    "2031": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2979750.jpg",
+      "text": "BAD B RYN PRELIMINARE WT LS FIRMA OO WR EM HE"
+    },
+    "2032": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2895489.jpg",
+      "text": "I J PRELIMINARE LG"
+    },
+    "2033": {
+      "sold": false,
+      "state": "reserved",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2853925.jpg",
+      "text": "G IN TRATTATIVA"
+    },
+    "2034": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2972798.jpg",
+      "text": "A IH PRELIMINARE NL PW NG"
+    },
+    "2035": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2940164.jpg",
+      "text": "A PRELIMINARE AN ET YO EM AR IP"
+    },
+    "2036": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2992846.jpg",
+      "text": "J ME WEL AMY OA NG I CAN WY DOM PS SO R PANT EN WE A WIS A A"
+    },
+    "2038": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933879.jpg",
+      "text": "AE X EL AVA PRELIMINARE"
+    },
+    "2039": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2974028.jpg",
+      "text": "PRELIMINARE"
+    },
+    "2040": {
+      "sold": false,
+      "state": "reserved",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2978110.jpg",
+      "text": "G IN TRATTATIVA"
+    },
+    "2041": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2940227.jpg",
+      "text": "SET PRELIMINARE GA RM"
+    },
+    "2042": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2978069.jpg",
+      "text": "PRELIMINARE"
+    },
+    "2043": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2972770.jpg",
+      "text": "FA BD I V UL PRELIMINARE OLY"
+    },
+    "2044": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2987524.jpg",
+      "text": "PRELIMINARE SLA"
+    },
+    "2047": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2913712.jpg",
+      "text": "PB"
+    },
+    "2050": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2956927.jpg",
+      "text": "NV NL EP HE FE"
+    },
+    "2051": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2962708.jpg",
+      "text": "I"
+    },
+    "2052": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2997734.jpg",
+      "text": "LA PRO ACCETTATA"
+    },
+    "2054": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2979920.jpg",
+      "text": "E ER SIA NE VENDUTA HE"
+    },
+    "2055": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2992781.jpg",
+      "text": "SY AZ A RAD A TR A GI"
+    },
+    "2056": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2969706.jpg",
+      "text": ""
+    },
+    "2057": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2992958.jpg",
+      "text": "L S E RY PF PROPOSTA CETTATA AN A AC J I YA HI BA AY"
+    },
+    "2059": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2992749.jpg",
+      "text": "JIF IL IL I J P EE S FEES"
+    },
+    "2060": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2978073.jpg",
+      "text": "FUMI IPRA TY"
+    },
+    "2061": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2987078.jpg",
+      "text": ""
+    },
+    "2065": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2992703.jpg",
+      "text": "A VE A AST LA"
+    }
+  }
+}

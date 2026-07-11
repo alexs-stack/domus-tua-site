@@ -163,6 +163,17 @@ body {
   filter: blur(0);
 }
 
+/* Fallback senza JS: se lo scripting è disattivato (o un crawler non esegue JS),
+   l'IntersectionObserver non aggiunge mai `.is-in` → il contenuto resterebbe
+   invisibile. Qui lo forziamo allo stato finale. */
+@media (scripting: none) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;

@@ -40,7 +40,13 @@ export default function Reveal({
       { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
     );
     io.observe(el);
-    return () => io.disconnect();
+    // Rete di sicurezza: se l'observer non scatta mai (blocco più alto del viewport,
+    // errore di layout), rivela comunque il contenuto per non lasciarlo invisibile.
+    const safety = window.setTimeout(() => setShown(true), 2500);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(safety);
+    };
   }, []);
 
   return (

@@ -188,9 +188,9 @@ export default function HomeSearchGateway() {
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em]">
                   {d.nav.vendi}
                 </span>
-                <h3 className="mt-5 font-display text-2xl font-medium leading-tight tracking-tight sm:text-[1.8rem]">
+                <h2 className="mt-5 font-display text-2xl font-medium leading-tight tracking-tight sm:text-[1.8rem]">
                   {d.search.sellerTitle}
-                </h3>
+                </h2>
               </div>
               <Link
                 href="/#contatti"

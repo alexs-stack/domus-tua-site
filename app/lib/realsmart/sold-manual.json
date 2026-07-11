@@ -1,0 +1,8 @@
+{
+  "_comment": "Override manuali stato venduto/affittato, per codice gestionale. Vince sull'OCR. true = forza 'venduto' (nascosto dalla ricerca di default), false = forza 'disponibile' (es. falso positivo OCR). Il campo _comment è ignorato.",
+  "overrides": {
+    "1795": true,
+    "1887": true,
+    "1979": true
+  }
+}

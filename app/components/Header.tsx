@@ -114,7 +114,7 @@ export default function Header() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-full px-3.5 py-2 text-[0.82rem] transition-colors duration-300 ${
+                className={`whitespace-nowrap rounded-full px-3.5 py-2 text-[0.82rem] transition-colors duration-300 ${
                   active ? "font-semibold" : "font-medium"
                 } ${
                   scrolled

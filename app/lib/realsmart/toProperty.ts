@@ -4,6 +4,7 @@
 
 import type { NormalizedProperty } from "./types";
 import type { Property } from "../properties";
+import { isListingSold } from "./soldOverrides";
 
 /** Bucket di tipologia usati dai filtri del sito. */
 function toType(raw: string): Property["type"] {
@@ -89,13 +90,17 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
   const cover = n.images[0]?.src ?? "/images/premium_01_living_tv_divano.jpg";
   const beds = n.bedrooms > 0 ? n.bedrooms : Math.max(0, n.rooms - 1);
   const paragraphs = toParagraphs(n.description);
-  // Venduto/affittato: da status del gestionale, da badge derivato, o dal titolo "VENDUTO ..."
-  // (il feed forza "published", ma alcune agenzie lasciano gli immobili venduti come vetrina).
+  // Venduto/affittato. Il feed RealSmart forza "published" e NON espone lo stato, ma l'agenzia
+  // lascia i venduti come vetrina marcandoli con un badge "VENDUTO" bruciato sulla copertina.
+  // Fonti, in ordine: status/badge del gestionale, titolo, e infine il rilevamento OCR della
+  // copertina (isListingSold, alimentato da scripts/detect-sold.ts — è quello che scatta per i
+  // venduti reali, dato che il badge vive solo nei pixel dell'immagine).
   const sold =
     n.status === "sold" ||
     n.badges.includes("Venduto") ||
     n.badges.includes("Affittato") ||
-    /\bvendut[oaie]\b/i.test(n.title);
+    /\bvendut[oaie]\b/i.test(n.title) ||
+    isListingSold(n.sourceRef.codice, cover);
   const soldBadge = n.contract === "affitto" ? "Affittato" : "Venduto";
   const badges = sold && !n.badges.includes(soldBadge) ? [soldBadge, ...n.badges] : n.badges;
   return {
