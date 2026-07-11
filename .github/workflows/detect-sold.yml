@@ -1,0 +1,55 @@
+name: Detect sold listings
+
+# Rigenera app/lib/realsmart/sold-detected.json facendo OCR delle copertine del feed
+# RealSmart (l'unico posto dove vive lo stato "venduto"). Gira SOLO qui, mai nel percorso
+# di richiesta del sito. Se il file cambia, committa → il push fa ripartire il deploy.
+#
+# Cadenza: ~4 volte al giorno (il feed si aggiorna qualche volta al giorno). Eseguibile
+# anche a mano da Actions → "Run workflow".
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # ogni 6 ore
+  workflow_dispatch:
+
+# Serve il permesso di scrittura per ricommittare il JSON aggiornato.
+permissions:
+  contents: write
+
+# Niente run sovrapposti (l'incrementale legge il JSON precedente).
+concurrency:
+  group: detect-sold
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    name: OCR cover images → refresh sold map
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Detect sold (incremental OCR)
+        run: npm run detect-sold
+
+      - name: Commit refreshed map (only if changed)
+        run: |
+          if git diff --quiet -- app/lib/realsmart/sold-detected.json; then
+            echo "Nessuna variazione nello stato venduto — niente commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/lib/realsmart/sold-detected.json
+          git commit -m "chore(listings): refresh sold-detected.json"
+          git push
