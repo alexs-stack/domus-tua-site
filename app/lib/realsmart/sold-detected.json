@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-16T18:55:04.392Z",
+  "generatedAt": "2026-07-20T13:47:11.739Z",
   "feed": "https://www.gestim2002.it/portali/immobili_724.xml",
   "counts": {
-    "total": 191,
-    "sold": 164,
-    "reserved": 3
+    "total": 192,
+    "sold": 165,
+    "reserved": 1
   },
   "items": {
     "1505": {
@@ -862,8 +862,8 @@
     "2000": {
       "sold": true,
       "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2666243.jpg",
-      "text": "RE DAA PRELIMINARE"
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010604.jpg",
+      "text": "A OO EL VENDUTO"
     },
     "2001": {
       "sold": true,
@@ -932,10 +932,10 @@
       "text": "I JI VENDUTO ED"
     },
     "2017": {
-      "sold": false,
-      "state": "reserved",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2872292.jpg",
-      "text": "IN TRATTATIVA"
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010603.jpg",
+      "text": "R E VENDUTO"
     },
     "2018": {
       "sold": true,
@@ -970,8 +970,8 @@
     "2025": {
       "sold": true,
       "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2858285.jpg",
-      "text": "J B I PRELIMINARE"
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010602.jpg",
+      "text": "SADAN VENDUTO"
     },
     "2026": {
       "sold": true,
@@ -1018,8 +1018,8 @@
     "2034": {
       "sold": true,
       "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2972798.jpg",
-      "text": "A IH PRELIMINARE NL PW NG"
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010605.jpg",
+      "text": "VENDUTO R"
     },
     "2035": {
       "sold": true,
@@ -1036,8 +1036,8 @@
     "2038": {
       "sold": true,
       "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2933879.jpg",
-      "text": "AE X EL AVA PRELIMINARE"
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010600.jpg",
+      "text": "OF AY A VENDUTO"
     },
     "2039": {
       "sold": true,
@@ -1046,10 +1046,10 @@
       "text": "PRELIMINARE"
     },
     "2040": {
-      "sold": false,
-      "state": "reserved",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2978110.jpg",
-      "text": "G IN TRATTATIVA"
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010599.jpg",
+      "text": "VENDUTO"
     },
     "2041": {
       "sold": true,
@@ -1066,8 +1066,8 @@
     "2043": {
       "sold": true,
       "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2972770.jpg",
-      "text": "FA BD I V UL PRELIMINARE OLY"
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010597.jpg",
+      "text": "JL LA Y VV LTT VENDUTO"
     },
     "2044": {
       "sold": true,
@@ -1080,6 +1080,12 @@
       "state": "available",
       "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2913712.jpg",
       "text": "PB"
+    },
+    "2049": {
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010595.jpg",
+      "text": "V CLG IC VENDUTO"
     },
     "2050": {
       "sold": false,
@@ -1094,10 +1100,10 @@
       "text": ""
     },
     "2052": {
-      "sold": true,
-      "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2997734.jpg",
-      "text": "LA PRO ACCETTATA"
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010594.jpg",
+      "text": "CO DN OQ T LJ"
     },
     "2054": {
       "sold": true,
@@ -1118,10 +1124,10 @@
       "text": ""
     },
     "2057": {
-      "sold": true,
-      "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2992958.jpg",
-      "text": "L S E RY PF PROPOSTA CETTATA AN A AC J I YA HI BA AY"
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3010592.jpg",
+      "text": "EY A Y PRERMATO I AN"
     },
     "2058": {
       "sold": false,
