@@ -103,6 +103,20 @@ export default function PropertyCard({ p }: { p: Property }) {
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 420px"
           className="photo-warm object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
         />
+        {/* Crossfade sulla seconda foto all'hover desktop (un assaggio degli interni). Solo se
+            esiste una seconda immagine reale. `hidden md:block` → su mobile non viene caricata
+            (niente hover sul touch), su desktop appare in dissolvenza. */}
+        {p.gallery.length > 1 && p.gallery[1] !== p.cover && (
+          <Image
+            src={p.gallery[1]!}
+            alt=""
+            aria-hidden
+            fill
+            loading="lazy"
+            sizes="(max-width: 1024px) 50vw, 420px"
+            className="photo-warm hidden object-cover opacity-0 transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 md:block motion-reduce:transition-none"
+          />
+        )}
         {/* Velo per leggibilità delle pill e senso di selezione */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent" />
 
