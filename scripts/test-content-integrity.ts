@@ -19,6 +19,7 @@ import { dirname } from "node:path";
 
 import { site } from "../app/lib/site";
 import { featuredVideo, collectionVideos, assertUniqueVideoIds } from "../app/lib/content";
+import { openDomusCase, verifiedOpenDomusMetrics } from "../app/lib/openDomusCase";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_DIR = join(__dirname, "..", "app");
@@ -89,6 +90,20 @@ if (reviewsSrc.includes("NEXT_PUBLIC_PREVIEW_BADGE")) {
   pass("Reviews.tsx mantiene il gate anteprima per le recensioni demo");
 } else {
   fail("Reviews.tsx non gata più le recensioni demo dietro NEXT_PUBLIC_PREVIEW_BADGE");
+}
+
+// ─── 6. Caso studio Open Domus: video verificato + nessuna metrica non verificata mostrata ──
+if (openDomusCase.story.verified === true) {
+  pass("caso Open Domus: video testimonianza verificato");
+} else {
+  fail("caso Open Domus: il video testimonianza non è verificato");
+}
+const shownMetrics = verifiedOpenDomusMetrics();
+const leaked = shownMetrics.filter((m) => !m.verified || m.value.trim().length === 0);
+if (leaked.length === 0) {
+  pass(`caso Open Domus: ${shownMetrics.length} metriche mostrate, tutte verificate con valore`);
+} else {
+  fail(`caso Open Domus: metriche non verificate/vuote esposte: ${leaked.map((m) => m.key).join(", ")}`);
 }
 
 console.log("");
