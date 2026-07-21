@@ -62,9 +62,13 @@ export default function PropertyMap({
         markerZoomAnimation: !reduce,
       });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 18,
+      // Base CARTO Positron: minimalista e chiara (pochi POI colorati) → perfetta come tela
+      // per i marker rossi; la scaldiamo verso il crema via CSS (.dt-map).
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 20,
       }).addTo(map);
 
       const markers: import("leaflet").Marker[] = [];
@@ -78,7 +82,8 @@ export default function PropertyMap({
           iconAnchor: [size / 2, size / 2],
         });
         const m = L.marker([g.coords!.lat, g.coords!.lng], { icon, title: c.tip(g.town, g.count) }).addTo(map);
-        m.bindTooltip(c.tip(g.town, g.count), { className: "dt-tip", direction: "top", offset: [0, -size / 2], opacity: 1 });
+        // Etichetta permanente col nome del comune (leggibile a colpo d'occhio, sotto il badge).
+        m.bindTooltip(g.town, { className: "dt-label", permanent: true, direction: "bottom", offset: [0, size / 2 + 2], opacity: 1 });
         m.on("click", () => onSelectRef.current(g.key));
         markers.push(m);
       }

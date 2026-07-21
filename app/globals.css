@@ -539,8 +539,9 @@ body {
 .dt-map {
   background: var(--color-cream);
 }
+/* Base CARTO Positron (già grigio-minimale): la scaldiamo verso il crema di marca. */
 .dt-map .leaflet-tile-pane {
-  filter: grayscale(0.7) sepia(0.18) brightness(1.05) contrast(0.92);
+  filter: sepia(0.32) saturate(0.85) brightness(1.02) contrast(0.98);
 }
 /* Controlli zoom con stile di marca (pillola crema, non il default grigio). */
 .dt-map .leaflet-control-zoom {
@@ -627,6 +628,25 @@ body {
 }
 .dt-map .leaflet-tooltip.dt-tip::before {
   border-top-color: var(--color-ink);
+}
+
+/* Etichetta permanente col nome del comune (pillola crema pulita, sotto il pin). */
+.dt-map .leaflet-tooltip.dt-label {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  border-radius: 9999px;
+  padding: 2px 9px;
+  margin-top: 3px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 16px -8px rgba(26, 24, 22, 0.5);
+  white-space: nowrap;
+}
+.dt-map .leaflet-tooltip.dt-label::before {
+  display: none; /* niente freccia: è un'etichetta, non un fumetto */
 }
 
 @media (prefers-reduced-motion: reduce) {
