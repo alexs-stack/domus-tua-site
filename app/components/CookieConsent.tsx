@@ -114,7 +114,10 @@ export default function CookieConsent() {
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-desc"
       onKeyDown={onKeyDown}
-      className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-paper/95 p-4 shadow-[0_30px_70px_-30px_rgba(26,24,22,0.5)] backdrop-blur-xl sm:inset-x-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:p-5"
+      /* Bottom bar compatta. Mobile: sollevata SOPRA la MobileActionBar (che vive a ~0.75rem)
+         così non la copre. Desktop: pannello ad angolo in basso a SINISTRA (il WhatsApp float
+         è in basso a destra) → non copre hero, CTA, contenuto centrale né i controlli. */
+      className="fixed inset-x-3 z-[60] mx-auto max-w-md rounded-[1.5rem] border border-line bg-paper/95 p-4 shadow-[0_30px_70px_-30px_rgba(26,24,22,0.5)] backdrop-blur-xl bottom-[calc(0.75rem+4.5rem+env(safe-area-inset-bottom))] sm:inset-x-auto sm:left-5 sm:right-auto sm:mx-0 sm:max-w-sm sm:bottom-5 sm:p-5"
     >
       <h2 id="cookie-consent-title" className="sr-only">
         {c.aria}
