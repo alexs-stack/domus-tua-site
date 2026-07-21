@@ -8,6 +8,7 @@
 import { resolveSold, type DetectedItem } from "../app/lib/realsmart/soldOverrides";
 import { selectFeatured } from "../app/lib/listings";
 import { normalizedToProperty } from "../app/lib/realsmart/toProperty";
+import { groupAvailableByTown } from "../app/lib/geo/comuni";
 import type { NormalizedProperty } from "../app/lib/realsmart/types";
 import type { Property } from "../app/lib/properties";
 
@@ -119,6 +120,25 @@ const withPhotos = normalizedToProperty(
   mkNorm({ images: [{ src: "https://cloud2.realsmart.it/a.jpg" }, { src: "https://cloud2.realsmart.it/b.jpg" }] as NormalizedProperty["images"] }),
 );
 ok(withPhotos.cover === "https://cloud2.realsmart.it/a.jpg" && withPhotos.gallery.length === 2, "con foto: copertina = prima immagine, gallery completa");
+
+// ─── 4. groupAvailableByTown: mai venduti in mappa, conteggi giusti, coordinate note ─────────
+const mapListing = [
+  mk({ slug: "t1", zone: "Tradate (VA)" }),
+  mk({ slug: "t2", zone: "Tradate (VA)" }),
+  mk({ slug: "t3", zone: "Tradate (VA)", sold: true }), // venduto → escluso
+  mk({ slug: "v1", zone: "Venegono Superiore (VA)" }),
+  mk({ slug: "x1", zone: "Comune Sconosciuto (VA)" }), // non in tabella → senza coordinate
+];
+const groups = groupAvailableByTown(mapListing);
+const tradate = groups.find((g) => g.town === "Tradate");
+const venegono = groups.find((g) => g.town === "Venegono Superiore");
+const unknown = groups.find((g) => g.town === "Comune Sconosciuto");
+ok(tradate?.count === 2, "conteggio comune corretto ed esclude i venduti (Tradate = 2, non 3)");
+ok(!!tradate?.coords, "comune noto in tabella → ha coordinate (pin in mappa)");
+ok(venegono?.count === 1 && !!venegono?.coords, "Venegono Superiore mappato con coordinate");
+ok(!!unknown && !unknown.coords, "comune sconosciuto: presente ma senza coordinate (va in 'Altre zone', non perso)");
+ok(groups.every((g) => g.count > 0), "nessun gruppo a zero (solo comuni con immobili disponibili)");
+ok(groups[0]!.count >= groups[groups.length - 1]!.count, "gruppi ordinati per numero di immobili (desc)");
 
 console.log("");
 if (failures > 0) {
