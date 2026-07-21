@@ -11,6 +11,7 @@ const copy = {
     subcopy:
       "Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in oltre quindici anni di lavoro sul territorio.",
     cta: "Inizia dal tuo immobile",
+    full: "Scopri il metodo completo",
     steps: [
       { title: "Primo ascolto", copy: "Partiamo da te: obiettivi, tempi, aspettative. Prima delle case vengono le persone." },
       { title: "Valutazione", copy: "Analisi del mercato locale e del tuo immobile per definire valore e strategia, senza illusioni." },
@@ -29,6 +30,7 @@ const copy = {
     subcopy:
       "Every sale and every purchase follows nine precise steps: no improvisation, only a method built over more than fifteen years of work in the local area.",
     cta: "Start with your property",
+    full: "Discover the full method",
     steps: [
       { title: "First, we listen", copy: "We start with you: goals, timing, expectations. People come before homes." },
       { title: "Valuation", copy: "Analysis of the local market and your property to define value and strategy, without illusions." },
@@ -47,6 +49,7 @@ const copy = {
     subcopy:
       "Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en plus de quinze ans de travail sur le territoire.",
     cta: "Commencez par votre bien",
+    full: "Découvrir la méthode complète",
     steps: [
       { title: "Première écoute", copy: "Nous partons de vous : objectifs, délais, attentes. Avant les maisons viennent les personnes." },
       { title: "Estimation", copy: "Analyse du marché local et de votre bien pour définir valeur et stratégie, sans illusions." },
@@ -65,6 +68,7 @@ const copy = {
     subcopy:
       "Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in über fünfzehn Jahren Arbeit vor Ort gewachsen ist.",
     cta: "Beginnen Sie mit Ihrer Immobilie",
+    full: "Die ganze Methode entdecken",
     steps: [
       { title: "Erstes Zuhören", copy: "Wir beginnen bei Ihnen: Ziele, Zeitrahmen, Erwartungen. Vor den Häusern kommen die Menschen." },
       { title: "Bewertung", copy: "Analyse des lokalen Marktes und Ihrer Immobilie, um Wert und Strategie festzulegen, ohne Illusionen." },
@@ -83,6 +87,7 @@ const copy = {
     subcopy:
       "Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en más de quince años de trabajo en el territorio.",
     cta: "Empieza por tu inmueble",
+    full: "Descubre el método completo",
     steps: [
       { title: "Primera escucha", copy: "Partimos de ti: objetivos, plazos, expectativas. Antes que las casas están las personas." },
       { title: "Valoración", copy: "Análisis del mercado local y de tu inmueble para definir valor y estrategia, sin ilusiones." },
@@ -98,13 +103,26 @@ const copy = {
 
 const stepNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09"] as const;
 
-export default function Method() {
+export default function Method({ variant = "full" }: { variant?: "full" | "home" }) {
   const { locale } = useLocale();
   const c = copy[locale];
+  const home = variant === "home";
+
+  // In homepage: 3 fasi memorabili (valutazione → Open Domus → rogito) + link al metodo completo.
+  // Su /metodo: tutti i 9 passi. Un'unica sorgente di copy, nessuna traduzione duplicata.
+  // Fasi-firma per la home: Valutazione (idx 1), Open Domus (idx 6), Rogito (idx 8).
+  const steps = home ? [c.steps[1]!, c.steps[6]!, c.steps[8]!] : c.steps;
+  const numbers = home ? ["01", "02", "03"] : stepNumbers;
+  const ctaHref = home ? "/metodo" : "#contatti";
+  const ctaLabel = home ? c.full : c.cta;
 
   return (
     <section id="metodo" className="relative bg-cream-deep text-ink">
-      <div className="mx-auto grid max-w-5xl gap-12 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+      <div
+        className={`mx-auto grid max-w-5xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 ${
+          home ? "py-16 sm:py-20" : "py-24 sm:py-32"
+        }`}
+      >
         {/* Intro sticky */}
         <div className="lg:sticky lg:top-28 lg:self-start">
           <Reveal>
@@ -116,10 +134,10 @@ export default function Method() {
               {c.subcopy}
             </p>
             <a
-              href="#contatti"
+              href={ctaHref}
               className="group mt-9 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
             >
-              {c.cta}
+              {ctaLabel}
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                 <ArrowUpRight className="h-4 w-4" />
               </span>
@@ -127,13 +145,13 @@ export default function Method() {
           </Reveal>
         </div>
 
-        {/* Timeline */}
+        {/* Timeline (3 fasi in home, 9 passi completi altrove) */}
         <ol className="flex flex-col">
-          {c.steps.map((s, i) => (
-            <Reveal key={stepNumbers[i]} delay={Math.min(i, 6) * 45} as="li">
+          {steps.map((s, i) => (
+            <Reveal key={numbers[i]} delay={Math.min(i, 6) * 45} as="li">
               <div className="group flex gap-6 border-t border-line py-7 transition-colors duration-500 hover:border-red/30">
                 <span className="font-display text-2xl font-medium text-graphite transition-colors duration-500 group-hover:text-red sm:text-3xl">
-                  {stepNumbers[i]}
+                  {numbers[i]}
                 </span>
                 <div className="flex-1">
                   <h3 className="font-display text-xl font-medium tracking-tight sm:text-2xl">

@@ -30,11 +30,9 @@ export const site = {
   openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 14:30-19:00", "Sa 09:00-12:30"],
   rating: "4.9",
   reviewsCount: "531",
-  // ⚠️ DA CONFERMARE COL CLIENTE: conteggio video stimato, non verificato come le altre
-  // metriche di questo file. Prima del go-live allineare al numero reale del canale YouTube
-  // (@DOMUSTUASRLIMMOBILIARE) oppure usare una formulazione prudente ("centinaia di video").
-  videosCountLabel: "440+",
-  videosCountNote: "video tra tour, recensioni e Open Domus",
+  // Nota: il conteggio video numerico è stato RIMOSSO perché non verificato. Il canale YouTube
+  // (@DOMUSTUASRLIMMOBILIARE) racconta con video reali senza dichiarare un numero non provato.
+  // Se un domani il cliente conferma il conteggio esatto, reintrodurre qui una metrica verificata.
   // Claim descrittivo/verificabile (non superlativo assoluto senza fonte, art. 2598 c.c.).
   // Se il cliente documenta il primato "più recensita", si può ripristinare la versione forte.
   authority: "Tra le agenzie immobiliari indipendenti più recensite della provincia di Varese.",

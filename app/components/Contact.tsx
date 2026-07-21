@@ -7,6 +7,7 @@ import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
+import { track } from "../lib/analytics";
 import WordReveal from "./WordReveal";
 import Signature from "./Signature";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -313,7 +314,7 @@ export default function Contact({
     "open-domus": c.submitOpenDomus,
   };
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const val = (k: string) => ((data.get(k) as string) || "").trim();
@@ -357,20 +358,39 @@ export default function Contact({
       propertyRef: propertyRef || undefined,
     };
 
-    // Cattura server-side (Google Sheet se configurato) — best-effort, non blocca il flusso.
     // `submitting` disabilita il bottone durante la scrittura (niente doppio invio) e dà feedback.
     setSubmitting(true);
-    void submitLead(lead).finally(() => setSubmitting(false));
 
-    // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
+    // Apri SUBITO una scheda (nel gesto utente → niente popup-block); la indirizzeremo a WhatsApp
+    // solo DOPO aver tentato la persistenza server-side del lead. opener=null: no reverse-tabnabbing.
+    const waWindow = window.open("about:blank", "_blank");
+    if (waWindow) waWindow.opener = null;
+
+    // Hook di conversione consent-aware: registra SOLO l'intento (nessun PII), e solo col consenso.
+    track("lead_submit", { intent });
+
+    // Persistenza PRIMA di affidarsi a WhatsApp. Timeout di sicurezza: se il server è lento non
+    // blocchiamo l'utente (la richiesta prosegue in background); WhatsApp resta il fallback.
+    try {
+      await Promise.race([
+        submitLead(lead),
+        new Promise((resolve) => window.setTimeout(resolve, 4000)),
+      ]);
+    } catch {
+      // Best-effort: non blocchiamo l'utente se la scrittura fallisce.
+    } finally {
+      setSubmitting(false);
+    }
+
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
-    window.open(url, "_blank", "noopener,noreferrer");
+    if (waWindow) waWindow.location.href = url;
+    else window.open(url, "_blank", "noopener,noreferrer");
     setSent(true);
   }
 
   return (
     <section id="contatti" className="bg-cream-deep text-ink">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-24">
         <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
           {/* Left: pitch + contatti */}
           <div>
@@ -397,7 +417,7 @@ export default function Contact({
                 className="photo-warm h-auto w-full object-cover"
               />
             </figure>
-            {/* Firma della fondatrice (placeholder, da sostituire con quella reale) */}
+            {/* Firma della fondatrice (tracciato calligrafico — vedi Signature.tsx). */}
             <Signature className="mt-5 h-9 w-auto" />
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2">

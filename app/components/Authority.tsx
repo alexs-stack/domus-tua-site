@@ -89,7 +89,7 @@ export default function Authority() {
             "radial-gradient(120% 90% at 85% 0%, rgba(255,255,255,0.16), transparent 55%), radial-gradient(100% 80% at 0% 100%, rgba(120,5,5,0.55), transparent 60%)",
         }}
       />
-      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="relative mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white">

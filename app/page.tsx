@@ -2,24 +2,18 @@ import type { Metadata } from "next";
 import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
 import HomeSearchGateway from "./components/HomeSearchGateway";
-import Stats from "./components/Stats";
 import Authority from "./components/Authority";
-import Paths from "./components/Paths";
 import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
 import DomusDocProtocol from "./components/DomusDocProtocol";
-import Services from "./components/Services";
 import BeforeAfter from "./components/BeforeAfter";
 import SocialVideoWall from "./components/SocialVideoWall";
 import Listings from "./components/Listings";
-import FeaturedTestimonial from "./components/FeaturedTestimonial";
 import Reviews from "./components/Reviews";
-import Social from "./components/Social";
 import Team from "./components/Team";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import WhatsAppFloat from "./components/WhatsAppFloat";
-import SectionDivider from "./components/SectionDivider";
 
 export const metadata: Metadata = {
   title: {
@@ -40,28 +34,27 @@ export default function Home() {
     <>
       <Header />
       <main className="flex-1">
+        {/* 1. Apertura: hero cinematografico + gateway compra/vendi */}
         <HeroCinematic />
         <HomeSearchGateway />
-        <Stats />
+        {/* 2. Prova compatta (dati verificati) */}
         <Authority />
-        <SocialVideoWall />
-        <Paths />
-        <Method />
-        <OpenDomus />
-        <DomusDocProtocol tone="cream-deep" />
-        <Services />
-        <BeforeAfter />
+        {/* 3. Immobili in evidenza — subito dopo la prova */}
         <Listings />
-        <FeaturedTestimonial />
-        <div className="bg-paper">
-          <SectionDivider tone="paper" />
-        </div>
-        <Reviews />
-        <Social />
-        <div className="bg-cream">
-          <SectionDivider tone="cream" />
-        </div>
+        {/* 4. Open Domus: l'esperienza firma */}
+        <OpenDomus />
+        {/* 5. Prima/dopo */}
+        <BeforeAfter />
+        {/* 6. Metodo (3 fasi) + Domus D.O.C. (teaser) */}
+        <Method variant="home" />
+        <DomusDocProtocol tone="cream-deep" variant="teaser" />
+        {/* 7. Storia del team */}
         <Team />
+        {/* 8. Recensioni verificate */}
+        <Reviews />
+        {/* 9. Media verificati (1 storia + 3 card) come chiusura, prima del contatto */}
+        <SocialVideoWall />
+        {/* 10. Contatto / valutazione finale */}
         <Contact />
       </main>
       <Footer />

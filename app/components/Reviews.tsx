@@ -5,6 +5,7 @@ import Reveal from "./Reveal";
 import { Star, Google, ArrowUpRight, Check } from "./Icons";
 import { site } from "../lib/site";
 import { reviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
+import { useConsent } from "../lib/consent";
 import { useLocale } from "./i18n/LocaleProvider";
 
 const filters: ("Tutte" | ReviewCategory)[] = [
@@ -24,6 +25,8 @@ const copy = {
     averageOver: (count: number | string) => `Media su oltre ${count} recensioni`,
     seeAllGoogle: "Leggi tutte le recensioni su Google",
     verifiedVia: "Recensioni Google verificate tramite Trustindex.",
+    consentNote:
+      "Le recensioni Google (Trustindex) si caricano con il tuo consenso ai cookie di misurazione. Intanto puoi leggerle direttamente su Google.",
     realReviews: "Le recensioni reali dei nostri clienti",
     iframeTitle: "Recensioni Google verificate di Domus Tua (Trustindex)",
     demoBanner:
@@ -48,6 +51,8 @@ const copy = {
     averageOver: (count: number | string) => `Average across more than ${count} reviews`,
     seeAllGoogle: "Read all reviews on Google",
     verifiedVia: "Google reviews verified via Trustindex.",
+    consentNote:
+      "The Google reviews (Trustindex) load with your consent to measurement cookies. Meanwhile you can read them directly on Google.",
     realReviews: "Real reviews from our clients",
     iframeTitle: "Verified Google reviews of Domus Tua (Trustindex)",
     demoBanner:
@@ -72,6 +77,8 @@ const copy = {
     averageOver: (count: number | string) => `Moyenne sur plus de ${count} avis`,
     seeAllGoogle: "Lire tous les avis sur Google",
     verifiedVia: "Avis Google vérifiés via Trustindex.",
+    consentNote:
+      "Les avis Google (Trustindex) se chargent avec votre consentement aux cookies de mesure. En attendant, vous pouvez les lire directement sur Google.",
     realReviews: "Les avis authentiques de nos clients",
     iframeTitle: "Avis Google vérifiés de Domus Tua (Trustindex)",
     demoBanner:
@@ -96,6 +103,8 @@ const copy = {
     averageOver: (count: number | string) => `Durchschnitt aus über ${count} Bewertungen`,
     seeAllGoogle: "Alle Bewertungen auf Google lesen",
     verifiedVia: "Google-Bewertungen, verifiziert über Trustindex.",
+    consentNote:
+      "Die Google-Bewertungen (Trustindex) laden mit Ihrer Einwilligung in Messcookies. In der Zwischenzeit können Sie sie direkt auf Google lesen.",
     realReviews: "Die echten Bewertungen unserer Kunden",
     iframeTitle: "Verifizierte Google-Bewertungen von Domus Tua (Trustindex)",
     demoBanner:
@@ -120,6 +129,8 @@ const copy = {
     averageOver: (count: number | string) => `Media sobre más de ${count} reseñas`,
     seeAllGoogle: "Leer todas las reseñas en Google",
     verifiedVia: "Reseñas de Google verificadas mediante Trustindex.",
+    consentNote:
+      "Las reseñas de Google (Trustindex) se cargan con tu consentimiento a las cookies de medición. Mientras tanto puedes leerlas directamente en Google.",
     realReviews: "Las reseñas reales de nuestros clientes",
     iframeTitle: "Reseñas de Google verificadas de Domus Tua (Trustindex)",
     demoBanner:
@@ -151,6 +162,10 @@ export default function Reviews() {
   // In produzione NON mostriamo mai recensioni demo come reali: le card di esempio (con nota
   // "esempi dimostrativi") compaiono solo in anteprima. Vedi docs/reviews-integration.md.
   const PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_BADGE === "true";
+  // Il widget Trustindex (embed di terze parti) si carica SOLO con consenso ai cookie di
+  // misurazione. Altrimenti: fallback elegante con link a Google (nessuna recensione inventata).
+  const consent = useConsent();
+  const trustindexReady = site.embeds.trustindexLoader.trim().length > 0 && consent === "accepted";
 
   // Auto-altezza del widget Trustindex: lo srcDoc misura la propria altezza e la posta al
   // parent (niente box vuoto sotto le card). Fallback iniziale contenuto, poi si adatta.
@@ -170,7 +185,7 @@ export default function Reviews() {
 
   return (
     <section id="recensioni" className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-24">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
@@ -218,7 +233,7 @@ export default function Reviews() {
           </Reveal>
         </div>
 
-        {site.embeds.trustindexLoader ? (
+        {trustindexReady ? (
           <Reveal className="mt-12">
             <h3 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
               {c.realReviews}
@@ -235,6 +250,28 @@ export default function Reviews() {
                 className="w-full"
                 style={{ border: 0, height: frameH }}
               />
+            </div>
+          </Reveal>
+        ) : site.embeds.trustindexLoader ? (
+          // Loader configurato ma consenso non ancora dato: fallback elegante, niente embed,
+          // niente recensioni inventate — solo il rating canonico (sopra) + link a Google.
+          <Reveal className="mt-10">
+            <div className="rounded-[1.75rem] border border-line bg-cream p-8 text-center sm:p-10">
+              <Google className="mx-auto h-7 w-7" />
+              <p className="mx-auto mt-4 max-w-md text-[0.95rem] leading-relaxed text-stone">
+                {c.consentNote}
+              </p>
+              <a
+                href={site.googleReviewsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
+              >
+                {c.seeAllGoogle}
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </span>
+              </a>
             </div>
           </Reveal>
         ) : PREVIEW ? (

@@ -12,8 +12,9 @@ type RevealProps = {
 };
 
 /**
- * Wrapper che rivela il contenuto con fade-up + de-blur all'ingresso nel viewport.
- * Usa IntersectionObserver (no scroll listener) — performante anche su mobile.
+ * Wrapper che rivela il contenuto con fade-up (opacity + translate modesto) all'ingresso nel
+ * viewport. Usa IntersectionObserver (no scroll listener) — performante anche su mobile.
+ * Il blur è opt-in solo per i momenti firma: passare className="reveal-cinematic".
  */
 export default function Reveal({
   children,

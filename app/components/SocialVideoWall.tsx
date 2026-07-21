@@ -1,56 +1,33 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
-import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { SegnoDomusBadge } from "./BrandMotif";
-import { Play, ArrowUpRight, Instagram, YouTube, Star } from "./Icons";
-import { site } from "../lib/site";
+import { Play, ArrowUpRight } from "./Icons";
+import {
+  featuredVideo,
+  collectionVideos,
+  ytThumb,
+  ytWatch,
+  assertUniqueVideoIds,
+  type VideoKind,
+  type VerifiedVideo,
+} from "../lib/content";
 import { useLocale } from "./i18n/LocaleProvider";
 
-type VidKind = "recensione" | "opendomus" | "tour" | "dietro";
+// Video REALI del canale — single source: app/lib/content (→ site.videos). Titolo ↔ ID ↔
+// thumbnail sono coerenti PER COSTRUZIONE: la copertina è quella ufficiale di YouTube
+// (`ytThumb`), quindi non può mai mostrare un video diverso da quello linkato. Nessun ID
+// riusato (garantito da assertUniqueVideoIds). Niente più segnaposto/titoli inventati.
+type VidKind = VideoKind;
+type Vid = VerifiedVideo;
 
-type Vid = {
-  titleKey: string;
-  thumb: string;
-  href: string;
-  kind: VidKind;
-};
-
-const yt = (id: string) => `https://www.youtube.com/watch?v=${id}`;
-
-// Video REALI verificati dal canale Domus Tua (single source: site.videos).
-//
-// TODO(cliente): l'abbinamento thumbnail ↔ video è provvisorio. Prima del go-live il cliente
-// deve confermare, per OGNI item qui sotto (featured, reel, wall):
-//   • l'ID YouTube definitivo (o il timestamp del segmento da usare come clip);
-//   • la thumbnail approvata (oggi usiamo frame/immagini reali del canale come segnaposto);
-//   • il titolo mostrato in card.
-// Finché non arriva la conferma, restano queste clip pubbliche reali del canale.
-const V = site.videos;
-
-// Reel/verticale in evidenza: player leggero (carica l'iframe solo al click).
-const FEATURED_YT_ID = V.featured.id;
-
-// Reel social — ora entra nella collezione qui sotto (niente più card verticale sproporzionata
-// accanto al video). Thumbnail PULITA (foto reale del team), senza testo "cotto" nell'immagine.
-const reel: Vid = {
-  titleKey: "vReel",
-  thumb: "/images/reali/team-group.jpg",
-  href: yt(V.testimonial.id),
-  kind: "opendomus",
-};
-
-// TODO(cliente): confermare per ogni card ID/timestamp + thumbnail approvati (vedi nota sopra).
-const wall: Vid[] = [
-  { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt(V.featured.id), kind: "opendomus" },
-  { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt(V.testimonial.id), kind: "dietro" },
-  { titleKey: "vMozart", thumb: "/images/reali/villa-tramonto.jpg", href: yt(V.reviews[1].id), kind: "tour" },
-  { titleKey: "vDomotica", thumb: "/images/reali/video/domotica.jpg", href: yt(V.reviews[2].id), kind: "tour" },
-  { titleKey: "vVeranda", thumb: "/images/reali/piscina-lusso.jpg", href: yt(V.reviews[0].id), kind: "tour" },
-  { titleKey: "vQuadrilocale", thumb: "/images/reali/video/quadrilocale-giardino.jpg", href: yt(V.reviews[1].id), kind: "tour" },
-];
+// Storia in evidenza (player grande) + AL MASSIMO 3 card verificate. La libreria video
+// completa vive su /recensioni (qui la home resta corta e cinematografica — Prompt 3).
+const FEATURED = featuredVideo;
+const collection: Vid[] = collectionVideos.slice(0, 3);
+// Fail-fast in dev/build se qualcuno reintroducesse un ID duplicato tra le card visibili.
+assertUniqueVideoIds([FEATURED, ...collection]);
 
 const copy = {
   it: {
@@ -58,7 +35,7 @@ const copy = {
     title: "La nostra energia si vede prima ancora della visita.",
     subtitle:
       "Video emozionali, Open Domus, social e contenuti raccontano ogni casa con la cura che merita. È così che i nostri clienti si fidano di noi ancora prima della prima visita.",
-    metricNote: site.videosCountNote,
+    metricNote: "video tra tour, recensioni e Open Domus",
     featuredEyebrow: "Video in evidenza",
     reelBadge: "Reel",
     catTutti: "Tutti",
@@ -198,16 +175,8 @@ const copy = {
 type Copy = (typeof copy)[keyof typeof copy];
 
 function kindLabel(c: Copy, kind: VidKind) {
-  switch (kind) {
-    case "recensione":
-      return c.kindRecensione;
-    case "opendomus":
-      return c.catOpenDomus; // "Open Domus" (nome-brand)
-    case "tour":
-      return c.kindTour;
-    default:
-      return c.kindDietro;
-  }
+  // opendomus = nome-brand; recensione/storia sono entrambi testimonianze video reali.
+  return kind === "opendomus" ? c.catOpenDomus : c.kindRecensione;
 }
 
 function PlayBadge({ small }: { small?: boolean }) {
@@ -223,17 +192,17 @@ function PlayBadge({ small }: { small?: boolean }) {
 }
 
 function VideoCard({ v, small, c }: { v: Vid; small?: boolean; c: Copy }) {
-  const title = c[v.titleKey as keyof Copy];
+  const title = v.title; // titolo reale del video (single source: content.ts)
   return (
     <a
-      href={v.href}
+      href={ytWatch(v.id)}
       target="_blank"
       rel="noopener noreferrer"
       className="group relative block h-full overflow-hidden rounded-[1.5rem] border border-line bg-ink"
     >
       <div className={`relative ${small ? "aspect-video" : "h-full min-h-[260px]"}`}>
         <Image
-          src={v.thumb}
+          src={ytThumb(v.id)}
           alt={title}
           fill
           sizes={small ? "(max-width:1024px) 50vw, 300px" : "(max-width:1024px) 100vw, 640px"}
@@ -255,21 +224,10 @@ function VideoCard({ v, small, c }: { v: Vid; small?: boolean; c: Copy }) {
 export default function SocialVideoWall() {
   const { locale } = useLocale();
   const c = copy[locale];
-  // Le pill categoria sono un vero filtro della collezione ("all" = tutto).
-  const [active, setActive] = useState<"all" | VidKind>("all");
-  const filters: { key: "all" | VidKind; label: string }[] = [
-    { key: "all", label: c.catTutti },
-    { key: "recensione", label: c.catRecensioni },
-    { key: "opendomus", label: c.catOpenDomus },
-    { key: "tour", label: c.catTour },
-    { key: "dietro", label: c.catDietro },
-  ];
-  const gridItems: Vid[] = [reel, ...wall];
-  const visible = active === "all" ? gridItems : gridItems.filter((v) => v.kind === active);
 
   return (
     <section className="bg-cream segno-ambient">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <Reveal className="max-w-3xl">
           <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>
           <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
@@ -278,107 +236,27 @@ export default function SocialVideoWall() {
           <p className="mt-5 text-[1.02rem] leading-relaxed text-stone sm:text-lg">
             {c.subtitle}
           </p>
-
-          {/* Metrica: quanti video raccontano Domus Tua */}
-          <div className="mt-7 flex items-baseline gap-3">
-            <span className="font-display text-5xl font-medium leading-none text-red tnum sm:text-6xl">
-              {site.videosCountLabel}
-            </span>
-            <span className="max-w-[16rem] text-sm leading-snug text-graphite">{c.metricNote}</span>
-          </div>
         </Reveal>
 
-        {/* Video in evidenza: player leggero (iframe solo al click) + titolo e CTA a fianco,
-            verticalmente centrati. Blocco bilanciato, niente accostamento sproporzionato. */}
-        <Reveal delay={80} className="mt-12">
-          <span className="eyebrow">{c.featuredEyebrow}</span>
-          <div className="mt-4 grid items-center gap-6 lg:grid-cols-[1.65fr_1fr] lg:gap-10">
-            {/* Poster curato 16:9 (foto reale del team) → niente bande nere da video verticale. */}
-            <LazyYouTubeEmbed id={FEATURED_YT_ID} title={c.vFeatured} poster="/images/reali/raffaela-team-sede.jpg" />
-            <div>
-              <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.9rem]">
-                {c.vFeatured}
-              </h3>
-              <a
-                href={site.social.youtube.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
-                <YouTube className="h-4 w-4" /> {c.ctaWatch}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
-            </div>
-          </div>
-        </Reveal>
-
-        {/* Collezione filtrabile per categoria (thumbnail → YouTube, nessun iframe autoloaded) */}
-        <Reveal delay={120} className="mt-10">
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label={c.eyebrow}>
-            {filters.map((f) => {
-              const on = active === f.key;
-              return (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => setActive(f.key)}
-                  aria-pressed={on}
-                  className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition-all duration-300 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                    on ? "border-red bg-red text-white" : "border-line bg-paper text-graphite hover:border-red hover:text-red"
-                  }`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-white" : "bg-red"}`} />
-                  {f.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visible.map((v) => (
-              // key su titleKey (univoco): più href puntano allo stesso video reale
-              <VideoCard key={v.titleKey} v={v} small c={c} />
+        {/* Collezione: recensioni reali (thumbnail YouTube ufficiale → link 1:1, nessun iframe
+            autoloaded). Ogni card ha titolo/copertina/URL coerenti col video. La storia in
+            evidenza vive nel caso Open Domus sopra (niente duplicazione dello stesso video). */}
+        <Reveal delay={120} className="mt-12">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {collection.map((v) => (
+              <VideoCard key={v.id} v={v} small c={c} />
             ))}
           </div>
+          {/* La libreria video completa vive su /recensioni. */}
+          <a
+            href="/recensioni"
+            className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+          >
+            {c.ctaWatch}
+            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </a>
         </Reveal>
 
-        {/* Proof + CTA */}
-        <Reveal delay={150} className="mt-10 flex flex-col items-start justify-between gap-6 border-t border-line pt-8 sm:flex-row sm:items-center">
-          <span className="flex items-center gap-2.5">
-            <span className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-4 w-4 text-red" />
-              ))}
-            </span>
-            <span className="text-sm text-graphite">
-              <span className="font-semibold text-ink">{site.rating}/5</span>{c.proofRest}
-            </span>
-          </span>
-
-          <div className="flex flex-wrap gap-3">
-            <a
-              href={site.social.youtube.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
-            >
-              <YouTube className="h-4 w-4" /> {c.ctaWatch}
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
-            <a
-              href={site.social.instagram.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-3 text-sm font-semibold text-ink transition-all duration-300 hover:border-red hover:text-red"
-            >
-              <Instagram className="h-4 w-4" /> {c.ctaInstagram}
-            </a>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

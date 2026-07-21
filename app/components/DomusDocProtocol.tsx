@@ -204,16 +204,24 @@ const copy = {
 export default function DomusDocProtocol({
   tone = "cream",
   id = "domus-doc",
+  variant = "full",
 }: {
   tone?: "cream" | "paper" | "cream-deep";
   id?: string;
+  /** "teaser" = versione compatta per la homepage (pilastri come chip, dettaglio su pagine dedicate). */
+  variant?: "full" | "teaser";
 }) {
   const { locale } = useLocale();
   const c = copy[locale];
+  const teaser = variant === "teaser";
   const bg = tone === "paper" ? "bg-paper" : tone === "cream-deep" ? "bg-cream-deep" : "bg-cream";
   return (
     <section id={id} className={bg}>
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div
+        className={`mx-auto max-w-[1240px] px-5 sm:px-8 ${
+          teaser ? "py-16 sm:py-20" : "py-24 sm:py-32"
+        }`}
+      >
         <Reveal>
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
             {/* watermark motif */}
@@ -255,8 +263,31 @@ export default function DomusDocProtocol({
                 <span className="block h-full w-px bg-gradient-to-b from-transparent via-line to-transparent" />
               </div>
 
-              {/* 5 pilastri — ognuno con beneficio per chi vende E per chi compra. */}
-              <ul className="flex flex-col">
+              {/* 5 pilastri. Teaser (home) = solo i nomi come chip; il dettaglio "chi vende /
+                  chi compra" vive sulle pagine dedicate (/vendi, /acquista, /metodo). */}
+              {teaser ? (
+                <div className="flex flex-col justify-center">
+                  <ul className="flex flex-wrap gap-2.5">
+                    {c.pillars.map((p, i) => (
+                      <li
+                        key={p.t}
+                        className="flex items-center gap-2 rounded-full border border-line bg-cream px-4 py-2 text-sm font-medium text-graphite"
+                      >
+                        <span className="tnum font-semibold text-red-dark">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <SegnoTick className="h-3.5 w-3.5 text-red-dark" />
+                        {p.t}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-6 flex items-center gap-2 text-[0.8rem] text-stone">
+                    <Star className="h-3.5 w-3.5 shrink-0 text-red" />
+                    {c.footnote}
+                  </p>
+                </div>
+              ) : (
+                <ul className="flex flex-col">
                 {c.pillars.map((p, i) => (
                   <li
                     key={p.t}
@@ -294,6 +325,7 @@ export default function DomusDocProtocol({
                   {c.footnote}
                 </li>
               </ul>
+              )}
             </div>
           </div>
         </Reveal>
