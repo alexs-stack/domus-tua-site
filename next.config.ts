@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
+// Timestamp del build, valutato una volta a build-time (Node). Inlinato come process.env.BUILD_TIME
+// e riportato da /api/health per capire "quando è stato buildato questo deploy" senza aprire Vercel.
+const BUILD_TIME = new Date().toISOString();
+
 const nextConfig: NextConfig = {
+  // Variabili inlinate a build-time nel bundle (non segrete: solo metadati di build).
+  env: {
+    BUILD_TIME,
+  },
   images: {
     // Formati moderni: meno peso, stessa qualità.
     formats: ["image/avif", "image/webp"],
