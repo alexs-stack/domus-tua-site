@@ -2,10 +2,8 @@
 
 import Image from "next/image";
 import Reveal from "./Reveal";
-import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { SegnoDomusBadge } from "./BrandMotif";
-import { Play, ArrowUpRight, YouTube } from "./Icons";
-import { site } from "../lib/site";
+import { Play, ArrowUpRight } from "./Icons";
 import {
   featuredVideo,
   collectionVideos,
@@ -240,35 +238,10 @@ export default function SocialVideoWall() {
           </p>
         </Reveal>
 
-        {/* Video in evidenza: player leggero (iframe solo al click) + titolo e CTA a fianco,
-            verticalmente centrati. Blocco bilanciato, niente accostamento sproporzionato. */}
-        <Reveal delay={80} className="mt-12">
-          <span className="eyebrow">{c.featuredEyebrow}</span>
-          <div className="mt-4 grid items-center gap-6 lg:grid-cols-[1.65fr_1fr] lg:gap-10">
-            {/* Poster curato 16:9 (foto reale del team) → niente bande nere da video verticale. */}
-            <LazyYouTubeEmbed id={FEATURED.id} title={FEATURED.title} poster="/images/reali/raffaela-team-sede.jpg" />
-            <div>
-              <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.9rem]">
-                {FEATURED.title}
-              </h3>
-              <a
-                href={site.social.youtube.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
-                <YouTube className="h-4 w-4" /> {c.ctaWatch}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
-            </div>
-          </div>
-        </Reveal>
-
-        {/* Collezione: recensioni reali + testimonianza (thumbnail YouTube ufficiale → link 1:1,
-            nessun iframe autoloaded). Ogni card ha titolo/copertina/URL coerenti col video. */}
-        <Reveal delay={120} className="mt-10">
+        {/* Collezione: recensioni reali (thumbnail YouTube ufficiale → link 1:1, nessun iframe
+            autoloaded). Ogni card ha titolo/copertina/URL coerenti col video. La storia in
+            evidenza vive nel caso Open Domus sopra (niente duplicazione dello stesso video). */}
+        <Reveal delay={120} className="mt-12">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {collection.map((v) => (
               <VideoCard key={v.id} v={v} small c={c} />

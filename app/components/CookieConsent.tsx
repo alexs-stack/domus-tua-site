@@ -1,14 +1,13 @@
 "use client";
 
-// Banner consenso cookie (GDPR/ePrivacy). MVP: il sito non carica ancora script di
-// tracciamento; il banner registra la scelta in un cookie `dt_consent` e fa da gate per
-// eventuali analytics futuri (caricarli solo se dt_consent=accepted). Multilingua.
+// Banner consenso cookie (GDPR/ePrivacy). Registra la scelta nel cookie `dt_consent` e fa da
+// gate per gli embed di terze parti (es. Trustindex si carica solo con consenso — vedi
+// app/lib/consent.ts + Reviews.tsx). Multilingua.
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-
-const COOKIE = "dt_consent";
+import { readConsent, writeConsent } from "../lib/consent";
 
 const copy = {
   it: {
@@ -48,10 +47,6 @@ const copy = {
   },
 };
 
-function setConsent(value: "accepted" | "rejected") {
-  document.cookie = `${COOKIE}=${value}; path=/; max-age=15552000; samesite=lax`;
-}
-
 export default function CookieConsent() {
   const { locale } = useLocale();
   const c = copy[locale];
@@ -63,9 +58,8 @@ export default function CookieConsent() {
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const decided = document.cookie.split("; ").some((r) => r.startsWith(`${COOKIE}=`));
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!decided) setShow(true);
+    if (readConsent() === null) setShow(true);
   }, []);
 
   // All'apertura: memorizza il focus corrente e spostalo sull'azione primaria (Accetta).
@@ -77,7 +71,7 @@ export default function CookieConsent() {
   }, [show]);
 
   const choose = useCallback((v: "accepted" | "rejected") => {
-    setConsent(v);
+    writeConsent(v);
     setShow(false);
     // Ripristina il focus a chi lo aveva prima (o al body come fallback sicuro).
     const target = returnFocusRef.current;
