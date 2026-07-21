@@ -58,14 +58,15 @@ export default function PropertyMap({
       </div>
 
       {/* Riquadro mappa — sfondo di marca, nessun tile esterno. Altezza fissa → niente CLS. */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.75rem] border border-line bg-cream sm:aspect-[16/9]">
-        {/* Texture leggera + motivo Segno Domus in filigrana */}
+      <div className="relative h-[440px] w-full overflow-hidden rounded-[1.75rem] border border-line bg-cream sm:h-[540px]">
+        {/* Griglia leggera (senso di "mappa" senza tile) + due aloni caldi */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.5]"
+          className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 30% 30%, rgba(150,30,26,0.05), transparent 45%), radial-gradient(circle at 75% 70%, rgba(26,24,22,0.04), transparent 45%)",
+              "linear-gradient(rgba(26,24,22,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(26,24,22,0.04) 1px, transparent 1px), radial-gradient(circle at 68% 62%, rgba(150,30,26,0.06), transparent 42%), radial-gradient(circle at 30% 30%, rgba(26,24,22,0.03), transparent 45%)",
+            backgroundSize: "40px 40px, 40px 40px, 100% 100%, 100% 100%",
           }}
         />
         <span className="pointer-events-none absolute right-5 top-5 opacity-[0.06]" aria-hidden>

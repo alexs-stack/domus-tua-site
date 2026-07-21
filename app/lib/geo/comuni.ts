@@ -42,6 +42,21 @@ export const COMUNI_COORDS: Record<string, { lat: number; lng: number }> = {
   "locate varesino": { lat: 45.72, lng: 8.93 },
   lomazzo: { lat: 45.7, lng: 9.04 },
   saronno: { lat: 45.625, lng: 9.03 },
+  // Sud-ovest (asse Busto/Gallarate) e est (verso Como)
+  "appiano gentile": { lat: 45.735, lng: 9.01 },
+  "fagnano olona": { lat: 45.655, lng: 8.9 },
+  samarate: { lat: 45.63, lng: 8.79 },
+  "solbiate olona": { lat: 45.66, lng: 8.885 },
+  "olgiate olona": { lat: 45.63, lng: 8.865 },
+  marnate: { lat: 45.64, lng: 8.885 },
+  "gorla maggiore": { lat: 45.66, lng: 8.9 },
+  "gorla minore": { lat: 45.645, lng: 8.9 },
+  "cassano magnago": { lat: 45.665, lng: 8.82 },
+  "busto arsizio": { lat: 45.61, lng: 8.85 },
+  cislago: { lat: 45.66, lng: 8.975 },
+  gerenzano: { lat: 45.64, lng: 9.0 },
+  mozzate: { lat: 45.68, lng: 8.95 },
+  carbonate: { lat: 45.7, lng: 8.955 },
 };
 
 export interface TownGroup {
