@@ -122,9 +122,11 @@ export default function CookieConsent() {
       <h2 id="cookie-consent-title" className="sr-only">
         {c.aria}
       </h2>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      {/* Layout VERTICALE: testo sopra (larghezza piena del pannello, niente parola-per-riga),
+          pulsanti in riga sotto. Il pannello è compatto ad angolo, non una barra larga. */}
+      <div className="flex flex-col gap-4">
         <div className="flex items-start gap-3">
-          <SegnoDomus className="mt-0.5 hidden h-4 w-9 shrink-0 sm:block" embrace={false} />
+          <SegnoDomus className="mt-0.5 h-4 w-9 shrink-0" embrace={false} />
           <p id="cookie-consent-desc" className="text-[0.86rem] leading-relaxed text-graphite">
             {c.text}{" "}
             <Link href="/cookie" className="font-semibold text-red underline underline-offset-2 hover:text-red-dark">
@@ -132,11 +134,11 @@ export default function CookieConsent() {
             </Link>
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={() => choose("rejected")}
-            className="rounded-full border border-line bg-paper px-4 py-2.5 text-sm font-semibold text-graphite transition-colors duration-300 hover:border-red hover:text-red active:scale-[0.98]"
+            className="flex-1 rounded-full border border-line bg-paper px-4 py-2.5 text-sm font-semibold text-graphite transition-colors duration-300 hover:border-red hover:text-red active:scale-[0.98]"
           >
             {c.reject}
           </button>
@@ -144,7 +146,7 @@ export default function CookieConsent() {
             ref={acceptRef}
             type="button"
             onClick={() => choose("accepted")}
-            className="rounded-full bg-red px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+            className="flex-1 rounded-full bg-red px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
           >
             {c.accept}
           </button>

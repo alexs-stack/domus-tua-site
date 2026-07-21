@@ -7,10 +7,11 @@
    ============================================================ */
 
 @theme inline {
-  /* Brand */
-  --color-red: #d20a0a;
-  --color-red-dark: #a30707;
-  --color-red-soft: #fbeaea;
+  /* Brand — rosso ammorbidito: stessa identità, meno "elettrico" (meno saturazione,
+     tono leggermente più profondo). Regolabile qui in un punto solo. */
+  --color-red: #c1272d;
+  --color-red-dark: #9a1f24;
+  --color-red-soft: #f8ecec;
 
   /* Neutrals — warm limestone/sand (base più calda: via il look "bianco clinico").
      `paper` resta quasi-bianco: le card risaltano sulle sezioni sabbia = profondità naturale. */

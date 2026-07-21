@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, ArrowRight } from "./Icons";
+import Signature from "./Signature";
 import { heroCinematic } from "../lib/media";
 import WordReveal from "./WordReveal";
 import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
@@ -240,6 +241,7 @@ export default function HeroCinematic() {
               RR
             </span>
             {c.founder}
+            <Signature light className="ml-1 hidden h-8 w-auto opacity-90 sm:block" />
           </p>
 
           {/* CTA — una primaria (valutazione, rosso pieno) + una secondaria (ricerca casa) */}

@@ -417,8 +417,8 @@ export default function Contact({
                 className="photo-warm h-auto w-full object-cover"
               />
             </figure>
-            {/* Firma della fondatrice: trattamento tipografico del nome (vedi Signature.tsx). */}
-            <Signature className="mt-5" />
+            {/* Firma della fondatrice (tracciato calligrafico — vedi Signature.tsx). */}
+            <Signature className="mt-5 h-9 w-auto" />
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2">
               {contacts.map((item) => (
