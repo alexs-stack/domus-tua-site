@@ -283,8 +283,8 @@ export default function OpenDomus() {
   return (
     <section id="open-domus" className="bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-24">
-        {/* Intestazione */}
-        <Reveal className="max-w-2xl">
+        {/* Intestazione — momento firma: reveal cinematografico (blur) riservato qui. */}
+        <Reveal className="max-w-2xl reveal-cinematic">
           <span className="eyebrow">{c.eyebrow}</span>
           <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
             {c.title}
