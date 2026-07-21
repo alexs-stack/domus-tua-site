@@ -90,7 +90,7 @@ export default function PropertyMap({
 
       const fit = () => {
         if (!map) return;
-        if (markers.length > 0) map.fitBounds(L.featureGroup(markers).getBounds().pad(0.25), { maxZoom: 13 });
+        if (markers.length > 0) map.fitBounds(L.featureGroup(markers).getBounds().pad(0.32), { maxZoom: 12, padding: [24, 40] });
         else map.setView([45.708, 8.906], 11); // Tradate come vista di default
       };
       fit();
@@ -143,6 +143,10 @@ export default function PropertyMap({
           ref={containerRef}
           className="dt-map z-0 h-[440px] w-full overflow-hidden rounded-[1.5rem] sm:h-[560px]"
         />
+        {/* Firma di marca (Segno Domus) in filigrana sull'angolo, sopra la mappa. */}
+        <span className="pointer-events-none absolute bottom-4 left-5 z-[400] opacity-25" aria-hidden>
+          <SegnoDomus className="h-4 w-11 text-red" embrace={false} />
+        </span>
       </div>
 
       {/* Comuni senza coordinate note: elencati come chip cliccabili (mai persi, mai inventati). */}
