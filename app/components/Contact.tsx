@@ -370,7 +370,7 @@ export default function Contact({
 
   return (
     <section id="contatti" className="bg-cream-deep text-ink">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-24">
         <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
           {/* Left: pitch + contatti */}
           <div>

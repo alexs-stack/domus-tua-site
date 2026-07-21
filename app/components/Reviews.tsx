@@ -170,7 +170,7 @@ export default function Reviews() {
 
   return (
     <section id="recensioni" className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-24">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>

@@ -130,7 +130,7 @@ export default function OpenDomus() {
 
   return (
     <section id="open-domus" className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-24">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Visual */}
           <Reveal className="order-2 lg:order-1">

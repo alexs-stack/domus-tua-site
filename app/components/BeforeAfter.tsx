@@ -164,7 +164,7 @@ export default function BeforeAfter() {
 
   return (
     <section className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-24">
         <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
           <Reveal className="max-w-2xl">
             <span className="eyebrow">{c.eyebrow}</span>

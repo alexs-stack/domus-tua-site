@@ -4,7 +4,7 @@ import Image from "next/image";
 import Reveal from "./Reveal";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { SegnoDomusBadge } from "./BrandMotif";
-import { Play, ArrowUpRight, Instagram, YouTube, Star } from "./Icons";
+import { Play, ArrowUpRight, YouTube } from "./Icons";
 import { site } from "../lib/site";
 import {
   featuredVideo,
@@ -24,9 +24,10 @@ import { useLocale } from "./i18n/LocaleProvider";
 type VidKind = VideoKind;
 type Vid = VerifiedVideo;
 
-// Storia in evidenza (player grande) + collezione di card (recensioni reali + testimonianza).
+// Storia in evidenza (player grande) + AL MASSIMO 3 card verificate. La libreria video
+// completa vive su /recensioni (qui la home resta corta e cinematografica — Prompt 3).
 const FEATURED = featuredVideo;
-const collection: Vid[] = collectionVideos;
+const collection: Vid[] = collectionVideos.slice(0, 3);
 // Fail-fast in dev/build se qualcuno reintroducesse un ID duplicato tra le card visibili.
 assertUniqueVideoIds([FEATURED, ...collection]);
 
@@ -228,7 +229,7 @@ export default function SocialVideoWall() {
 
   return (
     <section className="bg-cream segno-ambient">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <Reveal className="max-w-3xl">
           <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>
           <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
@@ -273,43 +274,16 @@ export default function SocialVideoWall() {
               <VideoCard key={v.id} v={v} small c={c} />
             ))}
           </div>
+          {/* La libreria video completa vive su /recensioni. */}
+          <a
+            href="/recensioni"
+            className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+          >
+            {c.ctaWatch}
+            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </a>
         </Reveal>
 
-        {/* Proof + CTA */}
-        <Reveal delay={150} className="mt-10 flex flex-col items-start justify-between gap-6 border-t border-line pt-8 sm:flex-row sm:items-center">
-          <span className="flex items-center gap-2.5">
-            <span className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-4 w-4 text-red" />
-              ))}
-            </span>
-            <span className="text-sm text-graphite">
-              <span className="font-semibold text-ink">{site.rating}/5</span>{c.proofRest}
-            </span>
-          </span>
-
-          <div className="flex flex-wrap gap-3">
-            <a
-              href={site.social.youtube.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
-            >
-              <YouTube className="h-4 w-4" /> {c.ctaWatch}
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
-            <a
-              href={site.social.instagram.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-3 text-sm font-semibold text-ink transition-all duration-300 hover:border-red hover:text-red"
-            >
-              <Instagram className="h-4 w-4" /> {c.ctaInstagram}
-            </a>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

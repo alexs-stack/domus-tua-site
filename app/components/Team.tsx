@@ -161,7 +161,7 @@ export default function Team() {
 
   return (
     <section id="chi-siamo" className="bg-cream">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-24">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
