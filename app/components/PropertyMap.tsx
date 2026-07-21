@@ -7,15 +7,16 @@
 // I comuni non geolocalizzati finiscono in "Altre zone" (mai persi).
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
+import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { TownGroup } from "../lib/geo/comuni";
 
 const copy = {
-  it: { title: "Dove sono le case in vendita", subtitle: "Comuni con immobili disponibili — clicca un pin per filtrare.", others: "Altre zone", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "immobile" : "immobili"}` },
-  en: { title: "Where the homes for sale are", subtitle: "Towns with available properties — click a pin to filter.", others: "Other areas", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "home" : "homes"}` },
-  fr: { title: "Où se trouvent les biens à vendre", subtitle: "Communes avec des biens disponibles — cliquez un point pour filtrer.", others: "Autres secteurs", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "bien" : "biens"}` },
-  de: { title: "Wo die Immobilien zum Verkauf sind", subtitle: "Orte mit verfügbaren Immobilien — Pin klicken zum Filtern.", others: "Weitere Gebiete", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "Immobilie" : "Immobilien"}` },
-  es: { title: "Dónde están las casas en venta", subtitle: "Municipios con inmuebles disponibles — haz clic en un pin para filtrar.", others: "Otras zonas", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "inmueble" : "inmuebles"}` },
+  it: { eyebrow: "La mappa", title: "Dove sono le case in vendita", subtitle: "Comuni con immobili disponibili — tocca un comune per vedere le case.", legend: "Il numero indica gli immobili disponibili nel comune", others: "Altre zone", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "immobile" : "immobili"}` },
+  en: { eyebrow: "The map", title: "Where the homes for sale are", subtitle: "Towns with available properties — tap a town to see the homes.", legend: "The number shows available homes in the town", others: "Other areas", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "home" : "homes"}` },
+  fr: { eyebrow: "La carte", title: "Où se trouvent les biens à vendre", subtitle: "Communes avec des biens disponibles — touchez une commune pour voir les biens.", legend: "Le nombre indique les biens disponibles dans la commune", others: "Autres secteurs", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "bien" : "biens"}` },
+  de: { eyebrow: "Die Karte", title: "Wo die Immobilien zum Verkauf sind", subtitle: "Orte mit verfügbaren Immobilien — Ort antippen, um die Immobilien zu sehen.", legend: "Die Zahl zeigt die verfügbaren Immobilien im Ort", others: "Weitere Gebiete", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "Immobilie" : "Immobilien"}` },
+  es: { eyebrow: "El mapa", title: "Dónde están las casas en venta", subtitle: "Municipios con inmuebles disponibles — toca un municipio para ver las casas.", legend: "El número indica los inmuebles disponibles en el municipio", others: "Otras zonas", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "inmueble" : "inmuebles"}` },
 };
 
 export default function PropertyMap({
@@ -49,11 +50,16 @@ export default function PropertyMap({
 
       const mapped = groups.filter((g) => g.coords);
       const maxCount = Math.max(1, ...mapped.map((g) => g.count));
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       map = L.map(containerRef.current, {
         scrollWheelZoom: false, // niente hijack dello scroll di pagina; zoom con i controlli
         zoomControl: true,
         attributionControl: true,
+        // Rispetta prefers-reduced-motion: niente animazioni di zoom/fade.
+        fadeAnimation: !reduce,
+        zoomAnimation: !reduce,
+        markerZoomAnimation: !reduce,
       });
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -63,15 +69,16 @@ export default function PropertyMap({
 
       const markers: import("leaflet").Marker[] = [];
       for (const g of mapped) {
-        const size = 26 + Math.round(16 * (g.count / maxCount));
+        const size = 30 + Math.round(18 * (g.count / maxCount));
+        const fs = Math.max(12, Math.round(size * 0.4));
         const icon = L.divIcon({
-          className: "",
-          html: `<div style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:9999px;background:#c1272d;color:#fff;border:2px solid #fff;box-shadow:0 6px 16px -4px rgba(150,30,26,.7);font-weight:600;font-size:12px;line-height:1;font-family:var(--font-jakarta,system-ui,sans-serif)">${g.count}</div>`,
+          className: "dt-marker",
+          html: `<div class="dt-marker__badge" style="width:${size}px;height:${size}px;font-size:${fs}px">${g.count}</div>`,
           iconSize: [size, size],
           iconAnchor: [size / 2, size / 2],
         });
         const m = L.marker([g.coords!.lat, g.coords!.lng], { icon, title: c.tip(g.town, g.count) }).addTo(map);
-        m.bindTooltip(c.tip(g.town, g.count), { direction: "top", offset: [0, -size / 2] });
+        m.bindTooltip(c.tip(g.town, g.count), { className: "dt-tip", direction: "top", offset: [0, -size / 2], opacity: 1 });
         m.on("click", () => onSelectRef.current(g.key));
         markers.push(m);
       }
@@ -103,16 +110,35 @@ export default function PropertyMap({
 
   return (
     <div>
-      <div className="mb-4">
-        <h3 className="font-display text-xl font-medium tracking-tight text-ink sm:text-2xl">{c.title}</h3>
-        <p className="mt-1 text-sm text-stone">{c.subtitle}</p>
+      {/* Intestazione editoriale */}
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <span className="eyebrow gap-2.5">
+            <SegnoDomus className="h-3 w-8" embrace={false} />
+            {c.eyebrow}
+          </span>
+          <h3 className="mt-3 font-display text-2xl font-medium leading-tight tracking-tight text-ink sm:text-[1.9rem]">
+            {c.title}
+          </h3>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-stone">{c.subtitle}</p>
+        </div>
+        {/* Legenda */}
+        <div className="flex shrink-0 items-center gap-2.5 rounded-full border border-line bg-paper px-4 py-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red text-[0.7rem] font-semibold text-white tabular-nums">
+            3
+          </span>
+          <span className="max-w-[13rem] text-[0.76rem] leading-snug text-stone">{c.legend}</span>
+        </div>
       </div>
 
-      {/* Contenitore mappa: altezza fissa → niente CLS. La geografia arriva dai tile OSM. */}
-      <div
-        ref={containerRef}
-        className="z-0 h-[420px] w-full overflow-hidden rounded-[1.75rem] border border-line bg-cream sm:h-[520px]"
-      />
+      {/* Contenitore mappa: cornice premium, altezza fissa → niente CLS. La geografia (e i nomi
+          dei comuni) arriva dai tile OSM, desaturati e caldi via CSS (.dt-map) per restare on-brand. */}
+      <div className="relative overflow-hidden rounded-[1.9rem] border border-line bg-cream p-1.5 shadow-[var(--shadow-card)]">
+        <div
+          ref={containerRef}
+          className="dt-map z-0 h-[440px] w-full overflow-hidden rounded-[1.5rem] sm:h-[560px]"
+        />
+      </div>
 
       {/* Comuni senza coordinate note: elencati come chip cliccabili (mai persi, mai inventati). */}
       {others.length > 0 && (

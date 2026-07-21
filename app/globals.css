@@ -532,3 +532,105 @@ body {
   margin: 0.05em 0.12em 0 0;
   color: var(--color-red);
 }
+
+/* ---------- Mappa immobili (Leaflet, brandizzata) ---------- */
+/* Base MUTA e calda: desatura i tile OSM così i pin rossi risaltano e la mappa resta
+   coerente col brand (crema/rosso/espresso), niente verdi/blu accesi da stock. */
+.dt-map {
+  background: var(--color-cream);
+}
+.dt-map .leaflet-tile-pane {
+  filter: grayscale(0.7) sepia(0.18) brightness(1.05) contrast(0.92);
+}
+/* Controlli zoom con stile di marca (pillola crema, non il default grigio). */
+.dt-map .leaflet-control-zoom {
+  border: none !important;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: 0 10px 26px -14px rgba(26, 24, 22, 0.5);
+  margin: 14px;
+}
+.dt-map .leaflet-control-zoom a {
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+  font-size: 18px;
+  background: var(--color-paper);
+  color: var(--color-graphite);
+  border-bottom: 1px solid var(--color-line);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.dt-map .leaflet-control-zoom a:last-child {
+  border-bottom: none;
+}
+.dt-map .leaflet-control-zoom a:hover {
+  background: var(--color-cream-deep);
+  color: var(--color-red);
+}
+/* Attribuzione OSM discreta. */
+.dt-map .leaflet-control-attribution {
+  background: rgba(250, 247, 242, 0.72);
+  backdrop-filter: blur(4px);
+  border-radius: 8px 0 0 0;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--color-stone);
+}
+.dt-map .leaflet-control-attribution a {
+  color: var(--color-red-dark);
+}
+
+/* Marker: badge conteggio rosso, anello bianco, ombra calda, micro-scala all'hover. */
+.dt-marker {
+  cursor: pointer;
+}
+.dt-marker__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--color-red);
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow:
+    0 8px 20px -6px rgba(150, 30, 26, 0.75),
+    0 1px 2px rgba(0, 0, 0, 0.18);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.22s var(--ease-out-expo), box-shadow 0.22s var(--ease-out-expo);
+}
+.dt-marker:hover .dt-marker__badge,
+.dt-marker:focus-visible .dt-marker__badge {
+  transform: scale(1.14);
+  box-shadow:
+    0 12px 28px -6px rgba(150, 30, 26, 0.85),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.dt-marker:focus-visible .dt-marker__badge {
+  outline: 2px solid var(--color-red);
+  outline-offset: 3px;
+}
+
+/* Tooltip di marca (scuro, tipografia Jakarta). */
+.dt-map .leaflet-tooltip.dt-tip {
+  background: var(--color-ink);
+  color: var(--color-cream);
+  border: none;
+  border-radius: 10px;
+  padding: 6px 11px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.6);
+}
+.dt-map .leaflet-tooltip.dt-tip::before {
+  border-top-color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dt-marker__badge {
+    transition: none;
+  }
+}
