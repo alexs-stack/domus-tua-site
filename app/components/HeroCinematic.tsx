@@ -1,13 +1,14 @@
 "use client";
 
 // HeroCinematic — apertura cinematografica full-bleed di Domus Tua.
-// Canvas video/immagine a tutta larghezza, energia + emozione + prova sociale + sicurezza.
-// Video-ready: quando i file /media esistono e enabled=true, parte (desktop, no reduced-motion).
-// Finché mancano, resta la foto reale di Raffaella + team come poster. Vedi docs/hero-video.md.
-import { useEffect, useState } from "react";
+// Poster immagine reale (LCP) sempre presente: crop landscape su desktop, ritratto su mobile.
+// Video-ready: quando i file /media esistono e enabled=true, il video parte SOLO su desktop,
+// senza prefers-reduced-motion e senza data-saver, e viene montato dopo il paint del poster
+// (fuori dal percorso LCP). Fallback automatico al poster se il video fallisce.
+// Girato del brand (nessuno stock, nessuna finzione): docs/hero-brand-film-shotlist.md.
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
-import { site } from "../lib/site";
+import { ArrowUpRight, ArrowRight } from "./Icons";
 import { heroCinematic } from "../lib/media";
 import WordReveal from "./WordReveal";
 import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
@@ -23,10 +24,8 @@ const copy = {
     founder: "Con Raffaela Rizza e il team Domus Tua",
     ctaValuta: "Valuta il tuo immobile",
     ctaCerco: "Cerco casa",
-    ctaVideo: "Guarda il video",
-    reviews: "Oltre 500 recensioni",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    pause: "Metti in pausa il video",
+    play: "Riprendi il video",
   },
   en: {
     badge: "Real estate agency · Tradate since 2007",
@@ -37,10 +36,8 @@ const copy = {
     founder: "With Raffaela Rizza and the Domus Tua team",
     ctaValuta: "Value your property",
     ctaCerco: "I'm looking for a home",
-    ctaVideo: "Watch the video",
-    reviews: "Over 500 reviews",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    pause: "Pause the video",
+    play: "Resume the video",
   },
   fr: {
     badge: "Agence immobilière · Tradate depuis 2007",
@@ -51,10 +48,8 @@ const copy = {
     founder: "Avec Raffaela Rizza et l'équipe Domus Tua",
     ctaValuta: "Estimez votre bien",
     ctaCerco: "Je cherche un bien",
-    ctaVideo: "Voir la vidéo",
-    reviews: "Plus de 500 avis",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    pause: "Mettre la vidéo en pause",
+    play: "Reprendre la vidéo",
   },
   de: {
     badge: "Immobilienagentur · Tradate seit 2007",
@@ -65,10 +60,8 @@ const copy = {
     founder: "Mit Raffaela Rizza und dem Domus-Tua-Team",
     ctaValuta: "Immobilie bewerten",
     ctaCerco: "Ich suche ein Zuhause",
-    ctaVideo: "Video ansehen",
-    reviews: "Über 500 Bewertungen",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    pause: "Video pausieren",
+    play: "Video fortsetzen",
   },
   es: {
     badge: "Agencia inmobiliaria · Tradate desde 2007",
@@ -79,10 +72,8 @@ const copy = {
     founder: "Con Raffaela Rizza y el equipo Domus Tua",
     ctaValuta: "Valora tu inmueble",
     ctaCerco: "Busco casa",
-    ctaVideo: "Ver el vídeo",
-    reviews: "Más de 500 reseñas",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    pause: "Pausar el vídeo",
+    play: "Reanudar el vídeo",
   },
 };
 
@@ -90,59 +81,91 @@ export default function HeroCinematic() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [playVideo, setPlayVideo] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
-  // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto (leggera).
-  // Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
+  // Il video parte solo su desktop, senza reduced-motion, senza data-saver, e se i file sono
+  // attivati. Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
   // selezione della sorgente non entra nel percorso critico dell'immagine LCP.
   useEffect(() => {
     if (!heroCinematic.enabled) return;
     const okMotion = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
     const okWidth = window.matchMedia("(min-width: 768px)").matches;
-    if (!okMotion || !okWidth) return;
+    // Data-saver / connessioni lente: niente video (rispetta la scelta dell'utente e i costi dati).
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    const dataSaver = conn?.saveData === true || (conn?.effectiveType ? /2g/.test(conn.effectiveType) : false);
+    if (!okMotion || !okWidth || dataSaver) return;
 
     // Rimanda il mount del video oltre il paint LCP.
-    let raf = 0;
+    let timer = 0;
     let idleId = 0;
-    // Feature-detect via "in": i tipi DOM danno requestIdleCallback come sempre presente,
-    // ma alcuni browser (Safari datati) non ce l'hanno, quindi serve il fallback setTimeout.
     const hasIdle = "requestIdleCallback" in window;
     if (hasIdle) {
       idleId = window.requestIdleCallback(() => setPlayVideo(true), { timeout: 2500 });
     } else {
-      raf = window.setTimeout(() => setPlayVideo(true), 1200);
+      timer = window.setTimeout(() => setPlayVideo(true), 1200);
     }
-
     return () => {
       if (hasIdle) window.cancelIdleCallback(idleId);
-      else window.clearTimeout(raf);
+      else window.clearTimeout(timer);
     };
   }, []);
 
-  // Chip di prova: gli asset proprietari sono cliccabili verso le rispettive sezioni
-  // (hero solo in homepage → ancore same-page). Il luogo resta statico.
-  const chips: { label: string; href?: string }[] = [
-    { label: "Open Domus", href: "#open-domus" },
-    { label: "Domus D.O.C.", href: "#domus-doc" },
-    { label: c.place },
-  ];
+  // Validazione asset in sviluppo: se il video è attivato ma i file mancano (404), avvisa il
+  // team invece di fallire in silenzio. In produzione non gira (nessun costo, nessun rumore).
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" || !heroCinematic.enabled) return;
+    (async () => {
+      for (const src of [heroCinematic.mp4, heroCinematic.webm, heroCinematic.poster]) {
+        try {
+          const r = await fetch(src, { method: "HEAD" });
+          if (!r.ok) console.warn(`[HeroCinematic] asset mancante o non servito: ${src} (HTTP ${r.status})`);
+        } catch {
+          console.warn(`[HeroCinematic] asset non raggiungibile: ${src}`);
+        }
+      }
+    })();
+  }, []);
+
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      void v.play();
+      setPaused(false);
+    } else {
+      v.pause();
+      setPaused(true);
+    }
+  };
 
   return (
     <section id="top" className="relative flex min-h-[92dvh] w-full items-end overflow-hidden bg-ink text-cream">
-      {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
+      {/* Poster immagine reale (LCP + fallback). Desktop = crop landscape; mobile = crop ritratto.
+          Focal point per orientamento così il soggetto non viene mai tagliato male. */}
       <Image
         src={heroCinematic.base}
         alt={heroCinematic.baseAlt}
         fill
         priority
         sizes="100vw"
-        className="ken-burns object-cover"
-        style={{ objectPosition: "50% 35%" }}
+        className="ken-burns hidden object-cover md:block"
+        style={{ objectPosition: heroCinematic.focalDesktop }}
+      />
+      <Image
+        src={heroCinematic.baseMobile}
+        alt={heroCinematic.baseMobileAlt}
+        fill
+        priority
+        sizes="100vw"
+        className="ken-burns object-cover md:hidden"
+        style={{ objectPosition: heroCinematic.focalMobile }}
       />
 
-      {/* Video overlay (opzionale, video-ready): copre la base quando disponibile */}
+      {/* Video overlay (opzionale): copre il poster quando disponibile. AV1 → VP9 → H.264. */}
       {playVideo && (
         <video
+          ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           poster={heroCinematic.poster}
           autoPlay
@@ -150,21 +173,48 @@ export default function HeroCinematic() {
           loop
           playsInline
           preload="metadata"
-          onError={() => setPlayVideo(false)}
+          onError={() => {
+            if (process.env.NODE_ENV !== "production")
+              console.warn("[HeroCinematic] video non riproducibile → fallback al poster.");
+            setPlayVideo(false);
+          }}
         >
+          <source src={heroCinematic.av1} type='video/webm; codecs="av01.0.05M.08"' />
           <source src={heroCinematic.webm} type="video/webm" />
           <source src={heroCinematic.mp4} type="video/mp4" />
         </video>
       )}
 
-      {/* Gradienti per leggibilità del testo */}
+      {/* Gradienti per leggibilità del testo (preservano l'immagine e il contrasto del titolo) */}
       <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/35 to-ink/10" />
       <div className="absolute inset-0 bg-gradient-to-r from-ink/55 to-transparent" />
 
       {/* Cornice Segno Domus sul canvas */}
       <SegnoDomusVideoFrame />
 
-      {/* Contenuto */}
+      {/* Controllo pausa/play discreto (solo se il video è montato). Niente audio in autoplay. */}
+      {playVideo && (
+        <button
+          type="button"
+          onClick={togglePlay}
+          aria-label={paused ? c.play : c.pause}
+          className="absolute bottom-6 right-6 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-cream/30 bg-ink/40 text-cream backdrop-blur-sm transition-all duration-300 hover:border-cream/60 hover:bg-ink/60 active:scale-95"
+        >
+          {paused ? (
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden fill="currentColor">
+              <rect x="6" y="5" width="4" height="14" rx="1" />
+              <rect x="14" y="5" width="4" height="14" rx="1" />
+            </svg>
+          )}
+        </button>
+      )}
+
+      {/* Contenuto — essenziale: badge, titolo, una frase, fondatrice, 2 CTA. La prova sociale
+          secondaria vive nella proof strip subito sotto (Authority), non qui. */}
       <div className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-36">
         <div className="max-w-3xl">
           <SegnoDomusBadge light className="backdrop-blur-sm">{c.badge}</SegnoDomusBadge>
@@ -181,7 +231,7 @@ export default function HeroCinematic() {
             {c.subcopy}
           </p>
 
-          {/* Founder label */}
+          {/* Fondatrice */}
           <p
             className="mt-5 flex items-center gap-2.5 text-sm font-medium text-cream/80"
             style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "60ms" }}
@@ -192,7 +242,7 @@ export default function HeroCinematic() {
             {c.founder}
           </p>
 
-          {/* CTA */}
+          {/* CTA — una primaria (valutazione, rosso pieno) + una secondaria (ricerca casa) */}
           <div
             className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
             style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "120ms" }}
@@ -213,50 +263,6 @@ export default function HeroCinematic() {
               {c.ctaCerco}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </a>
-            <a
-              href={heroCinematic.youtube}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-2.5 px-3 py-4 text-base font-medium text-cream/85 transition-colors hover:text-white"
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
-                <Play className="h-3.5 w-3.5" />
-              </span>
-              {c.ctaVideo}
-            </a>
-          </div>
-
-          {/* Trust chips */}
-          <div
-            className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-cream/15 pt-6"
-            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "180ms" }}
-          >
-            <a href="#recensioni" className="flex items-center gap-2 hover:opacity-90">
-              <span className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 text-red-soft" />
-                ))}
-              </span>
-              <span className="text-sm font-semibold text-cream">
-                {site.rating}/5 {c.ratingOn}
-              </span>
-            </a>
-            <span className="text-sm font-medium text-cream/75">{c.reviews}</span>
-            {chips.map((ch) =>
-              ch.href ? (
-                <a
-                  key={ch.label}
-                  href={ch.href}
-                  className="text-[0.82rem] font-medium text-cream/70 underline-offset-4 transition-colors duration-300 hover:text-cream hover:underline"
-                >
-                  {ch.label}
-                </a>
-              ) : (
-                <span key={ch.label} className="text-[0.82rem] font-medium text-cream/70">
-                  {ch.label}
-                </span>
-              )
-            )}
           </div>
         </div>
       </div>
