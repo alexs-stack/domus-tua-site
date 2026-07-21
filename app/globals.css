@@ -616,6 +616,22 @@ body {
   outline-offset: 3px;
 }
 
+/* Cluster (più comuni vicini): stesso badge + alone esterno per dire "gruppo". */
+.dt-cluster {
+  cursor: pointer;
+}
+.dt-cluster__badge {
+  box-shadow:
+    0 0 0 4px rgba(193, 39, 45, 0.16),
+    0 8px 20px -6px rgba(150, 30, 26, 0.75),
+    0 1px 2px rgba(0, 0, 0, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 0.28);
+}
+.dt-cluster:hover .dt-cluster__badge,
+.dt-cluster:focus-visible .dt-cluster__badge {
+  transform: scale(1.12);
+}
+
 /* Tooltip di marca (scuro, tipografia Jakarta). */
 .dt-map .leaflet-tooltip.dt-tip {
   background: var(--color-ink);
