@@ -73,8 +73,8 @@ export default function PropertyMap({
 
       const markers: import("leaflet").Marker[] = [];
       for (const g of mapped) {
-        const size = 30 + Math.round(18 * (g.count / maxCount));
-        const fs = Math.max(12, Math.round(size * 0.4));
+        const size = 24 + Math.round(14 * (g.count / maxCount));
+        const fs = Math.max(11, Math.round(size * 0.42));
         const icon = L.divIcon({
           className: "dt-marker",
           html: `<div class="dt-marker__badge" style="width:${size}px;height:${size}px;font-size:${fs}px">${g.count}</div>`,
@@ -82,8 +82,9 @@ export default function PropertyMap({
           iconAnchor: [size / 2, size / 2],
         });
         const m = L.marker([g.coords!.lat, g.coords!.lng], { icon, title: c.tip(g.town, g.count) }).addTo(map);
-        // Etichetta permanente col nome del comune (leggibile a colpo d'occhio, sotto il badge).
-        m.bindTooltip(g.town, { className: "dt-label", permanent: true, direction: "bottom", offset: [0, size / 2 + 2], opacity: 1 });
+        // Tooltip all'hover (comune · N): il nome del comune è già stampato dalla base CARTO,
+        // quindi niente etichette permanenti che si accavallano nei comuni vicini.
+        m.bindTooltip(c.tip(g.town, g.count), { className: "dt-tip", direction: "top", offset: [0, -size / 2 - 2], opacity: 1 });
         m.on("click", () => onSelectRef.current(g.key));
         markers.push(m);
       }
