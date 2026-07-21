@@ -1,27 +1,25 @@
 "use client";
 
-// Mappa "Case in vendita" — a livello di COMUNE (il feed non ha coordinate; niente posizioni
-// esatte delle case = privacy-safe). Nessuna dipendenza esterna, nessun tile di terze parti:
-// i pin sono posizionati alle loro coordinate geografiche RELATIVE reali (normalizzate nel
-// riquadro). I comuni senza coordinate note finiscono in "Altre zone" (mai persi, mai inventati).
-import { useMemo } from "react";
-import { SegnoDomus } from "./BrandMotif";
+// Mappa "Case in vendita" — mappa REALE (OpenStreetMap via Leaflet) con un marker per COMUNE.
+// Il feed non ha coordinate del singolo immobile (indirizzo spesso omesso per privacy): i pin
+// sono a livello di comune (mai la casa esatta). Leaflet è caricato dinamicamente lato client
+// (accede a window) e i tile OSM danno la geografia reale — così la mappa non è mai "vuota".
+// I comuni non geolocalizzati finiscono in "Altre zone" (mai persi).
+import { useEffect, useRef } from "react";
+import "leaflet/dist/leaflet.css";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { TownGroup } from "../lib/geo/comuni";
 
 const copy = {
-  it: { title: "Dove sono le case in vendita", subtitle: "Comuni con immobili disponibili — clicca per filtrare.", others: "Altre zone", one: "immobile", many: "immobili", aria: (n: number, t: string) => `Vedi ${n} ${n === 1 ? "immobile" : "immobili"} a ${t}` },
-  en: { title: "Where the homes for sale are", subtitle: "Towns with available properties — click to filter.", others: "Other areas", one: "home", many: "homes", aria: (n: number, t: string) => `See ${n} ${n === 1 ? "home" : "homes"} in ${t}` },
-  fr: { title: "Où se trouvent les biens à vendre", subtitle: "Communes avec des biens disponibles — cliquez pour filtrer.", others: "Autres secteurs", one: "bien", many: "biens", aria: (n: number, t: string) => `Voir ${n} ${n === 1 ? "bien" : "biens"} à ${t}` },
-  de: { title: "Wo die Immobilien zum Verkauf sind", subtitle: "Orte mit verfügbaren Immobilien — zum Filtern klicken.", others: "Weitere Gebiete", one: "Immobilie", many: "Immobilien", aria: (n: number, t: string) => `${n} ${n === 1 ? "Immobilie" : "Immobilien"} in ${t} ansehen` },
-  es: { title: "Dónde están las casas en venta", subtitle: "Municipios con inmuebles disponibles — haz clic para filtrar.", others: "Otras zonas", one: "inmueble", many: "inmuebles", aria: (n: number, t: string) => `Ver ${n} ${n === 1 ? "inmueble" : "inmuebles"} en ${t}` },
+  it: { title: "Dove sono le case in vendita", subtitle: "Comuni con immobili disponibili — clicca un pin per filtrare.", others: "Altre zone", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "immobile" : "immobili"}` },
+  en: { title: "Where the homes for sale are", subtitle: "Towns with available properties — click a pin to filter.", others: "Other areas", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "home" : "homes"}` },
+  fr: { title: "Où se trouvent les biens à vendre", subtitle: "Communes avec des biens disponibles — cliquez un point pour filtrer.", others: "Autres secteurs", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "bien" : "biens"}` },
+  de: { title: "Wo die Immobilien zum Verkauf sind", subtitle: "Orte mit verfügbaren Immobilien — Pin klicken zum Filtern.", others: "Weitere Gebiete", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "Immobilie" : "Immobilien"}` },
+  es: { title: "Dónde están las casas en venta", subtitle: "Municipios con inmuebles disponibles — haz clic en un pin para filtrar.", others: "Otras zonas", tip: (t: string, n: number) => `${t} · ${n} ${n === 1 ? "inmueble" : "inmuebles"}` },
 };
-
-const PAD = 12; // % di margine interno per non incollare i pin ai bordi
 
 export default function PropertyMap({
   groups,
-  activeKey,
   onSelect,
 }: {
   groups: TownGroup[];
@@ -30,25 +28,78 @@ export default function PropertyMap({
 }) {
   const { locale } = useLocale();
   const c = copy[locale];
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  // onSelect può cambiare a ogni render: teniamolo in un ref così l'effetto mappa non si
+  // re-inizializza. L'aggiornamento del ref avviene in un effect (non durante il render).
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
 
-  const mapped = useMemo(() => groups.filter((g) => g.coords), [groups]);
-  const others = useMemo(() => groups.filter((g) => !g.coords), [groups]);
-  const maxCount = useMemo(() => Math.max(1, ...groups.map((g) => g.count)), [groups]);
+  const others = groups.filter((g) => !g.coords);
 
-  // Posizione normalizzata (x%, y%) dalle coordinate reali; lat invertita (nord = alto).
-  const positioned = useMemo(() => {
-    if (mapped.length === 0) return [];
-    const lats = mapped.map((g) => g.coords!.lat);
-    const lngs = mapped.map((g) => g.coords!.lng);
-    const minLat = Math.min(...lats), maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-    const spanLat = maxLat - minLat, spanLng = maxLng - minLng;
-    return mapped.map((g) => {
-      const x = spanLng < 1e-6 ? 50 : PAD + ((g.coords!.lng - minLng) / spanLng) * (100 - 2 * PAD);
-      const y = spanLat < 1e-6 ? 50 : PAD + ((maxLat - g.coords!.lat) / spanLat) * (100 - 2 * PAD);
-      return { g, x, y };
-    });
-  }, [mapped]);
+  useEffect(() => {
+    let cancelled = false;
+    let map: import("leaflet").Map | null = null;
+    let timer = 0;
+
+    (async () => {
+      const L = (await import("leaflet")).default;
+      if (cancelled || !containerRef.current) return;
+
+      const mapped = groups.filter((g) => g.coords);
+      const maxCount = Math.max(1, ...mapped.map((g) => g.count));
+
+      map = L.map(containerRef.current, {
+        scrollWheelZoom: false, // niente hijack dello scroll di pagina; zoom con i controlli
+        zoomControl: true,
+        attributionControl: true,
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18,
+      }).addTo(map);
+
+      const markers: import("leaflet").Marker[] = [];
+      for (const g of mapped) {
+        const size = 26 + Math.round(16 * (g.count / maxCount));
+        const icon = L.divIcon({
+          className: "",
+          html: `<div style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:9999px;background:#c1272d;color:#fff;border:2px solid #fff;box-shadow:0 6px 16px -4px rgba(150,30,26,.7);font-weight:600;font-size:12px;line-height:1;font-family:var(--font-jakarta,system-ui,sans-serif)">${g.count}</div>`,
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
+        const m = L.marker([g.coords!.lat, g.coords!.lng], { icon, title: c.tip(g.town, g.count) }).addTo(map);
+        m.bindTooltip(c.tip(g.town, g.count), { direction: "top", offset: [0, -size / 2] });
+        m.on("click", () => onSelectRef.current(g.key));
+        markers.push(m);
+      }
+
+      const fit = () => {
+        if (!map) return;
+        if (markers.length > 0) map.fitBounds(L.featureGroup(markers).getBounds().pad(0.25), { maxZoom: 13 });
+        else map.setView([45.708, 8.906], 11); // Tradate come vista di default
+      };
+      fit();
+      // Il contenitore può essere misurato a 0 al primo tick (mappa appena montata): ricalcoliamo
+      // le dimensioni dopo che il layout si è assestato (rAF + un timeout di sicurezza), senza
+      // ResizeObserver (evita loop di reflow), così i tile riempiono la mappa.
+      const recalc = () => {
+        if (cancelled || !map) return;
+        map.invalidateSize();
+        fit();
+      };
+      requestAnimationFrame(recalc);
+      timer = window.setTimeout(recalc, 300);
+    })();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      if (map) map.remove();
+    };
+  }, [groups, c]);
 
   return (
     <div>
@@ -57,60 +108,13 @@ export default function PropertyMap({
         <p className="mt-1 text-sm text-stone">{c.subtitle}</p>
       </div>
 
-      {/* Riquadro mappa — sfondo di marca, nessun tile esterno. Altezza fissa → niente CLS. */}
-      <div className="relative h-[440px] w-full overflow-hidden rounded-[1.75rem] border border-line bg-cream sm:h-[540px]">
-        {/* Griglia leggera (senso di "mappa" senza tile) + due aloni caldi */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(26,24,22,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(26,24,22,0.04) 1px, transparent 1px), radial-gradient(circle at 68% 62%, rgba(150,30,26,0.06), transparent 42%), radial-gradient(circle at 30% 30%, rgba(26,24,22,0.03), transparent 45%)",
-            backgroundSize: "40px 40px, 40px 40px, 100% 100%, 100% 100%",
-          }}
-        />
-        <span className="pointer-events-none absolute right-5 top-5 opacity-[0.06]" aria-hidden>
-          <SegnoDomus className="h-16 w-40" embrace={false} />
-        </span>
+      {/* Contenitore mappa: altezza fissa → niente CLS. La geografia arriva dai tile OSM. */}
+      <div
+        ref={containerRef}
+        className="z-0 h-[420px] w-full overflow-hidden rounded-[1.75rem] border border-line bg-cream sm:h-[520px]"
+      />
 
-        {/* Pin dei comuni, posizionati alle coordinate relative reali */}
-        {positioned.map(({ g, x, y }) => {
-          const active = g.key === activeKey;
-          const scale = 0.7 + 0.6 * (g.count / maxCount); // pin più grande = più immobili
-          return (
-            <button
-              key={g.key}
-              type="button"
-              onClick={() => onSelect(g.key)}
-              aria-label={c.aria(g.count, g.town)}
-              className="group absolute z-10 flex -translate-x-1/2 -translate-y-full flex-col items-center focus-visible:outline-none"
-              style={{ left: `${x}%`, top: `${y}%` }}
-            >
-              <span
-                className={`flex items-center justify-center rounded-full border-2 border-white font-display text-[0.7rem] font-semibold tabular-nums shadow-[0_6px_16px_-6px_rgba(150,30,26,0.7)] transition-all duration-300 group-hover:scale-110 group-focus-visible:ring-2 group-focus-visible:ring-red group-focus-visible:ring-offset-2 ${
-                  active ? "bg-red-dark text-white ring-2 ring-red ring-offset-2" : "bg-red text-white"
-                }`}
-                style={{ height: `${1.6 * scale}rem`, width: `${1.6 * scale}rem` }}
-              >
-                {g.count}
-              </span>
-              {/* codina del pin */}
-              <span className={`h-2 w-[2px] ${active ? "bg-red-dark" : "bg-red"}`} aria-hidden />
-              <span className="mt-1 whitespace-nowrap rounded-full bg-paper/90 px-2 py-0.5 text-[0.7rem] font-medium text-ink shadow-sm backdrop-blur-sm">
-                {g.town}
-              </span>
-            </button>
-          );
-        })}
-
-        {mapped.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-stone">
-            {c.subtitle}
-          </div>
-        )}
-      </div>
-
-      {/* Comuni senza coordinate note: non li perdiamo, li elenchiamo come chip cliccabili. */}
+      {/* Comuni senza coordinate note: elencati come chip cliccabili (mai persi, mai inventati). */}
       {others.length > 0 && (
         <div className="mt-4">
           <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-wide text-stone">{c.others}</p>

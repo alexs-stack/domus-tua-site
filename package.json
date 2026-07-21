@@ -16,7 +16,9 @@
     "check": "npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {
+    "@types/leaflet": "^1.9.21",
     "fast-xml-parser": "^5.9.3",
+    "leaflet": "^1.9.4",
     "next": "16.2.9",
     "react": "19.2.4",
     "react-dom": "19.2.4"
