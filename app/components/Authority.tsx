@@ -1,9 +1,13 @@
 "use client";
 
+import { useRef } from "react";
 import Reveal from "./Reveal";
+import CountUp from "./CountUp";
+import Parallax from "./motion/Parallax";
 import { Star, Google, ArrowUpRight, Play } from "./Icons";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 const years = new Date().getFullYear() - site.since;
 
@@ -79,6 +83,30 @@ export default function Authority() {
   const { locale } = useLocale();
   const c = copy[locale];
 
+  // Pop delle 5 stelle: piccola scala elastica in sequenza, una sola volta all'ingresso.
+  const starsRef = useRef<HTMLSpanElement | null>(null);
+  useGSAP(
+    () => {
+      const row = starsRef.current;
+      if (!row) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        gsap.fromTo(
+          row.children,
+          { scale: 0.6, transformOrigin: "50% 50%" },
+          {
+            scale: 1,
+            duration: 0.5,
+            ease: "back.out(1.6)",
+            stagger: 0.06,
+            scrollTrigger: { trigger: row, start: "top 85%", once: true },
+          }
+        );
+      });
+    },
+    { scope: starsRef }
+  );
+
   return (
     <section className="relative overflow-hidden bg-red text-white">
       {/* profondità calda */}
@@ -128,50 +156,54 @@ export default function Authority() {
             </div>
           </Reveal>
 
-          {/* Card rating */}
+          {/* Card rating — deriva leggera contro la colonna testo (solo desktop) */}
           <Reveal delay={120}>
-            <div className="rounded-[2rem] bg-white p-7 text-ink shadow-[0_40px_90px_-50px_rgba(80,4,4,0.9)] sm:p-9">
-              <div className="flex items-center gap-4">
-                <span className="tnum font-display text-7xl font-medium leading-none text-ink">
-                  {site.rating}
-                </span>
-                <div>
-                  <span className="flex gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-red" />
-                    ))}
-                  </span>
-                  <p className="mt-1.5 text-sm font-semibold text-graphite">
-                    {c.reviewsSuffix}
+            <Parallax speed={-0.06}>
+              <div className="rounded-[2rem] bg-white p-7 text-ink shadow-[0_40px_90px_-50px_rgba(80,4,4,0.9)] sm:p-9">
+                <div className="flex items-center gap-4">
+                  <CountUp
+                    value={parseFloat(site.rating)}
+                    decimals={1}
+                    className="font-display text-7xl font-medium leading-none text-ink"
+                  />
+                  <div>
+                    <span ref={starsRef} className="flex gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-5 w-5 text-red" />
+                      ))}
+                    </span>
+                    <p className="mt-1.5 text-sm font-semibold text-graphite">
+                      {c.reviewsSuffix}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-3.5">
+                  <Google className="h-6 w-6 shrink-0" />
+                  <p className="text-sm leading-snug text-graphite">
+                    {c.verifiedPre}<span className="font-semibold text-ink">Google</span>{c.verifiedMid}
+                    Trustindex
                   </p>
                 </div>
-              </div>
 
-              <div className="mt-6 flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-3.5">
-                <Google className="h-6 w-6 shrink-0" />
-                <p className="text-sm leading-snug text-graphite">
-                  {c.verifiedPre}<span className="font-semibold text-ink">Google</span>{c.verifiedMid}
-                  Trustindex
-                </p>
+                <ul className="mt-6 grid grid-cols-3 gap-2 text-center sm:gap-3">
+                  {[
+                    { v: `${years}+`, l: c.statYears },
+                    { v: site.reviewsCount, l: c.statReviews },
+                    { v: site.rating, l: c.statRating },
+                  ].map((s) => (
+                    <li key={s.l} className="rounded-2xl bg-cream-deep px-2 py-4">
+                      <span className="tnum block font-display text-xl font-medium text-red sm:text-2xl">
+                        {s.v}
+                      </span>
+                      <span className="mt-1 block text-[0.72rem] uppercase tracking-wide text-stone">
+                        {s.l}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              <ul className="mt-6 grid grid-cols-3 gap-2 text-center sm:gap-3">
-                {[
-                  { v: `${years}+`, l: c.statYears },
-                  { v: site.reviewsCount, l: c.statReviews },
-                  { v: site.rating, l: c.statRating },
-                ].map((s) => (
-                  <li key={s.l} className="rounded-2xl bg-cream-deep px-2 py-4">
-                    <span className="tnum block font-display text-xl font-medium text-red sm:text-2xl">
-                      {s.v}
-                    </span>
-                    <span className="mt-1 block text-[0.72rem] uppercase tracking-wide text-stone">
-                      {s.l}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            </Parallax>
           </Reveal>
         </div>
       </div>

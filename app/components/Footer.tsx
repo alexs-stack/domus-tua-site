@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import { Logo } from "./Logo";
 import { Phone, Whatsapp, Mail, Pin, Instagram, Facebook, TikTok, YouTube } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
+import DrawOnScroll from "./motion/DrawOnScroll";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 
@@ -16,12 +19,57 @@ const socials = [
 
 export default function Footer() {
   const d = useDict();
+  const footerRef = useRef<HTMLElement | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+
+  // Ingresso a colonne: le tre colonne principali salgono in sequenza quando il
+  // footer entra in viewport (una volta sola). Stato nascosto solo via JS
+  // (gsap.fromTo): senza JS o con reduced-motion il footer resta visibile.
+  // La barra legale in fondo resta fuori: nessun movimento.
+  useGSAP(
+    () => {
+      const footer = footerRef.current;
+      const grid = gridRef.current;
+      if (!footer || !grid) return;
+      const cols = Array.from(grid.children);
+      if (cols.length === 0) return;
+
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        // opacity (non autoAlpha): visibility:hidden toglierebbe i link del footer
+        // dal tab order finché il trigger non scatta.
+        const tween = gsap.fromTo(
+          cols,
+          { y: 26, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 1,
+            stagger: 0.1,
+            ease: "expo.out",
+            scrollTrigger: { trigger: footer, start: "top 85%", once: true },
+          }
+        );
+        // Reti di sicurezza (stesso patto di Reveal): il focus da tastiera o un
+        // timeout rivelano subito le colonne se il trigger non è ancora scattato.
+        const reveal = () => tween.progress(1);
+        footer.addEventListener("focusin", reveal, { once: true });
+        const safety = window.setTimeout(reveal, 2500);
+        return () => {
+          footer.removeEventListener("focusin", reveal);
+          window.clearTimeout(safety);
+        };
+      });
+    },
+    { scope: footerRef }
+  );
+
   return (
-    <footer className="topo-ambient bg-graphite text-cream">
+    <footer ref={footerRef} className="topo-ambient bg-graphite text-cream">
       {/* pb extra su mobile: lascia spazio alla MobileActionBar fissa (~64px + safe-area)
           così l'ultima riga legale non finisce mai sotto la barra "Valuta gratis". */}
       <div className="mx-auto max-w-[1240px] px-5 pb-28 pt-16 sm:px-8 sm:py-20">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
+        <div ref={gridRef} className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
           {/* Brand */}
           <div>
             {/* Logo a colori su chip chiara: leggibile sul footer scuro finché non arriva
@@ -29,7 +77,10 @@ export default function Footer() {
             <span className="inline-flex rounded-xl bg-paper px-3.5 py-2.5">
               <Logo light />
             </span>
-            <SegnoDomus className="mt-6 h-5 w-14" embrace={false} />
+            {/* Il Segno si disegna all'ingresso; statico e completo senza JS. */}
+            <DrawOnScroll className="mt-6 block" duration={1} stagger={0.2}>
+              <SegnoDomus className="h-5 w-14" embrace={false} />
+            </DrawOnScroll>
             <p className="mt-4 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
               Con Domus Tua è facile vendere ed è sicuro acquistare.
             </p>

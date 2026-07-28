@@ -1,10 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import Reveal from "./Reveal";
+import MaskReveal from "./motion/MaskReveal";
+import Parallax from "./motion/Parallax";
+import TextLines from "./motion/TextLines";
 import { ArrowUpRight, Play, Quote } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -142,6 +147,34 @@ const copy = {
 export default function Team() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const rootRef = useRef<HTMLElement | null>(null);
+  const rosterRef = useRef<HTMLUListElement | null>(null);
+
+  // Roster: le righe del team entrano in sequenza, un volto dopo l'altro.
+  // Stato nascosto solo via JS (fromTo): senza JS la lista resta visibile.
+  useGSAP(
+    () => {
+      const list = rosterRef.current;
+      if (!list) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        gsap.fromTo(
+          list.querySelectorAll("li"),
+          { y: 14, autoAlpha: 0 },
+          {
+            y: 0,
+            autoAlpha: 1,
+            duration: 0.8,
+            ease: "expo.out",
+            stagger: 0.05,
+            clearProps: "all",
+            scrollTrigger: { trigger: list, start: "top 85%", once: true },
+          }
+        );
+      });
+    },
+    { scope: rootRef }
+  );
 
   const roster = [
     { name: "Raffaela Rizza", role: c.roles.founder, founder: true },
@@ -160,14 +193,18 @@ export default function Team() {
       .join("");
 
   return (
-    <section id="chi-siamo" className="bg-cream">
+    <section ref={rootRef} id="chi-siamo" className="bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.4rem]">
+            {/* Titolo display: le righe salgono dalla maschera (SplitText). */}
+            <TextLines
+              as="h2"
+              className="mt-5 font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.4rem]"
+            >
               {c.title}
-            </h2>
+            </TextLines>
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-graphite">
               {c.lead}
             </p>
@@ -200,7 +237,7 @@ export default function Team() {
               <p className="mt-3 text-[0.95rem] leading-relaxed text-stone">
                 {c.rosterIntro}
               </p>
-              <ul className="mt-6 grid gap-x-7 gap-y-px sm:grid-cols-2">
+              <ul ref={rosterRef} className="mt-6 grid gap-x-7 gap-y-px sm:grid-cols-2">
                 {roster.map((member, i) => (
                   <li
                     key={member.name}
@@ -239,60 +276,70 @@ export default function Team() {
             </a>
           </Reveal>
 
-          <Reveal delay={120}>
-            <figure className="overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
-              <a
-                href="https://www.youtube.com/watch?v=PRB3exiOa3I"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative block aspect-[4/3] overflow-hidden rounded-[calc(2rem-0.5rem)]"
-                aria-label={c.videoAria}
-              >
-                <Image
-                  src="/images/reali/team-group.jpg"
-                  alt={c.imageAlt}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 520px"
-                  className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                />
-                <span className="absolute inset-0 bg-gradient-to-t from-ink/40 to-transparent" />
-                <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
-                  <Play className="h-5 w-5" />
-                </span>
-              </a>
-              <figcaption className="flex items-center justify-between gap-3 px-4 py-4">
-                <span className="text-sm leading-tight text-graphite">
-                  <span className="block font-semibold text-ink">{c.captionName}</span>
-                  {c.captionPlace}
-                </span>
-                <span className="shrink-0 rounded-full bg-red-soft px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
-                  {c.badge}
-                </span>
-              </figcaption>
-            </figure>
-
-            <figure className="group mt-5 overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
-              <div className="relative aspect-[5/4] overflow-hidden rounded-[calc(2rem-0.5rem)]">
-                <Image
-                  src="/images/reali/raffaela-founder.jpg"
-                  alt={c.founderAlt}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 520px"
-                  className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                />
-                <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ink/55 to-transparent" />
-                <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5">
-                  <span className="leading-tight text-paper">
-                    <span className="block font-display text-lg font-medium">Raffaela Rizza</span>
-                    <span className="block text-[0.8rem] text-paper/80">{c.founderCaption}</span>
+          {/* Colonna foto: leggera deriva in primo piano allo scroll (solo desktop);
+              nessun elemento sticky all'interno. */}
+          <Parallax speed={-0.08}>
+            <Reveal delay={120}>
+              <figure className="overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
+                {/* Sipario dal basso sulla cornice interna: il raggio resta a clippare. */}
+                <MaskReveal from="bottom" zoom={1.1} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
+                  <a
+                    href="https://www.youtube.com/watch?v=PRB3exiOa3I"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative block aspect-[4/3] overflow-hidden rounded-[calc(2rem-0.5rem)]"
+                    aria-label={c.videoAria}
+                  >
+                    <Image
+                      src="/images/reali/team-group.jpg"
+                      alt={c.imageAlt}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 520px"
+                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                    />
+                    <span className="absolute inset-0 bg-gradient-to-t from-ink/40 to-transparent" />
+                    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
+                      <Play className="h-5 w-5" />
+                    </span>
+                  </a>
+                </MaskReveal>
+                <figcaption className="flex items-center justify-between gap-3 px-4 py-4">
+                  <span className="text-sm leading-tight text-graphite">
+                    <span className="block font-semibold text-ink">{c.captionName}</span>
+                    {c.captionPlace}
                   </span>
-                  <span className="mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-paper/90">
-                    <SegnoDomus className="h-3.5 w-3.5 text-red" />
+                  <span className="shrink-0 rounded-full bg-red-soft px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
+                    {c.badge}
                   </span>
                 </figcaption>
-              </div>
-            </figure>
-          </Reveal>
+              </figure>
+
+              <figure className="group mt-5 overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
+                {/* Secondo sipario, da sinistra: alterna la direzione per ritmo editoriale. */}
+                <MaskReveal from="left" zoom={1.1} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
+                  <div className="relative aspect-[5/4] overflow-hidden rounded-[calc(2rem-0.5rem)]">
+                    <Image
+                      src="/images/reali/raffaela-founder.jpg"
+                      alt={c.founderAlt}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 520px"
+                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                    />
+                    <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ink/55 to-transparent" />
+                    <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5">
+                      <span className="leading-tight text-paper">
+                        <span className="block font-display text-lg font-medium">Raffaela Rizza</span>
+                        <span className="block text-[0.8rem] text-paper/80">{c.founderCaption}</span>
+                      </span>
+                      <span className="mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-paper/90">
+                        <SegnoDomus className="h-3.5 w-3.5 text-red" />
+                      </span>
+                    </figcaption>
+                  </div>
+                </MaskReveal>
+              </figure>
+            </Reveal>
+          </Parallax>
         </div>
       </div>
     </section>

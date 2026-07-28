@@ -1,5 +1,6 @@
 import Reveal from "./Reveal";
 import { SegnoDomus } from "./BrandMotif";
+import DrawOnScroll from "./motion/DrawOnScroll";
 
 export default function Highlights({
   eyebrow,
@@ -36,10 +37,13 @@ export default function Highlights({
               className="group grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
             >
               <div className="flex flex-col items-start gap-3">
-                <SegnoDomus
-                  className="h-4 w-11 opacity-70 transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:opacity-100"
-                  embrace={false}
-                />
+                {/* Il segno si disegna all'ingresso della riga (IO per-riga = timing naturale). */}
+                <DrawOnScroll duration={0.8}>
+                  <SegnoDomus
+                    className="h-4 w-11 opacity-70 transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:opacity-100"
+                    embrace={false}
+                  />
+                </DrawOnScroll>
                 <span className="tnum font-display text-3xl font-medium leading-none text-red sm:text-4xl md:text-5xl">
                   {String(i + 1).padStart(2, "0")}
                 </span>

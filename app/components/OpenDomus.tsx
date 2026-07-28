@@ -1,10 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import Reveal from "./Reveal";
+import MaskReveal from "./motion/MaskReveal";
+import Parallax from "./motion/Parallax";
 import { ArrowUpRight, Play } from "./Icons";
 import { SegnoDomusCorner, SegnoTick } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -128,12 +132,42 @@ export default function OpenDomus() {
   const { locale } = useLocale();
   const c = copy[locale];
 
+  // Ingresso a cascata delle righe benefici: stato nascosto solo via JS, una volta sola.
+  const benefitsRef = useRef<HTMLDivElement | null>(null);
+  useGSAP(
+    () => {
+      const root = benefitsRef.current;
+      if (!root) return;
+      const rows = root.querySelectorAll("li");
+      if (!rows.length) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        gsap.fromTo(
+          rows,
+          { y: 16, autoAlpha: 0 },
+          {
+            y: 0,
+            autoAlpha: 1,
+            duration: 0.9,
+            ease: "expo.out",
+            stagger: 0.06,
+            clearProps: "all",
+            scrollTrigger: { trigger: root, start: "top 85%", once: true },
+          }
+        );
+      });
+    },
+    { scope: benefitsRef }
+  );
+
   return (
     <section id="open-domus" className="bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Visual */}
           <Reveal className="order-2 lg:order-1">
+            {/* Profondità: la colonna foto deriva lenta allo scroll (solo desktop). */}
+            <Parallax speed={0.12}>
             <div className="relative rounded-[2rem] border border-line bg-cream p-2">
               <SegnoDomusCorner className="left-3.5 top-3.5 z-10" rotate={0} />
               <a
@@ -143,40 +177,52 @@ export default function OpenDomus() {
                 aria-label={c.videoAria}
                 className="group relative block aspect-[4/5] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[5/5]"
               >
-                <Image
-                  src="/images/reali/raffaela-founder.jpg"
-                  alt={c.imageAlt}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 600px"
-                  className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                />
+                {/* Sipario dal basso sul solo media: link e play restano sopra la maschera. */}
+                <MaskReveal from="bottom" zoom={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
+                  <Image
+                    src="/images/reali/raffaela-founder.jpg"
+                    alt={c.imageAlt}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 600px"
+                    className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                  />
+                </MaskReveal>
                 <span className="absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent" />
                 <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
                   <Play className="h-6 w-6" />
                 </span>
               </a>
-              {/* card flottante */}
-              <div className="absolute -bottom-5 left-5 right-5 rounded-2xl border border-line bg-paper px-5 py-4 shadow-[0_30px_60px_-40px_rgba(26,24,22,0.6)] sm:left-auto sm:right-6 sm:w-64">
-                <p className="font-display text-lg font-medium text-ink">{c.cardTitle}</p>
-                <p className="mt-1 text-sm text-stone">
-                  {c.cardText}
-                </p>
-              </div>
+              {/* card flottante — controderiva rispetto alla foto, nessun clip aggiunto */}
+              <Parallax
+                speed={-0.08}
+                className="absolute -bottom-5 left-5 right-5 sm:left-auto sm:right-6 sm:w-64"
+              >
+                <div className="rounded-2xl border border-line bg-paper px-5 py-4 shadow-[0_30px_60px_-40px_rgba(26,24,22,0.6)]">
+                  <p className="font-display text-lg font-medium text-ink">{c.cardTitle}</p>
+                  <p className="mt-1 text-sm text-stone">
+                    {c.cardText}
+                  </p>
+                </div>
+              </Parallax>
             </div>
+            </Parallax>
           </Reveal>
 
           {/* Content */}
-          <Reveal className="order-1 lg:order-2" delay={100}>
-            <span className="eyebrow">{c.eyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-              {c.title}
-            </h2>
-            <p className="mt-6 max-w-lg text-[1.02rem] leading-relaxed text-stone">
-              {c.intro}
-            </p>
+          <div className="order-1 lg:order-2">
+            <Reveal delay={100}>
+              <span className="eyebrow">{c.eyebrow}</span>
+              <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+                {c.title}
+              </h2>
+              <p className="mt-6 max-w-lg text-[1.02rem] leading-relaxed text-stone">
+                {c.intro}
+              </p>
+            </Reveal>
 
-            {/* Doppio valore: Open Domus lavora sia per chi vende sia per chi compra. */}
-            <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2">
+            {/* Doppio valore: Open Domus lavora sia per chi vende sia per chi compra.
+                Fuori dal Reveal: le righe entrano in cascata via GSAP (vedi benefitsRef). */}
+            <div ref={benefitsRef} className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2">
               {[
                 { label: c.sellerLabel, items: c.sellerBenefits },
                 { label: c.buyerLabel, items: c.buyerBenefits },
@@ -199,16 +245,18 @@ export default function OpenDomus() {
               ))}
             </div>
 
-            <a
-              href="#contatti"
-              className="group mt-10 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-cream transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-            >
-              {c.cta}
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
-          </Reveal>
+            <Reveal delay={150}>
+              <a
+                href="#contatti"
+                className="group mt-10 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-cream transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
+                {c.cta}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>

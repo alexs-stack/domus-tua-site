@@ -77,6 +77,24 @@ html {
   overflow-x: clip;
 }
 
+/* ---------- Lenis (smooth scroll) ----------
+   Regole raccomandate: quando Lenis è attivo governa lui l'inerzia, quindi
+   lo smooth nativo va spento (altrimenti i due si sommano). Senza JS o con
+   reduced-motion la classe .lenis non c'è → resta lo scroll-behavior nativo. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 :where([id]) {
   scroll-margin-top: 6.5rem;
 }
@@ -368,6 +386,25 @@ body {
   .segno-hover-draw:hover path:first-child {
     stroke-dashoffset: 120;
     animation: dt-segno-draw 0.9s var(--ease-out-expo) forwards;
+  }
+}
+
+/* ---------- Metodo: passo attivo (classi gestite da ScrollTrigger) ---------- */
+/* Lo scroll accende il passo corrente: numero rosso e riga leggermente avanzata.
+   Senza JS/reduced-motion la classe non viene mai applicata → lista statica. */
+.dt-step-row {
+  transition: border-color 0.5s var(--ease-soft), transform 0.5s var(--ease-soft);
+}
+.dt-step-row.step-active .dt-step-num {
+  color: var(--color-red);
+}
+.dt-step-row.step-active {
+  border-color: rgb(210 10 10 / 0.3);
+  transform: translateX(6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-step-row.step-active {
+    transform: none;
   }
 }
 

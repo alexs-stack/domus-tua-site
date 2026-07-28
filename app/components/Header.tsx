@@ -8,6 +8,8 @@ import { ArrowUpRight, Whatsapp } from "./Icons";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
+import { getLenis } from "./motion/SmoothScroll";
+import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -18,6 +20,48 @@ export default function Header() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const pillRef = useRef<HTMLDivElement | null>(null);
+  // Specchio di `open` leggibile dal callback ScrollTrigger senza ri-crearlo
+  // (sincronizzato in un effetto: niente scritture di ref durante il render).
+  const openRef = useRef(open);
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+
+  // Header direzionale: scendendo la pill si ritira (più tela per i contenuti),
+  // al primo scroll verso l'alto — o al focus da tastiera — torna subito.
+  // La traslazione è SULLA PILL, non sull'header: il menu mobile (fixed) resta
+  // figlio dell'header e un transform lì gli romperebbe il posizionamento.
+  useGSAP(
+    () => {
+      const pill = pillRef.current;
+      if (!pill) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const yTo = gsap.quickTo(pill, "yPercent", { duration: 0.65, ease: "expo.out" });
+        const show = () => yTo(0);
+        const st = ScrollTrigger.create({
+          onUpdate(self) {
+            if (openRef.current) return show();
+            // Mai nascondere la pill se il focus da tastiera è al suo interno:
+            // il focusin la mostra all'ingresso, ma uno scroll successivo (rotella,
+            // frecce, magnifier) la ritirerebbe portando l'elemento focalizzato
+            // fuori viewport (WCAG 2.4.7 / 2.4.11).
+            if (pillRef.current?.contains(document.activeElement)) return show();
+            if (self.scroll() < 160) return show();
+            if (self.direction === 1) yTo(-160);
+            else show();
+          },
+        });
+        pill.addEventListener("focusin", show);
+        return () => {
+          st.kill();
+          pill.removeEventListener("focusin", show);
+        };
+      });
+    },
+    { scope: pillRef }
+  );
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -28,8 +72,13 @@ export default function Header() {
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+    // Con Lenis attivo lo scroll virtuale va fermato insieme a quello nativo,
+    // altrimenti la pagina dietro il menu continua a "muoversi" con la rotella.
+    if (open) getLenis()?.stop();
+    else getLenis()?.start();
     return () => {
       document.body.style.overflow = "";
+      getLenis()?.start();
     };
   }, [open]);
 
@@ -87,12 +136,13 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 flex justify-center px-4 transition-colors duration-500 ${
+      className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 transition-colors duration-500 ${
         scrolled ? "" : "bg-gradient-to-b from-ink/60 via-ink/20 to-transparent pb-6"
       }`}
     >
       <div
-        className={`mt-3 flex w-full max-w-[1240px] items-center justify-between gap-4 rounded-full px-3 pl-5 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        ref={pillRef}
+        className={`pointer-events-auto mt-3 flex w-full max-w-[1240px] items-center justify-between gap-4 rounded-full px-3 pl-5 transition-[background-color,border-color,box-shadow,padding,backdrop-filter] duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           scrolled
             ? "border border-line/70 bg-paper/80 py-2 shadow-[0_18px_50px_-28px_rgba(26,24,22,0.45)] backdrop-blur-xl"
             : "border border-white/15 bg-ink/20 py-3 backdrop-blur-md"
@@ -196,6 +246,7 @@ export default function Header() {
         id="mobile-menu"
         aria-hidden={!open}
         inert={!open ? true : undefined}
+        data-lenis-prevent
         className={`fixed inset-0 z-40 flex flex-col bg-cream/90 px-6 pb-10 pt-28 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] lg:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}

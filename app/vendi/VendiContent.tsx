@@ -12,6 +12,7 @@ import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
+import ScrubWords from "../components/motion/ScrubWords";
 import { ArrowUpRight } from "../components/Icons";
 import {
   SegnoDomusBadge,
@@ -953,9 +954,11 @@ export default function VendiContent() {
       <section className="bg-ink">
         <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
           <Reveal className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-cream balance sm:text-[1.9rem]">
-              {c.openDomus.text}
-            </p>
+            {/* Le parole si accendono in sequenza legate allo scroll */}
+            <ScrubWords
+              text={c.openDomus.text}
+              className="max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-cream balance sm:text-[1.9rem]"
+            />
             <a
               href="/open-domus"
               className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"

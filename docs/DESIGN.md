@@ -114,6 +114,28 @@ Titoli display fluidi impostati inline con Tailwind, non come classi di scala fi
   animazioni/transizioni sono ridotte a `~0.001ms`. **Ogni nuova animazione deve rispettare
   questa media query.**
 
+### Layer GSAP + Lenis (2026-07)
+
+Su richiesta del cliente ("livello awwwards") il sito ha un layer scroll-motion:
+**gsap + ScrollTrigger** (+ SplitText, registrato solo in `TextLines`) e **Lenis**
+(smooth wheel, touch nativo, `anchors: true` → rispetta `scroll-margin-top`).
+
+- Registrazione unica: `app/lib/motion/gsap.ts` (esporta `gsap, ScrollTrigger, useGSAP, MQ`).
+- Mount: `app/components/motion/SmoothScroll.tsx` nel layout (nessun wrapper; `getLenis()`
+  per `stop()/start()` dagli overlay — già cablato in Header e Assistant, con
+  `data-lenis-prevent` sugli scroller interni).
+- Primitive riusabili in `app/components/motion/`: `Parallax` (scrub, `speed` yPercent o
+  `range` px, overscan `scale` pre-applicato in SSR), `MaskReveal` (sipario clip-path,
+  stato nascosto SOLO via JS), `TextLines` (reveal riga-per-riga, revert post-play,
+  remount su cambio lingua), `DrawOnScroll` (stroke-draw del Segno/firma con
+  `getTotalLength` a runtime), `Magnetic`, `VelocityMarquee` (nastro reattivo alla
+  velocità/direzione di scroll).
+- Regole: tutto dentro `gsap.matchMedia().add(MQ.motionOk, …)`; con reduced-motion ogni
+  elemento è statico e completo; mai transform su antenati di `position: sticky`; mai
+  nascondere hero/H1 pre-JS (LCP); i contatori (`CountUp`) fanno SSR col valore reale.
+- Momenti d'autore: partenza scrub dell'hero, spina di progresso + contatore 01–09 del
+  Metodo, wipe automatica del Prima/Dopo, Segno Domus che si disegna sui divisori.
+
 ---
 
 ## 6. Accessibilità

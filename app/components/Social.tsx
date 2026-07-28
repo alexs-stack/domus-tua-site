@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Reveal from "./Reveal";
+import Parallax from "./motion/Parallax";
 import { Instagram, Facebook, TikTok, YouTube } from "./Icons";
 import { site } from "../lib/site";
 import { IframeWidget } from "./WidgetEmbeds";
@@ -133,31 +134,33 @@ export default function Social() {
               />
             ) : (
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+              {/* Parallasse alternata dei riquadri — solo desktop, molto discreta */}
               {grid.map((src, i) => (
-                <a
-                  key={src}
-                  href={site.social.instagram.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative aspect-square overflow-hidden rounded-2xl"
-                  aria-label={c.profileAria}
-                >
-                  <Image
-                    src={src}
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 33vw, 220px"
-                    className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
-                  />
-                  <span className="absolute inset-0 flex items-center justify-center bg-red/0 text-white opacity-0 transition-all duration-300 group-hover:bg-red/45 group-hover:opacity-100">
-                    <Instagram className="h-7 w-7" />
-                  </span>
-                  {i === 0 && (
-                    <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-wide text-red">
-                      {c.followBadge}
+                <Parallax key={src} speed={i % 2 === 1 ? 1 : -1} range={12}>
+                  <a
+                    href={site.social.instagram.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative block aspect-square overflow-hidden rounded-2xl"
+                    aria-label={c.profileAria}
+                  >
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 33vw, 220px"
+                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center bg-red/0 text-white opacity-0 transition-all duration-300 group-hover:bg-red/45 group-hover:opacity-100">
+                      <Instagram className="h-7 w-7" />
                     </span>
-                  )}
-                </a>
+                    {i === 0 && (
+                      <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-wide text-red">
+                        {c.followBadge}
+                      </span>
+                    )}
+                  </a>
+                </Parallax>
               ))}
             </div>
             )}

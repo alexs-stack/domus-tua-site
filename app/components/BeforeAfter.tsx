@@ -6,6 +6,7 @@ import { useCallback, useRef, useState } from "react";
 import Reveal from "./Reveal";
 import { ArrowUpRight, Check } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 const pairs = [
   {
@@ -37,6 +38,7 @@ const copy = {
     tabLiving: "Living",
     tabCamera: "Camera",
     tabBagno: "Bagno",
+    hint: "Trascina",
     badgeBefore: "Prima",
     badgeAfter: "Dopo",
     altBefore: (label: string) => `${label} prima dell'intervento`,
@@ -56,6 +58,7 @@ const copy = {
     tabLiving: "Living",
     tabCamera: "Bedroom",
     tabBagno: "Bathroom",
+    hint: "Drag",
     badgeBefore: "Before",
     badgeAfter: "After",
     altBefore: (label: string) => `${label} before the makeover`,
@@ -75,6 +78,7 @@ const copy = {
     tabLiving: "Séjour",
     tabCamera: "Chambre",
     tabBagno: "Salle de bain",
+    hint: "Glissez",
     badgeBefore: "Avant",
     badgeAfter: "Après",
     altBefore: (label: string) => `${label} avant les travaux`,
@@ -94,6 +98,7 @@ const copy = {
     tabLiving: "Wohnbereich",
     tabCamera: "Schlafzimmer",
     tabBagno: "Bad",
+    hint: "Ziehen",
     badgeBefore: "Vorher",
     badgeAfter: "Nachher",
     altBefore: (label: string) => `${label} vor der Umgestaltung`,
@@ -113,6 +118,7 @@ const copy = {
     tabLiving: "Salón",
     tabCamera: "Dormitorio",
     tabBagno: "Baño",
+    hint: "Arrastra",
     badgeBefore: "Antes",
     badgeAfter: "Después",
     altBefore: (label: string) => `${label} antes de la intervención`,
@@ -133,7 +139,105 @@ export default function BeforeAfter() {
   const [active, setActive] = useState(0);
   const [pos, setPos] = useState(52);
   const ref = useRef<HTMLDivElement | null>(null);
+  const hintRef = useRef<HTMLDivElement | null>(null);
   const dragging = useRef(false);
+  const introTween = useRef<gsap.core.Tween | null>(null);
+  // Il suggerimento "Trascina" scompare per sempre dopo il primo drag.
+  const hintDismissed = useRef(false);
+
+  // Il primo gesto dell'utente interrompe il racconto automatico: da lì comanda lui.
+  const killIntro = useCallback(() => {
+    const tween = introTween.current;
+    if (!tween) return;
+    // Se l'intro non è mai partita (trigger non ancora scattato, o delay in corso),
+    // il divisore è fermo al 2% pre-wipe: ripristina lo stato SSR (52%) così le
+    // interazioni relative (frecce da tastiera) partono dal centro, non dal 2%.
+    const neverPlayed = tween.progress() === 0;
+    tween.scrollTrigger?.kill();
+    tween.kill();
+    introTween.current = null;
+    if (neverPlayed) setPos(52);
+  }, []);
+
+  // Il confronto si racconta da solo: quando la cornice entra nel viewport il
+  // "dopo" si svela con un wipe lento (2% → 52%), poi il cursore resta all'utente.
+  // Con reduced-motion (o senza JS) il divisore resta fermo al 52% — stato SSR.
+  useGSAP(
+    () => {
+      const el = ref.current;
+      if (!el) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        setPos(2);
+        const proxy = { v: 2 };
+        introTween.current = gsap.to(proxy, {
+          v: 52,
+          duration: 1.8,
+          delay: 0.1,
+          ease: "power3.inOut",
+          scrollTrigger: { trigger: el, start: "top 72%", once: true },
+          onUpdate: () => setPos(proxy.v),
+          onComplete: () => {
+            introTween.current = null;
+          },
+        });
+        // Se reduced-motion si attiva a intro non ancora completata, ripristina
+        // lo stato SSR (52%) invece di lasciare il divisore fermo al 2%.
+        return () => {
+          const pending = introTween.current !== null;
+          killIntro();
+          if (pending) setPos(52);
+        };
+      });
+
+      // Cursore-suggerimento "Trascina": segue il puntatore sopra il confronto
+      // (solo pointer fine), sparisce al primo drag. Decorativo, pointer-events-none.
+      mm.add(`${MQ.motionOk} and ${MQ.finePointer}`, () => {
+        const frame = ref.current;
+        const hint = hintRef.current;
+        if (!frame || !hint) return;
+
+        gsap.set(hint, { xPercent: -50, yPercent: -50 });
+        const xTo = gsap.quickTo(hint, "x", { duration: 0.35, ease: "power3.out" });
+        const yTo = gsap.quickTo(hint, "y", { duration: 0.35, ease: "power3.out" });
+
+        const place = (e: PointerEvent) => {
+          const r = frame.getBoundingClientRect();
+          return [e.clientX - r.left, e.clientY - r.top] as const;
+        };
+        const onEnter = (e: PointerEvent) => {
+          if (hintDismissed.current) return;
+          const [x, y] = place(e);
+          gsap.set(hint, { x, y });
+          gsap.to(hint, { autoAlpha: 1, duration: 0.3, overwrite: "auto" });
+        };
+        const onMove = (e: PointerEvent) => {
+          if (hintDismissed.current) return;
+          const [x, y] = place(e);
+          xTo(x);
+          yTo(y);
+        };
+        const onLeave = () =>
+          gsap.to(hint, { autoAlpha: 0, duration: 0.2, overwrite: "auto" });
+        const onDown = () => {
+          hintDismissed.current = true;
+          gsap.to(hint, { autoAlpha: 0, duration: 0.2, overwrite: "auto" });
+        };
+
+        frame.addEventListener("pointerenter", onEnter);
+        frame.addEventListener("pointermove", onMove);
+        frame.addEventListener("pointerleave", onLeave);
+        frame.addEventListener("pointerdown", onDown);
+        return () => {
+          frame.removeEventListener("pointerenter", onEnter);
+          frame.removeEventListener("pointermove", onMove);
+          frame.removeEventListener("pointerleave", onLeave);
+          frame.removeEventListener("pointerdown", onDown);
+        };
+      });
+    },
+    { scope: ref }
+  );
 
   const updateFromClientX = useCallback((clientX: number) => {
     const el = ref.current;
@@ -144,6 +248,7 @@ export default function BeforeAfter() {
   }, []);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    killIntro();
     if (e.key === "ArrowLeft") {
       setPos((p) => Math.max(2, p - 4));
       e.preventDefault();
@@ -157,7 +262,7 @@ export default function BeforeAfter() {
       setPos(98);
       e.preventDefault();
     }
-  }, []);
+  }, [killIntro]);
 
   const pair = pairs[active];
   const activeLabel = c[pair.labelKey];
@@ -183,6 +288,7 @@ export default function BeforeAfter() {
                 <button
                   key={p.key}
                   onClick={() => {
+                    killIntro();
                     setActive(i);
                     setPos(52);
                   }}
@@ -205,6 +311,7 @@ export default function BeforeAfter() {
               ref={ref}
               className="relative aspect-[3/2] w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-[calc(2rem-0.5rem)]"
               onPointerDown={(e) => {
+                killIntro();
                 dragging.current = true;
                 (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
                 updateFromClientX(e.clientX);
@@ -263,6 +370,17 @@ export default function BeforeAfter() {
                     <path d="M9 7 4 12l5 5M15 7l5 5-5 5" />
                   </svg>
                 </div>
+              </div>
+
+              {/* Suggerimento che segue il puntatore (desktop, pointer fine) */}
+              <div
+                ref={hintRef}
+                aria-hidden
+                className="pointer-events-none absolute left-0 top-0 z-20 hidden items-center gap-1.5 whitespace-nowrap rounded-full bg-ink/80 px-3.5 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-cream opacity-0 backdrop-blur-sm md:flex"
+              >
+                <span>‹</span>
+                {c.hint}
+                <span>›</span>
               </div>
             </div>
           </div>

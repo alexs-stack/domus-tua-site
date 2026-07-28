@@ -2,6 +2,8 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { ArrowUpRight, ArrowRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
+import Parallax from "./motion/Parallax";
+import TextLines from "./motion/TextLines";
 
 type CTA = { label: string; href: string };
 
@@ -26,14 +28,24 @@ export default function PageHero({
 }) {
   return (
     <section className="relative flex min-h-[82vh] w-full items-end overflow-hidden">
-      <Image
-        src={image}
-        alt={alt}
-        fill
-        priority
-        sizes="100vw"
-        className="ken-burns object-cover"
-      />
+      {/* Media in un layer parallax: allo scroll l'immagine resta "indietro" (profondità).
+          I gradienti di leggibilità restano fissi sopra il layer. */}
+      <Parallax
+        className="absolute inset-0"
+        innerClassName="absolute inset-0"
+        speed={0.22}
+        scale={1.08}
+        mobile
+      >
+        <Image
+          src={image}
+          alt={alt}
+          fill
+          priority
+          sizes="100vw"
+          className="ken-burns object-cover"
+        />
+      </Parallax>
       <div className="absolute inset-0 bg-gradient-to-t from-ink/78 via-ink/28 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-r from-ink/45 to-transparent" />
 
@@ -43,9 +55,12 @@ export default function PageHero({
             {eyebrow}
           </SegnoDomusBadge>
 
-          <h1 className="mt-6 font-display text-[2.6rem] font-medium leading-[1.03] tracking-[-0.02em] text-cream balance sm:text-6xl lg:text-[4.4rem]">
+          <TextLines
+            as="h1"
+            className="mt-6 font-display text-[2.6rem] font-medium leading-[1.03] tracking-[-0.02em] text-cream balance sm:text-6xl lg:text-[4.4rem]"
+          >
             {title}
-          </h1>
+          </TextLines>
 
           <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg">
             {subcopy}

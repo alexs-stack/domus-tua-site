@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useLocale } from "./i18n/LocaleProvider";
+import { getLenis } from "./motion/SmoothScroll";
 
 // Assistente conversazionale on-brand. Opt-in: mostrato solo se
 // NEXT_PUBLIC_ENABLE_ASSISTANT === "true" (il backend richiede ANTHROPIC_API_KEY).
@@ -119,6 +120,7 @@ export default function Assistant() {
   }, [open]);
 
   // Blocca lo scroll del body mentre il dialog è aperto; ripristina alla chiusura/smontaggio.
+  // Con Lenis attivo va fermato anche lo scroll virtuale (rotella), non solo quello nativo.
   useEffect(() => {
     if (!open) return;
     const html = document.documentElement;
@@ -127,9 +129,11 @@ export default function Assistant() {
     const prevBody = body.style.overflow;
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
+    getLenis()?.stop();
     return () => {
       html.style.overflow = prevHtml;
       body.style.overflow = prevBody;
+      getLenis()?.start();
     };
   }, [open]);
 
@@ -248,6 +252,7 @@ export default function Assistant() {
           aria-modal="true"
           aria-labelledby="assistant-title"
           tabIndex={-1}
+          data-lenis-prevent
           onKeyDown={onKeyDown}
           className="fixed inset-x-3 bottom-3 z-[60] flex flex-col overflow-hidden rounded-[1.6rem] border border-line bg-paper shadow-[0_50px_100px_-40px_rgba(26,24,22,0.6)] sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[390px]"
           style={{ height: "min(85dvh, 620px)" }}

@@ -4,15 +4,17 @@
 // Canvas video/immagine a tutta larghezza, energia + emozione + prova sociale + sicurezza.
 // Video-ready: quando i file /media esistono e enabled=true, parte (desktop, no reduced-motion).
 // Finché mancano, resta la foto reale di Raffaella + team come poster. Vedi docs/hero-video.md.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import { heroCinematic } from "../lib/media";
 import WordReveal from "./WordReveal";
 import Signature from "./Signature";
+import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -91,6 +93,58 @@ export default function HeroCinematic() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [playVideo, setPlayVideo] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const mediaRef = useRef<HTMLDivElement | null>(null);
+  const frameWrapRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const cueRef = useRef<HTMLSpanElement | null>(null);
+
+  // Partenza cinematica "frame-in": uscendo dallo scroll il canvas full-bleed si
+  // contrae in una tavola editoriale con angoli arrotondati (clip-path) mentre
+  // resta "indietro" in profondità; il contenuto sale più veloce e sfuma, la
+  // cornice Segno svanisce. Solo scrub post-idratazione: SSR/LCP intatti.
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      if (!section) return;
+      const mm = gsap.matchMedia();
+      // Gate desktop: su mobile il clip-path per frame sul layer LCP full-viewport
+      // costerebbe un repaint/maschera a ogni tick di scroll (Safari iOS, Android low-end).
+      mm.add(`${MQ.motionOk} and ${MQ.desktop}`, () => {
+        const scrub = {
+          trigger: section,
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        } as const;
+        // will-change solo quando lo scrub è attivo (revert lo rimuove).
+        gsap.set(mediaRef.current, { willChange: "transform" });
+        const tl = gsap.timeline({ scrollTrigger: scrub, defaults: { ease: "none" } });
+        tl.fromTo(
+          mediaRef.current,
+          { clipPath: "inset(0% 0% 0% 0% round 0rem)" },
+          {
+            clipPath: "inset(6% 4% 10% 4% round 2.5rem)",
+            // yPercent deve restare sotto l'inset bottom al netto dello scale
+            // (1.05 spinge il bordo giù di ~2%): con 6 il bordo inferiore
+            // arrotondato resta visibile (~2%) per tutto lo scrub.
+            yPercent: 6,
+            scale: 1.05,
+          },
+          0
+        )
+          .to(contentRef.current, { yPercent: -14, opacity: 0.2 }, 0)
+          .to(frameWrapRef.current, { opacity: 0 }, 0);
+        // Lo scroll cue sparisce appena il racconto comincia.
+        gsap.to(cueRef.current, {
+          autoAlpha: 0,
+          ease: "none",
+          scrollTrigger: { trigger: section, start: "top top-=1", end: "top top-=140", scrub: true },
+        });
+      });
+    },
+    { scope: sectionRef }
+  );
 
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
   // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto (leggera).
@@ -129,44 +183,49 @@ export default function HeroCinematic() {
   ];
 
   return (
-    <section id="top" className="relative flex min-h-[92dvh] w-full items-end overflow-hidden bg-ink text-cream">
-      {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
-      <Image
-        src={heroCinematic.base}
-        alt={heroCinematic.baseAlt}
-        fill
-        priority
-        sizes="100vw"
-        className="ken-burns object-cover"
-        style={{ objectPosition: "50% 35%" }}
-      />
+    <section ref={sectionRef} id="top" className="relative flex min-h-[92dvh] w-full items-end overflow-hidden bg-ink text-cream">
+      {/* Canvas media (foto + eventuale video) in un layer parallax unico */}
+      <div ref={mediaRef} className="absolute inset-0">
+        {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
+        <Image
+          src={heroCinematic.base}
+          alt={heroCinematic.baseAlt}
+          fill
+          priority
+          sizes="100vw"
+          className="ken-burns object-cover"
+          style={{ objectPosition: "50% 35%" }}
+        />
 
-      {/* Video overlay (opzionale, video-ready): copre la base quando disponibile */}
-      {playVideo && (
-        <video
-          className="absolute inset-0 h-full w-full object-cover"
-          poster={heroCinematic.poster}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          onError={() => setPlayVideo(false)}
-        >
-          <source src={heroCinematic.webm} type="video/webm" />
-          <source src={heroCinematic.mp4} type="video/mp4" />
-        </video>
-      )}
+        {/* Video overlay (opzionale, video-ready): copre la base quando disponibile */}
+        {playVideo && (
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            poster={heroCinematic.poster}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            onError={() => setPlayVideo(false)}
+          >
+            <source src={heroCinematic.webm} type="video/webm" />
+            <source src={heroCinematic.mp4} type="video/mp4" />
+          </video>
+        )}
+      </div>
 
       {/* Gradienti per leggibilità del testo */}
       <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/35 to-ink/10" />
       <div className="absolute inset-0 bg-gradient-to-r from-ink/55 to-transparent" />
 
-      {/* Cornice Segno Domus sul canvas */}
-      <SegnoDomusVideoFrame />
+      {/* Cornice Segno Domus sul canvas (svanisce durante il frame-in) */}
+      <div ref={frameWrapRef}>
+        <SegnoDomusVideoFrame />
+      </div>
 
       {/* Contenuto */}
-      <div className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-36">
+      <div ref={contentRef} className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-36">
         <div className="max-w-3xl">
           <SegnoDomusBadge light className="backdrop-blur-sm">{c.badge}</SegnoDomusBadge>
 
@@ -200,15 +259,18 @@ export default function HeroCinematic() {
             className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
             style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "120ms" }}
           >
-            <a
-              href="#contatti"
-              className="group flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-            >
-              {c.ctaValuta}
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
+            {/* CTA primaria magnetica (solo pointer fine + motion ok) */}
+            <Magnetic className="w-full sm:w-auto" strength={0.18}>
+              <a
+                href="#contatti"
+                className="group flex w-full items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
+                {c.ctaValuta}
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
+            </Magnetic>
             <a
               href="#cerca"
               className="group flex items-center justify-center gap-2 rounded-full border border-cream/35 bg-cream/5 px-7 py-4 text-base font-semibold text-cream backdrop-blur-sm transition-all duration-300 hover:bg-cream/15"
@@ -264,12 +326,20 @@ export default function HeroCinematic() {
         </div>
       </div>
 
-      {/* Scroll cue: sottile linea verticale, solo desktop (reduced-motion gestito globalmente) */}
+      {/* Scroll cue: sottile linea verticale, solo desktop (reduced-motion gestito
+          globalmente). Il pulse CSS sta sull'elemento interno: l'animazione CSS
+          vincerebbe sull'opacity inline di GSAP, quindi il fade allo scroll è
+          sul wrapper esterno. */}
       <span
+        ref={cueRef}
         aria-hidden
-        className="absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 md:block h-8 w-px bg-cream/40"
-        style={{ animation: "dt-scrollcue 1.8s var(--ease-soft) infinite" }}
-      />
+        className="absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 md:block"
+      >
+        <span
+          className="block h-8 w-px bg-cream/40"
+          style={{ animation: "dt-scrollcue 1.8s var(--ease-soft) infinite" }}
+        />
+      </span>
     </section>
   );
 }

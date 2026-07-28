@@ -117,8 +117,13 @@ Regola App Router: **server component di default**, `"use client"` solo dove ser
   **Mantenerlo così**: prima di aggiungere una libreria, valutare se si risolve con CSS/Tailwind o
   una manciata di righe.
 - **Evitare dipendenze pesanti** per cose già coperte:
-  - Animazioni: sono in CSS/Tailwind + piccoli helper (`Reveal`, `WordReveal`). **Non** aggiungere
-    librerie di animazione (framer-motion, GSAP) se non indispensabile.
+  - Animazioni: base in CSS/Tailwind + piccoli helper (`Reveal`, `WordReveal`).
+    **Eccezione deliberata (2026-07, richiesta cliente "livello awwwards")**: layer
+    scroll-motion con `gsap` + ScrollTrigger e `lenis` (~60KB gz totali), registrati in
+    un solo modulo (`app/lib/motion/gsap.ts`); SplitText è importato solo da
+    `TextLines` per non entrare nel chunk del layout. Non aggiungere ALTRE librerie
+    di animazione (framer-motion, animejs…): usare le primitive di
+    `app/components/motion/`.
   - Icone: sono SVG interni (`Icons.tsx`). **Non** aggiungere icon-pack pesanti.
   - Carousel/slider: preferire CSS scroll-snap a librerie.
 - **Widget di terze parti** (Trustindex, feed Instagram) caricano **script/iframe esterni**: sono già

@@ -2,6 +2,7 @@
 
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
+import VelocityMarquee from "./motion/VelocityMarquee";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -190,19 +191,19 @@ export default function Stats() {
         </div>
       </div>
 
-      {/* Marquee di token di valore */}
-      <div className="relative overflow-hidden border-t border-line py-5">
-        <div className="marquee-track flex w-max gap-3">
-          {[...c.tokens, ...c.tokens].map((t, i) => (
+      {/* Marquee di token di valore: reagisce alla velocità (e direzione) dello scroll */}
+      <div className="relative border-t border-line py-5">
+        <VelocityMarquee trackClassName="gap-3 pr-3">
+          {c.tokens.map((t) => (
             <span
-              key={i}
+              key={t}
               className="flex items-center gap-2.5 whitespace-nowrap rounded-full border border-line bg-paper px-5 py-2 text-sm font-medium text-graphite"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-red" />
               {t}
             </span>
           ))}
-        </div>
+        </VelocityMarquee>
         {/* fade edges */}
         <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-cream to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-cream to-transparent" />

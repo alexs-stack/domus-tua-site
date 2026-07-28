@@ -20,6 +20,7 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import SectionDivider from "./components/SectionDivider";
+import KineticStrip from "./components/motion/KineticStrip";
 
 export const metadata: Metadata = {
   title: {
@@ -63,6 +64,8 @@ export default function Home() {
         </div>
         <Team />
         <Contact />
+        {/* Eco di chiusura: la promessa dell'hero torna gigante, in deriva con lo scroll */}
+        <KineticStrip className="bg-cream-deep" />
       </main>
       <Footer />
       <WhatsAppFloat />

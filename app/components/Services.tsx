@@ -1,9 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import Reveal from "./Reveal";
+import MaskReveal from "./motion/MaskReveal";
+import Parallax from "./motion/Parallax";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -181,6 +185,28 @@ const copy = {
 export default function Services() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Numeri 01–05: salgono da dietro la maschera overflow-hidden, una sola volta.
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        gsap.fromTo(
+          "[data-service-num]",
+          { yPercent: 110 },
+          {
+            yPercent: 0,
+            duration: 0.9,
+            ease: "expo.out",
+            stagger: 0.06,
+            scrollTrigger: { trigger: gridRef.current, start: "top 75%", once: true },
+          }
+        );
+      });
+    },
+    { scope: gridRef }
+  );
 
   return (
     <section id="servizi" className="bg-cream">
@@ -192,18 +218,32 @@ export default function Services() {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
-          {/* Feature card */}
-          <Reveal className="lg:col-span-2 lg:row-span-2">
+        <div ref={gridRef} className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
+          {/* Feature card — sipario sull'immagine + parallasse di profondità molto sottile */}
+          <div className="lg:col-span-2 lg:row-span-2">
             <article className="group relative h-full min-h-[22rem] overflow-hidden rounded-[2rem] border border-line">
-              <Image
-                src="/images/rendering_01_living_divano_grigio.jpg"
-                alt={c.featureAlt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 760px"
-                className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
+              <MaskReveal
+                from="bottom"
+                zoom={1.12}
+                className="absolute inset-0"
+                innerClassName="absolute inset-0"
+              >
+                <Parallax
+                  speed={0.06}
+                  scale={1.06}
+                  className="absolute inset-0"
+                  innerClassName="absolute inset-0"
+                >
+                  <Image
+                    src="/images/rendering_01_living_divano_grigio.jpg"
+                    alt={c.featureAlt}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 760px"
+                    className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                  />
+                </Parallax>
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
+              </MaskReveal>
               <div className="absolute inset-x-0 bottom-0 p-7 sm:p-9">
                 <span className="rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-cream">
                   {c.featureBadge}
@@ -216,13 +256,18 @@ export default function Services() {
                 </p>
               </div>
             </article>
-          </Reveal>
+          </div>
 
           {c.services.map((s, i) => (
             <Reveal key={s.title} delay={i * 70}>
               <article className="group flex h-full flex-col justify-between rounded-[2rem] border border-line bg-paper p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40">
-                <span className="tnum font-display text-sm font-semibold text-red transition-colors duration-500 group-hover:text-red-dark">
-                  0{i + 1}
+                <span className="block overflow-hidden">
+                  <span
+                    data-service-num
+                    className="block tnum font-display text-sm font-semibold text-red transition-colors duration-500 group-hover:text-red-dark"
+                  >
+                    0{i + 1}
+                  </span>
                 </span>
                 <div className="mt-8">
                   <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink">

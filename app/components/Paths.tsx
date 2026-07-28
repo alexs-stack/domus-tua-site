@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Reveal from "./Reveal";
+import MaskReveal from "./motion/MaskReveal";
+import Parallax from "./motion/Parallax";
 import { ArrowUpRight, Check } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -190,9 +192,18 @@ export default function Paths() {
             const t = c.paths[p.id];
             return (
               <Reveal key={p.id} delay={i * 120} id={p.id}>
+                {/* Controparallasse: i due percorsi derivano l'uno verso l'altro (solo desktop). */}
+                <Parallax speed={i === 0 ? 0.08 : -0.08} className="h-full" innerClassName="h-full">
                 <article className="group h-full rounded-[2rem] border border-line bg-cream p-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)]">
                   <a href={p.href}>
-                  <div className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)]">
+                  {/* Sipario dal lato del percorso: il pill scivola fuori da dietro la maschera. */}
+                  <MaskReveal
+                    from={i === 0 ? "left" : "right"}
+                    zoom={1.14}
+                    delay={i * 0.12}
+                    className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)]"
+                    innerClassName="absolute inset-0"
+                  >
                     <Image
                       src={p.image}
                       alt={t.alt}
@@ -203,7 +214,7 @@ export default function Paths() {
                     <span className="absolute left-4 top-4 rounded-full bg-paper/95 px-3.5 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]">
                       {t.tag}
                     </span>
-                  </div>
+                  </MaskReveal>
 
                   <div className="px-5 pb-6 pt-7 sm:px-7">
                     <h3 className="font-display text-[1.7rem] font-medium leading-[1.1] tracking-tight text-ink balance sm:text-[2rem]">
@@ -233,6 +244,7 @@ export default function Paths() {
                   </div>
                   </a>
                 </article>
+                </Parallax>
               </Reveal>
             );
           })}

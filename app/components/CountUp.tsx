@@ -30,7 +30,9 @@ export default function CountUp({
   locale,
 }: Props) {
   const ref = useRef<HTMLSpanElement | null>(null);
-  const [display, setDisplay] = useState(0);
+  // SSR/no-JS mostra il valore REALE (SEO: il rating non deve mai apparire "0.0");
+  // il conteggio 0→valore parte solo quando l'observer scatta nel browser.
+  const [display, setDisplay] = useState(value);
 
   const format = (n: number) =>
     group
@@ -47,11 +49,8 @@ export default function CountUp({
     const reduce =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      // Deferito con rAF per non chiamare setState sincrono nell'effetto.
-      const id = requestAnimationFrame(() => setDisplay(value));
-      return () => cancelAnimationFrame(id);
-    }
+    // Lo stato iniziale è già il valore finale: con reduced-motion non c'è nulla da fare.
+    if (reduce) return;
 
     let raf = 0;
     let start = 0;

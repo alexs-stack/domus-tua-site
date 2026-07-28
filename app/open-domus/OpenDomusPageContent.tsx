@@ -10,6 +10,7 @@ import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
+import ScrubWords from "../components/motion/ScrubWords";
 import { ArrowUpRight, ArrowRight, Check, Play } from "../components/Icons";
 import {
   SegnoDomusBadge,
@@ -749,9 +750,11 @@ export default function OpenDomusPageContent() {
         <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
           <Reveal className="flex flex-col items-center text-center">
             <SegnoDomusBadge light>Open Domus</SegnoDomusBadge>
-            <p className="mt-6 max-w-3xl font-display text-2xl font-medium leading-[1.2] tracking-tight text-cream balance sm:text-[2rem]">
-              {c.heroSubtitle}
-            </p>
+            {/* Il claim si "legge" con lo scroll: le parole si accendono in sequenza */}
+            <ScrubWords
+              text={c.heroSubtitle}
+              className="mt-6 max-w-3xl font-display text-2xl font-medium leading-[1.2] tracking-tight text-cream balance sm:text-[2rem]"
+            />
           </Reveal>
         </div>
       </section>

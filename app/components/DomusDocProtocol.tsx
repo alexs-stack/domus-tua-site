@@ -1,6 +1,7 @@
 "use client";
 
 import Reveal from "./Reveal";
+import Parallax from "./motion/Parallax";
 import { SegnoDomus, SegnoDomusBadge, SegnoTick } from "./BrandMotif";
 import { ArrowUpRight, ArrowRight, Star } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -216,10 +217,12 @@ export default function DomusDocProtocol({
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <Reveal>
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
-            {/* watermark motif */}
-            <span className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>
-              <SegnoDomus className="h-40 w-72" embrace={false} />
-            </span>
+            {/* watermark motif: lenta deriva parallax dentro la card (profondità) */}
+            <div className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>
+              <Parallax speed={-0.12}>
+                <SegnoDomus className="h-40 w-72" embrace={false} />
+              </Parallax>
+            </div>
 
             <div className="relative grid gap-y-12 lg:grid-cols-[0.95fr_1px_1.05fr] lg:gap-x-14 lg:gap-y-0">
               {/* Intro */}

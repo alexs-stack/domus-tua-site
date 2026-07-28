@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
+import MaskReveal from "./motion/MaskReveal";
+import Parallax from "./motion/Parallax";
 
 export type EditorialRow = {
   n: string;
@@ -39,13 +41,26 @@ export default function EditorialRows({
           {rows.map((r, i) => {
             const reversed = i % 2 === 1;
             return (
-              <Reveal key={r.n}>
-                <div
-                  className={`grid items-center gap-8 lg:grid-cols-2 lg:gap-16 ${
-                    reversed ? "lg:[&>*:first-child]:order-2" : ""
-                  }`}
+              <div
+                key={r.n}
+                className={`grid items-center gap-8 lg:grid-cols-2 lg:gap-16 ${
+                  reversed ? "lg:[&>*:first-child]:order-2" : ""
+                }`}
+              >
+                {/* Cornice immagine: sipario che si apre dal lato visivo del capitolo
+                    (righe dispari invertite via order) + parallasse lenta all'interno. */}
+                <MaskReveal
+                  from={reversed ? "right" : "left"}
+                  zoom={1.14}
+                  className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line"
+                  innerClassName="absolute inset-0"
                 >
-                  <div className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line">
+                  <Parallax
+                    speed={0.1}
+                    scale={1.1}
+                    className="absolute inset-0"
+                    innerClassName="absolute inset-0"
+                  >
                     <Image
                       src={r.image}
                       alt={r.alt}
@@ -53,16 +68,20 @@ export default function EditorialRows({
                       sizes="(max-width: 1024px) 100vw, 560px"
                       className="photo-warm object-cover"
                     />
-                  </div>
-                  <div className={reversed ? "lg:pr-6" : "lg:pl-6"}>
+                  </Parallax>
+                </MaskReveal>
+                {/* Il Reveal resta solo sulla colonna testo: l'immagine ha già il suo ingresso. */}
+                <Reveal className={reversed ? "lg:pr-6" : "lg:pl-6"}>
+                  {/* Numero-fantasma: deriva più veloce del flusso, effetto collage editoriale. */}
+                  <Parallax speed={-1} range={26} className="w-fit">
                     <span className="font-display text-5xl font-medium text-red/25">{r.n}</span>
-                    <h3 className="mt-4 font-display text-[1.8rem] font-medium leading-[1.1] tracking-tight text-ink balance sm:text-[2.2rem]">
-                      {r.title}
-                    </h3>
-                    <p className="mt-4 max-w-md text-[1rem] leading-relaxed text-stone">{r.copy}</p>
-                  </div>
-                </div>
-              </Reveal>
+                  </Parallax>
+                  <h3 className="mt-4 font-display text-[1.8rem] font-medium leading-[1.1] tracking-tight text-ink balance sm:text-[2.2rem]">
+                    {r.title}
+                  </h3>
+                  <p className="mt-4 max-w-md text-[1rem] leading-relaxed text-stone">{r.copy}</p>
+                </Reveal>
+              </div>
             );
           })}
         </div>

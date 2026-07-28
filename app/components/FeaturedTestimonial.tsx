@@ -1,10 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import Reveal from "./Reveal";
+import Parallax from "./motion/Parallax";
+import TextLines from "./motion/TextLines";
 import { Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 type Props = {
   quote?: string;
@@ -71,6 +75,48 @@ const copy = {
 export default function FeaturedTestimonial(props: Props) {
   const { locale } = useLocale();
   const c = copy[locale];
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const glyphRef = useRef<HTMLSpanElement | null>(null);
+  const starsRef = useRef<HTMLSpanElement | null>(null);
+
+  // Micro-ingressi una tantum quando la card entra: la virgoletta si "posa"
+  // (scala + rotazione) e le stelle sbocciano in sequenza. Solo transform.
+  useGSAP(
+    () => {
+      const card = cardRef.current;
+      if (!card) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        if (glyphRef.current) {
+          gsap.fromTo(
+            glyphRef.current,
+            { scale: 0.7, rotate: -6 },
+            {
+              scale: 1,
+              rotate: 0,
+              duration: 1,
+              ease: "expo.out",
+              scrollTrigger: { trigger: card, start: "top 82%", once: true },
+            }
+          );
+        }
+        if (starsRef.current) {
+          gsap.fromTo(
+            starsRef.current.children,
+            { scale: 0.6, transformOrigin: "50% 50%" },
+            {
+              scale: 1,
+              duration: 0.6,
+              ease: "back.out(1.6)",
+              stagger: 0.06,
+              scrollTrigger: { trigger: starsRef.current, start: "top 88%", once: true },
+            }
+          );
+        }
+      });
+    },
+    { scope: cardRef }
+  );
 
   const defaults = {
     quote: c.quote,
@@ -87,19 +133,31 @@ export default function FeaturedTestimonial(props: Props) {
     <section className="bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <Reveal>
-          <div className="grid items-stretch gap-6 overflow-hidden rounded-[2rem] border border-line bg-cream lg:grid-cols-[1.05fr_0.95fr]">
+          <div
+            ref={cardRef}
+            className="grid items-stretch gap-6 overflow-hidden rounded-[2rem] border border-line bg-cream lg:grid-cols-[1.05fr_0.95fr]"
+          >
             {/* Citazione */}
             <div className="flex flex-col justify-between p-8 sm:p-12">
               <div>
                 <span className="eyebrow">{c.eyebrow}</span>
                 {/* Segno tipografico editoriale: virgoletta rossa fuori scala. */}
-                <span aria-hidden className="mt-2 block font-display text-[5.5rem] italic leading-[0.5] text-red/20">
+                <span
+                  ref={glyphRef}
+                  aria-hidden
+                  className="mt-2 block font-display text-[5.5rem] italic leading-[0.5] text-red/20"
+                >
                   “
                 </span>
-                <blockquote className="mt-4 font-display text-2xl font-medium leading-[1.25] tracking-tight text-ink sm:text-[2rem]">
+                {/* Il momento tipografico della pagina: le righe salgono dalla maschera. */}
+                <TextLines
+                  as="blockquote"
+                  stagger={0.1}
+                  className="mt-4 font-display text-2xl font-medium leading-[1.25] tracking-tight text-ink sm:text-[2rem]"
+                >
                   {quote}
-                </blockquote>
-                <span className="mt-6 flex gap-1">
+                </TextLines>
+                <span ref={starsRef} className="mt-6 flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} className="h-4 w-4 text-red" />
                   ))}
@@ -125,15 +183,18 @@ export default function FeaturedTestimonial(props: Props) {
               </div>
             </div>
 
-            {/* Immagine */}
-            <div className="relative min-h-[280px] lg:min-h-full">
-              <Image
-                src={image}
-                alt={alt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 560px"
-                className="photo-warm object-cover object-center"
-              />
+            {/* Immagine — profondità: la foto sovradimensionata scorre più lenta
+                dentro la metà ritagliata della card; gradiente e play restano fissi. */}
+            <div className="relative min-h-[280px] overflow-hidden lg:min-h-full">
+              <Parallax speed={0.12} scale={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
+                <Image
+                  src={image}
+                  alt={alt}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 560px"
+                  className="photo-warm object-cover object-center"
+                />
+              </Parallax>
               <span className="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent lg:bg-gradient-to-l" />
               <a
                 href={videoHref}

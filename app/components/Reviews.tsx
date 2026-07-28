@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Reveal from "./Reveal";
+import CountUp from "./CountUp";
+import Parallax from "./motion/Parallax";
 import { Star, Google, ArrowUpRight, Check } from "./Icons";
 import { site } from "../lib/site";
 import { reviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
@@ -182,39 +184,44 @@ export default function Reviews() {
             </p>
           </Reveal>
 
+          {/* Card riepilogo — deriva leggera contro la colonna titolo (solo desktop) */}
           <Reveal delay={100}>
-            <div className="rounded-[1.75rem] border border-line bg-cream p-6">
-              <div className="flex items-center gap-5">
-                <span className="tnum font-display text-6xl font-medium text-ink">
-                  {reviewSummary.rating}
-                </span>
-                <div>
-                  <span className="flex gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 text-red" />
-                    ))}
-                  </span>
-                  <p className="mt-1.5 text-sm font-medium text-graphite">
-                    {c.averageOver(reviewSummary.count)}
-                  </p>
-                  <p className="flex items-center gap-1.5 text-[0.8rem] text-stone">
-                    <Google className="h-3.5 w-3.5" /> Google · Trustindex · {reviewSummary.label}
-                  </p>
+            <Parallax speed={-0.06}>
+              <div className="rounded-[1.75rem] border border-line bg-cream p-6">
+                <div className="flex items-center gap-5">
+                  <CountUp
+                    value={parseFloat(site.rating)}
+                    decimals={1}
+                    className="font-display text-6xl font-medium text-ink"
+                  />
+                  <div>
+                    <span className="flex gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-red" />
+                      ))}
+                    </span>
+                    <p className="mt-1.5 text-sm font-medium text-graphite">
+                      {c.averageOver(reviewSummary.count)}
+                    </p>
+                    <p className="flex items-center gap-1.5 text-[0.8rem] text-stone">
+                      <Google className="h-3.5 w-3.5" /> Google · Trustindex · {reviewSummary.label}
+                    </p>
+                  </div>
                 </div>
+                <p className="mt-4 text-[0.8rem] text-stone">{c.verifiedVia}</p>
+                <a
+                  href={site.googleReviewsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group mt-5 inline-flex items-center gap-2 rounded-full bg-red py-2.5 pl-5 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
+                >
+                  {c.seeAllGoogle}
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </span>
+                </a>
               </div>
-              <p className="mt-4 text-[0.8rem] text-stone">{c.verifiedVia}</p>
-              <a
-                href={site.googleReviewsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group mt-5 inline-flex items-center gap-2 rounded-full bg-red py-2.5 pl-5 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
-              >
-                {c.seeAllGoogle}
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </span>
-              </a>
-            </div>
+            </Parallax>
           </Reveal>
         </div>
 

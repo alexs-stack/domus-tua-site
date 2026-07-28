@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import Reveal from "./Reveal";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -101,9 +103,70 @@ const stepNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09"] as co
 export default function Method() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const rootRef = useRef<HTMLElement | null>(null);
+  const listRef = useRef<HTMLOListElement | null>(null);
+  const spineFillRef = useRef<HTMLSpanElement | null>(null);
+  const counterRef = useRef<HTMLSpanElement | null>(null);
+
+  // Spina di progresso: una linea che si riempie di rosso mentre percorri i nove
+  // passaggi + il passo "attivo" si accende e il contatore nel pannello sticky
+  // avanza (01 → 09). Lo scroll diventa il racconto del metodo.
+  useGSAP(
+    () => {
+      const list = listRef.current;
+      if (!list) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const triggers: ScrollTrigger[] = [];
+
+        if (spineFillRef.current) {
+          gsap.fromTo(
+            spineFillRef.current,
+            { scaleY: 0 },
+            {
+              scaleY: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: list,
+                start: "top 62%",
+                end: "bottom 55%",
+                scrub: true,
+              },
+            }
+          );
+        }
+
+        const items = gsap.utils.toArray<HTMLLIElement>(list.querySelectorAll("li"));
+        items.forEach((li, i) => {
+          // La classe va sul div interno (className statica): il li è di Reveal,
+          // che riscrive className da React e cancellerebbe "step-active".
+          const row = li.querySelector<HTMLElement>(".dt-step-row") ?? li;
+          triggers.push(
+            ScrollTrigger.create({
+              trigger: li,
+              // La linea al 62% del viewport partiziona la lista: un solo passo
+              // attivo alla volta (si spegne quando il successivo la attraversa).
+              start: "top 62%",
+              end: "bottom 62%",
+              toggleClass: { targets: row, className: "step-active" },
+              onEnter: () => {
+                if (counterRef.current) counterRef.current.textContent = stepNumbers[i];
+              },
+              onEnterBack: () => {
+                if (counterRef.current) counterRef.current.textContent = stepNumbers[i];
+              },
+            })
+          );
+        });
+
+        return () => triggers.forEach((t) => t.kill());
+      });
+    },
+    { scope: rootRef }
+  );
 
   return (
-    <section id="metodo" className="relative bg-cream-deep text-ink">
+    <section ref={rootRef} id="metodo" className="relative bg-cream-deep text-ink">
       <div className="mx-auto grid max-w-5xl gap-12 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         {/* Intro sticky */}
         <div className="lg:sticky lg:top-28 lg:self-start">
@@ -114,6 +177,13 @@ export default function Method() {
             </h2>
             <p className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone">
               {c.subcopy}
+            </p>
+            {/* Contatore di avanzamento: aggiornato dagli ScrollTrigger dei passi */}
+            <p className="tnum mt-8 hidden items-baseline gap-1.5 font-display lg:flex" aria-hidden>
+              <span ref={counterRef} className="text-4xl font-medium text-red">
+                01
+              </span>
+              <span className="text-lg text-stone">/ {stepNumbers[stepNumbers.length - 1]}</span>
             </p>
             <a
               href="#contatti"
@@ -127,26 +197,34 @@ export default function Method() {
           </Reveal>
         </div>
 
-        {/* Timeline */}
-        <ol className="flex flex-col">
-          {c.steps.map((s, i) => (
-            <Reveal key={stepNumbers[i]} delay={Math.min(i, 6) * 45} as="li">
-              <div className="group flex gap-6 border-t border-line py-7 transition-colors duration-500 hover:border-red/30">
-                <span className="font-display text-2xl font-medium text-graphite transition-colors duration-500 group-hover:text-red sm:text-3xl">
-                  {stepNumbers[i]}
-                </span>
-                <div className="flex-1">
-                  <h3 className="font-display text-xl font-medium tracking-tight sm:text-2xl">
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 max-w-xl text-[0.95rem] leading-relaxed text-stone">
-                    {s.copy}
-                  </p>
+        {/* Timeline con spina di progresso (desktop) */}
+        <div className="relative lg:pl-10">
+          <span aria-hidden className="absolute bottom-2 left-0 top-2 hidden w-px bg-line lg:block">
+            <span
+              ref={spineFillRef}
+              className="absolute inset-0 origin-top scale-y-0 bg-red will-change-transform"
+            />
+          </span>
+          <ol ref={listRef} className="flex flex-col">
+            {c.steps.map((s, i) => (
+              <Reveal key={stepNumbers[i]} delay={Math.min(i, 6) * 45} as="li">
+                <div className="group dt-step-row flex gap-6 border-t border-line py-7 transition-colors duration-500 hover:border-red/30">
+                  <span className="dt-step-num font-display text-2xl font-medium text-graphite transition-colors duration-500 group-hover:text-red sm:text-3xl">
+                    {stepNumbers[i]}
+                  </span>
+                  <div className="flex-1">
+                    <h3 className="font-display text-xl font-medium tracking-tight sm:text-2xl">
+                      {s.title}
+                    </h3>
+                    <p className="mt-2 max-w-xl text-[0.95rem] leading-relaxed text-stone">
+                      {s.copy}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Reveal>
-          ))}
-        </ol>
+              </Reveal>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   );

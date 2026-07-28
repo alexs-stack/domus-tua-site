@@ -8,6 +8,7 @@ import PreviewBadge from "./components/PreviewBadge";
 import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
+import SmoothScroll from "./components/motion/SmoothScroll";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
 export const viewport: Viewport = {
@@ -135,6 +136,7 @@ export default function RootLayout({
         />
         <div className="grain" aria-hidden />
         <div className="scroll-progress" aria-hidden />
+        <SmoothScroll />
         <LocaleProvider>
           <div id="main" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
             {children}
