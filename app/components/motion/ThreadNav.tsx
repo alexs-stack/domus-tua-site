@@ -1,9 +1,11 @@
 "use client";
 
-// ThreadNav — il filo rosso del Metodo diventa la navigazione della home:
+// ThreadNav — il filo rosso del Metodo diventa la navigazione delle pagine:
 // un filo verticale fisso sul bordo destro che "si cuce" con lo scroll
 // (riempimento rosso sul binario neutro), con nodi cliccabili posizionati
 // in proporzione alla posizione reale delle sezioni nel documento.
+// - Parametrico: `chapters` (id sezione + etichetta già tradotta) per le
+//   pagine interne; senza prop restano i capitoli della home.
 // - Solo desktop ≥1024 + motion ok (sotto/reduced-motion: display none via
 //   Tailwind, nessun JS attivo — la nav vera resta l'header).
 // - Appare dopo il primo viewport (l'hero è scuro e va lasciato pulito).
@@ -19,16 +21,21 @@ import { useDict } from "../i18n/LocaleProvider";
 // 768 e qui sarebbe troppo presto — il filo toccherebbe il contenuto.
 const RAIL_MQ = "(min-width: 1024px)";
 
-type Chapter = { id: string; label: string };
+export type ThreadChapter = { id: string; label: string };
 
-export default function ThreadNav() {
+export default function ThreadNav({
+  chapters: chaptersProp,
+}: {
+  /** Capitoli della pagina (id sezione esistente + etichetta tradotta). Default: home. */
+  chapters?: ThreadChapter[];
+} = {}) {
   const d = useDict();
   const rootRef = useRef<HTMLElement | null>(null);
   const fillRef = useRef<HTMLSpanElement | null>(null);
   const shownRef = useRef(false);
 
   // Capitoli della home: id reali delle sezioni, etichette già tradotte.
-  const chapters: Chapter[] = [
+  const chapters: ThreadChapter[] = chaptersProp ?? [
     { id: "top", label: "Domus Tua" },
     { id: "metodo", label: d.nav.metodo },
     { id: "case", label: d.nav.case },
@@ -115,7 +122,9 @@ export default function ThreadNav() {
         };
       });
     },
-    { scope: rootRef, dependencies: [d] }
+    // La chiave stringa evita ri-esecuzioni per nuove reference dell'array
+    // chapters (i trigger dipendono solo dagli id, le etichette sono JSX).
+    { scope: rootRef, dependencies: [d, chapters.map((c) => c.id).join("|")] }
   );
 
   const goTo = (id: string) => {

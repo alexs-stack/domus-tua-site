@@ -11,6 +11,7 @@ import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 type CTA = { label: string; href: string };
 
 export default function PageHero({
+  id,
   eyebrow,
   title,
   subcopy,
@@ -20,6 +21,8 @@ export default function PageHero({
   secondary,
   trust,
 }: {
+  /** Ancora della sezione (es. "top" per il nodo di risalita di ThreadNav). */
+  id?: string;
   eyebrow: string;
   title: ReactNode;
   subcopy: string;
@@ -72,7 +75,7 @@ export default function PageHero({
   );
 
   return (
-    <section ref={rootRef} className="relative flex min-h-[82vh] w-full items-end overflow-hidden">
+    <section ref={rootRef} id={id} className="relative flex min-h-[82vh] w-full items-end overflow-hidden">
       {/* Media in un layer parallax: allo scroll l'immagine resta "indietro" (profondità).
           I gradienti di leggibilità restano fissi sopra il layer. */}
       <Parallax
