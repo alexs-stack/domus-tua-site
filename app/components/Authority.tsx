@@ -83,32 +83,77 @@ export default function Authority() {
   const { locale } = useLocale();
   const c = copy[locale];
 
-  // Pop delle 5 stelle: piccola scala elastica in sequenza, una sola volta all'ingresso.
+  // Card rating: un'unica timeline all'ingresso — le stelle poppano, poi le
+  // tre mini-stat risalgono. Il CountUp resta com'è (parte dal suo IO).
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const ratingRef = useRef<HTMLSpanElement | null>(null);
   const starsRef = useRef<HTMLSpanElement | null>(null);
+  const statsRef = useRef<HTMLUListElement | null>(null);
   useGSAP(
     () => {
-      const row = starsRef.current;
-      if (!row) return;
+      const card = cardRef.current;
+      if (!card) return;
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
-        gsap.fromTo(
-          row.children,
-          { scale: 0.6, transformOrigin: "50% 50%" },
-          {
-            scale: 1,
-            duration: 0.5,
-            ease: "back.out(1.6)",
-            stagger: 0.06,
-            scrollTrigger: { trigger: row, start: "top 85%", once: true },
-          }
-        );
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: card, start: "top 82%", once: true },
+        });
+        if (starsRef.current) {
+          tl.fromTo(
+            starsRef.current.children,
+            { scale: 0.6, transformOrigin: "50% 50%" },
+            {
+              scale: 1,
+              duration: 0.5,
+              ease: "back.out(1.6)",
+              stagger: 0.06,
+              clearProps: "scale",
+            },
+            0
+          );
+        }
+        if (statsRef.current) {
+          tl.fromTo(
+            statsRef.current.children,
+            { y: 14, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.6,
+              ease: "expo.out",
+              stagger: 0.1,
+              clearProps: "all",
+            },
+            0.35
+          );
+        }
+        // Profondità: il 4.9 cresce appena in scrub lungo la sezione. La card
+        // vive già dentro Parallax (nessuno sticky): il transform è sicuro.
+        if (ratingRef.current && sectionRef.current) {
+          gsap.set(ratingRef.current, { willChange: "transform" });
+          gsap.fromTo(
+            ratingRef.current,
+            { scale: 1, transformOrigin: "left center" },
+            {
+              scale: 1.05,
+              ease: "none",
+              scrollTrigger: {
+                trigger: sectionRef.current,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+              },
+            }
+          );
+        }
       });
     },
-    { scope: starsRef }
+    { scope: cardRef }
   );
 
   return (
-    <section className="relative overflow-hidden bg-red text-white">
+    <section ref={sectionRef} className="relative overflow-hidden bg-red text-white">
       {/* profondità calda */}
       <div
         className="pointer-events-none absolute inset-0 opacity-60"
@@ -159,13 +204,16 @@ export default function Authority() {
           {/* Card rating — deriva leggera contro la colonna testo (solo desktop) */}
           <Reveal delay={120}>
             <Parallax speed={-0.06}>
-              <div className="rounded-[2rem] bg-white p-7 text-ink shadow-[0_40px_90px_-50px_rgba(80,4,4,0.9)] sm:p-9">
+              <div ref={cardRef} className="rounded-[2rem] bg-white p-7 text-ink shadow-[0_40px_90px_-50px_rgba(80,4,4,0.9)] sm:p-9">
                 <div className="flex items-center gap-4">
-                  <CountUp
-                    value={parseFloat(site.rating)}
-                    decimals={1}
-                    className="font-display text-7xl font-medium leading-none text-ink"
-                  />
+                  {/* Wrapper: è lui a scalare in scrub, non lo span di CountUp. */}
+                  <span ref={ratingRef} className="inline-block leading-none">
+                    <CountUp
+                      value={parseFloat(site.rating)}
+                      decimals={1}
+                      className="font-display text-7xl font-medium leading-none text-ink"
+                    />
+                  </span>
                   <div>
                     <span ref={starsRef} className="flex gap-1">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -186,7 +234,7 @@ export default function Authority() {
                   </p>
                 </div>
 
-                <ul className="mt-6 grid grid-cols-3 gap-2 text-center sm:gap-3">
+                <ul ref={statsRef} className="mt-6 grid grid-cols-3 gap-2 text-center sm:gap-3">
                   {[
                     { v: `${years}+`, l: c.statYears },
                     { v: site.reviewsCount, l: c.statReviews },

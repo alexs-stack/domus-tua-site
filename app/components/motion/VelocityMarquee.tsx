@@ -1,11 +1,12 @@
 "use client";
 
 // VelocityMarquee — nastro infinito che reagisce allo scroll: accelera con la
-// velocità e ne segue la direzione, poi decade dolcemente al ritmo di crociera.
-// Il contenuto è duplicato internamente (copia aria-hidden) per il loop senza
-// stacchi. Con reduced-motion resta una riga statica (nessun movimento).
+// velocità, ne segue la direzione e si inclina (skewX ∝ velocity, max dist.skew),
+// poi decade dolcemente al ritmo di crociera e a skew 0. Il contenuto è
+// duplicato internamente (copia aria-hidden) per il loop senza stacchi.
+// Con reduced-motion resta una riga statica (nessun movimento).
 import { useRef, type ReactNode } from "react";
-import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, dist } from "../../lib/motion/gsap";
 
 type Props = {
   children: ReactNode;
@@ -43,30 +44,48 @@ export default function VelocityMarquee({
         // identico (totalTime è modulo della durata del ciclo).
         loop.totalTime(duration * 100, true);
 
-        // Proxy per animare fluidamente il timeScale (boost → decadimento a 1).
-        const proxy = { ts: 1 };
-        const apply = () => loop.timeScale(proxy.ts);
+        // Proxy per animare fluidamente timeScale e skew di velocità
+        // (boost → decadimento a crociera / 0). skew e ts viaggiano nello
+        // STESSO tween: overwrite:true ucciderebbe un tween parallelo sul proxy.
+        const proxy = { ts: 1, skew: 0 };
+        // quickSetter: scrive solo il transform (GPU), nessuna lettura di layout.
+        const setSkew = gsap.quickSetter(track, "skewX", "deg");
+        const apply = () => {
+          loop.timeScale(proxy.ts);
+          setSkew(proxy.skew);
+        };
         const st = ScrollTrigger.create({
           onUpdate(self) {
             const v = self.getVelocity();
             const boost = gsap.utils.clamp(1, 3.2, 1 + Math.abs(v) / 900);
             const target = v < -60 ? -boost : boost;
+            // Skew proporzionale (segue la direzione), mai oltre dist.skew gradi.
+            const skewTarget = gsap.utils.clamp(-dist.skew, dist.skew, v / 400);
             gsap.to(proxy, {
               ts: target,
+              skew: skewTarget,
               duration: 0.18,
               ease: "power2.out",
               overwrite: true,
               onUpdate: apply,
               onComplete() {
-                gsap.to(proxy, { ts: 1, duration: 1.4, ease: "power2.out", onUpdate: apply });
+                gsap.to(proxy, {
+                  ts: 1,
+                  skew: 0,
+                  duration: 1.4,
+                  ease: "power2.out",
+                  onUpdate: apply,
+                });
               },
             });
           },
         });
 
         return () => {
+          gsap.killTweensOf(proxy);
           st.kill();
           loop.kill();
+          gsap.set(track, { skewX: 0 });
         };
       });
     },

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import Reveal from "./Reveal";
-import MaskReveal from "./motion/MaskReveal";
+import LiquidReveal from "./motion/LiquidReveal";
 import Parallax from "./motion/Parallax";
 import { ArrowUpRight, Play } from "./Icons";
 import { SegnoDomusCorner, SegnoTick } from "./BrandMotif";
@@ -177,8 +177,9 @@ export default function OpenDomus() {
                 aria-label={c.videoAria}
                 className="group relative block aspect-[4/5] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[5/5]"
               >
-                {/* Sipario dal basso sul solo media: link e play restano sopra la maschera. */}
-                <MaskReveal from="bottom" zoom={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
+                {/* Reveal liquido sul solo media (signature della sezione):
+                    link e play restano sopra il velo, mai clippati. */}
+                <LiquidReveal tone="paper" className="absolute inset-0">
                   <Image
                     src="/images/reali/raffaela-founder.jpg"
                     alt={c.imageAlt}
@@ -186,7 +187,7 @@ export default function OpenDomus() {
                     sizes="(max-width: 1024px) 100vw, 600px"
                     className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
                   />
-                </MaskReveal>
+                </LiquidReveal>
                 <span className="absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent" />
                 <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
                   <Play className="h-6 w-6" />

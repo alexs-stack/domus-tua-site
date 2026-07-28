@@ -1,10 +1,12 @@
 "use client";
 
+import { useRef } from "react";
 import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
 import { SegnoDomus, SegnoDomusBadge, SegnoTick } from "./BrandMotif";
 import { ArrowUpRight, ArrowRight, Star } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 
 // Domus D.O.C. — Domus di Origine Certificata.
 // Protocollo proprietario in 5 pilastri: Documenti, Conformità, Trasparenza, Preparazione, Tutela.
@@ -212,8 +214,61 @@ export default function DomusDocProtocol({
   const { locale } = useLocale();
   const c = copy[locale];
   const bg = tone === "paper" ? "bg-paper" : tone === "cream-deep" ? "bg-cream-deep" : "bg-cream";
+
+  // Componente MULTI-ISTANZA (home + /metodo): tutto scopato ai ref locali.
+  const rootRef = useRef<HTMLElement | null>(null);
+  const sealRef = useRef<SVGCircleElement | null>(null);
+
+  // Il timbro D.O.C. si "stampa" (cerchio che si disegna + pop del contenuto)
+  // e i 5 pilastri entrano in cascata con i numeri che salgono dalla maschera.
+  useGSAP(
+    () => {
+      const root = rootRef.current;
+      if (!root) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const seal = sealRef.current;
+        const sealBox = root.querySelector<HTMLElement>("[data-doc-seal]");
+        const pillars = gsap.utils.toArray<HTMLElement>("[data-doc-pillar]", root);
+        const nums = gsap.utils.toArray<HTMLElement>("[data-doc-num]", root);
+
+        const tl = gsap.timeline({
+          defaults: { ease: "domus" },
+          scrollTrigger: { trigger: root, start: "top 72%", once: true },
+        });
+        if (seal && sealBox) {
+          const len = seal.getTotalLength() + 2;
+          gsap.set(seal, { strokeDasharray: len, strokeDashoffset: len });
+          tl.fromTo(
+            sealBox,
+            { scale: 0.85, autoAlpha: 0, rotate: -8 },
+            { scale: 1, autoAlpha: 1, rotate: 0, duration: dur.short },
+            0
+          ).to(seal, { strokeDashoffset: 0, duration: dur.reveal, ease: "power2.inOut" }, 0.1);
+        }
+        if (pillars.length) {
+          tl.fromTo(
+            pillars,
+            { y: 22, autoAlpha: 0 },
+            { y: 0, autoAlpha: 1, duration: dur.short, stagger: stagger.cards * 0.8, clearProps: "all" },
+            0.25
+          );
+        }
+        if (nums.length) {
+          tl.fromTo(
+            nums,
+            { yPercent: 110 },
+            { yPercent: 0, duration: dur.short, ease: "expo.out", stagger: stagger.cards * 0.8 },
+            0.35
+          );
+        }
+      });
+    },
+    { scope: rootRef }
+  );
+
   return (
-    <section id={id} className={bg}>
+    <section ref={rootRef} id={id} className={bg}>
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <Reveal>
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
@@ -227,8 +282,15 @@ export default function DomusDocProtocol({
             <div className="relative grid gap-y-12 lg:grid-cols-[0.95fr_1px_1.05fr] lg:gap-x-14 lg:gap-y-0">
               {/* Intro */}
               <div>
-                {/* Sigillo D.O.C. — firma visiva del protocollo */}
-                <div className="mb-6 flex h-16 w-16 flex-col items-center justify-center rounded-full border-2 border-red text-red">
+                {/* Sigillo D.O.C. — firma visiva del protocollo: il cerchio è un
+                    tratto SVG che si "stampa" all'ingresso (senza JS: completo). */}
+                <div
+                  data-doc-seal
+                  className="relative mb-6 flex h-16 w-16 flex-col items-center justify-center text-red"
+                >
+                  <svg aria-hidden viewBox="0 0 64 64" className="absolute inset-0 h-full w-full -rotate-90">
+                    <circle ref={sealRef} cx="32" cy="32" r="30" fill="none" stroke="currentColor" strokeWidth="2" />
+                  </svg>
                   <SegnoDomus className="h-3 w-8" embrace={false} />
                   <span className="mt-0.5 text-[0.58rem] font-bold tracking-[0.14em]">D.O.C.</span>
                 </div>
@@ -263,11 +325,14 @@ export default function DomusDocProtocol({
                 {c.pillars.map((p, i) => (
                   <li
                     key={p.t}
+                    data-doc-pillar
                     className="group border-t border-line py-5 first:border-t-0 first:pt-0"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="tnum flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-soft font-display text-sm font-semibold text-red-dark transition-colors duration-300 group-hover:bg-red group-hover:text-white">
-                        {String(i + 1).padStart(2, "0")}
+                      <span className="tnum flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-red-soft font-display text-sm font-semibold text-red-dark transition-colors duration-300 group-hover:bg-red group-hover:text-white">
+                        <span data-doc-num className="block">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
                       </span>
                       <div className="flex items-center gap-2">
                         <SegnoTick className="h-4 w-4 text-red-dark" />

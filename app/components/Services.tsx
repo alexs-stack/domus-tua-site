@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Reveal from "./Reveal";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -182,10 +182,87 @@ const copy = {
   },
 };
 
+// Anteprime per la lista servizi (hover desktop): immagini già in public/,
+// scelte per coerenza col contenuto di ogni voce 01–05.
+const PREVIEWS = [
+  "/images/rendering_03_master_bedroom_legno.jpg",
+  "/images/home_staging_01_sala_reale_sedie_gialle.jpg",
+  "/images/reali/video-villa-mozart.jpg",
+  "/images/premium_02_living_dining_piante.jpg",
+  "/images/reali/open-domus-teresa.jpg",
+];
+
 export default function Services() {
   const { locale } = useLocale();
   const c = copy[locale];
   const gridRef = useRef<HTMLDivElement>(null);
+  const floatRef = useRef<HTMLDivElement>(null);
+  // Le 5 anteprime vengono montate SOLO quando il contesto desktop+mouse è
+  // attivo: su mobile niente markup = niente download inutili.
+  const [floatOn, setFloatOn] = useState(false);
+
+  // Pattern award "list + floating image": sul passaggio del mouse sulle voci
+  // 01–05 un'anteprima segue il cursore con lerp e fa crossfade tra le voci.
+  // Solo desktop + pointer fine + motion ok; su touch restano le card pulite.
+  useGSAP(
+    () => {
+      const grid = gridRef.current;
+      const float = floatRef.current;
+      if (!grid || !float) return;
+      const mm = gsap.matchMedia();
+      mm.add(`${MQ.motionOk} and ${MQ.finePointer} and (min-width: 1024px)`, () => {
+        setFloatOn(true);
+        gsap.set(float, { autoAlpha: 0, scale: 0.92 });
+        const xTo = gsap.quickTo(float, "x", { duration: 0.45, ease: "power3.out" });
+        const yTo = gsap.quickTo(float, "y", { duration: 0.45, ease: "power3.out" });
+        let current = -1;
+
+        const onMove = (e: PointerEvent) => {
+          xTo(e.clientX + 22);
+          yTo(e.clientY + 26);
+        };
+        const showIdx = (i: number) => {
+          if (i === current) return;
+          current = i;
+          float.querySelectorAll<HTMLElement>("[data-float-img]").forEach((el, j) => {
+            gsap.to(el, {
+              autoAlpha: j === i ? 1 : 0,
+              scale: j === i ? 1 : 1.05,
+              duration: 0.35,
+              ease: "domus",
+              overwrite: "auto",
+            });
+          });
+          gsap.to(float, { autoAlpha: 1, scale: 1, duration: dur.micro, ease: "domus", overwrite: "auto" });
+        };
+        const hide = () => {
+          current = -1;
+          gsap.to(float, { autoAlpha: 0, scale: 0.92, duration: 0.25, ease: "power2.out", overwrite: "auto" });
+        };
+
+        const cards = Array.from(grid.querySelectorAll<HTMLElement>("[data-service-idx]"));
+        const bound = cards.map((card) => {
+          const fn = () => showIdx(Number(card.dataset.serviceIdx));
+          card.addEventListener("pointerenter", fn);
+          return { card, fn };
+        });
+        // Sulla feature card (che ha già la sua immagine) l'anteprima sparisce.
+        const feature = grid.querySelector<HTMLElement>("[data-service-feature]");
+        feature?.addEventListener("pointerenter", hide);
+        grid.addEventListener("pointermove", onMove, { passive: true });
+        grid.addEventListener("pointerleave", hide);
+
+        return () => {
+          setFloatOn(false);
+          bound.forEach(({ card, fn }) => card.removeEventListener("pointerenter", fn));
+          feature?.removeEventListener("pointerenter", hide);
+          grid.removeEventListener("pointermove", onMove);
+          grid.removeEventListener("pointerleave", hide);
+        };
+      });
+    },
+    { scope: gridRef }
+  );
 
   // Numeri 01–05: salgono da dietro la maschera overflow-hidden, una sola volta.
   useGSAP(
@@ -221,7 +298,10 @@ export default function Services() {
         <div ref={gridRef} className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
           {/* Feature card — sipario sull'immagine + parallasse di profondità molto sottile */}
           <div className="lg:col-span-2 lg:row-span-2">
-            <article className="group relative h-full min-h-[22rem] overflow-hidden rounded-[2rem] border border-line">
+            <article
+              data-service-feature
+              className="group relative h-full min-h-[22rem] overflow-hidden rounded-[2rem] border border-line"
+            >
               <MaskReveal
                 from="bottom"
                 zoom={1.12}
@@ -260,7 +340,10 @@ export default function Services() {
 
           {c.services.map((s, i) => (
             <Reveal key={s.title} delay={i * 70}>
-              <article className="group flex h-full flex-col justify-between rounded-[2rem] border border-line bg-paper p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40">
+              <article
+                data-service-idx={i}
+                className="group flex h-full flex-col justify-between rounded-[2rem] border border-line bg-paper p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40"
+              >
                 <span className="block overflow-hidden">
                   <span
                     data-service-num
@@ -278,6 +361,30 @@ export default function Services() {
               </article>
             </Reveal>
           ))}
+        </div>
+
+        {/* Anteprima flottante dei servizi (desktop + mouse): segue il cursore
+            con lerp, crossfade tra le voci. fixed: nessun antenato trasformato. */}
+        <div
+          ref={floatRef}
+          aria-hidden
+          className="pointer-events-none fixed left-0 top-0 z-[45] w-60"
+          style={{ visibility: "hidden" }}
+        >
+          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-[0_30px_60px_-30px_rgba(26,21,18,0.55)]">
+            {floatOn &&
+              PREVIEWS.map((src) => (
+                <Image
+                  key={src}
+                  data-float-img
+                  src={src}
+                  alt=""
+                  fill
+                  sizes="240px"
+                  className="object-cover opacity-0"
+                />
+              ))}
+          </div>
         </div>
 
         {/* Protocollo Domus D.O.C. */}

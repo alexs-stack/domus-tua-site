@@ -4,11 +4,12 @@
 // Al submit naviga a /case con query params (q, comune, budget, type, rooms) che PropertySearch
 // legge e pre-imposta. La ricerca in linguaggio naturale resta un teaser (nessuna finta AI).
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Reveal from "./Reveal";
 import { ArrowUpRight, ArrowRight, Search } from "./Icons";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
+import { transitionTo } from "./motion/PageTransition";
+import { gsap, MQ } from "../lib/motion/gsap";
 
 const local = {
   it: {
@@ -59,10 +60,12 @@ export default function HomeSearchGateway() {
   const d = useDict();
   const { locale } = useLocale();
   const c = local[locale];
-  const router = useRouter();
 
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const chipsRef = useRef<HTMLDivElement>(null);
+  const [focused, setFocused] = useState(false);
+  const chipsPopped = useRef(false);
   const [comune, setComune] = useState("");
   const [type, setType] = useState("");
   const [budget, setBudget] = useState("0");
@@ -78,7 +81,23 @@ export default function HomeSearchGateway() {
     if (budget && budget !== "0") params.set("budget", budget);
     if (rooms && rooms !== "0") params.set("rooms", rooms);
     const qs = params.toString();
-    router.push(qs ? `/case?${qs}` : "/case");
+    // Micro-transizione coreografata verso i risultati (fallback: push pulito
+    // con reduced-motion, gestito dentro PageTransition).
+    transitionTo(qs ? `/case?${qs}` : "/case");
+  }
+
+  // Teatro del focus: al primo ingresso nel campo, le chip suggerimento
+  // "respirano" in cascata (mai nascoste prima: parte da uno stato visibile).
+  function onSearchFocus() {
+    setFocused(true);
+    if (chipsPopped.current || !chipsRef.current) return;
+    chipsPopped.current = true;
+    if (!window.matchMedia(MQ.motionOk).matches) return;
+    gsap.fromTo(
+      chipsRef.current.querySelectorAll("button"),
+      { y: 7, opacity: 0.35 },
+      { y: 0, opacity: 1, duration: 0.5, ease: "domus", stagger: 0.05, clearProps: "all" }
+    );
   }
 
   const fieldCls =
@@ -103,13 +122,22 @@ export default function HomeSearchGateway() {
                 </span>
               </div>
 
-              {/* input linguaggio naturale (teaser: alimenta q) */}
-              <div className="mt-5 flex items-center gap-2 rounded-2xl border border-line bg-cream p-3">
+              {/* input linguaggio naturale (teaser: alimenta q) — al focus il
+                  campo si "accende": glow crema caldo + micro espansione. */}
+              <div
+                className={`mt-5 flex items-center gap-2 rounded-2xl border bg-cream p-3 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                  focused
+                    ? "scale-[1.01] border-red/45 shadow-[0_0_0_5px_rgba(210,10,10,0.06),0_18px_40px_-28px_rgba(210,10,10,0.35)]"
+                    : "border-line"
+                }`}
+              >
                 <Search className="ml-1 h-5 w-5 shrink-0 text-stone" />
                 <input
                   ref={inputRef}
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
+                  onFocus={onSearchFocus}
+                  onBlur={() => setFocused(false)}
                   placeholder={d.search.nlPlaceholder}
                   aria-label={d.search.title}
                   className="w-full flex-1 rounded-lg bg-transparent px-1 text-[0.98rem] text-ink placeholder:text-stone/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
@@ -119,7 +147,7 @@ export default function HomeSearchGateway() {
 
               {/* Chip di esempio: cliccando si compila l'input in linguaggio naturale (nessun
                   auto-invio: l'utente può ritoccare la frase prima di cercare). */}
-              <div className="mt-3 flex flex-wrap items-center gap-2 pl-1">
+              <div ref={chipsRef} className="mt-3 flex flex-wrap items-center gap-2 pl-1">
                 <span className="text-[0.72rem] font-medium text-stone">{c.chipsLabel}</span>
                 {c.chips.map((chip) => (
                   <button

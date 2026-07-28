@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import Reveal from "./Reveal";
+import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
 import { Star, Play } from "./Icons";
@@ -79,16 +80,20 @@ export default function FeaturedTestimonial(props: Props) {
   const glyphRef = useRef<HTMLSpanElement | null>(null);
   const starsRef = useRef<HTMLSpanElement | null>(null);
 
-  // Micro-ingressi una tantum quando la card entra: la virgoletta si "posa"
-  // (scala + rotazione) e le stelle sbocciano in sequenza. Solo transform.
+  // Un'unica timeline all'ingresso della card: la virgoletta si "posa"
+  // (scala + rotazione), poi le stelle sbocciano in sequenza. Solo transform.
+  // TextLines resta autonomo: ha la sua maschera per righe.
   useGSAP(
     () => {
       const card = cardRef.current;
       if (!card) return;
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: card, start: "top 82%", once: true },
+        });
         if (glyphRef.current) {
-          gsap.fromTo(
+          tl.fromTo(
             glyphRef.current,
             { scale: 0.7, rotate: -6 },
             {
@@ -96,12 +101,13 @@ export default function FeaturedTestimonial(props: Props) {
               rotate: 0,
               duration: 1,
               ease: "expo.out",
-              scrollTrigger: { trigger: card, start: "top 82%", once: true },
-            }
+              clearProps: "transform",
+            },
+            0
           );
         }
         if (starsRef.current) {
-          gsap.fromTo(
+          tl.fromTo(
             starsRef.current.children,
             { scale: 0.6, transformOrigin: "50% 50%" },
             {
@@ -109,8 +115,9 @@ export default function FeaturedTestimonial(props: Props) {
               duration: 0.6,
               ease: "back.out(1.6)",
               stagger: 0.06,
-              scrollTrigger: { trigger: starsRef.current, start: "top 88%", once: true },
-            }
+              clearProps: "scale",
+            },
+            0.55
           );
         }
       });
@@ -183,18 +190,21 @@ export default function FeaturedTestimonial(props: Props) {
               </div>
             </div>
 
-            {/* Immagine — profondità: la foto sovradimensionata scorre più lenta
-                dentro la metà ritagliata della card; gradiente e play restano fissi. */}
+            {/* Immagine — sipario da destra sulla cornice (MaskReveal fuori,
+                Parallax dentro): dentro la maschera la foto sovradimensionata
+                scorre più lenta. Gradiente e play restano fissi, fuori. */}
             <div className="relative min-h-[280px] overflow-hidden lg:min-h-full">
-              <Parallax speed={0.12} scale={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
-                <Image
-                  src={image}
-                  alt={alt}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 560px"
-                  className="photo-warm object-cover object-center"
-                />
-              </Parallax>
+              <MaskReveal from="right" zoom={1.1} className="absolute inset-0" innerClassName="absolute inset-0">
+                <Parallax speed={0.12} scale={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
+                  <Image
+                    src={image}
+                    alt={alt}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 560px"
+                    className="photo-warm object-cover object-center"
+                  />
+                </Parallax>
+              </MaskReveal>
               <span className="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent lg:bg-gradient-to-l" />
               <a
                 href={videoHref}

@@ -1,11 +1,14 @@
 "use client";
 
+import { useRef } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
+import Magnetic from "./motion/Magnetic";
 import { Instagram, Facebook, TikTok, YouTube } from "./Icons";
 import { site } from "../lib/site";
 import { IframeWidget } from "./WidgetEmbeds";
+import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 import { useLocale } from "./i18n/LocaleProvider";
 
 const grid = [
@@ -81,8 +84,80 @@ export default function Social() {
   const { locale } = useLocale();
   const c = copy[locale];
 
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const channelsRef = useRef<HTMLDivElement | null>(null);
+  const mosaicRef = useRef<HTMLDivElement | null>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const cleanups: (() => void)[] = [];
+
+        // Pill canali: micro-stagger orizzontale. Contengono link → opacity
+        // (mai autoAlpha) + reti di sicurezza stile Reveal (focus/timeout).
+        const row = channelsRef.current;
+        if (row) {
+          const pills = gsap.utils.toArray<HTMLElement>(row.children);
+          const tween = gsap.fromTo(
+            pills,
+            { x: -10, opacity: 0 },
+            {
+              x: 0,
+              opacity: 1,
+              duration: dur.short,
+              ease: "domus",
+              stagger: stagger.cards / 2,
+              clearProps: "opacity,transform",
+              scrollTrigger: { trigger: row, start: "top 85%", once: true },
+            }
+          );
+          const reveal = () => tween.progress(1);
+          row.addEventListener("focusin", reveal, { once: true });
+          const safety = window.setTimeout(reveal, 2500);
+          cleanups.push(() => {
+            row.removeEventListener("focusin", reveal);
+            window.clearTimeout(safety);
+          });
+        }
+
+        // Mosaico: ingresso 2D dal centro della griglia 2×3 (ref presente solo
+        // quando il feed iframe NON è attivo). Le immagini sono decorative ma
+        // ogni tile è un <a> verso il profilo → opacity + stesse reti di sicurezza.
+        const mosaic = mosaicRef.current;
+        if (mosaic) {
+          const tiles = gsap.utils.toArray<HTMLElement>(mosaic.children);
+          const tween = gsap.fromTo(
+            tiles,
+            { scale: 0.92, y: 18, opacity: 0 },
+            {
+              scale: 1,
+              y: 0,
+              opacity: 1,
+              duration: dur.short,
+              ease: "domus",
+              stagger: { each: 0.07, grid: [2, 3], from: "center" },
+              clearProps: "opacity,transform",
+              scrollTrigger: { trigger: mosaic, start: "top 80%", once: true },
+            }
+          );
+          const reveal = () => tween.progress(1);
+          mosaic.addEventListener("focusin", reveal, { once: true });
+          const safety = window.setTimeout(reveal, 2500);
+          cleanups.push(() => {
+            mosaic.removeEventListener("focusin", reveal);
+            window.clearTimeout(safety);
+          });
+        }
+
+        return () => cleanups.forEach((fn) => fn());
+      });
+    },
+    { scope: sectionRef }
+  );
+
   return (
-    <section className="bg-cream">
+    <section ref={sectionRef} className="bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           {/* Left: pitch + canali */}
@@ -107,7 +182,7 @@ export default function Social() {
               {site.social.instagram.handle}
             </a>
 
-            <div className="mt-8 flex flex-wrap gap-2.5">
+            <div ref={channelsRef} className="mt-8 flex flex-wrap gap-2.5">
               {channels.map((ch) => (
                 <a
                   key={ch.label}
@@ -124,16 +199,18 @@ export default function Social() {
             </div>
           </Reveal>
 
-          {/* Right: feed Instagram live (se configurato) o griglia curata */}
-          <Reveal delay={120}>
-            {site.embeds.instagramIframe ? (
+          {/* Right: feed Instagram live (se configurato) o griglia curata.
+              Il ramo iframe conserva il suo Reveal; il mosaico entra via GSAP. */}
+          {site.embeds.instagramIframe ? (
+            <Reveal delay={120}>
               <IframeWidget
                 src={site.embeds.instagramIframe}
                 title={c.feedTitle}
                 ratio={1}
               />
-            ) : (
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+            </Reveal>
+          ) : (
+            <div ref={mosaicRef} className="grid grid-cols-3 gap-2.5 sm:gap-3">
               {/* Parallasse alternata dei riquadri — solo desktop, molto discreta */}
               {grid.map((src, i) => (
                 <Parallax key={src} speed={i % 2 === 1 ? 1 : -1} range={12}>
@@ -155,16 +232,21 @@ export default function Social() {
                       <Instagram className="h-7 w-7" />
                     </span>
                     {i === 0 && (
-                      <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-wide text-red">
-                        {c.followBadge}
-                      </span>
+                      // Magnetic DENTRO il posizionatore assoluto: il suo wrapper
+                      // inline-flex riceve il transform, l'ancoraggio non si muove.
+                      <div className="absolute left-2.5 top-2.5">
+                        <Magnetic strength={0.2}>
+                          <span className="rounded-full bg-white/90 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-wide text-red">
+                            {c.followBadge}
+                          </span>
+                        </Magnetic>
+                      </div>
                     )}
                   </a>
                 </Parallax>
               ))}
             </div>
-            )}
-          </Reveal>
+          )}
         </div>
       </div>
     </section>

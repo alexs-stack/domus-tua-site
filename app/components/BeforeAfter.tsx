@@ -139,11 +139,16 @@ export default function BeforeAfter() {
   const [active, setActive] = useState(0);
   const [pos, setPos] = useState(52);
   const ref = useRef<HTMLDivElement | null>(null);
-  const hintRef = useRef<HTMLDivElement | null>(null);
   const dragging = useRef(false);
   const introTween = useRef<gsap.core.Tween | null>(null);
-  // Il suggerimento "Trascina" scompare per sempre dopo il primo drag.
-  const hintDismissed = useRef(false);
+  // Fisica del rilascio: velocità dell'ultimo movimento e tween di scivolata.
+  const lastMove = useRef<{ p: number; t: number; v: number } | null>(null);
+  const glideTween = useRef<gsap.core.Tween | null>(null);
+
+  const killGlide = useCallback(() => {
+    glideTween.current?.kill();
+    glideTween.current = null;
+  }, []);
 
   // Il primo gesto dell'utente interrompe il racconto automatico: da lì comanda lui.
   const killIntro = useCallback(() => {
@@ -190,51 +195,8 @@ export default function BeforeAfter() {
         };
       });
 
-      // Cursore-suggerimento "Trascina": segue il puntatore sopra il confronto
-      // (solo pointer fine), sparisce al primo drag. Decorativo, pointer-events-none.
-      mm.add(`${MQ.motionOk} and ${MQ.finePointer}`, () => {
-        const frame = ref.current;
-        const hint = hintRef.current;
-        if (!frame || !hint) return;
-
-        gsap.set(hint, { xPercent: -50, yPercent: -50 });
-        const xTo = gsap.quickTo(hint, "x", { duration: 0.35, ease: "power3.out" });
-        const yTo = gsap.quickTo(hint, "y", { duration: 0.35, ease: "power3.out" });
-
-        const place = (e: PointerEvent) => {
-          const r = frame.getBoundingClientRect();
-          return [e.clientX - r.left, e.clientY - r.top] as const;
-        };
-        const onEnter = (e: PointerEvent) => {
-          if (hintDismissed.current) return;
-          const [x, y] = place(e);
-          gsap.set(hint, { x, y });
-          gsap.to(hint, { autoAlpha: 1, duration: 0.3, overwrite: "auto" });
-        };
-        const onMove = (e: PointerEvent) => {
-          if (hintDismissed.current) return;
-          const [x, y] = place(e);
-          xTo(x);
-          yTo(y);
-        };
-        const onLeave = () =>
-          gsap.to(hint, { autoAlpha: 0, duration: 0.2, overwrite: "auto" });
-        const onDown = () => {
-          hintDismissed.current = true;
-          gsap.to(hint, { autoAlpha: 0, duration: 0.2, overwrite: "auto" });
-        };
-
-        frame.addEventListener("pointerenter", onEnter);
-        frame.addEventListener("pointermove", onMove);
-        frame.addEventListener("pointerleave", onLeave);
-        frame.addEventListener("pointerdown", onDown);
-        return () => {
-          frame.removeEventListener("pointerenter", onEnter);
-          frame.removeEventListener("pointermove", onMove);
-          frame.removeEventListener("pointerleave", onLeave);
-          frame.removeEventListener("pointerdown", onDown);
-        };
-      });
+      // (Il vecchio hint "Trascina" che seguiva il puntatore è stato assorbito
+      // dal cursor custom globale: data-cursor="trascina" sulla cornice.)
     },
     { scope: ref }
   );
@@ -243,12 +205,43 @@ export default function BeforeAfter() {
     const el = ref.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const next = ((clientX - rect.left) / rect.width) * 100;
-    setPos(Math.max(2, Math.min(98, next)));
+    const next = Math.max(2, Math.min(98, ((clientX - rect.left) / rect.width) * 100));
+    // Velocità (%/s) per la scivolata inerziale al rilascio.
+    const now = performance.now();
+    const lm = lastMove.current;
+    lastMove.current = {
+      p: next,
+      t: now,
+      v: lm && now > lm.t ? ((next - lm.p) / (now - lm.t)) * 1000 : 0,
+    };
+    setPos(next);
+  }, []);
+
+  // Rilascio con inerzia: il divisore continua nella direzione del gesto e si
+  // adagia (feel fisico), sempre nel clamp 2–98. Interrotto da nuovo tocco/tasto.
+  const releaseWithMomentum = useCallback(() => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    const lm = lastMove.current;
+    lastMove.current = null;
+    if (!lm || Math.abs(lm.v) < 25) return;
+    if (!window.matchMedia(MQ.motionOk).matches) return;
+    const proxy = { p: lm.p };
+    const target = Math.max(2, Math.min(98, lm.p + lm.v * 0.12));
+    glideTween.current = gsap.to(proxy, {
+      p: target,
+      duration: 0.7,
+      ease: "power3.out",
+      onUpdate: () => setPos(proxy.p),
+      onComplete: () => {
+        glideTween.current = null;
+      },
+    });
   }, []);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     killIntro();
+    killGlide();
     if (e.key === "ArrowLeft") {
       setPos((p) => Math.max(2, p - 4));
       e.preventDefault();
@@ -262,7 +255,7 @@ export default function BeforeAfter() {
       setPos(98);
       e.preventDefault();
     }
-  }, [killIntro]);
+  }, [killIntro, killGlide]);
 
   const pair = pairs[active];
   const activeLabel = c[pair.labelKey];
@@ -289,8 +282,19 @@ export default function BeforeAfter() {
                   key={p.key}
                   onClick={() => {
                     killIntro();
+                    killGlide();
                     setActive(i);
                     setPos(52);
+                    // Crossfade morbido sul cambio coppia (le immagini nuove
+                    // arrivano sotto la dissolvenza; opacity, mai visibility:
+                    // dentro c'è lo slider focusabile).
+                    if (ref.current && window.matchMedia(MQ.motionOk).matches) {
+                      gsap.fromTo(
+                        ref.current,
+                        { opacity: 0.25 },
+                        { opacity: 1, duration: 0.45, ease: "power2.out", overwrite: "auto" }
+                      );
+                    }
                   }}
                   className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                     active === i
@@ -309,18 +313,22 @@ export default function BeforeAfter() {
           <div className="rounded-[2rem] border border-line bg-cream p-2">
             <div
               ref={ref}
+              data-cursor="trascina"
+              data-cursor-label={`‹ ${c.hint} ›`}
               className="relative aspect-[3/2] w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-[calc(2rem-0.5rem)]"
               onPointerDown={(e) => {
                 killIntro();
+                killGlide();
                 dragging.current = true;
+                lastMove.current = null;
                 (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
                 updateFromClientX(e.clientX);
               }}
               onPointerMove={(e) => {
                 if (dragging.current) updateFromClientX(e.clientX);
               }}
-              onPointerUp={() => (dragging.current = false)}
-              onPointerLeave={() => (dragging.current = false)}
+              onPointerUp={releaseWithMomentum}
+              onPointerLeave={releaseWithMomentum}
             >
               {/* AFTER (sotto) */}
               <Image
@@ -330,7 +338,11 @@ export default function BeforeAfter() {
                 sizes="(max-width: 1024px) 100vw, 1180px"
                 className="object-cover"
               />
-              <span className="absolute right-4 top-4 rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white">
+              {/* Contro-movimento sottile dei badge rispetto al divisore */}
+              <span
+                className="absolute right-4 top-4 rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white"
+                style={{ transform: `translateX(${(pos - 52) * -0.12}px)` }}
+              >
                 {c.badgeAfter}
               </span>
 
@@ -346,7 +358,10 @@ export default function BeforeAfter() {
                   sizes="(max-width: 1024px) 100vw, 1180px"
                   className="object-cover"
                 />
-                <span className="absolute left-4 top-4 rounded-full bg-paper/95 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]">
+                <span
+                  className="absolute left-4 top-4 rounded-full bg-paper/95 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]"
+                  style={{ transform: `translateX(${(pos - 52) * 0.12}px)` }}
+                >
                   {c.badgeBefore}
                 </span>
               </div>
@@ -372,16 +387,6 @@ export default function BeforeAfter() {
                 </div>
               </div>
 
-              {/* Suggerimento che segue il puntatore (desktop, pointer fine) */}
-              <div
-                ref={hintRef}
-                aria-hidden
-                className="pointer-events-none absolute left-0 top-0 z-20 hidden items-center gap-1.5 whitespace-nowrap rounded-full bg-ink/80 px-3.5 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-cream opacity-0 backdrop-blur-sm md:flex"
-              >
-                <span>‹</span>
-                {c.hint}
-                <span>›</span>
-              </div>
             </div>
           </div>
         </Reveal>

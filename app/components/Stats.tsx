@@ -2,6 +2,7 @@
 
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
+import Odometer from "./motion/Odometer";
 import VelocityMarquee from "./motion/VelocityMarquee";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -142,10 +143,9 @@ export default function Stats() {
                 {c.eyebrow}
               </span>
               <span className="mt-5 font-display text-[3.4rem] font-medium leading-none tracking-tight text-ink sm:text-7xl lg:text-[5.5rem]">
-                <CountUp
+                {/* Solo il dato eroe usa l'odometro: le cifre rullano invece dello snap di CountUp */}
+                <Odometer
                   value={heroStat.count.value}
-                  decimals={heroStat.count.decimals}
-                  suffix={heroStat.count.suffix}
                   group
                   locale={intlLocale[locale]}
                 />

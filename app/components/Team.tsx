@@ -241,23 +241,26 @@ export default function Team() {
                 {roster.map((member, i) => (
                   <li
                     key={member.name}
-                    className="flex items-center gap-3.5 border-t border-line/70 py-3.5 sm:first:border-t-0 sm:[&:nth-child(2)]:border-t-0"
+                    className="group flex items-center gap-3.5 border-t border-line/70 py-3.5 sm:first:border-t-0 sm:[&:nth-child(2)]:border-t-0"
                   >
                     <span
-                      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] font-display text-[0.95rem] font-semibold text-graphite ring-1 ring-inset ring-line ${
+                      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] font-display text-[0.95rem] font-semibold text-graphite ring-1 ring-inset ring-line transition-[background-color,color,box-shadow] duration-300 group-hover:bg-red group-hover:text-white group-hover:ring-red ${
                         i % 2 === 0 ? "bg-paper" : "bg-cream-deep"
                       }`}
                     >
                       {initials(member.name)}
                       {member.founder && (
+                        /* Sul cerchio rosso il pallino passa a bianco: resterebbe invisibile. */
                         <span
-                          className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red ring-2 ring-cream"
+                          className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red ring-2 ring-cream transition-colors duration-300 group-hover:bg-white"
                           aria-hidden="true"
                         />
                       )}
                     </span>
                     <span className="leading-tight">
-                      <span className="block text-sm font-semibold text-ink">{member.name}</span>
+                      <span className="block text-sm font-semibold text-ink transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1">
+                        {member.name}
+                      </span>
                       <span className="block text-[0.8rem] text-stone">{member.role}</span>
                     </span>
                   </li>
@@ -315,8 +318,8 @@ export default function Team() {
               </figure>
 
               <figure className="group mt-5 overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
-                {/* Secondo sipario, da sinistra: alterna la direzione per ritmo editoriale. */}
-                <MaskReveal from="left" zoom={1.1} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
+                {/* Secondo sipario, da sinistra e in leggero ritardo: overlap ritmico col primo. */}
+                <MaskReveal from="left" zoom={1.1} delay={0.18} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
                   <div className="relative aspect-[5/4] overflow-hidden rounded-[calc(2rem-0.5rem)]">
                     <Image
                       src="/images/reali/raffaela-founder.jpg"

@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import Reveal from "./Reveal";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
 import { ArrowUpRight, Check } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
 const paths = [
   {
@@ -173,6 +175,174 @@ const copy = {
   },
 } as const;
 
+type PathDef = (typeof paths)[number];
+type PathTexts = (typeof copy)[keyof typeof copy]["paths"][PathDef["id"]];
+
+// Card percorso: ingresso laterale (i due percorsi arrivano da direzioni
+// opposte), cascata dei benefici e deriva dell'immagine col puntatore.
+// Il wrapper porta l'id ancora (#vendi/#acquista): scroll-margin-top arriva
+// dal selettore globale :where([id]).
+function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const imgWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useGSAP(
+    () => {
+      const wrap = wrapRef.current;
+      if (!wrap) return;
+
+      const mm = gsap.matchMedia();
+
+      mm.add(MQ.motionOk, () => {
+        // La card è interamente un <a>: si anima opacity (mai autoAlpha) per
+        // non toglierla dal tab order mentre è nascosta.
+        const enter = gsap.fromTo(
+          wrap,
+          { x: i === 0 ? -56 : 56, opacity: 0 },
+          {
+            x: 0,
+            opacity: 1,
+            duration: dur.reveal,
+            ease: "domus",
+            clearProps: "all",
+            scrollTrigger: { trigger: wrap, start: "top 78%", once: true },
+          }
+        );
+
+        // Cascata dei benefici allo stesso trigger (pattern OpenDomus, ma
+        // opacity: le righe vivono dentro il link). Come in OpenDomus i <li>
+        // sono keyed sul testo: dopo un cambio lingua pre-trigger i nodi nuovi
+        // restano semplicemente visibili (nessuna cascata, nessun glitch).
+        const rows = wrap.querySelectorAll("li");
+        const bullets =
+          rows.length > 0
+            ? gsap.fromTo(
+                rows,
+                { y: 14, opacity: 0 },
+                {
+                  y: 0,
+                  opacity: 1,
+                  duration: dur.reveal,
+                  ease: "expo.out",
+                  stagger: 0.08,
+                  clearProps: "all",
+                  scrollTrigger: { trigger: wrap, start: "top 78%", once: true },
+                }
+              )
+            : null;
+
+        // Reti di sicurezza (stesso patto di Reveal): focus da tastiera o
+        // timeout completano subito gli ingressi.
+        const reveal = () => {
+          enter.progress(1);
+          bullets?.progress(1);
+        };
+        wrap.addEventListener("focusin", reveal, { once: true });
+        const safety = window.setTimeout(reveal, 2500);
+        return () => {
+          wrap.removeEventListener("focusin", reveal);
+          window.clearTimeout(safety);
+        };
+      });
+
+      // Deriva dell'immagine col puntatore: il transform sta sul wrapper
+      // dell'Image DENTRO la maschera, mai sull'article (ha già l'hover
+      // translate CSS).
+      mm.add(`${MQ.motionOk} and ${MQ.desktop} and ${MQ.finePointer}`, () => {
+        const imgWrap = imgWrapRef.current;
+        if (!imgWrap) return;
+
+        // Overscan 1.06 (±3%) solo mentre l'effetto è attivo: la deriva max
+        // 2.5% non scopre mai i bordi; touch/reduced-motion restano identici.
+        gsap.set(imgWrap, { scale: 1.06, willChange: "transform" });
+        const xTo = gsap.quickTo(imgWrap, "xPercent", { duration: dur.short, ease: "power3.out" });
+        const yTo = gsap.quickTo(imgWrap, "yPercent", { duration: dur.short, ease: "power3.out" });
+
+        const onMove = (e: PointerEvent) => {
+          const r = wrap.getBoundingClientRect();
+          xTo(gsap.utils.clamp(-1, 1, ((e.clientX - r.left) / r.width) * 2 - 1) * 2.5);
+          yTo(gsap.utils.clamp(-1, 1, ((e.clientY - r.top) / r.height) * 2 - 1) * 2.5);
+        };
+        const onLeave = () => {
+          // ritorno morbido al centro (stessa molla dei quickTo)
+          xTo(0);
+          yTo(0);
+        };
+
+        wrap.addEventListener("pointermove", onMove);
+        wrap.addEventListener("pointerleave", onLeave);
+        return () => {
+          wrap.removeEventListener("pointermove", onMove);
+          wrap.removeEventListener("pointerleave", onLeave);
+          gsap.set(imgWrap, { clearProps: "all" });
+        };
+      });
+    },
+    { scope: wrapRef, dependencies: [i] }
+  );
+
+  return (
+    <div ref={wrapRef} id={p.id}>
+      {/* Controparallasse: i due percorsi derivano l'uno verso l'altro (solo desktop). */}
+      <Parallax speed={i === 0 ? 0.08 : -0.08} className="h-full" innerClassName="h-full">
+      <article className="group h-full rounded-[2rem] border border-line bg-cream p-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)]">
+        <a href={p.href} data-cursor="scopri">
+        {/* Sipario dal lato del percorso: il pill scivola fuori da dietro la maschera. */}
+        <MaskReveal
+          from={i === 0 ? "left" : "right"}
+          zoom={1.14}
+          delay={i * 0.12}
+          className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)]"
+          innerClassName="absolute inset-0"
+        >
+          {/* Wrapper della deriva puntatore: solo l'immagine, il pill resta fermo. */}
+          <div ref={imgWrapRef} className="absolute inset-0">
+            <Image
+              src={p.image}
+              alt={t.alt}
+              fill
+              sizes="(max-width: 1024px) 100vw, 600px"
+              className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+            />
+          </div>
+          <span className="absolute left-4 top-4 rounded-full bg-paper/95 px-3.5 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]">
+            {t.tag}
+          </span>
+        </MaskReveal>
+
+        <div className="px-5 pb-6 pt-7 sm:px-7">
+          <h3 className="font-display text-[1.7rem] font-medium leading-[1.1] tracking-tight text-ink balance sm:text-[2rem]">
+            {t.title}
+          </h3>
+          <p className="mt-4 text-[0.98rem] leading-relaxed text-stone">{t.copy}</p>
+
+          <ul className="mt-6 flex flex-col gap-3">
+            {t.points.map((pt) => (
+              <li key={pt} className="flex items-start gap-3 text-[0.92rem] text-graphite">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
+                  <Check className="h-3 w-3" />
+                </span>
+                {pt}
+              </li>
+            ))}
+          </ul>
+
+          <span
+            className="group/cta mt-8 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+          >
+            {t.cta}
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5">
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          </span>
+        </div>
+        </a>
+      </article>
+      </Parallax>
+    </div>
+  );
+}
+
 export default function Paths() {
   const { locale } = useLocale();
   const c = copy[locale];
@@ -188,66 +358,9 @@ export default function Paths() {
         </Reveal>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
-          {paths.map((p, i) => {
-            const t = c.paths[p.id];
-            return (
-              <Reveal key={p.id} delay={i * 120} id={p.id}>
-                {/* Controparallasse: i due percorsi derivano l'uno verso l'altro (solo desktop). */}
-                <Parallax speed={i === 0 ? 0.08 : -0.08} className="h-full" innerClassName="h-full">
-                <article className="group h-full rounded-[2rem] border border-line bg-cream p-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)]">
-                  <a href={p.href}>
-                  {/* Sipario dal lato del percorso: il pill scivola fuori da dietro la maschera. */}
-                  <MaskReveal
-                    from={i === 0 ? "left" : "right"}
-                    zoom={1.14}
-                    delay={i * 0.12}
-                    className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)]"
-                    innerClassName="absolute inset-0"
-                  >
-                    <Image
-                      src={p.image}
-                      alt={t.alt}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 600px"
-                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                    />
-                    <span className="absolute left-4 top-4 rounded-full bg-paper/95 px-3.5 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]">
-                      {t.tag}
-                    </span>
-                  </MaskReveal>
-
-                  <div className="px-5 pb-6 pt-7 sm:px-7">
-                    <h3 className="font-display text-[1.7rem] font-medium leading-[1.1] tracking-tight text-ink balance sm:text-[2rem]">
-                      {t.title}
-                    </h3>
-                    <p className="mt-4 text-[0.98rem] leading-relaxed text-stone">{t.copy}</p>
-
-                    <ul className="mt-6 flex flex-col gap-3">
-                      {t.points.map((pt) => (
-                        <li key={pt} className="flex items-start gap-3 text-[0.92rem] text-graphite">
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                            <Check className="h-3 w-3" />
-                          </span>
-                          {pt}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <span
-                      className="group/cta mt-8 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-                    >
-                      {t.cta}
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5">
-                        <ArrowUpRight className="h-4 w-4" />
-                      </span>
-                    </span>
-                  </div>
-                  </a>
-                </article>
-                </Parallax>
-              </Reveal>
-            );
-          })}
+          {paths.map((p, i) => (
+            <PathCard key={p.id} p={p} i={i} t={c.paths[p.id]} />
+          ))}
         </div>
       </div>
     </section>

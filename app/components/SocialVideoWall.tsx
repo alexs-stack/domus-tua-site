@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { Play, ArrowUpRight, Instagram, YouTube, Star } from "./Icons";
 import { site } from "../lib/site";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/motion/gsap";
 import { useLocale } from "./i18n/LocaleProvider";
+
+// Flip serve solo al riordino del filtro: registrato localmente (stesso pattern
+// di TextLines con SplitText) per non finire nel chunk del layout via gsap.ts.
+gsap.registerPlugin(Flip);
 
 type VidKind = "recensione" | "opendomus" | "tour" | "dietro";
 
@@ -229,6 +235,7 @@ function VideoCard({ v, small, c }: { v: Vid; small?: boolean; c: Copy }) {
       href={v.href}
       target="_blank"
       rel="noopener noreferrer"
+      data-cursor="play"
       className="group relative block h-full overflow-hidden rounded-[1.5rem] border border-line bg-ink"
     >
       <div className={`relative ${small ? "aspect-video" : "h-full min-h-[260px]"}`}>
@@ -267,6 +274,100 @@ export default function SocialVideoWall() {
   const gridItems: Vid[] = [reel, ...wall];
   const visible = active === "all" ? gridItems : gridItems.filter((v) => v.kind === active);
 
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  // Layout della griglia catturato PRIMA del cambio filtro (punto di partenza del FLIP).
+  const flipStateRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
+
+  const onFilter = (key: "all" | VidKind) => {
+    // Il flip è evento-driven (non vive in matchMedia().add): check runtime, così
+    // con reduced-motion il riordino resta istantaneo. setActive mai ritardato.
+    if (gridRef.current && window.matchMedia(MQ.motionOk).matches) {
+      flipStateRef.current = Flip.getState(gridRef.current.children);
+    }
+    setActive(key);
+  };
+
+  // FLIP post-render: dal layout catturato al nuovo ordine delle card (key stabili
+  // → i nodi persistenti restano gli stessi e Flip li abbina per identità).
+  useLayoutEffect(() => {
+    const state = flipStateRef.current;
+    flipStateRef.current = null;
+    const grid = gridRef.current;
+    if (!state || !grid) return;
+    const tl = Flip.from(state, {
+      // targets espliciti: le card appena montate non sono nello stato catturato
+      // e senza questo onEnter non le vedrebbe.
+      targets: grid.children,
+      duration: dur.short,
+      ease: "domus",
+      stagger: 0.02,
+      absolute: true,
+      onEnter: (els) =>
+        gsap.fromTo(
+          els,
+          { opacity: 0, scale: 0.94 },
+          { opacity: 1, scale: 1, duration: dur.short, ease: "domus" }
+        ),
+      onLeave: (els) => gsap.to(els, { opacity: 0, scale: 0.94, duration: 0.25 }),
+    });
+    return () => {
+      // Interruzione (nuovo filtro mid-flight): completare prima di uccidere
+      // ripulisce i transform/position:absolute di Flip, altrimenti il flip
+      // successivo misurerebbe un layout "congelato" a metà.
+      if (tl.isActive()) tl.progress(1);
+      tl.kill();
+    };
+  }, [active]);
+
+  // Ingresso della griglia per-card (sostituisce il Reveal esterno rimosso).
+  useGSAP(
+    () => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const cards = gsap.utils.toArray<HTMLElement>(grid.children);
+        if (!cards.length) return;
+        // Nascoste solo post-idratazione: HTML iniziale completo (SEO/no-JS).
+        gsap.set(cards, { opacity: 0, y: dist.rise / 2 });
+        const triggers = ScrollTrigger.batch(cards, {
+          start: "top 85%",
+          once: true,
+          onEnter: (els) =>
+            gsap.fromTo(
+              els,
+              { opacity: 0, y: dist.rise / 2 },
+              {
+                opacity: 1,
+                y: 0,
+                duration: dur.short,
+                ease: "domus",
+                stagger: stagger.cards / 2,
+                clearProps: "opacity,transform",
+              }
+            ),
+        });
+        // Card = <a>: reti di sicurezza come Reveal (focus tastiera o timeout).
+        let done = false;
+        const showAll = () => {
+          if (done) return;
+          done = true;
+          triggers.forEach((t) => t.kill());
+          // Non toccare card già in tween (entrance o Flip in corso): arrivano
+          // da sole allo stato finale. Le altre vengono rivelate subito.
+          gsap.set(cards.filter((el) => !gsap.isTweening(el)), { clearProps: "opacity,transform" });
+        };
+        grid.addEventListener("focusin", showAll);
+        const safety = window.setTimeout(showAll, 2500);
+        return () => {
+          grid.removeEventListener("focusin", showAll);
+          window.clearTimeout(safety);
+        };
+      });
+    },
+    { scope: gridRef }
+  );
+
   return (
     <section className="bg-cream segno-ambient">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
@@ -294,7 +395,10 @@ export default function SocialVideoWall() {
           <span className="eyebrow">{c.featuredEyebrow}</span>
           <div className="mt-4 grid items-center gap-6 lg:grid-cols-[1.65fr_1fr] lg:gap-10">
             {/* Poster curato 16:9 (foto reale del team) → niente bande nere da video verticale. */}
-            <LazyYouTubeEmbed id={FEATURED_YT_ID} title={c.vFeatured} poster="/images/reali/raffaela-team-sede.jpg" />
+            {/* data-cursor="play": il cursore custom mostra il glifo play anche sul featured. */}
+            <div data-cursor="play">
+              <LazyYouTubeEmbed id={FEATURED_YT_ID} title={c.vFeatured} poster="/images/reali/raffaela-team-sede.jpg" />
+            </div>
             <div>
               <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.9rem]">
                 {c.vFeatured}
@@ -314,8 +418,9 @@ export default function SocialVideoWall() {
           </div>
         </Reveal>
 
-        {/* Collezione filtrabile per categoria (thumbnail → YouTube, nessun iframe autoloaded) */}
-        <Reveal delay={120} className="mt-10">
+        {/* Collezione filtrabile per categoria (thumbnail → YouTube, nessun iframe autoloaded).
+            Niente Reveal esterno: l'ingresso è per-card via ScrollTrigger.batch. */}
+        <div className="mt-10">
           <div className="flex flex-wrap items-center gap-2" role="group" aria-label={c.eyebrow}>
             {filters.map((f) => {
               const on = active === f.key;
@@ -323,7 +428,7 @@ export default function SocialVideoWall() {
                 <button
                   key={f.key}
                   type="button"
-                  onClick={() => setActive(f.key)}
+                  onClick={() => onFilter(f.key)}
                   aria-pressed={on}
                   className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition-all duration-300 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                     on ? "border-red bg-red text-white" : "border-line bg-paper text-graphite hover:border-red hover:text-red"
@@ -336,13 +441,13 @@ export default function SocialVideoWall() {
             })}
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div ref={gridRef} className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((v) => (
               // key su titleKey (univoco): più href puntano allo stesso video reale
               <VideoCard key={v.titleKey} v={v} small c={c} />
             ))}
           </div>
-        </Reveal>
+        </div>
 
         {/* Proof + CTA */}
         <Reveal delay={150} className="mt-10 flex flex-col items-start justify-between gap-6 border-t border-line pt-8 sm:flex-row sm:items-center">

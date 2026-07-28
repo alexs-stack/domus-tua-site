@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { gsap, MQ } from "../lib/motion/gsap";
 import { Phone, Whatsapp, Mail, Pin, ArrowUpRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
@@ -275,6 +276,44 @@ export default function Contact({
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; contact?: string; consent?: string }>({});
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const sentRef = useRef<HTMLParagraphElement | null>(null);
+  const checkRef = useRef<SVGPathElement | null>(null);
+
+  // Micro-feedback puramente cosmetici (la validazione/focus resta in
+  // handleSubmit): shake sui campi in errore, check che si disegna al successo.
+  useEffect(() => {
+    const keys = Object.keys(errors) as Array<keyof typeof errors>;
+    if (!keys.length || !formRef.current) return;
+    if (!window.matchMedia(MQ.motionOk).matches) return;
+    const targets = keys
+      .map((k) => formRef.current!.querySelector(`[name="${k}"]`))
+      .filter(Boolean);
+    if (targets.length) {
+      gsap.fromTo(
+        targets,
+        { x: 0 },
+        { x: 6, duration: 0.06, repeat: 5, yoyo: true, ease: "none", clearProps: "x", overwrite: "auto" }
+      );
+    }
+  }, [errors]);
+
+  useEffect(() => {
+    if (!sent) return;
+    if (!window.matchMedia(MQ.motionOk).matches) return;
+    if (sentRef.current) {
+      gsap.from(sentRef.current, { y: 10, opacity: 0, duration: 0.5, ease: "domus" });
+    }
+    const check = checkRef.current;
+    if (check) {
+      const len = check.getTotalLength() + 2;
+      gsap.fromTo(
+        check,
+        { strokeDasharray: len, strokeDashoffset: len },
+        { strokeDashoffset: 0, duration: 0.6, delay: 0.15, ease: "power2.inOut" }
+      );
+    }
+  }, [sent]);
 
   // Deep-link: /contatti?intent=buyer (o seller/question/open-domus) preseleziona il tab giusto,
   // quando non è già forzato via prop (es. dalla scheda immobile). Utile per le CTA "Cerco casa"
@@ -428,7 +467,7 @@ export default function Contact({
 
           {/* Right: form */}
           <div className="rounded-[2rem] border border-line bg-paper p-6 pb-28 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8 sm:pb-8">
-            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+            <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
               {/* Honeypot anti-spam: fuori schermo, non focusabile, ignorato dagli screen reader. */}
               <div aria-hidden className="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
                 <label htmlFor="company">Company</label>
@@ -513,14 +552,29 @@ export default function Contact({
               </button>
               {sent ? (
                 <p
+                  ref={sentRef}
                   role="status"
-                  className="rounded-2xl border border-red/25 bg-red-soft/60 px-4 py-3 text-center text-sm text-red-dark"
+                  className="flex items-center justify-center gap-2.5 rounded-2xl border border-red/25 bg-red-soft/60 px-4 py-3 text-center text-sm text-red-dark"
                 >
-                  {c.sentPrefix}{" "}
-                  <a href={site.whatsapp.href} className="font-semibold underline">
-                    {c.sentLink} {site.whatsapp.label}
-                  </a>
-                  .
+                  {/* Check che si disegna (senza JS/reduced-motion: già completo) */}
+                  <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-red">
+                    <path
+                      ref={checkRef}
+                      d="M4.5 12.5l5 5L19.5 7"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span>
+                    {c.sentPrefix}{" "}
+                    <a href={site.whatsapp.href} className="font-semibold underline">
+                      {c.sentLink} {site.whatsapp.label}
+                    </a>
+                    .
+                  </span>
                 </p>
               ) : null}
             </form>
