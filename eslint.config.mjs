@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Build output anywhere (es. worktree annidati creati dagli agenti sotto .claude/).
     "**/.next/**",
     ".claude/**",
+    // Skill installate via skills CLI: codice di terzi, non del sito.
+    ".agents/**",
   ]),
 ]);
 

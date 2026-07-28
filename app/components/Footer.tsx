@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 import { Phone, Whatsapp, Mail, Pin, Instagram, Facebook, TikTok, YouTube } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
 import DrawOnScroll from "./motion/DrawOnScroll";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 
@@ -21,11 +21,15 @@ export default function Footer() {
   const d = useDict();
   const footerRef = useRef<HTMLElement | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
+  const wordmarkRef = useRef<HTMLDivElement | null>(null);
 
-  // Ingresso a colonne: le tre colonne principali salgono in sequenza quando il
-  // footer entra in viewport (una volta sola). Stato nascosto solo via JS
-  // (gsap.fromTo): senza JS o con reduced-motion il footer resta visibile.
-  // La barra legale in fondo resta fuori: nessun movimento.
+  // Due regimi (vedi globals.css "Footer reveal"):
+  // - Mobile/tablet: ingresso a colonne classico (una volta sola), stato
+  //   nascosto solo via JS — senza JS o con reduced-motion tutto visibile.
+  // - Desktop ≥1024px + motion ok: modalità "uncover" — il footer è fisso
+  //   dietro al main (classe html.dt-footer-reveal + var --dt-footer-h) e il
+  //   contenuto si "assesta" in scrub mentre viene scoperto; il wordmark
+  //   gigante sale dalla maschera. Niente transform sugli antenati dei fixed.
   useGSAP(
     () => {
       const footer = footerRef.current;
@@ -35,7 +39,8 @@ export default function Footer() {
       if (cols.length === 0) return;
 
       const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
+
+      mm.add(`${MQ.motionOk} and (max-width: 1023.98px)`, () => {
         // opacity (non autoAlpha): visibility:hidden toglierebbe i link del footer
         // dal tab order finché il trigger non scatta.
         const tween = gsap.fromTo(
@@ -60,12 +65,52 @@ export default function Footer() {
           window.clearTimeout(safety);
         };
       });
+
+      mm.add(`${MQ.motionOk} and (min-width: 1024px)`, () => {
+        const html = document.documentElement;
+        const wordmark = wordmarkRef.current;
+        html.classList.add("dt-footer-reveal");
+        const setH = () => html.style.setProperty("--dt-footer-h", `${footer.offsetHeight}px`);
+        setH();
+        const ro = new ResizeObserver(() => {
+          setH();
+          ScrollTrigger.refresh();
+        });
+        ro.observe(footer);
+
+        // Il progresso dell'uncover = l'ultimo tratto di scroll alto quanto il
+        // footer (main ha margin-bottom = --dt-footer-h). Le colonne restano
+        // sempre parzialmente visibili (mai opacity 0: i link sono nel tab order).
+        const settle = gsap.timeline({
+          scrollTrigger: {
+            start: () => Math.max(0, ScrollTrigger.maxScroll(window) - footer.offsetHeight),
+            end: () => ScrollTrigger.maxScroll(window),
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        });
+        settle.fromTo(
+          cols,
+          { y: 56, opacity: 0.3 },
+          { y: 0, opacity: 1, stagger: 0.08, ease: "none" },
+          0
+        );
+        if (wordmark) {
+          settle.fromTo(wordmark, { yPercent: 68 }, { yPercent: 0, ease: "none" }, 0.12);
+        }
+
+        return () => {
+          ro.disconnect();
+          html.classList.remove("dt-footer-reveal");
+          html.style.removeProperty("--dt-footer-h");
+        };
+      });
     },
     { scope: footerRef }
   );
 
   return (
-    <footer ref={footerRef} className="topo-ambient bg-graphite text-cream">
+    <footer ref={footerRef} className="dt-footer-reveal-target topo-ambient bg-graphite text-cream">
       {/* pb extra su mobile: lascia spazio alla MobileActionBar fissa (~64px + safe-area)
           così l'ultima riga legale non finisce mai sotto la barra "Valuta gratis". */}
       <div className="mx-auto max-w-[1240px] px-5 pb-28 pt-16 sm:px-8 sm:py-20">
@@ -173,7 +218,20 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-4 border-t border-cream/20 pt-7 text-[0.78rem] text-cream/65 sm:flex-row sm:items-center sm:justify-between">
+        {/* Wordmark gigante — filigrana di chiusura, sale dalla maschera durante
+            l'uncover desktop; su mobile è una texture statica. Decorativo:
+            il nome vero vive nel logo e nei metadata. */}
+        <div aria-hidden className="mt-16 select-none overflow-hidden">
+          <div
+            ref={wordmarkRef}
+            className="whitespace-nowrap font-display font-medium italic leading-[0.85] tracking-tight text-cream/[0.1]"
+            style={{ fontSize: "clamp(4.5rem, 13.5vw, 13rem)" }}
+          >
+            Domus Tua
+          </div>
+        </div>
+
+        <div className="mt-10 flex flex-col gap-4 border-t border-cream/20 pt-7 text-[0.78rem] text-cream/65 sm:flex-row sm:items-center sm:justify-between">
           <p className="tnum">
             © {new Date().getFullYear()} {site.legal} · P.IVA {site.vat} · REA {site.rea} · Cap. € {site.capital} i.v.
           </p>

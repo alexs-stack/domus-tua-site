@@ -59,7 +59,9 @@ export default function Magnetic({ children, className = "", strength = 0.22 }: 
   );
 
   return (
-    <div ref={ref} className={`inline-flex ${className}`}>
+    // data-magnetic: hook passivo per il cursor custom (l'anello si fonde
+    // col bottone quando il magnetismo prende il controllo).
+    <div ref={ref} data-magnetic className={`inline-flex ${className}`}>
       {children}
     </div>
   );

@@ -9,7 +9,15 @@ import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
 import SmoothScroll from "./components/motion/SmoothScroll";
+import Preloader from "./components/motion/Preloader";
+import PageTransition from "./components/motion/PageTransition";
+import Cursor from "./components/motion/Cursor";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
+
+// Anti-flash del preloader: marca <html data-preloader> PRIMA del primo paint,
+// solo alla prima visita di sessione e senza reduced-motion. Senza JS
+// l'attributo non esiste mai → l'overlay resta display:none (vedi globals.css).
+const preloaderBootScript = `try{if(!sessionStorage.getItem("dt-intro-seen")&&matchMedia("(prefers-reduced-motion: no-preference)").matches)document.documentElement.setAttribute("data-preloader","")}catch(e){}`;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -121,9 +129,17 @@ export default function RootLayout({
   return (
     <html
       lang="it"
+      // data-scroll-behavior: Next 16 non forza più lo scroll istantaneo nelle
+      // navigazioni SPA se il CSS ha scroll-behavior smooth — l'attributo
+      // ripristina il comportamento corretto (doc: upgrading/version-16).
+      data-scroll-behavior="smooth"
+      // L'inline script qui sotto può marcare <html data-preloader> prima
+      // dell'idratazione: il mismatch sull'attributo è voluto.
+      suppressHydrationWarning
       className={`${fraunces.variable} ${jakarta.variable} antialiased`}
     >
       <body className="flex min-h-dvh flex-col bg-paper text-ink">
+        <script dangerouslySetInnerHTML={{ __html: preloaderBootScript }} />
         <a
           href="#main"
           className="sr-only rounded-full bg-ink px-5 py-3 font-medium text-cream shadow-lg focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]"
@@ -137,6 +153,9 @@ export default function RootLayout({
         <div className="grain" aria-hidden />
         <div className="scroll-progress" aria-hidden />
         <SmoothScroll />
+        <Preloader />
+        <PageTransition />
+        <Cursor />
         <LocaleProvider>
           <div id="main" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
             {children}

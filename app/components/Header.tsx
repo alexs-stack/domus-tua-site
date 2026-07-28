@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
@@ -9,7 +9,7 @@ import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { getLenis } from "./motion/SmoothScroll";
-import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -79,6 +79,75 @@ export default function Header() {
     return () => {
       document.body.style.overflow = "";
       getLenis()?.start();
+    };
+  }, [open]);
+
+  // Coreografia del menu mobile (solo motion ok): clip-path circolare che
+  // nasce dal bottone hamburger, voci in stagger (y + micro-rotazione),
+  // contatti in coda; chiusura inversa più rapida. Con reduced-motion il
+  // toggle resta il cambio di classi istantaneo (nessuna animazione = giusto).
+  // useLayoutEffect: parte prima del paint, così il flip di classi non mostra
+  // il pannello pieno per un frame prima che il clip iniziale sia applicato.
+  const firstMenuRun = useRef(true);
+  useLayoutEffect(() => {
+    if (firstMenuRun.current) {
+      firstMenuRun.current = false;
+      return;
+    }
+    const menu = menuRef.current;
+    if (!menu) return;
+    if (!window.matchMedia(MQ.motionOk).matches) return;
+
+    const links = Array.from(menu.querySelectorAll<HTMLElement>("nav a"));
+    const bottom = menu.querySelector<HTMLElement>("[data-menu-bottom]");
+    const r = toggleRef.current?.getBoundingClientRect();
+    const cx = r ? r.left + r.width / 2 : window.innerWidth - 44;
+    const cy = r ? r.top + r.height / 2 : 44;
+    const radius =
+      Math.hypot(
+        Math.max(cx, window.innerWidth - cx),
+        Math.max(cy, window.innerHeight - cy)
+      ) + 40;
+
+    let tl: gsap.core.Timeline;
+    if (open) {
+      tl = gsap
+        .timeline()
+        .set(menu, { autoAlpha: 1 })
+        .fromTo(
+          menu,
+          { clipPath: `circle(22px at ${cx}px ${cy}px)` },
+          { clipPath: `circle(${radius}px at ${cx}px ${cy}px)`, duration: 0.65, ease: "domus.inOut" }
+        )
+        // opacity (non autoAlpha): i link restano nel tab order per il focus
+        // trap che parte in parallelo all'apertura.
+        .fromTo(
+          links,
+          { y: 36, rotate: 1.5, opacity: 0 },
+          { y: 0, rotate: 0, opacity: 1, duration: dur.short, ease: "domus", stagger: stagger.words },
+          0.16
+        )
+        .fromTo(
+          bottom,
+          { y: 26, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: "domus" },
+          0.42
+        );
+    } else {
+      const targets = bottom ? [...links, bottom] : links;
+      tl = gsap
+        .timeline({
+          onComplete() {
+            gsap.set([menu, ...targets], { clearProps: "all" });
+          },
+        })
+        .to(links, { y: -14, opacity: 0, duration: 0.22, ease: "power2.in", stagger: { each: 0.025, from: "end" } }, 0)
+        .to(bottom, { opacity: 0, duration: 0.2, ease: "none" }, 0)
+        .to(menu, { clipPath: `circle(22px at ${cx}px ${cy}px)`, duration: 0.4, ease: "domus.inOut" }, 0.05)
+        .set(menu, { autoAlpha: 0 });
+    }
+    return () => {
+      tl.kill();
     };
   }, [open]);
 
@@ -247,12 +316,12 @@ export default function Header() {
         aria-hidden={!open}
         inert={!open ? true : undefined}
         data-lenis-prevent
-        className={`fixed inset-0 z-40 flex flex-col bg-cream/90 px-6 pb-10 pt-28 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] lg:hidden ${
+        className={`fixed inset-0 z-40 flex flex-col bg-cream/90 px-6 pb-10 pt-28 backdrop-blur-2xl lg:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
         <nav className="flex flex-col">
-          {nav.map((item, i) => {
+          {nav.map((item) => {
             const active = isActive(item.href);
             return (
               <Link
@@ -260,10 +329,9 @@ export default function Header() {
                 href={item.href}
                 onClick={() => setOpen(false)}
                 aria-current={active ? "page" : undefined}
-                className={`border-b border-line/70 py-4 font-display text-3xl font-medium transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                className={`border-b border-line/70 py-4 font-display text-3xl font-medium transition-colors duration-300 ${
                   active ? "text-red" : "text-ink"
-                } ${open ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
-                style={{ transitionDelay: open ? `${120 + i * 55}ms` : "0ms" }}
+                }`}
               >
                 {d.nav[item.key]}
               </Link>
@@ -271,7 +339,7 @@ export default function Header() {
           })}
         </nav>
 
-        <div className="mt-auto flex flex-col gap-3 pt-8">
+        <div data-menu-bottom className="mt-auto flex flex-col gap-3 pt-8">
           <Link
             href="/#contatti"
             onClick={() => setOpen(false)}

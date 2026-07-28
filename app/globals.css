@@ -559,3 +559,70 @@ body {
   margin: 0.05em 0.12em 0 0;
   color: var(--color-red);
 }
+
+/* ============================================================
+   WOW LAYER — sistemi globali (preloader, transizioni, cursor,
+   footer reveal). Regole condivise coi componenti in
+   app/components/motion/. Tutto è progressive enhancement:
+   senza JS o con reduced-motion nessuno di questi esiste.
+   ============================================================ */
+
+/* ---------- Preloader "Segno Domus" ----------
+   L'inline script nel layout marca <html data-preloader> PRIMA del primo
+   paint (solo prima visita di sessione + motion ok): niente flash di
+   contenuto prima dell'overlay, e senza JS l'attributo non esiste mai. */
+.dt-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  display: none;
+}
+html[data-preloader] .dt-preloader {
+  display: block;
+}
+html[data-preloader] {
+  overflow: hidden;
+}
+/* Il contenuto interno appare via GSAP: prima dell'idratazione si vede solo
+   il pannello espresso pulito (l'overlay è decorativo e aria-hidden). */
+.dt-preloader [data-pre-content] {
+  opacity: 0;
+}
+
+/* ---------- Cursor custom (solo pointer fine + motion ok) ---------- */
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html.dt-cursor-active,
+  html.dt-cursor-active * {
+    cursor: none !important;
+  }
+  /* Il cursore nativo resta su campi e widget di terzi. */
+  html.dt-cursor-active input,
+  html.dt-cursor-active textarea,
+  html.dt-cursor-active select,
+  html.dt-cursor-active [contenteditable="true"],
+  html.dt-cursor-active iframe {
+    cursor: auto !important;
+  }
+}
+
+/* ---------- Footer reveal (uncover) ----------
+   Il footer resta fisso dietro al main, che gli scorre sopra e lo "scopre"
+   nell'ultimo tratto di scroll. Niente transform sugli antenati: main riceve
+   solo z-index/margine, quindi header/WhatsApp/action-bar (fixed) sono salvi.
+   Attivo solo desktop + motion ok; la classe è gestita da Footer.tsx. */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  html.dt-footer-reveal main {
+    position: relative;
+    z-index: 10;
+    background: var(--background);
+    margin-bottom: var(--dt-footer-h, 0px);
+    box-shadow: 0 34px 80px -34px rgba(26, 21, 18, 0.55);
+  }
+  html.dt-footer-reveal .dt-footer-reveal-target {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+}
