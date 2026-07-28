@@ -1,10 +1,14 @@
 "use client";
 
+import { useRef } from "react";
 import Reveal from "../components/Reveal";
+import MaskReveal from "../components/motion/MaskReveal";
+import TextLines from "../components/motion/TextLines";
 import { Pin, ArrowUpRight } from "../components/Icons";
 import { SegnoDomusDivider } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { useLocale } from "../components/i18n/LocaleProvider";
+import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -82,21 +86,61 @@ const copy = {
 export default function ContattiContent() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const hoursRef = useRef<HTMLUListElement | null>(null);
+
+  // Righe orari in sequenza. Stato nascosto solo via JS (fromTo post-idratazione):
+  // senza JS o con reduced-motion la lista resta visibile e statica.
+  useGSAP(
+    () => {
+      const list = hoursRef.current;
+      if (!list) return;
+      const rows = list.querySelectorAll("li");
+      if (!rows.length) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        gsap.fromTo(
+          rows,
+          { y: 10, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: dur.short,
+            ease: "domus",
+            stagger: 0.07,
+            clearProps: "all",
+            scrollTrigger: { trigger: list, start: "top 88%", once: true },
+          }
+        );
+      });
+    },
+    // revertOnUpdate: al cambio lingua React ricrea le <li> (key = giorno),
+    // quindi il context va revertato e ricreato sui nodi nuovi.
+    { scope: hoursRef, dependencies: [locale], revertOnUpdate: true }
+  );
 
   return (
     <>
       {/* Intro */}
       <section className="bg-cream">
         <div className="mx-auto max-w-[1240px] px-5 pt-36 pb-16 sm:px-8 sm:pt-40 sm:pb-20">
-          <Reveal className="max-w-3xl">
-            <span className="eyebrow">{c.eyebrow}</span>
-            <h1 className="mt-5 font-display text-[2.6rem] font-medium leading-[1.03] tracking-tight text-ink balance sm:text-6xl">
+          <div className="max-w-3xl">
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
+            {/* H1 fuori dal Reveal: il titolo non va mai nascosto via CSS pre-JS
+                (SEO/no-JS). TextLines nasconde le righe solo post-idratazione. */}
+            <TextLines
+              as="h1"
+              className="mt-5 font-display text-[2.6rem] font-medium leading-[1.03] tracking-tight text-ink balance sm:text-6xl"
+            >
               {c.title}
-            </h1>
-            <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-stone">
-              {c.subcopy}
-            </p>
-          </Reveal>
+            </TextLines>
+            <Reveal delay={100}>
+              <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-stone">
+                {c.subcopy}
+              </p>
+            </Reveal>
+          </div>
         </div>
       </section>
 
@@ -105,7 +149,9 @@ export default function ContattiContent() {
         <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
           <SegnoDomusDivider className="mb-12 sm:mb-14" />
           <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:gap-12">
-            <Reveal>
+            {/* Sipario dal basso SOLO sulla cornice. zoom={1}: l'inner di MaskReveal
+                non deve applicare scale a un antenato dell'iframe (che resta intatto). */}
+            <MaskReveal from="bottom" zoom={1}>
               <div className="overflow-hidden rounded-[2rem] border border-line bg-cream-deep">
                 <iframe
                   title={c.mapTitle}
@@ -124,7 +170,7 @@ export default function ContattiContent() {
                   <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
               </div>
-            </Reveal>
+            </MaskReveal>
             <Reveal delay={100}>
               <div className="flex h-full flex-col justify-between rounded-[2rem] border border-line bg-cream p-7">
                 <div>
@@ -142,7 +188,7 @@ export default function ContattiContent() {
                   <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-stone">
                     {c.hoursLabel}
                   </p>
-                  <ul className="mt-4 flex flex-col gap-2.5 text-sm">
+                  <ul ref={hoursRef} className="mt-4 flex flex-col gap-2.5 text-sm">
                     {c.hours.map((o) => (
                       <li key={o.d} className="flex justify-between gap-4">
                         <span className="text-graphite">{o.d}</span>

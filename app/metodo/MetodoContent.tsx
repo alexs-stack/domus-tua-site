@@ -11,6 +11,8 @@ import OpenDomus from "../components/OpenDomus";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
+import TextLines from "../components/motion/TextLines";
+import ScrubWords from "../components/motion/ScrubWords";
 import { SegnoDomusBadge } from "../components/BrandMotif";
 import { ArrowUpRight } from "../components/Icons";
 import { useLocale } from "../components/i18n/LocaleProvider";
@@ -229,12 +231,18 @@ export default function MetodoContent() {
           <div className="mx-auto max-w-[1240px] px-5 pt-20 sm:px-8 sm:pt-24">
             <div className="mx-auto max-w-2xl text-center">
               <SegnoDomusBadge className="mx-auto">{c.docEyebrow}</SegnoDomusBadge>
-              <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+              <TextLines
+                as="h2"
+                className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
+              >
                 {c.docTitle}
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-[1.02rem] leading-relaxed text-stone">
-                {c.docCopy}
-              </p>
+              </TextLines>
+              {/* Il manifesto della pagina si "legge" con lo scroll: le parole
+                  si accendono in sequenza (scrub). */}
+              <ScrubWords
+                text={c.docCopy}
+                className="mx-auto mt-4 max-w-xl text-[1.02rem] leading-relaxed text-stone"
+              />
               <a
                 href="#domus-doc"
                 className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red-dark transition-colors hover:text-red"

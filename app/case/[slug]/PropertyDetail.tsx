@@ -1,14 +1,18 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import PropertyGallery from "../../components/PropertyGallery";
 import PropertyCard from "../../components/PropertyCard";
+import ListingsGrid from "../../components/ListingsGrid";
 import Badge from "../../components/primitives/Badge";
 import Contact from "../../components/Contact";
+import DrawOnScroll from "../../components/motion/DrawOnScroll";
 import { SegnoDomusBadge, SegnoDomusCorner, SegnoDomusDivider, SegnoTick } from "../../components/BrandMotif";
 import { ArrowRight, ArrowUpRight, Whatsapp } from "../../components/Icons";
 import { site } from "../../lib/site";
 import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 import type { Property } from "../../lib/properties";
 import { useLocale } from "../../components/i18n/LocaleProvider";
 
@@ -230,6 +234,58 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
     { label: c.specEnergy, value: p.energyClass },
   ].filter((s) => s.label === c.specType || (s.value && s.value !== "—"));
 
+  // Specs strip: micro-ingresso dei soli VALORI (dd) della striscia sotto la
+  // gallery. I numeri restano nell'HTML SSR: nascosti solo post-idratazione e
+  // mai a lungo (start alto + timeout di sicurezza — pagina di conversione).
+  // La strip vive fuori dalla grid dell'aside sticky: nessun transform su suoi antenati.
+  const specsRef = useRef<HTMLDListElement | null>(null);
+  useGSAP(
+    () => {
+      const strip = specsRef.current;
+      if (!strip) return;
+      const values = Array.from(strip.querySelectorAll<HTMLElement>("dd"));
+      if (values.length === 0) return;
+
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        gsap.set(values, { opacity: 0, y: 8 });
+        const st = ScrollTrigger.create({
+          trigger: strip,
+          start: "top 92%",
+          once: true,
+          onEnter: () =>
+            gsap.fromTo(
+              values,
+              { opacity: 0, y: 8 },
+              {
+                opacity: 1,
+                y: 0,
+                duration: dur.micro,
+                ease: "domus",
+                stagger: stagger.chars,
+                clearProps: "opacity,transform",
+              }
+            ),
+        });
+
+        // Rete di sicurezza: i dati chiave non restano mai nascosti.
+        let done = false;
+        const showAll = () => {
+          if (done) return;
+          done = true;
+          st.kill();
+          gsap.set(values.filter((el) => !gsap.isTweening(el)), { clearProps: "opacity,transform" });
+        };
+        const safety = window.setTimeout(showAll, 2500);
+        return () => {
+          window.clearTimeout(safety);
+          st.kill();
+        };
+      });
+    },
+    { scope: specsRef }
+  );
+
   // Related: solo altre case fornite via props (stessa sorgente). Mai fetch/invenzione.
   const relatedItems = (related ?? []).filter((r) => r.slug !== p.slug).slice(0, 3);
 
@@ -308,7 +364,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
 
         {/* Key facts strip sotto la gallery */}
         <div className="mt-6 overflow-x-auto">
-          <dl className="flex min-w-max gap-8 rounded-[2rem] border border-line bg-cream px-7 py-5 sm:min-w-0 sm:justify-between">
+          <dl ref={specsRef} className="flex min-w-max gap-8 rounded-[2rem] border border-line bg-cream px-7 py-5 sm:min-w-0 sm:justify-between">
             {specs.map((s) => (
               <div key={s.label} className="shrink-0">
                 <dt className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-stone">
@@ -354,7 +410,10 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
 
             {/* Blocco sicurezza / documenti — legato a Domus D.O.C. */}
             <div className="relative mt-12 overflow-hidden rounded-[2rem] border border-line bg-cream p-7 sm:p-9">
-              <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
+              {/* Wrapper inline statico: il corner resta absolute rispetto al box relative. */}
+              <DrawOnScroll>
+                <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
+              </DrawOnScroll>
               <SegnoDomusBadge>{c.safetyEyebrow}</SegnoDomusBadge>
               <h3 className="mt-4 max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-ink balance">
                 {c.safetyTitle}
@@ -462,11 +521,13 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
             </Link>
           </div>
 
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Ingresso batch per-card (once + safety focus/timeout in ListingsGrid:
+              le card contengono link). Il contenitore non viene mai animato. */}
+          <ListingsGrid className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {relatedItems.map((r) => (
               <PropertyCard key={r.slug} p={r} />
             ))}
-          </div>
+          </ListingsGrid>
         </section>
       )}
 

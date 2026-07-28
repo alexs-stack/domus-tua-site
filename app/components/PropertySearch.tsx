@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
 import PropertyCard from "./PropertyCard";
 import { ArrowRight } from "./Icons";
@@ -8,8 +9,14 @@ import { SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/motion/gsap";
 import type { Property } from "../lib/properties";
 import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
+
+// Flip serve solo al riordino dei risultati al cambio filtri: registrato
+// localmente (stesso pattern di SocialVideoWall) per non finire nel chunk
+// del layout via gsap.ts.
+gsap.registerPlugin(Flip);
 
 // Dizionario UI inline. Le VALUE dei filtri (contract/type/feature) restano in italiano
 // perché confrontate con i dati (p.status, p.type, featureOptions.match); qui traduciamo
@@ -374,6 +381,24 @@ export default function PropertySearch({ properties }: { properties: Property[] 
 
   const bySlug = useMemo(() => new Map(properties.map((p) => [p.slug, p])), [properties]);
 
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  // Layout della griglia catturato PRIMA del cambio di stato (punto di partenza del FLIP).
+  const flipStateRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
+
+  // Il FLIP è evento-driven (non vive in matchMedia().add): check runtime, così con
+  // reduced-motion il riordino resta istantaneo. Solo decorativo: mai ritardare lo stato.
+  const snapFlip = () => {
+    if (gridRef.current && window.matchMedia(MQ.motionOk).matches) {
+      flipStateRef.current = Flip.getState(gridRef.current.children);
+    }
+  };
+
+  /** Identico a setF, in più cattura il layout corrente per animare il riordino. */
+  const setFilters: typeof setF = (next) => {
+    snapFlip();
+    setF(next);
+  };
+
   async function runSearch(query?: string) {
     const q = (query ?? nl).trim();
     if (!q || searching) return;
@@ -388,6 +413,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       const data = (await res.json()) as SearchResponse;
       if (data.ok && data.filters) {
         const mapped = toFilters(data.filters);
+        snapFlip();
         setF(mapped);
         setAi({ query: q, slugs: data.rankedSlugs ?? [], key: JSON.stringify(mapped) });
       } else {
@@ -401,6 +427,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   }
 
   const clearAi = () => {
+    snapFlip();
     setAi(null);
     setAiError(false);
     setNl("");
@@ -422,7 +449,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     f.features.length > 0;
 
   const resetFilters = () =>
-    setF({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, minSqm: 0, maxSqm: 0, features: [], availability: "available" });
+    setFilters({ contract: "Tutte", type: "Tutte", comune: "Tutti", maxBudget: 0, minBudget: 0, minRooms: 0, minSqm: 0, maxSqm: 0, features: [], availability: "available" });
 
   // Pre-imposta i filtri dai query param passati da HomeSearchGateway (/case?q=&comune=&type=&budget=&rooms=).
   // setState post-mount è voluto: i query param vanno letti solo lato client (evita mismatch di hydration).
@@ -459,8 +486,15 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   // Se l'utente modifica un filtro a mano, esci dalla modalità AI (torna al filtro client).
   // La ricerca AI imposta f = mapped e ai.key = JSON(mapped): finché combaciano, resta attiva.
   useEffect(() => {
-    /* eslint-disable-next-line react-hooks/set-state-in-effect */
-    if (ai && JSON.stringify(f) !== ai.key) setAi(null);
+    if (ai && JSON.stringify(f) !== ai.key) {
+      // Il DOM mostra ancora l'ordine AI: è il layout di partenza del FLIP
+      // (snapshot inline, non snapFlip: identità stabile per le deps dell'effetto).
+      if (gridRef.current && window.matchMedia(MQ.motionOk).matches) {
+        flipStateRef.current = Flip.getState(gridRef.current.children);
+      }
+      /* eslint-disable-next-line react-hooks/set-state-in-effect */
+      setAi(null);
+    }
   }, [f, ai]);
 
   const comuni = useMemo(() => {
@@ -504,8 +538,95 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     });
   }, [f, properties, ai, bySlug]);
 
+  // Card renderizzate (paginazione inclusa) + firma stabile: il FLIP parte solo
+  // quando la lista visibile cambia davvero.
+  const listed = shown.slice(0, visible);
+  const listedKey = listed.map((p) => p.slug).join("|");
+
+  // FLIP post-render: dal layout catturato al nuovo ordine (key stabili = slug →
+  // i nodi persistenti restano gli stessi e Flip li abbina per identità).
+  useLayoutEffect(() => {
+    const state = flipStateRef.current;
+    flipStateRef.current = null;
+    const grid = gridRef.current;
+    if (!state || !grid) return;
+    const tl = Flip.from(state, {
+      // targets espliciti: le card appena montate non sono nello stato catturato
+      // e senza questo onEnter non le vedrebbe.
+      targets: grid.children,
+      duration: dur.short,
+      ease: "domus",
+      stagger: 0.02,
+      absolute: true,
+      onEnter: (els) =>
+        gsap.fromTo(
+          els,
+          { opacity: 0, scale: 0.94 },
+          { opacity: 1, scale: 1, duration: dur.short, ease: "domus" }
+        ),
+      onLeave: (els) => gsap.to(els, { opacity: 0, scale: 0.94, duration: 0.25 }),
+    });
+    return () => {
+      // Interruzione (nuovo filtro mid-flight): completare prima di uccidere
+      // ripulisce i transform/position:absolute di Flip, altrimenti il flip
+      // successivo misurerebbe un layout "congelato" a metà.
+      if (tl.isActive()) tl.progress(1);
+      tl.kill();
+    };
+  }, [listedKey]);
+
+  // Ingresso per-card della griglia. Sostituisce i <Reveal> per card: il loro
+  // transition CSS (.reveal) combatterebbe i transform inline del FLIP.
+  useGSAP(
+    () => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const cards = gsap.utils.toArray<HTMLElement>(grid.children);
+        if (!cards.length) return;
+        // Nascoste solo post-idratazione: HTML iniziale completo (SEO/no-JS).
+        gsap.set(cards, { opacity: 0, y: dist.rise / 2 });
+        const triggers = ScrollTrigger.batch(cards, {
+          start: "top 85%",
+          once: true,
+          onEnter: (els) =>
+            gsap.fromTo(
+              els,
+              { opacity: 0, y: dist.rise / 2 },
+              {
+                opacity: 1,
+                y: 0,
+                duration: dur.short,
+                ease: "domus",
+                stagger: stagger.cards / 2,
+                clearProps: "opacity,transform",
+              }
+            ),
+        });
+        // Le card contengono link: reti di sicurezza come Reveal (focus o timeout).
+        let done = false;
+        const showAll = () => {
+          if (done) return;
+          done = true;
+          triggers.forEach((t) => t.kill());
+          // Non toccare card già in tween (entrance o Flip in corso): arrivano
+          // da sole allo stato finale. Le altre vengono rivelate subito.
+          gsap.set(cards.filter((el) => !gsap.isTweening(el)), { clearProps: "opacity,transform" });
+        };
+        grid.addEventListener("focusin", showAll);
+        const safety = window.setTimeout(showAll, 2500);
+        return () => {
+          grid.removeEventListener("focusin", showAll);
+          window.clearTimeout(safety);
+        };
+      });
+    },
+    { scope: gridRef }
+  );
+
   const toggleFeature = (label: string) =>
-    setF((s) => ({
+    setFilters((s) => ({
       ...s,
       features: s.features.includes(label)
         ? s.features.filter((x) => x !== label)
@@ -607,7 +728,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
                 key={v}
                 type="button"
                 aria-pressed={f.contract === v}
-                onClick={() => setF((s) => ({ ...s, contract: v }))}
+                onClick={() => setFilters((s) => ({ ...s, contract: v }))}
                 className={pill(f.contract === v)}
               >
                 {c.contractLabels[v]}
@@ -626,7 +747,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
                   key={v}
                   type="button"
                   aria-pressed={f.availability === v}
-                  onClick={() => setF((s) => ({ ...s, availability: v }))}
+                  onClick={() => setFilters((s) => ({ ...s, availability: v }))}
                   className={pill(f.availability === v)}
                 >
                   {v === "available" ? c.availAvailable : c.availSold}
@@ -644,7 +765,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
                 key={t}
                 type="button"
                 aria-pressed={f.type === t}
-                onClick={() => setF((s) => ({ ...s, type: t }))}
+                onClick={() => setFilters((s) => ({ ...s, type: t }))}
                 className={pill(f.type === t)}
               >
                 {(c.typeLabels as Record<string, string>)[t] ?? t}
@@ -657,7 +778,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.zone}</span>
               <select
                 value={f.comune}
-                onChange={(e) => setF((s) => ({ ...s, comune: e.target.value }))}
+                onChange={(e) => setFilters((s) => ({ ...s, comune: e.target.value }))}
                 className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                   f.comune !== "Tutti" ? "border-red/45 font-medium" : ""
                 }`}
@@ -673,7 +794,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.budget}</span>
               <select
                 value={f.maxBudget}
-                onChange={(e) => setF((s) => ({ ...s, maxBudget: Number(e.target.value) }))}
+                onChange={(e) => setFilters((s) => ({ ...s, maxBudget: Number(e.target.value) }))}
                 className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                   f.maxBudget !== 0 ? "border-red/45 font-medium" : ""
                 }`}
@@ -689,7 +810,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.rooms}</span>
               <select
                 value={f.minRooms}
-                onChange={(e) => setF((s) => ({ ...s, minRooms: Number(e.target.value) }))}
+                onChange={(e) => setFilters((s) => ({ ...s, minRooms: Number(e.target.value) }))}
                 className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                   f.minRooms !== 0 ? "border-red/45 font-medium" : ""
                 }`}
@@ -731,7 +852,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
             {f.minBudget > 0 && (
               <button
                 type="button"
-                onClick={() => setF((s) => ({ ...s, minBudget: 0 }))}
+                onClick={() => setFilters((s) => ({ ...s, minBudget: 0 }))}
                 aria-label={c.priceRemove}
                 className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
               >
@@ -741,7 +862,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
             {f.minSqm > 0 && (
               <button
                 type="button"
-                onClick={() => setF((s) => ({ ...s, minSqm: 0 }))}
+                onClick={() => setFilters((s) => ({ ...s, minSqm: 0 }))}
                 aria-label={`${c.remove}: ${c.priceFrom} ${f.minSqm} m²`}
                 className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
               >
@@ -751,7 +872,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
             {f.maxSqm > 0 && (
               <button
                 type="button"
-                onClick={() => setF((s) => ({ ...s, maxSqm: 0 }))}
+                onClick={() => setFilters((s) => ({ ...s, maxSqm: 0 }))}
                 aria-label={`${c.remove}: ${c.budgetUpTo} ${f.maxSqm} m²`}
                 className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
               >
@@ -780,15 +901,19 @@ export default function PropertySearch({ properties }: { properties: Property[] 
         {shown.length > 0 ? (
           <>
             <div
+              ref={gridRef}
               aria-busy={searching}
               className={`mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3 ${
                 searching ? "opacity-50 transition-opacity duration-300" : "transition-opacity duration-300"
               }`}
             >
-              {shown.slice(0, visible).map((p, i) => (
-                <Reveal key={p.slug} delay={(i % 3) * 90}>
+              {listed.map((p) => (
+                // Wrapper neutro con key stabile (slug): FLIP ed entrance animano
+                // questo div, mai la card (il suo transition-all per l'hover
+                // combatterebbe i transform inline di GSAP).
+                <div key={p.slug}>
                   <PropertyCard p={p} />
-                </Reveal>
+                </div>
               ))}
             </div>
             {visible < shown.length && (

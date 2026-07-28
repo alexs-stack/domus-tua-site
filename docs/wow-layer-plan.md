@@ -137,10 +137,12 @@ port OGL in Fase 5).
 - **PageHero**: timeline standard badge→H1 righe→subcopy→CTA→trust + exit
   scrub; unificare ken-burns/Parallax (un owner); `priority`→`preload`.
 - **/case**: filtri con Flip (solo decorativo, stato PropertySearch intatto).
-- **/case/[slug]**: shared element card→hero gallery con View Transitions
-  sperimentali (`experimental.viewTransition` + `<ViewTransition name>`);
-  la transizione GSAP salta il sipario su quel percorso. Pagina conversione:
-  solo nodi foglia (related in stagger, corner D.O.C. draw, dati che contano).
+- **/case/[slug]**: [DECISIONE 2026-07-28] View Transitions NON utilizzabili:
+  né react 19.2.4 stabile né il React vendorizzato da Next 16.2.9 esportano
+  `<ViewTransition>` (solo la macchinaria interna in react-dom). Il percorso
+  card→scheda resta coperto dal sipario GSAP; shared element da rivalutare
+  quando l'export sarà disponibile. Pagina conversione: solo nodi foglia
+  (related in stagger, corner D.O.C. draw, dati che contano).
 - **/metodo**: ScrubWords sul manifesto + scrollytelling esteso; slot ponte
   D.O.C. coreografato. **/chi-siamo**: MaskReveal trio squadra, TextLines,
   fix anchor `#chi-siamo`. **/recensioni, /contatti**: vocabolario (h1 di

@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Nota fase 4 (WOW layer): valutate le View Transitions sperimentali per lo
+  // shared element card→scheda, ma il React in uso (19.2.4 stabile, e anche il
+  // vendored di Next 16.2.9) non esporta <ViewTransition> → percorso coperto
+  // dalla page transition GSAP. Da rivalutare a runtime React canary.
   images: {
     // Formati moderni: meno peso, stessa qualità.
     formats: ["image/avif", "image/webp"],

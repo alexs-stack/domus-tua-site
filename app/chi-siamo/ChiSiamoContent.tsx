@@ -7,6 +7,8 @@ import Highlights from "../components/Highlights";
 import Stats from "../components/Stats";
 import Team from "../components/Team";
 import Reveal from "../components/Reveal";
+import MaskReveal from "../components/motion/MaskReveal";
+import TextLines from "../components/motion/TextLines";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import { useLocale } from "../components/i18n/LocaleProvider";
@@ -264,22 +266,30 @@ export default function ChiSiamoContent({ since }: { since: number }) {
       <section className="bg-paper">
         <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <Reveal>
-              <div className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line">
-                <Image
-                  src="/images/reali/villa-pool.jpg"
-                  alt={c.storiaImageAlt}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 560px"
-                  className="object-cover object-center"
-                />
-              </div>
-            </Reveal>
+            {/* Sipario da sinistra sulla cornice: ingresso dedicato dell'immagine,
+                il Reveal resta solo sulla colonna testo. */}
+            <MaskReveal
+              from="left"
+              zoom={1.1}
+              className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line"
+              innerClassName="absolute inset-0"
+            >
+              <Image
+                src="/images/reali/villa-pool.jpg"
+                alt={c.storiaImageAlt}
+                fill
+                sizes="(max-width: 1024px) 100vw, 560px"
+                className="object-cover object-center"
+              />
+            </MaskReveal>
             <Reveal delay={100}>
               <span className="eyebrow">{c.storiaEyebrow}</span>
-              <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]">
+              <TextLines
+                as="h2"
+                className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]"
+              >
                 {c.storiaTitle(since)}
-              </h2>
+              </TextLines>
               <div className="mt-6 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
                 {/* Capolettera editoriale: usato UNA sola volta nel sito, qui sulla storia. */}
                 <p className="dropcap">{c.storiaP1}</p>
@@ -310,43 +320,54 @@ export default function ChiSiamoContent({ since }: { since: number }) {
             </p>
           </Reveal>
 
+          {/* Sipari con direzioni alternate (left/bottom/right) e ritardo crescente:
+              il trio entra come un'unica coreografia. */}
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <Reveal delay={0}>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line">
-                <Image
-                  src="/images/reali/team-trio.jpg"
-                  alt={c.squadraTrioAlt}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                  className="object-cover object-center"
-                />
-              </div>
-            </Reveal>
-            <Reveal delay={100}>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line">
-                <Image
-                  src="/images/reali/team-red.jpg"
-                  alt={c.squadraRedAlt}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                  className="object-cover object-center"
-                />
-              </div>
-            </Reveal>
-            <Reveal delay={200}>
-              <figure className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line">
-                <Image
-                  src="/images/reali/premio-top-agency.jpg"
-                  alt={c.squadraPremioAlt}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                  className="object-cover object-center"
-                />
-                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent px-4 pb-3 pt-10 text-xs font-medium uppercase tracking-[0.14em] text-cream">
-                  {c.squadraPremioCaption}
-                </figcaption>
-              </figure>
-            </Reveal>
+            <MaskReveal
+              from="left"
+              className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line"
+              innerClassName="absolute inset-0"
+            >
+              <Image
+                src="/images/reali/team-trio.jpg"
+                alt={c.squadraTrioAlt}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                className="object-cover object-center"
+              />
+            </MaskReveal>
+            <MaskReveal
+              from="bottom"
+              delay={0.15}
+              className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line"
+              innerClassName="absolute inset-0"
+            >
+              <Image
+                src="/images/reali/team-red.jpg"
+                alt={c.squadraRedAlt}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                className="object-cover object-center"
+              />
+            </MaskReveal>
+            <MaskReveal
+              as="figure"
+              from="right"
+              delay={0.3}
+              className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line"
+              innerClassName="absolute inset-0"
+            >
+              <Image
+                src="/images/reali/premio-top-agency.jpg"
+                alt={c.squadraPremioAlt}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                className="object-cover object-center"
+              />
+              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent px-4 pb-3 pt-10 text-xs font-medium uppercase tracking-[0.14em] text-cream">
+                {c.squadraPremioCaption}
+              </figcaption>
+            </MaskReveal>
           </div>
         </div>
       </section>
