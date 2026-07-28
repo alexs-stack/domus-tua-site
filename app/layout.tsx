@@ -15,11 +15,12 @@ import Cursor from "./components/motion/Cursor";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
 // Anti-flash del preloader: marca <html data-preloader> PRIMA del primo paint,
-// solo alla prima visita di sessione e senza reduced-motion. Senza JS
-// l'attributo non esiste mai → l'overlay resta display:none (vedi globals.css).
-// Failsafe a 8s: se il bundle non idrata mai, l'attributo va rimosso comunque
-// (ripristina overflow e nasconde l'overlay; a intro conclusa è un no-op).
-const preloaderBootScript = `try{if(!sessionStorage.getItem("dt-intro-seen")&&matchMedia("(prefers-reduced-motion: no-preference)").matches){document.documentElement.setAttribute("data-preloader","");setTimeout(function(){document.documentElement.removeAttribute("data-preloader")},8000)}}catch(e){}`;
+// solo alla prima visita di sessione, senza reduced-motion e SOLO desktop —
+// su mobile l'intro costerebbe l'LCP della prima visita (l'overlay ritarda il
+// primo paint utile) e la filosofia del layer è "mobile semplificato".
+// Senza JS l'attributo non esiste mai → overlay display:none (globals.css).
+// Failsafe a 8s: se il bundle non idrata mai, l'attributo va rimosso comunque.
+const preloaderBootScript = `try{if(!sessionStorage.getItem("dt-intro-seen")&&matchMedia("(prefers-reduced-motion: no-preference)").matches&&matchMedia("(min-width: 768px)").matches){document.documentElement.setAttribute("data-preloader","");setTimeout(function(){document.documentElement.removeAttribute("data-preloader")},8000)}}catch(e){}`;
 
 export const viewport: Viewport = {
   width: "device-width",

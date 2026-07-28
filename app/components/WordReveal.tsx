@@ -58,14 +58,14 @@ export default function WordReveal({
       aria-label={text}
       className={`word-reveal ${shown ? "is-in" : ""} ${className}`}
     >
+      {/* Spazio REALE dopo ogni parola: con gli span inline (mobile, vedi
+          globals.css) è l'unica opportunità di a-capo del titolo, e sostituisce
+          il vecchio margin-right anche nel layout animato. */}
       {words.map((w, i) => (
-        <span
-          key={i}
-          aria-hidden
-          className="w"
-          style={{ transitionDelay: `${startDelay + i * stagger}ms` }}
-        >
-          {w}
+        <span key={i} aria-hidden>
+          <span className="w" style={{ transitionDelay: `${startDelay + i * stagger}ms` }}>
+            {w}
+          </span>{" "}
         </span>
       ))}
     </Tag>

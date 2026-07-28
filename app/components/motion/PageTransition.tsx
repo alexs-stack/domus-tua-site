@@ -167,6 +167,24 @@ export default function PageTransition() {
     };
   }, [router]);
 
+  // Atterraggio su ancora al PRIMO load (es. /#vendi da link esterno): pin e
+  // layout dinamici spostano la pagina dopo lo scroll nativo del browser —
+  // a layout stabile si ri-aggancia l'ancora (6.5rem = scroll-margin-top).
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const id = decodeURIComponent(hash.slice(1));
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      ScrollTrigger.refresh();
+      const lenis = getLenis();
+      if (lenis) lenis.scrollTo(el, { immediate: true, offset: -104 });
+      else el.scrollIntoView();
+    }, 700);
+    return () => window.clearTimeout(t);
+  }, []);
+
   // Entrata: quando il pathname cambia MENTRE il sipario copre.
   useEffect(() => {
     // Qualunque cambio di pathname invalida un eventuale push pendente

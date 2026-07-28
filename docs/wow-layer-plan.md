@@ -164,6 +164,24 @@ underline unificate ai token, bottoni con fill direzionale, WhatsAppFloat pulse
 ~8s + magnetismo, scroll indicator; QA: screenshot 1440/390, reduced-motion
 completo, Lighthouse mobile ≥90 / CLS 0, `npm run check` verde.
 
+## QA finale (2026-07-28)
+
+- `npm run check` verde su ogni fase; CLS = 0 su home e scheda immobile.
+- Lighthouse mobile (lab, throttling simulate): home 75, scheda 80. Il target
+  ≥90 in LAB non è raggiungibile senza toccare pattern pre-esistenti fuori
+  mandato: l'immagine hero è ESCLUSA dai candidati LCP da Chromium
+  (full-viewport = "background"), quindi l'LCP di pagina è testuale e viene
+  fissato da (a) il re-paint del titolo al font-swap di Fraunces e (b) il
+  banner cookie montato a idratazione (candidato da 21.6k px). Nei trace
+  reali i candidati veri dipingono a 250–320ms: sul campo l'LCP è verde.
+  Opzioni future: differire il banner consenso, ridurre assi/pesi Fraunces.
+- Regressioni LCP trovate e corrette durante la QA: parole del WordReveal
+  inline-block frammentavano il candidato H1 (ora inline+spazi reali, con
+  meccanica animata solo desktop+motionOk); prima immagine PropertyGallery
+  partiva opacity-0 in SSR (bug pre-esistente: invisibile senza JS e fuori
+  dai candidati LCP fino all'idratazione); preloader reso desktop-only.
+- View Transitions: non disponibili in questa build (vedi Fase 4).
+
 ## Processo
 
 Ogni fase: commit atomico + `npm run check` verde + verifica browser

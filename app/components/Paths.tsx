@@ -5,7 +5,6 @@ import { useRef } from "react";
 import Reveal from "./Reveal";
 import MaskReveal from "./motion/MaskReveal";
 import HoverDistort from "./motion/HoverDistort";
-import Parallax from "./motion/Parallax";
 import { ArrowUpRight, Check } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
@@ -283,9 +282,10 @@ function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
   );
 
   return (
-    <div ref={wrapRef} id={p.id}>
-      {/* Controparallasse: i due percorsi derivano l'uno verso l'altro (solo desktop). */}
-      <Parallax speed={i === 0 ? 0.08 : -0.08} className="h-full" innerClassName="h-full">
+    <div ref={wrapRef} id={p.id} className="h-full">
+      {/* Regola Chanel (fase 6): la controparallasse è stata tolta — con
+          ingresso laterale, sipario, deriva puntatore e layer WebGL la card
+          aveva un layer di movimento di troppo. */}
       <article className="group h-full rounded-[2rem] border border-line bg-cream p-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)]">
         <a href={p.href} data-cursor="scopri">
         {/* Sipario dal lato del percorso: il pill scivola fuori da dietro la maschera. */}
@@ -343,7 +343,6 @@ function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
         </div>
         </a>
       </article>
-      </Parallax>
     </div>
   );
 }

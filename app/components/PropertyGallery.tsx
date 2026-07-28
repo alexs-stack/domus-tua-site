@@ -12,11 +12,18 @@ function ActiveImage({
   alt: string;
   preload: boolean;
 }) {
-  // Fade the main image on every swap without remounting: a key remount would
-  // force a fresh request (and, on the first mount, a preload). Instead we
-  // reset opacity whenever the src changes and fade it back in.
-  const [shown, setShown] = useState(false);
+  // Fade the main image on every SWAP without remounting: a key remount would
+  // force a fresh request (and, on the first mount, a preload). Al primo
+  // render l'immagine è VISIBILE (true): è la LCP della pagina — partire da
+  // opacity-0 in SSR la toglieva dai candidati LCP fino all'idratazione e la
+  // nascondeva del tutto senza JS. Il fade vale solo per i cambi successivi.
+  const [shown, setShown] = useState(true);
+  const firstRunRef = useRef(true);
   useEffect(() => {
+    if (firstRunRef.current) {
+      firstRunRef.current = false;
+      return;
+    }
     /* eslint-disable-next-line react-hooks/set-state-in-effect */
     setShown(false);
     const id = requestAnimationFrame(() => setShown(true));

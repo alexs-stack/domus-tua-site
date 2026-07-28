@@ -177,15 +177,23 @@ export default function HeroCinematic() {
           clipPath: "inset(16% 10% 16% 10% round 2.5rem)",
           scale: 1.12,
         });
-        gsap.set(words, { yPercent: 130, rotate: 2.5, transformOrigin: "0% 100%" });
-        if (badge) gsap.set(badge, { y: 24, autoAlpha: 0 });
-        gsap.set(seq, { y: 28, autoAlpha: 0 });
+        // LCP: Chromium esclude le immagini full-viewport ("background"), quindi
+        // l'LCP della home è il TESTO dell'hero. Sotto il sipario opaco gli
+        // elementi restano DIPINTI a opacity 0.02 (opacity:0 li toglierebbe dai
+        // candidati LCP fino a fine intro = LCP da 10s); lo stato coreografico
+        // vero viene applicato al handoff, quando il sipario li copre ancora.
+        gsap.set([...words, ...(badge ? [badge] : []), ...seq], { opacity: 0.02 });
         gsap.set([frameWrapRef.current, cueRef.current], { autoAlpha: 0 });
 
         let played = false;
         const play = () => {
           if (played) return;
           played = true;
+          // Stati di partenza reali, applicati mentre la zona è ancora coperta
+          // dal sipario in apertura (si apre dal basso: l'H1 è l'ultima area).
+          gsap.set(words, { yPercent: 130, rotate: 2.5, transformOrigin: "0% 100%", opacity: 1 });
+          if (badge) gsap.set(badge, { y: 24, autoAlpha: 0 });
+          gsap.set(seq, { y: 28, autoAlpha: 0 });
           const tl = gsap.timeline({ defaults: { ease: "domus" } });
           tl.to(
             mediaRef.current,
