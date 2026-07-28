@@ -16,11 +16,12 @@ import { gsap, useGSAP, MQ, dur } from "../../lib/motion/gsap";
 // Il pin vive solo da lg in su (come ThreadNav): sotto, la banda scorre.
 const PIN_MQ = "(min-width: 1024px)";
 
-// Lunghezza normalizzata della sottolineatura: il path ha pathLength=100,
-// così strokeDasharray/offset sono immuni alla scala non uniforme
-// (preserveAspectRatio="none" + non-scaling-stroke calcolano i dash in
-// spazio schermo: getTotalLength(), in unità user, lì non torna).
-const UNDERLINE_LEN = 102;
+// Stati del reveal in clip-path della sottolineatura: niente stroke-dash —
+// con preserveAspectRatio="none" + non-scaling-stroke Chrome calcola i dash
+// in spazio schermo e il tratto resta monco (o spunta) a seconda della
+// larghezza della parola. Il clip da sinistra è immune alla scala.
+const UNDERLINE_HIDDEN = "inset(-20% 100% -20% 0)";
+const UNDERLINE_SHOWN = "inset(-20% 0% -20% 0)";
 
 type Props = {
   eyebrow: string;
@@ -64,7 +65,7 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
       const wordEls = gsap.utils.toArray<HTMLElement>("[data-w]", root);
       if (!wordEls.length) return;
       const h2 = root.querySelector<HTMLElement>("h2") ?? root;
-      const path = root.querySelector<SVGPathElement>("[data-underline] path");
+      const underline = root.querySelector<SVGSVGElement>("[data-underline]");
 
       const mm = gsap.matchMedia();
       mm.add({ pin: PIN_MQ, motionOk: MQ.motionOk }, (ctx) => {
@@ -73,8 +74,8 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
         if (!c.motionOk) return;
 
         // La sottolineatura si nasconde SOLO qui (senza JS resta visibile).
-        if (path) {
-          gsap.set(path, { strokeDasharray: UNDERLINE_LEN, strokeDashoffset: UNDERLINE_LEN });
+        if (underline) {
+          gsap.set(underline, { clipPath: UNDERLINE_HIDDEN });
         }
 
         // Il link NON si anima: resta sempre visibile e raggiungibile da
@@ -104,8 +105,8 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
             },
             0
           );
-          if (path) {
-            tl.to(path, { strokeDashoffset: 0, ease: "none", duration: 0.2 }, 0.8);
+          if (underline) {
+            tl.to(underline, { clipPath: UNDERLINE_SHOWN, ease: "none", duration: 0.2 }, 0.8);
           }
         } else {
           // Mobile/tablet: niente pin, accensione in scrub semplice.
@@ -120,9 +121,9 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
               scrollTrigger: { trigger: h2, start: "top 80%", end: "top 35%", scrub: true },
             }
           );
-          if (path) {
-            gsap.to(path, {
-              strokeDashoffset: 0,
+          if (underline) {
+            gsap.to(underline, {
+              clipPath: UNDERLINE_SHOWN,
               duration: dur.short,
               ease: "power2.inOut",
               scrollTrigger: { trigger: h2, start: "top 55%", once: true },
@@ -131,7 +132,7 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
         }
 
         return () => {
-          if (path) gsap.set(path, { clearProps: "strokeDasharray,strokeDashoffset" });
+          if (underline) gsap.set(underline, { clearProps: "clipPath" });
         };
       });
     },
@@ -181,7 +182,6 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
                 >
                   <path
                     d="M 2 7 C 20 10, 45 3, 62 6 S 92 8, 98 5"
-                    pathLength={100}
                     fill="none"
                     stroke="var(--color-red)"
                     strokeWidth="2.5"

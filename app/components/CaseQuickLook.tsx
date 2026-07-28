@@ -13,6 +13,7 @@
 //   di Lenis rispetta l'ownership del sipario (isTransitionCovering).
 // - La CTA è un <a>: la intercetta PageTransition (sipario) come ogni link.
 import { useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Flip } from "gsap/Flip";
 import { ArrowUpRight, Bed, Ruler, Rooms } from "./Icons";
@@ -185,7 +186,10 @@ export default function CaseQuickLook({
   if (!property) return null;
   const p = property;
 
-  return (
+  // Portal su body: il footer-uncover dà a <main> position:relative + z-index,
+  // che intrappolerebbe il fixed del dialog nel suo stacking context (sotto il
+  // banner cookie). Solo client: si apre esclusivamente da interazione.
+  return createPortal(
     <div ref={rootRef} className="fixed inset-0 z-[70] grid place-items-center p-4 sm:p-8">
       {/* Backdrop: click fuori = chiudi (Esc e bottone restano le vie a11y) */}
       <div
@@ -307,6 +311,7 @@ export default function CaseQuickLook({
           </svg>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
