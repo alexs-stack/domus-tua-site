@@ -4,7 +4,7 @@ import { useRef } from "react";
 import Reveal from "./Reveal";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -104,19 +104,30 @@ export default function Method() {
   const { locale } = useLocale();
   const c = copy[locale];
   const rootRef = useRef<HTMLElement | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLOListElement | null>(null);
   const spineFillRef = useRef<HTMLSpanElement | null>(null);
-  const counterRef = useRef<HTMLSpanElement | null>(null);
+  const progressFillRef = useRef<HTMLSpanElement | null>(null);
+  const rollRef = useRef<HTMLSpanElement | null>(null);
 
-  // Spina di progresso: una linea che si riempie di rosso mentre percorri i nove
-  // passaggi + il passo "attivo" si accende e il contatore nel pannello sticky
-  // avanza (01 → 09). Lo scroll diventa il racconto del metodo.
+  // Due regimi (il markup è UNO solo, verticale di default → SSR/no-JS/
+  // reduced-motion vedono sempre la lista completa):
+  // - Mobile/tablet + motion ok: spina verticale che si riempie in scrub,
+  //   passo attivo via toggleClass, ingressi sobri per riga.
+  // - Desktop + motion ok: la classe .dt-method-h (vedi globals.css) rimonta
+  //   il layout in orizzontale e la sezione si PINNA: i nove passi scorrono
+  //   in scrub, la linea di progresso si riempie, il contatore gigante 01→09
+  //   ruota a rullo, i titoli salgono dalle maschere (containerAnimation).
+  //   Lo sticky della vecchia intro non serve più: il pin fa il lavoro.
   useGSAP(
     () => {
+      const root = rootRef.current;
       const list = listRef.current;
-      if (!list) return;
+      if (!root || !list) return;
       const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
+
+      // ── Verticale (mobile/tablet) ─────────────────────────────────────
+      mm.add(`${MQ.motionOk} and (max-width: 1023.98px)`, () => {
         const triggers: ScrollTrigger[] = [];
 
         if (spineFillRef.current) {
@@ -126,104 +137,199 @@ export default function Method() {
             {
               scaleY: 1,
               ease: "none",
-              scrollTrigger: {
-                trigger: list,
-                start: "top 62%",
-                end: "bottom 55%",
-                scrub: true,
-              },
+              scrollTrigger: { trigger: list, start: "top 62%", end: "bottom 55%", scrub: true },
             }
           );
         }
 
         const items = gsap.utils.toArray<HTMLLIElement>(list.querySelectorAll("li"));
-        items.forEach((li, i) => {
-          // La classe va sul div interno (className statica): il li è di Reveal,
-          // che riscrive className da React e cancellerebbe "step-active".
+        items.forEach((li) => {
           const row = li.querySelector<HTMLElement>(".dt-step-row") ?? li;
           triggers.push(
             ScrollTrigger.create({
               trigger: li,
-              // La linea al 62% del viewport partiziona la lista: un solo passo
-              // attivo alla volta (si spegne quando il successivo la attraversa).
+              // La linea al 62% del viewport partiziona la lista: un solo
+              // passo attivo alla volta.
               start: "top 62%",
               end: "bottom 62%",
               toggleClass: { targets: row, className: "step-active" },
-              onEnter: () => {
-                if (counterRef.current) counterRef.current.textContent = stepNumbers[i];
-              },
-              onEnterBack: () => {
-                if (counterRef.current) counterRef.current.textContent = stepNumbers[i];
-              },
             })
           );
         });
 
-        return () => triggers.forEach((t) => t.kill());
+        // Ingresso sobrio per riga (via il blur paint-heavy di Reveal).
+        const enter = gsap.fromTo(
+          items,
+          { y: 22, autoAlpha: 0 },
+          {
+            y: 0,
+            autoAlpha: 1,
+            duration: dur.short,
+            ease: "domus",
+            stagger: 0.07,
+            clearProps: "all",
+            scrollTrigger: { trigger: list, start: "top 82%", once: true },
+          }
+        );
+        const safety = window.setTimeout(() => enter.progress(1), 2500);
+
+        return () => {
+          window.clearTimeout(safety);
+          triggers.forEach((t) => t.kill());
+        };
+      });
+
+      // ── Orizzontale pinnato (desktop) ─────────────────────────────────
+      mm.add(`${MQ.motionOk} and (min-width: 1024px)`, () => {
+        const wrap = wrapRef.current;
+        const roll = rollRef.current;
+        if (!wrap) return;
+
+        root.classList.add("dt-method-h");
+        const items = gsap.utils.toArray<HTMLLIElement>(list.querySelectorAll("li"));
+        const titles = gsap.utils.toArray<HTMLElement>(list.querySelectorAll("[data-step-title]"));
+        const dist = () => Math.max(0, list.scrollWidth - wrap.clientWidth);
+
+        gsap.set(titles, { yPercent: 110 });
+
+        let index = -1;
+        const setActive = (next: number) => {
+          if (next === index) return;
+          index = next;
+          items.forEach((li, j) => {
+            li.querySelector(".dt-step-row")?.classList.toggle("step-active", j === index);
+          });
+          if (roll) gsap.to(roll, { y: `${-index}em`, duration: 0.5, ease: "domus" });
+        };
+
+        const tween = gsap.to(list, {
+          x: () => -dist(),
+          ease: "none",
+          scrollTrigger: {
+            trigger: root,
+            start: "top top",
+            end: () => `+=${dist() + window.innerHeight * 0.25}`,
+            pin: true,
+            scrub: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate(self) {
+              if (progressFillRef.current) {
+                gsap.set(progressFillRef.current, { scaleX: self.progress });
+              }
+              setActive(Math.round(self.progress * (items.length - 1)));
+            },
+          },
+        });
+        setActive(0);
+
+        // Titoli in maschera: entrano quando il pannello attraversa la scena.
+        const titleTriggers = titles.map((t, i) =>
+          ScrollTrigger.create({
+            trigger: items[i],
+            containerAnimation: tween,
+            start: "left 88%",
+            once: true,
+            onEnter: () => gsap.to(t, { yPercent: 0, duration: 0.7, ease: "domus" }),
+          })
+        );
+        // Safety: se i trigger non scattano (resize strani), tutto visibile.
+        const safety = window.setTimeout(
+          () => titles.forEach((t) => gsap.set(t, { yPercent: 0 })),
+          4000
+        );
+
+        return () => {
+          window.clearTimeout(safety);
+          titleTriggers.forEach((t) => t.kill());
+          root.classList.remove("dt-method-h");
+          items.forEach((li) => li.querySelector(".dt-step-row")?.classList.remove("step-active"));
+        };
       });
     },
     { scope: rootRef }
   );
 
   return (
-    <section ref={rootRef} id="metodo" className="relative bg-cream-deep text-ink">
-      <div className="mx-auto grid max-w-5xl gap-12 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
-        {/* Intro sticky */}
-        <div className="lg:sticky lg:top-28 lg:self-start">
-          <Reveal>
-            <span className="eyebrow">{c.eyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight balance sm:text-5xl">
-              {c.title}
-            </h2>
-            <p className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone">
-              {c.subcopy}
-            </p>
-            {/* Contatore di avanzamento: aggiornato dagli ScrollTrigger dei passi */}
-            <p className="tnum mt-8 hidden items-baseline gap-1.5 font-display lg:flex" aria-hidden>
-              <span ref={counterRef} className="text-4xl font-medium text-red">
-                01
+    <section ref={rootRef} id="metodo" className="relative overflow-hidden bg-cream-deep text-ink">
+      <div
+        data-method-pin
+        className="mx-auto flex w-full max-w-[1240px] flex-col justify-center px-5 py-24 sm:px-8 sm:py-32"
+      >
+        {/* Header: intro + contatore gigante a rullo (solo layout orizzontale) */}
+        <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+              <h2 className="mt-5 max-w-2xl font-display text-4xl font-medium leading-[1.05] tracking-tight balance sm:text-5xl">
+                {c.title}
+              </h2>
+              <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-stone">{c.subcopy}</p>
+              <a
+                href="#contatti"
+                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
+                {c.cta}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
+            </Reveal>
+          </div>
+
+          {/* Contatore a rullo: esiste solo nel layout orizzontale (aria-hidden,
+              i numeri veri sono nei passi). */}
+          <div data-method-counter aria-hidden className="tnum hidden items-baseline gap-2 font-display">
+            <span className="block h-[1em] overflow-hidden text-[5.5rem] font-medium leading-none text-red">
+              <span ref={rollRef} className="block will-change-transform">
+                {stepNumbers.map((n) => (
+                  <span key={n} className="block h-[1em] leading-none">
+                    {n}
+                  </span>
+                ))}
               </span>
-              <span className="text-lg text-stone">/ {stepNumbers[stepNumbers.length - 1]}</span>
-            </p>
-            <a
-              href="#contatti"
-              className="group mt-9 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-            >
-              {c.cta}
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
-          </Reveal>
+            </span>
+            <span className="text-2xl text-stone">/ {stepNumbers[stepNumbers.length - 1]}</span>
+          </div>
         </div>
 
-        {/* Timeline con spina di progresso (desktop) */}
-        <div className="relative lg:pl-10">
-          <span aria-hidden className="absolute bottom-2 left-0 top-2 hidden w-px bg-line lg:block">
+        {/* Track dei passi: colonna con spina (default) / riga pinnata (desktop) */}
+        <div ref={wrapRef} className="relative mt-12 lg:mt-16">
+          <span aria-hidden data-method-spine className="absolute bottom-2 left-0 top-2 w-px bg-line">
             <span
               ref={spineFillRef}
               className="absolute inset-0 origin-top scale-y-0 bg-red will-change-transform"
             />
           </span>
-          <ol ref={listRef} className="flex flex-col">
+          <ol ref={listRef} data-method-track className="flex flex-col pl-7 sm:pl-9">
             {c.steps.map((s, i) => (
-              <Reveal key={stepNumbers[i]} delay={Math.min(i, 6) * 45} as="li">
+              <li key={stepNumbers[i]}>
                 <div className="group dt-step-row flex gap-6 border-t border-line py-7 transition-colors duration-500 hover:border-red/30">
                   <span className="dt-step-num font-display text-2xl font-medium text-graphite transition-colors duration-500 group-hover:text-red sm:text-3xl">
                     {stepNumbers[i]}
                   </span>
                   <div className="flex-1">
-                    <h3 className="font-display text-xl font-medium tracking-tight sm:text-2xl">
-                      {s.title}
+                    <h3 className="overflow-hidden font-display text-xl font-medium tracking-tight sm:text-2xl">
+                      <span data-step-title className="block">
+                        {s.title}
+                      </span>
                     </h3>
                     <p className="mt-2 max-w-xl text-[0.95rem] leading-relaxed text-stone">
                       {s.copy}
                     </p>
                   </div>
                 </div>
-              </Reveal>
+              </li>
             ))}
           </ol>
+
+          {/* Linea di progresso orizzontale (solo layout orizzontale) */}
+          <div data-method-progress aria-hidden className="mt-10 hidden h-px w-full bg-line">
+            <span
+              ref={progressFillRef}
+              className="block h-full origin-left scale-x-0 bg-red will-change-transform"
+            />
+          </div>
         </div>
       </div>
     </section>

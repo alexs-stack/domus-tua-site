@@ -14,7 +14,8 @@ import Signature from "./Signature";
 import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
+import { INTRO_EVENT } from "./motion/Preloader";
 
 const copy = {
   it: {
@@ -146,6 +147,78 @@ export default function HeroCinematic() {
     { scope: sectionRef }
   );
 
+  // Coreografia d'ingresso — SOLO al handoff del preloader (prima visita di
+  // sessione): il sipario copre la pagina, quindi è sicuro nascondere gli
+  // stati DOPO il primo paint (LCP già registrata) e rivelarli in sequenza:
+  // canvas che si apre (clip + scale sul wrapper, mai sull'IMG: il ken-burns
+  // resta l'unico owner del transform dell'immagine), parole dell'H1 che
+  // salgono dalle maschere con micro-rotazione, badge/copy/CTA/chips in coda.
+  // Nelle visite successive non si nasconde nulla: restano i dt-fade-rise CSS
+  // (che con reduced-motion vengono azzerati dalla regola globale).
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      if (!section) return;
+      if (!document.documentElement.hasAttribute("data-preloader")) return;
+
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const words = section.querySelectorAll<HTMLElement>(".word-reveal .w");
+        const badge = section.querySelector<HTMLElement>("[data-hero-badge]");
+        const seq = gsap.utils.toArray<HTMLElement>("[data-hero-seq]", section);
+
+        // Le CSS animation dt-fade-rise (fill both) vincerebbero sugli inline
+        // style di GSAP: in modalità intro il timone passa tutto a GSAP.
+        seq.forEach((el) => {
+          el.style.animation = "none";
+        });
+
+        gsap.set(mediaRef.current, {
+          clipPath: "inset(16% 10% 16% 10% round 2.5rem)",
+          scale: 1.12,
+        });
+        gsap.set(words, { yPercent: 130, rotate: 2.5, transformOrigin: "0% 100%" });
+        if (badge) gsap.set(badge, { y: 24, autoAlpha: 0 });
+        gsap.set(seq, { y: 28, autoAlpha: 0 });
+        gsap.set([frameWrapRef.current, cueRef.current], { autoAlpha: 0 });
+
+        let played = false;
+        const play = () => {
+          if (played) return;
+          played = true;
+          const tl = gsap.timeline({ defaults: { ease: "domus" } });
+          tl.to(
+            mediaRef.current,
+            {
+              clipPath: "inset(0% 0% 0% 0% round 0rem)",
+              scale: 1,
+              duration: dur.hero,
+              ease: "domus.inOut",
+              // Libera clip/scale: lo scrub "frame-in" resta l'unico owner.
+              clearProps: "clipPath,scale",
+            },
+            0
+          );
+          if (badge) tl.to(badge, { y: 0, autoAlpha: 1, duration: dur.short }, 0.12);
+          tl.to(words, { yPercent: 0, rotate: 0, duration: dur.reveal, stagger: 0.055 }, 0.2)
+            .to(seq, { y: 0, autoAlpha: 1, duration: dur.short, stagger: 0.09 }, 0.62)
+            .to(frameWrapRef.current, { autoAlpha: 1, duration: 0.7, ease: "none" }, 0.9)
+            .to(cueRef.current, { autoAlpha: 1, duration: 0.5, ease: "none" }, 1.2);
+        };
+
+        // Parte all'uscita del preloader (una sola timeline percepita);
+        // safety: se l'evento va perso, si rivela comunque.
+        window.addEventListener(INTRO_EVENT, play, { once: true });
+        const safety = window.setTimeout(play, 4500);
+        return () => {
+          window.removeEventListener(INTRO_EVENT, play);
+          window.clearTimeout(safety);
+        };
+      });
+    },
+    { scope: sectionRef }
+  );
+
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
   // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto (leggera).
   // Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
@@ -227,14 +300,30 @@ export default function HeroCinematic() {
       {/* Contenuto */}
       <div ref={contentRef} className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-36">
         <div className="max-w-3xl">
-          <SegnoDomusBadge light className="backdrop-blur-sm">{c.badge}</SegnoDomusBadge>
+          <span data-hero-badge className="inline-flex">
+            <SegnoDomusBadge light className="backdrop-blur-sm">{c.badge}</SegnoDomusBadge>
+          </span>
 
+          {/* Le due righe sono maschere (overflow-hidden) per la risalita delle
+              parole al handoff del preloader; il pb/-mb compensato evita di
+              tagliare i discendenti in stato statico. */}
           <h1 className="mt-6 font-display text-[2.5rem] font-medium leading-[1.02] tracking-[-0.02em] text-cream balance sm:text-6xl lg:text-[4.2rem]">
-            <WordReveal as="span" className="block" text={c.title1} immediate />
-            <WordReveal as="span" className="block italic text-red-soft" text={c.title2} immediate />
+            <WordReveal
+              as="span"
+              className="block overflow-hidden pb-[0.12em] -mb-[0.12em]"
+              text={c.title1}
+              immediate
+            />
+            <WordReveal
+              as="span"
+              className="block overflow-hidden pb-[0.14em] -mb-[0.14em] italic text-red-soft"
+              text={c.title2}
+              immediate
+            />
           </h1>
 
           <p
+            data-hero-seq
             className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg"
             style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "0ms" }}
           >
@@ -243,6 +332,7 @@ export default function HeroCinematic() {
 
           {/* Founder label */}
           <p
+            data-hero-seq
             className="mt-5 flex items-center gap-2.5 text-sm font-medium text-cream/80"
             style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "60ms" }}
           >
@@ -256,6 +346,7 @@ export default function HeroCinematic() {
 
           {/* CTA */}
           <div
+            data-hero-seq
             className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
             style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "120ms" }}
           >
@@ -293,6 +384,7 @@ export default function HeroCinematic() {
 
           {/* Trust chips */}
           <div
+            data-hero-seq
             className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-cream/15 pt-6"
             style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "180ms" }}
           >
