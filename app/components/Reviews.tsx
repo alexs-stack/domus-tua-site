@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import CountUp from "./CountUp";
 import Parallax from "./motion/Parallax";
+import Atmosphere from "./motion/Atmosphere";
 import { Star, Google, ArrowUpRight, Check } from "./Icons";
 import { site } from "../lib/site";
 import { reviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
@@ -171,18 +173,28 @@ export default function Reviews() {
   }, []);
 
   return (
-    <section id="recensioni" className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+    <section id="recensioni" className="relative bg-paper">
+      {/* Aria: il voto in filigrana (numero, identico in ogni lingua) */}
+      <Atmosphere word="4.9" glow drift={1} wordClassName="left-[2%] top-[5%] text-[19vw]" />
+      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-          <Reveal>
-            <span className="eyebrow">{c.eyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+          {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+          <div>
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
+            <TextLines
+              as="h2"
+              className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
+            >
               {c.title}
-            </h2>
-            <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-stone">
-              {c.subtitle}
-            </p>
-          </Reveal>
+            </TextLines>
+            <Reveal delay={100}>
+              <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-stone">
+                {c.subtitle}
+              </p>
+            </Reveal>
+          </div>
 
           {/* Card riepilogo — deriva leggera contro la colonna titolo (solo desktop) */}
           <Reveal delay={100}>

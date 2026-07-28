@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import Reveal from "./Reveal";
+import Atmosphere from "./motion/Atmosphere";
 import DrawOnScroll from "./motion/DrawOnScroll";
 import { SegnoDomus } from "./BrandMotif";
 import { ArrowUpRight } from "./Icons";
@@ -254,7 +255,10 @@ export default function Method() {
 
   return (
     <section ref={rootRef} id="metodo" className="relative overflow-hidden bg-cream-deep text-ink">
-      <div className="mx-auto max-w-5xl px-5 py-24 sm:px-8 sm:py-32">
+      {/* Aria: il nome del metodo in filigrana dietro il filo (nome proprio,
+          identico in ogni lingua) + bagliori caldi. */}
+      <Atmosphere word="Metodo Domus Tua" glow drift={-1} wordClassName="right-[1%] top-[2.5%] text-[8.5vw]" />
+      <div className="relative mx-auto max-w-5xl px-5 py-24 sm:px-8 sm:py-32">
         {/* Header */}
         <Reveal className="max-w-2xl">
           <span className="eyebrow">{c.eyebrow}</span>

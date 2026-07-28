@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { Play, ArrowUpRight, Instagram, YouTube, Star } from "./Icons";
@@ -371,23 +372,31 @@ export default function SocialVideoWall() {
   return (
     <section className="bg-cream segno-ambient">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal className="max-w-3xl">
-          <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>
-          <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+        {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+        <div className="max-w-3xl">
+          <Reveal>
+            <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>
+          </Reveal>
+          <TextLines
+            as="h2"
+            className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
+          >
             {c.title}
-          </h2>
-          <p className="mt-5 text-[1.02rem] leading-relaxed text-stone sm:text-lg">
-            {c.subtitle}
-          </p>
+          </TextLines>
+          <Reveal delay={100}>
+            <p className="mt-5 text-[1.02rem] leading-relaxed text-stone sm:text-lg">
+              {c.subtitle}
+            </p>
 
-          {/* Metrica: quanti video raccontano Domus Tua */}
-          <div className="mt-7 flex items-baseline gap-3">
-            <span className="font-display text-5xl font-medium leading-none text-red tnum sm:text-6xl">
-              {site.videosCountLabel}
-            </span>
-            <span className="max-w-[16rem] text-sm leading-snug text-graphite">{c.metricNote}</span>
-          </div>
-        </Reveal>
+            {/* Metrica: quanti video raccontano Domus Tua */}
+            <div className="mt-7 flex items-baseline gap-3">
+              <span className="font-display text-5xl font-medium leading-none text-red tnum sm:text-6xl">
+                {site.videosCountLabel}
+              </span>
+              <span className="max-w-[16rem] text-sm leading-snug text-graphite">{c.metricNote}</span>
+            </div>
+          </Reveal>
+        </div>
 
         {/* Video in evidenza: player leggero (iframe solo al click) + titolo e CTA a fianco,
             verticalmente centrati. Blocco bilanciato, niente accostamento sproporzionato. */}

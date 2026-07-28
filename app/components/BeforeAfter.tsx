@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import { ArrowUpRight, Check } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
@@ -264,15 +265,23 @@ export default function BeforeAfter() {
     <section className="bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
-          <Reveal className="max-w-2xl">
-            <span className="eyebrow">{c.eyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+          {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+          <div className="max-w-2xl">
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
+            <TextLines
+              as="h2"
+              className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
+            >
               {c.title}
-            </h2>
-            <p className="mt-5 max-w-lg text-[1.02rem] leading-relaxed text-stone">
-              {c.subcopy}
-            </p>
-          </Reveal>
+            </TextLines>
+            <Reveal delay={100}>
+              <p className="mt-5 max-w-lg text-[1.02rem] leading-relaxed text-stone">
+                {c.subcopy}
+              </p>
+            </Reveal>
+          </div>
 
           {/* Tabs */}
           <Reveal delay={100}>

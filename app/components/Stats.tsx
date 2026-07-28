@@ -4,6 +4,8 @@ import Reveal from "./Reveal";
 import CountUp from "./CountUp";
 import Odometer from "./motion/Odometer";
 import VelocityMarquee from "./motion/VelocityMarquee";
+import Atmosphere from "./motion/Atmosphere";
+import CameraIn from "./motion/CameraIn";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -132,9 +134,11 @@ export default function Stats() {
   const c = copy[locale];
 
   return (
-    <section className="border-b border-line bg-cream">
-      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        <div className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center lg:gap-x-16">
+    <section className="relative border-b border-line bg-cream">
+      {/* Aria negli spazi vuoti: parola-fantasma in deriva + bagliori caldi */}
+      <Atmosphere word="Domus" glow drift={1} wordClassName="right-[2%] top-[4%] text-[17vw]" />
+      <div className="relative mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
+        <CameraIn className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center lg:gap-x-16">
           {/* Stat eroe: la cifra maggiore, con eyebrow e Segno Domus come accento minimo */}
           <Reveal>
             <div className="flex flex-col">
@@ -188,7 +192,7 @@ export default function Stats() {
               </Reveal>
             ))}
           </div>
-        </div>
+        </CameraIn>
       </div>
 
       {/* Marquee di token di valore: reagisce alla velocità (e direzione) dello scroll */}

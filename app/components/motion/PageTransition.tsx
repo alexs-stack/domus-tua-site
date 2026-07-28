@@ -52,12 +52,13 @@ export default function PageTransition() {
     coveringGlobal = v;
   };
 
-  // Uscita: sipario che sale + Segno ridisegnato, poi push.
+  // Uscita: sipario a TRE LAME sfalsate + Segno ridisegnato, poi push.
   useEffect(() => {
     const root = rootRef.current;
     const panel = panelRef.current;
     if (!root || !panel) return;
 
+    const blades = Array.from(panel.querySelectorAll<HTMLElement>("[data-blade]"));
     const paths = Array.from(panel.querySelectorAll<SVGPathElement>("svg path"));
 
     const reveal = () => {
@@ -65,14 +66,14 @@ export default function PageTransition() {
       gsap.set(root, { pointerEvents: "none" });
       const tl = gsap.timeline({
         onComplete() {
-          gsap.set(panel, { clipPath: CLOSED });
+          gsap.set(blades, { clipPath: CLOSED });
           setCovering(false);
           getLenis()?.start();
         },
       });
       tl.to(paths, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0).to(
-        panel,
-        { clipPath: EXITED, duration: 0.6, ease: "domus.inOut" },
+        blades,
+        { clipPath: EXITED, duration: 0.55, ease: "domus.inOut", stagger: 0.07 },
         0.05
       );
     };
@@ -96,6 +97,7 @@ export default function PageTransition() {
         p.style.strokeDashoffset = `${len}`;
       });
       gsap.set(root, { pointerEvents: "auto" });
+      gsap.set(panel.querySelector("[data-segno-layer]"), { autoAlpha: 1 });
       gsap.set(paths, { autoAlpha: 1 });
 
       gsap
@@ -113,14 +115,19 @@ export default function PageTransition() {
           },
         })
         .fromTo(
-          panel,
+          blades,
           { clipPath: CLOSED },
-          { clipPath: OPEN, duration: mobile ? 0.35 : 0.5, ease: "domus.inOut" }
+          {
+            clipPath: OPEN,
+            duration: mobile ? 0.32 : 0.45,
+            ease: "domus.inOut",
+            stagger: 0.07,
+          }
         )
         .to(
           paths,
           { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut", stagger: 0.1 },
-          0.12
+          0.2
         );
     };
 
@@ -203,19 +210,20 @@ export default function PageTransition() {
     // raggiungere: quella la gestisce Next con lo scrollIntoView).
     if (!window.location.hash) window.scrollTo({ top: 0, behavior: "instant" });
 
+    const blades = Array.from(panel.querySelectorAll<HTMLElement>("[data-blade]"));
     const paths = Array.from(panel.querySelectorAll<SVGPathElement>("svg path"));
     let raf = requestAnimationFrame(() => {
       raf = requestAnimationFrame(() => {
         ScrollTrigger.refresh();
         // L'exit potrebbe essere ancora vivo (popstate durante il sipario):
-        // un solo owner del pannello da qui in poi.
-        gsap.killTweensOf([panel, ...paths]);
+        // un solo owner delle lame da qui in poi.
+        gsap.killTweensOf([...blades, ...paths]);
         // La pagina sotto è pronta: i click tornano subito al contenuto,
-        // il pannello continua ad aprirsi solo visivamente.
+        // le lame continuano ad aprirsi solo visivamente.
         gsap.set(root, { pointerEvents: "none" });
         const tl = gsap.timeline({
           onComplete() {
-            gsap.set(panel, { clipPath: CLOSED });
+            gsap.set(blades, { clipPath: CLOSED });
             setCovering(false);
             getLenis()?.start();
             // Focus coerente con la destinazione: l'ancora se presente,
@@ -233,8 +241,13 @@ export default function PageTransition() {
           },
         });
         tl.to(paths, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0).to(
-          panel,
-          { clipPath: EXITED, duration: dur.short, ease: "domus.inOut" },
+          blades,
+          {
+            clipPath: EXITED,
+            duration: dur.short,
+            ease: "domus.inOut",
+            stagger: { each: 0.06, from: "end" },
+          },
           0.05
         );
       });
@@ -244,19 +257,31 @@ export default function PageTransition() {
 
   return (
     <div ref={rootRef} aria-hidden className="pointer-events-none fixed inset-0 z-[92]">
-      <div
-        ref={panelRef}
-        className="absolute inset-0 flex items-center justify-center overflow-hidden bg-espresso"
-        style={{ clipPath: CLOSED }}
-      >
+      {/* Sipario a tre lame verticali sfalsate (più cinema del wipe unico);
+          si sovrappongono di mezzo punto per non lasciare cuciture. */}
+      <div ref={panelRef} className="absolute inset-0 overflow-hidden">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            data-blade
+            className="absolute inset-y-0 bg-espresso"
+            style={{
+              left: `${i * 33.3 - (i > 0 ? 0.4 : 0)}%`,
+              width: i === 2 ? `${100 - (2 * 33.3 - 0.4)}%` : "34%",
+              clipPath: CLOSED,
+              backgroundImage:
+                "radial-gradient(120% 90% at 50% -10%, rgba(150, 26, 24, 0.28), transparent 60%), radial-gradient(120% 100% at 50% 115%, rgba(24, 12, 12, 0.85), transparent 65%)",
+            }}
+          />
+        ))}
+        {/* Il Segno vive sopra le lame: invisibile finché il sipario non copre. */}
         <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(95% 130% at 12% -10%, rgba(150, 26, 24, 0.32), transparent 55%), radial-gradient(90% 120% at 102% 112%, rgba(24, 12, 12, 0.9), transparent 60%)",
-          }}
-        />
-        <SegnoDomus className="relative h-9 w-24" />
+          data-segno-layer
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ opacity: 0 }}
+        >
+          <SegnoDomus className="h-9 w-24" />
+        </div>
       </div>
     </div>
   );

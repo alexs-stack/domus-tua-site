@@ -10,6 +10,8 @@ import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import WordReveal from "./WordReveal";
 import Signature from "./Signature";
+import Atmosphere from "./motion/Atmosphere";
+import CameraIn from "./motion/CameraIn";
 import DrawOnScroll from "./motion/DrawOnScroll";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -409,9 +411,10 @@ export default function Contact({
   }
 
   return (
-    <section id="contatti" className="bg-cream-deep text-ink">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
+    <section id="contatti" className="relative bg-cream-deep text-ink">
+      <Atmosphere glow />
+      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+        <CameraIn className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
           {/* Left: pitch + contatti */}
           <div>
             <div>
@@ -579,7 +582,7 @@ export default function Contact({
               ) : null}
             </form>
           </div>
-        </div>
+        </CameraIn>
       </div>
     </section>
   );

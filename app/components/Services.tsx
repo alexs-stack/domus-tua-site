@@ -3,8 +3,10 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
+import Atmosphere from "./motion/Atmosphere";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
@@ -286,14 +288,22 @@ export default function Services() {
   );
 
   return (
-    <section id="servizi" className="bg-cream">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal className="max-w-2xl">
-          <span className="eyebrow">{c.eyebrow}</span>
-          <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+    <section id="servizi" className="relative bg-cream">
+      {/* Aria: bagliori lenti dietro la griglia servizi */}
+      <Atmosphere glow />
+      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+        {/* Eyebrow nel Reveal, titolo TextLines nudo (niente doppio-hide) */}
+        <div className="max-w-2xl">
+          <Reveal>
+            <span className="eyebrow">{c.eyebrow}</span>
+          </Reveal>
+          <TextLines
+            as="h2"
+            className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
+          >
             {c.title}
-          </h2>
-        </Reveal>
+          </TextLines>
+        </div>
 
         <div ref={gridRef} className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
           {/* Feature card — sipario sull'immagine + parallasse di profondità molto sottile */}

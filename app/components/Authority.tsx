@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import CountUp from "./CountUp";
 import Parallax from "./motion/Parallax";
 import { Star, Google, ArrowUpRight, Play } from "./Icons";
@@ -164,42 +165,50 @@ export default function Authority() {
       />
       <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
-          <Reveal>
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white">
-              {c.eyebrow}
-            </span>
-            <h2 className="mt-6 font-display text-4xl font-medium leading-[1.06] tracking-tight balance sm:text-5xl lg:text-[3.4rem]">
+          {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+          <div>
+            <Reveal>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white">
+                {c.eyebrow}
+              </span>
+            </Reveal>
+            <TextLines
+              as="h2"
+              className="mt-6 font-display text-4xl font-medium leading-[1.06] tracking-tight balance sm:text-5xl lg:text-[3.4rem]"
+            >
               {c.heading}
-            </h2>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85">
-              {c.subLead}
-            </p>
+            </TextLines>
+            <Reveal delay={100}>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85">
+                {c.subLead}
+              </p>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={site.googleReviewsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-white py-3.5 pl-6 pr-3 text-sm font-semibold text-red transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-cream active:scale-[0.98]"
-              >
-                {c.ctaReviews}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red/10 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
-              <a
-                href={site.social.youtube.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-white/35 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15">
-                  <Play className="h-3.5 w-3.5" />
-                </span>
-                {c.ctaVideo}
-              </a>
-            </div>
-          </Reveal>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href={site.googleReviewsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-white py-3.5 pl-6 pr-3 text-sm font-semibold text-red transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-cream active:scale-[0.98]"
+                >
+                  {c.ctaReviews}
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red/10 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                    <ArrowUpRight className="h-4 w-4" />
+                  </span>
+                </a>
+                <a
+                  href={site.social.youtube.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-white/35 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15">
+                    <Play className="h-3.5 w-3.5" />
+                  </span>
+                  {c.ctaVideo}
+                </a>
+              </div>
+            </Reveal>
+          </div>
 
           {/* Card rating — deriva leggera contro la colonna testo (solo desktop) */}
           <Reveal delay={120}>

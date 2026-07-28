@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { useRef } from "react";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import MaskReveal from "./motion/MaskReveal";
+import Atmosphere from "./motion/Atmosphere";
 import { ArrowUpRight, Check } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
@@ -350,14 +352,22 @@ export default function Paths() {
   const c = copy[locale];
 
   return (
-    <section className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
-          <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+    <section className="relative bg-paper">
+      {/* Aria: bagliori lenti dietro le due card */}
+      <Atmosphere glow />
+      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+        {/* Eyebrow nel Reveal, titolo TextLines nudo (niente doppio-hide) */}
+        <div className="mx-auto max-w-2xl text-center">
+          <Reveal>
+            <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
+          </Reveal>
+          <TextLines
+            as="h2"
+            className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
+          >
             {c.heading}
-          </h2>
-        </Reveal>
+          </TextLines>
+        </div>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
           {paths.map((p, i) => (

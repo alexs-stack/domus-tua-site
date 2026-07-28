@@ -6,6 +6,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import { ArrowUpRight, ArrowRight, Search } from "./Icons";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import { transitionTo } from "./motion/PageTransition";
@@ -107,21 +108,26 @@ export default function HomeSearchGateway() {
     <section id="cerca" className="bg-cream-deep segno-ambient">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-          {/* Buyer search */}
-          <Reveal>
-            <form
-              onSubmit={submit}
-              className="flex h-full flex-col rounded-[2rem] border border-line bg-paper p-6 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
-                  {d.search.title}
-                </h2>
-                <span className="shrink-0 rounded-full bg-red-soft px-3.5 py-2 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
-                  {d.search.nlTeaser}
-                </span>
-              </div>
+          {/* Buyer search — il Reveal vive DENTRO la card (sul corpo del form),
+              così il titolo TextLines non è doppio-nascosto dal fade esterno. */}
+          <form
+            onSubmit={submit}
+            className="flex h-full flex-col rounded-[2rem] border border-line bg-paper p-6 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <TextLines
+                as="h2"
+                className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl"
+              >
+                {d.search.title}
+              </TextLines>
+              <span className="shrink-0 rounded-full bg-red-soft px-3.5 py-2 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
+                {d.search.nlTeaser}
+              </span>
+            </div>
 
+            {/* flex flex-col: preserva self-start del bottone e i margini interni */}
+            <Reveal className="flex flex-col">
               {/* input linguaggio naturale (teaser: alimenta q) — al focus il
                   campo si "accende": glow crema caldo + micro espansione. */}
               <div
@@ -206,8 +212,8 @@ export default function HomeSearchGateway() {
                   <ArrowUpRight className="h-4 w-4" />
                 </span>
               </button>
-            </form>
-          </Reveal>
+            </Reveal>
+          </form>
 
           {/* Seller shortcut */}
           <Reveal delay={100}>

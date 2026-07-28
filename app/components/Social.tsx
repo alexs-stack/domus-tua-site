@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import Parallax from "./motion/Parallax";
 import Magnetic from "./motion/Magnetic";
 import { Instagram, Facebook, TikTok, YouTube } from "./Icons";
@@ -160,44 +161,52 @@ export default function Social() {
     <section ref={sectionRef} className="bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          {/* Left: pitch + canali */}
-          <Reveal>
-            <span className="eyebrow">{c.eyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-              {c.title}
-            </h2>
-            <p className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone">
-              {c.subcopy}
-            </p>
-
-            <a
-              href={site.social.instagram.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group mt-8 inline-flex items-center gap-3 rounded-full border border-line bg-paper py-2.5 pl-3 pr-5 text-sm font-semibold text-ink transition-all duration-300 hover:border-red"
+          {/* Left: pitch + canali — Reveal spezzato in due: il titolo TextLines
+              resta nudo (niente doppio-hide) */}
+          <div>
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
+            <TextLines
+              as="h2"
+              className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-red text-white">
-                <Instagram className="h-5 w-5" />
-              </span>
-              {site.social.instagram.handle}
-            </a>
+              {c.title}
+            </TextLines>
+            <Reveal delay={100}>
+              <p className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone">
+                {c.subcopy}
+              </p>
 
-            <div ref={channelsRef} className="mt-8 flex flex-wrap gap-2.5">
-              {channels.map((ch) => (
-                <a
-                  key={ch.label}
-                  href={ch.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={c.channelAria(ch.label)}
-                  className="group flex items-center gap-2 rounded-full border border-line bg-paper px-4 py-2.5 text-sm font-medium text-graphite transition-all duration-300 hover:border-red hover:text-red"
-                >
-                  <ch.icon className="h-[1.1rem] w-[1.1rem]" />
-                  {ch.label}
-                </a>
-              ))}
-            </div>
-          </Reveal>
+              <a
+                href={site.social.instagram.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mt-8 inline-flex items-center gap-3 rounded-full border border-line bg-paper py-2.5 pl-3 pr-5 text-sm font-semibold text-ink transition-all duration-300 hover:border-red"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-red text-white">
+                  <Instagram className="h-5 w-5" />
+                </span>
+                {site.social.instagram.handle}
+              </a>
+
+              <div ref={channelsRef} className="mt-8 flex flex-wrap gap-2.5">
+                {channels.map((ch) => (
+                  <a
+                    key={ch.label}
+                    href={ch.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={c.channelAria(ch.label)}
+                    className="group flex items-center gap-2 rounded-full border border-line bg-paper px-4 py-2.5 text-sm font-medium text-graphite transition-all duration-300 hover:border-red hover:text-red"
+                  >
+                    <ch.icon className="h-[1.1rem] w-[1.1rem]" />
+                    {ch.label}
+                  </a>
+                ))}
+              </div>
+            </Reveal>
+          </div>
 
           {/* Right: feed Instagram live (se configurato) o griglia curata.
               Il ramo iframe conserva il suo Reveal; il mosaico entra via GSAP. */}

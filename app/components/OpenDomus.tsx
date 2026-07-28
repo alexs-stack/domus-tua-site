@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import Reveal from "./Reveal";
+import TextLines from "./motion/TextLines";
 import LiquidReveal from "./motion/LiquidReveal";
 import Parallax from "./motion/Parallax";
 import { ArrowUpRight, Play } from "./Icons";
@@ -211,11 +212,19 @@ export default function OpenDomus() {
 
           {/* Content */}
           <div className="order-1 lg:order-2">
+            {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente
+                doppio-hide); delay 0.1s ≈ i 100ms del Reveal originale. */}
             <Reveal delay={100}>
               <span className="eyebrow">{c.eyebrow}</span>
-              <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-                {c.title}
-              </h2>
+            </Reveal>
+            <TextLines
+              as="h2"
+              delay={0.1}
+              className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
+            >
+              {c.title}
+            </TextLines>
+            <Reveal delay={100}>
               <p className="mt-6 max-w-lg text-[1.02rem] leading-relaxed text-stone">
                 {c.intro}
               </p>

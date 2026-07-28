@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef } from "react";
 import Reveal from "./Reveal";
 import MaskReveal from "./motion/MaskReveal";
+import Atmosphere from "./motion/Atmosphere";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
 import { ArrowUpRight, Play, Quote } from "./Icons";
@@ -193,7 +194,8 @@ export default function Team() {
       .join("");
 
   return (
-    <section ref={rootRef} id="chi-siamo" className="bg-cream">
+    <section ref={rootRef} id="chi-siamo" className="relative bg-cream">
+      <Atmosphere word="Domus Tua" glow drift={1} wordClassName="left-[2%] bottom-[4%] text-[13vw]" />
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
           <Reveal>
