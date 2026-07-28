@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
 import PropertyCard from "./PropertyCard";
+import CaseQuickLook from "./CaseQuickLook";
 import { ArrowRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -374,6 +375,8 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
   const [visible, setVisible] = useState(24);
   const [searching, setSearching] = useState(false);
+  // Anteprima (CaseQuickLook): stato UI indipendente dalla ricerca.
+  const [preview, setPreview] = useState<Property | null>(null);
   const [aiError, setAiError] = useState(false);
   // Risultato della ricerca AI: query mostrata + slug ordinati per rilevanza + firma dei filtri
   // applicati (per capire quando l'utente modifica un filtro a mano e uscire dalla modalità AI).
@@ -912,7 +915,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
                 // questo div, mai la card (il suo transition-all per l'hover
                 // combatterebbe i transform inline di GSAP).
                 <div key={p.slug}>
-                  <PropertyCard p={p} />
+                  <PropertyCard p={p} onQuickLook={() => setPreview(p)} />
                 </div>
               ))}
             </div>
@@ -948,6 +951,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
           </div>
         )}
       </div>
+
+      {/* Anteprima espansa: la foto della card vola nel foglio (GSAP Flip). */}
+      <CaseQuickLook property={preview} onClose={() => setPreview(null)} />
     </section>
   );
 }

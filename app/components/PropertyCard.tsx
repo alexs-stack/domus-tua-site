@@ -17,6 +17,7 @@ const copy = {
     forRent: "In affitto",
     share: "Condividi",
     shared: "Link copiato",
+    quickLook: "Anteprima",
   },
   en: {
     cta: "Discover the home",
@@ -24,6 +25,7 @@ const copy = {
     forRent: "For rent",
     share: "Share",
     shared: "Link copied",
+    quickLook: "Quick look",
   },
   fr: {
     cta: "Découvrir la maison",
@@ -31,6 +33,7 @@ const copy = {
     forRent: "À louer",
     share: "Partager",
     shared: "Lien copié",
+    quickLook: "Aperçu",
   },
   de: {
     cta: "Das Zuhause entdecken",
@@ -38,6 +41,7 @@ const copy = {
     forRent: "Zu vermieten",
     share: "Teilen",
     shared: "Link kopiert",
+    quickLook: "Vorschau",
   },
   es: {
     cta: "Descubre la casa",
@@ -45,6 +49,7 @@ const copy = {
     forRent: "En alquiler",
     share: "Compartir",
     shared: "Enlace copiado",
+    quickLook: "Vista previa",
   },
 };
 
@@ -60,7 +65,14 @@ const strongBadges = new Set([
   "Affittato",
 ]);
 
-export default function PropertyCard({ p }: { p: Property }) {
+export default function PropertyCard({
+  p,
+  onQuickLook,
+}: {
+  p: Property;
+  /** Se presente, mostra il bottone Anteprima (Flip verso CaseQuickLook). */
+  onQuickLook?: () => void;
+}) {
   const { locale } = useLocale();
   const c = copy[locale];
   const statusLabel = p.status === "Affitto" ? c.forRent : c.forSale;
@@ -99,8 +111,9 @@ export default function PropertyCard({ p }: { p: Property }) {
     >
       {/* Immagine più grande e curata. Niente parallax qui: in griglie da 24+
           card il costo (uno ScrollTrigger scrub + upscale permanente per card)
-          non vale un movimento di ~2px; lo zoom hover resta l'accento motion. */}
-      <div className="relative aspect-[3/2] overflow-hidden">
+          non vale un movimento di ~2px; lo zoom hover resta l'accento motion.
+          data-flip-id: sorgente del volo verso CaseQuickLook (match per slug). */}
+      <div data-flip-id={p.slug} className="relative aspect-[3/2] overflow-hidden">
         <Image
           src={p.cover}
           alt={p.title}
@@ -135,9 +148,41 @@ export default function PropertyCard({ p }: { p: Property }) {
           )}
         </button>
 
+        {/* Anteprima — apre CaseQuickLook (Flip): vero pulsante sopra lo
+            stretched link, come Condividi. Solo dove la griglia lo abilita. */}
+        {onQuickLook && (
+          <button
+            type="button"
+            onClick={onQuickLook}
+            aria-haspopup="dialog"
+            aria-label={`${c.quickLook}: ${p.title}`}
+            className="absolute bottom-4 right-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper/90 text-ink shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)] backdrop-blur-sm transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-[18px] w-[18px]"
+              aria-hidden
+            >
+              <path d="M15 3h6v6" />
+              <path d="M9 21H3v-6" />
+              <path d="M21 3l-7 7" />
+              <path d="M3 21l7-7" />
+            </svg>
+          </button>
+        )}
+
         {/* Badge dal gestionale (Open Domus, Documenti verificati, In evidenza…) */}
         {shownBadges.length > 0 && (
-          <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
+          <div
+            className={`absolute bottom-4 left-4 flex flex-wrap gap-2 ${
+              onQuickLook ? "right-[4.25rem]" : "right-4"
+            }`}
+          >
             {shownBadges.map((b) => (
               <Badge
                 key={b}
