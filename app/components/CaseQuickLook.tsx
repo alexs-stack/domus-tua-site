@@ -71,7 +71,9 @@ export default function CaseQuickLook({
       return;
     }
     closingRef.current = true;
-    const fades = root.querySelectorAll<HTMLElement>("[data-ql-fade]");
+    // Anche i [data-ql-fact]: il foglio e il testo svaniscono insieme (senza,
+    // il testo resterebbe appeso a piena opacità sopra il backdrop morente).
+    const fades = root.querySelectorAll<HTMLElement>("[data-ql-fade], [data-ql-fact]");
     const tl = gsap.timeline({ onComplete: onClose });
     tl.to(fades, { autoAlpha: 0, duration: dur.micro, ease: "power2.in" }, 0);
     const source = findSource(p.slug);
@@ -103,7 +105,10 @@ export default function CaseQuickLook({
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
     getLenis()?.stop();
-    closeBtnRef.current?.focus();
+    // Focus sul pannello (tabIndex -1), non sul bottone Chiudi: con motion
+    // attivo il bottone parte autoAlpha 0 (visibility:hidden) e focus() su un
+    // nodo hidden è un no-op — il focus resterebbe dietro l'overlay.
+    panelRef.current?.focus();
     return () => {
       html.style.overflow = prevHtml;
       body.style.overflow = prevBody;
@@ -131,10 +136,18 @@ export default function CaseQuickLook({
       if (focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
+      const active = document.activeElement;
+      // Focus scappato fuori dal pannello (click su zona non interattiva,
+      // backdrop…): il Tab lo riporta dentro invece di scorrere lo sfondo.
+      if (!dialog.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+      if (e.shiftKey && active === first) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
+      } else if (!e.shiftKey && active === last) {
         e.preventDefault();
         first.focus();
       }
@@ -192,11 +205,14 @@ export default function CaseQuickLook({
   return createPortal(
     <div ref={rootRef} className="fixed inset-0 z-[70] grid place-items-center p-4 sm:p-8">
       {/* Backdrop: click fuori = chiudi (Esc e bottone restano le vie a11y) */}
+      {/* Bg pieno, niente backdrop-blur: un blur full-viewport la cui opacità
+          è animata mentre sopra vola il Flip è il costo compositor peggiore
+          possibile (stessa regola del menu mobile in Header). */}
       <div
         ref={backdropRef}
         aria-hidden
         onClick={requestClose}
-        className="absolute inset-0 bg-espresso/70 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-espresso/75"
       />
 
       <div
@@ -204,7 +220,8 @@ export default function CaseQuickLook({
         role="dialog"
         aria-modal="true"
         aria-label={p.title}
-        className="relative w-full max-w-3xl"
+        tabIndex={-1}
+        className="relative w-full max-w-3xl outline-none"
       >
         {/* Il foglio (chrome): layer separato così la foto in volo non ne
             eredita l'opacità durante apertura/chiusura. */}

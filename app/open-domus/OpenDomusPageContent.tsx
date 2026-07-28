@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { ScrollTrigger } from "../lib/motion/gsap";
 import { useDict, useLocale } from "../components/i18n/LocaleProvider";
 import Reveal from "../components/Reveal";
 import PageHero from "../components/PageHero";
@@ -991,6 +992,13 @@ export default function OpenDomusPageContent() {
                       <div
                         id={`faq-panel-${i}`}
                         aria-hidden={!isOpen}
+                        // L'altezza pagina cambia: il rail ThreadNav mappa nodi
+                        // e fill su maxScroll — ricalibrato a pannello assestato.
+                        onTransitionEnd={(e) => {
+                          if (e.target === e.currentTarget && e.propertyName === "grid-template-rows") {
+                            ScrollTrigger.refresh();
+                          }
+                        }}
                         className={`grid transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                           isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
                         }`}

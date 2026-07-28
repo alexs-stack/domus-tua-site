@@ -552,7 +552,14 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     const state = flipStateRef.current;
     flipStateRef.current = null;
     const grid = gridRef.current;
-    if (!state || !grid) return;
+    // La lista cambia l'altezza della pagina: i ScrollTrigger globali (il rail
+    // ThreadNav su /acquista mappa nodi e fill su maxScroll) vanno ricalibrati
+    // a layout assestato — mai a metà Flip (absolute:true = card fuori flusso).
+    const refresh = () => requestAnimationFrame(() => ScrollTrigger.refresh());
+    if (!state || !grid) {
+      refresh();
+      return;
+    }
     const tl = Flip.from(state, {
       // targets espliciti: le card appena montate non sono nello stato catturato
       // e senza questo onEnter non le vedrebbe.
@@ -561,6 +568,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       ease: "domus",
       stagger: 0.02,
       absolute: true,
+      onComplete: refresh,
       onEnter: (els) =>
         gsap.fromTo(
           els,

@@ -124,7 +124,13 @@ export default function ThreadNav({
     },
     // La chiave stringa evita ri-esecuzioni per nuove reference dell'array
     // chapters (i trigger dipendono solo dagli id, le etichette sono JSX).
-    { scope: rootRef, dependencies: [d, chapters.map((c) => c.id).join("|")] }
+    // revertOnUpdate: senza, il cambio lingua ri-eseguirebbe il callback SENZA
+    // revert e accumulerebbe matchMedia + trigger + listener refresh a ogni switch.
+    {
+      scope: rootRef,
+      dependencies: [d, chapters.map((c) => c.id).join("|")],
+      revertOnUpdate: true,
+    }
   );
 
   const goTo = (id: string) => {
