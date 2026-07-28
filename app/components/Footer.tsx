@@ -227,7 +227,10 @@ export default function Footer() {
             <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
               {nav.map((n) => (
                 <li key={n.href}>
-                  <a href={n.href} className="text-sm text-cream/70 transition-colors duration-300 hover:text-cream">
+                  <a
+                    href={n.href}
+                    className="link-draw text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
+                  >
                     {d.nav[n.key]}
                   </a>
                 </li>
@@ -235,7 +238,10 @@ export default function Footer() {
               {/* Domus D.O.C. — asset proprietario (nome-brand, invariato tra le lingue).
                   Punta alla sezione protocollo in homepage; discoverabile da ogni pagina. */}
               <li>
-                <Link href="/#domus-doc" className="text-sm text-cream/70 transition-colors duration-300 hover:text-cream">
+                <Link
+                  href="/#domus-doc"
+                  className="link-draw text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
+                >
                   Domus D.O.C.
                 </Link>
               </li>

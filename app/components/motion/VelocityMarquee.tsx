@@ -28,8 +28,9 @@ export default function VelocityMarquee({
 
   useGSAP(
     () => {
+      const root = rootRef.current;
       const track = trackRef.current;
-      if (!track) return;
+      if (!root || !track) return;
 
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
@@ -54,6 +55,21 @@ export default function VelocityMarquee({
           loop.timeScale(proxy.ts);
           setSkew(proxy.skew);
         };
+        // Il nastro gira solo quando è in viewport: fuori schermo il loop
+        // infinito sarebbe ticker sprecato (stessa regola di Atmosphere).
+        const gate = ScrollTrigger.create({
+          trigger: root,
+          start: "top bottom",
+          end: "bottom top",
+          onToggle(self) {
+            if (self.isActive) loop.play();
+            else loop.pause();
+          },
+        });
+        // onToggle scatta solo ai CAMBI di stato: se il nastro monta fuori
+        // viewport parte in pausa da subito, non al primo attraversamento.
+        if (!gate.isActive) loop.pause();
+
         const st = ScrollTrigger.create({
           onUpdate(self) {
             const v = self.getVelocity();
@@ -83,6 +99,7 @@ export default function VelocityMarquee({
 
         return () => {
           gsap.killTweensOf(proxy);
+          gate.kill();
           st.kill();
           loop.kill();
           gsap.set(track, { skewX: 0 });

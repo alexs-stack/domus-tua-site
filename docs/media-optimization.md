@@ -281,7 +281,7 @@ rispetta e va mantenuto così.
   l'utente **non** ha ridotto le animazioni.
 - **CSS** (`app/globals.css`): sotto `@media (prefers-reduced-motion: reduce)` le entrate
   `.reveal` sono immediate (niente fade/translate), `scroll-behavior` diventa `auto`, e le
-  animazioni continue (`.marquee-track`, `.ken-burns`, `.scroll-progress`, `.hero-parallax`)
+  animazioni continue (`.marquee-track`, `.ken-burns`)
   sono spente con `animation: none`. **Non introdurre animazioni infinite senza un guard qui.**
 - **JS** (`CountUp.tsx`): con reduced-motion mostra subito il valore finale invece di contare.
   Stesso principio per ogni nuovo effetto JS: controlla `matchMedia` e degrada allo stato finale.

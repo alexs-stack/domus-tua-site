@@ -10,6 +10,9 @@
 // - Back/forward del browser: nessuna transizione; se il popstate arriva
 //   DURANTE l'exit, il push pendente viene invalidato (navSeq) — il tasto
 //   Indietro vince sempre.
+// - Il sipario annuncia la destinazione: parola outline col nome tradotto
+//   della pagina (d.nav.*), scritta nel DOM dentro navigate() prima della
+//   copertura; route non mappate → solo il Segno.
 // - Reduced-motion: navigazione nativa Next, sipario mai.
 // - Scroll: reset istantaneo sotto il sipario; ScrollTrigger.refresh() dopo il
 //   mount; focus sull'ancora (se c'è) o su #main per tastiera/screen reader.
@@ -17,11 +20,41 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger, MQ, dur } from "../../lib/motion/gsap";
 import { SegnoDomus } from "../BrandMotif";
+import { useDict } from "../i18n/LocaleProvider";
 import { getLenis } from "./SmoothScroll";
 
 const CLOSED = "inset(100% 0% 0% 0%)";
 const OPEN = "inset(0% 0% 0% 0%)";
 const EXITED = "inset(0% 0% 100% 0%)";
+
+type NavDict = ReturnType<typeof useDict>["nav"];
+
+// Il sipario annuncia la destinazione: pathname → etichetta tradotta (d.nav.*).
+// Route non mappate (privacy, cookie, servizi…) → null: resta solo il Segno.
+function labelForPath(rawPath: string, nav: NavDict): string | null {
+  const path =
+    rawPath.length > 1 && rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
+  if (path === "/") return "Domus Tua"; // nome proprio: identico in ogni lingua
+  if (path === "/case" || path.startsWith("/case/")) return nav.case;
+  switch (path) {
+    case "/vendi":
+      return nav.vendi;
+    case "/acquista":
+      return nav.acquista;
+    case "/metodo":
+      return nav.metodo;
+    case "/open-domus":
+      return nav.openDomus;
+    case "/recensioni":
+      return nav.recensioni;
+    case "/chi-siamo":
+      return nav.chiSiamo;
+    case "/contatti":
+      return nav.contatti;
+    default:
+      return null;
+  }
+}
 
 let navigateImpl: ((href: string) => void) | null = null;
 let coveringGlobal = false;
@@ -41,11 +74,21 @@ export function transitionTo(href: string) {
 export default function PageTransition() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const wordRef = useRef<HTMLDivElement | null>(null);
   const coveringRef = useRef(false);
   const navSeqRef = useRef(0);
   const safetyRef = useRef<number | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Dizionario via ref: navigate() vive nell'effetto [router] e non deve
+  // ri-registrare il listener (né perdere un safety timeout in corso) a ogni
+  // cambio lingua. navigate parte solo da eventi utente → la ref è già fresca.
+  const d = useDict();
+  const dictRef = useRef(d);
+  useEffect(() => {
+    dictRef.current = d;
+  }, [d]);
 
   const setCovering = (v: boolean) => {
     coveringRef.current = v;
@@ -64,9 +107,12 @@ export default function PageTransition() {
     const reveal = () => {
       // Apertura del sipario (percorso safety: la route non è mai arrivata).
       gsap.set(root, { pointerEvents: "none" });
+      const word = wordRef.current;
+      if (word) gsap.killTweensOf(word);
       const tl = gsap.timeline({
         onComplete() {
           gsap.set(blades, { clipPath: CLOSED });
+          if (word) word.textContent = ""; // a riposo il layer resta vuoto
           setCovering(false);
           getLenis()?.start();
         },
@@ -76,6 +122,7 @@ export default function PageTransition() {
         { clipPath: EXITED, duration: 0.55, ease: "domus.inOut", stagger: 0.07 },
         0.05
       );
+      if (word) tl.to(word, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0);
     };
 
     const navigate = (href: string) => {
@@ -99,6 +146,37 @@ export default function PageTransition() {
       gsap.set(root, { pointerEvents: "auto" });
       gsap.set(panel.querySelector("[data-segno-layer]"), { autoAlpha: 1 });
       gsap.set(paths, { autoAlpha: 1 });
+
+      // La parola-destinazione va nel DOM ORA, prima che il sipario copra.
+      // Timeline separata da quella delle lame: non deve spostare l'onComplete
+      // che fa il push — la scivolata può proseguire mentre la route carica.
+      const word = wordRef.current;
+      if (word) {
+        let destPath = href;
+        try {
+          destPath = new URL(href, window.location.origin).pathname;
+        } catch {
+          /* href relativo malformato: nessuna parola, il sipario resta com'è */
+        }
+        const label = labelForPath(destPath, dictRef.current.nav);
+        gsap.killTweensOf(word);
+        word.textContent = label ?? "";
+        if (label) {
+          gsap
+            .timeline()
+            // Alpha rapida mentre le lame chiudono…
+            .fromTo(
+              word,
+              { xPercent: -6, autoAlpha: 0 },
+              { autoAlpha: 1, duration: 0.3, ease: "none" },
+              0.1
+            )
+            // …scivolata orizzontale sottile con la coda lunga della firma.
+            .to(word, { xPercent: 0, duration: dur.transition, ease: "domus" }, 0.1);
+        } else {
+          gsap.set(word, { autoAlpha: 0 });
+        }
+      }
 
       gsap
         .timeline({
@@ -212,18 +290,20 @@ export default function PageTransition() {
 
     const blades = Array.from(panel.querySelectorAll<HTMLElement>("[data-blade]"));
     const paths = Array.from(panel.querySelectorAll<SVGPathElement>("svg path"));
+    const word = wordRef.current;
     let raf = requestAnimationFrame(() => {
       raf = requestAnimationFrame(() => {
         ScrollTrigger.refresh();
         // L'exit potrebbe essere ancora vivo (popstate durante il sipario):
-        // un solo owner delle lame da qui in poi.
-        gsap.killTweensOf([...blades, ...paths]);
+        // un solo owner delle lame (e della parola) da qui in poi.
+        gsap.killTweensOf(word ? [...blades, ...paths, word] : [...blades, ...paths]);
         // La pagina sotto è pronta: i click tornano subito al contenuto,
         // le lame continuano ad aprirsi solo visivamente.
         gsap.set(root, { pointerEvents: "none" });
         const tl = gsap.timeline({
           onComplete() {
             gsap.set(blades, { clipPath: CLOSED });
+            if (word) word.textContent = ""; // a riposo il layer resta vuoto
             setCovering(false);
             getLenis()?.start();
             // Focus coerente con la destinazione: l'ancora se presente,
@@ -250,6 +330,8 @@ export default function PageTransition() {
           },
           0.05
         );
+        // La parola svanisce col Segno, prima che le lame scoprano la pagina.
+        if (word) tl.to(word, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0);
       });
     });
     return () => cancelAnimationFrame(raf);
@@ -282,6 +364,20 @@ export default function PageTransition() {
         >
           <SegnoDomus className="h-9 w-24" />
         </div>
+        {/* Parola-destinazione: nome tradotto della pagina in arrivo, outline
+            Fraunces corsivo sopra le lame, composizione editoriale in basso a
+            sinistra. A riposo: vuota e autoAlpha 0 (il testo lo scrive navigate). */}
+        <div
+          ref={wordRef}
+          aria-hidden
+          className="pointer-events-none absolute bottom-[7vh] left-[4vw] select-none whitespace-nowrap font-display italic leading-none text-transparent"
+          style={{
+            fontSize: "11vw",
+            WebkitTextStroke: "1.5px rgba(255, 252, 244, 0.35)",
+            opacity: 0,
+            visibility: "hidden",
+          }}
+        />
       </div>
     </div>
   );

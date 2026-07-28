@@ -7,17 +7,25 @@
 // Morph contestuali via attributi sui componenti:
 //   data-cursor="scopri|trascina|play" (+ data-cursor-label per testo custom)
 //   data-magnetic → l'anello si fonde col bottone (gestito da Magnetic).
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { gsap, useGSAP, MQ } from "../../lib/motion/gsap";
-
-const LABELS: Record<string, string> = {
-  scopri: "Scopri",
-  trascina: "◂ Trascina ▸",
-  play: "",
-};
+import { useDict } from "../i18n/LocaleProvider";
 
 export default function Cursor() {
+  const d = useDict();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  // Etichette tradotte lette via ref: i listener (registrati una volta nel
+  // matchMedia) vedono sempre la lingua corrente senza ri-registrarsi.
+  // Aggiornata in un effetto (mai durante il render): i lettori sono handler
+  // di eventi, quindi girano sempre dopo il commit.
+  const labelsRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    labelsRef.current = {
+      scopri: d.cursor.scopri,
+      trascina: `◂ ${d.cursor.trascina} ▸`,
+      play: "",
+    };
+  }, [d]);
 
   useGSAP(
     () => {
@@ -128,7 +136,8 @@ export default function Cursor() {
           const tagged = el.closest<HTMLElement>("[data-cursor]");
           if (tagged) {
             const kind = tagged.dataset.cursor || "scopri";
-            const text = tagged.dataset.cursorLabel ?? LABELS[kind] ?? LABELS.scopri;
+            const text =
+              tagged.dataset.cursorLabel ?? labelsRef.current[kind] ?? labelsRef.current.scopri;
             return setState("label", kind === "play" ? "" : text);
           }
           if (el.closest("[data-magnetic]")) return setState("magnetic");

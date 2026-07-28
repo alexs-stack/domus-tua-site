@@ -154,12 +154,14 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <div className="grain" aria-hidden />
-        <div className="scroll-progress" aria-hidden />
         <SmoothScroll />
         <Preloader />
-        <PageTransition />
-        <Cursor />
         <LocaleProvider>
+          {/* Dentro LocaleProvider: sipario e cursore usano stringhe tradotte
+              (useDict). Il posizionamento è fixed, quindi la posizione nel
+              tree non cambia nulla di visivo. */}
+          <PageTransition />
+          <Cursor />
           <div id="main" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
             {children}
           </div>

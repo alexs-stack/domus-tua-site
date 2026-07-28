@@ -6,6 +6,7 @@ import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
+import HoverDistort from "./motion/HoverDistort";
 import Atmosphere from "./motion/Atmosphere";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -310,6 +311,7 @@ export default function Services() {
           <div className="lg:col-span-2 lg:row-span-2">
             <article
               data-service-feature
+              data-cursor="scopri"
               className="group relative h-full min-h-[22rem] overflow-hidden rounded-[2rem] border border-line"
             >
               <MaskReveal
@@ -324,15 +326,30 @@ export default function Services() {
                   className="absolute inset-0"
                   innerClassName="absolute inset-0"
                 >
-                  <Image
-                    src="/images/rendering_01_living_divano_grigio.jpg"
-                    alt={c.featureAlt}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 760px"
-                    className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                  />
+                  {/* Hover liquido WebGL SOLO qui: l'immagine è un rendering di
+                      interni, nessuna persona (regola cliente: mai distorsione
+                      su foto con persone). HoverDistort sta DENTRO l'inner di
+                      Parallax così il suo canvas eredita overscan e scrub e
+                      resta allineato all'immagine al fade-in; il wrapper
+                      absolute inset-0 gli dà il rect pieno su cui il canvas si
+                      dimensiona (getBoundingClientRect). I gate desktop/pointer
+                      fine/motionOk/saveData li gestisce il componente. */}
+                  <HoverDistort className="absolute inset-0">
+                    <Image
+                      src="/images/rendering_01_living_divano_grigio.jpg"
+                      alt={c.featureAlt}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 760px"
+                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                    />
+                  </HoverDistort>
                 </Parallax>
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
+                {/* pointer-events-none: il gradiente è decorativo ma copre tutta
+                    la card; senza, intercetterebbe l'hit-testing e il pointer-
+                    enter non raggiungerebbe mai il layer HoverDistort sotto.
+                    Restando dopo Parallax nel DOM, continua a dipingersi SOPRA
+                    il canvas: contrasto del testo intatto durante l'hover. */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
               </MaskReveal>
               <div className="absolute inset-x-0 bottom-0 p-7 sm:p-9">
                 <span className="rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-cream">

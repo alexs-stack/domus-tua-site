@@ -21,6 +21,7 @@ export const localeShort: Record<Locale, string> = {
 type Dict = {
   nav: { vendi: string; acquista: string; metodo: string; openDomus: string; case: string; recensioni: string; chiSiamo: string; contatti: string };
   header: { valuta: string; whatsapp: string };
+  cursor: { scopri: string; trascina: string };
   hero: {
     eyebrow: string; title1: string; title2: string; subcopy: string;
     ctaValuta: string; ctaMetodo: string; ctaCerco: string;
@@ -43,6 +44,7 @@ export const dictionaries: Record<Locale, Dict> = {
   it: {
     nav: { vendi: "Vendi", acquista: "Acquista", metodo: "Metodo Domus", openDomus: "Open Domus", case: "Case", recensioni: "Recensioni", chiSiamo: "Chi siamo", contatti: "Contatti" },
     header: { valuta: "Valuta la tua casa", whatsapp: "Scrivici su WhatsApp" },
+    cursor: { scopri: "Scopri", trascina: "Trascina" },
     hero: {
       eyebrow: "Agenzia immobiliare · Tradate dal 2007",
       title1: "Vendere casa, senza stress.",
@@ -73,6 +75,7 @@ export const dictionaries: Record<Locale, Dict> = {
   en: {
     nav: { vendi: "Sell", acquista: "Buy", metodo: "The Method", openDomus: "Open Domus", case: "Homes", recensioni: "Reviews", chiSiamo: "About us", contatti: "Contact" },
     header: { valuta: "Value your home", whatsapp: "Message us on WhatsApp" },
+    cursor: { scopri: "View", trascina: "Drag" },
     hero: {
       eyebrow: "Real estate agency · Tradate since 2007",
       title1: "Sell your home, stress-free.",
@@ -103,6 +106,7 @@ export const dictionaries: Record<Locale, Dict> = {
   fr: {
     nav: { vendi: "Vendre", acquista: "Acheter", metodo: "La Méthode", openDomus: "Open Domus", case: "Biens", recensioni: "Avis", chiSiamo: "À propos", contatti: "Contact" },
     header: { valuta: "Estimez votre bien", whatsapp: "Écrivez-nous sur WhatsApp" },
+    cursor: { scopri: "Découvrir", trascina: "Glisser" },
     hero: {
       eyebrow: "Agence immobilière · Tradate depuis 2007",
       title1: "Vendre sa maison, sans stress.",
@@ -133,6 +137,7 @@ export const dictionaries: Record<Locale, Dict> = {
   de: {
     nav: { vendi: "Verkaufen", acquista: "Kaufen", metodo: "Die Methode", openDomus: "Open Domus", case: "Immobilien", recensioni: "Bewertungen", chiSiamo: "Über uns", contatti: "Kontakt" },
     header: { valuta: "Immobilie bewerten", whatsapp: "Schreib uns auf WhatsApp" },
+    cursor: { scopri: "Entdecken", trascina: "Ziehen" },
     hero: {
       eyebrow: "Immobilienagentur · Tradate seit 2007",
       title1: "Verkaufen ohne Stress.",
@@ -163,6 +168,7 @@ export const dictionaries: Record<Locale, Dict> = {
   es: {
     nav: { vendi: "Vender", acquista: "Comprar", metodo: "El Método", openDomus: "Open Domus", case: "Inmuebles", recensioni: "Reseñas", chiSiamo: "Quiénes somos", contatti: "Contacto" },
     header: { valuta: "Valora tu casa", whatsapp: "Escríbenos por WhatsApp" },
+    cursor: { scopri: "Descubrir", trascina: "Arrastrar" },
     hero: {
       eyebrow: "Agencia inmobiliaria · Tradate desde 2007",
       title1: "Vender tu casa, sin estrés.",

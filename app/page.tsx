@@ -21,6 +21,7 @@ import Footer from "./components/Footer";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import SectionDivider from "./components/SectionDivider";
 import KineticStrip from "./components/motion/KineticStrip";
+import ThreadNav from "./components/motion/ThreadNav";
 import BrandStrip from "./components/BrandStrip";
 
 export const metadata: Metadata = {
@@ -41,6 +42,8 @@ export default function Home() {
   return (
     <>
       <Header />
+      {/* Il filo rosso che cuce i capitoli della home (desktop, motion ok) */}
+      <ThreadNav />
       <main className="flex-1">
         <HeroCinematic />
         <HomeSearchGateway />

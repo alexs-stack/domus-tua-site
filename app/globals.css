@@ -114,9 +114,10 @@ body {
   overflow-x: clip;
 }
 
+/* Selezione brandizzata: crema (non #fff) → resta nel registro caldo della palette */
 ::selection {
   background: var(--color-red);
-  color: #fff;
+  color: var(--color-cream);
 }
 
 /* ---------- Typography helpers ---------- */
@@ -215,9 +216,7 @@ body {
   }
   /* Ferma animazioni continue e scroll-driven */
   .marquee-track,
-  .ken-burns,
-  .scroll-progress,
-  .hero-parallax {
+  .ken-burns {
     animation: none !important;
   }
   /* Titoli e contenuti restano visibili senza movimento */
@@ -268,41 +267,6 @@ body {
   .word-reveal.is-in .w {
     transform: translateY(0);
     opacity: 1;
-  }
-}
-
-/* ---------- Barra di progresso scroll (scroll-driven, progressive) ---------- */
-.scroll-progress {
-  position: fixed;
-  inset: 0 0 auto 0;
-  height: 2.5px;
-  z-index: 70;
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-  background: linear-gradient(90deg, var(--color-red-dark), var(--color-red));
-}
-@keyframes dt-progress {
-  to {
-    transform: scaleX(1);
-  }
-}
-@keyframes dt-hero-rise {
-  to {
-    transform: translateY(-8%);
-    opacity: 0.55;
-  }
-}
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .scroll-progress {
-      animation: dt-progress linear both;
-      animation-timeline: scroll(root);
-    }
-    .hero-parallax {
-      animation: dt-hero-rise linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 100vh;
-    }
   }
 }
 
@@ -593,6 +557,32 @@ body {
   .link-underline {
     transition: none;
   }
+}
+
+/* Variante per link "nudi" (nav del footer): riga che si disegna via ::after animando
+   SOLO transform — niente background-size animato (repaint a ogni frame). Anche su
+   focus-visible: la tastiera merita lo stesso feedback del mouse. Reduced-motion: non
+   serve una regola dedicata, la globale `*::after { transition-duration: 0.001ms }`
+   porta la riga allo stato finale senza movimento. */
+.link-draw {
+  position: relative;
+  display: inline-block;
+}
+.link-draw::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-domus);
+}
+.link-draw:hover::after,
+.link-draw:focus-visible::after {
+  transform: scaleX(1);
 }
 
 /* Capolettera editoriale — UNA sola volta per pagina (eleganza, mai vezzo ripetuto). */

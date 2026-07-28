@@ -104,13 +104,13 @@ Titoli display fluidi impostati inline con Tailwind, non come classi di scala fi
   a stato pieno quando riceve `.is-in`. Durata 0.9s, `ease-out-expo`.
 - **`.word-reveal`** — titoli editoriali parola-per-parola: ogni `.w` sale da `translateY(0.5em)`
   con opacità, 0.85s. Supporta `startDelay` (vedi Hero).
-- **Scroll-driven (progressive enhancement)** sotto `@supports (animation-timeline: scroll())`:
-  - `.scroll-progress` — barra in alto, gradiente `red-dark → red`, `scaleX` legato allo scroll root.
-  - `.hero-parallax` — leggera risalita/attenuazione dell'hero (`animation-range: 0 100vh`).
+- **Scroll-driven:** il progresso di pagina vive nel filo rosso di `ThreadNav`
+  (rail di navigazione desktop, GSAP scrub); la vecchia barra `.scroll-progress`
+  e `.hero-parallax` sono state rimosse (2026-07).
 - **Continue:** `.marquee-track` (loop 38s lineare), `.ken-burns` (zoom cinematografico 18s
   sull'hero image), `dt-float`, `dt-scrollcue`.
 - **`prefers-reduced-motion: reduce`** — gestito con cura: `.reveal` e `.word-reveal` diventano
-  statici e visibili, si fermano marquee/ken-burns/scroll-progress/hero-parallax, e tutte le
+  statici e visibili, si fermano marquee/ken-burns, e tutte le
   animazioni/transizioni sono ridotte a `~0.001ms`. **Ogni nuova animazione deve rispettare
   questa media query.**
 

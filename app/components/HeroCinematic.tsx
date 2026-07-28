@@ -15,7 +15,7 @@ import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
-import { INTRO_EVENT } from "./motion/Preloader";
+import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
 
 const copy = {
   it: {
@@ -96,8 +96,10 @@ export default function HeroCinematic() {
   const [playVideo, setPlayVideo] = useState(false);
   const sectionRef = useRef<HTMLElement | null>(null);
   const mediaRef = useRef<HTMLDivElement | null>(null);
+  const mediaDepthRef = useRef<HTMLDivElement | null>(null);
   const frameWrapRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const contentDepthRef = useRef<HTMLDivElement | null>(null);
   const cueRef = useRef<HTMLSpanElement | null>(null);
 
   // Partenza cinematica "frame-in": uscendo dallo scroll il canvas full-bleed si
@@ -227,6 +229,87 @@ export default function HeroCinematic() {
     { scope: sectionRef }
   );
 
+  // Profondità "camera viva" al puntatore — solo desktop + pointer fine +
+  // motion ok. I target sono layer DEDICATI, senza altri owner del transform:
+  // mediaRef ha già clip/scale/yPercent del frame-in, l'IMG il ken-burns CSS,
+  // contentRef lo yPercent dello scrub e .w/[data-hero-seq] le timeline
+  // d'intro — qui si muovono solo il wrapper media (±10px) e il blocco testo
+  // (∓5px, direzione opposta = profondità). Nessun effetto sull'LCP: solo
+  // transform post-idratazione, il paint del testo non cambia.
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      const media = mediaDepthRef.current;
+      const content = contentDepthRef.current;
+      if (!section || !media || !content) return;
+
+      const mm = gsap.matchMedia();
+      // Sintassi a oggetto: il callback rientra a ogni toggle di una singola
+      // query, quindi le condizioni vanno riverificate TUTTE qui dentro.
+      mm.add(
+        { motionOk: MQ.motionOk, desktop: MQ.desktop, fine: MQ.finePointer },
+        (ctx) => {
+          const { motionOk, desktop, fine } = ctx.conditions as Record<string, boolean>;
+          if (!motionOk || !desktop || !fine) return;
+
+          // Overscan solo mentre l'effetto è attivo (stesso pattern di Paths):
+          // ±10px non scoprono mai i bordi del layer video (scale 1), la foto
+          // ha già il ken-burns ≥1.06. Niente will-change: mediaRef promuove
+          // già un layer full-viewport, un secondo pinnato in GPU
+          // raddoppierebbe la texture (vedi nota ken-burns in globals.css).
+          gsap.set(media, { scale: 1.04 });
+
+          const mediaX = gsap.quickTo(media, "x", { duration: 0.8, ease: "power3.out" });
+          const mediaY = gsap.quickTo(media, "y", { duration: 0.8, ease: "power3.out" });
+          const contentX = gsap.quickTo(content, "x", { duration: 0.8, ease: "power3.out" });
+          const contentY = gsap.quickTo(content, "y", { duration: 0.8, ease: "power3.out" });
+
+          // Parte solo a intro conclusa: durante il sipario il puntatore può
+          // già muoversi sull'hero ma il timone è della coreografia sopra.
+          // Safety allineato al handoff: se l'evento va perso, si arma comunque.
+          let active = !isIntroRunning();
+          const arm = () => {
+            active = true;
+          };
+          let safety = 0;
+          if (!active) {
+            window.addEventListener(INTRO_EVENT, arm, { once: true });
+            safety = window.setTimeout(arm, 4500);
+          }
+
+          const onMove = (e: PointerEvent) => {
+            if (!active) return;
+            const r = section.getBoundingClientRect();
+            const nx = gsap.utils.clamp(-1, 1, ((e.clientX - r.left) / r.width) * 2 - 1);
+            const ny = gsap.utils.clamp(-1, 1, ((e.clientY - r.top) / r.height) * 2 - 1);
+            mediaX(nx * 10);
+            mediaY(ny * 10);
+            contentX(nx * -5);
+            contentY(ny * -5);
+          };
+          const onLeave = () => {
+            // Rientro morbido al centro (stessa molla dei quickTo).
+            mediaX(0);
+            mediaY(0);
+            contentX(0);
+            contentY(0);
+          };
+
+          section.addEventListener("pointermove", onMove, { passive: true });
+          section.addEventListener("pointerleave", onLeave);
+          return () => {
+            window.removeEventListener(INTRO_EVENT, arm);
+            window.clearTimeout(safety);
+            section.removeEventListener("pointermove", onMove);
+            section.removeEventListener("pointerleave", onLeave);
+            // Il revert del context azzera scale/x/y inline sui due layer.
+          };
+        }
+      );
+    },
+    { scope: sectionRef }
+  );
+
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
   // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto (leggera).
   // Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
@@ -267,33 +350,38 @@ export default function HeroCinematic() {
     <section ref={sectionRef} id="top" className="relative flex min-h-[92dvh] w-full items-end overflow-hidden bg-ink text-cream">
       {/* Canvas media (foto + eventuale video) in un layer parallax unico */}
       <div ref={mediaRef} className="absolute inset-0">
-        {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
-        <Image
-          src={heroCinematic.base}
-          alt={heroCinematic.baseAlt}
-          fill
-          priority
-          sizes="100vw"
-          className="ken-burns object-cover"
-          style={{ objectPosition: "50% 35%" }}
-        />
+        {/* Layer profondità puntatore: mediaRef è già owner di clip/scale del
+            frame-in e l'IMG del ken-burns — il transform x/y vive SOLO qui.
+            Il clip-path del genitore ritaglia comunque l'overscan. */}
+        <div ref={mediaDepthRef} className="absolute inset-0">
+          {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
+          <Image
+            src={heroCinematic.base}
+            alt={heroCinematic.baseAlt}
+            fill
+            priority
+            sizes="100vw"
+            className="ken-burns object-cover"
+            style={{ objectPosition: "50% 35%" }}
+          />
 
-        {/* Video overlay (opzionale, video-ready): copre la base quando disponibile */}
-        {playVideo && (
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            poster={heroCinematic.poster}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            onError={() => setPlayVideo(false)}
-          >
-            <source src={heroCinematic.webm} type="video/webm" />
-            <source src={heroCinematic.mp4} type="video/mp4" />
-          </video>
-        )}
+          {/* Video overlay (opzionale, video-ready): copre la base quando disponibile */}
+          {playVideo && (
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              poster={heroCinematic.poster}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              onError={() => setPlayVideo(false)}
+            >
+              <source src={heroCinematic.webm} type="video/webm" />
+              <source src={heroCinematic.mp4} type="video/mp4" />
+            </video>
+          )}
+        </div>
       </div>
 
       {/* Gradienti per leggibilità del testo */}
@@ -307,7 +395,9 @@ export default function HeroCinematic() {
 
       {/* Contenuto */}
       <div ref={contentRef} className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-36">
-        <div className="max-w-3xl">
+        {/* Il x/y del parallasse puntatore sta su questo blocco interno:
+            contentRef è già owner dello yPercent del frame-in. */}
+        <div ref={contentDepthRef} className="max-w-3xl">
           <span data-hero-badge className="inline-flex">
             <SegnoDomusBadge light className="backdrop-blur-sm">{c.badge}</SegnoDomusBadge>
           </span>
