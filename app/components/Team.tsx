@@ -198,8 +198,11 @@ export default function Team() {
       <Atmosphere word="Domus Tua" glow drift={1} wordClassName="left-[2%] bottom-[4%] text-[13vw]" />
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
-          <Reveal>
-            <span className="eyebrow">{c.eyebrow}</span>
+          {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+          <div>
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
             {/* Titolo display: le righe salgono dalla maschera (SplitText). */}
             <TextLines
               as="h2"
@@ -207,6 +210,7 @@ export default function Team() {
             >
               {c.title}
             </TextLines>
+            <Reveal delay={100}>
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-graphite">
               {c.lead}
             </p>
@@ -279,7 +283,8 @@ export default function Team() {
                 <ArrowUpRight className="h-4 w-4" />
               </span>
             </a>
-          </Reveal>
+            </Reveal>
+          </div>
 
           {/* Colonna foto: leggera deriva in primo piano allo scroll (solo desktop);
               nessun elemento sticky all'interno. */}
