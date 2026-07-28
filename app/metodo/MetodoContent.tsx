@@ -11,11 +11,9 @@ import OpenDomus from "../components/OpenDomus";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
-import TextLines from "../components/motion/TextLines";
-import ScrubWords from "../components/motion/ScrubWords";
-import { SegnoDomusBadge } from "../components/BrandMotif";
-import { ArrowUpRight } from "../components/Icons";
-import { useLocale } from "../components/i18n/LocaleProvider";
+import ManifestoPin from "../components/motion/ManifestoPin";
+import ThreadNav from "../components/motion/ThreadNav";
+import { useLocale, useDict } from "../components/i18n/LocaleProvider";
 
 const copy = {
   it: {
@@ -46,9 +44,9 @@ const copy = {
     item3Copy:
       "Un riferimento umano in ogni passaggio, dalla prima telefonata alla firma.",
     docEyebrow: "Al centro del metodo",
-    docTitle: "Domus D.O.C., la nostra garanzia di fiducia.",
-    docCopy:
-      "Ogni fase del metodo confluisce nel protocollo Domus di Origine Certificata: dalla valutazione e certificazione D.O.C. fino alla multi-proposta, documenti, conformità, trasparenza, preparazione e tutela sono verificati prima di mettere in vendita.",
+    manifesto:
+      "Ascolto, documenti verificati, persone giuste: ogni passo è cucito al successivo, fino alla firma. Noi la chiamiamo fiducia.",
+    manifestoHighlight: "fiducia",
     docLink: "Scopri il protocollo Domus D.O.C.",
   },
   en: {
@@ -79,9 +77,9 @@ const copy = {
     item3Copy:
       "A human point of reference at every step, from the first phone call to the signature.",
     docEyebrow: "At the heart of the method",
-    docTitle: "Domus D.O.C., our promise of trust.",
-    docCopy:
-      "Every phase of the method flows into the Domus of Certified Origin protocol: from valuation and D.O.C. certification through to the multi-offer stage, documents, compliance, transparency, preparation and protection are all verified before listing.",
+    manifesto:
+      "Listening, verified documents, the right people: every step is stitched to the next, all the way to the signature. We call it trust.",
+    manifestoHighlight: "trust",
     docLink: "Discover the Domus D.O.C. protocol",
   },
   fr: {
@@ -112,9 +110,9 @@ const copy = {
     item3Copy:
       "Un interlocuteur humain à chaque étape, du premier appel à la signature.",
     docEyebrow: "Au cœur de la méthode",
-    docTitle: "Domus D.O.C., notre garantie de confiance.",
-    docCopy:
-      "Chaque phase de la méthode se rejoint dans le protocole Domus d’Origine Certifiée : de l’estimation et la certification D.O.C. jusqu’à la multi-proposition, documents, conformité, transparence, préparation et protection sont vérifiés avant la mise en vente.",
+    manifesto:
+      "L’écoute, des documents vérifiés, les bonnes personnes : chaque étape est cousue à la suivante, jusqu’à la signature. Nous appelons cela la confiance.",
+    manifestoHighlight: "confiance",
     docLink: "Découvrir le protocole Domus D.O.C.",
   },
   de: {
@@ -145,9 +143,9 @@ const copy = {
     item3Copy:
       "Ein menschlicher Ansprechpartner bei jedem Schritt, vom ersten Anruf bis zur Unterschrift.",
     docEyebrow: "Im Zentrum der Methode",
-    docTitle: "Domus D.O.C., unser Versprechen für Vertrauen.",
-    docCopy:
-      "Jede Phase der Methode mündet in das Protokoll Domus mit zertifizierter Herkunft: von der Bewertung und D.O.C.-Zertifizierung bis zur Multi-Angebot-Phase werden Unterlagen, Konformität, Transparenz, Vorbereitung und Schutz vor dem Verkauf geprüft.",
+    manifesto:
+      "Zuhören, geprüfte Unterlagen, die richtigen Menschen: Jeder Schritt ist mit dem nächsten vernäht, bis zur Unterschrift. Wir nennen das Vertrauen.",
+    manifestoHighlight: "Vertrauen",
     docLink: "Das Protokoll Domus D.O.C. entdecken",
   },
   es: {
@@ -178,22 +176,35 @@ const copy = {
     item3Copy:
       "Una referencia humana en cada paso, desde la primera llamada hasta la firma.",
     docEyebrow: "En el centro del método",
-    docTitle: "Domus D.O.C., nuestra garantía de confianza.",
-    docCopy:
-      "Cada fase del método confluye en el protocolo Domus de Origen Certificado: desde la valoración y certificación D.O.C. hasta la multipropuesta, los documentos, la conformidad, la transparencia, la preparación y la protección se verifican antes de poner en venta.",
+    manifesto:
+      "Escucha, documentos verificados, personas adecuadas: cada paso va cosido al siguiente, hasta la firma. Nosotros lo llamamos confianza.",
+    manifestoHighlight: "confianza",
     docLink: "Descubre el protocolo Domus D.O.C.",
   },
 };
 
 export default function MetodoContent() {
   const { locale } = useLocale();
+  const d = useDict();
   const c = copy[locale];
 
   return (
     <>
       <Header />
+      {/* Il filo rosso cuce anche /metodo: capitoli della pagina sul rail */}
+      <ThreadNav
+        chapters={[
+          { id: "top", label: "Domus Tua" },
+          { id: "metodo", label: d.nav.metodo },
+          { id: "domus-doc", label: "Domus D.O.C." },
+          { id: "open-domus", label: d.nav.openDomus },
+          { id: "recensioni", label: d.nav.recensioni },
+          { id: "contatti", label: d.nav.contatti },
+        ]}
+      />
       <main className="flex-1">
         <PageHero
+          id="top"
           eyebrow={c.heroEyebrow}
           title={c.heroTitle()}
           subcopy={c.heroSubcopy}
@@ -226,33 +237,14 @@ export default function MetodoContent() {
 
         <Method />
 
-        {/* Ponte narrativo verso il protocollo Domus D.O.C. */}
-        <section className="bg-cream">
-          <div className="mx-auto max-w-[1240px] px-5 pt-20 sm:px-8 sm:pt-24">
-            <div className="mx-auto max-w-2xl text-center">
-              <SegnoDomusBadge className="mx-auto">{c.docEyebrow}</SegnoDomusBadge>
-              <TextLines
-                as="h2"
-                className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
-              >
-                {c.docTitle}
-              </TextLines>
-              {/* Il manifesto della pagina si "legge" con lo scroll: le parole
-                  si accendono in sequenza (scrub). */}
-              <ScrubWords
-                text={c.docCopy}
-                className="mx-auto mt-4 max-w-xl text-[1.02rem] leading-relaxed text-stone"
-              />
-              <a
-                href="#domus-doc"
-                className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red-dark transition-colors hover:text-red"
-              >
-                {c.docLink}
-                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
-            </div>
-          </div>
-        </section>
+        {/* Momento firma: il manifesto del metodo, pinnato, si legge con lo
+            scroll e l'ago cuce la parola chiave. */}
+        <ManifestoPin
+          eyebrow={c.docEyebrow}
+          text={c.manifesto}
+          highlight={c.manifestoHighlight}
+          link={{ label: c.docLink, href: "#domus-doc" }}
+        />
 
         <DomusDocProtocol tone="cream" id="domus-doc" />
         <OpenDomus />
