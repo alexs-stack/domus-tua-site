@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import PageHero from "../components/PageHero";
 import PropertySearch from "../components/PropertySearch";
+import SectionDivider from "../components/SectionDivider";
 import Contact from "../components/Contact";
 import { useLocale } from "../components/i18n/LocaleProvider";
 import type { Property } from "../lib/properties";
@@ -101,6 +102,11 @@ export default function CaseContent({ properties }: { properties: Property[] }) 
         secondary={{ label: c.secondaryLabel, href: "/contatti" }}
       />
       <PropertySearch properties={properties} />
+      {/* La cucitura: il filo rosso chiude la zona crema un attimo prima di
+          Contact — /case non ha il rail ThreadNav, il filo passa qui. */}
+      <div className="bg-cream">
+        <SectionDivider variant="stitch" tone="cream" />
+      </div>
       <Contact />
     </>
   );

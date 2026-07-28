@@ -1,8 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useLocale } from "../components/i18n/LocaleProvider";
+import { useDict, useLocale } from "../components/i18n/LocaleProvider";
 import PageHero from "../components/PageHero";
+import ThreadNav from "../components/motion/ThreadNav";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import BeforeAfter from "../components/BeforeAfter";
@@ -912,80 +913,94 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
 
 export default function VendiContent() {
   const { locale } = useLocale();
+  const d = useDict();
   const c = copy[locale];
 
   return (
-    <main className="flex-1">
-      <PageHero
-        eyebrow={c.hero.eyebrow}
-        title={c.hero.title()}
-        subcopy={c.hero.subcopy}
-        image="/images/premium_02_living_dining_piante.jpg"
-        alt={c.hero.alt}
-        primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
-        secondary={{ label: c.hero.secondaryLabel, href: "#percorso" }}
-        trust={c.hero.trust}
+    <>
+      {/* Filo rosso di pagina: fixed, fratello di <main> (mai sotto antenati trasformati). */}
+      <ThreadNav
+        chapters={[
+          { id: "top", label: "Domus Tua" },
+          { id: "percorso", label: d.nav.percorso },
+          { id: "domus-doc", label: "Domus D.O.C." },
+          { id: "recensioni", label: d.nav.recensioni },
+          { id: "contatti", label: d.nav.contatti },
+        ]}
       />
+      <main className="flex-1">
+        <PageHero
+          id="top"
+          eyebrow={c.hero.eyebrow}
+          title={c.hero.title()}
+          subcopy={c.hero.subcopy}
+          image="/images/premium_02_living_dining_piante.jpg"
+          alt={c.hero.alt}
+          primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
+          secondary={{ label: c.hero.secondaryLabel, href: "#percorso" }}
+          trust={c.hero.trust}
+        />
 
-      <Highlights
-        tone="paper"
-        eyebrow={c.highlights.eyebrow}
-        title={c.highlights.title}
-        intro={c.highlights.intro}
-        items={c.highlights.items}
-      />
+        <Highlights
+          tone="paper"
+          eyebrow={c.highlights.eyebrow}
+          title={c.highlights.title}
+          intro={c.highlights.intro}
+          items={c.highlights.items}
+        />
 
-      <SellRisks risks={c.risks} />
+        <SellRisks risks={c.risks} />
 
-      <div className="bg-cream">
-        <SectionDivider tone="cream" />
-      </div>
-
-      <EditorialRows
-        id="percorso"
-        eyebrow={c.steps.eyebrow}
-        title={c.steps.title}
-        intro={c.steps.intro}
-        rows={c.sellSteps}
-        tone="cream"
-      />
-
-      {/* CTA Open Domus per il venditore — collega l'asset proprietario alla vendita. */}
-      <section className="bg-ink">
-        <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-          <Reveal className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
-            {/* Le parole si accendono in sequenza legate allo scroll */}
-            <ScrubWords
-              text={c.openDomus.text}
-              className="max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-cream balance sm:text-[1.9rem]"
-            />
-            <a
-              href="/open-domus"
-              className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-            >
-              {c.openDomus.cta}
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
-          </Reveal>
+        <div className="bg-cream">
+          <SectionDivider tone="cream" />
         </div>
-      </section>
 
-      <BeforeAfter />
-      <DomusDocProtocol tone="cream" />
-      <FeaturedTestimonial />
-      <Reviews />
+        <EditorialRows
+          id="percorso"
+          eyebrow={c.steps.eyebrow}
+          title={c.steps.title}
+          intro={c.steps.intro}
+          rows={c.sellSteps}
+          tone="cream"
+        />
 
-      <div className="bg-paper">
-        <SegnoDomusDivider className="py-2" />
-      </div>
-      <SellPrep prep={c.prep} />
+        {/* CTA Open Domus per il venditore — collega l'asset proprietario alla vendita. */}
+        <section className="bg-ink">
+          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
+            <Reveal className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+              {/* Le parole si accendono in sequenza legate allo scroll */}
+              <ScrubWords
+                text={c.openDomus.text}
+                className="max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-cream balance sm:text-[1.9rem]"
+              />
+              <a
+                href="/open-domus"
+                className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
+                {c.openDomus.cta}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
+            </Reveal>
+          </div>
+        </section>
 
-      <div className="bg-cream-deep">
-        <SectionDivider tone="cream-deep" />
-      </div>
-      <Contact />
-    </main>
+        <BeforeAfter />
+        <DomusDocProtocol tone="cream" id="domus-doc" />
+        <FeaturedTestimonial />
+        <Reviews />
+
+        <div className="bg-paper">
+          <SegnoDomusDivider className="py-2" />
+        </div>
+        <SellPrep prep={c.prep} />
+
+        <div className="bg-cream-deep">
+          <SectionDivider tone="cream-deep" />
+        </div>
+        <Contact />
+      </main>
+    </>
   );
 }

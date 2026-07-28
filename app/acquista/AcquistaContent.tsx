@@ -1,7 +1,8 @@
 "use client";
 
-import { useLocale } from "../components/i18n/LocaleProvider";
+import { useDict, useLocale } from "../components/i18n/LocaleProvider";
 import PageHero from "../components/PageHero";
+import ThreadNav from "../components/motion/ThreadNav";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import PropertySearch from "../components/PropertySearch";
@@ -499,6 +500,7 @@ const stepImages = [
 
 export default function AcquistaContent({ listings }: { listings: Property[] }) {
   const { locale } = useLocale();
+  const d = useDict();
   const c = copy[locale];
 
   const buySteps = c.steps.rows.map((r, i) => ({
@@ -516,123 +518,136 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
   );
 
   return (
-    <main className="flex-1">
-      <PageHero
-        eyebrow={c.hero.eyebrow}
-        title={c.hero.title()}
-        subcopy={c.hero.subcopy}
-        image="/images/hero_04_living_moderno_bianco.jpg"
-        alt={c.hero.alt}
-        primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
-        secondary={{ label: c.hero.secondaryLabel, href: "#case" }}
-        trust={c.hero.trust}
+    <>
+      {/* Filo rosso di pagina: fixed, fratello di <main> (mai sotto antenati trasformati). */}
+      <ThreadNav
+        chapters={[
+          { id: "top", label: "Domus Tua" },
+          { id: "case", label: d.nav.case },
+          { id: "percorso", label: d.nav.percorso },
+          { id: "recensioni", label: d.nav.recensioni },
+          { id: "contatti", label: d.nav.contatti },
+        ]}
       />
+      <main className="flex-1">
+        <PageHero
+          id="top"
+          eyebrow={c.hero.eyebrow}
+          title={c.hero.title()}
+          subcopy={c.hero.subcopy}
+          image="/images/hero_04_living_moderno_bianco.jpg"
+          alt={c.hero.alt}
+          primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
+          secondary={{ label: c.hero.secondaryLabel, href: "#case" }}
+          trust={c.hero.trust}
+        />
 
-      {/* Ricerca in alto: chi compra deve poter cercare subito (#case = target dell'hero). */}
-      <div id="case">
-        <PropertySearch properties={listings} />
-      </div>
-
-      <Highlights
-        eyebrow={c.highlights.eyebrow}
-        title={c.highlights.title}
-        intro={c.highlights.intro}
-        items={c.highlights.items}
-      />
-
-      <EditorialRows
-        id="percorso"
-        eyebrow={c.steps.eyebrow}
-        title={c.steps.title}
-        intro={c.steps.intro}
-        rows={buySteps}
-      />
-
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-          <div className="grid gap-14 lg:grid-cols-[1fr_0.92fr] lg:items-start lg:gap-20">
-            {/* Rassicurazione: cosa facciamo per te */}
-            <Reveal>
-              <span className="eyebrow">{c.reassure.eyebrow}</span>
-              <h2 className="mt-5 max-w-lg font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-                {c.reassure.title}
-              </h2>
-              <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-stone">
-                {c.reassure.intro}
-              </p>
-              <ul className="mt-9 space-y-4">
-                {c.reassure.list.map((item) => (
-                  <li key={item} className="flex items-start gap-3.5">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                      <SegnoTick className="h-4 w-4" />
-                    </span>
-                    <span className="text-[0.98rem] leading-relaxed text-ink/85">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-
-            {/* Card lead acquirente + teaser AI */}
-            <Reveal delay={120} className="lg:pt-2">
-              <div className="relative overflow-hidden rounded-[2rem] border border-line bg-cream p-8 sm:p-10">
-                <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
-                <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.7rem]">
-                  {c.reassure.ctaTitle}
-                </h3>
-                <p className="mt-3 text-[0.98rem] leading-relaxed text-stone">
-                  {c.reassure.ctaCopy}
-                </p>
-                <div className="mt-7 flex flex-wrap items-center gap-3">
-                  <a
-                    href="#contatti"
-                    className="group inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-dark"
-                  >
-                    {c.reassure.ctaLabel}
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </a>
-                  {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
-                  <a
-                    href={buyerWa}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-3 text-sm font-semibold text-ink transition-colors hover:border-red hover:text-red"
-                  >
-                    <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
-                  </a>
-                </div>
-
-                <p className="mt-7 border-t border-line pt-6 text-[0.9rem] leading-relaxed text-stone">
-                  {c.reassure.offlineNote}
-                </p>
-
-                {/* Richiamo alla ricerca intelligente (attiva) resa più in basso da <PropertySearch> */}
-                <div className="mt-7 rounded-[1.5rem] border border-dashed border-red/25 bg-paper/70 p-5">
-                  <SegnoDomusBadge>{c.reassure.aiBadge}</SegnoDomusBadge>
-                  <p className="mt-3.5 text-[0.95rem] leading-relaxed text-ink/80">
-                    {c.reassure.aiText}
-                  </p>
-                </div>
-              </div>
-            </Reveal>
-          </div>
+        {/* Ricerca in alto: chi compra deve poter cercare subito (#case = target dell'hero). */}
+        <div id="case">
+          <PropertySearch properties={listings} />
         </div>
-      </section>
 
-      <FeaturedTestimonial
-        quote={c.testimonial.quote}
-        author={c.testimonial.author}
-        context={c.testimonial.context}
-        image="/images/reali/consulenza.jpg"
-        alt={c.testimonial.alt}
-        videoHref="https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE"
-      />
-      <DomusDocProtocol tone="cream" />
-      <Reviews />
-      <div className="bg-cream-deep">
-        <SectionDivider tone="cream-deep" />
-      </div>
-      {/* Pagina acquirente: il form parte già sull'intento "cerco casa". */}
-      <Contact initialIntent="buyer" />
-    </main>
+        <Highlights
+          eyebrow={c.highlights.eyebrow}
+          title={c.highlights.title}
+          intro={c.highlights.intro}
+          items={c.highlights.items}
+        />
+
+        <EditorialRows
+          id="percorso"
+          eyebrow={c.steps.eyebrow}
+          title={c.steps.title}
+          intro={c.steps.intro}
+          rows={buySteps}
+        />
+
+        <section className="bg-paper">
+          <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+            <div className="grid gap-14 lg:grid-cols-[1fr_0.92fr] lg:items-start lg:gap-20">
+              {/* Rassicurazione: cosa facciamo per te */}
+              <Reveal>
+                <span className="eyebrow">{c.reassure.eyebrow}</span>
+                <h2 className="mt-5 max-w-lg font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+                  {c.reassure.title}
+                </h2>
+                <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-stone">
+                  {c.reassure.intro}
+                </p>
+                <ul className="mt-9 space-y-4">
+                  {c.reassure.list.map((item) => (
+                    <li key={item} className="flex items-start gap-3.5">
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
+                        <SegnoTick className="h-4 w-4" />
+                      </span>
+                      <span className="text-[0.98rem] leading-relaxed text-ink/85">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
+
+              {/* Card lead acquirente + teaser AI */}
+              <Reveal delay={120} className="lg:pt-2">
+                <div className="relative overflow-hidden rounded-[2rem] border border-line bg-cream p-8 sm:p-10">
+                  <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
+                  <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.7rem]">
+                    {c.reassure.ctaTitle}
+                  </h3>
+                  <p className="mt-3 text-[0.98rem] leading-relaxed text-stone">
+                    {c.reassure.ctaCopy}
+                  </p>
+                  <div className="mt-7 flex flex-wrap items-center gap-3">
+                    <a
+                      href="#contatti"
+                      className="group inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-dark"
+                    >
+                      {c.reassure.ctaLabel}
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </a>
+                    {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
+                    <a
+                      href={buyerWa}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-3 text-sm font-semibold text-ink transition-colors hover:border-red hover:text-red"
+                    >
+                      <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
+                    </a>
+                  </div>
+
+                  <p className="mt-7 border-t border-line pt-6 text-[0.9rem] leading-relaxed text-stone">
+                    {c.reassure.offlineNote}
+                  </p>
+
+                  {/* Richiamo alla ricerca intelligente (attiva) resa più in basso da <PropertySearch> */}
+                  <div className="mt-7 rounded-[1.5rem] border border-dashed border-red/25 bg-paper/70 p-5">
+                    <SegnoDomusBadge>{c.reassure.aiBadge}</SegnoDomusBadge>
+                    <p className="mt-3.5 text-[0.95rem] leading-relaxed text-ink/80">
+                      {c.reassure.aiText}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        <FeaturedTestimonial
+          quote={c.testimonial.quote}
+          author={c.testimonial.author}
+          context={c.testimonial.context}
+          image="/images/reali/consulenza.jpg"
+          alt={c.testimonial.alt}
+          videoHref="https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE"
+        />
+        <DomusDocProtocol tone="cream" />
+        <Reviews />
+        <div className="bg-cream-deep">
+          <SectionDivider tone="cream-deep" />
+        </div>
+        {/* Pagina acquirente: il form parte già sull'intento "cerco casa". */}
+        <Contact initialIntent="buyer" />
+      </main>
+    </>
   );
 }
