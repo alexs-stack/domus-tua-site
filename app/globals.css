@@ -431,22 +431,33 @@ body {
   }
 }
 
-/* ---------- Metodo: passo attivo (classi gestite da ScrollTrigger) ---------- */
-/* Lo scroll accende il passo corrente: numero rosso e riga leggermente avanzata.
-   Senza JS/reduced-motion la classe non viene mai applicata → lista statica. */
-.dt-step-row {
-  transition: border-color 0.5s var(--ease-soft), transform 0.5s var(--ease-soft);
+/* ---------- Metodo: filo rosso (classi gestite da ScrollTrigger) ----------
+   Il foglio che il filo sta attraversando si "accende": nodo che diventa
+   rosso e scala (proprietà native scale/rotate: compongono coi translate
+   Tailwind v4 senza sovrascriverli), foglio che si raddrizza. Senza JS o con
+   reduced-motion la classe non arriva mai → dossier statico e completo. */
+.dt-step .dt-step-node {
+  transition: background-color 0.5s var(--ease-soft), border-color 0.5s var(--ease-soft),
+    color 0.5s var(--ease-soft), scale 0.5s var(--ease-soft), box-shadow 0.5s var(--ease-soft);
 }
-.dt-step-row.step-active .dt-step-num {
-  color: var(--color-red);
+.dt-step.step-active .dt-step-node {
+  background-color: var(--color-red);
+  border-color: var(--color-red);
+  color: #fff;
+  scale: 1.15;
+  box-shadow: 0 10px 24px -12px rgb(210 10 10 / 0.55);
 }
-.dt-step-row.step-active {
+.dt-step [data-step-card] {
+  transition: border-color 0.5s var(--ease-soft), rotate 0.5s var(--ease-soft),
+    box-shadow 0.5s var(--ease-soft);
+}
+.dt-step.step-active [data-step-card] {
   border-color: rgb(210 10 10 / 0.3);
-  transform: translateX(6px);
+  rotate: 0deg;
 }
 @media (prefers-reduced-motion: reduce) {
-  .dt-step-row.step-active {
-    transform: none;
+  .dt-step.step-active .dt-step-node {
+    scale: 1;
   }
 }
 
@@ -650,40 +661,6 @@ html[data-preloader] .dt-preloader {
   html.dt-cursor-active iframe {
     cursor: auto !important;
   }
-}
-
-/* ---------- Metodo: scrollytelling orizzontale ----------
-   Il layout di base è VERTICALE (SSR/no-JS/reduced-motion/mobile: lista
-   completa, nessun contenuto perso). La classe .dt-method-h è aggiunta da
-   Method.tsx solo con JS + desktop + motion ok: rimonta il track in riga,
-   mostra contatore a rullo e linea di progresso, nasconde la spina. */
-.dt-method-h [data-method-pin] {
-  min-height: 100svh;
-  padding-top: 5rem;
-  padding-bottom: 4rem;
-}
-.dt-method-h [data-method-track] {
-  flex-direction: row;
-  width: max-content;
-  gap: 2.25rem;
-  padding-left: 0;
-}
-.dt-method-h [data-method-track] > li {
-  width: min(30rem, 36vw);
-  flex-shrink: 0;
-}
-.dt-method-h [data-method-track] .dt-step-row {
-  height: 100%;
-  align-items: flex-start;
-}
-.dt-method-h [data-method-spine] {
-  display: none;
-}
-.dt-method-h [data-method-progress] {
-  display: block;
-}
-.dt-method-h [data-method-counter] {
-  display: flex;
 }
 
 /* ---------- Footer reveal (uncover) ----------

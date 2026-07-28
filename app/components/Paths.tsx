@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useRef } from "react";
 import Reveal from "./Reveal";
 import MaskReveal from "./motion/MaskReveal";
-import HoverDistort from "./motion/HoverDistort";
 import { ArrowUpRight, Check } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
@@ -296,19 +295,18 @@ function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
           className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)]"
           innerClassName="absolute inset-0"
         >
-          {/* Wrapper della deriva puntatore: solo l'immagine, il pill resta fermo.
-              Dentro, il layer WebGL HoverDistort (fase 5): distorsione liquida
-              in hover, con fallback trasparente sull'hover CSS. */}
+          {/* Wrapper della deriva puntatore: solo l'immagine, il pill resta
+              fermo. NIENTE HoverDistort qui: la distorsione liquida su foto
+              con persone reali (feedback cliente) deforma i volti — l'effetto
+              resta disponibile solo per immagini senza persone. */}
           <div ref={imgWrapRef} className="absolute inset-0">
-            <HoverDistort className="absolute inset-0">
-              <Image
-                src={p.image}
-                alt={t.alt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 600px"
-                className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-              />
-            </HoverDistort>
+            <Image
+              src={p.image}
+              alt={t.alt}
+              fill
+              sizes="(max-width: 1024px) 100vw, 600px"
+              className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+            />
           </div>
           <span className="absolute left-4 top-4 rounded-full bg-paper/95 px-3.5 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]">
             {t.tag}

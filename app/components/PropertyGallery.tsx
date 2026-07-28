@@ -24,7 +24,6 @@ function ActiveImage({
       firstRunRef.current = false;
       return;
     }
-    /* eslint-disable-next-line react-hooks/set-state-in-effect */
     setShown(false);
     const id = requestAnimationFrame(() => setShown(true));
     return () => cancelAnimationFrame(id);
