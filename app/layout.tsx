@@ -17,7 +17,9 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // Anti-flash del preloader: marca <html data-preloader> PRIMA del primo paint,
 // solo alla prima visita di sessione e senza reduced-motion. Senza JS
 // l'attributo non esiste mai → l'overlay resta display:none (vedi globals.css).
-const preloaderBootScript = `try{if(!sessionStorage.getItem("dt-intro-seen")&&matchMedia("(prefers-reduced-motion: no-preference)").matches)document.documentElement.setAttribute("data-preloader","")}catch(e){}`;
+// Failsafe a 8s: se il bundle non idrata mai, l'attributo va rimosso comunque
+// (ripristina overflow e nasconde l'overlay; a intro conclusa è un no-op).
+const preloaderBootScript = `try{if(!sessionStorage.getItem("dt-intro-seen")&&matchMedia("(prefers-reduced-motion: no-preference)").matches){document.documentElement.setAttribute("data-preloader","");setTimeout(function(){document.documentElement.removeAttribute("data-preloader")},8000)}}catch(e){}`;
 
 export const viewport: Viewport = {
   width: "device-width",

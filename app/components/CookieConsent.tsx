@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
+import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
 
 const COOKIE = "dt_consent";
 
@@ -64,8 +65,23 @@ export default function CookieConsent() {
 
   useEffect(() => {
     const decided = document.cookie.split("; ").some((r) => r.startsWith(`${COOKIE}=`));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!decided) setShow(true);
+    if (decided) return;
+    // Mai sotto il preloader: il banner sposterebbe il focus su "Accetta" mentre
+    // è coperto dall'overlay (Enter per saltare l'intro accetterebbe i cookie
+    // alla cieca). Appare al handoff dell'intro.
+    if (!isIntroRunning()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShow(true);
+      return;
+    }
+    const onIntroDone = () => setShow(true);
+    window.addEventListener(INTRO_EVENT, onIntroDone, { once: true });
+    // Safety: se l'evento va perso, il banner appare comunque.
+    const safety = window.setTimeout(() => setShow(true), 6000);
+    return () => {
+      window.removeEventListener(INTRO_EVENT, onIntroDone);
+      window.clearTimeout(safety);
+    };
   }, []);
 
   // All'apertura: memorizza il focus corrente e spostalo sull'azione primaria (Accetta).

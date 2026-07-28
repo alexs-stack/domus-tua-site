@@ -180,6 +180,10 @@ body {
   filter: blur(6px);
   transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo),
     filter 0.9s var(--ease-out-expo);
+}
+/* will-change SOLO finché l'elemento non è entrato: decine di reveal promossi
+   per sempre = memoria GPU sprecata (sensibile su mobile). */
+.reveal:not(.is-in) {
   will-change: transform, opacity;
 }
 .reveal.is-in {
@@ -245,6 +249,9 @@ body {
   transform: translateY(0.5em);
   opacity: 0;
   transition: transform 0.85s var(--ease-out-expo), opacity 0.85s var(--ease-out-expo);
+}
+/* Come per .reveal: layer promossi solo nella finestra animata. */
+.word-reveal:not(.is-in) .w {
   will-change: transform, opacity;
 }
 .word-reveal.is-in .w {
@@ -323,7 +330,8 @@ body {
 .ken-burns {
   animation: dt-kenburns 18s var(--ease-out-expo) forwards;
   transform-origin: 60% 40%;
-  will-change: transform;
+  /* niente will-change: l'animation promuove già il layer, e a fine corsa
+     terrebbe pinnata in GPU una texture grande quanto il viewport (LCP). */
 }
 
 /* Indicatore di scroll */
@@ -588,6 +596,18 @@ html[data-preloader] {
 .dt-preloader [data-pre-content] {
   opacity: 0;
 }
+/* Safety CSS-only: se il bundle non idrata mai (rete flaky, JS bloccato dopo
+   l'inline script), l'overlay si toglie di mezzo da solo. Il Preloader JS
+   disattiva questa animation al takeover (style.animation = "none"). */
+@keyframes dt-pre-autohide {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+html[data-preloader] .dt-preloader {
+  animation: dt-pre-autohide 0.5s ease 5s forwards;
+}
 
 /* ---------- Cursor custom (solo pointer fine + motion ok) ---------- */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
@@ -603,6 +623,40 @@ html[data-preloader] {
   html.dt-cursor-active iframe {
     cursor: auto !important;
   }
+}
+
+/* ---------- Metodo: scrollytelling orizzontale ----------
+   Il layout di base è VERTICALE (SSR/no-JS/reduced-motion/mobile: lista
+   completa, nessun contenuto perso). La classe .dt-method-h è aggiunta da
+   Method.tsx solo con JS + desktop + motion ok: rimonta il track in riga,
+   mostra contatore a rullo e linea di progresso, nasconde la spina. */
+.dt-method-h [data-method-pin] {
+  min-height: 100svh;
+  padding-top: 5rem;
+  padding-bottom: 4rem;
+}
+.dt-method-h [data-method-track] {
+  flex-direction: row;
+  width: max-content;
+  gap: 2.25rem;
+  padding-left: 0;
+}
+.dt-method-h [data-method-track] > li {
+  width: min(30rem, 36vw);
+  flex-shrink: 0;
+}
+.dt-method-h [data-method-track] .dt-step-row {
+  height: 100%;
+  align-items: flex-start;
+}
+.dt-method-h [data-method-spine] {
+  display: none;
+}
+.dt-method-h [data-method-progress] {
+  display: block;
+}
+.dt-method-h [data-method-counter] {
+  display: flex;
 }
 
 /* ---------- Footer reveal (uncover) ----------

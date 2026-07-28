@@ -7,11 +7,12 @@
 // il sipario si apre sulla pagina già coreografata.
 // - Nessun wrapper attorno alla pagina: overlay fixed fratello del contenuto
 //   → gli elementi fixed (header, WhatsApp, action bar) restano intatti.
-// - Back/forward del browser: nessuna transizione (il listener non è coinvolto
-//   e l'entrance parte solo se il sipario sta coprendo).
-// - Reduced-motion: il listener non interviene, navigazione nativa Next.
+// - Back/forward del browser: nessuna transizione; se il popstate arriva
+//   DURANTE l'exit, il push pendente viene invalidato (navSeq) — il tasto
+//   Indietro vince sempre.
+// - Reduced-motion: navigazione nativa Next, sipario mai.
 // - Scroll: reset istantaneo sotto il sipario; ScrollTrigger.refresh() dopo il
-//   mount; focus su #main per gli utenti tastiera/screen reader.
+//   mount; focus sull'ancora (se c'è) o su #main per tastiera/screen reader.
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger, MQ, dur } from "../../lib/motion/gsap";
@@ -23,6 +24,13 @@ const OPEN = "inset(0% 0% 0% 0%)";
 const EXITED = "inset(0% 0% 100% 0%)";
 
 let navigateImpl: ((href: string) => void) | null = null;
+let coveringGlobal = false;
+
+/** True mentre il sipario copre (exit → entrance): chi gestisce Lenis
+ *  (es. la chiusura del menu) non deve riavviare lo scroll in questa finestra. */
+export function isTransitionCovering(): boolean {
+  return coveringGlobal;
+}
 
 /** Naviga con la transizione coreografata (fallback: nessuna transizione). */
 export function transitionTo(href: string) {
@@ -34,9 +42,15 @@ export default function PageTransition() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const coveringRef = useRef(false);
+  const navSeqRef = useRef(0);
   const safetyRef = useRef<number | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  const setCovering = (v: boolean) => {
+    coveringRef.current = v;
+    coveringGlobal = v;
+  };
 
   // Uscita: sipario che sale + Segno ridisegnato, poi push.
   useEffect(() => {
@@ -47,12 +61,12 @@ export default function PageTransition() {
     const paths = Array.from(panel.querySelectorAll<SVGPathElement>("svg path"));
 
     const reveal = () => {
-      // Apertura del sipario sulla pagina nuova (o forzata dalla safety).
+      // Apertura del sipario (percorso safety: la route non è mai arrivata).
+      gsap.set(root, { pointerEvents: "none" });
       const tl = gsap.timeline({
         onComplete() {
-          gsap.set(root, { pointerEvents: "none" });
           gsap.set(panel, { clipPath: CLOSED });
-          coveringRef.current = false;
+          setCovering(false);
           getLenis()?.start();
         },
       });
@@ -65,7 +79,14 @@ export default function PageTransition() {
 
     const navigate = (href: string) => {
       if (coveringRef.current) return;
-      coveringRef.current = true;
+      // Il gate reduced-motion vale anche per i caller programmatici
+      // (transitionTo): navigazione pulita senza sipario.
+      if (!window.matchMedia(MQ.motionOk).matches) {
+        router.push(href);
+        return;
+      }
+      setCovering(true);
+      const navId = ++navSeqRef.current;
       getLenis()?.stop();
 
       const mobile = !window.matchMedia(MQ.desktop).matches;
@@ -80,6 +101,9 @@ export default function PageTransition() {
       gsap
         .timeline({
           onComplete() {
+            // Un popstate nel frattempo ha già cambiato pagina: il push
+            // pendente sarebbe una seconda navigazione non richiesta.
+            if (navSeqRef.current !== navId) return;
             router.push(href);
             // Se la pagina nuova non arriva (errore, route lentissima),
             // il sipario si riapre comunque: mai lasciare l'utente al buio.
@@ -106,6 +130,10 @@ export default function PageTransition() {
     // Solo preventDefault (niente stopPropagation): gli onClick React dei
     // componenti (es. chiusura del menu mobile) continuano a funzionare.
     const onClick = (e: MouseEvent) => {
+      // Guard PRIMA di qualunque preventDefault: durante la copertura un
+      // Enter su un link focalizzato deve restare un evento nativo (o venire
+      // ignorato dal browser), mai essere inghiottito a vuoto.
+      if (coveringRef.current) return;
       if (e.defaultPrevented || e.button !== 0) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       if (!window.matchMedia(MQ.motionOk).matches) return;
@@ -123,6 +151,7 @@ export default function PageTransition() {
         return;
       }
       if (url.origin !== window.location.origin) return;
+      if (url.protocol !== "http:" && url.protocol !== "https:") return;
       // Ancore nella stessa pagina: le gestisce Lenis (anchors: true).
       if (url.pathname === window.location.pathname) return;
 
@@ -140,6 +169,9 @@ export default function PageTransition() {
 
   // Entrata: quando il pathname cambia MENTRE il sipario copre.
   useEffect(() => {
+    // Qualunque cambio di pathname invalida un eventuale push pendente
+    // (caso: back/forward premuto durante l'exit).
+    navSeqRef.current++;
     if (!coveringRef.current) return;
     const root = rootRef.current;
     const panel = panelRef.current;
@@ -157,14 +189,29 @@ export default function PageTransition() {
     let raf = requestAnimationFrame(() => {
       raf = requestAnimationFrame(() => {
         ScrollTrigger.refresh();
+        // L'exit potrebbe essere ancora vivo (popstate durante il sipario):
+        // un solo owner del pannello da qui in poi.
+        gsap.killTweensOf([panel, ...paths]);
+        // La pagina sotto è pronta: i click tornano subito al contenuto,
+        // il pannello continua ad aprirsi solo visivamente.
+        gsap.set(root, { pointerEvents: "none" });
         const tl = gsap.timeline({
           onComplete() {
-            gsap.set(root, { pointerEvents: "none" });
             gsap.set(panel, { clipPath: CLOSED });
-            coveringRef.current = false;
+            setCovering(false);
             getLenis()?.start();
-            const main = document.getElementById("main");
-            main?.focus({ preventScroll: true });
+            // Focus coerente con la destinazione: l'ancora se presente,
+            // altrimenti il contenitore della pagina.
+            const hash = window.location.hash;
+            const anchorTarget = hash
+              ? document.getElementById(decodeURIComponent(hash.slice(1)))
+              : null;
+            if (anchorTarget) {
+              anchorTarget.setAttribute("tabindex", "-1");
+              anchorTarget.focus({ preventScroll: true });
+            } else {
+              document.getElementById("main")?.focus({ preventScroll: true });
+            }
           },
         });
         tl.to(paths, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0).to(

@@ -35,7 +35,15 @@ export default function SmoothScroll() {
       lenis.on("scroll", ScrollTrigger.update);
       onTick = (time: number) => lenis?.raf(time * 1000);
       gsap.ticker.add(onTick);
-      gsap.ticker.lagSmoothing(0);
+      // Contratto col preloader (che gira in layout effect, PRIMA di questo
+      // useEffect): se l'intro sta coprendo, Lenis nasce fermo e il
+      // lagSmoothing anti-jank dell'intro non va azzerato — sarà finish()
+      // del Preloader a fare start() e lagSmoothing(0).
+      if (document.documentElement.hasAttribute("data-preloader")) {
+        lenis.stop();
+      } else {
+        gsap.ticker.lagSmoothing(0);
+      }
     };
 
     const stop = () => {

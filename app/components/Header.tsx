@@ -9,6 +9,7 @@ import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { getLenis } from "./motion/SmoothScroll";
+import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 
 export default function Header() {
@@ -70,17 +71,39 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Ownership dello scroll-lock: start() SOLO se è stato questo menu a fare
+  // stop() (mai al mount con open=false) e MAI mentre il sipario di
+  // PageTransition copre (è lui il proprietario dello stop in quel momento).
+  const menuLockedRef = useRef(false);
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    // Con Lenis attivo lo scroll virtuale va fermato insieme a quello nativo,
-    // altrimenti la pagina dietro il menu continua a "muoversi" con la rotella.
-    if (open) getLenis()?.stop();
-    else getLenis()?.start();
-    return () => {
+    const release = () => {
+      if (!menuLockedRef.current) return;
+      menuLockedRef.current = false;
       document.body.style.overflow = "";
-      getLenis()?.start();
+      if (!isTransitionCovering()) getLenis()?.start();
     };
+    if (open) {
+      document.body.style.overflow = "hidden";
+      // Con Lenis attivo lo scroll virtuale va fermato insieme a quello nativo,
+      // altrimenti la pagina dietro il menu continua a "muoversi" con la rotella.
+      getLenis()?.stop();
+      menuLockedRef.current = true;
+    } else {
+      release();
+    }
+    return release;
   }, [open]);
+
+  // Se il viewport supera il breakpoint lg con il menu aperto, overlay e
+  // hamburger spariscono (lg:hidden) ma il lock resterebbe: chiudiamo il menu.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setOpen(false);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   // Coreografia del menu mobile (solo motion ok): clip-path circolare che
   // nasce dal bottone hamburger, voci in stagger (y + micro-rotazione),
@@ -96,10 +119,15 @@ export default function Header() {
     }
     const menu = menuRef.current;
     if (!menu) return;
-    if (!window.matchMedia(MQ.motionOk).matches) return;
-
     const links = Array.from(menu.querySelectorAll<HTMLElement>("nav a"));
     const bottom = menu.querySelector<HTMLElement>("[data-menu-bottom]");
+    if (!window.matchMedia(MQ.motionOk).matches) {
+      // Reduced-motion attivato DOPO un'apertura animata: gli inline style di
+      // GSAP (opacity/clip) vincerebbero sulle classi. Pulizia idempotente e
+      // via: il toggle resta il cambio di classi istantaneo.
+      gsap.set([menu, ...links, ...(bottom ? [bottom] : [])], { clearProps: "all" });
+      return;
+    }
     const r = toggleRef.current?.getBoundingClientRect();
     const cx = r ? r.left + r.width / 2 : window.innerWidth - 44;
     const cy = r ? r.top + r.height / 2 : 44;
@@ -316,7 +344,10 @@ export default function Header() {
         aria-hidden={!open}
         inert={!open ? true : undefined}
         data-lenis-prevent
-        className={`fixed inset-0 z-40 flex flex-col bg-cream/90 px-6 pb-10 pt-28 backdrop-blur-2xl lg:hidden ${
+        // bg pieno, niente backdrop-blur: un blur full-viewport ricalcolato a
+        // ogni frame del clip-path sarebbe il costo compositor peggiore
+        // possibile proprio sull'interazione mobile più frequente.
+        className={`fixed inset-0 z-40 flex flex-col bg-cream px-6 pb-10 pt-28 lg:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >

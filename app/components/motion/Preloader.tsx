@@ -31,11 +31,25 @@ export default function Preloader() {
       const html = document.documentElement;
       if (!root || !html.hasAttribute("data-preloader")) return;
 
-      const finish = () => {
-        try {
-          sessionStorage.setItem(INTRO_KEY, "1");
-        } catch {
-          /* storage pieno/bloccato: pazienza, si rivedrà */
+      // L'evento di handoff parte una sola volta, da qualunque percorso
+      // (fine naturale, skip, abort): chi ascolta non deve mai restare appeso.
+      let introFired = false;
+      const fireIntro = () => {
+        if (introFired) return;
+        introFired = true;
+        window.dispatchEvent(new Event(INTRO_EVENT));
+      };
+
+      // `completed`: sessionStorage va scritto solo quando l'intro è stata
+      // davvero vista/saltata dall'utente — mai negli abort (StrictMode/HMR),
+      // altrimenti in dev l'intro non si rivede più.
+      const finish = (completed: boolean) => {
+        if (completed) {
+          try {
+            sessionStorage.setItem(INTRO_KEY, "1");
+          } catch {
+            /* storage pieno/bloccato: pazienza, si rivedrà */
+          }
         }
         html.removeAttribute("data-preloader");
         // Ripristina il contratto Lenis↔ScrollTrigger (vedi sotto).
@@ -43,11 +57,16 @@ export default function Preloader() {
         getLenis()?.start();
       };
 
+      // Il CSS ha una safety autohide per il caso "bundle mai idratato":
+      // da qui in poi il timone è di GSAP, l'animazione CSS va disattivata.
+      root.style.animation = "none";
+
+      const media = window.matchMedia("(prefers-reduced-motion: no-preference)");
       // Cintura e bretelle: l'inline script già esclude reduced-motion,
       // ma se l'utente lo attiva tra paint e idratazione chiudiamo subito.
-      if (!window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
-        window.dispatchEvent(new Event(INTRO_EVENT));
-        finish();
+      if (!media.matches) {
+        fireIntro();
+        finish(true);
         return;
       }
 
@@ -65,8 +84,8 @@ export default function Preloader() {
       const count = root.querySelector<HTMLElement>("[data-pre-count]");
       const paths = root.querySelectorAll<SVGPathElement>("svg path");
       if (!panel || !content) {
-        window.dispatchEvent(new Event(INTRO_EVENT));
-        finish();
+        fireIntro();
+        finish(true);
         return;
       }
 
@@ -80,7 +99,7 @@ export default function Preloader() {
       const counter = { v: 0 };
       const tl = gsap.timeline({
         defaults: { ease: "domus" },
-        onComplete: finish,
+        onComplete: () => finish(true),
       });
 
       tl.to(content, { autoAlpha: 1, duration: 0.3, ease: "none" }, 0)
@@ -109,7 +128,7 @@ export default function Preloader() {
         )
         .add("exit", 1.5)
         // L'handoff parte QUI: il sipario si apre mentre l'hero entra sotto.
-        .call(() => window.dispatchEvent(new Event(INTRO_EVENT)), [], "exit")
+        .call(fireIntro, [], "exit")
         .to(content, { yPercent: -12, autoAlpha: 0, duration: 0.45, ease: "domus.inOut" }, "exit")
         .to(
           panel,
@@ -118,18 +137,45 @@ export default function Preloader() {
         );
 
       // Skip: al primo click/tasto si salta dritti all'uscita (mai bloccare).
+      // seek() sopprime le callback attraversate: evento e contatore vanno
+      // portati a destinazione a mano prima del salto.
       const skip = () => {
-        if (tl.time() < tl.labels.exit) tl.seek("exit");
+        if (tl.time() >= tl.labels.exit) return;
+        if (count) count.textContent = "100";
+        fireIntro();
+        tl.seek("exit");
       };
-      window.addEventListener("pointerdown", skip);
-      window.addEventListener("keydown", skip);
+      const onPointerSkip = () => skip();
+      const onKeySkip = (e: KeyboardEvent) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        // Solo tasti "di contenuto": F5/DevTools/media key restano al browser.
+        const usable =
+          e.key === "Enter" || e.key === " " || e.key === "Escape" || e.key.length === 1;
+        if (!usable) return;
+        // preventDefault: sotto l'overlay può esserci un elemento focalizzato
+        // (es. un bottone) — il tasto salta l'intro, non deve attivare altro.
+        e.preventDefault();
+        skip();
+      };
+      // Se reduced-motion viene attivato DURANTE l'intro: si salta subito.
+      const onMediaChange = () => {
+        if (!media.matches) skip();
+      };
+      window.addEventListener("pointerdown", onPointerSkip);
+      window.addEventListener("keydown", onKeySkip);
+      media.addEventListener("change", onMediaChange);
 
       return () => {
-        window.removeEventListener("pointerdown", skip);
-        window.removeEventListener("keydown", skip);
-        // Se il componente muore a metà intro (HMR, nav): mai lasciare la
-        // pagina bloccata sotto l'overlay.
-        if (html.hasAttribute("data-preloader")) finish();
+        window.removeEventListener("pointerdown", onPointerSkip);
+        window.removeEventListener("keydown", onKeySkip);
+        media.removeEventListener("change", onMediaChange);
+        // Se il componente muore a metà intro (HMR/StrictMode): mai lasciare
+        // la pagina bloccata sotto l'overlay — ma senza marcare la sessione,
+        // così l'intro resta riproducibile.
+        if (html.hasAttribute("data-preloader")) {
+          fireIntro();
+          finish(false);
+        }
       };
     },
     { scope: rootRef }

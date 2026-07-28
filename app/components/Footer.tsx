@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 import { Phone, Whatsapp, Mail, Pin, Instagram, Facebook, TikTok, YouTube } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
 import DrawOnScroll from "./motion/DrawOnScroll";
+import { getLenis } from "./motion/SmoothScroll";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
@@ -40,9 +41,10 @@ export default function Footer() {
 
       const mm = gsap.matchMedia();
 
-      mm.add(`${MQ.motionOk} and (max-width: 1023.98px)`, () => {
-        // opacity (non autoAlpha): visibility:hidden toglierebbe i link del footer
-        // dal tab order finché il trigger non scatta.
+      // Ingresso a colonne "classico" (mobile + fallback desktop quando il
+      // footer non entra nel viewport). opacity, non autoAlpha:
+      // visibility:hidden toglierebbe i link del footer dal tab order.
+      const columnsEnter = () => {
         const tween = gsap.fromTo(
           cols,
           { y: 26, opacity: 0 },
@@ -64,23 +66,25 @@ export default function Footer() {
           footer.removeEventListener("focusin", reveal);
           window.clearTimeout(safety);
         };
-      });
+      };
+
+      mm.add(`${MQ.motionOk} and (max-width: 1023.98px)`, columnsEnter);
 
       mm.add(`${MQ.motionOk} and (min-width: 1024px)`, () => {
+        // L'uncover ha senso solo se il footer entra tutto nel viewport: da
+        // fixed, la parte sopra il viewport sarebbe irraggiungibile per sempre
+        // (laptop bassi). In quel caso: footer in flusso + ingresso classico.
+        if (footer.offsetHeight > window.innerHeight) return columnsEnter();
+
         const html = document.documentElement;
         const wordmark = wordmarkRef.current;
         html.classList.add("dt-footer-reveal");
         const setH = () => html.style.setProperty("--dt-footer-h", `${footer.offsetHeight}px`);
         setH();
-        const ro = new ResizeObserver(() => {
-          setH();
-          ScrollTrigger.refresh();
-        });
-        ro.observe(footer);
 
         // Il progresso dell'uncover = l'ultimo tratto di scroll alto quanto il
         // footer (main ha margin-bottom = --dt-footer-h). Le colonne restano
-        // sempre parzialmente visibili (mai opacity 0: i link sono nel tab order).
+        // sempre parzialmente visibili (mai opacity 0: link nel tab order).
         const settle = gsap.timeline({
           scrollTrigger: {
             start: () => Math.max(0, ScrollTrigger.maxScroll(window) - footer.offsetHeight),
@@ -99,10 +103,58 @@ export default function Footer() {
           settle.fromTo(wordmark, { yPercent: 68 }, { yPercent: 0, ease: "none" }, 0.12);
         }
 
-        return () => {
-          ro.disconnect();
+        let active = true;
+        const deactivate = () => {
+          if (!active) return;
+          active = false;
+          settle.scrollTrigger?.kill();
+          settle.kill();
+          gsap.set([...cols, ...(wordmark ? [wordmark] : [])], { clearProps: "all" });
           html.classList.remove("dt-footer-reveal");
           html.style.removeProperty("--dt-footer-h");
+        };
+
+        // Tastiera: il footer fixed è "in viewport" per il browser anche se
+        // coperto dal main → al focus dentro il footer portiamo l'uncover a
+        // fine corsa, così il focus ring è davvero visibile (WCAG 2.4.7).
+        const onFocusIn = () => {
+          const bottom = ScrollTrigger.maxScroll(window);
+          const lenis = getLenis();
+          if (lenis) lenis.scrollTo(bottom, { immediate: true });
+          else window.scrollTo({ top: bottom, behavior: "instant" });
+        };
+        footer.addEventListener("focusin", onFocusIn);
+
+        // Resize: coalescente (solo cambi di altezza, refresh al frame dopo);
+        // la prima notifica post-observe è ridondante (tutto appena misurato).
+        let raf = 0;
+        let first = true;
+        let lastH = footer.offsetHeight;
+        const ro = new ResizeObserver(() => {
+          if (first) {
+            first = false;
+            return;
+          }
+          const h = footer.offsetHeight;
+          if (h === lastH) return;
+          lastH = h;
+          if (h > window.innerHeight) {
+            // Non entra più: meglio un footer in flusso che uno mutilato.
+            deactivate();
+            ro.disconnect();
+            return;
+          }
+          setH();
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+        });
+        ro.observe(footer);
+
+        return () => {
+          cancelAnimationFrame(raf);
+          ro.disconnect();
+          footer.removeEventListener("focusin", onFocusIn);
+          deactivate();
         };
       });
     },
@@ -206,15 +258,18 @@ export default function Footer() {
               </li>
               <li className="flex justify-between gap-4">
                 <span>{d.footer.sun}</span>
-                <span className="text-cream/50">{d.footer.onAppt}</span>
+                {/* /70: /50 su graphite scende sotto il 4.5:1 AA (è contenuto, non decorazione) */}
+                <span className="text-cream/70">{d.footer.onAppt}</span>
               </li>
             </ul>
-            <a
-              href="#contatti"
+            {/* /#contatti (non #contatti): su /privacy e /cookie non esiste
+                l'ancora locale e la CTA sarebbe un link morto. */}
+            <Link
+              href="/#contatti"
               className="mt-6 inline-flex rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-ink transition-colors duration-300 hover:bg-red hover:text-white"
             >
               {d.footer.valuta}
-            </a>
+            </Link>
           </div>
         </div>
 

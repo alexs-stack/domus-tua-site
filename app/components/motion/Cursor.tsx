@@ -44,8 +44,11 @@ export default function Cursor() {
         const ringY = gsap.quickTo(ring, "y", { duration: 0.5, ease: "power3.out" });
 
         let visible = false;
+        let hiddenState = false;
         const show = () => {
-          if (visible) return;
+          // Mai riapparire mentre lo stato è "hidden" (input/iframe sotto il
+          // puntatore): onMove continua a scattare anche lì.
+          if (visible || hiddenState) return;
           visible = true;
           gsap.to([dot, ring], { autoAlpha: 1, duration: 0.25, ease: "none" });
         };
@@ -62,9 +65,16 @@ export default function Cursor() {
           show();
         };
 
-        // Stati contestuali. Un solo owner delle transizioni dell'anello:
-        // ogni stato scrive le stesse proprietà (overwrite: "auto").
+        // Stati contestuali. Un solo owner delle transizioni dell'anello
+        // (overwrite: "auto" su ogni tween) + dedup: pointerover scatta a ogni
+        // attraversamento di confine elemento, ma i tween partono solo quando
+        // (stato, testo) cambiano davvero — niente churn sul percorso caldo.
+        let current = "";
         const setState = (state: "default" | "link" | "label" | "magnetic" | "hidden", text = "") => {
+          const key = `${state}:${text}`;
+          if (key === current) return;
+          current = key;
+          hiddenState = state === "hidden";
           if (state === "hidden") {
             hide();
             return;
@@ -80,24 +90,33 @@ export default function Cursor() {
             scale: state === "magnetic" ? 0.35 : isLabel ? 2.4 : state === "link" ? 1.5 : 1,
             duration: 0.35,
             ease: "domus",
+            overwrite: "auto",
           });
           gsap.to(dot, {
             scale: state === "magnetic" ? 1.8 : state === "link" ? 0.5 : isLabel ? 0 : 1,
             duration: 0.3,
             ease: "domus",
+            overwrite: "auto",
           });
           gsap.to(fill, {
             scale: isLabel ? 1 : 0,
             autoAlpha: isLabel ? 1 : 0,
             duration: 0.32,
             ease: "domus",
+            overwrite: "auto",
           });
-          gsap.to(label, { autoAlpha: isLabel && !isPlay ? 1 : 0, duration: 0.25, ease: "none" });
+          gsap.to(label, {
+            autoAlpha: isLabel && !isPlay ? 1 : 0,
+            duration: 0.25,
+            ease: "none",
+            overwrite: "auto",
+          });
           gsap.to(play, {
             scale: isPlay ? 1 : 0,
             autoAlpha: isPlay ? 1 : 0,
             duration: 0.3,
             ease: "domus",
+            overwrite: "auto",
           });
         };
 
