@@ -11,7 +11,7 @@ import { gsap, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 type Props = {
   value: number;
   className?: string;
-  /** Raggruppa le migliaia (es. 269395 → "269.395"). Stessa semantica di CountUp. */
+  /** Raggruppa le migliaia (es. 12345 → "12.345"). Stessa semantica di CountUp. */
   group?: boolean;
   /** Locale BCP-47 per il raggruppamento (es. "it-IT"). Usato solo se group=true. */
   locale?: string;

@@ -9,7 +9,7 @@ type Props = {
   suffix?: string;
   duration?: number;
   className?: string;
-  /** Raggruppa le migliaia (es. 269395 → "269.395"). Off di default per non toccare gli altri usi. */
+  /** Raggruppa le migliaia (es. 12345 → "12.345"). Off di default per non toccare gli altri usi. */
   group?: boolean;
   /** Locale BCP-47 per il raggruppamento (es. "it-IT"). Usato solo se group=true. */
   locale?: string;
