@@ -4,6 +4,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
 import PropertyCard from "./PropertyCard";
+import PropertyMap from "./PropertyMap";
+import { groupAvailableByTown } from "../lib/geo/comuni";
 import CaseQuickLook from "./CaseQuickLook";
 import { ArrowRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
@@ -68,6 +70,8 @@ const copy = {
     roomsAny: "Qualsiasi",
     resultsOne: "immobile trovato",
     resultsMany: "immobili trovati",
+    viewList: "Lista",
+    viewMap: "Mappa",
     notFound: "Non trovi la casa giusta? Dillo a noi",
     emptyTitle: "Non c’è online? Potrebbe arrivare.",
     emptyBody: "Raccontaci cosa cerchi: molte richieste vengono seguite prima ancora che l’immobile arrivi online.",
@@ -120,6 +124,8 @@ const copy = {
     roomsAny: "Any",
     resultsOne: "home found",
     resultsMany: "homes found",
+    viewList: "List",
+    viewMap: "Map",
     notFound: "Can’t find the right home? Tell us",
     emptyTitle: "Not online yet? It might be soon.",
     emptyBody: "Tell us what you’re after: many requests are handled before the home even goes online.",
@@ -172,6 +178,8 @@ const copy = {
     roomsAny: "Indifférent",
     resultsOne: "bien trouvé",
     resultsMany: "biens trouvés",
+    viewList: "Liste",
+    viewMap: "Carte",
     notFound: "Vous ne trouvez pas le bon bien ? Dites-le-nous",
     emptyTitle: "Pas encore en ligne ? Cela peut arriver.",
     emptyBody: "Dites-nous ce que vous cherchez : de nombreuses demandes sont suivies avant même que le bien n’arrive en ligne.",
@@ -224,6 +232,8 @@ const copy = {
     roomsAny: "Beliebig",
     resultsOne: "Objekt gefunden",
     resultsMany: "Objekte gefunden",
+    viewList: "Liste",
+    viewMap: "Karte",
     notFound: "Nicht das richtige Zuhause dabei? Sagen Sie es uns",
     emptyTitle: "Kein Objekt passt zu diesen Filtern.",
     emptyBody: "Mit diesen Filtern gibt es gerade nichts. Sagen Sie uns, was Sie suchen: Wir betreuen auch maßgeschneiderte Anfragen und diskrete Verhandlungen und melden uns, sobald etwas hereinkommt.",
@@ -276,6 +286,8 @@ const copy = {
     roomsAny: "Cualquiera",
     resultsOne: "inmueble encontrado",
     resultsMany: "inmuebles encontrados",
+    viewList: "Lista",
+    viewMap: "Mapa",
     notFound: "¿No encuentras la casa adecuada? Cuéntanoslo",
     emptyTitle: "¿Todavía no está online? Puede que llegue.",
     emptyBody: "Cuéntanos qué buscas: muchas peticiones las seguimos antes incluso de que el inmueble llegue a estar online.",
@@ -374,6 +386,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   });
   const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
   const [visible, setVisible] = useState(24);
+  const [view, setView] = useState<"list" | "map">("list");
   const [searching, setSearching] = useState(false);
   // Anteprima (CaseQuickLook): stato UI indipendente dalla ricerca.
   const [preview, setPreview] = useState<Property | null>(null);
@@ -383,6 +396,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   const [ai, setAi] = useState<{ query: string; slugs: string[]; key: string } | null>(null);
 
   const bySlug = useMemo(() => new Map(properties.map((p) => [p.slug, p])), [properties]);
+  // Mappa: comuni con immobili DISPONIBILI (mai i venduti). Riflette tutti gli immobili, non
+  // i filtri correnti, così si può passare da un comune all'altro.
+  const townGroups = useMemo(() => groupAvailableByTown(properties), [properties]);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
   // Layout della griglia catturato PRIMA del cambio di stato (punto di partenza del FLIP).
@@ -900,16 +916,48 @@ export default function PropertySearch({ properties }: { properties: Property[] 
               </button>
             )}
           </div>
-          <a
-            href="#contatti"
-            className="group inline-flex items-center gap-1.5 text-sm font-semibold text-red hover:text-red-dark"
-          >
-            {c.notFound}
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </a>
+          <div className="flex items-center gap-3">
+            {/* Toggle Lista / Mappa */}
+            <div
+              role="group"
+              aria-label={`${c.viewList} / ${c.viewMap}`}
+              className="flex rounded-full border border-line bg-cream p-0.5"
+            >
+              {(["list", "map"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={view === v}
+                  onClick={() => setView(v)}
+                  className={`rounded-full px-3.5 py-1.5 text-[0.8rem] font-semibold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                    view === v ? "bg-red text-white" : "text-graphite hover:text-ink"
+                  }`}
+                >
+                  {v === "list" ? c.viewList : c.viewMap}
+                </button>
+              ))}
+            </div>
+            <a
+              href="#contatti"
+              className="group hidden items-center gap-1.5 text-sm font-semibold text-red hover:text-red-dark sm:inline-flex"
+            >
+              {c.notFound}
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </a>
+          </div>
         </div>
 
-        {shown.length > 0 ? (
+        {view === "map" ? (
+          <div className="mt-6">
+            <PropertyMap
+              groups={townGroups}
+              onSelect={(key) => {
+                setFilters((s) => ({ ...s, comune: key }));
+                setView("list");
+              }}
+            />
+          </div>
+        ) : shown.length > 0 ? (
           <>
             <div
               ref={gridRef}
