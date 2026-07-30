@@ -2,8 +2,12 @@
 
 // HeroCinematic — apertura cinematografica full-bleed di Domus Tua.
 // Canvas video/immagine a tutta larghezza, energia + emozione + prova sociale + sicurezza.
-// Video-ready: quando i file /media esistono e enabled=true, parte (desktop, no reduced-motion).
-// Finché mancano, resta la foto reale di Raffaella + team come poster. Vedi docs/hero-video.md.
+// Poster immagine reale (LCP) sempre presente e art-directed: crop landscape su desktop,
+// ritratto su mobile, con focal point per orientamento.
+// Video-ready: quando i file /media esistono e enabled=true, il video parte SOLO su desktop,
+// senza prefers-reduced-motion e senza data-saver, montato dopo il paint del poster (fuori dal
+// percorso LCP), con sorgenti AV1 → VP9 → H.264 e fallback automatico al poster se fallisce.
+// Girato del brand (nessuno stock, nessuna finzione): docs/hero-brand-film-shotlist.md.
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
@@ -28,6 +32,8 @@ const copy = {
     ctaValuta: "Valuta il tuo immobile",
     ctaCerco: "Cerco casa",
     ctaVideo: "Guarda il video",
+    pause: "Metti in pausa il video",
+    play: "Riprendi il video",
     reviews: "Oltre 500 recensioni",
     ratingOn: "Google",
     place: "Tradate · Varese",
@@ -42,6 +48,8 @@ const copy = {
     ctaValuta: "Value your property",
     ctaCerco: "I'm looking for a home",
     ctaVideo: "Watch the video",
+    pause: "Pause the video",
+    play: "Resume the video",
     reviews: "Over 500 reviews",
     ratingOn: "Google",
     place: "Tradate · Varese",
@@ -56,6 +64,8 @@ const copy = {
     ctaValuta: "Estimez votre bien",
     ctaCerco: "Je cherche un bien",
     ctaVideo: "Voir la vidéo",
+    pause: "Mettre la vidéo en pause",
+    play: "Reprendre la vidéo",
     reviews: "Plus de 500 avis",
     ratingOn: "Google",
     place: "Tradate · Varese",
@@ -70,6 +80,8 @@ const copy = {
     ctaValuta: "Immobilie bewerten",
     ctaCerco: "Ich suche ein Zuhause",
     ctaVideo: "Video ansehen",
+    pause: "Video pausieren",
+    play: "Video fortsetzen",
     reviews: "Über 500 Bewertungen",
     ratingOn: "Google",
     place: "Tradate · Varese",
@@ -84,6 +96,8 @@ const copy = {
     ctaValuta: "Valora tu inmueble",
     ctaCerco: "Busco casa",
     ctaVideo: "Ver el vídeo",
+    pause: "Pausar el vídeo",
+    play: "Reanudar el vídeo",
     reviews: "Más de 500 reseñas",
     ratingOn: "Google",
     place: "Tradate · Varese",
@@ -94,6 +108,8 @@ export default function HeroCinematic() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [playVideo, setPlayVideo] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const mediaDepthRef = useRef<HTMLDivElement | null>(null);
@@ -310,15 +326,19 @@ export default function HeroCinematic() {
     { scope: sectionRef }
   );
 
-  // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
-  // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto (leggera).
-  // Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
-  // selezione della sorgente non entra nel percorso critico dell'immagine LCP.
+  // Il video parte solo su desktop, se l'utente non ha ridotto le animazioni, se non è in
+  // data-saver / connessione lenta, e solo se i file sono attivati. Altrimenti resta il poster
+  // immagine (leggero). Il <video> viene montato SOLO dopo il primo paint del poster (LCP),
+  // così la selezione della sorgente non entra nel percorso critico dell'immagine LCP.
   useEffect(() => {
     if (!heroCinematic.enabled) return;
     const okMotion = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
     const okWidth = window.matchMedia("(min-width: 768px)").matches;
-    if (!okMotion || !okWidth) return;
+    // Data-saver / 2G: niente video. Rispetta la scelta dell'utente e i costi dati.
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } })
+      .connection;
+    const dataSaver = conn?.saveData === true || (conn?.effectiveType ? /2g/.test(conn.effectiveType) : false);
+    if (!okMotion || !okWidth || dataSaver) return;
 
     // Rimanda il mount del video oltre il paint LCP.
     let raf = 0;
@@ -338,6 +358,34 @@ export default function HeroCinematic() {
     };
   }, []);
 
+  // Validazione asset in sviluppo: se il video è attivato ma i file mancano (404), avvisa il
+  // team invece di fallire in silenzio. In produzione non gira (nessun costo, nessun rumore).
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" || !heroCinematic.enabled) return;
+    (async () => {
+      for (const src of [heroCinematic.mp4, heroCinematic.webm, heroCinematic.poster]) {
+        try {
+          const r = await fetch(src, { method: "HEAD" });
+          if (!r.ok) console.warn(`[HeroCinematic] asset mancante o non servito: ${src} (HTTP ${r.status})`);
+        } catch {
+          console.warn(`[HeroCinematic] asset non raggiungibile: ${src}`);
+        }
+      }
+    })();
+  }, []);
+
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      void v.play();
+      setPaused(false);
+    } else {
+      v.pause();
+      setPaused(true);
+    }
+  };
+
   // Chip di prova: gli asset proprietari sono cliccabili verso le rispettive sezioni
   // (hero solo in homepage → ancore same-page). Il luogo resta statico.
   const chips: { label: string; href?: string }[] = [
@@ -354,20 +402,34 @@ export default function HeroCinematic() {
             frame-in e l'IMG del ken-burns — il transform x/y vive SOLO qui.
             Il clip-path del genitore ritaglia comunque l'overscan. */}
         <div ref={mediaDepthRef} className="absolute inset-0">
-          {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
+          {/* Poster immagine reale (LCP + fallback), art-directed per orientamento: desktop =
+              crop landscape, mobile = crop ritratto (niente villa tagliata male su 9:16). Il
+              focal point per orientamento evita di tagliare il soggetto. */}
           <Image
             src={heroCinematic.base}
             alt={heroCinematic.baseAlt}
             fill
             priority
             sizes="100vw"
-            className="ken-burns object-cover"
-            style={{ objectPosition: "50% 35%" }}
+            className="ken-burns hidden object-cover md:block"
+            style={{ objectPosition: heroCinematic.focalDesktop }}
+          />
+          <Image
+            src={heroCinematic.baseMobile}
+            alt={heroCinematic.baseMobileAlt}
+            fill
+            priority
+            sizes="100vw"
+            className="ken-burns object-cover md:hidden"
+            style={{ objectPosition: heroCinematic.focalMobile }}
           />
 
-          {/* Video overlay (opzionale, video-ready): copre la base quando disponibile */}
+          {/* Video overlay (opzionale): copre il poster quando disponibile. Sorgenti in ordine
+              di preferenza AV1 → VP9 → H.264: il browser prende la prima che sa decodificare,
+              l'MP4 resta il fallback universale. */}
           {playVideo && (
             <video
+              ref={videoRef}
               className="absolute inset-0 h-full w-full object-cover"
               poster={heroCinematic.poster}
               autoPlay
@@ -375,8 +437,13 @@ export default function HeroCinematic() {
               loop
               playsInline
               preload="metadata"
-              onError={() => setPlayVideo(false)}
+              onError={() => {
+                if (process.env.NODE_ENV !== "production")
+                  console.warn("[HeroCinematic] video non riproducibile → fallback al poster.");
+                setPlayVideo(false);
+              }}
             >
+              <source src={heroCinematic.av1} type='video/webm; codecs="av01.0.05M.08"' />
               <source src={heroCinematic.webm} type="video/webm" />
               <source src={heroCinematic.mp4} type="video/mp4" />
             </video>
@@ -392,6 +459,30 @@ export default function HeroCinematic() {
       <div ref={frameWrapRef}>
         <SegnoDomusVideoFrame />
       </div>
+
+      {/* Controllo pausa/play discreto (solo se il video è montato). Niente audio in autoplay,
+          ma un video in loop deve restare fermabile (WCAG 2.2.2).
+          Posizione: in ALTO a destra, sotto l'header. In basso a destra ci sono già il
+          WhatsApp float e il banner cookie; in basso a sinistra le CTA dell'hero. */}
+      {playVideo && (
+        <button
+          type="button"
+          onClick={togglePlay}
+          aria-label={paused ? c.play : c.pause}
+          className="absolute right-6 top-32 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-cream/30 bg-ink/40 text-cream backdrop-blur-sm transition-all duration-300 hover:border-cream/60 hover:bg-ink/60 active:scale-95"
+        >
+          {paused ? (
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden fill="currentColor">
+              <rect x="6" y="5" width="4" height="14" rx="1" />
+              <rect x="14" y="5" width="4" height="14" rx="1" />
+            </svg>
+          )}
+        </button>
+      )}
 
       {/* Contenuto */}
       <div ref={contentRef} className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-36">
