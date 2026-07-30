@@ -3,10 +3,12 @@ import ListingsHeader from "./ListingsHeader";
 import ListingsGrid from "./ListingsGrid";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
-import { getVisibleListings } from "../lib/listings";
+import { getFeaturedListings } from "../lib/listings";
 
 export default async function Listings() {
-  const featured = (await getVisibleListings()).slice(0, 3);
+  // Solo immobili DISPONIBILI, ordinati (featured manuale → aggiornati di recente → immagini
+  // reali). Prima era `.slice(0, 3)` sulla lista grezza: i primi tre potevano essere venduti.
+  const featured = await getFeaturedListings(3);
   return (
     <section id="case" className="relative bg-cream">
       {/* Aria: il luogo in filigrana (nome proprio, identico in ogni lingua) */}
