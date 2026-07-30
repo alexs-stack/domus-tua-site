@@ -1,45 +1,26 @@
 "use client";
 
 import Reveal from "./Reveal";
-import CountUp from "./CountUp";
-import Odometer from "./motion/Odometer";
 import VelocityMarquee from "./motion/VelocityMarquee";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 
-type Stat = {
-  labelKey: "people" | "deals" | "sold" | "valued";
-  count: { value: number; decimals?: number; suffix?: string };
-};
-
-/** La cifra maggiore fa da stat "eroe"; le altre tre stanno in una riga secondaria. */
-const heroStat: Stat = { count: { value: 269395 }, labelKey: "valued" };
-const secondaryStats: Stat[] = [
-  { count: { value: 6433 }, labelKey: "people" },
-  { count: { value: 1523 }, labelKey: "deals" },
-  { count: { value: 92, suffix: "%" }, labelKey: "sold" },
-];
-
-/** Locale del sito → BCP-47 per il raggruppamento delle migliaia (269395 → "269.395"). */
-const intlLocale: Record<string, string> = {
-  it: "it-IT",
-  en: "en-GB",
-  fr: "fr-FR",
-  de: "de-DE",
-  es: "es-ES",
-};
+// Sezione "capacità": SOLO contenuto qualitativo e verificabile — i servizi che eroghiamo.
+//
+// ⚠️ Le metriche numeriche "vanity" precedenti (269.395 mq valutati, 6.433 persone felici,
+//    1.523 transazioni, 92% venduto) erano INVENTATE/non verificate: rimosse. La prova
+//    numerica REALE (rating, recensioni, anni di attività) vive in Authority, da un'unica
+//    fonte (site.ts): non si duplica qui.
+//
+//    Il layer motion (Atmosphere / CameraIn / VelocityMarquee) resta invariato: l'odometro
+//    serviva solo a rullare le cifre inventate, quindi sparisce con loro.
 
 const copy = {
   it: {
-    eyebrow: "I numeri di Domus Tua",
-    labels: {
-      people: "Persone felici",
-      deals: "Transazioni concluse",
-      sold: "Immobili venduti",
-      valued: "Mq valutati",
-    },
+    eyebrow: "Il metodo, in concreto",
+    lead: "Un unico percorso curato in ogni dettaglio: dalla valutazione ai documenti verificati, dal marketing all'Open Domus, fino all'assistenza al rogito.",
     tokens: [
       "Valutazione professionale",
       "Documenti verificati",
@@ -52,13 +33,8 @@ const copy = {
     ],
   },
   en: {
-    eyebrow: "The Domus Tua numbers",
-    labels: {
-      people: "Happy people",
-      deals: "Deals closed",
-      sold: "Properties sold",
-      valued: "Sq m appraised",
-    },
+    eyebrow: "The method, in practice",
+    lead: "A single journey cared for in every detail: from valuation to verified documents, from marketing to Open Domus, all the way to support through closing.",
     tokens: [
       "Professional valuation",
       "Verified documents",
@@ -71,13 +47,8 @@ const copy = {
     ],
   },
   fr: {
-    eyebrow: "Les chiffres de Domus Tua",
-    labels: {
-      people: "Personnes satisfaites",
-      deals: "Transactions conclues",
-      sold: "Biens vendus",
-      valued: "M² estimés",
-    },
+    eyebrow: "La méthode, concrètement",
+    lead: "Un seul parcours soigné dans les moindres détails : de l'estimation aux documents vérifiés, du marketing à l'Open Domus, jusqu'à l'accompagnement à l'acte.",
     tokens: [
       "Estimation professionnelle",
       "Documents vérifiés",
@@ -90,13 +61,8 @@ const copy = {
     ],
   },
   de: {
-    eyebrow: "Die Zahlen von Domus Tua",
-    labels: {
-      people: "Zufriedene Menschen",
-      deals: "Abgeschlossene Transaktionen",
-      sold: "Verkaufte Immobilien",
-      valued: "Bewertete m²",
-    },
+    eyebrow: "Die Methode, konkret",
+    lead: "Ein einziger, in jedem Detail betreuter Weg: von der Bewertung über geprüfte Dokumente und Marketing bis zum Open Domus und der Begleitung zum Notartermin.",
     tokens: [
       "Professionelle Bewertung",
       "Geprüfte Dokumente",
@@ -109,13 +75,8 @@ const copy = {
     ],
   },
   es: {
-    eyebrow: "Los números de Domus Tua",
-    labels: {
-      people: "Personas felices",
-      deals: "Transacciones cerradas",
-      sold: "Inmuebles vendidos",
-      valued: "M² tasados",
-    },
+    eyebrow: "El método, en concreto",
+    lead: "Un único recorrido cuidado en cada detalle: de la tasación a los documentos verificados, del marketing al Open Domus, hasta la asistencia a la escritura.",
     tokens: [
       "Tasación profesional",
       "Documentos verificados",
@@ -138,60 +99,16 @@ export default function Stats() {
       {/* Aria negli spazi vuoti: parola-fantasma in deriva + bagliori caldi */}
       <Atmosphere word="Domus" glow drift={1} wordClassName="right-[2%] top-[4%] text-[17vw]" />
       <div className="relative mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        <CameraIn className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center lg:gap-x-16">
-          {/* Stat eroe: la cifra maggiore, con eyebrow e Segno Domus come accento minimo */}
-          <Reveal>
-            <div className="flex flex-col">
-              <span className="eyebrow gap-3">
-                <SegnoDomus className="h-3.5 w-9" embrace={false} />
-                {c.eyebrow}
-              </span>
-              <span className="mt-5 font-display text-[3.4rem] font-medium leading-none tracking-tight text-ink sm:text-7xl lg:text-[5.5rem]">
-                {/* Solo il dato eroe usa l'odometro: le cifre rullano invece dello snap di CountUp */}
-                <Odometer
-                  value={heroStat.count.value}
-                  group
-                  locale={intlLocale[locale]}
-                />
-              </span>
-              <span className="mt-3 text-sm leading-snug text-stone">
-                {c.labels[heroStat.labelKey]}
-              </span>
-            </div>
+        <CameraIn>
+          <Reveal className="max-w-2xl">
+            <span className="eyebrow gap-3">
+              <SegnoDomus className="h-3.5 w-9" embrace={false} />
+              {c.eyebrow}
+            </span>
+            <p className="mt-5 font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[2rem]">
+              {c.lead}
+            </p>
           </Reveal>
-
-          {/* Divisore tra eroe e riga secondaria (hairline su mobile/tablet, bordo verticale su desktop) */}
-          <div className="hairline my-9 lg:hidden" />
-
-          {/* Riga secondaria: tre cifre inline separate da divisori hairline */}
-          <div className="grid grid-cols-3 lg:border-l lg:border-line lg:pl-16">
-            {secondaryStats.map((s, i) => (
-              <Reveal
-                key={s.labelKey}
-                delay={90 + i * 90}
-                className={
-                  i > 0
-                    ? "border-l border-line pl-4 sm:pl-6"
-                    : "pr-4 sm:pr-6"
-                }
-              >
-                <div className="flex flex-col">
-                  <span className="font-display text-3xl font-medium leading-none tracking-tight text-ink sm:text-4xl lg:text-5xl">
-                    <CountUp
-                      value={s.count.value}
-                      decimals={s.count.decimals}
-                      suffix={s.count.suffix}
-                      group
-                      locale={intlLocale[locale]}
-                    />
-                  </span>
-                  <span className="mt-2.5 text-xs leading-snug text-stone sm:text-sm">
-                    {c.labels[s.labelKey]}
-                  </span>
-                </div>
-              </Reveal>
-            ))}
-          </div>
         </CameraIn>
       </div>
 

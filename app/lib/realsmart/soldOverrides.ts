@@ -11,21 +11,34 @@
 import detected from "./sold-detected.json";
 import manual from "./sold-manual.json";
 
-type DetectedItem = { sold: boolean; cover: string };
+export type DetectedItem = { sold: boolean; cover: string };
 const detectedItems = (detected.items ?? {}) as Record<string, DetectedItem>;
 const manualOverrides = (manual.overrides ?? {}) as Record<string, boolean>;
 
 /**
- * True se l'immobile risulta venduto/affittato.
+ * Risoluzione PURA dello stato venduto (testabile con fixture). Precedenza:
+ *  1) override MANUALE dell'agenzia (vince sempre): true = venduto, false = disponibile
+ *     (utile per correggere un falso positivo/negativo dell'OCR);
+ *  2) esito OCR: valido SOLO se la copertina non è cambiata da quando è stato generato
+ *     (foto sostituita → si aspetta la prossima esecuzione di detect-sold).
+ */
+export function resolveSold(
+  codice: string,
+  cover: string,
+  manualOv: Record<string, boolean>,
+  detectedIt: Record<string, DetectedItem>,
+): boolean {
+  if (codice in manualOv) return manualOv[codice]!;
+  const d = detectedIt[codice];
+  return !!d && d.sold && d.cover === cover;
+}
+
+/**
+ * True se l'immobile risulta venduto/affittato (usa le mappe reali: sold-manual + sold-detected).
  *
  * @param codice codice gestionale (chiave primaria RealSmart)
- * @param cover  URL della copertina corrente; l'esito OCR è considerato valido SOLO se la
- *               copertina non è cambiata da quando è stato generato (se l'agenzia sostituisce
- *               la foto, si aspetta la prossima esecuzione di detect-sold invece di fidarsi
- *               di un dato potenzialmente stantìo).
+ * @param cover  URL della copertina corrente
  */
 export function isListingSold(codice: string, cover: string): boolean {
-  if (codice in manualOverrides) return manualOverrides[codice];
-  const d = detectedItems[codice];
-  return !!d && d.sold && d.cover === cover;
+  return resolveSold(codice, cover, manualOverrides, detectedItems);
 }

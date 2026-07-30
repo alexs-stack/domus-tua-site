@@ -124,5 +124,6 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     energyClass: n.energyClass,
     sold,
     ref: n.sourceRef.riferimento,
+    updatedAt: n.updatedAt,
   };
 }

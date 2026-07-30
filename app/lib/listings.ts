@@ -31,6 +31,55 @@ export async function getVisibleListings(): Promise<Property[]> {
   return properties;
 }
 
+// Ref immobili "in evidenza" scelti a mano dall'agenzia (vincono su tutto). Vuoto = selezione
+// automatica. Popolare con i riferimenti commerciali (Property.ref) da mettere in home.
+const FEATURED_REFS: string[] = [];
+
+// Cover di ripiego usata da toProperty quando l'immobile non ha foto: da penalizzare nella
+// selezione "in evidenza" (preferiamo immobili con immagini reali).
+const PLACEHOLDER_COVER = "/images/premium_01_living_tv_divano.jpg";
+
+/**
+ * Immobili "in evidenza" per la home (Prompt 7). Regole:
+ *  1) MAI immobili venduti/non disponibili — filtro `!sold` a monte;
+ *  2) ordine: featured manuale → aggiornati di recente → immagini più forti/reali.
+ * Non fabbrica dati: se ci sono meno di `limit` immobili disponibili, ne ritorna meno.
+ */
+/**
+ * Selezione PURA degli immobili "in evidenza" (testabile). Filtra i venduti e ordina.
+ * Nessuna rete, nessun dato inventato.
+ */
+export function selectFeatured(
+  list: Property[],
+  opts: { limit?: number; featuredRefs?: string[] } = {},
+): Property[] {
+  const limit = opts.limit ?? 3;
+  const featuredSet = new Set(opts.featuredRefs ?? FEATURED_REFS);
+  const available = list.filter((p) => !p.sold);
+
+  const isFeatured = (p: Property) => (p.ref && featuredSet.has(p.ref) ? 1 : 0);
+  const updatedTs = (p: Property) => (p.updatedAt ? Date.parse(p.updatedAt) || 0 : 0);
+  const realCover = (p: Property) => (p.cover && p.cover !== PLACEHOLDER_COVER ? 1 : 0);
+  const galleryStrength = (p: Property) => Math.min(p.gallery?.length ?? 0, 12);
+
+  return [...available]
+    .sort((a, b) => {
+      const f = isFeatured(b) - isFeatured(a);
+      if (f !== 0) return f; // 1) featured manuale
+      const u = updatedTs(b) - updatedTs(a);
+      if (u !== 0) return u; // 2) aggiornati di recente
+      const c = realCover(b) - realCover(a);
+      if (c !== 0) return c; // 3a) foto reale prima del placeholder
+      return galleryStrength(b) - galleryStrength(a); // 3b) più immagini = più forte
+    })
+    .slice(0, limit);
+}
+
+export async function getFeaturedListings(limit = 3): Promise<Property[]> {
+  const all = await getVisibleListings();
+  return selectFeatured(all, { limit });
+}
+
 export async function getVisibleListing(slug: string): Promise<Property | undefined> {
   if (USE_REALSMART) {
     const live = await getVisibleListings();

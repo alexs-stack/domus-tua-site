@@ -32,6 +32,8 @@ export type Property = {
   sold?: boolean;
   /** Riferimento commerciale mostrato all'utente (es. "1043"), se fornito dal gestionale. */
   ref?: string;
+  /** Ultimo aggiornamento (ISO, dal feed RealSmart) — usato per ordinare i "in evidenza". */
+  updatedAt?: string;
 };
 
 export const properties: Property[] = [
