@@ -87,6 +87,9 @@ export default function Assistant() {
   const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", content: c.greeting, intro: true }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  // Abort del turno in corso: chiudere il pannello o premere "interrompi" ferma davvero il
+  // lavoro sul server, non solo l'aggiornamento dell'interfaccia.
+  const abortRef = useRef<AbortController | null>(null);
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -104,6 +107,9 @@ export default function Assistant() {
       m.length === 1 && m[0].intro ? [{ role: "assistant", content: c.greeting, intro: true }] : m,
     );
   }, [c.greeting]);
+
+  // Se il componente sparisce, la richiesta non deve sopravvivergli.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   // Scroll in fondo a ogni nuovo messaggio / stato di caricamento.
   useEffect(() => {
@@ -139,6 +145,9 @@ export default function Assistant() {
 
   // Chiusura: ripristina il focus al launcher (o a chi lo aveva prima).
   const close = useCallback(() => {
+    // Interrompe il turno in corso: chiudere la chat ferma il lavoro sul server invece di
+    // lasciarlo finire per nessuno.
+    abortRef.current?.abort();
     setOpen(false);
     const target = returnFocusRef.current;
     if (target && document.contains(target)) target.focus();
@@ -187,28 +196,109 @@ export default function Assistant() {
       setMessages(next);
       setInput("");
       setLoading(true);
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      // La risposta arriva in streaming (SSE): accumuliamo il testo e aggiorniamo l'ultimo
+      // messaggio a ogni pezzo, così si legge mentre viene scritto.
+      let acc = "";
+      let cards: Card[] | undefined;
+      let failed = false;
+      let started = false;
+      const push = () => {
+        setMessages((m) => {
+          const copyMsgs = [...m];
+          const last = copyMsgs[copyMsgs.length - 1];
+          if (started && last && last.role === "assistant" && !last.intro) {
+            copyMsgs[copyMsgs.length - 1] = { ...last, content: acc, listings: cards };
+          } else {
+            started = true;
+            copyMsgs.push({ role: "assistant", content: acc, listings: cards });
+          }
+          return copyMsgs;
+        });
+      };
+
       try {
         const res = await fetch("/api/assistant", {
           method: "POST",
           headers: { "content-type": "application/json" },
+          signal: controller.signal,
           body: JSON.stringify({
             locale,
             messages: next.filter((m) => !m.intro).map((m) => ({ role: m.role, content: m.content })),
           }),
         });
-        const data = (await res.json()) as { ok?: boolean; reply?: string; listings?: Card[] };
-        if (data.ok && data.reply) {
-          const reply = data.reply;
-          setMessages((m) => [...m, { role: "assistant", content: reply, listings: data.listings }]);
-          setLiveReply(reply);
+
+        const reader = res.body?.getReader();
+        if (!reader) throw new Error("no-stream");
+        const decoder = new TextDecoder();
+        let pending = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          pending += decoder.decode(value, { stream: true });
+          // Gli eventi SSE sono separati da una riga vuota.
+          const parts = pending.split("\n\n");
+          pending = parts.pop() ?? "";
+          for (const part of parts) {
+            const line = part.trim();
+            if (!line.startsWith("data:")) continue;
+            let ev: { type?: string; text?: string; listings?: Card[] };
+            try {
+              ev = JSON.parse(line.slice(5).trim());
+            } catch {
+              continue;
+            }
+            if (ev.type === "text" && ev.text) {
+              acc += ev.text;
+              push();
+            } else if (ev.type === "listings") {
+              cards = ev.listings;
+              push();
+            } else if (ev.type === "error") {
+              failed = true;
+            }
+          }
+        }
+
+        if (failed || !acc.trim()) {
+          // Se il server ha già spiegato cosa fare (filtri, WhatsApp, telefono) teniamo quel
+          // testo e lo marchiamo come errore: compare "Riprova" e non torna nella cronologia.
+          if (acc.trim()) {
+            setMessages((m) => {
+              const out = [...m];
+              const last = out[out.length - 1];
+              if (last && last.role === "assistant") out[out.length - 1] = { ...last, error: true };
+              return out;
+            });
+            setLiveReply(acc);
+          } else {
+            setMessages((m) => [...m, { role: "assistant", content: c.error, error: true }]);
+            setLiveReply(c.error);
+          }
+        } else {
+          setLiveReply(acc);
+        }
+      } catch (err) {
+        if ((err as { name?: string })?.name === "AbortError") {
+          // Interruzione volontaria: il testo già arrivato resta in pagina, ma marcato — una
+          // risposta troncata non va rimandata al modello come se fosse conclusa.
+          if (started) {
+            setMessages((m) => {
+              const out = [...m];
+              const last = out[out.length - 1];
+              if (last && last.role === "assistant") out[out.length - 1] = { ...last, error: true };
+              return out;
+            });
+          }
         } else {
           setMessages((m) => [...m, { role: "assistant", content: c.error, error: true }]);
           setLiveReply(c.error);
         }
-      } catch {
-        setMessages((m) => [...m, { role: "assistant", content: c.error, error: true }]);
-        setLiveReply(c.error);
       } finally {
+        if (abortRef.current === controller) abortRef.current = null;
         setLoading(false);
       }
     },

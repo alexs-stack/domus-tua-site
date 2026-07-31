@@ -34,6 +34,11 @@ export type RateLimitResult =
 const TEN_MIN = 10 * 60 * 1000;
 export const SEARCH_LIMIT: RateLimitConfig = { limit: 20, windowMs: TEN_MIN };
 export const LEAD_LIMIT: RateLimitConfig = { limit: 8, windowMs: TEN_MIN };
+/**
+ * Assistente: più generoso della ricerca (una conversazione sono più turni), ma comunque
+ * limitato — è l'endpoint più costoso del sito ed è esposto senza autenticazione.
+ */
+export const ASSISTANT_LIMIT: RateLimitConfig = { limit: 30, windowMs: TEN_MIN };
 
 /** Rimuove le chiavi ormai vuote/scadute quando la Map cresce troppo. */
 function sweep(now: number, windowMs: number): void {
