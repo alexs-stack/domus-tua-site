@@ -8,10 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:parser": "node --import tsx scripts/test-parser.ts",
+    "test": "node --import tsx --test \"app/**/__tests__/*.test.ts\" && npm run test:parser",
+    "test:parser": "tsx scripts/test-parser.ts",
     "detect-sold": "npx --yes tsx scripts/detect-sold.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run test:parser && npm run build",
-    "test": "node --import tsx --test \"app/**/__tests__/*.test.ts\"",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "eval": "node --import tsx scripts/eval.ts",
     "e2e": "playwright test"
   },

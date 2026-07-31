@@ -12,6 +12,7 @@
 // I test non dipendono dalla rete: usano fixture iniettate direttamente nei tool.
 
 import { getLiveListingsSnapshot, type ListingsSource } from "../realsmart/client";
+import { comuneOf } from "../comune";
 import { normalizedToProperty } from "../realsmart/toProperty";
 import type { NormalizedProperty } from "../realsmart/types";
 import type { Property } from "../properties";
@@ -31,18 +32,12 @@ export interface AssistantListings {
   properties: Property[];
   normalizedBySlug: Map<string, NormalizedProperty>;
   /**
-   * Nomi dei comuni PULITI ("Tradate"), per il parser della query.
+   * Nomi dei comuni del catalogo disponibile ("Tradate").
    *
-   * ⚠️ Non coincidono col valore che `applyFilters` confronta. Con i dati RealSmart live
-   * `Property.zone` vale "Tradate (VA)", quindi la chiave di filtro è "Tradate (VA)": il
-   * parser locale la cercherebbe nel testo utente come `\bTradate \(VA\)\b` e non troverebbe
-   * mai "villa a Tradate". Diamo quindi al parser i nomi puliti e traduciamo con
-   * `zoneKeyByComune` prima di filtrare. (Lo stesso disallineamento esiste su /api/search:
-   * annotato in docs/assistant-architecture.md per l'onda 4.)
+   * La forma è quella canonica di `app/lib/comune.ts`, condivisa con /api/search, i filtri
+   * del client e la mappa: una sola definizione di "comune" per tutto il sito.
    */
   comuni: string[];
-  /** Comune pulito (minuscolo) → chiave di zona attesa da applyFilters. */
-  zoneKeyByComune: Map<string, string>;
 }
 
 const EMPTY: AssistantListings = {
@@ -50,7 +45,6 @@ const EMPTY: AssistantListings = {
   properties: [],
   normalizedBySlug: new Map(),
   comuni: [],
-  zoneKeyByComune: new Map(),
 };
 
 /**
@@ -66,7 +60,6 @@ export function buildAssistantListings(
 
   const normalizedBySlug = new Map<string, NormalizedProperty>();
   const properties: Property[] = [];
-  const zoneKeyByComune = new Map<string, string>();
   const comuniSet = new Set<string>();
 
   for (const n of listings) {
@@ -77,23 +70,14 @@ export function buildAssistantListings(
     normalizedBySlug.set(property.slug, n);
     properties.push(property);
 
-    const comune = n.town.trim();
-    const zoneKey = property.zone.split(",")[0].trim();
-    if (comune && zoneKey) {
-      comuniSet.add(comune);
-      zoneKeyByComune.set(comune.toLowerCase(), zoneKey);
-    }
+    // Stessa derivazione usata da /api/search e dalla tendina del client.
+    const comune = comuneOf(property.zone);
+    if (comune) comuniSet.add(comune);
   }
 
   const comuni = Array.from(comuniSet).sort((a, b) => a.localeCompare(b, "it"));
 
-  return {
-    available: properties.length > 0,
-    properties,
-    normalizedBySlug,
-    comuni,
-    zoneKeyByComune,
-  };
+  return { available: properties.length > 0, properties, normalizedBySlug, comuni };
 }
 
 /**

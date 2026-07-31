@@ -9,6 +9,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { parseQueryLocal } from "../../ai/parseQuery";
+import { canonicalComune } from "../../comune";
 import { applyFilters, rankResults } from "../../ai/rank";
 import type { FeatureLabel, ParsedSearch, SearchFacets } from "../../ai/types";
 import { RESULTS_PER_SEARCH } from "../config";
@@ -102,8 +103,8 @@ export type SearchListingsResult =
 function mergeFilters(
   parsed: ParsedSearch,
   input: z.infer<typeof inputSchema>,
-  zoneKeyByComune: Map<string, string>,
-): { filters: ParsedSearch; comunePulito?: string } {
+  comuni: string[],
+): ParsedSearch {
   const merged: ParsedSearch = { ...parsed };
 
   if (input.contratto) merged.contract = input.contratto;
@@ -115,28 +116,14 @@ function mergeFilters(
   if (input.mqMax) merged.maxSqm = input.mqMax;
   if (input.caratteristiche?.length) merged.features = input.caratteristiche;
 
-  // Un comune esplicito vale solo se esiste nel catalogo disponibile.
-  const requested = input.comune?.trim().toLowerCase();
-  if (requested && zoneKeyByComune.has(requested)) merged.comune = input.comune!.trim();
-
-  // Il NOME del comune ("Tradate") e la CHIAVE DI ZONA del catalogo ("Tradate (VA)") non
-  // sempre coincidono: oggi sì, perché il feed non espone la provincia, ma il codice non
-  // può dipendere da questo. Teniamo entrambi: la chiave serve ad applyFilters, il nome
-  // pulito alle coordinate dei comuni vicini (che non conoscono il formato di zona).
-  let comunePulito: string | undefined;
-  if (merged.comune) {
-    const key = merged.comune.trim().toLowerCase();
-    const zoneKey = zoneKeyByComune.get(key);
-    if (zoneKey) {
-      comunePulito = merged.comune.trim();
-      merged.comune = zoneKey;
-    } else {
-      // Già una chiave di zona (traduzione idempotente): recuperiamo il nome pulito.
-      comunePulito = [...zoneKeyByComune.entries()].find(([, v]) => v === merged.comune)?.[0];
-    }
+  // Un comune esplicito vale solo se corrisponde a uno del catalogo disponibile.
+  // `canonicalComune` tollera provincia e accenti: "TRADATE (VA)" e "Tradate" combaciano.
+  if (input.comune) {
+    const canonico = canonicalComune(comuni, input.comune);
+    if (canonico) merged.comune = canonico;
   }
 
-  return { filters: merged, comunePulito };
+  return merged;
 }
 
 /** Riassunto leggibile dei criteri effettivamente applicati. */
@@ -187,7 +174,7 @@ export function createSearchListings(ctx: ToolContext) {
       // altrove in silenzio. Restituire case di Tradate a chi ha chiesto Milano è una
       // risposta sbagliata data con sicurezza — l'utente non ha modo di accorgersene.
       const chiesto = input.comune?.trim();
-      if (chiesto && !listings.zoneKeyByComune.has(chiesto.toLowerCase())) {
+      if (chiesto && !canonicalComune(listings.comuni, chiesto)) {
         return {
           esito: "comune-non-coperto",
           comune: chiesto,
@@ -197,7 +184,9 @@ export function createSearchListings(ctx: ToolContext) {
       }
 
       const parsed = parseQueryLocal(input.query, facets);
-      const { filters, comunePulito } = mergeFilters(parsed, input, listings.zoneKeyByComune);
+      const filters = mergeFilters(parsed, input, listings.comuni);
+      // Ora il filtro comune è già il nome canonico: serve così com'è anche alle coordinate.
+      const comunePulito = filters.comune;
       const extra: RefineCriteria = { camereMin: input.camereMin, bagniMin: input.bagniMin };
       const criteriApplicati = describeFilters(filters, extra);
 

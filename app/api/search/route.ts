@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getVisibleListings } from "../../lib/listings";
+import { comuniFacet } from "../../lib/comune";
 import { parseQuery } from "../../lib/ai/parseQuery";
 import { applyFilters, rankResults } from "../../lib/ai/rank";
 import { MAX_QUERY_LEN } from "../../lib/ai/config";
@@ -39,14 +40,10 @@ export async function POST(req: Request): Promise<NextResponse<SearchResponse>> 
   try {
     const listings = await getVisibleListings();
 
-    const comuni = [
-      "Tutti",
-      ...Array.from(new Set(listings.map((p) => p.zone.split(",")[0].trim())))
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, "it")),
-    ];
+    // Comuni con il nome pulito ("Tradate", non "Tradate (VA)"): è la forma che l'utente
+    // scrive e che il parser locale cerca nella frase. Vedi app/lib/comune.ts.
     const facets: SearchFacets = {
-      comuni,
+      comuni: comuniFacet(listings),
       types: ["Appartamento", "Attico", "Villa", "Commerciale", "Terreno"],
       featureLabels: FEATURE_LABELS,
     };

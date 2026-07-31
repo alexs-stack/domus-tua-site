@@ -291,14 +291,15 @@ scrivendo il codice e i test:
 
 - **Disallineamento comune ↔ chiave di zona.** `Property.zone` vale `"<comune> (<provincia>)"`
   quando la provincia c'è: in quel caso il parser locale cercherebbe `\bTradate \(VA\)\b` nel
-  testo dell'utente e non troverebbe mai nulla. Reso robusto per l'assistente in
-  `app/lib/assistant/listings.ts` (`zoneKeyByComune`).
-  ⚠️ **CORREZIONE (onda 4).** Avevo riportato questo come difetto ATTIVO in produzione. Non lo
-  è: interrogando il feed reale, `provincia` è vuota su **tutti e 193** gli immobili, quindi
-  `zone` coincide col comune e il filtro funzionava già. Il difetto è **latente**, non attivo:
-  scatterebbe solo se il gestionale iniziasse a fornire la provincia. Il codice difensivo
-  resta giusto e un test di integrazione ora sorveglia proprio quel campo — ma
-  `/api/search` **non ha un bug urgente da correggere**.
+  testo dell'utente e non troverebbe mai nulla.
+  ⚠️ **CORREZIONE (onda 4).** Lo avevo riportato come difetto ATTIVO in produzione. Non lo
+  era: sul feed reale `provincia` è vuota su **tutti e 193** gli immobili, quindi `zone`
+  coincide col comune e il filtro funzionava già. Il difetto era **latente**, non attivo.
+  ✅ **RISOLTO A MONTE (PR #5, merge in questo branch).** Esiste ora `app/lib/comune.ts`, fonte
+  unica di "che cos'è un comune" per API di ricerca, assistente, filtri del client e mappa,
+  con match tollerante a provincia e accenti. L'assistente ha abbandonato il proprio
+  meccanismo parallelo (`zoneKeyByComune`) e usa quello condiviso: una sola definizione,
+  non due che possono divergere.
 - **`pagePath` protocol-relative.** `//evil.test` passava come "percorso relativo" e finiva
   concatenato a `SITE_URL` nei messaggi di handoff. Regex stretta + test di regressione.
 
