@@ -167,7 +167,7 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     group: "esterni",
     label: "Terrazzi",
     counted: true,
-    match: new RegExp(`\\b(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?terrazz[aeio]\\w*`, "i"),
+    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?)?terrazz[aeio]\\w*`, "i"),
     value: (m) => {
       const n = toCount(m[1]);
       return n && n > 1 ? String(n) : undefined;
@@ -178,7 +178,7 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     group: "esterni",
     label: "Balconi",
     counted: true,
-    match: new RegExp(`\\b(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?balcon[ei]\\w*`, "i"),
+    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?)?balcon[ei]\\w*`, "i"),
     value: (m) => {
       const n = toCount(m[1]);
       return n && n > 1 ? String(n) : undefined;
@@ -190,7 +190,8 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     label: "Autorimesse",
     counted: true,
     // Sinonimi deduplicati sulla stessa chiave: autorimessa / box / garage.
-    match: new RegExp(`\\b(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?(?:autorimess[ae]|box(?:\\s+auto)?|garage)\\b`, "i"),
+    // "box doccia" NON è un'autorimessa: il lookahead lo esclude.
+    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?)?(?:autorimess[ae]|box(?:\\s+auto)?(?!\\s+doccia)|garage)\\b`, "i"),
     value: (m) => {
       const n = toCount(m[1]);
       return n && n > 1 ? String(n) : undefined;
@@ -201,7 +202,7 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     group: "esterni",
     label: "Posti auto",
     counted: true,
-    match: new RegExp(`\\b(?:n\\.\\s*)?(${QTY})${NOT_A_UNIT}\\s+post[oi]\\s+auto\\b`, "i"),
+    match: new RegExp(`\\b(?:(?:n\\.\\s*)?(${QTY})${NOT_A_UNIT}\\s+)?post[oi]\\s+auto\\b`, "i"),
     value: (m) => {
       const n = toCount(m[1]);
       return n && n > 1 ? String(n) : undefined;

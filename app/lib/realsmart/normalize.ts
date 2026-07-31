@@ -4,6 +4,7 @@
 
 import { normalizeDescription } from "./description";
 import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
+import { splitDescription } from "./descriptionSplit";
 import { getListingOverride } from "./overrides.data";
 import { applyRemovals, overrideFacts } from "./overrides";
 import type {
@@ -198,12 +199,25 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   });
   const descriptionFacts = factsFromDescription(paragraphs);
 
+  // override > campo RealSmart > descrizione; poi si tolgono le chiavi non pubblicabili.
+  const facts = applyRemovals(
+    mergeFacts(overrideFacts(override), fieldFacts, descriptionFacts.facts),
+    override,
+  );
+
+  // I fatti pubblicati decidono quali righe telegrafiche possono uscire dal testo.
+  const split = splitDescription(paragraphs, facts);
+
   return {
     id: raw.codice,
     slug,
     title: titleize(title),
     description: raw.descrizione?.trim() ?? "",
-    descriptionParagraphs: paragraphs,
+    // In pagina va la sola narrativa: le righe interamente tecniche vivono nei box.
+    descriptionParagraphs: split.narrativeParagraphs,
+    structuredFactLines: split.structuredFactLines.map((l) => l.line),
+    keptFactLines: split.keptFactLines,
+    contentPreservation: split.contentPreservation,
     excerpt: description.excerpt,
     price,
     priceLabel,
@@ -221,11 +235,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     floor: typeof raw.piano === "number" ? String(raw.piano) : raw.piano?.trim() || undefined,
     energyClass: raw.classeEnergetica?.trim() || undefined,
     features,
-    // override > campo RealSmart > descrizione; poi si tolgono le chiavi non pubblicabili.
-    facts: applyRemovals(
-      mergeFacts(overrideFacts(override), fieldFacts, descriptionFacts.facts),
-      override,
-    ),
+    facts,
     factsReview: descriptionFacts.review,
     images,
     status,

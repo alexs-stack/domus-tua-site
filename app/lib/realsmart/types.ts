@@ -8,6 +8,7 @@
 // Nessuna chiamata reale qui: solo contratti di tipo. La mappatura vive in ./normalize.ts.
 
 import type { FactReviewItem, PropertyFact } from "./facts";
+import type { FactLineOutcome } from "./descriptionSplit";
 
 // ─────────────────────────────────────────────────────────────
 // Stato di pubblicazione di un annuncio (union chiusa).
@@ -145,8 +146,14 @@ export interface NormalizedProperty {
   title: string;
   /** Descrizione grezza, così com'è arrivata dal gestionale (tracciabilità e audit). */
   description: string;
-  /** Descrizione normalizzata in paragrafi pubblicabili (vedi ./description.ts). */
+  /** Paragrafi NARRATIVI pubblicabili: le righe interamente tecniche sono già uscite. */
   descriptionParagraphs: string[];
+  /** Righe telegrafiche rimosse dal testo perché già presenti nei box strutturati. */
+  structuredFactLines: string[];
+  /** Righe tecniche conservate perché non del tutto risolte: da rivedere a mano. */
+  keptFactLines: FactLineOutcome[];
+  /** Quota di parole conservate rispetto alla descrizione normalizzata (1 = nessuna rimozione). */
+  contentPreservation: number;
   /** Estratto già pulito per card, meta description e JSON-LD. */
   excerpt: string;
   /** Prezzo numerico (0 se non disponibile / su richiesta). */
