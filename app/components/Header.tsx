@@ -4,30 +4,48 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
-import { ArrowUpRight, Whatsapp } from "./Icons";
-import { nav, site } from "../lib/site";
+import { ArrowUpRight, ChevronDown, Whatsapp } from "./Icons";
+import { primaryNav, secondaryNav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { getLenis } from "./motion/SmoothScroll";
+import { setMenuOpen } from "../lib/overlayState";
 import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  // Menu secondario "Altro" (solo desktop): raccoglie i percorsi che non sono primari.
+  const [moreOpen, setMoreOpen] = useState(false);
   const d = useDict();
   const pathname = usePathname();
   // Voce di nav attiva: match esatto o prefisso di sezione (es. /case/<slug> → "Case" attivo).
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  // "Altro" si accende quando sei dentro una delle sue pagine — incluse /case e /case/<slug>,
+  // che dal menu primario sono uscite ma restano rotte vive.
+  const moreActive = secondaryNav.some((item) => isActive(item.href));
+  // Cambio pagina → pannello chiuso. Aggiustamento in RENDER (non in effetto): la navigazione
+  // può avvenire sotto il sipario di PageTransition, che non smonta l'header, e un menu
+  // rimasto aperto resterebbe agganciato alla pagina nuova.
+  const [morePathname, setMorePathname] = useState(pathname);
+  if (morePathname !== pathname) {
+    setMorePathname(pathname);
+    setMoreOpen(false);
+  }
   const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const moreRef = useRef<HTMLDivElement | null>(null);
+  const moreButtonRef = useRef<HTMLButtonElement | null>(null);
   const pillRef = useRef<HTMLDivElement | null>(null);
   // Specchio di `open` leggibile dal callback ScrollTrigger senza ri-crearlo
   // (sincronizzato in un effetto: niente scritture di ref durante il render).
-  const openRef = useRef(open);
+  // Specchio di "un menu è aperto" (mobile o "Altro"): la pill non deve ritirarsi con lo
+  // scroll mentre un pannello è agganciato a lei, altrimenti il pannello esce dallo schermo.
+  const openRef = useRef(open || moreOpen);
   useEffect(() => {
-    openRef.current = open;
-  }, [open]);
+    openRef.current = open || moreOpen;
+  }, [open, moreOpen]);
 
   // Header direzionale: scendendo la pill si ritira (più tela per i contenuti),
   // al primo scroll verso l'alto — o al focus da tastiera — torna subito.
@@ -64,6 +82,38 @@ export default function Header() {
     { scope: pillRef }
   );
 
+  // Escape e click fuori chiudono "Altro". Con Escape il focus torna al suo bottone:
+  // chi naviga da tastiera non viene rispedito in cima al documento.
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      setMoreOpen(false);
+      moreButtonRef.current?.focus();
+    };
+    const onPointerDown = (e: PointerEvent) => {
+      const root = moreRef.current;
+      if (root && !root.contains(e.target as Node)) setMoreOpen(false);
+    };
+    // Il pannello contiene link: la chiusura al focusout serve al Tab, che deve poter
+    // uscire dal gruppo senza lasciare aperto un menu invisibile alla tastiera.
+    const onFocusOut = (e: FocusEvent) => {
+      const root = moreRef.current;
+      const next = e.relatedTarget as Node | null;
+      if (root && next && !root.contains(next)) setMoreOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    moreRef.current?.addEventListener("focusout", onFocusOut);
+    const root = moreRef.current;
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+      root?.removeEventListener("focusout", onFocusOut);
+    };
+  }, [moreOpen]);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
@@ -75,6 +125,14 @@ export default function Header() {
   // stop() (mai al mount con open=false) e MAI mentre il sipario di
   // PageTransition copre (è lui il proprietario dello stop in quel momento).
   const menuLockedRef = useRef(false);
+  // Il banner cookie (fixed, z sopra il menu) si fa da parte finché il menu è aperto:
+  // altrimenti coprirebbe le CTA in fondo al pannello e i due focus trap si contenderebbero
+  // il Tab. Torna appena il menu si chiude — la scelta non viene mai saltata.
+  useEffect(() => {
+    setMenuOpen(open);
+    return () => setMenuOpen(false);
+  }, [open]);
+
   useEffect(() => {
     const release = () => {
       if (!menuLockedRef.current) return;
@@ -252,9 +310,11 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop nav — voci primarie + "Altro" per le secondarie.
+            Stessi token e stesse transizioni delle voci esistenti: nessun colore, font o
+            animazione nuovi, solo una gerarchia diversa. */}
         <nav className="hidden items-center gap-1 lg:flex">
-          {nav.map((item) => {
+          {primaryNav.map((item) => {
             const active = isActive(item.href);
             return (
               <Link
@@ -277,6 +337,58 @@ export default function Header() {
               </Link>
             );
           })}
+
+          <div ref={moreRef} className="relative">
+            <button
+              ref={moreButtonRef}
+              type="button"
+              onClick={() => setMoreOpen((v) => !v)}
+              aria-expanded={moreOpen}
+              aria-controls="nav-altro"
+              aria-label={d.nav.altroAria}
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.82rem] transition-colors duration-300 ${
+                moreActive ? "font-semibold" : "font-medium"
+              } ${
+                scrolled
+                  ? moreActive || moreOpen
+                    ? "bg-red-soft text-red-dark"
+                    : "text-graphite hover:bg-cream-deep hover:text-ink"
+                  : moreActive || moreOpen
+                    ? "bg-cream/20 text-white"
+                    : "text-cream/90 hover:bg-cream/15 hover:text-white"
+              }`}
+            >
+              {d.nav.altro}
+              <ChevronDown
+                className={`h-3 w-3 transition-transform duration-300 ${moreOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            <div
+              id="nav-altro"
+              hidden={!moreOpen}
+              className="absolute right-0 top-[calc(100%+0.6rem)] min-w-[12rem] rounded-2xl border border-line bg-paper p-1.5 shadow-[0_24px_60px_-30px_rgba(26,24,22,0.5)]"
+            >
+              {secondaryNav.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMoreOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={`block whitespace-nowrap rounded-xl px-3.5 py-2 text-[0.82rem] transition-colors duration-300 ${
+                      active
+                        ? "bg-red-soft font-semibold text-red-dark"
+                        : "font-medium text-graphite hover:bg-cream-deep hover:text-ink"
+                    }`}
+                  >
+                    {d.nav[item.key]}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -351,8 +463,10 @@ export default function Header() {
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
+        {/* Su mobile lo spazio c'è: le secondarie restano raggiungibili in un colpo solo,
+            in un gruppo più piccolo sotto le primarie (stessa gerarchia del desktop). */}
         <nav className="flex flex-col">
-          {nav.map((item) => {
+          {primaryNav.map((item) => {
             const active = isActive(item.href);
             return (
               <Link
@@ -368,6 +482,29 @@ export default function Header() {
               </Link>
             );
           })}
+
+          <p className="pt-6 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-stone">
+            {d.nav.altro}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+            {secondaryNav.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  aria-current={active ? "page" : undefined}
+                  // py-2.5 su text-base ⇒ 44px di altezza: target touch minimo raccomandato.
+                  className={`py-2.5 text-base font-medium transition-colors duration-300 ${
+                    active ? "text-red" : "text-graphite"
+                  }`}
+                >
+                  {d.nav[item.key]}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
         <div data-menu-bottom className="mt-auto flex flex-col gap-3 pt-8">
