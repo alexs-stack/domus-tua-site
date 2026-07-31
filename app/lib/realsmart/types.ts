@@ -159,6 +159,8 @@ export interface NormalizedProperty {
   town: string;
   province: string;
   address?: string;
+  /** True solo se un override manuale autorizza la pubblicazione dell'indirizzo civico. */
+  showAddress: boolean;
   /** Metri quadri (0 se ignoto). */
   sqm: number;
   /** Numero locali (0 se ignoto). */

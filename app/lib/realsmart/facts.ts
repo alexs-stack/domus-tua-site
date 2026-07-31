@@ -494,27 +494,57 @@ function floorLabel(raw: string | undefined): string | undefined {
   return joined.charAt(0).toUpperCase() + joined.slice(1);
 }
 
+/** Anagrafica di un fatto: chiave stabile, gruppo di appartenenza, etichetta. */
+export interface FactMeta {
+  key: string;
+  group: FactGroup;
+  label: string;
+}
+
+/** Fatti che nascono da un campo esplicito del gestionale (non da una regola di testo). */
+const FIELD_FACT_META: readonly FactMeta[] = [
+  { key: "tipologia", group: "principali", label: "Tipologia" },
+  { key: "contratto", group: "principali", label: "Contratto" },
+  { key: "superficie", group: "principali", label: "Superficie" },
+  { key: "locali", group: "principali", label: "Locali" },
+  { key: "camere", group: "principali", label: "Camere" },
+  { key: "bagni", group: "principali", label: "Bagni" },
+  { key: "piano", group: "principali", label: "Piano" },
+  { key: "classeEnergetica", group: "principali", label: "Classe energetica" },
+  { key: "mqTerrazzo", group: "esterni", label: "Superficie terrazzi" },
+  { key: "mqGiardino", group: "esterni", label: "Superficie giardino" },
+  { key: "impiantoTermico", group: "comfort", label: "Impianto termico" },
+];
+
+/**
+ * CATALOGO delle chiavi conosciute: unione dei fatti da campo e delle regole sulla descrizione.
+ * È la lista che gli override manuali possono indirizzare senza dichiarare gruppo ed etichetta.
+ */
+export const FACT_CATALOG: ReadonlyMap<string, FactMeta> = new Map(
+  [
+    ...FIELD_FACT_META,
+    ...DESCRIPTION_RULES.map((r) => ({ key: r.key, group: r.group, label: r.label })),
+  ].map((meta) => [meta.key, meta]),
+);
+
 /** Costruttore conciso di un fatto proveniente da un campo del gestionale. */
-function fieldFact(
-  key: string,
-  group: FactGroup,
-  label: string,
-  value?: string,
-): PropertyFact {
-  return { key, group, label, value, source: "realsmart", confidence: "alta" };
+function fieldFact(key: string, value?: string): PropertyFact {
+  const meta = FACT_CATALOG.get(key);
+  if (!meta) throw new Error(`[facts] chiave sconosciuta nel catalogo: "${key}"`);
+  return { key, group: meta.group, label: meta.label, value, source: "realsmart", confidence: "alta" };
 }
 
 /** Ambienti del gestionale → PRESENZA di uno spazio (mai un conteggio: vedi RealSmartRoom). */
-const ROOM_TO_FACT: readonly { match: RegExp; key: string; group: FactGroup; label: string }[] = [
-  { match: /cucina\s+abitabile/i, key: "cucinaAbitabile", group: "spazi", label: "Cucina abitabile" },
-  { match: /lavanderia/i, key: "lavanderia", group: "spazi", label: "Lavanderia" },
-  { match: /camera\s+da\s+letto\s+matrimoniale|matrimoniale/i, key: "cameraMatrimoniale", group: "spazi", label: "Camera matrimoniale" },
-  { match: /^studio$/i, key: "studio", group: "spazi", label: "Studio" },
-  { match: /taverna/i, key: "taverna", group: "esterni", label: "Taverna" },
-  { match: /cantina/i, key: "cantina", group: "esterni", label: "Cantina" },
-  { match: /ripostiglio/i, key: "ripostiglio", group: "esterni", label: "Ripostiglio" },
-  { match: /sottotetto|mansarda/i, key: "sottotetto", group: "esterni", label: "Sottotetto" },
-  { match: /^balcon[ei]$/i, key: "balconi", group: "esterni", label: "Balconi" },
+const ROOM_TO_FACT: readonly { match: RegExp; key: string }[] = [
+  { match: /cucina\s+abitabile/i, key: "cucinaAbitabile" },
+  { match: /lavanderia/i, key: "lavanderia" },
+  { match: /matrimoniale/i, key: "cameraMatrimoniale" },
+  { match: /^studio$/i, key: "studio" },
+  { match: /taverna/i, key: "taverna" },
+  { match: /cantina/i, key: "cantina" },
+  { match: /ripostiglio/i, key: "ripostiglio" },
+  { match: /sottotetto|mansarda/i, key: "sottotetto" },
+  { match: /^balcon[ei]$/i, key: "balconi" },
 ];
 
 /** Input minimo per i fatti da campo: solo ciò che serve, così la funzione resta testabile. */
@@ -558,52 +588,52 @@ export function factsFromFields(input: FieldFactsInput): PropertyFact[] {
   const d = input.dettagli ?? {};
 
   // ── DATI PRINCIPALI ──
-  if (input.tipologia) facts.push(fieldFact("tipologia", "principali", "Tipologia", input.tipologia));
+  if (input.tipologia) facts.push(fieldFact("tipologia", input.tipologia));
   if (input.contratto) {
     const c = input.contratto.toLowerCase() === "affitto" ? "Affitto" : "Vendita";
-    facts.push(fieldFact("contratto", "principali", "Contratto", c));
+    facts.push(fieldFact("contratto", c));
   }
-  if (input.mq && input.mq > 0) facts.push(fieldFact("superficie", "principali", "Superficie", `${input.mq} m²`));
-  if (input.locali && input.locali > 0) facts.push(fieldFact("locali", "principali", "Locali", String(input.locali)));
-  if (input.camere && input.camere > 0) facts.push(fieldFact("camere", "principali", "Camere", String(input.camere)));
-  if (input.bagni && input.bagni > 0) facts.push(fieldFact("bagni", "principali", "Bagni", String(input.bagni)));
+  if (input.mq && input.mq > 0) facts.push(fieldFact("superficie", `${input.mq} m²`));
+  if (input.locali && input.locali > 0) facts.push(fieldFact("locali", String(input.locali)));
+  if (input.camere && input.camere > 0) facts.push(fieldFact("camere", String(input.camere)));
+  if (input.bagni && input.bagni > 0) facts.push(fieldFact("bagni", String(input.bagni)));
   const floor = floorLabel(input.piano);
-  if (floor) facts.push(fieldFact("piano", "principali", "Piano", floor));
+  if (floor) facts.push(fieldFact("piano", floor));
   if (input.classeEnergetica) {
-    facts.push(fieldFact("classeEnergetica", "principali", "Classe energetica", input.classeEnergetica));
+    facts.push(fieldFact("classeEnergetica", input.classeEnergetica));
   } else if (input.statoAttestatoEnergetico) {
     // L'APE non ancora emesso è un'informazione onesta e legalmente rilevante: si dichiara.
-    facts.push(fieldFact("classeEnergetica", "principali", "Classe energetica", input.statoAttestatoEnergetico));
+    facts.push(fieldFact("classeEnergetica", input.statoAttestatoEnergetico));
   }
 
   // ── ESTERNI E PERTINENZE ──
-  if (d.terrazzo) facts.push(fieldFact("terrazzi", "esterni", "Terrazzi"));
+  if (d.terrazzo) facts.push(fieldFact("terrazzi"));
   if (d.mqTerrazzo && d.mqTerrazzo > 0) {
-    facts.push(fieldFact("mqTerrazzo", "esterni", "Superficie terrazzi", `${d.mqTerrazzo} m²`));
+    facts.push(fieldFact("mqTerrazzo", `${d.mqTerrazzo} m²`));
   }
   if (d.giardino) {
-    facts.push(fieldFact("giardino", "esterni", "Giardino", d.tipoGiardino?.toLowerCase()));
+    facts.push(fieldFact("giardino", d.tipoGiardino?.toLowerCase()));
   }
   if (d.mqGiardino && d.mqGiardino > 0) {
-    facts.push(fieldFact("mqGiardino", "esterni", "Superficie giardino", `${d.mqGiardino} m²`));
+    facts.push(fieldFact("mqGiardino", `${d.mqGiardino} m²`));
   }
-  if (d.box) facts.push(fieldFact("autorimesse", "esterni", "Autorimesse"));
-  if (d.postoAuto) facts.push(fieldFact("postiAuto", "esterni", "Posti auto"));
+  if (d.box) facts.push(fieldFact("autorimesse"));
+  if (d.postoAuto) facts.push(fieldFact("postiAuto"));
 
   // ── COMFORT E IMPIANTI ──
-  if (d.ascensore) facts.push(fieldFact("ascensore", "comfort", "Ascensore"));
-  if (d.ariaCondizionata) facts.push(fieldFact("ariaCondizionata", "comfort", "Aria condizionata"));
+  if (d.ascensore) facts.push(fieldFact("ascensore"));
+  if (d.ariaCondizionata) facts.push(fieldFact("ariaCondizionata"));
   if (d.riscaldamento) {
     // Asse diverso da "riscaldamento a pavimento" (che descrive la DISTRIBUZIONE): qui c'è la
     // gestione dell'impianto. I due fatti convivono senza duplicarsi.
-    facts.push(fieldFact("impiantoTermico", "comfort", "Impianto termico", d.riscaldamento.toLowerCase()));
+    facts.push(fieldFact("impiantoTermico", d.riscaldamento.toLowerCase()));
   }
 
   // ── SPAZI / PERTINENZE dagli ambienti censiti ──
   for (const room of d.ambienti ?? []) {
     const rule = ROOM_TO_FACT.find((r) => r.match.test(room.descrizione.trim()));
     if (rule && !facts.some((f) => f.key === rule.key)) {
-      facts.push(fieldFact(rule.key, rule.group, rule.label));
+      facts.push(fieldFact(rule.key));
     }
   }
 

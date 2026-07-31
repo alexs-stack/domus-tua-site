@@ -4,6 +4,8 @@
 
 import { normalizeDescription } from "./description";
 import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
+import { getListingOverride } from "./overrides.data";
+import { applyRemovals, overrideFacts } from "./overrides";
 import type {
   ContractType,
   ListingStatus,
@@ -172,8 +174,13 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
 
   const addressRaw = raw.localita?.indirizzo?.trim();
 
+  // Override manuale approvato: è la fonte con priorità massima (vedi ./overrides.ts).
+  const override = getListingOverride(raw.codice);
+
   // Descrizione: una sola normalizzazione, riusata da paragrafi, estratto ed estrazione fatti.
+  // Se il cliente ci ha fornito un testo approvato, quello sostituisce integralmente il feed.
   const description = normalizeDescription(raw.descrizione);
+  const paragraphs = override?.descrizione ?? description.paragraphs;
 
   // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
   // Gli override manuali approvati si innestano davanti a tutto in ./overrides.ts.
@@ -189,14 +196,14 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     statoAttestatoEnergetico: raw.statoAttestatoEnergetico,
     dettagli: raw.dettagli,
   });
-  const descriptionFacts = factsFromDescription(description.paragraphs);
+  const descriptionFacts = factsFromDescription(paragraphs);
 
   return {
     id: raw.codice,
     slug,
     title: titleize(title),
     description: raw.descrizione?.trim() ?? "",
-    descriptionParagraphs: description.paragraphs,
+    descriptionParagraphs: paragraphs,
     excerpt: description.excerpt,
     price,
     priceLabel,
@@ -205,6 +212,8 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     town,
     province,
     address: addressRaw && addressRaw.length > 0 ? addressRaw : undefined,
+    // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
+    showAddress: override?.mostraIndirizzo === true,
     sqm: toNumber(raw.mq),
     rooms: toNumber(raw.locali),
     bedrooms: toNumber(raw.camere),
@@ -212,7 +221,11 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     floor: typeof raw.piano === "number" ? String(raw.piano) : raw.piano?.trim() || undefined,
     energyClass: raw.classeEnergetica?.trim() || undefined,
     features,
-    facts: mergeFacts(fieldFacts, descriptionFacts.facts),
+    // override > campo RealSmart > descrizione; poi si tolgono le chiavi non pubblicabili.
+    facts: applyRemovals(
+      mergeFacts(overrideFacts(override), fieldFacts, descriptionFacts.facts),
+      override,
+    ),
     factsReview: descriptionFacts.review,
     images,
     status,

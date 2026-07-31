@@ -17,6 +17,8 @@ import { getRealSmartConfig } from "./env";
 import { getMockRealSmartListings } from "./mocks";
 import { normalizeRealSmartListing } from "./normalize";
 import { parseRealSmartPayload } from "./parse";
+import { buildOverridesReport } from "./overrides";
+import { listingOverrides } from "./overrides.data";
 import type { NormalizedProperty, RealSmartListingRaw } from "./types";
 
 /**
@@ -109,6 +111,16 @@ async function loadListings(): Promise<NormalizedProperty[]> {
   const normalized = raw
     .map(normalizeRealSmartListing)
     .filter((p) => !HIDDEN_STATUSES.has(p.status));
+
+  // Override ORFANI: puntano a un immobile che il gestionale non espone più. Non è un errore
+  // di build (l'immobile può essere stato ritirato) ma va sempre segnalato, altrimenti resta
+  // lì per anni. Il report completo è in `npm run audit:listings-content`.
+  const { orfani } = buildOverridesReport(listingOverrides, raw.map((r) => r.codice));
+  if (orfani.length > 0) {
+    console.warn(
+      `[realsmart] ${orfani.length} override senza immobile corrispondente nel feed: ${orfani.join(", ")}`,
+    );
+  }
 
   // Ordina prima gli immobili "In evidenza", poi per data di aggiornamento
   // (ISO 8601 → confronto lessicografico OK), le stringhe vuote finiscono in coda.
