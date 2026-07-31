@@ -72,8 +72,28 @@ export interface RealSmartListingRaw {
   camere?: number | string;
   /** Piano (es. "2", "Attico", "Terra rialzato"). */
   piano?: number | string;
-  /** Classe energetica (es. "A", "B", "G", "A4"). */
+  /**
+   * Classe energetica, dal tag `<ACE>` del feed.
+   * Attenzione: può contenere sia una classe vera ("A4", "E") sia uno STATO del certificato
+   * ("In fase di rilascio", "Mancante", "Non richiesta"): la distinzione avviene in normalize.
+   * NON usare `<ClasseImmobile>`, che è la classe dell'immobile (media/signorile/economica).
+   */
   classeEnergetica?: string;
+  /** Stato di conservazione dal tag `<StatoInterno>` (es. "Buono", "Da ristrutturare"). */
+  statoImmobile?: string;
+  /**
+   * Dotazioni a TRE stati. `true` = c'è, `false` = non c'è, `undefined` = il feed non lo dice.
+   * Un campo assente non è mai un "no": vedi docs/realsmart-field-mapping.md.
+   */
+  ascensore?: boolean;
+  giardino?: boolean;
+  terrazzo?: boolean;
+  /** Box e/o posto auto: `true` se il feed dichiara almeno uno dei due. */
+  postoAuto?: boolean;
+  /** Trattativa riservata dal tag `<TrattativaRiservata>` → stato "reserved". */
+  trattativaRiservata?: boolean;
+  /** Codice ISTAT del comune: da qui si ricava la provincia (il feed non la espone). */
+  istat?: string;
   /** Dotazioni / features libere. */
   caratteristiche?: string[];
   /** Stato pubblicazione grezzo (default: published se assente). */
@@ -124,7 +144,25 @@ export interface NormalizedProperty {
   /** Numero bagni (0 se ignoto). */
   baths: number;
   floor?: string;
+  /** Classe energetica valida (A4…G). Assente se il feed non ne dichiara una. */
   energyClass?: string;
+  /**
+   * Stato del certificato energetico quando NON c'è una classe ("In fase di rilascio",
+   * "Mancante", "Non richiesta"). Serve a distinguere "non lo sappiamo" da "non c'è".
+   */
+  energyClassStatus?: string;
+  /** Stato di conservazione dichiarato dal gestionale. */
+  condition?: string;
+  /**
+   * Dotazioni a TRE stati: `true` presente, `false` assente, `undefined` non dichiarata.
+   * L'interfaccia mostra "Informazione non disponibile" solo per `undefined`.
+   */
+  amenities: {
+    elevator?: boolean;
+    garden?: boolean;
+    terrace?: boolean;
+    parking?: boolean;
+  };
   features: string[];
   images: NormalizedImage[];
   status: ListingStatus;

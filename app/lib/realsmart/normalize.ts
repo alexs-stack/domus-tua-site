@@ -2,6 +2,7 @@
 // (forma pulita usata dal sito). Funzione PURA e difensiva: nessun side effect, nessuna
 // eccezione su campi mancanti. Se il feed reale userà nomi diversi, si adatta qui la mappatura.
 
+import { readEnergy } from "./parse";
 import type {
   ContractType,
   ListingStatus,
@@ -113,7 +114,7 @@ function deriveBadges(
   const badges: string[] = [];
 
   // Badge di stato prioritari.
-  if (status === "reserved") badges.push("Sotto proposta");
+  if (status === "reserved") badges.push("In trattativa");
   if (status === "sold") badges.push(contract === "affitto" ? "Affittato" : "Venduto");
   if (status === "withdrawn") badges.push("Ritirato");
 
@@ -150,6 +151,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
 
   const contract = normalizeContract(raw.contratto);
   const status = normalizeStatus(raw.statoPubblicazione);
+  const energy = readEnergy(raw.classeEnergetica);
 
   const price = toNumber(raw.prezzo);
   const priceLabel = price > 0 ? priceFormatter.format(price) : "Prezzo su richiesta";
@@ -187,7 +189,19 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     bedrooms: toNumber(raw.camere),
     baths: toNumber(raw.bagni),
     floor: typeof raw.piano === "number" ? String(raw.piano) : raw.piano?.trim() || undefined,
-    energyClass: raw.classeEnergetica?.trim() || undefined,
+    // <ACE> porta o una classe vera o lo stato del certificato: readEnergy separa i due casi
+    // così la scheda non mostra mai "Classe energetica: Mancante" come se fosse una classe.
+    energyClass: energy.classe,
+    energyClassStatus: energy.stato,
+    condition: raw.statoImmobile?.trim() || undefined,
+    // Tre stati: undefined = il feed non dichiara nulla, e la UI dirà "non disponibile"
+    // invece di lasciar intendere un'assenza.
+    amenities: {
+      elevator: raw.ascensore,
+      garden: raw.giardino,
+      terrace: raw.terrazzo,
+      parking: raw.postoAuto,
+    },
     features,
     images,
     status,

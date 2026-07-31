@@ -9,12 +9,66 @@ Sorgenti di verità del codice:
 - Logica di mappatura (pura e difensiva): `app/lib/realsmart/normalize.ts`
 - Filtro stati + fetch: `app/lib/realsmart/client.ts`
 
-> Nota: oggi la UI degli immobili (`app/components/Listings.tsx`, `PropertyCard.tsx`,
-> `PropertyGallery.tsx`, `PropertySearch.tsx`, `app/case/[slug]/page.tsx`) legge ancora il
-> modello **DEMO** `app/lib/properties.ts`. La colonna "Dove usato nella UI" indica la
-> **superficie di destinazione**: cioè dove ciascun campo `NormalizedProperty` andrà a
-> confluire quando le pagine `case` verranno collegate a `getLiveListings()`. La forma dei dati
-> è già allineata a quella del `Property` demo, quindi il ricollegamento è meccanico.
+> Il feed è **collegato**: la UI legge i dati live via `getVisibleListings()`.
+> La fixture controllata usata dai test è `app/lib/realsmart/__fixtures__/feed-sample.xml`,
+> nella forma reale del feed. Verifica contro il feed vero: `npm run check:realsmart`
+> (fuori CI — vedi §4).
+
+---
+
+## 0. Tag del feed reale → campo del sito
+
+Ricavata leggendo il feed di produzione (193 annunci). Include i tag **presenti ma non ancora
+usati**, così si vede cosa c'è a disposizione senza doverlo riscoprire.
+
+| Tag XML | Campo grezzo | Campo UI (`Property`) | Note |
+|---|---|---|---|
+| `<Codice>` | `codice` | chiave + slug | Chiave primaria del gestionale. Senza, l'annuncio è scartato. |
+| `<Riferimento>` | `riferimento` | `ref` | Riferimento commerciale mostrato all'utente. |
+| `<Titolo>` | `titolo` | `title` | Spesso tutto MAIUSCOLO nel feed → sentence-case se ≥70% maiuscolo. |
+| `<Tipologia>` | `tipologia` | `type` | Valori liberi ("Villa bifam", "Terreno ed") → 5 bucket dei filtri. |
+| `<Contratto>` | `contratto` | `status` | "Vendita" / "Affitto" (maiuscole variabili). |
+| `<Comune>` | `localita.comune` | `zone` | |
+| `<Istat>` | `istat` | provincia in `zone` | **Il feed non ha un tag Provincia**: si ricava dal codice ISTAT (012→VA, 013→CO, 015→MI). Codice fuori tabella → nessuna sigla. |
+| `<Costo>` / `<ValoreCosto>` | `prezzo` | `price`, `priceValue` | 0 o assente → "Prezzo su richiesta". |
+| `<Mq>` | `mq` | `sqm` | 0 → "—". |
+| `<Locali>` | `locali` | `rooms` | 0 → "—". |
+| `<Camere>` | `camere` | `beds` | 0 → ricavate da `locali − 1`; se resta 0 → "—". |
+| `<Bagni>` | `bagni` | `baths` | ≥2 aggiunge anche la feature "Doppi servizi". |
+| `<Piano>` | `piano` | `floor` | Solo "T" → "Piano terra"; numerico → "Piano N"; altro (es. "s1") passa com'è. |
+| `<Ascensore>` | `ascensore` | `amenities.elevator` | **Tre stati**: Si / No / non dichiarato. |
+| `<Giardino>` | `giardino` | `amenities.garden` | Tre stati. |
+| `<Terrazzo>` | `terrazzo` | `amenities.terrace` | Tre stati. |
+| `<Box>` + `<PostoAuto>` | `postoAuto` | `amenities.parking` | `true` se almeno uno è "Si"; `false` solo se **entrambi** "No". |
+| `<ACE>` | `classeEnergetica` | `energyClass` / `energyClassStatus` | Contiene o una classe (A4…G) o lo stato del certificato ("In fase di rilascio", "Mancante"): i due casi restano separati. |
+| `<StatoInterno>` | `statoImmobile` | `condition` | "Buono", "Ristrutturato", "Da ristrutturare"… |
+| `<TrattativaRiservata>` | `trattativaRiservata` | `availability: "reserved"` | "Si" → badge "In trattativa". Resta in vetrina. |
+| `<ElencoFoto><Foto>` | `media[]` | `cover`, `gallery` | Solo HTTPS su `*.realsmart.it`; ordine del feed preservato. |
+| `<AnnuncioCompleto>` | `descrizione` | `description[]`, `excerpt` | CDATA con `<br/>`: vedi §3. |
+| `<Evidenza>` | `inEvidenza` | badge "In evidenza" + ordinamento | |
+| `<UltimaModifica>` / `<DataInserimento>` | date | ordinamento | `dd/mm/yyyy` → ISO. |
+| `<Indirizzo>`, `<CAP>`, `<Zona>` | `localita.*` | — | Letti, non mostrati (privacy). |
+| `<ClasseImmobile>` | — | — | **Non** è la classe energetica: vale media/signorile/economica/lusso. |
+| `<Riscaldamento>`, `<Arredamento>`, `<AnnoCostruzione>`, `<StatoOccupazione>`, `<SpeseCondominiali>`, `<mq_giardino>`, `<mq_terrazzo>`, `<Tipo_Box>`, `<Tipo_Giardino>`, `<Ambienti>`, `<Lat>`/`<Lng>`, `<Planimetria>`, `<UrlVirtualTour>`, `<UrlVideo1-4>` | — | — | Presenti nel feed, **non ancora usati**. Disponibili senza ulteriori richieste al gestionale. |
+| `<Agente>`, `<EmailAgente>`, `<TelefonoAgente>`, `<IdAgente>` | — | — | Dati dell'agente: **volutamente non pubblicati**. |
+
+---
+
+## 0-bis. Regole di integrità
+
+1. **Un campo assente non è un "no".** Le dotazioni hanno tre stati: presente, assente,
+   non dichiarato. L'ultimo caso mostra "Informazione non disponibile" nella scheda.
+2. **Nessuna caratteristica dedotta dalla descrizione.** Il testo dell'annuncio è prosa
+   commerciale: le dotazioni arrivano solo dai tag dedicati.
+3. **Nessun dato numerico inventato.** Prezzo, superficie, locali, camere e bagni mancanti
+   diventano "—" o "Prezzo su richiesta", mai 0.
+4. **Venduto, in trattativa e disponibile restano tre stati distinti** (`availability`).
+   Solo i venduti e gli stati nascosti escono dalle vetrine; chi è in trattativa resta
+   visibile con il proprio badge.
+5. **Niente HTML dal feed.** Le descrizioni sono ridotte a testo semplice: nessun
+   `dangerouslySetInnerHTML` a valle.
+6. **Immagini solo da host consentiti** (HTTPS su `*.realsmart.it`), allineati a
+   `images.remotePatterns` in `next.config.ts`.
 
 Legenda obbligatorietà (lato feed RealSmart, per una scheda pubblicabile e non "monca"):
 - **Obb.** = obbligatorio: senza, la scheda è incompleta o non pubblicabile.
@@ -128,3 +182,46 @@ Utili da chiudere quando arriva il feed reale:
 - `app/lib/realsmart/client.ts` — `getLiveListings()`, `HIDDEN_STATUSES`, ordinamento, `REVALIDATE_SECONDS`.
 - `app/components/PropertyCard.tsx`, `PropertyGallery.tsx`, `PropertySearch.tsx`, `Listings.tsx`, `app/case/[slug]/page.tsx` — superfici UI di destinazione.
 - Contesto e domande aperte: `docs/realsmart-integration-notes.md`.
+
+
+---
+
+## 3. Pulizia delle descrizioni
+
+`app/lib/realsmart/description.ts` — modulo puro, testo in ingresso e testo in uscita.
+
+Nel feed di produzione **158 descrizioni su 193 contengono `<br/>`**. Prima di questo modulo
+finivano a schermo come testo ("…in un unico luogo. `<br/>`La villa che…"): React escapa il
+markup, quindi il tag si vedeva.
+
+Pipeline:
+
+1. `stripMarkup` — `<br>`, `</p>`, `<li>`… diventano a capo; ogni altro tag sparisce;
+   entità HTML convertite. Uno `<script>` nel feed resta testo inerte.
+2. `normalizeWhitespace` — spazi doppi collassati, spazio dopo un punto incollato alla parola
+   successiva ("comodità.Immagina" → "comodità. Immagina"), righe vuote multiple ridotte.
+3. `stripBoilerplate` — via la sola firma commerciale in coda ("Con Domus Tua è facile
+   vendere…", "Da oltre N anni al tuo fianco"): è uno slogan ripetuto in ogni annuncio, non
+   un'informazione sull'immobile.
+4. `toParagraphs` — se il testo ha interruzioni, si rispettano (sono la struttura voluta da chi
+   ha scritto l'annuncio); se è un muro unico, si raggruppano le frasi a tre.
+
+**Nessuna riscrittura.** Frasi e informazioni originali restano quelle: si toglie markup e
+spazi, non si cambia una parola.
+
+---
+
+## 4. Verifica contro il feed live
+
+```bash
+npm run check:realsmart
+```
+
+Fuori dalla CI di proposito: il feed è di terzi e se è giù la pipeline non deve diventare
+rossa. Lo script scarica il feed vero e verifica copertura dei campi, assenza di markup
+residuo, host delle immagini e i tre stati di disponibilità. Esce con 1 solo se qualcosa è
+rotto; le coperture basse ma plausibili sono avvisi.
+
+Esito dell'ultima esecuzione (193 annunci): titolo/comune/superficie/descrizione/immagini
+100%, provincia 99%, prezzo 99%, stato immobile 99%, piano 99%, classe energetica 89%,
+dotazioni dichiarate 100%.

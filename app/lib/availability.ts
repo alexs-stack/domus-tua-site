@@ -11,17 +11,27 @@
 
 import type { Property } from "./properties";
 
-/** true se l'immobile è ancora sul mercato (mai venduto/affittato). */
-export function isAvailable(p: Pick<Property, "sold">): boolean {
-  return !p.sold;
+type WithAvailability = Pick<Property, "availability">;
+
+/**
+ * true se l'immobile è ancora sul mercato. Include gli immobili IN TRATTATIVA: sono sotto
+ * proposta, non venduti, e restano nelle vetrine con il proprio badge.
+ */
+export function isAvailable(p: WithAvailability): boolean {
+  return (p.availability ?? "available") !== "sold";
 }
 
 /** true se l'immobile è venduto o affittato: si mostra solo in contesti espliciti. */
-export function isSold(p: Pick<Property, "sold">): boolean {
-  return !!p.sold;
+export function isSold(p: WithAvailability): boolean {
+  return p.availability === "sold";
 }
 
-/** Filtra una lista tenendo solo gli immobili disponibili. */
-export function onlyAvailable<T extends Pick<Property, "sold">>(list: T[]): T[] {
+/** true se è sotto proposta / in trattativa riservata. */
+export function isReserved(p: WithAvailability): boolean {
+  return p.availability === "reserved";
+}
+
+/** Filtra una lista tenendo solo gli immobili non venduti. */
+export function onlyAvailable<T extends WithAvailability>(list: T[]): T[] {
   return list.filter(isAvailable);
 }
