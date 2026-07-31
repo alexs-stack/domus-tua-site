@@ -12,7 +12,7 @@ import type { DemoChecklistRow } from "../lib/demoStatus";
 //
 // La `checklist` (logo / immobili / recensioni / hero / lead) arriva come PROP dal layout
 // (server), che la calcola con getDemoStatus() — così può leggere anche env server-only
-// (es. SHEETS_WEBHOOK_URL) senza esporne mai i valori al client.
+// (es. RESEND_API_KEY) senza esporne mai i valori al client.
 
 const copy = {
   it: { label: "Preview — contenuti in verifica", detail: "Stato integrazioni", dismiss: "Nascondi avviso di anteprima" },

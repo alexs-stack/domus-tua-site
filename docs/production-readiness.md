@@ -5,7 +5,7 @@ Spuntare tutto prima del go-live. Documenti di supporto indicati in ogni sezione
 
 Riferimenti: `docs/env-and-deploy.md`, `docs/deployment-notes.md`,
 `docs/realsmart-integration-notes.md`, `docs/realsmart-field-mapping.md`,
-`docs/forms-crm-notes.md`, `docs/reviews-integration.md`,
+`docs/lead-email.md`, `docs/reviews-integration.md`,
 `docs/client-assets-needed.md`, `docs/content-replacement-checklist.md`,
 `docs/performance-notes.md`.
 
@@ -30,7 +30,7 @@ Riferimenti: `docs/env-and-deploy.md`, `docs/deployment-notes.md`,
 ## 3. Legale
 
 - [ ] Pagine `privacy` e `cookie` allineate al trattamento dati reale (feed immobili, indirizzi, foto, lead).
-- [ ] Consenso + link a `/privacy` sul form contatti prima di qualunque salvataggio server (`docs/forms-crm-notes.md`).
+- [ ] Consenso + link a `/privacy` sul form contatti prima di qualunque invio (`docs/lead-email.md`).
 - [ ] Cookie/consent per gli embed di terze parti (Trustindex, Instagram, mappa) verificato.
 - [ ] Indirizzo civico immobili: deciso cosa è pubblicabile (civico vs solo comune/zona).
 - [ ] Dati agenzia corretti (P.IVA, sede Tradate/Varese, contatti) in `app/lib/site.ts`.
@@ -45,10 +45,10 @@ Riferimenti: `docs/env-and-deploy.md`, `docs/deployment-notes.md`,
 
 ## 5. Form / destinazione lead
 
-- [ ] `CONTACT_FORM_MODE` deciso (`whatsapp` o `email`) e coerente col flusso reale.
-- [ ] Se `email`: `CONTACT_EMAIL_TO` impostato e ricezione testata end-to-end.
+- [ ] `RESEND_API_KEY` e `LEAD_FROM_EMAIL` impostati: `/api/health` → `emailLeadConfigured: true`.
+- [ ] `LEAD_TO_EMAIL` (o il default `immobiliare@domustua.it`) verificato: invio di prova ricevuto in casella.
 - [ ] Numero WhatsApp e recapiti corretti in `app/lib/site.ts`; `wa.me` testato su mobile (fallback popup).
-- [ ] Segmentazione lead (tipo, pagina sorgente, immobile) come da `docs/forms-crm-notes.md`.
+- [ ] Segmentazione lead (tipo, pagina sorgente, immobile) nell'email — vedi `docs/lead-email.md`.
 
 ## 6. RealSmart feed
 

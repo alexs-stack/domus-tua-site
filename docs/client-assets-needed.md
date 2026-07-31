@@ -45,6 +45,18 @@ prove sociali**, non contenuti generici.
   del nome file).
 - **Perché:** sono i volti reali in Hero e nella sezione "Chi siamo"; danno immediatezza e fiducia.
 
+### 1.3-bis ⚠️ Foto di gruppo da rifare — l'organico è cambiato
+- **Cosa:** nuove foto di gruppo con le sole persone attualmente in organico.
+- **Dove:**
+  - `public/images/reali/team-group.jpg` — sezione Team (home e `/chi-siamo`): ritrae **sei**
+    persone, cioè la composizione precedente;
+  - `public/images/reali/team-trio.jpg` e `team-red.jpg` — galleria `/chi-siamo`.
+- **Stato attuale:** le foto **restano in pagina** (rimuoverle cambierebbe il layout), ma alt e
+  didascalie sono state riscritte come *"foto di gruppo Domus Tua"*: non dichiarano più chi
+  compone il team oggi. L'elenco nominativo sotto la foto è invece già aggiornato.
+- **Perché:** finché le foto non sono rifatte, il sito mostra volti di persone non più in
+  organico presentandoli come immagine dell'agenzia. Serve anche la liberatoria aggiornata.
+
 ### 1.4 Link YouTube + timestamp (5–10)
 - **Cosa:** 5–10 video da mettere in vetrina, con **URL/ID YouTube** e, dove serve, **timestamp** del
   momento saliente. Conferma dei titoli redazionali.
@@ -132,11 +144,12 @@ Obiettivo: sito completo, corretto e a norma, pronto per essere pubblicato sul d
 - **Dove:** `public/favicon.ico` (referenziato in `metadata.icons` di `app/layout.tsx`).
 - **Perché:** completa la riconoscibilità del brand nel browser.
 
-### 2.7 Destinazione del form di contatto
-- **Cosa:** dove devono arrivare i messaggi del modulo contatti (email, CRM, servizio esterno) e con
-  quali eventuali chiavi/endpoint.
-- **Dove:** `app/components/Contact.tsx` + variabili d'ambiente su Vercel.
-- **Perché:** senza destinazione confermata, i contatti raccolti al lancio andrebbero persi.
+### 2.7 Invio delle email del form di contatto — ✅ deciso
+- **Cosa:** i messaggi arrivano a `immobiliare@domustua.it`. Serve solo l'accesso al DNS del
+  dominio per verificare il mittente presso il provider email (record SPF/DKIM).
+- **Dove:** `docs/lead-email.md` + variabili `RESEND_API_KEY` / `LEAD_FROM_EMAIL` su Vercel.
+- **Perché:** finché il mittente non è verificato il form non invia, e lo dice all'utente
+  offrendo WhatsApp e telefono.
 
 ---
 

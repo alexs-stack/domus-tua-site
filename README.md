@@ -72,7 +72,8 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 - **Recensioni** (`Reviews.tsx`): testi rappresentativi → sostituire con recensioni Google/Trustindex reali (o embed).
 - **Foto team** (`Team.tsx`): servono foto reali; ora slot editoriali.
 - **Numeri** stat: verificare con il cliente (4.9/5 e 500+ recensioni indicati come reali nel brief).
-- **Form contatti**: ora apre WhatsApp precompilato (nessun backend). Da collegare a email/CRM.
+- **Form contatti**: invia un'**email** a `immobiliare@domustua.it` (Resend, server-side). Nessuna
+  persistenza. Se l'invio non riesce il form lo dice e mostra WhatsApp e telefono.
 - **Orari** in footer: placeholder plausibili, da confermare.
 
 ## Documentazione
@@ -89,7 +90,7 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 **Contenuti & integrazioni**
 - [docs/realsmart-integration-notes.md](docs/realsmart-integration-notes.md) · [docs/realsmart-client-questions.md](docs/realsmart-client-questions.md) · [docs/realsmart-security.md](docs/realsmart-security.md) — feed immobili RealSmart
 - [docs/reviews-integration.md](docs/reviews-integration.md) — recensioni Google/Trustindex
-- [docs/form-backend-next-step.md](docs/form-backend-next-step.md) · [docs/forms-crm-notes.md](docs/forms-crm-notes.md) — lead capture → email/CRM
+- [docs/lead-email.md](docs/lead-email.md) — lead capture via email + WhatsApp + telefono
 - [docs/i18n.md](docs/i18n.md) — multilingua IT/EN/FR/DE/ES (flag `NEXT_PUBLIC_ENABLE_I18N`)
 
 **Delivery & operatività**

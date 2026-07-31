@@ -1,7 +1,7 @@
 // demoStatus — fonte UNICA di verità su "cosa è live vs demo/segnaposto".
 //
 // SERVER-ONLY. Legge sia env pubbliche (NEXT_PUBLIC_*) sia env server-only
-// (SHEETS_WEBHOOK_URL, CONTACT_FORM_MODE…) per capire lo stato reale dell'integrazione.
+// (RESEND_API_KEY, LEAD_FROM_EMAIL…) per capire lo stato reale dell'integrazione.
 // NON esporre MAI valori segreti: qui usciamo solo booleani/enum derivati.
 //
 // Consumatori:
@@ -16,12 +16,17 @@ import { brand } from "./brand";
 import { site } from "./site";
 import { heroCinematic } from "./media";
 import { isRealSmartLive } from "./realsmart/env";
+import { isEmailLeadConfigured, isLeadRecipientConfigured } from "./forms/email";
 import { aiParseEnabled, semanticEnabled } from "./ai/config";
 
 /** Sorgente dati immobili: feed RealSmart live oppure fixture demo/mock. */
 export type DataSourceMode = "realsmart" | "mock";
-/** Destinazione dei lead: Google Sheet, solo WhatsApp, oppure non configurato. */
-export type LeadBackend = "sheets" | "whatsapp" | "not-configured";
+/**
+ * Destinazione dei lead. È SEMPRE "email": il form scrive a immobiliare@domustua.it e non
+ * esiste altro backend. WhatsApp e telefono restano canali paralleli aperti dall'utente,
+ * non destinazioni del form.
+ */
+export type LeadBackend = "email";
 
 /** Stato grezzo (booleani/enum) — nessun segreto. Adatto anche a /api/health. */
 export interface DemoStatus {
@@ -37,8 +42,14 @@ export interface DemoStatus {
   trustindexLive: boolean;
   /** Hero video reale attivo; altrimenti resta il poster (foto reale). */
   heroVideoLive: boolean;
-  /** Dove finiscono i lead una volta inviati. WhatsApp è comunque sempre attivo lato form. */
+  /** Dove finiscono i lead: sempre email. */
   leadBackend: LeadBackend;
+  /** Provider email configurato (chiave + mittente verificato): il form può davvero spedire. */
+  emailLeadConfigured: boolean;
+  /** Destinatario dei lead valorizzato. */
+  leadRecipientConfigured: boolean;
+  /** Numero WhatsApp presente: i link precompilati funzionano. */
+  whatsappConfigured: boolean;
   /** Ricerca AI: parsing frase→filtri via Claude (altrimenti parser locale deterministico). */
   searchAiConfigured: boolean;
   /** Ranking semantico via embeddings Voyage (altrimenti ranking per parole chiave). */
@@ -55,14 +66,6 @@ export function getDemoStatus(): DemoStatus {
     site.embeds.trustindexLoader.trim().length > 0 ||
     (process.env.TRUSTINDEX_WIDGET_URL ?? "").trim().length > 0;
 
-  const webhookConfigured = (process.env.SHEETS_WEBHOOK_URL ?? "").trim().length > 0;
-  const formMode = (process.env.CONTACT_FORM_MODE ?? "whatsapp").trim().toLowerCase();
-  const leadBackend: LeadBackend = webhookConfigured
-    ? "sheets"
-    : formMode === "whatsapp"
-      ? "whatsapp"
-      : "not-configured";
-
   return {
     previewBadge: isTrue(process.env.NEXT_PUBLIC_PREVIEW_BADGE),
     i18nEnabled: isTrue(process.env.NEXT_PUBLIC_ENABLE_I18N),
@@ -71,7 +74,10 @@ export function getDemoStatus(): DemoStatus {
     listingsMode: isRealSmartLive() ? "realsmart" : "mock",
     trustindexLive,
     heroVideoLive: heroCinematic.enabled,
-    leadBackend,
+    leadBackend: "email",
+    emailLeadConfigured: isEmailLeadConfigured(),
+    leadRecipientConfigured: isLeadRecipientConfigured(),
+    whatsappConfigured: site.whatsapp.href.trim().length > 0,
     searchAiConfigured: aiParseEnabled,
     semanticRankingConfigured: semanticEnabled,
   };
@@ -114,14 +120,9 @@ export function demoChecklist(s: DemoStatus): DemoChecklistRow[] {
     },
     {
       label: "Lead",
-      value:
-        s.leadBackend === "sheets"
-          ? "Google Sheet + WhatsApp"
-          : s.leadBackend === "whatsapp"
-            ? "Solo WhatsApp"
-            : "Non configurato",
-      // WhatsApp è comunque un canale reale: giallo solo quando non c'è persistenza.
-      ok: s.leadBackend !== "not-configured",
+      value: s.emailLeadConfigured ? "Email attiva" : "Email da configurare",
+      // Senza provider il form NON invia: non è un dettaglio, è il canale principale rotto.
+      ok: s.emailLeadConfigured,
     },
   ];
 }

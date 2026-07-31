@@ -136,6 +136,60 @@ describe("content integrity — firma della fondatrice", () => {
   });
 });
 
+describe("content integrity — team attuale", () => {
+  // Eleonora D'Agati e Tiziana Galeone non fanno più parte di Domus Tua. Il test copre tutte
+  // le grafie in cui i nomi potrebbero rientrare (apostrofo tipografico o dritto, con o senza
+  // spazio) e vale su tutti i file di produzione: componenti, dizionari, metadata, alt text.
+  const FORMER_MEMBERS: { label: string; pattern: RegExp }[] = [
+    { label: "Eleonora D'Agati", pattern: /eleonora|d[’'` ]?agati/i },
+    { label: "Tiziana Galeone", pattern: /tiziana|galeone/i },
+  ];
+
+  for (const { label, pattern } of FORMER_MEMBERS) {
+    test(`"${label}" non compare nei file di produzione`, () => {
+      const hits = productionSources().filter((f) => pattern.test(fs.readFileSync(f, "utf8")));
+      assert.deepEqual(
+        hits.map(REL),
+        [],
+        `${label} non è più in organico: non deve comparire in roster, dizionari, metadata, ` +
+          `dati strutturati o alt text. Nessun sostituto va inventato al suo posto.`,
+      );
+    });
+  }
+
+  test("il roster resta quello confermato, senza nomi aggiunti", () => {
+    const src = fs.readFileSync(path.join(APP_DIR, "components", "Team.tsx"), "utf8");
+    const names = [...src.matchAll(/\{ name: "([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(names, [
+      "Raffaela Rizza",
+      "Paloma Cavalcante",
+      "Viola Benatti",
+      "Katya Fedrigo",
+    ]);
+  });
+
+  test("le foto di gruppo non sono descritte come il team attuale", () => {
+    // Le foto ritraggono la composizione precedente e restano in pagina finché il cliente non
+    // fornisce quelle nuove (docs/client-assets-needed.md §1.3-bis): alt e didascalie devono
+    // descrivere l'immagine, non dichiarare chi lavora oggi in agenzia.
+    const files = [
+      path.join(APP_DIR, "components", "Team.tsx"),
+      path.join(APP_DIR, "chi-siamo", "ChiSiamoContent.tsx"),
+    ];
+    for (const file of files) {
+      const src = fs.readFileSync(file, "utf8");
+      const claims = [...src.matchAll(/^ *(?:imageAlt|captionName|squadra\w*Alt): "([^"]+)"/gm)]
+        .map((m) => m[1])
+        .filter((v) => /\b(il team|the .*team|l.équipe|das .*team|el equipo|e il team|and the team)\b/i.test(v));
+      assert.deepEqual(
+        claims,
+        [],
+        `${path.basename(file)}: alt/didascalia dichiarano "il team" su una foto di gruppo non aggiornata`,
+      );
+    }
+  });
+});
+
 describe("content integrity — video YouTube", () => {
   test("nessun video ripetuto tra evidenza e collezione", () => {
     const ids = allVideoIds();

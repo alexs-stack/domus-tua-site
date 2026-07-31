@@ -6,15 +6,20 @@ import { gsap, MQ } from "../lib/motion/gsap";
 import { Phone, Whatsapp, Mail, Pin, ArrowUpRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
-import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
-import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
+import { leadWhatsAppUrl } from "../lib/forms/whatsapp";
+import {
+  submitLead,
+  type Lead,
+  type LeadFailureReason,
+  type LeadIntent,
+} from "../lib/forms/lead";
 import WordReveal from "./WordReveal";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
 import { useLocale } from "./i18n/LocaleProvider";
 
-// Percorsi lead. `key` è il tipo lead (LeadIntent) — utile per una futura integrazione
-// CRM: lead type + source page + immobile selezionato (vedi docs/form-backend-next-step.md).
+// Percorsi lead. `key` è il tipo lead (LeadIntent): finisce nell'oggetto dell'email insieme
+// alla pagina di origine e all'immobile selezionato (vedi docs/lead-email.md).
 const leadOptions = [
   { key: "seller" },
   { key: "buyer" },
@@ -57,8 +62,14 @@ const copy = {
     submitOpenDomus: "Scopri Open Domus",
     errName: "Inserisci il tuo nome.",
     errContact: "Lasciaci un telefono o un’email per ricontattarti.",
-    sentPrefix: "Stiamo aprendo WhatsApp. Se non si apre,",
-    sentLink: "scrivici al",
+    sentTitle: "Richiesta inviata.",
+    sentText: "L’abbiamo ricevuta via email e ti ricontattiamo al più presto.",
+    failTitle: "La richiesta non è partita.",
+    failText: "C’è stato un problema con l’invio. Scrivici su WhatsApp o chiamaci: ti rispondiamo subito.",
+    failRateLimited: "Hai già inviato più richieste. Riprova tra qualche minuto, oppure scrivici su WhatsApp o chiamaci.",
+    failWhatsapp: "Scrivici su WhatsApp",
+    failPhone: "Chiama",
+    openingWhatsapp: "Stiamo aprendo WhatsApp.",
     gdpr: "Usiamo i tuoi dati solo per rispondere alla tua richiesta.",
     consentPre: "Ho letto l’",
     consentLinkText: "informativa privacy",
@@ -103,8 +114,14 @@ const copy = {
     submitOpenDomus: "Discover Open Domus",
     errName: "Please enter your name.",
     errContact: "Leave us a phone number or an email so we can reply.",
-    sentPrefix: "We’re opening WhatsApp. If it doesn’t open,",
-    sentLink: "message us at",
+    sentTitle: "Request sent.",
+    sentText: "We received it by email and we’ll get back to you as soon as possible.",
+    failTitle: "The request didn’t go through.",
+    failText: "Something went wrong while sending. Message us on WhatsApp or call us: we’ll reply right away.",
+    failRateLimited: "You’ve already sent several requests. Try again in a few minutes, or message us on WhatsApp or call us.",
+    failWhatsapp: "Message us on WhatsApp",
+    failPhone: "Call",
+    openingWhatsapp: "We’re opening WhatsApp.",
     gdpr: "We use your data only to reply to your request.",
     consentPre: "I have read the ",
     consentLinkText: "privacy policy",
@@ -149,8 +166,14 @@ const copy = {
     submitOpenDomus: "Découvrir Open Domus",
     errName: "Veuillez indiquer votre nom.",
     errContact: "Laissez-nous un téléphone ou un e-mail pour vous recontacter.",
-    sentPrefix: "Nous ouvrons WhatsApp. S’il ne s’ouvre pas,",
-    sentLink: "écrivez-nous au",
+    sentTitle: "Demande envoyée.",
+    sentText: "Nous l’avons reçue par e-mail et nous vous recontactons au plus vite.",
+    failTitle: "La demande n’est pas partie.",
+    failText: "Un problème est survenu à l’envoi. Écrivez-nous sur WhatsApp ou appelez-nous : nous répondons tout de suite.",
+    failRateLimited: "Vous avez déjà envoyé plusieurs demandes. Réessayez dans quelques minutes, ou écrivez-nous sur WhatsApp ou appelez-nous.",
+    failWhatsapp: "Écrivez-nous sur WhatsApp",
+    failPhone: "Appeler",
+    openingWhatsapp: "Nous ouvrons WhatsApp.",
     gdpr: "Nous utilisons vos données uniquement pour répondre à votre demande.",
     consentPre: "J’ai lu la ",
     consentLinkText: "politique de confidentialité",
@@ -195,8 +218,14 @@ const copy = {
     submitOpenDomus: "Open Domus entdecken",
     errName: "Bitte geben Sie Ihren Namen ein.",
     errContact: "Hinterlassen Sie uns eine Telefonnummer oder E-Mail für den Rückruf.",
-    sentPrefix: "Wir öffnen WhatsApp. Falls es sich nicht öffnet,",
-    sentLink: "schreiben Sie uns an",
+    sentTitle: "Anfrage gesendet.",
+    sentText: "Wir haben sie per E-Mail erhalten und melden uns schnellstmöglich.",
+    failTitle: "Die Anfrage wurde nicht gesendet.",
+    failText: "Beim Senden ist ein Problem aufgetreten. Schreiben Sie uns auf WhatsApp oder rufen Sie an: Wir antworten sofort.",
+    failRateLimited: "Sie haben bereits mehrere Anfragen gesendet. Versuchen Sie es in ein paar Minuten erneut, oder schreiben Sie uns auf WhatsApp bzw. rufen Sie an.",
+    failWhatsapp: "Auf WhatsApp schreiben",
+    failPhone: "Anrufen",
+    openingWhatsapp: "Wir öffnen WhatsApp.",
     gdpr: "Wir verwenden Ihre Daten ausschließlich zur Beantwortung Ihrer Anfrage.",
     consentPre: "Ich habe die ",
     consentLinkText: "Datenschutzerklärung",
@@ -241,8 +270,14 @@ const copy = {
     submitOpenDomus: "Descubre Open Domus",
     errName: "Introduce tu nombre.",
     errContact: "Déjanos un teléfono o un correo para poder responderte.",
-    sentPrefix: "Estamos abriendo WhatsApp. Si no se abre,",
-    sentLink: "escríbenos al",
+    sentTitle: "Solicitud enviada.",
+    sentText: "La hemos recibido por email y te contactamos lo antes posible.",
+    failTitle: "La solicitud no se ha enviado.",
+    failText: "Ha habido un problema con el envío. Escríbenos por WhatsApp o llámanos: te respondemos enseguida.",
+    failRateLimited: "Ya has enviado varias solicitudes. Inténtalo de nuevo en unos minutos, o escríbenos por WhatsApp o llámanos.",
+    failWhatsapp: "Escríbenos por WhatsApp",
+    failPhone: "Llamar",
+    openingWhatsapp: "Estamos abriendo WhatsApp.",
     gdpr: "Usamos tus datos solo para responder a tu solicitud.",
     consentPre: "He leído la ",
     consentLinkText: "política de privacidad",
@@ -263,17 +298,23 @@ type Copy = (typeof copy)[keyof typeof copy];
 // suggerire la zona. Senza props il comportamento di default (no-listing) resta invariato.
 export default function Contact({
   initialIntent,
-  propertyRef,
+  propertySlug,
   initialPlace,
 }: {
   initialIntent?: LeadIntent;
-  propertyRef?: string;
+  /** Slug della scheda da cui parte il form: finisce nell'email come URL dell'annuncio. */
+  propertySlug?: string;
   initialPlace?: string;
 } = {}) {
   const { locale } = useLocale();
   const c = copy[locale];
   const [intent, setIntent] = useState<LeadIntent>(initialIntent ?? "seller");
-  const [sent, setSent] = useState(false);
+  // Esito dell'invio. `sent` significa "il provider email ha accettato la richiesta", niente
+  // di meno: `failed` porta con sé il motivo e il link WhatsApp già precompilato col lead.
+  const [outcome, setOutcome] = useState<
+    { kind: "sent" } | { kind: "failed"; reason: LeadFailureReason; waUrl: string } | null
+  >(null);
+  const sent = outcome?.kind === "sent";
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; contact?: string; consent?: string }>({});
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -353,7 +394,7 @@ export default function Contact({
     "open-domus": c.submitOpenDomus,
   };
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const val = (k: string) => ((data.get(k) as string) || "").trim();
@@ -393,19 +434,23 @@ export default function Contact({
       message: val("message") || undefined,
       consent: true,
       sourcePage: typeof window !== "undefined" ? window.location.pathname : undefined,
-      // Riferimento immobile: presente solo se il form parte da una scheda listing.
-      propertyRef: propertyRef || undefined,
+      // Scheda di origine: presente solo se il form parte da un annuncio.
+      propertySlug: propertySlug || undefined,
     };
 
-    // Cattura server-side (Google Sheet se configurato) — best-effort, non blocca il flusso.
-    // `submitting` disabilita il bottone durante la scrittura (niente doppio invio) e dà feedback.
+    // Invio via email. Si ASPETTA l'esito: la conferma appare solo se il provider ha accettato
+    // il messaggio. Prima il form apriva WhatsApp e dichiarava "inviato" comunque, anche quando
+    // il backend non era configurato. `submitting` evita il doppio invio.
     setSubmitting(true);
-    void submitLead(lead).finally(() => setSubmitting(false));
-
-    // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
-    const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
-    window.open(url, "_blank", "noopener,noreferrer");
-    setSent(true);
+    setOutcome(null);
+    const result = await submitLead(lead);
+    setSubmitting(false);
+    if (result.ok) {
+      setOutcome({ kind: "sent" });
+      return;
+    }
+    // Non è partita: lo diciamo, e offriamo i due canali umani già in contesto.
+    setOutcome({ kind: "failed", reason: result.reason, waUrl: leadWhatsAppUrl(lead) });
   }
 
   return (
@@ -548,7 +593,7 @@ export default function Contact({
                   )}
                 </span>
               </button>
-              {sent ? (
+              {outcome?.kind === "sent" ? (
                 <p
                   ref={sentRef}
                   role="status"
@@ -567,13 +612,37 @@ export default function Contact({
                     />
                   </svg>
                   <span>
-                    {c.sentPrefix}{" "}
-                    <a href={site.whatsapp.href} className="font-semibold underline">
-                      {c.sentLink} {site.whatsapp.label}
-                    </a>
-                    .
+                    <strong className="font-semibold">{c.sentTitle}</strong> {c.sentText}
                   </span>
                 </p>
+              ) : outcome?.kind === "failed" ? (
+                /* La richiesta NON è partita: lo diciamo, e diamo i due canali umani.
+                   WhatsApp è un link che apre l'utente — non affermiamo mai di aver inviato. */
+                <div
+                  role="alert"
+                  className="rounded-2xl border border-red/30 bg-paper px-4 py-4 text-sm text-graphite"
+                >
+                  <p>
+                    <strong className="font-semibold text-red-dark">{c.failTitle}</strong>{" "}
+                    {outcome.reason === "rate-limited" ? c.failRateLimited : c.failText}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <a
+                      href={outcome.waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full bg-red px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-red-dark"
+                    >
+                      <Whatsapp className="h-4 w-4" /> {c.failWhatsapp}
+                    </a>
+                    <a
+                      href={site.phone.href}
+                      className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-colors duration-300 hover:border-red hover:text-red"
+                    >
+                      <Phone className="h-4 w-4" /> {c.failPhone} {site.phone.label}
+                    </a>
+                  </div>
+                </div>
               ) : null}
             </form>
           </div>

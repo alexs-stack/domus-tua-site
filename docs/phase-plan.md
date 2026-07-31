@@ -6,7 +6,7 @@
 > l'AI e l'automazione sopra fondamenta già solide.** Non si vende Fase 2 finché Fase 1 non è live.
 
 Riferimenti: `docs/ai-roadmap.md` (dettaglio tecnico delle fasi AI),
-`docs/realsmart-integration-notes.md`, `docs/reviews-integration.md`, `docs/forms-crm-notes.md`.
+`docs/realsmart-integration-notes.md`, `docs/reviews-integration.md`, `docs/lead-email.md`.
 
 ---
 
@@ -42,7 +42,8 @@ Obiettivo: **Domus Tua online, premium, con contenuti reali e cattura lead.** È
 - Immobili **reali** live da RealSmart (no demo).
 - Recensioni **reali** Google/Trustindex con numeri confermati.
 - **Logo ufficiale** e **video hero** in opera.
-- Lead che arrivano **segmentati e tracciabili** (almeno WhatsApp; email/CRM è già ponte verso Fase 2).
+- Lead che arrivano **segmentati e tracciabili**: email all'agenzia con tipo richiesta, pagina di
+  origine e immobile, più WhatsApp e telefono come canali diretti (`docs/lead-email.md`).
 - Testi legali e di brand **validati**.
 - Dominio ufficiale su Vercel, secret configurati.
 
@@ -59,7 +60,7 @@ automatica e automazioni interne. Ogni voce poggia su fondamenta di Fase 1 già 
 | **Chatbot** | Q&A sui **contenuti pubblici** del sito: metodo, Open Domus, Domus D.O.C., zone, come vendere/comprare. Nessun dato riservato. | Contenuti di sito validati |
 | **Assistente vocale** | Ricerca e chatbot utilizzabili **a voce** (accessibilità + mobile). | Ricerca NL + chatbot |
 | **RAG interno su Drive/processi** | Strumento **interno al team** su documenti e processi privati (Drive/gestionale). Dietro autenticazione e permessi, **fuori dal sito pubblico**. | Autenticazione + governance dati |
-| **Automazioni CRM/processi** | Lead che dal sito entrano nel CRM/gestionale via webhook/API, con tipo lead, pagina sorgente, immobile, contatto; follow-up e assegnazioni automatizzate. | Lead segmentati (già ponte in Fase 1) |
+| **Automazioni di processo** | Follow-up e assegnazioni automatizzate sui lead già segmentati (tipo richiesta, pagina sorgente, immobile). Oggi il sito manda un'email e basta: qualunque automazione è una scelta di Fase 2, da concordare. | Lead segmentati (Fase 1) |
 | **Workflow contenuti/social** | Pipeline per pubblicare video/recensioni/annunci su sito e social in modo coordinato. | Muro video + feed social live |
 
 **Regole di ingaggio Fase 2:**
@@ -75,5 +76,5 @@ automatica e automazioni interne. Ogni voce poggia su fondamenta di Fase 1 già 
   mostra immobili e recensioni reali e vi porta contatti qualificati.
 - **Fase 2 è la crescita**: quando la base è live e misurabile, aggiungiamo ricerca
   conversazionale, chatbot, voce e le automazioni che fanno risparmiare tempo al team.
-- Il sito è **già progettato per accogliere la Fase 2** (il campo NL, il ponte lead→CRM, lo
+- Il sito è **già progettato per accogliere la Fase 2** (il campo NL, i lead già segmentati, lo
   strato annunci): non ci sarà da rifare, solo da accendere.

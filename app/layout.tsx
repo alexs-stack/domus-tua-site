@@ -124,7 +124,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Calcolato lato server: legge anche env server-only (es. SHEETS_WEBHOOK_URL) senza
+  // Calcolato lato server: legge anche env server-only (es. RESEND_API_KEY) senza
   // esporne i valori. Il badge di anteprima riceve solo la checklist derivata (booleani).
   const checklist = demoChecklist(getDemoStatus());
   return (

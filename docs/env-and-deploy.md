@@ -4,7 +4,7 @@ Guida operativa alle **variabili d'ambiente** e al **deploy su Vercel**.
 Stack: Next.js 16 (App Router) + React 19 + Tailwind v4 + TypeScript strict.
 
 Documenti correlati: `docs/deployment-notes.md` (dettaglio dominio/`metadataBase`/`remotePatterns`),
-`docs/realsmart-integration-notes.md`, `docs/forms-crm-notes.md`, `docs/reviews-integration.md`,
+`docs/realsmart-integration-notes.md`, `docs/lead-email.md`, `docs/reviews-integration.md`,
 `docs/production-readiness.md` (checklist go-live).
 
 ---
@@ -51,8 +51,9 @@ Legenda ambiti: **Prod** = Production, **Prev** = Preview, **Dev** = locale.
 | `REALSMART_FTP_PASS` | _(vuoto)_ | Prod | Sì | Password FTP/SFTP. |
 | `REALSMART_FTP_PATH` | _(vuoto)_ | Prod | Sì (percorso riservato) | Percorso remoto del file feed. |
 | `REALSMART_WEBHOOK_SECRET` | _(vuoto)_ | Prod | Sì | Segreto per verificare la firma dei webhook RealSmart (rivalidazione on-demand). |
-| `CONTACT_FORM_MODE` | `whatsapp` | Prod, Prev | No | Destinazione form contatti: `whatsapp` \| `email` (vedi `docs/forms-crm-notes.md`). |
-| `CONTACT_EMAIL_TO` | _(vuoto)_ | Prod | No (ma privato) | Destinatario lead quando `CONTACT_FORM_MODE=email`. |
+| `RESEND_API_KEY` | _(vuoto)_ | Prod, Prev | Sì | Chiave API Resend: senza, il form contatti non invia (`docs/lead-email.md`). |
+| `LEAD_FROM_EMAIL` | _(vuoto)_ | Prod, Prev | Sì | Mittente su dominio verificato in Resend. Obbligatorio insieme alla chiave. |
+| `LEAD_TO_EMAIL` | `immobiliare@domustua.it` | Prod, Prev | No (ma privato) | Destinatario dei lead. |
 | `TRUSTINDEX_WIDGET_URL` | _(vuoto)_ | Prod, Prev | No | URL/script del widget recensioni Trustindex (`docs/reviews-integration.md`). |
 | `INSTAGRAM_WIDGET_URL` | _(vuoto)_ | Prod, Prev | No | URL/embed del feed Instagram. |
 

@@ -12,6 +12,7 @@ import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
 import { readConsent, writeConsent, type ConsentValue } from "../lib/consent";
+import { useMenuOpen } from "../lib/overlayState";
 
 const copy = {
   it: {
@@ -55,6 +56,9 @@ export default function CookieConsent() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [show, setShow] = useState(false);
+  // Mentre il menu a schermo intero è aperto il banner si ritira: si sovrapporrebbe alle sue
+  // CTA e aprirebbe un secondo focus trap. Riappare alla chiusura (vedi lib/overlayState).
+  const menuOpen = useMenuOpen();
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const acceptRef = useRef<HTMLButtonElement | null>(null);
@@ -124,7 +128,7 @@ export default function CookieConsent() {
     }
   }, []);
 
-  if (!show) return null;
+  if (!show || menuOpen) return null;
 
   return (
     <div

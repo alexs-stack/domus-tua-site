@@ -1,10 +1,13 @@
 // Modello del lead, formattazione del messaggio WhatsApp e invio al backend.
 //
-// Stato: il lead viene (a) inviato a `/api/lead` che, se `SHEETS_WEBHOOK_URL` è
-// configurato, lo salva su un Google Sheet (vedi docs/form-backend-next-step.md), e
-// (b) precompilato in WhatsApp (formatLeadMessage + ./whatsapp.ts) come canale immediato.
-// L'invio al backend è best-effort: se non configurato o fallisce, il WhatsApp funziona
-// comunque. In futuro `/api/lead` può instradare anche verso email/CRM/RealSmart.
+// Backend UNICO: `POST /api/lead` → email a immobiliare@domustua.it (vedi ./email.ts).
+// Nessuna persistenza, nessun foglio di calcolo, nessun gestionale esterno.
+//
+// WhatsApp e telefono restano canali paralleli, aperti dall'utente: non sono un fallback
+// silenzioso dell'email. Se l'email non parte, il form lo dice e mostra quei due canali —
+// non dichiara mai una richiesta inviata quando non lo è.
+
+import { siteUrl } from "../site";
 
 /** Tre intenti chiari + Open Domus (allineati alle tab del form). */
 export type LeadIntent = "seller" | "buyer" | "question" | "open-domus";
@@ -33,11 +36,11 @@ export type Lead = {
   // ── Consenso privacy (obbligatorio quando il lead viene SALVATO su server) ──
   /** true se l'utente ha spuntato il consenso al trattamento (link all'informativa). */
   consent?: boolean;
-  // ── Contesto (riservato al futuro backend, oggi non usato) ─────────────────
+  // ── Contesto incluso nell'email all'agenzia ────────────────────────────────
   /** Pagina di origine del lead (es. "/vendi", "/case/<slug>"). */
   sourcePage?: string;
-  /** Riferimento immobile se il lead parte da una scheda. */
-  propertyRef?: string;
+  /** Slug della scheda immobile, se il lead parte da un annuncio. */
+  propertySlug?: string;
 };
 
 /** Etichette leggibili dell'intento per il messaggio WhatsApp (in italiano, per l'agenzia). */
@@ -86,31 +89,53 @@ export function formatLeadMessage(lead: Lead): string {
 
   lines.push("", `Contatto: ${lead.contact.trim()}`);
 
-  const context = [
-    lead.propertyRef ? `immobile ${lead.propertyRef}` : null,
-    lead.sourcePage ? `da ${lead.sourcePage}` : null,
-  ].filter(Boolean);
-  const source = context.length > 0 ? ` · ${context.join(" · ")}` : "";
-  lines.push(`(Richiesta dal sito · ${INTENT_LABEL[lead.intent]}${source})`);
+  lines.push(`(Richiesta dal sito · ${INTENT_LABEL[lead.intent]})`);
+  // L'immobile va come URL completo: dal messaggio l'agenzia apre subito la scheda giusta.
+  if (lead.propertySlug) lines.push(`${siteUrl}/case/${lead.propertySlug}`);
+  else if (lead.sourcePage) lines.push(`${siteUrl}${lead.sourcePage}`);
 
   return lines.join("\n");
 }
 
+/** Motivo del mancato invio, per scegliere il messaggio da mostrare all'utente. */
+export type LeadFailureReason =
+  | "invalid" // il server ha rifiutato il payload (validazione)
+  | "rate-limited" // troppe richieste dallo stesso IP
+  | "not-configured" // provider email non configurato su questo ambiente
+  | "provider-error" // il provider ha rifiutato o non risponde
+  | "network"; // la richiesta non è nemmeno partita
+
+export type SubmitLeadResult = { ok: true } | { ok: false; reason: LeadFailureReason };
+
 /**
- * Invia il lead al backend (`/api/lead` → Google Sheet se configurato). Best-effort:
- * non lancia mai — in caso di errore/backend non configurato ritorna { ok: false } e il
- * chiamante prosegue col fallback WhatsApp. Da usare lato client nel form contatti.
+ * Invia il lead a `/api/lead`.
+ *
+ * Non lancia mai, ma NON è best-effort: `ok: true` significa che il provider email ha davvero
+ * accettato il messaggio. Il chiamante deve mostrare la conferma solo in quel caso; in tutti
+ * gli altri deve offrire WhatsApp e telefono e dire che la richiesta non è partita.
  */
-export async function submitLead(lead: Lead): Promise<{ ok: boolean }> {
+export async function submitLead(lead: Lead): Promise<SubmitLeadResult> {
+  let res: Response;
   try {
-    const res = await fetch("/api/lead", {
+    res = await fetch("/api/lead", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(lead),
     });
-    const data = (await res.json().catch(() => ({ ok: false }))) as { ok?: boolean };
-    return { ok: !!data.ok };
   } catch {
-    return { ok: false };
+    return { ok: false, reason: "network" };
   }
+
+  const data = (await res.json().catch(() => null)) as
+    | { ok?: boolean; reason?: string }
+    | null;
+
+  if (res.ok && data?.ok === true) return { ok: true };
+
+  const reason = data?.reason;
+  if (reason === "rate-limited") return { ok: false, reason: "rate-limited" };
+  if (reason === "not-configured") return { ok: false, reason: "not-configured" };
+  if (reason === "provider-error") return { ok: false, reason: "provider-error" };
+  if (res.status === 400) return { ok: false, reason: "invalid" };
+  return { ok: false, reason: "provider-error" };
 }

@@ -9,8 +9,7 @@ import CaseQuickLook from "./CaseQuickLook";
 import { ArrowRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import { site } from "../lib/site";
-import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
+import { buyerSearchWhatsAppUrl } from "../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/motion/gsap";
 import { groupAvailableByTown } from "../lib/geo/comuni";
 import { canonicalComune, comuniFacet, matchesComune } from "../lib/comune";
@@ -691,10 +690,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   // TODO(analytics): tracciare l'evento "search_no_results" (query + n. filtri attivi) quando
   // shown.length === 0, per misurare la domanda insoddisfatta e alimentare gli acquisti su misura.
   const buyerQuery = (ai?.query || nl).trim();
-  const buyerWaUrl = buildWhatsAppUrl(
-    site.whatsapp.href,
-    `Ciao Domus Tua, sto cercando casa${buyerQuery ? ` — ho cercato: "${buyerQuery}"` : ""}. Non l'ho ancora trovata sul sito, potete aiutarmi?`,
-  );
+  const buyerWaUrl = buyerSearchWhatsAppUrl(buyerQuery);
 
   return (
     <section className="bg-cream">

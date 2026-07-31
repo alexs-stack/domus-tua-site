@@ -20,7 +20,9 @@ export const site = {
     label: "346 6042314",
     href: "https://wa.me/393466042314?text=Ciao%20Domus%20Tua%2C%20vorrei%20informazioni",
   },
-  email: { label: "info@domustua.com", href: "mailto:info@domustua.com" },
+  // Casella che riceve i lead del sito e a cui scrivono i visitatori (indicata dal cliente).
+  // È anche il destinatario di default di /api/lead — vedi app/lib/forms/email.ts.
+  email: { label: "immobiliare@domustua.it", href: "mailto:immobiliare@domustua.it" },
   // Orari reali (fonte: domustua.com/contatti). Pomeriggio = 14:30 (non 15:00).
   hours: {
     weekdays: "9:00 – 12:30 · 14:30 – 19:00",
@@ -100,14 +102,31 @@ export const site = {
  */
 export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
 
-// Href assoluti verso le pagine dedicate.
-export const nav = [
-  { key: "vendi", label: "Vendi", href: "/vendi" },
-  { key: "acquista", label: "Acquista", href: "/acquista" },
-  { key: "metodo", label: "Metodo Domus", href: "/metodo" },
-  { key: "openDomus", label: "Open Domus", href: "/open-domus" },
-  { key: "case", label: "Case", href: "/case" },
-  { key: "recensioni", label: "Recensioni", href: "/recensioni" },
-  { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo" },
-  { key: "contatti", label: "Contatti", href: "/contatti" },
+// ─── Navigazione ────────────────────────────────────────────────────────────
+// Href assoluti verso le pagine dedicate. Le etichette vivono nel dizionario
+// (app/lib/i18n/dictionaries.ts, chiave `nav`): qui c'è solo la struttura.
+//
+// PRIMARIA = i percorsi che una persona cerca per primi. "Case" NON sta qui:
+// duplicava "Acquista", che porta allo stesso percorso di ricerca immobili
+// (la rotta /case resta viva e raggiungibile dal menu secondario e dai link
+// interni). "Open Domus" è un format dentro il Metodo, non un percorso di pari
+// livello: sta nel secondario.
+export const primaryNav = [
+  { key: "vendi", href: "/vendi" },
+  { key: "acquista", href: "/acquista" },
+  { key: "metodo", href: "/metodo" },
+  { key: "chiSiamo", href: "/chi-siamo" },
+  { key: "contatti", href: "/contatti" },
 ] as const;
+
+// SECONDARIA: sotto la voce "Altro" nell'header, in chiaro nel footer.
+// `/servizi` entra qui perché finora non era raggiungibile da nessun link.
+export const secondaryNav = [
+  { key: "openDomus", href: "/open-domus" },
+  { key: "case", href: "/case" },
+  { key: "recensioni", href: "/recensioni" },
+  { key: "servizi", href: "/servizi" },
+] as const;
+
+/** Tutte le voci, nell'ordine di lettura. Il footer le mostra per intero. */
+export const nav = [...primaryNav, ...secondaryNav];

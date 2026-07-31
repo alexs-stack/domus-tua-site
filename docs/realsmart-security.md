@@ -84,8 +84,8 @@ whitelist: è il confine di sicurezza per cosa l'AI può "vedere" e citare.
 - **Indirizzo**: trattare l'indirizzo civico completo come dato potenzialmente identificativo;
   pubblicarlo solo se necessario e autorizzato.
 - **Informativa privacy del sito**: deve coprire i dati raccolti via **form/contatti** (lead) e
-  citare RealSmart come sistema gestionale. I lead dei form seguono il flusso CRM
-  (`docs/forms-crm-notes.md`), separato dai dati pubblici degli annunci.
+  citare RealSmart come sistema gestionale. I lead dei form seguono il flusso email
+  (`docs/lead-email.md`), separato dai dati pubblici degli annunci.
 - **Diritti degli interessati**: le richieste (accesso, cancellazione) si gestiscono sul
   gestionale/CRM, non sul sito: il sito non è la fonte dei dati personali.
 - **Conservazione**: il sito non conserva dati degli annunci in un proprio database; è una vista
