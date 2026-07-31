@@ -5,6 +5,7 @@
 import type { NormalizedProperty } from "./types";
 import type { Property } from "../properties";
 import { isListingSold } from "./soldOverrides";
+import { toParagraphs, excerptFrom } from "./description";
 
 /** Bucket di tipologia usati dai filtri del sito. */
 function toType(raw: string): Property["type"] {
@@ -16,93 +17,43 @@ function toType(raw: string): Property["type"] {
   return "Appartamento";
 }
 
-/** Aggiunge uno spazio dopo un punto incollato alla parola successiva ("fine.Inizio" → "fine. Inizio"). */
-function tidy(text: string): string {
-  return text.replace(/([.!?;:])([A-ZÀ-ÖØ-Þ])/g, "$1 $2").replace(/\s{2,}/g, " ").trim();
-}
-
-/** Coda di boilerplate commerciale dell'agenzia da rimuovere dalla descrizione. */
-const BOILERPLATE_TAILS: RegExp[] = [
-  /con Domus Tua è\s+facile vendere.*$/i,
-  /ascolta il tuo cuore.*$/i,
-  /da oltre\s+\d+\s+anni al tuo fianco\.?\s*$/i,
-  /sicuro acquistar\w*\.?\s*$/i,
-];
-
-/** Rimuove iterativamente le code di boilerplate commerciale (anche combinate) e ripulisce. */
-function stripBoilerplate(text: string): string {
-  let out = text;
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const re of BOILERPLATE_TAILS) {
-      const next = out.replace(re, "");
-      if (next !== out) {
-        out = next.trim();
-        changed = true;
-      }
-    }
-  }
-  return out.trim();
-}
-
-/** Spezza una descrizione lunga in paragrafi leggibili (~3 frasi ciascuno). */
-function toParagraphs(text: string): string[] {
-  const clean = stripBoilerplate(tidy(text));
-  if (!clean) return [];
-  // Se ci sono già a capo, rispettali.
-  const byNewline = clean.split(/\n+/).map((p) => p.trim()).filter(Boolean);
-  if (byNewline.length > 1) return byNewline;
-  // Altrimenti raggruppa le frasi a gruppi di 3.
-  const sentences = clean.match(/[^.!?]+[.!?]+/g) ?? [clean];
-  const paras: string[] = [];
-  for (let i = 0; i < sentences.length; i += 3) {
-    paras.push(sentences.slice(i, i + 3).join(" ").trim());
-  }
-  return paras.filter(Boolean);
-}
-
-/** Estratto per frasi intere (mai tagliato a metà frase/parola). */
-function excerptFrom(text: string): string {
-  const clean = stripBoilerplate(tidy(text));
-  if (!clean) return "";
-  const sentences = clean.match(/[^.!?]+[.!?]+/g) ?? [clean];
-  const first = sentences[0].trim();
-  // Prima frase già troppo lunga: taglia all'ultimo spazio e aggiungi "…".
-  if (first.length > 170) {
-    const cut = first.slice(0, 170);
-    const lastSpace = cut.lastIndexOf(" ");
-    return `${cut.slice(0, lastSpace > 120 ? lastSpace : 170).trim()}…`;
-  }
-  // Accumula frasi intere finché non si raggiungono ~150 caratteri.
-  let out = "";
-  for (const s of sentences) {
-    const sentence = s.trim();
-    const candidate = out ? `${out} ${sentence}` : sentence;
-    if (out && candidate.length > 150) break;
-    out = candidate;
-    if (out.length >= 150) break;
-  }
-  return out;
+/**
+ * Piano leggibile. "T"/"t" = piano terra è l'unica abbreviazione che traduciamo, perché è
+ * l'unica documentata senza ambiguità nel feed. Tutto il resto passa come arriva: meglio un
+ * "s1" grezzo che un "Seminterrato" indovinato.
+ */
+function toFloorLabel(raw: string | undefined): string | undefined {
+  const v = raw?.trim();
+  if (!v) return undefined;
+  if (/^t$/i.test(v)) return "Piano terra";
+  if (/^\d+$/.test(v)) return `Piano ${v}`;
+  return v;
 }
 
 export function normalizedToProperty(n: NormalizedProperty): Property {
   const cover = n.images[0]?.src ?? "/images/premium_01_living_tv_divano.jpg";
   const beds = n.bedrooms > 0 ? n.bedrooms : Math.max(0, n.rooms - 1);
   const paragraphs = toParagraphs(n.description);
-  // Venduto/affittato. Il feed RealSmart forza "published" e NON espone lo stato, ma l'agenzia
-  // lascia i venduti come vetrina marcandoli con un badge "VENDUTO" bruciato sulla copertina.
-  // Fonti, in ordine: status/badge del gestionale, titolo, e infine il rilevamento OCR della
-  // copertina (isListingSold, alimentato da scripts/detect-sold.ts — è quello che scatta per i
-  // venduti reali, dato che il badge vive solo nei pixel dell'immagine).
+
+  // ── Disponibilità: tre stati, mai collassati in un booleano ──────────────────────────
+  // Venduto/affittato: il feed pubblica solo immobili attivi e NON espone lo stato di
+  // vendita, ma l'agenzia lascia i venduti in vetrina marcandoli con un badge "VENDUTO"
+  // bruciato sulla copertina. Fonti, in ordine: stato/badge del gestionale, titolo, e infine
+  // il rilevamento OCR della copertina (isListingSold, alimentato da scripts/detect-sold.ts —
+  // è quello che scatta per i venduti reali, dato che il badge vive solo nei pixel).
   const sold =
     n.status === "sold" ||
     n.badges.includes("Venduto") ||
     n.badges.includes("Affittato") ||
     /\bvendut[oaie]\b/i.test(n.title) ||
     isListingSold(n.sourceRef.codice, cover);
+  // In trattativa (TrattativaRiservata="Si" nel feed): resta sul mercato, ma la scheda lo dice.
+  const reserved = !sold && n.status === "reserved";
+  const availability: Property["availability"] = sold ? "sold" : reserved ? "reserved" : "available";
+
   const soldBadge = n.contract === "affitto" ? "Affittato" : "Venduto";
   const badges = sold && !n.badges.includes(soldBadge) ? [soldBadge, ...n.badges] : n.badges;
+
   return {
     slug: n.slug,
     title: n.title,
@@ -111,6 +62,7 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     status: n.contract === "affitto" ? "Affitto" : "Vendita",
     price: n.priceLabel,
     priceValue: n.price,
+    // "—" quando il gestionale non dichiara il dato: la scheda non inventa uno zero.
     sqm: n.sqm ? `${n.sqm} m²` : "—",
     rooms: n.rooms ? `${n.rooms} ${n.rooms === 1 ? "locale" : "locali"}` : "—",
     beds: beds ? `${beds} ${beds === 1 ? "camera" : "camere"}` : "—",
@@ -121,8 +73,12 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     excerpt: excerptFrom(n.description) || n.title,
     description: paragraphs,
     features: n.features,
+    floor: toFloorLabel(n.floor),
     energyClass: n.energyClass,
-    sold,
+    energyClassStatus: n.energyClassStatus,
+    condition: n.condition,
+    availability,
+    amenities: n.amenities,
     ref: n.sourceRef.riferimento,
   };
 }

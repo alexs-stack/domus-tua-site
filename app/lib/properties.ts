@@ -28,8 +28,33 @@ export type Property = {
   description: string[];
   features: string[];
   energyClass?: string;
-  /** true se l'immobile è venduto/affittato (da nascondere di default nelle ricerche). */
-  sold?: boolean;
+  /** Piano leggibile ("Piano terra", "Piano 2"), quando il gestionale lo dichiara. */
+  floor?: string;
+  /**
+   * Perché la classe energetica manca, quando il gestionale lo dichiara
+   * ("In fase di rilascio", "Mancante", "Non richiesta"). Diverso da "non lo sappiamo".
+   */
+  energyClassStatus?: string;
+  /** Stato di conservazione dichiarato dal gestionale (es. "Buono", "Da ristrutturare"). */
+  condition?: string;
+  /**
+   * Disponibilità commerciale. Tre stati distinti, mai collassati in un booleano:
+   *  • "available" — sul mercato;
+   *  • "reserved"  — in trattativa / sotto proposta: ancora visibile, ma la scheda lo dice;
+   *  • "sold"      — venduto o affittato: fuori da ogni vetrina.
+   * Assente = "available" (le fixture demo non lo dichiarano).
+   */
+  availability?: "available" | "reserved" | "sold";
+  /**
+   * Dotazioni a TRE stati: `true` presente, `false` assente, `undefined` non dichiarata dal
+   * gestionale. Un campo mancante non è mai un "no".
+   */
+  amenities?: {
+    elevator?: boolean;
+    garden?: boolean;
+    terrace?: boolean;
+    parking?: boolean;
+  };
   /** Riferimento commerciale mostrato all'utente (es. "1043"), se fornito dal gestionale. */
   ref?: string;
 };

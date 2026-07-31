@@ -13,6 +13,7 @@ import { ArrowRight, ArrowUpRight, Whatsapp } from "../../components/Icons";
 import { listingWhatsAppUrl, soldListingWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 import type { Property } from "../../lib/properties";
+import { isSold } from "../../lib/availability";
 import { useLocale } from "../../components/i18n/LocaleProvider";
 
 const copy = {
@@ -26,8 +27,18 @@ const copy = {
     specBeds: "Camere",
     specBaths: "Bagni",
     specType: "Tipologia",
-    specStatus: "Stato",
+    specStatus: "Contratto",
     specEnergy: "Classe energetica",
+    specFloor: "Piano",
+    specCondition: "Stato",
+    amenitiesTitle: "Dotazioni",
+    yes: "Sì",
+    no: "No",
+    unknown: "Informazione non disponibile",
+    amElevator: "Ascensore",
+    amGarden: "Giardino",
+    amTerrace: "Terrazzo",
+    amParking: "Box / posto auto",
     requestVisit: "Richiedi una visita",
     whatsapp: "Parla con Domus Tua",
     refLabel: "Rif.",
@@ -65,8 +76,18 @@ const copy = {
     specBeds: "Bedrooms",
     specBaths: "Bathrooms",
     specType: "Type",
-    specStatus: "Status",
+    specStatus: "Contract",
     specEnergy: "Energy class",
+    specFloor: "Floor",
+    specCondition: "Condition",
+    amenitiesTitle: "Amenities",
+    yes: "Yes",
+    no: "No",
+    unknown: "Information not available",
+    amElevator: "Lift",
+    amGarden: "Garden",
+    amTerrace: "Terrace",
+    amParking: "Garage / parking",
     requestVisit: "Request a viewing",
     whatsapp: "Talk to Domus Tua",
     refLabel: "Ref.",
@@ -104,8 +125,18 @@ const copy = {
     specBeds: "Chambres",
     specBaths: "Salles de bain",
     specType: "Type",
-    specStatus: "Statut",
+    specStatus: "Contrat",
     specEnergy: "Classe énergétique",
+    specFloor: "Étage",
+    specCondition: "État",
+    amenitiesTitle: "Équipements",
+    yes: "Oui",
+    no: "Non",
+    unknown: "Information non disponible",
+    amElevator: "Ascenseur",
+    amGarden: "Jardin",
+    amTerrace: "Terrasse",
+    amParking: "Garage / stationnement",
     requestVisit: "Demander une visite",
     whatsapp: "Parler à Domus Tua",
     refLabel: "Réf.",
@@ -143,8 +174,18 @@ const copy = {
     specBeds: "Schlafzimmer",
     specBaths: "Badezimmer",
     specType: "Typ",
-    specStatus: "Status",
+    specStatus: "Vertrag",
     specEnergy: "Energieklasse",
+    specFloor: "Etage",
+    specCondition: "Zustand",
+    amenitiesTitle: "Ausstattungsmerkmale",
+    yes: "Ja",
+    no: "Nein",
+    unknown: "Angabe nicht verfügbar",
+    amElevator: "Aufzug",
+    amGarden: "Garten",
+    amTerrace: "Terrasse",
+    amParking: "Garage / Stellplatz",
     requestVisit: "Besichtigung anfragen",
     whatsapp: "Mit Domus Tua sprechen",
     refLabel: "Ref.",
@@ -182,8 +223,18 @@ const copy = {
     specBeds: "Dormitorios",
     specBaths: "Baños",
     specType: "Tipo",
-    specStatus: "Estado",
+    specStatus: "Contrato",
     specEnergy: "Clase energética",
+    specFloor: "Planta",
+    specCondition: "Estado",
+    amenitiesTitle: "Equipamiento",
+    yes: "Sí",
+    no: "No",
+    unknown: "Información no disponible",
+    amElevator: "Ascensor",
+    amGarden: "Jardín",
+    amTerrace: "Terraza",
+    amParking: "Garaje / plaza de aparcamiento",
     requestVisit: "Solicita una visita",
     whatsapp: "Habla con Domus Tua",
     refLabel: "Ref.",
@@ -229,9 +280,26 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
     { label: c.specRooms, value: p.rooms },
     { label: c.specBeds, value: p.beds },
     { label: c.specBaths, value: p.baths },
+    { label: c.specFloor, value: p.floor },
+    // `p.status` è il CONTRATTO (Vendita/Affitto): l'etichetta diceva "Stato", identica a
+    // quella dello stato di conservazione qui sotto — due righe con lo stesso nome e valori
+    // diversi.
     { label: c.specStatus, value: p.status },
-    { label: c.specEnergy, value: p.energyClass },
+    { label: c.specCondition, value: p.condition },
+    // Quando manca la classe, il gestionale dice PERCHÉ ("In fase di rilascio", "Mancante"):
+    // mostrarlo è più utile — e più onesto — che lasciare la riga vuota.
+    { label: c.specEnergy, value: p.energyClass ?? p.energyClassStatus },
   ].filter((s) => s.label === c.specType || (s.value && s.value !== "—"));
+
+  // Dotazioni a tre stati. Un campo che il gestionale non dichiara NON diventa un "No":
+  // resta esplicito che l'informazione non c'è. Vedi docs/realsmart-field-mapping.md.
+  const amenities: { label: string; value: boolean | undefined }[] = [
+    { label: c.amElevator, value: p.amenities?.elevator },
+    { label: c.amGarden, value: p.amenities?.garden },
+    { label: c.amTerrace, value: p.amenities?.terrace },
+    { label: c.amParking, value: p.amenities?.parking },
+  ];
+  const hasAmenityData = amenities.some((a) => a.value !== undefined);
 
   // Specs strip: micro-ingresso dei soli VALORI (dd) della striscia sotto la
   // gallery. I numeri restano nell'HTML SSR: nascosti solo post-idratazione e
@@ -317,7 +385,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         {/* Stato "venduto": messaggio chiaro + CTA "cerco una casa simile" (WhatsApp).
             Difensivo: oggi gli immobili venduti sono esclusi dalle pagine generate, ma se il
             cliente decidesse di mostrarli come prova sociale la scheda resta convertente. */}
-        {p.sold && (
+        {isSold(p) && (
           <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-red/30 bg-red-soft/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-display text-lg font-medium text-red-dark">{c.soldTitle}</p>
@@ -400,6 +468,31 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                     </li>
                   ))}
                 </ul>
+              </>
+            )}
+
+            {hasAmenityData && (
+              <>
+                <h2 className="mt-12 font-display text-2xl font-medium tracking-tight text-ink">
+                  {c.amenitiesTitle}
+                </h2>
+                <dl className="mt-5 grid gap-x-8 gap-y-3 sm:grid-cols-2">
+                  {amenities.map((a) => (
+                    <div
+                      key={a.label}
+                      className="flex items-baseline justify-between gap-4 border-b border-line/70 pb-2"
+                    >
+                      <dt className="text-[0.95rem] text-graphite">{a.label}</dt>
+                      <dd
+                        className={`text-[0.95rem] font-medium ${
+                          a.value === undefined ? "text-stone" : "text-ink"
+                        }`}
+                      >
+                        {a.value === true ? c.yes : a.value === false ? c.no : c.unknown}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
               </>
             )}
 

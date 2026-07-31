@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Fixture CONTROLLATA nella forma REALE del feed RealSmart dell'agenzia
+  (<Dati><immobili><immobile>…). Dati inventati: nessun immobile, indirizzo o cliente reale.
+
+  Ogni annuncio esercita un caso specifico del parser e della normalizzazione — vedi la
+  tabella in README.md e i test in app/lib/realsmart/__tests__/realsmart.test.ts.
+  Le immagini usano cloud2.realsmart.it perché è l'host consentito: gli URL non esistono.
+-->
+<Dati>
+  <immobili>
+
+    <!-- 1. Caso pieno: descrizione con <br/>, dotazioni dichiarate, ACE valido, più foto. -->
+    <immobile>
+      <Codice>9001</Codice>
+      <Riferimento>F001</Riferimento>
+      <Contratto>Vendita</Contratto>
+      <Istat>12127</Istat>
+      <CAP>21049</CAP>
+      <Comune>Tradate</Comune>
+      <Zona>Centro</Zona>
+      <Indirizzo>VIA DI PROVA 1</Indirizzo>
+      <Tipologia>Appartamento</Tipologia>
+      <Locali>4</Locali>
+      <Camere>3</Camere>
+      <Bagni>2</Bagni>
+      <Mq>145</Mq>
+      <Costo>420000</Costo>
+      <Titolo>APPARTAMENTO DI PROVA CON TERRAZZO</Titolo>
+      <AnnuncioCompleto><![CDATA[Primo paragrafo della descrizione di prova. <br/>Secondo paragrafo, dopo l'interruzione.<br />Terzo paragrafo con  spazi   doppi e un punto incollato.Alla parola successiva. Con Domus Tua è facile vendere ed è sicuro acquistare.Da oltre 20 anni al tuo fianco]]></AnnuncioCompleto>
+      <StatoInterno>Ristrutturato</StatoInterno>
+      <AriaCondizionata>Si</AriaCondizionata>
+      <Terrazzo>Si</Terrazzo>
+      <Box>Si</Box>
+      <PostoAuto>No</PostoAuto>
+      <Giardino>No</Giardino>
+      <Piano>2</Piano>
+      <ClasseImmobile>signorile</ClasseImmobile>
+      <TrattativaRiservata>No</TrattativaRiservata>
+      <Ascensore>Si</Ascensore>
+      <ElencoFoto>
+        <Foto>https://cloud2.realsmart.it/media//portali/foto/724/724-9001-a.jpg</Foto>
+        <Foto>https://cloud2.realsmart.it/media//portali/foto/724/724-9001-b.jpg</Foto>
+        <Foto>https://cloud2.realsmart.it/media//portali/foto/724/724-9001-c.jpg</Foto>
+      </ElencoFoto>
+      <UltimaModifica>07/04/2026 12:22:09</UltimaModifica>
+      <DataInserimento>09/08/2019</DataInserimento>
+      <Evidenza>Si</Evidenza>
+      <ACE>A4</ACE>
+    </immobile>
+
+    <!-- 2. Campi mancanti: nessuna dotazione dichiarata, niente ACE, niente foto, niente prezzo.
+         Deve produrre "informazione non disponibile", non una raffica di "No". -->
+    <immobile>
+      <Codice>9002</Codice>
+      <Riferimento>F002</Riferimento>
+      <Contratto>Vendita</Contratto>
+      <Istat>13159</Istat>
+      <CAP>22076</CAP>
+      <Comune>Mozzate</Comune>
+      <Tipologia>Villa</Tipologia>
+      <Locali>0</Locali>
+      <Camere>0</Camere>
+      <Bagni>0</Bagni>
+      <Mq>0</Mq>
+      <Costo>0</Costo>
+      <Titolo>Villa di prova senza dati</Titolo>
+      <AnnuncioCompleto><![CDATA[]]></AnnuncioCompleto>
+      <StatoInterno />
+      <Terrazzo />
+      <Box />
+      <PostoAuto />
+      <Giardino />
+      <Ascensore />
+      <Piano />
+      <TrattativaRiservata />
+      <ElencoFoto />
+      <ACE />
+    </immobile>
+
+    <!-- 3. Trattativa riservata: resta disponibile, ma distinguibile. ACE = stato, non classe. -->
+    <immobile>
+      <Codice>9003</Codice>
+      <Riferimento>F003</Riferimento>
+      <Contratto>Vendita</Contratto>
+      <Istat>12136</Istat>
+      <CAP>21040</CAP>
+      <Comune>Venegono Inferiore</Comune>
+      <Tipologia>Villa a schiera</Tipologia>
+      <Locali>5</Locali>
+      <Camere>3</Camere>
+      <Bagni>2</Bagni>
+      <Mq>180</Mq>
+      <Costo>390000</Costo>
+      <Titolo>Villa a schiera di prova</Titolo>
+      <AnnuncioCompleto><![CDATA[Villa di prova in trattativa riservata.]]></AnnuncioCompleto>
+      <StatoInterno>Buono</StatoInterno>
+      <Giardino>Si</Giardino>
+      <Piano>T</Piano>
+      <TrattativaRiservata>Si</TrattativaRiservata>
+      <Ascensore>No</Ascensore>
+      <ElencoFoto>
+        <Foto>https://cloud2.realsmart.it/media//portali/foto/724/724-9003-a.jpg</Foto>
+      </ElencoFoto>
+      <ACE>In fase di rilascio</ACE>
+    </immobile>
+
+    <!-- 4. Venduto: lo dichiara il titolo (come fa l'agenzia). Fuori da ogni vetrina. -->
+    <immobile>
+      <Codice>9004</Codice>
+      <Riferimento>F004</Riferimento>
+      <Contratto>Vendita</Contratto>
+      <Istat>12127</Istat>
+      <CAP>21049</CAP>
+      <Comune>Tradate</Comune>
+      <Tipologia>Appartamento</Tipologia>
+      <Locali>3</Locali>
+      <Camere>2</Camere>
+      <Bagni>1</Bagni>
+      <Mq>95</Mq>
+      <Costo>210000</Costo>
+      <Titolo>VENDUTO - Trilocale di prova</Titolo>
+      <AnnuncioCompleto><![CDATA[Trilocale di prova già venduto.]]></AnnuncioCompleto>
+      <Giardino>No</Giardino>
+      <TrattativaRiservata>No</TrattativaRiservata>
+      <ElencoFoto>
+        <Foto>https://cloud2.realsmart.it/media//portali/foto/724/724-9004-a.jpg</Foto>
+      </ElencoFoto>
+      <ACE>G</ACE>
+    </immobile>
+
+    <!-- 5. Dati incoerenti e ostili: prezzo con separatori, HTML nella descrizione, foto su
+         host non consentito, entità e caratteri speciali, ACE che non è una classe. -->
+    <immobile>
+      <Codice>9005</Codice>
+      <Riferimento>F005</Riferimento>
+      <Contratto>AFFITTO</Contratto>
+      <Istat>15146</Istat>
+      <CAP>20100</CAP>
+      <Comune>Milano</Comune>
+      <Tipologia>Ufficio</Tipologia>
+      <Locali>due</Locali>
+      <Camere>-3</Camere>
+      <Bagni>1</Bagni>
+      <Mq>80 mq</Mq>
+      <Costo>1.250 €/mese</Costo>
+      <Titolo>Ufficio di prova &amp; co. — 50% ribassato</Titolo>
+      <AnnuncioCompleto><![CDATA[<p>Ufficio con <b>vetrina</b> &amp; luce.</p><script>alert('xss')</script><br>Citt&agrave; storica, caff&egrave; sotto casa. Prezzo &lt; 1.500 &euro;.]]></AnnuncioCompleto>
+      <StatoInterno>Da Ristrutturare</StatoInterno>
+      <Terrazzo>forse</Terrazzo>
+      <Piano>s1</Piano>
+      <TrattativaRiservata>No</TrattativaRiservata>
+      <ElencoFoto>
+        <Foto>http://cloud2.realsmart.it/insecure.jpg</Foto>
+        <Foto>https://evil.example.com/foto.jpg</Foto>
+        <Foto>https://cloud2.realsmart.it/media//portali/foto/724/724-9005-a.jpg</Foto>
+      </ElencoFoto>
+      <ACE>Mancante</ACE>
+    </immobile>
+
+    <!-- 6. Entry senza Codice né Riferimento: va scartata, senza far cadere le altre. -->
+    <immobile>
+      <Titolo>Immobile senza chiave</Titolo>
+      <Comune>Tradate</Comune>
+    </immobile>
+
+  </immobili>
+</Dati>

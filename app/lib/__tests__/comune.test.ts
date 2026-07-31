@@ -45,7 +45,7 @@ const LISTINGS: Property[] = [
   fixture({ slug: "bilocale-varese", zone: "Varese (VA)", priceValue: 180000 }),
   // Forma "demo": zona descrittiva dopo la virgola, senza provincia.
   fixture({ slug: "attico-tradate-centro", zone: "Tradate, centro", type: "Attico", priceValue: 420000 }),
-  fixture({ slug: "villa-tradate-venduta", zone: "Tradate (VA)", type: "Villa", priceValue: 600000, sold: true }),
+  fixture({ slug: "villa-tradate-venduta", zone: "Tradate (VA)", type: "Villa", priceValue: 600000, availability: "sold" }),
 ];
 
 const facets: SearchFacets = {

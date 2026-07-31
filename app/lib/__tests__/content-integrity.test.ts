@@ -16,7 +16,7 @@ import path from "node:path";
 
 import { site } from "../site";
 import { allVideoIds, videoCollection, featuredVideo, testimonialVideo } from "../videos";
-import { isAvailable, isSold, onlyAvailable } from "../availability";
+import { isAvailable, isReserved, isSold, onlyAvailable } from "../availability";
 import { CONSENT_COOKIE } from "../consent";
 
 const APP_DIR = path.join(process.cwd(), "app");
@@ -233,10 +233,11 @@ describe("content integrity — video YouTube", () => {
 });
 
 describe("content integrity — venduti mai tra i disponibili", () => {
-  const listings = [
-    { slug: "disponibile", sold: false },
-    { slug: "venduto", sold: true },
-    { slug: "senza-flag" },
+  const listings: { slug: string; availability?: "available" | "reserved" | "sold" }[] = [
+    { slug: "disponibile", availability: "available" },
+    { slug: "in-trattativa", availability: "reserved" },
+    { slug: "venduto", availability: "sold" },
+    { slug: "senza-stato" },
   ];
 
   test("isAvailable/isSold sono complementari", () => {
@@ -245,14 +246,22 @@ describe("content integrity — venduti mai tra i disponibili", () => {
     }
   });
 
-  test("un immobile senza flag è considerato disponibile", () => {
-    assert.equal(isAvailable({ slug: "senza-flag" } as { sold?: boolean }), true);
+  test("un immobile senza stato è considerato disponibile", () => {
+    assert.equal(isAvailable({}), true);
+  });
+
+  test("l'immobile in trattativa resta disponibile ma è distinguibile", () => {
+    // È sotto proposta, non venduto: resta in vetrina col suo badge.
+    assert.equal(isAvailable({ availability: "reserved" }), true);
+    assert.equal(isSold({ availability: "reserved" }), false);
+    assert.equal(isReserved({ availability: "reserved" }), true);
+    assert.equal(isReserved({ availability: "available" }), false);
   });
 
   test("onlyAvailable rimuove i venduti", () => {
     assert.deepEqual(
       onlyAvailable(listings).map((p) => p.slug),
-      ["disponibile", "senza-flag"],
+      ["disponibile", "in-trattativa", "senza-stato"],
     );
   });
 
