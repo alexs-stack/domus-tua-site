@@ -245,6 +245,17 @@ export default function Footer() {
                   Domus D.O.C.
                 </Link>
               </li>
+              {/* "Lavora con noi" vive qui e non in `nav`: la barra desktop è già
+                  piena a otto voci e una nona la manderebbe a capo sotto i 1200px.
+                  Il footer è su ogni pagina, quindi la pagina resta raggiungibile. */}
+              <li>
+                <Link
+                  href="/lavora-con-noi"
+                  className="link-draw text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
+                >
+                  {d.footer.lavora}
+                </Link>
+              </li>
             </ul>
           </div>
 

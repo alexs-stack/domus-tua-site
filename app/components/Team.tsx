@@ -12,6 +12,7 @@ import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 import { site } from "../lib/site";
+import { team, teamInitials, teamRoleLabels } from "../lib/team";
 import { youtubeWatch } from "../lib/videos";
 
 const copy = {
@@ -32,14 +33,6 @@ const copy = {
     founderCaption: "Founder & CEO",
     rosterTitle: "Il team",
     rosterIntro: "Un’agenzia a guida femminile che mette le persone al centro. Volti veri, competenze vere.",
-    roles: {
-      founder: "Founder & CEO",
-      office: "Office Manager",
-      architect: "Architetto",
-      frontOffice: "Front Office",
-      executive: "Executive",
-      homeStager: "Home Stager",
-    },
   },
   en: {
     eyebrow: "About us",
@@ -58,14 +51,6 @@ const copy = {
     founderCaption: "Founder & CEO",
     rosterTitle: "The team",
     rosterIntro: "A woman-led agency that puts people first. Real faces, real expertise.",
-    roles: {
-      founder: "Founder & CEO",
-      office: "Office Manager",
-      architect: "Architect",
-      frontOffice: "Front Office",
-      executive: "Executive",
-      homeStager: "Home Stager",
-    },
   },
   fr: {
     eyebrow: "Qui sommes-nous",
@@ -84,14 +69,6 @@ const copy = {
     founderCaption: "Fondatrice & CEO",
     rosterTitle: "L’équipe",
     rosterIntro: "Une agence dirigée par des femmes qui place les personnes au centre. Des visages vrais, des compétences vraies.",
-    roles: {
-      founder: "Founder & CEO",
-      office: "Office Manager",
-      architect: "Architecte",
-      frontOffice: "Front Office",
-      executive: "Executive",
-      homeStager: "Home Stager",
-    },
   },
   de: {
     eyebrow: "Über uns",
@@ -110,14 +87,6 @@ const copy = {
     founderCaption: "Gründerin & CEO",
     rosterTitle: "Das Team",
     rosterIntro: "Eine von Frauen geführte Agentur, die den Menschen in den Mittelpunkt stellt. Echte Gesichter, echte Kompetenzen.",
-    roles: {
-      founder: "Founder & CEO",
-      office: "Office Manager",
-      architect: "Architektin",
-      frontOffice: "Front Office",
-      executive: "Executive",
-      homeStager: "Home Stager",
-    },
   },
   es: {
     eyebrow: "Quiénes somos",
@@ -136,14 +105,6 @@ const copy = {
     founderCaption: "Fundadora & CEO",
     rosterTitle: "El equipo",
     rosterIntro: "Una agencia dirigida por mujeres que pone a las personas en el centro. Rostros reales, competencias reales.",
-    roles: {
-      founder: "Founder & CEO",
-      office: "Office Manager",
-      architect: "Arquitecta",
-      frontOffice: "Front Office",
-      executive: "Executive",
-      homeStager: "Home Stager",
-    },
   },
 };
 
@@ -179,21 +140,8 @@ export default function Team() {
     { scope: rootRef }
   );
 
-  const roster = [
-    { name: "Raffaela Rizza", role: c.roles.founder, founder: true },
-    { name: "Paloma Cavalcante", role: c.roles.office },
-    { name: "Eleonora D’Agati", role: c.roles.architect },
-    { name: "Viola Benatti", role: c.roles.frontOffice },
-    { name: "Tiziana Galeone", role: c.roles.executive },
-    { name: "Katya Fedrigo", role: c.roles.homeStager },
-  ];
-
-  const initials = (name: string) =>
-    name
-      .split(" ")
-      .map((part) => part.charAt(0))
-      .slice(0, 2)
-      .join("");
+  // Roster e titoli: app/lib/team.ts (stessa fonte usata da /lavora-con-noi).
+  const roleLabels = teamRoleLabels[locale];
 
   return (
     <section ref={rootRef} id="chi-siamo" className="relative bg-cream">
@@ -246,7 +194,7 @@ export default function Team() {
                 {c.rosterIntro}
               </p>
               <ul ref={rosterRef} className="mt-6 grid gap-x-7 gap-y-px sm:grid-cols-2">
-                {roster.map((member, i) => (
+                {team.map((member, i) => (
                   <li
                     key={member.name}
                     className="group flex items-center gap-3.5 border-t border-line/70 py-3.5 sm:first:border-t-0 sm:[&:nth-child(2)]:border-t-0"
@@ -256,7 +204,7 @@ export default function Team() {
                         i % 2 === 0 ? "bg-paper" : "bg-cream-deep"
                       }`}
                     >
-                      {initials(member.name)}
+                      {teamInitials(member.name)}
                       {member.founder && (
                         /* Sul cerchio rosso il pallino passa a bianco: resterebbe invisibile. */
                         <span
@@ -269,7 +217,7 @@ export default function Team() {
                       <span className="block text-sm font-semibold text-ink transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1">
                         {member.name}
                       </span>
-                      <span className="block text-[0.8rem] text-stone">{member.role}</span>
+                      <span className="block text-[0.8rem] text-stone">{roleLabels[member.role]}</span>
                     </span>
                   </li>
                 ))}

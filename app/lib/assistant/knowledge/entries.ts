@@ -165,6 +165,36 @@ const VERIFIED: KnowledgeEntry[] = [
     locale: "it",
     keywords: ["privacy", "dati", "conservate", "salvate", "registrate", "gdpr", "cancellare", "trattamento"],
   },
+  {
+    id: "lavora-con-noi",
+    category: "faq",
+    title: "Candidarsi per lavorare in Domus Tua",
+    // Solo il MECCANISMO, che è verificabile perché è come funziona il sito:
+    // dove si manda una candidatura e come. Niente posizioni aperte, requisiti,
+    // contratti o tempi di risposta: quelli li dice l'agenzia, non l'assistente.
+    content:
+      "Chi vuole lavorare con Domus Tua può candidarsi dalla pagina /lavora-con-noi: si sceglie l'area (consulenza immobiliare, front office e pratiche, home staging, contenuti e video, tirocinio) oppure si manda una candidatura spontanea. Il sito non riceve allegati: nel modulo si lascia un link al proprio profilo o CV online, oppure si scrive a " +
+      `${site.email.label}. Non so quali posizioni siano aperte in questo momento: quello te lo dice il team.`,
+    status: "verified",
+    source: "pagina /lavora-con-noi del sito (form candidature, app/components/CareerApplication.tsx)",
+    lastVerified: "2026-08-01",
+    locale: "it",
+    keywords: [
+      "lavoro",
+      "lavorare",
+      "assunzioni",
+      "assumete",
+      "candidatura",
+      "candidarmi",
+      "curriculum",
+      "cv",
+      "posizioni aperte",
+      "stage",
+      "tirocinio",
+      "colloquio",
+      "carriera",
+    ],
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

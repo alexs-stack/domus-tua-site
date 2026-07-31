@@ -3,14 +3,14 @@
 // Obiettivo: rendere la cattura lead sicura e pulita prima di persistere sul Google Sheet.
 //  • Whitelist dei campi: tutto ciò che non è previsto viene SCARTATO (no injection nel foglio).
 //  • Cap di lunghezza per campo: taglia payload abnormi (difesa da abuso), non rompe input reali.
-//  • Intento tra i quattro ammessi; nome e contatto obbligatori; consenso, se presente, = true.
+//  • Intento tra quelli ammessi; nome e contatto obbligatori; consenso, se presente, = true.
 //
 // Il flusso WhatsApp lato client NON passa da qui e resta invariato: questa validazione riguarda
 // solo il salvataggio server-side. Vedi docs/form-backend-next-step.md.
 
 import type { LeadIntent } from "./lead";
 
-const INTENTS: readonly LeadIntent[] = ["seller", "buyer", "question", "open-domus"];
+const INTENTS: readonly LeadIntent[] = ["seller", "buyer", "question", "open-domus", "career"];
 
 // Cap massimi per campo (caratteri). Oltre → troncato (difensivo), mai errore.
 const MAX = {
@@ -21,6 +21,10 @@ const MAX = {
   budget: 80,
   features: 300,
   message: 1200,
+  // candidature (/lavora-con-noi)
+  role: 120,
+  experience: 80,
+  portfolio: 300,
   // metadata
   sourcePage: 200,
   propertySlug: 160,
@@ -37,6 +41,9 @@ export interface ValidatedLead {
   budget?: string;
   features?: string;
   message?: string;
+  role?: string;
+  experience?: string;
+  portfolio?: string;
   consent?: boolean;
   // ── metadata ammessi (contesto, non PII sensibile) ──
   sourcePage?: string;
@@ -105,6 +112,14 @@ export function validateLead(input: unknown): LeadValidationResult {
   if (features) lead.features = features;
   const message = str(p.message, MAX.message);
   if (message) lead.message = message;
+  // Candidature: valorizzati solo dal form di /lavora-con-noi, scartati altrove
+  // come qualunque altro campo non previsto.
+  const role = str(p.role, MAX.role);
+  if (role) lead.role = role;
+  const experience = str(p.experience, MAX.experience);
+  if (experience) lead.experience = experience;
+  const portfolio = str(p.portfolio, MAX.portfolio);
+  if (portfolio) lead.portfolio = portfolio;
   if (consent !== undefined) lead.consent = consent;
 
   // Metadata ammessi (contesto): sourcePage, propertySlug, locale. Tutto il resto è scartato.

@@ -33,6 +33,7 @@ const copy = {
     leadBuyer: "Cerco casa",
     leadQuestion: "Ho una domanda",
     leadOpenDomus: "Open Domus",
+    leadCareer: "Lavora con noi",
     nameLabel: "Nome e cognome",
     namePlaceholder: "Es. Maria Rossi",
     contactLabel: "Telefono o email",
@@ -55,6 +56,7 @@ const copy = {
     submitBuyer: "Trova la casa giusta",
     submitQuestion: "Invia la richiesta",
     submitOpenDomus: "Scopri Open Domus",
+    submitCareer: "Invia la candidatura",
     errName: "Inserisci il tuo nome.",
     errContact: "Lasciaci un telefono o un’email per ricontattarti.",
     sentPrefix: "Stiamo aprendo WhatsApp. Se non si apre,",
@@ -79,6 +81,7 @@ const copy = {
     leadBuyer: "Looking for a home",
     leadQuestion: "I have a question",
     leadOpenDomus: "Open Domus",
+    leadCareer: "Work with us",
     nameLabel: "Full name",
     namePlaceholder: "E.g. Maria Rossi",
     contactLabel: "Phone or email",
@@ -101,6 +104,7 @@ const copy = {
     submitBuyer: "Find the right home",
     submitQuestion: "Send your request",
     submitOpenDomus: "Discover Open Domus",
+    submitCareer: "Send your application",
     errName: "Please enter your name.",
     errContact: "Leave us a phone number or an email so we can reply.",
     sentPrefix: "We’re opening WhatsApp. If it doesn’t open,",
@@ -125,6 +129,7 @@ const copy = {
     leadBuyer: "Je cherche",
     leadQuestion: "J’ai une question",
     leadOpenDomus: "Open Domus",
+    leadCareer: "Rejoignez-nous",
     nameLabel: "Nom et prénom",
     namePlaceholder: "Ex. Maria Rossi",
     contactLabel: "Téléphone ou e-mail",
@@ -147,6 +152,7 @@ const copy = {
     submitBuyer: "Trouver le bon logement",
     submitQuestion: "Envoyer la demande",
     submitOpenDomus: "Découvrir Open Domus",
+    submitCareer: "Envoyer ma candidature",
     errName: "Veuillez indiquer votre nom.",
     errContact: "Laissez-nous un téléphone ou un e-mail pour vous recontacter.",
     sentPrefix: "Nous ouvrons WhatsApp. S’il ne s’ouvre pas,",
@@ -171,6 +177,7 @@ const copy = {
     leadBuyer: "Ich suche",
     leadQuestion: "Ich habe eine Frage",
     leadOpenDomus: "Open Domus",
+    leadCareer: "Arbeiten Sie mit uns",
     nameLabel: "Vor- und Nachname",
     namePlaceholder: "Z. B. Maria Rossi",
     contactLabel: "Telefon oder E-Mail",
@@ -193,6 +200,7 @@ const copy = {
     submitBuyer: "Das passende Zuhause finden",
     submitQuestion: "Anfrage senden",
     submitOpenDomus: "Open Domus entdecken",
+    submitCareer: "Bewerbung senden",
     errName: "Bitte geben Sie Ihren Namen ein.",
     errContact: "Hinterlassen Sie uns eine Telefonnummer oder E-Mail für den Rückruf.",
     sentPrefix: "Wir öffnen WhatsApp. Falls es sich nicht öffnet,",
@@ -217,6 +225,7 @@ const copy = {
     leadBuyer: "Busco casa",
     leadQuestion: "Tengo una pregunta",
     leadOpenDomus: "Open Domus",
+    leadCareer: "Trabaja con nosotras",
     nameLabel: "Nombre y apellidos",
     namePlaceholder: "Ej. Maria Rossi",
     contactLabel: "Teléfono o correo",
@@ -239,6 +248,7 @@ const copy = {
     submitBuyer: "Encuentra la casa ideal",
     submitQuestion: "Enviar la solicitud",
     submitOpenDomus: "Descubre Open Domus",
+    submitCareer: "Enviar la candidatura",
     errName: "Introduce tu nombre.",
     errContact: "Déjanos un teléfono o un correo para poder responderte.",
     sentPrefix: "Estamos abriendo WhatsApp. Si no se abre,",
@@ -339,11 +349,15 @@ export default function Contact({
     },
   ];
 
+  // `career` non ha una tab qui (leadOptions ne elenca quattro): le candidature
+  // hanno il form dedicato di /lavora-con-noi. Le etichette esistono comunque
+  // perché i Record sono esaustivi su LeadIntent.
   const leadLabels: Record<LeadIntent, string> = {
     seller: c.leadSeller,
     buyer: c.leadBuyer,
     question: c.leadQuestion,
     "open-domus": c.leadOpenDomus,
+    career: c.leadCareer,
   };
 
   const submitLabels: Record<LeadIntent, string> = {
@@ -351,6 +365,7 @@ export default function Contact({
     buyer: c.submitBuyer,
     question: c.submitQuestion,
     "open-domus": c.submitOpenDomus,
+    career: c.submitCareer,
   };
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
