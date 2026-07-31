@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Lint, typecheck & build
+    name: Lint, typecheck, test & build
     runs-on: ubuntu-latest
 
     env:
@@ -35,5 +35,21 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Test deterministici: modello finto (ai/test) e fixture immobili, nessuna rete.
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
+
+      # 81 casi sul parser della ricerca in linguaggio naturale, condiviso con /api/search.
+      # Esisteva già ma non girava in CI: una modifica al parser poteva romperlo in silenzio.
+      - name: Test parser ricerca
+        run: npm run test:parser
+
+      # E2E: risposte simulate via intercettazione di rete, nessuna chiave, nessuna rete.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: End-to-end
+        run: npm run e2e

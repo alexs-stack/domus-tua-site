@@ -1,53 +1,56 @@
-import { NextResponse } from "next/server";
-import { runAssistant, type ChatMessage } from "../../lib/ai/assistant";
-import type { Locale } from "../../lib/i18n/dictionaries";
+import { runAssistantTurn } from "../../lib/assistant/agent";
+import { ASSISTANT_LIMIT, MAX_BODY_BYTES } from "../../lib/assistant/config";
+import { parseAssistantRequest } from "../../lib/assistant/request";
+import { errorStreamResponse, eventStreamResponse } from "../../lib/assistant/stream";
+import { clientIp, rateLimitShared } from "../../lib/security/rateLimit";
 
-// Assistente conversazionale. Il client invia la cronologia; il server esegue il turno
-// (con lo strumento search_listings) e ritorna { reply, listings }. Stateless.
+// Assistente conversazionale. Il client invia la cronologia, il server esegue il turno e
+// risponde in STREAMING (SSE): il primo testo compare subito, senza attendere i tool.
+// Stateless: nulla viene scritto su disco o in database.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const LOCALES = ["it", "en", "fr", "de", "es"];
-const MAX_MESSAGES = 24;
-const MAX_LEN = 1000;
+/**
+ * Tetto di durata della funzione. Deve stare SOPRA il timeout del turno (25 s) perché sia
+ * quest'ultimo a scattare per primo, con un messaggio utile, invece di un 504 muto.
+ */
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  let body: unknown;
+  // 1. Rate limit per IP: è l'endpoint più costoso del sito (più chiamate modello per turno).
+  const rl = await rateLimitShared(`assistant:${clientIp(req)}`, ASSISTANT_LIMIT);
+  if (!rl.ok) {
+    return errorStreamResponse("rate-limited", 429, {
+      "retry-after": String(rl.retryAfterSeconds),
+    });
+  }
+
+  // 2. Dimensione del body prima di leggerlo: nessun payload enorme entra in memoria.
+  const declaredLength = Number(req.headers.get("content-length") ?? 0);
+  if (declaredLength > MAX_BODY_BYTES) {
+    return errorStreamResponse("bad-request", 413);
+  }
+
+  let raw: unknown;
   try {
-    body = await req.json();
+    const text = await req.text();
+    // Il content-length può mancare o mentire: ricontrolliamo sul testo effettivo.
+    if (text.length > MAX_BODY_BYTES) return errorStreamResponse("bad-request", 413);
+    raw = JSON.parse(text);
   } catch {
-    return NextResponse.json({ ok: false, error: "bad-json" }, { status: 400 });
+    return errorStreamResponse("bad-request", 400);
   }
 
-  const raw = (body as { messages?: unknown })?.messages;
-  const localeRaw = (body as { locale?: unknown })?.locale;
-  const locale: Locale = (typeof localeRaw === "string" && LOCALES.includes(localeRaw) ? localeRaw : "it") as Locale;
+  // 3. Validazione di schema (ruoli, lunghezze, campi ignoti, percorso relativo).
+  const validated = parseAssistantRequest(raw);
+  if (!validated.ok) return errorStreamResponse(validated.code, 400);
 
-  if (!Array.isArray(raw) || raw.length === 0) {
-    return NextResponse.json({ ok: false, error: "no-messages" }, { status: 400 });
-  }
+  // 4. Turno in streaming. `req.signal` propaga l'annullamento dal browser fino al provider.
+  const events = runAssistantTurn({
+    messages: validated.request.messages,
+    pagePath: validated.request.pagePath,
+    abortSignal: req.signal,
+  });
 
-  // Sanifica: solo ruoli validi, testo non vuoto, lunghezza limitata, ultimi N.
-  const history: ChatMessage[] = raw
-    .filter((m): m is { role: string; content: string } =>
-      !!m && typeof m === "object" && typeof (m as { content?: unknown }).content === "string",
-    )
-    .map((m): ChatMessage => ({
-      role: m.role === "assistant" ? "assistant" : "user",
-      content: m.content.slice(0, MAX_LEN),
-    }))
-    .filter((m) => m.content.trim().length > 0)
-    .slice(-MAX_MESSAGES);
-
-  if (history.length === 0 || history[history.length - 1].role !== "user") {
-    return NextResponse.json({ ok: false, error: "bad-history" }, { status: 400 });
-  }
-
-  try {
-    const { reply, listings } = await runAssistant(history, locale);
-    return NextResponse.json({ ok: true, reply, listings });
-  } catch (err) {
-    console.error("[assistant] errore:", err);
-    return NextResponse.json({ ok: false, error: "error" }, { status: 200 });
-  }
+  return eventStreamResponse(events);
 }

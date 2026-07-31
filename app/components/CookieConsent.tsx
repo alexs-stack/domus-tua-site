@@ -4,6 +4,7 @@
 // tracciamento; il banner registra la scelta in un cookie `dt_consent` e fa da gate per
 // eventuali analytics futuri (caricarli solo se dt_consent=accepted). Multilingua.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -125,6 +126,14 @@ export default function CookieConsent() {
       first.focus();
     }
   }, []);
+
+  // Finché il banner è a schermo occupa la stessa posizione del pannello assistente
+  // (`inset-x-3 bottom-3`, stesso z): lo dichiariamo, così il launcher si toglie di mezzo
+  // e la scelta sui cookie resta la prima cosa da fare.
+  useEffect(() => {
+    setOverlay("cookie-consent", show);
+    return () => setOverlay("cookie-consent", false);
+  }, [show]);
 
   if (!show) return null;
 

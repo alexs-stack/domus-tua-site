@@ -2,8 +2,26 @@
 
 import type { Property } from "../properties";
 
-/** Etichette caratteristiche (allineate a featureOptions in PropertySearch). */
-export type FeatureLabel = "Giardino" | "Box / posto auto" | "Terrazzo" | "Doppi servizi";
+/**
+ * Etichette caratteristiche cercabili.
+ *
+ * Corrispondono ESATTAMENTE all'insieme chiuso che il feed RealSmart espone (verificato sul
+ * feed live: 193 immobili, sei sole caratteristiche). Cercare qualcosa che il gestionale non
+ * fornisce produrrebbe risposte negative false — "no, non ha l'ascensore" quando il dato
+ * semplicemente non esiste.
+ *
+ * Le prime quattro sono anche chip visibili in PropertySearch. Le ultime due no: il client
+ * scarta in sicurezza le etichette che non conosce (`featureOptions.some(...)`), quindi
+ * aggiungerle qui è additivo. Il sito potrebbe esporle in futuro — i dati le reggono
+ * (ascensore su 50 immobili, aria condizionata su 68).
+ */
+export type FeatureLabel =
+  | "Giardino"
+  | "Box / posto auto"
+  | "Terrazzo"
+  | "Doppi servizi"
+  | "Ascensore"
+  | "Aria condizionata";
 
 /**
  * Filtri estratti dalla frase in linguaggio naturale. Tutti opzionali: il modello

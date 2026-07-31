@@ -47,3 +47,10 @@ next-env.d.ts
 
 # dati lingua tesseract scaricati da scripts/detect-sold.ts (rigenerabili)
 *.traineddata
+
+# Report dell'eval dell'assistente (generato: npm run eval)
+eval-report.md
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
