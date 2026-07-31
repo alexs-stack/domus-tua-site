@@ -13,6 +13,7 @@ import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/motion/gsap";
 import { groupAvailableByTown } from "../lib/geo/comuni";
+import { canonicalComune, comuniFacet, matchesComune } from "../lib/comune";
 import type { Property } from "../lib/properties";
 import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
 
@@ -486,7 +487,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       maxBudget: budget ? Number(budget) || 0 : s.maxBudget,
       minBudget: sp.get("minBudget") ? Number(sp.get("minBudget")) || 0 : s.minBudget,
       minRooms: rooms ? Number(rooms) || 0 : s.minRooms,
-      comune: comune || s.comune,
+      // Il comune arriva come testo libero dalla home: riportalo alla chiave esatta della
+      // tendina quando combacia ("tradate" / "Tradate (VA)" -> "Tradate").
+      comune: comune ? canonicalComune(comuniFacet(properties), comune) ?? comune : s.comune,
     }));
     /* eslint-enable react-hooks/set-state-in-effect */
     // La query esplicita è passata a runSearch: lo stato nl non è ancora aggiornato in questo tick.
@@ -514,11 +517,10 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     }
   }, [f, ai]);
 
+  // Stessa lista (e stesse chiavi) della facet passata al parser lato server: comuniFacet è la
+  // fonte unica, così tendina e filtro non possono divergere. "Tutti" resta fisso in cima.
   const comuni = useMemo(() => {
-    const derived = Array.from(new Set(properties.map((p) => p.zone.split(",")[0].trim()))).sort((a, b) =>
-      a.localeCompare(b, "it"),
-    );
-    const base = ["Tutti", ...derived]; // "Tutti" resta fisso in cima, il resto ordinato alfabeticamente.
+    const base = comuniFacet(properties);
     // Include il comune cercato anche se nessun immobile combacia (mostra il blocco "nessun risultato").
     return base.includes(f.comune) ? base : [...base, f.comune];
   }, [properties, f.comune]);
@@ -538,7 +540,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
       if (f.availability === "sold" && !p.sold) return false;
       if (f.contract !== "Tutte" && p.status !== f.contract) return false;
       if (f.type !== "Tutte" && p.type !== f.type) return false;
-      if (f.comune !== "Tutti" && p.zone.split(",")[0].trim() !== f.comune) return false;
+      if (f.comune !== "Tutti" && !matchesComune(p.zone, f.comune)) return false;
       if (f.maxBudget && (p.priceValue <= 0 || p.priceValue > f.maxBudget)) return false;
       if (f.minBudget && (p.priceValue <= 0 || p.priceValue < f.minBudget)) return false;
       if (f.minRooms && roomsNum(p) < f.minRooms) return false;

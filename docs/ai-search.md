@@ -10,6 +10,11 @@ Tradate sotto 300.000 €"* e ottiene i risultati giusti, ordinati per rilevanza
      caratteristiche) + la parte descrittiva (`semanticQuery`), via structured output.
    - Senza chiave: **parser locale** deterministico (regex/keyword) — meno furbo ma funziona.
 2. **Filtro** (`app/lib/ai/rank.ts` → `applyFilters`): stessa logica dei filtri manuali del sito.
+   - La chiave del **comune** è il nome pulito (`app/lib/comune.ts` → `comuneOf`): `Property.zone`
+     dei dati live include la provincia (`"Tradate (VA)"`), ma nessuno scrive "villa a Tradate (VA)".
+     `comuniFacet` costruisce la stessa lista per la facet del parser, la tendina di
+     `PropertySearch` e la mappa; `matchesComune` accetta anche varianti con provincia/accenti.
+     Regressione coperta da `app/lib/__tests__/comune.test.ts`.
 3. **Ranking**
    - Con `VOYAGE_API_KEY`: **ranking semantico** via embeddings (Voyage). I vettori dei 186
      immobili sono calcolati una volta e messi in cache (`unstable_cache`, 12 min).

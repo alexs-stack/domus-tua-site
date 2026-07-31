@@ -8,6 +8,7 @@
 // raggruppamento degli immobili DISPONIBILI per comune. I comuni non in tabella non vengono
 // persi: finiscono in una lista "Altre zone" accanto alla mappa (vedi PropertyMap).
 
+import { comuneOf } from "../comune";
 import type { Property } from "../properties";
 
 /** Coordinate approssimative (centro comune) per il posizionamento relativo dei pin. */
@@ -60,9 +61,9 @@ export const COMUNI_COORDS: Record<string, { lat: number; lng: number }> = {
 };
 
 export interface TownGroup {
-  /** Chiave usata dal filtro comune di PropertySearch (= zone.split(",")[0].trim()). */
+  /** Chiave usata dal filtro comune di PropertySearch (= comuneOf(zone), senza "(VA)"). */
   key: string;
-  /** Nome comune leggibile (senza "(VA)"). */
+  /** Nome comune leggibile: coincide con la chiave, già ripulita dalla provincia. */
   town: string;
   /** Numero di immobili DISPONIBILI in questo comune. */
   count: number;
@@ -72,18 +73,11 @@ export interface TownGroup {
 
 /** Normalizza il nome comune per il match in tabella (minuscolo, senza "(prov)"/accenti/spazi). */
 function normalizeTown(town: string): string {
-  return town
-    .replace(/\s*\(.*\)\s*$/, "") // togli "(VA)"
+  return comuneOf(town)
     .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "") // togli accenti (diacritici combinanti)
-    .replace(/\s+/g, " ")
     .trim();
-}
-
-/** Nome comune leggibile (togli il suffisso provincia). */
-function displayTown(key: string): string {
-  return key.replace(/\s*\(.*\)\s*$/, "").trim();
 }
 
 /**
@@ -94,14 +88,14 @@ export function groupAvailableByTown(properties: Property[]): TownGroup[] {
   const byKey = new Map<string, number>();
   for (const p of properties) {
     if (p.sold) continue; // mai i venduti in mappa
-    const key = p.zone.split(",")[0]!.trim();
+    const key = comuneOf(p.zone);
     if (!key) continue;
     byKey.set(key, (byKey.get(key) ?? 0) + 1);
   }
   return Array.from(byKey.entries())
     .map(([key, count]) => ({
       key,
-      town: displayTown(key),
+      town: key,
       count,
       coords: COMUNI_COORDS[normalizeTown(key)],
     }))
