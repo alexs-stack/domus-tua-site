@@ -26,6 +26,7 @@ const APP_DIR = path.join(process.cwd(), "app");
 const ASSISTANT = fs.readFileSync(path.join(APP_DIR, "lib", "ai", "assistant.ts"), "utf8");
 const ROUTE = fs.readFileSync(path.join(APP_DIR, "api", "assistant", "route.ts"), "utf8");
 const WIDGET = fs.readFileSync(path.join(APP_DIR, "components", "Assistant.tsx"), "utf8");
+const MOUNT = fs.readFileSync(path.join(APP_DIR, "components", "AssistantMount.tsx"), "utf8");
 
 // ── Contesto di prova ───────────────────────────────────────────────────────────────────
 
@@ -329,7 +330,7 @@ describe("assistente — limiti del turno", () => {
 
 describe("assistente — route handler", () => {
   test("rate limit per IP e payload limitato", () => {
-    assert.match(ROUTE, /rateLimit\(`assistant:\$\{clientIp\(req\)\}`, ASSISTANT_LIMIT\)/);
+    assert.match(ROUTE, /rateLimit\(`assistant:\$\{ip\}`, ASSISTANT_LIMIT\)/);
     assert.match(ROUTE, /const MAX_BODY_BYTES = 64_000;/);
     assert.match(ROUTE, /const MAX_MESSAGES = 24;/);
     assert.match(ROUTE, /const MAX_LEN = 1000;/);
@@ -347,7 +348,9 @@ describe("assistente — route handler", () => {
   test("nessun segreto raggiunge il client", () => {
     // Il widget parla solo con la nostra route: nessun SDK del provider e nessuna variabile
     // d'ambiente oltre al flag pubblico (i commenti non contano: si guarda il codice).
-    const code = WIDGET.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    const strip = (src: string) =>
+      src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    const code = strip(WIDGET) + strip(MOUNT);
     assert.doesNotMatch(code, /@anthropic-ai\/sdk/);
     const envReads = code.match(/process\.env\.[A-Z_]+/g) ?? [];
     assert.deepEqual([...new Set(envReads)], ["process.env.NEXT_PUBLIC_ENABLE_ASSISTANT"]);

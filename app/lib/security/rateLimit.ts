@@ -40,6 +40,13 @@ export const LEAD_LIMIT: RateLimitConfig = { limit: 8, windowMs: TEN_MIN };
  */
 export const ASSISTANT_LIMIT: RateLimitConfig = { limit: 30, windowMs: TEN_MIN };
 
+/**
+ * Secondo argine sullo stesso endpoint: una conversazione umana non manda sei messaggi in
+ * mezzo minuto. La finestra lunga limita il consumo, questa limita la raffica — uno script
+ * che martella verrebbe fermato solo dopo 30 turni dal limite sopra.
+ */
+export const ASSISTANT_BURST_LIMIT: RateLimitConfig = { limit: 6, windowMs: 30_000 };
+
 /** Rimuove le chiavi ormai vuote/scadute quando la Map cresce troppo. */
 function sweep(now: number, windowMs: number): void {
   for (const [key, hits] of store) {
