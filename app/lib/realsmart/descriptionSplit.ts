@@ -71,8 +71,11 @@ function tokens(text: string): string[] {
 function isFactLine(line: string): boolean {
   if (/[.!?]$/.test(line.trim())) return false;
 
+  // Servono almeno TRE frammenti. Con due, un trattino separa quasi sempre un titolo di
+  // sezione dalla sua glossa ("PIANO PRIMO – Il cuore della casa") o una misura dal suo
+  // contesto: non è un elenco di caratteristiche e non va toccato.
   const fragments = splitFragments(line);
-  if (fragments.length < 2) return false;
+  if (fragments.length < 3) return false;
 
   // Ogni frammento deve essere corto: "Doppio terrazzo" sì, una subordinata no.
   if (fragments.some((f) => f.split(/\s+/).length > 6)) return false;

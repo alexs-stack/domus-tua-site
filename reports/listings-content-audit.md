@@ -6,16 +6,15 @@ Il report non contiene indirizzi civici, telefoni o email.
 ## Riepilogo
 
 - annunci analizzati: **193**
-- PASS: **154**
-- REVIEW: **39** (questioni editoriali, non bloccanti)
+- PASS: **162**
+- REVIEW: **31** (questioni editoriali, non bloccanti)
 - FAIL: **0** (difetti strutturali, bloccanti in CI)
-- payload in cache: **1493 KB** su 2048 KB (limite Data Cache di Next)
+- payload in cache: **1490 KB** su 2048 KB (limite Data Cache di Next)
 
 ### Controlli scattati
 
 - `paragrafo-lunghissimo`: 24
-- `fatto-ambiguo`: 19
-- `riga-tecnica-non-risolta`: 5
+- `fatto-ambiguo`: 11
 - `fatto-contraddittorio`: 1
 - `segnaposto-nel-testo`: 1
 
@@ -33,19 +32,14 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T3005 | `paragrafo-lunghissimo` | un paragrafo di 1649 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T4007 | `paragrafo-lunghissimo` | un paragrafo di 1241 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T4007 | `fatto-ambiguo` | giardino: "Giardino" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
-| T3009 | `fatto-ambiguo` | pavimenti: "Pavimenti" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
-| T3009 | `fatto-ambiguo` | cucinaAbitabile: "Cucina abitabile" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T4008 | `paragrafo-lunghissimo` | un paragrafo di 2630 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T2022 | `paragrafo-lunghissimo` | un paragrafo di 1205 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
-| T2022 | `fatto-ambiguo` | autorimesse: "Autorimesse" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
-| T2022 | `fatto-ambiguo` | cantina: "Cantina" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T304 | `paragrafo-lunghissimo` | un paragrafo di 3065 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T305 | `paragrafo-lunghissimo` | un paragrafo di 2857 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T2024 | `paragrafo-lunghissimo` | un paragrafo di 1466 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T3018 | `paragrafo-lunghissimo` | un paragrafo di 1256 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T3019 | `paragrafo-lunghissimo` | un paragrafo di 1314 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T3019 | `fatto-ambiguo` | studio: "Studio" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
-| T3021 | `fatto-ambiguo` | superficie: "Superficie" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T307 | `paragrafo-lunghissimo` | un paragrafo di 1763 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T901 | `paragrafo-lunghissimo` | un paragrafo di 1280 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T2033 | `paragrafo-lunghissimo` | un paragrafo di 1714 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
@@ -53,30 +47,22 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T402 | `fatto-ambiguo` | postiAuto: "Posti auto" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T702 | `fatto-ambiguo` | terrazzi: "Terrazzi" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T702 | `fatto-ambiguo` | giardino: "Giardino" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
-| T403 | `fatto-ambiguo` | studio: "Studio" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
-| T310 | `fatto-ambiguo` | studio: "Studio" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T405 | `paragrafo-lunghissimo` | un paragrafo di 1490 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T602 | `fatto-ambiguo` | autorimesse: "Autorimesse" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T602 | `fatto-ambiguo` | giardino: "Giardino" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T602 | `fatto-ambiguo` | sottotetto: "Sottotetto" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
-| T325 | `fatto-ambiguo` | balconi: "Balconi" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T213 | `paragrafo-lunghissimo` | un paragrafo di 1578 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | NT301 | `paragrafo-lunghissimo` | un paragrafo di 1573 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T417 | `paragrafo-lunghissimo` | un paragrafo di 2207 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | UT201 | `paragrafo-lunghissimo` | un paragrafo di 1451 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
-| T418 | `fatto-ambiguo` | studio: "Studio" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T336 | `fatto-ambiguo` | studio: "Studio" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T339 | `paragrafo-lunghissimo` | un paragrafo di 1336 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
-| T215 | `riga-tecnica-non-risolta` | "APPATRAMENTO F – LUMINOSITA’ E UN SUPER PANORAMA" — frammenti non strutturati: APPATRAMENTO F / LUMINOSITA’ E UN SUPER PANORAMA |
 | T425 | `paragrafo-lunghissimo` | un paragrafo di 2712 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | T906 | `fatto-contraddittorio` | balconi: "Balconi" vale sia 3 sia 2 nella stessa descrizione. |
 | NT303 | `paragrafo-lunghissimo` | un paragrafo di 1235 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
 | NT304 | `paragrafo-lunghissimo` | un paragrafo di 1213 caratteri: nel testo non esiste alcun separatore da cui ricavare un a-capo, serve una descrizione approvata via override |
-| T518 | `riga-tecnica-non-risolta` | "- 60 mq per piano – 180 mq totali" — frammenti non strutturati: 60 mq per piano / 180 mq totali |
-| T372 | `riga-tecnica-non-risolta` | "PIANO PRIMO – Il cuore della casa" — frammenti non strutturati: PIANO PRIMO / Il cuore della casa |
-| T372 | `riga-tecnica-non-risolta` | "PIANO SOTTOTETTO – Lo spazio del possibile" — frammenti non strutturati: Lo spazio del possibile |
-| T372 | `riga-tecnica-non-risolta` | "PIANO INTERRATO – Il privilegio che fa la differenza" — frammenti non strutturati: PIANO INTERRATO / Il privilegio che fa la differenza |
 | T447 | `segnaposto-nel-testo` | la descrizione contiene un segnaposto non compilato (es. "____ mq") |
+| T615 | `fatto-ambiguo` | giardino: "Giardino" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 | T450 | `fatto-ambiguo` | giardino: "Giardino" compare in una frase ipotetica/evocativa: non è un'affermazione sull'immobile. |
 
 ## Provenienza dei dati
@@ -94,9 +80,9 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T3005 | REVIEW | 12 | 5 | 0 | 0 |
 | T2011 | PASS | 14 | 6 | 0 | 0 |
 | T4007 | REVIEW | 18 | 8 | 0 | 1 |
-| T3009 | REVIEW | 14 | 7 | 0 | 2 |
+| T3009 | PASS | 14 | 9 | 0 | 0 |
 | T4008 | REVIEW | 15 | 6 | 0 | 0 |
-| T2022 | REVIEW | 16 | 3 | 0 | 2 |
+| T2022 | REVIEW | 16 | 4 | 0 | 0 |
 | T304 | REVIEW | 15 | 3 | 0 | 0 |
 | T305 | REVIEW | 15 | 7 | 0 | 0 |
 | T2024 | REVIEW | 15 | 4 | 0 | 0 |
@@ -105,7 +91,7 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T3019 | REVIEW | 10 | 3 | 0 | 1 |
 | T0008 | PASS | 9 | 3 | 0 | 0 |
 | T2030 | PASS | 16 | 6 | 0 | 0 |
-| T3021 | REVIEW | 15 | 4 | 0 | 1 |
+| T3021 | PASS | 15 | 4 | 0 | 0 |
 | T2031 | PASS | 15 | 2 | 0 | 0 |
 | T307 | REVIEW | 14 | 1 | 0 | 0 |
 | T901 | REVIEW | 14 | 1 | 0 | 0 |
@@ -116,8 +102,8 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T303 | PASS | 14 | 3 | 0 | 0 |
 | UT102 | PASS | 10 | 2 | 0 | 0 |
 | T309 | PASS | 16 | 6 | 0 | 0 |
-| T403 | REVIEW | 13 | 7 | 0 | 1 |
-| T310 | REVIEW | 12 | 6 | 0 | 1 |
+| T403 | PASS | 13 | 7 | 0 | 0 |
+| T310 | PASS | 12 | 6 | 0 | 0 |
 | T404 | PASS | 16 | 2 | 0 | 0 |
 | T203 | PASS | 14 | 3 | 0 | 0 |
 | T405 | REVIEW | 16 | 4 | 0 | 0 |
@@ -156,7 +142,7 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T415 | PASS | 13 | 4 | 0 | 0 |
 | T324 | PASS | 12 | 2 | 0 | 0 |
 | UT104 | PASS | 8 | 3 | 0 | 0 |
-| T325 | REVIEW | 13 | 0 | 0 | 1 |
+| T325 | PASS | 13 | 0 | 0 | 0 |
 | T212 | PASS | 13 | 2 | 0 | 0 |
 | T416 | PASS | 15 | 3 | 0 | 0 |
 | T326 | PASS | 15 | 0 | 0 | 0 |
@@ -175,7 +161,7 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T417 | REVIEW | 14 | 5 | 0 | 0 |
 | T333 | PASS | 13 | 2 | 0 | 0 |
 | UT201 | REVIEW | 11 | 2 | 0 | 0 |
-| T418 | REVIEW | 14 | 1 | 0 | 1 |
+| T418 | PASS | 14 | 1 | 0 | 0 |
 | T419 | PASS | 15 | 3 | 0 | 0 |
 | T903 | PASS | 14 | 2 | 0 | 0 |
 | T421 | PASS | 18 | 7 | 0 | 0 |
@@ -184,14 +170,14 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T336 | REVIEW | 15 | 3 | 0 | 1 |
 | T423 | PASS | 13 | 3 | 0 | 0 |
 | T339 | REVIEW | 15 | 2 | 0 | 0 |
-| T215 | REVIEW | 13 | 2 | 0 | 0 |
+| T215 | PASS | 13 | 2 | 0 | 0 |
 | T341 | PASS | 17 | 3 | 0 | 0 |
 | T344 | PASS | 15 | 5 | 0 | 0 |
 | T345 | PASS | 16 | 2 | 0 | 0 |
 | T425 | REVIEW | 18 | 5 | 0 | 0 |
 | T346 | PASS | 12 | 1 | 0 | 0 |
 | T347 | PASS | 17 | 3 | 0 | 0 |
-| NT302 | PASS | 10 | 2 | 0 | 0 |
+| NT302 | PASS | 10 | 1 | 0 | 0 |
 | A204 | PASS | 14 | 3 | 0 | 0 |
 | T426 | PASS | 15 | 6 | 0 | 0 |
 | T424 | PASS | 15 | 4 | 0 | 0 |
@@ -228,7 +214,7 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T361 | PASS | 14 | 5 | 0 | 0 |
 | T434 | PASS | 16 | 3 | 0 | 0 |
 | T437 | PASS | 14 | 3 | 0 | 0 |
-| T611 | PASS | 17 | 2 | 0 | 0 |
+| T611 | PASS | 17 | 1 | 0 | 0 |
 | T438 | PASS | 12 | 8 | 0 | 0 |
 | T516 | PASS | 21 | 6 | 0 | 0 |
 | T362 | PASS | 15 | 1 | 0 | 0 |
@@ -253,10 +239,10 @@ Il report non contiene indirizzi civici, telefoni o email.
 | UT303 | PASS | 9 | 1 | 0 | 0 |
 | T442 | PASS | 18 | 4 | 0 | 0 |
 | T613 | PASS | 16 | 3 | 0 | 0 |
-| T518 | REVIEW | 19 | 7 | 0 | 0 |
+| T518 | PASS | 19 | 7 | 0 | 0 |
 | T371 | PASS | 13 | 5 | 0 | 0 |
 | T803 | PASS | 15 | 0 | 0 | 0 |
-| T372 | REVIEW | 17 | 2 | 0 | 0 |
+| T372 | PASS | 17 | 2 | 0 | 0 |
 | T226 | PASS | 10 | 3 | 0 | 0 |
 | T443 | PASS | 16 | 8 | 0 | 0 |
 | T373 | PASS | 15 | 5 | 0 | 0 |
@@ -271,9 +257,9 @@ Il report non contiene indirizzi civici, telefoni o email.
 | T102 | PASS | 16 | 0 | 0 | 0 |
 | T448 | PASS | 17 | 3 | 0 | 0 |
 | T449 | PASS | 19 | 4 | 0 | 0 |
-| T379 | PASS | 14 | 9 | 0 | 0 |
+| T379 | PASS | 14 | 8 | 0 | 0 |
 | T380 | PASS | 12 | 5 | 0 | 0 |
-| T615 | PASS | 18 | 1 | 0 | 0 |
+| T615 | REVIEW | 18 | 1 | 0 | 1 |
 | NT307 | PASS | 11 | 3 | 0 | 0 |
 | T450 | REVIEW | 20 | 6 | 0 | 1 |
 

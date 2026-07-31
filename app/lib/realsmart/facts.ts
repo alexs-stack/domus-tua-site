@@ -122,7 +122,7 @@ const NEGATION = /\b(senza|priv[oaie]\s+di|non\s+dispone\s+di|non\s+è\s+dotat[o
  * POTENZIALITÀ / PROSSIMITÀ — la caratteristica NON è nell'immobile: è possibile, prevista,
  * oppure si trova nelle vicinanze. Finestra più ampia perché queste formule sono più lunghe.
  */
-const POTENTIAL = /\b(possibilit[àa]\s+di|predisposizione\s+(?:per|a|all)|predispost[oai]\s+(?:per|a|all)|ideale\s+per\s+(?:realizzare|ricavare|creare|ospitare)|si\s+pu[òo]\s+(?:ricavare|realizzare|creare)|eventuale|opzionale|da\s+realizzare|nelle\s+vicinanze|nei\s+pressi|poco\s+distante|in\s+zona|nel\s+quartiere|del\s+condominio|condominiale)\b[^.;!?]{0,45}$|\bcome[\s\w']{0,3}$/i;
+const POTENTIAL = /\b(possibilit[àa]\s+di|predisposizione\s+(?:per|a|all)|predispost[oai]\s+(?:per|a|all)|ideale\s+per\s+(?:realizzare|ricavare|creare|ospitare)|per\s+(?:crear|realizzar|ricavar|ottener|ampliar)\w*|si\s+pu[òo]\s+(?:ricavare|realizzare|creare)|eventuale|opzionale|da\s+realizzare|nelle\s+vicinanze|nei\s+pressi|poco\s+distante|in\s+zona|nel\s+quartiere|del\s+condominio|condominiale)\b[^.;!?]{0,45}$|\bcome[\s\w']{0,3}$/i;
 
 /**
  * POTENZIALITÀ che SEGUE il termine ("un sottotetto da realizzare", "taverna in progetto"):
@@ -135,8 +135,12 @@ const POTENTIAL_AFTER = /^\s*(?:è\s+|sono\s+)?(?:tutt[oi]\s+)?(?:da\s+(?:realiz
  * fatto ("immagina di ammirare il giardino"), non è un'affermazione sull'immobile: finisce in
  * revisione, non in pagina. Se lo segue ("un box di 18 mq, di cui potresti aver bisogno") il
  * fatto è affermato e resta valido.
+ *
+ * SOLO IL CONDIZIONALE è un'ipotesi. Il FUTURO ("potrai accedere al balcone", "potrete godere
+ * di due cantine") è la voce da visita guidata di questi annunci: afferma, non ipotizza.
+ * Confonderli faceva sparire dai box dati veri come il parquet o la cucina abitabile.
  */
-const HYPOTHETICAL = /\b(immagina\w*|immaginate|potrebbe|potresti|potrete|potrai|sogna\w*|se\s+desideri|pensa\s+a)\b/i;
+const HYPOTHETICAL = /\b(immagina\w*|immaginate|potrebbe\w*|potresti|potreste|sogna\w*|sognate|se\s+desideri|pensa\s+a|pensate\s+a)\b/i;
 
 /** Spezza il testo nei segmenti su cui si valuta il contesto (frase o riga tecnica). */
 function toSegments(text: string): string[] {
@@ -171,7 +175,7 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     group: "esterni",
     label: "Terrazzi",
     counted: true,
-    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?)?terrazz[aeio]\\w*`, "i"),
+    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:(?!\\b(?:e|ed|o|od)\\b)\\w+\\s+){0,2}?)?terrazz[aeio]\\w*`, "i"),
     value: (m) => {
       const n = toCount(m[1]);
       return n && n > 1 ? String(n) : undefined;
@@ -182,7 +186,7 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     group: "esterni",
     label: "Balconi",
     counted: true,
-    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?)?balcon[ei]\\w*`, "i"),
+    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:(?!\\b(?:e|ed|o|od)\\b)\\w+\\s+){0,2}?)?balcon[ei]\\w*`, "i"),
     value: (m) => {
       const n = toCount(m[1]);
       return n && n > 1 ? String(n) : undefined;
@@ -195,7 +199,7 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     counted: true,
     // Sinonimi deduplicati sulla stessa chiave: autorimessa / box / garage.
     // "box doccia" NON è un'autorimessa: il lookahead lo esclude.
-    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:\\w+\\s+){0,2}?)?(?:autorimess[ae]|box(?:\\s+auto)?(?!\\s+doccia)|garage)\\b`, "i"),
+    match: new RegExp(`\\b(?:(${QTY})${NOT_A_UNIT}\\s+(?:(?!\\b(?:e|ed|o|od)\\b)\\w+\\s+){0,2}?)?(?:autorimess[ae]|box(?:\\s+auto)?(?!\\s+doccia)|garage)\\b`, "i"),
     value: (m) => {
       const n = toCount(m[1]);
       return n && n > 1 ? String(n) : undefined;
@@ -273,7 +277,7 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     key: "soggiorno",
     group: "spazi",
     label: "Soggiorno",
-    match: /\bsoggiorno\s+(?:\w+\s+){0,2}?di\s+(?:ben\s+)?(circa\s+)?(\d{1,3}(?:[.,]\d)?)\s*(?:mq|m²|metri\s+quadri)/i,
+    match: /\bsoggiorno\s+(?:(?!\b(?:e|ed|o|od)\b)\w+\s+){0,2}?di\s+(?:ben\s+)?(circa\s+)?(\d{1,3}(?:[.,]\d)?)\s*(?:mq|m²|metri\s+quadri)/i,
     value: (m) => toSurface(m[2], Boolean(m[1])),
   },
   {
@@ -283,7 +287,7 @@ const DESCRIPTION_RULES: readonly DescriptionRule[] = [
     // Serve un determinante da AMBIENTE ("uno studio", "un ampio studio"): così restano fuori
     // sia gli usi solo suggeriti ("funzionale anche come studio", "locale lettura, studio")
     // sia gli studi PROFESSIONALI citati nel copy ("progettata dallo studio dell'architetto").
-    match: /\b(?:un[o']?|lo|il|ampio|comodo|piccolo|grande|luminoso|proprio)\s+studio\b(?!\s+(?:[A-Z]|tecnico|notarile|legale|dell|degli|di\s+progettazione))/,
+    match: /\b(?:un[o']?|lo|il|ampio|comodo|piccolo|grande|luminoso|proprio)\s+studio\b(?!\s+(?:[A-Z]|tecnico|notarile|legale|professionale|associato|dell|degli|di\s+progettazione))/,
   },
   { key: "lavanderia", group: "spazi", label: "Lavanderia", match: /\blavanderia\b/i },
   {

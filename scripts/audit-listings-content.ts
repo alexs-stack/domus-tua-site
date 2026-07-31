@@ -34,6 +34,7 @@ import type { NormalizedProperty, RealSmartListingRaw } from "../app/lib/realsma
 const DEFAULT_FEED_URL =
   process.env.REALSMART_FEED_URL ?? "https://www.gestim2002.it/portali/immobili_724.xml";
 const DEFAULT_OUT = "reports/listings-content-audit.md";
+const PROPOSALS_OUT = "reports/proposte-descrizioni.md";
 
 /** Oltre questa soglia un paragrafo è una parete di testo: va spezzato a mano o via override. */
 const LONG_PARAGRAPH_CHARS = 1200;
@@ -222,6 +223,129 @@ function editorialFindings(p: NormalizedProperty): Finding[] {
   return out;
 }
 
+// ── Proposte di descrizione per i blocchi illeggibili ───────────────────────
+
+/** Lunghezza a cui si chiude un paragrafo proposto (frasi intere, mai tagliate). */
+const PROPOSAL_PARAGRAPH_CHARS = 420;
+
+/**
+ * Spezza un blocco unico ai confini di FRASE, raggruppando fino a ~420 caratteri.
+ *
+ * ATTENZIONE: questa suddivisione NON viene applicata da nessuna parte. Nei 24 annunci che
+ * arrivano come blocco unico il testo non contiene alcun separatore — né break, né a-capo, né
+ * giunture — quindi qualunque interruzione sarebbe inventata. Il sito continua a pubblicare il
+ * testo così com'è; questa è solo una BOZZA da far approvare, che si incolla poi negli override.
+ */
+function proposeParagraphs(paragraph: string): string[] {
+  // Confine di frase per INDICE, non per concatenazione: così non si perde né si duplica nulla.
+  // Il lookahead pretende una maiuscola (o la fine del testo) dopo il terminatore, così
+  // "40.000€" e "mq. commerciali" non vengono scambiati per fine frase.
+  const sentences: string[] = [];
+  let cursor = 0;
+  for (const m of paragraph.matchAll(/[.!?]+(?=\s+\p{Lu}|\s*$)/gu)) {
+    const end = (m.index ?? 0) + m[0].length;
+    const sentence = paragraph.slice(cursor, end).trim();
+    if (sentence) sentences.push(sentence);
+    cursor = end;
+  }
+  const tail = paragraph.slice(cursor).trim();
+  if (tail) sentences.push(tail);
+  if (sentences.length === 0) return [paragraph];
+
+  const out: string[] = [];
+  let current = "";
+  for (const sentence of sentences) {
+    const next = current ? `${current} ${sentence}` : sentence;
+    if (current && next.length > PROPOSAL_PARAGRAPH_CHARS) {
+      out.push(current);
+      current = sentence;
+    } else {
+      current = next;
+    }
+  }
+  if (current) out.push(current);
+  return out;
+}
+
+/** Le parole devono essere le stesse: una bozza che perde testo non si propone. */
+function sameWords(a: string, b: string): boolean {
+  const w = (s: string) => (s.toLowerCase().match(/\p{L}+/gu) ?? []).join(" ");
+  return w(a) === w(b);
+}
+
+interface Proposal {
+  riferimento: string;
+  codice: string;
+  slug: string;
+  chars: number;
+  paragrafi: string[];
+}
+
+function buildProposal(p: NormalizedProperty): Proposal | null {
+  if (!p.descriptionParagraphs.some((par) => par.length > LONG_PARAGRAPH_CHARS)) return null;
+
+  const paragrafi = p.descriptionParagraphs.flatMap((par) =>
+    par.length > LONG_PARAGRAPH_CHARS ? proposeParagraphs(par) : [par],
+  );
+  // Guardia: se la bozza non contiene esattamente le stesse parole, non la si propone.
+  if (!sameWords(paragrafi.join(" "), p.descriptionParagraphs.join(" "))) return null;
+
+  return {
+    riferimento: p.sourceRef.riferimento ?? p.sourceRef.codice,
+    codice: p.sourceRef.codice,
+    slug: p.slug,
+    chars: Math.max(...p.descriptionParagraphs.map((par) => par.length)),
+    paragrafi,
+  };
+}
+
+function renderProposals(proposals: Proposal[], generatedAt: string): string {
+  const lines: string[] = [
+    "# Bozze di descrizione da approvare",
+    "",
+    `Generato il ${generatedAt}.`,
+    "",
+    "Questi annunci arrivano da RealSmart come **un unico blocco di testo**: nel contenuto non",
+    "esiste alcun separatore (né break, né a-capo, né punteggiatura incollata) da cui ricavare",
+    "un a-capo. Il sito quindi li pubblica così come sono — inventare paragrafi è esattamente il",
+    "difetto che abbiamo tolto.",
+    "",
+    "Qui sotto, per ciascuno, il **medesimo testo** spezzato ai confini di frase. Non è applicato",
+    "da nessuna parte: è una bozza. Chi la approva la incolla in `app/lib/realsmart/overrides.data.ts`",
+    "compilando `fonte`, `data` e `autore` (vedi `docs/realsmart-overrides.md`).",
+    "",
+    "Ogni bozza contiene le stesse identiche parole dell'originale: la verifica è automatica,",
+    "una bozza che perdesse testo non verrebbe nemmeno stampata.",
+    "",
+    `Annunci da sistemare: **${proposals.length}**.`,
+    "",
+  ];
+
+  for (const proposal of proposals) {
+    lines.push(
+      `## ${proposal.riferimento} — \`/case/${proposal.slug}\``,
+      "",
+      `Paragrafo più lungo: ${proposal.chars} caratteri. Bozza: ${proposal.paragrafi.length} paragrafi.`,
+      "",
+      "```ts",
+      "  {",
+      `    codice: ${JSON.stringify(proposal.codice)},`,
+      '    motivo: "descrizione originale in blocco unico, illeggibile in pagina",',
+      '    fonte: "DA COMPILARE — chi ha approvato il testo",',
+      '    data: "DA COMPILARE — YYYY-MM-DD",',
+      '    autore: "DA COMPILARE",',
+      "    descrizione: [",
+      ...proposal.paragrafi.map((par) => `      ${JSON.stringify(par)},`),
+      "    ],",
+      "  },",
+      "```",
+      "",
+    );
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
 // ── Esecuzione ──────────────────────────────────────────────────────────────
 
 function auditListing(raw: RealSmartListingRaw): ListingAudit {
@@ -336,6 +460,7 @@ async function main() {
   if (raw.length === 0) throw new Error("nessun annuncio nel feed: audit non attendibile");
 
   const audits = raw.map(auditListing);
+  const proposals = raw.map(normalizeRealSmartListing).map(buildProposal).filter((x): x is Proposal => x !== null);
 
   // Peso del payload memorizzato da getLiveListings(): cresce con il catalogo.
   const payloadBytes = Buffer.byteLength(JSON.stringify(raw.map(normalizeRealSmartListing)));
@@ -346,6 +471,7 @@ async function main() {
   const generatedAt = process.env.AUDIT_DATE ?? new Date().toISOString().slice(0, 10);
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, renderReport(audits, generatedAt, payloadBytes));
+  writeFileSync(PROPOSALS_OUT, renderProposals(proposals, generatedAt));
 
   const fails = audits.filter((a) => a.stato === "FAIL");
   const reviews = audits.filter((a) => a.stato === "REVIEW");
@@ -357,6 +483,7 @@ async function main() {
     `Payload in cache: ${Math.round(payloadBytes / 1024)} KB su ${CACHE_LIMIT_BYTES / 1024} KB disponibili`,
   );
   console.log(`Report: ${out}`);
+  console.log(`Bozze di descrizione da approvare: ${proposals.length} → ${PROPOSALS_OUT}`);
 
   if (payloadBytes > CACHE_LIMIT_BYTES) {
     console.error(

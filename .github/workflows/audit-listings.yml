@@ -1,0 +1,78 @@
+name: Audit contenuti annunci
+
+# Controlla, sul feed RealSmart REALE, che ogni annuncio pubblicato sia a posto: niente markup
+# a schermo, niente dati senza fonte, niente camere inventate, niente box vuoti.
+#
+# Perché serve una cadenza fissa: gli annunci nuovi entrano dal gestionale in continuazione,
+# senza passare da una PR. Senza questo workflow un difetto introdotto da un'inserzione nuova
+# resterebbe online finché qualcuno non lancia l'audit a mano.
+#
+# Il workflow diventa ROSSO solo per difetti STRUTTURALI certi. Le questioni editoriali
+# (paragrafi lunghissimi, frasi ambigue, segnaposto lasciati dall'agenzia) finiscono nel
+# riepilogo della run: sono decisioni umane, non errori.
+
+on:
+  schedule:
+    - cron: "30 6 * * *" # ogni mattina alle 06:30 UTC, prima dell'orario di ufficio
+  workflow_dispatch:
+  pull_request:
+    # Sulle PR gira solo se tocchi il codice che decide cosa finisce in pagina.
+    paths:
+      - "app/lib/realsmart/**"
+      - "scripts/audit-listings-content.ts"
+
+concurrency:
+  group: audit-listings-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Audit del feed live
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `continue-on-error` perché il riepilogo va scritto anche (soprattutto) quando fallisce:
+      # l'esito reale viene ripristinato nell'ultimo step.
+      - name: Audit contenuti
+        id: audit
+        continue-on-error: true
+        run: npm run audit:listings-content
+
+      - name: Riepilogo nella run
+        run: |
+          {
+            sed -n '/## Riepilogo/,/## Provenienza dei dati/p' reports/listings-content-audit.md \
+              | sed '$d'
+            echo
+            echo "<details><summary>Bozze di descrizione da approvare</summary>"
+            echo
+            grep -c '^## ' reports/proposte-descrizioni.md \
+              | xargs -I {} echo "{} annunci arrivano come blocco unico: le bozze pronte da approvare sono nell'artifact."
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Allega i report
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-contenuti-annunci
+          path: reports/
+          retention-days: 30
+
+      - name: Esito
+        if: steps.audit.outcome == 'failure'
+        run: |
+          echo "::error::L'audit ha trovato difetti strutturali sul feed live. Vedi il riepilogo e l'artifact."
+          exit 1

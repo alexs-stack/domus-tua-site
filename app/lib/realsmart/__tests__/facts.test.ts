@@ -362,3 +362,47 @@ describe("factsFromFields — casi che generavano dati fuorvianti", () => {
     assert.equal(fact(different, "mqGiardino")?.value, "800 m²");
   });
 });
+
+describe("factsFromDescription — precisione trovata sul feed reale", () => {
+  test("il FUTURO è visita guidata, non ipotesi: il dato resta", () => {
+    // "potrai/potrete" raccontano la casa; scambiarli per un condizionale faceva sparire dai
+    // box il parquet, la cucina abitabile e le cantine di annunci reali.
+    const guided: [string, string][] = [
+      ["Potrai fare il tuo ingresso nella solare cucina abitabile di quasi 13 mq.", "cucinaAbitabile"],
+      ["Un living con una bellissima pavimentazione in parquet di rovere.", "pavimenti"],
+      ["Inoltre, potrete godere di due cantine.", "cantina"],
+      ["Da qui potrai accedere al balcone.", "balconi"],
+    ];
+    for (const [text, key] of guided) {
+      assert.ok(keysFrom(text).includes(key), text);
+    }
+  });
+
+  test("il CONDIZIONALE resta un'ipotesi: niente dato, voce in revisione", () => {
+    const hypothetical: [string, string][] = [
+      ["La lavanderia potrebbe essere trasformata in uno studio.", "studio"],
+      ["Immagina di ammirare il giardino dalla terrazza.", "giardino"],
+      ["Uno spazio che potreste destinare a taverna.", "taverna"],
+    ];
+    for (const [text, key] of hypothetical) {
+      assert.ok(!keysFrom(text).includes(key), text);
+    }
+  });
+
+  test("un conteggio non scavalca la congiunzione", () => {
+    // "due" appartiene alle cantine, non al box: pubblicare "Autorimesse: 2" sarebbe un dato
+    // inventato su un immobile che ha un box solo.
+    const { facts } = factsFromDescription(["La proprietà comprende due cantine e un box auto."]);
+    assert.equal(fact(facts, "autorimesse")?.value, undefined);
+    assert.ok(fact(facts, "autorimesse"), "il box c'è comunque, senza conteggio");
+    assert.ok(fact(facts, "cantina"));
+
+    const diretto = factsFromDescription(["Completano la casa due box auto."]).facts;
+    assert.equal(fact(diretto, "autorimesse")?.value, "2");
+  });
+
+  test("«uno studio professionale» non è un ambiente della casa", () => {
+    assert.ok(!keysFrom("Potresti ricavarne uno studio professionale.").includes("studio"));
+    assert.ok(!keysFrom("Spazio a disposizione per crearti uno studio in casa.").includes("studio"));
+  });
+});

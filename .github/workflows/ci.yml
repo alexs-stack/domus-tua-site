@@ -35,5 +35,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # I test coprono la pipeline dei contenuti (normalizzazione, estrazione dei fatti,
+      # override, separazione narrativa): senza di loro la CI non vedrebbe una regressione
+      # che rompe le schede immobile.
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
