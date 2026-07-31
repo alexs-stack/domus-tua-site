@@ -24,8 +24,8 @@ const copy = {
     role: "Fondatrice · Domus Tua",
     cta: "Conosci Domus Tua",
     videoAria: "Guarda Domus Tua in video su YouTube",
-    imageAlt: "Raffaela Rizza e il team Domus Tua nella sede di Tradate",
-    captionName: "Raffaela Rizza e il team",
+    imageAlt: "Foto di gruppo Domus Tua nella sede di Tradate",
+    captionName: "Domus Tua, foto di gruppo",
     captionPlace: "Nella nostra sede di Tradate",
     badge: "Dal 2007",
     founderAlt: "Raffaela Rizza, founder di Domus Tua",
@@ -35,9 +35,7 @@ const copy = {
     roles: {
       founder: "Founder & CEO",
       office: "Office Manager",
-      architect: "Architetto",
       frontOffice: "Front Office",
-      executive: "Executive",
       homeStager: "Home Stager",
     },
   },
@@ -50,8 +48,8 @@ const copy = {
     role: "Founder · Domus Tua",
     cta: "Get to know Domus Tua",
     videoAria: "Watch Domus Tua on video on YouTube",
-    imageAlt: "Raffaela Rizza and the Domus Tua team at the Tradate office",
-    captionName: "Raffaela Rizza and the team",
+    imageAlt: "Domus Tua group photo at the Tradate office",
+    captionName: "Domus Tua, group photo",
     captionPlace: "At our office in Tradate",
     badge: "Since 2007",
     founderAlt: "Raffaela Rizza, founder of Domus Tua",
@@ -61,9 +59,7 @@ const copy = {
     roles: {
       founder: "Founder & CEO",
       office: "Office Manager",
-      architect: "Architect",
       frontOffice: "Front Office",
-      executive: "Executive",
       homeStager: "Home Stager",
     },
   },
@@ -76,8 +72,8 @@ const copy = {
     role: "Fondatrice · Domus Tua",
     cta: "Découvrir Domus Tua",
     videoAria: "Regarder la vidéo Domus Tua sur YouTube",
-    imageAlt: "Raffaela Rizza et l’équipe Domus Tua dans les locaux de Tradate",
-    captionName: "Raffaela Rizza et l’équipe",
+    imageAlt: "Photo de groupe Domus Tua dans les locaux de Tradate",
+    captionName: "Domus Tua, photo de groupe",
     captionPlace: "Dans nos locaux à Tradate",
     badge: "Depuis 2007",
     founderAlt: "Raffaela Rizza, fondatrice de Domus Tua",
@@ -87,9 +83,7 @@ const copy = {
     roles: {
       founder: "Founder & CEO",
       office: "Office Manager",
-      architect: "Architecte",
       frontOffice: "Front Office",
-      executive: "Executive",
       homeStager: "Home Stager",
     },
   },
@@ -102,8 +96,8 @@ const copy = {
     role: "Gründerin · Domus Tua",
     cta: "Domus Tua kennenlernen",
     videoAria: "Domus Tua im Video auf YouTube ansehen",
-    imageAlt: "Raffaela Rizza und das Domus-Tua-Team im Büro in Tradate",
-    captionName: "Raffaela Rizza und das Team",
+    imageAlt: "Gruppenfoto von Domus Tua im Büro in Tradate",
+    captionName: "Domus Tua, Gruppenfoto",
     captionPlace: "In unserem Büro in Tradate",
     badge: "Seit 2007",
     founderAlt: "Raffaela Rizza, Gründerin von Domus Tua",
@@ -113,9 +107,7 @@ const copy = {
     roles: {
       founder: "Founder & CEO",
       office: "Office Manager",
-      architect: "Architektin",
       frontOffice: "Front Office",
-      executive: "Executive",
       homeStager: "Home Stager",
     },
   },
@@ -128,8 +120,8 @@ const copy = {
     role: "Fundadora · Domus Tua",
     cta: "Conoce Domus Tua",
     videoAria: "Mira el vídeo de Domus Tua en YouTube",
-    imageAlt: "Raffaela Rizza y el equipo Domus Tua en la sede de Tradate",
-    captionName: "Raffaela Rizza y el equipo",
+    imageAlt: "Foto de grupo de Domus Tua en la sede de Tradate",
+    captionName: "Domus Tua, foto de grupo",
     captionPlace: "En nuestra sede de Tradate",
     badge: "Desde 2007",
     founderAlt: "Raffaela Rizza, fundadora de Domus Tua",
@@ -139,9 +131,7 @@ const copy = {
     roles: {
       founder: "Founder & CEO",
       office: "Office Manager",
-      architect: "Arquitecta",
       frontOffice: "Front Office",
-      executive: "Executive",
       homeStager: "Home Stager",
     },
   },
@@ -179,12 +169,12 @@ export default function Team() {
     { scope: rootRef }
   );
 
+  // Team ATTUALE. Chi lascia l'agenzia esce da qui e non viene sostituito con un nome
+  // inventato: la riga si aggiunge solo quando il cliente comunica una persona reale.
   const roster = [
     { name: "Raffaela Rizza", role: c.roles.founder, founder: true },
     { name: "Paloma Cavalcante", role: c.roles.office },
-    { name: "Eleonora D’Agati", role: c.roles.architect },
     { name: "Viola Benatti", role: c.roles.frontOffice },
-    { name: "Tiziana Galeone", role: c.roles.executive },
     { name: "Katya Fedrigo", role: c.roles.homeStager },
   ];
 
@@ -302,6 +292,11 @@ export default function Team() {
                     className="group relative block aspect-[4/3] overflow-hidden rounded-[calc(2rem-0.5rem)]"
                     aria-label={c.videoAria}
                   >
+                    {/* ⚠️ ASSET DA SOSTITUIRE: la foto ritrae la composizione precedente
+                        dell'agenzia. Resta in pagina (toglierla cambierebbe il layout), ma
+                        alt e didascalia NON la descrivono come "il team attuale": è una foto
+                        di gruppo, non un elenco di chi lavora oggi in Domus Tua.
+                        Vedi docs/client-assets-needed.md §2.x. */}
                     <Image
                       src="/images/reali/team-group.jpg"
                       alt={c.imageAlt}
