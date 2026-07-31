@@ -38,7 +38,11 @@ export interface PropertyFact {
   value?: string;
   source: FactSource;
   confidence: FactConfidence;
-  /** Frammento che ha generato il fatto: serve al report di revisione, non alla UI. */
+  /**
+   * Traccia della provenienza. Presente sui fatti da OVERRIDE (fonte, data, autore) e sulle
+   * voci di revisione. NON sui fatti estratti dalla descrizione: sono centinaia di KB in una
+   * cache condivisa che nessuna pagina legge — l'audit rilegge il feed e la ricalcola.
+   */
   evidence?: string;
 }
 
@@ -401,7 +405,6 @@ export function factsFromDescription(paragraphs: readonly string[]): FactsResult
         value,
         source: "descrizione",
         confidence: "alta",
-        evidence,
       };
 
       const existing = candidates.get(rule.key);

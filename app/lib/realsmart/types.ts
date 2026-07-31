@@ -135,7 +135,12 @@ export interface RealSmartListingRaw {
 
 export interface NormalizedImage {
   src: string;
-  alt: string;
+  /**
+   * Didascalia REALE del gestionale, quando c'è. Niente alt di ripiego: ripetere
+   * "titolo — comune" su quaranta foto gonfiava la cache condivisa di centinaia di KB senza
+   * che nessuno lo leggesse (la gallery costruisce l'alt da titolo e posizione).
+   */
+  alt?: string;
 }
 
 export interface NormalizedProperty {
@@ -144,8 +149,6 @@ export interface NormalizedProperty {
   /** Slug URL-safe generato da titolo + comune + codice. */
   slug: string;
   title: string;
-  /** Descrizione grezza, così com'è arrivata dal gestionale (tracciabilità e audit). */
-  description: string;
   /** Paragrafi NARRATIVI pubblicabili: le righe interamente tecniche sono già uscite. */
   descriptionParagraphs: string[];
   /** Righe telegrafiche rimosse dal testo perché già presenti nei box strutturati. */

@@ -39,6 +39,12 @@ const DEFAULT_OUT = "reports/listings-content-audit.md";
 const LONG_PARAGRAPH_CHARS = 1200;
 /** Oltre questa soglia un gruppo di fatti non si legge più a colpo d'occhio. */
 const MAX_GROUP_FACTS = 12;
+/**
+ * Limite della Data Cache di Next: oltre i 2 MB `unstable_cache` NON memorizza e si limita a
+ * un warning nei log. Il sito continuerebbe a funzionare, ma riscaricando ed rielaborando il
+ * feed da 2,6 MB a ogni richiesta. È un guasto silenzioso: lo controlliamo qui.
+ */
+const CACHE_LIMIT_BYTES = 2 * 1024 * 1024;
 
 type Severity = "FAIL" | "REVIEW";
 
@@ -249,7 +255,7 @@ async function loadFeed(): Promise<string> {
   return res.text();
 }
 
-function renderReport(audits: ListingAudit[], generatedAt: string): string {
+function renderReport(audits: ListingAudit[], generatedAt: string, payloadBytes: number): string {
   const fails = audits.filter((a) => a.stato === "FAIL");
   const reviews = audits.filter((a) => a.stato === "REVIEW");
   const overrides = buildOverridesReport(listingOverrides, audits.map((a) => a.codice));
@@ -269,6 +275,7 @@ function renderReport(audits: ListingAudit[], generatedAt: string): string {
     `- PASS: **${audits.length - fails.length - reviews.length}**`,
     `- REVIEW: **${reviews.length}** (questioni editoriali, non bloccanti)`,
     `- FAIL: **${fails.length}** (difetti strutturali, bloccanti in CI)`,
+    `- payload in cache: **${Math.round(payloadBytes / 1024)} KB** su ${CACHE_LIMIT_BYTES / 1024} KB (limite Data Cache di Next)`,
     "",
     "### Controlli scattati",
     "",
@@ -329,13 +336,16 @@ async function main() {
   if (raw.length === 0) throw new Error("nessun annuncio nel feed: audit non attendibile");
 
   const audits = raw.map(auditListing);
+
+  // Peso del payload memorizzato da getLiveListings(): cresce con il catalogo.
+  const payloadBytes = Buffer.byteLength(JSON.stringify(raw.map(normalizeRealSmartListing)));
   const outArg = process.argv.find((a) => a.startsWith("--out="));
   const out = outArg ? outArg.slice("--out=".length) : DEFAULT_OUT;
 
   // La data arriva dall'esterno quando serve un report riproducibile in CI.
   const generatedAt = process.env.AUDIT_DATE ?? new Date().toISOString().slice(0, 10);
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, renderReport(audits, generatedAt));
+  writeFileSync(out, renderReport(audits, generatedAt, payloadBytes));
 
   const fails = audits.filter((a) => a.stato === "FAIL");
   const reviews = audits.filter((a) => a.stato === "REVIEW");
@@ -343,7 +353,19 @@ async function main() {
     `Audit contenuti: ${audits.length} annunci — ` +
       `${audits.length - fails.length - reviews.length} PASS, ${reviews.length} REVIEW, ${fails.length} FAIL`,
   );
+  console.log(
+    `Payload in cache: ${Math.round(payloadBytes / 1024)} KB su ${CACHE_LIMIT_BYTES / 1024} KB disponibili`,
+  );
   console.log(`Report: ${out}`);
+
+  if (payloadBytes > CACHE_LIMIT_BYTES) {
+    console.error(
+      `\nIl risultato normalizzato supera il limite della Data Cache di Next: ` +
+        `unstable_cache non lo memorizzerà e ogni richiesta rielaborerà l'intero feed. ` +
+        `Alleggerire NormalizedProperty (vedi app/lib/realsmart/normalize.ts).`,
+    );
+    process.exitCode = 1;
+  }
 
   if (fails.length > 0) {
     console.error("\nDifetti strutturali:");

@@ -9,6 +9,7 @@ Il report non contiene indirizzi civici, telefoni o email.
 - PASS: **154**
 - REVIEW: **39** (questioni editoriali, non bloccanti)
 - FAIL: **0** (difetti strutturali, bloccanti in CI)
+- payload in cache: **1493 KB** su 2048 KB (limite Data Cache di Next)
 
 ### Controlli scattati
 

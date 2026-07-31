@@ -135,13 +135,14 @@ function deriveBadges(
   return Array.from(new Set(badges));
 }
 
-/** Normalizza un singolo media raw in immagine {src, alt}, con alt di fallback. */
-function toImage(media: RealSmartMedia, fallbackAlt: string): NormalizedImage {
+/**
+ * Normalizza un singolo media raw in immagine.
+ * L'alt viene valorizzato SOLO se il gestionale fornisce una didascalia vera: un alt di ripiego
+ * identico su tutte le foto dell'immobile è peso morto nella cache condivisa.
+ */
+function toImage(media: RealSmartMedia): NormalizedImage {
   const caption = media.didascalia?.trim();
-  return {
-    src: media.url,
-    alt: caption && caption.length > 0 ? caption : fallbackAlt,
-  };
+  return caption && caption.length > 0 ? { src: media.url, alt: caption } : { src: media.url };
 }
 
 /**
@@ -166,12 +167,10 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // Slug stabile: titolo + comune + codice (il codice garantisce univocità).
   const slug = slugify([title, town, raw.codice].filter(Boolean).join(" "));
 
-  // Media → solo foto per la gallery del sito; ordinate e con alt sensato.
-  const fallbackAlt = [title, town].filter(Boolean).join(" — ") || "Immobile Domus Tua";
-  const sortedMedia = sortMedia(raw.media ?? []);
-  const images: NormalizedImage[] = sortedMedia
+  // Media → solo foto per la gallery del sito, ordinate.
+  const images: NormalizedImage[] = sortMedia(raw.media ?? [])
     .filter((m) => m.tipo === undefined || m.tipo === "foto")
-    .map((m) => toImage(m, fallbackAlt));
+    .map(toImage);
 
   const addressRaw = raw.localita?.indirizzo?.trim();
 
@@ -212,7 +211,6 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     id: raw.codice,
     slug,
     title: titleize(title),
-    description: raw.descrizione?.trim() ?? "",
     // In pagina va la sola narrativa: le righe interamente tecniche vivono nei box.
     descriptionParagraphs: split.narrativeParagraphs,
     structuredFactLines: split.structuredFactLines.map((l) => l.line),
