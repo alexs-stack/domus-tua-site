@@ -2,6 +2,8 @@
 // (forma pulita usata dal sito). Funzione PURA e difensiva: nessun side effect, nessuna
 // eccezione su campi mancanti. Se il feed reale userà nomi diversi, si adatta qui la mappatura.
 
+import { normalizeDescription } from "./description";
+import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
 import type {
   ContractType,
   ListingStatus,
@@ -170,11 +172,32 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
 
   const addressRaw = raw.localita?.indirizzo?.trim();
 
+  // Descrizione: una sola normalizzazione, riusata da paragrafi, estratto ed estrazione fatti.
+  const description = normalizeDescription(raw.descrizione);
+
+  // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
+  // Gli override manuali approvati si innestano davanti a tutto in ./overrides.ts.
+  const fieldFacts = factsFromFields({
+    tipologia: raw.tipologia?.trim(),
+    contratto: contract,
+    mq: toNumber(raw.mq),
+    locali: toNumber(raw.locali),
+    camere: toNumber(raw.camere), // MAI dedotte da "locali - 1"
+    bagni: toNumber(raw.bagni),
+    piano: typeof raw.piano === "number" ? String(raw.piano) : raw.piano,
+    classeEnergetica: raw.classeEnergetica,
+    statoAttestatoEnergetico: raw.statoAttestatoEnergetico,
+    dettagli: raw.dettagli,
+  });
+  const descriptionFacts = factsFromDescription(description.paragraphs);
+
   return {
     id: raw.codice,
     slug,
     title: titleize(title),
     description: raw.descrizione?.trim() ?? "",
+    descriptionParagraphs: description.paragraphs,
+    excerpt: description.excerpt,
     price,
     priceLabel,
     contract,
@@ -189,6 +212,8 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     floor: typeof raw.piano === "number" ? String(raw.piano) : raw.piano?.trim() || undefined,
     energyClass: raw.classeEnergetica?.trim() || undefined,
     features,
+    facts: mergeFacts(fieldFacts, descriptionFacts.facts),
+    factsReview: descriptionFacts.review,
     images,
     status,
     badges: raw.inEvidenza

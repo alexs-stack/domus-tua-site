@@ -5,7 +5,6 @@
 import type { NormalizedProperty } from "./types";
 import type { Property } from "../properties";
 import { isListingSold } from "./soldOverrides";
-import { normalizeDescription } from "./description";
 
 /** Bucket di tipologia usati dai filtri del sito. */
 function toType(raw: string): Property["type"] {
@@ -19,8 +18,7 @@ function toType(raw: string): Property["type"] {
 
 export function normalizedToProperty(n: NormalizedProperty): Property {
   const cover = n.images[0]?.src ?? "/images/premium_01_living_tv_divano.jpg";
-  // Descrizione: una sola normalizzazione (paragrafi + estratto) — vedi ./description.ts.
-  const { paragraphs, excerpt } = normalizeDescription(n.description);
+  // Descrizione già normalizzata a monte (./description.ts): qui non si ri-elabora nulla.
   // Venduto/affittato. Il feed RealSmart forza "published" e NON espone lo stato, ma l'agenzia
   // lascia i venduti come vetrina marcandoli con un badge "VENDUTO" bruciato sulla copertina.
   // Fonti, in ordine: status/badge del gestionale, titolo, e infine il rilevamento OCR della
@@ -49,8 +47,8 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     badges,
     cover,
     gallery: n.images.length ? n.images.map((i) => i.src) : [cover],
-    excerpt: excerpt || n.title,
-    description: paragraphs,
+    excerpt: n.excerpt || n.title,
+    description: n.descriptionParagraphs,
     features: n.features,
     energyClass: n.energyClass,
     sold,

@@ -7,6 +7,8 @@
 //
 // Nessuna chiamata reale qui: solo contratti di tipo. La mappatura vive in ./normalize.ts.
 
+import type { FactReviewItem, PropertyFact } from "./facts";
+
 // ─────────────────────────────────────────────────────────────
 // Stato di pubblicazione di un annuncio (union chiusa).
 // ─────────────────────────────────────────────────────────────
@@ -47,6 +49,39 @@ export interface RealSmartLocation {
   zona?: string;
 }
 
+/**
+ * Ambiente censito dal gestionale (<Ambienti><Ambiente>). Presente solo su pochi annunci.
+ * Lo usiamo per la PRESENZA di un ambiente, mai per i conteggi: sul feed reale i conteggi
+ * sono incompleti (es. l'attico T447 ha due terrazzi ma ne dichiara uno).
+ */
+export interface RealSmartRoom {
+  descrizione: string;
+  qta: number;
+}
+
+/**
+ * Campi tecnici espliciti del feed RealSmart che il sito non leggeva.
+ * Sono la fonte #2 della gerarchia dei fatti (vedi ./facts.ts): battono l'estrazione dalla
+ * descrizione e cedono solo agli override manuali approvati.
+ */
+export interface RealSmartDetails {
+  /** <Riscaldamento>: "Autonomo", "Centralizzato", "Centralizzato gest. Autonoma". */
+  riscaldamento?: string;
+  ariaCondizionata?: boolean;
+  ascensore?: boolean;
+  terrazzo?: boolean;
+  /** <mq_terrazzo>: superficie complessiva dei terrazzi. */
+  mqTerrazzo?: number;
+  giardino?: boolean;
+  /** <Tipo_Giardino>: "Privato", "Condominiale", "Esclusivo". */
+  tipoGiardino?: string;
+  mqGiardino?: number;
+  /** <Box> + <Tipo_Box>/<Tipo_Box_2>: presenza di autorimessa e/o posto auto. */
+  box?: boolean;
+  postoAuto?: boolean;
+  ambienti?: RealSmartRoom[];
+}
+
 export interface RealSmartListingRaw {
   /** Codice interno univoco del gestionale (chiave primaria lato RealSmart). */
   codice: string;
@@ -72,8 +107,12 @@ export interface RealSmartListingRaw {
   camere?: number | string;
   /** Piano (es. "2", "Attico", "Terra rialzato"). */
   piano?: number | string;
-  /** Classe energetica (es. "A", "B", "G", "A4"). */
+  /** Classe energetica dal campo <ACE> (es. "A4", "B", "G"), già validata. */
   classeEnergetica?: string;
+  /** Valore <ACE> non convertibile in classe ("In fase di rilascio", "Non richiesta"). */
+  statoAttestatoEnergetico?: string;
+  /** Campi tecnici espliciti del gestionale. */
+  dettagli?: RealSmartDetails;
   /** Dotazioni / features libere. */
   caratteristiche?: string[];
   /** Stato pubblicazione grezzo (default: published se assente). */
@@ -104,7 +143,12 @@ export interface NormalizedProperty {
   /** Slug URL-safe generato da titolo + comune + codice. */
   slug: string;
   title: string;
+  /** Descrizione grezza, così com'è arrivata dal gestionale (tracciabilità e audit). */
   description: string;
+  /** Descrizione normalizzata in paragrafi pubblicabili (vedi ./description.ts). */
+  descriptionParagraphs: string[];
+  /** Estratto già pulito per card, meta description e JSON-LD. */
+  excerpt: string;
   /** Prezzo numerico (0 se non disponibile / su richiesta). */
   price: number;
   /** Prezzo formattato it-IT (es. "€ 420.000" o "Prezzo su richiesta"). */
@@ -126,6 +170,10 @@ export interface NormalizedProperty {
   floor?: string;
   energyClass?: string;
   features: string[];
+  /** Fatti strutturati pubblicabili (gerarchia override > campo > descrizione). */
+  facts: PropertyFact[];
+  /** Dati incerti/contraddittori: alimentano l'audit, mai la pagina. */
+  factsReview: FactReviewItem[];
   images: NormalizedImage[];
   status: ListingStatus;
   /** Badge editoriali derivati da status/features (es. "Venduto", "In esclusiva"). */
