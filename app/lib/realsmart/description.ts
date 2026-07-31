@@ -359,3 +359,49 @@ export function descriptionParagraphs(raw: string | null | undefined): string[] 
 export function descriptionExcerpt(raw: string | null | undefined): string {
   return normalizeDescription(raw).excerpt;
 }
+
+// ── Strumenti (fuori dalla pipeline di pubblicazione) ───────────────────────
+
+/** Lunghezza a cui si chiude un paragrafo proposto (frasi intere, mai tagliate). */
+const PROPOSAL_PARAGRAPH_CHARS = 420;
+
+/**
+ * Spezza un blocco unico ai confini di FRASE, raggruppando fino a ~420 caratteri.
+ *
+ * NON FA PARTE DELLA PIPELINE DI PUBBLICAZIONE. normalizeDescription() non la chiama mai:
+ * ricavare paragrafi da un conteggio di frasi è esattamente il difetto che questo modulo ha
+ * eliminato. Serve solo agli strumenti, per proporre a un umano una suddivisione da approvare
+ * per quelle descrizioni che RealSmart consegna come un unico blocco senza alcun separatore.
+ *
+ * Le parole restano le stesse: si sposta solo dove va a capo.
+ */
+export function proposeParagraphs(paragraph: string): string[] {
+  // Confine di frase per INDICE, non per concatenazione: così non si perde né si duplica nulla.
+  // Il lookahead pretende una maiuscola (o la fine del testo) dopo il terminatore, così
+  // "40.000€" e "mq. commerciali" non vengono scambiati per fine frase.
+  const sentences: string[] = [];
+  let cursor = 0;
+  for (const m of paragraph.matchAll(/[.!?]+(?=\s+\p{Lu}|\s*$)/gu)) {
+    const end = (m.index ?? 0) + m[0].length;
+    const sentence = paragraph.slice(cursor, end).trim();
+    if (sentence) sentences.push(sentence);
+    cursor = end;
+  }
+  const tail = paragraph.slice(cursor).trim();
+  if (tail) sentences.push(tail);
+  if (sentences.length === 0) return [paragraph];
+
+  const out: string[] = [];
+  let current = "";
+  for (const sentence of sentences) {
+    const next = current ? `${current} ${sentence}` : sentence;
+    if (current && next.length > PROPOSAL_PARAGRAPH_CHARS) {
+      out.push(current);
+      current = sentence;
+    } else {
+      current = next;
+    }
+  }
+  if (current) out.push(current);
+  return out;
+}

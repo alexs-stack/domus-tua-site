@@ -4,8 +4,9 @@
 // Per questo la validazione è severa (una chiave con un refuso è un errore, non un campo
 // ignorato) e ogni voce deve dichiarare motivo, fonte, data e autore.
 //
-// Le fixture qui sotto sono di prova: nessun immobile reale viene modificato (il file dati di
-// produzione, app/lib/realsmart/overrides.data.ts, è volutamente vuoto).
+// Le fixture qui sotto sono di prova e non toccano alcun immobile reale. L'ultimo blocco
+// invece controlla il file dati di PRODUZIONE (app/lib/realsmart/overrides.data.ts), che oggi
+// contiene le descrizioni rimesse in paragrafi degli annunci consegnati in blocco unico.
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
@@ -169,7 +170,34 @@ describe("report degli override", () => {
 });
 
 describe("file dati di produzione", () => {
-  test("non contiene contenuti demo", () => {
-    assert.equal(listingOverrides.size, 0);
+  test("ogni voce è valida e tracciata", () => {
+    for (const [codice, o] of listingOverrides) {
+      assert.equal(o.codice, codice);
+      for (const field of ["motivo", "fonte", "data", "autore"] as const) {
+        assert.ok(o[field] && o[field].trim().length > 0, `${codice}: manca "${field}"`);
+      }
+      assert.match(o.data, /^\d{4}-\d{2}-\d{2}$/, codice);
+    }
+  });
+
+  test("le descrizioni sostituite risolvono davvero il problema che dichiarano", () => {
+    // Esistono per spezzare blocchi illeggibili: se un paragrafo resta sopra i 1200 caratteri
+    // l'override non serve a niente. E nessun paragrafo può essere vuoto.
+    for (const [codice, o] of listingOverrides) {
+      if (!o.descrizione) continue;
+      assert.ok(o.descrizione.length > 1, `${codice}: un solo paragrafo, non risolve nulla`);
+      for (const par of o.descrizione) {
+        assert.ok(par.trim().length > 0, `${codice}: paragrafo vuoto`);
+        assert.ok(par.length <= 1200, `${codice}: paragrafo ancora di ${par.length} caratteri`);
+        assert.ok(!/<br|<[a-z/][^>]*>/i.test(par), `${codice}: markup nel testo approvato`);
+        assert.ok(!/_{3,}/.test(par), `${codice}: segnaposto non compilato`);
+      }
+    }
+  });
+
+  test("nessun contenuto demo: i codici sono quelli reali del gestionale", () => {
+    for (const codice of listingOverrides.keys()) {
+      assert.match(codice, /^\d+$/, `${codice}: non è un codice RealSmart`);
+    }
   });
 });

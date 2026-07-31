@@ -26,7 +26,9 @@ import { XMLParser } from "fast-xml-parser";
 
 import { parseRealSmartPayload } from "../app/lib/realsmart/parse";
 import { normalizeRealSmartListing } from "../app/lib/realsmart/normalize";
+import { normalizeDescription, proposeParagraphs } from "../app/lib/realsmart/description";
 import { buildOverridesReport } from "../app/lib/realsmart/overrides";
+import { getListingOverride } from "../app/lib/realsmart/overrides.data";
 import { listingOverrides } from "../app/lib/realsmart/overrides.data";
 import { FACT_GROUPS, type FactGroup } from "../app/lib/realsmart/facts";
 import type { NormalizedProperty, RealSmartListingRaw } from "../app/lib/realsmart/types";
@@ -38,6 +40,12 @@ const PROPOSALS_OUT = "reports/proposte-descrizioni.md";
 
 /** Oltre questa soglia un paragrafo è una parete di testo: va spezzato a mano o via override. */
 const LONG_PARAGRAPH_CHARS = 1200;
+/**
+ * Quota di parole oltre la quale una descrizione sostituita da override si considera SCOLLATA
+ * dall'originale: sotto questa soglia stanno le correzioni volute (un segnaposto tolto, un
+ * refuso), sopra c'è un testo riscritto in RealSmart che il sito non sta più mostrando.
+ */
+const OVERRIDE_DRIFT_TOLERANCE = 0.05;
 /** Oltre questa soglia un gruppo di fatti non si legge più a colpo d'occhio. */
 const MAX_GROUP_FACTS = 12;
 /**
@@ -162,9 +170,50 @@ function structuralFindings(p: NormalizedProperty, raw: RealSmartListingRaw): Fi
   return out;
 }
 
+/** Multiset di parole: serve a confrontare due versioni dello stesso testo. */
+function wordCounts(text: string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const w of text.toLowerCase().match(/\p{L}+/gu) ?? []) {
+    counts.set(w, (counts.get(w) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * Un override che sostituisce la descrizione CONGELA il testo: se poi l'agenzia riscrive
+ * l'annuncio in RealSmart, il sito continua a mostrare la nostra versione e nessuno se ne
+ * accorge. Qui confrontiamo le parole delle due versioni e segnaliamo quando divergono troppo.
+ */
+function overrideDriftFinding(p: NormalizedProperty, raw: RealSmartListingRaw): Finding | null {
+  const override = getListingOverride(raw.codice);
+  if (!override?.descrizione) return null;
+
+  const current = normalizeDescription(raw.descrizione).paragraphs.join(" ");
+  const published = override.descrizione.join(" ");
+  const a = wordCounts(current);
+  const b = wordCounts(published);
+
+  let differences = 0;
+  for (const key of new Set([...a.keys(), ...b.keys()])) {
+    differences += Math.abs((a.get(key) ?? 0) - (b.get(key) ?? 0));
+  }
+  const total = [...a.values()].reduce((sum, n) => sum + n, 0) || 1;
+  const drift = differences / total;
+  if (drift <= OVERRIDE_DRIFT_TOLERANCE) return null;
+
+  return {
+    severity: "REVIEW",
+    check: "override-descrizione-scollata",
+    detail: `la descrizione pubblicata differisce dal feed per il ${Math.round(drift * 100)}% delle parole: l'agenzia ha probabilmente riscritto l'annuncio e il sito non lo sta mostrando`,
+  };
+}
+
 /** Questioni EDITORIALI: da guardare a mano, mai da correggere in automatico. */
-function editorialFindings(p: NormalizedProperty): Finding[] {
+function editorialFindings(p: NormalizedProperty, raw: RealSmartListingRaw): Finding[] {
   const out: Finding[] = [];
+
+  const drift = overrideDriftFinding(p, raw);
+  if (drift) out.push(drift);
 
   for (const par of p.descriptionParagraphs) {
     if (par.length > LONG_PARAGRAPH_CHARS) {
@@ -225,48 +274,6 @@ function editorialFindings(p: NormalizedProperty): Finding[] {
 
 // ── Proposte di descrizione per i blocchi illeggibili ───────────────────────
 
-/** Lunghezza a cui si chiude un paragrafo proposto (frasi intere, mai tagliate). */
-const PROPOSAL_PARAGRAPH_CHARS = 420;
-
-/**
- * Spezza un blocco unico ai confini di FRASE, raggruppando fino a ~420 caratteri.
- *
- * ATTENZIONE: questa suddivisione NON viene applicata da nessuna parte. Nei 24 annunci che
- * arrivano come blocco unico il testo non contiene alcun separatore — né break, né a-capo, né
- * giunture — quindi qualunque interruzione sarebbe inventata. Il sito continua a pubblicare il
- * testo così com'è; questa è solo una BOZZA da far approvare, che si incolla poi negli override.
- */
-function proposeParagraphs(paragraph: string): string[] {
-  // Confine di frase per INDICE, non per concatenazione: così non si perde né si duplica nulla.
-  // Il lookahead pretende una maiuscola (o la fine del testo) dopo il terminatore, così
-  // "40.000€" e "mq. commerciali" non vengono scambiati per fine frase.
-  const sentences: string[] = [];
-  let cursor = 0;
-  for (const m of paragraph.matchAll(/[.!?]+(?=\s+\p{Lu}|\s*$)/gu)) {
-    const end = (m.index ?? 0) + m[0].length;
-    const sentence = paragraph.slice(cursor, end).trim();
-    if (sentence) sentences.push(sentence);
-    cursor = end;
-  }
-  const tail = paragraph.slice(cursor).trim();
-  if (tail) sentences.push(tail);
-  if (sentences.length === 0) return [paragraph];
-
-  const out: string[] = [];
-  let current = "";
-  for (const sentence of sentences) {
-    const next = current ? `${current} ${sentence}` : sentence;
-    if (current && next.length > PROPOSAL_PARAGRAPH_CHARS) {
-      out.push(current);
-      current = sentence;
-    } else {
-      current = next;
-    }
-  }
-  if (current) out.push(current);
-  return out;
-}
-
 /** Le parole devono essere le stesse: una bozza che perde testo non si propone. */
 function sameWords(a: string, b: string): boolean {
   const w = (s: string) => (s.toLowerCase().match(/\p{L}+/gu) ?? []).join(" ");
@@ -283,6 +290,7 @@ interface Proposal {
 
 function buildProposal(p: NormalizedProperty): Proposal | null {
   if (!p.descriptionParagraphs.some((par) => par.length > LONG_PARAGRAPH_CHARS)) return null;
+  if (getListingOverride(p.sourceRef.codice)?.descrizione) return null; // già sistemato
 
   const paragrafi = p.descriptionParagraphs.flatMap((par) =>
     par.length > LONG_PARAGRAPH_CHARS ? proposeParagraphs(par) : [par],
@@ -350,7 +358,7 @@ function renderProposals(proposals: Proposal[], generatedAt: string): string {
 
 function auditListing(raw: RealSmartListingRaw): ListingAudit {
   const p = normalizeRealSmartListing(raw);
-  const findings = [...structuralFindings(p, raw), ...editorialFindings(p)];
+  const findings = [...structuralFindings(p, raw), ...editorialFindings(p, raw)];
   const stato = findings.some((f) => f.severity === "FAIL")
     ? "FAIL"
     : findings.length > 0
