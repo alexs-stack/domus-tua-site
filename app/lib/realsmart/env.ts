@@ -55,6 +55,17 @@ const REQUIRED_WHEN_LIVE = [] as const;
 const DEFAULT_FEED_URL = "https://www.gestim2002.it/portali/immobili_724.xml";
 
 /**
+ * Interruttore "il sito usa il feed live?" — LETTURA UNICA di NEXT_PUBLIC_USE_REALSMART.
+ *
+ * La stessa espressione era ripetuta in app/lib/listings.ts, app/lib/demoStatus.ts e qui:
+ * tre copie della stessa regola, ognuna con il proprio commento. Default ON (abbiamo un feed
+ * pubblico reale); si torna ai mock solo con "false" esplicito.
+ */
+export function isRealSmartLive(): boolean {
+  return process.env.NEXT_PUBLIC_USE_REALSMART !== "false";
+}
+
+/**
  * Costruisce e valida la configurazione RealSmart dalle env var.
  *
  * - In modalità mock (NEXT_PUBLIC_USE_REALSMART !== "true"): non valida nulla, ritorna
@@ -67,8 +78,7 @@ const DEFAULT_FEED_URL = "https://www.gestim2002.it/portali/immobili_724.xml";
  * non lancia mai, coerentemente col fallback difensivo del client.
  */
 export function getRealSmartConfig(): RealSmartConfig {
-  // Default ON: abbiamo un feed pubblico reale. Si disattiva solo con "false" esplicito.
-  const useRealSmart = process.env.NEXT_PUBLIC_USE_REALSMART !== "false";
+  const useRealSmart = isRealSmartLive();
 
   const config: RealSmartConfig = {
     useRealSmart,

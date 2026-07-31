@@ -7,19 +7,30 @@ import VelocityMarquee from "./motion/VelocityMarquee";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
 import { SegnoDomus } from "./BrandMotif";
+import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
+// ⚠️ SOLO NUMERI VERIFICABILI.
+// Questa sezione mostrava quattro cifre di cui non esiste fonte (269.395 m² valutati,
+// 6.433 persone, 1.523 transazioni, 92% venduto): erano segnaposto di design rimasti in
+// pagina come se fossero dati dell'agenzia. Ora ogni cifra deriva da app/lib/site.ts, dove
+// la fonte è annotata (Google/Trustindex per voto e recensioni, Registro Imprese per l'anno
+// di costituzione). Nessun numero nuovo può entrare qui senza fonte: vedi il test di
+// content integrity in app/lib/__tests__/content-integrity.test.ts.
+
 type Stat = {
-  labelKey: "people" | "deals" | "sold" | "valued";
+  labelKey: "reviews" | "rating" | "years";
   count: { value: number; decimals?: number; suffix?: string };
 };
 
-/** La cifra maggiore fa da stat "eroe"; le altre tre stanno in una riga secondaria. */
-const heroStat: Stat = { count: { value: 269395 }, labelKey: "valued" };
+/** Anni di attività: calcolati dall'anno di costituzione, non scritti a mano. */
+const yearsActive = new Date().getFullYear() - site.since;
+
+/** La cifra maggiore fa da stat "eroe"; le altre stanno in una riga secondaria. */
+const heroStat: Stat = { count: { value: Number(site.reviewsCount) }, labelKey: "reviews" };
 const secondaryStats: Stat[] = [
-  { count: { value: 6433 }, labelKey: "people" },
-  { count: { value: 1523 }, labelKey: "deals" },
-  { count: { value: 92, suffix: "%" }, labelKey: "sold" },
+  { count: { value: Number(site.rating), decimals: 1 }, labelKey: "rating" },
+  { count: { value: yearsActive }, labelKey: "years" },
 ];
 
 /** Locale del sito → BCP-47 per il raggruppamento delle migliaia (269395 → "269.395"). */
@@ -35,10 +46,9 @@ const copy = {
   it: {
     eyebrow: "I numeri di Domus Tua",
     labels: {
-      people: "Persone felici",
-      deals: "Transazioni concluse",
-      sold: "Immobili venduti",
-      valued: "Mq valutati",
+      reviews: "Recensioni Google verificate",
+      rating: "Valutazione media",
+      years: "Anni a Tradate",
     },
     tokens: [
       "Valutazione professionale",
@@ -54,10 +64,9 @@ const copy = {
   en: {
     eyebrow: "The Domus Tua numbers",
     labels: {
-      people: "Happy people",
-      deals: "Deals closed",
-      sold: "Properties sold",
-      valued: "Sq m appraised",
+      reviews: "Verified Google reviews",
+      rating: "Average rating",
+      years: "Years in Tradate",
     },
     tokens: [
       "Professional valuation",
@@ -73,10 +82,9 @@ const copy = {
   fr: {
     eyebrow: "Les chiffres de Domus Tua",
     labels: {
-      people: "Personnes satisfaites",
-      deals: "Transactions conclues",
-      sold: "Biens vendus",
-      valued: "M² estimés",
+      reviews: "Avis Google vérifiés",
+      rating: "Note moyenne",
+      years: "Ans à Tradate",
     },
     tokens: [
       "Estimation professionnelle",
@@ -92,10 +100,9 @@ const copy = {
   de: {
     eyebrow: "Die Zahlen von Domus Tua",
     labels: {
-      people: "Zufriedene Menschen",
-      deals: "Abgeschlossene Transaktionen",
-      sold: "Verkaufte Immobilien",
-      valued: "Bewertete m²",
+      reviews: "Verifizierte Google-Bewertungen",
+      rating: "Durchschnittsnote",
+      years: "Jahre in Tradate",
     },
     tokens: [
       "Professionelle Bewertung",
@@ -111,10 +118,9 @@ const copy = {
   es: {
     eyebrow: "Los números de Domus Tua",
     labels: {
-      people: "Personas felices",
-      deals: "Transacciones cerradas",
-      sold: "Inmuebles vendidos",
-      valued: "M² tasados",
+      reviews: "Reseñas de Google verificadas",
+      rating: "Valoración media",
+      years: "Años en Tradate",
     },
     tokens: [
       "Tasación profesional",
@@ -164,7 +170,7 @@ export default function Stats() {
           <div className="hairline my-9 lg:hidden" />
 
           {/* Riga secondaria: tre cifre inline separate da divisori hairline */}
-          <div className="grid grid-cols-3 lg:border-l lg:border-line lg:pl-16">
+          <div className="grid grid-cols-2 lg:border-l lg:border-line lg:pl-16">
             {secondaryStats.map((s, i) => (
               <Reveal
                 key={s.labelKey}

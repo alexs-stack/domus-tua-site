@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
+import { siteUrl } from "./lib/site";
 
-const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
+// Origin: fonte unica in app/lib/site.ts.
+const base = siteUrl;
 
 // Indicizzazione SOLO in produzione. Su preview/staging (o quando il badge di anteprima è
 // attivo) blocchiamo i crawler: gli URL di anteprima Vercel NON devono finire su Google.

@@ -20,6 +20,8 @@ import {
   SegnoDomusDivider,
   SegnoTick,
 } from "../components/BrandMotif";
+import { site } from "../lib/site";
+import { youtubeWatch } from "../lib/videos";
 
 const copy = {
   it: {
@@ -854,7 +856,7 @@ export default function OpenDomusPageContent() {
             <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
               <Reveal>
                 <a
-                  href="https://www.youtube.com/watch?v=gYePYQHNTUM"
+                  href={youtubeWatch(site.videos.openDomus.id)}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={c.videoAria}
@@ -890,7 +892,7 @@ export default function OpenDomusPageContent() {
                   {c.videoText}
                 </p>
                 <a
-                  href="https://www.youtube.com/watch?v=gYePYQHNTUM"
+                  href={youtubeWatch(site.videos.openDomus.id)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group mt-9 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"

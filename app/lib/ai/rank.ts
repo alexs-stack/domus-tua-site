@@ -6,6 +6,7 @@
 import { unstable_cache } from "next/cache";
 import { getVisibleListings } from "../listings";
 import { matchesComune } from "../comune";
+import { isAvailable } from "../availability";
 import type { Property } from "../properties";
 import { embed, cosine } from "./embeddings";
 import { semanticEnabled } from "./config";
@@ -35,7 +36,7 @@ function haystack(p: Property) {
 /** Applica i filtri strutturati agli immobili (stessa semantica del client). */
 export function applyFilters(properties: Property[], f: ParsedSearch): Property[] {
   return properties.filter((p) => {
-    if (p.sold) return false; // la ricerca (anche AI) mostra solo immobili disponibili
+    if (!isAvailable(p)) return false; // la ricerca (anche AI) mostra solo immobili disponibili
     if (f.contract && f.contract !== "Tutte" && p.status !== f.contract) return false;
     if (f.type && f.type !== "Tutte" && p.type !== f.type) return false;
     if (f.comune && f.comune !== "Tutti" && !matchesComune(p.zone, f.comune)) return false;

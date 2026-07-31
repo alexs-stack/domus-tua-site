@@ -96,7 +96,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Perché affidarti a noi",
       title: "Vendere casa non è mettere un cartello.",
       intro:
-        "Dietro una vendita che va a buon fine ci sono tre leve, non un annuncio. Il metodo Domus Tua le governa tutte e tre, ed è così che il 92% dei nostri immobili viene venduto.",
+        "Dietro una vendita che va a buon fine ci sono tre leve, non un annuncio. Il metodo Domus Tua le governa tutte e tre.",
       items: [
         {
           title: "Il prezzo giusto",
@@ -244,7 +244,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Why entrust it to us",
       title: "Selling a home isn’t just putting up a sign.",
       intro:
-        "Behind a sale that goes through there are three levers, not a listing. The Domus Tua method governs all three, and that’s how 92% of our properties get sold.",
+        "Behind a sale that goes through there are three levers, not a listing. The Domus Tua method governs all three.",
       items: [
         {
           title: "The right price",
@@ -392,7 +392,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Pourquoi nous faire confiance",
       title: "Vendre un bien, ce n’est pas planter une pancarte.",
       intro:
-        "Derrière une vente qui aboutit, il y a trois leviers, pas une simple annonce. La méthode Domus Tua les maîtrise tous les trois, et c’est ainsi que 92 % de nos biens sont vendus.",
+        "Derrière une vente qui aboutit, il y a trois leviers, pas une simple annonce. La méthode Domus Tua les maîtrise tous les trois.",
       items: [
         {
           title: "Le juste prix",
@@ -540,7 +540,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Warum Sie uns vertrauen können",
       title: "Eine Immobilie zu verkaufen heißt nicht, ein Schild aufzustellen.",
       intro:
-        "Hinter einem gelungenen Verkauf stehen drei Hebel, nicht ein Inserat. Die Domus-Tua-Methode steuert alle drei, und so werden 92 % unserer Immobilien verkauft.",
+        "Hinter einem gelungenen Verkauf stehen drei Hebel, nicht ein Inserat. Die Domus-Tua-Methode steuert alle drei.",
       items: [
         {
           title: "Der richtige Preis",
@@ -688,7 +688,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Por qué confiar en nosotros",
       title: "Vender una casa no es poner un cartel.",
       intro:
-        "Detrás de una venta que sale bien hay tres palancas, no un anuncio. El método Domus Tua gobierna las tres, y así es como se vende el 92 % de nuestros inmuebles.",
+        "Detrás de una venta que sale bien hay tres palancas, no un anuncio. El método Domus Tua gobierna las tres.",
       items: [
         {
           title: "El precio justo",

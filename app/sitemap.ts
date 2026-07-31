@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getVisibleListings } from "./lib/listings";
+import { siteUrl } from "./lib/site";
 
-const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
+// Origin: fonte unica in app/lib/site.ts (era ricalcolato qui, in robots, nel layout e nella scheda).
+const base = siteUrl;
 
 // Solo pagine INDICIZZABILI. /privacy e /cookie sono escluse finché restano `noindex`
 // (testo legale placeholder da validare): rimetterle qui quando saranno finalizzate e indicizzabili

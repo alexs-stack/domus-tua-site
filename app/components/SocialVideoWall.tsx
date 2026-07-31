@@ -9,6 +9,13 @@ import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { Play, ArrowUpRight, Instagram, YouTube, Star } from "./Icons";
 import { site } from "../lib/site";
+import {
+  featuredVideo,
+  videoCollection,
+  youtubeWatch,
+  type VideoKind,
+  type VideoSlot,
+} from "../lib/videos";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/motion/gsap";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -16,48 +23,15 @@ import { useLocale } from "./i18n/LocaleProvider";
 // di TextLines con SplitText) per non finire nel chunk del layout via gsap.ts.
 gsap.registerPlugin(Flip);
 
-type VidKind = "recensione" | "opendomus" | "tour" | "dietro";
+// Quali video stanno in evidenza e quali nella griglia: configurazione unica e pura in
+// app/lib/videos.ts (verificabile dal test di content integrity, che ne controlla l'unicità
+// degli id). Qui resta solo la resa.
+type Vid = VideoSlot & { href: string };
 
-type Vid = {
-  titleKey: string;
-  thumb: string;
-  href: string;
-  kind: VidKind;
-};
+// Video in evidenza: player leggero (carica l'iframe solo al click). Non entra nella griglia.
+const FEATURED_YT_ID = featuredVideo.id;
 
-const yt = (id: string) => `https://www.youtube.com/watch?v=${id}`;
-
-// Video REALI verificati dal canale Domus Tua (single source: site.videos).
-//
-// TODO(cliente): l'abbinamento thumbnail ↔ video è provvisorio. Prima del go-live il cliente
-// deve confermare, per OGNI item qui sotto (featured, reel, wall):
-//   • l'ID YouTube definitivo (o il timestamp del segmento da usare come clip);
-//   • la thumbnail approvata (oggi usiamo frame/immagini reali del canale come segnaposto);
-//   • il titolo mostrato in card.
-// Finché non arriva la conferma, restano queste clip pubbliche reali del canale.
-const V = site.videos;
-
-// Reel/verticale in evidenza: player leggero (carica l'iframe solo al click).
-const FEATURED_YT_ID = V.featured.id;
-
-// Reel social — ora entra nella collezione qui sotto (niente più card verticale sproporzionata
-// accanto al video). Thumbnail PULITA (foto reale del team), senza testo "cotto" nell'immagine.
-const reel: Vid = {
-  titleKey: "vReel",
-  thumb: "/images/reali/team-group.jpg",
-  href: yt(V.testimonial.id),
-  kind: "opendomus",
-};
-
-// TODO(cliente): confermare per ogni card ID/timestamp + thumbnail approvati (vedi nota sopra).
-const wall: Vid[] = [
-  { titleKey: "vOpenDomus", thumb: "/images/reali/video/recensione-opendomus.jpg", href: yt(V.featured.id), kind: "opendomus" },
-  { titleKey: "vCinema", thumb: "/images/reali/video/team-cinema.jpg", href: yt(V.testimonial.id), kind: "dietro" },
-  { titleKey: "vMozart", thumb: "/images/reali/villa-tramonto.jpg", href: yt(V.reviews[1].id), kind: "tour" },
-  { titleKey: "vDomotica", thumb: "/images/reali/video/domotica.jpg", href: yt(V.reviews[2].id), kind: "tour" },
-  { titleKey: "vVeranda", thumb: "/images/reali/piscina-lusso.jpg", href: yt(V.reviews[0].id), kind: "tour" },
-  { titleKey: "vQuadrilocale", thumb: "/images/reali/video/quadrilocale-giardino.jpg", href: yt(V.reviews[1].id), kind: "tour" },
-];
+const gridItems: Vid[] = videoCollection.map((v) => ({ ...v, href: youtubeWatch(v.id) }));
 
 const copy = {
   it: {
@@ -65,7 +39,6 @@ const copy = {
     title: "La nostra energia si vede prima ancora della visita.",
     subtitle:
       "Video emozionali, Open Domus, social e contenuti raccontano ogni casa con la cura che merita. È così che i nostri clienti si fidano di noi ancora prima della prima visita.",
-    metricNote: site.videosCountNote,
     featuredEyebrow: "Video in evidenza",
     reelBadge: "Reel",
     catTutti: "Tutti",
@@ -77,13 +50,6 @@ const copy = {
     kindTour: "Tour immobiliare",
     kindDietro: "Dietro le quinte",
     vFeatured: "Una storia vera: venduta al primo Open Domus",
-    vReel: "Un giorno di Open Domus, in un minuto",
-    vOpenDomus: "Venduto al primo Open Domus",
-    vCinema: "Domus Tua al cinema, su Prime Video",
-    vMozart: "Villa Mozart, Tradate",
-    vDomotica: "Villa con domotica e fotovoltaico",
-    vVeranda: "Terra-tetto con veranda, Vedano Olona",
-    vQuadrilocale: "Quadrilocale con giardino di 870 mq",
     proofRest: " · oltre 500 recensioni · raccontate anche in video",
     ctaWatch: "Guarda le video recensioni",
     ctaInstagram: "Seguici su Instagram",
@@ -93,7 +59,6 @@ const copy = {
     title: "Our energy shows even before the viewing.",
     subtitle:
       "Emotional videos, Open Domus, social media and content tell the story of every home with the care it deserves. That’s how our clients trust us even before the first viewing.",
-    metricNote: "videos across tours, reviews and Open Domus",
     featuredEyebrow: "Featured video",
     reelBadge: "Reel",
     catTutti: "All",
@@ -105,13 +70,6 @@ const copy = {
     kindTour: "Property tour",
     kindDietro: "Behind the scenes",
     vFeatured: "A true story: sold at the very first Open Domus",
-    vReel: "A day of Open Domus, in one minute",
-    vOpenDomus: "Sold at the very first Open Domus",
-    vCinema: "Domus Tua at the cinema, on Prime Video",
-    vMozart: "Villa Mozart, Tradate",
-    vDomotica: "Villa with home automation and solar panels",
-    vVeranda: "Terraced house with veranda, Vedano Olona",
-    vQuadrilocale: "Three-bedroom home with an 870 sqm garden",
     proofRest: " · over 500 reviews · told in video too",
     ctaWatch: "Watch the video reviews",
     ctaInstagram: "Follow us on Instagram",
@@ -121,7 +79,6 @@ const copy = {
     title: "Notre énergie se voit avant même la visite.",
     subtitle:
       "Vidéos émotionnelles, Open Domus, réseaux sociaux et contenus racontent chaque maison avec le soin qu’elle mérite. C’est ainsi que nos clients nous font confiance avant même la première visite.",
-    metricNote: "vidéos entre visites, témoignages et Open Domus",
     featuredEyebrow: "Vidéo à la une",
     reelBadge: "Reel",
     catTutti: "Tous",
@@ -133,13 +90,6 @@ const copy = {
     kindTour: "Visite immobilière",
     kindDietro: "Dans les coulisses",
     vFeatured: "Une histoire vraie : vendue dès le premier Open Domus",
-    vReel: "Une journée d’Open Domus, en une minute",
-    vOpenDomus: "Vendu dès le premier Open Domus",
-    vCinema: "Domus Tua au cinéma, sur Prime Video",
-    vMozart: "Villa Mozart, Tradate",
-    vDomotica: "Villa avec domotique et panneaux photovoltaïques",
-    vVeranda: "Maison de plain-pied avec véranda, Vedano Olona",
-    vQuadrilocale: "Maison de quatre pièces avec jardin de 870 m²",
     proofRest: " · plus de 500 avis · racontés aussi en vidéo",
     ctaWatch: "Voir les vidéos témoignages",
     ctaInstagram: "Suivez-nous sur Instagram",
@@ -149,7 +99,6 @@ const copy = {
     title: "Unsere Energie sieht man schon vor der Besichtigung.",
     subtitle:
       "Emotionale Videos, Open Domus, Social Media und Inhalte erzählen jedes Zuhause mit der Sorgfalt, die es verdient. So vertrauen uns unsere Kunden schon vor der ersten Besichtigung.",
-    metricNote: "Videos zwischen Touren, Erfahrungsberichten und Open Domus",
     featuredEyebrow: "Video im Fokus",
     reelBadge: "Reel",
     catTutti: "Alle",
@@ -161,13 +110,6 @@ const copy = {
     kindTour: "Immobilien-Tour",
     kindDietro: "Hinter den Kulissen",
     vFeatured: "Eine wahre Geschichte: schon beim ersten Open Domus verkauft",
-    vReel: "Ein Tag Open Domus, in einer Minute",
-    vOpenDomus: "Schon beim ersten Open Domus verkauft",
-    vCinema: "Domus Tua im Kino, auf Prime Video",
-    vMozart: "Villa Mozart, Tradate",
-    vDomotica: "Villa mit Smart-Home-Technik und Photovoltaik",
-    vVeranda: "Reihenhaus mit Veranda, Vedano Olona",
-    vQuadrilocale: "Vier-Zimmer-Haus mit 870 m² Garten",
     proofRest: " · über 500 Bewertungen · auch im Video erzählt",
     ctaWatch: "Die Video-Erfahrungsberichte ansehen",
     ctaInstagram: "Folgen Sie uns auf Instagram",
@@ -177,7 +119,6 @@ const copy = {
     title: "Nuestra energía se nota antes incluso de la visita.",
     subtitle:
       "Vídeos emocionales, Open Domus, redes sociales y contenidos cuentan cada casa con el cuidado que merece. Así es como nuestros clientes confían en nosotros incluso antes de la primera visita.",
-    metricNote: "vídeos entre tours, reseñas y Open Domus",
     featuredEyebrow: "Vídeo destacado",
     reelBadge: "Reel",
     catTutti: "Todos",
@@ -189,13 +130,6 @@ const copy = {
     kindTour: "Tour inmobiliario",
     kindDietro: "Detrás de las cámaras",
     vFeatured: "Una historia real: vendida en el primer Open Domus",
-    vReel: "Un día de Open Domus, en un minuto",
-    vOpenDomus: "Vendido en el primer Open Domus",
-    vCinema: "Domus Tua en el cine, en Prime Video",
-    vMozart: "Villa Mozart, Tradate",
-    vDomotica: "Villa con domótica y fotovoltaica",
-    vVeranda: "Casa unifamiliar con galería, Vedano Olona",
-    vQuadrilocale: "Piso de cuatro ambientes con jardín de 870 m²",
     proofRest: " · más de 500 reseñas · contadas también en vídeo",
     ctaWatch: "Ver las vídeo reseñas",
     ctaInstagram: "Síguenos en Instagram",
@@ -204,7 +138,7 @@ const copy = {
 
 type Copy = (typeof copy)[keyof typeof copy];
 
-function kindLabel(c: Copy, kind: VidKind) {
+function kindLabel(c: Copy, kind: VideoKind) {
   switch (kind) {
     case "recensione":
       return c.kindRecensione;
@@ -230,7 +164,7 @@ function PlayBadge({ small }: { small?: boolean }) {
 }
 
 function VideoCard({ v, small, c }: { v: Vid; small?: boolean; c: Copy }) {
-  const title = c[v.titleKey as keyof Copy];
+  const title = v.title;
   return (
     <a
       href={v.href}
@@ -264,22 +198,28 @@ export default function SocialVideoWall() {
   const { locale } = useLocale();
   const c = copy[locale];
   // Le pill categoria sono un vero filtro della collezione ("all" = tutto).
-  const [active, setActive] = useState<"all" | VidKind>("all");
-  const filters: { key: "all" | VidKind; label: string }[] = [
+  const [active, setActive] = useState<"all" | VideoKind>("all");
+  // Pill solo per le categorie che hanno almeno un video: nessun filtro che porta a zero risultati.
+  const kindLabels: Record<VideoKind, string> = {
+    recensione: c.catRecensioni,
+    opendomus: c.catOpenDomus,
+    tour: c.catTour,
+    dietro: c.catDietro,
+  };
+  const presentKinds = (["recensione", "opendomus", "tour", "dietro"] as const).filter((k) =>
+    gridItems.some((v) => v.kind === k)
+  );
+  const filters: { key: "all" | VideoKind; label: string }[] = [
     { key: "all", label: c.catTutti },
-    { key: "recensione", label: c.catRecensioni },
-    { key: "opendomus", label: c.catOpenDomus },
-    { key: "tour", label: c.catTour },
-    { key: "dietro", label: c.catDietro },
+    ...presentKinds.map((k) => ({ key: k, label: kindLabels[k] })),
   ];
-  const gridItems: Vid[] = [reel, ...wall];
   const visible = active === "all" ? gridItems : gridItems.filter((v) => v.kind === active);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
   // Layout della griglia catturato PRIMA del cambio filtro (punto di partenza del FLIP).
   const flipStateRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
 
-  const onFilter = (key: "all" | VidKind) => {
+  const onFilter = (key: "all" | VideoKind) => {
     // Il flip è evento-driven (non vive in matchMedia().add): check runtime, così
     // con reduced-motion il riordino resta istantaneo. setActive mai ritardato.
     if (gridRef.current && window.matchMedia(MQ.motionOk).matches) {
@@ -387,14 +327,6 @@ export default function SocialVideoWall() {
             <p className="mt-5 text-[1.02rem] leading-relaxed text-stone sm:text-lg">
               {c.subtitle}
             </p>
-
-            {/* Metrica: quanti video raccontano Domus Tua */}
-            <div className="mt-7 flex items-baseline gap-3">
-              <span className="font-display text-5xl font-medium leading-none text-red tnum sm:text-6xl">
-                {site.videosCountLabel}
-              </span>
-              <span className="max-w-[16rem] text-sm leading-snug text-graphite">{c.metricNote}</span>
-            </div>
           </Reveal>
         </div>
 
@@ -452,8 +384,8 @@ export default function SocialVideoWall() {
 
           <div ref={gridRef} className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((v) => (
-              // key su titleKey (univoco): più href puntano allo stesso video reale
-              <VideoCard key={v.titleKey} v={v} small c={c} />
+              // key = id YouTube: ogni card è un video diverso, quindi la chiave è univoca
+              <VideoCard key={v.id} v={v} small c={c} />
             ))}
           </div>
         </div>

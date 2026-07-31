@@ -24,7 +24,12 @@ function listing(overrides: Partial<NormalizedProperty> & { id: string }): Norma
     id,
     slug: id,
     title: "Immobile di prova",
-    description: "Descrizione di prova.",
+    descriptionParagraphs: ["Descrizione di prova."],
+    structuredFactLines: [],
+    keptFactLines: [],
+    contentPreservation: 1,
+    excerpt: "Descrizione di prova.",
+    showAddress: false,
     price: 250000,
     priceLabel: "€ 250.000",
     contract: "vendita",
@@ -41,6 +46,8 @@ function listing(overrides: Partial<NormalizedProperty> & { id: string }): Norma
     badges: [],
     publishedAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
+    facts: [],
+    factsReview: [],
     sourceRef: { codice: id },
     ...rest,
   };
@@ -59,7 +66,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     bedrooms: 3,
     baths: 2,
     features: ["Giardino", "Box / posto auto"],
-    description: "Villa luminosa e indipendente con giardino privato e box doppio.",
+    descriptionParagraphs: ["Villa luminosa e indipendente con giardino privato e box doppio."],
+    excerpt: "Villa luminosa e indipendente con giardino privato e box doppio.",
   }),
   listing({
     id: "villa-cara-tradate",
@@ -73,7 +81,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     bedrooms: 4,
     baths: 3,
     features: ["Giardino", "Doppi servizi"],
-    description: "Villa signorile indipendente con ampio parco.",
+    descriptionParagraphs: ["Villa signorile indipendente con ampio parco."],
+    excerpt: "Villa signorile indipendente con ampio parco.",
   }),
   listing({
     id: "trilocale-venegono",
@@ -85,7 +94,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     sqm: 0,
     baths: 0,
     features: ["Terrazzo"],
-    description: "Trilocale luminoso completamente ristrutturato.",
+    descriptionParagraphs: ["Trilocale luminoso completamente ristrutturato."],
+    excerpt: "Trilocale luminoso completamente ristrutturato.",
   }),
   listing({
     id: "bilocale-ascensore-tradate",
@@ -98,7 +108,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     bedrooms: 1,
     baths: 1,
     features: ["Ascensore", "Aria condizionata"],
-    description: "Bilocale in palazzina con ascensore, pronto da abitare.",
+    descriptionParagraphs: ["Bilocale in palazzina con ascensore, pronto da abitare."],
+    excerpt: "Bilocale in palazzina con ascensore, pronto da abitare.",
   }),
   listing({
     id: "quadrilocale-castiglione",
@@ -111,7 +122,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     bedrooms: 3,
     baths: 2,
     features: ["Ascensore", "Box / posto auto", "Doppi servizi"],
-    description: "Quadrilocale luminoso con doppi servizi e box.",
+    descriptionParagraphs: ["Quadrilocale luminoso con doppi servizi e box."],
+    excerpt: "Quadrilocale luminoso con doppi servizi e box.",
   }),
   listing({
     id: "villetta-lonate",
@@ -125,7 +137,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     bedrooms: 3,
     baths: 2,
     features: ["Giardino", "Terrazzo"],
-    description: "Villetta a schiera da ristrutturare con giardino.",
+    descriptionParagraphs: ["Villetta a schiera da ristrutturare con giardino."],
+    excerpt: "Villetta a schiera da ristrutturare con giardino.",
   }),
   listing({
     id: "attico-varese",
@@ -139,7 +152,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     bedrooms: 3,
     baths: 2,
     features: ["Terrazzo", "Ascensore"],
-    description: "Attico molto luminoso con terrazzo panoramico.",
+    descriptionParagraphs: ["Attico molto luminoso con terrazzo panoramico."],
+    excerpt: "Attico molto luminoso con terrazzo panoramico.",
   }),
   listing({
     id: "negozio-tradate",
@@ -152,7 +166,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     rooms: 2,
     bedrooms: 0,
     baths: 1,
-    description: "Negozio fronte strada in posizione di passaggio.",
+    descriptionParagraphs: ["Negozio fronte strada in posizione di passaggio."],
+    excerpt: "Negozio fronte strada in posizione di passaggio.",
   }),
   listing({
     id: "terreno-venegono",
@@ -165,7 +180,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     rooms: 0,
     bedrooms: 0,
     baths: 0,
-    description: "Terreno edificabile in zona residenziale.",
+    descriptionParagraphs: ["Terreno edificabile in zona residenziale."],
+    excerpt: "Terreno edificabile in zona residenziale.",
   }),
   listing({
     id: "affitto-tradate",
@@ -179,7 +195,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     bedrooms: 2,
     baths: 1,
     features: ["Box / posto auto"],
-    description: "Trilocale arredato in affitto, zona centrale.",
+    descriptionParagraphs: ["Trilocale arredato in affitto, zona centrale."],
+    excerpt: "Trilocale arredato in affitto, zona centrale.",
   }),
   listing({
     id: "casa-prezzo-richiesta-tradate",
@@ -194,7 +211,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     bedrooms: 4,
     baths: 3,
     features: ["Giardino"],
-    description: "Casa singola con giardino, trattativa riservata.",
+    descriptionParagraphs: ["Casa singola con giardino, trattativa riservata."],
+    excerpt: "Casa singola con giardino, trattativa riservata.",
   }),
   listing({
     id: "attico-venduto-tradate",
@@ -206,7 +224,8 @@ export const FIXTURE_LISTINGS: NormalizedProperty[] = [
     sqm: 140,
     // Il feed dichiara "published" ma il badge lo marca venduto: deve sparire comunque.
     badges: ["Venduto"],
-    description: "Attico con vista aperta.",
+    descriptionParagraphs: ["Attico con vista aperta."],
+    excerpt: "Attico con vista aperta.",
   }),
 ];
 

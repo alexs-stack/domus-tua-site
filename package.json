@@ -10,10 +10,12 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"app/**/__tests__/*.test.ts\" && npm run test:parser",
     "test:parser": "tsx scripts/test-parser.ts",
+    "audit:listings-content": "tsx scripts/audit-listings-content.ts",
+    "e2e": "playwright test",
     "detect-sold": "npx --yes tsx scripts/detect-sold.ts",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "eval": "node --import tsx scripts/eval.ts",
-    "e2e": "playwright test"
+    "e2e:assistant": "playwright test --config playwright.assistant.config.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.25",

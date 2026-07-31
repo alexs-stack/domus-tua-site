@@ -9,6 +9,8 @@
 // collegato, la facciata userà getLiveListings() e questo file resta solo come fallback/demo.
 // Le immagini riutilizzano la libreria asset esistente.
 
+import type { PropertyFact } from "./realsmart/facts";
+
 export type Property = {
   slug: string;
   title: string;
@@ -27,6 +29,12 @@ export type Property = {
   excerpt: string;
   description: string[];
   features: string[];
+  /**
+   * Fatti strutturati già deduplicati e ordinati per gruppo (RealSmart + descrizione +
+   * override). Assenti sulle fixture demo: in quel caso la scheda mostra la vecchia lista
+   * "Caratteristiche". Vedi app/lib/realsmart/facts.ts.
+   */
+  facts?: PropertyFact[];
   energyClass?: string;
   /** true se l'immobile è venduto/affittato (da nascondere di default nelle ricerche). */
   sold?: boolean;

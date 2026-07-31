@@ -7,11 +7,12 @@ import { getLenis } from "./motion/SmoothScroll";
 import { readAssistantStream } from "../lib/assistant/client";
 import AssistantLeadForm from "./AssistantLeadForm";
 import { hasOverlay, subscribeOverlays } from "../lib/ui/overlays";
+import { site } from "../lib/site";
 import type { Handoff } from "../lib/assistant/types";
 
-// Telefono dell'agenzia. Duplicato qui invece di importarlo da lib/assistant/config
-// perché quel modulo legge variabili server-only, che nel bundle client sono undefined.
-const PHONE_HREF = "tel:+390331844898";
+// Telefono: dalla fonte unica app/lib/site.ts (dato pubblico, sicuro nel bundle client).
+// NON da lib/assistant/config, che legge variabili server-only.
+const PHONE_HREF = site.phone.href;
 
 // Assistente conversazionale on-brand. Opt-in: mostrato solo se
 // NEXT_PUBLIC_ENABLE_ASSISTANT === "true" (il backend richiede ANTHROPIC_API_KEY).

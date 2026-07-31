@@ -1,7 +1,12 @@
 // Configurazione dell'assistente conversazionale. SERVER-ONLY per tutto ciò che è segreto.
 //
+// I dati di contatto NON si duplicano qui: arrivano da app/lib/site.ts, che è la fonte unica
+// (un test di integrità dei contenuti lo verifica).
+//
 // Nessun valore sensibile esce da qui: la route espone al client solo booleani derivati.
 // Tutti i limiti sono espliciti e testabili — sono la prima linea di difesa su costi e abuso.
+
+import { site, siteUrl } from "../site";
 
 /** Chiave Anthropic. Vuota = assistente in modalità fallback onesto (nessuna chiamata AI). */
 export const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
@@ -80,8 +85,8 @@ export const ASSISTANT_LIMIT = {
  */
 export const LEAD_EMAIL_TO = process.env.ASSISTANT_LEAD_EMAIL_TO || "immobiliare@domustua.it";
 
-/** Numero WhatsApp dell'agenzia in formato internazionale senza segni. */
-export const WHATSAPP_NUMBER = "393466042314";
+/** Numero WhatsApp dell'agenzia in formato internazionale, ricavato dalla fonte unica. */
+export const WHATSAPP_NUMBER = site.whatsapp.href.replace(/^.*wa\.me\/(\d+).*$/, "$1");
 
 /**
  * Chiave del provider email (Resend). SERVER-ONLY.
@@ -102,11 +107,9 @@ export const emailEnabled = EMAIL_API_KEY.length > 0;
 /** Richieste email per IP nella finestra di 10 minuti. Più stretto della chat: qui si scrive a una persona. */
 export const LEAD_LIMIT = { limit: 5, windowMs: TEN_MIN };
 
-/** Telefono dell'agenzia in formato componibile. */
-export const PHONE_HREF = "tel:+390331844898";
-
-/** URL canonico del sito, per i link assoluti nei messaggi di handoff. */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com").replace(
-  /\/+$/,
-  "",
-);
+/**
+ * URL canonico del sito, per i link assoluti nei messaggi di handoff.
+ * Derivato da `siteUrl` di app/lib/site.ts: fonte unica, come impone il test di integrità
+ * dei contenuti. Qui togliamo solo l'eventuale barra finale.
+ */
+export const SITE_URL = siteUrl.replace(/\/+$/, "");

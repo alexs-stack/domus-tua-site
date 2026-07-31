@@ -250,7 +250,7 @@ const DISABLED: KnowledgeEntry[] = [
     lastVerified: "",
     locale: "it",
     keywords: ["quante case", "quanti immobili", "transazioni", "statistiche", "numeri", "percentuale"],
-    note: "Il sito mostra 269.395 mq valutati, 6.433 persone, 1.523 transazioni, 92% venduti, senza fonte nel codice (a differenza di orari e recensioni, che sono annotati). Finché non sono documentati, l'assistente non li ripete.",
+    note: "Metriche di volume (metratura valutata, persone servite, transazioni, percentuale di venduto) mai documentate dall'agenzia. Sono già state tolte dalle pagine; l'assistente non deve reintrodurle. Se il cliente fornisce i dati reali vanno in app/lib/site.ts con la fonte annotata, non qui.",
   },
   {
     id: "consulenza-professionale",

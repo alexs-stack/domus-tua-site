@@ -11,6 +11,8 @@ import { ArrowUpRight, Play, Quote } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
+import { site } from "../lib/site";
+import { youtubeWatch } from "../lib/videos";
 
 const copy = {
   it: {
@@ -294,7 +296,7 @@ export default function Team() {
                 {/* Sipario dal basso sulla cornice interna: il raggio resta a clippare. */}
                 <MaskReveal from="bottom" zoom={1.1} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
                   <a
-                    href="https://www.youtube.com/watch?v=PRB3exiOa3I"
+                    href={youtubeWatch(site.videos.team.id)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group relative block aspect-[4/3] overflow-hidden rounded-[calc(2rem-0.5rem)]"

@@ -69,7 +69,8 @@ facade al click).
 ## Evidence on Hand
 
 - Numeri reali: 4.9/5 su 531 recensioni Google (Trustindex, giu 2026),
-  dal 2007, "440+ video" (stima da confermare col cliente).
+  dal 2007. Nessuna metrica senza fonte in pagina: il conteggio video ("440+") e le stat
+  numeriche della home sono stati rimossi perché non verificabili.
 - Foto reali in `public/images/reali/` (founder, team, Open Domus, immobili);
   demo rendering in `public/images/` (da sostituire col feed).
 - Video YouTube reali cablati in `app/lib/site.ts`; widget Trustindex reale.

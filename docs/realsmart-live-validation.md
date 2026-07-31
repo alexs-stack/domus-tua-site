@@ -64,11 +64,15 @@
 
 ## Gap noti da confermare col cliente (mapping)
 
-Allineato a `MEMORY`/note: il feed **non espone** in modo affidabile **provincia** e **classe
-energetica**. Decidere con il cliente se:
+**Classe energetica — risolto.** Il feed la espone nel campo `<ACE>` (191 annunci su 193) e il
+sito ora la legge da lì. Attenzione: `<ClasseImmobile>` NON è la classe energetica — vale
+"media", "signorile", "economica", "lusso" — e non deve mai alimentarla. Quando `<ACE>` contiene
+uno stato invece di una classe ("In fase di rilascio", "In corso di valutazione") lo pubblichiamo
+come tale; "Mancante" e "Non richiesta" non producono alcun dato.
 
-- lasciare quei campi vuoti/nascosti (comportamento attuale: specifiche vuote non mostrate), oppure
-- integrarli da un'altra fonte prima del lancio.
+**Provincia — ancora aperta.** Il feed non la espone: `Property.zone` mostra il solo comune.
+Da decidere col cliente se integrarla da un'altra fonte o lasciarla fuori.
 
-Ogni altro campo dubbio (es. spese condominiali, anno costruzione) va verificato su 3–4 annunci
-reali prima di darlo per buono in scheda.
+Altri campi tecnici oggi letti dal feed e da confermare su 3–4 annunci reali: `<Riscaldamento>`,
+`<mq_terrazzo>`, `<mq_giardino>`, `<Tipo_Giardino>`, `<Tipo_Box>`, `<Ambienti>`.
+`npm run audit:listings-content` elenca, annuncio per annuncio, da dove viene ogni dato.
