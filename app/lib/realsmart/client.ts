@@ -90,8 +90,12 @@ async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
  * - Ordina dal più recentemente aggiornato.
  *
  * In caso di errore della sorgente reale, il fallback ai mock evita una pagina vuota.
+ *
+ * Esportata NON memorizzata: `getLiveListings` la avvolge in unstable_cache, che fuori dal
+ * runtime di Next non è utilizzabile. È il modo per poter testare davvero il ripiegamento
+ * quando il feed è irraggiungibile (app/lib/realsmart/__tests__/fallback.test.ts).
  */
-async function loadListings(): Promise<NormalizedProperty[]> {
+export async function loadListings(): Promise<NormalizedProperty[]> {
   let raw: RealSmartListingRaw[];
   try {
     raw = await fetchRawListings();

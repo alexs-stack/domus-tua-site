@@ -432,9 +432,11 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         <div className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr] lg:items-start lg:gap-16">
           {/* ── Colonna destra: conversione + box dei dati ───────────────────────── */}
           <aside className="order-1 flex flex-col gap-4 lg:order-none lg:col-start-2 lg:row-start-1">
-            {/* Solo QUESTA parte è sticky: un aside intero più alto del viewport diventerebbe
-                irraggiungibile. I box sotto scorrono normalmente, senza scroll interni. */}
-            <div className="rounded-[2rem] border border-line bg-cream p-7 lg:sticky lg:top-28">
+            {/* NIENTE sticky. Un elemento sticky continua a occupare il suo posto nel flusso ma
+                si sposta mentre si scorre: seguito dai box dei dati, finirebbe per COPRIRLI.
+                La conversione resta comunque sempre a portata: la card è in cima alla colonna,
+                il pulsante WhatsApp è fisso in basso e il modulo contatti chiude la pagina. */}
+            <div className="rounded-[2rem] border border-line bg-cream p-7">
               {p.badges.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {p.badges.map((b) => (
