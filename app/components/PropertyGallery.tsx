@@ -2,6 +2,16 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import PropertyLightbox from "./PropertyLightbox";
+import { useLocale } from "./i18n/LocaleProvider";
+
+const copy = {
+  it: { open: (i: number) => `Apri la foto ${i} a schermo intero` },
+  en: { open: (i: number) => `Open photo ${i} full screen` },
+  fr: { open: (i: number) => `Ouvrir la photo ${i} en plein écran` },
+  de: { open: (i: number) => `Foto ${i} im Vollbild öffnen` },
+  es: { open: (i: number) => `Abrir la foto ${i} a pantalla completa` },
+};
 
 function ActiveImage({
   src,
@@ -46,7 +56,12 @@ function ActiveImage({
 }
 
 export default function PropertyGallery({ images, title }: { images: string[]; title: string }) {
+  const { locale } = useLocale();
+  const c = copy[locale];
   const [active, setActive] = useState(0);
+  // Indice da cui aprire il lightbox; null = chiuso. Il componente si monta solo
+  // all'apertura: chi non clicca non paga né il codice né le richieste.
+  const [zoomFrom, setZoomFrom] = useState<number | null>(null);
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // The main image preloads only until the visitor interacts. After the first
@@ -73,13 +88,34 @@ export default function PropertyGallery({ images, title }: { images: string[]; t
 
   return (
     <div className="rounded-[2rem] border border-line bg-cream p-2">
+      {zoomFrom !== null && (
+        <PropertyLightbox
+          images={images}
+          title={title}
+          startIndex={zoomFrom}
+          onClose={() => setZoomFrom(null)}
+        />
+      )}
+      {/* Il rapporto d'aspetto è fisso e l'apertura avviene in un portal: nessun salto di
+          layout quando il lightbox si apre o si chiude. */}
       <div className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)]">
         {images.length > 0 && (
-          <ActiveImage
-            src={images[active]}
-            alt={`${title} — immagine ${active + 1}`}
-            preload={!hasInteracted}
-          />
+          <>
+            <ActiveImage
+              src={images[active]}
+              alt={`${title} — immagine ${active + 1}`}
+              preload={!hasInteracted}
+            />
+            {/* Un <button> e non un onClick su <div>: click, Invio e Spazio funzionano già,
+                ed è raggiungibile col Tab senza aggiungere tabIndex a mano. */}
+            <button
+              type="button"
+              onClick={() => setZoomFrom(active)}
+              aria-label={c.open(active + 1)}
+              data-cursor="zoom"
+              className="absolute inset-0 cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-red"
+            />
+          </>
         )}
         {images.length > 1 && (
           <span className="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cream backdrop-blur-sm">
