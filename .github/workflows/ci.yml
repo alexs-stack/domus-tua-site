@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Lint, typecheck & build
+    name: Lint, typecheck, test & build
     runs-on: ubuntu-latest
 
     env:
@@ -23,7 +23,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22, non 20: `node --test` espande i glob solo da Node 21 in poi, e lo script di
+          # test usa "app/**/__tests__/*.test.ts". Su 20 falliva con "Could not find".
+          # Non se n'era accorto nessuno perché la CI non eseguiva i test: lo step è nuovo.
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -35,5 +38,18 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Test deterministici: modello finto (ai/test) e fixture immobili, nessuna rete.
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
+
+      # E2E dell'ASSISTENTE: risposte simulate via intercettazione di rete, nessuna chiave.
+      # NON la suite di regressione visiva (`npm run e2e`): i suoi screenshot di riferimento
+      # sono presi su macOS e su Linux fallirebbero per differenze di rendering.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: End-to-end assistente
+        run: npm run e2e:assistant

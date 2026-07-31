@@ -7,6 +7,7 @@
 // Il banner è la UI: la logica del consenso (nome del cookie, lettura, scrittura, notifica)
 // vive in app/lib/consent.ts, unica implementazione condivisa con i gate.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -123,6 +124,14 @@ export default function CookieConsent() {
       first.focus();
     }
   }, []);
+
+  // Finché il banner è a schermo occupa la stessa posizione del pannello assistente
+  // (`inset-x-3 bottom-3`, stesso z): lo dichiariamo, così il launcher si toglie di mezzo
+  // e la scelta sui cookie resta la prima cosa da fare.
+  useEffect(() => {
+    setOverlay("cookie-consent", show);
+    return () => setOverlay("cookie-consent", false);
+  }, [show]);
 
   if (!show) return null;
 

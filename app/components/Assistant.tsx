@@ -4,13 +4,31 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
+import { readAssistantStream } from "../lib/assistant/client";
+import AssistantLeadForm from "./AssistantLeadForm";
+import { hasOverlay, subscribeOverlays } from "../lib/ui/overlays";
+import { site } from "../lib/site";
+import type { Handoff } from "../lib/assistant/types";
+
+// Telefono: dalla fonte unica app/lib/site.ts (dato pubblico, sicuro nel bundle client).
+// NON da lib/assistant/config, che legge variabili server-only.
+const PHONE_HREF = site.phone.href;
 
 // Assistente conversazionale on-brand. Opt-in: mostrato solo se
 // NEXT_PUBLIC_ENABLE_ASSISTANT === "true" (il backend richiede ANTHROPIC_API_KEY).
 const ENABLED = process.env.NEXT_PUBLIC_ENABLE_ASSISTANT === "true";
 
 type Card = { slug: string; title: string; zone: string; price: string; url: string; cover: string };
-type Msg = { role: "user" | "assistant"; content: string; listings?: Card[]; intro?: boolean; error?: boolean };
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  listings?: Card[];
+  handoffs?: Handoff[];
+  intro?: boolean;
+  error?: boolean;
+  /** La risposta è arrivata a metà: mostriamo una nota sotto al testo già ricevuto. */
+  incomplete?: boolean;
+};
 
 const copy = {
   it: {
@@ -20,11 +38,19 @@ const copy = {
     close: "Chiudi",
     placeholder: "Scrivi qui la tua domanda…",
     send: "Invia",
-    greeting: "Ciao! Sono l’assistente di Domus Tua. Posso aiutarti a trovare casa o raccontarti come lavoriamo. Cosa stai cercando?",
-    suggestions: ["Trilocale con giardino a Tradate", "Cos’è Domus D.O.C.?", "Vorrei vendere casa"],
+    greeting: "Ciao! Sono l’assistente di Domus Tua. Posso aiutarti a trovare casa, capire come vendere o rispondere alle domande più comuni. Come posso aiutarti?",
+    suggestions: ["Cerco una villa", "Vorrei vendere casa", "Come funziona Open Domus?", "Voglio parlare con voi"],
     error: "Ops, qualcosa è andato storto. Riprova o scrivici su WhatsApp.",
+    rateLimited: "Hai scritto molti messaggi di fila. Riprova tra un minuto, oppure scrivici su WhatsApp.",
+    incomplete: "La risposta si è interrotta. Chiedimi di continuare, o scrivici su WhatsApp.",
     retry: "Riprova",
-    disclaimer: "Assistente virtuale. Gli immobili citati provengono dai nostri annunci.",
+    stop: "Ferma",
+    call: "Chiama",
+    reset: "Nuova conversazione",
+    offline: "Sembri offline. Controlla la connessione e riprova.",
+    followUps: ["Confronta le prime due", "Qualcosa in un comune vicino"],
+    disclaimer: "Assistente virtuale. La conversazione non viene conservata.",
+    privacy: "Informativa privacy",
   },
   en: {
     launcher: "Open the Domus Tua assistant",
@@ -33,11 +59,19 @@ const copy = {
     close: "Close",
     placeholder: "Type your question here…",
     send: "Send",
-    greeting: "Hi! I’m the Domus Tua assistant. I can help you find a home or explain how we work. What are you looking for?",
-    suggestions: ["Two-bed with garden in Tradate", "What is Domus D.O.C.?", "I’d like to sell my home"],
+    greeting: "Hi! I’m the Domus Tua assistant. I can help you find a home, understand how to sell, or answer the most common questions. How can I help?",
+    suggestions: ["I’m looking for a villa", "I’d like to sell my home", "How does Open Domus work?", "I’d like to talk to someone"],
     error: "Oops, something went wrong. Please try again or message us on WhatsApp.",
+    rateLimited: "That’s a lot of messages in a row. Try again in a minute, or message us on WhatsApp.",
+    incomplete: "The answer stopped early. Ask me to continue, or message us on WhatsApp.",
     retry: "Try again",
-    disclaimer: "Virtual assistant. Any listings shown come from our own portfolio.",
+    stop: "Stop",
+    call: "Call",
+    reset: "New conversation",
+    offline: "You seem to be offline. Check your connection and try again.",
+    followUps: ["Compare the first two", "Something in a nearby town"],
+    disclaimer: "Virtual assistant. This conversation is not stored.",
+    privacy: "Privacy policy",
   },
   fr: {
     launcher: "Ouvrir l’assistant Domus Tua",
@@ -46,11 +80,19 @@ const copy = {
     close: "Fermer",
     placeholder: "Écrivez votre question ici…",
     send: "Envoyer",
-    greeting: "Bonjour ! Je suis l’assistant de Domus Tua. Je peux vous aider à trouver un bien ou vous expliquer notre méthode. Que cherchez-vous ?",
-    suggestions: ["Trois-pièces avec jardin à Tradate", "Qu’est-ce que Domus D.O.C. ?", "Je voudrais vendre mon bien"],
+    greeting: "Bonjour ! Je suis l’assistant de Domus Tua. Je peux vous aider à trouver un bien, à comprendre comment vendre ou répondre aux questions courantes. Comment puis-je vous aider ?",
+    suggestions: ["Je cherche une villa", "Je voudrais vendre mon bien", "Comment fonctionne Open Domus ?", "Je voudrais vous parler"],
     error: "Oups, une erreur est survenue. Réessayez ou écrivez-nous sur WhatsApp.",
+    rateLimited: "Beaucoup de messages d’affilée. Réessayez dans une minute, ou écrivez-nous sur WhatsApp.",
+    incomplete: "La réponse s’est interrompue. Demandez-moi de continuer, ou écrivez-nous sur WhatsApp.",
     retry: "Réessayer",
-    disclaimer: "Assistant virtuel. Les biens mentionnés proviennent de nos annonces.",
+    stop: "Arrêter",
+    call: "Appeler",
+    reset: "Nouvelle conversation",
+    offline: "Vous semblez hors ligne. Vérifiez la connexion et réessayez.",
+    followUps: ["Comparez les deux premiers", "Quelque chose dans une commune voisine"],
+    disclaimer: "Assistant virtuel. Cette conversation n’est pas conservée.",
+    privacy: "Politique de confidentialité",
   },
   de: {
     launcher: "Domus-Tua-Assistenten öffnen",
@@ -59,11 +101,19 @@ const copy = {
     close: "Schließen",
     placeholder: "Schreiben Sie hier Ihre Frage…",
     send: "Senden",
-    greeting: "Hallo! Ich bin der Assistent von Domus Tua. Ich helfe Ihnen, ein Zuhause zu finden, oder erkläre, wie wir arbeiten. Wonach suchen Sie?",
-    suggestions: ["Dreizimmerwohnung mit Garten in Tradate", "Was ist Domus D.O.C.?", "Ich möchte verkaufen"],
+    greeting: "Hallo! Ich bin der Assistent von Domus Tua. Ich helfe Ihnen beim Suchen, beim Verkaufen und bei den häufigsten Fragen. Wie kann ich helfen?",
+    suggestions: ["Ich suche eine Villa", "Ich möchte verkaufen", "Wie funktioniert Open Domus?", "Ich möchte mit jemandem sprechen"],
     error: "Ups, etwas ist schiefgelaufen. Bitte erneut versuchen oder auf WhatsApp schreiben.",
+    rateLimited: "Das waren viele Nachrichten hintereinander. Bitte in einer Minute erneut versuchen oder auf WhatsApp schreiben.",
+    incomplete: "Die Antwort wurde unterbrochen. Bitten Sie mich fortzufahren oder schreiben Sie auf WhatsApp.",
     retry: "Erneut versuchen",
-    disclaimer: "Virtueller Assistent. Genannte Objekte stammen aus unseren Angeboten.",
+    stop: "Stopp",
+    call: "Anrufen",
+    reset: "Neues Gespräch",
+    offline: "Sie scheinen offline zu sein. Prüfen Sie die Verbindung und versuchen Sie es erneut.",
+    followUps: ["Die ersten beiden vergleichen", "Etwas in einer Nachbargemeinde"],
+    disclaimer: "Virtueller Assistent. Dieses Gespräch wird nicht gespeichert.",
+    privacy: "Datenschutz",
   },
   es: {
     launcher: "Abrir el asistente de Domus Tua",
@@ -72,11 +122,19 @@ const copy = {
     close: "Cerrar",
     placeholder: "Escribe aquí tu pregunta…",
     send: "Enviar",
-    greeting: "¡Hola! Soy el asistente de Domus Tua. Puedo ayudarte a encontrar casa o contarte cómo trabajamos. ¿Qué estás buscando?",
-    suggestions: ["Piso de tres ambientes con jardín en Tradate", "¿Qué es Domus D.O.C.?", "Quiero vender mi casa"],
+    greeting: "¡Hola! Soy el asistente de Domus Tua. Puedo ayudarte a encontrar casa, entender cómo vender o responder a las dudas más comunes. ¿En qué te ayudo?",
+    suggestions: ["Busco una villa", "Quiero vender mi casa", "¿Cómo funciona Open Domus?", "Quiero hablar con vosotros"],
     error: "Vaya, algo salió mal. Inténtalo de nuevo o escríbenos por WhatsApp.",
+    rateLimited: "Has enviado muchos mensajes seguidos. Inténtalo en un minuto, o escríbenos por WhatsApp.",
+    incomplete: "La respuesta se ha interrumpido. Pídeme que continúe, o escríbenos por WhatsApp.",
     retry: "Reintentar",
-    disclaimer: "Asistente virtual. Los inmuebles mostrados provienen de nuestros anuncios.",
+    stop: "Detener",
+    call: "Llamar",
+    reset: "Nueva conversación",
+    offline: "Pareces estar sin conexión. Comprueba la conexión e inténtalo de nuevo.",
+    followUps: ["Compara los dos primeros", "Algo en un municipio cercano"],
+    disclaimer: "Asistente virtual. Esta conversación no se conserva.",
+    privacy: "Política de privacidad",
   },
 } as const;
 
@@ -92,10 +150,49 @@ export default function Assistant() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const launcherRef = useRef<HTMLButtonElement | null>(null);
+  // Turno in corso: serve a interromperlo (pulsante "ferma", chiusura del pannello).
+  const abortRef = useRef<AbortController | null>(null);
+  /**
+   * Numero del turno corrente.
+   *
+   * Serve a impedire che una richiesta ormai superata scriva sullo stato di quella dopo.
+   * Il caso che l'ha resa necessaria: premendo «Nuova conversazione» mentre una risposta era
+   * in arrivo, il turno annullato eseguiva la sua pulizia e rimuoveva l'ultimo messaggio —
+   * che nel frattempo era diventato il SALUTO della conversazione nuova, che spariva.
+   */
+  const turnoRef = useRef(0);
   // Elemento a cui restituire il focus alla chiusura (chi aveva il focus all'apertura).
   const returnFocusRef = useRef<HTMLElement | null>(null);
   // Ultima risposta dell'assistente da annunciare allo screen reader (solo quella).
   const [liveReply, setLiveReply] = useState("");
+  // Un'altra superficie a tutto schermo è aperta (banner cookie, menu mobile): il launcher
+  // fisso si toglie di mezzo invece di galleggiarci davanti.
+  const [blocked, setBlocked] = useState(false);
+  // Altezza utile del pannello: su mobile la tastiera riduce la visualViewport e senza
+  // questo l'input finirebbe sotto i tasti, cioè fuori dallo schermo.
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const sync = () => setBlocked(hasOverlay());
+    sync();
+    return subscribeOverlays(sync);
+  }, []);
+
+  // La tastiera mobile non emette resize su window: solo su visualViewport. Seguirla è
+  // l'unico modo perché il campo di scrittura resti visibile mentre si digita.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!open || !vv) return;
+    const sync = () => setViewportHeight(vv.height);
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+      setViewportHeight(null);
+    };
+  }, [open]);
 
   // Aggiorna il saluto se cambia lingua e la conversazione è solo il saluto.
   useEffect(() => {
@@ -109,6 +206,10 @@ export default function Assistant() {
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
+
+  // Smontaggio: chiudi il turno in corso, così non si pagano token per una risposta
+  // che nessuno leggerà più.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   // All'apertura: memorizza il focus corrente e spostalo sul dialog/input.
   useEffect(() => {
@@ -137,11 +238,17 @@ export default function Assistant() {
     };
   }, [open]);
 
-  // Chiusura: ripristina il focus al launcher (o a chi lo aveva prima).
+  // Chiusura: interrompe la risposta in corso (nessuno la leggerà: sono token pagati a
+  // vuoto) e ripristina il focus al launcher, o a chi lo aveva prima.
   const close = useCallback(() => {
+    abortRef.current?.abort();
     setOpen(false);
     const target = returnFocusRef.current;
-    if (target && document.contains(target)) target.focus();
+    // `document.body` non è un punto di ritorno utile: chi usa la tastiera si ritroverebbe
+    // all'inizio della pagina invece che sul launcher. Succede su Safari, che a differenza
+    // di Chrome non dà il focus a un pulsante quando lo si clicca: all'apertura l'elemento
+    // "attivo" era quindi il body.
+    if (target && target !== document.body && document.contains(target)) target.focus();
     else launcherRef.current?.focus();
     returnFocusRef.current = null;
   }, []);
@@ -184,36 +291,112 @@ export default function Assistant() {
       // Base della conversazione: senza gli avvisi di errore (non vanno rimandati all'API).
       const base = (history ?? messages).filter((m) => !m.error);
       const next = [...base, { role: "user" as const, content: q }];
-      setMessages(next);
+      // La bolla dell'assistente nasce vuota e si riempie mentre lo stream arriva.
+      setMessages([...next, { role: "assistant", content: "" }]);
       setInput("");
       setLoading(true);
+
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const mioTurno = ++turnoRef.current;
+      /** false quando la conversazione è stata azzerata o un altro turno è partito. */
+      const attuale = () => turnoRef.current === mioTurno;
+      let streamed = false;
+      /** Avviso d'errore già mostrato all'utente: evita di sovrascriverlo con uno generico. */
+      let shown = "";
+
+      /** Aggiorna l'ultima bolla (quella in costruzione) senza toccare le precedenti. */
+      const patchLast = (patch: (m: Msg) => Msg) => {
+        if (!attuale()) return;
+        setMessages((prev) => prev.map((m, i) => (i === prev.length - 1 ? patch(m) : m)));
+      };
+
       try {
         const res = await fetch("/api/assistant", {
           method: "POST",
           headers: { "content-type": "application/json" },
+          signal: controller.signal,
           body: JSON.stringify({
-            locale,
-            messages: next.filter((m) => !m.intro).map((m) => ({ role: m.role, content: m.content })),
+            pagePath: window.location.pathname,
+            // Gli slug degli immobili già mostrati tornano al server: è così che
+            // l'assistente capisce "la seconda" o "confronta le prime due".
+            messages: next
+              .filter((m) => !m.intro)
+              .map((m) => ({
+                role: m.role,
+                content: m.content,
+                ...(m.listings?.length ? { listingSlugs: m.listings.map((l) => l.slug) } : {}),
+              })),
           }),
         });
-        const data = (await res.json()) as { ok?: boolean; reply?: string; listings?: Card[] };
-        if (data.ok && data.reply) {
-          const reply = data.reply;
-          setMessages((m) => [...m, { role: "assistant", content: reply, listings: data.listings }]);
-          setLiveReply(reply);
-        } else {
-          setMessages((m) => [...m, { role: "assistant", content: c.error, error: true }]);
-          setLiveReply(c.error);
+
+        let reply = "";
+        for await (const event of readAssistantStream(res)) {
+          if (event.type === "text") {
+            streamed = true;
+            reply += event.value;
+            patchLast((m) => ({ ...m, content: reply }));
+          } else if (event.type === "listings") {
+            patchLast((m) => ({ ...m, listings: [...(m.listings ?? []), ...event.value] }));
+          } else if (event.type === "handoff") {
+            patchLast((m) => ({ ...m, handoffs: [...(m.handoffs ?? []), event.value] }));
+          } else if (event.type === "incomplete") {
+            patchLast((m) => ({ ...m, incomplete: true }));
+          } else if (event.type === "error" && !streamed) {
+            // Il rate limit è l'unico caso in cui l'utente può fare qualcosa di preciso
+            // (aspettare): merita un messaggio suo, non l'errore generico.
+            shown = event.value.code === "rate-limited" ? c.rateLimited : c.error;
+            patchLast(() => ({ role: "assistant", content: shown, error: true }));
+          }
         }
-      } catch {
-        setMessages((m) => [...m, { role: "assistant", content: c.error, error: true }]);
-        setLiveReply(c.error);
+
+        // Nessun testo e nessun errore già mostrato (es. connessione caduta a metà):
+        // meglio l'avviso generico che una bolla vuota. Il messaggio di rate limit,
+        // se c'è già, non va sovrascritto.
+        if (!reply.trim() && !shown) {
+          shown = c.error;
+          patchLast(() => ({ role: "assistant", content: c.error, error: true }));
+        }
+        if (attuale()) setLiveReply(reply.trim() || shown || c.error);
+      } catch (err) {
+        // Interruzione volontaria: teniamo il testo già arrivato, senza avviso d'errore.
+        if (err instanceof DOMException && err.name === "AbortError") {
+          // Solo se questo è ancora il turno corrente: dopo un azzeramento l'ultimo
+          // messaggio è il saluto nuovo, che non va toccato.
+          if (!streamed && attuale()) setMessages((prev) => prev.slice(0, -1));
+        } else {
+          // Connessione assente: dirlo com'è evita che l'utente riprovi a vuoto
+          // pensando che il problema sia il sito.
+          const testo = navigator.onLine === false ? c.offline : c.error;
+          patchLast(() => ({ role: "assistant", content: testo, error: true }));
+          if (attuale()) setLiveReply(testo);
+        }
       } finally {
-        setLoading(false);
+        if (attuale()) {
+          abortRef.current = null;
+          setLoading(false);
+        }
       }
     },
-    [loading, messages, locale, c.error],
+    [loading, messages, c.error, c.rateLimited, c.offline],
   );
+
+  /** Ferma la risposta in corso: annulla la fetch e, a cascata, la chiamata al provider. */
+  const stop = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
+
+  /** Riparte da zero. Nulla da cancellare altrove: la conversazione vive solo qui. */
+  const reset = useCallback(() => {
+    abortRef.current?.abort();
+    // Invalida il turno in volo: da qui in poi non può più scrivere nulla.
+    turnoRef.current += 1;
+    setLoading(false);
+    setMessages([{ role: "assistant", content: c.greeting, intro: true }]);
+    setInput("");
+    setLiveReply("");
+    inputRef.current?.focus();
+  }, [c.greeting]);
 
   // Riprova: re-invia l'ultimo messaggio dell'utente ripartendo dalla storia
   // precedente (senza duplicare quel messaggio e senza gli avvisi di errore).
@@ -236,10 +419,13 @@ export default function Assistant() {
         onClick={() => setOpen(true)}
         aria-label={c.launcher}
         aria-expanded={open}
-        className={`fixed bottom-24 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-red text-white shadow-[0_20px_40px_-16px_rgba(210,10,10,0.7)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-          open ? "pointer-events-none scale-90 opacity-0" : "opacity-100"
+        className={`fixed right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-red text-white shadow-[0_20px_40px_-16px_rgba(210,10,10,0.7)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none ${
+          open || blocked ? "pointer-events-none scale-90 opacity-0" : "opacity-100"
         }`}
-        {...(open ? { tabIndex: -1, "aria-hidden": true } : {})}
+        // Su mobile sta sopra la MobileActionBar (alta ~3.5rem + safe area); su desktop
+        // sopra il pulsante WhatsApp fisso (bottom-5). Entrambi calcolati, non a occhio.
+        style={{ bottom: "calc(5.25rem + env(safe-area-inset-bottom))" }}
+        {...(open || blocked ? { tabIndex: -1, "aria-hidden": true } : {})}
       >
         <ChatIcon className="h-6 w-6" />
       </button>
@@ -254,8 +440,16 @@ export default function Assistant() {
           tabIndex={-1}
           data-lenis-prevent
           onKeyDown={onKeyDown}
-          className="fixed inset-x-3 bottom-3 z-[60] flex flex-col overflow-hidden rounded-[1.6rem] border border-line bg-paper shadow-[0_50px_100px_-40px_rgba(26,24,22,0.6)] sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[390px]"
-          style={{ height: "min(85dvh, 620px)" }}
+          className="fixed inset-x-0 bottom-0 z-[60] flex flex-col overflow-hidden rounded-t-[1.6rem] border border-line bg-paper shadow-[0_50px_100px_-40px_rgba(26,24,22,0.6)] sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[390px] sm:rounded-[1.6rem]"
+          style={{
+            // Con la tastiera aperta seguiamo la visualViewport: il pannello si accorcia e
+            // il campo di scrittura resta sopra i tasti. Senza tastiera (o su desktop)
+            // vale il limite normale. `dvh` gestisce la barra del browser mobile.
+            height: viewportHeight
+              ? `min(${Math.round(viewportHeight)}px, 620px)`
+              : "min(80dvh, 620px)",
+            paddingBottom: "env(safe-area-inset-bottom)",
+          }}
         >
           {/* Header */}
           <div className="flex items-center justify-between gap-3 border-b border-line bg-cream px-5 py-4">
@@ -270,6 +464,16 @@ export default function Assistant() {
                 <span className="block text-[0.78rem] text-stone">{c.subtitle}</span>
               </span>
             </div>
+            <span className="flex shrink-0 items-center gap-0.5">
+            <button
+              type="button"
+              onClick={reset}
+              aria-label={c.reset}
+              title={c.reset}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-stone transition-colors duration-200 hover:bg-line/60 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
+            >
+              <RetryIcon className="h-5 w-5" />
+            </button>
             <button
               type="button"
               onClick={close}
@@ -278,6 +482,7 @@ export default function Assistant() {
             >
               <CloseIcon className="h-5 w-5" />
             </button>
+            </span>
           </div>
 
           {/* Annuncio SR: solo l'ultima risposta dell'assistente. */}
@@ -298,9 +503,15 @@ export default function Assistant() {
                         : "border border-line bg-cream text-graphite"
                   }`}
                 >
-                  {m.content.split("\n").map((line, j) =>
-                    line.trim() === "" ? <br key={j} /> : <p key={j}>{line}</p>,
-                  )}
+                  {m.content
+                    ? m.content
+                        .split("\n")
+                        .map((line, j) => (line.trim() === "" ? <br key={j} /> : <p key={j}>{line}</p>))
+                    : /* Bolla ancora vuota: i puntini stanno DENTRO, così l'altezza non salta
+                         quando arriva il primo token. */
+                      <span className="flex items-center gap-1.5 py-0.5" aria-hidden>
+                        <Dot /> <Dot delay="0.15s" /> <Dot delay="0.3s" />
+                      </span>}
                 </div>
                 {m.error && (
                   <button
@@ -313,13 +524,48 @@ export default function Assistant() {
                     {c.retry}
                   </button>
                 )}
+                {m.incomplete && (
+                  <p className="mt-1.5 max-w-[85%] text-[0.76rem] leading-snug text-stone">
+                    {c.incomplete}
+                  </p>
+                )}
+                {m.handoffs?.map((h, k) =>
+                  h.kind === "email" ? (
+                    // Modulo in chat: l'invio è server-side e il successo compare solo
+                    // dopo la conferma del provider.
+                    <AssistantLeadForm
+                      key={k}
+                      handoff={h}
+                      whatsappUrl={m.handoffs?.find((x) => x.kind === "whatsapp")?.url}
+                      phoneHref={PHONE_HREF}
+                    />
+                  ) : (
+                    <div key={k} className="mt-3 flex flex-wrap gap-2">
+                      <a
+                        href={h.url}
+                        target={h.kind === "whatsapp" ? "_blank" : undefined}
+                        rel={h.kind === "whatsapp" ? "noopener noreferrer" : undefined}
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-red px-4 py-2.5 text-[0.85rem] font-semibold text-white transition-colors duration-200 hover:bg-red-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                      >
+                        {h.label}
+                      </a>
+                      {/* Su mobile la telefonata è spesso il canale più rapido. */}
+                      <a
+                        href={PHONE_HREF}
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-4 py-2.5 text-[0.85rem] font-semibold text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink sm:hidden"
+                      >
+                        {c.call}
+                      </a>
+                    </div>
+                  ),
+                )}
                 {m.listings && m.listings.length > 0 && (
                   <div className="mt-3 flex w-full flex-col gap-2">
                     {m.listings.slice(0, 4).map((p) => (
                       <a
                         key={p.slug}
                         href={p.url}
-                        className="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-2.5 transition-colors duration-300 hover:border-red/40"
+                        className="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-2.5 transition-colors duration-300 hover:border-red/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
                       >
                         <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-cream">
                           <Image src={p.cover} alt="" fill sizes="56px" className="object-cover" />
@@ -338,7 +584,26 @@ export default function Assistant() {
               </div>
             ))}
 
-            {/* Suggerimenti (solo all'inizio) */}
+            {/* Suggerimenti di seguito: proposti SOLO dopo una risposta con immobili, e
+                solo per cose che l'assistente sa davvero fare (confronto, comuni vicini). */}
+            {!loading &&
+              messages.length > 1 &&
+              (messages[messages.length - 1].listings?.length ?? 0) >= 2 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {c.followUps.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => void send(s)}
+                      className="min-h-11 rounded-full border border-line bg-cream px-4 py-2 text-left text-[0.82rem] text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            {/* Suggerimenti iniziali */}
             {messages.length === 1 && !loading && (
               <div className="flex flex-col items-start gap-2 pt-1">
                 {c.suggestions.map((s) => (
@@ -346,7 +611,7 @@ export default function Assistant() {
                     key={s}
                     type="button"
                     onClick={() => void send(s)}
-                    className="rounded-full border border-line bg-cream px-4 py-2 text-left text-[0.82rem] text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink"
+                    className="min-h-11 rounded-full border border-line bg-cream px-4 py-2 text-left text-[0.82rem] text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
                   >
                     {s}
                   </button>
@@ -355,8 +620,15 @@ export default function Assistant() {
             )}
 
             {loading && (
-              <div className="flex items-center gap-1.5 pl-1" aria-hidden>
-                <Dot /> <Dot delay="0.15s" /> <Dot delay="0.3s" />
+              <div className="flex justify-center pt-1">
+                <button
+                  type="button"
+                  onClick={stop}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-4 py-2 text-[0.8rem] font-semibold text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                >
+                  <StopIcon className="h-3.5 w-3.5" />
+                  {c.stop}
+                </button>
               </div>
             )}
           </div>
@@ -375,18 +647,23 @@ export default function Assistant() {
               onChange={(e) => setInput(e.target.value)}
               placeholder={c.placeholder}
               maxLength={1000}
-              className="min-w-0 flex-1 rounded-full border border-line bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-stone/60 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+              className="min-h-11 min-w-0 flex-1 rounded-full border border-line bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-stone/60 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
               aria-label={c.send}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none"
             >
               <SendIcon className="h-5 w-5" />
             </button>
           </form>
-          <p className="bg-cream px-4 pb-3 text-center text-[0.68rem] leading-snug text-stone">{c.disclaimer}</p>
+          <p className="bg-cream px-4 pb-3 text-center text-[0.68rem] leading-snug text-stone">
+            {c.disclaimer}{" "}
+            <a href="/privacy" className="underline transition-colors duration-200 hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none">
+              {c.privacy}
+            </a>
+          </p>
         </div>
       )}
     </>
@@ -396,7 +673,7 @@ export default function Assistant() {
 function Dot({ delay = "0s" }: { delay?: string }) {
   return (
     <span
-      className="inline-block h-2 w-2 animate-bounce rounded-full bg-stone/50"
+      className="inline-block h-2 w-2 animate-bounce rounded-full bg-stone/50 motion-reduce:animate-none"
       style={{ animationDelay: delay }}
     />
   );
@@ -422,6 +699,14 @@ function SendIcon({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
+    </svg>
+  );
+}
+
+function StopIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <rect x="5" y="5" width="14" height="14" rx="2.5" />
     </svg>
   );
 }

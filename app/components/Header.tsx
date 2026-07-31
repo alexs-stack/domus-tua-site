@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
@@ -92,6 +93,13 @@ export default function Header() {
       release();
     }
     return release;
+  }, [open]);
+
+  // Il menu mobile copre tutto lo schermo: lo dichiariamo così il launcher fisso
+  // dell'assistente (z-50, sopra il menu a z-40) non ci galleggi davanti.
+  useEffect(() => {
+    setOverlay("mobile-menu", open);
+    return () => setOverlay("mobile-menu", false);
   }, [open]);
 
   // Se il viewport supera il breakpoint lg con il menu aperto, overlay e

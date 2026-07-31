@@ -18,6 +18,9 @@ const FEATURE_MATCH: Record<string, string[]> = {
   "Box / posto auto": ["box", "posto auto"],
   Terrazzo: ["terrazz"],
   "Doppi servizi": ["2 bagni", "doppi servizi"],
+  // Presenti nel feed RealSmart ma non tra i chip visibili del sito: le usa l'assistente.
+  Ascensore: ["ascensore"],
+  "Aria condizionata": ["aria condizionata", "climatizz"],
 };
 
 function roomsNum(p: Property) {

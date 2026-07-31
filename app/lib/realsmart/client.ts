@@ -41,6 +41,15 @@ const HIDDEN_STATUSES: ReadonlySet<NormalizedProperty["status"]> = new Set([
   "withdrawn",
 ]);
 
+/** Da dove arrivano davvero gli immobili di uno snapshot: gestionale reale o fixture demo. */
+export type ListingsSource = "live" | "mock";
+
+/** Immobili + provenienza del dato, memorizzati insieme nella stessa voce di cache. */
+export interface ListingsSnapshot {
+  listings: NormalizedProperty[];
+  source: ListingsSource;
+}
+
 /**
  * Recupera gli annunci in forma GREZZA dalla sorgente.
  *
@@ -95,11 +104,15 @@ async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
  * runtime di Next non è utilizzabile. È il modo per poter testare davvero il ripiegamento
  * quando il feed è irraggiungibile (app/lib/realsmart/__tests__/fallback.test.ts).
  */
-export async function loadListings(): Promise<NormalizedProperty[]> {
+export async function loadListings(): Promise<ListingsSnapshot> {
+  const config = getRealSmartConfig();
+  // Modalità mock esplicita (sviluppo offline): la sorgente NON è il gestionale.
+  let source: ListingsSource = config.useRealSmart ? "live" : "mock";
   let raw: RealSmartListingRaw[];
   try {
     raw = await fetchRawListings();
   } catch (err) {
+    source = "mock";
     // Fallback difensivo: meglio i mock che una lista vuota / errore in pagina.
     // Logghiamo il MOTIVO (server-only, mai esposto al client) per poter MONITORARE i
     // fallback: il badge di anteprima mostra la modalità PREVISTA (RealSmart), non se una
@@ -128,7 +141,7 @@ export async function loadListings(): Promise<NormalizedProperty[]> {
 
   // Ordina prima gli immobili "In evidenza", poi per data di aggiornamento
   // (ISO 8601 → confronto lessicografico OK), le stringhe vuote finiscono in coda.
-  return normalized.sort((a, b) => {
+  const listings = normalized.sort((a, b) => {
     const fa = a.badges.includes("In evidenza") ? 0 : 1;
     const fb = b.badges.includes("In evidenza") ? 0 : 1;
     if (fa !== fb) return fa - fb; // "In evidenza" prima
@@ -139,15 +152,29 @@ export async function loadListings(): Promise<NormalizedProperty[]> {
     if (!kb) return -1;
     return kb.localeCompare(ka); // più recente prima
   });
+
+  return { listings, source };
 }
 
 /**
- * Immobili pubblicabili sul sito, in forma pulita e filtrata.
+ * Immobili pubblicabili sul sito CON la provenienza del dato.
  * Cache condivisa (unstable_cache) sul RISULTATO normalizzato (~1MB, ben sotto il limite):
  * una sola elaborazione per finestra REVALIDATE_SECONDS, riusata da tutte le pagine e
  * invalidabile on-demand via tag "realsmart-listings". Fallback ai mock su errore feed.
+ *
+ * `source` distingue il dato reale dal fallback demo. Le pagine del sito non lo usano
+ * (per loro un fallback è meglio di una pagina vuota), ma l'assistente conversazionale SÌ:
+ * non deve mai citare immobili mock come reali (app/lib/assistant/listings.ts).
  */
-export const getLiveListings = unstable_cache(loadListings, ["realsmart-listings-v2"], {
+export const getLiveListingsSnapshot = unstable_cache(loadListings, ["realsmart-listings-v3"], {
   revalidate: REVALIDATE_SECONDS,
   tags: ["realsmart-listings"],
 });
+
+/**
+ * Immobili pubblicabili sul sito, in forma pulita e filtrata.
+ * Wrapper storico su getLiveListingsSnapshot: stessa cache, stessa fetch, senza provenienza.
+ */
+export async function getLiveListings(): Promise<NormalizedProperty[]> {
+  return (await getLiveListingsSnapshot()).listings;
+}

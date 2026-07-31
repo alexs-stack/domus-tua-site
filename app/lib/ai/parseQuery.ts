@@ -36,6 +36,8 @@ const FEATURE_KEYWORDS: Record<FeatureLabel, string[]> = {
   "Box / posto auto": ["box", "posto auto", "posto macchina", "garage", "garaje", "autorimessa", "parcheggio", "parking", "stellplatz", "cochera"],
   Terrazzo: ["terrazz", "terrace", "terrasse", "terraza"],
   "Doppi servizi": ["doppi servizi", "due bagni", "2 bagni", "secondo bagno", "two bathrooms", "2 bathrooms"],
+  Ascensore: ["ascensore", "elevator", "lift", "aufzug", "ascenseur", "ascensor"],
+  "Aria condizionata": ["aria condizionata", "climatizzat", "condizionatore", "air conditioning", "climatis", "klimaanlage", "aire acondicionado"],
 };
 
 // Parole composte che indicano un numero minimo di locali.
@@ -84,7 +86,7 @@ function hasRange(s: string): boolean {
  * "von 200000 bis 300000". L'unità finale (mila/k/milioni) vale anche per il primo numero se manca.
  * Ritorna null se non è un intervallo di prezzo plausibile (entrambi i valori >= 1000).
  */
-function rangeBudget(sd: string): { min: number; max: number } | null {
+function rangeBudget(sd: string, floor: number): { min: number; max: number } | null {
   const m = sd.match(
     /(\d+(?:[.,]\d+)?)\s*(mila|k|milioni?|mln|millions?)?\s*(?:-|–|—|\bto\b|\ba\b|\be\b|\by\b|\bund\b|\bbis\b)\s*(\d+(?:[.,]\d+)?)\s*(mila|k|milioni?|mln|millions?)?/,
   );
@@ -98,12 +100,25 @@ function rangeBudget(sd: string): { min: number; max: number } | null {
   if (!m2) m2 = 1;
   const a = Math.round(parseFloat(m[1].replace(",", ".")) * m1);
   const b = Math.round(parseFloat(m[3].replace(",", ".")) * m2);
-  if (a < 1000 || b < 1000) return null; // non è un intervallo di prezzo (es. "tra 80 e 110 mq")
+  // Non è un intervallo di prezzo (es. "tra 80 e 110 mq"): la soglia segue il contratto.
+  if (a < floor || b < floor) return null;
   return { min: Math.min(a, b), max: Math.max(a, b) };
 }
 
-/** Tutti gli importi "prezzo" (>= 10.000 €) nella frase, in ordine di comparsa. */
-function extractAmounts(s: string): number[] {
+/**
+ * Soglia sotto la quale un numero NON è un prezzo.
+ *
+ * In vendita serve alta (10.000): impedisce che "3 locali" o "120 mq" vengano letti come
+ * budget. In affitto un canone realistico sta fra le centinaia di euro, quindi la stessa
+ * soglia farebbe sparire silenziosamente il vincolo: "affitto sotto 1000 euro" cercherebbe
+ * senza alcun tetto e mostrerebbe anche i canoni più alti.
+ */
+function priceFloor(contract?: ParsedSearch["contract"]): number {
+  return contract === "Affitto" ? 100 : 10000;
+}
+
+/** Tutti gli importi "prezzo" nella frase, in ordine di comparsa. */
+function extractAmounts(s: string, floor: number): number[] {
   // Normalizza i separatori delle migliaia (250.000 / 250 000 -> 250000), preserva i decimali per k/mil.
   const norm = s.replace(/(\d)[.  ](?=\d{3}\b)/g, "$1");
   const out: number[] = [];
@@ -115,7 +130,7 @@ function extractAmounts(s: string): number[] {
     const unit = (m[2] || "").toLowerCase();
     if (unit === "mila" || unit === "k") n *= 1000;
     else if (unit) n *= 1_000_000; // qualsiasi forma di "milione"
-    if (n >= 10000) out.push(Math.round(n));
+    if (n >= floor) out.push(Math.round(n));
   }
   return out;
 }
@@ -125,12 +140,13 @@ function extractAmounts(s: string): number[] {
  * "tra X e Y" -> intervallo. Un singolo numero senza qualificatore è, di norma, un tetto di spesa.
  * Gestisce anche "mezzo milione", "250k", "1,2 milioni", "250.000".
  */
-function parseBudget(q: string): { min?: number; max?: number } {
+function parseBudget(q: string, contract?: ParsedSearch["contract"]): { min?: number; max?: number } {
   // De-accentata + separatori delle migliaia rimossi ("300.000" -> "300000") per l'intera analisi.
   const sd = deaccent(q.toLowerCase()).replace(/(\d)[.  ](?=\d{3}\b)/g, "$1");
-  const rb = rangeBudget(sd);
+  const floor = priceFloor(contract);
+  const rb = rangeBudget(sd, floor);
   if (rb) return rb;
-  const amounts = extractAmounts(sd);
+  const amounts = extractAmounts(sd, floor);
   if (/mezzo\s+milione/.test(sd)) amounts.unshift(500000);
   if (!amounts.length) return {};
   if (amounts.length >= 2 && hasRange(sd)) {
@@ -240,7 +256,8 @@ export function parseQueryLocal(query: string, facets: SearchFacets): ParsedSear
   if (comune) out.comune = comune;
 
   // Budget (con direzione: "sotto/fino a" -> tetto, "sopra/oltre/almeno" -> minimo, "tra X e Y" -> intervallo)
-  const budget = parseBudget(q);
+  // Il contratto è già stato dedotto sopra: serve a capire se un numero basso è un canone.
+  const budget = parseBudget(q, out.contract);
   if (budget.max) out.maxBudget = budget.max;
   if (budget.min) out.minBudget = budget.min;
 
@@ -311,7 +328,7 @@ const SET_FILTERS_TOOL = {
       minRooms: { type: "number", description: "Numero minimo di locali, 0 se non indicato." },
       minSqm: { type: "number", description: "Superficie MINIMA in m² (per 'almeno/da X mq'). 0 se non indicato." },
       maxSqm: { type: "number", description: "Superficie MASSIMA in m² (per 'fino a/sotto X mq'). 0 se non indicato." },
-      features: { type: "array", items: { type: "string", enum: ["Giardino", "Box / posto auto", "Terrazzo", "Doppi servizi"] }, description: "Solo caratteristiche RICHIESTE. Se l'utente le esclude ('senza giardino'), NON includerle." },
+      features: { type: "array", items: { type: "string", enum: ["Giardino", "Box / posto auto", "Terrazzo", "Doppi servizi", "Ascensore", "Aria condizionata"] }, description: "Solo caratteristiche RICHIESTE. Se l'utente le esclude ('senza giardino'), NON includerle." },
       keywords: { type: "array", items: { type: "string" }, description: "Termini concreti utili al match testuale." },
       semanticQuery: { type: "string", description: "La parte descrittiva/di sensazione della richiesta (es. 'luminoso e tranquillo con vista')." },
     },

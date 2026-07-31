@@ -13,10 +13,14 @@
     "audit:listings-content": "tsx scripts/audit-listings-content.ts",
     "e2e": "playwright test",
     "detect-sold": "npx --yes tsx scripts/detect-sold.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "eval": "node --import tsx scripts/eval.ts",
+    "e2e:assistant": "playwright test --config playwright.assistant.config.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.25",
     "@gsap/react": "^2.1.2",
+    "ai": "^7.0.44",
     "fast-xml-parser": "^5.9.3",
     "gsap": "^3.15.0",
     "leaflet": "^1.9.4",
@@ -25,7 +29,8 @@
     "next": "16.2.9",
     "ogl": "^1.0.11",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

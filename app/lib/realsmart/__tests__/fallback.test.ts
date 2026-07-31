@@ -28,7 +28,10 @@ describe("provider RealSmart indisponibile", () => {
     // loadListings è la funzione NON memorizzata: getLiveListings la avvolge in unstable_cache,
     // che richiede il runtime di Next e qui non è disponibile.
     const { loadListings } = await import("../client");
-    const listings = await loadListings();
+    // Ritorna anche la PROVENIENZA del dato: serve all'assistente, che non deve mai citare
+    // immobili mock come reali (app/lib/assistant/listings.ts).
+    const { listings, source } = await loadListings();
+    assert.equal(source, "mock", "col feed irraggiungibile la sorgente è il ripiego");
     assert.ok(listings.length > 0, "la lista non deve mai essere vuota");
     for (const l of listings) {
       assert.ok(l.slug.length > 0);

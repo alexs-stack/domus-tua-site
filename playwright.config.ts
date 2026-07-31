@@ -15,6 +15,9 @@ const BASE_URL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  // Solo la regressione visiva: l'assistente ha la sua configurazione
+  // (playwright.assistant.config.ts), perché richiede un build con il flag acceso.
+  testMatch: ["property-detail.spec.ts"],
   snapshotDir: "./e2e/__screenshots__",
   // Un solo worker: i test condividono un unico server e confrontano screenshot.
   workers: 1,
