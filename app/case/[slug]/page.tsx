@@ -5,9 +5,7 @@ import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyDetail from "./PropertyDetail";
 import { getVisibleListings, getVisibleListing } from "../../lib/listings";
-import { site } from "../../lib/site";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
+import { site, siteUrl } from "../../lib/site";
 
 export async function generateStaticParams() {
   const list = await getVisibleListings();

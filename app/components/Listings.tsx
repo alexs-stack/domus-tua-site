@@ -3,10 +3,12 @@ import ListingsHeader from "./ListingsHeader";
 import ListingsGrid from "./ListingsGrid";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
-import { getVisibleListings } from "../lib/listings";
+import { getAvailableListings } from "../lib/listings";
 
 export default async function Listings() {
-  const featured = (await getVisibleListings()).slice(0, 3);
+  // Vetrina della home: SOLO immobili disponibili. Prima si prendevano i primi tre del feed
+  // così com'erano, quindi un venduto in cima alla lista RealSmart finiva tra le proposte.
+  const featured = (await getAvailableListings()).slice(0, 3);
   return (
     <section id="case" className="relative bg-cream">
       {/* Aria: il luogo in filigrana (nome proprio, identico in ogni lingua) */}

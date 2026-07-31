@@ -14,7 +14,8 @@
 
 import { brand } from "./brand";
 import { site } from "./site";
-import { heroCinematic, heroMedia } from "./media";
+import { heroCinematic } from "./media";
+import { isRealSmartLive } from "./realsmart/env";
 import { aiParseEnabled, semanticEnabled } from "./ai/config";
 
 /** Sorgente dati immobili: feed RealSmart live oppure fixture demo/mock. */
@@ -66,10 +67,10 @@ export function getDemoStatus(): DemoStatus {
     previewBadge: isTrue(process.env.NEXT_PUBLIC_PREVIEW_BADGE),
     i18nEnabled: isTrue(process.env.NEXT_PUBLIC_ENABLE_I18N),
     logoConfigured: brand.useOriginalLogo && brand.logo.trim().length > 0,
-    // "false" esplicito = mock; qualsiasi altro valore (incl. assente) = feed live.
-    listingsMode: process.env.NEXT_PUBLIC_USE_REALSMART !== "false" ? "realsmart" : "mock",
+    // Lettura unica del flag: vedi isRealSmartLive() in realsmart/env.ts.
+    listingsMode: isRealSmartLive() ? "realsmart" : "mock",
     trustindexLive,
-    heroVideoLive: heroCinematic.enabled || heroMedia.enabled,
+    heroVideoLive: heroCinematic.enabled,
     leadBackend,
     searchAiConfigured: aiParseEnabled,
     semanticRankingConfigured: semanticEnabled,

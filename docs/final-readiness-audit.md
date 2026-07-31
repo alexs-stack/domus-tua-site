@@ -55,7 +55,10 @@ Il **badge di anteprima** (in basso a sx) + la sua checklist lo ricordano in tem
 - **Logo**: ufficiale PNG in uso; ideale l'SVG + variante chiara.
 - **Legale** (privacy/cookie): testo placeholder, `noindex` finché non validato.
 - **Video**: abbinamento thumbnail↔ID/timestamp da confermare (TODO nel codice).
-- **`videosCountLabel` "440+"** e le **stat**: da confermare col cliente.
+- **Conteggio video e stat numeriche**: RIMOSSI dal sito (erano stime senza fonte — 440+ video,
+  269.395 m², 6.433 persone, 1.523 transazioni, 92% venduto). La sezione "I numeri" mostra ora
+  solo dati verificabili da `app/lib/site.ts` (recensioni Google, voto medio, anni di attività).
+  Un test di content integrity impedisce il rientro dei vecchi valori.
 
 ## 3. Cosa NASCONDERE per la call
 
@@ -87,7 +90,8 @@ Check: `curl https://www.domustua.com/api/health` → `listingsMode:"realsmart"`
 3. **Trustindex** verificato sul **dominio di produzione** + **CID Google** confermato + top recensioni.
 4. **RealSmart**: conferma mapping campi (provincia, classe energetica) + URL foto.
 5. **Video YouTube**: ID/timestamp definitivi + thumbnail approvate.
-6. **Numero video** reale (`site.videosCountLabel`).
+6. **Numero video** reale del canale, se il cliente vuole rimettere la metrica in pagina
+   (va prima in `app/lib/site.ts`, con la fonte annotata, poi nel test di content integrity).
 7. **Testi legali** privacy/cookie validati da legale/DPO.
 8. **Stat esatte** (immobili venduti, anni, ecc.).
 9. **Sorgenti immagini** > 400 KB ri-esportate (vedi `docs/media-final-checklist.md`).

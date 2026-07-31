@@ -10,6 +10,8 @@ import { ArrowUpRight, Play } from "./Icons";
 import { SegnoDomusCorner, SegnoTick } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
+import { site } from "../lib/site";
+import { youtubeWatch } from "../lib/videos";
 
 const copy = {
   it: {
@@ -172,7 +174,7 @@ export default function OpenDomus() {
             <div className="relative rounded-[2rem] border border-line bg-cream p-2">
               <SegnoDomusCorner className="left-3.5 top-3.5 z-10" rotate={0} />
               <a
-                href="https://www.youtube.com/watch?v=gYePYQHNTUM"
+                href={youtubeWatch(site.videos.openDomus.id)}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={c.videoAria}

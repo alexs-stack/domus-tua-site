@@ -8,13 +8,19 @@ Google/Trustindex**, non testimonianze decorative.
   Domus Tua. Quindi `Reviews.tsx` mostra il **widget reale** (recensioni Google verificate), non le
   card demo. `googleReviewsUrl` usa il **CID Google reale** ricavato dal Maps embed del sito ufficiale.
 - `app/lib/reviews.ts` contiene **8 recensioni DEMO** usate SOLO come fallback in anteprima.
-- `app/components/Reviews.tsx` — logica a 3 rami:
-  1. `embeds.trustindexLoader` valorizzato → **widget Trustindex reale** (in un iframe `srcDoc`
-     UTF-8, contenuto in una sezione premium). Mostra la riga "Recensioni Google verificate tramite
-     Trustindex.".
-  2. loader assente **e** `NEXT_PUBLIC_PREVIEW_BADGE=true` → griglia demo + tab categoria
+- **Il widget è dietro al consenso cookie.** Trustindex è un terzo che carica script e cookie
+  propri: l'iframe si monta SOLO con `dt_consent=accepted`. L'unica implementazione del consenso è
+  `app/lib/consent.ts` (hook `useConsent()`), la stessa che scrive il banner `CookieConsent`;
+  accettando, il widget compare senza reload. Un test di content integrity verifica il gate.
+- `app/components/Reviews.tsx` — logica a rami:
+  1. loader valorizzato **e consenso accettato** → **widget Trustindex reale** (in un iframe
+     `srcDoc` UTF-8, contenuto in una sezione premium). Mostra la riga "Recensioni Google
+     verificate tramite Trustindex.".
+  2. loader valorizzato **senza consenso** → nessun widget, nessuna demo: rating 4.9/5, nota che
+     spiega perché il widget non si carica e CTA "Leggi tutte le recensioni su Google".
+  3. loader assente **e** `NEXT_PUBLIC_PREVIEW_BADGE=true` → griglia demo + tab categoria
      (Venditori/Acquirenti/Open Domus/Esperienza) + nota "esempi dimostrativi". **Solo anteprima.**
-  3. loader assente in **produzione** → **nessuna recensione demo**: solo rating 4.9/5 + CTA
+  4. loader assente in **produzione** → **nessuna recensione demo**: solo rating 4.9/5 + CTA
      "Leggi tutte le recensioni su Google". Così non si spaccia mai il demo per reale.
 
 ## Andare live — 2 opzioni

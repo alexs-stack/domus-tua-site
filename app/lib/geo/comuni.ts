@@ -9,6 +9,7 @@
 // persi: finiscono in una lista "Altre zone" accanto alla mappa (vedi PropertyMap).
 
 import { comuneOf } from "../comune";
+import { isAvailable } from "../availability";
 import type { Property } from "../properties";
 
 /** Coordinate approssimative (centro comune) per il posizionamento relativo dei pin. */
@@ -87,7 +88,7 @@ function normalizeTown(town: string): string {
 export function groupAvailableByTown(properties: Property[]): TownGroup[] {
   const byKey = new Map<string, number>();
   for (const p of properties) {
-    if (p.sold) continue; // mai i venduti in mappa
+    if (!isAvailable(p)) continue; // mai i venduti in mappa (predicato unico: lib/availability)
     const key = comuneOf(p.zone);
     if (!key) continue;
     byKey.set(key, (byKey.get(key) ?? 0) + 1);

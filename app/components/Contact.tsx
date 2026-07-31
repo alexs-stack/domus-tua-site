@@ -9,10 +9,8 @@ import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import WordReveal from "./WordReveal";
-import Signature from "./Signature";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
-import DrawOnScroll from "./motion/DrawOnScroll";
 import { useLocale } from "./i18n/LocaleProvider";
 
 // Percorsi lead. `key` è il tipo lead (LeadIntent) — utile per una futura integrazione
@@ -440,12 +438,9 @@ export default function Contact({
                 className="photo-warm h-auto w-full object-cover"
               />
             </figure>
-            {/* Firma della fondatrice (placeholder, da sostituire con quella reale):
-                si "firma" da sola quando entra nel viewport — lunghezze calcolate a
-                runtime, quindi il draw sopravvive alla sostituzione con l'SVG reale. */}
-            <DrawOnScroll className="mt-5 block" duration={1.4} stagger={0.3}>
-              <Signature className="h-9 w-auto" />
-            </DrawOnScroll>
+            {/* Nessuna firma grafica: il tracciato che stava qui era un calligrafico generico,
+                non la firma reale della fondatrice. L'animazione DrawOnScroll resta pronta:
+                appena arriva l'SVG vero (docs/client-assets-needed.md) basta rimetterlo qui. */}
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2">
               {contacts.map((item) => (

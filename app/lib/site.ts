@@ -30,11 +30,10 @@ export const site = {
   openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 14:30-19:00", "Sa 09:00-12:30"],
   rating: "4.9",
   reviewsCount: "531",
-  // ⚠️ DA CONFERMARE COL CLIENTE: conteggio video stimato, non verificato come le altre
-  // metriche di questo file. Prima del go-live allineare al numero reale del canale YouTube
-  // (@DOMUSTUASRLIMMOBILIARE) oppure usare una formulazione prudente ("centinaia di video").
-  videosCountLabel: "440+",
-  videosCountNote: "video tra tour, recensioni e Open Domus",
+  // NB: nessun conteggio video qui. Il vecchio `videosCountLabel: "440+"` era una stima non
+  // verificata mostrata come dato: rimosso. Se il cliente fornisce il numero reale del canale
+  // (@DOMUSTUASRLIMMOBILIARE) si potrà reintrodurre, con la fonte annotata come per gli altri
+  // campi di questo file. Vedi il test di content integrity.
   // Claim descrittivo/verificabile (non superlativo assoluto senza fonte, art. 2598 c.c.).
   // Se il cliente documenta il primato "più recensita", si può ripristinare la versione forte.
   authority: "Tra le agenzie immobiliari indipendenti più recensite della provincia di Varese.",
@@ -66,6 +65,10 @@ export const site = {
     ],
     // Testimonianza cliente (acquisto + vendita al primo Open Domus).
     testimonial: { id: "ceAu37wLTb4", title: "Carmine racconta la sua esperienza con Domus Tua" },
+    // Storia di Teresa, venduta al primo Open Domus (sezione + pagina Open Domus).
+    openDomus: { id: "gYePYQHNTUM", title: "Teresa, venduta al primo Open Domus" },
+    // Presentazione del team Domus Tua (sezione Chi siamo).
+    team: { id: "PRB3exiOa3I", title: "Il team Domus Tua si presenta" },
   },
 
   // ───────────────────────────────────────────────────────────
@@ -86,6 +89,16 @@ export const site = {
     instagramIframe: "",
   },
 } as const;
+
+/**
+ * Origin pubblico del sito — FONTE UNICA.
+ *
+ * Prima era ricalcolato (con lo stesso fallback copiaincollato) in layout.tsx, sitemap.ts,
+ * robots.ts e case/[slug]/page.tsx: bastava aggiornarne uno per avere metadata incoerenti.
+ * `NEXT_PUBLIC_*` è pubblico per definizione, quindi la costante è leggibile anche dai
+ * componenti client senza esporre nulla di sensibile.
+ */
+export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
 
 // Href assoluti verso le pagine dedicate.
 export const nav = [
