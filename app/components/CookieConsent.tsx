@@ -1,15 +1,17 @@
 "use client";
 
-// Banner consenso cookie (GDPR/ePrivacy). MVP: il sito non carica ancora script di
-// tracciamento; il banner registra la scelta in un cookie `dt_consent` e fa da gate per
-// eventuali analytics futuri (caricarli solo se dt_consent=accepted). Multilingua.
+// Banner consenso cookie (GDPR/ePrivacy). Registra la scelta e fa da gate per tutto ciò che
+// è di terze parti (oggi il widget recensioni Trustindex, domani eventuali analytics).
+// Multilingua.
+//
+// Il banner è la UI: la logica del consenso (nome del cookie, lettura, scrittura, notifica)
+// vive in app/lib/consent.ts, unica implementazione condivisa con i gate.
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
-
-const COOKIE = "dt_consent";
+import { readConsent, writeConsent, type ConsentValue } from "../lib/consent";
 
 const copy = {
   it: {
@@ -49,10 +51,6 @@ const copy = {
   },
 };
 
-function setConsent(value: "accepted" | "rejected") {
-  document.cookie = `${COOKIE}=${value}; path=/; max-age=15552000; samesite=lax`;
-}
-
 export default function CookieConsent() {
   const { locale } = useLocale();
   const c = copy[locale];
@@ -64,8 +62,7 @@ export default function CookieConsent() {
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const decided = document.cookie.split("; ").some((r) => r.startsWith(`${COOKIE}=`));
-    if (decided) return;
+    if (readConsent() !== null) return; // scelta già fatta: nessun banner
     // Mai sotto il preloader: il banner sposterebbe il focus su "Accetta" mentre
     // è coperto dall'overlay (Enter per saltare l'intro accetterebbe i cookie
     // alla cieca). Appare al handoff dell'intro.
@@ -92,8 +89,9 @@ export default function CookieConsent() {
     acceptRef.current?.focus();
   }, [show]);
 
-  const choose = useCallback((v: "accepted" | "rejected") => {
-    setConsent(v);
+  const choose = useCallback((v: ConsentValue) => {
+    // Scrive il cookie E notifica i gate montati (es. Trustindex in Reviews): niente reload.
+    writeConsent(v);
     setShow(false);
     // Ripristina il focus a chi lo aveva prima (o al body come fallback sicuro).
     const target = returnFocusRef.current;

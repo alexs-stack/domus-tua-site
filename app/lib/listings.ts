@@ -7,7 +7,9 @@
 //       impostando NEXT_PUBLIC_USE_REALSMART="false". Vedi docs/realsmart-integration-notes.md.
 
 import { properties, getProperty, type Property } from "./properties";
+import { onlyAvailable } from "./availability";
 import { getLiveListings } from "./realsmart/client";
+import { isRealSmartLive } from "./realsmart/env";
 import { normalizedToProperty } from "./realsmart/toProperty";
 
 // Stato server-safe della sorgente dati (modalità PREVISTA + feed configurato). Riesportato
@@ -19,20 +21,34 @@ import { normalizedToProperty } from "./realsmart/toProperty";
 export { getListingDataSourceStatus } from "./realsmart/status";
 export type { ListingDataSourceStatus } from "./realsmart/status";
 
-// Default ON: il feed RealSmart reale è collegato. Si torna alla fixture demo solo
-// impostando NEXT_PUBLIC_USE_REALSMART="false" (utile per sviluppo offline).
-const USE_REALSMART = process.env.NEXT_PUBLIC_USE_REALSMART !== "false";
+// Il predicato di disponibilità vive in app/lib/availability.ts (modulo puro, usabile anche
+// dai componenti client): riesportato qui perché la facciata è il punto unico degli immobili.
+export { isAvailable, isSold, onlyAvailable } from "./availability";
 
+/**
+ * TUTTI gli immobili della sorgente attiva, venduti inclusi.
+ *
+ * Usare solo dove il venduto ha senso: la scheda /case/[slug] (che mostra il banner "venduto")
+ * e le viste con filtro disponibilità esplicito. Per una vetrina usare getAvailableListings().
+ */
 export async function getVisibleListings(): Promise<Property[]> {
-  if (USE_REALSMART) {
+  if (isRealSmartLive()) {
     const live = await getLiveListings();
     return live.map(normalizedToProperty);
   }
   return properties;
 }
 
+/**
+ * Solo gli immobili ancora sul mercato. È questa la lista da usare in ogni vetrina
+ * ("le nostre case", risultati di ricerca, mappa): nessun venduto tra i disponibili.
+ */
+export async function getAvailableListings(): Promise<Property[]> {
+  return onlyAvailable(await getVisibleListings());
+}
+
 export async function getVisibleListing(slug: string): Promise<Property | undefined> {
-  if (USE_REALSMART) {
+  if (isRealSmartLive()) {
     const live = await getVisibleListings();
     return live.find((p) => p.slug === slug);
   }

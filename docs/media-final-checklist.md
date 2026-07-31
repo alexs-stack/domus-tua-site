@@ -25,7 +25,7 @@
 | Asset | Target sorgente | Note |
 |---|---|---|
 | Hero poster / base (`villa-pool.jpg` ecc.) | ~1600–2000px lato lungo, **≤ 300 KB** | è l'LCP: sorgente snella = ottimizzazione più rapida |
-| Hero video (mp4 + webm) | 15–35s, ~1080p, muto, loop, **≤ 3–4 MB** | attivare solo con file ottimizzati (`heroMedia`/`heroCinematic.enabled`) |
+| Hero video (mp4 + webm) | 15–35s, ~1080p, muto, loop, **≤ 3–4 MB** | attivare solo con file ottimizzati (`heroCinematic.enabled`) |
 | Foto immobili (RealSmart) | lato lungo ~1600px | servite via next/image; il feed fornisce gli URL |
 | Foto editoriali / staging | ~1600px lato lungo, **≤ 300 KB** | |
 | Thumbnail video / card | ~1280×720, **≤ 200 KB** | |

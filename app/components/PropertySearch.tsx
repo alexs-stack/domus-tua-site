@@ -14,6 +14,7 @@ import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/motion/gsap";
 import { groupAvailableByTown } from "../lib/geo/comuni";
 import { canonicalComune, comuniFacet, matchesComune } from "../lib/comune";
+import { isAvailable, isSold } from "../lib/availability";
 import type { Property } from "../lib/properties";
 import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
 
@@ -536,8 +537,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
     }
     return properties.filter((p) => {
       // Disponibilità: di default nascondi i venduti; "Venduti" mostra solo quelli.
-      if (f.availability === "available" && p.sold) return false;
-      if (f.availability === "sold" && !p.sold) return false;
+      // Predicato unico condiviso con la home, la mappa e la ricerca server (lib/availability).
+      if (f.availability === "available" && !isAvailable(p)) return false;
+      if (f.availability === "sold" && !isSold(p)) return false;
       if (f.contract !== "Tutte" && p.status !== f.contract) return false;
       if (f.type !== "Tutte" && p.type !== f.type) return false;
       if (f.comune !== "Tutti" && !matchesComune(p.zone, f.comune)) return false;
@@ -775,7 +777,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
           </div>
 
           {/* Disponibilità: appare solo se c'è almeno un immobile venduto (default: nasconde i venduti). */}
-          {properties.some((p) => p.sold) && (
+          {properties.some(isSold) && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
                 {c.availabilityLabel}

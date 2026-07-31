@@ -4,16 +4,22 @@ import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import Contact from "../components/Contact";
 import ContattiContent from "./ContattiContent";
+import { site } from "../lib/site";
+
+// Testo identico a prima, ma numeri e indirizzo derivati da app/lib/site.ts: erano l'unica
+// copia dei recapiti fuori dalla fonte unica, quindi si sarebbero disallineati in silenzio.
+const description =
+  `Domus Tua Immobiliare, ${site.address.street}, Tradate (VA). ` +
+  `Telefono ${site.phone.label}, WhatsApp ${site.whatsapp.label}. ` +
+  `Scrivici per una valutazione o per cercare casa.`;
 
 export const metadata: Metadata = {
   title: "Contatti",
-  description:
-    "Domus Tua Immobiliare, Corso Bernacchi 91, Tradate (VA). Telefono 0331 844898, WhatsApp 346 6042314. Scrivici per una valutazione o per cercare casa.",
+  description,
   alternates: { canonical: "/contatti" },
   openGraph: {
     title: "Contatti",
-    description:
-      "Domus Tua Immobiliare, Corso Bernacchi 91, Tradate (VA). Telefono 0331 844898, WhatsApp 346 6042314. Scrivici per una valutazione o per cercare casa.",
+    description,
   },
 };
 

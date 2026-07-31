@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { site } from "./lib/site";
+import { site, siteUrl } from "./lib/site";
 import { defaultLocale, type Locale } from "./lib/i18n/dictionaries";
 import { LocaleProvider } from "./components/i18n/LocaleProvider";
 import PreviewBadge from "./components/PreviewBadge";
@@ -43,8 +43,6 @@ const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   display: "swap",
 });
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
 
 // Skip-link (chrome accessibile). Reso lato server con la lingua di default; l’etichetta
 // esiste in tutte e cinque le lingue per parità i18n e per un futuro rendering per-locale.
@@ -100,7 +98,7 @@ const jsonLd = {
   foundingDate: String(site.since),
   url: siteUrl,
   image: `${siteUrl}/images/reali/raffaela-ritratto.jpg`,
-  telephone: "+390331844898",
+  telephone: site.phone.href.replace("tel:", ""),
   email: site.email.label,
   address: {
     "@type": "PostalAddress",

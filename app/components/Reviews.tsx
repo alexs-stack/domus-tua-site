@@ -9,6 +9,7 @@ import Atmosphere from "./motion/Atmosphere";
 import { Star, Google, ArrowUpRight, Check } from "./Icons";
 import { site } from "../lib/site";
 import { reviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
+import { useConsent } from "../lib/consent";
 import { useLocale } from "./i18n/LocaleProvider";
 
 const filters: ("Tutte" | ReviewCategory)[] = [
@@ -28,6 +29,8 @@ const copy = {
     averageOver: (count: number | string) => `Media su oltre ${count} recensioni`,
     seeAllGoogle: "Leggi tutte le recensioni su Google",
     verifiedVia: "Recensioni Google verificate tramite Trustindex.",
+    consentGate:
+      "Il widget delle recensioni è di Trustindex: si carica solo dopo il tuo consenso ai cookie. Puoi leggerle subito su Google.",
     realReviews: "Le recensioni reali dei nostri clienti",
     iframeTitle: "Recensioni Google verificate di Domus Tua (Trustindex)",
     demoBanner:
@@ -52,6 +55,8 @@ const copy = {
     averageOver: (count: number | string) => `Average across more than ${count} reviews`,
     seeAllGoogle: "Read all reviews on Google",
     verifiedVia: "Google reviews verified via Trustindex.",
+    consentGate:
+      "The reviews widget is provided by Trustindex: it loads only after you accept cookies. You can read the reviews on Google right away.",
     realReviews: "Real reviews from our clients",
     iframeTitle: "Verified Google reviews of Domus Tua (Trustindex)",
     demoBanner:
@@ -76,6 +81,8 @@ const copy = {
     averageOver: (count: number | string) => `Moyenne sur plus de ${count} avis`,
     seeAllGoogle: "Lire tous les avis sur Google",
     verifiedVia: "Avis Google vérifiés via Trustindex.",
+    consentGate:
+      "Le widget d’avis est fourni par Trustindex : il ne se charge qu’après votre consentement aux cookies. Vous pouvez lire les avis sur Google dès maintenant.",
     realReviews: "Les avis authentiques de nos clients",
     iframeTitle: "Avis Google vérifiés de Domus Tua (Trustindex)",
     demoBanner:
@@ -100,6 +107,8 @@ const copy = {
     averageOver: (count: number | string) => `Durchschnitt aus über ${count} Bewertungen`,
     seeAllGoogle: "Alle Bewertungen auf Google lesen",
     verifiedVia: "Google-Bewertungen, verifiziert über Trustindex.",
+    consentGate:
+      "Das Bewertungs-Widget stammt von Trustindex: Es lädt erst nach Ihrer Cookie-Einwilligung. Die Bewertungen können Sie sofort auf Google lesen.",
     realReviews: "Die echten Bewertungen unserer Kunden",
     iframeTitle: "Verifizierte Google-Bewertungen von Domus Tua (Trustindex)",
     demoBanner:
@@ -124,6 +133,8 @@ const copy = {
     averageOver: (count: number | string) => `Media sobre más de ${count} reseñas`,
     seeAllGoogle: "Leer todas las reseñas en Google",
     verifiedVia: "Reseñas de Google verificadas mediante Trustindex.",
+    consentGate:
+      "El widget de reseñas es de Trustindex: se carga solo tras tu consentimiento de cookies. Puedes leer las reseñas en Google ahora mismo.",
     realReviews: "Las reseñas reales de nuestros clientes",
     iframeTitle: "Reseñas de Google verificadas de Domus Tua (Trustindex)",
     demoBanner:
@@ -155,6 +166,15 @@ export default function Reviews() {
   // In produzione NON mostriamo mai recensioni demo come reali: le card di esempio (con nota
   // "esempi dimostrativi") compaiono solo in anteprima. Vedi docs/reviews-integration.md.
   const PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_BADGE === "true";
+
+  // GATE DI CONSENSO. Trustindex è un terzo che carica script e cookie propri: prima del
+  // consolidamento l'iframe partiva al primo render, cioè PRIMA di qualsiasi scelta
+  // dell'utente. Ora il widget si monta solo con consenso "accepted" (unica implementazione:
+  // app/lib/consent.ts, la stessa che scrive il banner). Senza consenso resta la prova reale
+  // e non demo: voto, media e link diretto a Google.
+  const consent = useConsent();
+  const showTrustindex = site.embeds.trustindexLoader.length > 0 && consent === "accepted";
+  const awaitingConsent = site.embeds.trustindexLoader.length > 0 && consent !== "accepted";
 
   // Auto-altezza del widget Trustindex: lo srcDoc misura la propria altezza e la posta al
   // parent (niente box vuoto sotto le card). Fallback iniziale contenuto, poi si adatta.
@@ -237,7 +257,7 @@ export default function Reviews() {
           </Reveal>
         </div>
 
-        {site.embeds.trustindexLoader ? (
+        {showTrustindex ? (
           <Reveal className="mt-12">
             <h3 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
               {c.realReviews}
@@ -256,7 +276,7 @@ export default function Reviews() {
               />
             </div>
           </Reveal>
-        ) : PREVIEW ? (
+        ) : PREVIEW && !awaitingConsent ? (
           <>
             {/* Nota onestà: finché il widget Trustindex non è collegato, queste sono demo.
                 Questo ramo è raggiungibile SOLO in anteprima (NEXT_PUBLIC_PREVIEW_BADGE=true):
@@ -362,11 +382,12 @@ export default function Reviews() {
             </div>
           </>
         ) : (
-          /* Produzione senza widget: nessuna recensione demo, solo prova reale (rating + Google). */
+          /* Nessun widget montato — perché non è collegato oppure perché manca il consenso.
+             In entrambi i casi: nessuna recensione demo, solo prova reale (rating + Google). */
           <Reveal className="mt-10">
             <div className="rounded-[1.75rem] border border-line bg-cream p-8 text-center">
               <p className="mx-auto max-w-md text-[0.98rem] leading-relaxed text-graphite">
-                {c.verifiedVia}
+                {awaitingConsent ? c.consentGate : c.verifiedVia}
               </p>
               <a
                 href={site.googleReviewsUrl}

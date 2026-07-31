@@ -10,7 +10,6 @@ import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import { heroCinematic } from "../lib/media";
 import WordReveal from "./WordReveal";
-import Signature from "./Signature";
 import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -438,8 +437,9 @@ export default function HeroCinematic() {
               RR
             </span>
             {c.founder}
-            {/* Firma della fondatrice (placeholder, da sostituire con quella reale) */}
-            <Signature light className="ml-1 hidden h-8 w-auto opacity-90 sm:block" />
+            {/* Nessuna firma grafica: il tracciato calligrafico che stava qui era generico,
+                non la firma reale di Raffaela Rizza. Si reintroduce solo con l'SVG/PNG
+                fornito dal cliente (docs/client-assets-needed.md). */}
           </p>
 
           {/* CTA */}
@@ -468,7 +468,7 @@ export default function HeroCinematic() {
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </a>
             <a
-              href={heroCinematic.youtube}
+              href={site.social.youtube.href}
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center justify-center gap-2.5 px-3 py-4 text-base font-medium text-cream/85 transition-colors hover:text-white"

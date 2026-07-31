@@ -7,7 +7,7 @@ import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
 import { Star, Play } from "./Icons";
-import { site } from "../lib/site";
+import { testimonialVideo, youtubeWatch } from "../lib/videos";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
@@ -131,7 +131,7 @@ export default function FeaturedTestimonial(props: Props) {
     context: c.context,
     image: "/images/reali/consulenza.jpg",
     alt: c.alt,
-    videoHref: `https://www.youtube.com/watch?v=${site.videos.testimonial.id}`,
+    videoHref: youtubeWatch(testimonialVideo.id),
   };
 
   const { quote, author, context, image, alt, videoHref } = { ...defaults, ...props };
