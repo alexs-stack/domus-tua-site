@@ -2,6 +2,11 @@
 // (forma pulita usata dal sito). Funzione PURA e difensiva: nessun side effect, nessuna
 // eccezione su campi mancanti. Se il feed reale userà nomi diversi, si adatta qui la mappatura.
 
+import { normalizeDescription } from "./description";
+import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
+import { splitDescription } from "./descriptionSplit";
+import { getListingOverride } from "./overrides.data";
+import { applyRemovals, overrideFacts } from "./overrides";
 import type {
   ContractType,
   ListingStatus,
@@ -130,13 +135,14 @@ function deriveBadges(
   return Array.from(new Set(badges));
 }
 
-/** Normalizza un singolo media raw in immagine {src, alt}, con alt di fallback. */
-function toImage(media: RealSmartMedia, fallbackAlt: string): NormalizedImage {
+/**
+ * Normalizza un singolo media raw in immagine.
+ * L'alt viene valorizzato SOLO se il gestionale fornisce una didascalia vera: un alt di ripiego
+ * identico su tutte le foto dell'immobile è peso morto nella cache condivisa.
+ */
+function toImage(media: RealSmartMedia): NormalizedImage {
   const caption = media.didascalia?.trim();
-  return {
-    src: media.url,
-    alt: caption && caption.length > 0 ? caption : fallbackAlt,
-  };
+  return caption && caption.length > 0 ? { src: media.url, alt: caption } : { src: media.url };
 }
 
 /**
@@ -161,20 +167,56 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // Slug stabile: titolo + comune + codice (il codice garantisce univocità).
   const slug = slugify([title, town, raw.codice].filter(Boolean).join(" "));
 
-  // Media → solo foto per la gallery del sito; ordinate e con alt sensato.
-  const fallbackAlt = [title, town].filter(Boolean).join(" — ") || "Immobile Domus Tua";
-  const sortedMedia = sortMedia(raw.media ?? []);
-  const images: NormalizedImage[] = sortedMedia
+  // Media → solo foto per la gallery del sito, ordinate.
+  const images: NormalizedImage[] = sortMedia(raw.media ?? [])
     .filter((m) => m.tipo === undefined || m.tipo === "foto")
-    .map((m) => toImage(m, fallbackAlt));
+    .map(toImage);
 
   const addressRaw = raw.localita?.indirizzo?.trim();
+
+  // Override manuale approvato: è la fonte con priorità massima (vedi ./overrides.ts).
+  const override = getListingOverride(raw.codice);
+
+  // Descrizione: una sola normalizzazione, riusata da paragrafi, estratto ed estrazione fatti.
+  // Se il cliente ci ha fornito un testo approvato, quello sostituisce integralmente il feed.
+  const description = normalizeDescription(raw.descrizione);
+  const paragraphs = override?.descrizione ?? description.paragraphs;
+
+  // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
+  // Gli override manuali approvati si innestano davanti a tutto in ./overrides.ts.
+  const fieldFacts = factsFromFields({
+    tipologia: raw.tipologia?.trim(),
+    contratto: contract,
+    mq: toNumber(raw.mq),
+    locali: toNumber(raw.locali),
+    camere: toNumber(raw.camere), // MAI dedotte da "locali - 1"
+    bagni: toNumber(raw.bagni),
+    piano: typeof raw.piano === "number" ? String(raw.piano) : raw.piano,
+    classeEnergetica: raw.classeEnergetica,
+    statoAttestatoEnergetico: raw.statoAttestatoEnergetico,
+    dettagli: raw.dettagli,
+  });
+  const descriptionFacts = factsFromDescription(paragraphs);
+
+  // override > campo RealSmart > descrizione; poi si tolgono le chiavi non pubblicabili.
+  const facts = applyRemovals(
+    mergeFacts(overrideFacts(override), fieldFacts, descriptionFacts.facts),
+    override,
+  );
+
+  // I fatti pubblicati decidono quali righe telegrafiche possono uscire dal testo.
+  const split = splitDescription(paragraphs, facts);
 
   return {
     id: raw.codice,
     slug,
     title: titleize(title),
-    description: raw.descrizione?.trim() ?? "",
+    // In pagina va la sola narrativa: le righe interamente tecniche vivono nei box.
+    descriptionParagraphs: split.narrativeParagraphs,
+    structuredFactLines: split.structuredFactLines.map((l) => l.line),
+    keptFactLines: split.keptFactLines,
+    contentPreservation: split.contentPreservation,
+    excerpt: description.excerpt,
     price,
     priceLabel,
     contract,
@@ -182,6 +224,8 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     town,
     province,
     address: addressRaw && addressRaw.length > 0 ? addressRaw : undefined,
+    // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
+    showAddress: override?.mostraIndirizzo === true,
     sqm: toNumber(raw.mq),
     rooms: toNumber(raw.locali),
     bedrooms: toNumber(raw.camere),
@@ -189,6 +233,8 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     floor: typeof raw.piano === "number" ? String(raw.piano) : raw.piano?.trim() || undefined,
     energyClass: raw.classeEnergetica?.trim() || undefined,
     features,
+    facts,
+    factsReview: descriptionFacts.review,
     images,
     status,
     badges: raw.inEvidenza

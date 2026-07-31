@@ -88,7 +88,7 @@ Check: `curl https://www.domustua.com/api/health` → `listingsMode:"realsmart"`
 1. **Logo**: SVG a colori + variante chiara monocromatica + favicon.
 2. **Clip video hero** ottimizzata (mp4 + webm).
 3. **Trustindex** verificato sul **dominio di produzione** + **CID Google** confermato + top recensioni.
-4. **RealSmart**: conferma mapping campi (provincia, classe energetica) + URL foto.
+4. **RealSmart**: conferma mapping campo **provincia** (la classe energetica ora arriva da `<ACE>`) + URL foto.
 5. **Video YouTube**: ID/timestamp definitivi + thumbnail approvate.
 6. **Numero video** reale del canale, se il cliente vuole rimettere la metrica in pagina
    (va prima in `app/lib/site.ts`, con la fonte annotata, poi nel test di content integrity).

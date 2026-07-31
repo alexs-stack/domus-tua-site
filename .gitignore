@@ -47,3 +47,8 @@ next-env.d.ts
 
 # dati lingua tesseract scaricati da scripts/detect-sold.ts (rigenerabili)
 *.traineddata
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
