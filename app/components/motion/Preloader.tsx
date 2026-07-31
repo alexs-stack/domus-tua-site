@@ -139,14 +139,26 @@ export default function Preloader() {
       // Skip: al primo click/tasto si salta dritti all'uscita (mai bloccare).
       // seek() sopprime le callback attraversate: evento e contatore vanno
       // portati a destinazione a mano prima del salto.
+      // ⚠️ Guardia da tenere PRIMA di ogni preventDefault, non dentro skip().
+      // Il difetto che ha reso necessaria questa nota: `onKeySkip` annullava il tasto e
+      // POI chiamava skip(), che usciva subito a intro finita. Ma il listener resta
+      // attaccato a `window` per tutta la vita della pagina, quindi ogni Invio, spazio e
+      // lettera continuava a essere annullato SU TUTTO IL SITO — campo di ricerca e form
+      // contatti compresi, che diventavano impossibili da compilare da tastiera.
+      const introFinita = () => tl.time() >= tl.labels.exit;
+
       const skip = () => {
-        if (tl.time() >= tl.labels.exit) return;
+        if (introFinita()) return;
         if (count) count.textContent = "100";
         fireIntro();
         tl.seek("exit");
+        // A intro saltata i listener non servono più: staccarli subito è la seconda
+        // difesa, indipendente dalla guardia qui sopra.
+        stacca();
       };
       const onPointerSkip = () => skip();
       const onKeySkip = (e: KeyboardEvent) => {
+        if (introFinita()) return;
         if (e.metaKey || e.ctrlKey || e.altKey) return;
         // Solo tasti "di contenuto": F5/DevTools/media key restano al browser.
         const usable =
@@ -157,6 +169,12 @@ export default function Preloader() {
         e.preventDefault();
         skip();
       };
+      const stacca = () => {
+        window.removeEventListener("pointerdown", onPointerSkip);
+        window.removeEventListener("keydown", onKeySkip);
+      };
+      // Anche quando l'intro finisce da sola, senza che nessuno la salti.
+      tl.eventCallback("onComplete", stacca);
       // Se reduced-motion viene attivato DURANTE l'intro: si salta subito.
       const onMediaChange = () => {
         if (!media.matches) skip();
