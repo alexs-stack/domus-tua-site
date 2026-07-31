@@ -6,6 +6,7 @@
 // Entrambi sono difensivi: mai throw verso il chiamante (la route decide il fallback).
 
 import { ANTHROPIC_API_KEY, AI_SEARCH_MODEL, aiParseEnabled } from "./config";
+import { canonicalComune, comuneOf } from "../comune";
 import type { FeatureLabel, ParsedSearch, SearchFacets } from "./types";
 
 const TYPES = ["Appartamento", "Attico", "Villa", "Commerciale", "Terreno"] as const;
@@ -230,11 +231,12 @@ export function parseQueryLocal(query: string, facets: SearchFacets): ParsedSear
   }
 
   // Comune: confine di parola, accent-insensitive, preferendo il nome più lungo (es. "Venegono Inferiore").
+  // Il match usa il nome PULITO (comuneOf): la gente scrive "a Tradate", mai "a Tradate (VA)".
   const qd = deaccent(q);
   const comune = facets.comuni
-    .filter((c) => c !== "Tutti")
-    .filter((c) => new RegExp(`\\b${escapeRe(deaccent(c.toLowerCase()))}\\b`, "i").test(qd))
-    .sort((a, b) => b.length - a.length)[0];
+    .filter((c) => c !== "Tutti" && comuneOf(c))
+    .filter((c) => new RegExp(`\\b${escapeRe(deaccent(comuneOf(c).toLowerCase()))}\\b`, "i").test(qd))
+    .sort((a, b) => comuneOf(b).length - comuneOf(a).length)[0];
   if (comune) out.comune = comune;
 
   // Budget (con direzione: "sotto/fino a" -> tetto, "sopra/oltre/almeno" -> minimo, "tra X e Y" -> intervallo)
@@ -377,10 +379,10 @@ function sanitize(raw: Record<string, unknown>, facets: SearchFacets, query: str
   const type = str(raw.type);
   if (type === "Tutte" || (TYPES as readonly string[]).includes(type)) out.type = type as ParsedSearch["type"];
 
-  const comune = str(raw.comune);
-  if (comune && facets.comuni.some((c) => c.toLowerCase() === comune.toLowerCase())) {
-    out.comune = facets.comuni.find((c) => c.toLowerCase() === comune.toLowerCase());
-  }
+  // Il modello può rispondere con una variante ("tradate", "Tradate (VA)"): la riportiamo
+  // alla chiave esatta della facet, altrimenti il comune viene scartato.
+  const comune = canonicalComune(facets.comuni, str(raw.comune));
+  if (comune) out.comune = comune;
 
   if (typeof raw.maxBudget === "number" && raw.maxBudget > 0) out.maxBudget = Math.round(raw.maxBudget);
   if (typeof raw.minBudget === "number" && raw.minBudget > 0) out.minBudget = Math.round(raw.minBudget);

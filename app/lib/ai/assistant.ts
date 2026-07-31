@@ -3,6 +3,7 @@
 
 import { ANTHROPIC_API_KEY, aiParseEnabled } from "./config";
 import { getVisibleListings } from "../listings";
+import { comuniFacet } from "../comune";
 import type { Property } from "../properties";
 import { parseQuery } from "./parseQuery";
 import { applyFilters, rankResults } from "./rank";
@@ -109,14 +110,9 @@ export async function runAssistant(history: ChatMessage[], locale: Locale): Prom
 
   const listings = await getVisibleListings();
   const bySlug = new Map(listings.map((p) => [p.slug, p]));
-  const comuni = [
-    "Tutti",
-    ...Array.from(new Set(listings.map((p) => p.zone.split(",")[0].trim())))
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, "it")),
-  ];
   const facets: SearchFacets = {
-    comuni,
+    comuni: comuniFacet(listings), // nomi puliti, senza "(VA)": vedi app/lib/comune.ts
+
     types: ["Appartamento", "Attico", "Villa", "Commerciale", "Terreno"],
     featureLabels: FEATURE_LABELS,
   };
