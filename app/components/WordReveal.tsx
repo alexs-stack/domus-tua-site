@@ -16,7 +16,9 @@ type Props = {
 
 /**
  * Rivela un titolo parola-per-parola con risalita morbida.
- * a11y: il testo completo è esposto via aria-label; le parole sono aria-hidden.
+ * a11y: il testo completo vive in una copia solo-per-screen-reader; le parole animate sono
+ * aria-hidden. NON si usa aria-label: su uno <span> (ruolo generico) è un attributo vietato —
+ * lo segnala axe come violazione seria e alcune tecnologie assistive lo ignorano comunque.
  */
 export default function WordReveal({
   text,
@@ -53,11 +55,9 @@ export default function WordReveal({
   const words = text.split(" ");
 
   return (
-    <Tag
-      ref={ref}
-      aria-label={text}
-      className={`word-reveal ${shown ? "is-in" : ""} ${className}`}
-    >
+    <Tag ref={ref} className={`word-reveal ${shown ? "is-in" : ""} ${className}`}>
+      {/* Il titolo per chi legge con uno screen reader: una frase sola, non una parola per volta. */}
+      <span className="sr-only">{text}</span>
       {/* Spazio REALE dopo ogni parola: con gli span inline (mobile, vedi
           globals.css) è l'unica opportunità di a-capo del titolo, e sostituisce
           il vecchio margin-right anche nel layout animato. */}

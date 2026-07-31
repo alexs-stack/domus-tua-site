@@ -15,7 +15,9 @@
     "detect-sold": "npx --yes tsx scripts/detect-sold.ts",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "eval": "node --import tsx scripts/eval.ts",
-    "e2e:assistant": "playwright test --config playwright.assistant.config.ts"
+    "e2e:assistant": "playwright test --config playwright.assistant.config.ts",
+    "test:e2e": "playwright test --config=playwright.site.config.ts",
+    "test:e2e:live": "playwright test --config=playwright.live.config.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.25",
@@ -33,6 +35,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.21",
@@ -40,6 +43,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "^4.12.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "sharp": "^0.35.3",
