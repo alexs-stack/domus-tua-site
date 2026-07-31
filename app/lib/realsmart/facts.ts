@@ -612,10 +612,14 @@ export function factsFromFields(input: FieldFactsInput): PropertyFact[] {
   if (d.mqTerrazzo && d.mqTerrazzo > 0) {
     facts.push(fieldFact("mqTerrazzo", `${d.mqTerrazzo} m²`));
   }
-  if (d.giardino) {
+  // Sui TERRENI il gestionale usa <Giardino>/<mq_giardino> per l'area del lotto: pubblicarli
+  // significherebbe chiamare "giardino privato" un terreno agricolo e ripetere la superficie.
+  const isLand = /terreno/i.test(input.tipologia ?? "");
+  if (d.giardino && !isLand) {
     facts.push(fieldFact("giardino", d.tipoGiardino?.toLowerCase()));
   }
-  if (d.mqGiardino && d.mqGiardino > 0) {
+  // Stessa cifra della superficie commerciale = lo stesso dato scritto due volte.
+  if (d.mqGiardino && d.mqGiardino > 0 && !isLand && d.mqGiardino !== input.mq) {
     facts.push(fieldFact("mqGiardino", `${d.mqGiardino} m²`));
   }
   if (d.box) facts.push(fieldFact("autorimesse"));

@@ -341,3 +341,24 @@ describe("caso reale T447 — dallo XML ai fatti pubblicati", async () => {
     }
   });
 });
+
+describe("factsFromFields — casi che generavano dati fuorvianti", () => {
+  test("su un terreno il lotto non diventa un «giardino privato»", () => {
+    const facts = factsFromFields({
+      tipologia: "Terreno edificabile",
+      mq: 1355,
+      dettagli: { giardino: true, tipoGiardino: "Privato", mqGiardino: 1355 },
+    });
+    assert.equal(fact(facts, "giardino"), undefined);
+    assert.equal(fact(facts, "mqGiardino"), undefined);
+    assert.equal(fact(facts, "superficie")?.value, "1355 m²");
+  });
+
+  test("la superficie del giardino non ripete la superficie commerciale", () => {
+    const same = factsFromFields({ tipologia: "Villa", mq: 300, dettagli: { mqGiardino: 300 } });
+    assert.equal(fact(same, "mqGiardino"), undefined);
+
+    const different = factsFromFields({ tipologia: "Villa", mq: 300, dettagli: { mqGiardino: 800 } });
+    assert.equal(fact(different, "mqGiardino")?.value, "800 m²");
+  });
+});

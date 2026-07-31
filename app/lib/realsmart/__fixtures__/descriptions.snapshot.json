@@ -648,8 +648,7 @@
     "preservazione": 1,
     "fatti": [
       "contratto=Vendita",
-      "giardino=privato",
-      "mqGiardino=1130 m²",
+      "giardino",
       "piano=Terra",
       "superficie=1130 m²",
       "tipologia=Terreno Agr"
@@ -666,8 +665,7 @@
     "preservazione": 1,
     "fatti": [
       "contratto=Vendita",
-      "giardino=privato",
-      "mqGiardino=2230 m²",
+      "giardino",
       "piano=Terra",
       "superficie=2230 m²",
       "tipologia=Terreno Agr"
