@@ -75,6 +75,13 @@ export const Whatsapp = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** Croce di chiusura (lightbox e overlay): stesso tratto delle altre icone. */
+export const Close = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
 export const Menu = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M4 8h16M4 16h16" />

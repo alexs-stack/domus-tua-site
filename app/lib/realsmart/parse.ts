@@ -8,6 +8,7 @@
 // trasforma nella forma grezza RealSmartListingRaw, in modo DIFENSIVO: mai throw su dati
 // sporchi, entry non valide scartate.
 
+import { isAllowedRemoteImage } from "../images";
 import type { RealSmartListingRaw, RealSmartMedia } from "./types";
 
 // ── Helper difensivi ─────────────────────────────────────────────────────────
@@ -80,23 +81,6 @@ function deriveFeatures(im: Record<string, unknown>): string[] {
 }
 
 /**
- * Host consentiti per le immagini. Il feed reale serve tutte le foto da cloud2.realsmart.it;
- * accettiamo il dominio realsmart.it e i suoi sottodomini, in HTTPS, e nient'altro.
- * Deve restare allineato a `images.remotePatterns` in next.config.ts: un URL fuori lista
- * romperebbe next/image a runtime, e accettare host arbitrari dal feed significherebbe far
- * decidere a un sistema esterno da dove il browser scarica risorse.
- */
-function isAllowedImageUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== "https:") return false;
-    return parsed.hostname === "realsmart.it" || parsed.hostname.endsWith(".realsmart.it");
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Provincia dal codice ISTAT del comune: il feed NON espone la provincia, ma espone `<Istat>`.
  * Il codice va portato a sei cifre (il feed omette lo zero iniziale): 12127 → 012127 → 012.
  *
@@ -138,7 +122,7 @@ function mapImmobile(im: Record<string, unknown>): RealSmartListingRaw | null {
 
   const fotoUrls = asArray(isRecord(im.ElencoFoto) ? im.ElencoFoto.Foto : undefined)
     .map((u) => str(u))
-    .filter((u): u is string => !!u && isAllowedImageUrl(u));
+    .filter((u): u is string => !!u && isAllowedRemoteImage(u));
   const media: RealSmartMedia[] = fotoUrls.map((url, i) => ({ url, tipo: "foto", ordine: i }));
 
   return {
