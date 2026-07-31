@@ -65,7 +65,7 @@ Legenda stato:
 | Contenuto | File esatto | Tipo | Stato | Cosa deve fornire il cliente |
 | --- | --- | --- | --- | --- |
 | Ragione sociale, P.IVA, indirizzo | `app/lib/site.ts` (`legal`, `vat`, `address`) | Dati legali | 🟡 Da confermare | Conferma ragione sociale, P.IVA `03836560122` e indirizzo `Corso Bernacchi 91, 21049 Tradate (VA)`. |
-| Telefono / WhatsApp / email | `app/lib/site.ts` (`phone`, `whatsapp`, `email`) | Contatti | 🟡 Da confermare | Conferma numeri (`0331 844898`, WhatsApp `346 6042314`) ed email `info@domustua.com` attivi. |
+| Telefono / WhatsApp / email | `app/lib/site.ts` (`phone`, `whatsapp`, `email`) | Contatti | 🟡 Da confermare | Conferma numeri (`0331 844898`, WhatsApp `346 6042314`) ed email `immobiliare@domustua.it` attivi. |
 | Orari di apertura | **Assenti nel codice** (nessun campo `hours` in `site.ts`) | Orari | 🔴 Da sostituire prima della demo | Orari di apertura reali da aggiungere a `site.ts` e mostrare in `Contact.tsx`/Footer (oggi non esiste il dato). |
 | Social: Instagram, YouTube | `app/lib/site.ts` (`social.instagram`, `social.youtube`) | Link | ✅ Confermato | Canali reali già verificati. |
 | Social: Facebook, TikTok | `app/lib/site.ts` (`social.facebook`, `social.tiktok`) | Link | 🟡 Da confermare | URL indicati come "da confermare" nel commento del file; validare handle esatti (o rimuovere se inattivi). |

@@ -11,7 +11,8 @@
 Due sole API pubbliche, entrambe `POST`, entrambe difensive:
 
 - **`/api/search`** — frase in linguaggio naturale → filtri → ranking. Non scrive nulla.
-- **`/api/lead`** — cattura lead dal form contatti; inoltra al Google Sheet se configurato.
+- **`/api/lead`** — cattura lead dal form contatti; li spedisce via email all'agenzia
+  (nessuna persistenza).
 
 Un terzo endpoint, **`/api/health`** (`GET`), espone solo booleani/enum di stato — **mai segreti**
 (vedi `docs/vercel-live-checklist.md`).

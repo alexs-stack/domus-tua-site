@@ -25,7 +25,9 @@ commentato: `.env.example`.
 
 | Variabile | A cosa serve | Se vuota |
 |---|---|---|
-| `SHEETS_WEBHOOK_URL` | inoltro lead al Google Sheet (Apps Script) | lead non salvati → resta solo WhatsApp |
+| `RESEND_API_KEY` | invio email dei lead | il form **non invia**: mostra WhatsApp e telefono |
+| `LEAD_FROM_EMAIL` | mittente verificato Resend | come sopra: senza mittente non si spedisce |
+| `LEAD_TO_EMAIL` | destinatario dei lead | usa `immobiliare@domustua.it` |
 | `TRUSTINDEX_WIDGET_URL` | override widget recensioni Trustindex | usa il loader ufficiale già in `site.ts` |
 | `INSTAGRAM_WIDGET_URL` | embed feed Instagram | sezione IG con fallback statico |
 | `ANTHROPIC_API_KEY` | parsing frase→filtri (ricerca AI) | parser locale deterministico (funziona comunque) |
@@ -79,8 +81,9 @@ Risposta (esempio — **nessun valore segreto**, solo booleani/enum):
 - **`env.i18nEnabled`** → `false` per la prima presentazione (IT-only). Vedi `docs/client-demo-mode.md`.
 - **`integrations.listingsMode`** → `realsmart` in produzione. Se dice `mock` in prod, gli
   immobili NON sono quelli reali: correggere `NEXT_PUBLIC_USE_REALSMART` o indagare il feed.
-- **`leadWebhookConfigured`** → `true` se i lead vengono salvati sul Google Sheet. Se `false`,
-  i lead arrivano solo via WhatsApp (accettabile, ma da sapere).
+- **`emailLeadConfigured`** → deve essere `true` in produzione: se è `false` il form contatti
+  **non invia niente** e mostra WhatsApp e telefono. È un blocco, non un dettaglio.
+- **`leadRecipientConfigured`** / **`whatsappConfigured`** → destinatario e numero valorizzati.
 - **`trustindexLive`** → `true` se le recensioni Google sono servite dal widget reale.
 - **`heroVideoLive`** → `false` finché non consegnano la clip (oggi hero = poster reale).
 - **`searchAiConfigured` / `semanticRankingConfigured`** → `false` è OK: la ricerca funziona

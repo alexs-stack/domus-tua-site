@@ -14,8 +14,7 @@ import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
 import { ArrowRight, Whatsapp } from "../components/Icons";
 import { SegnoDomusCorner, SegnoDomusBadge, SegnoTick } from "../components/BrandMotif";
-import { site } from "../lib/site";
-import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
+import { buyerSearchWhatsAppUrl } from "../lib/forms/whatsapp";
 import type { Property } from "../lib/properties";
 
 const copy = {
@@ -512,10 +511,7 @@ export default function AcquistaContent({ listings }: { listings: Property[] }) 
   }));
 
   // WhatsApp acquirente precompilato (canale immediato, oltre al form).
-  const buyerWa = buildWhatsAppUrl(
-    site.whatsapp.href,
-    "Ciao Domus Tua, sto cercando casa: vorrei raccontarvi zona, budget e cosa conta per me.",
-  );
+  const buyerWa = buyerSearchWhatsAppUrl();
 
   return (
     <>

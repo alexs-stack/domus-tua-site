@@ -20,7 +20,9 @@ export const site = {
     label: "346 6042314",
     href: "https://wa.me/393466042314?text=Ciao%20Domus%20Tua%2C%20vorrei%20informazioni",
   },
-  email: { label: "info@domustua.com", href: "mailto:info@domustua.com" },
+  // Casella che riceve i lead del sito e a cui scrivono i visitatori (indicata dal cliente).
+  // È anche il destinatario di default di /api/lead — vedi app/lib/forms/email.ts.
+  email: { label: "immobiliare@domustua.it", href: "mailto:immobiliare@domustua.it" },
   // Orari reali (fonte: domustua.com/contatti). Pomeriggio = 14:30 (non 15:00).
   hours: {
     weekdays: "9:00 – 12:30 · 14:30 – 19:00",

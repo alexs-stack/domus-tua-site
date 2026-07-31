@@ -10,8 +10,7 @@ import Contact from "../../components/Contact";
 import DrawOnScroll from "../../components/motion/DrawOnScroll";
 import { SegnoDomusBadge, SegnoDomusCorner, SegnoDomusDivider, SegnoTick } from "../../components/BrandMotif";
 import { ArrowRight, ArrowUpRight, Whatsapp } from "../../components/Icons";
-import { site } from "../../lib/site";
-import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
+import { listingWhatsAppUrl, soldListingWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 import type { Property } from "../../lib/properties";
 import { useLocale } from "../../components/i18n/LocaleProvider";
@@ -289,16 +288,12 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   // Related: solo altre case fornite via props (stessa sorgente). Mai fetch/invenzione.
   const relatedItems = (related ?? []).filter((r) => r.slug !== p.slug).slice(0, 3);
 
-  // WhatsApp precompilato con titolo + riferimento immobile → conversazione già in contesto.
-  const waTalk = buildWhatsAppUrl(
-    site.whatsapp.href,
-    `Ciao Domus Tua, sono interessato/a a "${p.title}"${p.ref ? ` (rif. ${p.ref})` : ""}. Vorrei più informazioni o una visita.`,
-  );
+  // WhatsApp precompilato con titolo, riferimento e URL della scheda: l'agenzia apre subito
+  // l'annuncio giusto invece di dedurlo dal titolo (vedi app/lib/forms/whatsapp.ts).
+  const listingRef = { slug: p.slug, title: p.title, ref: p.ref };
+  const waTalk = listingWhatsAppUrl(listingRef);
   // CTA per immobile venduto: cerco una casa simile.
-  const waSimilar = buildWhatsAppUrl(
-    site.whatsapp.href,
-    `Ciao Domus Tua, "${p.title}" risulta venduto: sto cercando una casa simile, potete aiutarmi?`,
-  );
+  const waSimilar = soldListingWhatsAppUrl(listingRef);
 
   return (
     <main className="flex-1 bg-paper">
@@ -550,9 +545,9 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         </div>
       </section>
 
-      {/* Dalla scheda l'intento parte da "cerco casa" (buyer), il lead porta il
-          riferimento immobile e la zona precompila la zona desiderata. */}
-      <Contact initialIntent="buyer" propertyRef={`${p.title} (${p.slug})`} initialPlace={p.zone} />
+      {/* Dalla scheda l'intento parte da "cerco casa" (buyer), il lead porta lo slug
+          dell'annuncio (nell'email diventa l'URL della scheda) e la zona precompila. */}
+      <Contact initialIntent="buyer" propertySlug={p.slug} initialPlace={p.zone} />
     </main>
   );
 }

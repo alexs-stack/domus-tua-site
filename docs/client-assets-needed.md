@@ -132,11 +132,12 @@ Obiettivo: sito completo, corretto e a norma, pronto per essere pubblicato sul d
 - **Dove:** `public/favicon.ico` (referenziato in `metadata.icons` di `app/layout.tsx`).
 - **Perché:** completa la riconoscibilità del brand nel browser.
 
-### 2.7 Destinazione del form di contatto
-- **Cosa:** dove devono arrivare i messaggi del modulo contatti (email, CRM, servizio esterno) e con
-  quali eventuali chiavi/endpoint.
-- **Dove:** `app/components/Contact.tsx` + variabili d'ambiente su Vercel.
-- **Perché:** senza destinazione confermata, i contatti raccolti al lancio andrebbero persi.
+### 2.7 Invio delle email del form di contatto — ✅ deciso
+- **Cosa:** i messaggi arrivano a `immobiliare@domustua.it`. Serve solo l'accesso al DNS del
+  dominio per verificare il mittente presso il provider email (record SPF/DKIM).
+- **Dove:** `docs/lead-email.md` + variabili `RESEND_API_KEY` / `LEAD_FROM_EMAIL` su Vercel.
+- **Perché:** finché il mittente non è verificato il form non invia, e lo dice all'utente
+  offrendo WhatsApp e telefono.
 
 ---
 

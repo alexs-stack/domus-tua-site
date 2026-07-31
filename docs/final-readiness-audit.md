@@ -42,7 +42,8 @@ cliente seria. Il residuo verso il 10 è quasi tutto **contenuto/asset del clien
   precompilato + blocco fiducia + related + "non è quella giusta".
 - **Recensioni**: riepilogo 4.9/5 · oltre 500, "verificate tramite Trustindex", link a Google;
   widget Trustindex reale se carica sul dominio.
-- **Form contatti** → WhatsApp (+ Google Sheet se `SHEETS_WEBHOOK_URL` configurato).
+- **Form contatti** → email a `immobiliare@domustua.it` (Resend). WhatsApp e telefono restano
+  canali paralleli, mostrati anche quando l'invio fallisce.
 - **Mobile** e navigazione.
 
 ## 2. Cosa va INQUADRATO come placeholder (dirlo, con onestà)
@@ -76,7 +77,7 @@ Il **badge di anteprima** (in basso a sx) + la sua checklist lo ricordano in tem
 | `NEXT_PUBLIC_USE_REALSMART` | assente/≠`false` (live) | `true` se feed stabile |
 | `NEXT_PUBLIC_PREVIEW_BADGE` | `false` | `true` |
 | `NEXT_PUBLIC_ENABLE_I18N` | `false` | `false` |
-| `SHEETS_WEBHOOK_URL` | impostato (persistenza lead) | opzionale |
+| `RESEND_API_KEY` + `LEAD_FROM_EMAIL` | impostati (il form invia davvero) | obbligatori |
 | `TRUSTINDEX_WIDGET_URL` / `INSTAGRAM_WIDGET_URL` | opzionale | opzionale |
 | `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` | opzionale (ricerca funziona senza) | opzionale |
 

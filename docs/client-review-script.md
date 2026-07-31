@@ -34,7 +34,7 @@ In anteprima (build con `NEXT_PUBLIC_PREVIEW_BADGE=true`) in basso a sinistra co
 piccolo badge **"Preview — contenuti in verifica"**. Cliccandolo si apre una **checklist
 interna** che dice, in tempo reale, cosa è già collegato e cosa è ancora demo: **Logo**,
 **Immobili** (RealSmart live vs mock), **Recensioni** (Trustindex live vs fallback),
-**Hero video** (video vs poster), **Lead** (Google Sheet + WhatsApp / solo WhatsApp).
+**Hero video** (video vs poster), **Lead** (email attiva / da configurare).
 
 Regola d'oro con il cliente: **non spacciare mai il demo per reale**. Quando si arriva su una
 parte ancora provvisoria, dire una frase semplice e trasparente, ad esempio:
