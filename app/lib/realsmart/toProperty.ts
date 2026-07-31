@@ -50,6 +50,7 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     excerpt: n.excerpt || n.title,
     description: n.descriptionParagraphs,
     features: n.features,
+    facts: n.facts,
     energyClass: n.energyClass,
     sold,
     ref: n.sourceRef.riferimento,

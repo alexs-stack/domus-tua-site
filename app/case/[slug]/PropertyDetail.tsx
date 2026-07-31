@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import PropertyGallery from "../../components/PropertyGallery";
+import PropertyFacts from "./PropertyFacts";
 import PropertyCard from "../../components/PropertyCard";
 import ListingsGrid from "../../components/ListingsGrid";
 import Badge from "../../components/primitives/Badge";
@@ -20,6 +21,15 @@ const copy = {
   it: {
     backToAll: "Tutte le case",
     keyFacts: "Dati principali",
+    factGroups: {
+      principali: "Dati principali",
+      esterni: "Esterni e pertinenze",
+      comfort: "Comfort e impianti",
+      spazi: "Spazi",
+      forza: "Punti di forza",
+    },
+    moreFacts: "Altre {n} voci",
+    moreFactsOne: "Un'altra voce",
     description: "Descrizione",
     features: "Caratteristiche",
     specSqm: "Superficie",
@@ -59,6 +69,15 @@ const copy = {
   en: {
     backToAll: "All properties",
     keyFacts: "Key facts",
+    factGroups: {
+      principali: "Key facts",
+      esterni: "Outdoor & extras",
+      comfort: "Comfort & systems",
+      spazi: "Spaces",
+      forza: "Highlights",
+    },
+    moreFacts: "{n} more",
+    moreFactsOne: "1 more",
     description: "Description",
     features: "Features",
     specSqm: "Surface",
@@ -98,6 +117,15 @@ const copy = {
   fr: {
     backToAll: "Tous les biens",
     keyFacts: "Données clés",
+    factGroups: {
+      principali: "Données clés",
+      esterni: "Extérieurs et dépendances",
+      comfort: "Confort et installations",
+      spazi: "Espaces",
+      forza: "Points forts",
+    },
+    moreFacts: "{n} autres",
+    moreFactsOne: "1 autre",
     description: "Description",
     features: "Caractéristiques",
     specSqm: "Surface",
@@ -137,6 +165,15 @@ const copy = {
   de: {
     backToAll: "Alle Immobilien",
     keyFacts: "Eckdaten",
+    factGroups: {
+      principali: "Eckdaten",
+      esterni: "Außenbereiche und Zubehör",
+      comfort: "Komfort und Anlagen",
+      spazi: "Räume",
+      forza: "Highlights",
+    },
+    moreFacts: "{n} weitere",
+    moreFactsOne: "1 weitere",
     description: "Beschreibung",
     features: "Ausstattung",
     specSqm: "Wohnfläche",
@@ -176,6 +213,15 @@ const copy = {
   es: {
     backToAll: "Todas las propiedades",
     keyFacts: "Datos principales",
+    factGroups: {
+      principali: "Datos principales",
+      esterni: "Exteriores y anexos",
+      comfort: "Confort e instalaciones",
+      spazi: "Espacios",
+      forza: "Puntos fuertes",
+    },
+    moreFacts: "{n} más",
+    moreFactsOne: "1 más",
     description: "Descripción",
     features: "Características",
     specSqm: "Superficie",
@@ -221,18 +267,24 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   const { locale, d } = useLocale();
   const c = copy[locale];
 
-  // Dati reali RealSmart: Terreno/Commerciale hanno locali/camere/bagni a "—".
-  // Filtriamo gli spec vuoti o "—" così la striscia non mostra clutter di trattini.
-  // Tipologia sopravvive sempre (union type, mai vuoto); il prezzo è renderizzato a parte.
+  // Striscia sotto la gallery: SOLO i quattro numeri che si leggono a colpo d'occhio.
+  // Tipologia, piano, contratto e classe energetica vivono nel box "Dati principali" della
+  // sidebar: ripeterli qui era la duplicazione più evidente della vecchia scheda.
+  // Il filtro su "—" resta perché Terreno/Commerciale non hanno locali, camere o bagni.
   const specs = [
-    { label: c.specType, value: p.type },
     { label: c.specSqm, value: p.sqm },
     { label: c.specRooms, value: p.rooms },
     { label: c.specBeds, value: p.beds },
     { label: c.specBaths, value: p.baths },
-    { label: c.specStatus, value: p.status },
-    { label: c.specEnergy, value: p.energyClass },
-  ].filter((s) => s.label === c.specType || (s.value && s.value !== "—"));
+  ].filter((s) => s.value && s.value !== "—");
+
+  // Etichetta del <details> quando un gruppo supera le voci immediatamente visibili.
+  const moreFactsLabel = (n: number) =>
+    n === 1 ? c.moreFactsOne : c.moreFacts.replace("{n}", String(n));
+
+  // Con i dati live ogni caratteristica è già distribuita nei box: la vecchia lista
+  // "Caratteristiche" sotto la descrizione resta solo per le fixture demo, che non hanno fatti.
+  const hasFacts = (p.facts?.length ?? 0) > 0;
 
   // Specs strip: micro-ingresso dei soli VALORI (dd) della striscia sotto la
   // gallery. I numeri restano nell'HTML SSR: nascosti solo post-idratazione e
@@ -348,11 +400,6 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
             <h1 className="mt-2 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
               {p.title}
             </h1>
-            {p.ref && (
-              <p className="mt-2 text-sm font-medium text-stone">
-                {c.refLabel} {p.ref}
-              </p>
-            )}
           </div>
           <span className="tnum font-display text-4xl font-medium text-ink">{p.price}</span>
         </div>
@@ -377,20 +424,70 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         </div>
       </div>
 
-      {/* Content + sticky card */}
+      {/* Contenuti: narrativa a sinistra, dati strutturati e conversione a destra.
+          L'ordine su mobile (aside prima, descrizione poi, blocco fiducia in coda) è dichiarato
+          con `order-*`; su desktop la colonna sinistra occupa entrambe le righe della griglia,
+          così la card di conversione e il blocco fiducia restano incolonnati a destra. */}
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr] lg:gap-16">
-          <div>
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr] lg:items-start lg:gap-16">
+          {/* ── Colonna destra: conversione + box dei dati ───────────────────────── */}
+          <aside className="order-1 flex flex-col gap-4 lg:order-none lg:col-start-2 lg:row-start-1">
+            {/* Solo QUESTA parte è sticky: un aside intero più alto del viewport diventerebbe
+                irraggiungibile. I box sotto scorrono normalmente, senza scroll interni. */}
+            <div className="rounded-[2rem] border border-line bg-cream p-7 lg:sticky lg:top-28">
+              {p.badges.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {p.badges.map((b) => (
+                    <Badge key={b} variant="outline">
+                      {b}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {p.ref && (
+                <p className={`text-sm font-medium text-stone ${p.badges.length > 0 ? "mt-5" : ""}`}>
+                  {c.refLabel} {p.ref}
+                </p>
+              )}
+
+              <a
+                href="#contatti"
+                className="group mt-5 flex items-center justify-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-soft hover:bg-red-dark active:scale-[0.98]"
+              >
+                {c.requestVisit}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
+              <a
+                href={waTalk}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-3.5 text-sm font-semibold text-ink transition-all duration-300 ease-soft hover:border-red hover:text-red active:scale-[0.98]"
+              >
+                <Whatsapp className="h-5 w-5 text-red" /> {c.whatsapp}
+              </a>
+            </div>
+
+            {/* Box dei dati: uno per gruppo con contenuto, mai box vuoti, mai "—". */}
+            <PropertyFacts facts={p.facts} labels={c.factGroups} moreLabel={moreFactsLabel} />
+          </aside>
+
+          {/* ── Colonna sinistra: il racconto ─────────────────────────────────────── */}
+          <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-1 lg:row-span-2">
             <h2 className="font-display text-2xl font-medium tracking-tight text-ink">
               {c.description}
             </h2>
-            <div className="mt-4 flex flex-col gap-4 text-[1rem] leading-relaxed text-graphite">
+            <div className="mt-4 flex max-w-[68ch] flex-col gap-4 text-[1rem] leading-relaxed text-graphite">
               {p.description.map((para, i) => (
                 <p key={i}>{para}</p>
               ))}
             </div>
 
-            {p.features.length > 0 && (
+            {/* Fallback per le fixture demo, che non hanno fatti strutturati: con i dati live
+                queste voci sono già distribuite nei box e la lista non viene renderizzata. */}
+            {!hasFacts && p.features.length > 0 && (
               <>
                 <h2 className="mt-12 font-display text-2xl font-medium tracking-tight text-ink">
                   {c.features}
@@ -398,7 +495,10 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                 <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-3 text-[0.95rem] text-graphite">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
+                      <span
+                        aria-hidden
+                        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
+                      >
                         <SegnoTick className="h-3 w-3" />
                       </span>
                       {f}
@@ -415,16 +515,19 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                 <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
               </DrawOnScroll>
               <SegnoDomusBadge>{c.safetyEyebrow}</SegnoDomusBadge>
-              <h3 className="mt-4 max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-ink balance">
+              <h2 className="mt-4 max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-ink balance">
                 {c.safetyTitle}
-              </h3>
+              </h2>
               <p className="mt-3 max-w-xl text-[0.98rem] leading-relaxed text-graphite">
                 {c.safetyText}
               </p>
               <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
                 {c.safetyPoints.map((point) => (
                   <li key={point} className="inline-flex items-center gap-2 text-[0.9rem] text-ink">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
+                    <span
+                      aria-hidden
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
+                    >
                       <SegnoTick className="h-3 w-3" />
                     </span>
                     {point}
@@ -441,66 +544,25 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
             </div>
           </div>
 
-          {/* Sticky card */}
-          <aside className="lg:sticky lg:top-28 lg:self-start">
-            <div className="rounded-[2rem] border border-line bg-cream p-7 pb-24 sm:pb-7">
-              <div className="flex flex-wrap gap-2">
-                {p.badges.map((b) => (
-                  <Badge key={b} variant="outline">
-                    {b}
-                  </Badge>
-                ))}
-              </div>
-
-              <p className="tnum mt-5 font-display text-3xl font-medium text-ink">{p.price}</p>
-
-              <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-line pt-6">
-                {specs.map((s) => (
-                  <div key={s.label}>
-                    <dt className="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-stone">
-                      {s.label}
-                    </dt>
-                    <dd className="mt-1 text-sm font-medium text-ink">{s.value}</dd>
-                  </div>
-                ))}
-              </dl>
-
-              <a
-                href="#contatti"
-                className="group mt-7 flex items-center justify-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-soft hover:bg-red-dark active:scale-[0.98]"
-              >
-                {c.requestVisit}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
-              <a
-                href={waTalk}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-3.5 text-sm font-semibold text-ink transition-all duration-300 ease-soft hover:border-red hover:text-red active:scale-[0.98]"
-              >
-                <Whatsapp className="h-5 w-5 text-red" /> {c.whatsapp}
-              </a>
-
-              {/* Blocco fiducia: accompagnamento Domus Tua in ogni fase (documenti → rogito). */}
-              <div className="mt-6 border-t border-line pt-5">
-                <p className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-stone">
-                  {c.assistTitle}
-                </p>
-                <ul className="mt-3 flex flex-col gap-2.5">
-                  {c.assistPoints.map((point) => (
-                    <li key={point} className="flex items-start gap-2.5 text-[0.9rem] text-graphite">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red">
-                        <SegnoTick className="h-3 w-3" />
-                      </span>
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </aside>
+          {/* ── Elemento secondario finale della sidebar ──────────────────────────── */}
+          <div className="order-3 rounded-[2rem] border border-line bg-paper p-6 lg:order-none lg:col-start-2 lg:row-start-2">
+            <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-stone">
+              {c.assistTitle}
+            </h2>
+            <ul className="mt-3 flex flex-col gap-2.5">
+              {c.assistPoints.map((point) => (
+                <li key={point} className="flex items-start gap-2.5 text-[0.9rem] text-graphite">
+                  <span
+                    aria-hidden
+                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
+                  >
+                    <SegnoTick className="h-3 w-3" />
+                  </span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
