@@ -23,7 +23,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22, non 20: `node --test` espande i glob solo da Node 21 in poi, e lo script di
+          # test usa "app/**/__tests__/*.test.ts". Su 20 falliva con "Could not find".
+          # Non se n'era accorto nessuno perché la CI non eseguiva i test: lo step è nuovo.
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
