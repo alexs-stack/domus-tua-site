@@ -17,7 +17,9 @@
     "eval": "node --import tsx scripts/eval.ts",
     "e2e:assistant": "playwright test --config playwright.assistant.config.ts",
     "test:e2e": "playwright test --config=playwright.site.config.ts",
-    "test:e2e:live": "playwright test --config=playwright.live.config.ts"
+    "test:e2e:live": "playwright test --config=playwright.live.config.ts",
+    "perf:report": "tsx scripts/perf-report.ts",
+    "lighthouse": "lhci autorun"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.25",
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.21",

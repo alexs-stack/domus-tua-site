@@ -9,9 +9,7 @@ import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
 import SmoothScroll from "./components/motion/SmoothScroll";
-import Preloader from "./components/motion/Preloader";
-import PageTransition from "./components/motion/PageTransition";
-import Cursor from "./components/motion/Cursor";
+import { ChromeMount, PreloaderMount } from "./components/motion/ChromeMount";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
 // Anti-flash del preloader: marca <html data-preloader> PRIMA del primo paint,
@@ -19,8 +17,9 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // su mobile l'intro costerebbe l'LCP della prima visita (l'overlay ritarda il
 // primo paint utile) e la filosofia del layer è "mobile semplificato".
 // Senza JS l'attributo non esiste mai → overlay display:none (globals.css).
-// Failsafe a 8s: se il bundle non idrata mai, l'attributo va rimosso comunque.
-const preloaderBootScript = `try{if(!sessionStorage.getItem("dt-intro-seen")&&matchMedia("(prefers-reduced-motion: no-preference)").matches&&matchMedia("(min-width: 768px)").matches){document.documentElement.setAttribute("data-preloader","");setTimeout(function(){document.documentElement.removeAttribute("data-preloader")},8000)}}catch(e){}`;
+// Failsafe a 2,5s: se il bundle non idrata mai, l'attributo va rimosso comunque. Era 8s, e
+// su una connessione lenta teneva il sipario (e quindi l'LCP) fino a 8 secondi buoni.
+const preloaderBootScript = `try{if(!sessionStorage.getItem("dt-intro-seen")&&matchMedia("(prefers-reduced-motion: no-preference)").matches&&matchMedia("(min-width: 768px)").matches){document.documentElement.setAttribute("data-preloader","");setTimeout(function(){document.documentElement.removeAttribute("data-preloader")},2500)}}catch(e){}`;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -153,13 +152,12 @@ export default function RootLayout({
         />
         <div className="grain" aria-hidden />
         <SmoothScroll />
-        <Preloader />
+        <PreloaderMount />
         <LocaleProvider>
           {/* Dentro LocaleProvider: sipario e cursore usano stringhe tradotte
               (useDict). Il posizionamento è fixed, quindi la posizione nel
               tree non cambia nulla di visivo. */}
-          <PageTransition />
-          <Cursor />
+          <ChromeMount />
           <div id="main" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
             {children}
           </div>

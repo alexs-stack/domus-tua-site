@@ -1,12 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
-import HoverDistort from "./motion/HoverDistort";
+// La distorsione liquida usa WebGL (ogl): il modulo arriva solo quando il componente entra in
+// scena, e HoverDistort stesso non inizializza niente su mobile, con reduced motion o senza
+// puntatore fine. Importarlo staticamente lo faceva finire nel chunk condiviso con GSAP, cioè
+// nel primo caricamento di ogni pagina.
+const HoverDistort = dynamic(() => import("./motion/HoverDistort"), { ssr: false });
 import Atmosphere from "./motion/Atmosphere";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";

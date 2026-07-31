@@ -88,8 +88,17 @@ export default function HoverDistort({ children, className = "" }: Props) {
       const mm = gsap.matchMedia();
 
       mm.add(`${MQ.motionOk} and ${MQ.finePointer} and (min-width: 1024px)`, () => {
-        const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+        // Effetto costoso: si accende solo dove ha senso. Oltre a reduced motion, puntatore
+        // fine e larghezza desktop (i gate della matchMedia qui sopra), si rinuncia su
+        // connessioni a consumo ridotto e su macchine deboli — un canvas WebGL a tutto schermo
+        // su due core con 4 GB di RAM costa più di quanto valga.
+        const nav = navigator as Navigator & {
+          connection?: { saveData?: boolean };
+          deviceMemory?: number;
+        };
         if (nav.connection?.saveData) return;
+        if ((nav.deviceMemory ?? 8) < 4) return;
+        if ((nav.hardwareConcurrency ?? 8) < 4) return;
 
         let cancelled = false;
         let cleanupGl: (() => void) | null = null;

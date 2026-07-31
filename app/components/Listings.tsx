@@ -4,11 +4,12 @@ import ListingsGrid from "./ListingsGrid";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
 import { getAvailableListings } from "../lib/listings";
+import { toGridProperty } from "../lib/properties";
 
 export default async function Listings() {
   // Vetrina della home: SOLO immobili disponibili. Prima si prendevano i primi tre del feed
   // così com'erano, quindi un venduto in cima alla lista RealSmart finiva tra le proposte.
-  const featured = (await getAvailableListings()).slice(0, 3);
+  const featured = (await getAvailableListings()).slice(0, 3).map(toGridProperty);
   return (
     <section id="case" className="relative bg-cream">
       {/* Aria: il luogo in filigrana (nome proprio, identico in ogni lingua) */}

@@ -3,6 +3,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import { getVisibleListings } from "../lib/listings";
+import { toGridProperty } from "../lib/properties";
 import AcquistaContent from "./AcquistaContent";
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export const metadata: Metadata = {
 };
 
 export default async function AcquistaPage() {
-  const listings = await getVisibleListings();
+  // Alla griglia servono i dati della scheda, non il testo lungo né la galleria: quello che
+  // non si passa non viene serializzato nell'HTML (vedi toGridProperty).
+  const listings = (await getVisibleListings()).map(toGridProperty);
   return (
     <>
       <Header />

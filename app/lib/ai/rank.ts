@@ -7,7 +7,7 @@ import { unstable_cache } from "next/cache";
 import { getVisibleListings } from "../listings";
 import { matchesComune } from "../comune";
 import { isAvailable } from "../availability";
-import type { Property } from "../properties";
+import type { GridProperty, Property } from "../properties";
 import { embed, cosine } from "./embeddings";
 import { semanticEnabled } from "./config";
 import type { ParsedSearch } from "./types";
@@ -23,18 +23,20 @@ const FEATURE_MATCH: Record<string, string[]> = {
   "Aria condizionata": ["aria condizionata", "climatizz"],
 };
 
-function roomsNum(p: Property) {
+function roomsNum(p: Pick<Property, "rooms">) {
   return parseInt(p.rooms, 10) || 0;
 }
-function sqmNum(p: Property) {
+function sqmNum(p: Pick<Property, "sqm">) {
   return parseInt(p.sqm, 10) || 0; // "120 m²" -> 120; "—" -> 0
 }
-function haystack(p: Property) {
+function haystack(p: Pick<Property, "features" | "excerpt" | "badges">) {
   return `${p.features.join(" ")} ${p.excerpt} ${p.badges.join(" ")}`.toLowerCase();
 }
 
 /** Applica i filtri strutturati agli immobili (stessa semantica del client). */
-export function applyFilters(properties: Property[], f: ParsedSearch): Property[] {
+// Generico sui campi: accetta sia l'immobile completo sia la proiezione da griglia
+// (app/lib/properties.ts → GridProperty), senza duplicare la logica dei filtri.
+export function applyFilters<T extends GridProperty>(properties: T[], f: ParsedSearch): T[] {
   return properties.filter((p) => {
     if (!isAvailable(p)) return false; // la ricerca (anche AI) mostra solo immobili disponibili
     if (f.contract && f.contract !== "Tutte" && p.status !== f.contract) return false;
@@ -58,7 +60,7 @@ export function applyFilters(properties: Property[], f: ParsedSearch): Property[
 }
 
 /** Testo rappresentativo di un immobile per l'embedding. */
-function listingText(p: Property): string {
+function listingText(p: Pick<Property, "title" | "type" | "zone" | "excerpt" | "features">): string {
   return `${p.title}. ${p.type} a ${p.zone}. ${p.excerpt} ${p.features.join(", ")}`.trim();
 }
 
@@ -86,7 +88,10 @@ export const getListingVectors = unstable_cache(loadListingVectors, ["listing-ve
 });
 
 /** Ranking per parole chiave: quante keyword compaiono nel testo dell'immobile. Stabile. */
-function rankByKeywords(candidates: Property[], keywords: string[]): string[] {
+function rankByKeywords(
+  candidates: Pick<Property, "slug" | "title" | "type" | "zone" | "excerpt" | "features">[],
+  keywords: string[],
+): string[] {
   const kws = keywords.map((k) => k.toLowerCase()).filter((k) => k.length > 2);
   if (!kws.length) return candidates.map((p) => p.slug);
   const scored = candidates.map((p, i) => {
@@ -104,7 +109,7 @@ function rankByKeywords(candidates: Property[], keywords: string[]): string[] {
  * Prova il ranking semantico (embeddings); se non disponibile, usa le parole chiave.
  */
 export async function rankResults(
-  candidates: Property[],
+  candidates: Pick<Property, "slug" | "title" | "type" | "zone" | "excerpt" | "features">[],
   parsed: ParsedSearch,
 ): Promise<{ slugs: string[]; semantic: boolean }> {
   const query = (parsed.semanticQuery || parsed.keywords?.join(" ") || "").trim();
