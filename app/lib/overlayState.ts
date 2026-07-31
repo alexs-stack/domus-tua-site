@@ -1,42 +1,66 @@
 "use client";
 
-// Stato "c'è un pannello a schermo intero aperto?" — condiviso tra chrome del sito.
+// Stato "c'è un pannello sopra la pagina, adesso?" — condiviso tra chrome del sito.
 //
-// Perché esiste: il menu mobile (`Header`, z-40) e il banner cookie (`CookieConsent`, z-60)
-// sono entrambi `fixed` e vivono in rami diversi del layout. Aperti insieme, il banner copre
-// le CTA in fondo al menu e i due focus trap si contendono il Tab. Nessuno dei due componente
-// può "vedere" l'altro, quindi lo stato passa da qui.
+// Perché esiste: il menu mobile (`Header`), il banner cookie (`CookieConsent`) e l'assistente
+// (`Assistant`) sono tutti `fixed` e vivono in rami diversi del layout. Aperti insieme si
+// coprono a vicenda e aprono due focus trap che si contendono il Tab. Nessuno dei tre può
+// "vedere" gli altri, quindi lo stato passa da qui.
+//
+// Registro per nome, non un booleano: due pannelli possono chiudersi in ordine qualsiasi senza
+// che il conto si sfasi. Chi deve farsi da parte davanti a qualunque pannello guarda
+// `useOverlayOpen()`; chi deve evitarne UNO preciso passa il nome.
 //
 // Stesso pattern di INTRO_EVENT in components/motion/Preloader.tsx: un evento sul window più
 // un getter sincrono, nessuno store, nessun context da attraversare.
 
 import { useEffect, useState } from "react";
 
-export const MENU_OPEN_EVENT = "dt:menu-open";
+/** Pannelli che si annunciano qui. */
+export type OverlayName = "menu" | "consent" | "assistant";
 
-let menuOpen = false;
+export const OVERLAY_EVENT = "dt:overlay";
 
-/** Vero se un pannello a schermo intero è aperto adesso. */
-export function isMenuOpen(): boolean {
-  return menuOpen;
+const openPanels = new Set<OverlayName>();
+
+/** Vero se il pannello indicato è aperto; senza argomento, se ne è aperto almeno uno. */
+export function isOverlayOpen(name?: OverlayName): boolean {
+  return name ? openPanels.has(name) : openPanels.size > 0;
 }
 
-/** Da chiamare all'apertura e alla chiusura del menu a schermo intero. */
-export function setMenuOpen(value: boolean): void {
-  if (menuOpen === value) return;
-  menuOpen = value;
-  window.dispatchEvent(new CustomEvent<boolean>(MENU_OPEN_EVENT, { detail: value }));
+/** Da chiamare all'apertura e alla chiusura di un pannello. */
+export function setOverlayOpen(name: OverlayName, value: boolean): void {
+  if (openPanels.has(name) === value) return;
+  if (value) openPanels.add(name);
+  else openPanels.delete(name);
+  window.dispatchEvent(new CustomEvent<OverlayName>(OVERLAY_EVENT, { detail: name }));
 }
 
-/** Stato reattivo per chi deve farsi da parte mentre il menu è aperto. */
-export function useMenuOpen(): boolean {
-  const [open, setOpen] = useState(false);
+/** Stato reattivo per chi deve farsi da parte mentre un pannello è aperto. */
+export function useOverlayOpen(name?: OverlayName): boolean {
+  const [value, setValue] = useState(false);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setOpen(isMenuOpen());
-    const onChange = (e: Event) => setOpen((e as CustomEvent<boolean>).detail);
-    window.addEventListener(MENU_OPEN_EVENT, onChange);
-    return () => window.removeEventListener(MENU_OPEN_EVENT, onChange);
-  }, []);
-  return open;
+    const sync = () => setValue(isOverlayOpen(name));
+    sync();
+    window.addEventListener(OVERLAY_EVENT, sync);
+    return () => window.removeEventListener(OVERLAY_EVENT, sync);
+  }, [name]);
+  return value;
+}
+
+// ── Nomi storici ────────────────────────────────────────────────────────────────────────
+// Il menu a schermo intero è nato prima del registro: i suoi chiamanti restano invariati.
+
+export const MENU_OPEN_EVENT = OVERLAY_EVENT;
+
+export function isMenuOpen(): boolean {
+  return isOverlayOpen("menu");
+}
+
+export function setMenuOpen(value: boolean): void {
+  setOverlayOpen("menu", value);
+}
+
+export function useMenuOpen(): boolean {
+  return useOverlayOpen("menu");
 }

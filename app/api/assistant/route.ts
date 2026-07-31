@@ -1,5 +1,10 @@
 import { runAssistant, type AssistantEvent, type ChatMessage } from "../../lib/ai/assistant";
-import { rateLimit, clientIp, ASSISTANT_LIMIT } from "../../lib/security/rateLimit";
+import {
+  rateLimit,
+  clientIp,
+  ASSISTANT_LIMIT,
+  ASSISTANT_BURST_LIMIT,
+} from "../../lib/security/rateLimit";
 import { locales, type Locale } from "../../lib/i18n/dictionaries";
 
 // Assistente conversazionale. Il client invia la cronologia, il server esegue il turno e
@@ -30,9 +35,30 @@ function errorStream(event: AssistantEvent, status = 200): Response {
   });
 }
 
+/**
+ * Ripulisce il testo che arriva dal client.
+ *
+ * Toglie i caratteri di controllo (inclusi quelli invisibili che si usano per nascondere
+ * istruzioni dentro una frase apparentemente innocua) e comprime le righe vuote a raffica.
+ * NON riscrive il contenuto: quello che la persona ha scritto resta quello che il modello
+ * legge — le difese contro le istruzioni ostili stanno nel system prompt e nei ruoli, non in
+ * una lista di parole proibite, che si aggira e basta.
+ */
+function sanitize(text: string): string {
+  return text
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, " ")
+    // Formattatori invisibili: zero-width, bidi override, word joiner.
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export async function POST(req: Request) {
   // Rate limit per IP: un assistente è una risorsa costosa esposta senza autenticazione.
-  const rl = rateLimit(`assistant:${clientIp(req)}`, ASSISTANT_LIMIT);
+  // Due finestre: una lunga contro il consumo, una corta contro la raffica.
+  const ip = clientIp(req);
+  const burst = rateLimit(`assistant-burst:${ip}`, ASSISTANT_BURST_LIMIT);
+  const rl = burst.ok ? rateLimit(`assistant:${ip}`, ASSISTANT_LIMIT) : burst;
   if (!rl.ok) {
     return new Response(sse({ type: "error", reason: "provider-error" }), {
       status: 429,
@@ -77,7 +103,7 @@ export async function POST(req: Request) {
     )
     .map((m): ChatMessage => ({
       role: m.role === "assistant" ? "assistant" : "user",
-      content: m.content.slice(0, MAX_LEN),
+      content: sanitize(m.content.slice(0, MAX_LEN)),
     }))
     .filter((m) => m.content.trim().length > 0)
     .slice(-MAX_MESSAGES);

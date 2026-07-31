@@ -24,7 +24,13 @@ import {
   assistantConfigured,
 } from "./config";
 import { buildAssistantSystem } from "./knowledge";
-import { ASSISTANT_TOOLS, buildToolContext, runTool, type ListingCard } from "./tools";
+import {
+  ASSISTANT_TOOLS,
+  buildToolContext,
+  runTool,
+  type ListingCard,
+  type ToolContext,
+} from "./tools";
 import type { Locale } from "../i18n/dictionaries";
 
 export type { ListingCard } from "./tools";
@@ -38,6 +44,8 @@ export type AssistantFailure = "not-configured" | "provider-error" | "timeout" |
 export type AssistantEvent =
   | { type: "text"; text: string }
   | { type: "listings"; listings: ListingCard[] }
+  /** Strumento invocato in questo turno. Serve agli eval; il client lo ignora. */
+  | { type: "tool"; name: string }
   | { type: "done" }
   | { type: "error"; reason: AssistantFailure };
 
@@ -70,11 +78,14 @@ function makeClient(): Anthropic {
  * @param history cronologia della sessione, dal client (non viene mai persistita)
  * @param locale  lingua di default del sito
  * @param signal  abort del client: chiudere la scheda o premere "interrompi" ferma il turno
+ * @param ctx     contesto degli strumenti; di default gli immobili live. Lo passano gli eval,
+ *                che devono girare su un insieme fisso e non sul feed del giorno.
  */
 export async function* runAssistant(
   history: ChatMessage[],
   locale: Locale,
   signal?: AbortSignal,
+  ctx?: ToolContext,
 ): AsyncGenerator<AssistantEvent> {
   // Ogni fallimento dice prima cosa fare (filtri, WhatsApp, telefono) e poi dichiara l'errore:
   // chi legge deve trovarsi davanti una via d'uscita, non un messaggio tecnico.
@@ -88,7 +99,7 @@ export async function* runAssistant(
 
   const client = makeClient();
   const system = buildAssistantSystem(locale);
-  const ctx = await buildToolContext();
+  const toolCtx = ctx ?? (await buildToolContext());
 
   const messages: Anthropic.MessageParam[] = history
     .slice(-ASSISTANT_MAX_HISTORY)
@@ -173,7 +184,8 @@ export async function* runAssistant(
     messages.push({ role: "assistant", content: message.content });
     const results: Anthropic.ToolResultBlockParam[] = [];
     for (const tu of toolUses) {
-      const outcome = await runTool(tu.name, tu.input, ctx);
+      yield { type: "tool", name: tu.name };
+      const outcome = await runTool(tu.name, tu.input, toolCtx);
       if (outcome.listings) shownListings = outcome.listings;
       results.push({
         type: "tool_result",

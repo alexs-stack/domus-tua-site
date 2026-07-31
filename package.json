@@ -7,12 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p e2e",
     "test": "node --import tsx --test \"app/**/__tests__/*.test.ts\" && npm run test:parser",
     "test:parser": "tsx scripts/test-parser.ts",
     "detect-sold": "npx --yes tsx scripts/detect-sold.ts",
     "check:realsmart": "tsx scripts/check-realsmart-live.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "eval:assistant": "tsx scripts/eval-assistant.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
@@ -29,6 +31,7 @@
     "resend": "^6.18.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.21",
     "@types/leaflet.markercluster": "^1.5.6",

@@ -4,6 +4,9 @@ Backend dell'assistente di `app/components/Assistant.tsx`. Risponde in italiano 
 quattro lingue del sito), cerca sugli immobili **live** RealSmart, spiega solo contenuti
 verificati di Domus Tua e passa la mano a email / WhatsApp / telefono quando serve una persona.
 
+L'interfaccia, la sicurezza applicata e i cento eval stanno in
+[assistant-ui-e-eval.md](assistant-ui-e-eval.md).
+
 **Non salva niente.** La conversazione vive nel client e viaggia a ogni richiesta: nessun
 database, nessun gestionale, nessun log del contenuto dei messaggi.
 
@@ -110,6 +113,8 @@ sensato + contatto umano.
 | Difesa | Valore | Dove |
 |---|---|---|
 | Rate limit per IP | 30 richieste / 10 min → 429 + `retry-after` | `rateLimit.ts` (`ASSISTANT_LIMIT`) |
+| Argine anti-raffica | 6 richieste / 30 s | `rateLimit.ts` (`ASSISTANT_BURST_LIMIT`) |
+| Sanificazione input | caratteri di controllo e invisibili rimossi | `route.ts` (`sanitize`) |
 | Payload massimo | 64 KB → 413 | `route.ts` |
 | Messaggi accettati | ultimi 24, 1000 caratteri l'uno | `route.ts` |
 | Cronologia inviata al modello | ultimi 12 turni | `ASSISTANT_MAX_HISTORY` |
@@ -135,11 +140,15 @@ passaggio obbligato. Il testo già arrivato prima di un errore non viene buttato
 
 ## 6. Test
 
-`app/lib/__tests__/assistant.test.ts` — 29 test, senza chiamare il provider: gli strumenti
+`app/lib/__tests__/assistant.test.ts` — 30 test, senza chiamare il provider: gli strumenti
 girano su un contesto costruito a mano (un immobile disponibile, uno venduto). Coprono le
 definizioni degli strumenti, la validazione degli input, l'esclusione dei venduti, il
 tri-stato delle dotazioni, il corpus verificato, gli handoff che non inviano, le regole del
 prompt e i limiti del turno.
+
+`app/lib/__tests__/assistant-ui-security.test.ts` — 30 test su interfaccia, endpoint sotto
+attacco e integrità dell'insieme di eval. Test di browser e valutazione del modello: vedi
+[assistant-ui-e-eval.md](assistant-ui-e-eval.md).
 
 ```bash
 npm test

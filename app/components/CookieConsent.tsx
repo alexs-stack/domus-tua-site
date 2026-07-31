@@ -12,7 +12,7 @@ import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
 import { readConsent, writeConsent, type ConsentValue } from "../lib/consent";
-import { useMenuOpen } from "../lib/overlayState";
+import { setOverlayOpen, useOverlayOpen } from "../lib/overlayState";
 
 const copy = {
   it: {
@@ -56,9 +56,13 @@ export default function CookieConsent() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [show, setShow] = useState(false);
-  // Mentre il menu a schermo intero è aperto il banner si ritira: si sovrapporrebbe alle sue
-  // CTA e aprirebbe un secondo focus trap. Riappare alla chiusura (vedi lib/overlayState).
-  const menuOpen = useMenuOpen();
+  // Mentre un altro pannello è aperto (menu a schermo intero, assistente) il banner si ritira:
+  // si sovrapporrebbe alle sue CTA e aprirebbe un secondo focus trap. Riappare alla chiusura
+  // (vedi lib/overlayState).
+  // Due letture separate: `||` fra due chiamate a hook le renderebbe condizionali.
+  const menuOpen = useOverlayOpen("menu");
+  const assistantOpen = useOverlayOpen("assistant");
+  const otherPanelOpen = menuOpen || assistantOpen;
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const acceptRef = useRef<HTMLButtonElement | null>(null);
@@ -84,6 +88,14 @@ export default function CookieConsent() {
       window.clearTimeout(safety);
     };
   }, []);
+
+  // Il banner si annuncia al registro: finché è a schermo, il launcher dell'assistente non
+  // compare (si sovrapporrebbe a un dialog modale). Torna disponibile appena si sceglie.
+  useEffect(() => {
+    const visible = show && !otherPanelOpen;
+    setOverlayOpen("consent", visible);
+    return () => setOverlayOpen("consent", false);
+  }, [show, otherPanelOpen]);
 
   // All'apertura: memorizza il focus corrente e spostalo sull'azione primaria (Accetta).
   useEffect(() => {
@@ -128,7 +140,7 @@ export default function CookieConsent() {
     }
   }, []);
 
-  if (!show || menuOpen) return null;
+  if (!show || otherPanelOpen) return null;
 
   return (
     <div
