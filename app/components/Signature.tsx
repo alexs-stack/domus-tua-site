@@ -1,25 +1,44 @@
 // Firma della fondatrice — tocco umano "founder-led".
 //
-// ⚠️ PLACEHOLDER: questo è un tracciato calligrafico generico, NON la firma reale.
-// Appena il cliente fornisce la firma vera (SVG o PNG trasparente), sostituire il <path>
-// qui sotto (o passare a <img src="/images/reali/firma-raffaela.svg">). Mantiene le stesse
-// proporzioni. Colore: rosso di marca su chiaro, cream su scuro (prop `light`).
+// ⚠️ NON viene mostrata finché il cliente non fornisce quella VERA (`brand.signature`).
+//
+// Prima qui c'era un tracciato calligrafico generico con `aria-label="Firma di Raffaela
+// Rizza"`, mostrato accanto al suo nome e animato come se si stesse firmando: una firma
+// inventata attribuita per nome a una persona reale. È lo stesso principio già scritto per
+// il logo — "mai un asset finto spacciato per l'originale" — con l'aggravante che qui
+// riguarda l'identità di qualcuno.
+//
+// Il tracciato resta come SEGNAPOSTO DI SVILUPPO, mostrato solo quando `preview` è esplicito
+// (per lavorare sul layout) e comunque senza dichiararsi firma di nessuno.
+
+import { brand } from "../lib/brand";
+
+/** true se la firma reale è disponibile: i chiamanti possono saltare il blocco che la ospita. */
+export const hasRealSignature = brand.signature.trim().length > 0;
 
 export default function Signature({
   className = "h-8 w-auto",
   light = false,
+  preview = false,
 }: {
   className?: string;
   light?: boolean;
+  /** Mostra il tracciato segnaposto per lavorare sul layout. Mai in pagina. */
+  preview?: boolean;
 }) {
+  if (hasRealSignature) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={brand.signature} alt="Firma di Raffaela Rizza" className={className} />;
+  }
+  if (!preview) return null;
+
   const stroke = light ? "var(--color-cream)" : "var(--color-red)";
   return (
     <svg
       className={className}
       viewBox="0 0 224 64"
       fill="none"
-      role="img"
-      aria-label="Firma di Raffaela Rizza"
+      aria-hidden
       xmlns="http://www.w3.org/2000/svg"
     >
       <path

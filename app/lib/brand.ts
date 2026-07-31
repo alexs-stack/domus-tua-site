@@ -21,6 +21,17 @@ export const brand = {
   favicon: "/favicon.ico",
   width: 200,
   height: 37,
+
+  /**
+   * Firma REALE della fondatrice (SVG o PNG trasparente in /public).
+   *
+   * Vuota finché il cliente non la fornisce, e finché è vuota la firma **non viene mostrata**.
+   * Vale qui la stessa regola del logo: mai un asset finto spacciato per l'originale — con
+   * un'aggravante, perché una firma inventata viene attribuita per nome a una persona reale.
+   * Prima era un tracciato calligrafico generico con `aria-label="Firma di Raffaela Rizza"`,
+   * mostrato accanto al suo nome e persino animato come se si stesse firmando.
+   */
+  signature: "",
 } as const;
 
 // Mostra il placeholder "logo mancante" solo in sviluppo o in preview (mai in produzione

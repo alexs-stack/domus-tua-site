@@ -10,7 +10,7 @@ import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import { heroCinematic } from "../lib/media";
 import WordReveal from "./WordReveal";
-import Signature from "./Signature";
+import Signature, { hasRealSignature } from "./Signature";
 import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -438,8 +438,10 @@ export default function HeroCinematic() {
               RR
             </span>
             {c.founder}
-            {/* Firma della fondatrice (placeholder, da sostituire con quella reale) */}
-            <Signature light className="ml-1 hidden h-8 w-auto opacity-90 sm:block" />
+            {/* Firma della fondatrice: solo se è quella vera (vedi Signature.tsx). */}
+            {hasRealSignature && (
+              <Signature light className="ml-1 hidden h-8 w-auto opacity-90 sm:block" />
+            )}
           </p>
 
           {/* CTA */}
