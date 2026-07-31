@@ -17,7 +17,13 @@ import { site } from "./site";
 import { heroCinematic } from "./media";
 import { isRealSmartLive } from "./realsmart/env";
 import { isEmailLeadConfigured, isLeadRecipientConfigured } from "./forms/email";
-import { aiParseEnabled, semanticEnabled } from "./ai/config";
+import {
+  AI_ASSISTANT_MODEL,
+  aiParseEnabled,
+  assistantConfigured,
+  assistantEnabled,
+  semanticEnabled,
+} from "./ai/config";
 
 /** Sorgente dati immobili: feed RealSmart live oppure fixture demo/mock. */
 export type DataSourceMode = "realsmart" | "mock";
@@ -54,6 +60,16 @@ export interface DemoStatus {
   searchAiConfigured: boolean;
   /** Ranking semantico via embeddings Voyage (altrimenti ranking per parole chiave). */
   semanticRankingConfigured: boolean;
+  /**
+   * Assistente conversazionale. Due stati distinti di proposito: il backend può essere
+   * pronto (`providerConfigured`) senza che il widget sia visibile sul sito (`enabled`).
+   */
+  assistant: {
+    enabled: boolean;
+    providerConfigured: boolean;
+    /** Modello in uso: informazione pubblica, utile a verificare cosa gira davvero. */
+    model: string;
+  };
 }
 
 function isTrue(v: string | undefined): boolean {
@@ -80,6 +96,11 @@ export function getDemoStatus(): DemoStatus {
     whatsappConfigured: site.whatsapp.href.trim().length > 0,
     searchAiConfigured: aiParseEnabled,
     semanticRankingConfigured: semanticEnabled,
+    assistant: {
+      enabled: assistantEnabled,
+      providerConfigured: assistantConfigured,
+      model: AI_ASSISTANT_MODEL,
+    },
   };
 }
 

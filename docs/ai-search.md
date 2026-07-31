@@ -59,21 +59,24 @@ Chat on-brand (`app/components/Assistant.tsx`, montata nel layout) che dialoga, 
 (riusando la pipeline sopra tramite lo strumento `search_listings`) e risponde su Domus D.O.C.,
 servizi, Open Domus, metodo, contatti/orari. In 5 lingue, con schede immobile mostrate in chat.
 
-- Backend: `POST /api/assistant` → `app/lib/ai/assistant.ts` (loop con lo strumento, max 3 giri)
-  + `app/lib/ai/knowledge.ts` (conoscenza dell'agenzia nel system prompt, corpus piccolo = niente
-  vector DB). Modello: `AI_ASSISTANT_MODEL` (default Claude Haiku 4.5).
+Il backend ha un documento suo: **[docs/assistant-backend.md](assistant-backend.md)** —
+strumenti, regole, limiti, fallback. In sintesi:
+
+- `POST /api/assistant` risponde in **streaming (SSE)**; il turno gira in `app/lib/ai/assistant.ts`
+  con cinque strumenti tipizzati (`app/lib/ai/tools.ts`) e il corpus verificato in
+  `app/lib/ai/knowledge.ts`. Modello: `AI_ASSISTANT_MODEL` (default Claude Haiku 4.5).
 - **Opt-in**: la chat compare solo se `NEXT_PUBLIC_ENABLE_ASSISTANT="true"` (flag client) E c'è
-  `ANTHROPIC_API_KEY` (server). Senza chiave l'assistente risponde con un messaggio di cortesia
-  (usa i filtri / WhatsApp). Attivazione: imposta entrambe le variabili su Vercel + redeploy.
-- Guardrail: max 24 messaggi e 1000 caratteri per messaggio, cronologia troncata agli ultimi 12
-  turni, timeout 20s, il modello non inventa immobili/prezzi (solo ciò che lo strumento restituisce),
-  nessuna consulenza legale/fiscale (rimanda al team).
-- Non ancora fatto: streaming token-by-token (oggi risposta completa con indicatore "sta scrivendo"),
-  rate limiting per IP.
+  `ANTHROPIC_API_KEY` (server). In produzione il flag resta spento finché non è fatta la fase di
+  eval. Senza chiave l'assistente risponde con un messaggio di cortesia (usa i filtri / WhatsApp).
+- Limiti: 30 richieste per IP ogni 10 minuti, payload 64 KB, 24 messaggi da 1000 caratteri,
+  cronologia agli ultimi 12 turni, 800 token per risposta, timeout 25 s, 4 giri di strumenti,
+  abort propagato al provider.
+- Garanzie nel codice (non solo nel prompt): nessun venduto tra i disponibili, input del modello
+  validati prima dell'esecuzione, gli strumenti di contatto preparano il collegamento ma non
+  inviano nulla, un campo assente non diventa mai un "no".
 
 ## Possibili estensioni (Fase 2+)
 
-- Streaming delle risposte dell'assistente (SSE) per un effetto "digita".
-- Rate limiting per IP sugli endpoint (oggi mitigato da lunghezza + timeout + fallback).
 - Cache delle query identiche.
-- Memoria lead: salvare le conversazioni interessate come lead (collegamento a /api/lead).
+(Le conversazioni non si salvano: nessun CRM, nessuno storico. Chi vuole essere ricontattato
+passa dal form o da WhatsApp, dove dà il consenso.)

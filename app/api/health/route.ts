@@ -39,6 +39,8 @@ export async function GET() {
         heroVideoLive: s.heroVideoLive,
         searchAiConfigured: s.searchAiConfigured,
         semanticRankingConfigured: s.semanticRankingConfigured,
+        // Solo booleani + il nome del modello: nessuna chiave, nessun contenuto.
+        assistant: s.assistant,
       },
     },
     // Mai in cache: deve riflettere lo stato reale dell'ambiente a ogni chiamata.
