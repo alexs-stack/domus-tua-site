@@ -21,7 +21,7 @@ import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
 import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
-import type { Property } from "../lib/properties";
+import type { GridProperty } from "../lib/properties";
 
 // Registrazione locale (come in PropertySearch): Flip non entra nel chunk del layout.
 gsap.registerPlugin(Flip);
@@ -45,7 +45,7 @@ export default function CaseQuickLook({
   property,
   onClose,
 }: {
-  property: Property | null;
+  property: GridProperty | null;
   onClose: () => void;
 }) {
   const { locale } = useLocale();

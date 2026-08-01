@@ -11,6 +11,7 @@ npm start          # serve la build
 npm run typecheck  # tsc --noEmit (sito + test di browser)
 npm test           # test unitari (node:test)
 npm run test:e2e   # suite di browser su 5 viewport (Playwright)
+npm run lighthouse # budget prestazioni/accessibilità (docs/performance.md)
 npm run check      # lint + typecheck + test + build (usato anche in CI)
 ```
 
@@ -96,6 +97,7 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 - [docs/i18n.md](docs/i18n.md) — multilingua IT/EN/FR/DE/ES (flag `NEXT_PUBLIC_ENABLE_I18N`)
 
 **Qualità**
+- [docs/performance.md](docs/performance.md) — misure Lighthouse, budget, cosa è stato ottimizzato e il divario che resta
 - [docs/e2e.md](docs/e2e.md) — suite end-to-end: cosa copre, viewport, accessibilità, smoke sul feed live
 - [docs/assistant-ui-e-eval.md](docs/assistant-ui-e-eval.md) — interfaccia, sicurezza e cento eval del chatbot
 

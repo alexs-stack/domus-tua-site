@@ -6,7 +6,7 @@ import PropertySearch from "../components/PropertySearch";
 import SectionDivider from "../components/SectionDivider";
 import Contact from "../components/Contact";
 import { useLocale } from "../components/i18n/LocaleProvider";
-import type { Property } from "../lib/properties";
+import type { GridProperty } from "../lib/properties";
 
 const copy = {
   it: {
@@ -86,7 +86,7 @@ const copy = {
   },
 };
 
-export default function CaseContent({ properties }: { properties: Property[] }) {
+export default function CaseContent({ properties }: { properties: GridProperty[] }) {
   const { locale } = useLocale();
   const c = copy[locale];
 

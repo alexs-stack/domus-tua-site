@@ -52,7 +52,7 @@ export function canonicalComune(comuni: string[], input: string): string | undef
  * Facet dei comuni per la ricerca: "Tutti" + i comuni degli immobili, ordinati.
  * Stessa lista mostrata nella tendina del client e proposta al parser (locale o AI).
  */
-export function comuniFacet(properties: Property[]): string[] {
+export function comuniFacet(properties: Pick<Property, "zone">[]): string[] {
   const derived = Array.from(new Set(properties.map((p) => comuneOf(p.zone))))
     .filter(Boolean)
     .sort((a, b) => a.localeCompare(b, "it"));

@@ -360,6 +360,9 @@ export default function HeroCinematic() {
             fill
             priority
             sizes="100vw"
+            // Sotto due velature scure, in movimento e (quando c'è) coperta dal video: a
+            // qualità 60 il file dimezza su rete lenta e la differenza non si vede.
+            quality={60}
             className="ken-burns object-cover"
             style={{ objectPosition: "50% 35%" }}
           />

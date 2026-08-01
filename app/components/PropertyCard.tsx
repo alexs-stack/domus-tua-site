@@ -6,7 +6,7 @@ import { ArrowUpRight, Bed, Ruler, Rooms, Check } from "./Icons";
 import Badge from "./primitives/Badge";
 import { SegnoDomusCorner } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import type { Property } from "../lib/properties";
+import type { GridProperty } from "../lib/properties";
 
 // Etichette statiche del componente (CTA + badge). I VALORI dei dati immobile
 // (zona, prezzo, m², badge dal gestionale) NON vengono tradotti: arrivano da RealSmart.
@@ -69,7 +69,7 @@ export default function PropertyCard({
   p,
   onQuickLook,
 }: {
-  p: Property;
+  p: GridProperty;
   /** Se presente, mostra il bottone Anteprima (Flip verso CaseQuickLook). */
   onQuickLook?: () => void;
 }) {

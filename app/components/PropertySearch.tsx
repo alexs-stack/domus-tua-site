@@ -1,10 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
 import PropertyCard from "./PropertyCard";
-import PropertyMap from "./PropertyMap";
+// Leaflet, i cluster e i loro CSS pesano quanto tutto il resto della pagina, e servono solo a
+// chi passa alla vista mappa: si caricano al momento del passaggio, non prima.
+const PropertyMap = dynamic(() => import("./PropertyMap"), {
+  ssr: false,
+  loading: () => <div className="h-[420px] animate-pulse rounded-[2rem] bg-cream" aria-hidden />,
+});
 import CaseQuickLook from "./CaseQuickLook";
 import { ArrowRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
@@ -15,7 +21,7 @@ import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/mot
 import { groupAvailableByTown } from "../lib/geo/comuni";
 import { canonicalComune, comuniFacet, matchesComune } from "../lib/comune";
 import { isAvailable, isSold } from "../lib/availability";
-import type { Property } from "../lib/properties";
+import type { GridProperty } from "../lib/properties";
 import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
 
 // Flip serve solo al riordino dei risultati al cambio filtri: registrato
@@ -30,6 +36,7 @@ const copy = {
   it: {
     nlPlaceholder: "Es. trilocale con giardino a Tradate sotto 300.000 €",
     nlAria: "Descrivi la casa che cerchi",
+    resultsHeading: "Immobili trovati",
     smartBadge: "Ricerca intelligente",
     teaser: "Scrivi come parleresti a noi e premi Invio: pensiamo noi a trovare le case giuste.",
     searchAria: "Avvia la ricerca",
@@ -84,6 +91,7 @@ const copy = {
   en: {
     nlPlaceholder: "E.g. two-bed with garden in Tradate under €300,000",
     nlAria: "Describe the home you’re looking for",
+    resultsHeading: "Homes found",
     smartBadge: "Smart search",
     teaser: "Write it as you’d tell us and press Enter: we’ll find the right homes.",
     searchAria: "Start the search",
@@ -138,6 +146,7 @@ const copy = {
   fr: {
     nlPlaceholder: "Ex. trois-pièces avec jardin à Tradate sous 300 000 €",
     nlAria: "Décrivez la maison que vous cherchez",
+    resultsHeading: "Biens trouvés",
     smartBadge: "Recherche intelligente",
     teaser: "Écrivez comme vous nous le diriez, puis appuyez sur Entrée : nous trouvons les bons biens.",
     searchAria: "Lancer la recherche",
@@ -192,6 +201,7 @@ const copy = {
   de: {
     nlPlaceholder: "Z. B. Dreizimmerwohnung mit Garten in Tradate unter 300.000 €",
     nlAria: "Beschreiben Sie das Zuhause, das Sie suchen",
+    resultsHeading: "Gefundene Objekte",
     smartBadge: "Intelligente Suche",
     teaser: "Schreiben Sie es, wie Sie es uns sagen würden, und drücken Sie Enter: wir finden die passenden Objekte.",
     searchAria: "Suche starten",
@@ -246,6 +256,7 @@ const copy = {
   es: {
     nlPlaceholder: "P. ej. piso de tres ambientes con jardín en Tradate por menos de 300.000 €",
     nlAria: "Describe la casa que buscas",
+    resultsHeading: "Inmuebles encontrados",
     smartBadge: "Búsqueda inteligente",
     teaser: "Escríbelo como nos lo contarías y pulsa Intro: encontramos las casas adecuadas.",
     searchAria: "Iniciar la búsqueda",
@@ -303,7 +314,7 @@ const copy = {
 // vedi app/lib/realsmart/ e docs/realsmart-integration-notes.md.
 export type PropertyFilters = {
   contract: "Tutte" | "Vendita" | "Affitto";
-  type: "Tutte" | Property["type"];
+  type: "Tutte" | GridProperty["type"];
   comune: string;
   maxBudget: number; // 0 = nessun limite
   minBudget: number; // 0 = nessun minimo
@@ -363,14 +374,14 @@ function toFilters(parsed: ParsedSearch): PropertyFilters {
   };
 }
 
-function roomsNum(p: Property) {
+function roomsNum(p: GridProperty) {
   return parseInt(p.rooms, 10) || 0;
 }
-function haystack(p: Property) {
+function haystack(p: GridProperty) {
   return `${p.features.join(" ")} ${p.excerpt} ${p.badges.join(" ")}`.toLowerCase();
 }
 
-export default function PropertySearch({ properties }: { properties: Property[] }) {
+export default function PropertySearch({ properties }: { properties: GridProperty[] }) {
   const { locale } = useLocale();
   const c = copy[locale];
   const [nl, setNl] = useState("");
@@ -392,7 +403,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   // Vista risultati: elenco card oppure mappa dei comuni con immobili disponibili.
   const [view, setView] = useState<"list" | "map">("list");
   // Anteprima (CaseQuickLook): stato UI indipendente dalla ricerca.
-  const [preview, setPreview] = useState<Property | null>(null);
+  const [preview, setPreview] = useState<GridProperty | null>(null);
   const [aiError, setAiError] = useState(false);
   // Risultato della ricerca AI: query mostrata + slug ordinati per rilevanza + firma dei filtri
   // applicati (per capire quando l'utente modifica un filtro a mano e uscire dalla modalità AI).
@@ -533,7 +544,7 @@ export default function PropertySearch({ properties }: { properties: Property[] 
   const shown = useMemo(() => {
     // Modalità AI: mostra gli immobili nell'ordine di rilevanza deciso dal server.
     if (ai) {
-      return ai.slugs.map((s) => bySlug.get(s)).filter((p): p is Property => !!p);
+      return ai.slugs.map((s) => bySlug.get(s)).filter((p): p is GridProperty => !!p);
     }
     return properties.filter((p) => {
       // Disponibilità: di default nascondi i venduti; "Venduti" mostra solo quelli.
@@ -973,6 +984,9 @@ export default function PropertySearch({ properties }: { properties: Property[] 
           </div>
         ) : shown.length > 0 ? (
           <>
+            {/* Titolo della griglia per chi naviga a salti fra le intestazioni: senza, i titoli
+                delle schede (h3) seguono l'h1 della pagina e la gerarchia salta un livello. */}
+            <h2 className="sr-only">{c.resultsHeading}</h2>
             <div
               ref={gridRef}
               aria-busy={searching}

@@ -103,6 +103,11 @@ export default function PageHero({
           fill
           preload
           sizes="100vw"
+          // Foto di sfondo sotto due velature scure e in movimento (ken-burns): è l'LCP della
+          // pagina e su rete lenta il download è il collo di bottiglia. A qualità 60 il file
+          // dimezza e la differenza, sotto quelle velature, non si vede — la foto non è il
+          // soggetto, è l'atmosfera.
+          quality={60}
           className="ken-burns object-cover"
         />
       </Parallax>

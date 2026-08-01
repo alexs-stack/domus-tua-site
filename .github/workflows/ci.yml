@@ -94,6 +94,52 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  lighthouse:
+    name: Budget Lighthouse (informativo)
+    runs-on: ubuntu-latest
+    # Informativo finché la home non rientra nel budget: le soglie sono quelle vere (perf ≥ 90,
+    # LCP ≤ 2,5s), il sito oggi non le raggiunge e il motivo è misurato in docs/performance.md.
+    # Diventerà bloccante quando il divario sarà chiuso — non prima, perché un gate rosso dal
+    # primo giorno viene disattivato e basta.
+    continue-on-error: true
+
+    env:
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3179
+      NEXT_PUBLIC_USE_REALSMART: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Lighthouse
+        run: |
+          export CHROME_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+          npm run lighthouse
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse
+          path: .lighthouseci/
+          retention-days: 7
+          if-no-files-found: ignore
+
   live-smoke:
     name: Smoke test feed RealSmart (non bloccante)
     runs-on: ubuntu-latest

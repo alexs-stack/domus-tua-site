@@ -16,7 +16,7 @@ import { ArrowRight, Whatsapp } from "../components/Icons";
 import { SegnoDomusCorner, SegnoDomusBadge, SegnoTick } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
-import type { Property } from "../lib/properties";
+import type { GridProperty } from "../lib/properties";
 
 const copy = {
   it: {
@@ -498,7 +498,7 @@ const stepImages = [
   "/images/premium_03_cucina_moderna.jpg",
 ];
 
-export default function AcquistaContent({ listings }: { listings: Property[] }) {
+export default function AcquistaContent({ listings }: { listings: GridProperty[] }) {
   const { locale } = useLocale();
   const d = useDict();
   const c = copy[locale];

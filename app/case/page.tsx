@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import CaseContent from "./CaseContent";
 import { getVisibleListings } from "../lib/listings";
+import { toGridProperty } from "../lib/properties";
 
 export const metadata: Metadata = {
   title: "Case in vendita a Tradate e provincia",
@@ -18,7 +19,9 @@ export const metadata: Metadata = {
 };
 
 export default async function CasePage() {
-  const listings = await getVisibleListings();
+  // Alla griglia servono i dati della scheda, non il testo lungo né la galleria: quello che
+  // non si passa non viene serializzato nell'HTML (vedi toGridProperty).
+  const listings = (await getVisibleListings()).map(toGridProperty);
   return (
     <>
       <Header />

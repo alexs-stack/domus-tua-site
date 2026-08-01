@@ -56,3 +56,6 @@ next-env.d.ts
 
 # Report dell'eval dell'assistente (generato: npm run eval)
 eval-report.md
+
+# Lighthouse CI
+/.lighthouseci/

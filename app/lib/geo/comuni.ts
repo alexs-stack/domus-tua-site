@@ -85,7 +85,9 @@ function normalizeTown(town: string): string {
  * Raggruppa gli immobili DISPONIBILI (mai i venduti) per comune, con conteggio e coordinate.
  * Ordina per numero di immobili (desc), poi alfabetico. Nessun dato inventato.
  */
-export function groupAvailableByTown(properties: Property[]): TownGroup[] {
+export function groupAvailableByTown(
+  properties: Pick<Property, "zone" | "sold">[],
+): TownGroup[] {
   const byKey = new Map<string, number>();
   for (const p of properties) {
     if (!isAvailable(p)) continue; // mai i venduti in mappa (predicato unico: lib/availability)
