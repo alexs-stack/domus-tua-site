@@ -54,7 +54,11 @@ export default function TextLines({
             type: "lines",
             mask: "lines",
             linesClass: "tl-line",
-            aria: "auto",
+            // `auto` metterebbe un aria-label sull'elemento: su un <blockquote> è un attributo
+            // vietato (il ruolo non ammette un nome accessibile) e axe lo segnala come
+            // violazione seria. Con `none` il testo resta nelle righe e continua a essere
+            // letto; lo split viene comunque ripristinato a fine animazione.
+            aria: "none",
           });
           tween = gsap.fromTo(
             split.lines,

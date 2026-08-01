@@ -53,3 +53,74 @@ jobs:
 
       - name: End-to-end assistente
         run: npm run e2e:assistant
+
+  e2e:
+    name: End-to-end (browser)
+    runs-on: ubuntu-latest
+
+    env:
+      # Il server sotto test lo avvia Playwright: qui bastano i valori del sito.
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3177
+      NEXT_PUBLIC_USE_REALSMART: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run end-to-end suite
+        run: npm run test:e2e
+
+      # Screenshot, video e tracce esistono solo se qualcosa è fallito: si caricano solo allora.
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failures
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  live-smoke:
+    name: Smoke test feed RealSmart (non bloccante)
+    runs-on: ubuntu-latest
+    # Dipende da un servizio di terze parti: può fallire senza fermare la pipeline. Un rosso
+    # qui segnala il gestionale, non il codice del sito.
+    continue-on-error: true
+    if: github.event_name == 'push'
+
+    env:
+      NEXT_PUBLIC_USE_REALSMART: "true"
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3178
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke test sul feed live
+        run: npm run test:e2e:live

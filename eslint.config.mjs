@@ -17,7 +17,16 @@ const eslintConfig = defineConfig([
     ".claude/**",
     // Skill installate via skills CLI: codice di terzi, non del sito.
     ".agents/**",
+    // Artefatti dei test di browser.
+    "test-results/**",
+    "playwright-report/**",
   ]),
+  {
+    // Test di browser: la `use()` delle fixture di Playwright non è un hook di React, ma la
+    // regola la riconosce dal nome e la rifiuta. Qui React non c'è affatto.
+    files: ["e2e/**/*.ts", "e2e-live/**/*.ts", "playwright*.config.ts"],
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
 ]);
 
 export default eslintConfig;

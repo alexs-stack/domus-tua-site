@@ -8,8 +8,10 @@ Sito premium per Domus Tua Immobiliare (Tradate, VA). Next.js 16 (App Router) ·
 npm run dev        # sviluppo → http://localhost:3000
 npm run build      # build di produzione
 npm start          # serve la build
-npm run typecheck  # tsc --noEmit
-npm run check      # lint + typecheck + build (usato anche in CI)
+npm run typecheck  # tsc --noEmit (sito + test di browser)
+npm test           # test unitari (node:test)
+npm run test:e2e   # suite di browser su 5 viewport (Playwright)
+npm run check      # lint + typecheck + test + build (usato anche in CI)
 ```
 
 Variabili d'ambiente: copia `.env.example` in `.env.local` e compila. Chiavi principali:
@@ -92,6 +94,10 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 - [docs/form-backend-next-step.md](docs/form-backend-next-step.md) · [docs/forms-crm-notes.md](docs/forms-crm-notes.md) — lead capture → email/CRM
 - [docs/lavora-con-noi.md](docs/lavora-con-noi.md) — pagina candidature (`intent: career`, niente allegati, claim da validare)
 - [docs/i18n.md](docs/i18n.md) — multilingua IT/EN/FR/DE/ES (flag `NEXT_PUBLIC_ENABLE_I18N`)
+
+**Qualità**
+- [docs/e2e.md](docs/e2e.md) — suite end-to-end: cosa copre, viewport, accessibilità, smoke sul feed live
+- [docs/assistant-ui-e-eval.md](docs/assistant-ui-e-eval.md) — interfaccia, sicurezza e cento eval del chatbot
 
 **Delivery & operatività**
 - [docs/env-and-deploy.md](docs/env-and-deploy.md) — variabili d'ambiente, Vercel, preview vs produzione
