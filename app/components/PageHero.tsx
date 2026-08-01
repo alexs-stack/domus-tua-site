@@ -20,6 +20,7 @@ export default function PageHero({
   primary,
   secondary,
   trust,
+  scrim = "default",
 }: {
   /** Ancora della sezione (es. "top" per il nodo di risalita di ThreadNav). */
   id?: string;
@@ -31,6 +32,16 @@ export default function PageHero({
   primary: CTA;
   secondary?: CTA;
   trust?: string[];
+  /**
+   * Intensità dei gradienti di leggibilità.
+   *
+   * `default` va bene sulle foto scure o comunque scure dietro al testo. Su una
+   * foto CHIARA e affollata (interni luminosi, finestre) il titolo crema perde
+   * contrasto: lì serve `strong`, la stessa scelta già fatta sull'hero della home
+   * quando è passato a una foto luminosa. Non è un vezzo grafico: sotto il titolo
+   * deve restare leggibile, non "suggestivo".
+   */
+  scrim?: "default" | "strong";
 }) {
   const rootRef = useRef<HTMLElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -95,8 +106,16 @@ export default function PageHero({
           className="ken-burns object-cover"
         />
       </Parallax>
-      <div className="absolute inset-0 bg-gradient-to-t from-ink/78 via-ink/28 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-ink/45 to-transparent" />
+      <div
+        className={`absolute inset-0 bg-gradient-to-t ${
+          scrim === "strong" ? "from-ink/90 via-ink/55" : "from-ink/78 via-ink/28"
+        } to-transparent`}
+      />
+      <div
+        className={`absolute inset-0 bg-gradient-to-r ${
+          scrim === "strong" ? "from-ink/70 via-ink/25" : "from-ink/45"
+        } to-transparent`}
+      />
 
       <div ref={contentRef} className="relative mx-auto w-full max-w-[1240px] px-5 pb-14 pt-36 sm:px-8 sm:pb-20">
         <div className="max-w-3xl">

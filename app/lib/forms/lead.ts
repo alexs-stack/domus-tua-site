@@ -6,8 +6,13 @@
 // L'invio al backend è best-effort: se non configurato o fallisce, il WhatsApp funziona
 // comunque. In futuro `/api/lead` può instradare anche verso email/CRM/RealSmart.
 
-/** Tre intenti chiari + Open Domus (allineati alle tab del form). */
-export type LeadIntent = "seller" | "buyer" | "question" | "open-domus";
+/**
+ * Tre intenti chiari + Open Domus (allineati alle tab del form contatti) + le
+ * candidature di /lavora-con-noi. `career` NON compare tra le tab del form
+ * contatti: ha una pagina e un form suoi (CareerApplication), ma condivide
+ * questo modello per non aprire un secondo canale di raccolta da mantenere.
+ */
+export type LeadIntent = "seller" | "buyer" | "question" | "open-domus" | "career";
 
 /**
  * Un lead raccolto dal form contatti. `name` e `contact` sono sempre richiesti;
@@ -28,8 +33,15 @@ export type Lead = {
   budget?: string;
   /** BUYER: caratteristiche desiderate (giardino, box, ascensore…). */
   features?: string;
-  /** SELLER + QUESTION: messaggio libero. */
+  /** SELLER + QUESTION + CAREER: messaggio libero. */
   message?: string;
+  // ── Campi candidatura (solo CAREER) ───────────────────────────────────────
+  /** CAREER: area/ruolo per cui ci si candida (etichetta già leggibile). */
+  role?: string;
+  /** CAREER: esperienza dichiarata nel settore (fascia scelta dal candidato). */
+  experience?: string;
+  /** CAREER: link a LinkedIn, portfolio o CV online (il sito non riceve allegati). */
+  portfolio?: string;
   // ── Consenso privacy (obbligatorio quando il lead viene SALVATO su server) ──
   /** true se l'utente ha spuntato il consenso al trattamento (link all'informativa). */
   consent?: boolean;
@@ -46,6 +58,7 @@ const INTENT_LABEL: Record<LeadIntent, string> = {
   buyer: "Cerca casa",
   question: "Ha una domanda",
   "open-domus": "Open Domus",
+  career: "Candidatura",
 };
 
 /**
@@ -78,6 +91,13 @@ export function formatLeadMessage(lead: Lead): string {
     }
     case "question": {
       lines.push("Ho una domanda.");
+      break;
+    }
+    case "career": {
+      lines.push("Vorrei candidarmi per lavorare con voi.");
+      if (lead.role) lines.push(`Area: ${lead.role}`);
+      if (lead.experience) lines.push(`Esperienza: ${lead.experience}`);
+      if (lead.portfolio) lines.push(`Profilo/CV: ${lead.portfolio}`);
       break;
     }
   }

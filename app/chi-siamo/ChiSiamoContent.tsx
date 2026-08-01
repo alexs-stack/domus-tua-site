@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import PageHero from "../components/PageHero";
+import { ArrowRight } from "../components/Icons";
 import Highlights from "../components/Highlights";
 import Stats from "../components/Stats";
 import Team from "../components/Team";
@@ -55,6 +57,7 @@ const copy = {
     squadraTitle: "Volti veri, dietro ogni chiave consegnata.",
     squadraCopy:
       "Siamo un gruppo affiatato che ascolta, consiglia e accompagna ogni famiglia con la stessa cura. Un impegno riconosciuto anche a livello nazionale.",
+    squadraLavora: "Vuoi lavorare con noi?",
     squadraTrioAlt: "Il team Domus Tua in studio",
     squadraRedAlt: "Gli agenti Domus Tua in blazer rosso nella sede",
     squadraPremioAlt: "Raffaela Rizza con il riconoscimento TOP AGENCY",
@@ -101,6 +104,7 @@ const copy = {
     squadraTitle: "Real faces, behind every set of keys handed over.",
     squadraCopy:
       "We are a close-knit group that listens, advises and accompanies every family with the same care. A commitment recognised at national level too.",
+    squadraLavora: "Would you like to work with us?",
     squadraTrioAlt: "The Domus Tua team in the studio",
     squadraRedAlt: "The Domus Tua agents in red blazers at the office",
     squadraPremioAlt: "Raffaela Rizza with the TOP AGENCY recognition",
@@ -147,6 +151,7 @@ const copy = {
     squadraTitle: "Des visages réels, derrière chaque clé remise.",
     squadraCopy:
       "Nous sommes une équipe soudée qui écoute, conseille et accompagne chaque famille avec le même soin. Un engagement reconnu aussi au niveau national.",
+    squadraLavora: "Vous voulez travailler avec nous ?",
     squadraTrioAlt: "L’équipe Domus Tua en studio",
     squadraRedAlt: "Les agents Domus Tua en blazer rouge à l’agence",
     squadraPremioAlt: "Raffaela Rizza avec la distinction TOP AGENCY",
@@ -193,6 +198,7 @@ const copy = {
     squadraTitle: "Echte Gesichter, hinter jedem übergebenen Schlüssel.",
     squadraCopy:
       "Wir sind ein eingespieltes Team, das jeder Familie mit derselben Sorgfalt zuhört, sie berät und begleitet. Ein Engagement, das auch auf nationaler Ebene anerkannt wird.",
+    squadraLavora: "Möchten Sie mit uns arbeiten?",
     squadraTrioAlt: "Das Domus Tua Team im Studio",
     squadraRedAlt: "Die Domus Tua Berater in roten Blazern im Büro",
     squadraPremioAlt: "Raffaela Rizza mit der Auszeichnung TOP AGENCY",
@@ -239,6 +245,7 @@ const copy = {
     squadraTitle: "Rostros reales, detrás de cada llave entregada.",
     squadraCopy:
       "Somos un grupo unido que escucha, aconseja y acompaña a cada familia con el mismo cuidado. Un compromiso reconocido también a nivel nacional.",
+    squadraLavora: "¿Quieres trabajar con nosotras?",
     squadraTrioAlt: "El equipo de Domus Tua en el estudio",
     squadraRedAlt: "Los agentes de Domus Tua con blazer rojo en la oficina",
     squadraPremioAlt: "Raffaela Rizza con el reconocimiento TOP AGENCY",
@@ -318,6 +325,14 @@ export default function ChiSiamoContent({ since }: { since: number }) {
             <p className="mt-6 text-[1.02rem] leading-relaxed text-stone">
               {c.squadraCopy}
             </p>
+            {/* Da "chi siamo" a "come si entra": è qui che nasce la domanda. */}
+            <Link
+              href="/lavora-con-noi"
+              className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors duration-300 hover:text-red-dark"
+            >
+              {c.squadraLavora}
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
           </Reveal>
 
           {/* Sipari con direzioni alternate (left/bottom/right) e ritardo crescente:

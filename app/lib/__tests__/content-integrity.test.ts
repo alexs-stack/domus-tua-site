@@ -18,6 +18,8 @@ import { site } from "../site";
 import { allVideoIds, videoCollection, featuredVideo, testimonialVideo } from "../videos";
 import { isAvailable, isSold, onlyAvailable } from "../availability";
 import { CONSENT_COOKIE } from "../consent";
+import { team, teamInitials, teamRoleLabels } from "../team";
+import { locales } from "../i18n/dictionaries";
 
 const APP_DIR = path.join(process.cwd(), "app");
 
@@ -262,5 +264,48 @@ describe("content integrity — fonti uniche", () => {
       return fs.readFileSync(f, "utf8").includes(digits);
     });
     assert.deepEqual(others.map(REL), []);
+  });
+});
+
+describe("team — fonte unica del roster", () => {
+  test("il roster è quello pubblicato dall'agenzia, con una sola founder", () => {
+    assert.equal(team.length, 6);
+    assert.equal(team.filter((m) => m.founder).length, 1);
+    assert.equal(team[0].name, "Raffaela Rizza");
+    // Grafia confermata da una recensione Google reale: una L sola.
+    assert.ok(!JSON.stringify(team).includes("Raffaella"));
+  });
+
+  test("nomi e ruoli non si ripetono", () => {
+    assert.equal(new Set(team.map((m) => m.name)).size, team.length);
+    const nonFounder = team.filter((m) => !m.founder).map((m) => m.role);
+    assert.equal(new Set(nonFounder).size, nonFounder.length);
+  });
+
+  test("ogni ruolo ha un'etichetta in tutte le lingue", () => {
+    for (const locale of locales) {
+      for (const member of team) {
+        const label = teamRoleLabels[locale][member.role];
+        assert.ok(label && label.trim().length > 0, `manca ${member.role} in ${locale}`);
+      }
+    }
+  });
+
+  // Il nome della FONDATRICE ricorre legittimamente nella prosa del sito (storia
+  // dell'agenzia, alt delle foto, metadata): non è un roster duplicato. Il rischio
+  // vero è che qualcuno riscriva a mano l'elenco delle colleghe da qualche parte.
+  test("i nomi del resto del team vivono solo in app/lib/team.ts", () => {
+    const others = productionSources().filter((f) => {
+      if (f.endsWith(path.join("lib", "team.ts"))) return false;
+      const src = fs.readFileSync(f, "utf8");
+      return team.filter((m) => !m.founder).some((m) => src.includes(m.name));
+    });
+    assert.deepEqual(others.map(REL), []);
+  });
+
+  test("le iniziali restano di due lettere", () => {
+    for (const member of team) {
+      assert.match(teamInitials(member.name), /^[A-ZÀ-Ý]{2}$/);
+    }
   });
 });

@@ -90,6 +90,7 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 - [docs/realsmart-integration-notes.md](docs/realsmart-integration-notes.md) · [docs/realsmart-client-questions.md](docs/realsmart-client-questions.md) · [docs/realsmart-security.md](docs/realsmart-security.md) — feed immobili RealSmart
 - [docs/reviews-integration.md](docs/reviews-integration.md) — recensioni Google/Trustindex
 - [docs/form-backend-next-step.md](docs/form-backend-next-step.md) · [docs/forms-crm-notes.md](docs/forms-crm-notes.md) — lead capture → email/CRM
+- [docs/lavora-con-noi.md](docs/lavora-con-noi.md) — pagina candidature (`intent: career`, niente allegati, claim da validare)
 - [docs/i18n.md](docs/i18n.md) — multilingua IT/EN/FR/DE/ES (flag `NEXT_PUBLIC_ENABLE_I18N`)
 
 **Delivery & operatività**
