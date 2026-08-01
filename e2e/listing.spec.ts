@@ -1,4 +1,4 @@
-import { test, expect, setConsent, firstListingLink } from "./helpers";
+import { test, expect, setConsent, firstListingLink, clickUntil } from "./helpers";
 
 // Scheda immobile e lightbox. Nessun test conosce uno slug: si apre sempre il primo immobile
 // che la griglia mostra.
@@ -46,10 +46,13 @@ test("il lightbox si apre, naviga e si chiude con la tastiera", async ({ page, g
 
   const opener = page.getByRole("button", { name: /apri la foto \d+ a schermo intero/i }).first();
   test.skip((await opener.count()) === 0, "questo immobile non ha galleria");
-  await opener.click();
-
+  // Il bottone esiste nell'HTML prima che React lo abbia idratato: sotto carico un click
+  // troppo presto non trova ancora un gestore.
   const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
+  await clickUntil(
+    () => opener.click(),
+    () => expect(dialog).toBeVisible({ timeout: 2_000 }),
+  );
   await expect(dialog).toContainText(/immagine \d+ di \d+/i);
 
   // Frecce: il contatore cambia (se c'è più di una foto).
@@ -77,10 +80,11 @@ test("il lightbox occupa lo schermo senza traboccare @layout", async ({ page, go
   await openFirstListing(page, goto);
   const opener = page.getByRole("button", { name: /apri la foto \d+ a schermo intero/i }).first();
   test.skip((await opener.count()) === 0, "questo immobile non ha galleria");
-  await opener.click();
-
   const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
+  await clickUntil(
+    () => opener.click(),
+    () => expect(dialog).toBeVisible({ timeout: 2_000 }),
+  );
   const box = await dialog.boundingBox();
   const viewport = page.viewportSize()!;
   expect(box!.width).toBeLessThanOrEqual(viewport.width + 1);

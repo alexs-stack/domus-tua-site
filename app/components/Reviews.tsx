@@ -268,6 +268,13 @@ export default function Reviews() {
             <div className="mt-6">
               <iframe
                 ref={frameRef}
+                // Sandbox SENZA allow-same-origin: lo script di Trustindex gira in un'origine
+                // opaca, quindi non vede i nostri cookie né il nostro localStorage. Con srcDoc
+                // e senza sandbox erediterebbe la nostra origine — cioè un terzo con pieno
+                // accesso al sito. Gli permessi restano quelli che gli servono: eseguire e
+                // aprire i link delle recensioni in una scheda nuova. Il postMessage con
+                // l'altezza funziona comunque (parent.postMessage a "*" è consentito).
+                sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
                 srcDoc={`<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>html,body{margin:0;padding:0;background:transparent;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}</style></head><body><script src="${site.embeds.trustindexLoader}"></script><script>(function(){function p(){try{var h=document.body.scrollHeight;if(h>0)parent.postMessage({type:'dt-ti-height',h:h},'*');}catch(e){}}if(window.ResizeObserver){new ResizeObserver(p).observe(document.body);}window.addEventListener('load',p);[300,800,1500,2500,4000].forEach(function(t){setTimeout(p,t);});})();</script></body></html>`}
                 title={c.iframeTitle}
                 loading="lazy"

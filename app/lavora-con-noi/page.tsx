@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import LavoraConNoiContent from "./LavoraConNoiContent";
 import { faqIt } from "./faq";
-import { site, siteUrl } from "../lib/site";
+import { site, siteUrl, jsonLdScript } from "../lib/site";
 
 // NIENTE JSON-LD JobPosting, di proposito: schema.org/JobPosting richiede annunci
 // reali e databili (titolo, data di pubblicazione, sede, tipo di contratto) e Google
@@ -54,11 +54,11 @@ export default function LavoraConNoiPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
       <Header />
       <LavoraConNoiContent />

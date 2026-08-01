@@ -5,7 +5,7 @@ import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyDetail from "./PropertyDetail";
 import { getVisibleListings, getVisibleListing } from "../../lib/listings";
-import { site, siteUrl } from "../../lib/site";
+import { site, siteUrl, jsonLdScript } from "../../lib/site";
 
 export async function generateStaticParams() {
   const list = await getVisibleListings();
@@ -105,11 +105,11 @@ export default async function PropertyPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(residenceJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(residenceJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
       <Header />
       <PropertyDetail p={p} related={related} />
