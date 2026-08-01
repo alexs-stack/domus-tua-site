@@ -1,4 +1,8 @@
-# Audit finale — pronto per la call cliente
+# Audit finale — pronto per la call cliente (LUGLIO 2026 — SUPERATO)
+
+> ⚠️ **Documento storico.** L'audit valido è [audit-finale.md](audit-finale.md): verifica
+> indipendente sul feed reale, con checklist PASS/FAIL, problemi classificati P0–P3 e le
+> decisioni ancora in capo al cliente. Questo resta come fotografia di luglio 2026.
 
 > Documento **interno sersan**. Fotografia dello stato del sito dopo il pacchetto di rifiniture
 > 1–20. **Il video hero è escluso dal punteggio** (gestito su un binario parallelo). Aggiornato

@@ -98,6 +98,7 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 - [docs/i18n.md](docs/i18n.md) — multilingua IT/EN/FR/DE/ES (flag `NEXT_PUBLIC_ENABLE_I18N`)
 
 **Qualità**
+- [docs/audit-finale.md](docs/audit-finale.md) — **audit indipendente**: checklist PASS/FAIL, problemi P0–P3, decisioni rimaste al cliente
 - [docs/performance.md](docs/performance.md) — misure Lighthouse, budget, cosa è stato ottimizzato e il divario che resta
 - [docs/e2e.md](docs/e2e.md) — suite end-to-end: cosa copre, viewport, accessibilità, smoke sul feed live
 - [docs/assistant-ui-e-eval.md](docs/assistant-ui-e-eval.md) — interfaccia, sicurezza e cento eval del chatbot

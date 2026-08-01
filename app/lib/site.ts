@@ -111,3 +111,18 @@ export const nav = [
   { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo" },
   { key: "contatti", label: "Contatti", href: "/contatti" },
 ] as const;
+
+/**
+ * Serializza dati strutturati per un tag `<script type="application/ld+json">`.
+ *
+ * `JSON.stringify` da solo non basta: non tocca la sequenza `</script>`, e i titoli e le
+ * descrizioni degli immobili arrivano dal gestionale — cioè da fuori. Un annuncio con
+ * `</script><script>…` chiuderebbe il tag e il resto verrebbe eseguito. Sfuggire `<` (e i
+ * separatori di riga U+2028/2029, che rompono il parser JS) chiude la strada.
+ */
+export function jsonLdScript(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
