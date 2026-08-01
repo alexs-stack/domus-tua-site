@@ -1,64 +1,108 @@
 import { NextResponse } from "next/server";
 import { getDemoStatus } from "../../lib/demoStatus";
 import { getListingDataSourceStatus } from "../../lib/realsmart/status";
-import { assistantAiEnabled, emailEnabled, WHATSAPP_NUMBER } from "../../lib/assistant/config";
+import {
+  assistantAiEnabled,
+  emailEnabled,
+  ASSISTANT_MODEL,
+  WHATSAPP_NUMBER,
+} from "../../lib/assistant/config";
 import { verifiedEntries } from "../../lib/assistant/knowledge/entries";
+import { soldMapSize } from "../../lib/realsmart/soldOverrides";
 
-// Self-check runtime (server-only). Serve a verificare al volo lo stato dell'ambiente
-// DOPO un deploy su Vercel, senza aprire la dashboard: `curl https://<dominio>/api/health`.
+// Self-check runtime (server-only). Serve a verificare al volo lo stato dell'ambiente DOPO un
+// deploy su Vercel, senza aprire la dashboard: `curl https://<dominio>/api/health`.
+// Lo consuma anche `npm run verify:deploy` (scripts/verify-deploy.ts).
 //
-// ⚠️ NON espone MAI valori segreti (chiavi, URL di webhook, credenziali): solo booleani/enum
-//    derivati e il NEXT_PUBLIC_SITE_URL (che è già pubblico per definizione). Vedi
-//    docs/vercel-live-checklist.md.
+// ⚠️ SOLO booleani, enum e metadati non sensibili. Mai chiavi, mai URL di webhook, mai
+//    credenziali. Le uniche stringhe esposte sono pubbliche per definizione:
+//    NEXT_PUBLIC_SITE_URL (finisce nel bundle client), il commit del deploy (visibile su
+//    GitHub), l'ambiente Vercel e il nome del modello dell'assistente.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** Commit del deploy, in forma breve. Vercel lo espone; in locale non esiste. */
+function deployedCommit(): string | null {
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA;
+  return sha ? sha.slice(0, 7) : null;
+}
 
 export async function GET() {
   const s = getDemoStatus();
   const listings = getListingDataSourceStatus();
+  const soldMap = soldMapSize();
 
   return NextResponse.json(
     {
       ok: true,
       timestamp: new Date().toISOString(),
-      env: {
-        // NEXT_PUBLIC_SITE_URL è pubblico (finisce nel bundle client): mostrarlo è sicuro.
+      deploy: {
+        /** Commit effettivamente in esecuzione: è così che si scopre un deploy vecchio. */
+        commit: deployedCommit(),
+        /** "production" | "preview" | "development" su Vercel; null in locale. */
+        environment: process.env.VERCEL_ENV ?? null,
+        /** Pubblico per definizione: finisce nel bundle client. */
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || null,
-        nodeEnv: process.env.NODE_ENV,
+        // Sempre presente, anche quando la variabile non c'è: chi legge distingue
+        // "non impostato" da "campo assente perché l'endpoint è vecchio".
+        nodeEnv: process.env.NODE_ENV ?? null,
+        /** Il badge "contenuti in verifica" NON deve essere acceso in produzione. */
         previewBadge: s.previewBadge,
         i18nEnabled: s.i18nEnabled,
       },
       integrations: {
-        useRealSmart: s.listingsMode === "realsmart",
-        listingsMode: listings.mode,
-        listingsFeedConfigured: listings.feedConfigured,
-        listingsFallbackPossible: listings.fallbackPossible,
-        leadWebhookConfigured: s.leadBackend === "sheets",
+        // ── Immobili ──────────────────────────────────────────────────────
+        realsmart: {
+          live: listings.mode === "realsmart",
+          feedConfigured: listings.feedConfigured,
+          fallbackPossible: listings.fallbackPossible,
+        },
+        /** Mappa dei venduti: se è vuota, un immobile venduto può comparire fra i disponibili. */
+        soldMap: {
+          present: soldMap.detected + soldMap.manual > 0,
+          detected: soldMap.detected,
+          manual: soldMap.manual,
+        },
+        // ── Contatti ──────────────────────────────────────────────────────
+        /** Dove finiscono i lead del form. Vedi app/lib/demoStatus.ts per i valori possibili. */
         leadBackend: s.leadBackend,
+        /**
+         * Canale email: oggi lo usa l'assistente, non il form contatti (che passa da
+         * /api/lead). Dichiararlo a parte evita di far credere che il form spedisca email.
+         */
+        emailLead: {
+          configured: emailEnabled,
+        },
+        whatsappConfigured: WHATSAPP_NUMBER.length > 0,
+        // ── Terze parti e AI ──────────────────────────────────────────────
         trustindexLive: s.trustindexLive,
         heroVideoLive: s.heroVideoLive,
         searchAiConfigured: s.searchAiConfigured,
         semanticRankingConfigured: s.semanticRankingConfigured,
-      },
-      // Stato dell'assistente conversazionale, canale per canale. Serve a capire dopo un
-      // deploy CHE COSA è attivo, senza aprire la dashboard e senza esporre alcun segreto.
-      // Ogni voce è indipendente: l'assistente può funzionare con il canale email spento
-      // (restano WhatsApp e telefono), ma non deve mai fingere il contrario.
-      assistant: {
-        /** L'interfaccia è visibile agli utenti (NEXT_PUBLIC_ENABLE_ASSISTANT). */
-        chatbotEnabled: process.env.NEXT_PUBLIC_ENABLE_ASSISTANT === "true",
-        /** Il provider AI è configurato. Senza, l'assistente risponde in fallback. */
-        aiProviderConfigured: assistantAiEnabled,
-        /** Il canale email può davvero inviare. Senza, nessun falso successo. */
-        leadEmailConfigured: emailEnabled,
-        /** WhatsApp: sempre disponibile, è un link. Esposto per completezza della checklist. */
-        whatsappConfigured: WHATSAPP_NUMBER.length > 0,
-        /** Gli immobili live sono la sorgente dell'assistente (mai i mock). */
-        realsmartAvailable: listings.mode === "realsmart" && listings.feedConfigured,
-        /** Quante voci di conoscenza sono approvate: 0 = l'assistente sa rispondere solo sugli immobili. */
-        knowledgeVerifiedEntries: verifiedEntries().length,
-        /** Il ranking semantico della knowledge base è opzionale. */
-        knowledgeSemanticConfigured: s.semanticRankingConfigured,
+        // Stato dell'assistente conversazionale, canale per canale. Serve a capire dopo un
+        // deploy CHE COSA è attivo, senza aprire la dashboard e senza esporre alcun segreto.
+        // Ogni voce è indipendente: l'assistente può funzionare con il canale email spento
+        // (restano WhatsApp e telefono), ma non deve mai fingere il contrario.
+        assistant: {
+          /** L'interfaccia è visibile agli utenti (NEXT_PUBLIC_ENABLE_ASSISTANT). */
+          enabled: process.env.NEXT_PUBLIC_ENABLE_ASSISTANT === "true",
+          /** Il provider AI è configurato. Senza, l'assistente risponde in fallback. */
+          providerConfigured: assistantAiEnabled,
+          /** Nome del modello: pubblico, serve a capire cosa sta girando davvero. */
+          model: ASSISTANT_MODEL,
+          /** Il canale email può davvero inviare. Senza, nessun falso successo. */
+          leadEmailConfigured: emailEnabled,
+          /** Gli immobili live sono la sorgente dell'assistente (mai i mock). */
+          realsmartAvailable: listings.mode === "realsmart" && listings.feedConfigured,
+          /** Quante voci di conoscenza sono approvate: 0 = l'assistente sa rispondere solo sugli immobili. */
+          knowledgeVerifiedEntries: verifiedEntries().length,
+          /** Il ranking semantico della knowledge base è opzionale. */
+          knowledgeSemanticConfigured: s.semanticRankingConfigured,
+        },
+        // ── Compatibilità ─────────────────────────────────────────────────
+        // Nomi piatti mantenuti per gli strumenti che già li leggono (smoke test live).
+        listingsMode: listings.mode,
+        listingsFeedConfigured: listings.feedConfigured,
       },
     },
     // Mai in cache: deve riflettere lo stato reale dell'ambiente a ogni chiamata.

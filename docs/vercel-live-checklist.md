@@ -1,126 +1,177 @@
-# Vercel — checklist ambiente live + self-check `/api/health`
+# Vercel — verifica del deploy e azioni manuali rimaste
 
-> Documento **interno sersan**. Da eseguire **prima di ogni call cliente** e **dopo ogni
-> deploy** che tocca l'ambiente. Obiettivo: verificare in 2 minuti che lo stato runtime del
-> sito corrisponda a quello che diremo al cliente. Vedi anche `docs/env-and-deploy.md`.
-
----
-
-## 1. Variabili d'ambiente su Vercel
-
-Vercel → **Project → Settings → Environment Variables**. Imposta per l'ambiente giusto
-(**Production** = dominio finale, **Preview** = URL di anteprima). Template completo e
-commentato: `.env.example`.
-
-### Pubbliche (`NEXT_PUBLIC_*` — finiscono nel bundle client, nessun segreto qui)
-
-| Variabile | A cosa serve | Valore tipico prod | Valore tipico preview |
-|---|---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | `metadataBase`, canonical/OG, sitemap/robots | `https://www.domustua.com` | URL Vercel dell'anteprima |
-| `NEXT_PUBLIC_USE_REALSMART` | `false` = mock demo; altro/assente = feed RealSmart live | *(assente)* → live | `true` se il feed è stabile |
-| `NEXT_PUBLIC_PREVIEW_BADGE` | badge "Preview — contenuti in verifica" + checklist | `false` | `true` |
-| `NEXT_PUBLIC_ENABLE_I18N` | selettore lingua (it/en/fr/de/es) | `false` (prima presentazione IT-only) | `false` |
-
-### Server-only (mai `NEXT_PUBLIC_` — **non** devono finire nel client)
-
-| Variabile | A cosa serve | Se vuota |
-|---|---|---|
-| `SHEETS_WEBHOOK_URL` | inoltro lead al Google Sheet (Apps Script) | lead non salvati → resta solo WhatsApp |
-| `TRUSTINDEX_WIDGET_URL` | override widget recensioni Trustindex | usa il loader ufficiale già in `site.ts` |
-| `INSTAGRAM_WIDGET_URL` | embed feed Instagram | sezione IG con fallback statico |
-| `ANTHROPIC_API_KEY` | parsing frase→filtri (ricerca AI) | parser locale deterministico (funziona comunque) |
-| `VOYAGE_API_KEY` | ranking semantico (embeddings) | ranking per parole chiave |
-
-> ⚠️ **Non esporre i segreti RealSmart/API.** Le credenziali `REALSMART_*`, le API key e gli
-> URL di webhook sono **server-only**. Non vanno mai prefissate `NEXT_PUBLIC_`, mai committate,
-> mai mostrate in schermata durante la demo. Il feed XML pubblico RealSmart (`REALSMART_FEED_URL`)
-> è un URL pubblico, non un segreto: ha un default nel codice (`app/lib/realsmart/env.ts`).
-
----
-
-## 2. Self-check runtime — `GET /api/health`
-
-Dopo il deploy, da terminale:
+Questo documento risponde a una domanda sola: **cosa manca perché questo deploy possa stare
+davanti a delle persone?** Non è una lista teorica — la produce il codice.
 
 ```bash
-curl -s https://<dominio-o-preview>/api/health | jq
+npm run verify:deploy -- https://domus-tua-ten.vercel.app --preview
+npm run verify:deploy -- https://www.domustua.com --commit $(git rev-parse --short HEAD)
 ```
 
-Risposta (esempio — **nessun valore segreto**, solo booleani/enum):
+Lo script interroga `/api/health` dell'ambiente **in esecuzione** (non il codice locale) ed esce
+con codice 1 se una verifica obbligatoria fallisce. Le verifiche che falliscono sono, alla
+lettera, la lista di cose da fare in Vercel.
 
-```json
+> **Il dominio non si tocca.** Niente DNS, niente cutover di domustua.com: qui si prepara un
+> deploy verificabile, non si pubblica.
+
+---
+
+## 1. Cosa verifica
+
+| Verifica | Fallisce quando | Obbligatoria |
+|---|---|:--:|
+| commit deployato | l'ambiente serve un commit diverso da quello atteso | sì |
+| ambiente dichiarato | `VERCEL_ENV` non arriva | sì |
+| `NEXT_PUBLIC_SITE_URL` | manca — il sito si dichiara non indicizzabile | sì |
+| badge di anteprima | è acceso **in produzione** | sì |
+| RealSmart live | il feed non è attivo o non è configurato | sì (avviso in anteprima) |
+| mappa dei venduti | è vuota — un venduto può comparire fra i disponibili | sì |
+| lead del form | nessuna destinazione configurata | sì (avviso in anteprima) |
+| WhatsApp | il numero non c'è (problema di codice, non di Vercel) | sì |
+| chatbot | è **visibile senza provider** | sì |
+| Trustindex | il widget recensioni non è collegato | sì (avviso in anteprima) |
+| ranking semantico | manca `VOYAGE_API_KEY` | no |
+| hero video | non è ancora stato caricato | no |
+
+`--preview` non abbassa le soglie: trasforma in avvisi le verifiche che dipendono da variabili
+che *volutamente* non si impostano in anteprima. Serve a distinguere «non è ancora configurato»
+da «è configurato male», che sono due problemi diversi.
+
+---
+
+## 2. Esito sull'anteprima attuale
+
+Su `https://domus-tua-ten.vercel.app`:
+
+```
+✗ Il deploy espone una versione precedente di /api/health (manca il blocco "deploy").
+  La verifica non è applicabile finché l'ambiente non viene ridistribuito con questo codice.
+```
+
+È l'esito corretto: l'anteprima pubblicata è **anteriore** a queste PR. Dopo il redeploy la
+verifica diventa applicabile.
+
+Sulla stessa build in locale, con `NEXT_PUBLIC_SITE_URL` impostata:
+
+```
+– commit deployato                     fuori da Vercel: non applicabile
+– ambiente dichiarato                  fuori da Vercel: non applicabile
+✓ NEXT_PUBLIC_SITE_URL impostato       https://www.domustua.com
+✓ badge di anteprima                   acceso (consentito fuori dalla produzione)
+✗ RealSmart live                       live: false, feed configurato: true
+✓ mappa dei venduti presente           193 da OCR + 3 manuali
+✓ lead del form: destinazione configurata  destinazione: sheets
+✓ WhatsApp configurato                 true
+✓ chatbot: acceso solo con un provider visibile: false, provider: false
+✓ recensioni Trustindex collegate      true
+! ranking semantico                    false
+! hero video                           false
+```
+
+I due `✗` sono esattamente le due variabili che in locale non esistono: è quello che lo script
+deve dire.
+
+---
+
+## 3. Le azioni manuali rimaste
+
+Niente di tutto questo può farlo il codice: sono valori che vivono nella dashboard.
+
+### Anteprima (Preview) — per far girare la verifica
+
+| # | Variabile | Valore | Perché |
+|---|---|---|---|
+| 1 | `NEXT_PUBLIC_SITE_URL` | l'URL Vercel dell'anteprima | metadata, OG, sitemap; senza, il sito resta non indicizzabile |
+| 2 | `ANTHROPIC_API_KEY` | la chiave | ricerca in linguaggio naturale + eval dell'assistente |
+| 3 | `TRUSTINDEX_WIDGET_URL` | URL del widget | recensioni (si caricano comunque solo dopo il consenso) |
+
+Poi **Redeploy** dell'anteprima e `npm run verify:deploy -- <url-anteprima> --preview`.
+
+### Produzione — prima della pubblicazione
+
+| # | Variabile | Valore | Perché |
+|---|---|---|---|
+| 4 | `NEXT_PUBLIC_SITE_URL` | `https://www.domustua.com` | canonical, OG, sitemap, robots |
+| 5 | `NEXT_PUBLIC_USE_REALSMART` | `true` | senza, il sito mostra le fixture demo |
+| 6 | `REALSMART_*` | credenziali del feed | immobili reali |
+| 7 | `SHEETS_WEBHOOK_URL` | URL della Web App Apps Script | senza, i lead non vengono archiviati: resta il solo WhatsApp |
+| 10 | `TRUSTINDEX_WIDGET_URL` | URL del widget | recensioni |
+| 11 | **`NEXT_PUBLIC_PREVIEW_BADGE`** | **da NON impostare** | il badge "contenuti in verifica" non deve comparire ai clienti |
+| 12 | **`NEXT_PUBLIC_ENABLE_ASSISTANT`** | **da NON impostare** | la chat si accende solo dopo gli eval con soglie verdi ([assistant-rollout.md](assistant-rollout.md)) |
+
+Facoltative: `VOYAGE_API_KEY` (ranking semantico; senza, la ricerca usa le parole chiave),
+`AI_SEARCH_MODEL` / `AI_ASSISTANT_MODEL` (override dei modelli), `INSTAGRAM_WIDGET_URL`.
+
+### Fuori da Vercel
+
+| # | Azione | Dove |
+|---|---|---|
+| 14 | Caricare il video dell'hero, se e quando si vuole | repository, [hero-video.md](hero-video.md) |
+| 15 | Rigenerare la mappa dei venduti quando l'agenzia cambia le copertine (`npm run detect-sold`) | repository |
+
+### Non ancora, e di proposito
+
+**Il DNS di domustua.com non si tocca.** Il cutover è una decisione separata, da prendere quando
+la verifica in produzione passa e il cliente ha visto il sito.
+
+---
+
+## 4. `/api/health`
+
+Espone **solo** booleani, enum e metadati pubblici: commit del deploy (già visibile su GitHub),
+ambiente, `NEXT_PUBLIC_SITE_URL` (già nel bundle client), il nome del modello dell'assistente.
+Mai chiavi, mai URL con credenziali. C'è un test che lo verifica per costruzione
+(`app/lib/__tests__/health.test.ts`): elenca le stringhe ammesse e fallisce su qualunque altra.
+
+```bash
+curl -s https://<dominio>/api/health | jq
+```
+
+```jsonc
 {
   "ok": true,
-  "timestamp": "2026-07-07T09:00:00.000Z",
-  "env": {
+  "timestamp": "2026-08-01T09:00:00.000Z",
+  "deploy": {
+    "commit": "8de5e2c",          // commit in esecuzione: è così che si scopre un deploy vecchio
+    "environment": "production",
     "siteUrl": "https://www.domustua.com",
     "nodeEnv": "production",
     "previewBadge": false,
     "i18nEnabled": false
   },
   "integrations": {
-    "useRealSmart": true,
-    "listingsMode": "realsmart",
-    "listingsFeedConfigured": true,
-    "listingsFallbackPossible": true,
-    "leadWebhookConfigured": true,
+    "realsmart":  { "live": true, "feedConfigured": true, "fallbackPossible": true },
+    "soldMap":    { "present": true, "detected": 193, "manual": 3 },
     "leadBackend": "sheets",
+    "emailLead":  { "configured": true },
+    "whatsappConfigured": true,
     "trustindexLive": true,
     "heroVideoLive": false,
-    "searchAiConfigured": false,
-    "semanticRankingConfigured": false
+    "searchAiConfigured": true,
+    "semanticRankingConfigured": false,
+    "assistant":  { "enabled": false, "providerConfigured": true, "model": "claude-haiku-4-5-20251001" }
   }
 }
 ```
 
-### Come leggerlo prima di una call
+---
 
-- **`env.previewBadge`** → in **produzione** deve essere `false`. In **preview** `true`.
-- **`env.i18nEnabled`** → `false` per la prima presentazione (IT-only). Vedi `docs/client-demo-mode.md`.
-- **`integrations.listingsMode`** → `realsmart` in produzione. Se dice `mock` in prod, gli
-  immobili NON sono quelli reali: correggere `NEXT_PUBLIC_USE_REALSMART` o indagare il feed.
-- **`leadWebhookConfigured`** → `true` se i lead vengono salvati sul Google Sheet. Se `false`,
-  i lead arrivano solo via WhatsApp (accettabile, ma da sapere).
-- **`trustindexLive`** → `true` se le recensioni Google sono servite dal widget reale.
-- **`heroVideoLive`** → `false` finché non consegnano la clip (oggi hero = poster reale).
-- **`searchAiConfigured` / `semanticRankingConfigured`** → `false` è OK: la ricerca funziona
-  comunque col parser locale + ranking per parole chiave. `true` = chiavi AI configurate.
+## 5. Due canali di contatto, due destinazioni diverse
 
-> `/api/health` non è in cache (`no-store`) e non richiede autenticazione: espone solo stato,
-> mai segreti. Se un domani si volesse proteggerlo, aggiungere un token via header — ma finché
-> non espone dati sensibili non è necessario.
+Non sono la stessa cosa e la checklist li tiene distinti:
+
+- **Form contatti** → `POST /api/lead` → `SHEETS_WEBHOOK_URL` (Google Sheet via Apps Script).
+  Senza la variabile il form risponde comunque, ma il lead non viene archiviato: resta WhatsApp.
+- **Assistente** → invia una email a `immobiliare@domustua.it` (`ASSISTANT_EMAIL_API_KEY`).
+  È il campo `integrations.emailLead` in `/api/health`, e riguarda la chat, non il form.
 
 ---
 
-## 3. Checklist rapida pre-call
+## 6. Prima di una call col cliente
 
-- [ ] `curl /api/health` risponde `ok: true`.
-- [ ] In **produzione**: `previewBadge=false`, `i18nEnabled=false`, `listingsMode=realsmart`.
-- [ ] In **preview**: `previewBadge=true` (il badge/checklist è visibile).
-- [ ] `NEXT_PUBLIC_SITE_URL` = dominio giusto (non l'URL Vercel se è la call "finale").
-- [ ] Nessun segreto `REALSMART_*`/API visibile nella dashboard condivisa a schermo.
-- [ ] Homepage, `/case`, una scheda `/case/[slug]`, `/vendi`, `/acquista` caricano senza errori.
-
----
-
-## 4. SEO — prima dell'indicizzazione (verifica il dominio finale!)
-
-L'indicizzazione è **gated sull'ambiente** (`app/robots.ts`):
-
-- **Preview/staging** (`VERCEL_ENV=preview`, o badge anteprima attivo) → `robots.txt` = `Disallow: /`.
-  Gli URL Vercel di anteprima **non** finiscono su Google.
-- **Produzione** (`VERCEL_ENV=production`) → `Allow: /` + `sitemap.xml`.
-
-Checklist da spuntare **sul dominio di produzione finale**:
-
-- [ ] `curl https://www.domustua.com/robots.txt` → contiene `Allow: /` e il link al sitemap
-      (NON `Disallow: /`). Se vedi `Disallow: /` in produzione, l'ambiente non è `production`.
-- [ ] `NEXT_PUBLIC_SITE_URL` = **dominio finale** (`https://www.domustua.com`), così canonical,
-      OpenGraph e `sitemap.xml` puntano al dominio giusto (non all'URL Vercel).
-- [ ] `sitemap.xml` elenca le pagine reali + le schede `/case/*` col dominio finale.
-- [ ] `/privacy` e `/cookie` restano `noindex` finché il testo legale non è validato (e quindi
-      **fuori** dal sitemap — vedi `app/sitemap.ts`).
-- [ ] Dati strutturati `RealEstateAgent` validi (Rich Results Test): niente `aggregateRating`
-      finché non è pienamente conforme e verificato.
-- [ ] Solo **dopo** questi check: invia il sitemap in Google Search Console.
-
+1. `npm run verify:deploy -- <url> --preview` — due minuti, e sai cosa dire.
+2. Se il badge di anteprima è acceso, dillo prima che lo chiedano: significa "contenuti in
+   verifica", ed è lì apposta.
+3. Quello che la verifica segna `!` (ranking semantico, hero video) non è rotto: è facoltativo e
+   il sito funziona senza. Vale la pena spiegarlo così, invece di lasciarlo scoprire.

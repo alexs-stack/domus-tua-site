@@ -92,25 +92,32 @@ describe("GET /api/health", () => {
   it("riporta separatamente lo stato di ogni canale dell'assistente", async () => {
     const res = await HEALTH();
     const body = (await res.json()) as {
-      assistant: Record<string, unknown>;
+      integrations: { assistant: Record<string, unknown>; whatsappConfigured: unknown };
     };
 
-    // Il programma chiede queste cinque voci distinte.
+    // Il programma chiede queste voci distinte. `whatsappConfigured` sta un livello più su:
+    // WhatsApp è un canale del sito, non dell'assistente, e vale anche a chat spenta.
     for (const chiave of [
-      "chatbotEnabled",
-      "aiProviderConfigured",
+      "enabled",
+      "providerConfigured",
       "leadEmailConfigured",
-      "whatsappConfigured",
       "realsmartAvailable",
     ]) {
-      assert.ok(chiave in body.assistant, `manca la voce ${chiave}`);
-      assert.equal(typeof body.assistant[chiave], "boolean", `${chiave} non è un booleano`);
+      assert.ok(chiave in body.integrations.assistant, `manca la voce ${chiave}`);
+      assert.equal(
+        typeof body.integrations.assistant[chiave],
+        "boolean",
+        `${chiave} non è un booleano`,
+      );
     }
+    assert.equal(typeof body.integrations.whatsappConfigured, "boolean");
   });
 
   it("dice quante voci di conoscenza sono approvate", async () => {
-    const body = (await (await HEALTH()).json()) as { assistant: { knowledgeVerifiedEntries: number } };
-    assert.equal(typeof body.assistant.knowledgeVerifiedEntries, "number");
+    const body = (await (await HEALTH()).json()) as {
+      integrations: { assistant: { knowledgeVerifiedEntries: number } };
+    };
+    assert.equal(typeof body.integrations.assistant.knowledgeVerifiedEntries, "number");
   });
 
   it("non espone mai un valore segreto", async () => {

@@ -29,3 +29,17 @@ export function isListingSold(codice: string, cover: string): boolean {
   const d = detectedItems[codice];
   return !!d && d.sold && d.cover === cover;
 }
+
+/**
+ * Quanti immobili sono coperti dalla mappa dei venduti.
+ *
+ * Serve a `/api/health`: un deploy in cui la mappa è vuota mostrerebbe come disponibili
+ * immobili già venduti — è la cosa peggiore che questo sito possa fare, e va vista subito.
+ * Conta gli esiti (OCR + override manuali), non i loro contenuti.
+ */
+export function soldMapSize(): { detected: number; manual: number } {
+  return {
+    detected: Object.keys(detectedItems).length,
+    manual: Object.keys(manualOverrides).length,
+  };
+}
