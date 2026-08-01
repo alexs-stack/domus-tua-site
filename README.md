@@ -12,6 +12,7 @@ npm run typecheck  # tsc --noEmit (sito + test di browser)
 npm test           # test unitari (node:test)
 npm run test:e2e   # suite di browser su 5 viewport (Playwright)
 npm run lighthouse # budget prestazioni/accessibilità (docs/performance.md)
+npm run verify:deploy -- <url>   # verifica un ambiente pubblicato (docs/vercel-live-checklist.md)
 npm run check      # lint + typecheck + test + build (usato anche in CI)
 ```
 
@@ -103,6 +104,7 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 
 **Delivery & operatività**
 - [docs/env-and-deploy.md](docs/env-and-deploy.md) — variabili d'ambiente, Vercel, preview vs produzione
+- [docs/vercel-live-checklist.md](docs/vercel-live-checklist.md) — **verifica del deploy** e azioni manuali rimaste in Vercel
 - [docs/production-readiness.md](docs/production-readiness.md) — checklist di lancio
 - [docs/client-assets-needed.md](docs/client-assets-needed.md) — **asset da chiedere al cliente** (3 priorità)
 - [docs/client-review-script.md](docs/client-review-script.md) — talk-track per la call di presentazione
