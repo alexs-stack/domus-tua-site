@@ -30,7 +30,7 @@ const copy = {
     reviews: "Oltre 500 recensioni",
     ratingOn: "Google",
     place: "Tradate · Varese",
-    heroAlt: "Vista aerea di una villa con piscina e giardino proposta da Domus Tua",
+    heroAlt: "Raffaela Rizza presenta il soggiorno di un attico luminoso con terrazza proposto da Domus Tua",
   },
   en: {
     badge: "Real estate agency · Tradate since 2007",
@@ -45,7 +45,7 @@ const copy = {
     reviews: "Over 500 reviews",
     ratingOn: "Google",
     place: "Tradate · Varese",
-    heroAlt: "Aerial view of a villa with pool and garden offered by Domus Tua",
+    heroAlt: "Raffaela Rizza presenting the living room of a bright penthouse with terrace offered by Domus Tua",
   },
   fr: {
     badge: "Agence immobilière · Tradate depuis 2007",
@@ -60,7 +60,7 @@ const copy = {
     reviews: "Plus de 500 avis",
     ratingOn: "Google",
     place: "Tradate · Varese",
-    heroAlt: "Vue aérienne d'une villa avec piscine et jardin proposée par Domus Tua",
+    heroAlt: "Raffaela Rizza présente le séjour d'un penthouse lumineux avec terrasse proposé par Domus Tua",
   },
   de: {
     badge: "Immobilienagentur · Tradate seit 2007",
@@ -75,7 +75,7 @@ const copy = {
     reviews: "Über 500 Bewertungen",
     ratingOn: "Google",
     place: "Tradate · Varese",
-    heroAlt: "Luftaufnahme einer Villa mit Pool und Garten im Angebot von Domus Tua",
+    heroAlt: "Raffaela Rizza präsentiert das Wohnzimmer eines hellen Penthouses mit Terrasse im Angebot von Domus Tua",
   },
   es: {
     badge: "Agencia inmobiliaria · Tradate desde 2007",
@@ -90,7 +90,7 @@ const copy = {
     reviews: "Más de 500 reseñas",
     ratingOn: "Google",
     place: "Tradate · Varese",
-    heroAlt: "Vista aérea de una villa con piscina y jardín ofrecida por Domus Tua",
+    heroAlt: "Raffaela Rizza presenta el salón de un ático luminoso con terraza ofrecido por Domus Tua",
   },
 };
 
@@ -221,12 +221,10 @@ export default function HeroCinematic() {
           el.style.animation = "none";
         });
 
-        if (withPreloader) {
-          gsap.set(mediaRef.current, {
-            scale: 0.75,
-            transformOrigin: "center top",
-          });
-        }
+        // La foto resta FERMA a scale 1 durante l'intro: la "sagoma" di
+        // Raffaela nel preloader è la stessa foto con la stessa geometria
+        // object-cover — quando l'arco passa su di lei, sagoma e foto
+        // coincidono pixel su pixel e la stanza si materializza intorno.
         // LCP: Chromium esclude le immagini full-viewport ("background"), quindi
         // l'LCP della home è il TESTO dell'hero. Gli elementi restano DIPINTI a
         // opacity 0.02 (opacity:0 li toglierebbe dai candidati LCP); lo stato
@@ -258,19 +256,6 @@ export default function HeroCinematic() {
             transformPerspective: 800,
           });
           const tl = gsap.timeline({ defaults: { ease: "domus" } });
-          if (withPreloader) {
-            tl.to(
-              mediaRef.current,
-              {
-                scale: 1,
-                duration: dur.hero,
-                ease: "domus.inOut",
-                // Libera scale/origin: lo scrub "frame-in" resta l'unico owner.
-                clearProps: "scale,transformOrigin",
-              },
-              0
-            );
-          }
           tl.to(
               titleChars,
               {
@@ -457,13 +442,6 @@ export default function HeroCinematic() {
           const { motionOk, desktop, fine } = ctx.conditions as Record<string, boolean>;
           if (!motionOk || !desktop || !fine) return;
 
-          // Overscan solo mentre l'effetto è attivo (stesso pattern di Paths):
-          // ±10px non scoprono mai i bordi del layer video (scale 1), la foto
-          // ha già il ken-burns ≥1.06. Niente will-change: mediaRef promuove
-          // già un layer full-viewport, un secondo pinnato in GPU
-          // raddoppierebbe la texture (vedi nota ken-burns in globals.css).
-          gsap.set(media, { scale: 1.04 });
-
           const mediaX = gsap.quickTo(media, "x", { duration: 0.8, ease: "power3.out" });
           const mediaY = gsap.quickTo(media, "y", { duration: 0.8, ease: "power3.out" });
           const contentX = gsap.quickTo(content, "x", { duration: 0.8, ease: "power3.out" });
@@ -472,14 +450,27 @@ export default function HeroCinematic() {
           // Parte solo a intro conclusa: durante il sipario il puntatore può
           // già muoversi sull'hero ma il timone è della coreografia sopra.
           // Safety allineato al handoff: se l'evento va perso, si arma comunque.
+          // L'overscan (±10px senza scoprire i bordi) si applica SOLO all'arm:
+          // durante l'intro la foto deve restare a scale 1, identica alla
+          // sagoma nel preloader (continuità pixel su pixel sotto l'arco).
           let active = !isIntroRunning();
           const arm = () => {
             active = true;
+            gsap.set(media, { scale: 1.04 });
           };
+          if (active) gsap.set(media, { scale: 1.04 });
           let safety = 0;
+          let armTimer = 0;
+          // INTRO_EVENT parte all'INIZIO del tuffo: overscan e parallasse
+          // aspettano che l'arco abbia FINITO di attraversare la foto
+          // (dur.hero), altrimenti lo scatto a 1.04 romperebbe la continuità
+          // sagoma→foto proprio nel momento in cui si vede.
+          const onIntroDone = () => {
+            armTimer = window.setTimeout(arm, dur.hero * 1000 + 200);
+          };
           if (!active) {
-            window.addEventListener(INTRO_EVENT, arm, { once: true });
-            safety = window.setTimeout(arm, 6000);
+            window.addEventListener(INTRO_EVENT, onIntroDone, { once: true });
+            safety = window.setTimeout(arm, 7600);
           }
 
           const onMove = (e: PointerEvent) => {
@@ -503,8 +494,9 @@ export default function HeroCinematic() {
           section.addEventListener("pointermove", onMove, { passive: true });
           section.addEventListener("pointerleave", onLeave);
           return () => {
-            window.removeEventListener(INTRO_EVENT, arm);
+            window.removeEventListener(INTRO_EVENT, onIntroDone);
             window.clearTimeout(safety);
+            window.clearTimeout(armTimer);
             section.removeEventListener("pointermove", onMove);
             section.removeEventListener("pointerleave", onLeave);
             // Il revert del context azzera scale/x/y inline sui due layer.
@@ -565,19 +557,20 @@ export default function HeroCinematic() {
             alt={c.heroAlt}
             fill
             priority
-            // Sotto due velature scure, in movimento e (quando c'è) coperta dal video: a
-            // qualità 60 il file dimezza su rete lenta e la differenza non si vede.
-            quality={60}
+            // Qualità 78 (non 60): la sorgente è una foto WhatsApp già molto
+            // compressa e ricampionata — una seconda compressione aggressiva
+            // la sgranerebbe visibilmente sull'immagine luminosa a tutto schermo.
+            quality={78}
             sizes="100vw"
             className="ken-burns object-cover"
-            style={{ objectPosition: "50% 35%" }}
+            style={{ objectPosition: "50% 70%" }}
           />
 
           {/* Video overlay (opzionale, video-ready): copre la base quando disponibile */}
           {playVideo && (
             <video
               className="absolute inset-0 h-full w-full object-cover"
-              style={{ objectPosition: "50% 35%" }}
+              style={{ objectPosition: "50% 70%" }}
               poster={heroCinematic.poster}
               autoPlay
               muted

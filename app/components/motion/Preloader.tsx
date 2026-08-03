@@ -200,6 +200,17 @@ export default function Preloader() {
       // Reveal fedeli al riferimento (README §7): titoli per lettere con
       // rotazione su Y, script per lettere con rotazione su X + slittamento
       // orizzontale, paragrafi per righe da sotto la maschera. Ease "dtOut".
+      // La sagoma di Raffaela arriva per prima, dall'ombra; NON esce mai col
+      // contenuto: resta finché l'arco non la scambia con la foto vera.
+      const figure = root.querySelector<HTMLElement>("[data-pre-figure]");
+      if (figure) {
+        tl.fromTo(
+          figure,
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: dur.reveal, ease: "none" },
+          0.15
+        );
+      }
       tl.to(content, { autoAlpha: 1, duration: 0.25, ease: "none" }, 0)
         .fromTo(
           titleChars,
@@ -372,6 +383,26 @@ export default function Preloader() {
         />
         <div className="grain !absolute !z-0" aria-hidden />
 
+        {/* La "sagoma" di Raffaela, a sinistra: è la FOTO VERA dell'hero,
+            visibile solo nella sua zona (mask sfumata), con la stessa
+            geometria object-cover dell'immagine sotto — quando l'arco la
+            attraversa, sagoma e foto coincidono e la stanza "torna". */}
+        <div data-pre-figure className="absolute inset-0" style={{ opacity: 0 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/media/hero-raffaela.jpg"
+            alt=""
+            className="h-full w-full object-cover"
+            style={{
+              objectPosition: "50% 70%",
+              maskImage:
+                "radial-gradient(42vw 80vh at 17% 50%, #000 40%, transparent 70%)",
+              WebkitMaskImage:
+                "radial-gradient(42vw 80vh at 17% 50%, #000 40%, transparent 70%)",
+            }}
+          />
+        </div>
+
         {/* Anelli eco della porta (solo variante arco, vedi globals.css):
             la maschera li taglia dove c'è il buco, restano i profili. */}
         <div data-pre-arch-echo="2" />
@@ -387,14 +418,9 @@ export default function Preloader() {
             <MarkBadge className="h-14 w-14" dark />
           </span>
 
-          {/* Centro: lockup — caps ai lati, didone al centro, script sotto */}
-          <div className="flex w-full items-center justify-center gap-[4vw] px-[6vw]">
-            <span
-              data-pre-cap
-              className="hidden shrink-0 text-[0.68rem] font-semibold uppercase tracking-[0.55em] text-cream/60 md:block"
-            >
-              Immobiliare
-            </span>
+          {/* Centro: lockup al centro, caps in colonna a destra (a sinistra
+              c'è la sagoma di Raffaela: la colonna la bilancia). */}
+          <div className="relative flex w-full items-center justify-center px-[6vw]">
             {/* div, non heading: l'overlay è decorativo (aria-hidden) e un h2
                 prima dell'h1 di pagina sporcherebbe l'outline del documento. */}
             <div className="relative text-center">
@@ -408,11 +434,19 @@ export default function Preloader() {
                 <PreChars text="Raffaela Rizza" script />
               </span>
             </div>
-            <span
-              data-pre-cap
-              className="hidden shrink-0 text-[0.68rem] font-semibold uppercase tracking-[0.55em] text-cream/60 md:block"
-            >
-              dal 2007
+            <span className="absolute right-[7vw] top-1/2 hidden -translate-y-1/2 flex-col items-start gap-3 md:flex">
+              <span
+                data-pre-cap
+                className="text-[0.68rem] font-semibold uppercase tracking-[0.55em] text-cream/60"
+              >
+                Immobiliare
+              </span>
+              <span
+                data-pre-cap
+                className="text-[0.68rem] font-semibold uppercase tracking-[0.55em] text-cream/60"
+              >
+                dal 2007
+              </span>
             </span>
           </div>
 

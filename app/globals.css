@@ -630,6 +630,13 @@ html[data-preloader] {
 .dt-preloader [data-pre-content] {
   opacity: 0;
 }
+/* Durante l'intro il ken-burns dell'hero resta fermo a scale 1: la "sagoma"
+   di Raffaela nel preloader e la foto sotto devono coincidere pixel su pixel
+   quando l'arco la attraversa. A intro finita (attributo rimosso) il
+   ken-burns riparte da capo, da 1. */
+html[data-preloader] .ken-burns {
+  animation: none;
+}
 /* Safety CSS-only: se il bundle non idrata mai (rete flaky, JS bloccato dopo
    l'inline script), l'overlay si toglie di mezzo da solo. Il Preloader JS
    disattiva questa animation al takeover (style.animation = "none"). */

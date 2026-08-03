@@ -35,7 +35,14 @@ const nextConfig: NextConfig = {
   images: {
     // Formati moderni: meno peso, stessa qualità.
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920],
+    // Next 16: le qualità NON in lista vengono riportate alla più vicina
+    // (default [75]) — senza questa lista i quality={} dei componenti sono
+    // silenziosamente ignorati. 60 = immagini velate/di sfondo; 78 = hero
+    // (sorgente WhatsApp già compressa, non va ricompressa aggressivamente).
+    qualities: [60, 75, 78],
+    // 2560: l'hero è full-bleed anche su schermi QHD — senza questo taglio
+    // il browser stira la variante 1920.
+    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920, 2560],
     imageSizes: [16, 32, 48, 64, 96, 128, 220, 300, 384],
     // Thumbnail YouTube (LazyYouTubeEmbed): ottimizzate via next/image invece di servite raw.
     remotePatterns: [

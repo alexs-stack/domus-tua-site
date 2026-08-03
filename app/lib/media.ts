@@ -13,16 +13,17 @@
 // o il video fallisce, resta il `base` come poster.
 // Video consigliato: 15-35s, ~1080p, muto, loop.
 export const heroCinematic = {
-  // Scelta cliente (2026-08-03): niente video nell'hero, resta la foto aerea
-  // della villa. Il clip drone resta in /media pronto per un ripensamento.
+  // Scelta cliente (2026-08-03): niente video nell'hero, resta la foto.
+  // Il clip drone resta in /media pronto per un ripensamento.
   enabled: false,
   mp4: "/media/domus-hero.mp4",
   // Vuoto = sorgente non renderizzata (evita un 404 a ogni visita desktop);
   // valorizzare quando esisterà la codifica webm.
   webm: "",
-  poster: "/media/hero-aerial.jpg",
-  // Base: ripresa aerea reale (drone) della villa con piscina — è l'immagine
-  // dentro cui si "entra" attraverso l'arco del preloader (vedi Preloader.tsx).
-  base: "/media/hero-aerial.jpg",
-  baseAlt: "Vista aerea di una villa con piscina e giardino proposta da Domus Tua",
+  poster: "/media/hero-raffaela.jpg",
+  // Base: Raffaela che presenta il soggiorno di un attico reale — dentro
+  // l'arco del preloader si vede il crop su di lei, poi la camera rientra
+  // e rivela la stanza (vedi HERO_FOCUS in HeroCinematic.tsx).
+  base: "/media/hero-raffaela.jpg",
+  baseAlt: "Raffaela Rizza presenta il soggiorno di un attico luminoso proposto da Domus Tua",
 } as const;
