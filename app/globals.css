@@ -635,6 +635,51 @@ body {
   margin-right: -11vw;
 }
 
+/* ---------- ReviewsWall: sticky grid scroll (rif. Codrops in reverse-engineering/, MIT) ---------- */
+/* Default (mobile / reduced-motion / no-JS): sezione normale in colonna, tutto
+   visibile. [data-on] arriva SOLO via JS (desktop ≥1024 + motion ok) e attiva
+   la geometria del riferimento: runway 425vh, wrapper sticky con overflow
+   nascosto, galleria assoluta centrata DIETRO il contenuto (che sta sopra,
+   z-1, e riceve i click solo sul bottone). */
+.dt-wall[data-on] {
+  height: 425vh;
+}
+.dt-wall[data-on] .dt-wall_wrapper {
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+  will-change: transform;
+}
+.dt-wall[data-on] .dt-wall_content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.dt-wall[data-on] .dt-wall_gallery {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 51vw;
+  margin-top: 0;
+  transform: translate3d(-50%, -50%, 0);
+}
+.dt-wall[data-on] .dt-wall_grid {
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 2.2vw;
+  row-gap: 2.8vw;
+  will-change: transform;
+}
+.dt-wall[data-on] .dt-wall_item {
+  aspect-ratio: 1 / 1;
+  will-change: transform;
+}
+
 /* Capolettera editoriale — UNA sola volta per pagina (eleganza, mai vezzo ripetuto). */
 .dropcap::first-letter {
   font-family: var(--font-display), Georgia, serif;
