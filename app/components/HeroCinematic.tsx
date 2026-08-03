@@ -625,11 +625,11 @@ export default function HeroCinematic() {
             </span>
           </div>
 
-          {/* Riga del motto (posizione della riga "A place · to return to") */}
-          <p
-            aria-label={`${c.title1} ${c.title2}`}
-            className="mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-hero text-[clamp(1.4rem,2.4vw,2.75rem)] font-medium leading-[1.15] tracking-[-0.012em] text-cream"
-          >
+          {/* Riga del motto (posizione della riga "A place · to return to").
+              Le lettere animate sono aria-hidden (vedi Chars): il testo leggibile vive
+              nello span sr-only — aria-label su un <p> è vietato (axe: aria-prohibited-attr). */}
+          <p className="mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-hero text-[clamp(1.4rem,2.4vw,2.75rem)] font-medium leading-[1.15] tracking-[-0.012em] text-cream">
+            <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
             <Chars variant="tagline" text={c.title1} />
             <span aria-hidden className="hidden h-px w-10 bg-cream/40 sm:block" />
             <Chars variant="tagline" text={c.title2} className="italic text-red-soft" />
