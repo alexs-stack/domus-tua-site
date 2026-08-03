@@ -9,7 +9,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
-import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
 import { readConsent, writeConsent, type ConsentValue } from "../lib/consent";
@@ -150,7 +149,15 @@ export default function CookieConsent() {
       </h2>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
-          <SegnoDomus className="mt-0.5 hidden h-4 w-9 shrink-0 sm:block" embrace={false} />
+          {/* Monogramma ufficiale (crop del logo depositato), non un segno ridisegnato. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-domustua-mark.png"
+            alt=""
+            width={99}
+            height={92}
+            className="mt-0.5 hidden h-7 w-auto shrink-0 sm:block"
+          />
           <p id="cookie-consent-desc" className="text-[0.86rem] leading-relaxed text-graphite">
             {c.text}{" "}
             <Link href="/cookie" className="font-semibold text-red underline underline-offset-2 hover:text-red-dark">

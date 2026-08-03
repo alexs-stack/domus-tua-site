@@ -10,16 +10,19 @@
 //
 // Hero CINEMATICO full-bleed (HeroCinematic.tsx). Vedi docs/hero-video.md.
 // Il video parte solo su desktop e senza prefers-reduced-motion; se i file /media mancano
-// o il video fallisce, resta il `base` (foto reale di Raffaella + team) come poster.
-// Per andare "live": metti i file in /public/media e imposta enabled: true.
+// o il video fallisce, resta il `base` come poster.
 // Video consigliato: 15-35s, ~1080p, muto, loop.
 export const heroCinematic = {
+  // Scelta cliente (2026-08-03): niente video nell'hero, resta la foto aerea
+  // della villa. Il clip drone resta in /media pronto per un ripensamento.
   enabled: false,
   mp4: "/media/domus-hero.mp4",
-  webm: "/media/domus-hero.webm",
-  poster: "/media/domus-hero-poster.jpg",
-  // Fallback sempre presente (foto reale). Villa di pregio, luminosa, con Raffaela Rizza
-  // in primo piano: calda, umana e "founder-led", coerente col brand e col velo scuro del testo.
-  base: "/images/reali/villa-pool.jpg",
-  baseAlt: "Raffaela Rizza davanti a una villa di pregio con piscina, a Tradate",
+  // Vuoto = sorgente non renderizzata (evita un 404 a ogni visita desktop);
+  // valorizzare quando esisterà la codifica webm.
+  webm: "",
+  poster: "/media/hero-aerial.jpg",
+  // Base: ripresa aerea reale (drone) della villa con piscina — è l'immagine
+  // dentro cui si "entra" attraverso l'arco del preloader (vedi Preloader.tsx).
+  base: "/media/hero-aerial.jpg",
+  baseAlt: "Vista aerea di una villa con piscina e giardino proposta da Domus Tua",
 } as const;

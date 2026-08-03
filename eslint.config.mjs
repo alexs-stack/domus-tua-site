@@ -20,6 +20,8 @@ const eslintConfig = defineConfig([
     // Artefatti dei test di browser.
     "test-results/**",
     "playwright-report/**",
+    // Materiale di studio (codice de-minificato di siti terzi), non del sito.
+    "reverse-engineering/**",
   ]),
   {
     // Test di browser: la `use()` delle fixture di Playwright non è un hook di React, ma la

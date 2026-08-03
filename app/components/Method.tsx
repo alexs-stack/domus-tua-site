@@ -3,8 +3,6 @@
 import { useRef } from "react";
 import Reveal from "./Reveal";
 import Atmosphere from "./motion/Atmosphere";
-import DrawOnScroll from "./motion/DrawOnScroll";
-import { SegnoDomus } from "./BrandMotif";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur } from "../lib/motion/gsap";
@@ -187,6 +185,21 @@ export default function Method() {
         };
         makeDraw();
 
+        // Il cuore in coda al filo: si disegna dallo stesso punto in cui il
+        // filo arriva (l'incavo in alto), poi si riempie di rosso. Stessa
+        // tecnica del filo (dasharray a runtime); once, come il vecchio Segno.
+        const heart = segnoWrapRef.current?.querySelector<SVGPathElement>("[data-heart-path]");
+        if (heart) {
+          const hlen = heart.getTotalLength() + 2;
+          gsap.set(heart, { strokeDasharray: hlen, strokeDashoffset: hlen, fillOpacity: 0 });
+          gsap
+            .timeline({
+              scrollTrigger: { trigger: segnoWrapRef.current, start: "top 80%", once: true },
+            })
+            .to(heart, { strokeDashoffset: 0, duration: 1.1, ease: "domus.inOut" })
+            .to(heart, { fillOpacity: 1, duration: 0.5, ease: "none" }, "-=0.15");
+        }
+
         // Il foglio che il filo sta attraversando si "accende" (nodo rosso,
         // foglio dritto): linea di attivazione al 62% del viewport.
         const triggers = items.map((li) =>
@@ -329,11 +342,26 @@ export default function Method() {
             ))}
           </ol>
 
-          {/* Il filo chiude sul Segno: il percorso diventa casa. */}
+          {/* Il filo chiude sul CUORE: arriva dall'alto nell'incavo e il cuore
+              si disegna dallo stesso punto, poi si riempie di rosso — il
+              percorso diventa casa. Senza JS / reduced-motion: già completo. */}
           <div ref={segnoWrapRef} className="mt-14 flex justify-center pb-2 lg:mt-16">
-            <DrawOnScroll duration={1.2} stagger={0.25}>
-              <SegnoDomus className="h-9 w-24" />
-            </DrawOnScroll>
+            <svg
+              viewBox="0 0 64 60"
+              fill="none"
+              aria-hidden
+              className="h-14 w-14 text-red"
+            >
+              <path
+                data-heart-path
+                d="M32 14 C 26 3, 10 2, 6 13 C 2 24, 12 36, 32 52 C 52 36, 62 24, 58 13 C 54 2, 38 3, 32 14 Z"
+                stroke="currentColor"
+                strokeWidth="2.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="var(--color-red)"
+              />
+            </svg>
           </div>
         </div>
       </div>

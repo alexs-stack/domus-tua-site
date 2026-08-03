@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Logo } from "./Logo";
+import RotatingMark from "./motion/RotatingMark";
 import { ArrowUpRight, Whatsapp } from "./Icons";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
@@ -254,9 +254,27 @@ export default function Header() {
         }`}
       >
         <Link href="/" className="shrink-0" aria-label="Domus Tua, vai alla home">
-          {/* Sopra l'hero scuro il logo diventa una silhouette chiara; da scrollato torna a colori. */}
-          <span className={scrolled ? "" : "[filter:brightness(0)_invert(1)]"}>
-            <Logo />
+          {/* Badge di marca rif. era-residence: monogramma ufficiale fermo,
+              anello ornamentale che ruota con lo scroll (RotatingMark).
+              Sopra l'hero scuro diventa silhouette chiara; da scrollato
+              l'anello passa a grafite e il monogramma torna a colori. */}
+          <span
+            className={`flex items-center gap-2.5 transition-colors duration-500 ${
+              scrolled ? "text-graphite" : "text-cream"
+            }`}
+          >
+            <RotatingMark className="block h-12 w-12 shrink-0" dark={!scrolled} />
+            {/* Wordmark ufficiale (crop del PNG depositato: stesso font e
+                stessi colori). Sul velo scuro dell'hero: variante negativa —
+                "Domus" in crema, "Tua" resta ROSSA come nel logo. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={scrolled ? "/logo-domustua-wordmark.png" : "/logo-domustua-wordmark-dark.png"}
+              alt=""
+              width={388}
+              height={92}
+              className="h-7 w-auto"
+            />
           </span>
         </Link>
 

@@ -9,12 +9,12 @@ import Image from "next/image";
 import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
 import { site } from "../lib/site";
 import { heroCinematic } from "../lib/media";
-import WordReveal from "./WordReveal";
 import Magnetic from "./motion/Magnetic";
-import { SegnoDomusVideoFrame, SegnoDomusBadge } from "./BrandMotif";
+import { SegnoDomusVideoFrame } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
+import { getLenis } from "./motion/SmoothScroll";
 
 const copy = {
   it: {
@@ -30,6 +30,7 @@ const copy = {
     reviews: "Oltre 500 recensioni",
     ratingOn: "Google",
     place: "Tradate · Varese",
+    heroAlt: "Vista aerea di una villa con piscina e giardino proposta da Domus Tua",
   },
   en: {
     badge: "Real estate agency · Tradate since 2007",
@@ -44,6 +45,7 @@ const copy = {
     reviews: "Over 500 reviews",
     ratingOn: "Google",
     place: "Tradate · Varese",
+    heroAlt: "Aerial view of a villa with pool and garden offered by Domus Tua",
   },
   fr: {
     badge: "Agence immobilière · Tradate depuis 2007",
@@ -58,6 +60,7 @@ const copy = {
     reviews: "Plus de 500 avis",
     ratingOn: "Google",
     place: "Tradate · Varese",
+    heroAlt: "Vue aérienne d'une villa avec piscine et jardin proposée par Domus Tua",
   },
   de: {
     badge: "Immobilienagentur · Tradate seit 2007",
@@ -72,6 +75,7 @@ const copy = {
     reviews: "Über 500 Bewertungen",
     ratingOn: "Google",
     place: "Tradate · Varese",
+    heroAlt: "Luftaufnahme einer Villa mit Pool und Garten im Angebot von Domus Tua",
   },
   es: {
     badge: "Agencia inmobiliaria · Tradate desde 2007",
@@ -86,8 +90,43 @@ const copy = {
     reviews: "Más de 500 reseñas",
     ratingOn: "Google",
     place: "Tradate · Varese",
+    heroAlt: "Vista aérea de una villa con piscina y jardín ofrecida por Domus Tua",
   },
 };
+
+// Split in lettere reso in SSR (niente SplitText nel chunk della home):
+// ogni char è uno <span> animabile; gli spazi restano nodi di testo normali.
+// I wrapper sono aria-hidden: il testo accessibile vive sull'aria-label del
+// genitore (h1/p), i motori di ricerca leggono comunque il testo nel DOM.
+function Chars({
+  text,
+  variant = "title",
+  className = "",
+}: {
+  text: string;
+  variant?: "title" | "tagline" | "script";
+  className?: string;
+}) {
+  const attr =
+    variant === "tagline"
+      ? { "data-hero-tchar": "" }
+      : variant === "script"
+        ? { "data-hero-schar": "" }
+        : { "data-hero-char": "" };
+  return (
+    <span aria-hidden className={className}>
+      {text.split("").map((ch, i) =>
+        ch === " " ? (
+          " "
+        ) : (
+          <span key={i} {...attr} className="inline-block will-change-transform">
+            {ch}
+          </span>
+        )
+      )}
+    </span>
+  );
+}
 
 export default function HeroCinematic() {
   const { locale } = useLocale();
@@ -148,42 +187,51 @@ export default function HeroCinematic() {
     { scope: sectionRef }
   );
 
-  // Coreografia d'ingresso — SOLO al handoff del preloader (prima visita di
-  // sessione): il sipario copre la pagina, quindi è sicuro nascondere gli
-  // stati DOPO il primo paint (LCP già registrata) e rivelarli in sequenza:
-  // canvas che si apre (clip + scale sul wrapper, mai sull'IMG: il ken-burns
-  // resta l'unico owner del transform dell'immagine), parole dell'H1 che
-  // salgono dalle maschere con micro-rotazione, badge/copy/CTA/chips in coda.
-  // Nelle visite successive non si nasconde nulla: restano i dt-fade-rise CSS
-  // (che con reduced-motion vengono azzerati dalla regola globale).
+  // Coreografia d'ingresso — a OGNI load (rif. era-residence: anche al
+  // refresh le scritte rientrano). Due percorsi:
+  // - CON preloader (prima visita di sessione): il canvas parte a scale 0.75
+  //   (è ciò che si vede DENTRO la porta ad arco) e arriva a 1 durante il
+  //   tuffo; le lettere partono al handoff INTRO_EVENT.
+  // - SENZA preloader (refresh/visite successive): niente scale sul canvas,
+  //   le lettere rientrano subito dopo l'idratazione. L'attributo
+  //   html[data-hero-intro] (inline script, pre-paint) le tiene a opacity
+  //   0.02: dipinte per l'LCP ma invisibili, senza flash prima del reveal.
+  // Subcopy/founder/CTA/recensioni NON sono di questa timeline:
+  // appaiono al primo scroll (vedi blocco data-hero-rest più sotto).
   useGSAP(
     () => {
       const section = sectionRef.current;
+      const html = document.documentElement;
       if (!section) return;
-      if (!document.documentElement.hasAttribute("data-preloader")) return;
+      const withPreloader = html.hasAttribute("data-preloader");
+      if (!withPreloader && !html.hasAttribute("data-hero-intro")) return;
 
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
-        const words = section.querySelectorAll<HTMLElement>(".word-reveal .w");
-        const badge = section.querySelector<HTMLElement>("[data-hero-badge]");
-        const seq = gsap.utils.toArray<HTMLElement>("[data-hero-seq]", section);
+        // Reveal per LETTERE (rif. era-residence, animatore "h"): i chars del
+        // lockup e della riga motto salgono ruotando su Y; lo script arriva
+        // come l'animatore "a" (rotateX + slittamento orizzontale).
+        const titleChars = gsap.utils.toArray<HTMLElement>("[data-hero-char]", section);
+        const taglineChars = gsap.utils.toArray<HTMLElement>("[data-hero-tchar]", section);
+        const scriptChars = gsap.utils.toArray<HTMLElement>("[data-hero-schar]", section);
+        const allChars = [...titleChars, ...taglineChars, ...scriptChars];
 
-        // Le CSS animation dt-fade-rise (fill both) vincerebbero sugli inline
-        // style di GSAP: in modalità intro il timone passa tutto a GSAP.
-        seq.forEach((el) => {
+        // Il failsafe CSS (opacity a 1 dopo 6s) va spento: comanda GSAP.
+        allChars.forEach((el) => {
           el.style.animation = "none";
         });
 
-        gsap.set(mediaRef.current, {
-          clipPath: "inset(16% 10% 16% 10% round 2.5rem)",
-          scale: 1.12,
-        });
+        if (withPreloader) {
+          gsap.set(mediaRef.current, {
+            scale: 0.75,
+            transformOrigin: "center top",
+          });
+        }
         // LCP: Chromium esclude le immagini full-viewport ("background"), quindi
-        // l'LCP della home è il TESTO dell'hero. Sotto il sipario opaco gli
-        // elementi restano DIPINTI a opacity 0.02 (opacity:0 li toglierebbe dai
-        // candidati LCP fino a fine intro = LCP da 10s); lo stato coreografico
-        // vero viene applicato al handoff, quando il sipario li copre ancora.
-        gsap.set([...words, ...(badge ? [badge] : []), ...seq], { opacity: 0.02 });
+        // l'LCP della home è il TESTO dell'hero. Gli elementi restano DIPINTI a
+        // opacity 0.02 (opacity:0 li toglierebbe dai candidati LCP); lo stato
+        // coreografico vero viene applicato solo un attimo prima del reveal.
+        gsap.set(allChars, { opacity: 0.02 });
         gsap.set([frameWrapRef.current, cueRef.current], { autoAlpha: 0 });
 
         let played = false;
@@ -191,37 +239,195 @@ export default function HeroCinematic() {
           if (played) return;
           played = true;
           // Stati di partenza reali, applicati mentre la zona è ancora coperta
-          // dal sipario in apertura (si apre dal basso: l'H1 è l'ultima area).
-          gsap.set(words, { yPercent: 130, rotate: 2.5, transformOrigin: "0% 100%", opacity: 1 });
-          if (badge) gsap.set(badge, { y: 24, autoAlpha: 0 });
-          gsap.set(seq, { y: 28, autoAlpha: 0 });
+          // dal sipario (l'arco si apre dal centro-basso: il lockup è coperto
+          // fino all'ultimo istante del tuffo).
+          // Stati iniziali del riferimento (README §7): titoli/motto per
+          // lettere con rotazione su Y, script per lettere con rotazione su X
+          // e slittamento orizzontale (origine al piede del glifo).
+          gsap.set([...titleChars, ...taglineChars], {
+            opacity: 0,
+            yPercent: 50,
+            rotateY: 90,
+            transformPerspective: 800,
+          });
+          gsap.set(scriptChars, {
+            opacity: 0,
+            rotateX: 90,
+            x: "6vw",
+            transformOrigin: "center bottom",
+            transformPerspective: 800,
+          });
           const tl = gsap.timeline({ defaults: { ease: "domus" } });
+          if (withPreloader) {
+            tl.to(
+              mediaRef.current,
+              {
+                scale: 1,
+                duration: dur.hero,
+                ease: "domus.inOut",
+                // Libera scale/origin: lo scrub "frame-in" resta l'unico owner.
+                clearProps: "scale,transformOrigin",
+              },
+              0
+            );
+          }
           tl.to(
-            mediaRef.current,
-            {
-              clipPath: "inset(0% 0% 0% 0% round 0rem)",
-              scale: 1,
-              duration: dur.hero,
-              ease: "domus.inOut",
-              // Libera clip/scale: lo scrub "frame-in" resta l'unico owner.
-              clearProps: "clipPath,scale",
-            },
-            0
-          );
-          if (badge) tl.to(badge, { y: 0, autoAlpha: 1, duration: dur.short }, 0.12);
-          tl.to(words, { yPercent: 0, rotate: 0, duration: dur.reveal, stagger: 0.055 }, 0.2)
-            .to(seq, { y: 0, autoAlpha: 1, duration: dur.short, stagger: 0.09 }, 0.62)
-            .to(frameWrapRef.current, { autoAlpha: 1, duration: 0.7, ease: "none" }, 0.9)
-            .to(cueRef.current, { autoAlpha: 1, duration: 0.5, ease: "none" }, 1.2);
+              titleChars,
+              {
+                opacity: 1,
+                yPercent: 0,
+                rotateY: 0,
+                duration: dur.reveal,
+                stagger: 0.05,
+                ease: "dtOut",
+              },
+              0.15
+            )
+            .to(
+              scriptChars,
+              {
+                opacity: 1,
+                x: "0vw",
+                rotateX: 0,
+                duration: dur.reveal,
+                stagger: 0.045,
+                ease: "dtOut",
+              },
+              0.5
+            )
+            .to(
+              taglineChars,
+              {
+                opacity: 1,
+                yPercent: 0,
+                rotateY: 0,
+                duration: dur.reveal,
+                stagger: 0.018,
+                ease: "dtOut",
+              },
+              0.45
+            )
+            .to(frameWrapRef.current, { autoAlpha: 1, duration: 0.7, ease: "none" }, 1.0)
+            .to(cueRef.current, { autoAlpha: 1, duration: 0.5, ease: "none" }, 1.3);
         };
 
-        // Parte all'uscita del preloader (una sola timeline percepita);
-        // safety: se l'evento va perso, si rivela comunque.
-        window.addEventListener(INTRO_EVENT, play, { once: true });
-        const safety = window.setTimeout(play, 4500);
+        if (withPreloader) {
+          // Parte all'uscita del preloader (una sola timeline percepita);
+          // safety: se l'evento va perso, si rivela comunque.
+          window.addEventListener(INTRO_EVENT, play, { once: true });
+          const safety = window.setTimeout(play, 6000);
+          return () => {
+            window.removeEventListener(INTRO_EVENT, play);
+            window.clearTimeout(safety);
+          };
+        }
+        // Refresh/visita successiva: le scritte rientrano subito (un respiro
+        // dopo l'idratazione, per non competere col primo paint).
+        const t = window.setTimeout(play, 150);
+        return () => window.clearTimeout(t);
+      });
+    },
+    { scope: sectionRef }
+  );
+
+  // Il "resto" dell'hero (subcopy, founder, CTA, recensioni) appare SOLO al
+  // primo scroll (richiesta cliente, rif. era-residence: all'ingresso restano
+  // lockup e motto). L'attributo html[data-hero-rest] è messo pre-paint
+  // dall'inline script (solo motion ok): qui GSAP prende il timone, nasconde
+  // con transform reale e rivela su ScrollTrigger once. Senza JS o con
+  // reduced-motion l'attributo non c'è / il blocco non parte: tutto visibile.
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      const html = document.documentElement;
+      if (!section || !html.hasAttribute("data-hero-rest")) return;
+
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const rest = gsap.utils.toArray<HTMLElement>(".dt-hero-rest", section);
+        if (!rest.length) return;
+        // Il failsafe CSS (animation 6s) va spento: da qui comanda GSAP.
+        // L'attributo html resta (lo rileggono i remount di StrictMode/HMR):
+        // gli inline style di GSAP vincono comunque sull'opacity di classe.
+        rest.forEach((el) => {
+          el.style.animation = "none";
+        });
+        gsap.set(rest, { autoAlpha: 0, y: 28 });
+
+        let revealed = false;
+        const reveal = () => {
+          if (revealed) return;
+          revealed = true;
+          section.removeEventListener("focusin", onFocusIn);
+          gsap.to(rest, {
+            autoAlpha: 1,
+            y: 0,
+            duration: dur.short,
+            stagger: 0.08,
+            ease: "domus",
+            overwrite: true,
+          });
+        };
+        // Tastiera: mai lasciare CTA invisibili nel tab order — al primo focus
+        // dentro l'hero il blocco si rivela comunque (autoAlpha gestisce anche
+        // la visibility, quindi finché è nascosto non è nemmeno focalizzabile:
+        // il focusin arriva dai link ancora visibili sopra).
+        function onFocusIn() {
+          reveal();
+        }
+        section.addEventListener("focusin", onFocusIn);
+
+        // Il PRIMO gesto di scroll non scorre la pagina: rivela il blocco e
+        // basta (richiesta cliente — l'immagine resta piena dietro). Lo scroll
+        // vero riparte al gesto successivo, ~0.9s dopo (fine del reveal).
+        // Se si arriva già scrollati (ancora, restore) non si blocca nulla.
+        let holding = false;
+        const release = () => {
+          if (!holding) return;
+          holding = false;
+          getLenis()?.start();
+        };
+        const onFirstGesture = (e: Event) => {
+          if (revealed) return;
+          // Solo gesti "di scorrimento": un click non deve consumare il turno.
+          if (e.type === "keydown") {
+            const k = (e as KeyboardEvent).key;
+            const scrollKeys = [
+              "ArrowDown",
+              "ArrowUp",
+              "PageDown",
+              "PageUp",
+              "End",
+              "Home",
+              " ",
+            ];
+            if (!scrollKeys.includes(k)) return;
+            e.preventDefault();
+          }
+          holding = true;
+          getLenis()?.stop(); // la pagina resta ferma sull'immagine piena
+          reveal();
+          // Fine del reveal: lo scroll torna all'utente (nessun hijack lungo).
+          window.setTimeout(release, 950);
+        };
+        window.addEventListener("wheel", onFirstGesture, { passive: true });
+        window.addEventListener("touchmove", onFirstGesture, { passive: true });
+        window.addEventListener("keydown", onFirstGesture);
+
+        // Arrivo già scrollato (ancora, restore del browser): nessun blocco.
+        const onScroll = () => {
+          if (window.scrollY > 24) reveal();
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+
         return () => {
-          window.removeEventListener(INTRO_EVENT, play);
-          window.clearTimeout(safety);
+          section.removeEventListener("focusin", onFocusIn);
+          window.removeEventListener("wheel", onFirstGesture);
+          window.removeEventListener("touchmove", onFirstGesture);
+          window.removeEventListener("keydown", onFirstGesture);
+          window.removeEventListener("scroll", onScroll);
+          release();
         };
       });
     },
@@ -273,7 +479,7 @@ export default function HeroCinematic() {
           let safety = 0;
           if (!active) {
             window.addEventListener(INTRO_EVENT, arm, { once: true });
-            safety = window.setTimeout(arm, 4500);
+            safety = window.setTimeout(arm, 6000);
           }
 
           const onMove = (e: PointerEvent) => {
@@ -346,7 +552,7 @@ export default function HeroCinematic() {
   ];
 
   return (
-    <section ref={sectionRef} id="top" className="relative flex min-h-[92dvh] w-full items-end overflow-hidden bg-ink text-cream">
+    <section ref={sectionRef} id="top" className="relative flex min-h-[100dvh] w-full overflow-hidden bg-espresso text-cream">
       {/* Canvas media (foto + eventuale video) in un layer parallax unico */}
       <div ref={mediaRef} className="absolute inset-0">
         {/* Layer profondità puntatore: mediaRef è già owner di clip/scale del
@@ -356,13 +562,13 @@ export default function HeroCinematic() {
           {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
           <Image
             src={heroCinematic.base}
-            alt={heroCinematic.baseAlt}
+            alt={c.heroAlt}
             fill
             priority
-            sizes="100vw"
             // Sotto due velature scure, in movimento e (quando c'è) coperta dal video: a
             // qualità 60 il file dimezza su rete lenta e la differenza non si vede.
             quality={60}
+            sizes="100vw"
             className="ken-burns object-cover"
             style={{ objectPosition: "50% 35%" }}
           />
@@ -371,6 +577,7 @@ export default function HeroCinematic() {
           {playVideo && (
             <video
               className="absolute inset-0 h-full w-full object-cover"
+              style={{ objectPosition: "50% 35%" }}
               poster={heroCinematic.poster}
               autoPlay
               muted
@@ -379,62 +586,73 @@ export default function HeroCinematic() {
               preload="metadata"
               onError={() => setPlayVideo(false)}
             >
-              <source src={heroCinematic.webm} type="video/webm" />
+              {heroCinematic.webm && <source src={heroCinematic.webm} type="video/webm" />}
               <source src={heroCinematic.mp4} type="video/mp4" />
             </video>
           )}
         </div>
       </div>
 
-      {/* Gradienti per leggibilità del testo */}
-      <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/35 to-ink/10" />
-      <div className="absolute inset-0 bg-gradient-to-r from-ink/55 to-transparent" />
+      {/* Gradienti per leggibilità del testo centrato (lockup in alto, CTA in
+          basso): velo scuro simmetrico, centro dell'immagine libero. Toni
+          espresso: durante l'intro (canvas a scale 0.75 dentro l'arco) i bordi
+          esposti leggono come "stanza" continua col pannello del preloader. */}
+      <div className="absolute inset-0 bg-gradient-to-b from-espresso/75 via-espresso/20 to-espresso/85" />
 
       {/* Cornice Segno Domus sul canvas (svanisce durante il frame-in) */}
       <div ref={frameWrapRef}>
         <SegnoDomusVideoFrame />
       </div>
 
-      {/* Contenuto */}
-      <div ref={contentRef} className="relative z-20 mx-auto w-full max-w-[1240px] px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-36">
+      {/* Contenuto — layout rif. era-residence (§6.1): lockup di marca centrato
+          in alto (lo stesso del preloader: continuità dentro l'arco), riga del
+          motto subito sotto, conversione in basso. */}
+      <div
+        ref={contentRef}
+        className="relative z-20 mx-auto flex w-full max-w-[1240px] flex-col items-center px-5 pb-16 pt-28 text-center sm:px-8 sm:pt-32"
+      >
         {/* Il x/y del parallasse puntatore sta su questo blocco interno:
             contentRef è già owner dello yPercent del frame-in. */}
-        <div ref={contentDepthRef} className="max-w-3xl">
-          <span data-hero-badge className="inline-flex">
-            <SegnoDomusBadge light className="backdrop-blur-sm">{c.badge}</SegnoDomusBadge>
-          </span>
+        <div ref={contentDepthRef} className="flex w-full flex-1 flex-col items-center">
+          {/* Lockup: didone + script sovrapposto, come nel preloader */}
+          <div className="relative">
+            <h1
+              aria-label="Domus Tua — agenzia immobiliare a Tradate"
+              className="font-hero text-[clamp(3rem,min(14vh,19vw),8rem)] font-medium leading-[0.95] tracking-[-0.01em] text-cream"
+            >
+              <Chars text="Domus" className="block" />
+              <Chars text="Tua" className="block" />
+            </h1>
+            <span
+              data-hero-script
+              aria-hidden
+              className="pointer-events-none absolute -bottom-[0.5em] left-1/2 -translate-x-1/2 whitespace-nowrap font-script text-[clamp(2rem,min(6.5vh,9vw),4rem)] leading-none text-red [text-shadow:0_2px_28px_rgba(26,24,22,0.6)]"
+            >
+              <Chars text="Raffaela Rizza" variant="script" />
+            </span>
+          </div>
 
-          {/* Le due righe sono maschere (overflow-hidden) per la risalita delle
-              parole al handoff del preloader; il pb/-mb compensato evita di
-              tagliare i discendenti in stato statico. */}
-          <h1 className="mt-6 font-display text-[2.5rem] font-medium leading-[1.02] tracking-[-0.02em] text-cream balance sm:text-6xl lg:text-[4.2rem]">
-            <WordReveal
-              as="span"
-              className="block overflow-hidden pb-[0.12em] -mb-[0.12em]"
-              text={c.title1}
-              immediate
-            />
-            <WordReveal
-              as="span"
-              className="block overflow-hidden pb-[0.14em] -mb-[0.14em] italic text-red-soft"
-              text={c.title2}
-              immediate
-            />
-          </h1>
-
+          {/* Riga del motto (posizione della riga "A place · to return to") */}
           <p
-            data-hero-seq
-            className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg"
-            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "0ms" }}
+            aria-label={`${c.title1} ${c.title2}`}
+            className="mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-hero text-[clamp(1.4rem,2.4vw,2.75rem)] font-medium leading-[1.15] tracking-[-0.012em] text-cream"
           >
+            <Chars variant="tagline" text={c.title1} />
+            <span aria-hidden className="hidden h-px w-10 bg-cream/40 sm:block" />
+            <Chars variant="tagline" text={c.title2} className="italic text-red-soft" />
+          </p>
+
+          {/* Spazio respiro: l'immagine resta protagonista al centro */}
+          <div className="flex-1" />
+
+          <p data-hero-seq className="dt-hero-rest max-w-xl text-[0.98rem] leading-relaxed text-cream/85 sm:text-base">
             {c.subcopy}
           </p>
 
           {/* Founder label */}
           <p
             data-hero-seq
-            className="mt-5 flex items-center gap-2.5 text-sm font-medium text-cream/80"
-            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "60ms" }}
+            className="dt-hero-rest mt-4 flex items-center justify-center gap-2.5 text-sm font-medium text-cream/80"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red font-display text-xs font-semibold text-white">
               RR
@@ -448,8 +666,7 @@ export default function HeroCinematic() {
           {/* CTA */}
           <div
             data-hero-seq
-            className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
-            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "120ms" }}
+            className="dt-hero-rest mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap"
           >
             {/* CTA primaria magnetica (solo pointer fine + motion ok) */}
             <Magnetic className="w-full sm:w-auto" strength={0.18}>
@@ -486,8 +703,7 @@ export default function HeroCinematic() {
           {/* Trust chips */}
           <div
             data-hero-seq
-            className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-cream/15 pt-6"
-            style={{ animation: "dt-fade-rise .5s var(--ease-out-expo) both", animationDelay: "180ms" }}
+            className="dt-hero-rest mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 border-t border-cream/15 pt-6"
           >
             <a href="#recensioni" className="flex items-center gap-2 hover:opacity-90">
               <span className="flex gap-0.5">

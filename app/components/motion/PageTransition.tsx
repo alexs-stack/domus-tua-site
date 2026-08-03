@@ -1,6 +1,11 @@
 "use client";
 
-// Transizioni di pagina — sipario espresso con il Segno che si ridisegna.
+// Transizioni di pagina — la PORTA AD ARCO del preloader, in miniatura
+// (rif. era-residence, reverse-engineering/era-residence/README.md §4.2):
+// all'uscita la porta "si chiude" (il buco ad arco scende sotto il viewport
+// e il pannello espresso copre), all'arrivo della nuova route la porta si
+// riapre con il tuffo (ease dtDiveIn). Sopra il pannello: il monogramma
+// Domus Tua con l'anello che ruota + la parola-destinazione.
 // Architettura (Next 16): un listener delegato in capture intercetta i click
 // sui link interni (i <Link> restano com'erano: prefetch gratis), fa
 // preventDefault → exit timeline → router.push; all'arrivo del nuovo pathname
@@ -10,16 +15,14 @@
 // - Back/forward del browser: nessuna transizione; se il popstate arriva
 //   DURANTE l'exit, il push pendente viene invalidato (navSeq) — il tasto
 //   Indietro vince sempre.
-// - Il sipario annuncia la destinazione: parola outline col nome tradotto
-//   della pagina (d.nav.*), scritta nel DOM dentro navigate() prima della
-//   copertura; route non mappate → solo il Segno.
+// - Fallback senza mask-composite: wipe verticale a pannello unico.
 // - Reduced-motion: navigazione nativa Next, sipario mai.
 // - Scroll: reset istantaneo sotto il sipario; ScrollTrigger.refresh() dopo il
 //   mount; focus sull'ancora (se c'è) o su #main per tastiera/screen reader.
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger, MQ, dur } from "../../lib/motion/gsap";
-import { SegnoDomus } from "../BrandMotif";
+import { MarkBadge } from "./RotatingMark";
 import { useDict } from "../i18n/LocaleProvider";
 import { getLenis } from "./SmoothScroll";
 
@@ -27,10 +30,18 @@ const CLOSED = "inset(100% 0% 0% 0%)";
 const OPEN = "inset(0% 0% 0% 0%)";
 const EXITED = "inset(0% 0% 100% 0%)";
 
+// Stati della porta (variabili della maschera .dt-arch-mask):
+// COVERED = buco sotto il viewport (pannello pieno), GONE = buco ovunque.
+const ARCH_COVERED = { "--arch-w": "34vw", "--arch-y": "104vh" } as const;
+const ARCH_GONE = { "--arch-w": "125vw", "--arch-y": "-100vh" } as const;
+
+const supportsArchMask = () =>
+  typeof CSS !== "undefined" && CSS.supports("mask-composite", "add");
+
 type NavDict = ReturnType<typeof useDict>["nav"];
 
 // Il sipario annuncia la destinazione: pathname → etichetta tradotta (d.nav.*).
-// Route non mappate (privacy, cookie, servizi…) → null: resta solo il Segno.
+// Route non mappate (privacy, cookie, servizi…) → null: resta solo il marchio.
 function labelForPath(rawPath: string, nav: NavDict): string | null {
   const path =
     rawPath.length > 1 && rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
@@ -74,7 +85,9 @@ export function transitionTo(href: string) {
 export default function PageTransition() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const markLayerRef = useRef<HTMLDivElement | null>(null);
   const wordRef = useRef<HTMLDivElement | null>(null);
+  const spinRef = useRef<gsap.core.Tween | null>(null);
   const coveringRef = useRef(false);
   const navSeqRef = useRef(0);
   const safetyRef = useRef<number | null>(null);
@@ -95,14 +108,28 @@ export default function PageTransition() {
     coveringGlobal = v;
   };
 
-  // Uscita: sipario a TRE LAME sfalsate + Segno ridisegnato, poi push.
+  const stopSpin = () => {
+    spinRef.current?.kill();
+    spinRef.current = null;
+  };
+  const startSpin = () => {
+    const ring = markLayerRef.current?.querySelector("[data-rot-core]");
+    if (!ring || spinRef.current) return;
+    spinRef.current = gsap.fromTo(
+      ring,
+      { rotation: 0 },
+      { rotation: 360, duration: 5, ease: "none", repeat: -1, transformOrigin: "center center" }
+    );
+  };
+
+  // Uscita: la porta si chiude + monogramma rotante, poi push.
   useEffect(() => {
     const root = rootRef.current;
     const panel = panelRef.current;
     if (!root || !panel) return;
 
-    const blades = Array.from(panel.querySelectorAll<HTMLElement>("[data-blade]"));
-    const paths = Array.from(panel.querySelectorAll<SVGPathElement>("svg path"));
+    const arch = supportsArchMask();
+    if (arch) panel.classList.add("dt-arch-mask");
 
     const reveal = () => {
       // Apertura del sipario (percorso safety: la route non è mai arrivata).
@@ -111,17 +138,19 @@ export default function PageTransition() {
       if (word) gsap.killTweensOf(word);
       const tl = gsap.timeline({
         onComplete() {
-          gsap.set(blades, { clipPath: CLOSED });
+          gsap.set(panel, arch ? { autoAlpha: 0 } : { autoAlpha: 0, clipPath: CLOSED });
           if (word) word.textContent = ""; // a riposo il layer resta vuoto
+          stopSpin();
           setCovering(false);
           getLenis()?.start();
         },
       });
-      tl.to(paths, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0).to(
-        blades,
-        { clipPath: EXITED, duration: 0.55, ease: "domus.inOut", stagger: 0.07 },
-        0.05
-      );
+      if (arch) {
+        tl.fromTo(panel, { ...ARCH_COVERED }, { ...ARCH_GONE, duration: 0.85, ease: "dtDiveIn" }, 0.05);
+      } else {
+        tl.to(panel, { clipPath: EXITED, duration: 0.55, ease: "domus.inOut" }, 0.05);
+      }
+      tl.to(markLayerRef.current, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0);
       if (word) tl.to(word, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0);
     };
 
@@ -138,17 +167,13 @@ export default function PageTransition() {
       getLenis()?.stop();
 
       const mobile = !window.matchMedia(MQ.desktop).matches;
-      paths.forEach((p) => {
-        const len = p.getTotalLength() + 2;
-        p.style.strokeDasharray = `${len}`;
-        p.style.strokeDashoffset = `${len}`;
-      });
       gsap.set(root, { pointerEvents: "auto" });
-      gsap.set(panel.querySelector("[data-segno-layer]"), { autoAlpha: 1 });
-      gsap.set(paths, { autoAlpha: 1 });
+      gsap.set(panel, arch ? { autoAlpha: 1, ...ARCH_GONE } : { autoAlpha: 1, clipPath: CLOSED });
+      gsap.set(markLayerRef.current, { autoAlpha: 0 });
+      startSpin();
 
       // La parola-destinazione va nel DOM ORA, prima che il sipario copra.
-      // Timeline separata da quella delle lame: non deve spostare l'onComplete
+      // Timeline separata da quella della porta: non deve spostare l'onComplete
       // che fa il push — la scivolata può proseguire mentre la route carica.
       const word = wordRef.current;
       if (word) {
@@ -164,7 +189,7 @@ export default function PageTransition() {
         if (label) {
           gsap
             .timeline()
-            // Alpha rapida mentre le lame chiudono…
+            // Alpha rapida mentre la porta chiude…
             .fromTo(
               word,
               { xPercent: -6, autoAlpha: 0 },
@@ -178,35 +203,34 @@ export default function PageTransition() {
         }
       }
 
-      gsap
-        .timeline({
-          onComplete() {
-            // Un popstate nel frattempo ha già cambiato pagina: il push
-            // pendente sarebbe una seconda navigazione non richiesta.
-            if (navSeqRef.current !== navId) return;
-            router.push(href);
-            // Se la pagina nuova non arriva (errore, route lentissima),
-            // il sipario si riapre comunque: mai lasciare l'utente al buio.
-            safetyRef.current = window.setTimeout(() => {
-              if (coveringRef.current) reveal();
-            }, 4000);
-          },
-        })
-        .fromTo(
-          blades,
-          { clipPath: CLOSED },
-          {
-            clipPath: OPEN,
-            duration: mobile ? 0.32 : 0.45,
-            ease: "domus.inOut",
-            stagger: 0.07,
-          }
-        )
-        .to(
-          paths,
-          { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut", stagger: 0.1 },
-          0.2
-        );
+      const tl = gsap.timeline({
+        onComplete() {
+          // Un popstate nel frattempo ha già cambiato pagina: il push
+          // pendente sarebbe una seconda navigazione non richiesta.
+          if (navSeqRef.current !== navId) return;
+          router.push(href);
+          // Se la pagina nuova non arriva (errore, route lentissima),
+          // il sipario si riapre comunque: mai lasciare l'utente al buio.
+          safetyRef.current = window.setTimeout(() => {
+            if (coveringRef.current) reveal();
+          }, 4000);
+        },
+      });
+      if (arch) {
+        // La porta "si chiude": il buco ad arco scende sotto il viewport.
+        tl.fromTo(panel, { ...ARCH_GONE }, {
+          ...ARCH_COVERED,
+          duration: mobile ? 0.5 : 0.65,
+          ease: "domus.inOut",
+        });
+      } else {
+        tl.fromTo(panel, { clipPath: CLOSED }, {
+          clipPath: OPEN,
+          duration: mobile ? 0.32 : 0.45,
+          ease: "domus.inOut",
+        });
+      }
+      tl.to(markLayerRef.current, { autoAlpha: 1, duration: 0.25, ease: "none" }, 0.2);
     };
 
     navigateImpl = navigate;
@@ -249,6 +273,7 @@ export default function PageTransition() {
       document.removeEventListener("click", onClick, true);
       if (navigateImpl === navigate) navigateImpl = null;
       if (safetyRef.current) window.clearTimeout(safetyRef.current);
+      stopSpin();
     };
   }, [router]);
 
@@ -279,6 +304,7 @@ export default function PageTransition() {
     const root = rootRef.current;
     const panel = panelRef.current;
     if (!root || !panel) return;
+    const arch = panel.classList.contains("dt-arch-mask");
     if (safetyRef.current) {
       window.clearTimeout(safetyRef.current);
       safetyRef.current = null;
@@ -288,22 +314,22 @@ export default function PageTransition() {
     // raggiungere: quella la gestisce Next con lo scrollIntoView).
     if (!window.location.hash) window.scrollTo({ top: 0, behavior: "instant" });
 
-    const blades = Array.from(panel.querySelectorAll<HTMLElement>("[data-blade]"));
-    const paths = Array.from(panel.querySelectorAll<SVGPathElement>("svg path"));
+    const markLayer = markLayerRef.current;
     const word = wordRef.current;
     let raf = requestAnimationFrame(() => {
       raf = requestAnimationFrame(() => {
         ScrollTrigger.refresh();
         // L'exit potrebbe essere ancora vivo (popstate durante il sipario):
-        // un solo owner delle lame (e della parola) da qui in poi.
-        gsap.killTweensOf(word ? [...blades, ...paths, word] : [...blades, ...paths]);
+        // un solo owner della porta (e della parola) da qui in poi.
+        gsap.killTweensOf([panel, markLayer, word].filter(Boolean) as gsap.TweenTarget[]);
         // La pagina sotto è pronta: i click tornano subito al contenuto,
-        // le lame continuano ad aprirsi solo visivamente.
+        // la porta continua ad aprirsi solo visivamente.
         gsap.set(root, { pointerEvents: "none" });
         const tl = gsap.timeline({
           onComplete() {
-            gsap.set(blades, { clipPath: CLOSED });
+            gsap.set(panel, arch ? { autoAlpha: 0 } : { autoAlpha: 0, clipPath: CLOSED });
             if (word) word.textContent = ""; // a riposo il layer resta vuoto
+            stopSpin();
             setCovering(false);
             getLenis()?.start();
             // Focus coerente con la destinazione: l'ancora se presente,
@@ -320,17 +346,14 @@ export default function PageTransition() {
             }
           },
         });
-        tl.to(paths, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0).to(
-          blades,
-          {
-            clipPath: EXITED,
-            duration: dur.short,
-            ease: "domus.inOut",
-            stagger: { each: 0.06, from: "end" },
-          },
-          0.05
-        );
-        // La parola svanisce col Segno, prima che le lame scoprano la pagina.
+        if (arch) {
+          // Il tuffo dentro la nuova pagina: stesso gesto del preloader.
+          tl.fromTo(panel, { ...ARCH_COVERED }, { ...ARCH_GONE, duration: 0.9, ease: "dtDiveIn" }, 0.05);
+        } else {
+          tl.to(panel, { clipPath: EXITED, duration: dur.short, ease: "domus.inOut" }, 0.05);
+        }
+        tl.to(markLayer, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0);
+        // La parola svanisce col marchio, prima che la porta scopra la pagina.
         if (word) tl.to(word, { autoAlpha: 0, duration: 0.18, ease: "none" }, 0);
       });
     });
@@ -339,38 +362,34 @@ export default function PageTransition() {
 
   return (
     <div ref={rootRef} aria-hidden className="pointer-events-none fixed inset-0 z-[92]">
-      {/* Sipario a tre lame verticali sfalsate (più cinema del wipe unico);
-          si sovrappongono di mezzo punto per non lasciare cuciture. */}
-      <div ref={panelRef} className="absolute inset-0 overflow-hidden">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            data-blade
-            className="absolute inset-y-0 bg-espresso"
-            style={{
-              left: `${i * 33.3 - (i > 0 ? 0.4 : 0)}%`,
-              width: i === 2 ? `${100 - (2 * 33.3 - 0.4)}%` : "34%",
-              clipPath: CLOSED,
-              backgroundImage:
-                "radial-gradient(120% 90% at 50% -10%, rgba(150, 26, 24, 0.28), transparent 60%), radial-gradient(120% 100% at 50% 115%, rgba(24, 12, 12, 0.85), transparent 65%)",
-            }}
-          />
-        ))}
-        {/* Il Segno vive sopra le lame: invisibile finché il sipario non copre. */}
+      {/* Pannello unico: la maschera .dt-arch-mask (stessa del preloader)
+          ritaglia la porta ad arco su TUTTO il contenuto del sipario. */}
+      <div
+        ref={panelRef}
+        className="absolute inset-0 overflow-hidden bg-espresso"
+        style={{
+          opacity: 0,
+          visibility: "hidden",
+          backgroundImage:
+            "radial-gradient(120% 90% at 50% -10%, rgba(150, 26, 24, 0.28), transparent 60%), radial-gradient(120% 100% at 50% 115%, rgba(24, 12, 12, 0.85), transparent 65%)",
+        }}
+      >
+        {/* Il marchio vive sopra il pannello: monogramma fermo, anello in
+            rotazione (tween avviato da navigate, fermato a fine entrata). */}
         <div
-          data-segno-layer
-          className="absolute inset-0 flex items-center justify-center"
+          ref={markLayerRef}
+          className="absolute inset-0 flex items-center justify-center text-cream/90"
           style={{ opacity: 0 }}
         >
-          <SegnoDomus className="h-9 w-24" />
+          <MarkBadge className="h-14 w-14" dark />
         </div>
         {/* Parola-destinazione: nome tradotto della pagina in arrivo, outline
-            Fraunces corsivo sopra le lame, composizione editoriale in basso a
+            nella didone dei momenti-hero, composizione editoriale in basso a
             sinistra. A riposo: vuota e autoAlpha 0 (il testo lo scrive navigate). */}
         <div
           ref={wordRef}
           aria-hidden
-          className="pointer-events-none absolute bottom-[7vh] left-[4vw] select-none whitespace-nowrap font-display italic leading-none text-transparent"
+          className="pointer-events-none absolute bottom-[7vh] left-[4vw] select-none whitespace-nowrap font-hero italic leading-none text-transparent"
           style={{
             fontSize: "11vw",
             WebkitTextStroke: "1.5px rgba(255, 252, 244, 0.35)",

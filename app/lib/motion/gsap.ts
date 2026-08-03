@@ -35,6 +35,15 @@ gsap.registerPlugin(ScrollTrigger, CustomEase, useGSAP);
 // Creata una sola volta a livello modulo (idempotente tra HMR/remount).
 CustomEase.create("domus", "M0,0 C0.22,0.9 0.36,1 1,1");
 CustomEase.create("domus.inOut", "M0,0 C0.66,0 0.22,1 1,1");
+// Ease dell'Arco Domus (preloader + transizioni, rif. era-residence):
+// "dtDiveIn" = il tuffo dentro la porta; "dtLoader" = progress a scatti;
+// "dtOut" = la curva dei reveal di testo del riferimento (out deciso).
+CustomEase.create("dtDiveIn", "0.6,0,0,1");
+CustomEase.create("dtOut", "0.25,1,0.5,1");
+CustomEase.create(
+  "dtLoader",
+  "M0,0,C0,0,0.13,0.34,0.238,0.442,0.305,0.506,0.322,0.514,0.396,0.54,0.478,0.568,0.468,0.56,0.522,0.584,0.572,0.606,0.61,0.719,0.714,0.826,0.798,0.912,1,1,1,1"
+);
 
 /** Durate condivise (secondi). */
 export const dur = {

@@ -29,6 +29,10 @@
   /* Fonts (provided by next/font on <body>) */
   --font-display: var(--font-fraunces);
   --font-sans: var(--font-jakarta);
+  /* Coppia "arco" (preloader + hero, rif. era-residence): didone + script.
+     Punto unico di swap quando il cliente licenzia i font Adobe originali. */
+  --font-hero: var(--font-playfair);
+  --font-script: var(--font-pinyon);
 
   /* Motion — stesso vocabolario dei token GSAP in app/lib/motion/gsap.ts */
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
@@ -353,10 +357,12 @@ body {
 
 /* ---------- Segno Domus: pattern & disegno ---------- */
 /* Texture di sfondo tenue con la linea-tetto (usare con parsimonia su bande piene) */
+/* Pattern di marca: il MONOGRAMMA ufficiale ripetuto (non più la linea-tetto
+   placeholder). Da usare a bassissima opacità via SegnoDomusBackground. */
 .motif-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120'%3E%3Cpath d='M20 70 L80 30 L140 70' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-size: 160px 120px;
-  background-repeat: repeat;
+  background-image: url("/logo-domustua-mark.png");
+  background-size: 72px auto;
+  background-repeat: space;
 }
 
 /* Animazione "disegno" della linea-tetto (solo Hero) */
@@ -634,7 +640,98 @@ html[data-preloader] {
   }
 }
 html[data-preloader] .dt-preloader {
-  animation: dt-pre-autohide 0.5s ease 5s forwards;
+  /* Allineata al failsafe JS del boot script (2,5s, PR perf): se il bundle
+     non idrata mai, l'overlay non deve tenere l'LCP in ostaggio. */
+  animation: dt-pre-autohide 0.5s ease 3s forwards;
+}
+
+/* ---------- Hero: il "resto" appare solo dopo il primo scroll ----------
+   All'ingresso restano solo lockup e motto (rif. era-residence): subcopy,
+   founder, CTA e recensioni sono nascosti dall'attributo messo pre-paint
+   dall'inline script (solo motion ok → reduced-motion e no-JS vedono tutto).
+   Il reveal è di GSAP (HeroCinematic); failsafe a 6s se il bundle non idrata. */
+html[data-hero-rest] .dt-hero-rest {
+  opacity: 0;
+  animation: dt-rest-failsafe 0.5s ease 6s forwards;
+}
+/* Lockup, motto e script rientrano a OGNI load (rif. era-residence: refresh
+   compreso). 0.02 = dipinti (l'LCP conta il testo) ma invisibili; il reveal
+   vero è di GSAP; failsafe a 6s se il bundle non idrata mai. */
+html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
+  opacity: 0.02;
+  animation: dt-rest-failsafe 0.5s ease 6s forwards;
+}
+@keyframes dt-rest-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Arco Domus — la "porta" del preloader ----------
+   Maschera additiva a 4 layer sull'overlay: tre rettangoli pieni (sinistra,
+   colonna centrale sopra l'arco, destra) + una cornice ad arco SVG posizionata
+   a --arch-y. L'area DENTRO l'arco non è coperta da nessun layer → buco
+   trasparente: una porta ad arco che sale dal fondo e rivela l'hero sotto.
+   GSAP anima solo --arch-w / --arch-y (vedi Preloader.tsx).
+   L'SVG (560×2592) è una cornice geometrica con spalla di 16 unità:
+   bianco = frame + zona sopra la curva; l'interno dell'arco è vuoto. */
+.dt-preloader,
+.dt-arch-mask {
+  --arch-w: 24vw;
+  --arch-h: calc(var(--arch-w) * (5600 / 560));
+  --arch-y: 104vh;
+}
+/* Classe generica: la usano il preloader E il sipario di PageTransition. */
+@supports (mask-composite: add) {
+  .dt-arch-mask {
+    mask-image:
+      linear-gradient(#fff, #fff),
+      linear-gradient(#fff, #fff),
+      linear-gradient(#fff, #fff),
+      /* Gambe lunghe (560×5600): nelle finestre portrait il fondo dell'SVG
+         non deve mai entrare nel viewport (il buco "sgraderebbe" a rettangolo). */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='560' height='5600' viewBox='0 0 560 5600'><path d='M560 5600H544V280C544 134.197 425.803 16 280 16C134.197 16 16 134.197 16 280V5600H0V0H560V5600Z' fill='white'/></svg>");
+    mask-size:
+      calc(50% - var(--arch-w) / 2 + 2px) 100%,
+      calc(var(--arch-w) + 4px) calc(var(--arch-y) + 2px),
+      calc(50% - var(--arch-w) / 2 + 2px) 100%,
+      var(--arch-w) var(--arch-h);
+    mask-position:
+      left top,
+      center top,
+      right top,
+      center var(--arch-y);
+    mask-repeat: no-repeat;
+    mask-composite: add;
+  }
+}
+/* Anelli "eco" attorno alla porta: due archi leggermente più larghi del buco,
+   stesso colore del pannello + filo di luce crema. La maschera li taglia dove
+   c'è la porta: restano solo i profili concentrici che la seguono in salita. */
+.dt-preloader:not(.is-arch) [data-pre-arch-echo] {
+  display: none;
+}
+.dt-preloader [data-pre-arch-echo] {
+  position: absolute;
+  left: 50%;
+  background-color: var(--color-espresso);
+  /* box-shadow inset, non outline: su Safari 15.4–16.3 l'outline non segue
+     il border-radius e gli anelli diventerebbero rettangoli. */
+  box-shadow: inset 0 0 0 1px rgba(242, 235, 218, 0.22);
+  border-top-left-radius: var(--arch-w);
+  border-top-right-radius: var(--arch-w);
+}
+.dt-preloader [data-pre-arch-echo="1"] {
+  width: calc(var(--arch-w) * 1.02);
+  height: calc(var(--arch-h) * 1.01);
+  top: calc(var(--arch-y) - var(--arch-h) * 0.005);
+  transform: translateX(-50%);
+}
+.dt-preloader [data-pre-arch-echo="2"] {
+  width: calc(var(--arch-w) * 1.1);
+  height: calc(var(--arch-h) * 1.03);
+  top: calc(var(--arch-y) - var(--arch-h) * 0.015);
+  transform: translateX(-50%);
 }
 
 /* ---------- Cursor custom (solo pointer fine + motion ok) ---------- */

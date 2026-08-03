@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { Fraunces, Plus_Jakarta_Sans, Playfair_Display, Pinyon_Script } from "next/font/google";
 import "./globals.css";
 import { jsonLdScript, site, siteUrl } from "./lib/site";
 import { defaultLocale, type Locale } from "./lib/i18n/dictionaries";
@@ -19,7 +19,7 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // Senza JS l'attributo non esiste mai → overlay display:none (globals.css).
 // Failsafe a 2,5s: se il bundle non idrata mai, l'attributo va rimosso comunque. Era 8s, e
 // su una connessione lenta teneva il sipario (e quindi l'LCP) fino a 8 secondi buoni.
-const preloaderBootScript = `try{if(!sessionStorage.getItem("dt-intro-seen")&&matchMedia("(prefers-reduced-motion: no-preference)").matches&&matchMedia("(min-width: 768px)").matches){document.documentElement.setAttribute("data-preloader","");setTimeout(function(){document.documentElement.removeAttribute("data-preloader")},2500)}}catch(e){}`;
+const preloaderBootScript = `try{var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;if(!sessionStorage.getItem("dt-intro-seen")&&m&&matchMedia("(min-width: 768px)").matches){document.documentElement.setAttribute("data-preloader","");window.__dtPreFailsafe=setTimeout(function(){document.documentElement.removeAttribute("data-preloader")},2500)}if(m){document.documentElement.setAttribute("data-hero-rest","");document.documentElement.setAttribute("data-hero-intro","")}}catch(e){}`;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -39,6 +39,24 @@ const fraunces = Fraunces({
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+// Coppia "arco" (richiesta cliente, rif. era-residence.com): didone per il
+// lockup di preloader/hero + script calligrafico per l'accento. Restano
+// dietro variabili (--font-hero / --font-script): se il cliente licenzia
+// Ambroise François / Sloop Script via Adobe Fonts, lo swap è solo qui.
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: "swap",
+  style: ["normal", "italic"],
+});
+
+const pinyon = Pinyon_Script({
+  variable: "--font-pinyon",
+  weight: "400",
   subsets: ["latin"],
   display: "swap",
 });
@@ -136,7 +154,7 @@ export default function RootLayout({
       // L'inline script qui sotto può marcare <html data-preloader> prima
       // dell'idratazione: il mismatch sull'attributo è voluto.
       suppressHydrationWarning
-      className={`${fraunces.variable} ${jakarta.variable} antialiased`}
+      className={`${fraunces.variable} ${jakarta.variable} ${playfair.variable} ${pinyon.variable} antialiased`}
     >
       <body className="flex min-h-dvh flex-col bg-paper text-ink">
         <script dangerouslySetInnerHTML={{ __html: preloaderBootScript }} />

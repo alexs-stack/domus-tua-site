@@ -12,31 +12,28 @@
 
 type MotifProps = {
   className?: string;
-  /** mostra la curva-abbraccio grigia sotto il tetto */
+  /** compat storica (variante col tetto disegnato): oggi ignorata */
   embrace?: boolean;
+  /** "light" = variante negativa (crema + rosso) per superfici scure */
+  variant?: "color" | "light";
 };
 
-// ── Segno base: linea-tetto (+ abbraccio) ────────────────────────────────────
-export function SegnoDomus({ className = "h-4 w-10", embrace = true }: MotifProps) {
+// ── Segno base: il MONOGRAMMA UFFICIALE (crop del logo depositato) ───────────
+// Sostituisce la vecchia linea-tetto ridisegnata (direttiva cliente: usare il
+// logo reale ovunque). L'immagine si adatta al box dei call-site esistenti
+// con object-contain; niente stroke-draw (il brand book vieta di animare il
+// logo con morph/draw — le entrance restano fade/scale dei wrapper).
+export function SegnoDomus({ className = "h-4 w-10", variant = "color" }: MotifProps) {
   return (
-    <svg className={className} viewBox="0 0 100 40" fill="none" aria-hidden xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M8 29 L50 9 L92 29"
-        stroke="var(--color-red)"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {embrace && (
-        <path
-          d="M16 35 Q50 23 84 35"
-          stroke="var(--color-graphite)"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          opacity="0.45"
-        />
-      )}
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={variant === "light" ? "/logo-domustua-mark-dark.png" : "/logo-domustua-mark.png"}
+      alt=""
+      aria-hidden
+      width={99}
+      height={92}
+      className={`object-contain ${className}`}
+    />
   );
 }
 
