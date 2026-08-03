@@ -45,6 +45,10 @@ next-env.d.ts
 /_assets_raw
 /public/images/reali/yt
 
+# Materiale di studio/reverse engineering: vive solo in locale, mai nel repo
+# (contiene asset di riferimento di terzi che non vanno ridistribuiti).
+/reverse-engineering
+
 # dati lingua tesseract scaricati da scripts/detect-sold.ts (rigenerabili)
 *.traineddata
 
