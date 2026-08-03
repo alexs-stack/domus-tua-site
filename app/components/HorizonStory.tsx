@@ -225,34 +225,52 @@ const copy = {
 const ARC_PATH = "M 800,1900 m -1800,0 a 1800,1800 0 1,1 3600,0 a 1800,1800 0 1,1 -3600,0";
 
 /**
- * Slot per i fiori con canale alpha (dossier §11.3): quando il cliente fornirà
- * le clip (webm VP9 alpha + mov HEVC alpha + poster), passare qui le sorgenti —
- * il video parte/pausa con lo scroll e deriva con [data-horizon-flower].
- * Finché non ci sono asset lo slot resta un aggancio vuoto senza ingombro.
+ * ThreadAccent — al posto dei fiori del riferimento (decorazione del LORO
+ * mondo), il nostro filo rosso entra ed esce dai bordi dei pannelli: deriva
+ * con la parallasse [data-horizon-flower] e si cuce a vista col sipario di
+ * [data-horizon-slide]. Asola a metà corsa, punto filza e nodo in chiusura.
+ * Solo decorazione (aria-hidden), solo desktop: sotto i 1024 sparisce.
+ * (Se un giorno arrivano clip organiche con alpha, la meccanica video è
+ * documentata nel dossier §11.3 — questo componente ne prende lo slot.)
  */
-function FlowerSlot({
+function ThreadAccent({
   drift,
+  variant,
   className = "",
-  sources,
 }: {
   drift: "drift-x" | "drift-y";
+  variant: "verticale" | "orizzontale";
   className?: string;
-  sources?: { webm: string; mov: string; poster: string };
 }) {
-  if (!sources) return <div aria-hidden data-horizon-flower={drift} className={className} />;
   return (
-    <div aria-hidden data-horizon-flower={drift} className={className}>
-      <video
-        muted
-        playsInline
-        loop
-        disablePictureInPicture
-        poster={sources.poster}
-        className="h-full w-full object-contain"
-      >
-        <source src={sources.webm} type="video/webm" />
-        <source src={sources.mov} type="video/mp4" />
-      </video>
+    <div aria-hidden data-horizon-flower={drift} data-horizon-slide className={className}>
+      {variant === "verticale" ? (
+        <svg viewBox="0 0 120 500" fill="none" className="h-full w-full">
+          {/* Il filo scende dal bordo, respira in due anse e si annoda. */}
+          <path
+            d="M 62 -8 C 30 60 96 112 60 172 C 30 222 88 252 64 302 C 52 336 100 342 78 308 C 66 288 44 310 60 332 C 72 362 58 392 61 412"
+            stroke="var(--color-red)"
+            strokeOpacity="0.45"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <circle cx="61" cy="412" r="3" fill="var(--color-red)" />
+          {/* Punto filza: il filo continua a cucire oltre il nodo. */}
+          <path d="M 63 428 l 4 12 M 70 452 l 4 12 M 77 476 l 4 12" stroke="var(--color-red)" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 520 100" fill="none" className="h-full w-full">
+          <path
+            d="M -8 55 C 60 20 120 84 190 52 C 240 30 260 78 310 56 C 330 42 356 66 336 78 C 322 86 316 60 338 58 C 390 44 430 62 468 52"
+            stroke="var(--color-red)"
+            strokeOpacity="0.45"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <circle cx="468" cy="52" r="3" fill="var(--color-red)" />
+          <path d="M 480 50 l 13 -3 M 502 45 l 13 -3" stroke="var(--color-red)" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      )}
     </div>
   );
 }
@@ -348,7 +366,11 @@ export default function HorizonStory() {
         <HorizonScroller id="storia" refreshKey={locale}>
         {/* Pannello manifesto */}
         <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center justify-center">
-          <FlowerSlot drift="drift-y" className="pointer-events-none absolute -left-24 -top-16 z-10 h-72 w-72" />
+          <ThreadAccent
+            drift="drift-y"
+            variant="verticale"
+            className="pointer-events-none absolute -top-10 left-[7vw] z-10 hidden h-[52vh] w-24 lg:block"
+          />
           <div className="mx-auto max-w-[1000px] px-5 py-20 text-center sm:px-8 lg:py-0">
             <Reveal>
               <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
@@ -424,9 +446,10 @@ export default function HorizonStory() {
               />
             </div>
           </div>
-          <FlowerSlot
+          <ThreadAccent
             drift="drift-x"
-            className="pointer-events-none absolute -bottom-20 left-[30%] z-10 h-80 w-80"
+            variant="orizzontale"
+            className="pointer-events-none absolute bottom-[9vh] left-[5vw] z-10 hidden h-24 w-[34vw] lg:block"
           />
         </div>
 
