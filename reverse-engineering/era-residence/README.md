@@ -361,6 +361,9 @@ Trigger a scroll (righe 908+): ScrollTrigger `start:"top bottom", once:true` per
 
 ```
 js/main.pretty.js          ← TUTTO il codice custom, de-minificato (partire da qui)
+html/concept-location.html ← markup sezione concept + "New Golden Mile" + mappa (§11)
+html/benefits-slider.html  ← markup slider "benefits" (fuori scope, riferimento)
+css/loc-sections.css       ← regole CSS estratte per le classi loc-*/flower (§11)
 js/main.original.min.js    ← originale scaricato da Slater
 js/slater-loader.js        ← loader Slater (solo import del file sopra)
 js/typekit-kit-pig8glj.js  ← kit Adobe Fonts (nomi famiglie/varianti)
@@ -385,10 +388,119 @@ fonts/MaisonNeueExt-*.woff2← body font (riferimento — serve licenza)
 
 Non recuperati di proposito: `webflow.a0aa6ca1.*.js` (runtime Webflow) e jQuery — servono solo al markup Webflow originale e a `initResetWebflow` nelle transizioni Barba (§8), irrilevanti per il porting Next.js.
 
-## 11. Piano di porting su Domus Tua (Next.js)
+## 11. CONCEPT + "NEW GOLDEN MILE" — lo scroller orizzontale (estratto 2026-08-03)
+
+Le due viste degli screenshot (statement "The concept" e intro location) NON sono
+sezioni verticali: sono **pannelli di un unico scroller orizzontale**
+(`html/concept-location.html`, CSS in `css/loc-sections.css`).
+
+### 11.1 Architettura dello scroller (righe 2596-2651 di main.pretty.js)
+
+```
+<section data-slow-scroll class="section clip">
+  <div class="container loc">
+    <div data-video-playpause data-scroll-horizontal class="loc-scroll-area">
+      <div class="loc-scroll-area_screen">   ← position:sticky; top:0; display:flex
+        <div class="loc-scroll-area_track">  ← flex:none; display:flex (pannelli in fila)
+          [pannello 1: concept]  [pannello 2: New Golden Mile]  [pannello 3: mappa percorso]
+```
+
+- Solo desktop (`min-width:992px`, gsap.matchMedia). JS: `area.style.height =
+  track.scrollWidth + "px"` → la sezione diventa alta quanto il track è largo;
+  lo screen sticky resta pinnato e il track trasla `x: -(scrollWidth-offsetWidth)`.
+- **Il tocco firma**: la traslazione NON è lineare — tween con `ease:"horScroll"
+  (0.25,0,0.75,1)` e `scrollTrigger { start:"2.5% top", end:"97.5% bottom",
+  scrub:0.25 }`. Parte lenta, accelera al centro, frena in coda.
+- Il tween viene salvato su `area._horizontalTween`: i reveal interni lo usano
+  come `containerAnimation` con `start:"left bottom"` (§7, righe 908-916).
+- `.slow-scroll-trigger`: div 100svh assoluto in fondo, usato come trigger.
+- Mobile: niente pin — i pannelli tornano in colonna (media query nel CSS).
+
+### 11.2 Parallasse interne (stesso blocco JS)
+
+| Target | Da → A | Trigger |
+|---|---|---|
+| `.loc-intro-s_title_line` (le 3 righe del titolo) | `xPercent` wrap `[-5,25,-15]` → `[5,-25,25]` | tutta la sezione, scrub 0.25 |
+| `.flower.loc-intro` | `xPercent 0 → -25` | tutta la sezione, scrub 0.25 |
+| `.flower.loc-path` | `yPercent 0 → 25` | `bottom bottom → bottom top`, scrub 0.25 |
+| `.img.loc-path` (tracciato mappa) | `clip-path inset(0 100% 0 0) → inset(0)` | reveal once, dur 2×durL, ease Out, delay durM |
+
+Le 3 righe del titolo ("New/Golden/Mile") sono `<span class="loc-intro-s_title_line
+is-1|is-2">` display:block con margin-left a gradini (mezza cella / una cella) —
+la scala tipografica è `h1` (12vw, §2) e il reveal è l'animatore `h` di §7
+(words+chars, rotateY 90→0). Il label "Spain" è classe `c1` (caps, tracking 0.8em).
+
+I pannelli usano anche gli animatori generici: `data-parallax="img-in"`
+(yPercent -20→0 mentre il wrapper entra, righe 857-874), `data-parallax="ctn-down"`
+(yPercent -10→10, righe 875-889) sul fiore del pannello concept.
+
+### 11.3 I fiori: video trasparenti, non GIF
+
+```html
+<div class="flower loc-intro">
+  <video muted playsinline loop disablepictureinpicture poster="…avif" class="video">
+    <source src="…/bougainvillea-flowers_02.webm" type="video/webm"/>  ← VP9 + alpha
+    <source src="…/bougainvillea-flowers_02.mov"  type="video/mp4"/>   ← HEVC + alpha (Safari)
+  </video>
+</div>
+```
+
+- 3 clip diverse (`bougainvillea-flowers_01/02/03` su assets.era-residence.com,
+  URL in `assets/all-asset-urls.txt`) — rami di bouganville che ondeggiano su
+  fondo trasparente. Poster AVIF per il primo frame.
+- `.flower`: ~800px quadrati (`calc(var(--80px)*10)`), `position:absolute`,
+  `pointer-events:none`, `z-index:1`; ogni istanza è ruotata/specchiata via CSS
+  (`rotate(90deg)`, `scaleX(-1)`) per sembrare clip diverse.
+- **Play/pause a scroll** (`initPlayPauseVideoScroll`, righe 384-399): ScrollTrigger
+  sull'area `top bottom → bottom top`; entra → `.play()`, esce → `.pause()`;
+  al load `video.load(); currentTime = 0`.
+- Gli asset sono proprietari: per Domus Tua vanno prodotti fiori nostri
+  (foto/render con alpha, o PNG ritagliato + sway GSAP).
+
+### 11.4 La cupola che sale dal basso (sezione "arch", markup in `html/arch-intro.html`)
+
+Lo "spicchio" celeste che risale sopra la foto NON è una maschera animata:
+
+1. **La forma è la sezione stessa**: `.section.arch { border-top-left-radius:50rem;
+   border-top-right-radius:50rem; z-index:1 }` — col sistema 1rem=1vw (§1),
+   50rem = 50vw per lato → il bordo superiore è un semicerchio pieno.
+   Colore = bg del tema `theme_on-brand` (powder sky #b5cedb).
+2. **La risalita è lo scroll**: la sezione precedente (hero/foto) ha lo screen
+   sticky (§6), quindi resta pinnata mentre la cupola — nel flusso normale, con
+   z-index superiore — le scorre sopra dal basso. Il `data-snap` (§9) la fa
+   attraccare a tutto schermo.
+3. **Il testo curvato** è un `<text><textPath>` SVG su un cerchio enorme
+   (desktop: `M 800,800 m -676,0 a 676,676…` su viewBox 1600, `startOffset 25%`
+   = apice, `text-anchor:middle`; mobile: r=160 su viewBox 416).
+4. **L'animazione firma** (righe 2554-2567): sull'attraversamento della sezione,
+   `wordSpacing: 0rem → 10rem` in scrub — le parole si distendono lungo l'arco
+   mentre la cupola sale. Sopra l'arco: label + rosone + divider + riga piccola
+   con i reveal standard (§7).
+
+Porting Domus: stessa architettura (radius sul bordo alto + sticky uncover +
+textPath + word-spacing in scrub), forma "arco ribassato" (raggi ellittici) e
+palette crema al posto del semicerchio celeste.
+
+### 11.5 Rail di scroll a sinistra (numero + SCROLL)
+
+È la scrollbar custom globale (`initScrollBar`, righe 1408-1441): progress
+`0-100` scritta in `--progress` + label numerica `padStart(2,"0")` aggiornata da
+uno ScrollTrigger sull'intera pagina; thumb trascinabile che pilota
+`lenis.scrollTo` (durata 3.2s). Il numero degli screenshot (25, 32) è la
+percentuale di scroll della pagina.
+
+---
+
+## 12. Piano di porting su Domus Tua (Next.js)
 
 1. **Preloader** → riscrivere `app/components/motion/Preloader.tsx` con la maschera ad arco (§4.2) + timeline (§4.3). L'SVG arco va ridisegnato con la proporzione che preferiamo (o riusato: è un semplice path, non un'opera grafica). Testi: "Domus Tua" + payoff, progress identica.
 2. **Logo rotante** → nuovo componente header: rosone SVG derivato dal nostro brand che ruota con la logica §5 (ticker GSAP + velocità Lenis). Lenis è già montato in `app/components/motion/SmoothScroll.tsx`.
 3. **Hero** → `app/components/HeroCinematic.tsx`: sticky + scroll-area 4×100svh, scale 0.75→1 all'uscita del preloader, zoom a 2 sullo scroll (§6.3). Le tab day/night sono opzionali (servono due render della stessa scena).
 4. **Font** → decidere con il cliente: licenza Adobe Fonts + Milieu Grotesque, oppure alternative gratuite (§2).
 5. **Testi** → replicare gli animatori §7 come utility condivisa (SplitText è già disponibile in gsap@3.15).
+6. **Concept + location (§11)** → scroller orizzontale (sticky screen + track, ease
+   "horScroll", scrub 0.25) con: pannello statement (eyebrow + titolo grande +
+   paragrafo + segno di marca), pannello location col titolo a gradini in
+   parallasse contraria e i nostri contenuti (Tradate/Varese), fiori con alpha
+   prodotti da noi (video trasparente o PNG + sway GSAP), play/pause a scroll.
+   Mobile: pannelli in colonna, niente pin. Reduced-motion: tutto statico.
