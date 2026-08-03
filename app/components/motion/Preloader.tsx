@@ -385,23 +385,18 @@ export default function Preloader() {
         />
         <div className="grain !absolute !z-0" aria-hidden />
 
-        {/* La "sagoma" di Raffaela, a sinistra: è la FOTO VERA dell'hero,
-            visibile solo nella sua zona (mask sfumata), con la stessa
-            geometria object-cover dell'immagine sotto — quando l'arco la
-            attraversa, sagoma e foto coincidono e la stanza "torna". */}
+        {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha della stessa
+            foto dell'hero (stesso canvas 2000×1415, fornito dal cliente), con
+            la stessa geometria object-cover dell'immagine sotto — silhouette
+            pulita sul fondo del preloader, e quando l'arco la attraversa
+            sagoma e foto coincidono pixel su pixel: la stanza "torna". */}
         <div data-pre-figure className="absolute inset-0" style={{ opacity: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/media/hero-raffaela.jpg"
+            src="/media/raffaela-sagoma.png"
             alt=""
             className="h-full w-full object-cover"
-            style={{
-              objectPosition: "50% 70%",
-              maskImage:
-                "radial-gradient(42vw 80vh at 17% 50%, #000 40%, transparent 70%)",
-              WebkitMaskImage:
-                "radial-gradient(42vw 80vh at 17% 50%, #000 40%, transparent 70%)",
-            }}
+            style={{ objectPosition: "50% 70%" }}
           />
         </div>
 
