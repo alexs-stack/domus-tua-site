@@ -10,7 +10,6 @@ import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
 import DomusDocProtocol from "./components/DomusDocProtocol";
 import Services from "./components/Services";
-import SocialVideoWall from "./components/SocialVideoWall";
 import FeaturedTestimonial from "./components/FeaturedTestimonial";
 import Reviews from "./components/Reviews";
 import Social from "./components/Social";
@@ -50,7 +49,9 @@ export default function Home() {
         <HorizonStory />
         <Stats />
         <Authority />
-        <SocialVideoWall />
+        {/* Il momento video della home vive nel muro delle voci (HorizonStory,
+            atto 4): la vecchia SocialVideoWall è stata ritirata per non
+            mostrare due volte gli stessi video. */}
         <Paths />
         <Method />
         <OpenDomus />

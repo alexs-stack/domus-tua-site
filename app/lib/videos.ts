@@ -54,7 +54,26 @@ export const videoCollection: VideoSlot[] = site.videos.reviews.map(
 /** Video del blocco testimonianza (FeaturedTestimonial). */
 export const testimonialVideo = site.videos.testimonial;
 
-/** Tutti gli id mostrati sulla home. Usato dal test di unicità. */
+/**
+ * Il muro delle voci (ReviewsWall, home): TUTTI i video reali del canale come
+ * card — storia in evidenza, le tre recensioni, Teresa/Open Domus e il team.
+ * La testimonianza NON entra: ha il suo blocco dedicato (FeaturedTestimonial).
+ * Ogni card porta il titolo reale del canale; l'unicità la controlla il test.
+ */
+export const wallVideos: VideoSlot[] = [
+  { ...site.videos.featured, kind: "opendomus", thumb: youtubeThumb(site.videos.featured.id) },
+  ...site.videos.reviews.map(
+    (r): VideoSlot => ({ id: r.id, kind: "recensione", thumb: youtubeThumb(r.id), title: r.title }),
+  ),
+  { ...site.videos.openDomus, kind: "opendomus", thumb: youtubeThumb(site.videos.openDomus.id) },
+  { ...site.videos.team, kind: "dietro", thumb: youtubeThumb(site.videos.team.id) },
+];
+
+/**
+ * Tutti gli id mostrati come card/player sulla home. Usato dal test di unicità.
+ * Dal 2026-08-03 il muro (wallVideos) sostituisce la vecchia SocialVideoWall:
+ * la collezione filtrabile non è più montata, la testimonianza resta a parte.
+ */
 export function allVideoIds(): string[] {
-  return [featuredVideo.id, testimonialVideo.id, ...videoCollection.map((v) => v.id)];
+  return [testimonialVideo.id, ...wallVideos.map((v) => v.id)];
 }

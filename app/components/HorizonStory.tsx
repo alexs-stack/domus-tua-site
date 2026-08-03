@@ -13,6 +13,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import HorizonScroller from "./motion/HorizonScroller";
+import ReviewsWall from "./ReviewsWall";
 import Reveal from "./Reveal";
 import { SegnoDomus } from "./BrandMotif";
 import { ArrowRight, ArrowUpRight, Play, Star } from "./Icons";
@@ -544,6 +545,11 @@ export default function HorizonStory() {
           </div>
         </div>
         </HorizonScroller>
+
+        {/* Atto 4 — dall'ultimo fotogramma orizzontale lo scroll torna
+            verticale e il muro delle voci si compone (stessa superficie
+            curva: nessuna cucitura di luce). */}
+        <ReviewsWall />
       </div>
     </>
   );
