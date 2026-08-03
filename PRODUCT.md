@@ -59,7 +59,9 @@ facade al click).
   (paper/cream/cream-deep) + ink/graphite/stone + darks espresso/wine.
   DIVIETI: niente oro, niente blu, mai nero pieno, niente estetica SaaS,
   niente gradienti viola-blu, niente dark-tech, niente Inter.
-- Font: Fraunces (display serif, SOFT) + Plus Jakarta Sans (UI).
+- Font: Playfair Display (didone display unica di tutto il sito, la stessa
+  del lockup hero/preloader; Fraunces ritirato, ago 2026) + Plus Jakarta Sans
+  (UI) + Pinyon Script (solo accento calligrafico del lockup).
 - Logo ufficiale PNG: non ridisegnare, non animare con morph/draw.
 - Motion: caldo e cinematografico, mai tech-demo; un solo signature moment
   per viewport; ease firma "domus"; il sito deve restare bello ANCHE FERMO.

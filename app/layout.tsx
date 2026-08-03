@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Plus_Jakarta_Sans, Playfair_Display, Pinyon_Script } from "next/font/google";
+import { Plus_Jakarta_Sans, Playfair_Display, Pinyon_Script } from "next/font/google";
 import "./globals.css";
 import { jsonLdScript, site, siteUrl } from "./lib/site";
 import { defaultLocale, type Locale } from "./lib/i18n/dictionaries";
@@ -27,30 +27,22 @@ export const viewport: Viewport = {
   themeColor: "#faf7f1",
 };
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  display: "swap",
-  // opsz = ottica per dimensione (titoli grandi), SOFT = terminali morbidi (calore),
-  // italic = corsivo vero (accenti editoriali) invece del finto slant sintetico.
-  axes: ["opsz", "SOFT"],
-  style: ["normal", "italic"],
-});
-
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
   display: "swap",
 });
 
-// Coppia "arco" (richiesta cliente, rif. era-residence.com): didone per il
-// lockup di preloader/hero + script calligrafico per l'accento. Restano
-// dietro variabili (--font-hero / --font-script): se il cliente licenzia
-// Ambroise François / Sloop Script via Adobe Fonts, lo swap è solo qui.
+// Didone di marca (richiesta cliente, rif. era-residence.com): nata per il
+// lockup di preloader/hero, oggi è IL serif display di tutto il sito
+// (--font-display e --font-hero puntano entrambi qui; Fraunces è stato ritirato).
+// Lo script calligrafico resta l'accento. Dietro variabili: se il cliente
+// licenzia Ambroise François / Sloop Script via Adobe Fonts, lo swap è solo qui.
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   display: "swap",
+  // Corsivo vero (accenti editoriali) invece del finto slant sintetico.
   style: ["normal", "italic"],
 });
 
@@ -154,7 +146,7 @@ export default function RootLayout({
       // L'inline script qui sotto può marcare <html data-preloader> prima
       // dell'idratazione: il mismatch sull'attributo è voluto.
       suppressHydrationWarning
-      className={`${fraunces.variable} ${jakarta.variable} ${playfair.variable} ${pinyon.variable} antialiased`}
+      className={`${jakarta.variable} ${playfair.variable} ${pinyon.variable} antialiased`}
     >
       <body className="flex min-h-dvh flex-col bg-paper text-ink">
         <script dangerouslySetInnerHTML={{ __html: preloaderBootScript }} />

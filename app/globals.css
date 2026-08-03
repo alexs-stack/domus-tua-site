@@ -3,7 +3,8 @@
 /* ============================================================
    DOMUS TUA — DESIGN SYSTEM
    Editorial Luxury × fiducia locale. Palette: rosso / grigio / bianco caldo.
-   No oro, no blu. Serif Fraunces (display) + Plus Jakarta Sans (UI).
+   No oro, no blu. Didone Playfair Display (display, la stessa dell'hero) +
+   Plus Jakarta Sans (UI).
    ============================================================ */
 
 @theme inline {
@@ -26,11 +27,12 @@
   --color-espresso: #1c1512;
   --color-wine: #2a100f;
 
-  /* Fonts (provided by next/font on <body>) */
-  --font-display: var(--font-fraunces);
+  /* Fonts (provided by next/font on <html>). Un solo serif per tutto il sito:
+     la didone dell'hero (rif. era-residence) è anche il display editoriale.
+     --font-hero resta come alias semantico (lockup arco) della stessa famiglia:
+     punto unico di swap quando il cliente licenzia i font Adobe originali. */
+  --font-display: var(--font-playfair);
   --font-sans: var(--font-jakarta);
-  /* Coppia "arco" (preloader + hero, rif. era-residence): didone + script.
-     Punto unico di swap quando il cliente licenzia i font Adobe originali. */
   --font-hero: var(--font-playfair);
   --font-script: var(--font-pinyon);
 
@@ -127,10 +129,8 @@ body {
 /* ---------- Typography helpers ---------- */
 .font-display {
   font-family: var(--font-display), Georgia, serif;
-  font-optical-sizing: auto;
-  /* SOFT ammorbidisce i terminali di Fraunces → serif più caldo/umano, non "default".
-     opsz resta automatico (non elencato qui) e il peso resta guidato da font-weight. */
-  font-variation-settings: "SOFT" 46;
+  /* Playfair Display espone il solo asse wght: il peso resta guidato da
+     font-weight, nessuna variation setting custom (l'asse SOFT era di Fraunces). */
 }
 
 .eyebrow {
