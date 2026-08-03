@@ -13,7 +13,7 @@ import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
-import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
+import { INTRO_EVENT } from "./motion/Preloader";
 import { getLenis } from "./motion/SmoothScroll";
 
 const copy = {
@@ -134,10 +134,8 @@ export default function HeroCinematic() {
   const [playVideo, setPlayVideo] = useState(false);
   const sectionRef = useRef<HTMLElement | null>(null);
   const mediaRef = useRef<HTMLDivElement | null>(null);
-  const mediaDepthRef = useRef<HTMLDivElement | null>(null);
   const frameWrapRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const contentDepthRef = useRef<HTMLDivElement | null>(null);
   const cueRef = useRef<HTMLSpanElement | null>(null);
 
   // Partenza cinematica "frame-in": uscendo dallo scroll il canvas full-bleed si
@@ -255,6 +253,8 @@ export default function HeroCinematic() {
             transformOrigin: "center bottom",
             transformPerspective: 800,
           });
+          // Ritmo disteso (richiesta cliente 2026-08-03): durate a dur.hero e
+          // stagger più larghi — le lettere si posano, non sfrecciano.
           const tl = gsap.timeline({ defaults: { ease: "domus" } });
           tl.to(
               titleChars,
@@ -262,11 +262,11 @@ export default function HeroCinematic() {
                 opacity: 1,
                 yPercent: 0,
                 rotateY: 0,
-                duration: dur.reveal,
-                stagger: 0.05,
+                duration: dur.hero,
+                stagger: 0.08,
                 ease: "dtOut",
               },
-              0.15
+              0.2
             )
             .to(
               scriptChars,
@@ -274,11 +274,11 @@ export default function HeroCinematic() {
                 opacity: 1,
                 x: "0vw",
                 rotateX: 0,
-                duration: dur.reveal,
-                stagger: 0.045,
+                duration: dur.hero,
+                stagger: 0.07,
                 ease: "dtOut",
               },
-              0.5
+              0.85
             )
             .to(
               taglineChars,
@@ -286,14 +286,14 @@ export default function HeroCinematic() {
                 opacity: 1,
                 yPercent: 0,
                 rotateY: 0,
-                duration: dur.reveal,
-                stagger: 0.018,
+                duration: dur.hero,
+                stagger: 0.032,
                 ease: "dtOut",
               },
-              0.45
+              0.7
             )
-            .to(frameWrapRef.current, { autoAlpha: 1, duration: 0.7, ease: "none" }, 1.0)
-            .to(cueRef.current, { autoAlpha: 1, duration: 0.5, ease: "none" }, 1.3);
+            .to(frameWrapRef.current, { autoAlpha: 1, duration: 0.7, ease: "none" }, 1.7)
+            .to(cueRef.current, { autoAlpha: 1, duration: 0.5, ease: "none" }, 2.1);
         };
 
         if (withPreloader) {
@@ -419,93 +419,9 @@ export default function HeroCinematic() {
     { scope: sectionRef }
   );
 
-  // Profondità "camera viva" al puntatore — solo desktop + pointer fine +
-  // motion ok. I target sono layer DEDICATI, senza altri owner del transform:
-  // mediaRef ha già clip/scale/yPercent del frame-in, l'IMG il ken-burns CSS,
-  // contentRef lo yPercent dello scrub e .w/[data-hero-seq] le timeline
-  // d'intro — qui si muovono solo il wrapper media (±10px) e il blocco testo
-  // (∓5px, direzione opposta = profondità). Nessun effetto sull'LCP: solo
-  // transform post-idratazione, il paint del testo non cambia.
-  useGSAP(
-    () => {
-      const section = sectionRef.current;
-      const media = mediaDepthRef.current;
-      const content = contentDepthRef.current;
-      if (!section || !media || !content) return;
-
-      const mm = gsap.matchMedia();
-      // Sintassi a oggetto: il callback rientra a ogni toggle di una singola
-      // query, quindi le condizioni vanno riverificate TUTTE qui dentro.
-      mm.add(
-        { motionOk: MQ.motionOk, desktop: MQ.desktop, fine: MQ.finePointer },
-        (ctx) => {
-          const { motionOk, desktop, fine } = ctx.conditions as Record<string, boolean>;
-          if (!motionOk || !desktop || !fine) return;
-
-          const mediaX = gsap.quickTo(media, "x", { duration: 0.8, ease: "power3.out" });
-          const mediaY = gsap.quickTo(media, "y", { duration: 0.8, ease: "power3.out" });
-          const contentX = gsap.quickTo(content, "x", { duration: 0.8, ease: "power3.out" });
-          const contentY = gsap.quickTo(content, "y", { duration: 0.8, ease: "power3.out" });
-
-          // Parte solo a intro conclusa: durante il sipario il puntatore può
-          // già muoversi sull'hero ma il timone è della coreografia sopra.
-          // Safety allineato al handoff: se l'evento va perso, si arma comunque.
-          // L'overscan (±10px senza scoprire i bordi) si applica SOLO all'arm:
-          // durante l'intro la foto deve restare a scale 1, identica alla
-          // sagoma nel preloader (continuità pixel su pixel sotto l'arco).
-          let active = !isIntroRunning();
-          const arm = () => {
-            active = true;
-            gsap.set(media, { scale: 1.04 });
-          };
-          if (active) gsap.set(media, { scale: 1.04 });
-          let safety = 0;
-          let armTimer = 0;
-          // INTRO_EVENT parte all'INIZIO del tuffo: overscan e parallasse
-          // aspettano che l'arco abbia FINITO di attraversare la foto
-          // (dur.hero), altrimenti lo scatto a 1.04 romperebbe la continuità
-          // sagoma→foto proprio nel momento in cui si vede.
-          const onIntroDone = () => {
-            armTimer = window.setTimeout(arm, dur.hero * 1000 + 200);
-          };
-          if (!active) {
-            window.addEventListener(INTRO_EVENT, onIntroDone, { once: true });
-            safety = window.setTimeout(arm, 7600);
-          }
-
-          const onMove = (e: PointerEvent) => {
-            if (!active) return;
-            const r = section.getBoundingClientRect();
-            const nx = gsap.utils.clamp(-1, 1, ((e.clientX - r.left) / r.width) * 2 - 1);
-            const ny = gsap.utils.clamp(-1, 1, ((e.clientY - r.top) / r.height) * 2 - 1);
-            mediaX(nx * 10);
-            mediaY(ny * 10);
-            contentX(nx * -5);
-            contentY(ny * -5);
-          };
-          const onLeave = () => {
-            // Rientro morbido al centro (stessa molla dei quickTo).
-            mediaX(0);
-            mediaY(0);
-            contentX(0);
-            contentY(0);
-          };
-
-          section.addEventListener("pointermove", onMove, { passive: true });
-          section.addEventListener("pointerleave", onLeave);
-          return () => {
-            window.removeEventListener(INTRO_EVENT, onIntroDone);
-            window.clearTimeout(safety);
-            window.clearTimeout(armTimer);
-            section.removeEventListener("pointermove", onMove);
-            section.removeEventListener("pointerleave", onLeave);
-            // Il revert del context azzera scale/x/y inline sui due layer.
-          };
-        }
-      );
-    },
-    { scope: sectionRef }
-  );
+  // (La profondità "camera viva" al puntatore — foto ±10px, testo ∓5px — è
+  // stata ritirata su richiesta del cliente, 2026-08-03: l'hero resta fermo
+  // sotto il mouse, insieme all'overscan a scale 1.04 che la accompagnava.)
 
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
   // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto (leggera).
@@ -550,7 +466,7 @@ export default function HeroCinematic() {
         {/* Layer profondità puntatore: mediaRef è già owner di clip/scale del
             frame-in e l'IMG del ken-burns — il transform x/y vive SOLO qui.
             Il clip-path del genitore ritaglia comunque l'overscan. */}
-        <div ref={mediaDepthRef} className="absolute inset-0">
+        <div className="absolute inset-0">
           {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
           <Image
             src={heroCinematic.base}
@@ -562,7 +478,7 @@ export default function HeroCinematic() {
             // la sgranerebbe visibilmente sull'immagine luminosa a tutto schermo.
             quality={78}
             sizes="100vw"
-            className="ken-burns object-cover"
+            className="object-cover"
             style={{ objectPosition: "50% 70%" }}
           />
 
@@ -606,7 +522,7 @@ export default function HeroCinematic() {
       >
         {/* Il x/y del parallasse puntatore sta su questo blocco interno:
             contentRef è già owner dello yPercent del frame-in. */}
-        <div ref={contentDepthRef} className="flex w-full flex-1 flex-col items-center">
+        <div className="flex w-full flex-1 flex-col items-center">
           {/* Lockup: didone + script sovrapposto, come nel preloader */}
           <div className="relative">
             <h1

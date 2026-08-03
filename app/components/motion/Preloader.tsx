@@ -211,6 +211,8 @@ export default function Preloader() {
           0.15
         );
       }
+      // Ritmo disteso (richiesta cliente 2026-08-03): stesse curve, durate e
+      // stagger più larghi — l'intro respira senza allungarsi oltre misura.
       tl.to(content, { autoAlpha: 1, duration: 0.25, ease: "none" }, 0)
         .fromTo(
           titleChars,
@@ -219,8 +221,8 @@ export default function Preloader() {
             opacity: 1,
             yPercent: 0,
             rotateY: 0,
-            duration: dur.reveal,
-            stagger: 0.05,
+            duration: 1.3,
+            stagger: 0.075,
             ease: "dtOut",
           },
           0.12
@@ -238,23 +240,23 @@ export default function Preloader() {
             opacity: 1,
             rotateX: 0,
             x: "0vw",
-            duration: dur.reveal,
-            stagger: 0.045,
+            duration: 1.3,
+            stagger: 0.065,
             ease: "dtOut",
           },
-          0.5
+          0.6
         )
         .fromTo(
           caps,
           { opacity: 0, y: 14 },
-          { opacity: 1, y: 0, duration: dur.short, stagger: 0.08, ease: "dtOut" },
-          0.35
+          { opacity: 1, y: 0, duration: 0.85, stagger: 0.11, ease: "dtOut" },
+          0.4
         )
         .fromTo(
           words,
           { yPercent: 110 },
-          { yPercent: 0, duration: dur.reveal, stagger: 0.1, ease: "dtOut" },
-          0.55
+          { yPercent: 0, duration: 1.25, stagger: 0.14, ease: "dtOut" },
+          0.65
         );
 
       // ── Atto II — la linea di carica (a scatti, come un vero load) ────

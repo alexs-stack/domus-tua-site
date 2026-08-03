@@ -13,7 +13,6 @@ import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import HorizonScroller from "./motion/HorizonScroller";
-import TextLines from "./motion/TextLines";
 import Reveal from "./Reveal";
 import { SegnoDomus } from "./BrandMotif";
 import { ArrowRight } from "./Icons";
@@ -226,10 +225,14 @@ export default function HorizonStory() {
         </div>
       </div>
 
-      {/* Atto 2 — la cupola. Il titolo curvato è decorativo (aria-hidden):
-          il testo leggibile vive nell'h2 sr-only. */}
-      <div ref={domeRef} className="dt-dome relative z-10 -mt-[60svh] bg-cream">
-        <div className="mx-auto max-w-[1600px] px-5 pb-6 pt-[16svh] sm:px-8">
+      {/* Atti 2 e 3 vivono in UN SOLO contenitore curvo: il trattamento-luce di
+          .bg-cream (bloom dall'alto) riparte a ogni elemento che porta la classe,
+          e due superfici separate creavano una linea d'ombra al confine. Con la
+          cupola come wrapper la pagina che sale è davvero una sola. */}
+      <div className="dt-dome relative z-10 -mt-[60svh] bg-cream">
+        {/* Atto 2 — l'intro sotto l'arco. Il titolo curvato è decorativo
+            (aria-hidden): il testo leggibile vive nell'h2 sr-only. */}
+        <div ref={domeRef} className="mx-auto max-w-[1600px] px-5 pb-6 pt-[16svh] sm:px-8">
           <h2 className="sr-only">{c.domeTitle}</h2>
           <div aria-hidden className="mx-auto w-full max-w-[1240px]">
             <svg viewBox="0 0 1600 460" width="100%" height="100%" className="block">
@@ -262,10 +265,10 @@ export default function HorizonStory() {
             <span className="sr-only" />
           </Reveal>
         </div>
-      </div>
 
-      {/* Atto 3 — i pannelli orizzontali. */}
-      <HorizonScroller id="storia" className="bg-cream">
+        {/* Atto 3 — i pannelli orizzontali (stessa superficie curva, nessun
+            proprio sfondo: la luce resta quella del wrapper). */}
+        <HorizonScroller id="storia" refreshKey={locale}>
         {/* Pannello manifesto */}
         <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center justify-center">
           <FlowerSlot drift="drift-y" className="pointer-events-none absolute -left-24 -top-16 z-10 h-72 w-72" />
@@ -273,13 +276,16 @@ export default function HorizonStory() {
             <Reveal>
               <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
             </Reveal>
-            <TextLines
-              as="h2"
+            {/* Reveal per-carattere (animatore "h" del riferimento, §7 del
+                dossier): orchestrato da HorizonScroller al pin della sezione —
+                un trigger di posizione qui suonerebbe a sipario ancora chiuso. */}
+            <h2
+              key={locale}
+              data-horizon-reveal="chars"
               className="mt-6 font-display text-[clamp(1.9rem,4.6vw,4.3rem)] font-medium uppercase leading-[1.06] tracking-[-0.01em] text-ink"
-              delay={0.15}
             >
               {c.statement}
-            </TextLines>
+            </h2>
             <Reveal delay={160}>
               <p className="mx-auto mt-8 max-w-xl text-[0.98rem] leading-relaxed text-stone sm:text-base">
                 {c.lead}
@@ -346,7 +352,8 @@ export default function HorizonStory() {
             className="pointer-events-none absolute -bottom-20 left-[30%] z-10 h-80 w-80"
           />
         </div>
-      </HorizonScroller>
+        </HorizonScroller>
+      </div>
     </>
   );
 }

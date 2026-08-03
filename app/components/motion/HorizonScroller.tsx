@@ -10,6 +10,8 @@
 // Contratto coi contenuti (attributi sui discendenti):
 //   data-horizon-reveal="enter"  reveal verticale (pannello già in vista al pin)
 //   data-horizon-reveal="track"  reveal agganciato al movimento orizzontale
+//   data-horizon-reveal="chars"  reveal per-carattere (animatore "h" del
+//                                riferimento: yPercent 50→0 + rotateY 90→0)
 //   data-horizon-stair           righe del titolo a gradini (parallasse contraria)
 //   data-horizon-slide           media col reveal a sipario (clip-path)
 //   data-horizon-slide-img       il media dentro lo slide (scale 1.15 → 1)
@@ -20,7 +22,12 @@
 // attiva il layout orizzontale viene messo esclusivamente via JS, quindi senza
 // animazioni non esiste nessuno stato nascosto o clippato.
 import { useRef, type ReactNode } from "react";
-import { gsap, ScrollTrigger, useGSAP, MQ, dur } from "../../lib/motion/gsap";
+import { SplitText } from "gsap/SplitText";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
+
+// SplitText serve solo qui e in TextLines: registrazione locale, mai nel
+// chunk del layout (gsap.ts è importato da SmoothScroll).
+gsap.registerPlugin(SplitText);
 
 // Come il rail di ThreadNav: sotto i 1024 il set piece orizzontale toccherebbe
 // il contenuto — MQ.desktop (768) qui sarebbe troppo presto.
@@ -30,10 +37,14 @@ export default function HorizonScroller({
   children,
   className = "",
   id,
+  refreshKey,
 }: {
   children: ReactNode;
   className?: string;
   id?: string;
+  /** Cambia (es. locale) → l'intero context viene revertito e ricreato:
+      gli split per-carattere vanno rifatti sul testo nuovo. */
+  refreshKey?: string;
 }) {
   const rootRef = useRef<HTMLElement | null>(null);
 
@@ -118,6 +129,60 @@ export default function HorizonScroller({
             });
           });
 
+        // ── Reveal per-carattere (animatore "h" del riferimento, §7 del
+        // dossier): split a font caricati, stato nascosto SOLO via JS, innesco
+        // quando il pannello è davvero in scena. Creato in async → trigger e
+        // split vanno revertiti a mano nel cleanup.
+        const charEls = gsap.utils.toArray<HTMLElement>('[data-horizon-reveal="chars"]', track);
+        let charsCancelled = false;
+        const charKills: Array<() => void> = [];
+        if (charEls.length) {
+          document.fonts.ready.then(() => {
+            if (charsCancelled) return;
+            charEls.forEach((el) => {
+              const split = SplitText.create(el, {
+                type: "words,chars",
+                tag: "span",
+                wordsClass: "dt-hword",
+                charsClass: "dt-hchar",
+                smartWrap: true,
+                aria: "none",
+              });
+              gsap.set(split.chars, {
+                autoAlpha: 0,
+                yPercent: 50,
+                rotateY: 90,
+                transformOrigin: "50% 100%",
+                transformPerspective: 800,
+              });
+              let played = false;
+              const play = () => {
+                if (played) return;
+                played = true;
+                gsap.to(split.chars, {
+                  autoAlpha: 1,
+                  yPercent: 0,
+                  rotateY: 0,
+                  duration: 1.2,
+                  ease: "dtOut",
+                  stagger: stagger.chars / 2,
+                  onComplete: () => split.revert(),
+                });
+              };
+              const st = ScrollTrigger.create({
+                trigger: root,
+                start: "top 55%",
+                once: true,
+                onEnter: play,
+              });
+              charKills.push(() => {
+                st.kill();
+                split.revert();
+              });
+            });
+          });
+        }
+
         // ── Titolo a gradini: le righe scivolano in direzioni alternate ────
         const stairs = gsap.utils.toArray<HTMLElement>("[data-horizon-stair]", track);
         if (stairs.length) {
@@ -180,12 +245,14 @@ export default function HorizonScroller({
         return () => {
           ScrollTrigger.removeEventListener("refreshInit", size);
           undoFocus.forEach((off) => off());
+          charsCancelled = true;
+          charKills.forEach((kill) => kill());
           root.removeAttribute("data-on");
           root.style.height = "";
         };
       });
     },
-    { scope: rootRef }
+    { scope: rootRef, dependencies: [refreshKey], revertOnUpdate: true }
   );
 
   return (

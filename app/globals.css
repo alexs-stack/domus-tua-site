@@ -219,8 +219,7 @@ body {
     scroll-behavior: auto;
   }
   /* Ferma animazioni continue e scroll-driven */
-  .marquee-track,
-  .ken-burns {
+  .marquee-track {
     animation: none !important;
   }
   /* Titoli e contenuti restano visibili senza movimento */
@@ -313,21 +312,8 @@ body {
   }
 }
 
-/* ---------- Ken Burns cinematografico (hero) ---------- */
-@keyframes dt-kenburns {
-  from {
-    transform: scale(1.06) translateY(0);
-  }
-  to {
-    transform: scale(1.14) translateY(-1.5%);
-  }
-}
-.ken-burns {
-  animation: dt-kenburns 18s var(--ease-out-expo) forwards;
-  transform-origin: 60% 40%;
-  /* niente will-change: l'animation promuove già il layer, e a fine corsa
-     terrebbe pinnata in GPU una texture grande quanto il viewport (LCP). */
-}
+/* Il Ken Burns dell'hero è stato ritirato su richiesta del cliente (2026-08-03):
+   la foto d'ingresso resta ferma, il movimento vive solo nello scrub di uscita. */
 
 /* Indicatore di scroll */
 @keyframes dt-scrollcue {
@@ -631,6 +617,17 @@ body {
   width: 126vw;
   padding-left: 26vw;
 }
+/* Split per-carattere del reveal "chars" (HorizonScroller): inline-block per
+   i transform, parola intera non spezzabile (smartWrap fa il resto). */
+.dt-hword {
+  display: inline-block;
+  white-space: nowrap;
+}
+.dt-hchar {
+  display: inline-block;
+  will-change: transform;
+}
+
 /* Il titolo a gradini cavalca l'immagine solo nel layout orizzontale. */
 .dt-horizon[data-on] .dt-horizon_stairs {
   position: relative;
@@ -677,13 +674,9 @@ html[data-preloader] {
 .dt-preloader [data-pre-content] {
   opacity: 0;
 }
-/* Durante l'intro il ken-burns dell'hero resta fermo a scale 1: la "sagoma"
-   di Raffaela nel preloader e la foto sotto devono coincidere pixel su pixel
-   quando l'arco la attraversa. A intro finita (attributo rimosso) il
-   ken-burns riparte da capo, da 1. */
-html[data-preloader] .ken-burns {
-  animation: none;
-}
+/* (Il freeze del ken-burns durante l'intro non serve più: l'effetto è stato
+   ritirato — la foto dell'hero è ferma per design, sagoma e foto coincidono
+   sempre pixel su pixel sotto l'arco.) */
 /* Safety CSS-only: se il bundle non idrata mai (rete flaky, JS bloccato dopo
    l'inline script), l'overlay si toglie di mezzo da solo. Il Preloader JS
    disattiva questa animation al takeover (style.animation = "none"). */
