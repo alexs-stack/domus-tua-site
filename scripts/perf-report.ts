@@ -15,7 +15,7 @@ import fs from "node:fs";
 
 const BASE = process.env.PERF_URL ?? "http://127.0.0.1:3179";
 
-const ROUTES = ["/", "/acquista", "/case", "/vendi", "/metodo", "/contatti"];
+const ROUTES = ["/", "/acquista", "/vendi", "/metodo", "/contatti"];
 
 type Row = {
   route: string;

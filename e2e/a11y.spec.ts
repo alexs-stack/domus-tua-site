@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
 });
 
-const PAGES = ["/", "/acquista", "/vendi", "/metodo", "/open-domus", "/contatti", "/case", "/privacy"];
+const PAGES = ["/", "/acquista", "/vendi", "/metodo", "/open-domus", "/contatti", "/privacy"];
 
 for (const path of PAGES) {
   test(`${path} non ha violazioni di accessibilità`, async ({ page, goto }) => {
@@ -73,7 +73,7 @@ test("si naviga con la sola tastiera, e si vede dove si è", async ({ page, goto
 });
 
 test("ogni immagine ha un'alternativa testuale sensata", async ({ page, goto }) => {
-  await goto("/case");
+  await goto("/acquista");
   const missing = await page.locator("img:not([alt])").count();
   expect(missing, "immagini senza attributo alt").toBe(0);
 });

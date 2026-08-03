@@ -38,7 +38,6 @@ export default function ThreadNav({
   const chapters: ThreadChapter[] = chaptersProp ?? [
     { id: "top", label: "Domus Tua" },
     { id: "metodo", label: d.nav.metodo },
-    { id: "case", label: d.nav.case },
     { id: "recensioni", label: d.nav.recensioni },
     { id: "contatti", label: d.nav.contatti },
   ];

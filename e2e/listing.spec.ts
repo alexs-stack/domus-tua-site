@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function openFirstListing(page: import("@playwright/test").Page, goto: (p: string) => Promise<void>) {
-  await goto("/case");
+  await goto("/acquista");
   const link = firstListingLink(page);
   await expect(link).toBeVisible();
   const href = await link.getAttribute("href");

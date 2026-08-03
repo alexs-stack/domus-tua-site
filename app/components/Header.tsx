@@ -18,8 +18,12 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const d = useDict();
   const pathname = usePathname();
-  // Voce di nav attiva: match esatto o prefisso di sezione (es. /case/<slug> → "Case" attivo).
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  // Voce di nav attiva: match esatto o prefisso di sezione. Le schede /case/<slug>
+  // appartengono al catalogo, che vive su /acquista (l'indice /case non esiste più).
+  const isActive = (href: string) =>
+    pathname === href ||
+    pathname.startsWith(`${href}/`) ||
+    (href === "/acquista" && pathname.startsWith("/case/"));
   const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
   const pillRef = useRef<HTMLDivElement | null>(null);

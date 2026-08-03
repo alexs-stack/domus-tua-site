@@ -31,7 +31,7 @@ test("la vetrina mostra immobili reali e nessun venduto", async ({ page, baseURL
   await page.context().addCookies([
     { name: "dt_consent", value: "accepted", domain: new URL(baseURL!).hostname, path: "/" },
   ]);
-  await page.goto("/case", { waitUntil: "domcontentloaded" });
+  await page.goto("/acquista", { waitUntil: "domcontentloaded" });
 
   const cards = page.locator('#main a[href^="/case/"]');
   await expect(cards.first()).toBeVisible({ timeout: 30_000 });
@@ -40,7 +40,7 @@ test("la vetrina mostra immobili reali e nessun venduto", async ({ page, baseURL
 });
 
 test("una scheda reale si apre e mostra i dati del gestionale", async ({ page }) => {
-  await page.goto("/case", { waitUntil: "domcontentloaded" });
+  await page.goto("/acquista", { waitUntil: "domcontentloaded" });
   const first = page.locator('#main a[href^="/case/"]').first();
   await expect(first).toBeVisible({ timeout: 30_000 });
   await first.click();

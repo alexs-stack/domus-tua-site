@@ -60,14 +60,14 @@ test("una ricerca senza risposte lo dice, e non lascia in un vicolo cieco", asyn
   // I filtri si possono impostare dall'URL (è così che ci arriva chi clicca dalla home): qui
   // se ne sceglie una combinazione che il portafoglio non può soddisfare. Deterministico,
   // qualunque siano gli immobili del giorno.
-  await goto("/case?type=Terreno");
+  await goto("/acquista?type=Terreno");
 
   await expect(page.getByText(/potrebbe arrivare|non c.è online/i).first()).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("link", { name: /lasciaci la tua richiesta/i }).first()).toBeVisible();
   expect(await page.locator('#main a[href^="/case/"]').count()).toBe(0);
 
   // E si torna indietro: togliendo il filtro gli immobili ricompaiono.
-  await goto("/case");
+  await goto("/acquista");
   await expect(firstListingLink(page)).toBeVisible();
 });
 
@@ -80,15 +80,23 @@ test("gli immobili venduti non compaiono fra quelli in vendita", async ({ page, 
   expect(await soldBadges.count()).toBe(0);
 });
 
-test("la vetrina della home non mostra immobili venduti", async ({ page, goto }) => {
-  await goto("/");
-  const cards = page.locator('a[href^="/case/"]');
-  await expect(cards.first()).toBeAttached();
-  expect(await cards.getByText(/^venduto$/i).count()).toBe(0);
+test("il vecchio indice /case porta al catalogo su /acquista", async ({ page, goto }) => {
+  // La pagina /case non esiste più: il redirect permanente deve conservare i query param,
+  // così i vecchi link con i filtri continuano a funzionare. Si verifica con un filtro
+  // che il portafoglio non può soddisfare: se l'empty state compare, il parametro è
+  // arrivato DAVVERO a PropertySearch attraverso il redirect, non solo nell'URL.
+  await goto("/case?type=Terreno");
+  await expect(page).toHaveURL(/\/acquista\?type=Terreno/);
+  await expect(page.getByText(/potrebbe arrivare|non c.è online/i).first()).toBeVisible({ timeout: 20_000 });
+
+  // E il /case nudo porta semplicemente al catalogo pieno.
+  await goto("/case");
+  await expect(page).toHaveURL(/\/acquista/);
+  await expect(firstListingLink(page)).toBeVisible();
 });
 
 test("la griglia degli immobili sta nella pagina @layout", async ({ page, goto }) => {
-  await goto("/case");
+  await goto("/acquista");
   await expect(firstListingLink(page)).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

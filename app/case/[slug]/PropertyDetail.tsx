@@ -262,7 +262,7 @@ const copy = {
 
 // ⚠️ DATI DEMO / FIXTURE — `p` e `related` arrivano dalla facciata getVisibleListing/
 // getVisibleListings (oggi fixture demo, domani RealSmart). Qui nessun dato viene
-// inventato: la striscia "related" è opzionale e, se assente, mostra solo il link a /case.
+// inventato: la striscia "related" è opzionale e, se assente, mostra solo il link a /acquista.
 export default function PropertyDetail({ p, related }: { p: Property; related?: Property[] }) {
   const { locale, d } = useLocale();
   const c = copy[locale];
@@ -361,7 +361,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
             Domus Tua
           </Link>
           <span aria-hidden className="text-line">/</span>
-          <Link href="/case" className="inline-flex items-center gap-1.5 transition-colors hover:text-ink">
+          <Link href="/acquista" className="inline-flex items-center gap-1.5 transition-colors hover:text-ink">
             <ArrowRight className="h-3.5 w-3.5 rotate-180" aria-hidden />
             {d.nav.case}
           </Link>
@@ -577,7 +577,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
               {c.related}
             </h2>
             <Link
-              href="/case"
+              href="/acquista"
               className="group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
             >
               {c.viewAll}

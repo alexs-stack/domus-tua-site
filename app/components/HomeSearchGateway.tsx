@@ -1,7 +1,7 @@
 "use client";
 
 // Ricerca "sopra la piega": mini-ricerca funzionale per chi compra + scorciatoia per chi vende.
-// Al submit naviga a /case con query params (q, comune, budget, type, rooms) che PropertySearch
+// Al submit naviga a /acquista con query params (q, comune, budget, type, rooms) che PropertySearch
 // legge e pre-imposta. La ricerca in linguaggio naturale resta un teaser (nessuna finta AI).
 import { useState, useRef } from "react";
 import Link from "next/link";
@@ -84,7 +84,7 @@ export default function HomeSearchGateway() {
     const qs = params.toString();
     // Micro-transizione coreografata verso i risultati (fallback: push pulito
     // con reduced-motion, gestito dentro PageTransition).
-    transitionTo(qs ? `/case?${qs}` : "/case");
+    transitionTo(qs ? `/acquista?${qs}` : "/acquista");
   }
 
   // Teatro del focus: al primo ingresso nel campo, le chip suggerimento

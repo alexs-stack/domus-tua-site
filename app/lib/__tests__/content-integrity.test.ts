@@ -60,7 +60,9 @@ function stripTechnicalValues(src: string): string {
     .replace(/\[[^\]\s]*\]/g, "");
 }
 
-const REL = (f: string) => path.relative(process.cwd(), f);
+// Separatore normalizzato: su Windows path.relative restituisce backslash e i confronti
+// con i percorsi attesi (scritti con "/") fallirebbero per piattaforma, non per contenuto.
+const REL = (f: string) => path.relative(process.cwd(), f).split(path.sep).join("/");
 
 /**
  * Contenuti VIETATI. Ognuno è stato mostrato come dato reale senza avere una fonte.
@@ -204,13 +206,6 @@ describe("content integrity — venduti mai tra i disponibili", () => {
     );
   });
 
-  test("le vetrine passano dalla lista filtrata, non da getVisibleListings", () => {
-    // Regressione: la sezione "le nostre case" della home prendeva i primi tre immobili del
-    // feed così com'erano — un venduto in cima alla lista RealSmart finiva tra le proposte.
-    const src = fs.readFileSync(path.join(APP_DIR, "components", "Listings.tsx"), "utf8");
-    assert.match(src, /getAvailableListings\(\)/);
-    assert.doesNotMatch(src, /getVisibleListings\(\)/);
-  });
 });
 
 describe("content integrity — terze parti dietro al consenso", () => {

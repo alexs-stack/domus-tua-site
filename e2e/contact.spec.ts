@@ -107,7 +107,7 @@ test("il numero di telefono è cliccabile ed è quello vero", async ({ page, got
 });
 
 test("dalla scheda immobile si scrive su WhatsApp con il riferimento giusto", async ({ page, goto }) => {
-  await goto("/case");
+  await goto("/acquista");
   const first = page.locator('#main a[href^="/case/"]').first();
   await expect(first).toBeVisible();
   await first.click();

@@ -42,7 +42,7 @@ export default function NotFound() {
                 </span>
               </Link>
               <Link
-                href="/case"
+                href="/acquista"
                 className="group flex items-center justify-center gap-1.5 rounded-full border border-line bg-paper px-7 py-4 text-base font-semibold text-ink transition-all duration-300 hover:border-red/40"
               >
                 Cerca una casa

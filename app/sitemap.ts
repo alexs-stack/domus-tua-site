@@ -15,7 +15,6 @@ const routes = [
   "/metodo",
   "/open-domus",
   "/servizi",
-  "/case",
   "/recensioni",
   "/chi-siamo",
   "/contatti",

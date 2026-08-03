@@ -37,7 +37,7 @@ test.describe("la tastiera funziona su tutto il sito", () => {
 
   test("si può scrivere nella ricerca immobili del sito", async ({ page }) => {
     await consensoGiaDato(page);
-    await page.goto("/case");
+    await page.goto("/acquista");
     await page.waitForTimeout(6000);
 
     const campo = page.locator('input[type="search"], input[type="text"]').first();

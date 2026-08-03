@@ -28,6 +28,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  async redirects() {
+    return [
+      // L'indice /case non esiste più: il catalogo con la ricerca vive su /acquista.
+      // Match esatto (le schede /case/<slug> restano), query param preservati di default
+      // così i vecchi link /case?comune=… continuano a pre-impostare i filtri.
+      { source: "/case", destination: "/acquista", permanent: true },
+    ];
+  },
   // Nota fase 4 (WOW layer): valutate le View Transitions sperimentali per lo
   // shared element card→scheda, ma il React in uso (19.2.4 stabile, e anche il
   // vendored di Next 16.2.9) non esporta <ViewTransition> → percorso coperto

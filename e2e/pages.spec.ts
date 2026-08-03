@@ -16,7 +16,6 @@ const PAGES = [
   { path: "/servizi", title: /servizi/i },
   { path: "/recensioni", title: /recensioni/i },
   { path: "/contatti", title: /contatti/i },
-  { path: "/case", title: /case|immobili/i },
   { path: "/privacy", title: /privacy/i },
   { path: "/cookie", title: /cookie/i },
 ];

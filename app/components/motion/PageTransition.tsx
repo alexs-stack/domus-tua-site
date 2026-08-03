@@ -46,7 +46,8 @@ function labelForPath(rawPath: string, nav: NavDict): string | null {
   const path =
     rawPath.length > 1 && rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
   if (path === "/") return "Domus Tua"; // nome proprio: identico in ogni lingua
-  if (path === "/case" || path.startsWith("/case/")) return nav.case;
+  // Solo le schede /case/<slug>: l'indice /case non esiste più (redirect a /acquista).
+  if (path.startsWith("/case/")) return nav.case;
   switch (path) {
     case "/vendi":
       return nav.vendi;

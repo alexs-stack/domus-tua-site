@@ -7,7 +7,6 @@
 //       impostando NEXT_PUBLIC_USE_REALSMART="false". Vedi docs/realsmart-integration-notes.md.
 
 import { properties, getProperty, type Property } from "./properties";
-import { onlyAvailable } from "./availability";
 import { getLiveListings } from "./realsmart/client";
 import { isRealSmartLive } from "./realsmart/env";
 import { normalizedToProperty } from "./realsmart/toProperty";
@@ -29,7 +28,8 @@ export { isAvailable, isSold, onlyAvailable } from "./availability";
  * TUTTI gli immobili della sorgente attiva, venduti inclusi.
  *
  * Usare solo dove il venduto ha senso: la scheda /case/[slug] (che mostra il banner "venduto")
- * e le viste con filtro disponibilità esplicito. Per una vetrina usare getAvailableListings().
+ * e le viste con filtro disponibilità esplicito. Per una vetrina comporre con onlyAvailable():
+ * nessun venduto tra i disponibili.
  */
 export async function getVisibleListings(): Promise<Property[]> {
   if (isRealSmartLive()) {
@@ -37,14 +37,6 @@ export async function getVisibleListings(): Promise<Property[]> {
     return live.map(normalizedToProperty);
   }
   return properties;
-}
-
-/**
- * Solo gli immobili ancora sul mercato. È questa la lista da usare in ogni vetrina
- * ("le nostre case", risultati di ricerca, mappa): nessun venduto tra i disponibili.
- */
-export async function getAvailableListings(): Promise<Property[]> {
-  return onlyAvailable(await getVisibleListings());
 }
 
 export async function getVisibleListing(slug: string): Promise<Property | undefined> {

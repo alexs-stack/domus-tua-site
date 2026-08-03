@@ -17,7 +17,7 @@ let cachedPath: string | null = null;
 async function targetPath(page: Page): Promise<string> {
   if (cachedPath) return cachedPath;
 
-  await page.goto("/case");
+  await page.goto("/acquista");
   const links = await page.locator('a[href^="/case/"]').evaluateAll((els) =>
     [...new Set(els.map((e) => (e as HTMLAnchorElement).getAttribute("href")!))],
   );
@@ -259,7 +259,7 @@ test.describe("scheda immobile — robustezza", () => {
   });
 
   test("[una sola volta] descrizione molto lunga: la pagina resta leggibile", async ({ page }) => {
-    await page.goto("/case");
+    await page.goto("/acquista");
     const hrefs = await page.locator('a[href^="/case/"]').evaluateAll((els) =>
       [...new Set(els.map((e) => (e as HTMLAnchorElement).getAttribute("href")!))],
     );
@@ -280,7 +280,7 @@ test.describe("scheda immobile — robustezza", () => {
   });
 
   test("[una sola volta] un immobile senza caratteristiche estratte non mostra box vuoti", async ({ page }) => {
-    await page.goto("/case");
+    await page.goto("/acquista");
     const hrefs = await page.locator('a[href^="/case/"]').evaluateAll((els) =>
       [...new Set(els.map((e) => (e as HTMLAnchorElement).getAttribute("href")!))],
     );

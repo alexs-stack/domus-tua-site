@@ -14,8 +14,10 @@ test("la homepage carica con il suo contenuto principale @layout", async ({ page
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.locator("#main")).toBeVisible();
   await expect(page.locator("footer")).toBeAttached();
-  // Le sezioni portanti ci sono, qualunque sia la larghezza.
-  await expect(page.locator('a[href^="/case/"]').first()).toBeAttached();
+  // Le sezioni portanti ci sono, qualunque sia la larghezza (la vetrina immobili
+  // non vive più in home: il catalogo è su /acquista).
+  await expect(page.locator("#cerca")).toBeAttached();
+  await expect(page.locator("#contatti")).toBeAttached();
 
   expect(guards.consoleErrors, guards.consoleErrors.join("\n")).toEqual([]);
   expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
@@ -73,7 +75,6 @@ test("l'header porta alle sezioni del sito @layout", async ({ page, goto, isMobi
       "Acquista",
       "Metodo Domus",
       "Open Domus",
-      "Case",
       "Recensioni",
       "Chi siamo",
       "Contatti",

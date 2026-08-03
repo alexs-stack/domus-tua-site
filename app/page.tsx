@@ -9,9 +9,7 @@ import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
 import DomusDocProtocol from "./components/DomusDocProtocol";
 import Services from "./components/Services";
-import BeforeAfter from "./components/BeforeAfter";
 import SocialVideoWall from "./components/SocialVideoWall";
-import Listings from "./components/Listings";
 import FeaturedTestimonial from "./components/FeaturedTestimonial";
 import Reviews from "./components/Reviews";
 import Social from "./components/Social";
@@ -22,7 +20,6 @@ import WhatsAppFloat from "./components/WhatsAppFloat";
 import SectionDivider from "./components/SectionDivider";
 import KineticStrip from "./components/motion/KineticStrip";
 import ThreadNav from "./components/motion/ThreadNav";
-import BrandStrip from "./components/BrandStrip";
 
 export const metadata: Metadata = {
   title: {
@@ -55,12 +52,6 @@ export default function Home() {
         <OpenDomus />
         <DomusDocProtocol tone="cream-deep" />
         <Services />
-        <BeforeAfter />
-        {/* Striscia cinetica dei nomi propri: respiro tipografico tra le sezioni */}
-        <div className="bg-cream">
-          <BrandStrip />
-        </div>
-        <Listings />
         <FeaturedTestimonial />
         <div className="bg-paper">
           <SectionDivider tone="paper" />
