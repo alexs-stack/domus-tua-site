@@ -591,6 +591,53 @@ body {
   transform: scaleX(1);
 }
 
+/* ---------- HorizonStory: cupola + pannelli orizzontali (dossier era-residence §11) ---------- */
+/* La cupola è il BORDO della sezione, non una maschera: arco ribassato
+   (raggi ellittici — variante Domus del semicerchio del riferimento). */
+.dt-dome {
+  border-top-left-radius: 50vw 22vh;
+  border-top-right-radius: 50vw 22vh;
+}
+
+/* Scroller orizzontale. Default (mobile / reduced-motion / no-JS): pannelli in
+   colonna, tutto visibile e statico. [data-on] arriva SOLO via JS (desktop
+   ≥1024 + motion ok) e attiva screen sticky + track in riga: senza JS non
+   esiste alcuno stato clippato o nascosto. */
+.dt-horizon[data-on] {
+  overflow: clip;
+}
+.dt-horizon[data-on] .dt-horizon_screen {
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100svh;
+  overflow: hidden;
+}
+.dt-horizon[data-on] .dt-horizon_track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  will-change: transform;
+}
+.dt-horizon[data-on] .dt-horizon_panel {
+  flex: none;
+  height: 100%;
+  width: 100vw;
+}
+.dt-horizon[data-on] .dt-horizon_panel--territory {
+  /* L'extra larghezza sta TUTTA nel rientro sinistro: il fotogramma finale
+     (gli ultimi 100vw del track) inquadra il pannello completo, e i 26vw in
+     testa sono la pista su cui il titolo a gradini cavalca in parallasse. */
+  width: 126vw;
+  padding-left: 26vw;
+}
+/* Il titolo a gradini cavalca l'immagine solo nel layout orizzontale. */
+.dt-horizon[data-on] .dt-horizon_stairs {
+  position: relative;
+  z-index: 2;
+  margin-right: -11vw;
+}
+
 /* Capolettera editoriale — UNA sola volta per pagina (eleganza, mai vezzo ripetuto). */
 .dropcap::first-letter {
   font-family: var(--font-display), Georgia, serif;

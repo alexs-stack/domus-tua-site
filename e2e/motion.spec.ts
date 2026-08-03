@@ -43,6 +43,18 @@ test("le sezioni che entrano allo scroll sono già visibili", async ({ page, got
   expect(invisible, "sezioni rimaste trasparenti con reduced motion").toBe(0);
 });
 
+test("lo scroller orizzontale con reduced motion resta una colonna completa", async ({ page, goto }) => {
+  await goto("/");
+  const horizon = page.locator(".dt-horizon");
+  await expect(horizon).toBeAttached();
+  // Senza motion l'attributo che attiva pin e track orizzontale non deve esserci.
+  expect(await horizon.getAttribute("data-on")).toBeNull();
+  // I pannelli restano in flusso normale, visibili e completi.
+  await page.locator(".dt-horizon_panel").first().scrollIntoViewIfNeeded();
+  await expect(page.locator(".dt-horizon_panel").first()).toBeVisible();
+  await expect(page.locator(".dt-horizon_panel").last()).toBeAttached();
+});
+
 test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ page, goto }) => {
   await goto("/");
   await page.mouse.wheel(0, 800);

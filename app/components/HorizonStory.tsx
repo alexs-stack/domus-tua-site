@@ -1,0 +1,352 @@
+"use client";
+
+// HorizonStory — il set piece della home dopo la ricerca, in tre atti
+// (tecnica dal dossier reverse-engineering/era-residence §11, contenuti nostri):
+// 1. fondale: la foto aerea reale resta pinnata (sticky) mentre...
+// 2. ...la cupola crema — arco ribassato, variante Domus del semicerchio del
+//    riferimento — le sale sopra dal basso, col titolo curvato su un textPath
+//    circolare le cui parole si distendono lungo l'arco in scrub;
+// 3. i pannelli orizzontali (HorizonScroller): manifesto + territorio.
+// Mobile / reduced-motion: fondale semplice, cupola statica, pannelli in
+// colonna — tutto visibile senza JS.
+import { useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import HorizonScroller from "./motion/HorizonScroller";
+import TextLines from "./motion/TextLines";
+import Reveal from "./Reveal";
+import { SegnoDomus } from "./BrandMotif";
+import { ArrowRight } from "./Icons";
+import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
+
+const copy = {
+  it: {
+    backdropAlt: "Vista aerea dei tetti e del verde attorno a Tradate",
+    domeTitle: "Perché scegliere Domus Tua",
+    domeLeft: "Tradate",
+    domeRight: "dal 2007",
+    eyebrow: "La promessa",
+    statement: (
+      <>
+        Vendere senza stress.
+        <br />
+        Acquistare con sicurezza.
+        <br />
+        Persone, prima degli immobili.
+      </>
+    ),
+    lead: "Dal 2007 accompagniamo le famiglie di Tradate e provincia in ogni passaggio: valutazione, documenti verificati, marketing curato e assistenza fino al rogito.",
+    cap: "Tradate · Varese",
+    stairs: ["Tra la", "Pineta", "e Milano"],
+    subtitle: "Il territorio che abitiamo",
+    territory:
+      "Lavoriamo dove viviamo: Tradate e i comuni della provincia di Varese, tra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Conosciamo il valore di ogni via, perché è anche la nostra.",
+    cta: "Vedi le case disponibili",
+    imageAlt: "Attico con terrazzo a Tradate seguito da Domus Tua",
+  },
+  en: {
+    backdropAlt: "Aerial view of the rooftops and greenery around Tradate",
+    domeTitle: "Why choose Domus Tua",
+    domeLeft: "Tradate",
+    domeRight: "since 2007",
+    eyebrow: "Our promise",
+    statement: (
+      <>
+        Selling without stress.
+        <br />
+        Buying with confidence.
+        <br />
+        People before properties.
+      </>
+    ),
+    lead: "Since 2007 we have guided families in Tradate and its province through every step: valuation, verified paperwork, thoughtful marketing and assistance all the way to closing.",
+    cap: "Tradate · Varese",
+    stairs: ["Between the", "Pineta park", "and Milan"],
+    subtitle: "The land we call home",
+    territory:
+      "We work where we live: Tradate and the towns of the Varese province, between the green of the Pineta park and the connections to Milan and Malpensa. We know the value of every street, because it is ours too.",
+    cta: "View available homes",
+    imageAlt: "Penthouse with terrace in Tradate listed by Domus Tua",
+  },
+  fr: {
+    backdropAlt: "Vue aérienne des toits et de la verdure autour de Tradate",
+    domeTitle: "Pourquoi choisir Domus Tua",
+    domeLeft: "Tradate",
+    domeRight: "depuis 2007",
+    eyebrow: "Notre promesse",
+    statement: (
+      <>
+        Vendre sans stress.
+        <br />
+        Acheter en confiance.
+        <br />
+        Les personnes avant les biens.
+      </>
+    ),
+    lead: "Depuis 2007, nous accompagnons les familles de Tradate et de sa province à chaque étape : estimation, documents vérifiés, marketing soigné et assistance jusqu'à l'acte.",
+    cap: "Tradate · Varese",
+    stairs: ["Entre la", "Pineta", "et Milan"],
+    subtitle: "Le territoire que nous habitons",
+    territory:
+      "Nous travaillons là où nous vivons : Tradate et les communes de la province de Varese, entre le vert du parc Pineta et les liaisons vers Milan et Malpensa. Nous connaissons la valeur de chaque rue, parce qu'elle est aussi la nôtre.",
+    cta: "Voir les biens disponibles",
+    imageAlt: "Attique avec terrasse à Tradate proposé par Domus Tua",
+  },
+  de: {
+    backdropAlt: "Luftaufnahme der Dächer und des Grüns rund um Tradate",
+    domeTitle: "Warum Domus Tua",
+    domeLeft: "Tradate",
+    domeRight: "seit 2007",
+    eyebrow: "Unser Versprechen",
+    statement: (
+      <>
+        Verkaufen ohne Stress.
+        <br />
+        Kaufen mit Sicherheit.
+        <br />
+        Menschen vor Immobilien.
+      </>
+    ),
+    lead: "Seit 2007 begleiten wir Familien in Tradate und Umgebung bei jedem Schritt: Bewertung, geprüfte Unterlagen, sorgfältiges Marketing und Betreuung bis zum Notartermin.",
+    cap: "Tradate · Varese",
+    stairs: ["Zwischen dem", "Pineta-Park", "und Mailand"],
+    subtitle: "Unser Zuhause, unser Gebiet",
+    territory:
+      "Wir arbeiten dort, wo wir leben: Tradate und die Gemeinden der Provinz Varese, zwischen dem Grün des Pineta-Parks und den Verbindungen nach Mailand und Malpensa. Wir kennen den Wert jeder Straße — denn es sind auch unsere.",
+    cta: "Verfügbare Immobilien ansehen",
+    imageAlt: "Penthouse mit Terrasse in Tradate im Angebot von Domus Tua",
+  },
+  es: {
+    backdropAlt: "Vista aérea de los tejados y el verde alrededor de Tradate",
+    domeTitle: "Por qué elegir Domus Tua",
+    domeLeft: "Tradate",
+    domeRight: "desde 2007",
+    eyebrow: "Nuestra promesa",
+    statement: (
+      <>
+        Vender sin estrés.
+        <br />
+        Comprar con seguridad.
+        <br />
+        Personas antes que inmuebles.
+      </>
+    ),
+    lead: "Desde 2007 acompañamos a las familias de Tradate y su provincia en cada paso: valoración, documentos verificados, marketing cuidado y asistencia hasta la escritura.",
+    cap: "Tradate · Varese",
+    stairs: ["Entre el", "parque Pineta", "y Milán"],
+    subtitle: "El territorio que habitamos",
+    territory:
+      "Trabajamos donde vivimos: Tradate y los municipios de la provincia de Varese, entre el verde del parque Pineta y las conexiones con Milán y Malpensa. Conocemos el valor de cada calle, porque también es la nuestra.",
+    cta: "Ver las casas disponibles",
+    imageAlt: "Ático con terraza en Tradate ofrecido por Domus Tua",
+  },
+} as const;
+
+// Arco del titolo curvato: cerchio largo (r=1800, centro sotto il viewBox) →
+// curvatura dolce, coerente con l'arco ribassato della cupola. startOffset 25%
+// = apice del cerchio (il path parte dal punto più a sinistra).
+const ARC_PATH = "M 800,1900 m -1800,0 a 1800,1800 0 1,1 3600,0 a 1800,1800 0 1,1 -3600,0";
+
+/**
+ * Slot per i fiori con canale alpha (dossier §11.3): quando il cliente fornirà
+ * le clip (webm VP9 alpha + mov HEVC alpha + poster), passare qui le sorgenti —
+ * il video parte/pausa con lo scroll e deriva con [data-horizon-flower].
+ * Finché non ci sono asset lo slot resta un aggancio vuoto senza ingombro.
+ */
+function FlowerSlot({
+  drift,
+  className = "",
+  sources,
+}: {
+  drift: "drift-x" | "drift-y";
+  className?: string;
+  sources?: { webm: string; mov: string; poster: string };
+}) {
+  if (!sources) return <div aria-hidden data-horizon-flower={drift} className={className} />;
+  return (
+    <div aria-hidden data-horizon-flower={drift} className={className}>
+      <video
+        muted
+        playsInline
+        loop
+        disablePictureInPicture
+        poster={sources.poster}
+        className="h-full w-full object-contain"
+      >
+        <source src={sources.webm} type="video/webm" />
+        <source src={sources.mov} type="video/mp4" />
+      </video>
+    </div>
+  );
+}
+
+export default function HorizonStory() {
+  const { locale } = useLocale();
+  const c = copy[locale];
+  const domeRef = useRef<HTMLDivElement | null>(null);
+
+  // La firma della cupola: le parole del titolo curvato si distendono lungo
+  // l'arco mentre la sezione attraversa il viewport (rif. §11.4 del dossier).
+  useGSAP(
+    () => {
+      const dome = domeRef.current;
+      if (!dome) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const texts = dome.querySelectorAll("[data-dome-text]");
+        if (!texts.length) return;
+        gsap.fromTo(
+          texts,
+          { wordSpacing: "0em" },
+          {
+            wordSpacing: "0.55em",
+            ease: "none",
+            scrollTrigger: { trigger: dome, start: "top bottom", end: "bottom top", scrub: 0.25 },
+          }
+        );
+      });
+    },
+    { scope: domeRef, dependencies: [locale] }
+  );
+
+  return (
+    <>
+      {/* Atto 1 — fondale: la foto resta pinnata mentre la cupola le sale sopra. */}
+      <div className="relative z-0 h-[160svh]">
+        <div className="sticky top-0 h-svh overflow-hidden">
+          <Image
+            src="/media/hero-aerial.jpg"
+            alt={c.backdropAlt}
+            fill
+            sizes="100vw"
+            quality={60}
+            className="object-cover"
+          />
+        </div>
+      </div>
+
+      {/* Atto 2 — la cupola. Il titolo curvato è decorativo (aria-hidden):
+          il testo leggibile vive nell'h2 sr-only. */}
+      <div ref={domeRef} className="dt-dome relative z-10 -mt-[60svh] bg-cream">
+        <div className="mx-auto max-w-[1600px] px-5 pb-6 pt-[16svh] sm:px-8">
+          <h2 className="sr-only">{c.domeTitle}</h2>
+          <div aria-hidden className="mx-auto w-full max-w-[1240px]">
+            <svg viewBox="0 0 1600 460" width="100%" height="100%" className="block">
+              <defs>
+                <path id="dt-dome-arc" d={ARC_PATH} />
+              </defs>
+              <text
+                data-dome-text
+                textAnchor="middle"
+                fill="currentColor"
+                className="font-display uppercase text-ink"
+                style={{ fontSize: 96, letterSpacing: "0.02em" }}
+              >
+                <textPath href="#dt-dome-arc" startOffset="25%">
+                  {c.domeTitle}
+                </textPath>
+              </text>
+            </svg>
+          </div>
+          <Reveal className="mt-4 flex items-center justify-center gap-4">
+            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-graphite">
+              {c.domeLeft}
+            </span>
+            <SegnoDomus className="h-4 w-10" />
+            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-graphite">
+              {c.domeRight}
+            </span>
+          </Reveal>
+          <Reveal delay={120} className="mx-auto mt-8 h-14 w-px bg-red/40" as="div">
+            <span className="sr-only" />
+          </Reveal>
+        </div>
+      </div>
+
+      {/* Atto 3 — i pannelli orizzontali. */}
+      <HorizonScroller id="storia" className="bg-cream">
+        {/* Pannello manifesto */}
+        <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center justify-center">
+          <FlowerSlot drift="drift-y" className="pointer-events-none absolute -left-24 -top-16 z-10 h-72 w-72" />
+          <div className="mx-auto max-w-[1000px] px-5 py-20 text-center sm:px-8 lg:py-0">
+            <Reveal>
+              <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
+            </Reveal>
+            <TextLines
+              as="h2"
+              className="mt-6 font-display text-[clamp(1.9rem,4.6vw,4.3rem)] font-medium uppercase leading-[1.06] tracking-[-0.01em] text-ink"
+              delay={0.15}
+            >
+              {c.statement}
+            </TextLines>
+            <Reveal delay={160}>
+              <p className="mx-auto mt-8 max-w-xl text-[0.98rem] leading-relaxed text-stone sm:text-base">
+                {c.lead}
+              </p>
+            </Reveal>
+            <Reveal delay={240} className="mt-8 flex justify-center">
+              <SegnoDomus className="h-5 w-12" />
+            </Reveal>
+          </div>
+        </div>
+
+        {/* Pannello territorio */}
+        <div className="dt-horizon_panel dt-horizon_panel--territory relative flex items-center">
+          <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-10 px-5 py-20 sm:px-8 lg:grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)] lg:items-center lg:gap-0 lg:py-0">
+            <div className="dt-horizon_stairs">
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red">
+                {c.cap}
+              </p>
+              <h2 className="mt-6 font-display font-medium uppercase leading-[0.95] tracking-[-0.01em] text-ink">
+                {c.stairs.map((line, i) => (
+                  <span
+                    key={line}
+                    data-horizon-stair
+                    className={`block text-[clamp(2.6rem,7vw,6.5rem)] ${
+                      i === 1 ? "lg:ml-[9vw]" : i === 2 ? "lg:ml-[4vw]" : ""
+                    }`}
+                  >
+                    {line}
+                  </span>
+                ))}
+              </h2>
+              <div data-horizon-reveal="track" className="mt-10 max-w-md">
+                <h3 className="font-display text-xl font-medium text-ink sm:text-2xl">
+                  {c.subtitle}
+                </h3>
+                <p className="mt-4 text-[0.95rem] leading-relaxed text-stone sm:text-base">
+                  {c.territory}
+                </p>
+                <Link
+                  href="/acquista"
+                  className="group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                >
+                  {c.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </div>
+            <div
+              data-horizon-slide
+              className="relative aspect-[4/3] w-full overflow-hidden rounded-card lg:aspect-auto lg:h-[72vh]"
+            >
+              <Image
+                data-horizon-slide-img
+                src="/images/reali/attico-tradate.jpg"
+                alt={c.imageAlt}
+                fill
+                sizes="(min-width: 1024px) 60vw, 100vw"
+                className="object-cover"
+              />
+            </div>
+          </div>
+          <FlowerSlot
+            drift="drift-x"
+            className="pointer-events-none absolute -bottom-20 left-[30%] z-10 h-80 w-80"
+          />
+        </div>
+      </HorizonScroller>
+    </>
+  );
+}

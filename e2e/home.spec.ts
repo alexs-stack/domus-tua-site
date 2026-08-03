@@ -107,6 +107,37 @@ test("dalla home si arriva alla ricerca immobili", async ({ page, goto }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
+test("il set piece orizzontale cuce i pannelli allo scroll", async ({ page, goto, isMobile }) => {
+  test.skip(!!isMobile, "lo scroller orizzontale vive solo da desktop");
+  const width = page.viewportSize()?.width ?? 0;
+  test.skip(width < 1024, "sotto i 1024 i pannelli restano in colonna");
+  await goto("/");
+
+  // Attivo solo via JS (desktop + motion ok): l'attributo è la prova del pin.
+  const horizon = page.locator(".dt-horizon");
+  await expect(horizon).toHaveAttribute("data-on", "");
+
+  // Si scrolla come un utente (wheel → Lenis) fin dentro la sezione pinnata:
+  // il track deve tradursi in orizzontale mentre la pagina scende.
+  const readX = () =>
+    page
+      .locator(".dt-horizon_track")
+      .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41);
+  let x = 0;
+  for (let i = 0; i < 80 && x > -50; i++) {
+    await page.mouse.wheel(0, 900);
+    await page.waitForTimeout(60);
+    x = await readX();
+  }
+  expect(x, "il track non si è mosso in orizzontale").toBeLessThan(-50);
+
+  // E il documento non guadagna mai uno scroll orizzontale suo.
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
 test("niente scorre in orizzontale @layout", async ({ page, goto }) => {
   await goto("/");
   await page.waitForTimeout(500);

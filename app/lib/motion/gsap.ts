@@ -40,6 +40,11 @@ CustomEase.create("domus.inOut", "M0,0 C0.66,0 0.22,1 1,1");
 // "dtOut" = la curva dei reveal di testo del riferimento (out deciso).
 CustomEase.create("dtDiveIn", "0.6,0,0,1");
 CustomEase.create("dtOut", "0.25,1,0.5,1");
+// "dtHorScroll" = la curva del track orizzontale del riferimento (§11 del
+// dossier): parte lenta, accelera al centro, frena in coda. Consapevolmente
+// NON lineare anche se usata come containerAnimation: i reveal once:true
+// tollerano lo scarto e il gesto guadagna testa/coda.
+CustomEase.create("dtHorScroll", "0.25,0,0.75,1");
 CustomEase.create(
   "dtLoader",
   "M0,0,C0,0,0.13,0.34,0.238,0.442,0.305,0.506,0.322,0.514,0.396,0.54,0.478,0.568,0.468,0.56,0.522,0.584,0.572,0.606,0.61,0.719,0.714,0.826,0.798,0.912,1,1,1,1"

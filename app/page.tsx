@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
 import HomeSearchGateway from "./components/HomeSearchGateway";
+import HorizonStory from "./components/HorizonStory";
 import Stats from "./components/Stats";
 import Authority from "./components/Authority";
 import Paths from "./components/Paths";
@@ -44,6 +45,9 @@ export default function Home() {
       <main className="flex-1">
         <HeroCinematic />
         <HomeSearchGateway />
+        {/* Il set piece "orizzonte": fondale aereo + cupola + pannelli orizzontali
+            (tecnica dal dossier era-residence §11, contenuti e forme nostri). */}
+        <HorizonStory />
         <Stats />
         <Authority />
         <SocialVideoWall />
