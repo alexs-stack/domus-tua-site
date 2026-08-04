@@ -64,7 +64,11 @@ const FORME_DI_SEGRETO = [
   /\bsk-ant-[A-Za-z0-9]/,
   /\bsk-[A-Za-z0-9]{16,}/,
   /\bre_[A-Za-z0-9]{12,}/,
+  // Chiave Google/Gemini: prefisso fisso "AIza" + 35 caratteri. La forma vale più del nome
+  // della variabile — una chiave recitata a memoria non menziona GEMINI_API_KEY.
+  /\bAIza[A-Za-z0-9_-]{10,}/,
   /\bANTHROPIC_API_KEY\b/,
+  /\bGEMINI_API_KEY\b/,
   /\bRATE_LIMIT_REDIS_TOKEN\b/,
   /\bBearer\s+[A-Za-z0-9._-]{12,}/,
 ];

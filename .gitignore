@@ -58,8 +58,11 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache
 
-# Report dell'eval dell'assistente (generato: npm run eval)
+# Report delle eval (generati: npm run eval, npm run eval:search).
+# Fuori dal repository per lo stesso motivo di sempre: un report committato invecchia in
+# silenzio e qualcuno ci decide sopra credendolo attuale.
 eval-report.md
+eval-search-report.md
 
 # Lighthouse CI
 /.lighthouseci/

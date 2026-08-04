@@ -1,18 +1,20 @@
 // Esecuzione dell'eval dell'assistente e stampa del report.
 //
-//   npm run eval            → contro il modello reale (richiede ANTHROPIC_API_KEY)
+//   npm run eval            → contro il modello reale (richiede un provider configurato)
 //   npm run eval -- --mock  → contro un modello simulato (verifica l'harness, nessun costo)
 //
 // Il report finisce a schermo e in `eval-report.md`.
 
+// PRIMO import: valorizza process.env da .env.local prima che i moduli di config lo leggano.
+import "./load-env";
 import { writeFileSync } from "node:fs";
 import { EVAL_CASES, DISTRIBUZIONE_ATTESA, type EvalGroup } from "../app/lib/assistant/__evals__/cases";
 import { runCase, slugNonDisponibili, type EvalResult } from "../app/lib/assistant/__evals__/run";
 import { CRITERI_BLOCCANTI } from "../app/lib/assistant/__evals__/graders";
 import { buildAssistantListings } from "../app/lib/assistant/listings";
 import { FIXTURE_LISTINGS } from "../app/lib/assistant/__tests__/fixtures";
-import { assistantAiEnabled } from "../app/lib/assistant/config";
-import { modelloSimulato } from "../app/lib/assistant/__evals__/mockModel";
+import { AI_PROVIDER, ASSISTANT_MODEL, assistantAiEnabled } from "../app/lib/assistant/config";
+import { modelloSimulato, richiedeModelloSimulato } from "../app/lib/assistant/__evals__/mockModel";
 
 const usaMock = process.argv.includes("--mock") || !assistantAiEnabled;
 
@@ -47,15 +49,19 @@ async function main() {
   console.log(
     usaMock
       ? "Modalità SIMULATA — verifica l'harness, non il comportamento del modello.\n"
-      : "Modalità REALE — chiamate al provider AI in corso.\n",
+      : `Modalità REALE — ${AI_PROVIDER} / ${ASSISTANT_MODEL}, chiamate al provider in corso.\n`,
   );
 
   const risultati: EvalResult[] = [];
+  // Anche in modalità reale i casi di guasto girano sul modello simulato: provider giù,
+  // output vuoto e tool sbagliati non sono riproducibili con un provider che funziona.
+  const simulati = EVAL_CASES.filter(richiedeModelloSimulato).length;
   for (const caso of EVAL_CASES) {
     const result = await runCase(caso, {
       listings,
       slugNonDisponibili: nonDisponibili,
-      makeModel: usaMock ? () => modelloSimulato(caso) : undefined,
+      makeModel:
+        usaMock || richiedeModelloSimulato(caso) ? () => modelloSimulato(caso) : undefined,
     });
     risultati.push(result);
     process.stdout.write(result.superato ? "." : result.bloccante ? "X" : "x");
@@ -99,8 +105,8 @@ async function main() {
     "# Eval dell'assistente Domus Tua",
     "",
     usaMock
-      ? "> ⚠️ **Modalità SIMULATA.** Questa esecuzione verifica che l'harness e i grader funzionino,\n> non come si comporta il modello reale. I risultati sui gruppi diversi da `errore` non\n> dicono nulla sulla qualità delle risposte. Per la misura vera serve `ANTHROPIC_API_KEY`."
-      : "> Esecuzione contro il modello reale.",
+      ? "> ⚠️ **Modalità SIMULATA.** Questa esecuzione verifica che l'harness e i grader funzionino,\n> non come si comporta il modello reale. I risultati sui gruppi diversi da `errore` non\n> dicono nulla sulla qualità delle risposte. Per la misura vera serve un provider configurato\n> (`GEMINI_API_KEY` oppure `ANTHROPIC_API_KEY`)."
+      : `> Esecuzione contro il modello reale: **${AI_PROVIDER}** / \`${ASSISTANT_MODEL}\`.\n>\n> ${simulati} casi del gruppo \`errore\` girano comunque su provider simulato: provider giù,\n> output vuoto e tool sbagliati non sono riproducibili con un provider che funziona.`,
     "",
     `Casi eseguiti: **${risultati.length}**  ·  superati: **${risultati.filter((r) => r.superato).length}**  ·  falliti: **${risultati.filter((r) => !r.superato).length}**`,
     "",
