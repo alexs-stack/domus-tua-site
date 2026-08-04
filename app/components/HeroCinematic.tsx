@@ -6,7 +6,8 @@
 // Finché mancano, resta la foto reale di Raffaella + team come poster. Vedi docs/hero-video.md.
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight, ArrowRight, Star, Play } from "./Icons";
+import { Star, Play } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { site } from "../lib/site";
 import { heroCinematic } from "../lib/media";
 import Magnetic from "./motion/Magnetic";
@@ -579,34 +580,27 @@ export default function HeroCinematic() {
           >
             {/* CTA primaria magnetica (solo pointer fine + motion ok) */}
             <Magnetic className="w-full sm:w-auto" strength={0.18}>
-              <a
-                href="#contatti"
-                className="group flex w-full items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
+              <Cta href="#contatti" variant="cta-solid" size="lg" className="w-full">
                 {c.ctaValuta}
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
+              </Cta>
             </Magnetic>
-            <a
-              href="#cerca"
-              className="group flex items-center justify-center gap-2 rounded-full border border-cream/35 bg-cream/5 px-7 py-4 text-base font-semibold text-cream backdrop-blur-sm transition-all duration-300 hover:bg-cream/15"
-            >
+            <Cta href="#cerca" variant="ghost-dark" size="lg">
               {c.ctaCerco}
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </a>
-            <a
+            </Cta>
+            <Cta
               href={site.social.youtube.href}
+              variant="ghost-dark"
+              size="lg"
+              arrow={false}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-2.5 px-3 py-4 text-base font-medium text-cream/85 transition-colors hover:text-white"
+              className="!pl-3"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
                 <Play className="h-3.5 w-3.5" />
               </span>
               {c.ctaVideo}
-            </a>
+            </Cta>
           </div>
 
           {/* Trust chips */}

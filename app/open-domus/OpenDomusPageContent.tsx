@@ -13,7 +13,8 @@ import EditorialRows from "../components/EditorialRows";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import ScrubWords from "../components/motion/ScrubWords";
-import { ArrowUpRight, ArrowRight, Check, Play } from "../components/Icons";
+import { ArrowRight, Check, Play } from "../components/Icons";
+import { Cta } from "../components/primitives/Cta";
 import {
   SegnoDomusBadge,
   SegnoDomusCorner,
@@ -891,17 +892,16 @@ export default function OpenDomusPageContent() {
                 <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-cream/80">
                   {c.videoText}
                 </p>
-                <a
+                <Cta
                   href={youtubeWatch(site.videos.openDomus.id)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group mt-9 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+                  variant="reveal-cream"
+                  size="md"
+                  className="mt-9"
                 >
                   {c.videoCta}
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                    <ArrowUpRight className="h-4 w-4" />
-                  </span>
-                </a>
+                </Cta>
               </Reveal>
             </div>
           </div>
@@ -1030,15 +1030,9 @@ export default function OpenDomusPageContent() {
               <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-cream/80">
                 {c.finalText}
               </p>
-              <a
-                href="#contatti"
-                className="group mt-9 inline-flex items-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
+              <Cta href="#contatti" variant="reveal-cream" size="lg" className="mt-9">
                 {c.finalCta}
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
+              </Cta>
             </Reveal>
           </div>
         </section>

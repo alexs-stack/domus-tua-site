@@ -3,15 +3,13 @@ import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
 import HomeSearchGateway from "./components/HomeSearchGateway";
 import HorizonStory from "./components/HorizonStory";
-import Stats from "./components/Stats";
-import Authority from "./components/Authority";
+import StarReviews from "./components/StarReviews";
 import Paths from "./components/Paths";
 import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
 import DomusDocProtocol from "./components/DomusDocProtocol";
 import Services from "./components/Services";
 import FeaturedTestimonial from "./components/FeaturedTestimonial";
-import Reviews from "./components/Reviews";
 import Social from "./components/Social";
 import Team from "./components/Team";
 import Contact from "./components/Contact";
@@ -45,10 +43,14 @@ export default function Home() {
         <HeroCinematic />
         <HomeSearchGateway />
         {/* Il set piece "orizzonte": fondale aereo + cupola + pannelli orizzontali
-            (tecnica dal dossier era-residence §11, contenuti e forme nostri). */}
-        <HorizonStory />
-        <Stats />
-        <Authority />
+            (tecnica dal dossier era-residence §11, contenuti e forme nostri).
+            Le Cinque stelle (capitolo recensioni unificato) vivono DENTRO la
+            stessa superficie curva: il muro delle voci consegna lo sfondo
+            pulito e la stella appare sulla stessa pagina, senza la linea
+            d'ombra che il cambio di superficie disegnava (fix 2026-08-04). */}
+        <HorizonStory>
+          <StarReviews />
+        </HorizonStory>
         {/* Il momento video della home vive nel muro delle voci (HorizonStory,
             atto 4): la vecchia SocialVideoWall è stata ritirata per non
             mostrare due volte gli stessi video. */}
@@ -61,7 +63,6 @@ export default function Home() {
         <div className="bg-paper">
           <SectionDivider tone="paper" />
         </div>
-        <Reviews />
         <Social />
         <div className="bg-cream">
           <SectionDivider tone="cream" />

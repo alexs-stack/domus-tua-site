@@ -272,7 +272,8 @@ export default function Services() {
     { scope: gridRef }
   );
 
-  // Numeri 01–05: salgono da dietro la maschera overflow-hidden, una sola volta.
+  // Numeri 01–05: salgono da dietro la maschera overflow-hidden.
+  // Replay a ogni passaggio: restart all'ingresso, reverse risalendo.
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
@@ -285,7 +286,7 @@ export default function Services() {
             duration: 0.9,
             ease: "expo.out",
             stagger: 0.06,
-            scrollTrigger: { trigger: gridRef.current, start: "top 75%", once: true },
+            scrollTrigger: { trigger: gridRef.current, start: "top 75%", toggleActions: "restart none none reverse" },
           }
         );
       });

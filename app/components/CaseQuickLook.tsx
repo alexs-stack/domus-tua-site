@@ -16,7 +16,8 @@ import { useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Flip } from "gsap/Flip";
-import { ArrowUpRight, Bed, Ruler, Rooms } from "./Icons";
+import { Bed, Ruler, Rooms } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
 import { isTransitionCovering } from "./motion/PageTransition";
@@ -293,15 +294,9 @@ export default function CaseQuickLook({
               >
                 {p.price}
               </span>
-              <a
-                href={`/case/${p.slug}`}
-                className="group inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
+              <Cta href={`/case/${p.slug}`} variant="cta" size="md">
                 {c.goTo}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
+              </Cta>
             </div>
           </div>
         </div>

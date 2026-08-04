@@ -131,8 +131,9 @@ export default function Team() {
             duration: 0.8,
             ease: "expo.out",
             stagger: 0.05,
-            clearProps: "all",
-            scrollTrigger: { trigger: list, start: "top 85%", once: true },
+            // Replay a ogni passaggio: restart all'ingresso, reverse risalendo
+            // (niente clearProps: la tween resta riavvolgibile).
+            scrollTrigger: { trigger: list, start: "top 85%", toggleActions: "restart none none reverse" },
           }
         );
       });

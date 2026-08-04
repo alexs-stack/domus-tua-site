@@ -8,7 +8,7 @@
 // organico "cola" sull'immagine mentre si apre.
 // - Senza JS / reduced-motion: velo invisibile, immagine sempre visibile.
 // - Il repaint del filtro a ogni tick costa: SOLO desktop; su mobile degrada
-//   a un sipario clip-path one-shot. Max 1–2 istanze per pagina.
+//   a un sipario clip-path. Max 1–2 istanze per pagina.
 import { useId, useRef, type ReactNode } from "react";
 import { gsap, useGSAP, MQ } from "../../lib/motion/gsap";
 
@@ -61,11 +61,12 @@ export default function LiquidReveal({ children, tone = "paper", className = "" 
         };
       });
 
-      // Mobile/tablet: sipario clip-path one-shot (il filtro ripitturato a
-      // ogni tick sarebbe troppo per CPU/GPU mobile).
+      // Mobile/tablet: sipario clip-path (il filtro ripitturato a ogni tick
+      // sarebbe troppo per CPU/GPU mobile).
       mm.add(`${MQ.motionOk} and (max-width: 1023.98px)`, () => {
         const inner = root.querySelector<HTMLElement>("[data-liquid-content]");
         if (!inner) return;
+        // Replay a ogni passaggio: niente clearProps (romperebbe restart/reverse).
         gsap.fromTo(
           inner,
           { clipPath: "inset(100% 0% 0% 0%)" },
@@ -73,8 +74,7 @@ export default function LiquidReveal({ children, tone = "paper", className = "" 
             clipPath: "inset(0% 0% 0% 0%)",
             duration: 1.15,
             ease: "expo.out",
-            clearProps: "clipPath",
-            scrollTrigger: { trigger: root, start: "top 82%", once: true },
+            scrollTrigger: { trigger: root, start: "top 82%", toggleActions: "restart none none reverse" },
           }
         );
       });

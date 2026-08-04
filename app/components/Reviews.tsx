@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
 import CountUp from "./CountUp";
 import Parallax from "./motion/Parallax";
 import Atmosphere from "./motion/Atmosphere";
-import { Star, Google, ArrowUpRight, Check } from "./Icons";
+import { Star, Google, Check } from "./Icons";
+import { Cta } from "./primitives/Cta";
+import TrustindexEmbed from "./TrustindexEmbed";
 import { site } from "../lib/site";
 import { reviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
 import { useConsent } from "../lib/consent";
@@ -176,22 +178,6 @@ export default function Reviews() {
   const showTrustindex = site.embeds.trustindexLoader.length > 0 && consent === "accepted";
   const awaitingConsent = site.embeds.trustindexLoader.length > 0 && consent !== "accepted";
 
-  // Auto-altezza del widget Trustindex: lo srcDoc misura la propria altezza e la posta al
-  // parent (niente box vuoto sotto le card). Fallback iniziale contenuto, poi si adatta.
-  const frameRef = useRef<HTMLIFrameElement>(null);
-  const [frameH, setFrameH] = useState(480);
-  useEffect(() => {
-    function onMsg(e: MessageEvent) {
-      if (e.source !== frameRef.current?.contentWindow) return;
-      const d = e.data as { type?: string; h?: number };
-      if (d?.type === "dt-ti-height" && typeof d.h === "number") {
-        setFrameH(Math.max(240, Math.min(1800, Math.round(d.h))));
-      }
-    }
-    window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-  }, []);
-
   return (
     <section id="recensioni" className="relative bg-paper">
       {/* Aria: il voto in filigrana (numero, identico in ogni lingua) */}
@@ -241,17 +227,16 @@ export default function Reviews() {
                   </div>
                 </div>
                 <p className="mt-4 text-[0.8rem] text-stone">{c.verifiedVia}</p>
-                <a
+                <Cta
                   href={site.googleReviewsUrl}
+                  variant="cta"
+                  size="sm"
+                  className="mt-5"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group mt-5 inline-flex items-center gap-2 rounded-full bg-red py-2.5 pl-5 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
                 >
                   {c.seeAllGoogle}
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </span>
-                </a>
+                </Cta>
               </div>
             </Parallax>
           </Reveal>
@@ -262,25 +247,10 @@ export default function Reviews() {
             <h3 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
               {c.realReviews}
             </h3>
-            {/* Nessun box: il widget vive direttamente sulla sezione. Altezza dinamica (auto-resize)
-                → niente spazio vuoto sotto le card. Loader Trustindex dentro un srcDoc UTF-8
-                (charset corretto, document.currentScript valido) + script che posta l'altezza. */}
+            {/* Nessun box: il widget vive direttamente sulla sezione (iframe
+                estratto in TrustindexEmbed, condiviso col capitolo stelle). */}
             <div className="mt-6">
-              <iframe
-                ref={frameRef}
-                // Sandbox SENZA allow-same-origin: lo script di Trustindex gira in un'origine
-                // opaca, quindi non vede i nostri cookie né il nostro localStorage. Con srcDoc
-                // e senza sandbox erediterebbe la nostra origine — cioè un terzo con pieno
-                // accesso al sito. Gli permessi restano quelli che gli servono: eseguire e
-                // aprire i link delle recensioni in una scheda nuova. Il postMessage con
-                // l'altezza funziona comunque (parent.postMessage a "*" è consentito).
-                sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
-                srcDoc={`<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>html,body{margin:0;padding:0;background:transparent;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}</style></head><body><script src="${site.embeds.trustindexLoader}"></script><script>(function(){function p(){try{var h=document.body.scrollHeight;if(h>0)parent.postMessage({type:'dt-ti-height',h:h},'*');}catch(e){}}if(window.ResizeObserver){new ResizeObserver(p).observe(document.body);}window.addEventListener('load',p);[300,800,1500,2500,4000].forEach(function(t){setTimeout(p,t);});})();</script></body></html>`}
-                title={c.iframeTitle}
-                loading="lazy"
-                className="w-full"
-                style={{ border: 0, height: frameH }}
-              />
+              <TrustindexEmbed title={c.iframeTitle} />
             </div>
           </Reveal>
         ) : PREVIEW && !awaitingConsent ? (
@@ -396,17 +366,16 @@ export default function Reviews() {
               <p className="mx-auto max-w-md text-[0.98rem] leading-relaxed text-graphite">
                 {awaitingConsent ? c.consentGate : c.verifiedVia}
               </p>
-              <a
+              <Cta
                 href={site.googleReviewsUrl}
+                variant="cta"
+                size="md"
+                className="mt-5"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group mt-5 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
               >
                 {c.seeAllGoogle}
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </span>
-              </a>
+              </Cta>
             </div>
           </Reveal>
         )}

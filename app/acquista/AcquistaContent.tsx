@@ -12,7 +12,8 @@ import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
-import { ArrowRight, Whatsapp } from "../components/Icons";
+import { Whatsapp } from "../components/Icons";
+import { Cta } from "../components/primitives/Cta";
 import { SegnoDomusCorner, SegnoDomusBadge, SegnoTick } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
@@ -597,22 +598,20 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
                     {c.reassure.ctaCopy}
                   </p>
                   <div className="mt-7 flex flex-wrap items-center gap-3">
-                    <a
-                      href="#contatti"
-                      className="group inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-dark"
-                    >
+                    <Cta href="#contatti" variant="cta" size="md">
                       {c.reassure.ctaLabel}
-                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                    </a>
+                    </Cta>
                     {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
-                    <a
+                    <Cta
                       href={buyerWa}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-3 text-sm font-semibold text-ink transition-colors hover:border-red hover:text-red"
+                      variant="ghost"
+                      size="md"
+                      arrow={false}
                     >
                       <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
-                    </a>
+                    </Cta>
                   </div>
 
                   <p className="mt-7 border-t border-line pt-6 text-[0.9rem] leading-relaxed text-stone">

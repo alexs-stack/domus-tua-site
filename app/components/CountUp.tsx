@@ -16,7 +16,10 @@ type Props = {
 };
 
 /**
- * Conta da 0 al valore quando entra in vista (una sola volta).
+ * Conta da 0 al valore quando entra in vista. Replay a ogni passaggio
+ * (richiesta cliente): l'observer accende e spegne, così il conteggio riparte
+ * a ogni rientro nel viewport; all'uscita reset istantaneo al valore pieno —
+ * un numero che scorre all'indietro è solo rumore.
  * Rispetta prefers-reduced-motion mostrando subito il valore finale.
  */
 export default function CountUp({
@@ -53,22 +56,31 @@ export default function CountUp({
     if (reduce) return;
 
     let raf = 0;
-    let start = 0;
-    const tick = (t: number) => {
-      if (!start) start = t;
-      const p = Math.min((t - start) / duration, 1);
-      // ease-out-expo
-      const eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
-      setDisplay(value * eased);
-      if (p < 1) raf = requestAnimationFrame(tick);
+    const run = () => {
+      cancelAnimationFrame(raf);
+      let start = 0;
+      const tick = (t: number) => {
+        if (!start) start = t;
+        const p = Math.min((t - start) / duration, 1);
+        // ease-out-expo
+        const eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+        setDisplay(value * eased);
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
     };
 
+    // Replay a ogni passaggio (richiesta cliente): niente unobserve —
+    // a ogni ingresso il conteggio riparte da 0, all'uscita reset istantaneo
+    // al valore pieno (lo stato di riposo, identico all'SSR).
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            raf = requestAnimationFrame(tick);
-            io.unobserve(e.target);
+            run();
+          } else {
+            cancelAnimationFrame(raf);
+            setDisplay(value);
           }
         });
       },

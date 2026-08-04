@@ -6,7 +6,8 @@ import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
 import Parallax from "./motion/Parallax";
 import Magnetic from "./motion/Magnetic";
-import { Instagram, Facebook, TikTok, YouTube } from "./Icons";
+import { Instagram } from "./Icons";
+import SocialLinks from "./primitives/SocialLinks";
 import { site } from "../lib/site";
 import { IframeWidget } from "./WidgetEmbeds";
 import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
@@ -19,13 +20,6 @@ const grid = [
   "/images/home_staging_01_sala_reale_sedie_gialle.jpg",
   "/images/premium_05_living_accenti_senape.jpg",
   "/images/premium_03_cucina_moderna.jpg",
-];
-
-const channels = [
-  { icon: Instagram, label: "Instagram", href: site.social.instagram.href },
-  { icon: Facebook, label: "Facebook", href: site.social.facebook.href },
-  { icon: TikTok, label: "TikTok", href: site.social.tiktok.href },
-  { icon: YouTube, label: "YouTube", href: site.social.youtube.href },
 ];
 
 const copy = {
@@ -97,9 +91,10 @@ export default function Social() {
 
         // Pill canali: micro-stagger orizzontale. Contengono link → opacity
         // (mai autoAlpha) + reti di sicurezza stile Reveal (focus/timeout).
+        // Replay a ogni passaggio: niente clearProps (romperebbe restart/reverse).
         const row = channelsRef.current;
         if (row) {
-          const pills = gsap.utils.toArray<HTMLElement>(row.children);
+          const pills = gsap.utils.toArray<HTMLElement>(row.querySelectorAll("li"));
           const tween = gsap.fromTo(
             pills,
             { x: -10, opacity: 0 },
@@ -109,8 +104,7 @@ export default function Social() {
               duration: dur.short,
               ease: "domus",
               stagger: stagger.cards / 2,
-              clearProps: "opacity,transform",
-              scrollTrigger: { trigger: row, start: "top 85%", once: true },
+              scrollTrigger: { trigger: row, start: "top 85%", toggleActions: "restart none none reverse" },
             }
           );
           const reveal = () => tween.progress(1);
@@ -125,6 +119,7 @@ export default function Social() {
         // Mosaico: ingresso 2D dal centro della griglia 2×3 (ref presente solo
         // quando il feed iframe NON è attivo). Le immagini sono decorative ma
         // ogni tile è un <a> verso il profilo → opacity + stesse reti di sicurezza.
+        // Replay a ogni passaggio: niente clearProps (romperebbe restart/reverse).
         const mosaic = mosaicRef.current;
         if (mosaic) {
           const tiles = gsap.utils.toArray<HTMLElement>(mosaic.children);
@@ -138,8 +133,7 @@ export default function Social() {
               duration: dur.short,
               ease: "domus",
               stagger: { each: 0.07, grid: [2, 3], from: "center" },
-              clearProps: "opacity,transform",
-              scrollTrigger: { trigger: mosaic, start: "top 80%", once: true },
+              scrollTrigger: { trigger: mosaic, start: "top 80%", toggleActions: "restart none none reverse" },
             }
           );
           const reveal = () => tween.progress(1);
@@ -190,20 +184,8 @@ export default function Social() {
                 {site.social.instagram.handle}
               </a>
 
-              <div ref={channelsRef} className="mt-8 flex flex-wrap gap-2.5">
-                {channels.map((ch) => (
-                  <a
-                    key={ch.label}
-                    href={ch.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={c.channelAria(ch.label)}
-                    className="group flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-4 text-sm font-medium text-graphite transition-all duration-300 hover:border-red hover:text-red"
-                  >
-                    <ch.icon className="h-[1.1rem] w-[1.1rem]" />
-                    {ch.label}
-                  </a>
-                ))}
+              <div ref={channelsRef} className="mt-8">
+                <SocialLinks ariaLabel={c.channelAria} />
               </div>
             </Reveal>
           </div>

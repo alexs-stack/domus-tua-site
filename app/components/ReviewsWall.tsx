@@ -18,8 +18,9 @@
 // (JS, desktop ≥1024 + motion ok): mobile/reduced-motion = colonna statica
 // completa, nessuno stato nascosto.
 import { useRef } from "react";
-import Image from "next/image";
+import YoutubeThumb from "./YoutubeThumb";
 import { Play } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
@@ -69,7 +70,7 @@ export default function ReviewsWall() {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const descRef = useRef<HTMLParagraphElement | null>(null);
-  const btnRef = useRef<HTMLAnchorElement | null>(null);
+  const btnRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLUListElement | null>(null);
 
   useGSAP(
@@ -187,6 +188,26 @@ export default function ReviewsWall() {
             "-=0.5"
           );
 
+          // 3d. Uscita (richiesta cliente 2026-08-04, cucitura col capitolo
+          // stelle): le card continuano la corsa fino a USCIRE dal viewport e
+          // il contenuto sfuma — la sezione consegna uno sfondo pulito su cui
+          // il capitolo successivo fa apparire la stella.
+          const exit = gsap.timeline({ defaults: { duration: 1, ease: "power2.in" } });
+          exit.to(columns[0], { xPercent: -150 }, 0);
+          exit.to(columns[2], { xPercent: 150 }, 0);
+          exit.to(
+            columns[1],
+            {
+              yPercent: (index: number) =>
+                (index < Math.floor(columns[1].length / 2) ? -1 : 1) * 170,
+            },
+            0
+          );
+          exit.to(content, { opacity: 0, duration: 0.55, ease: "power1.in" }, 0.1);
+          // Il bottone svanito non deve restare cliccabile (il pointerEvents
+          // "all" del toggle vive sul figlio e scavalcherebbe il none del padre).
+          exit.to(btn, { pointerEvents: "none", duration: 0.01 }, 0.55);
+
           // 3c. Master in scrub sulla runway, col toggle direzionale in coda.
           const master = gsap.timeline({
             scrollTrigger: {
@@ -199,18 +220,29 @@ export default function ReviewsWall() {
           master
             .add(reveal)
             .add(zoom, "-=0.6")
-            .add(() => toggleContent(master.scrollTrigger!.direction === 1), "-=0.32");
+            .add(() => toggleContent(master.scrollTrigger!.direction === 1), "-=0.32")
+            .add(exit, "+=0.25");
 
           // Tastiera: il bottone è in fade (raggiungibile col Tab anche spento)
-          // e le card possono essere ancora in volo — in entrambi i casi il
-          // focus completa la scena invece di atterrare nel vuoto.
-          const onBtnFocus = () => toggleContent(true);
+          // e le card possono essere ancora in volo — il focus porta lo scroll
+          // al punto "scena composta" del runway (non alla fine: con l'uscita
+          // in coda, fine runway = muro già svuotato).
+          const scrollToComposed = () => {
+            const st = master.scrollTrigger;
+            if (!st) return;
+            const target = st.start + (st.end - st.start) * 0.68;
+            if (Math.abs(window.scrollY - target) < 4) return;
+            window.scrollTo({ top: target, behavior: "auto" });
+            ScrollTrigger.update();
+          };
+          const onBtnFocus = () => {
+            toggleContent(true);
+            scrollToComposed();
+          };
           btn.addEventListener("focusin", onBtnFocus);
           const onGridFocus = () => {
-            if ((master.scrollTrigger?.progress ?? 1) < 0.98) {
-              section.scrollIntoView({ block: "end", behavior: "auto" });
-              ScrollTrigger.update();
-            }
+            const p = master.scrollTrigger?.progress ?? 1;
+            if (p < 0.55 || p > 0.85) scrollToComposed();
           };
           grid.addEventListener("focusin", onGridFocus);
 
@@ -261,15 +293,19 @@ export default function ReviewsWall() {
           >
             {c.description}
           </p>
-          <a
-            ref={btnRef}
-            href={site.social.youtube.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="tap-target mt-8 inline-flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-red underline-offset-4 hover:underline"
-          >
-            {c.cta}
-          </a>
+          {/* Il ref GSAP (opacity + pointerEvents) vive sul wrapper: il bottone
+              dentro eredita i pointer-events e resta cliccabile quando acceso. */}
+          <div ref={btnRef} className="mt-8 flex justify-center">
+            <Cta
+              href={site.social.youtube.href}
+              variant="cta"
+              size="md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {c.cta}
+            </Cta>
+          </div>
         </div>
 
         <div className="dt-wall_gallery mx-auto mt-2 max-w-[1240px] pb-24 lg:mt-0 lg:max-w-none lg:pb-0">
@@ -287,10 +323,9 @@ export default function ReviewsWall() {
                   aria-label={v.title}
                   className="group absolute inset-0 block"
                 >
-                  <Image
-                    src={v.thumb}
+                  <YoutubeThumb
+                    id={v.id}
                     alt=""
-                    fill
                     sizes="(min-width: 1024px) 17vw, 50vw"
                     className="object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.05]"
                   />

@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "createdAt": "2026-08-04T08:16:36.919Z",
+        "reason": "Easing del riferimento Uiverse per i social tooltip, fornito esplicitamente dal cliente (chat 2026-08-04)"
+      }
+    ]
+  }
+}

@@ -5,6 +5,7 @@ import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
 import { SegnoDomus, SegnoDomusBadge, SegnoTick } from "./BrandMotif";
 import { ArrowUpRight, ArrowRight, Star } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 
@@ -232,9 +233,10 @@ export default function DomusDocProtocol({
         const pillars = gsap.utils.toArray<HTMLElement>("[data-doc-pillar]", root);
         const nums = gsap.utils.toArray<HTMLElement>("[data-doc-num]", root);
 
+        // Replay a ogni passaggio: restart all'ingresso, reverse risalendo.
         const tl = gsap.timeline({
           defaults: { ease: "domus" },
-          scrollTrigger: { trigger: root, start: "top 72%", once: true },
+          scrollTrigger: { trigger: root, start: "top 72%", toggleActions: "restart none none reverse" },
         });
         if (seal && sealBox) {
           const len = seal.getTotalLength() + 2;
@@ -247,10 +249,11 @@ export default function DomusDocProtocol({
           ).to(seal, { strokeDashoffset: 0, duration: dur.reveal, ease: "power2.inOut" }, 0.1);
         }
         if (pillars.length) {
+          // Niente clearProps: romperebbe il restart/reverse della timeline.
           tl.fromTo(
             pillars,
             { y: 22, autoAlpha: 0 },
-            { y: 0, autoAlpha: 1, duration: dur.short, stagger: stagger.cards * 0.8, clearProps: "all" },
+            { y: 0, autoAlpha: 1, duration: dur.short, stagger: stagger.cards * 0.8 },
             0.25
           );
         }
@@ -304,15 +307,9 @@ export default function DomusDocProtocol({
                   {c.intro}
                 </p>
 
-                <a
-                  href="#contatti"
-                  className="group mt-8 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-cream transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-                >
+                <Cta href="#contatti" variant="reveal-cream" size="md" className="mt-8">
                   {c.cta}
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                    <ArrowUpRight className="h-4 w-4" />
-                  </span>
-                </a>
+                </Cta>
               </div>
 
               {/* Divisore verticale hairline tra intro e pilastri (solo desktop) */}

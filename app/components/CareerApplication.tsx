@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { gsap, MQ } from "../lib/motion/gsap";
 import { ArrowUpRight, Mail, Pin, Whatsapp } from "./Icons";
+import { SendCta } from "./primitives/Cta";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
@@ -609,21 +610,9 @@ export default function CareerApplication({
                 ) : null}
               </div>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                aria-busy={submitting}
-                className="group mt-1 flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-6 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
-              >
+              <SendCta submitting={submitting} size="lg" className="mt-1 w-full">
                 {c.submit}
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  {submitting ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  ) : (
-                    <ArrowUpRight className="h-4 w-4" />
-                  )}
-                </span>
-              </button>
+              </SendCta>
 
               {sent ? (
                 <p

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Whatsapp, ArrowUpRight } from "./Icons";
+import { Whatsapp } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -52,15 +52,14 @@ export default function MobileActionBar() {
       }`}
       style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
-      <Link
+      <Cta
         href="/#contatti"
-        className="flex flex-1 items-center justify-center gap-2 rounded-full bg-red py-3.5 text-[0.95rem] font-semibold text-white shadow-[0_18px_40px_-16px_rgba(210,10,10,0.75)] transition-transform duration-300 active:scale-[0.98]"
+        variant="cta-solid"
+        size="md"
+        className="flex-1 !shadow-[0_18px_40px_-16px_rgba(210,10,10,0.75)]"
       >
         {c.cta}
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-          <ArrowUpRight className="h-4 w-4" />
-        </span>
-      </Link>
+      </Cta>
       <a
         href={site.whatsapp.href}
         target="_blank"

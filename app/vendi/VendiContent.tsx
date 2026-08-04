@@ -14,7 +14,7 @@ import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
 import ScrubWords from "../components/motion/ScrubWords";
-import { ArrowUpRight } from "../components/Icons";
+import { Cta } from "../components/primitives/Cta";
 import {
   SegnoDomusBadge,
   SegnoDomusCorner,
@@ -895,15 +895,9 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
         <Reveal delay={120} className="mt-14">
           <div className="rounded-[1.75rem] border border-line bg-paper p-8 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
             <p className="max-w-2xl text-[1.02rem] leading-relaxed text-graphite">{prep.proof}</p>
-            <a
-              href="#contatti"
-              className="group mt-6 inline-flex shrink-0 items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] sm:mt-0"
-            >
+            <Cta href="#contatti" variant="cta" size="md" className="mt-6 shrink-0 sm:mt-0">
               {prep.ctaLabel}
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
+            </Cta>
           </div>
         </Reveal>
       </div>
@@ -973,15 +967,9 @@ export default function VendiContent() {
                 text={c.openDomus.text}
                 className="max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-cream balance sm:text-[1.9rem]"
               />
-              <a
-                href="/open-domus"
-                className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
+              <Cta href="/open-domus" variant="reveal-cream" size="md" className="shrink-0">
                 {c.openDomus.cta}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
+              </Cta>
             </Reveal>
           </div>
         </section>

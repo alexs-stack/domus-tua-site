@@ -6,7 +6,8 @@ import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
 import LiquidReveal from "./motion/LiquidReveal";
 import Parallax from "./motion/Parallax";
-import { ArrowUpRight, Play } from "./Icons";
+import { Play } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { SegnoDomusCorner, SegnoTick } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
@@ -135,7 +136,8 @@ export default function OpenDomus() {
   const { locale } = useLocale();
   const c = copy[locale];
 
-  // Ingresso a cascata delle righe benefici: stato nascosto solo via JS, una volta sola.
+  // Ingresso a cascata delle righe benefici: stato nascosto solo via JS.
+  // Replay a ogni passaggio: niente clearProps (romperebbe restart/reverse).
   const benefitsRef = useRef<HTMLDivElement | null>(null);
   useGSAP(
     () => {
@@ -154,8 +156,7 @@ export default function OpenDomus() {
             duration: 0.9,
             ease: "expo.out",
             stagger: 0.06,
-            clearProps: "all",
-            scrollTrigger: { trigger: root, start: "top 85%", once: true },
+            scrollTrigger: { trigger: root, start: "top 85%", toggleActions: "restart none none reverse" },
           }
         );
       });
@@ -258,15 +259,9 @@ export default function OpenDomus() {
             </div>
 
             <Reveal delay={150}>
-              <a
-                href="#contatti"
-                className="group mt-10 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-cream transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
+              <Cta href="#contatti" variant="reveal-cream" size="md" className="mt-10">
                 {c.cta}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
+              </Cta>
             </Reveal>
           </div>
         </div>

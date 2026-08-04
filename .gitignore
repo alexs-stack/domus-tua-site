@@ -66,3 +66,6 @@ eval-search-report.md
 
 # Lighthouse CI
 /.lighthouseci/
+
+# Impeccable: cache locale del design hook (la config condivisa si committa)
+.impeccable/hook.cache.json

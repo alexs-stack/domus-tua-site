@@ -3,9 +3,23 @@
 import { useRef } from "react";
 import Reveal from "./Reveal";
 import Atmosphere from "./motion/Atmosphere";
-import { ArrowUpRight } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, ScrollTrigger, useGSAP, MQ, dur } from "../lib/motion/gsap";
+import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// IL METODO — riscritto (2026-08-04) sulla grammatica di codrops/
+// OnScrollFilter: il filo rosso lascia il posto a tre ATTI. Ogni atto ha un
+// titolo in due metà che si separano in scrub (la variante senza Flip del
+// riferimento: niente re-parenting dentro React) e una foto reale che si
+// rivela dentro una maschera circolare filtrata feTurbulence +
+// feDisplacementMap — il bordo del cerchio che cresce è organico, come
+// inchiostro che si allarga sulla carta. I nove passaggi restano tutti,
+// tre fogli di dossier per atto.
+// Reduced-motion / no-JS: la maschera nasce già aperta (r = finale nel
+// markup), i titoli fermi al loro posto — sezione completa e statica.
+// Lo stato "chiuso" (r=0) esiste SOLO via JS sotto motionOk.
+// ═══════════════════════════════════════════════════════════════════════════
 
 const copy = {
   it: {
@@ -14,6 +28,11 @@ const copy = {
     subcopy:
       "Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in oltre quindici anni di lavoro sul territorio.",
     cta: "Inizia dal tuo immobile",
+    acts: [
+      { up: "Prima,", down: "le persone", alt: "Raffaela Rizza, fondatrice di Domus Tua, in ascolto" },
+      { up: "Poi,", down: "il racconto", alt: "Il racconto video di una villa seguita da Domus Tua" },
+      { up: "Infine,", down: "la firma", alt: "La stretta di mano che chiude una compravendita seguita da Domus Tua" },
+    ],
     steps: [
       { title: "Primo ascolto", copy: "Partiamo da te: obiettivi, tempi, aspettative. Prima delle case vengono le persone." },
       { title: "Valutazione", copy: "Analisi del mercato locale e del tuo immobile per definire valore e strategia, senza illusioni." },
@@ -32,6 +51,11 @@ const copy = {
     subcopy:
       "Every sale and every purchase follows nine precise steps: no improvisation, only a method built over more than fifteen years of work in the local area.",
     cta: "Start with your property",
+    acts: [
+      { up: "First,", down: "the people", alt: "Raffaela Rizza, founder of Domus Tua, listening" },
+      { up: "Then,", down: "the story", alt: "The video story of a villa listed by Domus Tua" },
+      { up: "Finally,", down: "the signing", alt: "The handshake closing a sale assisted by Domus Tua" },
+    ],
     steps: [
       { title: "First, we listen", copy: "We start with you: goals, timing, expectations. People come before homes." },
       { title: "Valuation", copy: "Analysis of the local market and your property to define value and strategy, without illusions." },
@@ -50,6 +74,11 @@ const copy = {
     subcopy:
       "Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en plus de quinze ans de travail sur le territoire.",
     cta: "Commencez par votre bien",
+    acts: [
+      { up: "D'abord,", down: "les personnes", alt: "Raffaela Rizza, fondatrice de Domus Tua, à l'écoute" },
+      { up: "Puis,", down: "le récit", alt: "Le récit vidéo d'une villa proposée par Domus Tua" },
+      { up: "Enfin,", down: "la signature", alt: "La poignée de main qui conclut une vente accompagnée par Domus Tua" },
+    ],
     steps: [
       { title: "Première écoute", copy: "Nous partons de vous : objectifs, délais, attentes. Avant les maisons viennent les personnes." },
       { title: "Estimation", copy: "Analyse du marché local et de votre bien pour définir valeur et stratégie, sans illusions." },
@@ -68,6 +97,11 @@ const copy = {
     subcopy:
       "Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in über fünfzehn Jahren Arbeit vor Ort gewachsen ist.",
     cta: "Beginnen Sie mit Ihrer Immobilie",
+    acts: [
+      { up: "Zuerst", down: "die Menschen", alt: "Raffaela Rizza, Gründerin von Domus Tua, beim Zuhören" },
+      { up: "Dann", down: "die Geschichte", alt: "Die Video-Geschichte einer Villa im Angebot von Domus Tua" },
+      { up: "Zuletzt", down: "die Unterschrift", alt: "Der Handschlag zum Abschluss eines von Domus Tua begleiteten Verkaufs" },
+    ],
     steps: [
       { title: "Erstes Zuhören", copy: "Wir beginnen bei Ihnen: Ziele, Zeitrahmen, Erwartungen. Vor den Häusern kommen die Menschen." },
       { title: "Bewertung", copy: "Analyse des lokalen Marktes und Ihrer Immobilie, um Wert und Strategie festzulegen, ohne Illusionen." },
@@ -86,6 +120,11 @@ const copy = {
     subcopy:
       "Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en más de quince años de trabajo en el territorio.",
     cta: "Empieza por tu inmueble",
+    acts: [
+      { up: "Primero,", down: "las personas", alt: "Raffaela Rizza, fundadora de Domus Tua, escuchando" },
+      { up: "Luego,", down: "el relato", alt: "El relato en vídeo de una villa ofrecida por Domus Tua" },
+      { up: "Al final,", down: "la firma", alt: "El apretón de manos que cierra una compraventa acompañada por Domus Tua" },
+    ],
     steps: [
       { title: "Primera escucha", copy: "Partimos de ti: objetivos, plazos, expectativas. Antes que las casas están las personas." },
       { title: "Valoración", copy: "Análisis del mercado local y de tu inmueble para definir valor y estrategia, sin ilusiones." },
@@ -94,6 +133,7 @@ const copy = {
       { title: "Relato visual", copy: "Fotos, vídeos emotivos y renders: la casa contada con el cuidado que merece." },
       { title: "Marketing y anticipo social", copy: "Campañas multicanal y anticipos en redes para presentarla ante las personas adecuadas." },
       { title: "Open Domus y visitas cualificadas", copy: "Visitas ordenadas y el evento Open Domus para compradores realmente interesados." },
+      { title: "Propuesta y negociación", copy: "Gestionamos propuestas y negociación con transparencia, protegiendo tus intereses." },
       { title: "Escritura", copy: "Te acompañamos paso a paso hasta la firma, con asistencia completa." },
     ],
   },
@@ -101,177 +141,151 @@ const copy = {
 
 const stepNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09"] as const;
 
+/* Gli atti: foto reale + parametri del filtro di dissolvenza (variati per
+   atto come nelle sette varianti del riferimento) + geometria del viewBox. */
+const ACTS = [
+  {
+    img: "/images/reali/raffaela-ritratto.jpg",
+    vw: 900,
+    vh: 1080,
+    freq: 0.03,
+    oct: 3,
+    scale: 60,
+  },
+  {
+    img: "/images/reali/video-villa-mozart.jpg",
+    vw: 1280,
+    vh: 880,
+    freq: 0.012,
+    oct: 3,
+    scale: 110,
+  },
+  {
+    img: "/images/reali/handshake.jpg",
+    vw: 1280,
+    vh: 880,
+    freq: 0.09,
+    oct: 1,
+    scale: 45,
+  },
+] as const;
+
+const coverR = (w: number, h: number) => Math.ceil(Math.hypot(w / 2, h / 2)) + 40;
+
 export default function Method() {
   const { locale } = useLocale();
   const c = copy[locale];
   const rootRef = useRef<HTMLElement | null>(null);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const listRef = useRef<HTMLOListElement | null>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const trackRef = useRef<SVGPathElement | null>(null);
-  const threadRef = useRef<SVGPathElement | null>(null);
   const segnoWrapRef = useRef<HTMLDivElement | null>(null);
 
-  // "Il filo rosso del metodo": un filo si cuce in scrub attraverso i nove
-  // passaggi — fogli di dossier alternati lungo il tracciato — e alla fine
-  // curva verso il centro, dove il Segno Domus si disegna: il percorso
-  // diventa casa. Niente contatori, niente numeri protagonisti.
-  // - Il tracciato è costruito A RUNTIME dai centri reali dei nodi: regge
-  //   breakpoint, cambio lingua e resize senza geometrie hardcodate.
-  // - Senza JS il filo non esiste (decorativo): resta la lista completa.
-  //   Reduced-motion: filo già cucito per intero, nessuna animazione.
   useGSAP(
     () => {
-      const wrap = wrapRef.current;
-      const list = listRef.current;
-      const svg = svgRef.current;
-      const track = trackRef.current;
-      const thread = threadRef.current;
-      if (!wrap || !list || !svg || !track || !thread) return;
-
-      const items = gsap.utils.toArray<HTMLLIElement>(list.querySelectorAll("li"));
-      const nodes = items
-        .map((li) => li.querySelector<HTMLElement>("[data-step-node]"))
-        .filter((n): n is HTMLElement => n !== null);
-      if (!items.length || nodes.length !== items.length) return;
-
-      // Cuce il tracciato per i centri reali dei nodi, con anse alternate
-      // dentro il canale centrale; l'ultimo tratto scende verso il Segno.
-      const buildPath = () => {
-        const wr = wrap.getBoundingClientRect();
-        if (!wr.width || !wr.height) return;
-        const desktop = window.matchMedia("(min-width: 1024px)").matches;
-        const amp = desktop ? 56 : 10;
-        const pts = nodes.map((n) => {
-          const r = n.getBoundingClientRect();
-          return { x: r.left + r.width / 2 - wr.left, y: r.top + r.height / 2 - wr.top };
-        });
-        let d = `M ${pts[0].x} ${Math.max(0, pts[0].y - 56)} L ${pts[0].x} ${pts[0].y}`;
-        for (let i = 1; i < pts.length; i++) {
-          const a = pts[i - 1];
-          const b = pts[i];
-          const dir = i % 2 === 0 ? 1 : -1;
-          const dy = b.y - a.y;
-          d += ` C ${a.x + amp * dir} ${a.y + dy * 0.3}, ${b.x + amp * dir} ${b.y - dy * 0.3}, ${b.x} ${b.y}`;
-        }
-        // Chiusura: dal nono passo al Segno (misurato, non stimato).
-        const segno = segnoWrapRef.current;
-        if (segno) {
-          const sr = segno.getBoundingClientRect();
-          const end = { x: sr.left + sr.width / 2 - wr.left, y: sr.top - wr.top - 10 };
-          const last = pts[pts.length - 1];
-          d += ` C ${last.x} ${last.y + (end.y - last.y) * 0.5}, ${end.x} ${last.y + (end.y - last.y) * 0.45}, ${end.x} ${end.y}`;
-        }
-        svg.setAttribute("viewBox", `0 0 ${wr.width} ${wr.height}`);
-        track.setAttribute("d", d);
-        thread.setAttribute("d", d);
-      };
-      buildPath();
+      const root = rootRef.current;
+      if (!root) return;
 
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
-        // Filo rosso cucito in scrub lungo tutto il percorso.
-        let drawTween: gsap.core.Tween | null = null;
-        const makeDraw = () => {
-          drawTween?.scrollTrigger?.kill();
-          drawTween?.kill();
-          const len = thread.getTotalLength() + 2;
-          gsap.set(thread, { strokeDasharray: len, strokeDashoffset: len });
-          drawTween = gsap.to(thread, {
-            strokeDashoffset: 0,
-            ease: "none",
-            scrollTrigger: { trigger: wrap, start: "top 62%", end: "bottom 72%", scrub: true },
-          });
-        };
-        makeDraw();
+        const acts = gsap.utils.toArray<HTMLElement>("[data-met-act]", root);
+        const cleanups: Array<() => void> = [];
 
-        // Il cuore in coda al filo: si disegna dallo stesso punto in cui il
-        // filo arriva (l'incavo in alto), poi si riempie di rosso. Stessa
-        // tecnica del filo (dasharray a runtime); once, come il vecchio Segno.
-        const heart = segnoWrapRef.current?.querySelector<SVGPathElement>("[data-heart-path]");
-        if (heart) {
-          const hlen = heart.getTotalLength() + 2;
-          gsap.set(heart, { strokeDasharray: hlen, strokeDashoffset: hlen, fillOpacity: 0 });
-          gsap
-            .timeline({
-              scrollTrigger: { trigger: segnoWrapRef.current, start: "top 80%", once: true },
-            })
-            .to(heart, { strokeDashoffset: 0, duration: 1.1, ease: "domus.inOut" })
-            .to(heart, { fillOpacity: 1, duration: 0.5, ease: "none" }, "-=0.15");
+        acts.forEach((act) => {
+          const mask = act.querySelector<SVGCircleElement>("[data-met-mask]");
+          const image = act.querySelector<SVGImageElement>("[data-met-img]");
+          const up = act.querySelector<HTMLElement>("[data-met-up]");
+          const down = act.querySelector<HTMLElement>("[data-met-down]");
+          const cards = gsap.utils.toArray<HTMLElement>("[data-met-card]", act);
+          if (!mask || !image) return;
+
+          const rFinal = Number(mask.dataset.rFinal || 0);
+
+          // L'apertura del riferimento, in scrub: il cerchio filtrato cresce,
+          // la foto si posa (scala e flash che rientrano), le due metà del
+          // titolo si separano dal centro comune verso i loro binari.
+          const tl = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: act,
+              start: "clamp(top 82%)",
+              end: "+=48%",
+              scrub: true,
+            },
+          });
+          tl.fromTo(mask, { attr: { r: 0 } }, { attr: { r: rFinal } }, 0)
+            .fromTo(
+              image,
+              { scale: 1.26, transformOrigin: "50% 50%", filter: "brightness(1.3) saturate(1.12)" },
+              { scale: 1, filter: "brightness(1) saturate(1)" },
+              0
+            );
+          if (up && down) {
+            tl.fromTo(up, { xPercent: 16, yPercent: 52 }, { xPercent: 0, yPercent: 0 }, 0).fromTo(
+              down,
+              { xPercent: -10, yPercent: -52 },
+              { xPercent: 0, yPercent: 0 },
+              0
+            );
+          }
+
+          // I fogli del dossier: cascata al passaggio, replay direzionale
+          // (niente clearProps: romperebbe restart/reverse).
+          if (cards.length) {
+            const enter = gsap.fromTo(
+              cards,
+              { y: 26, autoAlpha: 0 },
+              {
+                y: 0,
+                autoAlpha: 1,
+                duration: dur.short,
+                ease: "domus",
+                stagger: 0.1,
+                scrollTrigger: { trigger: act, start: "top 70%", toggleActions: "restart none none reverse" },
+              }
+            );
+            const safety = window.setTimeout(() => enter.progress(1), 2500);
+            const onFocus = () => enter.progress(1);
+            act.addEventListener("focusin", onFocus, { once: true });
+            cleanups.push(() => {
+              window.clearTimeout(safety);
+              act.removeEventListener("focusin", onFocus);
+            });
+          }
+        });
+
+        // Il Segno in chiusura: il cuore non è più cucito dal filo — appare
+        // con la stessa lingua degli atti, un'apertura turbolenta ma piccola,
+        // come un timbro di ceralacca. Replay a ogni passaggio.
+        const segno = segnoWrapRef.current;
+        const segnoMask = segno?.querySelector<SVGCircleElement>("[data-met-segno-mask]");
+        if (segno && segnoMask) {
+          const rFinal = Number(segnoMask.dataset.rFinal || 0);
+          gsap.set(segnoMask, { attr: { r: 0 } });
+          gsap.to(segnoMask, {
+            attr: { r: rFinal },
+            duration: 1.1,
+            ease: "domus.inOut",
+            scrollTrigger: {
+              trigger: segno,
+              start: "top 82%",
+              toggleActions: "restart none none reverse",
+            },
+          });
         }
 
-        // Il foglio che il filo sta attraversando si "accende" (nodo rosso,
-        // foglio dritto): linea di attivazione al 62% del viewport.
-        const triggers = items.map((li) =>
-          ScrollTrigger.create({
-            trigger: li,
-            start: "top 62%",
-            end: "bottom 62%",
-            toggleClass: { targets: li, className: "step-active" },
-          })
-        );
-
-        // Ingresso dei fogli: ciascuno dal proprio lato, una volta sola
-        // (nessun link nei fogli: autoAlpha è sicuro).
-        const desktop = () => window.matchMedia("(min-width: 1024px)").matches;
-        const enter = gsap.fromTo(
-          items,
-          {
-            y: 26,
-            x: (i: number) => (desktop() ? (i % 2 ? 36 : -36) : 0),
-            autoAlpha: 0,
-          },
-          {
-            y: 0,
-            x: 0,
-            autoAlpha: 1,
-            duration: dur.short,
-            ease: "domus",
-            stagger: 0.08,
-            clearProps: "opacity,visibility,transform",
-            scrollTrigger: { trigger: list, start: "top 80%", once: true },
-          }
-        );
-        const safety = window.setTimeout(() => enter.progress(1), 2500);
-
-        // Resize / cambio lingua / font: si ricuce il tracciato e si
-        // ricalibra lo scrub (coalescente, mai nel frame della notifica).
-        let raf = 0;
-        let firstRo = true;
-        const ro = new ResizeObserver(() => {
-          if (firstRo) {
-            firstRo = false;
-            return;
-          }
-          cancelAnimationFrame(raf);
-          raf = requestAnimationFrame(() => {
-            buildPath();
-            makeDraw();
-            ScrollTrigger.refresh();
-          });
-        });
-        ro.observe(wrap);
-
+        // Tween e trigger creati nel context vengono revertiti da useGSAP;
+        // qui restano solo timer e listener raccolti sopra.
         return () => {
-          window.clearTimeout(safety);
-          cancelAnimationFrame(raf);
-          ro.disconnect();
-          triggers.forEach((t) => t.kill());
-          drawTween?.scrollTrigger?.kill();
-          drawTween?.kill();
-          gsap.set(thread, { clearProps: "strokeDasharray,strokeDashoffset" });
+          cleanups.forEach((fn) => fn());
         };
       });
     },
-    { scope: rootRef, dependencies: [locale] }
+    { scope: rootRef, dependencies: [locale], revertOnUpdate: true }
   );
 
   return (
     <section ref={rootRef} id="metodo" className="relative overflow-hidden bg-cream-deep text-ink">
-      {/* Aria: il nome del metodo in filigrana dietro il filo (nome proprio,
-          identico in ogni lingua) + bagliori caldi. */}
+      {/* Aria: il nome del metodo in filigrana + bagliori caldi. */}
       <Atmosphere word="Metodo Domus Tua" glow drift={-1} wordClassName="right-[1%] top-[2.5%] text-[8.5vw]" />
-      <div className="relative mx-auto max-w-5xl px-5 py-24 sm:px-8 sm:py-32">
+      <div className="relative mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
         {/* Header */}
         <Reveal className="max-w-2xl">
           <span className="eyebrow">{c.eyebrow}</span>
@@ -279,90 +293,141 @@ export default function Method() {
             {c.title}
           </h2>
           <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-stone">{c.subcopy}</p>
-          <a
-            href="#contatti"
-            className="group mt-8 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-          >
+          <Cta href="#contatti" variant="cta" size="md" className="mt-8">
             {c.cta}
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
-          </a>
+          </Cta>
         </Reveal>
 
-        {/* Il filo rosso + i fogli del dossier */}
-        <div ref={wrapRef} className="relative mt-16 lg:mt-20">
-          <svg
-            ref={svgRef}
-            aria-hidden
-            preserveAspectRatio="none"
-            className="pointer-events-none absolute inset-0 h-full w-full"
-          >
-            {/* Traccia di fondo (il percorso che aspetta) + filo rosso (scrub) */}
-            <path ref={trackRef} fill="none" stroke="var(--color-line)" strokeWidth="1.5" strokeLinecap="round" />
-            <path ref={threadRef} fill="none" stroke="var(--color-red)" strokeWidth="2" strokeLinecap="round" />
-          </svg>
+        {/* I tre atti del metodo */}
+        <div className="mt-20 flex flex-col gap-24 lg:mt-28 lg:gap-36">
+          {ACTS.map((a, i) => {
+            const act = c.acts[i];
+            const rf = coverR(a.vw, a.vh);
+            const reversed = i % 2 === 1;
+            return (
+              <div key={act.up} data-met-act className="relative">
+                {/* Il titolo in due metà: si separano in scrub mentre la foto
+                    si apre — la variante React del Flip del riferimento. */}
+                <h3 className="relative z-10 font-display font-medium leading-[0.98] tracking-[-0.01em]">
+                  <span
+                    data-met-up
+                    className={`block text-[clamp(2.4rem,6vw,5.4rem)] ${reversed ? "lg:ml-[30%]" : ""}`}
+                  >
+                    {act.up}
+                  </span>
+                  <span
+                    data-met-down
+                    className={`block text-[clamp(2.4rem,6vw,5.4rem)] text-red ${
+                      reversed ? "lg:ml-[12%]" : "lg:ml-[22%]"
+                    }`}
+                  >
+                    {act.down}
+                  </span>
+                </h3>
 
-          <ol ref={listRef} className="relative flex flex-col gap-9 lg:gap-12">
-            {c.steps.map((s, i) => (
-              <li
-                key={stepNumbers[i]}
-                className={`dt-step relative pl-16 lg:w-[calc(50%-4.5rem)] lg:pl-0 ${
-                  i % 2 ? "lg:self-end" : "lg:self-start"
-                }`}
-              >
-                {/* Nodo sul filo: il numero è wayfinding (l'ol dà già
-                    la numerazione agli screen reader), non protagonista. */}
-                <span
-                  data-step-node
-                  aria-hidden
-                  className={`dt-step-node tnum absolute left-0 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-line bg-paper font-display text-[0.7rem] font-semibold text-graphite shadow-[0_6px_16px_-10px_rgba(26,24,22,0.5)] ${
-                    i % 2
-                      ? "lg:left-auto lg:right-full lg:mr-[4.5rem] lg:translate-x-1/2"
-                      : "lg:left-full lg:ml-[4.5rem] lg:-translate-x-1/2"
-                  }`}
-                >
-                  {stepNumbers[i]}
-                </span>
-
-                {/* Foglio del dossier: micro-rotazione alternata, si raddrizza
-                    quando il filo lo attraversa. */}
                 <div
-                  data-step-card
-                  className={`rounded-2xl border border-line bg-paper p-5 shadow-[0_18px_40px_-30px_rgba(26,24,22,0.4)] transition-[border-color,box-shadow] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] sm:p-6 ${
-                    i % 2 ? "lg:rotate-[0.4deg]" : "lg:-rotate-[0.4deg]"
+                  className={`mt-6 grid gap-10 lg:mt-2 lg:grid-cols-[minmax(0,52fr)_minmax(0,48fr)] lg:items-center lg:gap-16 ${
+                    reversed ? "lg:grid-flow-dense" : ""
                   }`}
                 >
-                  <h3 className="font-display text-xl font-medium tracking-tight sm:text-[1.35rem]">
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 text-[0.95rem] leading-relaxed text-stone">{s.copy}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+                  {/* La foto dentro la maschera turbolenta (rif. OnScrollFilter:
+                      feTurbulence + feDisplacementMap sul cerchio della mask).
+                      r parte GIÀ al valore finale: senza JS / reduced-motion la
+                      foto è intera; lo stato chiuso esiste solo via GSAP. */}
+                  <svg
+                    viewBox={`0 0 ${a.vw} ${a.vh}`}
+                    className={`h-auto w-full ${reversed ? "lg:col-start-2" : ""}`}
+                    role="img"
+                    aria-label={act.alt}
+                  >
+                    <defs>
+                      <filter id={`dt-met-f${i}`}>
+                        <feTurbulence type="fractalNoise" baseFrequency={a.freq} numOctaves={a.oct} result="noise" />
+                        <feDisplacementMap
+                          in="SourceGraphic"
+                          in2="noise"
+                          scale={a.scale}
+                          xChannelSelector="R"
+                          yChannelSelector="G"
+                        />
+                      </filter>
+                      <mask id={`dt-met-m${i}`}>
+                        <circle
+                          data-met-mask
+                          data-r-final={rf}
+                          cx="50%"
+                          cy="50%"
+                          r={rf}
+                          fill="white"
+                          style={{ filter: `url(#dt-met-f${i})` }}
+                        />
+                      </mask>
+                    </defs>
+                    <image
+                      data-met-img
+                      href={a.img}
+                      width={a.vw}
+                      height={a.vh}
+                      mask={`url(#dt-met-m${i})`}
+                      preserveAspectRatio="xMidYMid slice"
+                    />
+                  </svg>
 
-          {/* Il filo chiude sul CUORE: arriva dall'alto nell'incavo e il cuore
-              si disegna dallo stesso punto, poi si riempie di rosso — il
-              percorso diventa casa. Senza JS / reduced-motion: già completo. */}
-          <div ref={segnoWrapRef} className="mt-14 flex justify-center pb-2 lg:mt-16">
-            <svg
-              viewBox="0 0 64 60"
-              fill="none"
-              aria-hidden
-              className="h-14 w-14 text-red"
-            >
-              <path
-                data-heart-path
-                d="M32 14 C 26 3, 10 2, 6 13 C 2 24, 12 36, 32 52 C 52 36, 62 24, 58 13 C 54 2, 38 3, 32 14 Z"
-                stroke="currentColor"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="var(--color-red)"
-              />
-            </svg>
-          </div>
+                  {/* I tre fogli del dossier dell'atto */}
+                  <ol className={`flex flex-col gap-6 ${reversed ? "lg:col-start-1 lg:row-start-1" : ""}`} start={i * 3 + 1}>
+                    {c.steps.slice(i * 3, i * 3 + 3).map((s, j) => (
+                      <li key={s.title}>
+                        <div
+                          data-met-card
+                          className={`rounded-2xl border border-line bg-paper p-5 shadow-[0_18px_40px_-30px_rgba(26,24,22,0.4)] sm:p-6 ${
+                            j % 2 ? "lg:-rotate-[0.35deg]" : "lg:rotate-[0.35deg]"
+                          }`}
+                        >
+                          <p aria-hidden className="tnum font-display text-[0.72rem] font-semibold tracking-[0.18em] text-red">
+                            {stepNumbers[i * 3 + j]}
+                          </p>
+                          <h4 className="mt-1.5 font-display text-xl font-medium tracking-tight sm:text-[1.3rem]">
+                            {s.title}
+                          </h4>
+                          <p className="mt-2 text-[0.95rem] leading-relaxed text-stone">{s.copy}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Il Segno in chiusura: il cuore appare con la stessa apertura
+            turbolenta degli atti — il percorso diventa casa. Senza JS /
+            reduced-motion: già completo. */}
+        <div ref={segnoWrapRef} className="mt-20 flex justify-center pb-2 lg:mt-24">
+          <svg viewBox="0 0 64 60" fill="none" aria-hidden className="h-14 w-14 text-red">
+            <defs>
+              <filter id="dt-met-fh">
+                <feTurbulence type="fractalNoise" baseFrequency="0.14" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+              <mask id="dt-met-mh">
+                <circle
+                  data-met-segno-mask
+                  data-r-final="48"
+                  cx="32"
+                  cy="30"
+                  r="48"
+                  fill="white"
+                  style={{ filter: "url(#dt-met-fh)" }}
+                />
+              </mask>
+            </defs>
+            <path
+              d="M32 14 C 26 3, 10 2, 6 13 C 2 24, 12 36, 32 52 C 52 36, 62 24, 58 13 C 54 2, 38 3, 32 14 Z"
+              mask="url(#dt-met-mh)"
+              fill="var(--color-red)"
+            />
+          </svg>
         </div>
       </div>
     </section>

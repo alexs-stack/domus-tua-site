@@ -209,19 +209,74 @@ describe("content integrity — venduti mai tra i disponibili", () => {
 });
 
 describe("content integrity — terze parti dietro al consenso", () => {
-  const reviewsSrc = fs.readFileSync(path.join(APP_DIR, "components", "Reviews.tsx"), "utf8");
-
   test("il widget Trustindex si monta solo con consenso accettato", () => {
     // Regressione: l'iframe con il loader Trustindex partiva al primo render, cioè prima di
-    // qualsiasi scelta dell'utente sui cookie.
-    assert.match(reviewsSrc, /useConsent\(\)/);
-    assert.match(reviewsSrc, /consent === "accepted"/);
-    const iframeIndex = reviewsSrc.indexOf("trustindexLoader}\"></script>");
-    assert.ok(iframeIndex > 0, "loader Trustindex non trovato: aggiornare questo test");
-    assert.ok(
-      reviewsSrc.indexOf("showTrustindex ?") < iframeIndex,
-      "il loader Trustindex deve stare dentro il ramo protetto dal gate",
+    // qualsiasi scelta dell'utente sui cookie. Dopo il refactor l'iframe vive in
+    // TrustindexEmbed e il gate nei componenti che lo montano: si scandisce l'albero
+    // (non un elenco a mano) perché è così che questo test era invecchiato — guardava
+    // Reviews.tsx mentre il loader si era spostato.
+    const embedPath = path.join(APP_DIR, "components", "TrustindexEmbed.tsx");
+    const embedSrc = fs.readFileSync(embedPath, "utf8");
+    assert.match(
+      embedSrc,
+      /trustindexLoader\}"><\/script>/,
+      "loader Trustindex non trovato in TrustindexEmbed: aggiornare questo test",
     );
+
+    // Il loader ha UNA casa sola: se lo script ricompare incorporato altrove, il gate
+    // dei consumer non lo protegge più.
+    const altreCase = productionSources().filter(
+      (f) => f !== embedPath && /<script src=[^>]*trustindexLoader/.test(fs.readFileSync(f, "utf8")),
+    );
+    assert.deepEqual(
+      altreCase.map(REL),
+      [],
+      "lo script del loader Trustindex deve vivere solo in TrustindexEmbed.tsx",
+    );
+
+    // Anche l'URL reale del CDN ha una casa sola (site.ts): un loader hardcodato
+    // altrove scavalcherebbe sia il gate sia la sandbox senza citare la costante.
+    const cdnAltrove = productionSources().filter(
+      (f) =>
+        !f.endsWith(path.join("lib", "site.ts")) &&
+        fs.readFileSync(f, "utf8").includes("cdn.trustindex.io"),
+    );
+    assert.deepEqual(
+      cdnAltrove.map(REL),
+      [],
+      "l'URL cdn.trustindex.io deve vivere solo in app/lib/site.ts",
+    );
+
+    // I consumer si scoprono dall'IMPORT del modulo, non dal tag JSX: un import
+    // rinominato o un next/dynamic non possono uscire dalla scansione in silenzio —
+    // il file importatore che non contiene il tag letterale fa FALLIRE il test e
+    // costringe ad aggiornarlo consapevolmente.
+    const importaEmbed = (src: string) => /(?:from\s*|import\()\s*["'][^"']*TrustindexEmbed["']/.test(src);
+    const consumers = productionSources().filter((f) => importaEmbed(fs.readFileSync(f, "utf8")));
+    assert.ok(
+      consumers.length > 0,
+      "nessun componente importa TrustindexEmbed: il controllo non sta guardando niente",
+    );
+    for (const f of consumers) {
+      const src = fs.readFileSync(f, "utf8");
+      assert.match(src, /useConsent\(\)/, `${REL(f)}: monta TrustindexEmbed senza leggere il consenso`);
+      assert.match(src, /consent === "accepted"/, `${REL(f)}: manca il gate sul consenso accettato`);
+      const gateIndex = src.indexOf("showTrustindex ?");
+      assert.ok(gateIndex > 0, `${REL(f)}: manca il ramo "showTrustindex ?" prima del mount`);
+      // TUTTI i mount, non solo il primo: un secondo <TrustindexEmbed aggiunto in
+      // coda al file senza gate deve far scattare il test.
+      const mounts = [...src.matchAll(/<TrustindexEmbed/g)].map((m) => m.index ?? -1);
+      assert.ok(
+        mounts.length > 0,
+        `${REL(f)}: importa TrustindexEmbed ma non contiene il tag letterale <TrustindexEmbed — se l'import è stato rinominato o reso dinamico, riportare qui la scansione`,
+      );
+      for (const mountIndex of mounts) {
+        assert.ok(
+          gateIndex < mountIndex,
+          `${REL(f)}: ogni mount dell'embed deve stare dentro il ramo protetto dal gate`,
+        );
+      }
+    }
   });
 
   test("una sola implementazione del consenso", () => {

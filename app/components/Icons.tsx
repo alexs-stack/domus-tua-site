@@ -68,6 +68,12 @@ export const Whatsapp = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const Send = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M21 3 10.5 13.5M21 3l-6.5 18-3.6-8.4L2.5 9 21 3z" />
+  </svg>
+);
+
 export const Menu = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M4 8h16M4 16h16" />

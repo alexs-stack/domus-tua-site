@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useRef, type ReactNode } from "react";
-import { ArrowUpRight, ArrowRight } from "./Icons";
 import { SegnoDomusBadge } from "./BrandMotif";
+import { Cta } from "./primitives/Cta";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
@@ -142,23 +142,13 @@ export default function PageHero({
           </p>
 
           <div data-ph-el className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a
-              href={primary.href}
-              className="group flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-            >
+            <Cta href={primary.href} variant="cta-solid" size="lg">
               {primary.label}
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
+            </Cta>
             {secondary && (
-              <a
-                href={secondary.href}
-                className="group flex items-center justify-center gap-1.5 rounded-full border border-cream/35 bg-cream/5 px-7 py-4 text-base font-semibold text-cream backdrop-blur-sm transition-all duration-300 hover:bg-cream/15"
-              >
+              <Cta href={secondary.href} variant="ghost-dark" size="lg">
                 {secondary.label}
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </a>
+              </Cta>
             )}
           </div>
 
