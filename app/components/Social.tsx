@@ -198,7 +198,7 @@ export default function Social() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={c.channelAria(ch.label)}
-                    className="group flex items-center gap-2 rounded-full border border-line bg-paper px-4 py-2.5 text-sm font-medium text-graphite transition-all duration-300 hover:border-red hover:text-red"
+                    className="group flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-4 text-sm font-medium text-graphite transition-all duration-300 hover:border-red hover:text-red"
                   >
                     <ch.icon className="h-[1.1rem] w-[1.1rem]" />
                     {ch.label}

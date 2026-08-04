@@ -553,6 +553,7 @@ export default function CareerApplication({
                 placeholder={c.namePlaceholder}
                 required
                 autoComplete="name"
+                autoCapitalize="words"
                 error={errors.name}
               />
               <Field
@@ -560,6 +561,8 @@ export default function CareerApplication({
                 label={c.contactLabel}
                 placeholder={c.contactPlaceholder}
                 required
+                autoCapitalize="none"
+                spellCheck={false}
                 error={errors.contact}
               />
 
@@ -666,6 +669,8 @@ function Field({
   error,
   autoComplete,
   inputMode,
+  autoCapitalize,
+  spellCheck,
 }: {
   name: string;
   label: string;
@@ -675,6 +680,10 @@ function Field({
   error?: string;
   autoComplete?: string;
   inputMode?: "text" | "url" | "email" | "tel";
+  /** "words" per i nomi; "none" dove si scrive un'email (vedi Contact.tsx). */
+  autoCapitalize?: "none" | "words" | "sentences";
+  /** false su email e link: l'autocorrezione di iOS li riscrive. */
+  spellCheck?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -689,6 +698,9 @@ function Field({
         required={required}
         autoComplete={autoComplete}
         inputMode={inputMode}
+        autoCapitalize={autoCapitalize}
+        spellCheck={spellCheck}
+        autoCorrect={spellCheck === false ? "off" : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}
         // text-base su mobile: sotto i 16px iOS zooma al focus.

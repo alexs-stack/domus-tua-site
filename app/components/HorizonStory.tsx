@@ -425,7 +425,7 @@ export default function HorizonStory() {
                 </p>
                 <Link
                   href="/acquista"
-                  className="group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                  className="tap-target group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
                 >
                   {c.cta}
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -484,7 +484,7 @@ export default function HorizonStory() {
                 </p>
                 <Link
                   href="/recensioni"
-                  className="group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                  className="tap-target group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
                 >
                   {c.revCta}
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -524,7 +524,7 @@ export default function HorizonStory() {
                   href={site.social.youtube.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group mt-7 inline-flex items-center gap-3 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                  className="tap-target group mt-7 inline-flex items-center gap-3 text-sm font-semibold text-red transition-colors hover:text-red-dark"
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 ease-soft group-hover:scale-105">
                     <Play className="ml-0.5 h-4 w-4" />

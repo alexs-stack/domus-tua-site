@@ -419,6 +419,10 @@ export default function Assistant() {
         onClick={() => setOpen(true)}
         aria-label={c.launcher}
         aria-expanded={open}
+        // Aggancio per il footer: da qui globals.css capisce che la chat è montata e
+        // riserva lo spazio in fondo alla pagina. Con la chat spenta niente attributo,
+        // niente spazio morto — e in produzione oggi è spenta.
+        data-assistant-launcher
         className={`fixed right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-red text-white shadow-[0_20px_40px_-16px_rgba(210,10,10,0.7)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none ${
           open || blocked ? "pointer-events-none scale-90 opacity-0" : "opacity-100"
         }`}

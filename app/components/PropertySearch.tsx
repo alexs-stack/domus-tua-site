@@ -953,7 +953,9 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                   type="button"
                   aria-pressed={view === v}
                   onClick={() => setView(v)}
-                  className={`rounded-full px-3.5 py-1.5 text-[0.8rem] font-semibold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                  // min-h-11 = 44px: la soglia di tocco. Senza, il toggle era alto 31px —
+                  // il comando più piccolo della pagina, e quello che si usa di più.
+                  className={`inline-flex min-h-11 items-center justify-center rounded-full px-4 text-[0.8rem] font-semibold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                     view === v ? "bg-red text-white" : "text-graphite hover:text-ink"
                   }`}
                 >

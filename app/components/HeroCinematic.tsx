@@ -612,9 +612,9 @@ export default function HeroCinematic() {
           {/* Trust chips */}
           <div
             data-hero-seq
-            className="dt-hero-rest mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 border-t border-cream/15 pt-6"
+            className="tap-list dt-hero-rest mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 border-t border-cream/15 pt-6"
           >
-            <a href="#recensioni" className="flex items-center gap-2 hover:opacity-90">
+            <a href="#recensioni" className="tap-target flex items-center gap-2 hover:opacity-90">
               <span className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} className="h-4 w-4 text-red-soft" />
@@ -630,7 +630,7 @@ export default function HeroCinematic() {
                 <a
                   key={ch.label}
                   href={ch.href}
-                  className="text-[0.82rem] font-medium text-cream/70 underline-offset-4 transition-colors duration-300 hover:text-cream hover:underline"
+                  className="tap-target text-[0.82rem] font-medium text-cream/70 underline-offset-4 transition-colors duration-300 hover:text-cream hover:underline"
                 >
                   {ch.label}
                 </a>

@@ -266,7 +266,7 @@ export default function ReviewsWall() {
             href={site.social.youtube.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-red underline-offset-4 hover:underline"
+            className="tap-target mt-8 inline-flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-red underline-offset-4 hover:underline"
           >
             {c.cta}
           </a>

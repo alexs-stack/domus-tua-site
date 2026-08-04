@@ -820,7 +820,7 @@ export default function LavoraConNoiContent() {
                     href="#candidatura"
                     aria-label={c.ctaAria.replace("{area}", r.title)}
                     onClick={() => chooseRole(id, r.title)}
-                    className="mt-7 inline-flex items-center gap-2 self-start rounded-full border border-ink/15 bg-cream px-5 py-2.5 text-[0.85rem] font-semibold text-ink transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-red hover:text-red active:scale-[0.98]"
+                    className="mt-7 inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-ink/15 bg-cream px-5 text-[0.85rem] font-semibold text-ink transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-red hover:text-red active:scale-[0.98]"
                   >
                     {c.rolesCta}
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

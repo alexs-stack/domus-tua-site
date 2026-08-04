@@ -493,7 +493,8 @@ export default function Contact({
                     type="button"
                     aria-pressed={intent === opt.key}
                     onClick={() => setIntent(opt.key)}
-                    className={`rounded-xl py-2.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                    // min-h-11 = 44px: erano 40, e questo è il primo comando del form.
+                    className={`inline-flex min-h-11 items-center justify-center rounded-xl px-2 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                       intent === opt.key ? "bg-red text-white" : "text-stone hover:text-ink"
                     }`}
                   >
@@ -509,6 +510,7 @@ export default function Contact({
                 placeholder={c.namePlaceholder}
                 required
                 autoComplete="name"
+                autoCapitalize="words"
                 error={errors.name}
               />
               <Field
@@ -516,6 +518,8 @@ export default function Contact({
                 label={c.contactLabel}
                 placeholder={c.contactPlaceholder}
                 required
+                autoCapitalize="none"
+                spellCheck={false}
                 error={errors.contact}
               />
 
@@ -615,7 +619,7 @@ function IntentFields({
   if (intent === "seller") {
     return (
       <>
-        <Field name="place" label={c.placeLabelSell} placeholder={c.placePlaceholderSell} />
+        <Field name="place" label={c.placeLabelSell} placeholder={c.placePlaceholderSell} autoComplete="address-level2" autoCapitalize="words" />
         <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
         <TextArea name="message" label={c.messageLabel} placeholder={c.messagePlaceholderSell} />
       </>
@@ -629,15 +633,17 @@ function IntentFields({
           label={c.placeLabelBuy}
           placeholder={c.placePlaceholderBuy}
           defaultValue={initialPlace}
+          autoComplete="address-level2"
+          autoCapitalize="words"
         />
-        <Field name="budget" label={c.budgetLabel} placeholder={c.budgetPlaceholder} />
+        <Field name="budget" label={c.budgetLabel} placeholder={c.budgetPlaceholder} inputMode="numeric" />
         <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
         <Field name="features" label={c.featuresLabel} placeholder={c.featuresPlaceholder} />
       </>
     );
   }
   if (intent === "open-domus") {
-    return <Field name="place" label={c.placeLabelOpen} placeholder={c.placePlaceholderBuy} />;
+    return <Field name="place" label={c.placeLabelOpen} placeholder={c.placePlaceholderBuy} autoComplete="address-level2" autoCapitalize="words" />;
   }
   // question
   return (
@@ -654,6 +660,9 @@ function Field({
   error,
   defaultValue,
   autoComplete,
+  inputMode,
+  autoCapitalize,
+  spellCheck,
 }: {
   name: string;
   label: string;
@@ -663,6 +672,15 @@ function Field({
   error?: string;
   defaultValue?: string;
   autoComplete?: string;
+  /** Tastiera mobile: "numeric" per gli importi, "email"/"tel" dove il campo è univoco. */
+  inputMode?: "text" | "numeric" | "tel" | "email" | "url";
+  /**
+   * Maiuscola automatica di iOS. "words" per nomi e comuni, "none" dove si scrive
+   * un indirizzo email: "Mario@…" passa, ma l'autocorrezione su un indirizzo no.
+   */
+  autoCapitalize?: "none" | "words" | "sentences";
+  /** false su email e riferimenti: l'autocorrezione di iOS li riscrive e il lead si perde. */
+  spellCheck?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -677,6 +695,10 @@ function Field({
         defaultValue={defaultValue}
         required={required}
         autoComplete={autoComplete}
+        inputMode={inputMode}
+        autoCapitalize={autoCapitalize}
+        spellCheck={spellCheck}
+        autoCorrect={spellCheck === false ? "off" : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}
         className={`rounded-xl border bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
