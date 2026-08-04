@@ -317,6 +317,12 @@ export default function Preloader() {
         const usable =
           e.key === "Enter" || e.key === " " || e.key === "Escape" || e.key.length === 1;
         if (!usable) return;
+        // La guardia "intro già finita" PRIMA di preventDefault, non dentro
+        // skip(): è l'inversione che nell'onda 9 rese i campi inservibili in
+        // produzione. Qui il listener viene staccato a fine intro, quindi oggi
+        // non fa danno — ma l'ordine sbagliato resta una trappola per il
+        // prossimo che tocchi la pulizia.
+        if (tl.time() >= tl.labels.dive) return;
         // preventDefault: sotto l'overlay può esserci un elemento focalizzato
         // (es. un bottone) — il tasto salta l'intro, non deve attivare altro.
         e.preventDefault();

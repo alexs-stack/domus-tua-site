@@ -375,30 +375,39 @@ export default function HeroCinematic() {
         };
         const onFirstGesture = (e: Event) => {
           if (revealed) return;
-          // Solo gesti "di scorrimento": un click non deve consumare il turno.
-          if (e.type === "keydown") {
-            const k = (e as KeyboardEvent).key;
-            const scrollKeys = [
-              "ArrowDown",
-              "ArrowUp",
-              "PageDown",
-              "PageUp",
-              "End",
-              "Home",
-              " ",
-            ];
-            if (!scrollKeys.includes(k)) return;
-            e.preventDefault();
-          }
+          // Rotella e dito: il primo gesto rivela e la pagina resta ferma
+          // sull'immagine piena (richiesta cliente). Nessun tasto qui dentro.
+          void e;
           holding = true;
-          getLenis()?.stop(); // la pagina resta ferma sull'immagine piena
+          getLenis()?.stop();
           reveal();
           // Fine del reveal: lo scroll torna all'utente (nessun hijack lungo).
           window.setTimeout(release, 950);
         };
+
+        /**
+         * Tastiera: rivela e basta, senza annullare il tasto.
+         *
+         * Prima i tasti di scorrimento (frecce, PagSu/Giù, Fine, Inizio e
+         * SPAZIO) venivano annullati per tenere ferma l'immagine anche da
+         * tastiera. Ma il listener sta su `window` e non guardava il bersaglio:
+         * chi scriveva nella ricerca in hero, prima di aver mai scrollato,
+         * perdeva la barra spaziatrice — le parole si attaccavano fra loro.
+         *
+         * È lo stesso difetto che e2e/tastiera.spec.ts sorveglia dall'onda 9,
+         * quando un listener del preloader rese i campi inservibili in
+         * produzione. La lezione di allora vale anche per un gesto legittimo:
+         * chi naviga da tastiera deve avere lo scorrimento standard. La pagina
+         * scorre e il blocco si rivela — la sola cosa che si perde è il fermo
+         * immagine, che è una finezza, non una funzione.
+         */
+        const onFirstKey = (e: KeyboardEvent) => {
+          if (revealed || e.metaKey || e.ctrlKey || e.altKey) return;
+          reveal();
+        };
         window.addEventListener("wheel", onFirstGesture, { passive: true });
         window.addEventListener("touchmove", onFirstGesture, { passive: true });
-        window.addEventListener("keydown", onFirstGesture);
+        window.addEventListener("keydown", onFirstKey);
 
         // Arrivo già scrollato (ancora, restore del browser): nessun blocco.
         const onScroll = () => {
@@ -411,7 +420,7 @@ export default function HeroCinematic() {
           section.removeEventListener("focusin", onFocusIn);
           window.removeEventListener("wheel", onFirstGesture);
           window.removeEventListener("touchmove", onFirstGesture);
-          window.removeEventListener("keydown", onFirstGesture);
+          window.removeEventListener("keydown", onFirstKey);
           window.removeEventListener("scroll", onScroll);
           release();
         };
