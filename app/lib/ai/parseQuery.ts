@@ -1,11 +1,16 @@
 // Parsing della frase in linguaggio naturale -> filtri strutturati (ParsedSearch).
 //
 // Due percorsi:
-//  - AI (Claude Haiku) se ANTHROPIC_API_KEY è presente: comprende sinonimi, dialetto, "vibe".
+//  - AI, se c'è un provider configurato: comprende sinonimi, dialetto, "vibe".
+//    Gemini (GEMINI_API_KEY) oppure Claude (ANTHROPIC_API_KEY) — vedi provider.ts.
 //  - Locale (euristica deterministica) come fallback: nessuna chiave, funziona sempre.
 // Entrambi sono difensivi: mai throw verso il chiamante (la route decide il fallback).
+//
+// I due percorsi AI condividono lo stesso schema dei filtri, lo stesso prompt e la stessa
+// `sanitize`: cambia solo la forma della chiamata HTTP. È voluto — così un provider non
+// può iniziare a estrarre campi diversi dall'altro senza che si veda.
 
-import { ANTHROPIC_API_KEY, AI_SEARCH_MODEL, aiParseEnabled } from "./config";
+import { AI_PROVIDER, ANTHROPIC_API_KEY, GEMINI_API_KEY, AI_SEARCH_MODEL, aiParseEnabled } from "./config";
 import { canonicalComune, comuneOf } from "../comune";
 import type { FeatureLabel, ParsedSearch, SearchFacets } from "./types";
 
@@ -312,13 +317,26 @@ export function parseQueryLocal(query: string, facets: SearchFacets): ParsedSear
   return out;
 }
 
-// ── Percorso AI (Claude Haiku via fetch, structured output con tool use) ──────
+// ── Percorso AI: schema dei filtri, condiviso dai provider ───────────────────
 
-const SET_FILTERS_TOOL = {
+/** Sottoinsieme di JSON Schema che ci serve. Basta a descrivere i filtri e a tradurlo per Gemini. */
+type SchemaNode = {
+  type?: string;
+  description?: string;
+  enum?: readonly string[];
+  items?: SchemaNode;
+  properties?: Record<string, SchemaNode>;
+  required?: readonly string[];
+};
+
+/** Timeout della chiamata di parsing: sta sulla strada critica della ricerca. */
+const AI_TIMEOUT_MS = 8000;
+
+export const SET_FILTERS_TOOL: { name: string; description: string; input_schema: SchemaNode } = {
   name: "set_filters",
   description: "Imposta i filtri di ricerca immobiliare estratti dalla richiesta dell'utente.",
   input_schema: {
-    type: "object" as const,
+    type: "object",
     properties: {
       contract: { type: "string", enum: ["Tutte", "Vendita", "Affitto"] },
       type: { type: "string", enum: ["Tutte", ...TYPES] },
@@ -343,20 +361,30 @@ function buildSystemPrompt(facets: SearchFacets): string {
     "Valorizza SOLO i campi di cui sei ragionevolmente sicuro; ometti gli altri.",
     "Prezzo: 'sotto/fino a/entro X' -> maxBudget; 'sopra/oltre/almeno/più di X' -> minBudget; 'tra X e Y' -> minBudget=X, maxBudget=Y.",
     "Superficie in m² (mq): 'almeno/da X mq' -> minSqm; 'fino a X mq' -> maxSqm; 'tra X e Y mq' -> minSqm=X, maxSqm=Y. Non confondere i mq col prezzo.",
+    "Una superficie SENZA qualificatore ('trilocale di 90 mq', 'casa 90mq') è un MINIMO: minSqm=90.",
     "Caratteristiche NEGATE ('senza giardino', 'no box') NON vanno incluse in features.",
     "Metti i vincoli concreti nei filtri (tipo, comune, prezzo, locali, caratteristiche) e",
     "la parte descrittiva/di gusto in semanticQuery (es. 'luminoso, tranquillo, vista aperta').",
     `Comuni disponibili: ${facets.comuni.filter((c) => c !== "Tutti").join(", ")}.`,
     "Scegli comune SOLO se combacia con uno di questi; altrimenti omettilo.",
-    "Tipologie: Appartamento, Attico, Villa, Commerciale, Terreno.",
-    "Interpreta bilocale=2 locali, trilocale=3, quadrilocale=4.",
+    "Tipologie: Appartamento, Attico, Villa, Commerciale, Terreno. Come si riconoscono:",
+    "- Appartamento: appartamento, monolocale, bilocale, trilocale, quadrilocale, loft, open space, duplex, studio;",
+    "- Attico: attico, penthouse, mansarda;",
+    "- Villa: villa, villetta, casale, cascina, rustico, terratetto, schiera, porzione, bifamiliare, casa indipendente/singola/unifamiliare;",
+    "- Commerciale: negozio, ufficio, capannone, laboratorio, magazzino, showroom;",
+    "- Terreno: terreno, lotto, area edificabile.",
+    "Valgono anche i sinonimi in altre lingue: piso/apartamento/apartment/appartement/wohnung = Appartamento; maison/haus/house = Villa; terrain/grundstück = Terreno.",
+    "Le parole mono/bi/tri/quadrilocale dicono DUE cose insieme: la tipologia (Appartamento) e i locali (1, 2, 3, 4). Valorizza entrambi.",
+    "«casa» da sola NON indica una tipologia: ometti type invece di indovinare. Vale anche quando la frase aggiunge caratteristiche o prezzo: «casa con giardino» e «casa da 300.000» restano SENZA type, perché anche molti appartamenti hanno il giardino.",
   ].join(" ");
 }
+
+// ── Provider: Claude (tool use forzato) ──────────────────────────────────────
 
 type ToolUseBlock = { type: string; name?: string; input?: unknown };
 
 /** Chiama Claude e ritorna i filtri, oppure null in caso di errore/timeout (il chiamante fa fallback). */
-async function parseQueryAI(query: string, facets: SearchFacets): Promise<ParsedSearch | null> {
+async function parseQueryAnthropic(query: string, facets: SearchFacets): Promise<ParsedSearch | null> {
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -370,16 +398,96 @@ async function parseQueryAI(query: string, facets: SearchFacets): Promise<Parsed
         max_tokens: 512,
         system: buildSystemPrompt(facets),
         tools: [SET_FILTERS_TOOL],
-        tool_choice: { type: "tool", name: "set_filters" },
+        tool_choice: { type: "tool", name: SET_FILTERS_TOOL.name },
         messages: [{ role: "user", content: query }],
       }),
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { content?: ToolUseBlock[] };
-    const block = data.content?.find((b) => b.type === "tool_use" && b.name === "set_filters");
+    const block = data.content?.find((b) => b.type === "tool_use" && b.name === SET_FILTERS_TOOL.name);
     if (!block || typeof block.input !== "object" || block.input === null) return null;
     return sanitize(block.input as Record<string, unknown>, facets, query);
+  } catch {
+    return null;
+  }
+}
+
+// ── Provider: Gemini (function calling forzato) ──────────────────────────────
+
+/**
+ * JSON Schema → Schema di Gemini. Differenza unica ma non negoziabile: Gemini vuole i
+ * `type` in MAIUSCOLO (OBJECT, STRING, ARRAY…) e ignora le chiavi che non conosce.
+ * Tradurre invece di duplicare lo schema evita che i due provider estraggano campi
+ * diversi dopo la prima modifica ai filtri.
+ */
+export function toGeminiSchema(node: SchemaNode): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (node.type) out.type = node.type.toUpperCase();
+  if (node.description) out.description = node.description;
+  if (node.enum) out.enum = [...node.enum];
+  if (node.items) out.items = toGeminiSchema(node.items);
+  if (node.properties) {
+    out.properties = Object.fromEntries(
+      Object.entries(node.properties).map(([key, value]) => [key, toGeminiSchema(value)]),
+    );
+  }
+  // `required: []` viene omesso: Gemini lo accetta, ma un elenco vuoto non dice nulla.
+  if (node.required?.length) out.required = [...node.required];
+  return out;
+}
+
+type GeminiFunctionCall = { name?: string; args?: unknown };
+type GeminiResponse = {
+  candidates?: { content?: { parts?: { functionCall?: GeminiFunctionCall }[] } }[];
+};
+
+/** Chiama Gemini e ritorna i filtri, oppure null in caso di errore/timeout. */
+async function parseQueryGemini(query: string, facets: SearchFacets): Promise<ParsedSearch | null> {
+  try {
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/` +
+      `${encodeURIComponent(AI_SEARCH_MODEL)}:generateContent`;
+    const res = await fetch(url, {
+      method: "POST",
+      // La chiave va nell'header, non in querystring: così non finisce nei log degli URL.
+      headers: { "x-goog-api-key": GEMINI_API_KEY, "content-type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: buildSystemPrompt(facets) }] },
+        contents: [{ role: "user", parts: [{ text: query }] }],
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: SET_FILTERS_TOOL.name,
+                description: SET_FILTERS_TOOL.description,
+                parameters: toGeminiSchema(SET_FILTERS_TOOL.input_schema),
+              },
+            ],
+          },
+        ],
+        // mode ANY = l'equivalente del tool_choice forzato di Anthropic: il modello DEVE
+        // chiamare set_filters, non può rispondere in prosa (che qui sarebbe inutilizzabile).
+        toolConfig: {
+          functionCallingConfig: { mode: "ANY", allowedFunctionNames: [SET_FILTERS_TOOL.name] },
+        },
+        // thinkingBudget 0: su un'estrazione di campi il ragionamento non cambia l'esito e
+        // aggiunge latenza a una chiamata che l'utente aspetta. temperature 0 per stabilità.
+        generationConfig: {
+          maxOutputTokens: 512,
+          temperature: 0,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      }),
+      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as GeminiResponse;
+    const call = data.candidates?.[0]?.content?.parts
+      ?.map((part) => part.functionCall)
+      .find((fn) => fn?.name === SET_FILTERS_TOOL.name);
+    if (!call || typeof call.args !== "object" || call.args === null) return null;
+    return sanitize(call.args as Record<string, unknown>, facets, query);
   } catch {
     return null;
   }
@@ -429,7 +537,10 @@ export async function parseQuery(
   facets: SearchFacets,
 ): Promise<{ filters: ParsedSearch; source: "ai" | "local" }> {
   if (aiParseEnabled) {
-    const ai = await parseQueryAI(query, facets);
+    const ai =
+      AI_PROVIDER === "google"
+        ? await parseQueryGemini(query, facets)
+        : await parseQueryAnthropic(query, facets);
     if (ai) return { filters: ai, source: "ai" };
   }
   return { filters: parseQueryLocal(query, facets), source: "local" };

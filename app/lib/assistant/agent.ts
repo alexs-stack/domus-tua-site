@@ -10,9 +10,12 @@
 //  - senza provider AI configurato produce una risposta di fallback utile, non un errore.
 
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogle, type GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { isStepCount, streamText, type LanguageModel, type ModelMessage } from "ai";
 import {
+  AI_PROVIDER,
   ANTHROPIC_API_KEY,
+  GEMINI_API_KEY,
   ASSISTANT_MODEL,
   HISTORY_WINDOW,
   MAX_SHOWN_IN_PROMPT,
@@ -33,7 +36,7 @@ export interface RunTurnOptions {
   pagePath?: string;
   /** Interruzione dal client (utente che preme "ferma" o chiude la pagina). */
   abortSignal?: AbortSignal;
-  /** Override del modello: usato dai test. In produzione resta il default Anthropic. */
+  /** Override del modello: usato dai test. In produzione resta il default del provider attivo. */
   model?: LanguageModel;
   /** Override degli immobili: usato dai test per non dipendere dal feed. */
   listings?: AssistantListings;
@@ -47,8 +50,36 @@ export interface RunTurnOptions {
 
 /** Modello di produzione. Creato su richiesta: senza chiave non viene mai istanziato. */
 function defaultModel(): LanguageModel {
+  if (AI_PROVIDER === "google") {
+    const google = createGoogle({ apiKey: GEMINI_API_KEY });
+    return google(ASSISTANT_MODEL);
+  }
   const anthropic = createAnthropic({ apiKey: ANTHROPIC_API_KEY });
   return anthropic(ASSISTANT_MODEL);
+}
+
+type StreamProviderOptions = Parameters<typeof streamText>[0]["providerOptions"];
+
+/**
+ * Opzioni del provider per il modello di produzione.
+ *
+ * Su Gemini 3 il ragionamento è ampio di default e si paga quasi tutto sul primo token.
+ * Misurato con `npm run eval`, 100 casi reali su gemini-3.6-flash:
+ *   - default (dinamico)       → 97/100, strumento 100%, p95 primo token 6032 ms
+ *   - thinkingLevel "low"      → 98/100, strumento 100%, p95 3715 ms
+ *   - thinkingLevel "minimal"  → 98/100, strumento 100%, p95 2124 ms
+ * La qualità non cala: cala solo l'attesa. Da qui il minimo — che resta 124 ms sopra la
+ * soglia di programma (p95 ≤ 2 s), l'unica non ancora raggiunta.
+ *
+ * Vale solo per i modelli gemini-3.x: `thinkingLevel` su 2.5 verrebbe rifiutato dall'API.
+ * Con un modello iniettato (test, eval simulato) non si tocca nulla.
+ */
+function providerOptions(injected: boolean): StreamProviderOptions {
+  if (injected || AI_PROVIDER !== "google" || !ASSISTANT_MODEL.startsWith("gemini-3")) {
+    return undefined;
+  }
+  const options: GoogleGenerativeAIProviderOptions = { thinkingConfig: { thinkingLevel: "minimal" } };
+  return { google: options };
 }
 
 /**
@@ -133,6 +164,7 @@ export async function* runAssistantTurn(
   try {
     const result = streamText({
       model: options.model ?? defaultModel(),
+      providerOptions: providerOptions(options.model !== undefined),
       system: buildSystemPrompt(shown),
       messages: toModelMessages(options.messages),
       tools,

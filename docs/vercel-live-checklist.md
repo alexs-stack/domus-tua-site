@@ -83,7 +83,7 @@ Niente di tutto questo può farlo il codice: sono valori che vivono nella dashbo
 | # | Variabile | Valore | Perché |
 |---|---|---|---|
 | 1 | `NEXT_PUBLIC_SITE_URL` | l'URL Vercel dell'anteprima | metadata, OG, sitemap; senza, il sito resta non indicizzabile |
-| 2 | `ANTHROPIC_API_KEY` | la chiave | ricerca in linguaggio naturale + eval dell'assistente |
+| 2 | `GEMINI_API_KEY` | la chiave | ricerca in linguaggio naturale + assistente (alternativa: `ANTHROPIC_API_KEY`) |
 | 3 | `TRUSTINDEX_WIDGET_URL` | URL del widget | recensioni (si caricano comunque solo dopo il consenso) |
 
 Poi **Redeploy** dell'anteprima e `npm run verify:deploy -- <url-anteprima> --preview`.
@@ -150,7 +150,7 @@ curl -s https://<dominio>/api/health | jq
     "heroVideoLive": false,
     "searchAiConfigured": true,
     "semanticRankingConfigured": false,
-    "assistant":  { "enabled": false, "providerConfigured": true, "model": "claude-haiku-4-5-20251001" }
+    "assistant":  { "enabled": false, "providerConfigured": true, "provider": "google", "model": "gemini-3.6-flash" }
   }
 }
 ```
