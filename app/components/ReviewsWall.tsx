@@ -18,7 +18,7 @@
 // (JS, desktop ≥1024 + motion ok): mobile/reduced-motion = colonna statica
 // completa, nessuno stato nascosto.
 import { useRef } from "react";
-import Image from "next/image";
+import YoutubeThumb from "./YoutubeThumb";
 import { Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -323,10 +323,9 @@ export default function ReviewsWall() {
                   aria-label={v.title}
                   className="group absolute inset-0 block"
                 >
-                  <Image
-                    src={v.thumb}
+                  <YoutubeThumb
+                    id={v.id}
                     alt=""
-                    fill
                     sizes="(min-width: 1024px) 17vw, 50vw"
                     className="object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.05]"
                   />
