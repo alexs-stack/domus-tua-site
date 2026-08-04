@@ -3,15 +3,13 @@ import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
 import HomeSearchGateway from "./components/HomeSearchGateway";
 import HorizonStory from "./components/HorizonStory";
-import Stats from "./components/Stats";
-import Authority from "./components/Authority";
+import StarReviews from "./components/StarReviews";
 import Paths from "./components/Paths";
 import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
 import DomusDocProtocol from "./components/DomusDocProtocol";
 import Services from "./components/Services";
 import FeaturedTestimonial from "./components/FeaturedTestimonial";
-import Reviews from "./components/Reviews";
 import Social from "./components/Social";
 import Team from "./components/Team";
 import Contact from "./components/Contact";
@@ -47,8 +45,10 @@ export default function Home() {
         {/* Il set piece "orizzonte": fondale aereo + cupola + pannelli orizzontali
             (tecnica dal dossier era-residence §11, contenuti e forme nostri). */}
         <HorizonStory />
-        <Stats />
-        <Authority />
+        {/* Cinque stelle: il capitolo recensioni unificato (sostituisce la
+            banda numeri + marquee di tag, la vecchia sezione Reviews e la
+            banda Authority — il suo claim vive dentro il capitolo). */}
+        <StarReviews />
         {/* Il momento video della home vive nel muro delle voci (HorizonStory,
             atto 4): la vecchia SocialVideoWall è stata ritirata per non
             mostrare due volte gli stessi video. */}
@@ -61,7 +61,6 @@ export default function Home() {
         <div className="bg-paper">
           <SectionDivider tone="paper" />
         </div>
-        <Reviews />
         <Social />
         <div className="bg-cream">
           <SectionDivider tone="cream" />

@@ -3,18 +3,13 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { Logo } from "./Logo";
-import { Phone, Whatsapp, Mail, Pin, Instagram, Facebook, TikTok, YouTube } from "./Icons";
+import { Phone, Whatsapp, Mail, Pin } from "./Icons";
+import { Cta } from "./primitives/Cta";
+import SocialLinks from "./primitives/SocialLinks";
 import { getLenis } from "./motion/SmoothScroll";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
-
-const socials = [
-  { icon: Instagram, label: "Instagram", href: site.social.instagram.href },
-  { icon: Facebook, label: "Facebook", href: site.social.facebook.href },
-  { icon: TikTok, label: "TikTok", href: site.social.tiktok.href },
-  { icon: YouTube, label: "YouTube", href: site.social.youtube.href },
-];
 
 export default function Footer() {
   const d = useDict();
@@ -23,8 +18,8 @@ export default function Footer() {
   const wordmarkRef = useRef<HTMLDivElement | null>(null);
 
   // Due regimi (vedi globals.css "Footer reveal"):
-  // - Mobile/tablet: ingresso a colonne classico (una volta sola), stato
-  //   nascosto solo via JS — senza JS o con reduced-motion tutto visibile.
+  // - Mobile/tablet: ingresso a colonne classico (replay a ogni passaggio),
+  //   stato nascosto solo via JS — senza JS o con reduced-motion tutto visibile.
   // - Desktop ≥1024px + motion ok: modalità "uncover" — il footer è fisso
   //   dietro al main (classe html.dt-footer-reveal + var --dt-footer-h) e il
   //   contenuto si "assesta" in scrub mentre viene scoperto; il wordmark
@@ -52,7 +47,8 @@ export default function Footer() {
             duration: 1,
             stagger: 0.1,
             ease: "expo.out",
-            scrollTrigger: { trigger: footer, start: "top 85%", once: true },
+            // Replay a ogni passaggio: restart all'ingresso, reverse risalendo.
+            scrollTrigger: { trigger: footer, start: "top 85%", toggleActions: "restart none none reverse" },
           }
         );
         // Reti di sicurezza (stesso patto di Reveal): il focus da tastiera o un
@@ -206,21 +202,8 @@ export default function Footer() {
               </span>
             </div>
 
-            {/* Social */}
-            <div className="mt-7 flex gap-2.5">
-              {socials.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Domus Tua su ${s.label}`}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream/80 transition-all duration-300 hover:border-red hover:bg-red hover:text-white"
-                >
-                  <s.icon className="h-5 w-5" />
-                </a>
-              ))}
-            </div>
+            {/* Social — icone con tooltip elastico (§CTA SYSTEM) */}
+            <SocialLinks tone="dark" className="mt-7" />
           </div>
 
           {/* Nav */}
@@ -285,12 +268,9 @@ export default function Footer() {
             </ul>
             {/* /#contatti (non #contatti): su /privacy e /cookie non esiste
                 l'ancora locale e la CTA sarebbe un link morto. */}
-            <Link
-              href="/#contatti"
-              className="mt-6 inline-flex rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-ink transition-colors duration-300 hover:bg-red hover:text-white"
-            >
+            <Cta href="/#contatti" variant="reveal-cream" size="sm" className="mt-6">
               {d.footer.valuta}
-            </Link>
+            </Cta>
           </div>
         </div>
 

@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Reveal from "./Reveal";
 import Atmosphere from "./motion/Atmosphere";
-import { ArrowUpRight } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
@@ -187,14 +187,18 @@ export default function Method() {
 
         // Il cuore in coda al filo: si disegna dallo stesso punto in cui il
         // filo arriva (l'incavo in alto), poi si riempie di rosso. Stessa
-        // tecnica del filo (dasharray a runtime); once, come il vecchio Segno.
+        // tecnica del filo (dasharray a runtime); replay a ogni passaggio.
         const heart = segnoWrapRef.current?.querySelector<SVGPathElement>("[data-heart-path]");
         if (heart) {
           const hlen = heart.getTotalLength() + 2;
           gsap.set(heart, { strokeDasharray: hlen, strokeDashoffset: hlen, fillOpacity: 0 });
           gsap
             .timeline({
-              scrollTrigger: { trigger: segnoWrapRef.current, start: "top 80%", once: true },
+              scrollTrigger: {
+                trigger: segnoWrapRef.current,
+                start: "top 80%",
+                toggleActions: "restart none none reverse",
+              },
             })
             .to(heart, { strokeDashoffset: 0, duration: 1.1, ease: "domus.inOut" })
             .to(heart, { fillOpacity: 1, duration: 0.5, ease: "none" }, "-=0.15");
@@ -211,8 +215,9 @@ export default function Method() {
           })
         );
 
-        // Ingresso dei fogli: ciascuno dal proprio lato, una volta sola
-        // (nessun link nei fogli: autoAlpha è sicuro).
+        // Ingresso dei fogli: ciascuno dal proprio lato, replay a ogni
+        // passaggio (nessun link nei fogli: autoAlpha è sicuro; niente
+        // clearProps — romperebbe restart/reverse).
         const desktop = () => window.matchMedia("(min-width: 1024px)").matches;
         const enter = gsap.fromTo(
           items,
@@ -228,8 +233,7 @@ export default function Method() {
             duration: dur.short,
             ease: "domus",
             stagger: 0.08,
-            clearProps: "opacity,visibility,transform",
-            scrollTrigger: { trigger: list, start: "top 80%", once: true },
+            scrollTrigger: { trigger: list, start: "top 80%", toggleActions: "restart none none reverse" },
           }
         );
         const safety = window.setTimeout(() => enter.progress(1), 2500);
@@ -279,15 +283,9 @@ export default function Method() {
             {c.title}
           </h2>
           <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-stone">{c.subcopy}</p>
-          <a
-            href="#contatti"
-            className="group mt-8 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-          >
+          <Cta href="#contatti" variant="cta" size="md" className="mt-8">
             {c.cta}
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
-          </a>
+          </Cta>
         </Reveal>
 
         {/* Il filo rosso + i fogli del dossier */}

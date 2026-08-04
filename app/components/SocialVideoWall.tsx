@@ -7,7 +7,8 @@ import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { SegnoDomusBadge } from "./BrandMotif";
-import { Play, ArrowUpRight, Instagram, YouTube, Star } from "./Icons";
+import { Play, Instagram, YouTube, Star } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { site } from "../lib/site";
 import {
   featuredVideo,
@@ -344,17 +345,16 @@ export default function SocialVideoWall() {
               <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.9rem]">
                 {c.vFeatured}
               </h3>
-              <a
+              <Cta
                 href={site.social.youtube.href}
+                variant="cta"
+                size="md"
+                className="mt-6"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
               >
                 <YouTube className="h-4 w-4" /> {c.ctaWatch}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
+              </Cta>
             </div>
           </div>
         </Reveal>
@@ -404,25 +404,25 @@ export default function SocialVideoWall() {
           </span>
 
           <div className="flex flex-wrap gap-3">
-            <a
+            <Cta
               href={site.social.youtube.href}
+              variant="cta"
+              size="md"
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
             >
               <YouTube className="h-4 w-4" /> {c.ctaWatch}
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </a>
-            <a
+            </Cta>
+            <Cta
               href={site.social.instagram.href}
+              variant="ghost"
+              size="md"
+              arrow={false}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-3 text-sm font-semibold text-ink transition-all duration-300 hover:border-red hover:text-red"
             >
               <Instagram className="h-4 w-4" /> {c.ctaInstagram}
-            </a>
+            </Cta>
           </div>
         </Reveal>
       </div>

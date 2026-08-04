@@ -107,8 +107,13 @@ export default function ContattiContent() {
             duration: dur.short,
             ease: "domus",
             stagger: 0.07,
-            clearProps: "all",
-            scrollTrigger: { trigger: list, start: "top 88%", once: true },
+            // Replay a ogni passaggio (richiesta cliente): niente clearProps,
+            // romperebbe il restart/reverse del trigger.
+            scrollTrigger: {
+              trigger: list,
+              start: "top 88%",
+              toggleActions: "restart none none reverse",
+            },
           }
         );
       });

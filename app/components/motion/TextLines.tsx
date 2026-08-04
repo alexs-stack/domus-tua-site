@@ -1,9 +1,12 @@
 "use client";
 
 // TextLines — reveal editoriale riga-per-riga per titoli display e citazioni:
-// ogni riga sale da una maschera (SplitText, type lines + mask). Dopo il play
-// il markup viene ripristinato (revert) → niente span residui, niente problemi
-// di resize/i18n. Con reduced-motion o senza JS il testo resta statico e visibile.
+// ogni riga sale da una maschera (SplitText, type lines + mask). Il reveal
+// RIGIOCA a ogni passaggio, in entrambe le direzioni (richiesta cliente
+// 2026-08-04): lo split resta vivo e `autoSplit` lo ricostruisce al resize
+// (il tween ritornato da onSplit viene ripulito e ricreato da GSAP). i18n
+// resta gestita dal remount via key. Con reduced-motion o senza JS il testo
+// è statico e visibile.
 import { useRef, type ElementType, type ReactNode } from "react";
 import { SplitText } from "gsap/SplitText";
 import { gsap, useGSAP, MQ } from "../../lib/motion/gsap";
@@ -57,25 +60,31 @@ export default function TextLines({
             // `auto` metterebbe un aria-label sull'elemento: su un <blockquote> è un attributo
             // vietato (il ruolo non ammette un nome accessibile) e axe lo segnala come
             // violazione seria. Con `none` il testo resta nelle righe e continua a essere
-            // letto; lo split viene comunque ripristinato a fine animazione.
+            // letto.
             aria: "none",
+            // Replay a ogni passaggio: niente revert al complete — autoSplit
+            // tiene le righe corrette al resize e ricrea il tween di onSplit.
+            autoSplit: true,
+            onSplit: (self) => {
+              tween = gsap.fromTo(
+                self.lines,
+                { yPercent: 112 },
+                {
+                  yPercent: 0,
+                  duration: 1.05,
+                  ease: "expo.out",
+                  stagger,
+                  delay,
+                  scrollTrigger: {
+                    trigger: el,
+                    start: "top 86%",
+                    toggleActions: "restart none none reverse",
+                  },
+                }
+              );
+              return tween;
+            },
           });
-          tween = gsap.fromTo(
-            split.lines,
-            { yPercent: 112 },
-            {
-              yPercent: 0,
-              duration: 1.05,
-              ease: "expo.out",
-              stagger,
-              delay,
-              scrollTrigger: { trigger: el, start: "top 86%", once: true },
-              onComplete: () => {
-                split?.revert();
-                split = null;
-              },
-            }
-          );
         });
 
         // Creato in async (dopo fonts.ready): il context GSAP non lo raccoglie,

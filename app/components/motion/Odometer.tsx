@@ -76,12 +76,15 @@ export default function Odometer({
         // Ogni riga è il 10% dell'altezza della colonna: yPercent -d*10 mostra
         // la cifra d. Stagger dalle unità verso sinistra (from: "end").
         gsap.set(cols, { yPercent: 0 });
+        // Replay a ogni passaggio: restart all'ingresso, reset ISTANTANEO
+        // risalendo oltre l'inizio (le cifre che rullano all'indietro sono
+        // solo rumore).
         const tween = gsap.to(cols, {
           yPercent: (i: number) => -finals[i] * 10,
           duration: dur.hero,
           ease: "domus",
           stagger: { each: stagger.chars, from: "end" },
-          scrollTrigger: { trigger: el, start: "top 80%", once: true },
+          scrollTrigger: { trigger: el, start: "top 80%", toggleActions: "restart none none reset" },
           onStart() {
             gsap.set(cols, { willChange: "transform" });
           },

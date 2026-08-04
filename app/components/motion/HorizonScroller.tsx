@@ -92,40 +92,48 @@ export default function HorizonScroller({
         const undoFocus: Array<() => void> = [];
         const revealOf = (el: HTMLElement) => {
           gsap.set(el, { autoAlpha: 0, y: 28 });
-          let played = false;
+          // Replay a ogni passaggio: il tween resta in closure — restart a
+          // ogni ingresso, reverse risalendo oltre l'inizio.
+          let tw: gsap.core.Tween | null = null;
           const play = () => {
-            if (played) return;
-            played = true;
-            gsap.to(el, { autoAlpha: 1, y: 0, duration: dur.reveal, ease: "domus" });
+            if (!tw) {
+              tw = gsap.to(el, { autoAlpha: 1, y: 0, duration: dur.reveal, ease: "domus", paused: true });
+            }
+            tw.restart();
           };
-          const onFocus = () => play();
+          const back = () => tw?.reverse();
+          const onFocus = () => {
+            // Rete di sicurezza: tastiera dentro = reveal completo subito.
+            play();
+            tw?.progress(1);
+          };
           el.addEventListener("focusin", onFocus);
           undoFocus.push(() => el.removeEventListener("focusin", onFocus));
-          return play;
+          return { play, back };
         };
 
         gsap.utils
           .toArray<HTMLElement>('[data-horizon-reveal="enter"]', track)
           .forEach((el, i) => {
-            const play = revealOf(el);
+            const r = revealOf(el);
             ScrollTrigger.create({
               trigger: root,
               start: "top 70%",
-              once: true,
-              onEnter: () => gsap.delayedCall(i * 0.12, play),
+              onEnter: () => gsap.delayedCall(i * 0.12, r.play),
+              onLeaveBack: () => r.back(),
             });
           });
 
         gsap.utils
           .toArray<HTMLElement>('[data-horizon-reveal="track"]', track)
           .forEach((el) => {
-            const play = revealOf(el);
+            const r = revealOf(el);
             ScrollTrigger.create({
               trigger: el,
               containerAnimation: tween,
               start: "left 85%",
-              once: true,
-              onEnter: play,
+              onEnter: () => r.play(),
+              onLeaveBack: () => r.back(),
             });
           });
 
@@ -155,28 +163,33 @@ export default function HorizonScroller({
                 transformOrigin: "50% 100%",
                 transformPerspective: 800,
               });
-              let played = false;
+              // Replay a ogni passaggio: tween persistente in closure e split
+              // che resta VIVO (niente revert al complete — cancellerebbe i
+              // char per il restart); il revert avviene solo nel cleanup.
+              let charTween: gsap.core.Tween | null = null;
               const play = () => {
-                if (played) return;
-                played = true;
-                gsap.to(split.chars, {
-                  autoAlpha: 1,
-                  yPercent: 0,
-                  rotateY: 0,
-                  duration: 1.2,
-                  ease: "dtOut",
-                  stagger: stagger.chars / 2,
-                  onComplete: () => split.revert(),
-                });
+                if (!charTween) {
+                  charTween = gsap.to(split.chars, {
+                    autoAlpha: 1,
+                    yPercent: 0,
+                    rotateY: 0,
+                    duration: 1.2,
+                    ease: "dtOut",
+                    stagger: stagger.chars / 2,
+                    paused: true,
+                  });
+                }
+                charTween.restart();
               };
               const st = ScrollTrigger.create({
                 trigger: root,
                 start: "top 55%",
-                once: true,
                 onEnter: play,
+                onLeaveBack: () => charTween?.reverse(),
               });
               charKills.push(() => {
                 st.kill();
+                charTween?.kill();
                 split.revert();
               });
             });
@@ -197,20 +210,27 @@ export default function HorizonScroller({
           );
         }
 
-        // ── Media a sipario: clip-path + scale interna, una volta sola ─────
+        // ── Media a sipario: clip-path + scale interna ─────────────────────
         gsap.utils.toArray<HTMLElement>("[data-horizon-slide]", track).forEach((el) => {
           const img = el.querySelector<HTMLElement>("[data-horizon-slide-img]");
           gsap.set(el, { clipPath: "inset(0% 100% 0% 0%)" });
           if (img) gsap.set(img, { scale: 1.15 });
+          // Replay a ogni passaggio: timeline persistente in closure —
+          // restart all'ingresso, reverse risalendo oltre l'inizio.
+          let stl: gsap.core.Timeline | null = null;
           ScrollTrigger.create({
             trigger: el,
             containerAnimation: tween,
             start: "left 90%",
-            once: true,
             onEnter: () => {
-              gsap.to(el, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "dtOut" });
-              if (img) gsap.to(img, { scale: 1, duration: 1.6, ease: "dtOut" });
+              if (!stl) {
+                stl = gsap.timeline({ paused: true });
+                stl.to(el, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "dtOut" }, 0);
+                if (img) stl.to(img, { scale: 1, duration: 1.6, ease: "dtOut" }, 0);
+              }
+              stl.restart();
             },
+            onLeaveBack: () => stl?.reverse(),
           });
         });
 

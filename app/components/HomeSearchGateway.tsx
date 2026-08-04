@@ -4,10 +4,10 @@
 // Al submit naviga a /acquista con query params (q, comune, budget, type, rooms) che PropertySearch
 // legge e pre-imposta. La ricerca in linguaggio naturale resta un teaser (nessuna finta AI).
 import { useState, useRef } from "react";
-import Link from "next/link";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
-import { ArrowUpRight, ArrowRight, Search } from "./Icons";
+import { Search } from "./Icons";
+import { Cta, CtaButton } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import { transitionTo } from "./motion/PageTransition";
 import { gsap, MQ } from "../lib/motion/gsap";
@@ -203,15 +203,9 @@ export default function HomeSearchGateway() {
                 </label>
               </div>
 
-              <button
-                type="submit"
-                className="group mt-6 inline-flex items-center justify-center gap-2 self-start rounded-full bg-red py-3.5 pl-6 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
+              <CtaButton type="submit" variant="cta" size="md" className="mt-6 self-start">
                 {c.search}
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </button>
+              </CtaButton>
             </Reveal>
           </form>
 
@@ -226,15 +220,12 @@ export default function HomeSearchGateway() {
                   {d.search.sellerTitle}
                 </h2>
               </div>
-              <Link
-                href="/#contatti"
-                className="group mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-white py-3.5 pl-6 pr-3 text-sm font-semibold text-red transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-cream active:scale-[0.98]"
-              >
+              {/* Doppia faccia: crema a riposo (come la vecchia pill bianca), il
+                  gradiente rosso dell'hover si fonde con la card = il bottone
+                  "si apre" verso la sezione contatti. */}
+              <Cta href="/#contatti" variant="reveal-cream" size="md" className="mt-8">
                 {d.search.sellerCta}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red/10 transition-transform duration-300 group-hover:translate-x-0.5">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </Link>
+              </Cta>
             </div>
           </Reveal>
         </div>

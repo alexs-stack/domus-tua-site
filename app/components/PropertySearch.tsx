@@ -13,11 +13,12 @@ const PropertyMap = dynamic(() => import("./PropertyMap"), {
 });
 import CaseQuickLook from "./CaseQuickLook";
 import { ArrowRight } from "./Icons";
+import { Cta, CtaButton } from "./primitives/Cta";
 import { SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
-import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 import { groupAvailableByTown } from "../lib/geo/comuni";
 import { canonicalComune, comuniFacet, matchesComune } from "../lib/comune";
 import { isAvailable, isSold } from "../lib/availability";
@@ -637,25 +638,37 @@ export default function PropertySearch({ properties }: { properties: GridPropert
         const cards = gsap.utils.toArray<HTMLElement>(grid.children);
         if (!cards.length) return;
         // Nascoste solo post-idratazione: HTML iniziale completo (SEO/no-JS).
-        gsap.set(cards, { opacity: 0, y: dist.rise / 2 });
+        gsap.set(cards, { opacity: 0 });
+        // Replay a ogni passaggio (richiesta cliente) ma SOLO opacity: le card
+        // sono link cliccabili e un transform che le sposta durante lo scroll
+        // fa mancare il click (regressione e2e "filtro comune"); il movimento
+        // qui lo fa già il FLIP dei filtri. overwrite: gli scroll rapidi
+        // su/giù non accavallano i tween.
+        let entered = false;
         const triggers = ScrollTrigger.batch(cards, {
           start: "top 85%",
-          once: true,
-          onEnter: (els) =>
-            gsap.fromTo(
-              els,
-              { opacity: 0, y: dist.rise / 2 },
-              {
-                opacity: 1,
-                y: 0,
-                duration: dur.short,
-                ease: "domus",
-                stagger: stagger.cards / 2,
-                clearProps: "opacity,transform",
-              }
-            ),
+          onEnter: (els) => {
+            entered = true;
+            gsap.to(els, {
+              opacity: 1,
+              duration: dur.short,
+              ease: "domus",
+              stagger: stagger.cards / 2,
+              overwrite: true,
+            });
+          },
+          onLeaveBack: (els) =>
+            gsap.to(els, {
+              opacity: 0,
+              duration: dur.short,
+              ease: "domus",
+              overwrite: true,
+            }),
         });
-        // Le card contengono link: reti di sicurezza come Reveal (focus o timeout).
+        // Le card contengono link: reti di sicurezza come Reveal. Il focus da
+        // tastiera rivela subito tutto; il timeout interviene solo se il batch
+        // non è mai scattato (con il replay le card possono tornare nascoste
+        // di proposito).
         let done = false;
         const showAll = () => {
           if (done) return;
@@ -666,7 +679,9 @@ export default function PropertySearch({ properties }: { properties: GridPropert
           gsap.set(cards.filter((el) => !gsap.isTweening(el)), { clearProps: "opacity,transform" });
         };
         grid.addEventListener("focusin", showAll);
-        const safety = window.setTimeout(showAll, 2500);
+        const safety = window.setTimeout(() => {
+          if (!entered) showAll();
+        }, 2500);
         return () => {
           grid.removeEventListener("focusin", showAll);
           window.clearTimeout(safety);
@@ -1005,12 +1020,15 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             </div>
             {visible < shown.length && (
               <div className="mt-10 flex flex-col items-center gap-3">
-                <button
+                <CtaButton
+                  type="button"
+                  variant="ghost"
+                  size="md"
+                  arrow={false}
                   onClick={() => setVisible((v) => v + 24)}
-                  className="rounded-full border border-line bg-paper px-7 py-3 text-sm font-semibold text-ink transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-red active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                 >
                   {c.showMore}
-                </button>
+                </CtaButton>
                 <p className="text-[0.82rem] text-stone">
                   {c.showingHint
                     .replace("{n}", String(Math.min(visible, shown.length)))
@@ -1024,14 +1042,16 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             <p className="font-display text-2xl font-medium text-ink">{c.emptyTitle}</p>
             <p className="mx-auto mt-2 max-w-xl text-stone">{c.emptyBody}</p>
             {/* CTA a intento acquirente su WhatsApp, precompilato con la frase cercata. */}
-            <a
+            <Cta
               href={buyerWaUrl}
+              variant="cta"
+              size="md"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors duration-300 hover:bg-red-dark"
+              className="mt-6"
             >
               {c.emptyCta}
-            </a>
+            </Cta>
           </div>
         )}
       </div>

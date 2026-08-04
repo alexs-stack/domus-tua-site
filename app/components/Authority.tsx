@@ -98,7 +98,9 @@ export default function Authority() {
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: card, start: "top 82%", once: true },
+          // Replay a ogni passaggio: restart all'ingresso, reverse risalendo
+          // (niente clearProps: la timeline resta riavvolgibile).
+          scrollTrigger: { trigger: card, start: "top 82%", toggleActions: "restart none none reverse" },
         });
         if (starsRef.current) {
           tl.fromTo(
@@ -109,7 +111,6 @@ export default function Authority() {
               duration: 0.5,
               ease: "back.out(1.6)",
               stagger: 0.06,
-              clearProps: "scale",
             },
             0
           );
@@ -124,7 +125,6 @@ export default function Authority() {
               duration: 0.6,
               ease: "expo.out",
               stagger: 0.1,
-              clearProps: "all",
             },
             0.35
           );

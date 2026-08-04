@@ -122,11 +122,13 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
             }
           );
           if (underline) {
+            // Replay a ogni passaggio: l'ago ricuce a ogni ingresso e si
+            // riavvolge risalendo oltre l'inizio.
             gsap.to(underline, {
               clipPath: UNDERLINE_SHOWN,
               duration: dur.short,
               ease: "power2.inOut",
-              scrollTrigger: { trigger: h2, start: "top 55%", once: true },
+              scrollTrigger: { trigger: h2, start: "top 55%", toggleActions: "restart none none reverse" },
             });
           }
         }

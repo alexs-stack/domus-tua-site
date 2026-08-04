@@ -90,7 +90,9 @@ export default function FeaturedTestimonial(props: Props) {
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: card, start: "top 82%", once: true },
+          // Replay a ogni passaggio: restart all'ingresso, reverse risalendo
+          // (niente clearProps: la timeline resta riavvolgibile).
+          scrollTrigger: { trigger: card, start: "top 82%", toggleActions: "restart none none reverse" },
         });
         if (glyphRef.current) {
           tl.fromTo(
@@ -101,7 +103,6 @@ export default function FeaturedTestimonial(props: Props) {
               rotate: 0,
               duration: 1,
               ease: "expo.out",
-              clearProps: "transform",
             },
             0
           );
@@ -115,7 +116,6 @@ export default function FeaturedTestimonial(props: Props) {
               duration: 0.6,
               ease: "back.out(1.6)",
               stagger: 0.06,
-              clearProps: "scale",
             },
             0.55
           );

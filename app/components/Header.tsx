@@ -5,7 +5,8 @@ import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import RotatingMark from "./motion/RotatingMark";
-import { ArrowUpRight, Whatsapp } from "./Icons";
+import { Whatsapp } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
@@ -310,17 +311,17 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Icona social del sistema CTA: tooltip elastico, variante dark sopra l'hero */}
           <a
             href={site.whatsapp.href}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={d.header.whatsapp}
-            className={`hidden h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 sm:flex ${
-              scrolled
-                ? "border-line text-graphite hover:border-red hover:text-red"
-                : "border-cream/40 text-cream hover:border-cream hover:text-white"
-            }`}
+            className={`dt-social__link !hidden sm:!flex ${scrolled ? "" : "dt-social__link--dark"}`}
           >
+            <span className="dt-social__tip" aria-hidden>
+              WhatsApp
+            </span>
             <Whatsapp className="h-5 w-5" />
           </a>
 
@@ -328,15 +329,14 @@ export default function Header() {
             <LanguageSwitcher light={!scrolled} />
           </div>
 
-          <Link
+          <Cta
             href="/#contatti"
-            className="group hidden items-center gap-2 rounded-full bg-red py-2.5 pl-5 pr-2.5 text-[0.85rem] font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] sm:flex"
+            variant="cta-solid"
+            size="sm"
+            className="!hidden sm:!inline-flex"
           >
             {d.header.valuta}
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
-          </Link>
+          </Cta>
 
           {/* Hamburger */}
           <button
@@ -401,22 +401,26 @@ export default function Header() {
         </nav>
 
         <div data-menu-bottom className="mt-auto flex flex-col gap-3 pt-8">
-          <Link
+          <Cta
             href="/#contatti"
+            variant="cta-solid"
+            size="lg"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center gap-2 rounded-full bg-red py-4 text-base font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
+            className="w-full"
           >
             {d.header.valuta}
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
-          <a
+          </Cta>
+          <Cta
             href={site.whatsapp.href}
+            variant="ghost"
+            size="lg"
+            arrow={false}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-4 text-base font-semibold text-ink transition-colors duration-300 hover:border-red active:scale-[0.98]"
+            className="w-full"
           >
             <Whatsapp className="h-5 w-5 text-red" /> {d.header.whatsapp}
-          </a>
+          </Cta>
           <div className="pt-2">
             <LanguageSwitcher />
           </div>

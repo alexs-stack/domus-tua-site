@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import PageHero from "../components/PageHero";
 import Reveal from "../components/Reveal";
@@ -12,7 +11,7 @@ import DrawOnScroll from "../components/motion/DrawOnScroll";
 import MaskReveal from "../components/motion/MaskReveal";
 import Parallax from "../components/motion/Parallax";
 import Atmosphere from "../components/motion/Atmosphere";
-import { ArrowUpRight, ArrowRight } from "../components/Icons";
+import { Cta } from "../components/primitives/Cta";
 import { site } from "../lib/site";
 import { team, teamInitials, teamRoleLabels } from "../lib/team";
 import { faqIt } from "./faq";
@@ -816,15 +815,16 @@ export default function LavoraConNoiContent() {
                       rispetta lo scroll-margin dell'header). aria-label esplicita:
                       cinque link con lo stesso testo, letti fuori contesto, sono
                       indistinguibili in un elenco di link dello screen reader. */}
-                  <a
+                  <Cta
                     href="#candidatura"
+                    variant="ghost"
+                    size="sm"
                     aria-label={c.ctaAria.replace("{area}", r.title)}
                     onClick={() => chooseRole(id, r.title)}
-                    className="mt-7 inline-flex items-center gap-2 self-start rounded-full border border-ink/15 bg-cream px-5 py-2.5 text-[0.85rem] font-semibold text-ink transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-red hover:text-red active:scale-[0.98]"
+                    className="mt-7 self-start"
                   >
                     {c.rolesCta}
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </a>
+                  </Cta>
                 </Reveal>
               );
             })}
@@ -843,16 +843,15 @@ export default function LavoraConNoiContent() {
                 </h3>
                 <p className="mt-3 text-[0.95rem] leading-relaxed text-cream/75">{c.spontaneaCopy}</p>
               </div>
-              <a
+              <Cta
                 href="#candidatura"
+                variant="reveal-cream"
+                size="sm"
                 onClick={() => chooseRole("spontanea", c.spontaneaCta)}
-                className="group/cta mt-7 inline-flex items-center gap-2 self-start rounded-full bg-red py-3 pl-5 pr-2.5 text-[0.85rem] font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+                className="mt-7 self-start"
               >
                 {c.spontaneaCta}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
+              </Cta>
             </Reveal>
           </ul>
         </div>
@@ -968,15 +967,9 @@ export default function LavoraConNoiContent() {
                 </ul>
               </div>
 
-              <Link
-                href="/chi-siamo"
-                className="group mt-8 inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper py-3 pl-6 pr-2.5 text-sm font-semibold text-ink transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-red hover:text-red active:scale-[0.98]"
-              >
+              <Cta href="/chi-siamo" variant="ghost" size="md" className="mt-8">
                 {c.teamCta}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-deep transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </Link>
+              </Cta>
             </Reveal>
           </div>
         </div>

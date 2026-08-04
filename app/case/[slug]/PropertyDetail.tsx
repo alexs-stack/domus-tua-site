@@ -10,7 +10,8 @@ import Badge from "../../components/primitives/Badge";
 import Contact from "../../components/Contact";
 import DrawOnScroll from "../../components/motion/DrawOnScroll";
 import { SegnoDomusBadge, SegnoDomusCorner, SegnoDomusDivider, SegnoTick } from "../../components/BrandMotif";
-import { ArrowRight, ArrowUpRight, Whatsapp } from "../../components/Icons";
+import { ArrowRight, Whatsapp } from "../../components/Icons";
+import { Cta } from "../../components/primitives/Cta";
 import { site } from "../../lib/site";
 import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
@@ -301,30 +302,37 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
         gsap.set(values, { opacity: 0, y: 8 });
+        // Replay a ogni passaggio (richiesta cliente): tween persistente in
+        // closure (niente clearProps, romperebbe restart/reverse) — restart a
+        // ogni ingresso, reverse risalendo oltre l'inizio.
+        let tween: gsap.core.Tween | null = null;
         const st = ScrollTrigger.create({
           trigger: strip,
           start: "top 92%",
-          once: true,
-          onEnter: () =>
-            gsap.fromTo(
-              values,
-              { opacity: 0, y: 8 },
-              {
-                opacity: 1,
-                y: 0,
-                duration: dur.micro,
-                ease: "domus",
-                stagger: stagger.chars,
-                clearProps: "opacity,transform",
-              }
-            ),
+          onEnter: () => {
+            if (!tween) {
+              tween = gsap.fromTo(
+                values,
+                { opacity: 0, y: 8 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: dur.micro,
+                  ease: "domus",
+                  stagger: stagger.chars,
+                  paused: true,
+                }
+              );
+            }
+            tween.restart();
+          },
+          onLeaveBack: () => tween?.reverse(),
         });
 
-        // Rete di sicurezza: i dati chiave non restano mai nascosti.
-        let done = false;
+        // Rete di sicurezza: i dati chiave non restano mai nascosti se il
+        // trigger non scatta mai; a tween creato ci pensano restart/reverse.
         const showAll = () => {
-          if (done) return;
-          done = true;
+          if (tween) return;
           st.kill();
           gsap.set(values.filter((el) => !gsap.isTweening(el)), { clearProps: "opacity,transform" });
         };
@@ -332,6 +340,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         return () => {
           window.clearTimeout(safety);
           st.kill();
+          tween?.kill();
         };
       });
     },
@@ -380,15 +389,16 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
               <p className="font-display text-lg font-medium text-red-dark">{c.soldTitle}</p>
               <p className="mt-1 max-w-lg text-sm text-graphite">{c.soldText}</p>
             </div>
-            <a
+            <Cta
               href={waSimilar}
+              variant="cta-solid"
+              size="sm"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-red px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-red-dark sm:self-auto"
+              className="shrink-0 self-start sm:self-auto"
             >
               {c.soldCta}
-              <ArrowRight className="h-4 w-4" />
-            </a>
+            </Cta>
           </div>
         )}
 
@@ -453,23 +463,20 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                 </p>
               )}
 
-              <a
-                href="#contatti"
-                className="group mt-5 flex items-center justify-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-soft hover:bg-red-dark active:scale-[0.98]"
-              >
+              <Cta href="#contatti" variant="cta" size="md" className="mt-5 w-full">
                 {c.requestVisit}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </a>
-              <a
+              </Cta>
+              <Cta
                 href={waTalk}
+                variant="ghost"
+                size="md"
+                arrow={false}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-3.5 text-sm font-semibold text-ink transition-all duration-300 ease-soft hover:border-red hover:text-red active:scale-[0.98]"
+                className="mt-3 w-full"
               >
                 <Whatsapp className="h-5 w-5 text-red" /> {c.whatsapp}
-              </a>
+              </Cta>
             </div>
 
             {/* Box dei dati: uno per gruppo con contenuto, mai box vuoti, mai "—". */}
@@ -604,13 +611,9 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
             </h2>
             <p className="mt-2 max-w-xl text-graphite">{c.notRightText}</p>
           </div>
-          <a
-            href="#contatti"
-            className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors duration-300 hover:bg-red-dark"
-          >
+          <Cta href="#contatti" variant="cta" size="md" className="shrink-0">
             {c.notRightCta}
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </a>
+          </Cta>
         </div>
       </section>
 

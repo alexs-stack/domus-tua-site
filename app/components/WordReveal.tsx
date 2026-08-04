@@ -37,14 +37,11 @@ export default function WordReveal({
     if (immediate) return;
     const el = ref.current;
     if (!el) return;
+    // Replay a ogni passaggio (anche scroll inverso): l'osservatore accende e
+    // spegne, il titolo rigioca ogni volta che rientra nel viewport.
     const io = new IntersectionObserver(
       (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            setShown(true);
-            io.unobserve(e.target);
-          }
-        });
+        entries.forEach((e) => setShown(e.isIntersecting));
       },
       { threshold: 0.2, rootMargin: "0px 0px -6% 0px" }
     );

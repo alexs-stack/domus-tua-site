@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
-import { ArrowUpRight, Check } from "./Icons";
+import { Check } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
@@ -155,9 +155,10 @@ export default function BeforeAfter() {
   const killIntro = useCallback(() => {
     const tween = introTween.current;
     if (!tween) return;
-    // Se l'intro non è mai partita (trigger non ancora scattato, o delay in corso),
-    // il divisore è fermo al 2% pre-wipe: ripristina lo stato SSR (52%) così le
-    // interazioni relative (frecce da tastiera) partono dal centro, non dal 2%.
+    // Se l'intro è ferma a progress 0 (trigger non ancora scattato, delay in
+    // corso, o reverse completato risalendo), il divisore è al 2% pre-wipe:
+    // ripristina lo stato SSR (52%) così le interazioni relative (frecce da
+    // tastiera) partono dal centro, non dal 2%.
     const neverPlayed = tween.progress() === 0;
     tween.scrollTrigger?.kill();
     tween.kill();
@@ -167,6 +168,8 @@ export default function BeforeAfter() {
 
   // Il confronto si racconta da solo: quando la cornice entra nel viewport il
   // "dopo" si svela con un wipe lento (2% → 52%), poi il cursore resta all'utente.
+  // Replay a ogni passaggio finché l'utente non tocca: restart all'ingresso,
+  // reverse risalendo; il primo gesto uccide tween e trigger (killIntro).
   // Con reduced-motion (o senza JS) il divisore resta fermo al 52% — stato SSR.
   useGSAP(
     () => {
@@ -176,16 +179,16 @@ export default function BeforeAfter() {
       mm.add(MQ.motionOk, () => {
         setPos(2);
         const proxy = { v: 2 };
+        // Replay a ogni passaggio: la tween resta viva anche dopo il complete
+        // (niente azzeramento del ref in onComplete), così killIntro può sempre
+        // fermare trigger e intro al primo gesto dell'utente.
         introTween.current = gsap.to(proxy, {
           v: 52,
           duration: 1.8,
           delay: 0.1,
           ease: "power3.inOut",
-          scrollTrigger: { trigger: el, start: "top 72%", once: true },
+          scrollTrigger: { trigger: el, start: "top 72%", toggleActions: "restart none none reverse" },
           onUpdate: () => setPos(proxy.v),
-          onComplete: () => {
-            introTween.current = null;
-          },
         });
         // Se reduced-motion si attiva a intro non ancora completata, ripristina
         // lo stato SSR (52%) invece di lasciare il divisore fermo al 2%.
@@ -413,15 +416,9 @@ export default function BeforeAfter() {
               )
             )}
           </ul>
-          <Link
-            href="/vendi"
-            className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-          >
+          <Cta href="/vendi" variant="cta" size="md" className="shrink-0">
             {c.cta}
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
-          </Link>
+          </Cta>
         </Reveal>
       </div>
     </section>

@@ -111,7 +111,15 @@ Obiettivo: sito completo, corretto e a norma, pronto per essere pubblicato sul d
   allineare i dati strutturati `openingHours` in `layout.tsx`.
 - **Perché:** dato di contatto atteso da un utente locale, oggi provvisorio/da confermare.
 
-### 2.4 Dati ufficiali di team e società
+### 2.4 Certificato "Top Agency 2026" Wikicasa
+- **Cosa:** foto/scansione ad alta risoluzione del certificato Top Agency 2026 (già richiesta al
+  cliente il 2026-08-04), possibilmente frontale e senza riflessi — la ritagliamo noi senza sfondo.
+- **Dove:** capitolo recensioni della home (`app/components/StarReviews.tsx`): oggi il sigillo è il
+  badge SVG ufficiale Wikicasa animato (float + hover), lo slot è pronto per un fronte/retro
+  certificato/badge quando l'asset arriva.
+- **Perché:** il riconoscimento è reale e va mostrato con l'asset ufficiale, non ricostruito.
+
+### 2.5 Dati ufficiali di team e società
 - **Cosa:** ragione sociale, P.IVA, indirizzo, contatti, dati membri del team; handle Facebook e
   TikTok (oggi indicati "da confermare"). Testo ufficiale del protocollo "Domus D.O.C. — Domus di
   Origine Certificata" (4 pilastri e promessa) e verifica/riformulazione del claim "più recensita
@@ -121,18 +129,18 @@ Obiettivo: sito completo, corretto e a norma, pronto per essere pubblicato sul d
 - **Perché:** dati legali, claim di "certificazione" e claim comparativo devono essere reali e
   validati dalla founder.
 
-### 2.5 Immagine OG (social sharing)
+### 2.6 Immagine OG (social sharing)
 - **Cosa:** immagine dedicata 1200x630 per l'anteprima nelle condivisioni.
 - **Dove:** `public/og-image.png` + `openGraph.images` in `app/layout.tsx` (oggi usa una foto hero
   provvisoria).
 - **Perché:** per un'anteprima curata quando il sito viene condiviso su social/messaggistica.
 
-### 2.6 Favicon ufficiale
+### 2.7 Favicon ufficiale
 - **Cosa:** favicon derivata dal logo ufficiale (`.ico` + eventuali PNG/apple-touch).
 - **Dove:** `public/favicon.ico` (referenziato in `metadata.icons` di `app/layout.tsx`).
 - **Perché:** completa la riconoscibilità del brand nel browser.
 
-### 2.7 Destinazione del form di contatto
+### 2.8 Destinazione del form di contatto
 - **Cosa:** dove devono arrivare i messaggi del modulo contatti (email, CRM, servizio esterno) e con
   quali eventuali chiavi/endpoint.
 - **Dove:** `app/components/Contact.tsx` + variabili d'ambiente su Vercel.

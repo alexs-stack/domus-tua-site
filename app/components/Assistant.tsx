@@ -6,6 +6,7 @@ import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
 import { readAssistantStream } from "../lib/assistant/client";
 import AssistantLeadForm from "./AssistantLeadForm";
+import { Cta } from "./primitives/Cta";
 import { hasOverlay, subscribeOverlays } from "../lib/ui/overlays";
 import { site } from "../lib/site";
 import type { Handoff } from "../lib/assistant/types";
@@ -541,21 +542,27 @@ export default function Assistant() {
                     />
                   ) : (
                     <div key={k} className="mt-3 flex flex-wrap gap-2">
-                      <a
+                      <Cta
                         href={h.url}
+                        variant="cta-solid"
+                        size="sm"
+                        arrow={false}
+                        className="min-h-11"
                         target={h.kind === "whatsapp" ? "_blank" : undefined}
                         rel={h.kind === "whatsapp" ? "noopener noreferrer" : undefined}
-                        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-red px-4 py-2.5 text-[0.85rem] font-semibold text-white transition-colors duration-200 hover:bg-red-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                       >
                         {h.label}
-                      </a>
+                      </Cta>
                       {/* Su mobile la telefonata è spesso il canale più rapido. */}
-                      <a
+                      <Cta
                         href={PHONE_HREF}
-                        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-4 py-2.5 text-[0.85rem] font-semibold text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink sm:hidden"
+                        variant="ghost"
+                        size="sm"
+                        arrow={false}
+                        className="min-h-11 sm:hidden"
                       >
                         {c.call}
-                      </a>
+                      </Cta>
                     </div>
                   ),
                 )}

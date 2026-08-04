@@ -197,6 +197,7 @@ function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
       mm.add(MQ.motionOk, () => {
         // La card è interamente un <a>: si anima opacity (mai autoAlpha) per
         // non toglierla dal tab order mentre è nascosta.
+        // Replay a ogni passaggio: niente clearProps (romperebbe restart/reverse).
         const enter = gsap.fromTo(
           wrap,
           { x: i === 0 ? -56 : 56, opacity: 0 },
@@ -205,8 +206,7 @@ function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
             opacity: 1,
             duration: dur.reveal,
             ease: "domus",
-            clearProps: "all",
-            scrollTrigger: { trigger: wrap, start: "top 78%", once: true },
+            scrollTrigger: { trigger: wrap, start: "top 78%", toggleActions: "restart none none reverse" },
           }
         );
 
@@ -226,8 +226,7 @@ function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
                   duration: dur.reveal,
                   ease: "expo.out",
                   stagger: 0.08,
-                  clearProps: "all",
-                  scrollTrigger: { trigger: wrap, start: "top 78%", once: true },
+                  scrollTrigger: { trigger: wrap, start: "top 78%", toggleActions: "restart none none reverse" },
                 }
               )
             : null;
@@ -288,7 +287,7 @@ function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
           ingresso laterale, sipario, deriva puntatore e layer WebGL la card
           aveva un layer di movimento di troppo. */}
       <article className="group h-full rounded-[2rem] border border-line bg-cream p-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)]">
-        <a href={p.href} data-cursor="scopri">
+        <a href={p.href} data-cursor="scopri" className="group/cta">
         {/* Sipario dal lato del percorso: il pill scivola fuori da dietro la maschera. */}
         <MaskReveal
           from={i === 0 ? "left" : "right"}
@@ -332,13 +331,13 @@ function PathCard({ p, i, t }: { p: PathDef; i: number; t: PathTexts }) {
             ))}
           </ul>
 
-          <span
-            className="group/cta mt-8 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-          >
-            {t.cta}
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5">
-              <ArrowUpRight className="h-4 w-4" />
+          <span className="dt-btn dt-btn--cta mt-8 self-start">
+            <span className="dt-btn__label">{t.cta}</span>
+            <span className="dt-btn__arr" aria-hidden>
+              <ArrowUpRight />
+              <ArrowUpRight />
             </span>
+            <span className="dt-btn__fill" aria-hidden />
           </span>
         </div>
         </a>

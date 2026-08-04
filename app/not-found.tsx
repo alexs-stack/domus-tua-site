@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { SegnoDomus } from "./components/BrandMotif";
-import { ArrowUpRight, ArrowRight } from "./components/Icons";
+import { Cta } from "./components/primitives/Cta";
 
 export const metadata: Metadata = {
   title: "Pagina non trovata",
@@ -32,22 +31,12 @@ export default function NotFound() {
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href="/"
-                className="group flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
+              <Cta href="/" variant="cta" size="lg">
                 Torna alla home
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </Link>
-              <Link
-                href="/acquista"
-                className="group flex items-center justify-center gap-1.5 rounded-full border border-line bg-paper px-7 py-4 text-base font-semibold text-ink transition-all duration-300 hover:border-red/40"
-              >
+              </Cta>
+              <Cta href="/acquista" variant="ghost" size="lg">
                 Cerca una casa
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+              </Cta>
             </div>
           </div>
         </div>

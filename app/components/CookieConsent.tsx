@@ -166,10 +166,12 @@ export default function CookieConsent() {
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
+          {/* Classi del CTA system direttamente sui <button> nativi (acceptRef
+              richiede il nodo; niente freccia: è un consenso, non un redirect). */}
           <button
             type="button"
             onClick={() => choose("rejected")}
-            className="rounded-full border border-line bg-paper px-4 py-2.5 text-sm font-semibold text-graphite transition-colors duration-300 hover:border-red hover:text-red active:scale-[0.98]"
+            className="dt-btn dt-btn--ghost dt-btn--sm"
           >
             {c.reject}
           </button>
@@ -177,9 +179,10 @@ export default function CookieConsent() {
             ref={acceptRef}
             type="button"
             onClick={() => choose("accepted")}
-            className="rounded-full bg-red px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+            className="dt-btn dt-btn--cta dt-btn--cta-solid dt-btn--sm"
           >
-            {c.accept}
+            <span className="dt-btn__label">{c.accept}</span>
+            <span className="dt-btn__fill" aria-hidden />
           </button>
         </div>
       </div>

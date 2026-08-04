@@ -62,15 +62,12 @@ export default function SectionDivider({
           p.style.strokeDashoffset = `${len}`;
         });
 
+        // Replay a ogni passaggio: il dash resta inline (niente pulizia
+        // all'onComplete — senza dasharray il ridisegno non esisterebbe);
+        // il revert statico vive nel cleanup del matchMedia qui sotto.
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: el, start: "top 90%", once: true },
+          scrollTrigger: { trigger: el, start: "top 90%", toggleActions: "restart none none reverse" },
           defaults: { ease: "expo.out" },
-          onComplete: () => {
-            paths.forEach((p) => {
-              p.style.removeProperty("stroke-dasharray");
-              p.style.removeProperty("stroke-dashoffset");
-            });
-          },
         });
         tl.fromTo(lines, { scaleX: 0 }, { scaleX: 1, duration: 1.1 }).to(
           paths,
