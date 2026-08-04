@@ -317,6 +317,12 @@ export default function Preloader() {
         const usable =
           e.key === "Enter" || e.key === " " || e.key === "Escape" || e.key.length === 1;
         if (!usable) return;
+        // La guardia "intro già finita" PRIMA di preventDefault, non dentro
+        // skip(): è l'inversione che nell'onda 9 rese i campi inservibili in
+        // produzione. Qui il listener viene staccato a fine intro, quindi oggi
+        // non fa danno — ma l'ordine sbagliato resta una trappola per il
+        // prossimo che tocchi la pulizia.
+        if (tl.time() >= tl.labels.dive) return;
         // preventDefault: sotto l'overlay può esserci un elemento focalizzato
         // (es. un bottone) — il tasto salta l'intro, non deve attivare altro.
         e.preventDefault();
@@ -391,13 +397,22 @@ export default function Preloader() {
             pulita sul fondo del preloader, e quando l'arco la attraversa
             sagoma e foto coincidono pixel su pixel: la stanza "torna". */}
         <div data-pre-figure className="absolute inset-0" style={{ opacity: 0 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/media/raffaela-sagoma.png"
-            alt=""
-            className="h-full w-full object-cover"
-            style={{ objectPosition: "50% 70%" }}
-          />
+          {/* WebP, non PNG: stesso canvas 2000×1415 e stesso canale alpha, ma 77 KB
+              invece di 791. Il preloader è la PRIMA cosa che scarica un visitatore
+              nuovo, in concorrenza con la foto dell'hero sulla stessa banda: 714 KB
+              risparmiati lì valgono più che altrove. Il PNG resta come fallback per i
+              browser senza WebP — la <picture> lo sceglie da sola.
+              Resta un <img> e non next/image: qui serve il controllo pixel-su-pixel
+              con la foto sotto (vedi commento sopra), non il resize automatico. */}
+          <picture>
+            <source srcSet="/media/raffaela-sagoma.webp" type="image/webp" />
+            <img
+              src="/media/raffaela-sagoma.png"
+              alt=""
+              className="h-full w-full object-cover"
+              style={{ objectPosition: "50% 70%" }}
+            />
+          </picture>
         </div>
 
         {/* Anelli eco della porta (solo variante arco, vedi globals.css):

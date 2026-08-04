@@ -211,8 +211,10 @@ app/
 | Variabile | Ambito | Ruolo | Fase |
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_ENABLE_ASSISTANT` | public | Mostra l'assistente. **Resta `false` fino al Prompt 9.** | esiste |
-| `ANTHROPIC_API_KEY` | server | Provider AI. Assente → fallback onesto. | esiste |
-| `AI_ASSISTANT_MODEL` | server | Override modello (default `claude-haiku-4-5-20251001`). | esiste |
+| `GEMINI_API_KEY` | server | Provider AI predefinito (Gemini). Assente → si prova Anthropic. | esiste |
+| `ANTHROPIC_API_KEY` | server | Provider AI alternativo (Claude). Nessuna delle due → fallback onesto. | esiste |
+| `AI_PROVIDER` | server | `google` \| `anthropic`. Forza la scelta (default: Gemini se ha la chiave). | esiste |
+| `AI_ASSISTANT_MODEL` | server | Override modello (default `gemini-3.6-flash`, o `claude-haiku-4-5-20251001` su Anthropic). | esiste |
 | `VOYAGE_API_KEY` / `VOYAGE_MODEL` | server | Ranking semantico opzionale. | esiste |
 | `ASSISTANT_LEAD_EMAIL_TO` | server | Destinatario richieste (`immobiliare@domustua.it`). | Prompt 5 |
 | `ASSISTANT_EMAIL_PROVIDER_KEY` | server | Chiave provider email. Assente → nessun falso successo. | Prompt 5 |
@@ -577,7 +579,7 @@ disattivato, ed è peggio di non averlo.
 ## 9-decies. Onda 8 — eval del comportamento
 
 ```bash
-npm run eval            # contro il modello reale (richiede ANTHROPIC_API_KEY)
+npm run eval            # contro il modello reale (richiede GEMINI_API_KEY o ANTHROPIC_API_KEY)
 npm run eval -- --mock  # verifica l'harness, nessun costo
 ```
 
@@ -617,8 +619,53 @@ volta per turno.
 **Il report** (`eval-report.md`) è generato e resta fuori dal repository: committarne uno in
 modalità simulata lascerebbe in giro un 100% ingannevole.
 
-**Cosa manca:** la misura vera. Servono `ANTHROPIC_API_KEY` e una singola esecuzione di
-`npm run eval` per sapere davvero come si comporta l'assistente e quanto costa.
+**Difetto trovato di nuovo nel banco di prova, non nell'assistente.** In modalità reale i
+cinque casi del gruppo `errore` finivano al provider vero. Ma `provider-giu`, `output-vuoto`,
+`tool-inesistente` e `tool-input-invalido` sono guasti **del provider**: un provider che
+funziona non li può riprodurre. Il modello rispondeva normalmente e il grader gli contestava
+di non aver proposto un canale umano — fallimenti inventati su un gruppo che sembrava
+misurare la degradazione dell'assistente e invece non misurava niente. Ora
+`richiedeModelloSimulato()` manda quei casi al modello simulato **anche in modalità reale**, e
+il report lo dichiara in testa. `feed-giu` resta reale: il catalogo vuoto si riproduce davvero.
+
+**La misura vera — fatta, su Gemini.** Nove esecuzioni complete (100 casi ciascuna) hanno
+scelto modello e livello di ragionamento sui numeri, non a intuito. Le ultime quattro sono
+sull'harness corretto:
+
+| Modello | Ragionamento | Superati | Scelta strumento | p95 primo token |
+| --- | --- | --- | --- | --- |
+| `gemini-2.5-flash` | spento | 71/100 | 67% | 1432 ms |
+| `gemini-2.5-flash` | budget 256 | 81/100 | 81% | 2351 ms |
+| `gemini-2.5-flash` | dinamico | 84/100 | 84% | 3022 ms |
+| `gemini-3.6-flash` | dinamico | 97/100 | 100% | 6032 ms |
+| `gemini-3.6-flash` | `low` | 98/100 | 100% | 3715 ms |
+| **`gemini-3.6-flash`** | **`minimal`** | **100/100** | **100%** | **2111-2250 ms** |
+| `gemini-3.5-flash` | `minimal` | 100/100 | 100% | 2392 ms |
+| `gemini-3.5-flash-lite` | `minimal` | 94/100 | 93% | 1339 ms |
+| `gemini-3.1-flash-lite` | `minimal` | 81/100 | 73% | 1133 ms |
+
+Tre letture che contano più della riga vincente:
+
+1. **Il salto di qualità è il modello, non il prompt.** Stesso prompt, stessi tool, stessi
+   grader: da 2.5 a 3.6 la scelta dello strumento passa dal 67-84% al 100%. Sotto la soglia,
+   2.5 Flash rispondeva con domande di chiarimento invece di cercare ("Che tipo di casa stai
+   cercando?") — comportamento educato e inutile.
+2. **Il ragionamento si paga tutto sul primo token, e qui non serve.** Da `dinamico` a
+   `minimal` non si perde un caso e l'attesa passa da 6 s a 2,2 s.
+3. **La soglia p95 ≤ 2 s non è raggiungibile con un modello di questa qualità**, e non per
+   colpa del modello: su una domanda di ricerca il primo token arriva dopo *due* generazioni
+   (decidere lo strumento, poi comporre la risposta). A ~1,1 s ciascuna si sta a 2,2 s. I
+   modelli che scendono sotto i 1,4 s pagano in scelta dello strumento (93% e 73%), che è la
+   soglia più importante dopo l'assenza di invenzioni. Il p95 su 100 casi oscilla di suo di
+   ~150 ms fra un'esecuzione e l'altra: va letto come intervallo, non come cifra secca.
+
+**Il compromesso, esplicito.** Il default resta la qualità: `gemini-3.6-flash`, 100/100, unica
+soglia mancata p95 per un centinaio di millisecondi. Chi preferisce la reattività ha una manopola misurata:
+`AI_ASSISTANT_MODEL=gemini-3.5-flash-lite` porta il p95 a 1339 ms e costa 6 casi su 100 e il
+93% di scelta dello strumento. Non è una scelta da fare di nascosto in un default.
+
+**Non è un confronto con Claude:** su questo ambiente non c'è una `ANTHROPIC_API_KEY`, quindi
+la riga di paragone con Haiku 4.5 non è mai stata misurata.
 
 ---
 

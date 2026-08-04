@@ -308,7 +308,8 @@ export default function BeforeAfter() {
                       );
                     }
                   }}
-                  className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                  // min-h-11 = 44px, la soglia di tocco: erano 40.
+                  className={`inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                     active === i
                       ? "bg-red text-white"
                       : "text-graphite hover:bg-paper"

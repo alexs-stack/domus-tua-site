@@ -36,7 +36,12 @@ type Health = {
     trustindexLive?: boolean;
     heroVideoLive?: boolean;
     semanticRankingConfigured?: boolean;
-    assistant?: { enabled?: boolean; providerConfigured?: boolean; model?: string };
+    assistant?: {
+      enabled?: boolean;
+      providerConfigured?: boolean;
+      provider?: string | null;
+      model?: string;
+    };
   };
 };
 
@@ -171,9 +176,9 @@ async function main() {
       name: "chatbot: acceso solo con un provider",
       // Il caso da impedire è uno solo: widget visibile e provider assente.
       pass: !(i.assistant?.enabled === true && i.assistant?.providerConfigured !== true),
-      detail: `visibile: ${i.assistant?.enabled}, provider: ${i.assistant?.providerConfigured}, modello: ${i.assistant?.model ?? "—"}`,
+      detail: `visibile: ${i.assistant?.enabled}, provider: ${i.assistant?.provider ?? "—"} (${i.assistant?.providerConfigured}), modello: ${i.assistant?.model ?? "—"}`,
       required: true,
-      fix: "Imposta ANTHROPIC_API_KEY, oppure togli NEXT_PUBLIC_ENABLE_ASSISTANT.",
+      fix: "Imposta GEMINI_API_KEY (o ANTHROPIC_API_KEY), oppure togli NEXT_PUBLIC_ENABLE_ASSISTANT.",
     },
     {
       name: "recensioni Trustindex collegate",

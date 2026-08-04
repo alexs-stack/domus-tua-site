@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDemoStatus } from "../../lib/demoStatus";
 import { getListingDataSourceStatus } from "../../lib/realsmart/status";
 import {
+  AI_PROVIDER,
   assistantAiEnabled,
   emailEnabled,
   ASSISTANT_MODEL,
@@ -88,6 +89,12 @@ export async function GET() {
           enabled: process.env.NEXT_PUBLIC_ENABLE_ASSISTANT === "true",
           /** Il provider AI è configurato. Senza, l'assistente risponde in fallback. */
           providerConfigured: assistantAiEnabled,
+          /**
+           * Quale provider sta rispondendo: "google" | "anthropic" | null. Enum, non segreto.
+           * Con due provider possibili, il solo nome del modello non basta a capire quale
+           * chiave l'ambiente stia davvero usando.
+           */
+          provider: AI_PROVIDER,
           /** Nome del modello: pubblico, serve a capire cosa sta girando davvero. */
           model: ASSISTANT_MODEL,
           /** Il canale email può davvero inviare. Senza, nessun falso successo. */

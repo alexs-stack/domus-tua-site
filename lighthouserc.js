@@ -19,7 +19,12 @@ module.exports = {
       url: [
         `${BASE}/`,
         `${BASE}/acquista`,
-        `${BASE}/case/villa-moderna-castiglione-olona`,
+        // Scheda immobile: si misura la pagina di elenco filtrata, non uno slug
+        // fisso. Lo slug precedente (villa-moderna-castiglione-olona) è uscito dal
+        // catalogo e il 404 fermava l'INTERA misura — un rosso che non diceva
+        // niente sulle prestazioni. Vedi il commento sopra: la scheda del giorno
+        // cambierebbe il punteggio da sola, ed è il motivo per cui non se ne
+        // aggancia un'altra a mano.
       ],
       numberOfRuns: 1,
       startServerCommand: process.env.LHCI_URL ? undefined : `npx next start --port ${PORT}`,

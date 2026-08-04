@@ -126,6 +126,27 @@ body {
   color: var(--color-cream);
 }
 
+/* ---------- Campi: niente zoom automatico su iOS ----------
+   Safari su iPhone ingrandisce il viewport ogni volta che si tocca un campo con
+   font-size sotto i 16px: la pagina salta e l'utente deve pizzicare per tornare
+   indietro. Succedeva su TUTTI i campi del sito (form contatti, ricerca, chat),
+   che sono `text-sm` = 14px.
+
+   Regola qui e non nei singoli componenti per due motivi: era un difetto
+   sistemico, e un campo aggiunto domani lo erediterebbe senza che nessuno se lo
+   ricordi. Sotto i 768px vince questa; da tablet in su resta la scala del design,
+   perché lì il problema non esiste.
+
+   `!important` è necessario: le utility Tailwind hanno specificità pari e
+   arriverebbero dopo. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 /* ---------- Typography helpers ---------- */
 .font-display {
   font-family: var(--font-display), Georgia, serif;
@@ -545,6 +566,53 @@ body {
 .link-draw:hover::after,
 .link-draw:focus-visible::after {
   transform: scaleX(1);
+}
+
+/* ---------- Spazio per il pulsante flottante della chat ----------
+   Il footer riserva già `pb-28` per la MobileActionBar fissa. Il launcher della
+   chat sta più in alto (bottom 5.25rem, alto 3.5rem): arriva a ~140px dal fondo e
+   restava appoggiato sulla riga legale del footer.
+
+   Condizionato alla presenza del launcher: la chat è dietro un flag e oggi in
+   produzione è spenta — senza `:has()` si aggiungerebbe spazio morto in fondo a
+   ogni pagina per una funzione che nessuno vede. Dove `:has()` non c'è si torna
+   al comportamento di prima: nessun danno. */
+@media (max-width: 767px) {
+  body:has([data-assistant-launcher]) footer > div {
+    padding-bottom: calc(9.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Bersagli di tocco nelle liste di link ----------
+   Un link di testo è alto quanto la sua riga: ~20px. Col dito la soglia è 44px.
+
+   L'area si allarga SENZA toccare il riquadro visibile: il ::before invisibile fa
+   da bersaglio, e la sottolineatura animata resta ancorata al testo (vive su
+   ::after, che non si tocca).
+
+   Il passo della lista sale a 44px insieme all'area. Non è un dettaglio: due
+   bersagli da 44px con passo 32 si sovrappongono, e un tocco a metà fra due voci
+   finirebbe su quella che sta sopra — imprevedibile, peggio del bersaglio piccolo.
+
+   Solo su puntatore grosso: col mouse 20px si centrano benissimo, e allargare
+   ovunque vorrebbe dire allungare il footer su desktop senza motivo. */
+@media (pointer: coarse) {
+  .tap-list {
+    row-gap: 1.5rem;
+  }
+
+  .tap-target {
+    position: relative;
+  }
+
+  .tap-target::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    height: 44px;
+    transform: translateY(-50%);
+  }
 }
 
 /* ---------- HorizonStory: cupola + pannelli orizzontali (dossier era-residence §11) ---------- */

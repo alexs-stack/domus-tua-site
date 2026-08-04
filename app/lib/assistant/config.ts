@@ -7,19 +7,32 @@
 // Tutti i limiti sono espliciti e testabili — sono la prima linea di difesa su costi e abuso.
 
 import { site, siteUrl } from "../site";
-
-/** Chiave Anthropic. Vuota = assistente in modalità fallback onesto (nessuna chiamata AI). */
-export const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
+import { AI_PROVIDER, ANTHROPIC_API_KEY, GEMINI_API_KEY, aiEnabled, byProvider } from "../ai/provider";
 
 /**
- * Modello dell'assistente. Haiku 4.5: latenza bassa e costo contenuto, adatto a un
- * assistente di sito con tool ben definiti. L'ID è nella union tipizzata di
- * @ai-sdk/anthropic (verificato in node_modules/@ai-sdk/anthropic/dist/index.d.ts).
+ * Provider e chiavi. La scelta sta in app/lib/ai/provider.ts, unica per assistente e
+ * ricerca: due feature sullo stesso modello non devono poter divergere per distrazione.
+ * Chiavi vuote = assistente in modalità fallback onesto (nessuna chiamata AI).
  */
-export const ASSISTANT_MODEL = process.env.AI_ASSISTANT_MODEL || "claude-haiku-4-5-20251001";
+export { AI_PROVIDER, ANTHROPIC_API_KEY, GEMINI_API_KEY };
+
+/**
+ * Modello dell'assistente, per provider.
+ *
+ * Su Google è gemini-3.6-flash, non 2.5 Flash, e la differenza non è un dettaglio: misurata
+ * con `npm run eval` (100 casi reali, stesso prompt e stessi tool) la scelta dello strumento
+ * passa dal 67-84% al 100%, e i casi superati da 71-84 a 98. Il ragionamento va però tenuto
+ * al minimo, altrimenti il primo token arriva dopo 6 secondi: vedi agent.ts.
+ * Su Anthropic resta Haiku 4.5, stessa classe di costo e latenza.
+ * Entrambi gli ID stanno nelle union tipizzate dei rispettivi provider (verificato in
+ * node_modules/@ai-sdk/google e node_modules/@ai-sdk/anthropic).
+ */
+export const ASSISTANT_MODEL =
+  process.env.AI_ASSISTANT_MODEL ||
+  byProvider({ google: "gemini-3.6-flash", anthropic: "claude-haiku-4-5-20251001" });
 
 /** true se il provider AI è configurato. Se false l'assistente risponde in fallback. */
-export const assistantAiEnabled = ANTHROPIC_API_KEY.length > 0;
+export const assistantAiEnabled = aiEnabled;
 
 // ── Limiti di richiesta (validazione lato route) ────────────────────────────
 

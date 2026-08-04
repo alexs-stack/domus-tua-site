@@ -163,7 +163,9 @@ export default function HomeSearchGateway() {
                       setQ(chip);
                       inputRef.current?.focus();
                     }}
-                    className="inline-flex min-h-[40px] items-center rounded-full border border-line bg-cream px-3.5 py-2 text-[0.8rem] text-graphite transition-colors duration-300 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                    // 44px, non 40: la soglia di tocco è quella, e questi chip sono il
+                    // primo gesto che si fa sulla home da telefono.
+                    className="inline-flex min-h-11 items-center rounded-full border border-line bg-cream px-3.5 py-2 text-[0.8rem] text-graphite transition-colors duration-300 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                   >
                     {chip}
                   </button>

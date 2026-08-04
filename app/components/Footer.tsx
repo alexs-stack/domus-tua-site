@@ -181,19 +181,19 @@ export default function Footer() {
             <p className="mt-4 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
               Con Domus Tua è facile vendere ed è sicuro acquistare.
             </p>
-            <div className="mt-7 flex flex-col gap-3 text-sm text-cream/70">
-              <a href={site.phone.href} className="flex items-center gap-3 hover:text-cream">
+            <div className="tap-list mt-7 flex flex-col gap-3 text-sm text-cream/70">
+              <a href={site.phone.href} className="tap-target flex items-center gap-3 hover:text-cream">
                 <Phone className="h-4 w-4 text-red-soft" /> {site.phone.label}
               </a>
               <a
                 href={site.whatsapp.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 hover:text-cream"
+                className="tap-target flex items-center gap-3 hover:text-cream"
               >
                 <Whatsapp className="h-4 w-4 text-red-soft" /> {site.whatsapp.label}
               </a>
-              <a href={site.email.href} className="flex items-center gap-3 hover:text-cream">
+              <a href={site.email.href} className="tap-target flex items-center gap-3 hover:text-cream">
                 <Mail className="h-4 w-4 text-red-soft" /> {site.email.label}
               </a>
               <span className="flex items-start gap-3">
@@ -211,12 +211,12 @@ export default function Footer() {
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-cream/75">
               {d.footer.naviga}
             </p>
-            <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
+            <ul className="tap-list mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
               {nav.map((n) => (
                 <li key={n.href}>
                   <a
                     href={n.href}
-                    className="link-draw text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
+                    className="link-draw tap-target text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
                   >
                     {d.nav[n.key]}
                   </a>
@@ -227,7 +227,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#domus-doc"
-                  className="link-draw text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
+                  className="link-draw tap-target text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
                 >
                   Domus D.O.C.
                 </Link>
@@ -238,7 +238,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/lavora-con-noi"
-                  className="link-draw text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
+                  className="link-draw tap-target text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
                 >
                   {d.footer.lavora}
                 </Link>
@@ -292,9 +292,9 @@ export default function Footer() {
             © {new Date().getFullYear()} {site.legal} · P.IVA {site.vat} · REA {site.rea} · Cap. € {site.capital} i.v.
           </p>
           <div className="flex gap-5">
-            <a href="/privacy" className="link-underline hover:text-cream">{d.footer.privacy}</a>
-            <a href="/cookie" className="link-underline hover:text-cream">{d.footer.cookie}</a>
-            <a href="/contatti" className="link-underline hover:text-cream">{d.footer.contatti}</a>
+            <a href="/privacy" className="link-underline tap-target hover:text-cream">{d.footer.privacy}</a>
+            <a href="/cookie" className="link-underline tap-target hover:text-cream">{d.footer.cookie}</a>
+            <a href="/contatti" className="link-underline tap-target hover:text-cream">{d.footer.contatti}</a>
           </div>
         </div>
       </div>
