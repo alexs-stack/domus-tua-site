@@ -269,7 +269,10 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
             alt={c.backdropAlt}
             fill
             sizes="100vw"
-            quality={60}
+            // A differenza dell'hero in PageHero, qui la foto non ha velature scure:
+            // è il fondale a schermo intero del primo atto, quindi resta il soggetto
+            // — quality 60 la rendeva visibilmente sgranata sui tetti/alberi.
+            quality={75}
             className="object-cover"
           />
         </div>
