@@ -603,7 +603,11 @@ export default function StarReviews() {
           defaults: { ease: "none" },
           scrollTrigger: {
             trigger: runway,
-            start: "top top",
+            // "top 55%", non "top top": la stella comincia ad accendersi
+            // mentre il muro svuotato sta ancora lasciando il viewport — lo
+            // scroll legge UNA pagina continua, senza il vuoto di un intero
+            // schermo tra i due capitoli (richiesta 2026-08-04).
+            start: "top 55%",
             end: "bottom bottom",
             scrub: 0.6,
             invalidateOnRefresh: true,
@@ -730,7 +734,10 @@ export default function StarReviews() {
   const close = useCallback(() => setOpenStar(null), []);
 
   return (
-    <section ref={sectionRef} id="recensioni" className="dt-starrev relative bg-cream">
+    // Niente bg-cream proprio: la sezione vive dentro la superficie curva di
+    // HorizonStory — un secondo bloom qui riaccenderebbe la linea d'ombra al
+    // confine col muro delle voci (il "taglio" segnalato il 2026-08-04).
+    <section ref={sectionRef} id="recensioni" className="dt-starrev relative">
       {/* Runway + schermo sticky ([data-on]): lo scroll scolpisce il morph —
           la foto Top Agency arriva a TUTTA PAGINA come prosecuzione della
           sezione precedente e, scendendo, entra dentro la stella centrale.

@@ -387,36 +387,6 @@ body {
   }
 }
 
-/* ---------- Metodo: filo rosso (classi gestite da ScrollTrigger) ----------
-   Il foglio che il filo sta attraversando si "accende": nodo che diventa
-   rosso e scala (proprietà native scale/rotate: compongono coi translate
-   Tailwind v4 senza sovrascriverli), foglio che si raddrizza. Senza JS o con
-   reduced-motion la classe non arriva mai → dossier statico e completo. */
-.dt-step .dt-step-node {
-  transition: background-color 0.5s var(--ease-soft), border-color 0.5s var(--ease-soft),
-    color 0.5s var(--ease-soft), scale 0.5s var(--ease-soft), box-shadow 0.5s var(--ease-soft);
-}
-.dt-step.step-active .dt-step-node {
-  background-color: var(--color-red);
-  border-color: var(--color-red);
-  color: #fff;
-  scale: 1.15;
-  box-shadow: 0 10px 24px -12px rgb(210 10 10 / 0.55);
-}
-.dt-step [data-step-card] {
-  transition: border-color 0.5s var(--ease-soft), rotate 0.5s var(--ease-soft),
-    box-shadow 0.5s var(--ease-soft);
-}
-.dt-step.step-active [data-step-card] {
-  border-color: rgb(210 10 10 / 0.3);
-  rotate: 0deg;
-}
-@media (prefers-reduced-motion: reduce) {
-  .dt-step.step-active .dt-step-node {
-    scale: 1;
-  }
-}
-
 /* ---------- Utility: hairline ---------- */
 .hairline {
   background: linear-gradient(
@@ -643,8 +613,10 @@ body {
    z-1, e riceve i click solo sul bottone). */
 .dt-wall[data-on] {
   /* 425vh del riferimento + la corsa d'uscita (le card escono dal viewport e
-     lasciano lo sfondo pulito al capitolo stelle — cucitura richiesta 2026-08-04) */
-  height: 560vh;
+     lasciano lo sfondo pulito al capitolo stelle). Accorciata 560→520 il
+     2026-08-04: tra l'uscita delle card e la stella restava troppa pagina
+     vuota — il respiro giusto è mezzo viewport, non uno e mezzo. */
+  height: 520vh;
 }
 .dt-wall[data-on] .dt-wall_wrapper {
   position: sticky;
@@ -744,6 +716,40 @@ body {
 .dt-starrev_voicetitle {
   font-size: clamp(3.2rem, 10vw, 9.5rem);
   letter-spacing: -0.02em;
+}
+
+/* ---------- Due percorsi: pannelli-pagina che si alzano dal basso ----------
+   Rif. tecnica: moussamamadou/scroll-trigger-gsap-section — fondale pinnato
+   col titolo gigante, poi ogni "percorso" è una pagina piena che sale dal
+   fondo (clip-path inset) e prende la scena. Qui la variante sticky-screen
+   già collaudata dal sito (dt-wall/dt-starrev) al posto dei work_item fixed
+   del riferimento: niente trappole di stacking con main/footer-uncover.
+   Default (mobile / reduced-motion / no-JS): intro + pannelli in colonna,
+   tutto visibile e statico. [data-on] arriva SOLO via JS (desktop ≥1024 +
+   motion ok). */
+.dt-paths[data-on] .dt-paths_runway {
+  /* fondale (1 schermo di lettura) + 2 risalite da ~1.6 schermi + code */
+  height: 520vh;
+}
+.dt-paths[data-on] .dt-paths_screen {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+.dt-paths[data-on] .dt-paths_intro,
+.dt-paths[data-on] .dt-paths_panel {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+.dt-paths[data-on] .dt-paths_panel {
+  will-change: clip-path;
+}
+/* Le righe del titolo dei pannelli (grammatica data-line del riferimento):
+   wrapper che maschera, riga che sale. Esistono solo sotto [data-on] via JS. */
+.dt-paths_line {
+  will-change: transform;
 }
 
 /* Capolettera editoriale — UNA sola volta per pagina (eleganza, mai vezzo ripetuto). */

@@ -43,12 +43,14 @@ export default function Home() {
         <HeroCinematic />
         <HomeSearchGateway />
         {/* Il set piece "orizzonte": fondale aereo + cupola + pannelli orizzontali
-            (tecnica dal dossier era-residence §11, contenuti e forme nostri). */}
-        <HorizonStory />
-        {/* Cinque stelle: il capitolo recensioni unificato (sostituisce la
-            banda numeri + marquee di tag, la vecchia sezione Reviews e la
-            banda Authority — il suo claim vive dentro il capitolo). */}
-        <StarReviews />
+            (tecnica dal dossier era-residence §11, contenuti e forme nostri).
+            Le Cinque stelle (capitolo recensioni unificato) vivono DENTRO la
+            stessa superficie curva: il muro delle voci consegna lo sfondo
+            pulito e la stella appare sulla stessa pagina, senza la linea
+            d'ombra che il cambio di superficie disegnava (fix 2026-08-04). */}
+        <HorizonStory>
+          <StarReviews />
+        </HorizonStory>
         {/* Il momento video della home vive nel muro delle voci (HorizonStory,
             atto 4): la vecchia SocialVideoWall è stata ritirata per non
             mostrare due volte gli stessi video. */}

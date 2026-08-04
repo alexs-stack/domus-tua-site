@@ -9,10 +9,11 @@
 // 3. i pannelli orizzontali (HorizonScroller): manifesto + territorio.
 // Mobile / reduced-motion: fondale semplice, cupola statica, pannelli in
 // colonna — tutto visibile senza JS.
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import HorizonScroller from "./motion/HorizonScroller";
+import Fioritura from "./motion/Fioritura";
 import ReviewsWall from "./ReviewsWall";
 import Reveal from "./Reveal";
 import { SegnoDomus } from "./BrandMotif";
@@ -53,6 +54,7 @@ const copy = {
       "Il giudizio che conta è il riflesso di chi ci ha scelto: famiglie che hanno venduto o comprato casa con noi e l'hanno raccontato, con nome e cognome.",
     revCta: "Leggi le recensioni",
     revAlt: "Raffaela Rizza sorride alla sua immagine riflessa nello specchio della sede",
+    thanksWord: "Grazie",
     vidCap: "Video recensioni",
     vidTitle: "Le voci, in prima persona.",
     vidBody:
@@ -92,6 +94,7 @@ const copy = {
       "The judgement that matters is the reflection of those who chose us: families who sold or bought a home with us and told the story, with their full name.",
     revCta: "Read the reviews",
     revAlt: "Raffaela Rizza smiling at her reflection in the office mirror",
+    thanksWord: "Thank you",
     vidCap: "Video reviews",
     vidTitle: "The voices, first-hand.",
     vidBody:
@@ -131,6 +134,7 @@ const copy = {
       "Le jugement qui compte est le reflet de ceux qui nous ont choisis : des familles qui ont vendu ou acheté avec nous et l'ont raconté, avec leur nom.",
     revCta: "Lire les avis",
     revAlt: "Raffaela Rizza souriant à son reflet dans le miroir de l'agence",
+    thanksWord: "Merci",
     vidCap: "Avis en vidéo",
     vidTitle: "Les voix, à la première personne.",
     vidBody:
@@ -170,6 +174,7 @@ const copy = {
       "Das Urteil, das zählt, ist das Spiegelbild derer, die uns gewählt haben: Familien, die mit uns verkauft oder gekauft haben — und es mit vollem Namen erzählen.",
     revCta: "Bewertungen lesen",
     revAlt: "Raffaela Rizza lächelt ihrem Spiegelbild im Büro zu",
+    thanksWord: "Danke",
     vidCap: "Video-Bewertungen",
     vidTitle: "Die Stimmen, aus erster Hand.",
     vidBody:
@@ -209,6 +214,7 @@ const copy = {
       "El juicio que cuenta es el reflejo de quienes nos eligieron: familias que vendieron o compraron casa con nosotros y lo contaron, con nombre y apellido.",
     revCta: "Leer las reseñas",
     revAlt: "Raffaela Rizza sonríe a su reflejo en el espejo de la agencia",
+    thanksWord: "Gracias",
     vidCap: "Videorreseñas",
     vidTitle: "Las voces, en primera persona.",
     vidBody:
@@ -224,58 +230,7 @@ const copy = {
 // = apice del cerchio (il path parte dal punto più a sinistra).
 const ARC_PATH = "M 800,1900 m -1800,0 a 1800,1800 0 1,1 3600,0 a 1800,1800 0 1,1 -3600,0";
 
-/**
- * ThreadAccent — al posto dei fiori del riferimento (decorazione del LORO
- * mondo), il nostro filo rosso entra ed esce dai bordi dei pannelli: deriva
- * con la parallasse [data-horizon-flower] e si cuce a vista col sipario di
- * [data-horizon-slide]. Asola a metà corsa, punto filza e nodo in chiusura.
- * Solo decorazione (aria-hidden), solo desktop: sotto i 1024 sparisce.
- * (Se un giorno arrivano clip organiche con alpha, la meccanica video è
- * documentata nel dossier §11.3 — questo componente ne prende lo slot.)
- */
-function ThreadAccent({
-  drift,
-  variant,
-  className = "",
-}: {
-  drift: "drift-x" | "drift-y";
-  variant: "verticale" | "orizzontale";
-  className?: string;
-}) {
-  return (
-    <div aria-hidden data-horizon-flower={drift} data-horizon-slide className={className}>
-      {variant === "verticale" ? (
-        <svg viewBox="0 0 120 500" fill="none" className="h-full w-full">
-          {/* Il filo scende dal bordo, respira in due anse e si annoda. */}
-          <path
-            d="M 62 -8 C 30 60 96 112 60 172 C 30 222 88 252 64 302 C 52 336 100 342 78 308 C 66 288 44 310 60 332 C 72 362 58 392 61 412"
-            stroke="var(--color-red)"
-            strokeOpacity="0.45"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          <circle cx="61" cy="412" r="3" fill="var(--color-red)" />
-          {/* Punto filza: il filo continua a cucire oltre il nodo. */}
-          <path d="M 63 428 l 4 12 M 70 452 l 4 12 M 77 476 l 4 12" stroke="var(--color-red)" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 520 100" fill="none" className="h-full w-full">
-          <path
-            d="M -8 55 C 60 20 120 84 190 52 C 240 30 260 78 310 56 C 330 42 356 66 336 78 C 322 86 316 60 338 58 C 390 44 430 62 468 52"
-            stroke="var(--color-red)"
-            strokeOpacity="0.45"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          <circle cx="468" cy="52" r="3" fill="var(--color-red)" />
-          <path d="M 480 50 l 13 -3 M 502 45 l 13 -3" stroke="var(--color-red)" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-      )}
-    </div>
-  );
-}
-
-export default function HorizonStory() {
+export default function HorizonStory({ children }: { children?: ReactNode }) {
   const { locale } = useLocale();
   const c = copy[locale];
   const domeRef = useRef<HTMLDivElement | null>(null);
@@ -366,11 +321,15 @@ export default function HorizonStory() {
         <HorizonScroller id="storia" refreshKey={locale}>
         {/* Pannello manifesto */}
         <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center justify-center">
-          <ThreadAccent
-            drift="drift-y"
-            variant="verticale"
-            className="pointer-events-none absolute -top-10 left-[7vw] z-10 hidden h-[52vh] w-24 lg:block"
-          />
+          {/* L'angolo fiorito del riferimento (era-residence §11.3): il tralcio
+              sboccia dall'angolo alto e deriva con la parallasse dei fiori. */}
+          <div
+            aria-hidden
+            data-horizon-flower="drift-y"
+            className="pointer-events-none absolute -left-6 -top-8 z-10 hidden h-[44vh] w-[20vw] lg:block"
+          >
+            <Fioritura variant="corner-tl" className="h-full w-full" />
+          </div>
           <div className="mx-auto max-w-[1000px] px-5 py-20 text-center sm:px-8 lg:py-0">
             <Reveal>
               <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
@@ -446,16 +405,28 @@ export default function HorizonStory() {
               />
             </div>
           </div>
-          <ThreadAccent
-            drift="drift-x"
-            variant="orizzontale"
-            className="pointer-events-none absolute bottom-[9vh] left-[5vw] z-10 hidden h-24 w-[34vw] lg:block"
-          />
+          {/* La scritta in fiori (tecnica WebGL-typing, canvas 2D): il nome del
+              territorio fiorisce come una firma botanica sotto i gradini. */}
+          <div
+            aria-hidden
+            data-horizon-flower="drift-x"
+            className="pointer-events-none absolute bottom-[7vh] left-[5vw] z-10 hidden h-[13vh] w-[30vw] lg:block"
+          >
+            <Fioritura word="Tradate" variant="corner-bl" className="h-full w-full" />
+          </div>
         </div>
 
         {/* Pannello recensioni — lo specchio: il riflesso è il giudizio di chi
             ci ha scelto. Numeri SOLO da site.ts (fonte unica verificata). */}
         <div className="dt-horizon_panel relative flex items-center">
+          {/* La parola che le recensioni ci lasciano, fiorita come una dedica. */}
+          <div
+            aria-hidden
+            data-horizon-flower="drift-x"
+            className="pointer-events-none absolute bottom-[6vh] left-[6vw] z-10 hidden h-[12vh] w-[24vw] lg:block"
+          >
+            <Fioritura word={c.thanksWord} variant="corner-bl" className="h-full w-full" />
+          </div>
           <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-10 px-5 py-20 sm:px-8 lg:grid lg:grid-cols-[minmax(0,55fr)_minmax(0,45fr)] lg:items-center lg:gap-16 lg:py-0">
             <div>
               <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red">
@@ -510,6 +481,14 @@ export default function HorizonStory() {
         {/* Pannello video recensioni — la voce diretta dei clienti, sul canale
             reale dell'agenzia (stesso target della CTA di Authority). */}
         <div className="dt-horizon_panel relative flex items-center">
+          {/* Chiusura del set piece: il tralcio fiorisce dall'angolo basso. */}
+          <div
+            aria-hidden
+            data-horizon-flower="drift-y"
+            className="pointer-events-none absolute -bottom-6 -right-5 z-10 hidden h-[38vh] w-[17vw] lg:block"
+          >
+            <Fioritura variant="corner-br" className="h-full w-full" />
+          </div>
           <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-10 px-5 py-20 sm:px-8 lg:grid lg:grid-cols-[minmax(0,42fr)_minmax(0,58fr)] lg:items-center lg:gap-16 lg:py-0">
             <div>
               <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red">
@@ -573,6 +552,12 @@ export default function HorizonStory() {
             verticale e il muro delle voci si compone (stessa superficie
             curva: nessuna cucitura di luce). */}
         <ReviewsWall />
+
+        {/* Atto 5 — i capitoli che continuano la stessa pagina (es. le cinque
+            stelle): DENTRO la superficie curva, così il trattamento-luce di
+            .bg-cream non riparte e il confine non disegna la linea d'ombra
+            che spezzava lo scroll (stessa lezione degli atti 2-3). */}
+        {children}
       </div>
     </>
   );
