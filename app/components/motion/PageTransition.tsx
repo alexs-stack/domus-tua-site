@@ -22,7 +22,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger, MQ, dur } from "../../lib/motion/gsap";
-import { MarkBadge } from "./RotatingMark";
+import { MarkBadge, spinMarkBadge } from "./RotatingMark";
 import { useDict } from "../i18n/LocaleProvider";
 import { getLenis } from "./SmoothScroll";
 
@@ -88,7 +88,7 @@ export default function PageTransition() {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const markLayerRef = useRef<HTMLDivElement | null>(null);
   const wordRef = useRef<HTMLDivElement | null>(null);
-  const spinRef = useRef<gsap.core.Tween | null>(null);
+  const spinRef = useRef<gsap.core.Timeline | null>(null);
   const coveringRef = useRef(false);
   const navSeqRef = useRef(0);
   const safetyRef = useRef<number | null>(null);
@@ -114,13 +114,10 @@ export default function PageTransition() {
     spinRef.current = null;
   };
   const startSpin = () => {
-    const ring = markLayerRef.current?.querySelector("[data-rot-core]");
-    if (!ring || spinRef.current) return;
-    spinRef.current = gsap.fromTo(
-      ring,
-      { rotation: 0 },
-      { rotation: 360, duration: 5, ease: "none", repeat: -1, transformOrigin: "center center" }
-    );
+    if (spinRef.current) return;
+    // Anello e monogramma in versi opposti, come nell'header: il gesto del badge
+    // e' uno solo in tutto il sito.
+    spinRef.current = spinMarkBadge(markLayerRef.current, 5);
   };
 
   // Uscita: la porta si chiude + monogramma rotante, poi push.

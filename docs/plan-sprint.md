@@ -292,25 +292,50 @@ test, non nella pagina: la pagina era già corretta.
 
 ## Tappa 5 — Contro-rotazione del logo
 
-**Skill scelte:** _(da compilare)_
+**Skill scelte:** nessuna. È un intervento di venti righe su un componente già scritto nel
+vocabolario del sito: il valore sta nel non rompere il centraggio del monogramma, non in
+una tecnica da imparare. Annotato per trasparenza.
+
+### La trappola vera: il centraggio
+
+Il monogramma era centrato con `-translate-x-1/2 -translate-y-1/2`. GSAP scrive `transform`
+sull'elemento: al primo frame di rotazione si sarebbe portato via il centraggio e il logo
+sarebbe schizzato in basso a destra. Il centraggio è quindi passato a **flexbox** su un
+contenitore `inset-0` — nessun transform da difendere, `h-[52%]` continua a misurarsi
+sull'altezza del badge, e senza JS il logo è al suo posto comunque.
 
 ### Sottotask
 
-- [ ] Isolare monogramma e anello in `RotatingMark.tsx` (oggi ruotano insieme come
-      gruppo `data-rot-core`)
-- [ ] Applicare rotazione opposta al monogramma, stesse velocità
-- [ ] Coerenza nel sipario di `PageTransition` (usa `MarkBadge`)
-- [ ] Reduced-motion e stati hover invariati
+- [x] Sciolto il gruppo `data-rot-core`: due agganci distinti, `[data-rot-ring]` e
+      `[data-rot-mark]`, perché ora girano in versi opposti
+- [x] Centraggio del monogramma da transform a flexbox
+- [x] Un solo angolo, due segni: `rotation` all'anello, `-rotation` al monogramma —
+      così il verso opposto è invariante rispetto ad accelerazione e inversione
+- [x] `spinMarkBadge()` estratto e usato da `Preloader` e `PageTransition`, che avevano
+      ciascuno il proprio tween sul vecchio gruppo: il gesto del badge è uno solo
+- [x] `spinRef` di `PageTransition` da `Tween` a `Timeline` (l'helper ne restituisce una)
 
-### Criteri di accettazione
+### Criteri di accettazione — misurati, non a occhio
 
-- Anello e monogramma girano in direzioni opposte, sempre
-- Velocità a riposo 30°/s e modulazione da scroll Lenis invariate
-- Con reduced-motion: entrambi fermi
-- Nessun mismatch di idratazione
+- [x] **Versi opposti:** in 1 s l'anello fa **+30,5°** e il monogramma **−30,5°**
+- [x] **Velocità invariata:** 30°/s a riposo, come prima
+- [x] **Invariante sotto scroll:** 12 campioni durante accelerazione e inversione,
+      somma dei due angoli sempre ≈ 0 (`|ring + mark| < 1,5°`)
+- [x] **Centraggio:** scarto del centro del monogramma dal centro del badge = `(0, 0)`
+      in tutte le condizioni provate
+- [x] **Reduced-motion e senza JS:** entrambi a 0,0° e fermi anche dopo 1,2 s
+- [x] **Nessun mismatch di idratazione:** nessun errore di pagina né in console
+- [x] Il logo non è ridisegnato né deformato: è lo stesso PNG depositato, ruotato
 
 ### Evidenza di verifica
 
-_(da compilare)_
+- `npm run lint` → 0 errori · `npm run typecheck` → pulito
+- `npm test` → **494 pass / 0 fail** + parser 81/81 · `npm run build` → OK
+- `npm run test:e2e` → **149 passed, 11 skipped**
+- `npm run e2e:assistant` → **46 passed**
+- `npm run eval` → tutte le soglie ✅
+- Misure di rotazione via `DOMMatrixReadOnly` su `getComputedStyle().transform`
+  (vedi tabella sopra) e due screenshot del badge a 4× a 1,8 s di distanza: le tacche
+  dell'anello e il monogramma sono chiaramente su angoli opposti.
 
 **Commit:** _(da compilare)_

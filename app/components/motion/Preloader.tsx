@@ -14,7 +14,7 @@
 // - Fallback senza mask-composite: sipario a salire (clip-path), stesso ritmo.
 import { useRef } from "react";
 import { gsap, useGSAP, dur } from "../../lib/motion/gsap";
-import { MarkBadge } from "./RotatingMark";
+import { MarkBadge, spinMarkBadge } from "./RotatingMark";
 import { getLenis } from "./SmoothScroll";
 
 export const INTRO_EVENT = "dt:intro:done";
@@ -158,7 +158,6 @@ export default function Preloader() {
       const words = root.querySelectorAll<HTMLElement>("[data-pre-word]");
       const progress = root.querySelector<HTMLElement>("[data-pre-progress]");
       const track = root.querySelector<HTMLElement>("[data-pre-track]");
-      const ring = root.querySelector<HTMLElement>("[data-rot-core]");
       if (!panel || !content) {
         fireIntro();
         finish(true);
@@ -177,16 +176,9 @@ export default function Preloader() {
       if (words[0]) words[0].textContent = p1;
       if (words[1]) words[1].textContent = p2;
 
-      // L'anello del marchio gira per tutta l'intro (stesso gesto dell'header).
-      const spin = ring
-        ? gsap.to(ring, {
-            rotation: 360,
-            duration: 6,
-            ease: "none",
-            repeat: -1,
-            transformOrigin: "center center",
-          })
-        : null;
+      // Il badge gira per tutta l'intro, anello e monogramma in versi opposti:
+      // stesso gesto dell'header.
+      const spin = spinMarkBadge(root, 6);
 
       const tl = gsap.timeline({
         defaults: { ease: "domus" },
