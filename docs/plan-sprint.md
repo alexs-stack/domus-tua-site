@@ -212,7 +212,7 @@ che è completo e già ben animato. Misure dopo il rimedio, tutte e cinque le li
   si disegna scendendo fra i numeri, il respiro rosso fra i capitoli, la voce di nav attiva
   in rosso tenue, le testate che si scoprono riga per riga.
 
-**Commit:** _(da compilare)_
+**Commit:** `5960c62`
 
 ---
 
