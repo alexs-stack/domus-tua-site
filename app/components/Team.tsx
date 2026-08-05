@@ -1,18 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
 import Reveal from "./Reveal";
+import Fioritura from "./motion/Fioritura";
 import MaskReveal from "./motion/MaskReveal";
 import Atmosphere from "./motion/Atmosphere";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
+import TeamTrail from "./TeamTrail";
 import { ArrowUpRight, Play, Quote } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 import { site } from "../lib/site";
-import { team, teamInitials, teamRoleLabels } from "../lib/team";
 import { youtubeWatch } from "../lib/videos";
 
 const copy = {
@@ -33,6 +32,7 @@ const copy = {
     founderCaption: "Founder & CEO",
     rosterTitle: "Il team",
     rosterIntro: "Un’agenzia a guida femminile che mette le persone al centro. Volti veri, competenze vere.",
+    floralWord: "Insieme",
   },
   en: {
     eyebrow: "About us",
@@ -51,6 +51,7 @@ const copy = {
     founderCaption: "Founder & CEO",
     rosterTitle: "The team",
     rosterIntro: "A woman-led agency that puts people first. Real faces, real expertise.",
+    floralWord: "Together",
   },
   fr: {
     eyebrow: "Qui sommes-nous",
@@ -69,6 +70,7 @@ const copy = {
     founderCaption: "Fondatrice & CEO",
     rosterTitle: "L’équipe",
     rosterIntro: "Une agence dirigée par des femmes qui place les personnes au centre. Des visages vrais, des compétences vraies.",
+    floralWord: "Ensemble",
   },
   de: {
     eyebrow: "Über uns",
@@ -87,6 +89,7 @@ const copy = {
     founderCaption: "Gründerin & CEO",
     rosterTitle: "Das Team",
     rosterIntro: "Eine von Frauen geführte Agentur, die den Menschen in den Mittelpunkt stellt. Echte Gesichter, echte Kompetenzen.",
+    floralWord: "Zusammen",
   },
   es: {
     eyebrow: "Quiénes somos",
@@ -105,49 +108,41 @@ const copy = {
     founderCaption: "Fundadora & CEO",
     rosterTitle: "El equipo",
     rosterIntro: "Una agencia dirigida por mujeres que pone a las personas en el centro. Rostros reales, competencias reales.",
+    floralWord: "Juntos",
   },
 };
 
 export default function Team() {
   const { locale } = useLocale();
   const c = copy[locale];
-  const rootRef = useRef<HTMLElement | null>(null);
-  const rosterRef = useRef<HTMLUListElement | null>(null);
-
-  // Roster: le righe del team entrano in sequenza, un volto dopo l'altro.
-  // Stato nascosto solo via JS (fromTo): senza JS la lista resta visibile.
-  useGSAP(
-    () => {
-      const list = rosterRef.current;
-      if (!list) return;
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        gsap.fromTo(
-          list.querySelectorAll("li"),
-          { y: 14, autoAlpha: 0 },
-          {
-            y: 0,
-            autoAlpha: 1,
-            duration: 0.8,
-            ease: "expo.out",
-            stagger: 0.05,
-            // Replay a ogni passaggio: restart all'ingresso, reverse risalendo
-            // (niente clearProps: la tween resta riavvolgibile).
-            scrollTrigger: { trigger: list, start: "top 85%", toggleActions: "restart none none reverse" },
-          }
-        );
-      });
-    },
-    { scope: rootRef }
-  );
-
-  // Roster e titoli: app/lib/team.ts (stessa fonte usata da /lavora-con-noi).
-  const roleLabels = teamRoleLabels[locale];
 
   return (
-    <section ref={rootRef} id="chi-siamo" className="relative bg-cream">
+    <section id="chi-siamo" className="relative bg-cream">
       <Atmosphere word="Domus Tua" glow drift={1} wordClassName="left-[2%] bottom-[4%] text-[13vw]" />
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      {/* Angoli fioriti (solo desktop): il capitolo umano è un giardino.
+          Lo scudo overflow-hidden lascia sbordare i tralci senza scrollbar. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Fioritura
+          variant="corner-tr"
+          className="absolute -right-5 -top-6 hidden h-[30vh] w-[14vw] lg:block"
+        />
+        <Fioritura
+          variant="corner-bl"
+          className="absolute -bottom-6 -left-5 hidden h-[26vh] w-[12vw] lg:block"
+        />
+      </div>
+      {/* La scritta in fiori che si digita da sola (rif. WebGL-typing-tutorial):
+          apre il capitolo e si ridigita a ogni ritorno in viewport. */}
+      <div className="relative mx-auto max-w-[1240px] px-5 pt-20 sm:px-8 sm:pt-24">
+        <Fioritura
+          word={c.floralWord}
+          typing
+          variant="center"
+          className="mx-auto block h-[clamp(120px,17vw,210px)] w-full max-w-[860px]"
+        />
+        <span className="sr-only">{c.floralWord}</span>
+      </div>
+      <div className="relative mx-auto max-w-[1240px] px-5 pb-24 pt-10 sm:px-8 sm:pb-32 sm:pt-12">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
           {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
           <div>
@@ -194,35 +189,8 @@ export default function Team() {
               <p className="mt-3 text-[0.95rem] leading-relaxed text-stone">
                 {c.rosterIntro}
               </p>
-              <ul ref={rosterRef} className="mt-6 grid gap-x-7 gap-y-px sm:grid-cols-2">
-                {team.map((member, i) => (
-                  <li
-                    key={member.name}
-                    className="group flex items-center gap-3.5 border-t border-line/70 py-3.5 sm:first:border-t-0 sm:[&:nth-child(2)]:border-t-0"
-                  >
-                    <span
-                      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] font-display text-[0.95rem] font-semibold text-graphite ring-1 ring-inset ring-line transition-[background-color,color,box-shadow] duration-300 group-hover:bg-red group-hover:text-white group-hover:ring-red ${
-                        i % 2 === 0 ? "bg-paper" : "bg-cream-deep"
-                      }`}
-                    >
-                      {teamInitials(member.name)}
-                      {member.founder && (
-                        /* Sul cerchio rosso il pallino passa a bianco: resterebbe invisibile. */
-                        <span
-                          className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red ring-2 ring-cream transition-colors duration-300 group-hover:bg-white"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </span>
-                    <span className="leading-tight">
-                      <span className="block text-sm font-semibold text-ink transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1">
-                        {member.name}
-                      </span>
-                      <span className="block text-[0.8rem] text-stone">{roleLabels[member.role]}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              {/* Il roster vero e proprio vive sotto, a piena pagina: TeamTrail
+                  (rif. codrops/IntroTrailEffect), una persona per schermata. */}
             </div>
 
             <a
@@ -303,6 +271,10 @@ export default function Team() {
           </Parallax>
         </div>
       </div>
+
+      {/* Una schermata piena per ogni persona del team: il trail del
+          riferimento Codrops, scrubbato dallo scroll. */}
+      <TeamTrail />
     </section>
   );
 }

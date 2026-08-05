@@ -12,6 +12,7 @@ import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../li
 import WordReveal from "./WordReveal";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
+import Fioritura from "./motion/Fioritura";
 import { useLocale } from "./i18n/LocaleProvider";
 
 // Percorsi lead. `key` è il tipo lead (LeadIntent) — utile per una futura integrazione
@@ -427,6 +428,14 @@ export default function Contact({
   return (
     <section id="contatti" className="relative bg-cream-deep text-ink">
       <Atmosphere glow />
+      {/* Angolo fiorito (solo desktop): il congedo del filo botanico che
+          attraversa la home. Scudo overflow: i tralci sbordano senza scrollbar. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Fioritura
+          variant="corner-br"
+          className="absolute -bottom-6 -right-5 hidden h-[30vh] w-[13vw] lg:block"
+        />
+      </div>
       <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <CameraIn className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
           {/* Left: pitch + contatti */}

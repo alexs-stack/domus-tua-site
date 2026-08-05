@@ -26,11 +26,24 @@ export type TeamMember = {
   role: TeamRoleKey;
   /** Una sola persona: marca il pallino rosso accanto alle iniziali. */
   founder?: boolean;
+  /** Ritratto per il trail di TeamTrail. Il cliente consegnerà le foto delle
+      singole persone (2026-08): quando arrivano, basta compilare questo campo
+      — senza foto parte il monogramma. NON usare i file con la cornice bianca
+      cotta dentro (es. raffaela-ritratto.jpg): il ritaglio non può toglierla. */
+  image?: string;
+  /** object-position del ritaglio (il soggetto non è sempre al centro). */
+  imagePos?: string;
 };
 
 /** Il roster, nell'ordine in cui va mostrato. */
 export const team: TeamMember[] = [
-  { name: "Raffaela Rizza", role: "founder", founder: true },
+  {
+    name: "Raffaela Rizza",
+    role: "founder",
+    founder: true,
+    image: "/images/reali/raffaela-specchio-sorriso.jpg",
+    imagePos: "30% 28%",
+  },
   { name: "Paloma Cavalcante", role: "office" },
   { name: "Eleonora D’Agati", role: "architect" },
   { name: "Viola Benatti", role: "frontOffice" },

@@ -1383,6 +1383,20 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   color: #fff;
 }
 
+/* ---------- Trail del team (rif. codrops/IntroTrailEffect) ----------
+   Copie identiche impilate nella STESSA cella grid: l'ordine DOM è l'ordine
+   di pittura (nessuno z-index), l'ultima copia — opacity 1, inline da
+   Team.tsx — è il "leader", le precedenti (0.8) i fantasmi che lo inseguono
+   con lo stagger negativo della timeline scrubbata. A riposo la pila
+   coincide pixel-perfetto con una card sola: nessuno stato da ripulire. */
+.dt-trail {
+  display: grid;
+}
+.dt-trail_layer {
+  position: relative;
+  grid-area: 1 / 1 / 2 / 2;
+}
+
 /* ---------- Footer reveal (uncover) ----------
    Il footer resta fisso dietro al main, che gli scorre sopra e lo "scopre"
    nell'ultimo tratto di scroll. Niente transform sugli antenati: main riceve

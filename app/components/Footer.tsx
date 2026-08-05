@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 import { Phone, Whatsapp, Mail, Pin } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import SocialLinks from "./primitives/SocialLinks";
+import Fioritura from "./motion/Fioritura";
 import { getLenis } from "./motion/SmoothScroll";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 import { nav, site } from "../lib/site";
@@ -156,10 +157,27 @@ export default function Footer() {
   );
 
   return (
-    <footer ref={footerRef} className="dt-footer-reveal-target topo-ambient bg-graphite text-cream">
+    <footer
+      ref={footerRef}
+      className="dt-footer-reveal-target topo-ambient relative bg-graphite text-cream"
+    >
+      {/* Angolo fiorito notturno (solo desktop): l'ultimo tralcio del filo
+          botanico, in palette dark sul graphite. Quando l'uncover fissa il
+          footer, `fixed` (specificità maggiore) vince su `relative` e lo
+          scudo resta ancorato al footer stesso. `!absolute`: la regola
+          unlayered `.topo-ambient > *` (position: relative) batte le utility
+          Tailwind — senza il `!` lo scudo collassa a h=0 e l'overflow-hidden
+          ritaglia il canvas nel nulla. */}
+      <div aria-hidden className="pointer-events-none !absolute inset-0 overflow-hidden">
+        <Fioritura
+          variant="corner-tr"
+          palette="dark"
+          className="absolute -right-5 -top-6 hidden h-[30vh] w-[13vw] lg:block"
+        />
+      </div>
       {/* pb extra su mobile: lascia spazio alla MobileActionBar fissa (~64px + safe-area)
           così l'ultima riga legale non finisce mai sotto la barra "Valuta gratis". */}
-      <div className="mx-auto max-w-[1240px] px-5 pb-28 pt-16 sm:px-8 sm:py-20">
+      <div className="relative mx-auto max-w-[1240px] px-5 pb-28 pt-16 sm:px-8 sm:py-20">
         <div ref={gridRef} className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
           {/* Brand */}
           <div>
