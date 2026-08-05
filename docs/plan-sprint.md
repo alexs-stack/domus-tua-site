@@ -409,4 +409,4 @@ voce attiva.
 - `npm run eval` → tutte le soglie ✅
 - Misure headless: puntini (5 campioni), indice FAQ (16 profondità di scroll)
 
-**Commit:** _(da compilare)_
+**Commit:** `600c49f`
