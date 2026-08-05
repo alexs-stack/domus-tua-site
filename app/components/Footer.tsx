@@ -250,15 +250,16 @@ export default function Footer() {
                   Domus D.O.C.
                 </Link>
               </li>
-              {/* "Lavora con noi" vive qui e non in `nav`: la barra desktop è già
-                  piena a otto voci e una nona la manderebbe a capo sotto i 1200px.
-                  Il footer è su ogni pagina, quindi la pagina resta raggiungibile. */}
+              {/* "Domande frequenti" vive qui e non in `nav`: la barra desktop è già
+                  piena a otto voci (2026-08, con "Lavora con noi" entrata in `nav`) e
+                  una nona la manderebbe a capo. Il footer è su ogni pagina, e la FAQ è
+                  comunque linkata dai blocchi in coda a /vendi e /acquista. */}
               <li>
                 <Link
-                  href="/lavora-con-noi"
+                  href="/domande-frequenti"
                   className="link-draw tap-target text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
                 >
-                  {d.footer.lavora}
+                  {d.footer.faq}
                 </Link>
               </li>
             </ul>

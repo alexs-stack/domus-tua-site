@@ -19,6 +19,7 @@ const routes = [
   "/chi-siamo",
   "/contatti",
   "/lavora-con-noi",
+  "/domande-frequenti",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

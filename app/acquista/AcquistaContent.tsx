@@ -12,11 +12,13 @@ import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
+import FaqTeaser from "../components/FaqTeaser";
 import { Whatsapp } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
 import { SegnoDomusCorner, SegnoDomusBadge, SegnoTick } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
+import { FAQ_BUYER } from "../domande-frequenti/faq";
 import type { GridProperty } from "../lib/properties";
 
 const copy = {
@@ -641,6 +643,11 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
         />
         <DomusDocProtocol tone="cream" />
         <Reviews />
+
+        {/* Le domande di chi compra, prima del modulo: chi sta per scrivere ha ancora
+            un dubbio in testa, e spesso e' uno di questi quattro. */}
+        <FaqTeaser ids={FAQ_BUYER} surface="cream" />
+
         <div className="bg-cream-deep">
           <SectionDivider tone="cream-deep" />
         </div>

@@ -218,32 +218,73 @@ che è completo e già ben animato. Misure dopo il rimedio, tutte e cinque le li
 
 ## Tappa 4 — FAQ
 
-**Skill scelte:** _(da compilare)_
+**Skill scelte:** nessuna skill esterna. Le due candidate della lista (`schema-markup`,
+`seo-schema`) coprono la generazione di JSON-LD da zero; qui il repo ha già il proprio
+pattern collaudato — `jsonLdScript` con escape di `</script>` e U+2028/2029, e il precedente
+FAQPage di `/lavora-con-noi`. Seguire quello vale più di una ricetta generica: annotato qui
+per trasparenza, come chiede la regola 3 dello sprint.
 
 ### Collocazione scelta e motivazione
 
-_(da compilare — decisione argomentata)_
+**Pagina dedicata `/domande-frequenti` + blocchi compatti in coda a `/vendi` e `/acquista`**
+(opzione confermata dal cliente).
+
+- **Perché una pagina.** Lo schema `FAQPage` deve avere UNA casa: dichiararlo su tre pagine
+  per lo stesso contenuto significa dichiarare tre FAQ in conflitto, che le linee guida di
+  Google trattano come markup ingannevole. E una pagina ha un indirizzo: si manda per
+  WhatsApp, si linka da un post, si cita al telefono.
+- **Perché anche i blocchi.** Chi ha appena letto come si vende non va a cercare una pagina
+  di domande: la domanda ce l'ha *adesso*. I quattro blocchi mostrano lo **stesso identico
+  testo** della pagina (un sottoinsieme di `faq.ts`) e rimandano lì. Nessun markup proprio.
+- **Perché non in navbar.** La barra è appena arrivata a otto voci (tappa 3). La FAQ vive
+  nel footer, nei due blocchi contestuali e nell'indice della pagina stessa.
+- **Separazione delle competenze.** `/lavora-con-noi/faq.ts` (candidature) e la FAQ di
+  `/open-domus` (dettaglio del format) restano intatte. La voce "Che cos'è un Open Domus?"
+  qui è di **riepilogo** e rimanda a quella pagina: nessuna risposta duplicata.
 
 ### Sottotask
 
-- [ ] Raccogliere le domande vere dalle pagine esistenti (`/vendi`, `/acquista`,
-      `/metodo`, `/open-domus`, `/contatti`) — nessuna affermazione commerciale inventata
-- [ ] Contenuti in italiano, poi en/fr/de/es
-- [ ] Componente FAQ nel linguaggio visivo Domus Tua
-- [ ] Motion di casa (Reveal/TextLines, ease `domus`)
-- [ ] JSON-LD `FAQPage` (aggiunta, non modifica dei metadata esistenti)
-- [ ] `/lavora-con-noi/faq.ts` resta separato e intatto
+- [x] Domande ricavate leggendo `/vendi`, `/acquista`, `/open-domus`, `/metodo`,
+      `app/lib/site.ts` e `PropertyDetail` — provenienza annotata in `faq.ts`
+- [x] 14 domande in 3 gruppi (Vendere · Acquistare · Domus Tua), 5 lingue
+- [x] `app/domande-frequenti/faq.ts` — fonte unica per pagina, blocchi e JSON-LD
+- [x] `FaqList` estratto (ora ha tre call-site) e `FaqTeaser` per le pagine
+- [x] Pagina `/domande-frequenti` con indice appiccicato, rimandi a Open Domus e Metodo,
+      e la via d'uscita "Non hai trovato la risposta?"
+- [x] Motion di casa: occhiello in `Reveal`, titoli in `TextLines`, elenchi in stagger
+- [x] `FAQPage` + `BreadcrumbList` JSON-LD (solo aggiunta; metadata esistenti intatti)
+- [x] Footer: la voce ridondante "Lavora con noi" (ora in `nav`) sostituita dalla FAQ
+- [x] `sitemap.ts`: rotta aggiunta
+- [x] 10 test unitari + 2 test e2e
 
 ### Criteri di accettazione
 
-- Ogni risposta tracciabile a contenuto già presente sul sito
-- Schema `FAQPage` valido, `mainEntity` allineato al testo visibile
-- Accessibile: `<details>`/ARIA corretti, tastiera, focus visibile
-- Reduced-motion: tutte le risposte raggiungibili e leggibili
+- [x] Ogni risposta tracciabile a contenuto già presente sul sito
+- [x] Nessuna promessa indimostrabile: test che vieta 6 forme ("garantiamo la vendita",
+      "vendiamo in N giorni", "senza rischi", "al 100%"…) e che pretende che la voce sui
+      tempi dica esplicitamente «non lo promettiamo»
+- [x] Parità i18n: stessi gruppi e stesse domande, stesso ordine, in tutte e 5 le lingue
+- [x] `mainEntity` allineato al testo visibile — verificato in e2e sull'HTML servito
+- [x] Un solo `FAQPage` per queste domande: e2e verifica che `/vendi` e `/acquista`
+      non ne dichiarino uno
+- [x] Accessibile: `<details>`/`<summary>` nativi, apribili da tastiera e senza JS
+
+### Il test che ha trovato un difetto in sé stesso
+
+La prima versione del controllo e2e leggeva le risposte con `allInnerTexts()` ed è fallita:
+un `<details>` **chiuso** non ha testo *reso*. Il testo però è nel DOM ed è quello che
+leggono i crawler — quindi il controllo giusto è `allTextContents()`. La correzione sta nel
+test, non nella pagina: la pagina era già corretta.
 
 ### Evidenza di verifica
 
-_(da compilare)_
+- `npm run lint` → 0 errori · `npm run typecheck` → pulito
+- `npm test` → **494 pass / 0 fail** (10 test nuovi) + parser 81/81
+- `npm run build` → OK, `/domande-frequenti` prerenderizzata statica
+- `npm run test:e2e` → **149 passed, 11 skipped** (6 test nuovi: la pagina in `PAGES`,
+  i due controlli sullo schema, la larghezza)
+- Screenshot headless a 0.18 / 0.42 / 0.62 desktop 1440 e mobile 390, più il blocco in
+  coda a `/vendi`: **nessun errore console, nessun overflow orizzontale**
 
 **Commit:** _(da compilare)_
 

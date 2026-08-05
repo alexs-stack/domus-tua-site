@@ -13,8 +13,10 @@ import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
+import FaqTeaser from "../components/FaqTeaser";
 import ScrubWords from "../components/motion/ScrubWords";
 import { Cta } from "../components/primitives/Cta";
+import { FAQ_SELLER } from "../domande-frequenti/faq";
 import {
   SegnoDomusBadge,
   SegnoDomusCorner,
@@ -983,6 +985,11 @@ export default function VendiContent() {
           <SegnoDomusDivider className="py-2" />
         </div>
         <SellPrep prep={c.prep} />
+
+        {/* Le domande di chi vende, qui dove nascono: chi ha appena letto il percorso
+            non va a cercare una pagina di FAQ, la domanda ce l'ha adesso. Stesso testo
+            di /domande-frequenti, che resta la casa canonica dello schema. */}
+        <FaqTeaser ids={FAQ_SELLER} />
 
         <div className="bg-cream-deep">
           <SectionDivider tone="cream-deep" />
