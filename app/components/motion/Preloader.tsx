@@ -14,7 +14,7 @@
 // - Fallback senza mask-composite: sipario a salire (clip-path), stesso ritmo.
 import { useEffect, useRef } from "react";
 import { gsap, useGSAP, dur } from "../../lib/motion/gsap";
-import { runWarmup, scheduleIdleWarmup } from "../../lib/motion/warmup";
+import { registerWarmup, runWarmup, scheduleIdleWarmup, warmAllImages } from "../../lib/motion/warmup";
 import { MarkBadge, spinMarkBadge } from "./RotatingMark";
 import { getLenis } from "./SmoothScroll";
 
@@ -54,7 +54,7 @@ function PreChars({ text, script = false }: { text: string; script?: boolean }) 
     ch === " " ? (
       " "
     ) : (
-      <span key={i} {...attr} className="inline-block will-change-transform">
+      <span key={i} {...attr} className="dt-pre-char inline-block">
         {ch}
       </span>
     )
@@ -193,7 +193,13 @@ export default function Preloader() {
       // Parte SUBITO, in parallelo all'intro: i secondi dell'animazione sono
       // tempo che l'utente sta gia' aspettando: e' li' che va messo il lavoro
       // che altrimenti cadrebbe sul primo scroll.
-      const scaldata = runWarmup();
+      // Tutte le immagini della pagina, non solo quelle delle scene animate
+      // (richiesta del cliente: «caricare tutto prima di entrare»). Si iscrive
+      // PRIMA di avviare il precarico, cosi' entra nel primo giro di raccolta.
+      registerWarmup(warmAllImages);
+      // 4,5s: l'intro dura ~5s, quindi nel caso normale l'attesa e' coperta
+      // dal sipario e non si vede. Oltre, si rinuncia e si entra comunque.
+      const scaldata = runWarmup(4500);
       /** true se l'utente ha saltato l'intro: allora non si aspetta il precarico. */
       let saltata = false;
 

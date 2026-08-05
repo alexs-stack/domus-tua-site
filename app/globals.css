@@ -199,6 +199,15 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* I caratteri del preloader sono promossi SOLO mentre il sipario è alzato.
+   Il componente resta montato per tutta la sessione: con `will-change` in
+   classe fissa restavano un centinaio di livelli compositati in memoria per
+   un'animazione durata cinque secondi e mai più ripetuta. L'attributo
+   `data-preloader` cade quando l'intro finisce, e con lui la promozione. */
+html[data-preloader] .dt-pre-char {
+  will-change: transform;
+}
+
 /* ---------- Scroll reveal ---------- */
 .reveal {
   opacity: 0;
@@ -686,9 +695,16 @@ body {
   display: inline-block;
   white-space: nowrap;
 }
+/* ⚠️ NIENTE `will-change` PERMANENTE su questi selettori.
+   Vale la stessa lezione già scritta su .reveal: un elemento promosso è un
+   livello che il compositore tiene in memoria GPU finché esiste. Qui i
+   selettori colpiscono UN CARATTERE, UNA CELLA o UN PANNELLO A TUTTO SCHERMO
+   alla volta — misurato: 252 elementi promossi e 432 MB di memoria livelli
+   sulla home. Sotto pressione il compositore sfratta i livelli usciti di scena
+   e li ricostruisce al ritorno: era il singhiozzo dello scroll all'indietro.
+   GSAP promuove da sé ciò che sta animando, per il tempo in cui lo anima. */
 .dt-hchar {
   display: inline-block;
-  will-change: transform;
 }
 
 /* Il titolo a gradini cavalca l'immagine solo nel layout orizzontale. */
@@ -744,7 +760,6 @@ body {
 }
 .dt-wall[data-on] .dt-wall_item {
   aspect-ratio: 1 / 1;
-  will-change: transform;
 }
 
 /* ---------- Cinque stelle (capitolo recensioni home) ----------
@@ -803,7 +818,6 @@ body {
 }
 .dt-starrev_char,
 .dt-starrev_vchar {
-  will-change: transform;
 }
 /* Titolo gigante della "voce" espansa (dialog) */
 .dt-starrev_voicetitle {
@@ -1454,7 +1468,6 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   min-height: 0;
   background: transparent;
   transform-style: preserve-3d;
-  will-change: transform, opacity;
 }
 /* L'atmosfera (canvas: fondale a blob + fiori in profondità) vive solo nel
    corridoio: fuori non esiste, né in flusso né in memoria. */

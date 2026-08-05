@@ -13,6 +13,7 @@ import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { getLenis } from "./motion/SmoothScroll";
 import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
+import { registerWarmup } from "../lib/motion/warmup";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -69,6 +70,29 @@ export default function Header() {
     },
     { scope: pillRef }
   );
+
+  /* Il wordmark ha due varianti e l'header le SCAMBIA al primo scroll: quella
+     non montata non è nel DOM, quindi nessun precarico generico la trova e
+     arrivava in ritardo proprio nel momento in cui si comincia a scorrere.
+     Qui si chiedono entrambe dietro il sipario. */
+  useEffect(() => {
+    return registerWarmup(
+      () =>
+        new Promise<void>((risolvi) => {
+          const varianti = ["/logo-domustua-wordmark.png", "/logo-domustua-wordmark-dark.png"];
+          let mancanti = varianti.length;
+          const fatta = () => {
+            if (--mancanti === 0) risolvi();
+          };
+          for (const src of varianti) {
+            const img = new window.Image();
+            img.onload = fatta;
+            img.onerror = fatta;
+            img.src = src;
+          }
+        })
+    );
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);

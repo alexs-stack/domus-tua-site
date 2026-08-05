@@ -490,3 +490,68 @@ pagina», LCP < 2,5 s mobile). Se il cliente preferisce comunque l'attesa totale
 è una riga: si aggiunge un lavoro di precarico che le forza.
 
 **Commit:** `f3ddb0e`
+
+---
+
+## Prestazioni, secondo giro — «sei sicuro che carica tutto? il caricamento è troppo corto»
+
+Il cliente ha ragione su entrambe le cose, e la seconda era un difetto vero.
+
+### Il precarico non veniva atteso
+
+`runWarmup()` parte da un **effetto di layout** del preloader; le scene si iscrivono da
+`useEffect`, che React esegue **dopo**. Al primo giro il registro era quindi vuoto: il
+precarico "finiva" in millisecondi senza aver atteso nulla, e il sipario si alzava lo
+stesso. Funzionava per caso — l'intro dura 5 s e i lavori erano rapidi — ma su un
+dispositivo lento sarebbe stato esattamente il difetto che il modulo doveva togliere.
+
+Corretto con una **finestra di raccolta**: si drena a giri, cedendo il controllo al browser
+fra un giro e l'altro, così chi si iscrive nel frattempo entra nel giro successivo.
+
+### Ora carica davvero tutto
+
+`warmAllImages()` forza `loading="eager"` su tutte le pigre e ne attende la decodifica.
+Verificato sul percorso reale (visitatore nuovo, intro in corso):
+
+| | prima | dopo |
+| --- | --- | --- |
+| Immagini caricate **prima** del sipario | 0 dichiarate | **15 · 301 kB** |
+| Immagini ancora `lazy` all'ingresso | 15 | **0 su 71** |
+| Fiori campionati | a vista, durante lo scroll | **468 ms**, sipario a **4977 ms** |
+
+**Compromesso dichiarato:** 71 immagini in gara con l'LCP dell'hero. È accettabile solo
+perché avviene **dietro il sipario** — l'utente guarda l'intro, non la pagina — e perché la
+scadenza di 4,5 s taglia comunque l'attesa. Se il vincolo LCP dovesse soffrire, la via di
+mezzo è precaricare solo le immagini delle scene animate: si toglie una riga.
+
+### Promozione permanente dei livelli
+
+Misurati **252 elementi con `will-change` permanente** sulla home — 69 per singolo
+carattere (`.dt-hchar`), 13 per carattere in `.dt-starrev`, 6 unità del corridoio a tutto
+schermo, più ~100 caratteri del preloader che **resta montato tutta la sessione**.
+Il codebase dichiarava già la regola giusta su `.reveal` («will-change SOLO finché
+l'elemento non è entrato»); le altre scene non la seguivano. Ora: **137**, e i caratteri del
+preloader sono promossi solo mentre `html[data-preloader]` è presente.
+
+### Quello che NON ho trovato, detto chiaramente
+
+Il lag riferito dal cliente **non l'ho riprodotto in locale**. Il browser headless rasterizza
+via software (SwiftShader): i fps non sono rappresentativi. Ho quindi lavorato su prove
+hardware-indipendenti — richieste di rete, layout forzati, elementi promossi, area di
+rasterizzazione — e su ciascuna c'era un difetto vero, ora corretto.
+
+Ipotesi provate e **scartate** dai dati, per non farle riprovare a nessun altro:
+- non è il canvas del fondale (toglierlo: −3 ms su 50);
+- non sono le otto copie del ritratto, né il filtro `photo-warm`, né le scie del nome
+  (toglierli a runtime: nessuna differenza misurabile);
+- non è `preserve-3d` sulle unità (appiattirlo: 66 livelli identici, stessa memoria);
+- non è `will-change` a creare i livelli giganti (toglierlo: 66 livelli identici).
+
+I livelli grossi risultano essere quelli **a tutta altezza di documento** creati per
+`Overlap`, di cui **92 MB imputabili a `.grain`** — il velo fisso a schermo intero con
+`mix-blend-mode: multiply`. Toglierne il solo blend libera gli stessi 92 MB.
+**Non l'ho toccato**: la grana è un impegno di marca documentato in PRODUCT.md
+(«texture noise SVG fixed, mix-blend-mode: multiply — dà calore materico») e cambiarla
+altera un dettaglio visivo deciso col cliente. È una decisione sua, non mia.
+
+**Commit:** _(da compilare)_

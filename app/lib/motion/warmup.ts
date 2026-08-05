@@ -69,6 +69,41 @@ export async function warmImage(img: HTMLImageElement): Promise<void> {
 }
 
 /**
+ * TUTTE le immagini della pagina, scaricate e decodificate dietro il sipario.
+ *
+ * Richiesta esplicita del cliente: «dobbiamo far caricare tutto nel caricamento
+ * prima di entrare nel sito». Qui si forza `loading="eager"` sulle pigre e si
+ * aspetta la decodifica di ognuna.
+ *
+ * Il compromesso, dichiarato: sono decine di immagini che entrano in gara con
+ * l'immagine LCP dell'hero. È accettabile SOLO perché il sipario è ancora
+ * alzato — l'utente non sta guardando la pagina, sta guardando l'intro — e
+ * perché la scadenza di `runWarmup` taglia comunque l'attesa. Fuori dal
+ * preloader questa funzione non va usata.
+ */
+export async function warmAllImages(): Promise<void> {
+  const tutte = Array.from(document.images);
+  const viste = new Set<string>();
+  await Promise.all(
+    tutte.map(async (img) => {
+      // Le pigre non sono nemmeno partite: si sveglia la richiesta.
+      if (img.loading === "lazy") img.loading = "eager";
+      const src = img.currentSrc || img.src;
+      if (!src || viste.has(src)) return;
+      viste.add(src);
+      if (!img.complete) {
+        await new Promise<void>((r) => {
+          const fine = () => r();
+          img.addEventListener("load", fine, { once: true });
+          img.addEventListener("error", fine, { once: true });
+        });
+      }
+      await warmImage(img);
+    })
+  );
+}
+
+/**
  * Scalda tutti i lavori dichiarati, entro la scadenza.
  *
  * Torna quando i lavori sono finiti O quando scade il tempo — chi chiama può
@@ -84,11 +119,37 @@ export function runWarmup(deadlineMs = 2200): Promise<void> {
       new Promise((r) => setTimeout(r, Math.min(1200, deadlineMs))),
     ]);
 
-    const lavori = [...tasks].map(safe);
-    await Promise.race([
-      Promise.allSettled(lavori),
-      new Promise((r) => setTimeout(r, deadlineMs)),
-    ]);
+    // ⚠️ FINESTRA DI RACCOLTA — il difetto della prima versione.
+    // `runWarmup()` parte da un effetto di layout del preloader; le scene si
+    // iscrivono da `useEffect`, che React esegue DOPO. Al primo giro il
+    // registro era quindi vuoto: il precarico "finiva" in pochi millisecondi
+    // senza aver atteso nulla, e il sipario si alzava lo stesso. Funzionava
+    // per caso, perché l'intro dura cinque secondi e i lavori erano rapidi —
+    // ma su un dispositivo lento sarebbe stato esattamente il difetto che
+    // questo modulo doveva togliere.
+    //
+    // Si drena a giri: fra un giro e l'altro si cede il controllo al browser,
+    // così chi si iscrive nel frattempo (o chi si iscrive DENTRO un lavoro)
+    // entra nel giro successivo. Si esce quando nessuno si fa più vivo.
+    const scadenza = new Promise<void>((r) => setTimeout(r, deadlineMs));
+    let scaduto = false;
+    void scadenza.then(() => {
+      scaduto = true;
+    });
+
+    for (let giro = 0; giro < 6 && !scaduto; giro += 1) {
+      // Due frame: il primo lascia montare i componenti, il secondo raccoglie
+      // chi si è iscritto durante il primo.
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      if (tasks.size === 0) {
+        // Nessuno in coda: se è già il secondo giro a vuoto, non arriverà più.
+        if (giro > 0) break;
+        continue;
+      }
+      const lotto = [...tasks];
+      tasks.clear();
+      await Promise.race([Promise.allSettled(lotto.map(safe)), scadenza]);
+    }
 
     // `done` anche se si è finiti per scadenza: i lavori rimasti continuano per
     // conto loro e chi si registra dopo parte da solo. Nessuno resta appeso.
