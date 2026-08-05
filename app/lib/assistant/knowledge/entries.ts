@@ -130,6 +130,23 @@ const VERIFIED: KnowledgeEntry[] = [
     keywords: ["zona", "comuni", "provincia", "varese", "tradate", "area", "territorio", "raggio", "coprite"],
   },
   {
+    id: "faq-pagina",
+    category: "faq",
+    title: "Le domande frequenti del sito",
+    content:
+      "Il sito ha una pagina di domande frequenti su come si vende e si compra casa con noi: la trovi in /domande-frequenti. Se la risposta che cerchi non c'è, il team risponde volentieri.",
+    status: "verified",
+    // Volutamente NON contiene le risposte: dice solo che la pagina esiste e dov'è.
+    // Le risposte della pagina sono derivate dal copy del sito, non testi approvati uno
+    // per uno dall'agenzia, e il gradino di approvazione di questo corpus non si scavalca
+    // da soli. Vedi la voce `faq-generali` fra le pending, e knowledge.test.ts, che
+    // pretende ancora un "non lo so" su Domus D.O.C., Open Domus, vendita e valutazione.
+    source: "pagina /domande-frequenti del sito (app/domande-frequenti/faq.ts)",
+    lastVerified: "2026-08-05",
+    locale: "it",
+    keywords: ["domande frequenti", "faq", "domande comuni", "dubbi frequenti", "domande ricorrenti"],
+  },
+  {
     id: "limiti-assistente",
     category: "limiti",
     title: "Cosa non posso fare",
@@ -246,8 +263,16 @@ const PENDING: KnowledgeEntry[] = [
     "Cosa si può dire su una proposta al ribasso senza impegnare l'agenzia."),
   pending("referente-casi-complessi", "contatti", "A chi rivolgersi per i casi complessi", ["referente", "responsabile", "titolare", "chi segue"],
     "Nome e ruolo della persona a cui rimandare i casi che l'assistente non copre."),
-  pending("faq-generali", "faq", "Domande frequenti", ["faq", "domande frequenti"],
-    "Elenco FAQ con risposte approvate. Ogni FAQ diventerà una voce con ID proprio."),
+  pending("faq-generali", "faq", "Domande frequenti", ["risposte approvate faq"],
+    "Elenco FAQ con risposte approvate. Ogni FAQ diventerà una voce con ID proprio. " +
+      "AGGIORNAMENTO 2026-08-05: le domande e le risposte ORA ESISTONO, pubblicate in " +
+      "app/domande-frequenti/faq.ts e visibili su /domande-frequenti — ma sono state " +
+      "derivate dal copy del sito, non approvate una per una dall'agenzia. Quando " +
+      "Raffaela le conferma, il lavoro è meccanico: una voce verified per ogni FaqEntry " +
+      "(l'id è già stabile), contenuto = `a`, e vanno aggiornati i casi 'ammette di non " +
+      "sapere' in knowledge.test.ts, che oggi pretendono il silenzio su Domus D.O.C., " +
+      "Open Domus, vendita e valutazione. Fino ad allora resta viva solo `faq-pagina`, " +
+      "che dice dove sono le risposte senza recitarle."),
   pending("privacy-policy", "limiti", "Informativa privacy", ["privacy policy", "informativa", "gdpr"],
     "Informativa definitiva, per poterla citare e collegare."),
 ];

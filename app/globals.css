@@ -322,6 +322,31 @@ body {
   }
 }
 
+/* ---------- Assistente: i puntini che respirano mentre scrive ----------
+   NON un rimbalzo. Il saltello verticale è il tic della chat generica e stona
+   su un sito che si muove per attenuazione, mai per scatti. Qui i tre punti
+   respirano — opacità e scala insieme, entrambe componibili dal compositor —
+   sfalsati di 0.15s l'uno dall'altro: si legge "sto scrivendo" senza che nulla
+   salti. `ease-in-out` e non un'ease firma: quelle hanno la coda lunga del
+   gesto in uscita, qui il ciclo deve essere simmetrico perché non finisce mai.
+   Con reduced-motion `motion-reduce:animate-none` toglie l'animazione e i punti
+   restano pieni e fermi — che è già uno stato leggibile. */
+@keyframes dt-typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.dt-typing-dot {
+  animation: dt-typing 1.3s ease-in-out infinite;
+}
+
 /* ---------- Subtle float ---------- */
 @keyframes dt-float {
   0%,

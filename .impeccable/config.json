@@ -8,6 +8,15 @@
         "value": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
         "createdAt": "2026-08-04T08:16:36.919Z",
         "reason": "Easing del riferimento Uiverse per i social tooltip, fornito esplicitamente dal cliente (chat 2026-08-04)"
+      },
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "app/components/motion/Preloader.tsx"
+        ],
+        "createdAt": "2026-08-05T11:56:34.030Z",
+        "reason": "Falso positivo: l'<img> vive dentro un <picture> e ha src reale (/media/raffaela-sagoma.png, presente in public/media). Il rilevatore non risolve l'attributo su piu' righe."
       }
     ]
   }

@@ -686,10 +686,15 @@ export default function Assistant() {
   );
 }
 
+// Puntini dell'indicatore di scrittura: respirano (vedi `dt-typing` in globals.css),
+// non rimbalzano. Il rimbalzo verticale della prima versione era l'unico gesto del
+// sito a muoversi a scatti, e su una superficie che si muove sempre per attenuazione
+// si notava. (Il nome della vecchia utility non è citato apposta: il rilevatore
+// legge anche i commenti e lo segnalerebbe qui, dove non c'è più.)
 function Dot({ delay = "0s" }: { delay?: string }) {
   return (
     <span
-      className="inline-block h-2 w-2 animate-bounce rounded-full bg-stone/50 motion-reduce:animate-none"
+      className="dt-typing-dot inline-block h-2 w-2 rounded-full bg-stone/50 motion-reduce:animate-none"
       style={{ animationDelay: delay }}
     />
   );

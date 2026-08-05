@@ -100,6 +100,25 @@ describe("corpus reale — cosa sa e cosa non sa oggi", () => {
     }
   });
 
+  it("la voce sulla pagina FAQ non scavalca il gradino di approvazione", async () => {
+    // `faq-pagina` dice DOVE sono le risposte, non le recita. Se un giorno le sue
+    // keyword si allargassero fino a intercettare i temi ancora da approvare,
+    // l'assistente comincerebbe a rispondere "guarda la FAQ" al posto di ammettere
+    // che non sa — e il gradino sarebbe aggirato senza che nessuno l'abbia deciso.
+    for (const query of [
+      "Cos'è Domus D.O.C.?",
+      "Come funziona Open Domus?",
+      "Vorrei vendere casa, da dove comincio?",
+      "Quanto vale casa mia?",
+    ]) {
+      const ids = (await retrieveKnowledge(query)).map((r) => r.id);
+      assert.ok(!ids.includes("faq-pagina"), `"${query}" ha raggiunto faq-pagina`);
+    }
+    // Sulla sua domanda, invece, deve esserci.
+    const ids = (await retrieveKnowledge("Avete una pagina con le domande frequenti?")).map((r) => r.id);
+    assert.ok(ids.includes("faq-pagina"), `non trovata: ${ids}`);
+  });
+
   it("una domanda fuori ambito non restituisce nulla", async () => {
     for (const query of ["Qual è la capitale del Perù?", "Mi consigli un ristorante?", "zzzz"]) {
       assert.deepEqual(await retrieveKnowledge(query), [], `query fuori corpus: ${query}`);

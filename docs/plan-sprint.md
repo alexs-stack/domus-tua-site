@@ -339,3 +339,74 @@ sull'altezza del badge, e senza JS il logo è al suo posto comunque.
   dell'anello e il monogramma sono chiaramente su angoli opposti.
 
 **Commit:** `adfab7e`
+
+---
+
+## Rifinitura finale — revisione `/impeccable` e coerenza
+
+Passata dopo le cinque tappe, su mandato «fixa e migliora tutto».
+
+### 1. I puntini dell'assistente rimbalzavano
+
+Il rilevatore ha segnalato `animate-bounce` sull'indicatore di scrittura. Non era un
+falso positivo: il saltello verticale era **l'unico gesto del sito a muoversi a scatti**,
+su una superficie che altrove si muove sempre per attenuazione.
+
+Sostituito con `dt-typing` (`app/globals.css`): i tre punti **respirano** — opacità e
+scala insieme, sfalsati di 0.15s. `ease-in-out` e non un'ease firma, perché il ciclo è
+simmetrico e non finisce mai. Misurato: opacità 0.30 → 0.99, scala 0.70 → 0.99,
+traslazione verticale **sempre 0**.
+
+### 2. Un falso positivo, riconosciuto come tale
+
+`broken-image` su `Preloader.tsx:397`: l'`<img>` vive dentro un `<picture>` e ha `src`
+reale (`/media/raffaela-sagoma.png`, 791 KB, presente). Il rilevatore non risolve
+l'attributo scritto su più righe. Registrata un'eccezione **stretta** — solo quella regola,
+solo quel file — in `.impeccable/config.json`, con la motivazione. Dopo: **rilevatore
+pulito su tutto `app/`**.
+
+Nota di metodo: la prima correzione del punto 1 continuava a essere segnalata perché il
+mio commento *citava* il nome della vecchia utility. Il rilevatore legge anche i commenti.
+Riscritto il commento invece di silenziare la regola.
+
+### 3. L'incoerenza che la tappa 4 aveva introdotto
+
+Con la FAQ pubblicata, il sito rispondeva a domande che **l'assistente non sapeva**.
+La tentazione era travasare le risposte nella knowledge base. Non si è fatto, e la ragione
+conta più della decisione:
+
+`knowledge/entries.ts` ha un **cancello di approvazione esplicito** («solo le voci
+`verified` finiscono nelle risposte… un contenuto scritto da noi diventerebbe
+indistinguibile da uno approvato») e `knowledge.test.ts` pretende ancora, per iscritto, un
+«non lo so» su Domus D.O.C., Open Domus, vendita e valutazione — in attesa dei testi
+ufficiali dell'agenzia. Le mie risposte sono derivate dal copy del sito, non approvate una
+per una: promuoverle avrebbe scavalcato in silenzio una decisione presa da altri.
+
+Aggiunta quindi **una sola** voce verificata, `faq-pagina`, che dice *dove* sono le risposte
+senza recitarle — un fatto verificabile: la pagina esiste. Più:
+- un test che impedisce alle sue keyword di allargarsi fino a intercettare i temi ancora
+  chiusi (il cancello non deve poter essere aggirato per distrazione);
+- la nota della voce `faq-generali` aggiornata con **cosa fare quando Raffaela approva**:
+  una voce per ogni `FaqEntry` (gli id sono già stabili) e i casi da rivedere nel test.
+
+### 4. L'indice della FAQ non diceva dove sei
+
+Su una pagina lunga con un indice appiccicato, la voce corrente è informazione. Ora si
+accende in rosso con il trattino dell'occhiello che cresce, e porta `aria-current` — chi
+naviga a schermo letto ha lo stesso diritto di sapere dov'è. Attivo solo da `lg` (sotto,
+l'indice scorre via) e **non** condizionato al motion: togliere un'etichetta a chi ha
+reduced-motion sarebbe togliergli un'informazione, non un'animazione.
+
+Verificato: scendendo, tutti e tre i gruppi si accendono a turno, nessun momento senza
+voce attiva.
+
+### Evidenza di verifica
+
+- `node .agents/skills/impeccable/scripts/detect.mjs app` → **0 anti-pattern**
+- `npm run lint` → 0 errori · `npm run typecheck` → pulito
+- `npm test` → **495 pass / 0 fail** + parser 81/81 · `npm run build` → OK
+- `npm run test:e2e` → **149 passed, 11 skipped** · `npm run e2e:assistant` → **46 passed**
+- `npm run eval` → tutte le soglie ✅
+- Misure headless: puntini (5 campioni), indice FAQ (16 profondità di scroll)
+
+**Commit:** _(da compilare)_

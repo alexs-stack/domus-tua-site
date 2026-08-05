@@ -11,6 +11,7 @@
 // Motion di casa: occhiello in Reveal, titolo in TextLines, colonna d'indice appiccicata
 // che accompagna la lettura, elenchi in stagger.
 
+import { useRef, useState } from "react";
 import Link from "next/link";
 import PageHero from "../components/PageHero";
 import Reveal from "../components/Reveal";
@@ -21,8 +22,9 @@ import { SegnoDomusDivider } from "../components/BrandMotif";
 import { ArrowRight } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
+import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 import { site } from "../lib/site";
-import { faq } from "./faq";
+import { faq, type FaqGroupId } from "./faq";
 import type { Locale } from "../lib/i18n/dictionaries";
 
 type Copy = {
@@ -159,6 +161,45 @@ export default function FaqContent() {
   const c = copy[locale];
   const groups = faq[locale];
 
+  // Il gruppo che si sta leggendo, per accendere la voce corrispondente dell'indice.
+  // Stato React e non una classe scritta a mano: la voce attiva è informazione, e deve
+  // poter portare `aria-current` — un utente che naviga a schermo letto ha lo stesso
+  // diritto di sapere dov'è di uno che guarda.
+  //
+  // Parte dal primo gruppo: prima che qualunque trigger scatti l'indice è già coerente
+  // con ciò che si vede, e senza JS resta acceso il primo — mai nessuno, mai tutti.
+  const [active, setActive] = useState<FaqGroupId>(groups[0].id);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+
+  useGSAP(
+    () => {
+      const root = bodyRef.current;
+      if (!root) return;
+      const mm = gsap.matchMedia();
+      // Solo dove l'indice è appiccicato: sotto `lg` scorre via col resto della pagina
+      // e accendere una voce fuori dallo schermo non serve a nessuno.
+      // NB: nessuna condizione su motion: qui non si muove niente, si cambia un'etichetta.
+      // Toglierla a chi ha reduced-motion vorrebbe dire togliergli un'informazione.
+      mm.add(MQ.desktop, () => {
+        const triggers = Array.from(root.querySelectorAll<HTMLElement>("[data-faq-group]")).map(
+          (section) =>
+            ScrollTrigger.create({
+              trigger: section,
+              // La fascia alta del viewport, subito sotto la pill dell'header: è lì che
+              // l'occhio sta leggendo quando una sezione "diventa" quella corrente.
+              start: "top 30%",
+              end: "bottom 30%",
+              onToggle: (self) => {
+                if (self.isActive) setActive(section.dataset.faqGroup as FaqGroupId);
+              },
+            })
+        );
+        return () => triggers.forEach((t) => t.kill());
+      });
+    },
+    { scope: bodyRef, dependencies: [locale] }
+  );
+
   return (
     <main className="flex-1">
       <PageHero
@@ -187,19 +228,38 @@ export default function FaqContent() {
                 <p className="eyebrow">{c.indexLabel}</p>
               </Reveal>
               <ul className="mt-5 flex flex-col gap-2.5">
-                {groups.map((group, i) => (
-                  <Reveal as="li" key={group.id} delay={80 + i * 60}>
-                    <a
-                      href={`#${group.id}`}
-                      className="group inline-flex items-baseline gap-3 font-display text-lg font-medium text-ink transition-colors duration-300 hover:text-red"
-                    >
-                      <span className="tnum text-[0.72rem] font-semibold tracking-[0.2em] text-stone">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      {group.title}
-                    </a>
-                  </Reveal>
-                ))}
+                {groups.map((group, i) => {
+                  const current = group.id === active;
+                  return (
+                    <Reveal as="li" key={group.id} delay={80 + i * 60}>
+                      <a
+                        href={`#${group.id}`}
+                        aria-current={current ? "true" : undefined}
+                        className={`group inline-flex items-baseline gap-3 font-display text-lg font-medium transition-colors duration-300 hover:text-red ${
+                          current ? "text-red" : "text-ink"
+                        }`}
+                      >
+                        {/* Il trattino cresce sotto la voce corrente: lo stesso segno
+                            dell'helper .eyebrow, qui usato come indicatore di posizione.
+                            Larghezza in transizione, non comparsa: niente sfarfallio. */}
+                        <span
+                          aria-hidden
+                          className={`mt-[0.55rem] h-px shrink-0 self-start bg-red transition-[width,opacity] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
+                            current ? "w-5 opacity-100" : "w-0 opacity-0"
+                          }`}
+                        />
+                        <span
+                          className={`tnum text-[0.72rem] font-semibold tracking-[0.2em] transition-colors duration-300 ${
+                            current ? "text-red/70" : "text-stone"
+                          }`}
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        {group.title}
+                      </a>
+                    </Reveal>
+                  );
+                })}
               </ul>
 
               <Reveal delay={280}>
@@ -223,9 +283,9 @@ export default function FaqContent() {
               </Reveal>
             </nav>
 
-            <div className="flex flex-col gap-16 sm:gap-20">
+            <div ref={bodyRef} className="flex flex-col gap-16 sm:gap-20">
               {groups.map((group) => (
-                <div key={group.id} id={group.id} className="scroll-mt-32">
+                <div key={group.id} id={group.id} data-faq-group={group.id} className="scroll-mt-32">
                   <TextLines
                     as="h2"
                     className="font-display text-3xl font-medium leading-[1.06] tracking-tight text-ink balance sm:text-[2.4rem]"
