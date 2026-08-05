@@ -554,4 +554,4 @@ I livelli grossi risultano essere quelli **a tutta altezza di documento** creati
 («texture noise SVG fixed, mix-blend-mode: multiply — dà calore materico») e cambiarla
 altera un dettaglio visivo deciso col cliente. È una decisione sua, non mia.
 
-**Commit:** _(da compilare)_
+**Commit:** `7c73585`
