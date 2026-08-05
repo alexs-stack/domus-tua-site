@@ -489,4 +489,4 @@ l'LCP dell'hero e violerebbe il vincolo di PRODUCT.md («una sola immagine prior
 pagina», LCP < 2,5 s mobile). Se il cliente preferisce comunque l'attesa totale in ingresso,
 è una riga: si aggiunge un lavoro di precarico che le forza.
 
-**Commit:** _(da compilare)_
+**Commit:** `f3ddb0e`
