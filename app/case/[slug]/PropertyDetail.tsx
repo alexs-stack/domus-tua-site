@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
 import PropertyGallery from "../../components/PropertyGallery";
 import PropertyFacts from "./PropertyFacts";
+import ListingCopy from "./ListingCopy";
+import { formatListingDescription } from "../../lib/listingCopy/format";
 import PropertyCard from "../../components/PropertyCard";
 import ListingsGrid from "../../components/ListingsGrid";
 import Badge from "../../components/primitives/Badge";
@@ -287,6 +289,11 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   // "Caratteristiche" sotto la descrizione resta solo per le fixture demo, che non hanno fatti.
   const hasFacts = (p.facts?.length ?? 0) > 0;
 
+  // Composizione della descrizione. La funzione è pura e deterministica: gira identica in
+  // SSR e dopo l'idratazione (nessun mismatch), e il testo resta per intero nell'HTML
+  // iniziale. useMemo perché il risultato dipende solo dai paragrafi dell'immobile.
+  const copyBlocks = useMemo(() => formatListingDescription(p.description), [p.description]);
+
   // Specs strip: micro-ingresso dei soli VALORI (dd) della striscia sotto la
   // gallery. I numeri restano nell'HTML SSR: nascosti solo post-idratazione e
   // mai a lungo (start alto + timeout di sicurezza — pagina di conversione).
@@ -488,11 +495,30 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
             <h2 className="font-display text-2xl font-medium tracking-tight text-ink">
               {c.description}
             </h2>
-            <div className="mt-4 flex max-w-[68ch] flex-col gap-4 text-[1rem] leading-relaxed text-graphite">
-              {p.description.map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
+            <div className="mt-6">
+              <ListingCopy blocks={copyBlocks.blocks} />
             </div>
+
+            {/* Il gradino di conversione in coda al racconto. Su mobile la card con le CTA
+                sta in cima alla colonna e a fine descrizione è lontanissima: qui l'invito
+                torna sotto il pollice, con le stesse etichette e le stesse primitive. */}
+            {copyBlocks.blocks.length > 0 && (
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Cta href="#contatti" variant="cta" size="md">
+                  {c.requestVisit}
+                </Cta>
+                <Cta
+                  href={waTalk}
+                  variant="ghost"
+                  size="md"
+                  arrow={false}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Whatsapp className="h-5 w-5 text-red" /> {c.whatsapp}
+                </Cta>
+              </div>
+            )}
 
             {/* Fallback per le fixture demo, che non hanno fatti strutturati: con i dati live
                 queste voci sono già distribuite nei box e la lista non viene renderizzata. */}
