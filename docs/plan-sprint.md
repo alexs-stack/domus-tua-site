@@ -153,7 +153,7 @@ perso tempo, ha perso fiducia — ed è esattamente ciò che questo sito vende.
   Titolo «Assistente Raffaela» in Playfair, sottotitolo «Ti aiuto a trovare casa, con calma»,
   saluto e disclaimer onesto in fondo al pannello.
 
-**Commit:** _(da compilare)_
+**Commit:** `85856c9`
 
 ---
 
