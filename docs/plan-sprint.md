@@ -98,7 +98,7 @@ senza spostare una parola.
   Playfair, a-parte in corsivo rientrato, elenchi col punto elenco di marca, grassetto su
   «ben 21mq» e «112 mq», chiusura con hairline + coppia di CTA.
 
-**Commit:** `5f21e0e`
+**Commit:** `21cf9b3`
 
 ---
 
