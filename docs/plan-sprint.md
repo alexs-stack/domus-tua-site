@@ -338,4 +338,4 @@ sull'altezza del badge, e senza JS il logo è al suo posto comunque.
   (vedi tabella sopra) e due screenshot del badge a 4× a 1,8 s di distanza: le tacche
   dell'anello e il monogramma sono chiaramente su angoli opposti.
 
-**Commit:** _(da compilare)_
+**Commit:** `adfab7e`
