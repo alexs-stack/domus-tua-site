@@ -3,7 +3,7 @@
 // HeroCinematic — apertura cinematografica full-bleed di Domus Tua.
 // Canvas video/immagine a tutta larghezza, energia + emozione + prova sociale + sicurezza.
 // Video-ready: quando i file /media esistono e enabled=true, parte (desktop, no reduced-motion).
-// Finché mancano, resta la foto reale di Raffaella + team come poster. Vedi docs/hero-video.md.
+// Finché mancano, resta la foto reale di Raffaela + team come poster. Vedi docs/hero-video.md.
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Star, Play } from "./Icons";

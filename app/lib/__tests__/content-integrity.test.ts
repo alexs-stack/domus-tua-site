@@ -20,6 +20,7 @@ import { isAvailable, isSold, onlyAvailable } from "../availability";
 import { CONSENT_COOKIE } from "../consent";
 import { team, teamInitials, teamRoleLabels } from "../team";
 import { locales } from "../i18n/dictionaries";
+import { ASSISTANT_NAME, buildSystemPrompt } from "../assistant/prompt";
 
 const APP_DIR = path.join(process.cwd(), "app");
 
@@ -357,5 +358,52 @@ describe("team — fonte unica del roster", () => {
     for (const member of team) {
       assert.match(teamInitials(member.name), /^[A-ZÀ-Ý]{2}$/);
     }
+  });
+
+  // "Raffaella" con due L è l'errore che una correzione automatica, un copia-incolla o un
+  // collega in buona fede introducono prima o poi: è la grafia "giusta" in italiano, ma non
+  // è la sua. Il roster era già protetto; da quando l'assistente del sito porta il suo nome
+  // ("Assistente Raffaela") lo sbaglio arriverebbe fino alla prima riga di una conversazione.
+  test("«Raffaela» resta con una L sola in tutto il sito", () => {
+    const colpevoli = productionSources().filter((f) =>
+      /Raffaella/.test(stripComments(fs.readFileSync(f, "utf8"))),
+    );
+    assert.deepEqual(colpevoli.map(REL), []);
+  });
+});
+
+describe("assistente — la persona della fondatrice", () => {
+  test("si chiama Assistente Raffaela, con una L sola", () => {
+    assert.equal(ASSISTANT_NAME, "Assistente Raffaela");
+    assert.ok(!ASSISTANT_NAME.includes("Raffaella"));
+  });
+
+  test("il prompt porta il nome, la voce e il limite di onestà", () => {
+    const prompt = buildSystemPrompt();
+    assert.ok(prompt.includes(ASSISTANT_NAME), "il prompt non nomina l'assistente");
+    assert.match(prompt, /Non SEI Raffaela/, "manca la riga che impedisce di spacciarsi per lei");
+    assert.match(prompt, /Prima la persona, poi l'immobile/, "manca la voce dell'agenzia");
+  });
+
+  // Impegno di marca (PRODUCT.md): nei testi rivolti al pubblico Domus Tua non parla di AI.
+  // Il divieto vale su ciò che si LEGGE, non sulle istruzioni al modello — che infatti devono
+  // nominare la cosa per poterla vietare. Quindi: la UI non ne parla, il prompt sì.
+  test("la UI dell'assistente non nomina mai AI né intelligenza artificiale", () => {
+    const vietato = /\bA\.?I\.?\b|intelligenza artificiale|artificial intelligence/i;
+    for (const nome of ["Assistant.tsx", "AssistantLeadForm.tsx", "AssistantMount.tsx"]) {
+      const src = stripComments(fs.readFileSync(path.join(APP_DIR, "components", nome), "utf8"));
+      const riga = src.split("\n").find((l) => vietato.test(l));
+      assert.equal(riga, undefined, `riferimento ad AI in ${nome}: ${riga}`);
+    }
+  });
+
+  test("il prompt vieta esplicitamente di nominare AI", () => {
+    assert.match(buildSystemPrompt(), /Non nominare mai AI/);
+  });
+
+  test("il pannello si presenta col nome in tutte e cinque le lingue", () => {
+    const src = fs.readFileSync(path.join(APP_DIR, "components", "Assistant.tsx"), "utf8");
+    const titoli = src.match(/title: "Assistente Raffaela"/g) ?? [];
+    assert.equal(titoli.length, locales.length, "il nome manca in qualche lingua");
   });
 });

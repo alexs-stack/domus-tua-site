@@ -11,7 +11,9 @@ test.describe("apertura e chiusura", () => {
     await apriAssistente(page);
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(/assistente di Domus Tua/i)).toBeVisible();
+    // Il pannello si presenta col nome: "Assistente Raffaela" (una L sola). Si guarda il
+    // titolo, non un testo qualunque: il nome ricorre anche nel saluto.
+    await expect(dialog.locator("#assistant-title")).toHaveText("Assistente Raffaela");
 
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
@@ -351,7 +353,7 @@ test.describe("audit finale — regressioni", () => {
     sblocca();
 
     // Il saluto deve restare: l'annullamento riguardava la conversazione precedente.
-    await expect(bolla(page, /Sono l’assistente di Domus Tua/)).toBeVisible();
+    await expect(bolla(page, /sono Assistente Raffaela/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Cerco una villa" })).toBeVisible();
   });
 });

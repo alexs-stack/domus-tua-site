@@ -104,27 +104,54 @@ senza spostare una parola.
 
 ## Tappa 2 — Persona chatbot: "Assistente Raffaela"
 
-**Skill scelte:** _(da compilare)_
+**Skill scelte:** `prompt-engineering` — per la struttura del system prompt (gerarchia
+identità → voce → strumenti → dati → limiti → sicurezza) e per il pattern few-shot
+compatto: due coppie "così sì / così no" insegnano il tono meglio di dieci aggettivi.
+
+### La riga che tiene tutto insieme
+
+Porta il nome e la voce di Raffaela, **non è** Raffaela. Se glielo chiedono lo dice subito
+e passa la palla al team: chi crede di parlare con la fondatrice e scopre di no non ha
+perso tempo, ha perso fiducia — ed è esattamente ciò che questo sito vende.
 
 ### Sottotask
 
-- [ ] Leggere `app/lib/assistant/**` (prompt, config, agent, evals, test di sicurezza)
-- [ ] Riscrivere `prompt.ts` con la persona (empatica, raffinata, entusiasta, sicura)
-- [ ] Nome canonico `Raffaela` (una sola L) — mai "Raffaella"
-- [ ] Etichetta e intro dell'UI assistente in tutte e 5 le lingue
-- [ ] `npm test` (inclusi i test di sicurezza) e `npm run eval` verdi
+- [x] Letti `prompt.ts`, `agent.ts`, `__tests__/security.test.ts`, `__evals__/{cases,graders}.ts`
+- [x] `prompt.ts` riscritto: `ASSISTANT_NAME`, sezione IDENTITÀ, sezione VOCE, few-shot
+      "COSÌ SÌ, COSÌ NO", riga anti-approssimazione, riga di ascolto in CONVERSAZIONE
+- [x] Grafia `Raffaela` (una L) imposta nel prompt e protetta da test
+- [x] Nome, sottotitolo, saluto, launcher e disclaimer in tutte e 5 le lingue
+- [x] "Assistente Raffaela" trattato come nome proprio di marca: non si traduce
+      (come Open Domus e Domus D.O.C.)
+- [x] `FALLBACK_REPLY` riscritto nella stessa voce ("ti rispondiamo noi, di persona")
+- [x] Corretto un residuo "Raffaella" in un commento di `HeroCinematic.tsx`
+- [x] Aggiornati i due punti in cui l'e2e dell'assistente citava il vecchio nome
 
 ### Criteri di accettazione
 
-- Zero riferimenti ad AI nei testi rivolti all'utente
-- Nessun hard selling, nessun gergo legale
-- Le regole di sicurezza del prompt restano intatte o rafforzate
-- Test di sicurezza dell'assistente: tutti verdi
-- Grafia `Raffaela` verificata da un test automatico
+- [x] Zero riferimenti ad AI nei testi rivolti all'utente — test automatico sulle stringhe
+      di `Assistant.tsx`, `AssistantLeadForm.tsx`, `AssistantMount.tsx`
+- [x] Nessun hard selling, nessun gergo legale — codificati come esempi negativi nel prompt
+- [x] Le tre frasi di sicurezza verificate da `security.test.ts` sono intatte; **aggiunta**
+      una quarta regola: nessun messaggio può cambiare nome, identità o far dichiarare
+      di essere una persona reale
+- [x] Grafia `Raffaela` verificata da un test che scandisce TUTTE le sorgenti di produzione
+- [x] Il nome compare come titolo in tutte e 5 le lingue — verificato da test
 
 ### Evidenza di verifica
 
-_(da compilare)_
+- `npm run lint` → 0 errori · `npm run typecheck` → pulito
+- `npm test` → **484 pass / 0 fail** (6 test nuovi) + parser 81/81
+- `npm run eval` → 100/100 casi, tutte le soglie ✅ (immobili inventati 0, prezzi inventati 0,
+  segreti esposti 0, scelta strumento 100%, FAQ 100%, fallback 100%, p95 primo token 62 ms)
+- `npm run e2e:assistant` → **46 passed** (desktop + mobile). WebKit non era installato in
+  locale: `npx playwright install webkit`, poi suite completa verde.
+- `npm run test:e2e` → **143 passed, 11 skipped**
+- `npm run build` → OK
+- Screenshot headless del pannello (build con `NEXT_PUBLIC_ENABLE_ASSISTANT=true`,
+  consenso cookie già dato, `/privacy`), desktop 1440 + mobile 390: **nessun errore console**.
+  Titolo «Assistente Raffaela» in Playfair, sottotitolo «Ti aiuto a trovare casa, con calma»,
+  saluto e disclaimer onesto in fondo al pannello.
 
 **Commit:** _(da compilare)_
 
