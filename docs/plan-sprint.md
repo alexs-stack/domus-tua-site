@@ -286,7 +286,7 @@ test, non nella pagina: la pagina era già corretta.
 - Screenshot headless a 0.18 / 0.42 / 0.62 desktop 1440 e mobile 390, più il blocco in
   coda a `/vendi`: **nessun errore console, nessun overflow orizzontale**
 
-**Commit:** _(da compilare)_
+**Commit:** `dc516f5`
 
 ---
 
