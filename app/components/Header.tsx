@@ -107,10 +107,11 @@ export default function Header() {
     return () => setOverlay("mobile-menu", false);
   }, [open]);
 
-  // Se il viewport supera il breakpoint lg con il menu aperto, overlay e
-  // hamburger spariscono (lg:hidden) ma il lock resterebbe: chiudiamo il menu.
+  // Se il viewport supera il breakpoint xl con il menu aperto, overlay e
+  // hamburger spariscono (xl:hidden) ma il lock resterebbe: chiudiamo il menu.
+  // ⚠️ Il valore deve restare allineato al breakpoint delle classi `xl:` qui sotto.
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
+    const mq = window.matchMedia("(min-width: 1280px)");
     const onChange = (e: MediaQueryListEvent) => {
       if (e.matches) setOpen(false);
     };
@@ -283,8 +284,14 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 lg:flex">
+        {/* Desktop nav.
+            Il breakpoint è `xl` (1280), non `lg`: con otto voci la pill a 1024 e a 1152
+            chiedeva 1193px in uno spazio di 992 e le voci si schiacciavano una sull'altra.
+            Il difetto c'era già a sette voci (1069 in 992): l'ottava l'ha solo reso
+            impossibile da non vedere. Fino a 1279 vale il menu a tutto schermo, che è
+            completo e ben animato — meglio di una barra compressa.
+            Il padding cresce con lo spazio: stretto dove serve, arioso da 1536 in su. */}
+        <nav className="hidden items-center gap-0.5 xl:flex 2xl:gap-1">
           {nav.map((item) => {
             const active = isActive(item.href);
             return (
@@ -292,7 +299,7 @@ export default function Header() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`whitespace-nowrap rounded-full px-3.5 py-2 text-[0.82rem] transition-colors duration-300 ${
+                className={`whitespace-nowrap rounded-full px-2.5 py-2 text-[0.82rem] transition-colors duration-300 2xl:px-3.5 ${
                   active ? "font-semibold" : "font-medium"
                 } ${
                   scrolled
@@ -345,7 +352,7 @@ export default function Header() {
             aria-label={open ? "Chiudi menu" : "Apri menu"}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            className={`relative flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 active:scale-95 lg:hidden ${
+            className={`relative flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 active:scale-95 xl:hidden ${
               scrolled
                 ? "border-line text-ink hover:border-red hover:text-red"
                 : "border-cream/40 text-cream hover:border-cream"
@@ -377,7 +384,7 @@ export default function Header() {
         // bg pieno, niente backdrop-blur: un blur full-viewport ricalcolato a
         // ogni frame del clip-path sarebbe il costo compositor peggiore
         // possibile proprio sull'interazione mobile più frequente.
-        className={`fixed inset-0 z-40 flex flex-col bg-cream px-6 pb-10 pt-28 lg:hidden ${
+        className={`fixed inset-0 z-40 flex flex-col bg-cream px-6 pb-10 pt-28 xl:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >

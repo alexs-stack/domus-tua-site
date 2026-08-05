@@ -159,27 +159,58 @@ perso tempo, ha perso fiducia — ed è esattamente ciò che questo sito vende.
 
 ## Tappa 3 — Navbar "Lavora con noi" + motion della pagina
 
-**Skill scelte:** _(da compilare)_
+**Skill scelte:** `gsap-scrolltrigger` — per lo scrub del filo della selezione (`ease: "none"`
+obbligatoria sotto scrub, start/end come coppia trigger-viewport, pulizia via `useGSAP`).
+La grammatica visiva viene da `HorizonStory`, non dalla skill.
+
+### Il difetto che l'ottava voce ha portato a galla
+
+Misurato con Playwright prima di toccare il CSS: a 1024px la pill ha 992px di spazio e
+il suo contenuto ne chiedeva **1069 già con sette voci** — le voci si schiacciavano una
+sull'altra. Con l'ottava si arrivava a **1193**. Il difetto c'era prima di questa tappa;
+l'ottava voce l'ha solo reso impossibile da non vedere.
+
+**Rimedio:** la barra desktop passa da `lg` (1024) a `xl` (1280) e il padding delle voci
+cresce con lo spazio (`px-2.5`, `2xl:px-3.5`). Fino a 1279 vale il menu a tutto schermo,
+che è completo e già ben animato. Misure dopo il rimedio, tutte e cinque le lingue:
+`scrollWidth 1238 ≤ clientWidth 1240` a 1280/1366/1440/1600 — nessuna compressione.
 
 ### Sottotask
 
-- [ ] `nav` in `app/lib/site.ts` + chiave `lavora` nei dizionari (5 lingue)
-- [ ] Header desktop: verificare che 8 voci non rompano la pill a 1024–1280px
-- [ ] Menu mobile: voce presente e animata con la coreografia esistente
-- [ ] Studiare `HorizonStory.tsx` come grammatica di riferimento
-- [ ] Portare `/lavora-con-noi` allo standard: ingresso, scroll, transizioni
-- [ ] Verifica motion con Playwright headless (screenshot a 3 profondità di scroll)
+- [x] `nav` in `app/lib/site.ts`: `lavora` fra "Chi siamo" e "Contatti"
+- [x] Chiave `nav.lavora` nel tipo `Dict` e nei 5 dizionari
+- [x] Etichette di nav più corte di quelle del footer dove serve (`Karriere`,
+      `Únete al equipo`): una voce di barra non è una voce di piè di pagina
+- [x] Header: breakpoint `xl`, padding responsivo, watcher `matchMedia` allineato a 1280
+- [x] Menu mobile: voce presente e `aria-current` corretto in tutte e 5 le lingue
+- [x] `SectionHead`: occhiello in `Reveal` + titolo in `TextLines` + sommario ritardato —
+      la stessa grammatica delle testate di `HorizonStory`, applicata a 5 sezioni
+- [x] Momento firma: `ProcessThread`, il filo rosso che si disegna in scrub nel canale
+      fra i numeri e il testo dei quattro passi della selezione
+- [x] Respiro fra i capitoli: il filo rosso verticale di `HorizonStory` prima di "La selezione"
+- [x] `CameraIn` sul blocco "Chi troverai" (dolly d'ingresso, desktop + motion ok)
+- [x] Verifica motion con Playwright headless a 4 profondità di scroll
 
 ### Criteri di accettazione
 
-- Nessun overflow orizzontale della pill header a nessun breakpoint
-- Voce attiva evidenziata correttamente (`aria-current`)
-- Motion coerente con `HorizonStory`, primitive esistenti riusate
-- Reduced-motion: pagina completa e statica
+- [x] Nessun overflow orizzontale a nessun breakpoint (1024 → 1600, 5 lingue)
+- [x] Voce attiva evidenziata (`aria-current="page"`) — verificato via DOM in 5 lingue
+- [x] Motion coerente con `HorizonStory`: nessuna primitiva nuova, solo `TextLines`,
+      `CameraIn`, `Reveal`, `MaskReveal`, `Parallax`, `DrawOnScroll`, `Atmosphere`
+- [x] Il filo è `aria-hidden` e vive solo da `sm` in su: su mobile il canale non esiste
+- [x] Reduced-motion e senza JS: 7 e 6 `h2` tutti visibili, 0 righe `.tl-line` traslate,
+      testo completo (6.296 / 6.137 caratteri)
 
 ### Evidenza di verifica
 
-_(da compilare)_
+- `npm run lint` → 0 errori · `npm run typecheck` → pulito
+- `npm test` → **484 pass / 0 fail** + parser 81/81 · `npm run build` → OK
+- `npm run test:e2e` → **143 passed, 11 skipped** · `npm run e2e:assistant` → **46 passed**
+- Misure header (Playwright, 6 larghezze × 5 lingue): nessuna compressione — vedi sopra
+- Screenshot headless `/lavora-con-noi` a 0.12 / 0.34 / 0.44 / 0.52 / 0.70 desktop 1440 e
+  mobile 390: **nessun errore console, nessun overflow**. Verificati a occhio: il filo che
+  si disegna scendendo fra i numeri, il respiro rosso fra i capitoli, la voce di nav attiva
+  in rosso tenue, le testate che si scoprono riga per riga.
 
 **Commit:** _(da compilare)_
 

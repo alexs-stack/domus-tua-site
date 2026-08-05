@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import PageHero from "../components/PageHero";
 import Reveal from "../components/Reveal";
 import CareerApplication, { ROLE_IDS, isRoleId, type RoleId } from "../components/CareerApplication";
@@ -11,6 +11,9 @@ import DrawOnScroll from "../components/motion/DrawOnScroll";
 import MaskReveal from "../components/motion/MaskReveal";
 import Parallax from "../components/motion/Parallax";
 import Atmosphere from "../components/motion/Atmosphere";
+import TextLines from "../components/motion/TextLines";
+import CameraIn from "../components/motion/CameraIn";
+import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 import { Cta } from "../components/primitives/Cta";
 import { site } from "../lib/site";
 import { team, teamInitials, teamRoleLabels } from "../lib/team";
@@ -31,6 +34,108 @@ import { useLocale } from "../components/i18n/LocaleProvider";
 const ROLE_CARDS = ROLE_IDS.filter(
   (id): id is Exclude<RoleId, "spontanea"> => id !== "spontanea",
 );
+
+/**
+ * Testata di sezione — la stessa grammatica del capitolo "Perché scegliere Domus Tua"
+ * (HorizonStory): occhiello che sale, titolo display che si scopre RIGA PER RIGA da una
+ * maschera (TextLines, la firma tipografica del sito), sommario in coda con un ritardo.
+ *
+ * Prima ogni testata era un unico blocco in fade-up: leggibile, ma muta. Il titolo è il
+ * punto in cui la pagina prende voce, e sul resto del sito lo fa così.
+ */
+function SectionHead({
+  eyebrow,
+  title,
+  intro,
+  className = "max-w-2xl",
+  titleClassName = "text-4xl sm:text-5xl",
+}: {
+  eyebrow: string;
+  title: ReactNode;
+  intro?: string;
+  className?: string;
+  titleClassName?: string;
+}) {
+  return (
+    <div className={className}>
+      <Reveal>
+        <span className="eyebrow">{eyebrow}</span>
+      </Reveal>
+      <TextLines
+        as="h2"
+        className={`mt-5 font-display font-medium leading-[1.05] tracking-tight text-ink balance ${titleClassName}`}
+      >
+        {title}
+      </TextLines>
+      {intro && (
+        <Reveal delay={140}>
+          <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{intro}</p>
+        </Reveal>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Il filo della selezione: una linea che si disegna dall'alto verso il basso mentre si
+ * attraversano i quattro passi, ancorata alla colonna dei numeri.
+ *
+ * È il momento firma della pagina, ed è scrubbato per una ragione narrativa: il processo
+ * di selezione È un percorso, e il filo lo percorre alla velocità di chi legge. Stessa
+ * tecnica della cupola di HorizonStory — un tween inline legato allo scroll, `ease: "none"`
+ * come impone lo scrub — e stesso vocabolario (`gsap.matchMedia(MQ.motionOk)`).
+ *
+ * Puramente decorativo (`aria-hidden`): senza JS e con reduced-motion la linea semplicemente
+ * non c'è, e l'elenco resta l'elenco numerato che era.
+ */
+function ProcessThread({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useGSAP(
+    () => {
+      const rail = ref.current?.querySelector<HTMLElement>("[data-thread-rail]");
+      const track = ref.current;
+      if (!rail || !track) return;
+
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        gsap.fromTo(
+          rail,
+          { scaleY: 0 },
+          {
+            scaleY: 1,
+            ease: "none",
+            transformOrigin: "50% 0%",
+            scrollTrigger: {
+              trigger: track,
+              start: "top 72%",
+              end: "bottom 78%",
+              scrub: 0.4,
+            },
+          }
+        );
+      });
+    },
+    { scope: ref }
+  );
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Il filo corre nel CANALE fra la colonna dei numeri e quella del testo — non
+          sopra i numeri, che attraverserebbe. Le due posizioni sono il centro del
+          `gap-x` ai due breakpoint della griglia qui sotto (7rem+10/2, 10rem+16/2):
+          se cambia la griglia, va cambiato anche questo. Su mobile la colonna è
+          `auto` e il canale non esiste: il filo non c'è. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-8 top-8 hidden w-px overflow-hidden sm:left-[8.25rem] sm:block md:left-[12rem]"
+      >
+        <span data-thread-rail className="block h-full w-full bg-gradient-to-b from-red/70 to-red/15" />
+      </span>
+      {children}
+    </div>
+  );
+}
 
 const copy = {
   it: {
@@ -730,13 +835,7 @@ export default function LavoraConNoiContent() {
       {/* ── Perché Domus Tua ─────────────────────────────────────────────── */}
       <section id="perche" className="relative bg-paper">
         <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-          <Reveal className="max-w-2xl">
-            <span className="eyebrow">{c.whyEyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-              {c.whyTitle}
-            </h2>
-            <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{c.whyIntro}</p>
-          </Reveal>
+          <SectionHead eyebrow={c.whyEyebrow} title={c.whyTitle} intro={c.whyIntro} />
 
           {/* Griglia asimmetrica: la prima voce occupa due colonne su desktop,
               così le quattro schede non leggono come quattro scatole identiche. */}
@@ -774,13 +873,7 @@ export default function LavoraConNoiContent() {
       <section id="aree" className="relative bg-cream">
         <Atmosphere word="Domus Tua" glow drift={-1} wordClassName="right-[3%] top-[6%] text-[12vw]" />
         <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-          <Reveal className="max-w-2xl">
-            <span className="eyebrow">{c.rolesEyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-              {c.rolesTitle}
-            </h2>
-            <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{c.rolesIntro}</p>
-          </Reveal>
+          <SectionHead eyebrow={c.rolesEyebrow} title={c.rolesTitle} intro={c.rolesIntro} />
 
           <ul className="mt-14 grid gap-5 sm:mt-16 sm:grid-cols-2 lg:grid-cols-3">
             {ROLE_CARDS.map((id, i) => {
@@ -860,34 +953,36 @@ export default function LavoraConNoiContent() {
       {/* ── La selezione ─────────────────────────────────────────────────── */}
       <section id="selezione" className="relative bg-paper">
         <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-          <Reveal className="max-w-2xl">
-            <span className="eyebrow">{c.processEyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-              {c.processTitle}
-            </h2>
-            <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{c.processIntro}</p>
+          {/* Respiro fra i capitoli: lo stesso filo rosso verticale che separa gli atti
+              di HorizonStory. Segna il passaggio da "perché noi" a "come si entra". */}
+          <Reveal className="mx-auto mb-16 h-14 w-px bg-red/40" as="div">
+            <span className="sr-only" />
           </Reveal>
 
-          <ol className="mt-14 border-t border-line sm:mt-16">
-            {c.steps.map((step, i) => (
-              <Reveal
-                as="li"
-                key={step.title}
-                delay={i * 45}
-                className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
-              >
-                <span className="tnum font-display text-3xl font-medium leading-none text-red sm:text-4xl md:text-5xl">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <div className="max-w-xl pt-0.5">
-                  <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink sm:text-2xl">
-                    {step.title}
-                  </h3>
-                  <p className="mt-2.5 text-[0.98rem] leading-relaxed text-stone">{step.copy}</p>
-                </div>
-              </Reveal>
-            ))}
-          </ol>
+          <SectionHead eyebrow={c.processEyebrow} title={c.processTitle} intro={c.processIntro} />
+
+          <ProcessThread>
+            <ol className="mt-14 border-t border-line sm:mt-16">
+              {c.steps.map((step, i) => (
+                <Reveal
+                  as="li"
+                  key={step.title}
+                  delay={i * 45}
+                  className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
+                >
+                  <span className="tnum font-display text-3xl font-medium leading-none text-red sm:text-4xl md:text-5xl">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="max-w-xl pt-0.5">
+                    <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink sm:text-2xl">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2.5 text-[0.98rem] leading-relaxed text-stone">{step.copy}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </ol>
+          </ProcessThread>
         </div>
       </section>
 
@@ -896,7 +991,10 @@ export default function LavoraConNoiContent() {
           reale in cui la squadra si presenta. A un candidato interessa vedere
           in faccia chi lo formerà, non leggere che "il team è affiatato". */}
       <section className="relative bg-cream">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
+        {/* Dolly d'ingresso: la scena delle persone entra con una micro-zoomata legata
+            allo scroll (solo desktop + motion ok). Niente sticky/fixed qui dentro —
+            è il vincolo di CameraIn. */}
+        <CameraIn className="mx-auto block max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
           <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
             <Parallax speed={-0.06}>
               <Reveal>
@@ -925,12 +1023,14 @@ export default function LavoraConNoiContent() {
               </Reveal>
             </Parallax>
 
-            <Reveal delay={80}>
-              <span className="eyebrow">{c.teamEyebrow}</span>
-              <h2 className="mt-5 font-display text-3xl font-medium leading-[1.06] tracking-tight text-ink balance sm:text-[2.6rem]">
-                {c.teamTitle}
-              </h2>
-              <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{c.teamCopy}</p>
+            <div>
+              <SectionHead
+                eyebrow={c.teamEyebrow}
+                title={c.teamTitle}
+                intro={c.teamCopy}
+                className=""
+                titleClassName="text-3xl sm:text-[2.6rem] leading-[1.06]"
+              />
 
               <div className="mt-9">
                 <div className="flex items-center gap-3">
@@ -967,24 +1067,26 @@ export default function LavoraConNoiContent() {
                 </ul>
               </div>
 
-              <Cta href="/chi-siamo" variant="ghost" size="md" className="mt-8">
-                {c.teamCta}
-              </Cta>
-            </Reveal>
+              <Reveal delay={80}>
+                <Cta href="/chi-siamo" variant="ghost" size="md" className="mt-8">
+                  {c.teamCta}
+                </Cta>
+              </Reveal>
+            </div>
           </div>
-        </div>
+        </CameraIn>
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────────────── */}
       <section id="faq" className="relative bg-paper">
         <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-            <Reveal>
-              <span className="eyebrow">{c.faqEyebrow}</span>
-              <h2 className="mt-5 font-display text-3xl font-medium leading-[1.06] tracking-tight text-ink balance sm:text-[2.6rem]">
-                {c.faqTitle}
-              </h2>
-            </Reveal>
+            <SectionHead
+              eyebrow={c.faqEyebrow}
+              title={c.faqTitle}
+              className=""
+              titleClassName="text-3xl sm:text-[2.6rem] leading-[1.06]"
+            />
 
             {/* <details> nativo: apre senza JS, resta accessibile da tastiera. */}
             <div className="border-t border-line">

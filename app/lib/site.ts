@@ -108,6 +108,10 @@ export const nav = [
   { key: "openDomus", label: "Open Domus", href: "/open-domus" },
   { key: "recensioni", label: "Recensioni", href: "/recensioni" },
   { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo" },
+  // Sta accanto a "Chi siamo" perché è la stessa domanda vista dall'altra parte:
+  // lì si racconta chi siamo, qui chi vorremmo diventare. Prima di "Contatti",
+  // che resta l'ultima voce perché è l'ultimo passo.
+  { key: "lavora", label: "Lavora con noi", href: "/lavora-con-noi" },
   { key: "contatti", label: "Contatti", href: "/contatti" },
 ] as const;
 
