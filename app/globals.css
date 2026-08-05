@@ -1397,6 +1397,51 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   grid-area: 1 / 1 / 2 / 2;
 }
 
+/* ---------- TeamTrail: il corridoio di profondità ----------
+   Runway + schermo sticky (meccanica dt-paths). [data-on] arriva SOLO via
+   JS (desktop ≥1024 + motion ok): senza, la lista resta colonna di pannelli
+   pieni, statica e completa. La geometria viene dal riferimento depth
+   gallery: perspective 120.71svh (fov 45) e un GAP tra persone pari alla
+   perspective — il piano successivo entra a metà taglia. */
+.dt-tt[data-on] {
+  height: calc(var(--dt-tt-len, 6) * 140vh + 100svh);
+}
+.dt-tt[data-on] .dt-tt_screen {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  perspective: 120.71svh;
+  background: var(--color-cream);
+}
+.dt-tt[data-on] .dt-tt_world {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  transform-style: preserve-3d;
+}
+/* Le unità perdono flusso e fondale (qui vince l'unlayered sulle utility
+   bg-cream/bg-cream-deep: è voluto — il fondale lo fa il mood layer). */
+.dt-tt[data-on] .dt-tt_unit {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  background: transparent;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+.dt-tt_mood {
+  display: none;
+}
+.dt-tt[data-on] .dt-tt_mood {
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: var(--color-cream-deep);
+  opacity: 0;
+}
+
 /* ---------- Footer reveal (uncover) ----------
    Il footer resta fisso dietro al main, che gli scorre sopra e lo "scopre"
    nell'ultimo tratto di scroll. Niente transform sugli antenati: main riceve
