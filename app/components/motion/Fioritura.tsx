@@ -23,6 +23,7 @@
 // nessun contenuto vive qui. Quando il cliente consegnerà i suoi fiori
 // (SVG/PNG), basterà sostituire makeFlowerSprite/makeLeafSprite.
 import { useEffect, useRef } from "react";
+import { registerWarmup } from "../../lib/motion/warmup";
 
 type Variant = "corner-tl" | "corner-tr" | "corner-bl" | "corner-br" | "center";
 type Palette = "light" | "dark";
@@ -57,10 +58,33 @@ const TYPE_WAIT = 55;
 const TYPE_STEP = 15;
 const TYPE_TAIL = 200;
 
+/* Cache degli sprite, per tinta.
+   Ogni istanza di Fioritura (e l'atmosfera del corridoio) ridisegnava i propri:
+   sulla home ci sono sei tralci piu' il corridoio, cioe' decine di canvas
+   identici ridisegnati a mano. Sono immutabili e piccoli: si fanno una volta e
+   si condividono. Il canvas viene solo letto (`drawImage`), mai riscritto. */
+const spriteCache = new Map<string, HTMLCanvasElement>();
+function cached(key: string, make: () => HTMLCanvasElement): HTMLCanvasElement {
+  let c = spriteCache.get(key);
+  if (!c) {
+    c = make();
+    spriteCache.set(key, c);
+  }
+  return c;
+}
+
 /* Esportati per l'atmosfera del corridoio TeamTrail: gli stessi fiori di
    brand fluttuano anche nella profondità (rif. depth-gallery, dove le
    immagini della galleria SONO fiori). */
 export function makeFlowerSprite(tint: string, heart: string): HTMLCanvasElement {
+  return cached(`f:${tint}:${heart}`, () => drawFlowerSprite(tint, heart));
+}
+
+export function makeLeafSprite(tint: string): HTMLCanvasElement {
+  return cached(`l:${tint}`, () => drawLeafSprite(tint));
+}
+
+function drawFlowerSprite(tint: string, heart: string): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = c.height = SPRITE;
   const g = c.getContext("2d")!;
@@ -85,7 +109,7 @@ export function makeFlowerSprite(tint: string, heart: string): HTMLCanvasElement
   return c;
 }
 
-export function makeLeafSprite(tint: string): HTMLCanvasElement {
+function drawLeafSprite(tint: string): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = c.height = SPRITE;
   const g = c.getContext("2d")!;
@@ -526,6 +550,22 @@ export default function Fioritura({
     };
     rmq.addEventListener("change", onRmChange);
 
+    /* Il campionamento e' il costo di primo avvio di questa scena: su una
+       scritta si legge OGNI pixel della texture e ne escono migliaia di
+       particelle. Farlo qui — dietro il sipario del preloader — invece che nel
+       callback dell'IntersectionObserver e' tutta la differenza fra una
+       sezione che sboccia e una che singhiozza mentre le arrivi addosso. */
+    const scalda = async () => {
+      if (cancelled) return;
+      fontFamily = getComputedStyle(canvas).fontFamily || "Georgia, serif";
+      // `data-fiorita` non serve al disegno: e' la prova che il campionamento
+      // e' avvenuto PRIMA dell'ingresso in viewport. Senza un segno osservabile
+      // questa garanzia non sarebbe verificabile da un test, e una regressione
+      // tornerebbe a farsi sentire solo come "il sito ogni tanto scatta".
+      if (ensureBuilt()) canvas.dataset.fiorita = String(particles.length);
+    };
+    const disiscrivi = registerWarmup(scalda);
+
     document.fonts.ready.then(() => {
       if (cancelled) return;
       fontFamily = getComputedStyle(canvas).fontFamily || "Georgia, serif";
@@ -581,6 +621,7 @@ export default function Fioritura({
 
     return () => {
       cancelled = true;
+      disiscrivi();
       stop();
       rmq.removeEventListener("change", onRmChange);
       io?.disconnect();

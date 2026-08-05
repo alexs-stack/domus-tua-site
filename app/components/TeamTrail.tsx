@@ -31,11 +31,12 @@
 // Le foto delle persone arriveranno dal cliente: `image`/`imagePos` in
 // app/lib/team.ts. Senza foto, il ritratto è un monogramma tipografico.
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { SegnoDomus } from "./BrandMotif";
 import { makeFlowerSprite, makeLeafSprite } from "./motion/Fioritura";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
+import { registerWarmup, warmImage } from "../lib/motion/warmup";
 import { team, teamInitials, teamRoleLabels } from "../lib/team";
 
 const IMG_LAYERS = 8; // la demo immagine di IntroTrailEffect usa 8 copie
@@ -52,6 +53,11 @@ const X_DRIFT = [-0.1, 0.09, -0.08, 0.11, -0.08, 0.09];
    start: il tuffo comincia dallo scroll); HOLD = coda ferma sull'ultima. */
 const INTRO = 0.3;
 const HOLD = 0.35;
+
+/* Risoluzione del fondale rispetto allo schermo. Il canvas contiene solo
+   sfocature — due blob e fiori fuori fuoco — e a meta' scala l'area da
+   rasterizzare e' un quarto. Il canvas resta steso a schermo intero via CSS. */
+const BG_SCALE = 0.5;
 
 /* I mood del riferimento (galleryData: background + 2 blob per piano), qui
    nel registro Domus — creme calde, sabbie, un solo rossore sulla founder.
@@ -79,6 +85,30 @@ export default function TeamTrail() {
   const { locale } = useLocale();
   const roleLabels = teamRoleLabels[locale];
   const rootRef = useRef<HTMLDivElement | null>(null);
+
+  /* Le foto del corridoio, decodificate dietro il sipario.
+     `loading="eager"` le mette in rete subito, ma la DECODIFICA resta pigra:
+     il browser la fa al primo disegno, cioe' nel frame in cui la camera arriva
+     sul piano. `decode()` la anticipa qui, dove nessuno se ne accorge. */
+  useEffect(() => {
+    return registerWarmup(async () => {
+      const root = rootRef.current;
+      if (!root) return;
+      const foto = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
+      // Una per URL: le otto copie del ritratto sono la stessa immagine.
+      const viste = new Set<string>();
+      await Promise.all(
+        foto
+          .filter((img) => {
+            const src = img.currentSrc || img.src;
+            if (!src || viste.has(src)) return false;
+            viste.add(src);
+            return true;
+          })
+          .map(warmImage)
+      );
+    });
+  }, []);
 
   useGSAP(
     () => {
@@ -254,6 +284,7 @@ export default function TeamTrail() {
         // del cross-fade dei piani.
         const bctx = atmo?.getContext("2d") ?? null;
         let render: (() => void) | null = null;
+        let guardiaRef: ScrollTrigger | null = null;
         if (atmo && bctx) {
           const flowers = ["#d20a0a", "#b21010", "#e0483d", "#efb9b2", "#a30707"].map((t) =>
             makeFlowerSprite(t, "#fffdf8")
@@ -314,12 +345,31 @@ export default function TeamTrail() {
             bctx.drawImage(sprite, -32, -32);
           };
 
+          // Il canvas dorme fuori dal corridoio. Prima lo decideva un
+          // `getBoundingClientRect()` A OGNI FRAME: una misura sincrona del
+          // layout sessanta volte al secondo, per sapere una cosa che
+          // ScrollTrigger gia' sa. Ora e' un booleano aggiornato solo quando
+          // il corridoio entra o esce davvero.
+          let inScena = false;
+          guardiaRef = ScrollTrigger.create({
+            trigger: root,
+            start: "top bottom+=80",
+            end: "bottom top-=80",
+            onToggle: (self) => {
+              inScena = self.isActive;
+            },
+          });
+
           render = () => {
-            // Fuori dal corridoio il canvas dorme (un solo rect per frame)
-            const box = root.getBoundingClientRect();
-            if (box.bottom < -80 || box.top > window.innerHeight + 80) return;
-            const w = screen.clientWidth;
-            const h = screen.clientHeight;
+            if (!inScena) return;
+            // Il fondale e' fatto di sfocature: due blob e fiori fuori fuoco.
+            // Dipingerlo a risoluzione piena significa rasterizzare due
+            // gradienti su 1,3 milioni di pixel a ogni frame per un'immagine
+            // che non ha un solo bordo netto. A meta' risoluzione l'area da
+            // riempire e' un QUARTO e la differenza non si vede: il canvas
+            // resta steso a schermo intero via CSS.
+            const w = Math.round(screen.clientWidth * BG_SCALE);
+            const h = Math.round(screen.clientHeight * BG_SCALE);
             if (!w || !h) return;
             if (atmo.width !== w || atmo.height !== h) {
               atmo.width = w;
@@ -382,7 +432,7 @@ export default function TeamTrail() {
                 f.sprite,
                 w / 2 + f.xo * w * s,
                 h / 2 + f.yo * h * s,
-                f.size * s * breath,
+                f.size * s * breath * BG_SCALE,
                 f.rot,
                 a
               );
@@ -418,7 +468,7 @@ export default function TeamTrail() {
               petal.vy *= drag;
               petal.x += petal.vx * dt;
               petal.y += petal.vy * dt;
-              put(petal.sprite, petal.x, petal.y, petal.size, petal.rot, (petal.life / petal.total) * 0.5);
+              put(petal.sprite, petal.x, petal.y, petal.size * BG_SCALE, petal.rot, (petal.life / petal.total) * 0.5);
             }
             bctx.setTransform(1, 0, 0, 1, 0, 0);
             bctx.globalAlpha = 1;
@@ -428,6 +478,7 @@ export default function TeamTrail() {
 
         return () => {
           if (render) gsap.ticker.remove(render);
+          guardiaRef?.kill();
           ScrollTrigger.removeEventListener("refreshInit", layout);
           root.removeAttribute("data-on");
         };
@@ -475,7 +526,11 @@ export default function TeamTrail() {
                 </div>
 
                 {/* Il ritratto: 8 copie, arco in alto come il riferimento */}
-                <div data-tt-img className="dt-trail relative h-[46vh] w-[30.5vh] sm:h-[52vh] sm:w-[34.5vh]">
+                {/* `photo-warm` (un filter CSS) sta QUI e non sulle otto copie:
+                    per livello sarebbe una rasterizzazione filtrata a testa,
+                    otto volte la stessa foto. Sul contenitore il filtro si
+                    applica una volta sola al gruppo. */}
+                <div data-tt-img className="dt-trail photo-warm relative h-[46vh] w-[30.5vh] sm:h-[52vh] sm:w-[34.5vh]">
                   {Array.from({ length: IMG_LAYERS }, (_, l) => {
                     const leader = l === IMG_LAYERS - 1;
                     return (
@@ -494,7 +549,17 @@ export default function TeamTrail() {
                             alt=""
                             fill
                             sizes="(max-width: 640px) 65vw, 500px"
-                            className="photo-warm object-cover"
+                            /* `loading="eager"` e non `priority`: la foto deve
+                               essere in rete SUBITO — con lazy arrivava quando
+                               la camera le era gia' addosso (misurato: +2,9s
+                               dal caricamento, a scroll in corso). `priority`
+                               aggiungerebbe anche un <link rel=preload> in
+                               testa, rubando banda all'immagine LCP dell'hero:
+                               qui basta non aspettare il viewport.
+                               Le 8 copie condividono la stessa URL: per il
+                               browser resta UNA richiesta. */
+                            loading="eager"
+                            className="object-cover"
                             style={member.imagePos ? { objectPosition: member.imagePos } : undefined}
                           />
                         ) : (

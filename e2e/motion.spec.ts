@@ -62,3 +62,37 @@ test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ 
   const y = await page.evaluate(() => window.scrollY);
   expect(y).toBeGreaterThan(200);
 });
+
+// ── Precarico ─────────────────────────────────────────────────────────────
+// Fuori dal regime reduced-motion del resto del file: qui serve il preloader
+// vero, perché è lui che deve aver già fatto il lavoro pesante.
+//
+// Fioritura campiona la scritta pixel per pixel e ne ricava migliaia di
+// particelle. Se quel campionamento cade nel callback dell'IntersectionObserver,
+// la pagina singhiozza proprio mentre le arrivi addosso — è il difetto segnalato
+// dal cliente. Il preloader lo anticipa; questo test lo tiene anticipato.
+test.describe("il lavoro pesante sta dietro il sipario", () => {
+  test.use({ contextOptions: { reducedMotion: "no-preference" } });
+
+  test("i fiori sono già campionati prima che li si raggiunga @layout", async ({ page }) => {
+    await setConsent(page, "accepted");
+    await page.goto("/", { waitUntil: "load" });
+
+    // Nessuno scroll: si guarda soltanto se il lavoro è già stato fatto.
+    await page.waitForFunction(
+      () => document.querySelectorAll("canvas[data-fiorita]").length > 0,
+      undefined,
+      { timeout: 15_000 },
+    );
+
+    const pronte = await page
+      .locator("canvas[data-fiorita]")
+      .evaluateAll((els) => els.map((e) => Number((e as HTMLElement).dataset.fiorita)));
+
+    expect(pronte.length, "nessun canvas fiorito prima dello scroll").toBeGreaterThan(0);
+    expect(
+      pronte.every((n) => n > 0),
+      `canvas campionati a vuoto: ${pronte.join(", ")}`,
+    ).toBe(true);
+  });
+});

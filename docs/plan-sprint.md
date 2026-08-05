@@ -410,3 +410,83 @@ voce attiva.
 - Misure headless: puntini (5 campioni), indice FAQ (16 profondità di scroll)
 
 **Commit:** `600c49f`
+
+---
+
+## Prestazioni — il lag del corridoio e dei fiori
+
+Segnalazione del cliente: «il sito lagga, l'animazione depth gallery è a scatti, lagga
+anche quando vengono renderizzati i fiori e quando scorro all'indietro».
+
+### La diagnosi, per misura e non per sospetto
+
+Profilo CPU durante l'attraversamento del corridoio: **il 92% del tempo è fuori dal
+JavaScript** (`(program)` = layout, paint, compositing). Le prime ipotesi — canvas troppo
+pesante, otto copie del ritratto, filtro CSS, scie del nome — sono state provate una per
+una **togliendole a runtime**: nessuna spostava l'ago. Non era il contenuto.
+
+Poi la traccia di rete ha detto la cosa giusta:
+
+```
++2.9s  image  13 kB  /_next/image?url=/images/reali/raffaela-specchio-sorriso.jpg
+```
+
+La foto del ritratto del corridoio veniva chiesta **a 2,9 secondi dal caricamento, cioè a
+scroll già in corso**. Stesso schema per i fiori: `Fioritura` campiona la scritta pixel per
+pixel e ne ricava migliaia di particelle **dentro il callback dell'IntersectionObserver**,
+cioè nel frame esatto in cui la sezione entra in viewport.
+
+**Non era una scena troppo pesante: era lavoro rimandato al frame sbagliato.** Ed è
+esattamente la diagnosi del cliente («non viene caricato tutto nel preloader»).
+
+### Cosa è stato fatto
+
+1. **`app/lib/motion/warmup.ts`** — un registro di lavori da scaldare. Chi ha un costo di
+   primo avvio lo dichiara; il preloader li esegue **mentre l'intro è ancora a schermo**,
+   tempo che l'utente sta già aspettando. Con scadenza dura (2,2 s): su rete lenta si
+   rinuncia e si entra comunque — un sito che si apre in ritardo è peggio di uno che
+   singhiozza a metà pagina. Chi salta l'intro entra subito: il precarico prosegue da solo.
+2. **`Fioritura`** campiona dietro il sipario. Marcatore osservabile `data-fiorita` +
+   test e2e che tiene ferma la garanzia.
+3. **Sprite memoizzati**: erano ridisegnati da ogni istanza (sei tralci in home + il
+   corridoio). Sono immutabili: ora si fanno una volta e si condividono.
+4. **Corridoio, foto**: `loading="eager"` invece di lazy (non `priority`, che ruberebbe
+   banda all'LCP dell'hero). Le otto copie condividono la URL: resta una richiesta.
+   Più `decode()` nel precarico, perché `eager` mette in rete ma non decodifica.
+5. **Corridoio, `getBoundingClientRect()` a ogni frame** → sostituita da un booleano che
+   ScrollTrigger aggiorna solo quando la scena entra o esce. Era una misura sincrona del
+   layout sessanta volte al secondo per sapere una cosa già nota.
+6. **Fondale a metà risoluzione** (`BG_SCALE = 0.5`). Contiene solo sfocature — due blob e
+   fiori fuori fuoco: a risoluzione piena si rasterizzavano due gradienti su 1,3 milioni di
+   pixel per frame, per un'immagine senza un solo bordo netto. L'area scende a un quarto.
+7. **`photo-warm`** (un `filter` CSS) spostato dalle otto copie al contenitore: era una
+   rasterizzazione filtrata per livello, otto volte la stessa foto.
+
+### Misure — stesso metodo, prima e dopo
+
+| | prima | dopo |
+| --- | --- | --- |
+| Frame nel corridoio (CPU ×4) | **49,9 ms** · 20 fps | **18,6 ms** · 54 fps |
+| Home, scansione intera (CPU ×1) | 26,6 ms · 37,6 fps | **20,6 ms** · 48,5 fps |
+| Layout forzati durante lo scroll | uno per frame | **0** |
+| Foto del corridoio | a +2,9 s, durante lo scroll | nel caricamento iniziale |
+| Immagini lazy su `/chi-siamo` | 15 | 7 |
+
+### Limite dichiarato di queste misure
+
+Il browser headless usa **SwiftShader** (rasterizzazione software, nessuna GPU): i valori
+assoluti non rappresentano l'hardware reale. Valgono come **confronto prima/dopo a parità
+di condizioni**, non come promessa di fps. Le prove hardware-indipendenti — layout forzati
+azzerati, richiesta di rete anticipata, area di rasterizzazione a un quarto, campionamento
+dei fiori anticipato — sono quelle su cui poggia davvero la correzione.
+
+### Cosa resta fuori, di proposito
+
+Tre immagini di contenuto (`raffaela-founder`, `raffaela-keys`, `team-group`) continuano ad
+arrivare durante lo scroll. Sono dentro blocchi `Reveal`: un arrivo tardivo lì è una
+dissolvenza, non uno scatto. Renderle tutte `eager` significherebbe 71 immagini in gara con
+l'LCP dell'hero e violerebbe il vincolo di PRODUCT.md («una sola immagine priority per
+pagina», LCP < 2,5 s mobile). Se il cliente preferisce comunque l'attesa totale in ingresso,
+è una riga: si aggiunge un lavoro di precarico che le forza.
+
+**Commit:** _(da compilare)_

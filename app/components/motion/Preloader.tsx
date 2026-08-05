@@ -12,8 +12,9 @@
 // - Non blocca l'LCP: l'hero sotto continua fetch/decode; l'overlay è solo
 //   un layer fixed sopra — ed è proprio ciò che l'arco rivela.
 // - Fallback senza mask-composite: sipario a salire (clip-path), stesso ritmo.
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { gsap, useGSAP, dur } from "../../lib/motion/gsap";
+import { runWarmup, scheduleIdleWarmup } from "../../lib/motion/warmup";
 import { MarkBadge, spinMarkBadge } from "./RotatingMark";
 import { getLenis } from "./SmoothScroll";
 
@@ -68,6 +69,15 @@ function PreChars({ text, script = false }: { text: string; script?: boolean }) 
 
 export default function Preloader() {
   const rootRef = useRef<HTMLDivElement | null>(null);
+
+  /* Chi torna sul sito, o chi ha reduced-motion, non vede il sipario: il
+     precarico non ha una copertura dietro cui girare e non deve rubare tempo
+     al primo rendering. Parte quindi a ruota libera, appena il thread respira.
+     `runWarmup` e' idempotente: se l'intro c'e' stata, qui non fa nulla. */
+  useEffect(() => {
+    if (document.documentElement.hasAttribute("data-preloader")) return;
+    scheduleIdleWarmup();
+  }, []);
 
   useGSAP(
     () => {
@@ -180,11 +190,24 @@ export default function Preloader() {
       // stesso gesto dell'header.
       const spin = spinMarkBadge(root, 6);
 
+      // Parte SUBITO, in parallelo all'intro: i secondi dell'animazione sono
+      // tempo che l'utente sta gia' aspettando: e' li' che va messo il lavoro
+      // che altrimenti cadrebbe sul primo scroll.
+      const scaldata = runWarmup();
+      /** true se l'utente ha saltato l'intro: allora non si aspetta il precarico. */
+      let saltata = false;
+
       const tl = gsap.timeline({
         defaults: { ease: "domus" },
         onComplete: () => {
           spin?.kill();
-          finish(true);
+          // Il sipario si alza solo quando le scene pesanti sono calde.
+          // `runWarmup` e' partito insieme all'intro e ha una scadenza sua:
+          // nel caso normale ha gia' finito e questo `then` e' immediato, su
+          // rete lenta rinuncia e si entra comunque. Nessuno resta chiuso
+          // fuori dal sito perche' un fiore non era pronto.
+          if (saltata) finish(true);
+          else void scaldata.then(() => finish(true));
         },
       });
 
@@ -299,6 +322,12 @@ export default function Preloader() {
       // seek() sopprime le callback attraversate: l'evento va sparato a mano.
       const skip = () => {
         if (tl.time() >= tl.labels.dive) return;
+        // Saltare vuol dire "entra ADESSO": aspettare il precarico
+        // contraddirebbe l'unico gesto con cui l'utente ha detto che ha fretta.
+        // Il riscaldamento non si annulla, prosegue per conto suo — arrivera'
+        // in ritardo su qualche scena, che e' esattamente il compromesso che
+        // chi salta ha scelto.
+        saltata = true;
         fireIntro();
         tl.seek("dive");
       };
@@ -324,6 +353,9 @@ export default function Preloader() {
       // senza suonare il tuffo (1.5s di motion ampio non richiesto).
       const onMediaChange = () => {
         if (media.matches) return;
+        // Reduced-motion acceso in corsa: chiusura immediata, senza attendere
+        // il precarico (chi lo attiva ora vuole meno movimento, non piu' attesa).
+        saltata = true;
         fireIntro();
         tl.progress(1); // onComplete → finish(true)
       };
