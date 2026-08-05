@@ -57,7 +57,10 @@ const TYPE_WAIT = 55;
 const TYPE_STEP = 15;
 const TYPE_TAIL = 200;
 
-function makeFlowerSprite(tint: string, heart: string): HTMLCanvasElement {
+/* Esportati per l'atmosfera del corridoio TeamTrail: gli stessi fiori di
+   brand fluttuano anche nella profondità (rif. depth-gallery, dove le
+   immagini della galleria SONO fiori). */
+export function makeFlowerSprite(tint: string, heart: string): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = c.height = SPRITE;
   const g = c.getContext("2d")!;
@@ -82,7 +85,7 @@ function makeFlowerSprite(tint: string, heart: string): HTMLCanvasElement {
   return c;
 }
 
-function makeLeafSprite(tint: string): HTMLCanvasElement {
+export function makeLeafSprite(tint: string): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = c.height = SPRITE;
   const g = c.getContext("2d")!;

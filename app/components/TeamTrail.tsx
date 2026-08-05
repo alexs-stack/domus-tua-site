@@ -33,6 +33,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { SegnoDomus } from "./BrandMotif";
+import { makeFlowerSprite, makeLeafSprite } from "./motion/Fioritura";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 import { team, teamInitials, teamRoleLabels } from "../lib/team";
@@ -52,6 +53,28 @@ const X_DRIFT = [-0.1, 0.09, -0.08, 0.11, -0.08, 0.09];
 const INTRO = 0.3;
 const HOLD = 0.35;
 
+/* I mood del riferimento (galleryData: background + 2 blob per piano), qui
+   nel registro Domus — creme calde, sabbie, un solo rossore sulla founder.
+   Il fondale li fonde con lo STESSO blend del cross-fade dei piani. */
+const MOODS = [
+  { bg: "#f6efdd", b1: "#eec2b8", b2: "#e2d2b4" },
+  { bg: "#efe7d6", b1: "#e6d3ae", b2: "#d9c7ae" },
+  { bg: "#f4ecda", b1: "#e9cfc4", b2: "#d2c2a6" },
+  { bg: "#efe6d2", b1: "#e3c9a8", b2: "#dcc4ba" },
+  { bg: "#f5eedd", b1: "#eac6bb", b2: "#d8c8b0" },
+  { bg: "#efe7d6", b1: "#e8d4b2", b2: "#e0c8be" },
+];
+
+const hexRgb = (h: string): [number, number, number] => [
+  parseInt(h.slice(1, 3), 16),
+  parseInt(h.slice(3, 5), 16),
+  parseInt(h.slice(5, 7), 16),
+];
+const lerpRgb = (a: [number, number, number], b: [number, number, number], t: number) =>
+  [0, 1, 2].map((i) => Math.round(a[i] + (b[i] - a[i]) * t)) as [number, number, number];
+/* Il softening del fragment shader: blob mescolato 35% verso il fondo. */
+const soften = (c: [number, number, number], bg: [number, number, number]) => lerpRgb(c, bg, 0.35);
+
 export default function TeamTrail() {
   const { locale } = useLocale();
   const roleLabels = teamRoleLabels[locale];
@@ -63,7 +86,7 @@ export default function TeamTrail() {
       if (!root) return;
       const screen = root.querySelector<HTMLElement>(".dt-tt_screen");
       const world = root.querySelector<HTMLElement>(".dt-tt_world");
-      const mood = root.querySelector<HTMLElement>(".dt-tt_mood");
+      const atmo = root.querySelector<HTMLCanvasElement>(".dt-tt_bg");
       const units = gsap.utils.toArray<HTMLElement>("[data-tt-unit]", root);
       if (!screen || !world || !units.length) return;
       const N = units.length;
@@ -220,21 +243,191 @@ export default function TeamTrail() {
           }
         });
 
-        // Il mood del riferimento: il fondale vira col blend tra un piano
-        // e il successivo (qui tra le due creme della palette). L'ultima
-        // rampa è CLAMPATA a finire con lo stop della camera: il congedo
-        // resta davvero fermo.
-        if (mood) {
-          for (let i = 1; i < N; i++) {
-            tl.to(
-              mood,
-              { opacity: i % 2, duration: 0.8 },
-              Math.min(i - 0.5 + INTRO, D - HOLD - 0.8)
+        // ── L'atmosfera del riferimento, a pieno schermo ──────────────────
+        // Fondale: colore piatto + i due blob del fragment shader (stessi
+        // centri erranti, softening 35%, forza 0.9, raggio che cresce con la
+        // profondità, lift di luminanza +0.10·velocità). Fiori: il campo in
+        // profondità proiettato con la prospettiva del corridoio (nel
+        // riferimento le immagini della galleria SONO fiori), più i petali
+        // di velocità di TrailHeadParticles (pool 18, spawn 20/s, vita
+        // 0.25-0.6s, drag 0.94^frame). Il mood si fonde con lo STESSO blend
+        // del cross-fade dei piani.
+        const bctx = atmo?.getContext("2d") ?? null;
+        let render: (() => void) | null = null;
+        if (atmo && bctx) {
+          const flowers = ["#d20a0a", "#b21010", "#e0483d", "#efb9b2", "#a30707"].map((t) =>
+            makeFlowerSprite(t, "#fffdf8")
+          );
+          const leaves = ["#857b6d", "#6b665f"].map((t) => makeLeafSprite(t));
+          const rgb = MOODS.map((m) => ({ bg: hexRgb(m.bg), b1: hexRgb(m.b1), b2: hexRgb(m.b2) }));
+
+          // Campo di fiori lungo TUTTA la profondità (anche prima e oltre)
+          const field = Array.from({ length: 60 }, () => ({
+            xo: (Math.random() - 0.5) * 1.35,
+            yo: (Math.random() - 0.5) * 1.15,
+            z: Math.random(),
+            size: 18 + 48 * Math.pow(Math.random(), 2.2),
+            rot: Math.random() * Math.PI * 2,
+            spin: (Math.random() - 0.5) * 0.004,
+            age: Math.random() * Math.PI * 2,
+            ageD: 0.008 + 0.014 * Math.random(),
+            sprite:
+              Math.random() < 0.25
+                ? leaves[Math.floor(Math.random() * leaves.length)]
+                : flowers[Math.floor(Math.random() * flowers.length)],
+          }));
+
+          // Petali di velocità: il pool circolare del riferimento
+          const pool = Array.from({ length: 18 }, () => ({
+            x: 0,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            life: 0,
+            total: 1,
+            size: 0,
+            rot: 0,
+            sprite: flowers[0],
+          }));
+          let poolIdx = 0;
+          let spawnAcc = 0;
+
+          const st = tl.scrollTrigger!;
+          const put = (
+            sprite: HTMLCanvasElement,
+            x: number,
+            y: number,
+            size: number,
+            rot: number,
+            alpha: number
+          ) => {
+            const k = size / 64;
+            bctx.globalAlpha = alpha;
+            bctx.setTransform(
+              Math.cos(rot) * k,
+              Math.sin(rot) * k,
+              -Math.sin(rot) * k,
+              Math.cos(rot) * k,
+              x,
+              y
             );
-          }
+            bctx.drawImage(sprite, -32, -32);
+          };
+
+          render = () => {
+            // Fuori dal corridoio il canvas dorme (un solo rect per frame)
+            const box = root.getBoundingClientRect();
+            if (box.bottom < -80 || box.top > window.innerHeight + 80) return;
+            const w = screen.clientWidth;
+            const h = screen.clientHeight;
+            if (!w || !h) return;
+            if (atmo.width !== w || atmo.height !== h) {
+              atmo.width = w;
+              atmo.height = h;
+            }
+            const P = GAP();
+            const camT = Math.min(N - 1, Math.max(0, st.progress * D - INTRO));
+            const velN = Math.min(1, Math.abs(st.getVelocity()) / 2600);
+            const dt = Math.min(gsap.ticker.deltaRatio(60) / 60, 0.1);
+
+            // 1) fondale: mood fusi col blend dei piani
+            const ci = Math.min(N - 1, Math.floor(camT)) % rgb.length;
+            const ni = Math.min(N - 1, Math.floor(camT) + 1) % rgb.length;
+            const bl = camT - Math.floor(camT);
+            const mBg = lerpRgb(rgb[ci].bg, rgb[ni].bg, bl);
+            bctx.setTransform(1, 0, 0, 1, 0, 0);
+            bctx.globalAlpha = 1;
+            bctx.fillStyle = `rgb(${mBg.join(",")})`;
+            bctx.fillRect(0, 0, w, h);
+
+            // 2) i due blob erranti del fragment shader
+            const at = performance.now() * 0.00028;
+            const c1x = 0.5 + Math.sin(at) * 0.13 + Math.sin(at * 1.618) * 0.05;
+            const c1y = 0.48 + Math.cos(at * 0.794) * 0.09 + Math.cos(at * 1.272) * 0.03;
+            const c2x = 0.35 + Math.cos(at * 0.927) * 0.11 + Math.cos(at * 1.414) * 0.04;
+            const c2y = 0.55 + Math.sin(at * 1.175) * 0.07 + Math.sin(at * 0.618) * 0.03;
+            const depthProg = N > 1 ? camT / (N - 1) : 0;
+            const rad = 0.65 * (1 + depthProg * 0.08) * Math.max(w, h);
+            const blob = (cx: number, cy: number, r: number, col: [number, number, number]) => {
+              const g = bctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+              const c = col.join(",");
+              g.addColorStop(0, `rgba(${c},0.9)`);
+              g.addColorStop(0.55, `rgba(${c},0.38)`);
+              g.addColorStop(1, `rgba(${c},0)`);
+              bctx.fillStyle = g;
+              bctx.fillRect(0, 0, w, h);
+            };
+            blob(c1x * w, c1y * h, rad, soften(lerpRgb(rgb[ci].b1, rgb[ni].b1, bl), mBg));
+            blob(c2x * w, c2y * h, rad * 0.78, soften(lerpRgb(rgb[ci].b2, rgb[ni].b2, bl), mBg));
+
+            // 3) lift di luminanza con la velocità (shader: +0.10·vel)
+            if (velN > 0.02) {
+              bctx.fillStyle = `rgba(255,253,248,${(velN * 0.1).toFixed(3)})`;
+              bctx.fillRect(0, 0, w, h);
+            }
+
+            // 4) il campo di fiori in profondità (prospettiva del corridoio)
+            const depthTotal = (N - 1 + 2.4) * P;
+            for (const f of field) {
+              const rel = f.z * depthTotal - 1.2 * P - camT * P;
+              if (rel < -0.28 * P || rel > 2.5 * P) continue;
+              const s = P / (P + rel);
+              const fog = rel > 0 ? 1 - rel / (2.5 * P) : 1 + rel / (0.28 * P);
+              const a = 0.62 * Math.pow(Math.max(0, Math.min(1, fog)), 1.25);
+              if (a <= 0.015) continue;
+              f.age += f.ageD * (1 + velN * 1.5);
+              f.rot += f.spin * (1 + velN * 2);
+              const breath = 1 + 0.12 * Math.sin(f.age);
+              put(
+                f.sprite,
+                w / 2 + f.xo * w * s,
+                h / 2 + f.yo * h * s,
+                f.size * s * breath,
+                f.rot,
+                a
+              );
+            }
+
+            // 5) i petali di velocità (spawn solo in corsa, come la scia)
+            if (velN > 0.12) {
+              spawnAcc += dt * 20;
+              while (spawnAcc >= 1) {
+                spawnAcc -= 1;
+                const petal = pool[poolIdx];
+                poolIdx = (poolIdx + 1) % pool.length;
+                petal.x = w * (0.5 + (Math.random() - 0.5) * 0.52);
+                petal.y = h * (0.5 + (Math.random() - 0.5) * 0.4);
+                const sp = 40 + 160 * Math.random();
+                const ang = Math.random() * Math.PI * 2;
+                petal.vx = Math.cos(ang) * sp;
+                petal.vy = Math.sin(ang) * sp * 0.6;
+                petal.total = petal.life = 0.25 + 0.35 * Math.random();
+                petal.size = 8 + 12 * Math.random();
+                petal.rot = Math.random() * Math.PI * 2;
+                petal.sprite = flowers[Math.floor(Math.random() * flowers.length)];
+              }
+            } else {
+              spawnAcc = 0;
+            }
+            const drag = Math.pow(0.94, dt * 60);
+            for (const petal of pool) {
+              if (petal.life <= 0) continue;
+              petal.life -= dt;
+              if (petal.life <= 0) continue;
+              petal.vx *= drag;
+              petal.vy *= drag;
+              petal.x += petal.vx * dt;
+              petal.y += petal.vy * dt;
+              put(petal.sprite, petal.x, petal.y, petal.size, petal.rot, (petal.life / petal.total) * 0.5);
+            }
+            bctx.setTransform(1, 0, 0, 1, 0, 0);
+            bctx.globalAlpha = 1;
+          };
+          gsap.ticker.add(render);
         }
 
         return () => {
+          if (render) gsap.ticker.remove(render);
           ScrollTrigger.removeEventListener("refreshInit", layout);
           root.removeAttribute("data-on");
         };
@@ -246,9 +439,11 @@ export default function TeamTrail() {
   return (
     <div ref={rootRef} className="dt-tt" style={{ "--dt-tt-len": String(team.length - 1 + INTRO + HOLD) } as React.CSSProperties}>
       <div className="dt-tt_screen">
-        {/* Mood di profondità: vira tra le due creme col blend (rif. background
-            shader della depth gallery). Esiste solo nel corridoio [data-on]. */}
-        <div aria-hidden className="dt-tt_mood" />
+        {/* L'atmosfera a pieno schermo (rif. background shader + trail della
+            depth gallery): fondale a blob erranti che vira col blend dei
+            piani e fiori Domus che fluttuano in profondità. Esiste solo nel
+            corridoio [data-on]; dipinto in canvas 2D, niente WebGL. */}
+        <canvas aria-hidden className="dt-tt_bg" />
         {/* role="list" esplicito: il preflight azzera list-style e VoiceOver
             smetterebbe di annunciare la lista come tale. */}
         <ul role="list" className="dt-tt_world">
