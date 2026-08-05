@@ -388,8 +388,41 @@ export default function Fioritura({
       }
     };
 
-    const tick = () => {
-      if (cancelled) return;
+    /* Un "frame" logico = 1/60s, normalizzato sul timestamp del rAF: su
+       display 90/120/144Hz (o tab throttlati a 30) la cadenza del typing,
+       il blink del caret e il respiro restano ESATTAMENTE quelli disegnati. */
+    const STEP_MS = 1000 / 60;
+    let acc = 0;
+    let lastTs = 0;
+    let napping = false;
+    let probeIn = 0;
+
+    /* Coperti da altro? Solo dentro un antenato position:fixed (il footer
+       dell'uncover) la geometria resta "in viewport" anche quando il main
+       copre tutto e l'IO non può dirlo: un probe vero circa ogni secondo. */
+    const isCovered = () => {
+      let fixedHost: HTMLElement | null = null;
+      for (let el: HTMLElement | null = canvas; el; el = el.parentElement) {
+        if (getComputedStyle(el).position === "fixed") {
+          fixedHost = el;
+          break;
+        }
+      }
+      if (!fixedHost) return false;
+      const r = canvas.getBoundingClientRect();
+      if (!r.width || !r.height) return true;
+      const x = Math.min(Math.max(r.left + r.width / 2, 1), window.innerWidth - 2);
+      const y = Math.min(Math.max(r.top + r.height / 2, 1), window.innerHeight - 2);
+      const hit = document.elementFromPoint(x, y);
+      return !!hit && !fixedHost.contains(hit);
+    };
+
+    /* Il caret resta "vivo" (draw a cadenza piena) solo finché lampeggia. */
+    const caretActive = () =>
+      isTyping && !!word && frame <= TYPE_WAIT + word.length * TYPE_STEP + TYPE_TAIL + 60;
+
+    /** Avanza UN frame logico; ritorna true se qualcosa sta ancora crescendo. */
+    const advance = () => {
       frame++;
       let alive = false;
       for (const p of particles) {
@@ -401,7 +434,12 @@ export default function Fioritura({
         p.age += p.ageDelta;
         if (p.growing) {
           p.deltaScale *= 0.985;
-          p.scale += p.deltaScale * 0.16;
+          // Il solo decadimento geometrico converge a ~10.5·deltaScale0: le
+          // corolle eroiche dei tralci non raggiungerebbero MAI maxScale
+          // (ferme a metà taglia, mai nel respiro, e "growing" perpetuo =
+          // draw a cadenza piena per sempre). Il passo minimo garantisce lo
+          // sboccio completo entro ~200 frame senza toccare l'attacco eased.
+          p.scale += Math.max(p.deltaScale * 0.16, p.maxScale / 200);
           if (p.scale >= p.maxScale) p.growing = false;
           alive = true;
         } else if (!p.isLeaf) {
@@ -417,15 +455,40 @@ export default function Fioritura({
           p.rot += 0.0006 * Math.cos(0.6 * p.age);
         }
       }
-      // Il respiro è lento: a regime basta metà cadenza. Col typing il caret
-      // chiede il frame pieno (il canvas è piccolo, il costo è suo amico).
-      if (alive || isTyping || frame % 2 === 0) draw();
+      return alive;
+    };
+
+    const tick = (ts: number) => {
+      if (cancelled) return;
+      if (!lastTs) lastTs = ts;
+      acc += ts - lastTs;
+      lastTs = ts;
+      if (--probeIn <= 0) {
+        probeIn = 60;
+        napping = isCovered();
+      }
+      // Cap a 4 step: al risveglio (tab in background, pisolino) non si
+      // recupera l'arretrato, si riparte fluidi.
+      let steps = napping ? 0 : Math.min(4, Math.floor(acc / STEP_MS));
+      acc = Math.min(acc - steps * STEP_MS, 4 * STEP_MS);
+      let alive = false;
+      let stepped = false;
+      while (steps-- > 0) {
+        alive = advance() || alive;
+        stepped = true;
+      }
+      // Il respiro è lento: a regime basta metà cadenza. Finché il caret
+      // lampeggia serve il frame pieno (il canvas è piccolo, il costo pure).
+      if (stepped && (alive || caretActive() || frame % 2 === 0)) draw();
       if (running) raf = requestAnimationFrame(tick);
     };
 
     const start = () => {
       if (running || reduced) return;
       running = true;
+      lastTs = 0;
+      acc = 0;
+      probeIn = 0;
       raf = requestAnimationFrame(tick);
     };
     const stop = () => {
@@ -436,17 +499,55 @@ export default function Fioritura({
     // Font pronti (Playfair per le scritte), poi campionamento e innesco a vista
     let io: IntersectionObserver | null = null;
     let ro: ResizeObserver | null = null;
+    let fontFamily = "Georgia, serif";
+
+    /* Campionamento LAZY: i tralci `hidden lg:block` su mobile non pagano
+       build() finché (se mai) il breakpoint li mostra. */
+    const ensureBuilt = () => {
+      if (!texW && canvas.getClientRects().length) build(fontFamily);
+      return texW > 0;
+    };
+
+    /* reduced-motion può accendersi in sessione: si congela subito lo stato
+       già fiorito (il percorso inverso, reduce→motion, arriva col reload). */
+    const rmq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onRmChange = () => {
+      if (!rmq.matches) return;
+      stop();
+      for (const p of particles) {
+        p.delay = 0;
+        p.growing = false;
+        p.scale = p.maxScale;
+      }
+      if (texW) draw();
+    };
+    rmq.addEventListener("change", onRmChange);
+
     document.fonts.ready.then(() => {
       if (cancelled) return;
-      const family = getComputedStyle(canvas).fontFamily || "Georgia, serif";
-      build(family);
+      fontFamily = getComputedStyle(canvas).fontFamily || "Georgia, serif";
+      ensureBuilt();
+      // ResizeObserver SEMPRE, anche reduced: ridisegna il bitmap alla nuova
+      // taglia (mai CSS-stirato) e "sveglia" i canvas nati display:none
+      // quando il breakpoint li mostra — l'unico segnale che arriva anche
+      // senza loop attivo.
+      ro = new ResizeObserver(() => {
+        if (reduced || started) {
+          if (ensureBuilt()) draw();
+        }
+      });
+      ro.observe(canvas);
       if (reduced) {
-        draw();
+        if (ensureBuilt()) draw();
         return;
       }
       io = new IntersectionObserver(
-        ([entry]) => {
+        (entries) => {
+          // L'ULTIMA notifica del batch: con più attraversamenti coalescenti
+          // (scroll veloce) la prima descriverebbe uno stato già superato.
+          const entry = entries[entries.length - 1];
           if (entry.isIntersecting) {
+            if (!ensureBuilt()) return;
             started = true;
             start();
           } else {
@@ -455,6 +556,7 @@ export default function Fioritura({
             // al prossimo ingresso la parola si ridigita da capo.
             if (isTyping) {
               frame = 0;
+              acc = 0;
               for (const p of particles) {
                 p.delay = p.delay0;
                 p.deltaScale = p.deltaScale0;
@@ -468,19 +570,16 @@ export default function Fioritura({
         // dell'uncover) Chromium riporta intersectionRatio SEMPRE 0 pur con
         // isIntersecting true — una soglia >0 non scatterebbe mai e il canvas
         // resterebbe bianco. Con soglia 0 il callback iniziale basta a partire;
-        // il costo del loop nel footer coperto è mezzo cadenzato e accettabile.
+        // da coperti ci pensa il probe isCovered() a mettere il loop a riposo.
         { threshold: 0 }
       );
       io.observe(canvas);
-      ro = new ResizeObserver(() => {
-        if (started) draw();
-      });
-      ro.observe(canvas);
     });
 
     return () => {
       cancelled = true;
       stop();
+      rmq.removeEventListener("change", onRmChange);
       io?.disconnect();
       ro?.disconnect();
     };

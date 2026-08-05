@@ -118,17 +118,17 @@ export default function Team() {
 
   return (
     <section id="chi-siamo" className="relative bg-cream">
+      {/* Atmosfera e angolo vivono sull'INTRO, non sull'intera sezione: i
+          pannelli opachi a piena pagina di TeamTrail coprirebbero qualsiasi
+          decoro ancorato al fondo della sezione. */}
+      <div className="relative">
       <Atmosphere word="Domus Tua" glow drift={1} wordClassName="left-[2%] bottom-[4%] text-[13vw]" />
-      {/* Angoli fioriti (solo desktop): il capitolo umano è un giardino.
+      {/* Angolo fiorito (solo desktop): il capitolo umano è un giardino.
           Lo scudo overflow-hidden lascia sbordare i tralci senza scrollbar. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <Fioritura
           variant="corner-tr"
           className="absolute -right-5 -top-6 hidden h-[30vh] w-[14vw] lg:block"
-        />
-        <Fioritura
-          variant="corner-bl"
-          className="absolute -bottom-6 -left-5 hidden h-[26vh] w-[12vw] lg:block"
         />
       </div>
       {/* La scritta in fiori che si digita da sola (rif. WebGL-typing-tutorial):
@@ -270,6 +270,7 @@ export default function Team() {
             </Reveal>
           </Parallax>
         </div>
+      </div>
       </div>
 
       {/* Una schermata piena per ogni persona del team: il trail del

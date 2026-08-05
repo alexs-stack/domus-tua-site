@@ -89,7 +89,9 @@ export default function TeamTrail() {
   );
 
   return (
-    <ul ref={rootRef}>
+    /* role="list" esplicito: il preflight azzera list-style e VoiceOver
+       smetterebbe di annunciare la lista come tale. */
+    <ul ref={rootRef} role="list">
       {team.map((member, i) => {
         const [first, ...restName] = member.name.split(" ");
         const last = restName.join(" ");
@@ -129,11 +131,17 @@ export default function TeamTrail() {
                     style={{ opacity: leader ? 1 : 0.8 }}
                   >
                     {member.image ? (
+                      /* alt vuoto ANCHE sul leader: il nome è già il testo
+                         visibile accanto — un alt col nome verrebbe annunciato
+                         in mezzo alle due metà ("Raffaela, Raffaela Rizza,
+                         Rizza"). sizes in px pieni: la larghezza reale è in
+                         vh (34.5vh), su viewport alti un hint in vw servirebbe
+                         ritratti sottocampionati. */
                       <Image
                         src={member.image}
-                        alt={leader ? member.name : ""}
+                        alt=""
                         fill
-                        sizes="(max-width: 640px) 65vw, 25vw"
+                        sizes="(max-width: 640px) 65vw, 500px"
                         className="photo-warm object-cover"
                         style={member.imagePos ? { objectPosition: member.imagePos } : undefined}
                       />
