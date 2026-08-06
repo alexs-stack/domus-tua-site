@@ -1007,25 +1007,13 @@ html[data-preloader] .dt-pre-char {
   width: 118%;
 }
 
-/* ---------- ToneShift: la cucitura fra due colori di fondo ----------
-   Vedi app/components/motion/ToneShift.tsx.
-
-   GEOMETRIA: l'ARCO RIBASSATO della cupola di HorizonStory — raggi ellittici
-   50vw x 22vh, largo mezzo schermo e basso. È la curva che il sito usa già
-   per far salire una pagina sopra un'altra, e alla scala di un confine di
-   sezione legge come orizzonte, non come porta.
-   La prima stesura usava l'arco stretto del preloader ritagliato in
-   mask-image: troppo piccolo, e a metà corsa diventava comunque una banda
-   piatta. Qui non c'è maschera e non c'è ritaglio: il pannello del colore in
-   arrivo ha semplicemente il bordo curvo e SALE. Una sola transform, tutta
-   su GPU.
-
-   Senza JS o con reduced-motion il pannello non esiste e il blocco resta una
-   sfumatura verticale piena fra i due toni: transizione statica onesta. */
+/* ---------- ToneShift: le cuciture fra i colori di fondo ----------
+   Cinque confini, cinque gesti diversi. Vedi ToneShift.tsx per la mappa delle
+   reference. Comune a tutte: il blocco è GRANDE (62svh) perché una cucitura
+   corta torna a leggersi come un bordo, e da fermo (no-JS, reduced-motion) è
+   una sfumatura verticale piena fra i due toni — mai un taglio. */
 .dt-toneshift {
   position: relative;
-  /* Grande: è un orizzonte che passa, non un bordo. Sotto ~300px l'arco
-     ribassato non ha spazio per distendersi e torna a sembrare un taglio. */
   height: clamp(300px, 62svh, 680px);
   overflow: hidden;
   background: linear-gradient(to bottom, var(--ts-from), var(--ts-to));
@@ -1035,18 +1023,14 @@ html[data-preloader] .dt-pre-char {
   left: 0;
   right: 0;
   top: 0;
-  /* Piu alto del blocco: l'eccedenza e la corsa che serve alla curva per
-     uscire sopra il bordo, cosi alla fine il colore copre piatto. */
-  height: calc(100% + 30svh);
-  border-top-left-radius: 50vw 22vh;
-  border-top-right-radius: 50vw 22vh;
+  height: 100%;
   /* Il bloom d'apertura della sezione che arriva, ancorato al bordo BASSO del
-     blocco: cosi il pannello raggiunge la giuntura gia alla lucentezza giusta
+     blocco: così il pannello raggiunge la giuntura già alla lucentezza giusta
      e non lascia un salto (misurato: senza, DeltaRGB 17). */
   background:
     radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
     var(--ts-to);
-  /* Esiste solo quando JS puo animarlo: da fermo coprirebbe la sfumatura. */
+  /* Esiste solo quando JS può animarlo: da fermo coprirebbe la sfumatura. */
   opacity: 0;
 }
 .dt-toneshift[data-on] {
@@ -1055,8 +1039,70 @@ html[data-preloader] .dt-pre-char {
 .dt-toneshift[data-on] .dt-toneshift_in {
   opacity: 1;
 }
-.dt-toneshift[data-live] .dt-toneshift_in {
-  will-change: transform;
+.dt-toneshift[data-live] .dt-toneshift_in,
+.dt-toneshift[data-live] .dt-toneshift_tel {
+  will-change: transform, clip-path;
+}
+
+/* --- arco (era-residence): l'arco ribassato della cupola che sale --- */
+.dt-toneshift[data-v=arco] .dt-toneshift_in {
+  height: calc(100% + 42svh);
+  border-top-left-radius: 50vw 22vh;
+  border-top-right-radius: 50vw 22vh;
+}
+
+/* --- nebbia: il bordo non esiste --- */
+.dt-toneshift[data-v=nebbia] .dt-toneshift_in {
+  height: calc(100% + 42svh);
+  /* Sfumatura alta il 34% del pannello: nessun contorno da percepire, quindi
+     nessuno stacco possibile. Il 34% è il massimo che, con l'eccedenza di
+     42svh, esce completamente sopra il bordo a fine corsa. */
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 34%);
+}
+
+/* --- tenda (era-residence): spazzata orizzontale --- */
+.dt-toneshift[data-v=tenda] .dt-toneshift_in {
+  width: 140%;
+  right: auto;
+  /* Due maschere in intersezione. Orizzontale: bordo di TESTA sfumato, perche
+     una linea verticale netta sarebbe soltanto un taglio girato di 90 gradi.
+     Verticale: il pannello svanisce verso l'alto, altrimenti appena la tenda
+     ha spazzato anche il bordo ALTO del blocco diventa il colore in arrivo e
+     non combacia piu con la sezione che finisce (misurato: DeltaRGB 62). */
+  mask-image:
+    linear-gradient(to right, #000 0%, #000 78%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, transparent 14%, #000 66%);
+  mask-composite: intersect;
+}
+
+/* --- iride (FullscreenClipEffect): morph di clip-path a topologia costante.
+   I valori sono quelli esatti del riferimento (js/index.js:126-128):
+   inset(22% 39% round 23vw) -> inset(0% 0% round 0vw). L'opacità sale con il
+   morph perché là il pannello di partenza è una fotografia già visibile,
+   qui a progresso zero non deve esserci niente. --- */
+.dt-toneshift[data-v=iride] .dt-toneshift_in {
+  clip-path: inset(
+    calc(22% * (1 - var(--tsp, 0))) calc(39% * (1 - var(--tsp, 0))) round calc(23vw * (1 - var(--tsp, 0)))
+  );
+  opacity: calc(var(--tsp, 0) * 1.7);
+}
+
+/* --- telescopio (telescope-zoom): pannelli a scale diverse che convergono
+   tutti a 1. Una sola custom property scritta per frame, N trasformazioni
+   derivate qui in calc(). --- */
+.dt-toneshift[data-v=telescopio] .dt-toneshift_in {
+  background: none;
+  opacity: 1;
+}
+.dt-toneshift_tel {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
+    var(--ts-to);
+  transform: scale(calc(var(--tel-s) + (1 - var(--tel-s)) * var(--tsp, 0)));
+  border-radius: calc(26vw * (1 - var(--tsp, 0)));
+  opacity: calc(var(--tsp, 0) * 1.6);
 }
 
 /* ---------- Le cinque stelle: ORO, non fotografie (2026-08-06) ----------

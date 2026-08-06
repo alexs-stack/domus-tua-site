@@ -61,21 +61,25 @@ export default function Home() {
             transizione dovrà nascere dentro la sezione stessa. */}
         <Paths />
         <Method />
-        {/* Da qui in giù ogni cambio di tono è un PASSAGGIO, non un bordo: il
-            colore in arrivo sale dal basso dentro l'arco e si allarga finché
-            copre (ToneShift). */}
-        <ToneShift from="cream-deep" to="paper" />
+        {/* Da qui in giù ogni cambio di tono è un PASSAGGIO, non un bordo — e
+            ogni passaggio ha un gesto SUO. Cinque cuciture identiche non sono
+            un linguaggio: alla terza l'occhio le riconosce e le salta.
+            Ciascuna variante sta dove ha un motivo: il telescopio annuncia il
+            format che arriva dalla profondità, l'iride ha la precisione del
+            protocollo, la nebbia scioglie il passaggio verso il racconto
+            intimo, la tenda anticipa il nastro orizzontale di Seguici. */}
+        <ToneShift from="cream-deep" to="paper" variant="telescopio" />
         <OpenDomus />
-        <ToneShift from="paper" to="cream-deep" />
+        <ToneShift from="paper" to="cream-deep" variant="iride" />
         <DomusDocProtocol tone="cream-deep" />
-        <ToneShift from="cream-deep" to="cream" />
+        <ToneShift from="cream-deep" to="cream" variant="arco" />
         <Services />
-        <ToneShift from="cream" to="paper" />
+        <ToneShift from="cream" to="paper" variant="nebbia" />
         <FeaturedTestimonial />
         <div className="bg-paper">
           <SectionDivider tone="paper" />
         </div>
-        <ToneShift from="paper" to="cream" />
+        <ToneShift from="paper" to="cream" variant="tenda" />
         <Social />
         <div className="bg-cream">
           <SectionDivider tone="cream" />

@@ -1,26 +1,33 @@
 "use client";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   TONESHIFT — la cucitura fra due colori di fondo (2026-08-06).
+   TONESHIFT — le cuciture fra i colori di fondo (2026-08-06).
 
    PROBLEMA: la home cambia tono cinque volte. Ogni cambio disegnava una linea
    orizzontale netta: il taglio che rompe lo scroll immersivo.
 
-   SOLUZIONE: al confine non c'è più un bordo ma un ORIZZONTE che passa. Il
-   colore in arrivo sale dal basso col bordo curvato dall'ARCO RIBASSATO della
-   cupola di HorizonStory (raggi ellittici 50vw × 22vh) e continua a salire
-   finché la curva esce sopra e il colore copre piatto.
+   CINQUE CUCITURE, CINQUE GESTI DIVERSI (direttiva cliente): ripetere la
+   stessa transizione cinque volte non è un linguaggio, è un tic — e alla
+   terza l'occhio la riconosce e la salta. Ogni variante viene da una
+   reference precisa e ha un motivo per stare dove sta:
 
-   Perché quell'arco e non quello del preloader: la porta stretta del
-   preloader/sipario è un gesto di passaggio fra ROUTE, e alla scala di un
-   confine di sezione risultava piccola — a metà corsa diventava comunque una
-   banda piatta larga quasi tutto il viewport, quindi la porta non si leggeva
-   mai. L'arco ribassato è invece già il modo in cui questo sito fa salire una
-   pagina sopra un'altra, ed è quello che il cliente ha indicato.
-
-   Una sola transform su un pannello: niente maschere, niente clip, niente
-   ridisegno di mask-position. Il sipario fra route resta com'è: questo vive
-   solo dentro la pagina.
+     arco        era-residence — l'arco ribassato della cupola (50vw × 22vh),
+                 il modo in cui questo sito fa già salire una pagina sopra
+                 un'altra. Un pannello curvo che sale: una sola transform.
+     telescopio  telescope-zoom — sei pannelli a scale 0.15…1 che convergono
+                 tutti a 1. Il colore ARRIVA DALLA PROFONDITÀ invece che dal
+                 basso. Portato col bus a custom property del riferimento:
+                 UNA sola scrittura di stile per frame, N trasformazioni
+                 derivate in calc().
+     iride       FullscreenClipEffect — morph di clip-path a topologia
+                 costante, con i valori esatti del riferimento:
+                 inset(22% 39% round 23vw) → inset(0% 0% round 0vw).
+     tenda       era-residence — spazzata ORIZZONTALE, con il bordo di testa
+                 sfumato perché una linea verticale netta sarebbe un taglio
+                 girato di 90°, non una transizione.
+     nebbia      il bordo non esiste: il pannello sale con una sfumatura alta
+                 il 42% della propria altezza. Nessun contorno da percepire,
+                 quindi nessuno stacco possibile.
 
    Progressive enhancement: senza JS o con reduced-motion il blocco è una
    sfumatura verticale piena fra i due toni. [data-on] arriva solo da JS.
@@ -30,21 +37,33 @@ import { useRef } from "react";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
 
 export type Tone = "cream" | "cream-deep" | "paper" | "espresso" | "wine" | "graphite";
+export type ShiftVariant = "arco" | "telescopio" | "iride" | "tenda" | "nebbia";
 
-/** Eccedenza del pannello oltre il blocco, in frazione di viewport: deve
-    coprire i 22vh dell'arco più un margine, altrimenti a fine corsa la curva
-    resterebbe dentro il blocco e il colore non chiuderebbe piatto. */
-const OVERSHOOT = 0.3;
+/** Eccedenza verticale del pannello oltre il blocco, in frazione di viewport.
+    Deve coprire i 22vh dell'arco (e la sfumatura della nebbia) più un
+    margine: senza, a fine corsa la curva resterebbe dentro il blocco e il
+    colore non chiuderebbe piatto. */
+const OVERSHOOT = 0.42;
+
+/** Le scale di partenza del telescopio. Nel riferimento sono
+    1 / 0.85 / 0.6 / 0.45 / 0.3 / 0.15 e convergono tutte a 1 — ma là il
+    pannello a scala 1 è la fotografia di fondo, già a tutto schermo. Qui a
+    progresso zero non deve esserci NIENTE, quindi la rampa parte più bassa e
+    l'opacità sale con la convergenza. In CSS ognuna diventa
+    `scale(calc(s + (1-s) * var(--tsp)))`. */
+const TELESCOPE = [0.06, 0.14, 0.26, 0.42, 0.62];
 
 export default function ToneShift({
   from,
   to,
+  variant = "arco",
   className = "",
 }: {
   /** tono della sezione che finisce */
   from: Tone;
   /** tono della sezione che comincia */
   to: Tone;
+  variant?: ShiftVariant;
   className?: string;
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -58,30 +77,57 @@ export default function ToneShift({
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
         root.setAttribute("data-on", "");
-        const extra = () => window.innerHeight * OVERSHOOT;
 
-        // Valori a funzione: le altezze sono in svh e il blocco cambia con la
-        // viewport, quindi vanno ricalcolati a ogni refresh.
-        const tween = gsap.fromTo(
-          panel,
-          { y: () => root.offsetHeight + extra() },
-          {
-            y: () => -extra(),
-            ease: "none",
-            scrollTrigger: {
-              trigger: root,
-              // Comincia appena il blocco affaccia e finisce quando è ancora a
-              // mezzo schermo: l'orizzonte ha già finito di passare prima che
-              // l'occhio arrivi al fondo del blocco.
-              start: "top 98%",
-              end: "bottom 42%",
-              scrub: 0.5,
-              invalidateOnRefresh: true,
-            },
-          }
-        );
+        const st = {
+          trigger: root,
+          // Comincia appena il blocco affaccia e finisce quando è ancora a
+          // mezzo schermo: la cucitura ha già finito di passare prima che
+          // l'occhio arrivi al fondo del blocco.
+          start: "top 98%",
+          // Finisce quando il BORDO BASSO del blocco tocca il fondo del
+          // viewport, non piu tardi. Le varianti che non salgono dal basso
+          // (telescopio, iride, tenda) coprono la giuntura inferiore solo a
+          // corsa conclusa: farla finire dopo lasciava un gradino misurabile
+          // (DeltaRGB 73 e 56) proprio sul confine con la sezione che arriva.
+          end: "bottom bottom",
+          scrub: 0.5,
+          invalidateOnRefresh: true,
+        } as const;
 
-        // Il will-change vive solo mentre il passaggio è in scena.
+        let tween: gsap.core.Tween | null = null;
+        let trigger: ScrollTrigger | null = null;
+
+        if (variant === "telescopio" || variant === "iride") {
+          // BUS A CUSTOM PROPERTY (telescope-zoom): una sola setProperty per
+          // frame, tutte le trasformazioni derivate in calc() dal CSS. L'ease
+          // si applica al progresso GREZZO, non come ease di un tween: è la
+          // curva che tiene il gesto morbido agli estremi.
+          const ease = gsap.parseEase("power1.inOut");
+          trigger = ScrollTrigger.create({
+            ...st,
+            onUpdate: (self) => root.style.setProperty("--tsp", String(ease(self.progress))),
+          });
+        } else if (variant === "tenda") {
+          // Spazzata orizzontale: il pannello è più largo del blocco e la sua
+          // corsa parte da fuori a sinistra. Valori a funzione perché la
+          // larghezza dipende dalla viewport.
+          tween = gsap.fromTo(
+            panel,
+            { x: () => -panel.offsetWidth },
+            { x: 0, ease: "none", scrollTrigger: st }
+          );
+        } else {
+          // arco e nebbia: lo stesso movimento verticale, forme opposte del
+          // bordo (curva netta contro sfumatura alta).
+          const extra = () => window.innerHeight * OVERSHOOT;
+          tween = gsap.fromTo(
+            panel,
+            { y: () => root.offsetHeight + extra() },
+            { y: () => -extra(), ease: "none", scrollTrigger: st }
+          );
+        }
+
+        // Il will-change vive solo mentre la cucitura è in scena.
         const live = ScrollTrigger.create({
           trigger: root,
           start: "top bottom",
@@ -93,8 +139,10 @@ export default function ToneShift({
         return () => {
           root.removeAttribute("data-on");
           root.removeAttribute("data-live");
-          tween.scrollTrigger?.kill();
-          tween.kill();
+          root.style.removeProperty("--tsp");
+          tween?.scrollTrigger?.kill();
+          tween?.kill();
+          trigger?.kill();
           live.kill();
         };
       });
@@ -106,6 +154,7 @@ export default function ToneShift({
     <div
       ref={rootRef}
       aria-hidden
+      data-v={variant}
       className={`dt-toneshift ${className}`}
       style={
         {
@@ -117,7 +166,17 @@ export default function ToneShift({
         } as React.CSSProperties
       }
     >
-      <div data-ts-in className="dt-toneshift_in" />
+      {variant === "telescopio" ? (
+        // I pannelli intermedi stanno DIETRO quello pieno e convergono con
+        // esso: è la stratificazione che si dissolve, non un semplice zoom.
+        <div data-ts-in className="dt-toneshift_in">
+          {TELESCOPE.map((s) => (
+            <span key={s} className="dt-toneshift_tel" style={{ "--tel-s": s } as React.CSSProperties} />
+          ))}
+        </div>
+      ) : (
+        <div data-ts-in className="dt-toneshift_in" />
+      )}
     </div>
   );
 }
