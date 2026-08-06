@@ -3,6 +3,9 @@
 import { useRef } from "react";
 import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
+import CharFlip from "./motion/CharFlip";
+import TextLines from "./motion/TextLines";
+import FioreCorner from "./motion/FioreCorner";
 import { SegnoDomus, SegnoDomusBadge, SegnoTick } from "./BrandMotif";
 import { ArrowUpRight, ArrowRight, Star } from "./Icons";
 import { Cta } from "./primitives/Cta";
@@ -271,9 +274,26 @@ export default function DomusDocProtocol({
   );
 
   return (
-    <section ref={rootRef} id={id} className={bg}>
+    <section ref={rootRef} id={id} data-surface={tone} className={bg}>
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal>
+        {/* `relative` sul Reveal: è il blocco contenitore del tralcio qui sotto.
+            Senza, l'ancoraggio dipenderebbe dal `transform` che .reveal si porta
+            dietro — vero oggi, ma è una dipendenza invisibile e il fallback
+            `scripting: none` la toglie. */}
+        <Reveal className="relative">
+          {/* IL TRALCIO — sta DENTRO il Reveal e PRIMA della card, e non è un
+              dettaglio di stile ma di ordine di pittura: il Reveal ha un
+              `filter` (blur) e quindi crea un contesto di impilamento, perciò
+              un assoluto messo fuori gli passerebbe SOPRA, addosso ai pilastri.
+              Da qui invece la card (posizionata, e successiva nel DOM) lo
+              copre: del tralcio resta visibile solo la parte che sporge sopra
+              il bordo alto, dentro il respiro della sezione. È il modo più
+              semplice di rispettare la regola «mai sopra un testo» senza
+              affidarla a una misura che il primo cambio di copy smentisce.
+              L'offset negativo è verticale soltanto: uno orizzontale, sotto i
+              1290px, spingerebbe il tralcio oltre il bordo della finestra e si
+              porterebbe dietro una barra di scorrimento. */}
+          <FioreCorner corner="tr" seed={0} drift="x" className="-top-44 -right-6 !w-[13rem]" />
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
             {/* watermark motif: lenta deriva parallax dentro la card (profondità) */}
             <div className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>
@@ -301,14 +321,29 @@ export default function DomusDocProtocol({
                   <span className="mt-0.5 text-[0.58rem] font-bold tracking-[0.14em]">D.O.C.</span>
                 </div>
                 <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>
-                <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]">
+                {/* TESTA DI CAPITOLO alla scala del riferimento: text-d2 +
+                    display-tight, non più 48px fissi. `balance` è via apposta —
+                    text-wrap: balance si ricalcola DOPO lo split di CharFlip e
+                    fa saltare una riga. Con `exit` il titolo, risalendo la
+                    pagina, gira dalla parte opposta invece di spegnersi. */}
+                <CharFlip
+                  as="h2"
+                  className="mt-5 font-display text-d2 display-tight font-medium text-ink"
+                  exit
+                >
                   Domus D.O.C.
-                </h2>
+                </CharFlip>
                 {/* Nome esteso — coerente ovunque: "Domus D.O.C. — Domus di Origine Certificata" */}
-                <p className="mt-1 font-display text-lg text-red-dark">{c.subtitle}</p>
-                <p className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone">
+                <TextLines as="p" className="mt-2 font-display text-lg text-red-dark" exit>
+                  {c.subtitle}
+                </TextLines>
+                <TextLines
+                  as="p"
+                  className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone"
+                  exit
+                >
                   {c.intro}
-                </p>
+                </TextLines>
 
                 <Cta href="#contatti" variant="reveal-cream" size="md" className="mt-8">
                   {c.cta}

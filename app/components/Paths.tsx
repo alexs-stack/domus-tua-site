@@ -15,6 +15,7 @@
 // Mobile / reduced-motion / no-JS: intro + pannelli in colonna, tutto
 // visibile e statico ([data-on] arriva solo via JS, desktop ≥1024).
 import Image from "next/image";
+import SurfaceVeil from "./motion/SurfaceVeil";
 import { useRef } from "react";
 import { SplitText } from "gsap/SplitText";
 import Fioritura from "./motion/Fioritura";
@@ -390,7 +391,7 @@ export default function Paths() {
               <span className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red-soft">
                 {c.eyebrow}
               </span>
-              <h2 className="mt-5 max-w-[16ch] font-display text-[clamp(2.3rem,5.6vw,5.4rem)] font-medium leading-[1.02] tracking-[-0.01em] text-cream balance">
+              <h2 className="mt-5 max-w-[16ch] font-display text-d2 display-tight font-medium text-cream balance">
                 {c.heading}
               </h2>
             </div>
@@ -445,7 +446,7 @@ export default function Paths() {
                     </p>
                     <h3
                       data-paths-title
-                      className="mt-5 font-display text-[clamp(2rem,4.4vw,4rem)] font-medium leading-[1.05] tracking-[-0.01em] text-cream balance"
+                      className="mt-5 font-display text-d3 display-tight font-medium text-cream balance"
                     >
                       {t.title}
                     </h3>
@@ -478,6 +479,13 @@ export default function Paths() {
           })}
         </div>
       </div>
+      {/* I due bordi di "Due percorsi" sono foto a tutta pagina contro una
+          campitura: i due salti più grossi della home dopo l'hero (misurati
+          ΔRGB 131 e 381). I veli stanno sulla SEZIONE, non sullo schermo
+          pinnato: così compaiono solo alle due estremità e non velano la
+          fotografia per tutti i 520vh di corsa. */}
+      <SurfaceVeil edge="top" tone="cream" height="24svh" strength={0.92} />
+      <SurfaceVeil edge="bottom" tone="cream-deep" height="28svh" />
     </section>
   );
 }

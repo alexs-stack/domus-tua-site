@@ -12,11 +12,12 @@
 // opposto è invariante, non un caso.
 //
 // Il logo NON viene ridisegnato né deformato (divieto del brand book su morph e
-// draw): è lo stesso PNG depositato, ruotato attorno al proprio centro.
+// draw): è il monogramma depositato, ruotato attorno al proprio centro.
 //
 // Con reduced-motion o senza JS nulla si muove e il badge resta esattamente
 // com'è nell'HTML — il monogramma è centrato con flexbox, non con un transform,
 // proprio perché GSAP possa scrivere `transform` senza portarsi via il centraggio.
+import MarkDomus from "../MarkDomus";
 import { useRef } from "react";
 import { gsap, useGSAP, MQ, dur } from "../../lib/motion/gsap";
 import { getLenis } from "./SmoothScroll";
@@ -85,18 +86,15 @@ export function MarkBadge({
           Il contenitore è `inset-0`, quindi `h-[52%]` continua a misurarsi
           sull'altezza del badge come prima. */}
       <span className="absolute inset-0 flex items-center justify-center">
-        {/* Monogramma ufficiale (crop del PNG depositato): ruota su sé stesso nel
-            verso opposto all'anello. Il rosso del logo resta rosso anche nella
-            variante per fondi scuri. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          data-rot-mark
-          src={dark ? "/logo-domustua-mark-dark.png" : "/logo-domustua-mark.png"}
-          alt=""
-          width={99}
-          height={92}
-          className="h-[52%] w-auto"
-        />
+        {/* Monogramma ufficiale: ruota su sé stesso nel verso opposto
+            all'anello. Il rosso del logo resta rosso anche nella variante per
+            fondi scuri. Dal 2026-08-06 è VETTORIALE (MarkDomus): il PNG da
+            99×92 si sgranava appena il badge passava i ~50px.
+            L'aggancio `data-rot-mark` sta sullo SPAN, non sull'svg: è lì che
+            GSAP scrive il transform, e il componente non inoltra props. */}
+        <span data-rot-mark className="inline-flex h-[52%] w-auto">
+          <MarkDomus variant={dark ? "light" : "color"} className="h-full w-auto" />
+        </span>
       </span>
     </span>
   );

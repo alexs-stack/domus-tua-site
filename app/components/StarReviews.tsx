@@ -525,7 +525,7 @@ export default function StarReviews() {
           <div data-sr-el>
             <TextLines
               as="h2"
-              className="mx-auto mt-5 max-w-3xl font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl lg:text-6xl"
+              className="mx-auto mt-5 max-w-[20ch] font-display text-d3 display-tight font-medium text-ink"
             >
               {c.title}
             </TextLines>

@@ -283,7 +283,7 @@ export default function ReviewsWall() {
         >
           <h2
             ref={titleRef}
-            className="max-w-[16ch] font-display text-[clamp(2.2rem,6.4vw,6rem)] font-medium leading-[1.08] tracking-[-0.02em] text-ink"
+            className="max-w-[16ch] font-display text-d2 display-tight font-medium text-ink"
           >
             {c.title}
           </h2>

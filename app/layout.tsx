@@ -9,6 +9,7 @@ import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
 import SmoothScroll from "./components/motion/SmoothScroll";
+import SurfaceFlow from "./components/motion/SurfaceFlow";
 import { ChromeMount, PreloaderMount } from "./components/motion/ChromeMount";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
@@ -162,6 +163,9 @@ export default function RootLayout({
         />
         <div className="grain" aria-hidden />
         <SmoothScroll />
+        {/* La superficie continua: si accende solo dove ci sono almeno due
+            tappe `data-surface` (cioè in home), altrove non fa nulla. */}
+        <SurfaceFlow />
         <PreloaderMount />
         <LocaleProvider>
           {/* Dentro LocaleProvider: sipario e cursore usano stringhe tradotte

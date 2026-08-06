@@ -3,8 +3,15 @@
 import { useRef } from "react";
 import Reveal from "./Reveal";
 import Atmosphere from "./motion/Atmosphere";
+import CharFlip from "./motion/CharFlip";
+import TextLines from "./motion/TextLines";
+import FioreCorner from "./motion/FioreCorner";
 import { Cta } from "./primitives/Cta";
+import { Play } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
+import { MARK_D, MARK_RED_D, MARK_VIEWBOX } from "./MarkDomus";
+import { site } from "../lib/site";
+import { youtubeWatch } from "../lib/videos";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -19,6 +26,32 @@ import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 // Reduced-motion / no-JS: la maschera nasce già aperta (r = finale nel
 // markup), i titoli fermi al loro posto — sezione completa e statica.
 // Lo stato "chiuso" (r=0) esiste SOLO via JS sotto motionOk.
+//
+// 2026-08-06 — I PANNELLI. Il cliente ha bocciato proprio questo tratto:
+// «scritte grandi, immagini grandi». Le foto stavano in mezza colonna dentro
+// un max-w-6xl, cioè ~590px su un monitor da 1920. Adesso gli atti che se lo
+// possono permettere diventano PANNELLI larghi (uno a piena larghezza di
+// viewport) con il titolo in overlay su un velo.
+// La maschera turbolenta NON si tocca: è la cosa più bella della sezione e
+// vale più della larghezza. È solo salita di un livello — l'SVG del pannello
+// la porta identica, con `preserveAspectRatio="slice"` a fare il ritaglio.
+//
+// LA LARGHEZZA LA DECIDE IL SORGENTE, NON IL DESIDERIO. Misurati gli header
+// dei JPG in public/images/reali (2026-08-06):
+//   · raffaela-ritratto.jpg  763×442   → RITAGLIATA il 2026-08-06: l'originale
+//     era 765×560 con 39px di bianco puro in alto e 77 in basso, cotti nel
+//     file. Nel frame verticale in `slice` quelle fasce diventavano una
+//     LASTRA BIANCA di 532×639 con i bordi dritti sulla crema (misurato
+//     ΔRGB 78, tre volte la soglia): esattamente «il taglio» che la cliente
+//     ha chiesto di togliere, solo dentro una sezione invece che su un
+//     confine. Non era una scelta di inquadratura, era imballaggio.
+//     Anche così resta in colonna: 763px di sorgente non reggono il pannello.
+//   · video-villa-mozart.jpg 1280×505  → anche qui l'originale (1280×720)
+//     portava cotta dentro la titolazione della copertina YouTube: tolta dal
+//     FILE il 2026-08-06, perché lo stesso scatto lo usa anche la rotaia di
+//     Servizi. In un pannello a piena colonna (~1088px) resta sotto 1:1.
+//   · handshake.jpg          1920×1087 → regge il full-bleed su un 1920
+//     esattamente a 1:1: è la chiusa cinematografica della sezione.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const copy = {
@@ -28,6 +61,7 @@ const copy = {
     subcopy:
       "Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in oltre quindici anni di lavoro sul territorio.",
     cta: "Inizia dal tuo immobile",
+    actVideo: "Guarda la video recensione",
     acts: [
       { up: "Prima,", down: "le persone", alt: "Raffaela Rizza, fondatrice di Domus Tua, in ascolto" },
       { up: "Poi,", down: "il racconto", alt: "Il racconto video di una villa seguita da Domus Tua" },
@@ -51,6 +85,7 @@ const copy = {
     subcopy:
       "Every sale and every purchase follows nine precise steps: no improvisation, only a method built over more than fifteen years of work in the local area.",
     cta: "Start with your property",
+    actVideo: "Watch the video review",
     acts: [
       { up: "First,", down: "the people", alt: "Raffaela Rizza, founder of Domus Tua, listening" },
       { up: "Then,", down: "the story", alt: "The video story of a villa listed by Domus Tua" },
@@ -74,6 +109,7 @@ const copy = {
     subcopy:
       "Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en plus de quinze ans de travail sur le territoire.",
     cta: "Commencez par votre bien",
+    actVideo: "Voir l’avis en vidéo",
     acts: [
       { up: "D'abord,", down: "les personnes", alt: "Raffaela Rizza, fondatrice de Domus Tua, à l'écoute" },
       { up: "Puis,", down: "le récit", alt: "Le récit vidéo d'une villa proposée par Domus Tua" },
@@ -97,6 +133,7 @@ const copy = {
     subcopy:
       "Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in über fünfzehn Jahren Arbeit vor Ort gewachsen ist.",
     cta: "Beginnen Sie mit Ihrer Immobilie",
+    actVideo: "Video-Bewertung ansehen",
     acts: [
       { up: "Zuerst", down: "die Menschen", alt: "Raffaela Rizza, Gründerin von Domus Tua, beim Zuhören" },
       { up: "Dann", down: "die Geschichte", alt: "Die Video-Geschichte einer Villa im Angebot von Domus Tua" },
@@ -120,6 +157,7 @@ const copy = {
     subcopy:
       "Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en más de quince años de trabajo en el territorio.",
     cta: "Empieza por tu inmueble",
+    actVideo: "Ver la reseña en vídeo",
     acts: [
       { up: "Primero,", down: "las personas", alt: "Raffaela Rizza, fundadora de Domus Tua, escuchando" },
       { up: "Luego,", down: "el relato", alt: "El relato en vídeo de una villa ofrecida por Domus Tua" },
@@ -142,35 +180,98 @@ const copy = {
 const stepNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09"] as const;
 
 /* Gli atti: foto reale + parametri del filtro di dissolvenza (variati per
-   atto come nelle sette varianti del riferimento) + geometria del viewBox. */
+   atto come nelle sette varianti del riferimento) + geometria del viewBox.
+   `bleed` è la LARGHEZZA CONCESSA, e la detta la risoluzione del sorgente
+   (vedi la nota in testa al file):
+     none   → resta nella griglia a due colonne, foto invariata;
+     column → pannello a piena larghezza della colonna editoriale;
+     screen → pannello full-bleed, largo quanto il viewport. */
 const ACTS = [
   {
     img: "/images/reali/raffaela-ritratto.jpg",
+    /** Id YouTube quando la foto è la copertina di un video (vedi atto 3). */
+    video: null,
     vw: 900,
     vh: 1080,
+    vy: 0,
+    vbh: 1080,
     freq: 0.03,
     oct: 3,
     scale: 60,
+    bleed: "none",
   },
   {
+    // La titolazione incisa nella copertina YouTube («VILLA IN VENDITA A
+    // TRADATE…») non c'è più: il 2026-08-06 è stata tolta DAL FILE, non solo
+    // da questa inquadratura. Prima il viewBox partiva a y=215 per nasconderla
+    // qui, ma lo stesso file è usato anche dalla rotaia di Servizi, dove la
+    // scritta restava in bella vista su una lastra grande. Un ritaglio che
+    // vale in un posto solo non è un ritaglio, è una pezza.
     img: "/images/reali/video-villa-mozart.jpg",
+    video: null,
     vw: 1280,
-    vh: 880,
+    vh: 505,
+    vy: 0,
+    vbh: 505,
     freq: 0.012,
     oct: 3,
     scale: 110,
+    bleed: "column",
   },
   {
+    // Il viewBox passa da 1280 a 1920 di larghezza: frequenza e spostamento
+    // del filtro sono in user space, quindi vanno RISCALATI o la grana del
+    // bordo d'inchiostro cambia. 0.09×1280/1920 = 0.06 e 45×1920/1280 = 68:
+    // stesso bordo di prima, su una tela più grande.
     img: "/images/reali/handshake.jpg",
-    vw: 1280,
-    vh: 880,
-    freq: 0.09,
+    // La copertina della video recensione "Felicemente venduta": il pannello
+    // porta al video vero, così il player cotto nella foto dice la verità.
+    video: site.videos.reviews[0].id,
+    vw: 1920,
+    vh: 1087,
+    vy: 0,
+    vbh: 1087,
+    freq: 0.06,
     oct: 1,
-    scale: 45,
+    scale: 68,
+    bleed: "screen",
   },
 ] as const;
 
 const coverR = (w: number, h: number) => Math.ceil(Math.hypot(w / 2, h / 2)) + 40;
+
+/* Le due metà d'atto: la misura del riferimento (era-residence §2) portata da
+   6vw a 6.4vw e con un tetto molto più alto — a 1920 il titolo passa da 115px
+   a 123px, a 3440 da 86px (era già al massimo) a 240px. */
+const HALF = "text-[clamp(2.4rem,6.4vw,7.5rem)]";
+
+/* IL VELO DEI PANNELLI. Sta in HTML e non dentro la maschera SVG di
+   proposito: la maschera parte CHIUSA, e un velo che si aprisse insieme alla
+   foto lascerebbe il titolo in overlay illeggibile (crema su crema) per mezza
+   schermata di scroll. Così invece il titolo si legge in tutti e due gli
+   stati — velo sulla carta prima, velo sulla foto dopo.
+   La sfumatura verticale non è un vezzo: la home ha UNA superficie continua
+   (SurfaceFlow) e una fascia scura che comincia di netto è esattamente «il
+   taglio» che abbiamo appena tolto. Qui i bordi alto e basso svaniscono, e
+   quello che resta è una foto con la sua ombra, non un fondale.
+   DUE RAMPE E NON UNA, perché il titolo occupa una frazione diversa del
+   pannello: sul full-bleed sta dentro il primo terzo e vale la rampa del
+   brief (transparent al 62%), sul pannello a piena colonna arriva a metà
+   larghezza e con quella rampa la coda della seconda metà cadeva sul prato
+   illuminato a 1.9:1 — misurato. Lì la protezione si allunga fino all'82%.
+   Il velo NON serve a scurire la foto: serve a reggere il testo, e finisce
+   dove il testo finisce. */
+const VELO_MASK = "linear-gradient(180deg, transparent 0%, #000 9%, #000 91%, transparent 100%)";
+const VELO_RAMP = {
+  column: "linear-gradient(90deg, rgba(28,21,18,.76) 0%, rgba(28,21,18,.58) 48%, transparent 82%)",
+  screen: "linear-gradient(90deg, rgba(28,21,18,.72), transparent 62%)",
+} as const;
+const veloStyle = (bleed: "column" | "screen") =>
+  ({
+    background: VELO_RAMP[bleed],
+    maskImage: VELO_MASK,
+    WebkitMaskImage: VELO_MASK,
+  }) as const;
 
 export default function Method() {
   const { locale } = useLocale();
@@ -282,17 +383,32 @@ export default function Method() {
   );
 
   return (
-    <section ref={rootRef} id="metodo" className="relative overflow-hidden bg-cream-deep text-ink">
+    <section ref={rootRef} id="metodo" data-surface="cream-deep" className="relative overflow-hidden bg-cream-deep text-ink">
       {/* Aria: il nome del metodo in filigrana + bagliori caldi. */}
       <Atmosphere word="Metodo Domus Tua" glow drift={-1} wordClassName="right-[1%] top-[2.5%] text-[8.5vw]" />
       <div className="relative mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
-        {/* Header */}
+        {/* Header — testa di capitolo.
+            Il Reveal è SPEZZATO (stesso schema di OpenDomus): titolo e
+            sottotitolo restano nudi, perché CharFlip e TextLines hanno già il
+            loro stato nascosto e un secondo fade sopra darebbe il
+            doppio-hide. Via anche `balance`: il bilanciamento si ricalcola
+            dopo lo split di SplitText e fa saltare una riga.
+            `exit` su entrambi: risalendo la pagina il capitolo si smonta
+            invece di restare fermo — è quello che fa leggere continua una
+            home lunga. */}
         <Reveal className="max-w-2xl">
           <span className="eyebrow">{c.eyebrow}</span>
-          <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight balance sm:text-5xl">
-            {c.title}
-          </h2>
-          <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-stone">{c.subcopy}</p>
+        </Reveal>
+        <CharFlip as="h2" delay={0.1} className="mt-5 font-display text-d2 display-tight font-medium" exit>
+          {c.title}
+        </CharFlip>
+        {/* mt-10 e non mt-6: con `.display-tight` (interlinea .92) le
+            discendenti dell'ultima riga escono dal box del titolo, e a 109px
+            di corpo sono una decina di pixel che si mangiano l'aria. */}
+        <TextLines as="p" className="mt-10 max-w-xl text-[1.02rem] leading-relaxed text-stone" exit>
+          {c.subcopy}
+        </TextLines>
+        <Reveal delay={100}>
           <Cta href="#contatti" variant="cta" size="md" className="mt-8">
             {c.cta}
           </Cta>
@@ -302,24 +418,207 @@ export default function Method() {
         <div className="mt-20 flex flex-col gap-24 lg:mt-28 lg:gap-36">
           {ACTS.map((a, i) => {
             const act = c.acts[i];
-            const rf = coverR(a.vw, a.vh);
+            // Il raggio copre il RITAGLIO (vbh), non l'altezza del file: con
+            // un viewBox che parte sotto la titolazione incisa, misurarlo
+            // sull'originale farebbe finire l'apertura a metà scrub.
+            const rf = coverR(a.vw, a.vbh);
+            const viewBox = `0 ${a.vy} ${a.vw} ${a.vbh}`;
             const reversed = i % 2 === 1;
+            const panel = a.bleed !== "none";
+
+            /* La maschera turbolenta (rif. OnScrollFilter: feTurbulence +
+               feDisplacementMap sul cerchio della mask). Estratta qui perché
+               il pannello largo e la griglia storica montano ESATTAMENTE la
+               stessa cosa: allargare la foto non doveva costare la maschera.
+               r parte GIÀ al valore finale: senza JS / reduced-motion la foto
+               è intera; lo stato chiuso esiste solo via GSAP. */
+            const svgDefs = (
+              <defs>
+                <filter id={`dt-met-f${i}`}>
+                  <feTurbulence type="fractalNoise" baseFrequency={a.freq} numOctaves={a.oct} result="noise" />
+                  <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale={a.scale}
+                    xChannelSelector="R"
+                    yChannelSelector="G"
+                  />
+                </filter>
+                <mask id={`dt-met-m${i}`}>
+                  {/* Centro in coordinate assolute e non più in `50%`: le
+                      percentuali si risolvono sulla DIMENSIONE del viewport
+                      SVG e ignorano l'origine del viewBox, quindi con un
+                      viewBox che parte a y=215 il cerchio si aprirebbe sopra
+                      il ritaglio, fuori campo. */}
+                  <circle
+                    data-met-mask
+                    data-r-final={rf}
+                    cx={a.vw / 2}
+                    cy={a.vy + a.vbh / 2}
+                    r={rf}
+                    fill="white"
+                    style={{ filter: `url(#dt-met-f${i})` }}
+                  />
+                </mask>
+              </defs>
+            );
+            const photo = (
+              <image
+                data-met-img
+                href={a.img}
+                width={a.vw}
+                height={a.vh}
+                mask={`url(#dt-met-m${i})`}
+                preserveAspectRatio="xMidYMid slice"
+              />
+            );
+
+            // I tre fogli del dossier dell'atto (identici nei due impianti).
+            const dossier = c.steps.slice(i * 3, i * 3 + 3).map((s, j) => (
+              <li key={s.title}>
+                <div
+                  data-met-card
+                  className={`h-full rounded-2xl border border-line bg-paper p-5 shadow-[0_18px_40px_-30px_rgba(26,24,22,0.4)] sm:p-6 ${
+                    j % 2 ? "lg:-rotate-[0.35deg]" : "lg:rotate-[0.35deg]"
+                  }`}
+                >
+                  <p aria-hidden className="tnum font-display text-[0.72rem] font-semibold tracking-[0.18em] text-red">
+                    {stepNumbers[i * 3 + j]}
+                  </p>
+                  <h4 className="mt-1.5 font-display text-xl font-medium tracking-tight sm:text-[1.3rem]">
+                    {s.title}
+                  </h4>
+                  <p className="mt-2 text-[0.95rem] leading-relaxed text-stone">{s.copy}</p>
+                </div>
+              </li>
+            ));
+
+            /* ATTO A PANNELLO — la foto prende tutta la larghezza che il suo
+               sorgente regge, il titolo ci sta sopra e il dossier scende
+               sotto in tre colonne. La meccanica di separazione in scrub è
+               identica: sono sempre [data-met-up] / [data-met-down] dentro
+               [data-met-act], e il GSAP qui sopra non sa nemmeno che sono
+               cambiati di posto. */
+            if (panel) {
+              return (
+                <div key={act.up} data-met-act className="relative">
+                  <div
+                    className={`relative ${
+                      a.bleed === "screen"
+                        ? // Full-bleed: margine negativo e non translate — un
+                          // transform qui creerebbe un containing block di
+                          // troppo, e il ritaglio lo fa già l'overflow-hidden
+                          // della sezione.
+                          "mx-[calc(50%_-_50vw)] w-screen"
+                        : "w-full"
+                    }`}
+                  >
+                    {/* Il titolo viene PRIMA della foto nell'ordine del
+                        documento (è la testa dell'atto e lo screen reader la
+                        deve incontrare per prima) e sopra nell'ordine di
+                        pittura, che è quello che fa l'assoluto + z. */}
+                    <h3 className="absolute inset-0 z-20 flex flex-col justify-center px-6 font-display font-medium leading-[0.98] tracking-[-0.01em] text-cream sm:px-10 lg:px-[6vw]">
+                      <span data-met-up className={`block ${HALF}`}>
+                        {act.up}
+                      </span>
+                      {/* Sul velo il rosso di marca (#d20a0a) scende a 1.4:1
+                          di contrasto: su fondo scuro smette di essere un
+                          colore da testo. La metà bassa passa al rosa cipria
+                          del brand — resta "l'altra voce" del titolo, ma si
+                          legge. */}
+                      <span data-met-down className={`block text-red-soft ${HALF} lg:ml-[7%]`}>
+                        {act.down}
+                      </span>
+                    </h3>
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 z-10"
+                      style={veloStyle(a.bleed === "screen" ? "screen" : "column")}
+                    />
+                    {/* Un solo tralcio in tutta la sezione. Stava nel margine
+                        esterno della colonna: a 1280 ne restavano fuori 120px
+                        su 224 (tagliati dall'overflow della sezione) e in
+                        ogni caso cadeva sulla testa dell'atto. Qui sta DENTRO
+                        il pannello, nell'angolo che il titolo non occupa (il
+                        titolo vive a sinistra), sopra la foto e sotto il
+                        testo: non può essere tagliato e non tocca nessuna
+                        parola. Opacità 0.5 perché il fondo è fotografia
+                        velata di scuro — su crema il tetto sarebbe 0.40. */}
+                    {i === 1 ? (
+                      <FioreCorner
+                        corner="br"
+                        seed={1}
+                        drift="y"
+                        opacity={0.5}
+                        className="bottom-5 right-6 z-[15] !w-[11rem]"
+                      />
+                    ) : null}
+
+                    <svg
+                      viewBox={viewBox}
+                      // `slice` anche sull'SVG, non solo sull'<image>: il
+                      // pannello ha un'altezza sua e senza questo il disegno
+                      // verrebbe incorniciato al centro con due bande vuote.
+                      preserveAspectRatio="xMidYMid slice"
+                      className={`block w-full ${
+                        a.bleed === "screen" ? "h-[clamp(22rem,74svh,44rem)]" : "h-[clamp(17rem,46svh,27rem)]"
+                      }`}
+                      role="img"
+                      aria-label={act.alt}
+                    >
+                      {svgDefs}
+                      {photo}
+                    </svg>
+                  </div>
+
+                  {/* IL PULSANTE PLAY NON È NOSTRO: è cotto dentro
+                      handshake.jpg, che è la copertina della video recensione
+                      "Felicemente venduta". Al centro esatto di una foto non
+                      si può ritagliare via, e ricostruirlo a mano lascia una
+                      sbavatura sul logo (provato). Su un pannello cinematico
+                      che non porta da nessuna parte quel pulsante legge come
+                      un player rotto: allora il pannello DIVENTA il video.
+                      Un difetto trasformato in affordance, non nascosto. */}
+                  {a.video ? (
+                    <div className="mt-4 flex justify-end">
+                      <a
+                        href={youtubeWatch(a.video)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex items-center gap-2.5 rounded-full border border-line bg-paper py-2.5 pl-3 pr-5 text-sm font-semibold text-ink transition-all duration-300 hover:border-red hover:text-red"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red text-cream transition-transform duration-300 group-hover:scale-110">
+                          <Play className="h-3.5 w-3.5" />
+                        </span>
+                        {c.actVideo}
+                      </a>
+                    </div>
+                  ) : null}
+
+                  <ol className="mt-10 grid gap-6 sm:grid-cols-3 lg:mt-12" start={i * 3 + 1}>
+                    {dossier}
+                  </ol>
+                </div>
+              );
+            }
+
+            /* ATTO IN COLONNA — resta così per una ragione sola: il sorgente.
+               raffaela-ritratto.jpg è 763×442 (dopo il ritaglio delle fasce
+               bianche, vedi in testa al file) e in questo frame verticale è
+               già mostrato sopra 1:1. Allargarlo lo sgranerebbe, e una foto
+               sgranata a tutta pagina è peggio di una foto giusta a mezza
+               pagina. */
             return (
               <div key={act.up} data-met-act className="relative">
                 {/* Il titolo in due metà: si separano in scrub mentre la foto
                     si apre — la variante React del Flip del riferimento. */}
                 <h3 className="relative z-10 font-display font-medium leading-[0.98] tracking-[-0.01em]">
-                  <span
-                    data-met-up
-                    className={`block text-[clamp(2.4rem,6vw,5.4rem)] ${reversed ? "lg:ml-[30%]" : ""}`}
-                  >
+                  <span data-met-up className={`block ${HALF} ${reversed ? "lg:ml-[30%]" : ""}`}>
                     {act.up}
                   </span>
                   <span
                     data-met-down
-                    className={`block text-[clamp(2.4rem,6vw,5.4rem)] text-red ${
-                      reversed ? "lg:ml-[12%]" : "lg:ml-[22%]"
-                    }`}
+                    className={`block ${HALF} text-red ${reversed ? "lg:ml-[12%]" : "lg:ml-[22%]"}`}
                   >
                     {act.down}
                   </span>
@@ -330,69 +629,18 @@ export default function Method() {
                     reversed ? "lg:grid-flow-dense" : ""
                   }`}
                 >
-                  {/* La foto dentro la maschera turbolenta (rif. OnScrollFilter:
-                      feTurbulence + feDisplacementMap sul cerchio della mask).
-                      r parte GIÀ al valore finale: senza JS / reduced-motion la
-                      foto è intera; lo stato chiuso esiste solo via GSAP. */}
                   <svg
-                    viewBox={`0 0 ${a.vw} ${a.vh}`}
+                    viewBox={viewBox}
                     className={`h-auto w-full ${reversed ? "lg:col-start-2" : ""}`}
                     role="img"
                     aria-label={act.alt}
                   >
-                    <defs>
-                      <filter id={`dt-met-f${i}`}>
-                        <feTurbulence type="fractalNoise" baseFrequency={a.freq} numOctaves={a.oct} result="noise" />
-                        <feDisplacementMap
-                          in="SourceGraphic"
-                          in2="noise"
-                          scale={a.scale}
-                          xChannelSelector="R"
-                          yChannelSelector="G"
-                        />
-                      </filter>
-                      <mask id={`dt-met-m${i}`}>
-                        <circle
-                          data-met-mask
-                          data-r-final={rf}
-                          cx="50%"
-                          cy="50%"
-                          r={rf}
-                          fill="white"
-                          style={{ filter: `url(#dt-met-f${i})` }}
-                        />
-                      </mask>
-                    </defs>
-                    <image
-                      data-met-img
-                      href={a.img}
-                      width={a.vw}
-                      height={a.vh}
-                      mask={`url(#dt-met-m${i})`}
-                      preserveAspectRatio="xMidYMid slice"
-                    />
+                    {svgDefs}
+                    {photo}
                   </svg>
 
-                  {/* I tre fogli del dossier dell'atto */}
                   <ol className={`flex flex-col gap-6 ${reversed ? "lg:col-start-1 lg:row-start-1" : ""}`} start={i * 3 + 1}>
-                    {c.steps.slice(i * 3, i * 3 + 3).map((s, j) => (
-                      <li key={s.title}>
-                        <div
-                          data-met-card
-                          className={`rounded-2xl border border-line bg-paper p-5 shadow-[0_18px_40px_-30px_rgba(26,24,22,0.4)] sm:p-6 ${
-                            j % 2 ? "lg:-rotate-[0.35deg]" : "lg:rotate-[0.35deg]"
-                          }`}
-                        >
-                          <p aria-hidden className="tnum font-display text-[0.72rem] font-semibold tracking-[0.18em] text-red">
-                            {stepNumbers[i * 3 + j]}
-                          </p>
-                          <h4 className="mt-1.5 font-display text-xl font-medium tracking-tight sm:text-[1.3rem]">
-                            {s.title}
-                          </h4>
-                          <p className="mt-2 text-[0.95rem] leading-relaxed text-stone">{s.copy}</p>
-                        </div>
-                      </li>
-                    ))}
+                    {dossier}
                   </ol>
                 </div>
               </div>
@@ -400,33 +648,44 @@ export default function Method() {
           })}
         </div>
 
-        {/* Il Segno in chiusura: il cuore appare con la stessa apertura
-            turbolenta degli atti — il percorso diventa casa. Senza JS /
-            reduced-motion: già completo. */}
+        {/* Il Segno in chiusura: qui c'era un cuore GENERICO ridisegnato a mano.
+            Ora c'è il monogramma depositato (2026-08-06, direttiva cliente):
+            il percorso diventa casa, e la casa è la nostra. L'apertura
+            turbolenta resta identica, ma agisce sul GRUPPO — il brand book
+            vieta di animare i tracciati del logo, non di mascherarlo.
+            Frequenza e spostamento riscalati sul nuovo viewBox (99×92 invece
+            di 64×60): 0.14×64/99 ≈ 0.09 e 14×99/64 ≈ 22, così il bordo
+            d'inchiostro ha la stessa grana di prima.
+            Senza JS / reduced-motion: già completo. */}
         <div ref={segnoWrapRef} className="mt-20 flex justify-center pb-2 lg:mt-24">
-          <svg viewBox="0 0 64 60" fill="none" aria-hidden className="h-14 w-14 text-red">
+          <svg
+            viewBox={MARK_VIEWBOX}
+            aria-hidden
+            className="h-[clamp(4rem,7vw,6.5rem)] w-auto"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <defs>
-              <filter id="dt-met-fh">
-                <feTurbulence type="fractalNoise" baseFrequency="0.14" numOctaves="2" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" />
+              {/* Regione esplicita: con spostamento 22 il default (-10%/120%) taglierebbe il bordo. */}
+              <filter id="dt-met-fh" x="-40%" y="-40%" width="180%" height="180%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="22" xChannelSelector="R" yChannelSelector="G" />
               </filter>
               <mask id="dt-met-mh">
                 <circle
                   data-met-segno-mask
-                  data-r-final="48"
-                  cx="32"
-                  cy="30"
-                  r="48"
+                  data-r-final="76"
+                  cx="49.5"
+                  cy="46"
+                  r="76"
                   fill="white"
                   style={{ filter: "url(#dt-met-fh)" }}
                 />
               </mask>
             </defs>
-            <path
-              d="M32 14 C 26 3, 10 2, 6 13 C 2 24, 12 36, 32 52 C 52 36, 62 24, 58 13 C 54 2, 38 3, 32 14 Z"
-              mask="url(#dt-met-mh)"
-              fill="var(--color-red)"
-            />
+            <g mask="url(#dt-met-mh)">
+              <path fill="#595a58" fillRule="evenodd" d={MARK_D} />
+              <path fill="#e30716" fillRule="evenodd" d={MARK_RED_D} />
+            </g>
           </svg>
         </div>
       </div>

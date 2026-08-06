@@ -61,16 +61,17 @@ export default function Home() {
             transizione dovrà nascere dentro la sezione stessa. */}
         <Paths />
         <Method />
-        {/* Da qui in giù ogni cambio di tono è un PASSAGGIO, non un bordo — e
-            ogni passaggio ha un gesto SUO. Cinque cuciture identiche non sono
-            un linguaggio: alla terza l'occhio le riconosce e le salta.
-            Ciascuna variante sta dove ha un motivo: il telescopio annuncia il
-            format che arriva dalla profondità, l'iride ha la precisione del
-            protocollo, la nebbia scioglie il passaggio verso il racconto
-            intimo, la tenda anticipa il nastro orizzontale di Seguici. */}
-        <ToneShift from="cream-deep" to="paper" variant="telescopio" />
+        {/* Da qui in giù ogni cambio di tono è un PASSAGGIO, non un bordo, e
+            il gesto è SEMPRE lo STESSO: la cupola. era-residence ripete il
+            suo arco due volte in home ed è così che l'esperienza resta
+            continua — un gesto ripetuto è un linguaggio, cinque gesti
+            diversi sono cinque eccezioni. Qui la cupola è anche la forma del
+            marchio, quindi il confine fra due capitoli disegna il logo.
+            Varia solo la PROFONDITÀ: più bassa dove il capitolo è breve, più
+            alta dove si apre un respiro. */}
+        <ToneShift from="cream-deep" to="paper" depth="22svh" />
         <OpenDomus />
-        <ToneShift from="paper" to="cream-deep" variant="iride" />
+        <ToneShift from="paper" to="cream-deep" depth="17svh" />
         <DomusDocProtocol tone="cream-deep" />
         {/* NIENTE cucitura fra D.O.C. e Servizi: cream-deep e cream distano
             ΔRGB 11, cioè sono lo stesso colore per l'occhio. Una transizione
@@ -78,20 +79,20 @@ export default function Home() {
             INVENTA, e si nota proprio perché non serve. Le cuciture restano
             dove il salto è reale (ΔRGB 61-72). */}
         <Services />
-        <ToneShift from="cream" to="paper" variant="nebbia" />
+        <ToneShift from="cream" to="paper" depth="19svh" />
         <FeaturedTestimonial />
-        <div className="bg-paper">
+        <div data-surface="paper" className="bg-paper">
           <SectionDivider tone="paper" />
         </div>
-        <ToneShift from="paper" to="cream" variant="tenda" />
+        <ToneShift from="paper" to="cream" depth="24svh" />
         <Social />
-        <div className="bg-cream">
+        <div data-surface="cream" className="bg-cream">
           <SectionDivider tone="cream" />
         </div>
         <Team />
         <Contact />
         {/* Eco di chiusura: la promessa dell'hero torna gigante, in deriva con lo scroll */}
-        <KineticStrip className="bg-cream-deep" />
+        <KineticStrip surface="cream-deep" className="bg-cream-deep" />
       </main>
       <Footer />
       <WhatsAppFloat />

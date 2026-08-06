@@ -11,6 +11,7 @@
 // colonna — tutto visibile senza JS.
 import { useRef, type ReactNode } from "react";
 import Image from "next/image";
+import SurfaceVeil from "./motion/SurfaceVeil";
 import Link from "next/link";
 import HorizonScroller from "./motion/HorizonScroller";
 import Fioritura from "./motion/Fioritura";
@@ -275,6 +276,9 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
             quality={75}
             className="object-cover"
           />
+          {/* La ricerca (crema) consegna alla foto aerea: senza velo il bordo
+              è un taglio da ΔRGB 583. Qui il crema entra dentro il cielo. */}
+          <SurfaceVeil edge="top" tone="cream-deep" height="22svh" />
         </div>
       </div>
 
@@ -282,7 +286,7 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
           .bg-cream (bloom dall'alto) riparte a ogni elemento che porta la classe,
           e due superfici separate creavano una linea d'ombra al confine. Con la
           cupola come wrapper la pagina che sale è davvero una sola. */}
-      <div className="dt-dome relative z-10 -mt-[60svh] bg-cream">
+      <div data-surface="cream" className="dt-dome relative z-10 -mt-[60svh] bg-cream">
         {/* Atto 2 — l'intro sotto l'arco. Il titolo curvato è decorativo
             (aria-hidden): il testo leggibile vive nell'h2 sr-only. */}
         <div ref={domeRef} className="mx-auto max-w-[1600px] px-5 pb-6 pt-[16svh] sm:px-8">
@@ -343,7 +347,7 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
             <h2
               key={locale}
               data-horizon-reveal="chars"
-              className="mt-6 font-display text-[clamp(1.9rem,4.6vw,4.3rem)] font-medium uppercase leading-[1.06] tracking-[-0.01em] text-ink"
+              className="mt-6 font-display text-d3 display-tight font-medium uppercase text-ink"
             >
               {c.statement}
             </h2>
@@ -370,6 +374,12 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
                   <span
                     key={line}
                     data-horizon-stair
+                    // NON `text-d2`: i gradini vivono dentro un pannello del
+                    // nastro orizzontale largo ~918px, e a 7,6vw una riga in
+                    // maiuscolo lo sfora di ~190px (misurato) finendo sotto
+                    // l'overflow:clip della sezione. Questa era già la misura
+                    // più grande del sito: qui "più grande" vorrebbe dire
+                    // "tagliato".
                     className={`block text-[clamp(2.6rem,7vw,6.5rem)] ${
                       i === 1 ? "lg:ml-[9vw]" : i === 2 ? "lg:ml-[4vw]" : ""
                     }`}
@@ -435,7 +445,7 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
               <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red">
                 {c.revCap}
               </p>
-              <h2 className="mt-6 font-display text-[clamp(2rem,4.2vw,3.9rem)] font-medium leading-[1.04] tracking-[-0.01em] text-ink">
+              <h2 className="mt-6 font-display text-d3 display-tight font-medium text-ink">
                 {c.revTitle}
               </h2>
               <div data-horizon-reveal="track" className="mt-9 max-w-md">
@@ -498,7 +508,7 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
               <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red">
                 {c.vidCap}
               </p>
-              <h2 className="mt-6 font-display text-[clamp(2rem,4.2vw,3.9rem)] font-medium leading-[1.04] tracking-[-0.01em] text-ink">
+              <h2 className="mt-6 font-display text-d3 display-tight font-medium text-ink">
                 {c.vidTitle}
               </h2>
               <div data-horizon-reveal="track" className="mt-8 max-w-md">

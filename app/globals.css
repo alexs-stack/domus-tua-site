@@ -50,6 +50,43 @@
   --font-hero: var(--font-playfair);
   --font-script: var(--font-pinyon);
 
+  /* ── SCALA DISPLAY (2026-08-06, richiesta cliente "scritte grandi") ────────
+     Il ventre della home viaggiava a `text-4xl sm:text-5xl`, cioè 48px FISSI
+     oltre i 640: su un 1920 sono 2,5vw e il titolo legge come un sottotitolo.
+     era-residence (dossier §2) sta a h1 12vw / h2 8,5vw / h3 6vw — la misura
+     è quella che fa "editoriale". Qui la stessa scala in clamp: il minimo
+     tiene in piedi il mobile, il vw fa il lavoro, il massimo evita che a
+     3440px il titolo esca dalla colonna.
+
+     COME SI USANO — sono nel namespace `--text-*`, quindi Tailwind genera le
+     utility da sé: si scrive `text-d1 … text-d4`, NON `text-[var(--text-d2)]`.
+     La forma con var() resta valida solo dentro CSS scritto a mano.
+     Ogni gradino porta con sé la propria interlinea (`--text-dN--line-height`):
+     `text-d2` da solo è già compatto, e un `leading-*` accanto continua a
+     vincere normalmente (Tailwind compila `line-height: var(--tw-leading, …)`).
+     Per la misura esatta del riferimento (0.92 + tracking negativo) si
+     aggiunge `.display-tight` — vedi in fondo al file, ed è UNLAYERED, quindi
+     lì per cambiare interlinea serve `!`.
+     Regola: UN SOLO d1 per pagina (è il titolo della pagina), d2 per
+     le teste di capitolo, d3 per i sottotitoli, d4 per i blocchi di rilancio.
+
+     E UNA REGOLA CHE COSTA CARA DIMENTICARE — la taglia dipende dalla
+     COLONNA, non dalla gerarchia. d2 è per le teste che possiedono tutta la
+     larghezza; in MEZZA colonna (~530-650px, che è quel che resta anche su
+     un 1920 perché i contenitori si fermano a 1240) a 146px restano ~7
+     caratteri per riga e il titolo diventa una torre più alta del blocco che
+     gli sta accanto (misurato in Contatti: 10 righe, 1289px). Lì la misura
+     giusta è d3. Un titolo grande dentro una colonna stretta non legge come
+     "editoriale": legge come un errore di impaginazione. */
+  --text-d1: clamp(3.4rem, 11vw, 13rem);
+  --text-d1--line-height: 0.92;
+  --text-d2: clamp(2.9rem, 7.6vw, 9.5rem);
+  --text-d2--line-height: 0.94;
+  --text-d3: clamp(2.2rem, 5vw, 6rem);
+  --text-d3--line-height: 0.98;
+  --text-d4: clamp(1.7rem, 3vw, 3.4rem);
+  --text-d4--line-height: 1.05;
+
   /* Motion — stesso vocabolario dei token GSAP in app/lib/motion/gsap.ts */
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -415,7 +452,10 @@ html[data-preloader] .dt-pre-char {
 /* Pattern di marca: il MONOGRAMMA ufficiale ripetuto (non più la linea-tetto
    placeholder). Da usare a bassissima opacità via SegnoDomusBackground. */
 .motif-pattern {
-  background-image: url("/logo-domustua-mark.png");
+  /* SVG e non PNG (2026-08-06): a 72px il raster era già al limite, e su
+     schermi a densità alta la filigrana portava un bordo sgranato — visibile
+     proprio perché la texture è ripetuta decine di volte. */
+  background-image: url("/logo-domustua-mark.svg");
   background-size: 72px auto;
   background-repeat: space;
 }
@@ -533,6 +573,62 @@ details:not([open]) > summary .dt-disclosure {
 /* Footer/graphite: appena scaldato da un alone rosso profondo. */
 .bg-graphite {
   background-image: radial-gradient(90% 120% at 15% 0%, rgba(150, 26, 24, 0.16), transparent 55%);
+}
+
+/* ---------- SURFACEFLOW: una superficie sola, il colore viaggia ----------
+   Vedi motion/SurfaceFlow.tsx per il perché. Qui c'è solo la conseguenza:
+   quando JS ha marcato <html data-surfaceflow>, le sezioni che dichiarano
+   `data-surface` smettono di dipingersi da sole e il fondo lo fa una sola
+   superficie, il cui colore interpola con lo scroll.
+
+   Il punto che nessuna cucitura poteva risolvere è il BLOOM: ancorato al
+   bordo alto di ogni sezione, disegnava una riga anche fra due sezioni dello
+   stesso colore. Qui è ancorato al VIEWPORT, quindi non riparte mai.
+
+   Il colore sta su <html> (si propaga al canvas perché il body diventa
+   trasparente): niente layer, niente z-index, niente rischi con l'LCP.
+
+   La selezione è per ATTRIBUTO, mai per classe: `.bg-paper` veste anche
+   decine di card, e azzerarla le cancellerebbe. */
+html[data-surfaceflow] {
+  background-color: var(--dt-surface, var(--color-cream));
+}
+html[data-surfaceflow] body {
+  background-color: transparent;
+  background-image: none;
+}
+html[data-surfaceflow] [data-surface] {
+  background-color: transparent;
+  background-image: none;
+}
+/* `main` deve restare OPACO: è lui che scorre sopra il footer fisso
+   (blocco "Footer reveal" più in basso). Quindi la superficie la porta lui,
+   non un layer dietro al body — che resterebbe coperto. */
+html[data-surfaceflow] main {
+  position: relative;
+  z-index: 0;
+  /* Contesto di impilamento sempre presente: senza, lo strato di luce qui
+     sotto (z-index:-1) scapperebbe dietro allo sfondo della pagina e non si
+     vedrebbe più. Non è un contenitore per i `fixed`: solo transform,
+     filter e perspective lo sarebbero. */
+  isolation: isolate;
+  background-color: var(--dt-surface, var(--color-cream));
+}
+/* IL BLOOM, UNA VOLTA SOLA E ANCORATO AL VIEWPORT. Era questo il difetto che
+   nessuna cucitura poteva risolvere: `.bg-cream/.bg-paper` lo ancoravano al
+   bordo alto di OGNI sezione, quindi la luce ripartiva da capo a ogni
+   giunzione e disegnava una riga anche fra due sezioni dello stesso colore.
+   z-index:-1 → sta sopra il fondo di main e sotto tutto il contenuto.
+   Niente will-change, niente backdrop-filter: non deve sfiorare l'LCP. */
+html[data-surfaceflow] main::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(125% 78% at 50% -14%, rgba(255, 252, 244, 0.5), rgba(255, 252, 244, 0) 62%),
+    radial-gradient(92% 75% at 90% 116%, rgba(200, 40, 26, 0.06), transparent 62%);
 }
 
 /* Opt-in: bagliore caldo più marcato per bande "hero-adjacent" (ricerca, contatti). */
@@ -1046,33 +1142,83 @@ details:not([open]) > summary .dt-disclosure {
   will-change: transform, opacity;
 }
 
-/* ---------- ToneShift: le cuciture fra i colori di fondo ----------
-   Cinque confini, cinque gesti diversi. Vedi ToneShift.tsx per la mappa delle
-   reference. Comune a tutte: il blocco è GRANDE (62svh) perché una cucitura
-   corta torna a leggersi come un bordo, e da fermo (no-JS, reduced-motion) è
-   una sfumatura verticale piena fra i due toni — mai un taglio. */
+/* ---------- ToneShift: LA CUPOLA, un solo gesto per tutti i confini ----------
+   2026-08-06 — riscritto. Prima c'erano cinque meccanismi diversi (telescopio,
+   iride, nebbia, tenda, arco) nella convinzione che ripetere lo stesso gesto
+   fosse un tic. Sbagliato su due fronti: (a) il cliente vedeva comunque il
+   taglio, perché un bug di selettore riduceva il pannello a 140×68px e
+   nessuna variante copriva davvero la giuntura; (b) era-residence — la
+   reference che dobbiamo replicare — usa LO STESSO arco due volte in home.
+   Un gesto ripetuto non è un tic: è un linguaggio. Cinque gesti diversi sono
+   cinque eccezioni.
+
+   La cupola è anche la forma del nostro marchio (due archi che fanno un
+   cuore), quindi il confine fra due capitoli disegna il logo invece di
+   disegnare una riga.
+
+   IL COLORE NON È PIÙ AFFAR SUO. Da quando c'è SurfaceFlow (una superficie
+   sola che interpola il fondo con lo scroll), la cupola non accosta due
+   campiture: porta LUCE. È una volta di chiaro caldo translucido che sale
+   sopra qualunque tono ci sia sotto — un capitolo che si apre, non un
+   bordo che si nasconde. Un gesto che non porta colore non può disegnare un
+   taglio nemmeno sbagliando.
+
+   MECCANICA — una sola custom property scritta per frame (--tsp, 0→1), tutto
+   il resto derivato qui in calc():
+     · la volta parte SOTTO il blocco e sale finché la sua cima esce sopra;
+     · il bordo alto non è una riga ma una semiellisse (border-radius 50%
+       orizzontale → i due raggi si toccano esattamente al centro, quindi il
+       browser non li riscala e la curva è prevedibile);
+     · il FILO ROSSO corre su quella stessa curva e si spegne a fine corsa.
+
+   Progressive enhancement: senza JS non arrivano né --tsp né la superficie
+   continua, quindi la volta resta a opacity 0 e il blocco torna a essere una
+   sfumatura verticale piena fra i due toni — mai un taglio. */
 .dt-toneshift {
+  /* Corto: col colore ormai affidato alla superficie continua, il blocco
+     serve solo a dare aria al gesto. A 30svh fra Metodo e Open Domus si
+     apriva un vuoto di mezzo schermo — risolto il taglio, restava il buco. */
+  --ts-h: clamp(130px, 19svh, 230px);
+  /* Eccedenza oltre il blocco: deve coprire la profondità della cupola più un
+     margine, altrimenti a fine corsa la curva resterebbe dentro il blocco. */
+  --ts-over: 46svh;
+  --ts-depth: 20svh;
   position: relative;
-  /* Corto: il passaggio deve cucire, non aggiungere una sezione vuota da
-     attraversare. A 62svh il colore nuovo restava in scena per mezzo schermo
-     senza piu niente da dire. */
-  height: clamp(190px, 34svh, 360px);
+  height: var(--ts-h);
   overflow: hidden;
   background: linear-gradient(to bottom, var(--ts-from), var(--ts-to));
+}
+/* Con la superficie continua accesa il colore lo fa lei: il blocco smette di
+   dipingere una campitura propria e resta soltanto il GESTO. È questo che
+   rende il taglio impossibile invece che ben nascosto — se la cupola non
+   porta colore, non può accostarne due. Il gradiente from→to sopra resta
+   come fondo senza JS. */
+html[data-surfaceflow] .dt-toneshift {
+  background: none;
 }
 .dt-toneshift_in {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  height: 100%;
-  /* Il bloom d'apertura della sezione che arriva, ancorato al bordo BASSO del
-     blocco: così il pannello raggiunge la giuntura già alla lucentezza giusta
-     e non lascia un salto (misurato: senza, DeltaRGB 17). */
-  background:
-    radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
-    var(--ts-to);
-  /* Esiste solo quando JS può animarlo: da fermo coprirebbe la sfumatura. */
+  height: calc(var(--ts-h) + var(--ts-over));
+  /* LUCE, non colore: una cupola di chiaro caldo translucido che sale. Sopra
+     qualunque tono della superficie legge come "si apre un capitolo", e non
+     può mai disegnare un bordo fra due campiture. */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 252, 244, 0.5) 0%,
+    rgba(255, 252, 244, 0.16) 34%,
+    rgba(255, 252, 244, 0) 76%
+  );
+  /* 50% e non 50vw: i due raggi orizzontali sommano esattamente alla
+     larghezza, quindi nessun riscalamento a sorpresa e la curva coincide al
+     pixel con il tracciato SVG del filo. */
+  border-top-left-radius: 50% var(--ts-depth);
+  border-top-right-radius: 50% var(--ts-depth);
+  /* A --tsp=0 la cima del pannello è sul bordo basso del blocco (invisibile);
+     a --tsp=1 è oltre il bordo alto di --ts-over (blocco pieno e piatto). */
+  transform: translate3d(0, calc((var(--ts-h) + var(--ts-over)) * (1 - var(--tsp, 0)) - var(--ts-over)), 0);
   opacity: 0;
 }
 .dt-toneshift[data-on] {
@@ -1081,116 +1227,38 @@ details:not([open]) > summary .dt-disclosure {
 .dt-toneshift[data-on] .dt-toneshift_in {
   opacity: 1;
 }
-.dt-toneshift[data-live] .dt-toneshift_in,
-.dt-toneshift[data-live] /* Il soggetto del telescopio: arriva dalla profondita con i pannelli e si
-   dissolve a corsa quasi conclusa. L opacita e il minimo fra una salita e una
-   discesa, cioe un picco a meta strada: visibile nel passaggio, assente sia
-   prima che dopo. */
-.dt-toneshift_mark {
+/* Il will-change vive solo mentre la cucitura è in scena.
+   NOTA: qui c'era un commento aperto DENTRO la lista di selettori. Tolto il
+   commento il selettore diventava `.dt-toneshift[data-live] .dt-toneshift_mark`
+   e — nella stessa lista — `.dt-toneshift[data-live] .dt-toneshift_in`
+   ereditava le misure del monogramma: il pannello si riduceva a ~140×68px.
+   Da lì la pillola bianca sul crema e il taglio netto che il cliente vedeva. */
+.dt-toneshift[data-live] .dt-toneshift_in {
+  will-change: transform;
+}
+
+/* --- il filo rosso che corre sulla curva della cupola ---
+   Niente SVG: un `border-top` sullo STESSO border-radius del pannello
+   coincide con la curva al pixel, per costruzione e a qualsiasi viewport.
+   Un tracciato SVG avrebbe dovuto inseguire due raggi che dipendono dalla
+   larghezza (preserveAspectRatio="none" + non-scaling-stroke deformano il
+   dasharray: provato, il filo si spezzava in segmenti verticali).
+   I bordi laterali sono a zero: il filo si assottiglia fino a sparire verso
+   i fianchi, quindi non ha mai due estremi netti da notare. */
+.dt-toneshift_thread {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: clamp(70px, 9vw, 140px);
-  height: clamp(34px, 4.4vw, 68px);
-  margin-left: calc(clamp(70px, 9vw, 140px) / -2);
-  margin-top: calc(clamp(34px, 4.4vw, 68px) / -2);
-  color: var(--color-red);
-  transform: scale(calc(0.22 + 1.05 * var(--tsp, 0)));
-  opacity: min(calc(var(--tsp, 0) * 2.4), calc((1 - var(--tsp, 0)) * 3.4));
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--ts-depth);
+  border-top: 1.4px solid var(--color-red);
+  border-top-left-radius: 50% 100%;
+  border-top-right-radius: 50% 100%;
+  /* Sale con la cupola, si accende all'inizio e si spegne quando il colore
+     chiude: a corsa conclusa deve restare solo il tono, non un arco
+     disegnato in mezzo alla pagina. */
+  opacity: calc(min(var(--tsp, 0) * 4, 1) * (1 - var(--tsp, 0)) * 0.85);
   pointer-events: none;
-}
-.dt-toneshift_tel {
-  will-change: transform, clip-path;
-}
-
-/* --- arco (era-residence): l'arco ribassato della cupola che sale --- */
-.dt-toneshift[data-v=arco] .dt-toneshift_in {
-  height: calc(100% + 42svh);
-  border-top-left-radius: 50vw 22vh;
-  border-top-right-radius: 50vw 22vh;
-}
-
-/* --- nebbia: il bordo non esiste --- */
-.dt-toneshift[data-v=nebbia] .dt-toneshift_in {
-  height: calc(100% + 42svh);
-  /* Sfumatura alta il 34% del pannello: nessun contorno da percepire, quindi
-     nessuno stacco possibile. Il 34% è il massimo che, con l'eccedenza di
-     42svh, esce completamente sopra il bordo a fine corsa. */
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 34%);
-}
-
-/* --- tenda (era-residence): spazzata orizzontale --- */
-.dt-toneshift[data-v=tenda] .dt-toneshift_in {
-  width: 140%;
-  right: auto;
-  /* Due maschere in intersezione. Orizzontale: bordo di TESTA sfumato, perche
-     una linea verticale netta sarebbe soltanto un taglio girato di 90 gradi.
-     Verticale: il pannello svanisce verso l'alto, altrimenti appena la tenda
-     ha spazzato anche il bordo ALTO del blocco diventa il colore in arrivo e
-     non combacia piu con la sezione che finisce (misurato: DeltaRGB 62). */
-  /* Bordo di testa DIAGONALE, non verticale: inclinandolo il fondo del
-     pannello arriva prima della cima, quindi la giuntura inferiore e coperta
-     mentre in alto la spazzata e ancora in corso. */
-  mask-image:
-    linear-gradient(108deg, #000 0%, #000 72%, transparent 94%),
-    linear-gradient(to bottom, transparent 0%, transparent 14%, #000 66%);
-  mask-composite: intersect;
-}
-
-/* --- iride (FullscreenClipEffect): morph di clip-path a topologia costante.
-   I valori sono quelli esatti del riferimento (js/index.js:126-128):
-   inset(22% 39% round 23vw) -> inset(0% 0% round 0vw). L'opacità sale con il
-   morph perché là il pannello di partenza è una fotografia già visibile,
-   qui a progresso zero non deve esserci niente. --- */
-.dt-toneshift[data-v=iride] .dt-toneshift_in {
-  /* Quattro valori invece della scorciatoia a due: il lato BASSO resta
-     inchiodato a 0 perche la giuntura inferiore deve essere coperta da
-     subito. Gli altri tre partono dai valori esatti del riferimento. */
-  clip-path: inset(
-    calc(44% * (1 - var(--tsp, 0))) calc(39% * (1 - var(--tsp, 0))) 0%
-      calc(39% * (1 - var(--tsp, 0))) round calc(23vw * (1 - var(--tsp, 0)))
-  );
-  opacity: calc(var(--tsp, 0) * 1.7);
-}
-
-/* --- telescopio (telescope-zoom): pannelli a scale diverse che convergono
-   tutti a 1. Una sola custom property scritta per frame, N trasformazioni
-   derivate qui in calc(). --- */
-.dt-toneshift[data-v=telescopio] .dt-toneshift_in {
-  background: none;
-  opacity: 1;
-}
-/* Il soggetto del telescopio: arriva dalla profondita con i pannelli e si
-   dissolve a corsa quasi conclusa. L opacita e il minimo fra una salita e una
-   discesa, cioe un picco a meta strada: visibile nel passaggio, assente sia
-   prima che dopo. */
-.dt-toneshift_mark {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: clamp(70px, 9vw, 140px);
-  height: clamp(34px, 4.4vw, 68px);
-  margin-left: calc(clamp(70px, 9vw, 140px) / -2);
-  margin-top: calc(clamp(34px, 4.4vw, 68px) / -2);
-  color: var(--color-red);
-  transform: scale(calc(0.22 + 1.05 * var(--tsp, 0)));
-  opacity: min(calc(var(--tsp, 0) * 2.4), calc((1 - var(--tsp, 0)) * 3.4));
-  pointer-events: none;
-}
-.dt-toneshift_tel {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
-    var(--ts-to);
-  /* Origine in BASSO, non al centro: cosi i pannelli crescono dal bordo
-     inferiore e la giuntura con la sezione che arriva e coperta fin da
-     subito. Al centro lasciavano scoperto il fondo fino a corsa conclusa, e
-     li si vedeva il gradino. */
-  transform-origin: 50% 100%;
-  transform: scale(calc(var(--tel-s) + (1 - var(--tel-s)) * var(--tsp, 0)));
-  border-radius: calc(26vw * (1 - var(--tsp, 0)));
-  opacity: calc(var(--tsp, 0) * 1.6);
 }
 
 /* ---------- Le cinque stelle: ORO, non fotografie (2026-08-06) ----------
@@ -1977,7 +2045,9 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   overflow: hidden;
   isolation: isolate;
   perspective: 120.71svh;
-  background: var(--color-cream);
+  /* Come per main: se questo schermo sticky dipinge un crema fisso, buca la
+     superficie continua e ridisegna una giuntura in cima a Contatti. */
+  background: var(--dt-surface, var(--color-cream));
 }
 .dt-tt[data-on] .dt-tt_world {
   position: absolute;
@@ -2016,7 +2086,10 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   html.dt-footer-reveal main {
     position: relative;
     z-index: 10;
-    background: var(--background);
+    /* Col SurfaceFlow acceso il fondo opaco che scopre il footer è la
+       SUPERFICIE, non il paper fisso: altrimenti main coprirebbe il colore
+       che viaggia e tutta la pagina tornerebbe carta. */
+    background: var(--dt-surface, var(--background));
     margin-bottom: var(--dt-footer-h, 0px);
     box-shadow: 0 34px 80px -34px rgba(26, 21, 18, 0.55);
   }
@@ -2027,4 +2100,108 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
     bottom: 0;
     z-index: 1;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCALA DISPLAY + PRIMITIVE ORIZZONTALI (2026-08-06)
+   Sezione unica per i tre pezzi nuovi: la classe di supporto della scala
+   tipografica (token in @theme, in cima al file), la rotaia generica
+   HorizontalRail e il tralcio d'angolo FioreCorner.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ---------- .dt-kinetic_line — l'eco tipografica di chiusura ----------
+   La frase arriva da `--kin` (scritta dal componente, che la prende dal
+   dizionario) e viene disegnata da uno pseudo-elemento: è decorazione, non
+   contenuto, quindi non sta nell'albero del documento. Vedi la nota lunga in
+   KineticStrip.tsx per il perché — in breve: al 7% di inchiostro su crema il
+   contrasto è 1,09:1, e un nodo di testo con quel contrasto è una violazione
+   di accessibilità anche quando nessuno deve leggerlo. */
+.dt-kinetic_line::before {
+  content: var(--kin, "");
+}
+
+/* ---------- .display-tight — la compattezza del riferimento ----------
+   A 7,6vw l'interlinea di default spezza il titolo in tre righe che
+   galleggiano: era-residence sta a line-height 87,5% con tracking -0.024em
+   (dossier §2). 0.92 è il nostro compromesso — Playfair ha ascendenti più
+   alti della didone di ERA e a 0.875 le "d" toccherebbero le "g" della riga
+   sopra. Si mette INSIEME a text-d1…d4, mai da sola (senza una taglia
+   display, 0.92 su testo corrente è illeggibile).
+   ATTENZIONE (regola del repo): questa regola è UNLAYERED, quindi batte le
+   utility Tailwind. Per rimetterci sopra un'interlinea diversa serve il
+   prefisso importante: `leading-[1.05]` non vince, `!leading-[1.05]` sì. */
+.display-tight {
+  line-height: 0.92;
+  letter-spacing: -0.024em;
+}
+
+/* ---------- .dt-rail — la rotaia orizzontale generica (HorizontalRail.tsx) ----------
+   Stessa meccanica già collaudata sul nastro "Seguici" (.dt-socialrail), qui
+   estratta perché la chiedono anche altre sezioni: default = scroll
+   orizzontale NATIVO (sul touch trascinare è il gesto atteso), e solo da
+   1024 in su con motion ok il JS mette [data-on], toglie lo scroll nativo e
+   passa il nastro a GSAP.
+   Nessun fondale qui dentro: la superficie continua (SurfaceFlow) deve
+   passare sotto la rotaia senza incontrare un rettangolo opaco. */
+.dt-rail {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* La barra nativa sotto un nastro editoriale è rumore: il gesto è il drag. */
+  scrollbar-width: none;
+}
+.dt-rail::-webkit-scrollbar {
+  display: none;
+}
+/* Lo snap è opt-in (prop `snapMobile`): su tessere di larghezza disuguale
+   l'aggancio obbligatorio a volte "ruba" l'inerzia invece di aiutare. */
+.dt-rail[data-snap] {
+  scroll-snap-type: x mandatory;
+}
+.dt-rail[data-snap] > .dt-rail_track > * {
+  scroll-snap-align: center;
+}
+.dt-rail[data-on] {
+  overflow: hidden;
+  scroll-snap-type: none;
+}
+.dt-rail_track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: clamp(0.75rem, 1.6vw, 1.75rem);
+  /* Il nastro non parte incollato al bordo: l'aria a sinistra dice che c'è
+     altro fuori campo. */
+  padding-inline: clamp(1.25rem, 5vw, 5rem);
+  list-style: none;
+  margin: 0;
+}
+.dt-rail_track > * {
+  flex: none;
+}
+/* Secondo piano: il pannello è più largo della sua cornice, ed è la corsa in
+   cui il media pana in senso contrario alla rotaia senza mai scoprire un
+   bordo. 118% = ±9% di gioco per lato (il `data-depth` massimo sensato è 9). */
+.dt-rail_pan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -9%;
+  width: 118%;
+}
+
+/* ---------- .dt-fiore — il tralcio d'angolo (FioreCorner.tsx) ----------
+   Taglia di default: la decorazione deve leggersi come un margine disegnato,
+   non come un'illustrazione. Per cambiarla serve il prefisso importante
+   (regola unlayered del repo): `!w-[28vw]`.
+   Sotto lg non esiste (lo dice la classe `hidden lg:block` del componente):
+   in colonna stretta un tralcio d'angolo finisce sempre sotto il testo. */
+.dt-fiore {
+  width: clamp(9rem, 20vw, 22rem);
+}
+.dt-fiore svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }

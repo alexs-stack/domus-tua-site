@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Reveal from "./Reveal";
 import CharFlip from "./motion/CharFlip";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
+import FioreCorner from "./motion/FioreCorner";
+import HorizontalRail from "./motion/HorizontalRail";
 // La distorsione liquida usa WebGL (ogl): il modulo arriva solo quando il componente entra in
 // scena, e HoverDistort stesso non inizializza niente su mobile, con reduced motion o senza
 // puntatore fine. Importarlo staticamente lo faceva finire nel chunk condiviso con GSAP, cioè
@@ -15,7 +17,7 @@ const HoverDistort = dynamic(() => import("./motion/HoverDistort"), { ssr: false
 import Atmosphere from "./motion/Atmosphere";
 import { ArrowUpRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
+import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -190,9 +192,11 @@ const copy = {
   },
 };
 
-// Anteprime per la lista servizi (hover desktop): immagini già in public/,
-// scelte per coerenza col contenuto di ogni voce 01–05.
-const PREVIEWS = [
+// La foto di ogni servizio 01–05, nell'ordine dell'elenco `services`. Sono le
+// stesse cinque immagini che prima vivevano nell'anteprima al seguito del
+// cursore: ora stanno addosso alla lastra, che è dove il cliente le voleva
+// («immagini grandi»), e non si scaricano più due volte.
+const SHOTS = [
   "/images/rendering_03_master_bedroom_legno.jpg",
   "/images/home_staging_01_sala_reale_sedie_gialle.jpg",
   "/images/reali/video-villa-mozart.jpg",
@@ -200,288 +204,256 @@ const PREVIEWS = [
   "/images/reali/open-domus-teresa.jpg",
 ];
 
+// Profondità del secondo piano, lastra per lastra (la quota di cui la foto pana
+// in senso contrario alla corsa del nastro). Volutamente IRREGOLARI: una
+// progressione ordinata si legge come un effetto, cinque valori sparsi si
+// leggono come cinque distanze diverse. Il massimo sensato è 9 — oltre, il
+// pannello (118% della cornice) scoprirebbe un bordo.
+const DEPTHS = [6, 9, 4, 8, 5];
+
 export default function Services() {
   const { locale } = useLocale();
   const c = copy[locale];
-  const gridRef = useRef<HTMLDivElement>(null);
-  const floatRef = useRef<HTMLDivElement>(null);
-  // Le 5 anteprime vengono montate SOLO quando il contesto desktop+mouse è
-  // attivo: su mobile niente markup = niente download inutili.
-  const [floatOn, setFloatOn] = useState(false);
+  // Componente MULTI-ISTANZA (home + /servizi): niente selettori globali,
+  // ogni query parte da questi due ref.
+  const rootRef = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
 
-  // Pattern award "list + floating image": sul passaggio del mouse sulle voci
-  // 01–05 un'anteprima segue il cursore con lerp e fa crossfade tra le voci.
-  // Solo desktop + pointer fine + motion ok; su touch restano le card pulite.
+  /* L'INGRESSO DELLE LASTRE — sipario dall'alto + numeri che salgono.
+     Perché un sipario (clip-path) e non il solito fade-up: il nastro è alto
+     quanto la lastra e `.dt-rail` taglia in verticale (overflow-y hidden), così
+     qualunque traslazione verticale d'ingresso verrebbe rifilata a metà. Il
+     clip apre la lastra sul posto e non chiede un pixel di spazio in più.
+     È lo stesso gesto di MaskReveal, con le stesse misure.
+
+     IntersectionObserver e non ScrollTrigger (convenzione del sito, vedi
+     CharFlip): questa sezione sta sotto le runway pinnate della home e lì le
+     posizioni calcolate da ScrollTrigger arrivano sfasate. La timeline è in
+     pausa e ha un solo padrone.
+
+     Sotto i 1024px il nastro è uno scroll orizzontale nativo: le lastre fuori
+     campo sono comunque già rivelate quando l'utente arriva a trascinarle,
+     perché il trigger è il nastro intero, non la singola lastra. */
   useGSAP(
     () => {
-      const grid = gridRef.current;
-      const float = floatRef.current;
-      if (!grid || !float) return;
-      const mm = gsap.matchMedia();
-      mm.add(`${MQ.motionOk} and ${MQ.finePointer} and (min-width: 1024px)`, () => {
-        setFloatOn(true);
-        gsap.set(float, { autoAlpha: 0, scale: 0.92 });
-        const xTo = gsap.quickTo(float, "x", { duration: 0.45, ease: "power3.out" });
-        const yTo = gsap.quickTo(float, "y", { duration: 0.45, ease: "power3.out" });
-        let current = -1;
-
-        const onMove = (e: PointerEvent) => {
-          xTo(e.clientX + 22);
-          yTo(e.clientY + 26);
-        };
-        const showIdx = (i: number) => {
-          if (i === current) return;
-          current = i;
-          float.querySelectorAll<HTMLElement>("[data-float-img]").forEach((el, j) => {
-            gsap.to(el, {
-              autoAlpha: j === i ? 1 : 0,
-              scale: j === i ? 1 : 1.05,
-              duration: 0.35,
-              ease: "domus",
-              overwrite: "auto",
-            });
-          });
-          gsap.to(float, { autoAlpha: 1, scale: 1, duration: dur.micro, ease: "domus", overwrite: "auto" });
-        };
-        const hide = () => {
-          current = -1;
-          gsap.to(float, { autoAlpha: 0, scale: 0.92, duration: 0.25, ease: "power2.out", overwrite: "auto" });
-        };
-
-        const cards = Array.from(grid.querySelectorAll<HTMLElement>("[data-service-idx]"));
-        const bound = cards.map((card) => {
-          const fn = () => showIdx(Number(card.dataset.serviceIdx));
-          card.addEventListener("pointerenter", fn);
-          return { card, fn };
-        });
-        // Sulla feature card (che ha già la sua immagine) l'anteprima sparisce.
-        const feature = grid.querySelector<HTMLElement>("[data-service-feature]");
-        feature?.addEventListener("pointerenter", hide);
-        grid.addEventListener("pointermove", onMove, { passive: true });
-        grid.addEventListener("pointerleave", hide);
-
-        return () => {
-          setFloatOn(false);
-          bound.forEach(({ card, fn }) => card.removeEventListener("pointerenter", fn));
-          feature?.removeEventListener("pointerenter", hide);
-          grid.removeEventListener("pointermove", onMove);
-          grid.removeEventListener("pointerleave", hide);
-        };
-      });
-    },
-    { scope: gridRef }
-  );
-
-  // Numeri 01–05: salgono da dietro la maschera overflow-hidden.
-  // Replay a ogni passaggio: restart all'ingresso, reverse risalendo.
-  useGSAP(
-    () => {
+      const rail = railRef.current;
+      if (!rail) return;
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
-        gsap.fromTo(
-          "[data-service-num]",
-          { yPercent: 110 },
+        const slabs = gsap.utils.toArray<HTMLElement>(rail.querySelectorAll("[data-service-card]"));
+        const nums = gsap.utils.toArray<HTMLElement>(rail.querySelectorAll("[data-service-num]"));
+        if (!slabs.length) return;
+
+        // opacity e non autoAlpha: le lastre sono LINK, e `visibility: hidden`
+        // le toglierebbe dall'ordine di tabulazione per tutta la durata del
+        // reveal (regola già scritta in Social.tsx). Niente clearProps al
+        // termine: romperebbe il restart/reverse.
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo(
+          slabs,
+          { clipPath: "inset(0% 0% 100% 0%)", opacity: 0 },
           {
-            yPercent: 0,
-            duration: 0.9,
-            ease: "expo.out",
-            stagger: 0.06,
-            scrollTrigger: { trigger: gridRef.current, start: "top 75%", toggleActions: "restart none none reverse" },
-          }
+            clipPath: "inset(0% 0% 0% 0%)",
+            opacity: 1,
+            duration: dur.reveal,
+            ease: "dtOut",
+            stagger: stagger.cards,
+          },
+          0
+        ).fromTo(
+          nums,
+          { yPercent: 110 },
+          { yPercent: 0, duration: dur.short, ease: "expo.out", stagger: stagger.cards },
+          0.2
         );
 
-        const grid = gridRef.current;
-        const cards = gsap.utils.toArray<HTMLElement>(grid?.querySelectorAll("[data-service-card]") ?? []);
-        if (grid && cards.length) {
-          const byX = new Map<number, HTMLElement[]>();
-          cards.forEach((el) => {
-            const x = Math.round(el.getBoundingClientRect().left);
-            if (!byX.has(x)) byX.set(x, []);
-            byX.get(x)!.push(el);
-          });
-          const columns = [...byX.entries()].sort((a, b) => a[0] - b[0]).map(([, els]) => els);
-          const dy = cards[0].offsetHeight * 1.5;
-
-          const tl = gsap.timeline({ paused: true });
-          columns.forEach((column, colIndex) => {
-            const fromTop = colIndex % 2 === 0;
-            // fromTo e non from: `from` cattura i valori d'arrivo dallo stato
-            // corrente del DOM, e qui lo stato corrente al momento del setup
-            // non è garantito essere quello finale. Scriverli entrambi toglie
-            // ogni ambiguità.
-            tl.fromTo(
-              column,
-              { y: dy * (fromTop ? -1 : 1), opacity: 0 },
-              {
-                y: 0,
-                opacity: 1,
-                duration: 0.9,
-                ease: "power1.inOut",
-                stagger: { each: 0.06, from: fromTop ? "end" : "start" },
-              },
-              "grid-reveal"
-            );
-          });
-
-          const io = new IntersectionObserver(
-            (entries) =>
-              entries.forEach((e) => {
-                // restart(), non play(): dopo un reverse() la timeline resta in
-                // stato "reversed" e play() è ambiguo. restart() riparte da 0 in
-                // avanti sempre — è anche la convenzione del resto del sito
-                // ("restart none none reverse").
-                if (e.isIntersecting) tl.restart();
-                else tl.reverse();
-              }),
-            { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
-          );
-          io.observe(grid);
-          // Rete di sicurezza del sito: se l'observer non scatta mai, la
-          // griglia non può restare invisibile.
-          const safety = window.setTimeout(() => tl.progress(1), 2500);
-          return () => {
-            io.disconnect();
-            window.clearTimeout(safety);
-            tl.kill();
-          };
-        }
+        const io = new IntersectionObserver(
+          (entries) =>
+            entries.forEach((e) => {
+              // restart(), non play(): dopo un reverse() la timeline resta in
+              // stato "reversed" e play() sarebbe ambiguo. È anche la
+              // convenzione del resto del sito ("restart none none reverse").
+              if (e.isIntersecting) tl.restart();
+              else tl.reverse();
+            }),
+          { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+        );
+        io.observe(rail);
+        // Rete di sicurezza del sito: il nastro non può restare invisibile.
+        const safety = window.setTimeout(() => tl.progress(1), 2500);
+        return () => {
+          io.disconnect();
+          window.clearTimeout(safety);
+          tl.kill();
+        };
       });
     },
-    { scope: gridRef }
+    { scope: rootRef }
   );
 
   return (
-    <section id="servizi" className="relative bg-cream">
-      {/* Aria: bagliori lenti dietro la griglia servizi */}
+    <section ref={rootRef} id="servizi" data-surface="cream" className="relative bg-cream">
+      {/* Aria: bagliori lenti dietro il nastro dei servizi */}
       <Atmosphere glow />
-      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        {/* Eyebrow nel Reveal, titolo TextLines nudo (niente doppio-hide) */}
-        <div className="max-w-2xl">
-          <Reveal>
-            <span className="eyebrow">{c.eyebrow}</span>
-          </Reveal>
-          {/* CharFlip, non TextLines: il titolo dei servizi e breve e regge il
-              giro per carattere. Sullo stesso elemento i due rivelatori si
-              annullerebbero — uno maschera le righe, l altro gira i glifi. */}
-          <CharFlip
-            as="h2"
-            className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
-          >
-            {c.title}
-          </CharFlip>
-        </div>
 
-        <div ref={gridRef} className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
-          {/* Feature card — sipario sull'immagine + parallasse di profondità molto sottile */}
-          <div className="lg:col-span-2 lg:row-span-2">
-            <article
-              data-service-feature
-              data-cursor="scopri"
-              className="group relative h-full min-h-[22rem] overflow-hidden rounded-[2rem] border border-line"
+      {/* ── CAPO SEZIONE ─────────────────────────────────────────────────── */}
+      <div className="relative mx-auto max-w-[1240px] px-5 pt-24 sm:px-8 sm:pt-32">
+        {/* Eyebrow nel Reveal, titolo nudo dentro CharFlip (niente doppio-hide) */}
+        <Reveal>
+          <span className="eyebrow">{c.eyebrow}</span>
+        </Reveal>
+        {/* CharFlip, non TextLines: sullo stesso elemento i due rivelatori si
+            annullerebbero — uno maschera le righe, l'altro gira i glifi.
+            La taglia è quella della scala display (text-d2 = testa di
+            capitolo), non più 48px fissi: è la misura che il cliente chiede
+            («scritte grandi») e quella del riferimento. La colonna si misura
+            in `ch` SULL'ELEMENTO che porta la taglia — su un div esterno il ch
+            varrebbe 16px e il titolo diventerebbe una striscia.
+            `balance` è via apposta: text-wrap: balance si ricalcola dopo lo
+            split e fa saltare una riga. */}
+        <CharFlip
+          as="h2"
+          className="mt-5 max-w-[16ch] font-display text-d2 display-tight font-medium text-ink"
+          exit
+        >
+          {c.title}
+        </CharFlip>
+      </div>
+
+      {/* ── IL NASTRO DEI SERVIZI ────────────────────────────────────────────
+          Lo scroll orizzontale chiesto dal cliente, e NON pinnato: la home ha
+          già cinque sezioni che rubano scroll e una sesta la farebbe sembrare
+          interminabile invece che immersiva. Qui il nastro corre nel tempo che
+          la sezione impiega ad attraversare il viewport.
+          Full-bleed, fuori dal contenitore: un nastro che non tocca i bordi
+          dello schermo è solo una riga. Sotto i 1024px torna scroll orizzontale
+          nativo, con tutte le lastre presenti e trascinabili. */}
+      <div ref={railRef} className="relative mt-12 sm:mt-16">
+        <HorizontalRail snapMobile cursor="scopri">
+          {c.services.map((s, i) => (
+            /* Lastra = link, non solo scheda. Due motivi, uno di forma e uno di
+               sostanza: dà a ogni servizio la sua uscita verso i contatti (come
+               fa già la fascia D.O.C. qui sotto), e soprattutto rende il nastro
+               raggiungibile da tastiera — una regione che scorre e non contiene
+               nulla di focalizzabile è una violazione WCAG 2.1.1 vera, che axe
+               segnala e che la nostra suite fa fallire. */
+            <a
+              key={s.title}
+              href="#contatti"
+              data-service-card
+              className="group relative block aspect-[4/5] w-[76vw] overflow-hidden rounded-[2rem] border border-line sm:w-[48vw] lg:w-[26vw]"
             >
-              <MaskReveal
-                from="bottom"
-                zoom={1.12}
+              {/* Secondo piano: il pannello è più largo della cornice (118%) ed
+                  è dentro quel gioco che la foto pana in senso contrario alla
+                  corsa del nastro, di una quota diversa per lastra. */}
+              <div className="dt-rail_pan" data-depth={DEPTHS[i]}>
+                <Image
+                  src={SHOTS[i]}
+                  alt=""
+                  fill
+                  sizes="(max-width: 639px) 90vw, (max-width: 1023px) 57vw, 31vw"
+                  className="photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.05]"
+                />
+              </div>
+              {/* Velo scuro dal basso: è quello che tiene il contrasto del testo
+                  su cinque fotografie diverse, non la fortuna. */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/92 via-ink/45 to-ink/5" />
+              <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7">
+                <span className="block overflow-hidden">
+                  <span
+                    data-service-num
+                    className="block tnum font-display text-sm font-semibold text-cream/85"
+                  >
+                    0{i + 1}
+                  </span>
+                </span>
+                <h3 className="mt-3 font-display text-xl font-medium leading-snug tracking-tight text-cream sm:text-2xl">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-[0.86rem] leading-relaxed text-cream/80">{s.copy}</p>
+              </div>
+            </a>
+          ))}
+        </HorizontalRail>
+      </div>
+
+      {/* ── SERVIZIO DI PUNTA + FASCIA D.O.C. ────────────────────────────── */}
+      <div className="relative mx-auto max-w-[1240px] px-5 pb-24 sm:px-8 sm:pb-32">
+        {/* Il wrapper esiste solo per dare al tralcio un blocco contenitore che
+            NON tagli: la lastra ha overflow-hidden e un tralcio messo dentro
+            verrebbe rifilato sul bordo. */}
+        <div className="relative mt-14 sm:mt-20">
+          {/* Feature card — sipario sull'immagine + parallasse di profondità molto sottile */}
+          <article
+            data-cursor="scopri"
+            className="group relative min-h-[24rem] overflow-hidden rounded-[2rem] border border-line sm:min-h-[32rem] lg:min-h-[38rem]"
+          >
+            <MaskReveal
+              from="bottom"
+              zoom={1.12}
+              className="absolute inset-0"
+              innerClassName="absolute inset-0"
+            >
+              <Parallax
+                speed={0.06}
+                scale={1.06}
                 className="absolute inset-0"
                 innerClassName="absolute inset-0"
               >
-                <Parallax
-                  speed={0.06}
-                  scale={1.06}
-                  className="absolute inset-0"
-                  innerClassName="absolute inset-0"
-                >
-                  {/* Hover liquido WebGL SOLO qui: l'immagine è un rendering di
-                      interni, nessuna persona (regola cliente: mai distorsione
-                      su foto con persone). HoverDistort sta DENTRO l'inner di
-                      Parallax così il suo canvas eredita overscan e scrub e
-                      resta allineato all'immagine al fade-in; il wrapper
-                      absolute inset-0 gli dà il rect pieno su cui il canvas si
-                      dimensiona (getBoundingClientRect). I gate desktop/pointer
-                      fine/motionOk/saveData li gestisce il componente. */}
-                  <HoverDistort className="absolute inset-0">
-                    <Image
-                      src="/images/rendering_01_living_divano_grigio.jpg"
-                      alt={c.featureAlt}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 760px"
-                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                    />
-                  </HoverDistort>
-                </Parallax>
-                {/* pointer-events-none: il gradiente è decorativo ma copre tutta
-                    la card; senza, intercetterebbe l'hit-testing e il pointer-
-                    enter non raggiungerebbe mai il layer HoverDistort sotto.
-                    Restando dopo Parallax nel DOM, continua a dipingersi SOPRA
-                    il canvas: contrasto del testo intatto durante l'hover. */}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
-              </MaskReveal>
-              <div className="absolute inset-x-0 bottom-0 p-7 sm:p-9">
-                <span className="rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-cream">
-                  {c.featureBadge}
-                </span>
-                <h3 className="mt-4 max-w-md font-display text-3xl font-medium leading-tight text-cream sm:text-4xl">
-                  {c.featureTitle}
-                </h3>
-                <p className="mt-3 max-w-md text-[0.95rem] leading-relaxed text-cream/75">
-                  {c.featureCopy}
-                </p>
-              </div>
-            </article>
-          </div>
-
-          {/* Niente <Reveal> qui: le card non "appaiono" una dopo l'altra, si
-              COMPONGONO per colonna (vedi il reveal nel secondo useGSAP). Il
-              wrapper andava tolto anche perché interponeva un div fra la
-              griglia e l'article, e la colonna si misura sulla X del figlio
-              diretto della griglia. */}
-          {c.services.map((s, i) => (
-            <article
-              key={s.title}
-              data-service-card
-              data-service-idx={i}
-              className="group flex h-full flex-col justify-between rounded-[2rem] border border-line bg-paper p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40"
-            >
-              <span className="block overflow-hidden">
-                <span
-                  data-service-num
-                  className="block tnum font-display text-sm font-semibold text-red transition-colors duration-500 group-hover:text-red-dark"
-                >
-                  0{i + 1}
-                </span>
+                {/* Hover liquido WebGL SOLO qui: l'immagine è un rendering di
+                    interni, nessuna persona (regola cliente: mai distorsione
+                    su foto con persone). HoverDistort sta DENTRO l'inner di
+                    Parallax così il suo canvas eredita overscan e scrub e
+                    resta allineato all'immagine al fade-in; il wrapper
+                    absolute inset-0 gli dà il rect pieno su cui il canvas si
+                    dimensiona (getBoundingClientRect). I gate desktop/pointer
+                    fine/motionOk/saveData li gestisce il componente. */}
+                <HoverDistort className="absolute inset-0">
+                  <Image
+                    src="/images/rendering_01_living_divano_grigio.jpg"
+                    alt={c.featureAlt}
+                    fill
+                    /* La lastra ora è larga quanto la colonna (era due terzi di
+                       una griglia a tre): senza aggiornare `sizes` il browser
+                       continuerebbe a scaricare la variante da 760px e la
+                       stirerebbe su 1240. */
+                    sizes="(max-width: 1240px) 100vw, 1240px"
+                    className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                  />
+                </HoverDistort>
+              </Parallax>
+              {/* pointer-events-none: il gradiente è decorativo ma copre tutta
+                  la card; senza, intercetterebbe l'hit-testing e il pointer-
+                  enter non raggiungerebbe mai il layer HoverDistort sotto.
+                  Restando dopo Parallax nel DOM, continua a dipingersi SOPRA
+                  il canvas: contrasto del testo intatto durante l'hover. */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
+            </MaskReveal>
+            <div className="absolute inset-x-0 bottom-0 p-7 sm:p-9 lg:p-12">
+              <span className="rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-cream">
+                {c.featureBadge}
               </span>
-              <div className="mt-8">
-                <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink">
-                  {s.title}
-                </h3>
-                <p className="mt-2 text-[0.88rem] leading-relaxed text-stone">{s.copy}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {/* Anteprima flottante dei servizi (desktop + mouse): segue il cursore
-            con lerp, crossfade tra le voci. fixed: nessun antenato trasformato. */}
-        <div
-          ref={floatRef}
-          aria-hidden
-          className="pointer-events-none fixed left-0 top-0 z-[45] w-60"
-          style={{ visibility: "hidden" }}
-        >
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-[0_30px_60px_-30px_rgba(26,21,18,0.55)]">
-            {floatOn &&
-              PREVIEWS.map((src) => (
-                <Image
-                  key={src}
-                  data-float-img
-                  src={src}
-                  alt=""
-                  fill
-                  sizes="240px"
-                  className="object-cover opacity-0"
-                />
-              ))}
-          </div>
+              {/* text-d3 (sottotitolo/titolo interno della scala display): la
+                  lastra è alta 38rem, un titolo da 36px ci galleggerebbe dentro.
+                  max-w-2xl tiene la misura leggibile E lascia libero il terzo
+                  destro, che è dove cade il tralcio. */}
+              <h3 className="mt-4 max-w-2xl font-display text-d3 display-tight font-medium text-cream">
+                {c.featureTitle}
+              </h3>
+              <p className="mt-4 max-w-md text-[0.95rem] leading-relaxed text-cream/75">
+                {c.featureCopy}
+              </p>
+            </div>
+          </article>
+          {/* IL TRALCIO — uno solo per schermata, e qui è nel margine destro
+              della lastra grande: il testo è ancorato in basso a sinistra e non
+              supera max-w-2xl, quindi il terzo destro resta libero anche a
+              1024px. Sta DOPO l'article nel DOM apposta — entrambi sono
+              posizionati, e l'ordine di pittura è l'ordine del DOM: solo così
+              il tralcio si vede sopra la fotografia invece di sparirci dietro.
+              Opacità 0.5 perché il fondo è una foto velata di scuro: su crema
+              il tetto sarebbe 0.40. */}
+          <FioreCorner corner="br" seed={2} drift="y" className="bottom-8 right-6" opacity={0.5} />
         </div>
 
         {/* Protocollo Domus D.O.C. */}

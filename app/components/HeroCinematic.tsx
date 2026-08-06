@@ -6,6 +6,7 @@
 // Finché mancano, resta la foto reale di Raffaela + team come poster. Vedi docs/hero-video.md.
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import SurfaceVeil from "./motion/SurfaceVeil";
 import { Star, Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { site } from "../lib/site";
@@ -663,6 +664,10 @@ export default function HeroCinematic() {
           style={{ animation: "dt-scrollcue 1.8s var(--ease-soft) infinite" }}
         />
       </span>
+      {/* Il salto più violento della home: foto scura contro crema, ΔRGB 520.
+          Il velo porta il colore della pagina DENTRO la foto prima della
+          giuntura, così i due bordi si incontrano già dello stesso colore. */}
+      <SurfaceVeil edge="bottom" tone="cream-deep" height="30svh" />
     </section>
   );
 }

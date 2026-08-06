@@ -38,17 +38,33 @@ import { registerWarmup } from "../../lib/motion/warmup";
 // cioe nel primo caricamento di ogni pagina.
 gsap.registerPlugin(SplitText);
 
+/* Lo stagger del reveal è distribuito su una DURATA (amount), non per
+   carattere: dimezzarlo in uscita significa dimezzare quell'ammontare. */
+const REVEAL_AMOUNT = 1.05;
+const EXIT_DUR = 0.4;
+
 export default function CharFlip({
   children,
   as: Tag = "h2",
   className = "",
   delay = 0,
+  exit = false,
 }: {
   children: ReactNode;
   as?: ElementType;
   className?: string;
   /** ritardo in secondi, per scalare l'ingresso con l'eyebrow che lo precede */
   delay?: number;
+  /**
+   * LO STATO DI USCITA (dossier era-residence §2.4 / §7: reveal durL 1.2 vs
+   * hide durS 0.4, stagger dimezzato). Risalendo la pagina i caratteri non
+   * si limitano a tornare nascosti: girano dalla parte OPPOSTA a quella da
+   * cui erano arrivati (rotateY -90 invece di 90) e salgono (yPercent -50).
+   * È la metà che manca al gesto: senza, tornando indietro il titolo
+   * scompare e basta, e una pagina lunga smette di sembrare continua.
+   * Default false: senza la prop il comportamento storico è identico.
+   */
+  exit?: boolean;
 }) {
   const ref = useRef<HTMLElement | null>(null);
 
@@ -59,16 +75,18 @@ export default function CharFlip({
 
     let split: SplitText | null = null;
     let tl: gsap.core.Timeline | null = null;
+    let out: gsap.core.Tween | null = null;
     let io: IntersectionObserver | null = null;
     let safety = 0;
 
     const start = () => {
       if (!ref.current) return;
       split = new SplitText(el, { type: "words,chars", charsClass: "dt-cflip_c" });
+      const chars = split.chars;
       tl = gsap
         .timeline({ paused: true })
         .fromTo(
-          split.chars,
+          chars,
           { opacity: 0, yPercent: 50, rotateY: 90 },
           {
             opacity: 1,
@@ -82,13 +100,49 @@ export default function CharFlip({
             // invisibile dopo 2,2s.  distribuisce lo stesso gesto su
             // una durata fissa, quindi il titolo si compone sempre in poco
             // piu di un secondo, lungo o corto che sia.
-            stagger: { amount: 1.05, from: "start" },
+            stagger: { amount: REVEAL_AMOUNT, from: "start" },
           },
           delay
         );
 
+      const enter = () => {
+        // L'uscita eventualmente in corso va uccisa PRIMA del restart:
+        // due tween sugli stessi caratteri si contendono rotateY nello
+        // stesso tick e il titolo "vibra".
+        out?.kill();
+        out = null;
+        tl?.restart();
+      };
+      const leaveBack = () => {
+        tl?.pause();
+        out?.kill();
+        out = gsap.to(chars, {
+          opacity: 0,
+          yPercent: -50,
+          rotateY: -90,
+          duration: EXIT_DUR,
+          ease: "power2.in",
+          stagger: { amount: REVEAL_AMOUNT / 2, from: "start" },
+        });
+      };
+
       io = new IntersectionObserver(
-        (entries) => entries.forEach((e) => (e.isIntersecting ? tl?.restart() : tl?.pause(0))),
+        (entries) =>
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              enter();
+              return;
+            }
+            /* Direzione dell'uscita. L'IntersectionObserver non ha
+               l'onLeaveBack di ScrollTrigger, ma la geometria ce lo dice:
+               se il bordo alto dell'elemento è ancora sotto la piega
+               (top > 0) il titolo è uscito DAL BASSO, cioè stiamo
+               risalendo — è il caso in cui il riferimento fa `hide`.
+               Uscito in alto (top < 0) il titolo è fuori campo comunque:
+               lì il reset secco di sempre costa meno di una tween. */
+            if (exit && e.boundingClientRect.top > 0) leaveBack();
+            else tl?.pause(0);
+          }),
         { threshold: 0.2, rootMargin: "0px 0px -10% 0px" }
       );
       io.observe(el);
@@ -113,10 +167,11 @@ export default function CharFlip({
       disiscrivi();
       window.clearTimeout(safety);
       io?.disconnect();
+      out?.kill();
       tl?.kill();
       split?.revert();
     };
-  }, [delay]);
+  }, [delay, exit]);
 
   return (
     <Tag ref={ref} className={`dt-cflip ${className}`}>

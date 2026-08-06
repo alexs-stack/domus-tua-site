@@ -28,8 +28,11 @@ export type TeamMember = {
   founder?: boolean;
   /** Ritratto per il trail di TeamTrail. Il cliente consegnerà le foto delle
       singole persone (2026-08): quando arrivano, basta compilare questo campo
-      — senza foto parte il monogramma. NON usare i file con la cornice bianca
-      cotta dentro (es. raffaela-ritratto.jpg): il ritaglio non può toglierla. */
+      — senza foto parte il monogramma.
+      Nota 2026-08-06: raffaela-ritratto.jpg era escluso perché aveva due
+      fasce bianche cotte nel file. Le fasce erano solo in alto e in basso
+      (39px e 77px), quindi il ritaglio le ha tolte davvero: il file è ora
+      763×442 pulito e utilizzabile anche qui. */
   image?: string;
   /** object-position del ritaglio (il soggetto non è sempre al centro). */
   imagePos?: string;

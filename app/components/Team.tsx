@@ -7,6 +7,7 @@ import MaskReveal from "./motion/MaskReveal";
 import Atmosphere from "./motion/Atmosphere";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
+import CharFlip from "./motion/CharFlip";
 import TeamTrail from "./TeamTrail";
 import { ArrowUpRight, Play, Quote } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
@@ -117,7 +118,7 @@ export default function Team() {
   const c = copy[locale];
 
   return (
-    <section id="chi-siamo" className="relative bg-cream">
+    <section id="chi-siamo" data-surface="cream" className="relative bg-cream">
       {/* Atmosfera e angolo vivono sull'INTRO, non sull'intera sezione: i
           pannelli opachi a piena pagina di TeamTrail coprirebbero qualsiasi
           decoro ancorato al fondo della sezione. */}
@@ -144,22 +145,35 @@ export default function Team() {
       </div>
       <div className="relative mx-auto max-w-[1240px] px-5 pb-24 pt-10 sm:px-8 sm:pb-32 sm:pt-12">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
-          {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+          {/* Reveal spezzato: titolo e paragrafo d'apertura restano nudi
+              (chi si splitta da sé non va anche sfumato da fuori). */}
           <div>
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            {/* Titolo display: le righe salgono dalla maschera (SplitText). */}
-            <TextLines
+            {/* Testa di capitolo: d2 (il gradino delle teste di capitolo) e i
+                caratteri che girano uno a uno. `balance` va tolta da OGNI
+                titolo splittato: text-wrap si ricalcola dopo lo split e fa
+                saltare una riga. Interlinea e tracking li detta
+                `display-tight`, che è unlayered e batte le utility. */}
+            <CharFlip
               as="h2"
-              className="mt-5 font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.4rem]"
+              exit
+              className="mt-5 font-display text-d3 display-tight font-medium text-ink"
             >
               {c.title}
+            </CharFlip>
+            {/* Il paragrafo d'apertura esce dal Reveal e passa a TextLines:
+                dentro il Reveal sarebbe doppio-nascosto e la maschera per
+                righe si sprecherebbe su un blocco già sfumato. */}
+            <TextLines
+              as="p"
+              exit
+              className="mt-7 max-w-xl text-lg leading-relaxed text-graphite"
+            >
+              {c.lead}
             </TextLines>
             <Reveal delay={100}>
-            <p className="mt-7 max-w-xl text-lg leading-relaxed text-graphite">
-              {c.lead}
-            </p>
             <p className="mt-4 max-w-xl text-[1.02rem] leading-relaxed text-stone">
               {c.body}
             </p>
@@ -206,45 +220,17 @@ export default function Team() {
           </div>
 
           {/* Colonna foto: leggera deriva in primo piano allo scroll (solo desktop);
-              nessun elemento sticky all'interno. */}
+              nessun elemento sticky all'interno.
+              La foto di GRUPPO non sta più qui: è diventata la banda a tutta
+              larghezza che apre il corridoio delle persone (in fondo al file).
+              Resta il ritratto della fondatrice, che in colonna stretta
+              funziona proprio perché è un ritratto. */}
           <Parallax speed={-0.08}>
             <Reveal delay={120}>
-              <figure className="overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
-                {/* Sipario dal basso sulla cornice interna: il raggio resta a clippare. */}
-                <MaskReveal from="bottom" zoom={1.1} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
-                  <a
-                    href={youtubeWatch(site.videos.team.id)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group relative block aspect-[4/3] overflow-hidden rounded-[calc(2rem-0.5rem)]"
-                    aria-label={c.videoAria}
-                  >
-                    <Image
-                      src="/images/reali/team-group.jpg"
-                      alt={c.imageAlt}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 520px"
-                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                    />
-                    <span className="absolute inset-0 bg-gradient-to-t from-ink/40 to-transparent" />
-                    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
-                      <Play className="h-5 w-5" />
-                    </span>
-                  </a>
-                </MaskReveal>
-                <figcaption className="flex items-center justify-between gap-3 px-4 py-4">
-                  <span className="text-sm leading-tight text-graphite">
-                    <span className="block font-semibold text-ink">{c.captionName}</span>
-                    {c.captionPlace}
-                  </span>
-                  <span className="shrink-0 rounded-full bg-red-soft px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
-                    {c.badge}
-                  </span>
-                </figcaption>
-              </figure>
-
-              <figure className="group mt-5 overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
-                {/* Secondo sipario, da sinistra e in leggero ritardo: overlap ritmico col primo. */}
+              <figure className="group overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
+                {/* Sipario da sinistra e in leggero ritardo: il verso è
+                    l'opposto di quello della banda di gruppo, così i due
+                    ingressi non si sovrappongono come lo stesso gesto. */}
                 <MaskReveal from="left" zoom={1.1} delay={0.18} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
                   <div className="relative aspect-[5/4] overflow-hidden rounded-[calc(2rem-0.5rem)]">
                     <Image
@@ -272,6 +258,63 @@ export default function Team() {
         </div>
       </div>
       </div>
+
+      {/* LA BANDA DI GRUPPO — la squadra a tutta larghezza, non più una
+          cartolina in colonna: è l'ultima cosa che si vede prima di entrare
+          nel corridoio delle persone, e deve avere la stessa scala.
+          Sta FUORI dallo scudo dell'intro: lì dentro la Fioritura d'angolo
+          (absolute inset-0) le passerebbe sopra.
+          Il fondale è uno studio chiarissimo, quindi la banda NON taglia la
+          superficie crema — le accosta un valore vicino. Per la stessa
+          ragione la didascalia non sta in overlay su un velo scuro (quello
+          sì disegnerebbe una riga netta in fondo alla banda) ma sotto, sulla
+          superficie, dentro la colonna di lettura.
+          Sipario dal basso: era il gesto di questa foto e resta. */}
+      <figure className="relative mb-16 sm:mb-24">
+        <MaskReveal from="bottom" zoom={1.1} className="overflow-hidden">
+          <a
+            href={youtubeWatch(site.videos.team.id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            // Sotto lg la banda torna un 4/3: a 68svh su una colonna stretta
+            // il ritaglio è verticale e decapiterebbe metà squadra.
+            className="group relative block aspect-[4/3] overflow-hidden sm:aspect-[16/9] lg:aspect-auto lg:h-[68svh]"
+            aria-label={c.videoAria}
+          >
+            <Image
+              src="/images/reali/team-group.jpg"
+              alt={c.imageAlt}
+              fill
+              sizes="100vw"
+              // Nessun `priority` (l'unica prioritaria è l'hero); 75 è uno dei
+              // valori dichiarati in images.qualities.
+              quality={75}
+              className="photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+              // Sorgente 1920×1280 con i volti nel terzo alto: centrando il
+              // ritaglio, in banda larga le teste di chi sta in piedi
+              // uscirebbero dall'inquadratura.
+              style={{ objectPosition: "50% 18%" }}
+            />
+            {/* Il play NON sta al centro: in banda larga il centro è il volto
+                della fondatrice e il bottone glielo copre. Scende nell'angolo
+                basso, incolonnato con la didascalia qui sotto. */}
+            <span className="pointer-events-none absolute inset-0 mx-auto flex max-w-[1240px] items-end justify-end px-5 pb-6 sm:px-8 sm:pb-8">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-paper/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
+                <Play className="h-6 w-6" />
+              </span>
+            </span>
+          </a>
+        </MaskReveal>
+        <figcaption className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3 px-5 pt-5 sm:px-8">
+          <span className="text-sm leading-tight text-graphite">
+            <span className="block font-semibold text-ink">{c.captionName}</span>
+            {c.captionPlace}
+          </span>
+          <span className="shrink-0 rounded-full bg-red-soft px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
+            {c.badge}
+          </span>
+        </figcaption>
+      </figure>
 
       {/* Una schermata piena per ogni persona del team: il trail del
           riferimento Codrops, scrubbato dallo scroll. */}

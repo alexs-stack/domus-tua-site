@@ -1,5 +1,6 @@
 "use client";
 
+import MarkDomus from "./MarkDomus";
 import Link from "next/link";
 import { useRef } from "react";
 import { Logo } from "./Logo";
@@ -188,15 +189,8 @@ export default function Footer() {
               <Logo light />
             </span>
             {/* Monogramma ufficiale sul footer scuro (variante negativa:
-                crema + rosso del logo). */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-domustua-mark-dark.png"
-              alt=""
-              width={99}
-              height={92}
-              className="mt-6 block h-9 w-auto opacity-85"
-            />
+                crema + rosso del logo), vettoriale dal 2026-08-06. */}
+            <MarkDomus variant="light" className="mt-6 block h-9 w-auto opacity-85" />
             <p className="mt-4 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
               Con Domus Tua è facile vendere ed è sicuro acquistare.
             </p>

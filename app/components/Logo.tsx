@@ -5,40 +5,17 @@
 // Se il file manca, in dev/preview mostra un placeholder onesto "Logo ufficiale mancante"
 // (mai un logo finto). `LogoMark` resta come fallback SOLO interno di sviluppo, attivabile
 // con brand.useOriginalLogo=false. Vedi app/lib/brand.ts + docs/logo-assets.md.
+import MarkDomus from "./MarkDomus";
 import { useEffect, useState } from "react";
 import { brand, showLogoDevPlaceholder } from "../lib/brand";
 
-// Fallback interno di sviluppo (NON default, NON per la presentazione cliente):
-// evoluzione del concetto casa + cuore. Da usare solo con useOriginalLogo=false.
+// Fallback interno di sviluppo (NON default), attivo solo con
+// brand.useOriginalLogo=false.
+// 2026-08-06: qui c'era una casa+cuore RIDISEGNATA a mano — l'ultimo marchio
+// inventato rimasto nel repo, e il tipo di cosa che finisce per sbaglio in
+// una demo. Ora anche il fallback è il monogramma depositato, in vettoriale.
 export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 48 48"
-      fill="none"
-      aria-hidden
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M6 21.5 24 7l18 14.5"
-        stroke="var(--color-graphite)"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9.5 19.5V37a2.5 2.5 0 0 0 2.5 2.5h24a2.5 2.5 0 0 0 2.5-2.5V19.5"
-        stroke="var(--color-graphite)"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M24 35.2c-3.4-2.3-6.2-4.6-6.2-7.7a3.3 3.3 0 0 1 6.2-1.6 3.3 3.3 0 0 1 6.2 1.6c0 3.1-2.8 5.4-6.2 7.7z"
-        fill="var(--color-red)"
-      />
-    </svg>
-  );
+  return <MarkDomus className={className} />;
 }
 
 // Fallback dev/preview quando il file ufficiale non è ancora stato depositato.

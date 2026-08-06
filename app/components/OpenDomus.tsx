@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import Reveal from "./Reveal";
+import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
 import LiquidReveal from "./motion/LiquidReveal";
 import Parallax from "./motion/Parallax";
@@ -165,7 +166,7 @@ export default function OpenDomus() {
   );
 
   return (
-    <section id="open-domus" className="relative overflow-hidden bg-paper">
+    <section id="open-domus" data-surface="paper" className="relative overflow-hidden bg-paper">
       {/* Coni d'ombra obliqui: bg-paper è la campitura più piatta della home e
           senza di questi il format esclusivo poggia sul nulla.
           Rif. _refs/aurelia (MIT) — vedi docs/effetti-reference.md §2.6. */}
@@ -175,11 +176,44 @@ export default function OpenDomus() {
         <span className="dt-godray_beam" style={{ "--gr-x": "77%", "--gr-w": "13vw", "--gr-a": 0.85 } as React.CSSProperties} />
       </div>
       <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          {/* Visual */}
-          <Reveal className="order-2 lg:order-1">
-            {/* Profondità: la colonna foto deriva lenta allo scroll (solo desktop). */}
-            <Parallax speed={0.12}>
+        {/* TESTA DI CAPITOLO — 2026-08-06. Il titolo stava in mezza griglia a
+            48px fissi: su un 1920 leggeva come un sottotitolo. Ora prende
+            tutta la colonna a `text-d2` (la scala display del sito) e la
+            griglia a due colonne sparisce: sopra il capitolo, sotto la banda.
+            CharFlip al posto di TextLines: qui il titolo è breve e il gesto
+            giusto è il carattere che gira, non la riga che sale (i due non
+            vanno mai sullo stesso elemento).
+            `exit` su titolo e intro: risalendo la pagina il capitolo si
+            smonta invece di restare fermo.
+            Via `balance` dal titolo: il bilanciamento si ricalcola dopo lo
+            split di SplitText e fa saltare una riga. */}
+        <Reveal delay={100}>
+          <span className="eyebrow">{c.eyebrow}</span>
+        </Reveal>
+        <CharFlip as="h2" delay={0.1} className="mt-5 font-display text-d2 display-tight font-medium text-ink" exit>
+          {c.title}
+        </CharFlip>
+        {/* mt-10 e non mt-6: con `.display-tight` (interlinea .92) le
+            discendenti dell'ultima riga del titolo escono dal loro box —
+            «meglio.» andava a toccare la prima riga dell'intro. */}
+        <TextLines as="p" className="mt-10 max-w-2xl text-[1.02rem] leading-relaxed text-stone" exit>
+          {c.intro}
+        </TextLines>
+
+        {/* LA BANDA — la foto era `aspect-[4/5]` in mezza griglia, cioè ~560px
+            su un contenitore da 1240. Adesso attraversa tutta la colonna e
+            sale a ~72svh: è l'«immagine grande» chiesta dal cliente.
+            NON è full-bleed, e la ragione è misurata:
+            raffaela-founder.jpg è 1024×682, quindi a piena larghezza di
+            viewport su un 1920 verrebbe stirata 1.9× (poltiglia). A piena
+            COLONNA resta a ~1.15×, che è il limite in cui una foto è ancora
+            una foto. Per andare oltre serve un originale da almeno 2000px —
+            è una richiesta da girare alla cliente.
+            Il LiquidReveal resta esattamente dov'era (è la firma della
+            sezione) e la deriva sale da 0.12 a 0.18: una banda larga ha
+            bisogno di più corsa per non sembrare incollata. */}
+        <Reveal className="mt-14 lg:mt-20">
+          <Parallax speed={0.18}>
             <div className="relative rounded-[2rem] border border-line bg-cream p-2">
               <SegnoDomusCorner className="left-3.5 top-3.5 z-10" rotate={0} />
               <a
@@ -187,19 +221,34 @@ export default function OpenDomus() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={c.videoAria}
-                className="group relative block aspect-[4/5] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[5/5]"
+                className="group relative block aspect-[4/5] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[16/10] lg:aspect-auto lg:h-[min(72svh,42rem)]"
               >
                 {/* Reveal liquido sul solo media (signature della sezione):
-                    link e play restano sopra il velo, mai clippati. */}
-                <LiquidReveal tone="paper" className="absolute inset-0">
-                  <Image
-                    src="/images/reali/raffaela-founder.jpg"
-                    alt={c.imageAlt}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 600px"
-                    className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                  />
-                </LiquidReveal>
+                    link e play restano sopra il velo, mai clippati.
+
+                    IL RIEMPIMENTO STA SULLO SPAN, NON SUL LiquidReveal, ed è
+                    un bug vero che qui si chiude: LiquidReveal si stampa
+                    addosso `relative ${className}`, quindi passargli
+                    `absolute inset-0` produceva la classe doppia
+                    "relative absolute". Le utility di posizione di Tailwind
+                    NON hanno la specificità dalla loro parte: vince l'ultima
+                    scritta nel foglio, e `.relative` sta DOPO `.absolute`.
+                    Risultato: il contenitore restava relative, `inset-0` non
+                    mordeva, l'altezza collassava a 0 e la foto della sezione
+                    semplicemente non c'era (misurato: 1158×0). Con lo span
+                    che fa il posizionamento e il figlio a `h-full w-full`
+                    non c'è più nessun duello di classi. */}
+                <span className="absolute inset-0">
+                  <LiquidReveal tone="paper" className="h-full w-full">
+                    <Image
+                      src="/images/reali/raffaela-founder.jpg"
+                      alt={c.imageAlt}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 1180px"
+                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                    />
+                  </LiquidReveal>
+                </span>
                 <span className="absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent" />
                 <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
                   <Play className="h-6 w-6" />
@@ -218,61 +267,40 @@ export default function OpenDomus() {
                 </div>
               </Parallax>
             </div>
-            </Parallax>
-          </Reveal>
+          </Parallax>
+        </Reveal>
 
-          {/* Content */}
-          <div className="order-1 lg:order-2">
-            {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente
-                doppio-hide); delay 0.1s ≈ i 100ms del Reveal originale. */}
-            <Reveal delay={100}>
-              <span className="eyebrow">{c.eyebrow}</span>
-            </Reveal>
-            <TextLines
-              as="h2"
-              delay={0.1}
-              className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
-            >
-              {c.title}
-            </TextLines>
-            <Reveal delay={100}>
-              <p className="mt-6 max-w-lg text-[1.02rem] leading-relaxed text-stone">
-                {c.intro}
+        {/* Doppio valore: Open Domus lavora sia per chi vende sia per chi compra.
+            Fuori dal Reveal: le righe entrano in cascata via GSAP (vedi benefitsRef).
+            mt generoso: la card flottante scende 20px sotto la cornice. */}
+        <div ref={benefitsRef} className="mt-16 grid gap-x-12 gap-y-8 sm:grid-cols-2 lg:mt-20">
+          {[
+            { label: c.sellerLabel, items: c.sellerBenefits },
+            { label: c.buyerLabel, items: c.buyerBenefits },
+          ].map((grp) => (
+            <div key={grp.label}>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-red-dark">
+                {grp.label}
               </p>
-            </Reveal>
-
-            {/* Doppio valore: Open Domus lavora sia per chi vende sia per chi compra.
-                Fuori dal Reveal: le righe entrano in cascata via GSAP (vedi benefitsRef). */}
-            <div ref={benefitsRef} className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2">
-              {[
-                { label: c.sellerLabel, items: c.sellerBenefits },
-                { label: c.buyerLabel, items: c.buyerBenefits },
-              ].map((grp) => (
-                <div key={grp.label}>
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-red-dark">
-                    {grp.label}
-                  </p>
-                  <ul className="mt-3 flex flex-col gap-3">
-                    {grp.items.map((b) => (
-                      <li key={b} className="group/row flex items-start gap-3 text-[0.92rem] text-graphite transition-colors duration-300 hover:text-ink">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark transition-colors duration-300 group-hover/row:bg-red group-hover/row:text-cream">
-                          <SegnoTick className="h-3 w-3" />
-                        </span>
-                        {b}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+              <ul className="mt-3 flex flex-col gap-3">
+                {grp.items.map((b) => (
+                  <li key={b} className="group/row flex items-start gap-3 text-[0.92rem] text-graphite transition-colors duration-300 hover:text-ink">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark transition-colors duration-300 group-hover/row:bg-red group-hover/row:text-cream">
+                      <SegnoTick className="h-3 w-3" />
+                    </span>
+                    {b}
+                  </li>
+                ))}
+              </ul>
             </div>
-
-            <Reveal delay={150}>
-              <Cta href="#contatti" variant="reveal-cream" size="md" className="mt-10">
-                {c.cta}
-              </Cta>
-            </Reveal>
-          </div>
+          ))}
         </div>
+
+        <Reveal delay={150}>
+          <Cta href="#contatti" variant="reveal-cream" size="md" className="mt-10">
+            {c.cta}
+          </Cta>
+        </Reveal>
       </div>
     </section>
   );

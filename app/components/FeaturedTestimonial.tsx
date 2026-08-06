@@ -6,6 +6,7 @@ import Reveal from "./Reveal";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
+import FioreCorner from "./motion/FioreCorner";
 import { Star, Play } from "./Icons";
 import { testimonialVideo, youtubeWatch } from "../lib/videos";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -184,96 +185,136 @@ export default function FeaturedTestimonial(props: Props) {
   const { quote, author, context, image, alt, videoHref } = { ...defaults, ...props };
 
   return (
-    <section className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal>
-          <div
-            ref={cardRef}
-            className="grid items-stretch gap-6 overflow-hidden rounded-[2rem] border border-line bg-cream lg:grid-cols-[1.05fr_0.95fr]"
-          >
-            {/* Citazione */}
-            <div className="flex flex-col justify-between p-8 sm:p-12">
-              <div>
-                <span className="eyebrow">{c.eyebrow}</span>
-                {/* Segno tipografico editoriale: virgoletta rossa fuori scala. */}
-                <span
-                  ref={glyphRef}
-                  aria-hidden
-                  className="mt-2 block font-display text-[5.5rem] italic leading-[0.5] text-red/20"
-                >
-                  “
-                </span>
-                {/* Il momento tipografico della pagina: le righe salgono dalla maschera. */}
-                <TextLines
-                  as="blockquote"
-                  stagger={0.1}
-                  className="mt-4 font-display text-2xl font-medium leading-[1.25] tracking-tight text-ink sm:text-[2rem]"
-                >
-                  {quote}
-                </TextLines>
-                {/* Le stelle del VOTO sono oro in tutto il sito (eccezione
-                    dichiarata in globals.css): il rosso resta il marchio, non
-                    la valutazione. */}
-                <span ref={starsRef} className="mt-6 flex gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-gold" />
-                  ))}
-                </span>
-              </div>
+    <section data-surface="paper" className="relative bg-paper">
+      {/* LA LASTRA — la fotografia non è più una colonna dentro una card: è una
+          banda a tutta larghezza con la citazione sopra, in crema.
+          Il `py` esterno NON è un ripensamento: la superficie continua deve
+          restare visibile sopra e sotto, così la lastra legge come CONTENUTO
+          dentro la pagina e non come un secondo fondo che la interrompe. È la
+          differenza fra «immagine grande» e il «taglio» che abbiamo tolto. */}
+      <div className="py-16 sm:py-24">
+        <div ref={cardRef} className="relative isolate overflow-hidden bg-ink">
+          {/* Il sipario da destra era già il gesto di questa sezione: ora
+              attraversa tutto lo schermo invece di mezza card.
+              data-ft-photo: il piano lontano della parallasse da puntatore.
+              Sta DENTRO la maschera e FUORI dal Parallax di scroll, così i due
+              movimenti non si contendono la stessa transform.
+              Il velo sta anch'esso DENTRO la maschera: fuori, prima che il
+              sipario si apra, si vedrebbe un rettangolo scuro a tutta pagina —
+              esattamente la giuntura che non vogliamo. */}
+          <MaskReveal from="right" zoom={1.1} className="absolute inset-0" innerClassName="absolute inset-0">
+            <div data-ft-photo className="absolute inset-0">
+              <Parallax speed={0.12} scale={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
+                <Image
+                  src={image}
+                  alt={alt}
+                  fill
+                  sizes="100vw"
+                  // Niente `priority`: l'unica immagine prioritaria del sito è
+                  // l'hero. 75 è uno dei valori configurati in images.qualities.
+                  quality={75}
+                  className="photo-warm object-cover"
+                  // A tutta larghezza il ritaglio è severo: il sorgente è quasi
+                  // quadrato (1920×1625) e centrato terrebbe in campo la
+                  // scrivania tagliando i volti. 42% inquadra la consulenza.
+                  style={{ objectPosition: "50% 42%" }}
+                />
+              </Parallax>
+            </div>
+            <span
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/45 to-ink/20"
+            />
+          </MaskReveal>
 
-              <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
-                <div className="leading-tight">
-                  <span className="block text-sm font-semibold text-ink">{author}</span>
-                  <span className="block text-[0.8rem] text-stone">{context}</span>
-                </div>
+          {/* La colonna di testo detta l'altezza della lastra: la foto è
+              `absolute inset-0` e si adatta, quindi non esiste una misura
+              scritta due volte che possa divergere. */}
+          <div className="relative mx-auto flex min-h-[74svh] max-w-[1240px] flex-col justify-between gap-12 px-5 py-12 sm:px-8 sm:py-16">
+            {/* In alto solo il richiamo al video: l'angolo alto-sinistro resta
+                libero per il tralcio (regola: mai un fiore sopra un testo). */}
+            <div className="flex justify-end">
+              <Reveal>
                 <a
                   href={videoHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-2.5 rounded-full border border-line bg-paper py-2.5 pl-2.5 pr-5 text-sm font-semibold text-ink transition-all duration-300 hover:border-red hover:text-red"
+                  aria-label={c.watchVideoAria}
+                  className="group flex h-16 w-16 items-center justify-center rounded-full bg-paper/90 text-red shadow-lg transition-transform duration-300 hover:scale-110"
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-110">
-                    <Play className="h-3.5 w-3.5" />
-                  </span>
-                  {c.watchVideo}
+                  <Play className="h-6 w-6" />
                 </a>
-              </div>
+              </Reveal>
             </div>
 
-            {/* Immagine — sipario da destra sulla cornice (MaskReveal fuori,
-                Parallax dentro): dentro la maschera la foto sovradimensionata
-                scorre più lenta. Gradiente e play restano fissi, fuori. */}
-            <div className="relative min-h-[280px] overflow-hidden lg:min-h-full">
-              {/* data-ft-photo: il piano lontano della parallasse da puntatore.
-                  Sta DENTRO la maschera e FUORI dal Parallax di scroll, così i
-                  due movimenti non si contendono la stessa transform. */}
-              <MaskReveal from="right" zoom={1.1} className="absolute inset-0" innerClassName="absolute inset-0">
-                <div data-ft-photo className="absolute inset-0">
-                <Parallax speed={0.12} scale={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
-                  <Image
-                    src={image}
-                    alt={alt}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 560px"
-                    className="photo-warm object-cover object-center"
-                  />
-                </Parallax>
-                </div>
-              </MaskReveal>
-              <span className="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent lg:bg-gradient-to-l" />
-              <a
-                href={videoHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={c.watchVideoAria}
-                className="group absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 hover:scale-110"
+            <div>
+              <Reveal>
+                <span className="eyebrow eyebrow-light">{c.eyebrow}</span>
+                {/* Segno tipografico editoriale: virgoletta fuori scala. Sul
+                    velo scuro il rosso al 20% sparirebbe: qui sta al 55%. */}
+                <span
+                  ref={glyphRef}
+                  aria-hidden
+                  className="mt-2 block font-display text-[5.5rem] italic leading-[0.5] text-red/55"
+                >
+                  “
+                </span>
+              </Reveal>
+              {/* IL CUORE DELLA SEZIONE. Era `text-2xl/[2rem]`, cioè un
+                  paragrafo: adesso è un gradino display (d3, che porta con sé
+                  la propria interlinea) e le righe salgono dalla maschera.
+                  `exit`: risalendo la pagina la citazione se ne va dalla parte
+                  opposta invece di restare ferma. */}
+              <TextLines
+                as="blockquote"
+                exit
+                stagger={0.1}
+                className="mt-6 font-display text-d3 font-medium tracking-tight text-paper"
               >
-                <Play className="h-6 w-6" />
-              </a>
+                {quote}
+              </TextLines>
+              <Reveal delay={120}>
+                {/* Le stelle del VOTO sono oro in tutto il sito (eccezione
+                    dichiarata in globals.css): il rosso resta il marchio, non
+                    la valutazione. */}
+                <span ref={starsRef} className="mt-8 flex gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className="h-4 w-4 text-gold" />
+                  ))}
+                </span>
+                <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-paper/25 pt-6">
+                  <div className="leading-tight">
+                    <span className="block text-sm font-semibold text-paper">{author}</span>
+                    <span className="block text-[0.8rem] text-paper/75">{context}</span>
+                  </div>
+                  <a
+                    href={videoHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-2.5 rounded-full border border-paper/35 bg-paper/10 py-2.5 pl-2.5 pr-5 text-sm font-semibold text-paper transition-all duration-300 hover:border-paper hover:bg-paper hover:text-ink"
+                  >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-110">
+                      <Play className="h-3.5 w-3.5" />
+                    </span>
+                    {c.watchVideo}
+                  </a>
+                </div>
+              </Reveal>
             </div>
           </div>
-        </Reveal>
+        </div>
       </div>
+
+      {/* Il tralcio apre l'alternanza degli angoli nel ventre della home
+          (tl → br → tr → bl). Sta DOPO la lastra nel DOM di proposito: prima,
+          la banda opaca gli passerebbe sopra e resterebbe invisibile.
+          Nasce sul crema e SCAVALCA il bordo alto della lastra: è la stessa
+          ragione per cui esiste la superficie continua — un segno che
+          attraversa la giuntura la fa smettere di essere una giuntura.
+          Misurato: finisce 30px sopra l'occhiello, quindi non sta su un testo.
+          0.40 è il massimo che la regola concede sul crema, e sotto quella
+          soglia sul crema chiaro il tralcio sparisce. */}
+      <FioreCorner corner="tl" seed={0} drift="y" opacity={0.4} className="left-[1%] -top-6 !w-[12rem]" />
     </section>
   );
 }

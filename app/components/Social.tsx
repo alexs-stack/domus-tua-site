@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import CharFlip from "./motion/CharFlip";
 import { Instagram } from "./Icons";
 import SocialLinks from "./primitives/SocialLinks";
 import { site } from "../lib/site";
@@ -169,7 +169,7 @@ export default function Social() {
   );
 
   return (
-    <section ref={sectionRef} className="bg-cream">
+    <section ref={sectionRef} data-surface="cream" className="bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         {/* La testa cambia impianto a seconda di cosa la accompagna. Col feed
             iframe resta la vecchia coppia testo|widget. SENZA feed il racconto
@@ -185,18 +185,24 @@ export default function Social() {
           }
         >
           <div>
-            {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+            {/* Reveal spezzato in due: il titolo splittato resta nudo (niente doppio-hide) */}
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            <TextLines
+            {/* Testa di capitolo: d2, il gradino delle teste di capitolo, al
+                posto dei 48px fissi di prima. La scala a due rami (con e senza
+                iframe) non serve più: d2 è già un clamp in vw, si adatta da sé
+                alla colonna in cui capita.
+                `balance` è VIETATA sui titoli splittati: text-wrap si
+                ricalcola dopo lo split di SplitText e fa saltare una riga.
+                `display-tight` è unlayered e detta interlinea e tracking. */}
+            <CharFlip
               as="h2"
-              className={`mt-5 font-display font-medium leading-[1.05] tracking-tight text-ink balance ${
-                site.embeds.instagramIframe ? "text-4xl sm:text-5xl" : "text-4xl sm:text-5xl lg:text-6xl"
-              }`}
+              exit
+              className="mt-5 font-display text-d3 display-tight font-medium text-ink"
             >
               {c.title}
-            </TextLines>
+            </CharFlip>
           </div>
 
           {site.embeds.instagramIframe ? (

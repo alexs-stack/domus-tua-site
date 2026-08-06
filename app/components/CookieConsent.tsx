@@ -6,6 +6,7 @@
 //
 // Il banner è la UI: la logica del consenso (nome del cookie, lettura, scrittura, notifica)
 // vive in app/lib/consent.ts, unica implementazione condivisa con i gate.
+import MarkDomus from "./MarkDomus";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
@@ -149,15 +150,8 @@ export default function CookieConsent() {
       </h2>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
-          {/* Monogramma ufficiale (crop del logo depositato), non un segno ridisegnato. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-domustua-mark.png"
-            alt=""
-            width={99}
-            height={92}
-            className="mt-0.5 hidden h-7 w-auto shrink-0 sm:block"
-          />
+          {/* Monogramma ufficiale, non un segno ridisegnato. Vettoriale. */}
+          <MarkDomus className="mt-0.5 hidden h-7 w-auto shrink-0 sm:block" />
           <p id="cookie-consent-desc" className="text-[0.86rem] leading-relaxed text-graphite">
             {c.text}{" "}
             <Link href="/cookie" className="font-semibold text-red underline underline-offset-2 hover:text-red-dark">

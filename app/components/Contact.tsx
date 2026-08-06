@@ -9,7 +9,8 @@ import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
-import WordReveal from "./WordReveal";
+import CharFlip from "./motion/CharFlip";
+import TextLines from "./motion/TextLines";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
 import Fioritura from "./motion/Fioritura";
@@ -426,7 +427,7 @@ export default function Contact({
   }
 
   return (
-    <section id="contatti" className="relative bg-cream-deep text-ink">
+    <section id="contatti" data-surface="cream-deep" className="relative bg-cream-deep text-ink">
       <Atmosphere glow />
       {/* Angolo fiorito (solo desktop): il congedo del filo botanico che
           attraversa la home. Scudo overflow: i tralci sbordano senza scrollbar. */}
@@ -444,14 +445,32 @@ export default function Contact({
               <SegnoDomusBadge>{c.badge}</SegnoDomusBadge>
             </div>
             <span className="eyebrow mt-4">{c.eyebrow}</span>
-            <WordReveal
+            {/* Testa di capitolo: d2 e i caratteri che girano uno a uno, come
+                le altre teste della home (era WordReveal a 48/51px fissi).
+                `balance` tolta: su un titolo splittato il text-wrap si
+                ricalcola dopo lo split e fa saltare una riga. Interlinea e
+                tracking li detta `display-tight`, che è unlayered.
+                d3 e non d2: questa testa vive in mezza colonna (~534px anche
+                su un 1920) e a 146px diventava una torre di 10 righe alta
+                1289px, più del form che le sta accanto. Vedi la regola sulla
+                colonna accanto ai token in globals.css. */}
+            <CharFlip
               as="h2"
-              className="mt-5 block font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.2rem]"
-              text={c.title}
-            />
-            <p className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone">
+              exit
+              className="mt-5 font-display text-d3 display-tight font-medium text-ink"
+            >
+              {c.title}
+            </CharFlip>
+            {/* Paragrafo d'apertura: righe che salgono dalla maschera, con
+                l'uscita dalla parte opposta risalendo la pagina. Qui non c'è
+                nessun Reveal attorno, quindi niente doppio-hide. */}
+            <TextLines
+              as="p"
+              exit
+              className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone"
+            >
               {c.subcopy}
-            </p>
+            </TextLines>
 
             <figure className="arch-frame mt-8 w-full max-w-[15rem] border border-line">
               <Image
