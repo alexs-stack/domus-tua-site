@@ -16,6 +16,7 @@
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "eval": "node --import tsx scripts/eval.ts",
     "eval:search": "node --import tsx scripts/eval-search.ts",
+    "calibrate:semantic": "node --import tsx scripts/calibrate-semantic.ts",
     "e2e:assistant": "playwright test --config playwright.assistant.config.ts",
     "test:e2e": "playwright test --config=playwright.site.config.ts",
     "test:e2e:live": "playwright test --config=playwright.live.config.ts",

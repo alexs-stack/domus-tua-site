@@ -76,6 +76,34 @@ const FORME_DI_SEGRETO = [
 /** Massimo di frasi ammesse: il prompt chiede "di norma 2-5". Otto è già molto largo. */
 const MAX_FRASI = 8;
 
+/**
+ * Frasi che nel prompt sono ESEMPI di registro, e che quindi non devono mai uscire tali e
+ * quali. Il 2026-08-06 "preferisco non sbilanciarmi" — allora la frase d'esempio sui limiti —
+ * compariva parola per parola ogni volta che l'assistente incontrava un limite. Un esempio
+ * memorabile smette di insegnare un tono e diventa un copione: sembra una voce alla prima
+ * risposta e un disco alla terza.
+ *
+ * La prova che il fenomeno è generale e non riguardava quella frase: sostituito l'esempio
+ * con TRE modi alternativi di dire la stessa cosa, il modello ha cominciato a ricopiare
+ * quelli — "su questo ti risponde meglio il team" e "non voglio darti un numero a caso"
+ * sono usciti alla prima prova. Un esempio positivo quotabile diventa un tic, quale che sia.
+ * Da lì la scelta definitiva: nel prompt restano solo esempi di ciò che NON si deve suonare
+ * (l'impiegato entusiasta, il burocrate, l'ufficio stampa), che ricopiati non fanno danno,
+ * e la guida positiva è descritta invece che citata.
+ *
+ * Sono deaccentate perché il confronto avviene sul testo normalizzato. Restano qui anche le
+ * frasi non più presenti nel prompt: sono la memoria di cosa è già andato storto, e costano
+ * un confronto di stringhe.
+ */
+const FRASI_DA_NON_RICOPIARE = [
+  "preferisco non sbilanciarmi",
+  "sono lieto di assisterla",
+  "ti invito a prendere visione",
+  "e una scelta importante. dimmi la zona e il budget",
+  "qui non voglio darti un numero a caso",
+  "su questo ti risponde meglio il team",
+];
+
 export interface GradeContext {
   caso: EvalCase;
   segnali: EvalSignals;
@@ -171,6 +199,10 @@ export function grade(ctx: GradeContext): Verdict[] {
   // ── Forma ───────────────────────────────────────────────────────────────
   const n = frasi(segnali.testo).length;
   add("concisione", n <= MAX_FRASI, n > MAX_FRASI ? `${n} frasi` : undefined);
+
+  // Voce propria, non le frasi del prompt ricopiate. Vedi FRASI_DA_NON_RICOPIARE.
+  const copiata = FRASI_DA_NON_RICOPIARE.find((f) => testo.includes(f));
+  add("voce propria", !copiata, copiata ? `frase d'esempio ricopiata: "${copiata}"` : undefined);
 
   const markdown = /(\*\*)|(^#{1,6}\s)|(^\s*[-*]\s)/m.test(segnali.testo);
   add("nessun markdown", !markdown, markdown ? "il prompt vieta il markdown" : undefined);

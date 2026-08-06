@@ -9,6 +9,7 @@ import {
   WHATSAPP_NUMBER,
 } from "../../lib/assistant/config";
 import { verifiedEntries } from "../../lib/assistant/knowledge/entries";
+import { SEMANTIC_FLOOR } from "../../lib/assistant/knowledge/semantic";
 import { soldMapSize } from "../../lib/realsmart/soldOverrides";
 
 // Self-check runtime (server-only). Serve a verificare al volo lo stato dell'ambiente DOPO un
@@ -103,8 +104,18 @@ export async function GET() {
           realsmartAvailable: listings.mode === "realsmart" && listings.feedConfigured,
           /** Quante voci di conoscenza sono approvate: 0 = l'assistente sa rispondere solo sugli immobili. */
           knowledgeVerifiedEntries: verifiedEntries().length,
-          /** Il ranking semantico della knowledge base è opzionale. */
-          knowledgeSemanticConfigured: s.semanticRankingConfigured,
+          /**
+           * Il retrieval semantico SULLA KNOWLEDGE BASE è attivo.
+           *
+           * Leggeva `semanticRankingConfigured`, cioè il flag della RICERCA IMMOBILI, e per
+           * un po' è stato lo stesso valore. Dal 2026-08-06 non lo è più: gli embeddings
+           * ci sono (li fa Gemini) e il ranking immobili li usa, ma sulla knowledge base il
+           * livello semantico è spento di proposito, perché la taratura ha mostrato che non
+           * separa le domande pertinenti da quelle fuori corpus. Tenere un campo solo
+           * avrebbe detto "configurato" di una cosa deliberatamente spenta — l'errore più
+           * facile da non notare durante un audit di deploy.
+           */
+          knowledgeSemanticConfigured: SEMANTIC_FLOOR !== null && s.semanticRankingConfigured,
         },
         // ── Compatibilità ─────────────────────────────────────────────────
         // Nomi piatti mantenuti per gli strumenti che già li leggono (smoke test live).

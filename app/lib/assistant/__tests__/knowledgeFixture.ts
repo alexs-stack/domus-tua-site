@@ -1,12 +1,17 @@
 // Corpus di PROVA per i test del retrieval.
 //
-// Perché non usare quello reale: oggi ha nove voci verificate, perché quasi tutti i testi
-// aspettano l'approvazione del cliente. Una suite costruita su quelle nove voci verificherebbe
-// il contenuto di oggi, non il MOTORE — e andrebbe riscritta appena arrivano i testi veri.
+// Perché non usare quello reale: una suite costruita sulle voci vere verificherebbe il
+// CONTENUTO di oggi, non il MOTORE, e andrebbe riscritta a ogni testo nuovo. La divisione
+// del lavoro è questa: qui il motore, in knowledge.test.ts cosa l'assistente sa davvero.
 //
-// Questo corpus ha invece la forma che avrà quello definitivo: tutte le dodici aree coperte,
-// titoli e keyword nello stesso stile. I contenuti sono PLACEHOLDER espliciti e non escono mai
-// da qui: nessun rischio che finiscano in una risposta.
+// Questo corpus ha la stessa forma di quello vero: tutte le aree coperte, titoli e keyword
+// nello stesso stile. I contenuti sono PLACEHOLDER espliciti e non escono mai da qui:
+// nessun rischio che finiscano in una risposta.
+//
+// ⚠️ Una lezione presa sul campo: nell'agosto 2026 questo corpus aveva già la correzione
+// del falso positivo su "tempi", mentre quello vero no — e nessun test lo guardava, perché
+// i due vivono separati. Se correggi una keyword qui, controlla la voce corrispondente in
+// entries.ts. Il registro dei casi reali sta in knowledge.test.ts.
 //
 // Gli stati non verificati sono presenti di proposito: servono a dimostrare che restano fuori.
 
