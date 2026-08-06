@@ -802,6 +802,59 @@ html[data-preloader] .dt-pre-char {
     36.04% 30.79%
   );
 }
+/* ---------- Open Domus: i coni d'ombra ----------
+   Rif. _refs/aurelia (MIT, Holtsetio). La scoperta utile della reference è
+   che i suoi "godray" NON sono fasci luminosi: il materiale è
+   `MeshBasicNodeMaterial({ color: 0x000000, opacity: 0.05 })` disegnato con
+   renderOrder -1. Sono VOLUMI D'OMBRA, e l'opacità fa tutto il lavoro:
+     offsetFactor = (1 - offset) * smoothstep(0.00, 0.04, offset)
+   cioè nulla al bordo, PICCO AL 4%, poi decadimento lineare fino a zero.
+
+   Qui il colore si ribalta perché il fondo è chiaro invece che nero: velature
+   di espresso a bassissima alpha in `multiply`. Il moltiplicatore finale
+   scende da 0.33 della reference a ~0.055, che è la stessa proporzione
+   rispetto al fondo su cui lavora. Il fade laterale quadratico diventa una
+   mask orizzontale.
+   Nessun canvas, nessun JS: tre span e un gradiente. */
+.dt-godray {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.dt-godray_beam {
+  position: absolute;
+  top: -12%;
+  bottom: -12%;
+  left: var(--gr-x);
+  width: var(--gr-w);
+  /* I fermi ricalcano la curva del riferimento: zero al bordo, picco al 4%,
+     poi la lunga discesa. Senza il picco così alto e così vicino al bordo il
+     cono legge come una banda uniforme. */
+  background: linear-gradient(
+    to bottom,
+    rgba(28, 21, 18, 0) 0%,
+    rgba(28, 21, 18, calc(0.085 * var(--gr-a, 1))) 4%,
+    rgba(28, 21, 18, calc(0.05 * var(--gr-a, 1))) 55%,
+    rgba(28, 21, 18, 0) 100%
+  );
+  /* Lo skew apre il fascio verso il basso: un rettangolo ruotato resterebbe
+     un rettangolo, e i coni della reference si allargano. */
+  transform: rotate(-8deg) skewX(6deg);
+  /* Fade laterale: i bordi verticali netti tradirebbero subito il rettangolo. */
+  mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent);
+  /* Sfocatura corta: a 18px il cono si diluiva sotto la soglia percettiva
+     (misurato: escursione 5/255 sul canale R, cioè niente). */
+  filter: blur(9px);
+}
+@media (max-width: 767px) {
+  /* Su schermo stretto tre coni obliqui diventano tre strisce sporche. */
+  .dt-godray_beam:nth-child(2) {
+    display: none;
+  }
+}
+
 /* ---------- Sigillo D.O.C.: il lampo ----------
    Rif. _refs/aurelia (MIT, Holtsetio) — l'emissività della medusa:
      pow(sin(phase + positionLocal.y) * 0.5 + 0.5, 10)
