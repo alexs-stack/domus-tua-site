@@ -797,6 +797,93 @@ html[data-preloader] .dt-pre-char {
     36.04% 30.79%
   );
 }
+/* ---------- Sigillo D.O.C.: il lampo ----------
+   Rif. _refs/aurelia (MIT, Holtsetio) — l'emissività della medusa:
+     pow(sin(phase + positionLocal.y) * 0.5 + 0.5, 10)
+   L'ESPONENTE 10 è tutto il punto: produce un duty cycle di circa il 20% —
+   buio per l'80% del ciclo, poi un colpo netto. È ciò che distingue "la luce
+   lo prende" da "una notifica che pulsa", ed è la ragione per cui una
+   sinusoide semplice (esponente 1) qui sarebbe sbagliata.
+   Il `+ positionLocal.y` dentro il seno fa VIAGGIARE il lampo lungo
+   l'oggetto: su un sigillo circolare il viaggio è una rotazione.
+   Ciclo di 5 s come nel riferimento (`time * 0.2 mod 1`).
+
+   I fermi qui sotto campionano la curva vera, non la approssimano a occhio:
+   p=0.05 → 0.015, 0.10 → 0.101, 0.15 → 0.368, 0.20 → 0.780, 0.25 → 1. */
+.dt-docseal_flash {
+  position: absolute;
+  inset: -8%;
+  border-radius: 50%;
+  /* Anello, non disco: senza questa maschera il gradiente conico è una
+     macchia che sborda dal sigillo. Ritagliato a corona, il lampo corre
+     SULLA circonferenza — è il tratto che si accende, non l'aria intorno. */
+  mask-image: radial-gradient(circle, transparent 54%, #000 63%, #000 84%, transparent 93%);
+  /* Rosso: nel riferimento l'emissività è moltiplicata per il colore proprio
+     dell'oggetto, e il sigillo è rosso. Un alone bianco lo farebbe sembrare
+     un badge di sistema invece del marchio che si accende. */
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(210, 10, 10, 0.8) 22deg,
+    rgba(210, 10, 10, 0) 58deg,
+    transparent 360deg
+  );
+  filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dt-docseal_flash {
+    animation:
+      dt-doc-flash 5s linear infinite,
+      dt-doc-travel 5s linear infinite;
+  }
+}
+@keyframes dt-doc-flash {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.015;
+  }
+  10% {
+    opacity: 0.101;
+  }
+  15% {
+    opacity: 0.368;
+  }
+  20% {
+    opacity: 0.78;
+  }
+  25% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.78;
+  }
+  35% {
+    opacity: 0.368;
+  }
+  40% {
+    opacity: 0.101;
+  }
+  45% {
+    opacity: 0.015;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes dt-doc-travel {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ---------- Seguici: la rotaia orizzontale ----------
    Otto scatti che scorrono di lato mentre la pagina scende, con l'immagine
    che pana dentro la cornice in senso contrario alla corsa (vedi Social.tsx).
