@@ -69,3 +69,6 @@ eval-search-report.md
 
 # Impeccable: cache locale del design hook (la config condivisa si committa)
 .impeccable/hook.cache.json
+
+# Materiale di studio temporaneo (mai importato, mai spedito)
+_refs/

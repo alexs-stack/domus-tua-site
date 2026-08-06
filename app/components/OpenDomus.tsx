@@ -165,8 +165,16 @@ export default function OpenDomus() {
   );
 
   return (
-    <section id="open-domus" className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+    <section id="open-domus" className="relative overflow-hidden bg-paper">
+      {/* Coni d'ombra obliqui: bg-paper è la campitura più piatta della home e
+          senza di questi il format esclusivo poggia sul nulla.
+          Rif. _refs/aurelia (MIT) — vedi docs/effetti-reference.md §2.6. */}
+      <div aria-hidden className="dt-godray">
+        <span className="dt-godray_beam" style={{ "--gr-x": "18%", "--gr-w": "17vw", "--gr-a": 1 } as React.CSSProperties} />
+        <span className="dt-godray_beam" style={{ "--gr-x": "44%", "--gr-w": "26vw", "--gr-a": 0.72 } as React.CSSProperties} />
+        <span className="dt-godray_beam" style={{ "--gr-x": "77%", "--gr-w": "13vw", "--gr-a": 0.85 } as React.CSSProperties} />
+      </div>
+      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Visual */}
           <Reveal className="order-2 lg:order-1">

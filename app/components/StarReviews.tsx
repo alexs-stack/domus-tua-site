@@ -10,12 +10,21 @@
    contagocce, ease "domus". La stella a 5 punte (ratio 0.475, punta in alto)
    è l'unica forma nuova, usata come maschera fotografica.
    STORY: il visitatore arriva su una foto a tutto schermo che si richiude
-   nella stella centrale di una fila di cinque; ogni stella è un momento
-   (Venditori, Acquirenti, Il team — al centro, con la targa Top Agency —,
-   Open Domus, Esperienza) che al click lo avvolge di nuovo a tutto schermo;
-   le parole vere restano a Google e al widget Trustindex, rivelato dalla
-   stessa lingua di clip. Il capitolo assorbe anche la banda Authority: il
-   claim "più recensita" vive qui, sotto il cluster prova.
+   nella stella centrale di una fila di cinque; nell'istante in cui la foto
+   si posa, la fila si ACCENDE D'ORO dal centro verso i lati e un riflesso
+   comincia a viaggiare da una stella all'altra. Le cinque stelle non sono
+   più finestre ma il segno pieno del voto, ciascuna con il fronte di lavoro
+   che si è guadagnata (Venditori, Acquirenti, Il team, Open Domus,
+   Esperienza). Le parole vere restano a Google e al widget Trustindex,
+   rivelato dalla stessa lingua di clip. Il capitolo assorbe anche la banda
+   Authority: il claim "più recensita" vive qui, sotto il cluster prova.
+
+   REVISIONE 2026-08-06 (direttiva cliente): via le fotografie dalle tessere.
+   La stella a 5 punte tagliava i volti sulle punte e lasciava le immagini in
+   letterbox — un difetto visibile a tutte le viewport. Le stelle diventano
+   ORO (materiale, non decorazione: vedi l'eccezione dichiarata in
+   globals.css) e puramente decorative: niente click, niente overlay. Il
+   cluster prova poggia ora su voto + CTA Google + sigillo + widget.
    FIRST VIEWPORT: il muro delle voci consegna lo sfondo pulito (uscita
    estesa delle card); la foto Top Agency appare PICCOLA, croppata a stella,
    centrata, e lo scroll la ZOOMA a tutto schermo (demo 3 del riferimento,
@@ -25,58 +34,45 @@
    topologia costante (10 vertici), maschere a stella al posto delle pillole;
    pinned dal cliente in chat, con continuum scrubbato richiesto in chat
    (2026-08-04). Il cover-title esce per carattere (scaleY, stagger dal
-   centro) e le voci si aprono al click col flash brightness/saturate del
-   riferimento; lo scrub è bidirezionale per natura (direttiva replay).
+   centro); lo scrub è bidirezionale per natura (direttiva replay).
 
-   Verità: le citazioni di lib/reviews.ts sono DEMO → compaiono solo in
-   PREVIEW con nota; in produzione le stelle portano didascalie di servizio
-   (copy nostro) e la prova verbatim resta Trustindex/Google.
+   Verità: la prova verbatim resta Trustindex/Google — le stelle sono il
+   segno del voto, le didascalie sono copy nostro sui fronti di lavoro.
    Progressive enhancement: [data-on] solo desktop ≥1024 + motion ok; senza
-   JS / reduced-motion / mobile la sezione è completa e statica.
+   JS / reduced-motion / mobile la sezione è completa e statica, con le
+   stelle già d'oro e il riflesso affidato a un'animazione CSS.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useRef } from "react";
 import Image from "next/image";
 import TextLines from "./motion/TextLines";
 import { Star, Google } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import TrustindexEmbed from "./TrustindexEmbed";
 import { site } from "../lib/site";
-import { reviews } from "../lib/reviews";
 import { useConsent } from "../lib/consent";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
-import { isTransitionCovering } from "./motion/PageTransition";
-import { setOverlay } from "../lib/ui/overlays";
-import { gsap, ScrollTrigger, useGSAP, MQ, dur } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 import { starClipPath, STAR_INNER_RATIO } from "../lib/star-shape";
 
 type StarKey = "venditori" | "acquirenti" | "openDomus" | "esperienza" | "team";
 
-
-/* Foto scelte guardandole una a una: niente frame video col play incorporato
-   (handshake.jpg) né thumbnail con titoli baked-in al centro della scena.
-   open-domus-teresa tiene il suo titolo "video recensione" — è l'artefatto
-   autentico — ma la tessera ritaglia in basso sui volti (pos). */
-const STARS: { key: StarKey; img: string; pos?: string; tileZoom?: string; demoReviewId: string }[] = [
-  { key: "venditori", img: "/images/reali/villa-tramonto.jpg", demoReviewId: "marco-b" },
-  { key: "acquirenti", img: "/images/reali/raffaela-keys.jpg", demoReviewId: "giulia-r" },
-  { key: "team", img: "/images/reali/premio-team.jpg", demoReviewId: "rita-v" },
-  {
-    key: "openDomus",
-    img: "/images/reali/open-domus-teresa.jpg",
-    // Landscape in tile quadrato: object-cover vincola l'altezza, quindi la
-    // Y di object-position non pana. Lo zoom con origine bassa ritaglia via
-    // il titolo baked-in della thumbnail (che resta, autentico, nel fullscreen).
-    tileZoom: "scale-[1.3] origin-bottom group-hover:scale-[1.43]",
-    demoReviewId: "famiglia-conti",
-  },
-  { key: "esperienza", img: "/images/reali/consulenza.jpg", demoReviewId: "stefano-m" },
+/** I cinque fronti di lavoro che il voto premia. Ordine narrativo: chi vende,
+    chi compra, le persone (al centro, dove atterra la foto del premio), il
+    momento Open Domus, l'esperienza complessiva. */
+const STARS: { key: StarKey }[] = [
+  { key: "venditori" },
+  { key: "acquirenti" },
+  { key: "team" },
+  { key: "openDomus" },
+  { key: "esperienza" },
 ];
 /** La stella in cui si richiude il fullscreen d'ingresso: il team con la targa
-    Top Agency — la stessa prova del sigillo Wikicasa accanto alla CTA. */
+    Top Agency — la stessa prova del sigillo Wikicasa accanto alla CTA. È
+    l'ULTIMA fotografia del capitolo: da lì in poi la fila è solo oro. */
 const CENTER = 2;
+const INTRO_IMG = "/images/reali/premio-team.jpg";
 
 const copy = {
   it: {
@@ -84,11 +80,9 @@ const copy = {
     coverWord: "Cinque stelle",
     title: "Cinque stelle, una alla volta.",
     subtitle:
-      "Non un numero: famiglie accompagnate una alla volta. Apri ogni stella per vedere da vicino i momenti che le persone raccontano su Google.",
+      "Non un numero: famiglie accompagnate una alla volta. Cinque stelle guadagnate su ogni fronte del lavoro — le parole, quelle vere, restano su Google.",
     ratingLine: (count: string) => `su 5 · ${count} recensioni Google verificate`,
     cta: "Leggi tutte le recensioni su Google",
-    openStar: (label: string) => `Apri la stella ${label}`,
-    close: "Chiudi",
     stars: {
       venditori: { label: "Venditori", caption: "Dalla valutazione seria al rogito, senza sorprese." },
       acquirenti: { label: "Acquirenti", caption: "La casa giusta, con documenti già verificati." },
@@ -101,7 +95,6 @@ const copy = {
     consentGate:
       "Il widget delle recensioni è di Trustindex: si carica solo dopo il tuo consenso ai cookie. Puoi leggerle subito su Google.",
     iframeTitle: "Recensioni Google verificate di Domus Tua (Trustindex)",
-    demoNote: "Esempio dimostrativo: le recensioni reali di Google/Trustindex verranno collegate al lancio.",
     awardAria: "Top Agency 2026 su Wikicasa — apri il profilo di Domus Tua (scheda nuova)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
@@ -112,11 +105,9 @@ const copy = {
     coverWord: "Five stars",
     title: "Five stars, one at a time.",
     subtitle:
-      "Not a number: families guided one at a time. Open each star to see up close the moments people describe on Google.",
+      "Not a number: families guided one at a time. Five stars earned on every front of the work — the real words stay on Google.",
     ratingLine: (count: string) => `out of 5 · ${count} verified Google reviews`,
     cta: "Read all reviews on Google",
-    openStar: (label: string) => `Open the ${label} star`,
-    close: "Close",
     stars: {
       venditori: { label: "Sellers", caption: "From a serious valuation to the deed, no surprises." },
       acquirenti: { label: "Buyers", caption: "The right home, with documents already verified." },
@@ -129,7 +120,6 @@ const copy = {
     consentGate:
       "The reviews widget is provided by Trustindex: it loads only after you accept cookies. You can read the reviews on Google right away.",
     iframeTitle: "Verified Google reviews of Domus Tua (Trustindex)",
-    demoNote: "Demonstrative example: the real Google/Trustindex reviews will be connected at launch.",
     awardAria: "Top Agency 2026 on Wikicasa — open the Domus Tua profile (new tab)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
@@ -140,11 +130,9 @@ const copy = {
     coverWord: "Cinq étoiles",
     title: "Cinq étoiles, une à la fois.",
     subtitle:
-      "Pas un chiffre : des familles accompagnées une à une. Ouvrez chaque étoile pour voir de près les moments que les gens racontent sur Google.",
+      "Pas un chiffre : des familles accompagnées une à une. Cinq étoiles gagnées sur chaque front du métier — les vrais mots restent sur Google.",
     ratingLine: (count: string) => `sur 5 · ${count} avis Google vérifiés`,
     cta: "Lire tous les avis sur Google",
-    openStar: (label: string) => `Ouvrir l'étoile ${label}`,
-    close: "Fermer",
     stars: {
       venditori: { label: "Vendeurs", caption: "De l'estimation sérieuse à l'acte, sans surprises." },
       acquirenti: { label: "Acheteurs", caption: "Le bon logement, avec des documents déjà vérifiés." },
@@ -157,7 +145,6 @@ const copy = {
     consentGate:
       "Le widget d'avis est fourni par Trustindex : il ne se charge qu'après votre consentement aux cookies. Vous pouvez lire les avis sur Google dès maintenant.",
     iframeTitle: "Avis Google vérifiés de Domus Tua (Trustindex)",
-    demoNote: "Exemple de démonstration : les vrais avis Google/Trustindex seront connectés au lancement.",
     awardAria: "Top Agency 2026 sur Wikicasa — ouvrir le profil de Domus Tua (nouvel onglet)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
@@ -168,11 +155,9 @@ const copy = {
     coverWord: "Fünf Sterne",
     title: "Fünf Sterne, einer nach dem anderen.",
     subtitle:
-      "Keine Zahl: Familien, einzeln begleitet. Öffnen Sie jeden Stern, um die Momente aus der Nähe zu sehen, von denen die Menschen auf Google erzählen.",
+      "Keine Zahl: Familien, einzeln begleitet. Fünf Sterne, an jeder Front der Arbeit verdient — die echten Worte bleiben auf Google.",
     ratingLine: (count: string) => `von 5 · ${count} verifizierte Google-Bewertungen`,
     cta: "Alle Bewertungen auf Google lesen",
-    openStar: (label: string) => `Stern ${label} öffnen`,
-    close: "Schließen",
     stars: {
       venditori: { label: "Verkäufer", caption: "Von der seriösen Bewertung bis zum Notartermin, ohne Überraschungen." },
       acquirenti: { label: "Käufer", caption: "Das richtige Zuhause, mit bereits geprüften Dokumenten." },
@@ -185,7 +170,6 @@ const copy = {
     consentGate:
       "Das Bewertungs-Widget stammt von Trustindex: Es lädt erst nach Ihrer Cookie-Einwilligung. Die Bewertungen können Sie sofort auf Google lesen.",
     iframeTitle: "Verifizierte Google-Bewertungen von Domus Tua (Trustindex)",
-    demoNote: "Beispielhafte Darstellung: Die echten Google-/Trustindex-Bewertungen werden zum Launch verbunden.",
     awardAria: "Top Agency 2026 auf Wikicasa — das Profil von Domus Tua öffnen (neuer Tab)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
@@ -196,11 +180,9 @@ const copy = {
     coverWord: "Cinco estrellas",
     title: "Cinco estrellas, una a la vez.",
     subtitle:
-      "No es un número: familias acompañadas una a una. Abre cada estrella para ver de cerca los momentos que la gente cuenta en Google.",
+      "No es un número: familias acompañadas una a una. Cinco estrellas ganadas en cada frente del trabajo — las palabras de verdad están en Google.",
     ratingLine: (count: string) => `sobre 5 · ${count} reseñas de Google verificadas`,
     cta: "Leer todas las reseñas en Google",
-    openStar: (label: string) => `Abrir la estrella ${label}`,
-    close: "Cerrar",
     stars: {
       venditori: { label: "Vendedores", caption: "De la tasación seria a la escritura, sin sorpresas." },
       acquirenti: { label: "Compradores", caption: "La casa adecuada, con documentos ya verificados." },
@@ -213,302 +195,12 @@ const copy = {
     consentGate:
       "El widget de reseñas es de Trustindex: se carga solo tras tu consentimiento de cookies. Puedes leer las reseñas en Google ahora mismo.",
     iframeTitle: "Reseñas de Google verificadas de Domus Tua (Trustindex)",
-    demoNote: "Ejemplo demostrativo: las reseñas reales de Google/Trustindex se conectarán en el lanzamiento.",
     awardAria: "Top Agency 2026 en Wikicasa — abrir el perfil de Domus Tua (nueva pestaña)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
     claim: "Entre las agencias inmobiliarias independientes con más reseñas de la provincia de Varese.",
   },
 };
-
-/* ─────────────────────────── Overlay "voce" (portal) ─────────────────────── */
-
-function StarVoice({
-  index,
-  onClose,
-  restoreEl,
-  locale,
-}: {
-  index: number;
-  onClose: () => void;
-  restoreEl: HTMLElement | null;
-  locale: keyof typeof copy;
-}) {
-  const c = copy[locale];
-  const star = STARS[index];
-  const sc = c.stars[star.key];
-  const PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_BADGE === "true";
-  const demoReview = PREVIEW ? reviews.find((r) => r.id === star.demoReviewId) : undefined;
-
-  const rootRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const photoRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const closingRef = useRef(false);
-
-  // Contratto overlay del sito (come CaseQuickLook): registro superfici,
-  // overflow lock, Lenis stop/start con ownership del sipario, focus sul
-  // pannello (tabIndex -1, mai su un nodo che parte nascosto), restore focus.
-  useEffect(() => {
-    setOverlay("star-voice", true);
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtml = html.style.overflow;
-    const prevBody = body.style.overflow;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    getLenis()?.stop();
-    panelRef.current?.focus();
-    return () => {
-      setOverlay("star-voice", false);
-      html.style.overflow = prevHtml;
-      body.style.overflow = prevBody;
-      if (!isTransitionCovering()) getLenis()?.start();
-      if (restoreEl && document.contains(restoreEl)) restoreEl.focus();
-    };
-  }, [restoreEl]);
-
-  // Morph di apertura: dalla stella della tessera (coordinate viewport, il
-  // layer è fixed) alla stella "aperta" fullscreen. Con reduced-motion si
-  // salta direttamente allo stato finale.
-  const tlRef = useRef<gsap.core.Timeline | null>(null);
-  const geoRef = useRef({ cx: 0, cy: 0, r: 0 });
-  const applyRef = useRef<(() => void) | null>(null);
-  useEffect(() => {
-    const photo = photoRef.current;
-    const content = contentRef.current;
-    const root = rootRef.current;
-    if (!photo || !content || !root) return;
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    // Stella sempre regolare: si animano centro e raggio (proxy), la clip
-    // viene rigenerata a ogni frame — mai interpolazione fra stringhe.
-    const coverR = (Math.hypot(w, h) / 2 / STAR_INNER_RATIO) * 1.08;
-    const geo = geoRef.current;
-    const applyClip = () => {
-      photo.style.clipPath = starClipPath(w, h, geo.cx, geo.cy, geo.r);
-    };
-    applyRef.current = applyClip;
-    const motionOk = window.matchMedia(MQ.motionOk).matches;
-    const rect = restoreEl?.getBoundingClientRect();
-    // Visibilità del layer SUBITO e fuori timeline: mai dipendere da un tick
-    // per mostrare un overlay che ha già bloccato lo scroll.
-    gsap.set(root, { autoAlpha: 1 });
-    if (!motionOk || !rect || rect.width === 0) {
-      geo.cx = w / 2;
-      geo.cy = h / 2;
-      geo.r = coverR;
-      applyClip();
-      gsap.set(content, { autoAlpha: 1 });
-      return;
-    }
-    geo.cx = rect.left + rect.width / 2;
-    geo.cy = rect.top + rect.height / 2;
-    geo.r = rect.width / 2;
-    applyClip();
-    const img = photo.querySelector("img");
-    const vchars = root.querySelectorAll<HTMLElement>(".dt-starrev_vchar");
-    const tl = gsap
-      .timeline()
-      // Easing del riferimento per il morph (centro → schermo, raggio → cover)
-      .to(geo, { cx: w / 2, cy: h / 2, r: coverR, duration: 1.2, ease: "power4.inOut", onUpdate: applyClip }, 0)
-      .fromTo(img, { scale: 1.18 }, { scale: 1, duration: 1.3, ease: "domus" }, 0)
-      // Flash del riferimento: brightness/saturate salgono e si posano
-      // durante l'espansione; a fine corsa torna il grading photo-warm.
-      .to(
-        img,
-        {
-          keyframes: [
-            { filter: "brightness(1.5) saturate(1.3)", duration: 0.4, ease: "power2.in" },
-            { filter: "brightness(1.01) saturate(1.06)", duration: 0.7, ease: "power2.out" },
-          ],
-        },
-        0.05
-      )
-      .set(img, { clearProps: "filter" }, 1.2)
-      // Il titolo entra per carattere (scaleY, stagger dal centro — rif. cover)
-      .fromTo(
-        vchars,
-        { scaleY: 0, transformOrigin: "50% 100%" },
-        { scaleY: 1, duration: 0.8, ease: "power4.out", stagger: { each: 0.03, from: "center" } },
-        0.45
-      )
-      .fromTo(content, { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0, duration: dur.short, ease: "domus" }, 0.6);
-    tlRef.current = tl;
-    // Failsafe: se il ticker non avanza (tab congelata, tween uccisa), snap
-    // allo stato finale — il contenuto non resta mai nascosto.
-    const safety = window.setTimeout(() => {
-      if (tl.progress() === 0) tl.progress(1);
-    }, 1000);
-    return () => {
-      window.clearTimeout(safety);
-      tl.kill();
-    };
-    // restoreEl è stabile per la vita dell'overlay
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const requestClose = useCallback(() => {
-    if (closingRef.current) return;
-    closingRef.current = true;
-    const photo = photoRef.current;
-    const content = contentRef.current;
-    const rect = restoreEl?.getBoundingClientRect();
-    const motionOk = window.matchMedia(MQ.motionOk).matches;
-    if (!motionOk || !photo || !content || !rect || rect.width === 0) {
-      onClose();
-      return;
-    }
-    // La chiusura non può dipendere SOLO dall'onComplete: se la timeline viene
-    // uccisa o il ticker si ferma, la pagina resterebbe bloccata sull'overlay.
-    const fallback = window.setTimeout(onClose, 1300);
-    const vchars = rootRef.current?.querySelectorAll<HTMLElement>(".dt-starrev_vchar") ?? [];
-    const geo = geoRef.current;
-    const applyClip = applyRef.current;
-    gsap
-      .timeline({
-        onComplete: () => {
-          window.clearTimeout(fallback);
-          onClose();
-        },
-      })
-      .to(vchars, { scaleY: 0, duration: 0.3, ease: "power4.in", stagger: { each: 0.012, from: "center" } }, 0)
-      .to(content, { autoAlpha: 0, y: 16, duration: 0.35, ease: "domus" }, 0)
-      .to(
-        geo,
-        {
-          cx: rect.left + rect.width / 2,
-          cy: rect.top + rect.height / 2,
-          r: rect.width / 2,
-          duration: 0.9,
-          ease: "power4.inOut",
-          onUpdate: () => applyClip?.(),
-        },
-        0
-      )
-      .to(rootRef.current, { autoAlpha: 0, duration: 0.25 }, ">-0.15");
-  }, [onClose, restoreEl]);
-
-  // Esc + trappola focus minima (ciclo tra i focusabili del pannello)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        requestClose();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const root = rootRef.current;
-      if (!root) return;
-      const focusables = root.querySelectorAll<HTMLElement>("a[href], button:not([disabled])");
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [requestClose]);
-
-  // Portal su body: il footer-uncover dà a <main> uno stacking context che
-  // intrappolerebbe il fixed sotto il banner cookie (trappola nota).
-  return createPortal(
-    <div ref={rootRef} className="fixed inset-0 z-[70]" role="presentation" style={{ opacity: 0 }}>
-      {/* Backdrop pieno (niente blur full-viewport sotto un morph) */}
-      <button
-        type="button"
-        aria-label={c.close}
-        onClick={requestClose}
-        className="absolute inset-0 h-full w-full cursor-default bg-espresso/85"
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={sc.label}
-        tabIndex={-1}
-        className="absolute inset-0 outline-none"
-      >
-        {/* La foto, ritagliata dalla stella che si apre */}
-        <div ref={photoRef} className="absolute inset-0 overflow-hidden" style={{ willChange: "clip-path" }}>
-          <Image
-            src={star.img}
-            alt=""
-            fill
-            sizes="100vw"
-            style={star.pos ? { objectPosition: star.pos } : undefined}
-            className="photo-warm object-cover"
-          />
-          {/* Scrim per leggibilità del testo sopra la foto */}
-          <div className="absolute inset-0 bg-gradient-to-t from-wine/85 via-wine/25 to-transparent" />
-        </div>
-
-        {/* Titolo gigante centrato (rif. cover del demo): entra per carattere */}
-        <h3 className="dt-starrev_voicetitle pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center font-display font-medium leading-none text-cream">
-          <span className="sr-only">{sc.label}</span>
-          <span aria-hidden className="block">
-            {sc.label.split("").map((ch, i) => (
-              <span key={i} className="dt-starrev_vchar inline-block">
-                {ch === " " ? " " : ch}
-              </span>
-            ))}
-          </span>
-        </h3>
-
-        {/* Contenuto della voce */}
-        <div ref={contentRef} className="absolute inset-x-0 bottom-0 p-6 pb-10 sm:p-12 sm:pb-14">
-          <div className="mx-auto flex max-w-[1240px] flex-col items-start gap-4">
-            <span className="flex gap-1" aria-hidden>
-              {Array.from({ length: 5 }).map((_, k) => (
-                <Star key={k} className="h-4 w-4 text-red-soft" />
-              ))}
-            </span>
-            <p className="max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg">{sc.caption}</p>
-            {demoReview && (
-              <figure className="mt-2 max-w-xl border-l border-cream/30 pl-4">
-                <blockquote className="text-[0.98rem] italic leading-relaxed text-cream/90">
-                  “{demoReview.text}”
-                </blockquote>
-                <figcaption className="mt-2 text-[0.8rem] text-cream/65">
-                  {demoReview.name} · {demoReview.place} — {copy[locale].demoNote}
-                </figcaption>
-              </figure>
-            )}
-            <Cta
-              href={site.googleReviewsUrl}
-              variant="cta-solid"
-              size="sm"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3"
-            >
-              {c.cta}
-            </Cta>
-          </div>
-        </div>
-
-        {/* Chiudi */}
-        <button
-          type="button"
-          onClick={requestClose}
-          aria-label={c.close}
-          className="absolute right-5 top-5 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-cream/40 text-cream transition-colors duration-300 hover:border-cream hover:bg-cream/10 sm:right-8 sm:top-8"
-        >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-      </div>
-    </div>,
-    document.body
-  );
-}
 
 /* ─────────────────────────────── Sezione ─────────────────────────────────── */
 
@@ -526,8 +218,6 @@ export default function StarReviews() {
   const introRef = useRef<HTMLDivElement | null>(null);
   const rowRef = useRef<HTMLUListElement | null>(null);
   const widgetRef = useRef<HTMLDivElement | null>(null);
-
-  const [openStar, setOpenStar] = useState<{ index: number; el: HTMLElement } | null>(null);
 
   useGSAP(
     () => {
@@ -547,13 +237,17 @@ export default function StarReviews() {
 
         section.setAttribute("data-on", "");
         const tiles = gsap.utils.toArray<HTMLElement>(row.querySelectorAll("[data-sr-tile]"));
+        const halos = gsap.utils.toArray<HTMLElement>(row.querySelectorAll(".dt-starrev_halo"));
+        const sweeps = gsap.utils.toArray<HTMLElement>(row.querySelectorAll(".dt-starrev_sweep"));
         const els = gsap.utils.toArray<HTMLElement>(section.querySelectorAll("[data-sr-el]"));
         const chars = gsap.utils.toArray<HTMLElement>(intro.querySelectorAll(".dt-starrev_char"));
 
         // Stato d'attesa: tessere e contenuto spenti dietro l'intro a tutta
-        // pagina. SOLO opacity, mai autoAlpha: tessere e link devono restare
-        // nel tab order (visibility:hidden li rimuoverebbe).
+        // pagina. SOLO opacity, mai autoAlpha: il contenuto attorno alle
+        // stelle (CTA, sigillo) deve restare nel tab order.
         gsap.set(tiles, { opacity: 0, scale: 0.7 });
+        // L'alone parte spento: l'accensione è il suo colpo di luce.
+        gsap.set(halos, { opacity: 0 });
         gsap.set(els, { opacity: 0, y: 24 });
         // La stella piccola appare dal fondo pulito che il muro consegna:
         // l'intro parte spenta e i caratteri del cover partono "stirati"
@@ -651,15 +345,73 @@ export default function StarReviews() {
             },
             0.7
           )
+          // E. L'ACCENSIONE. La foto si è appena posata nella tessera
+          // centrale: da lì l'oro si propaga verso i lati (stagger "center").
+          // Il corpo sale in opacity/scale…
           .to(
             tiles,
             { opacity: 1, scale: 1, duration: 0.12, ease: "power2.out", stagger: { each: 0.015, from: "center" } },
             0.9
           )
+          // …e l'alone dà il colpo di luce: sovraelongazione a 1 e ritorno al
+          // valore di riposo. Due tween invece di un keyframe perché lo scrub
+          // deve poterli percorrere all'indietro senza scatti.
+          .to(halos, { opacity: 1, duration: 0.06, ease: "power2.out", stagger: { each: 0.015, from: "center" } }, 0.9)
+          .to(halos, { opacity: 0.5, duration: 0.14, ease: "power2.inOut", stagger: { each: 0.015, from: "center" } }, 0.97)
           .to(els, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", stagger: 0.015 }, 0.94)
           .to(intro, { autoAlpha: 0, duration: 0.08 }, 1.02)
           // Coda di respiro prima dello sgancio dello sticky
           .to({}, { duration: 0.2 }, 1.1);
+
+        // RIFLESSO CONTINUO — l'unica animazione a tempo del capitolo (tutto
+        // il resto è scrubbato). Una banda di luce attraversa le stelle una
+        // dopo l'altra, poi il metallo respira nella pausa. La rotazione la
+        // mette GSAP, non il CSS: se restasse nel CSS, animare xPercent
+        // riscriverebbe `transform` per intero e la banda si raddrizzerebbe.
+        gsap.set(sweeps, { rotate: 16 });
+        const shimmer = gsap.fromTo(
+          sweeps,
+          { xPercent: -160 },
+          {
+            xPercent: 420,
+            duration: 1.25,
+            ease: "power1.inOut",
+            stagger: { each: 0.14 },
+            repeat: -1,
+            repeatDelay: 2.8,
+            paused: true,
+          }
+        );
+        // Respiro dell'alone su SCALE, mai su opacity: l'opacity dell'alone è
+        // scritta dallo scrub dell'accensione, e due tween sulla stessa
+        // proprietà si strapperebbero il valore a vicenda.
+        const breath = gsap.to(halos, {
+          scale: 1.07,
+          duration: 2.6,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true,
+          stagger: { each: 0.18 },
+          paused: true,
+        });
+        // Fuori scena: pausa e via il will-change (5 layer promossi a vuoto
+        // per tutta la pagina sono memoria video sprecata).
+        const lit = ScrollTrigger.create({
+          trigger: section,
+          start: "top bottom",
+          end: "bottom top",
+          onToggle: (self) => {
+            if (self.isActive) {
+              section.setAttribute("data-lit", "");
+              shimmer.play();
+              breath.play();
+            } else {
+              section.removeAttribute("data-lit");
+              shimmer.pause();
+              breath.pause();
+            }
+          },
+        });
 
         // Tastiera: contenuto pinnato = si porta lo scroll a fine runway
         // (pattern del footer), così focus ring e contenuto sono davvero visibili.
@@ -720,18 +472,19 @@ export default function StarReviews() {
 
         return () => {
           section.removeAttribute("data-on");
+          section.removeAttribute("data-lit");
           stage.removeEventListener("focusin", onFocusIn);
           tl.scrollTrigger?.kill();
           tl.kill();
+          shimmer.kill();
+          breath.kill();
+          lit.kill();
           wst?.kill();
         };
       });
     },
     { scope: sectionRef }
   );
-
-  const open = useCallback((i: number, el: HTMLElement) => setOpenStar({ index: i, el }), []);
-  const close = useCallback(() => setOpenStar(null), []);
 
   return (
     // Niente bg-cream proprio: la sezione vive dentro la superficie curva di
@@ -746,14 +499,7 @@ export default function StarReviews() {
         <div ref={screenRef} className="dt-starrev_screen relative">
           {/* Intro full-bleed (decorativa: la tessera vera sta sotto, identica) */}
           <div ref={introRef} aria-hidden className="dt-starrev_intro pointer-events-none absolute inset-0 hidden overflow-hidden">
-            <Image
-              src={STARS[CENTER].img}
-              alt=""
-              fill
-              sizes="100vw"
-              style={STARS[CENTER].pos ? { objectPosition: STARS[CENTER].pos } : undefined}
-              className="photo-warm object-cover"
-            />
+            <Image src={INTRO_IMG} alt="" fill sizes="100vw" className="photo-warm object-cover" />
             {/* Velo caldo + titolo-cover gigante: i caratteri escono in scaleY
                 con stagger dal centro mentre la stella si chiude (rif. Codrops). */}
             <div className="absolute inset-0 bg-wine/30" />
@@ -787,9 +533,11 @@ export default function StarReviews() {
           <p data-sr-el className="mx-auto mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-stone">
             <span className="flex items-center gap-2">
               <span className="tnum font-display text-2xl font-medium text-ink">{site.rating.replace(".", ",")}</span>
+              {/* Le stelline del voto seguono il materiale della fila: rosso e
+                  oro nello stesso blocco leggerebbero come due sistemi. */}
               <span className="flex gap-0.5" aria-hidden>
                 {Array.from({ length: 5 }).map((_, k) => (
-                  <Star key={k} className="h-3.5 w-3.5 text-red" />
+                  <Star key={k} className="h-3.5 w-3.5 text-gold" />
                 ))}
               </span>
             </span>
@@ -804,35 +552,28 @@ export default function StarReviews() {
 
         {/* La fila delle cinque stelle */}
         <ul ref={rowRef} className="dt-starrev_row mx-auto mt-10 grid w-full max-w-[1050px] grid-cols-5 gap-2 sm:gap-4 lg:gap-6">
-          {STARS.map((s, i) => {
+          {STARS.map((s) => {
             const sc = c.stars[s.key];
             return (
               <li key={s.key} className="flex flex-col items-center gap-3">
-                <button
-                  type="button"
-                  data-sr-tile
-                  onClick={(e) => open(i, e.currentTarget)}
-                  aria-label={c.openStar(sc.label)}
-                  aria-haspopup="dialog"
-                  className="dt-starrev_tile group relative block aspect-square w-full cursor-pointer"
-                >
-                  {/* La clip sta su uno span interno: il focus ring del bottone
-                      resta visibile (la clip-path taglierebbe anche l'outline) */}
-                  <span className="dt-starrev_tileclip absolute inset-0 block">
-                    <Image
-                      src={s.img}
-                      alt=""
-                      fill
-                      sizes="(max-width: 640px) 20vw, 210px"
-                      style={s.pos ? { objectPosition: s.pos } : undefined}
-                      className={`photo-warm object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.22,0.9,0.36,1)] ${
-                        s.tileZoom ?? "group-hover:scale-110"
-                      }`}
-                    />
+                {/* La stella è puro segno grafico: tre strati ritagliati dalla
+                    stessa clip-path a 10 vertici — alone sfocato dietro, corpo
+                    metallico, riflesso che lo attraversa. Nessuna fotografia,
+                    nessun click: decorativa, quindi aria-hidden. Il senso lo
+                    portano l'etichetta e la didascalia, che sono testo vero. */}
+                <span data-sr-tile aria-hidden className="dt-starrev_star">
+                  <span className="dt-starrev_halo" />
+                  <span className="dt-starrev_gold">
+                    <span className="dt-starrev_sweep" />
                   </span>
-                </button>
-                <span data-sr-el className="block text-center text-[0.6rem] font-semibold leading-tight text-graphite sm:text-[0.8rem]">
-                  {sc.label}
+                </span>
+                <span data-sr-el className="block text-center">
+                  <span className="block text-[0.6rem] font-semibold leading-tight text-graphite sm:text-[0.8rem]">
+                    {sc.label}
+                  </span>
+                  {/* Sotto sm la fila è di cinque colonne strettissime: la
+                      didascalia diventerebbe una colonna di sillabe. */}
+                  <span className="mt-1 hidden text-[0.72rem] leading-snug text-stone sm:block">{sc.caption}</span>
                 </span>
               </li>
             );
@@ -908,9 +649,6 @@ export default function StarReviews() {
         </div>
       </div>
 
-      {openStar !== null && (
-        <StarVoice index={openStar.index} onClose={close} restoreEl={openStar.el} locale={locale} />
-      )}
     </section>
   );
 }

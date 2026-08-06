@@ -470,7 +470,7 @@ export default function HeroCinematic() {
   ];
 
   return (
-    <section ref={sectionRef} id="top" className="relative flex min-h-[100dvh] w-full overflow-hidden bg-espresso text-cream">
+    <section ref={sectionRef} id="top" data-surface="dark" className="relative flex min-h-[100dvh] w-full overflow-hidden bg-espresso text-cream">
       {/* Canvas media (foto + eventuale video) in un layer parallax unico */}
       <div ref={mediaRef} className="absolute inset-0">
         {/* Layer profondità puntatore: mediaRef è già owner di clip/scale del
@@ -619,8 +619,10 @@ export default function HeroCinematic() {
           >
             <a href="#recensioni" className="tap-target flex items-center gap-2 hover:opacity-90">
               <span className="flex gap-0.5">
+                {/* Oro come tutte le stelle del voto; qui la tacca chiara
+                    della rampa, perché il fondo è espresso. */}
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 text-red-soft" />
+                  <Star key={i} className="h-4 w-4 text-gold-light" />
                 ))}
               </span>
               <span className="text-sm font-semibold text-cream">

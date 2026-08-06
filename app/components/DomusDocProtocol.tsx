@@ -286,11 +286,14 @@ export default function DomusDocProtocol({
               {/* Intro */}
               <div>
                 {/* Sigillo D.O.C. — firma visiva del protocollo: il cerchio è un
-                    tratto SVG che si "stampa" all'ingresso (senza JS: completo). */}
+                    tratto SVG che si "stampa" all'ingresso (senza JS: completo).
+                    Poi la luce lo prende: un lampo che gira intorno al sigillo
+                    (rif. _refs/aurelia, vedi docs/effetti-reference.md §2.6). */}
                 <div
                   data-doc-seal
-                  className="relative mb-6 flex h-16 w-16 flex-col items-center justify-center text-red"
+                  className="dt-docseal relative mb-6 flex h-16 w-16 flex-col items-center justify-center text-red"
                 >
+                  <span aria-hidden className="dt-docseal_flash" />
                   <svg aria-hidden viewBox="0 0 64 64" className="absolute inset-0 h-full w-full -rotate-90">
                     <circle ref={sealRef} cx="32" cy="32" r="30" fill="none" stroke="currentColor" strokeWidth="2" />
                   </svg>
