@@ -78,14 +78,20 @@
      gli sta accanto (misurato in Contatti: 10 righe, 1289px). Lì la misura
      giusta è d3. Un titolo grande dentro una colonna stretta non legge come
      "editoriale": legge come un errore di impaginazione. */
-  --text-d1: clamp(3.4rem, 11vw, 13rem);
-  --text-d1--line-height: 0.92;
-  --text-d2: clamp(2.9rem, 7.6vw, 9.5rem);
-  --text-d2--line-height: 0.94;
-  --text-d3: clamp(2.2rem, 5vw, 6rem);
-  --text-d3--line-height: 0.98;
-  --text-d4: clamp(1.7rem, 3vw, 3.4rem);
-  --text-d4--line-height: 1.05;
+  /* SECONDO GIRO (2026-08-06): la cliente ha chiesto di ABBASSARE tutto quel
+     che era stato ingrandito. La scala di prima (d2 a 7,6vw = 146px su un
+     1920) portava le teste di capitolo a 3-4 righe e le faceva dominare la
+     sezione che dovevano introdurre. Qui il vw scende di circa un terzo: si
+     resta molto sopra i 48px fissi di partenza — il difetto segnalato per
+     primo — senza che il titolo diventi il contenuto. */
+  --text-d1: clamp(2.9rem, 7vw, 8rem);
+  --text-d1--line-height: 0.94;
+  --text-d2: clamp(2.3rem, 4.8vw, 6rem);
+  --text-d2--line-height: 0.96;
+  --text-d3: clamp(1.8rem, 3.2vw, 4rem);
+  --text-d3--line-height: 1;
+  --text-d4: clamp(1.5rem, 2.2vw, 2.6rem);
+  --text-d4--line-height: 1.08;
 
   /* Motion — stesso vocabolario dei token GSAP in app/lib/motion/gsap.ts */
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
@@ -597,7 +603,16 @@ html[data-surfaceflow] body {
   background-color: transparent;
   background-image: none;
 }
-html[data-surfaceflow] [data-surface] {
+/* SOLO `data-tone`, MAI `data-surface`. Sono due cose diverse e averle confuse
+   è costato caro: `data-surface` esiste da prima (app/lib/ui/surface.ts), vale
+   "dark"/"light" e lo leggono header e ThreadNav per virare il proprio colore.
+   Marcando anche le tappe del flusso con lo stesso attributo, questa regola
+   ha tolto lo sfondo GRAFITE al footer — testo crema su superficie crema,
+   cioè un footer invisibile — e l'espresso all'hero.
+   Stessa causa per la CUPOLA: il suo arco è un border-radius sul PROPRIO
+   fondo, e senza fondo l'arco sparisce lasciando una riga dritta. Chi è una
+   tappa ma deve continuare a dipingersi da sé usa `data-tone-keep`. */
+html[data-surfaceflow] [data-tone] {
   background-color: transparent;
   background-image: none;
 }
@@ -2106,7 +2121,7 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
    SCALA DISPLAY + PRIMITIVE ORIZZONTALI (2026-08-06)
    Sezione unica per i tre pezzi nuovi: la classe di supporto della scala
    tipografica (token in @theme, in cima al file), la rotaia generica
-   HorizontalRail e il tralcio d'angolo FioreCorner.
+   HorizontalRail.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ---------- .dt-kinetic_line — l'eco tipografica di chiusura ----------
@@ -2131,8 +2146,11 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
    utility Tailwind. Per rimetterci sopra un'interlinea diversa serve il
    prefisso importante: `leading-[1.05]` non vince, `!leading-[1.05]` sì. */
 .display-tight {
-  line-height: 0.92;
-  letter-spacing: -0.024em;
+  /* 0.96 e non 0.92: l'interlinea compattissima serve alle misure enormi.
+     Con la scala abbassata del secondo giro, 0.92 faceva toccare le
+     ascendenti della riga sotto alle discendenti di quella sopra. */
+  line-height: 0.96;
+  letter-spacing: -0.02em;
 }
 
 /* ---------- .dt-rail — la rotaia orizzontale generica (HorizontalRail.tsx) ----------
@@ -2191,17 +2209,3 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   width: 118%;
 }
 
-/* ---------- .dt-fiore — il tralcio d'angolo (FioreCorner.tsx) ----------
-   Taglia di default: la decorazione deve leggersi come un margine disegnato,
-   non come un'illustrazione. Per cambiarla serve il prefisso importante
-   (regola unlayered del repo): `!w-[28vw]`.
-   Sotto lg non esiste (lo dice la classe `hidden lg:block` del componente):
-   in colonna stretta un tralcio d'angolo finisce sempre sotto il testo. */
-.dt-fiore {
-  width: clamp(9rem, 20vw, 22rem);
-}
-.dt-fiore svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}

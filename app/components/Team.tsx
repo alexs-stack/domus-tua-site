@@ -118,7 +118,7 @@ export default function Team() {
   const c = copy[locale];
 
   return (
-    <section id="chi-siamo" data-surface="cream" className="relative bg-cream">
+    <section id="chi-siamo" data-tone="cream" className="relative bg-cream">
       {/* Atmosfera e angolo vivono sull'INTRO, non sull'intera sezione: i
           pannelli opachi a piena pagina di TeamTrail coprirebbero qualsiasi
           decoro ancorato al fondo della sezione. */}

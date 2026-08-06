@@ -19,13 +19,22 @@
 
    COSA FA. Come era-residence (§1.6 del dossier: `initThemeChange`, le strip
    invisibili `.hero_themes_light`, il colore che cambia PRIMA del bordo), la
-   pagina ha UNA superficie sola: le sezioni marcate `data-surface` diventano
+   pagina ha UNA superficie sola: le sezioni marcate `data-tone` diventano
    trasparenti e il colore di fondo interpola con lo scroll, cominciando
    ~45svh prima della giuntura. Il bloom diventa uno solo, ancorato al
    VIEWPORT, quindi non riparte mai da nessun bordo.
 
    Risultato: i confini colore→colore non esistono più — non sono nascosti
    meglio, proprio non ci sono.
+
+   DUE ATTRIBUTI, NON UNO. `data-tone="cream|cream-deep|paper"` = la sezione
+   è una tappa E smette di dipingersi. `data-tone-keep` = è una tappa ma
+   continua a dipingersi da sé, perché la sua FORMA è la transizione (la
+   cupola di HorizonStory: l'arco è un border-radius sul suo stesso fondo,
+   toglierle il fondo cancella l'arco e lascia una riga dritta).
+   Nessuno dei due è `data-surface`: quello esiste da prima, vale
+   "dark"/"light" e lo leggono header e ThreadNav. Averli confusi ha tolto lo
+   sfondo grafite al footer — testo crema su superficie crema.
 
    PROGRESSIVE ENHANCEMENT. Senza JS l'attributo `data-surfaceflow` non
    arriva, le `.bg-*` restano quelle di sempre e la pagina è identica a
@@ -71,7 +80,7 @@ export default function SurfaceFlow() {
 
   useGSAP(() => {
     const root = document.documentElement;
-    const marks = Array.from(document.querySelectorAll<HTMLElement>("[data-surface]"));
+    const marks = Array.from(document.querySelectorAll<HTMLElement>("[data-tone], [data-tone-keep]"));
     if (marks.length < 2) return;
 
     const cs = getComputedStyle(root);
@@ -81,7 +90,8 @@ export default function SurfaceFlow() {
     const measure = () => {
       stops = marks
         .map((el) => {
-          const rgb = parse(cs.getPropertyValue(`--color-${el.dataset.surface}`));
+          const tone = el.dataset.tone ?? el.dataset.toneKeep;
+          const rgb = parse(cs.getPropertyValue(`--color-${tone}`));
           if (!rgb) return null;
           return { top: el.getBoundingClientRect().top + window.scrollY, rgb };
         })

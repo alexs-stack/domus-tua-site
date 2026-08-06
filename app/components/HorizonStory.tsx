@@ -286,7 +286,7 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
           .bg-cream (bloom dall'alto) riparte a ogni elemento che porta la classe,
           e due superfici separate creavano una linea d'ombra al confine. Con la
           cupola come wrapper la pagina che sale è davvero una sola. */}
-      <div data-surface="cream" className="dt-dome relative z-10 -mt-[60svh] bg-cream">
+      <div data-tone-keep="cream" className="dt-dome relative z-10 -mt-[60svh] bg-cream">
         {/* Atto 2 — l'intro sotto l'arco. Il titolo curvato è decorativo
             (aria-hidden): il testo leggibile vive nell'h2 sr-only. */}
         <div ref={domeRef} className="mx-auto max-w-[1600px] px-5 pb-6 pt-[16svh] sm:px-8">

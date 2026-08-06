@@ -51,7 +51,7 @@ export default function KineticStrip({ className = "", surface }: Props) {
   );
 
   return (
-    <div ref={ref} aria-hidden data-surface={surface} className={`overflow-hidden py-6 sm:py-10 ${className}`}>
+    <div ref={ref} aria-hidden data-tone={surface} className={`overflow-hidden py-6 sm:py-10 ${className}`}>
       {/* LA FRASE STA NEL CSS, NON NEL DOM (2026-08-06).
           Prima era un nodo di testo, e axe la misurava: inchiostro al 7% su
           crema fa 1,09:1, cioè una violazione di contrasto seria — la suite

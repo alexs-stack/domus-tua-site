@@ -7,7 +7,7 @@ import Reveal from "./Reveal";
 import CharFlip from "./motion/CharFlip";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
-import FioreCorner from "./motion/FioreCorner";
+import Fioritura from "./motion/Fioritura";
 import HorizontalRail from "./motion/HorizontalRail";
 // La distorsione liquida usa WebGL (ogl): il modulo arriva solo quando il componente entra in
 // scena, e HoverDistort stesso non inizializza niente su mobile, con reduced motion o senza
@@ -292,7 +292,7 @@ export default function Services() {
   );
 
   return (
-    <section ref={rootRef} id="servizi" data-surface="cream" className="relative bg-cream">
+    <section ref={rootRef} id="servizi" data-tone="cream" className="relative bg-cream">
       {/* Aria: bagliori lenti dietro il nastro dei servizi */}
       <Atmosphere glow />
 
@@ -453,7 +453,7 @@ export default function Services() {
               il tralcio si vede sopra la fotografia invece di sparirci dietro.
               Opacità 0.5 perché il fondo è una foto velata di scuro: su crema
               il tetto sarebbe 0.40. */}
-          <FioreCorner corner="br" seed={2} drift="y" className="bottom-8 right-6" opacity={0.5} />
+          <Fioritura variant="corner-br" palette="dark" className="absolute bottom-6 right-6 z-10 hidden h-[28vh] w-[13vw] lg:block" />
         </div>
 
         {/* Protocollo Domus D.O.C. */}

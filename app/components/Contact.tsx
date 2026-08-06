@@ -427,7 +427,7 @@ export default function Contact({
   }
 
   return (
-    <section id="contatti" data-surface="cream-deep" className="relative bg-cream-deep text-ink">
+    <section id="contatti" data-tone="cream-deep" className="relative bg-cream-deep text-ink">
       <Atmosphere glow />
       {/* Angolo fiorito (solo desktop): il congedo del filo botanico che
           attraversa la home. Scudo overflow: i tralci sbordano senza scrollbar. */}

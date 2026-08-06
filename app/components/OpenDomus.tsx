@@ -166,7 +166,7 @@ export default function OpenDomus() {
   );
 
   return (
-    <section id="open-domus" data-surface="paper" className="relative overflow-hidden bg-paper">
+    <section id="open-domus" data-tone="paper" className="relative overflow-hidden bg-paper">
       {/* Coni d'ombra obliqui: bg-paper è la campitura più piatta della home e
           senza di questi il format esclusivo poggia sul nulla.
           Rif. _refs/aurelia (MIT) — vedi docs/effetti-reference.md §2.6. */}

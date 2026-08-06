@@ -169,7 +169,7 @@ export default function Social() {
   );
 
   return (
-    <section ref={sectionRef} data-surface="cream" className="bg-cream">
+    <section ref={sectionRef} data-tone="cream" className="bg-cream">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         {/* La testa cambia impianto a seconda di cosa la accompagna. Col feed
             iframe resta la vecchia coppia testo|widget. SENZA feed il racconto

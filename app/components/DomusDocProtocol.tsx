@@ -5,7 +5,7 @@ import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
 import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
-import FioreCorner from "./motion/FioreCorner";
+import Fioritura from "./motion/Fioritura";
 import { SegnoDomus, SegnoDomusBadge, SegnoTick } from "./BrandMotif";
 import { ArrowUpRight, ArrowRight, Star } from "./Icons";
 import { Cta } from "./primitives/Cta";
@@ -274,7 +274,7 @@ export default function DomusDocProtocol({
   );
 
   return (
-    <section ref={rootRef} id={id} data-surface={tone} className={bg}>
+    <section ref={rootRef} id={id} data-tone={tone} className={bg}>
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         {/* `relative` sul Reveal: è il blocco contenitore del tralcio qui sotto.
             Senza, l'ancoraggio dipenderebbe dal `transform` che .reveal si porta
@@ -293,7 +293,7 @@ export default function DomusDocProtocol({
               L'offset negativo è verticale soltanto: uno orizzontale, sotto i
               1290px, spingerebbe il tralcio oltre il bordo della finestra e si
               porterebbe dietro una barra di scorrimento. */}
-          <FioreCorner corner="tr" seed={0} drift="x" className="-top-44 -right-6 !w-[13rem]" />
+          <Fioritura variant="corner-tr" className="absolute -top-40 -right-6 hidden h-[26vh] w-[12vw] lg:block" />
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
             {/* watermark motif: lenta deriva parallax dentro la card (profondità) */}
             <div className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>

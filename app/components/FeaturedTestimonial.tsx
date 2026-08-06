@@ -6,7 +6,7 @@ import Reveal from "./Reveal";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
-import FioreCorner from "./motion/FioreCorner";
+import Fioritura from "./motion/Fioritura";
 import { Star, Play } from "./Icons";
 import { testimonialVideo, youtubeWatch } from "../lib/videos";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -185,7 +185,7 @@ export default function FeaturedTestimonial(props: Props) {
   const { quote, author, context, image, alt, videoHref } = { ...defaults, ...props };
 
   return (
-    <section data-surface="paper" className="relative bg-paper">
+    <section data-tone="paper" className="relative bg-paper">
       {/* LA LASTRA — la fotografia non è più una colonna dentro una card: è una
           banda a tutta larghezza con la citazione sopra, in crema.
           Il `py` esterno NON è un ripensamento: la superficie continua deve
@@ -314,7 +314,7 @@ export default function FeaturedTestimonial(props: Props) {
           Misurato: finisce 30px sopra l'occhiello, quindi non sta su un testo.
           0.40 è il massimo che la regola concede sul crema, e sotto quella
           soglia sul crema chiaro il tralcio sparisce. */}
-      <FioreCorner corner="tl" seed={0} drift="y" opacity={0.4} className="left-[1%] -top-6 !w-[12rem]" />
+      <Fioritura variant="corner-tl" className="absolute left-[1%] -top-4 hidden h-[24vh] w-[11vw] lg:block" />
     </section>
   );
 }

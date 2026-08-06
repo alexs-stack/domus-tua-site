@@ -5,7 +5,7 @@ import Reveal from "./Reveal";
 import Atmosphere from "./motion/Atmosphere";
 import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
-import FioreCorner from "./motion/FioreCorner";
+import Fioritura from "./motion/Fioritura";
 import { Cta } from "./primitives/Cta";
 import { Play } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -243,7 +243,7 @@ const coverR = (w: number, h: number) => Math.ceil(Math.hypot(w / 2, h / 2)) + 4
 /* Le due metà d'atto: la misura del riferimento (era-residence §2) portata da
    6vw a 6.4vw e con un tetto molto più alto — a 1920 il titolo passa da 115px
    a 123px, a 3440 da 86px (era già al massimo) a 240px. */
-const HALF = "text-[clamp(2.4rem,6.4vw,7.5rem)]";
+const HALF = "text-[clamp(2.2rem,5vw,5.4rem)]";
 
 /* IL VELO DEI PANNELLI. Sta in HTML e non dentro la maschera SVG di
    proposito: la maschera parte CHIUSA, e un velo che si aprisse insieme alla
@@ -383,7 +383,7 @@ export default function Method() {
   );
 
   return (
-    <section ref={rootRef} id="metodo" data-surface="cream-deep" className="relative overflow-hidden bg-cream-deep text-ink">
+    <section ref={rootRef} id="metodo" data-tone="cream-deep" className="relative overflow-hidden bg-cream-deep text-ink">
       {/* Aria: il nome del metodo in filigrana + bagliori caldi. */}
       <Atmosphere word="Metodo Domus Tua" glow drift={-1} wordClassName="right-[1%] top-[2.5%] text-[8.5vw]" />
       <div className="relative mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
@@ -545,12 +545,10 @@ export default function Method() {
                         parola. Opacità 0.5 perché il fondo è fotografia
                         velata di scuro — su crema il tetto sarebbe 0.40. */}
                     {i === 1 ? (
-                      <FioreCorner
-                        corner="br"
-                        seed={1}
-                        drift="y"
-                        opacity={0.5}
-                        className="bottom-5 right-6 z-[15] !w-[11rem]"
+                      <Fioritura
+                        variant="corner-br"
+                        palette="dark"
+                        className="absolute bottom-2 right-4 z-[15] hidden h-[26vh] w-[12vw] lg:block"
                       />
                     ) : null}
 

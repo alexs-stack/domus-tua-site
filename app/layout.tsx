@@ -164,7 +164,7 @@ export default function RootLayout({
         <div className="grain" aria-hidden />
         <SmoothScroll />
         {/* La superficie continua: si accende solo dove ci sono almeno due
-            tappe `data-surface` (cioè in home), altrove non fa nulla. */}
+            tappe `data-tone` (cioè in home), altrove non fa nulla. */}
         <SurfaceFlow />
         <PreloaderMount />
         <LocaleProvider>

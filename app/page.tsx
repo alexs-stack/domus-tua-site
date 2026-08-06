@@ -81,12 +81,12 @@ export default function Home() {
         <Services />
         <ToneShift from="cream" to="paper" depth="19svh" />
         <FeaturedTestimonial />
-        <div data-surface="paper" className="bg-paper">
+        <div data-tone="paper" className="bg-paper">
           <SectionDivider tone="paper" />
         </div>
         <ToneShift from="paper" to="cream" depth="24svh" />
         <Social />
-        <div data-surface="cream" className="bg-cream">
+        <div data-tone="cream" className="bg-cream">
           <SectionDivider tone="cream" />
         </div>
         <Team />
