@@ -120,6 +120,53 @@ export default function FeaturedTestimonial(props: Props) {
             0.55
           );
         }
+
+        /* PARALLASSE DA PUNTATORE A LENTE LUNGA.
+           Rif. _refs/three-skull — vedi docs/effetti-reference.md §2.5.
+           Due piani che TRASLANO, mai che ruotano: il tilt su una card
+           editoriale con dentro una citazione lunga la fa "ondeggiare" e il
+           testo diventa faticoso. La traslazione dà profondità senza spostare
+           niente di leggibile.
+           Quote fisse: 5% per la fotografia (piano lontano), 3% in senso
+           CONTRARIO per la virgoletta (piano vicino). È l'opposizione a fare
+           la profondità, non l'ampiezza.
+           quickTo = smorzamento critico: il piano insegue il puntatore senza
+           rimbalzare e senza creare una tween nuova a ogni mousemove. */
+        const fine = window.matchMedia("(min-width: 1024px) and (pointer: fine)");
+        if (fine.matches) {
+          const photo = card.querySelector<HTMLElement>("[data-ft-photo]");
+          const glyph = glyphRef.current;
+          const set = (el: HTMLElement | null, amt: number) =>
+            el
+              ? {
+                  x: gsap.quickTo(el, "x", { duration: 0.7, ease: "power3" }),
+                  y: gsap.quickTo(el, "y", { duration: 0.7, ease: "power3" }),
+                  amt,
+                }
+              : null;
+          const planes = [set(photo, 0.05), set(glyph, -0.03)].filter(Boolean) as {
+            x: gsap.QuickToFunc;
+            y: gsap.QuickToFunc;
+            amt: number;
+          }[];
+          const onMove = (e: PointerEvent) => {
+            const r = card.getBoundingClientRect();
+            // Bersaglio fisso al centro della card: normalizzato -1..1.
+            const nx = (e.clientX - r.left) / r.width - 0.5;
+            const ny = (e.clientY - r.top) / r.height - 0.5;
+            planes.forEach((p) => {
+              p.x(nx * r.width * p.amt);
+              p.y(ny * r.height * p.amt);
+            });
+          };
+          const onLeave = () => planes.forEach((p) => (p.x(0), p.y(0)));
+          card.addEventListener("pointermove", onMove);
+          card.addEventListener("pointerleave", onLeave);
+          return () => {
+            card.removeEventListener("pointermove", onMove);
+            card.removeEventListener("pointerleave", onLeave);
+          };
+        }
       });
     },
     { scope: cardRef }
@@ -197,7 +244,11 @@ export default function FeaturedTestimonial(props: Props) {
                 Parallax dentro): dentro la maschera la foto sovradimensionata
                 scorre più lenta. Gradiente e play restano fissi, fuori. */}
             <div className="relative min-h-[280px] overflow-hidden lg:min-h-full">
+              {/* data-ft-photo: il piano lontano della parallasse da puntatore.
+                  Sta DENTRO la maschera e FUORI dal Parallax di scroll, così i
+                  due movimenti non si contendono la stessa transform. */}
               <MaskReveal from="right" zoom={1.1} className="absolute inset-0" innerClassName="absolute inset-0">
+                <div data-ft-photo className="absolute inset-0">
                 <Parallax speed={0.12} scale={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
                   <Image
                     src={image}
@@ -207,6 +258,7 @@ export default function FeaturedTestimonial(props: Props) {
                     className="photo-warm object-cover object-center"
                   />
                 </Parallax>
+                </div>
               </MaskReveal>
               <span className="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent lg:bg-gradient-to-l" />
               <a
