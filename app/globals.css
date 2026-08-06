@@ -797,6 +797,69 @@ html[data-preloader] .dt-pre-char {
     36.04% 30.79%
   );
 }
+/* ---------- ToneShift: la cucitura fra due colori di fondo ----------
+   Vedi app/components/motion/ToneShift.tsx. Il colore in arrivo sale dal
+   basso dentro la sagoma dell'arco (la stessa del preloader e del sipario)
+   e si allarga finché le sue gambe superano il viewport. */
+.dt-toneshift {
+  position: relative;
+  /* Alto quanto basta perché la porta si legga come porta: sotto i ~160px il
+     semicerchio non ha spazio per mostrarsi e resta solo un colore che sale.
+     Sopra i 380px il passaggio comincia a sembrare una sezione vuota. */
+  height: clamp(160px, 34svh, 380px);
+  overflow: hidden;
+  /* CONTINUARE LA MESSA A TERRA. .bg-cream e .bg-cream-deep chiudono con
+     `linear-gradient(180deg, transparent 64%, rgba(64,52,44,0.075))`: l'ultimo
+     pixel di quelle sezioni è quindi ~15/canale più scuro del tono dichiarato.
+     Un blocco che partisse dal tono puro rimetterebbe esattamente il taglio
+     che deve togliere (misurato: ΔRGB 40-42 sul bordo). Qui la messa a terra
+     riparte dal suo valore pieno e si scioglie: la giuntura sparisce.
+     --ts-shade vale 0 quando sopra c'è .bg-paper, che quella coda non ce l'ha. */
+  background:
+    linear-gradient(180deg, rgba(64, 52, 44, var(--ts-shade, 0)), rgba(64, 52, 44, 0) 55%),
+    linear-gradient(to bottom, var(--ts-from), var(--ts-to));
+}
+.dt-toneshift_in {
+  position: absolute;
+  inset: 0;
+  /* AGGANCIARE IL BLOOM DELLA SEZIONE CHE ARRIVA. .bg-cream/.bg-cream-deep
+     aprono con una luce quasi bianca dall'alto: il loro primo pixel è più
+     chiaro del tono dichiarato. Un pannello piatto lasciava una giuntura sul
+     bordo basso (misurato: ΔRGB 17). Qui la stessa luce è ancorata SOTTO il
+     blocco, così il pannello arriva al confine già alla lucentezza giusta. */
+  background:
+    radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
+    var(--ts-to);
+  /* Il pannello esiste solo quando JS può animarlo: da fermo coprirebbe la
+     sfumatura con una campitura piatta e rimetterebbe il taglio in alto. */
+  opacity: 0;
+}
+.dt-toneshift[data-on] {
+  background:
+    linear-gradient(180deg, rgba(64, 52, 44, var(--ts-shade, 0)), rgba(64, 52, 44, 0) 55%),
+    var(--ts-from);
+}
+.dt-toneshift[data-on] .dt-toneshift_in {
+  opacity: 1;
+}
+/* L'ARCO PIENO (560×5600): semicerchio di raggio 280 sopra due gambe lunghe.
+   I punti di controllo sono 0.5523×r = 154.64, l'approssimazione cubica
+   standard del quarto di cerchio: con valori arrotondati la spalla dell'arco
+   si appiattirebbe visibilmente alle larghezze grandi.
+   È il complemento della maschera di .dt-arch-mask, che ritaglia il BUCO
+   ad arco; qui serve la sagoma piena. */
+.dt-toneshift[data-on="arch"] .dt-toneshift_in {
+  --arch-w: 26vw;
+  --arch-y: 34svh;
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='560' height='5600' viewBox='0 0 560 5600'><path d='M0 5600V280C0 125.36 125.36 0 280 0C434.64 0 560 125.36 560 280V5600Z' fill='white'/></svg>");
+  mask-size: var(--arch-w) calc(var(--arch-w) * (5600 / 560));
+  mask-position: center var(--arch-y);
+  mask-repeat: no-repeat;
+}
+.dt-toneshift[data-live] .dt-toneshift_in {
+  will-change: mask-position, mask-size, clip-path;
+}
+
 /* ---------- Le cinque stelle: ORO, non fotografie (2026-08-06) ----------
    Le tessere non portano più foto ritagliate: la stella a 5 punte tagliava i
    volti sulle punte e lasciava le foto in letterbox. Ora le cinque stelle

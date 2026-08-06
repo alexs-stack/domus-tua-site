@@ -18,6 +18,7 @@ import WhatsAppFloat from "./components/WhatsAppFloat";
 import SectionDivider from "./components/SectionDivider";
 import KineticStrip from "./components/motion/KineticStrip";
 import ThreadNav from "./components/motion/ThreadNav";
+import ToneShift from "./components/motion/ToneShift";
 
 export const metadata: Metadata = {
   title: {
@@ -54,15 +55,27 @@ export default function Home() {
         {/* Il momento video della home vive nel muro delle voci (HorizonStory,
             atto 4): la vecchia SocialVideoWall è stata ritirata per non
             mostrare due volte gli stessi video. */}
+        {/* "Due percorsi" apre e chiude su FOTOGRAFIE a tutta pagina, non su
+            un colore piatto: un ToneShift ai suoi confini accosterebbe una
+            campitura a un'immagine (misurato: ΔRGB 263 e 563). Lì la
+            transizione dovrà nascere dentro la sezione stessa. */}
         <Paths />
         <Method />
+        {/* Da qui in giù ogni cambio di tono è un PASSAGGIO, non un bordo: il
+            colore in arrivo sale dal basso dentro l'arco e si allarga finché
+            copre (ToneShift). */}
+        <ToneShift from="cream-deep" to="paper" />
         <OpenDomus />
+        <ToneShift from="paper" to="cream-deep" />
         <DomusDocProtocol tone="cream-deep" />
+        <ToneShift from="cream-deep" to="cream" />
         <Services />
+        <ToneShift from="cream" to="paper" />
         <FeaturedTestimonial />
         <div className="bg-paper">
           <SectionDivider tone="paper" />
         </div>
+        <ToneShift from="paper" to="cream" />
         <Social />
         <div className="bg-cream">
           <SectionDivider tone="cream" />
