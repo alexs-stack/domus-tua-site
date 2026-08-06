@@ -175,7 +175,7 @@ Solo queste. Tutto il resto è fatto, o è configurazione.
    ed entrambe partono da una conferma dell'agenzia: togliere i nomi dalla fonte unica e
    rifare le foto di gruppo. Nessuna delle due è una modifica che si possa fare "per
    deduzione" — sono persone vere su una pagina pubblica
-   ([client-assets-needed.md](client-assets-needed.md)).
+   ([da-chiedere-alla-cliente.md](da-chiedere-alla-cliente.md)).
 5. **Video dell'hero**: facoltativo. Senza, resta il poster, che è una foto reale.
 6. **Cutover del dominio**: non toccato, di proposito.
 

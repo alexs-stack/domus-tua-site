@@ -18,6 +18,7 @@ import WhatsAppFloat from "./components/WhatsAppFloat";
 import SectionDivider from "./components/SectionDivider";
 import KineticStrip from "./components/motion/KineticStrip";
 import ThreadNav from "./components/motion/ThreadNav";
+import ToneShift from "./components/motion/ToneShift";
 
 export const metadata: Metadata = {
   title: {
@@ -54,15 +55,35 @@ export default function Home() {
         {/* Il momento video della home vive nel muro delle voci (HorizonStory,
             atto 4): la vecchia SocialVideoWall è stata ritirata per non
             mostrare due volte gli stessi video. */}
+        {/* "Due percorsi" apre e chiude su FOTOGRAFIE a tutta pagina, non su
+            un colore piatto: un ToneShift ai suoi confini accosterebbe una
+            campitura a un'immagine (misurato: ΔRGB 263 e 563). Lì la
+            transizione dovrà nascere dentro la sezione stessa. */}
         <Paths />
         <Method />
+        {/* Da qui in giù ogni cambio di tono è un PASSAGGIO, non un bordo — e
+            ogni passaggio ha un gesto SUO. Cinque cuciture identiche non sono
+            un linguaggio: alla terza l'occhio le riconosce e le salta.
+            Ciascuna variante sta dove ha un motivo: il telescopio annuncia il
+            format che arriva dalla profondità, l'iride ha la precisione del
+            protocollo, la nebbia scioglie il passaggio verso il racconto
+            intimo, la tenda anticipa il nastro orizzontale di Seguici. */}
+        <ToneShift from="cream-deep" to="paper" variant="telescopio" />
         <OpenDomus />
+        <ToneShift from="paper" to="cream-deep" variant="iride" />
         <DomusDocProtocol tone="cream-deep" />
+        {/* NIENTE cucitura fra D.O.C. e Servizi: cream-deep e cream distano
+            ΔRGB 11, cioè sono lo stesso colore per l'occhio. Una transizione
+            fra due toni identici non nasconde uno stacco che non esiste — lo
+            INVENTA, e si nota proprio perché non serve. Le cuciture restano
+            dove il salto è reale (ΔRGB 61-72). */}
         <Services />
+        <ToneShift from="cream" to="paper" variant="nebbia" />
         <FeaturedTestimonial />
         <div className="bg-paper">
           <SectionDivider tone="paper" />
         </div>
+        <ToneShift from="paper" to="cream" variant="tenda" />
         <Social />
         <div className="bg-cream">
           <SectionDivider tone="cream" />

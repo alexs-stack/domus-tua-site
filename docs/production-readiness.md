@@ -6,14 +6,14 @@ Spuntare tutto prima del go-live. Documenti di supporto indicati in ogni sezione
 Riferimenti: `docs/env-and-deploy.md`, `docs/deployment-notes.md`,
 `docs/realsmart-integration-notes.md`, `docs/realsmart-field-mapping.md`,
 `docs/forms-crm-notes.md`, `docs/reviews-integration.md`,
-`docs/client-assets-needed.md`, `docs/content-replacement-checklist.md`,
+`docs/da-chiedere-alla-cliente.md`, `docs/content-replacement-checklist.md`,
 `docs/performance-notes.md`.
 
 ---
 
 ## 1. Asset reali (oggi DEMO)
 
-- [ ] Foto/volti reali al posto dei placeholder (vedi `docs/client-assets-needed.md` e MEMORY: banner YouTube = Raffaela, recensioni video).
+- [ ] Foto/volti reali al posto dei placeholder (vedi `docs/da-chiedere-alla-cliente.md` e MEMORY: banner YouTube = Raffaela, recensioni video).
 - [ ] Immobili reali dal feed RealSmart al posto del demo `app/lib/properties.ts`.
 - [ ] Logo/favicon definitivi (`app/favicon.ico`, `docs/logo-assets.md`).
 - [ ] Video hero finale e poster (vedi `docs/hero-video.md`); niente asset di lavoro nel repo.

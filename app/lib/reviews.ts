@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // ⚠️  DATI DEMO — DA SOSTITUIRE prima del "live".
 // Recensioni rappresentative a scopo di preview/presentazione, non reali.
-// Sorgente reale: widget Trustindex + profilo Google (vedi docs/client-assets-needed.md, Priorità 1).
+// Sorgente reale: widget Trustindex + profilo Google (vedi docs/da-chiedere-alla-cliente.md §4.6).
 // Non citare come testimonianze reali in demo col cliente.
 // ═══════════════════════════════════════════════════════════════════════════
 // DATI DEMO rappresentativi — da sostituire con recensioni reali Google/Trustindex.

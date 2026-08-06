@@ -447,9 +447,10 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
                     {c.revOf}
                   </span>
                 </p>
+                {/* Oro: è il voto, non il marchio (vedi globals.css) */}
                 <p className="mt-3 flex items-center gap-1.5" aria-hidden>
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-red" />
+                    <Star key={i} className="h-4 w-4 text-gold" />
                   ))}
                 </p>
                 <p className="mt-2 text-sm font-medium text-graphite">{c.revCount}</p>

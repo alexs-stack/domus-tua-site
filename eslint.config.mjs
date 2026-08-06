@@ -22,6 +22,9 @@ const eslintConfig = defineConfig([
     "playwright-report/**",
     // Materiale di studio (codice de-minificato di siti terzi), non del sito.
     "reverse-engineering/**",
+    // Repo di riferimento clonate per lo studio degli effetti: gitignorate,
+    // mai importate, mai spedite. Vanno fuori anche da lint e typecheck.
+    "_refs/**",
   ]),
   {
     // Test di browser: la `use()` delle fixture di Playwright non è un hook di React, ma la

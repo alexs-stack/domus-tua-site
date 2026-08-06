@@ -3,8 +3,14 @@
 /* ============================================================
    DOMUS TUA — DESIGN SYSTEM
    Editorial Luxury × fiducia locale. Palette: rosso / grigio / bianco caldo.
-   No oro, no blu. Didone Playfair Display (display, la stessa dell'hero) +
+   No blu. Didone Playfair Display (display, la stessa dell'hero) +
    Plus Jakarta Sans (UI).
+
+   ORO — eccezione unica e circoscritta (direttiva 2026-08-06). La regola
+   storica era "no oro"; resta valida ovunque tranne che per LE STELLE del
+   capitolo recensioni, dove l'oro non è decorazione ma il materiale proprio
+   della valutazione (le cinque stelle Google). Non usarlo per testo, bordi,
+   CTA o superfici: se serve calore, la strada è cream/sand, non l'oro.
    ============================================================ */
 
 @theme inline {
@@ -26,6 +32,14 @@
   /* Darks caldi (bordeaux/espresso) — profondità nelle sezioni scure, mai grigio/nero piatto */
   --color-espresso: #1c1512;
   --color-wine: #2a100f;
+
+  /* Oro delle stelle — SOLO il capitolo recensioni (vedi intestazione).
+     Rampa a quattro tappe: ombra, corpo, luce, speculare. Tirata verso il
+     caldo della carta (niente ottone verdastro, niente giallo acido). */
+  --color-gold-deep: #a9812a;
+  --color-gold: #c9a227;
+  --color-gold-light: #eed07a;
+  --color-gold-spec: #fff6d4;
 
   /* Fonts (provided by next/font on <html>). Un solo serif per tutto il sito:
      la didone dell'hero (rif. era-residence) è anche il display editoriale.
@@ -442,6 +456,31 @@ html[data-preloader] .dt-pre-char {
   }
 }
 
+/* ---------- Segno di apertura di un <details> ----------
+   Il segno Domus usato come indicatore di espansione: punta in GIÙ quando il pannello è
+   chiuso, torna in SU quando è aperto. Regola scritta a mano e non con la variante
+   `group-open:` di Tailwind perché quella, verificata in pagina, non generava alcuna
+   CSS: la classe finiva sull'elemento e non esisteva la regola corrispondente. Qui il
+   comportamento è esplicito e ispezionabile.
+   `rotate` (proprietà autonoma) e non `transform`: si compone senza azzerare le altre.
+
+   È la CHIUSURA a portare la rotazione, non l'apertura: scritta al contrario
+   (`base: 180deg` + `[open]: 0deg`) la regola di apertura veniva minificata in
+   `rotate: none` e — verificato in pagina — non vinceva mai sulla base, nonostante
+   specificità e ordine. Così invece esiste UNA sola dichiarazione: quando il pannello
+   si apre il selettore smette di applicarsi e il segno torna da solo a 0. */
+.dt-disclosure {
+  transition: rotate var(--dur-micro) var(--ease-domus);
+}
+details:not([open]) > summary .dt-disclosure {
+  rotate: 180deg;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-disclosure {
+    transition: none;
+  }
+}
+
 /* ---------- Utility: hairline ---------- */
 .hairline {
   background: linear-gradient(
@@ -462,14 +501,19 @@ html[data-preloader] .dt-pre-char {
    sulle utility di sfondo → nessuna modifica ai componenti.
    ============================================================ */
 
-/* Sezioni chiare: bloom di luce dall'alto (quasi-bianco) + velatura calda rossa in basso
-   a destra + leggera messa a terra in fondo → luce direzionale e volume, non tinta piatta. */
+/* Sezioni chiare: bloom di luce dall'alto (quasi-bianco) + velatura calda rossa
+   in basso a destra → luce direzionale e volume, non tinta piatta.
+
+   LA MESSA A TERRA È STATA TOLTA (2026-08-06, direttiva cliente). Era
+   `linear-gradient(180deg, transparent 64%, rgba(64,52,44,0.075))`: un'ombra
+   in fondo a OGNI sezione chiara. Presa da sola dava volume; messe in fila,
+   quelle ombre disegnavano una riga scura a ogni giunzione e lo scroll
+   leggeva come una pila di diapositive invece che come una pagina sola. */
 .bg-cream,
 .bg-cream-deep {
   background-image:
     radial-gradient(125% 82% at 50% -12%, rgba(255, 252, 244, 0.92), rgba(255, 252, 244, 0) 58%),
-    radial-gradient(92% 75% at 90% 116%, rgba(200, 40, 26, 0.08), transparent 62%),
-    linear-gradient(180deg, transparent 64%, rgba(64, 52, 44, 0.075));
+    radial-gradient(92% 75% at 90% 116%, rgba(200, 40, 26, 0.08), transparent 62%);
 }
 
 /* Carta (card e superfici in evidenza): solo luce morbida dall'alto, resta pulita e "alzata". */
@@ -783,8 +827,489 @@ html[data-preloader] .dt-pre-char {
     36.04% 30.79%
   );
 }
-.dt-starrev_tileclip {
+/* ---------- Open Domus: i coni d'ombra ----------
+   Rif. _refs/aurelia (MIT, Holtsetio). La scoperta utile della reference è
+   che i suoi "godray" NON sono fasci luminosi: il materiale è
+   `MeshBasicNodeMaterial({ color: 0x000000, opacity: 0.05 })` disegnato con
+   renderOrder -1. Sono VOLUMI D'OMBRA, e l'opacità fa tutto il lavoro:
+     offsetFactor = (1 - offset) * smoothstep(0.00, 0.04, offset)
+   cioè nulla al bordo, PICCO AL 4%, poi decadimento lineare fino a zero.
+
+   Qui il colore si ribalta perché il fondo è chiaro invece che nero: velature
+   di espresso a bassissima alpha in `multiply`. Il moltiplicatore finale
+   scende da 0.33 della reference a ~0.055, che è la stessa proporzione
+   rispetto al fondo su cui lavora. Il fade laterale quadratico diventa una
+   mask orizzontale.
+   Nessun canvas, nessun JS: tre span e un gradiente. */
+.dt-godray {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.dt-godray_beam {
+  position: absolute;
+  top: -12%;
+  bottom: -12%;
+  left: var(--gr-x);
+  width: var(--gr-w);
+  /* I fermi ricalcano la curva del riferimento: zero al bordo, picco al 4%,
+     poi la lunga discesa. Senza il picco così alto e così vicino al bordo il
+     cono legge come una banda uniforme. */
+  background: linear-gradient(
+    to bottom,
+    rgba(28, 21, 18, 0) 0%,
+    rgba(28, 21, 18, calc(0.085 * var(--gr-a, 1))) 4%,
+    rgba(28, 21, 18, calc(0.05 * var(--gr-a, 1))) 55%,
+    rgba(28, 21, 18, 0) 100%
+  );
+  /* Lo skew apre il fascio verso il basso: un rettangolo ruotato resterebbe
+     un rettangolo, e i coni della reference si allargano. */
+  transform: rotate(-8deg) skewX(6deg);
+  /* Fade laterale: i bordi verticali netti tradirebbero subito il rettangolo. */
+  mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent);
+  /* Sfocatura corta: a 18px il cono si diluiva sotto la soglia percettiva
+     (misurato: escursione 5/255 sul canale R, cioè niente). */
+  filter: blur(9px);
+}
+@media (max-width: 767px) {
+  /* Su schermo stretto tre coni obliqui diventano tre strisce sporche. */
+  .dt-godray_beam:nth-child(2) {
+    display: none;
+  }
+}
+
+/* ---------- Sigillo D.O.C.: il lampo ----------
+   Rif. _refs/aurelia (MIT, Holtsetio) — l'emissività della medusa:
+     pow(sin(phase + positionLocal.y) * 0.5 + 0.5, 10)
+   L'ESPONENTE 10 è tutto il punto: produce un duty cycle di circa il 20% —
+   buio per l'80% del ciclo, poi un colpo netto. È ciò che distingue "la luce
+   lo prende" da "una notifica che pulsa", ed è la ragione per cui una
+   sinusoide semplice (esponente 1) qui sarebbe sbagliata.
+   Il `+ positionLocal.y` dentro il seno fa VIAGGIARE il lampo lungo
+   l'oggetto: su un sigillo circolare il viaggio è una rotazione.
+   Ciclo di 5 s come nel riferimento (`time * 0.2 mod 1`).
+
+   I fermi qui sotto campionano la curva vera, non la approssimano a occhio:
+   p=0.05 → 0.015, 0.10 → 0.101, 0.15 → 0.368, 0.20 → 0.780, 0.25 → 1. */
+.dt-docseal_flash {
+  position: absolute;
+  inset: -8%;
+  border-radius: 50%;
+  /* Anello, non disco: senza questa maschera il gradiente conico è una
+     macchia che sborda dal sigillo. Ritagliato a corona, il lampo corre
+     SULLA circonferenza — è il tratto che si accende, non l'aria intorno. */
+  mask-image: radial-gradient(circle, transparent 54%, #000 63%, #000 84%, transparent 93%);
+  /* Rosso: nel riferimento l'emissività è moltiplicata per il colore proprio
+     dell'oggetto, e il sigillo è rosso. Un alone bianco lo farebbe sembrare
+     un badge di sistema invece del marchio che si accende. */
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(210, 10, 10, 0.8) 22deg,
+    rgba(210, 10, 10, 0) 58deg,
+    transparent 360deg
+  );
+  filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dt-docseal_flash {
+    animation:
+      dt-doc-flash 5s linear infinite,
+      dt-doc-travel 5s linear infinite;
+  }
+}
+@keyframes dt-doc-flash {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.015;
+  }
+  10% {
+    opacity: 0.101;
+  }
+  15% {
+    opacity: 0.368;
+  }
+  20% {
+    opacity: 0.78;
+  }
+  25% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.78;
+  }
+  35% {
+    opacity: 0.368;
+  }
+  40% {
+    opacity: 0.101;
+  }
+  45% {
+    opacity: 0.015;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes dt-doc-travel {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Seguici: la rotaia orizzontale ----------
+   Otto scatti che scorrono di lato mentre la pagina scende, con l'immagine
+   che pana dentro la cornice in senso contrario alla corsa (vedi Social.tsx).
+   Default = scroll orizzontale NATIVO con snap: sul touch trascinare è il
+   gesto atteso. [data-on] (≥1024 + motion ok, messo da JS) toglie lo scroll
+   nativo e passa il nastro a GSAP. */
+.dt-socialrail {
+  position: relative;
+  margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.dt-socialrail::-webkit-scrollbar {
+  display: none;
+}
+.dt-socialrail[data-on] {
+  overflow: hidden;
+  scroll-snap-type: none;
+}
+.dt-socialrail_track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: clamp(0.75rem, 1.6vw, 1.75rem);
+  /* Il nastro non parte incollato al bordo: un margine d'aria a sinistra dice
+     che c'è altro fuori campo. */
+  padding-inline: clamp(1.25rem, 5vw, 5rem);
+}
+.dt-socialrail_item {
+  flex: none;
+  scroll-snap-align: center;
+  /* Le quote disuguali sono il ritmo editoriale: allineate darebbero una
+     griglia coricata. */
+  transform: translateY(var(--lift, 0));
+  /* Sotto lg le larghezze in vw del ritmo desktop diventano francobolli. */
+  width: clamp(200px, 58vw, 320px);
+}
+@media (min-width: 1024px) {
+  .dt-socialrail_item {
+    width: var(--w);
+  }
+}
+.dt-socialrail_frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: clamp(0.9rem, 1.2vw, 1.5rem);
+  aspect-ratio: var(--ratio, 1 / 1);
+  box-shadow: var(--shadow-card);
+}
+/* Il pannello è più largo della cornice: è la corsa in cui l'immagine pana
+   senza mai scoprire un bordo. 118% = ±9% di gioco per lato, più del massimo
+   `depth` in gioco (9). */
+.dt-socialrail_pan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -9%;
+  width: 118%;
+}
+
+/* ---------- CharFlip: il reveal dei titoli (era-residence, animatore h) ----------
+   La prospettiva sta sul CONTENITORE: senza, il rotateY 90->0 di ogni
+   carattere collassa in uno schiacciamento orizzontale invece di girare. */
+.dt-cflip {
+  perspective: 800px;
+}
+.dt-cflip_c {
+  display: inline-block;
+  transform-style: preserve-3d;
+  /* backface nascosta: a meta rotazione il glifo speculare si intravede. */
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* ---------- ToneShift: le cuciture fra i colori di fondo ----------
+   Cinque confini, cinque gesti diversi. Vedi ToneShift.tsx per la mappa delle
+   reference. Comune a tutte: il blocco è GRANDE (62svh) perché una cucitura
+   corta torna a leggersi come un bordo, e da fermo (no-JS, reduced-motion) è
+   una sfumatura verticale piena fra i due toni — mai un taglio. */
+.dt-toneshift {
+  position: relative;
+  /* Corto: il passaggio deve cucire, non aggiungere una sezione vuota da
+     attraversare. A 62svh il colore nuovo restava in scena per mezzo schermo
+     senza piu niente da dire. */
+  height: clamp(190px, 34svh, 360px);
+  overflow: hidden;
+  background: linear-gradient(to bottom, var(--ts-from), var(--ts-to));
+}
+.dt-toneshift_in {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  /* Il bloom d'apertura della sezione che arriva, ancorato al bordo BASSO del
+     blocco: così il pannello raggiunge la giuntura già alla lucentezza giusta
+     e non lascia un salto (misurato: senza, DeltaRGB 17). */
+  background:
+    radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
+    var(--ts-to);
+  /* Esiste solo quando JS può animarlo: da fermo coprirebbe la sfumatura. */
+  opacity: 0;
+}
+.dt-toneshift[data-on] {
+  background: var(--ts-from);
+}
+.dt-toneshift[data-on] .dt-toneshift_in {
+  opacity: 1;
+}
+.dt-toneshift[data-live] .dt-toneshift_in,
+.dt-toneshift[data-live] /* Il soggetto del telescopio: arriva dalla profondita con i pannelli e si
+   dissolve a corsa quasi conclusa. L opacita e il minimo fra una salita e una
+   discesa, cioe un picco a meta strada: visibile nel passaggio, assente sia
+   prima che dopo. */
+.dt-toneshift_mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(70px, 9vw, 140px);
+  height: clamp(34px, 4.4vw, 68px);
+  margin-left: calc(clamp(70px, 9vw, 140px) / -2);
+  margin-top: calc(clamp(34px, 4.4vw, 68px) / -2);
+  color: var(--color-red);
+  transform: scale(calc(0.22 + 1.05 * var(--tsp, 0)));
+  opacity: min(calc(var(--tsp, 0) * 2.4), calc((1 - var(--tsp, 0)) * 3.4));
+  pointer-events: none;
+}
+.dt-toneshift_tel {
+  will-change: transform, clip-path;
+}
+
+/* --- arco (era-residence): l'arco ribassato della cupola che sale --- */
+.dt-toneshift[data-v=arco] .dt-toneshift_in {
+  height: calc(100% + 42svh);
+  border-top-left-radius: 50vw 22vh;
+  border-top-right-radius: 50vw 22vh;
+}
+
+/* --- nebbia: il bordo non esiste --- */
+.dt-toneshift[data-v=nebbia] .dt-toneshift_in {
+  height: calc(100% + 42svh);
+  /* Sfumatura alta il 34% del pannello: nessun contorno da percepire, quindi
+     nessuno stacco possibile. Il 34% è il massimo che, con l'eccedenza di
+     42svh, esce completamente sopra il bordo a fine corsa. */
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 34%);
+}
+
+/* --- tenda (era-residence): spazzata orizzontale --- */
+.dt-toneshift[data-v=tenda] .dt-toneshift_in {
+  width: 140%;
+  right: auto;
+  /* Due maschere in intersezione. Orizzontale: bordo di TESTA sfumato, perche
+     una linea verticale netta sarebbe soltanto un taglio girato di 90 gradi.
+     Verticale: il pannello svanisce verso l'alto, altrimenti appena la tenda
+     ha spazzato anche il bordo ALTO del blocco diventa il colore in arrivo e
+     non combacia piu con la sezione che finisce (misurato: DeltaRGB 62). */
+  /* Bordo di testa DIAGONALE, non verticale: inclinandolo il fondo del
+     pannello arriva prima della cima, quindi la giuntura inferiore e coperta
+     mentre in alto la spazzata e ancora in corso. */
+  mask-image:
+    linear-gradient(108deg, #000 0%, #000 72%, transparent 94%),
+    linear-gradient(to bottom, transparent 0%, transparent 14%, #000 66%);
+  mask-composite: intersect;
+}
+
+/* --- iride (FullscreenClipEffect): morph di clip-path a topologia costante.
+   I valori sono quelli esatti del riferimento (js/index.js:126-128):
+   inset(22% 39% round 23vw) -> inset(0% 0% round 0vw). L'opacità sale con il
+   morph perché là il pannello di partenza è una fotografia già visibile,
+   qui a progresso zero non deve esserci niente. --- */
+.dt-toneshift[data-v=iride] .dt-toneshift_in {
+  /* Quattro valori invece della scorciatoia a due: il lato BASSO resta
+     inchiodato a 0 perche la giuntura inferiore deve essere coperta da
+     subito. Gli altri tre partono dai valori esatti del riferimento. */
+  clip-path: inset(
+    calc(44% * (1 - var(--tsp, 0))) calc(39% * (1 - var(--tsp, 0))) 0%
+      calc(39% * (1 - var(--tsp, 0))) round calc(23vw * (1 - var(--tsp, 0)))
+  );
+  opacity: calc(var(--tsp, 0) * 1.7);
+}
+
+/* --- telescopio (telescope-zoom): pannelli a scale diverse che convergono
+   tutti a 1. Una sola custom property scritta per frame, N trasformazioni
+   derivate qui in calc(). --- */
+.dt-toneshift[data-v=telescopio] .dt-toneshift_in {
+  background: none;
+  opacity: 1;
+}
+/* Il soggetto del telescopio: arriva dalla profondita con i pannelli e si
+   dissolve a corsa quasi conclusa. L opacita e il minimo fra una salita e una
+   discesa, cioe un picco a meta strada: visibile nel passaggio, assente sia
+   prima che dopo. */
+.dt-toneshift_mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(70px, 9vw, 140px);
+  height: clamp(34px, 4.4vw, 68px);
+  margin-left: calc(clamp(70px, 9vw, 140px) / -2);
+  margin-top: calc(clamp(34px, 4.4vw, 68px) / -2);
+  color: var(--color-red);
+  transform: scale(calc(0.22 + 1.05 * var(--tsp, 0)));
+  opacity: min(calc(var(--tsp, 0) * 2.4), calc((1 - var(--tsp, 0)) * 3.4));
+  pointer-events: none;
+}
+.dt-toneshift_tel {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
+    var(--ts-to);
+  /* Origine in BASSO, non al centro: cosi i pannelli crescono dal bordo
+     inferiore e la giuntura con la sezione che arriva e coperta fin da
+     subito. Al centro lasciavano scoperto il fondo fino a corsa conclusa, e
+     li si vedeva il gradino. */
+  transform-origin: 50% 100%;
+  transform: scale(calc(var(--tel-s) + (1 - var(--tel-s)) * var(--tsp, 0)));
+  border-radius: calc(26vw * (1 - var(--tsp, 0)));
+  opacity: calc(var(--tsp, 0) * 1.6);
+}
+
+/* ---------- Le cinque stelle: ORO, non fotografie (2026-08-06) ----------
+   Le tessere non portano più foto ritagliate: la stella a 5 punte tagliava i
+   volti sulle punte e lasciava le foto in letterbox. Ora le cinque stelle
+   sono il segno pieno della valutazione — oro metallico, accese una alla
+   volta DAL CENTRO nel momento in cui la stella fotografica dell'intro si
+   posa nella tessera centrale, e percorse da un riflesso che viaggia lungo
+   la fila come luce su metallo.
+   Compositing: nessun `box-shadow` (la clip-path lo taglierebbe) e nessun
+   `filter` animato. L'alone è una stella gemella sfocata dietro il corpo:
+   si anima in opacity/scale, cioè solo su GPU. */
+.dt-starrev_star {
+  position: relative;
+  display: block;
+  /* 82%, non 100%: la stella a 5 punte tocca i bordi del suo riquadro (i
+     vertici orizzontali stanno a 2.45% e 97.55%), quindi a piena larghezza
+     le punte di due stelle adiacenti si sfiorano e la fila legge come una
+     banda continua. L'aria la deve fare la forma, non solo il gap. */
+  width: 82%;
+  aspect-ratio: 1 / 1;
+}
+/* Alone caldo dietro la stella: sborda quel tanto che basta a disegnare un
+   filo di luce sul bordo — la stella legge come medaglia coniata, non come
+   campitura piatta. */
+.dt-starrev_halo {
+  position: absolute;
+  inset: -5%;
   clip-path: var(--dt-star);
+  background: radial-gradient(
+    circle at 50% 44%,
+    var(--color-gold-spec) 0%,
+    var(--color-gold-light) 38%,
+    var(--color-gold) 62%,
+    rgba(201, 162, 39, 0) 80%
+  );
+  filter: blur(9px);
+  opacity: 0.5;
+}
+/* Corpo metallico: bande alternate chiaro/scuro = lettura "metallo", non
+   "giallo piatto". L'inclinazione a 158° tiene la luce in alto a sinistra,
+   coerente con l'illuminazione delle fotografie del sito. */
+.dt-starrev_gold {
+  position: absolute;
+  inset: 0;
+  clip-path: var(--dt-star);
+  background: linear-gradient(
+    158deg,
+    var(--color-gold-deep) 0%,
+    var(--color-gold-light) 12%,
+    var(--color-gold) 26%,
+    var(--color-gold-spec) 44%,
+    var(--color-gold) 56%,
+    /* Una sola banda scura, e tenuta alta: due bande d'ombra facevano virare
+       la metà inferiore della stella al marrone sulla carta calda. */ var(--color-gold-deep) 70%,
+    var(--color-gold-light) 86%,
+    #bb9430 100%
+  );
+}
+/* Riflesso speculare: banda inclinata che attraversa il corpo. Vive DENTRO
+   la clip del corpo, quindi non serve mascherarla a parte. */
+.dt-starrev_sweep {
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: 0;
+  width: 42%;
+  /* Ordine translate→rotate: lo stesso che compone GSAP sotto [data-on].
+     Invertirlo farebbe viaggiare la banda lungo l'asse inclinato invece che
+     per orizzontale, e il fallback CSS non combacerebbe più con la timeline. */
+  transform: translate3d(-160%, 0, 0) rotate(16deg);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 246, 212, 0) 0%,
+    rgba(255, 246, 212, 0.42) 38%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(255, 246, 212, 0.42) 62%,
+    rgba(255, 246, 212, 0) 100%
+  );
+  pointer-events: none;
+}
+/* Il riflesso è l'unica cosa che gira di continuo: la promuoviamo solo dove
+   serve, e solo quando la sezione è in scena (JS mette/toglie [data-lit]). */
+.dt-starrev[data-lit] .dt-starrev_sweep,
+.dt-starrev[data-lit] .dt-starrev_halo {
+  will-change: transform, opacity;
+}
+/* Senza [data-on] (mobile, reduced-motion, no-JS) il riflesso è CSS puro:
+   la fila resta viva anche dove la timeline scrubbata non esiste. */
+@media (prefers-reduced-motion: no-preference) {
+  .dt-starrev:not([data-on]) .dt-starrev_sweep {
+    animation: dt-star-sweep 5.4s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(1) .dt-starrev_sweep {
+    animation-delay: 0s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(2) .dt-starrev_sweep {
+    animation-delay: 0.14s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(3) .dt-starrev_sweep {
+    animation-delay: 0.28s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(4) .dt-starrev_sweep {
+    animation-delay: 0.42s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(5) .dt-starrev_sweep {
+    animation-delay: 0.56s;
+  }
+}
+@keyframes dt-star-sweep {
+  0% {
+    transform: translate3d(-160%, 0, 0) rotate(16deg);
+  }
+  /* La corsa occupa il primo 40% del ciclo: il resto è la pausa fra un
+     passaggio di luce e il successivo (il metallo deve respirare). */
+  40%,
+  100% {
+    transform: translate3d(420%, 0, 0) rotate(16deg);
+  }
 }
 /* Il continuo di scroll (grammatica dell'orizzonte): runway + schermo sticky.
    Lo scrub del morph vive su questa geometria; senza [data-on] i wrapper

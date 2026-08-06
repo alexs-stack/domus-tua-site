@@ -11,9 +11,10 @@
 // - Appare dopo il primo viewport (l'hero è scuro e va lasciato pulito).
 // - Etichette: SOLO stringhe già tradotte del dizionario nav + nome brand.
 // - Il fill anima solo transform (scaleY via quickSetter, zero layout).
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
 import { getLenis } from "./SmoothScroll";
+import { watchSurfaceTone } from "../../lib/ui/surface";
 import { SegnoDomus } from "../BrandMotif";
 import { useDict } from "../i18n/LocaleProvider";
 
@@ -140,6 +141,23 @@ export default function ThreadNav({
     else el.scrollIntoView({ behavior: "smooth" });
   };
 
+  /* IL FILO SOPRA LE SUPERFICI SCURE.
+     Il chrome sovrapposto — la parte di schermo sempre ferma e sempre
+     visibile — restava cieco ai cambi di superficie: sopra i pannelli di
+     "Due percorsi" o sopra il footer, traccia e etichette sparivano.
+     Il campione si prende a SINISTRA del binario, non al suo centro: al
+     centro elementFromPoint colpirebbe il binario stesso. Vedi lib/ui/surface
+     per il motivo per cui un IntersectionObserver qui non basta. */
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    return watchSurfaceTone(el, () => {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0) return null;
+      return { x: r.left - 28, y: r.top + r.height / 2 };
+    });
+  }, []);
+
   return (
     <nav
       ref={rootRef}
@@ -147,10 +165,10 @@ export default function ThreadNav({
       // opacity 0 inline: senza JS (o prima del primo scroll) il rail non esiste
       // visivamente; GSAP lo rivela. hidden sotto lg e con reduced-motion.
       style={{ opacity: 0, visibility: "hidden" }}
-      className="fixed right-6 top-1/2 z-30 hidden h-[44vh] w-6 -translate-y-1/2 motion-safe:lg:block"
+      className="group fixed right-6 top-1/2 z-30 hidden h-[44vh] w-6 -translate-y-1/2 motion-safe:lg:block"
     >
       {/* Binario + filo che si cuce (solo transform) */}
-      <span aria-hidden className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-line" />
+      <span aria-hidden className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-line transition-colors duration-500 group-data-[tone=dark]:bg-cream/25" />
       <span
         ref={fillRef}
         aria-hidden
@@ -174,12 +192,12 @@ export default function ThreadNav({
         >
           <span
             aria-hidden
-            className="h-2 w-2 rounded-full border border-stone/60 bg-paper transition-[transform,background-color,border-color] duration-300 group-hover:scale-125 group-hover:border-red group-data-[active=true]:scale-150 group-data-[active=true]:border-red group-data-[active=true]:bg-red"
+            className="h-2 w-2 rounded-full border border-stone/60 bg-paper transition-[transform,background-color,border-color] duration-300 group-hover:scale-125 group-hover:border-red group-data-[active=true]:scale-150 group-data-[active=true]:border-red group-data-[active=true]:bg-red group-data-[tone=dark]:border-cream/50 group-data-[tone=dark]:bg-cream/85"
           />
           {/* Etichetta: scivola dal filo verso sinistra su hover/attivo */}
           <span
             aria-hidden
-            className="pointer-events-none absolute right-full mr-3 translate-x-1 whitespace-nowrap text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-stone opacity-0 transition-[opacity,transform] duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-data-[active=true]:translate-x-0 group-data-[active=true]:text-red group-data-[active=true]:opacity-100"
+            className="pointer-events-none absolute right-full mr-3 translate-x-1 whitespace-nowrap text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-stone opacity-0 transition-[opacity,transform] duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-data-[active=true]:translate-x-0 group-data-[active=true]:text-red group-data-[active=true]:opacity-100 group-data-[tone=dark]:text-cream/85"
           >
             {label}
           </span>
