@@ -31,6 +31,7 @@
 import { useEffect, useRef, type ElementType, type ReactNode } from "react";
 import { SplitText } from "gsap/SplitText";
 import { gsap, MQ } from "../../lib/motion/gsap";
+import { registerWarmup } from "../../lib/motion/warmup";
 
 // Registrato QUI, come fa TextLines: SplitText serve solo ai rivelatori di
 // testo e registrarlo nel modulo condiviso lo farebbe finire nel chunk di GSAP,
@@ -95,12 +96,21 @@ export default function CharFlip({
       safety = window.setTimeout(() => tl?.progress(1), 2600);
     };
 
-    // I font sono Playfair: misurare lo split prima che siano pronti spezza le
-    // parole nei punti sbagliati.
-    if (document.fonts) document.fonts.ready.then(start);
-    else start();
+    /* LO SPLIT SI FA DIETRO IL SIPARIO, non al primo scroll.
+       Spezzare un titolo in parole e caratteri e' lavoro di DOM vero: su un
+       titolo di sessanta caratteri sono altrettanti <span> creati e misurati.
+       Farlo quando il titolo entra in campo significa pagarlo mentre l utente
+       sta scorrendo, ed e' esattamente il tipo di lavoro che il precarico
+       esiste per assorbire (stessa iscrizione di Fioritura, TeamTrail e
+       Header). Il precarico attende gia' document.fonts.ready per conto suo,
+       quindi qui i font sono garantiti: misurare prima spezzerebbe le parole
+       nei punti sbagliati, perche i font sono Playfair.
+       Se il precarico e gia passato (visitatore di ritorno, o intro saltata)
+       registerWarmup lo fa partire subito: nessuno resta indietro. */
+    const disiscrivi = registerWarmup(start);
 
     return () => {
+      disiscrivi();
       window.clearTimeout(safety);
       io?.disconnect();
       tl?.kill();
