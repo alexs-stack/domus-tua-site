@@ -164,9 +164,12 @@ export default function FeaturedTestimonial(props: Props) {
                 >
                   {quote}
                 </TextLines>
+                {/* Le stelle del VOTO sono oro in tutto il sito (eccezione
+                    dichiarata in globals.css): il rosso resta il marchio, non
+                    la valutazione. */}
                 <span ref={starsRef} className="mt-6 flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-red" />
+                    <Star key={i} className="h-4 w-4 text-gold" />
                   ))}
                 </span>
               </div>

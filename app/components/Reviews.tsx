@@ -213,9 +213,10 @@ export default function Reviews() {
                     className="font-display text-6xl font-medium text-ink"
                   />
                   <div>
+                    {/* Oro: è il voto, non il marchio (vedi globals.css) */}
                     <span className="flex gap-1">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 text-red" />
+                        <Star key={i} className="h-4 w-4 text-gold" />
                       ))}
                     </span>
                     <p className="mt-1.5 text-sm font-medium text-graphite">
@@ -305,7 +306,7 @@ export default function Reviews() {
                       </span>
                       <span className="flex gap-0.5" aria-label={c.outOf5(r.rating)}>
                         {Array.from({ length: r.rating }).map((_, k) => (
-                          <Star key={k} className="h-3.5 w-3.5 text-red" />
+                          <Star key={k} className="h-3.5 w-3.5 text-gold" />
                         ))}
                       </span>
                     </div>
