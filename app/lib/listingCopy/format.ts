@@ -42,6 +42,7 @@ import {
   CLOSING_CUES,
   ENUM_LEAD_INS,
   HIGHLIGHTS,
+  ITEM_STOP_OPENERS,
 } from "./lexicon";
 
 // ── Modello ──────────────────────────────────────────────────────────────────
@@ -84,7 +85,12 @@ export interface ListingCopy {
 // ── Tetti di disciplina ──────────────────────────────────────────────────────
 
 const MAX_ACCENTS = 2;
-const MAX_LISTS = 2;
+/**
+ * Tre e non due. Il tetto serve a evitare la scheda-catalogo, ma un annuncio reale di
+ * Domus Tua enumera almeno tre volte — dotazioni, impianti, pertinenze — e su quindici
+ * paragrafi tre elenchi restano largamente in minoranza rispetto alla prosa.
+ */
+const MAX_LISTS = 3;
 const MAX_STRONG = 5;
 /** Oltre questa lunghezza un paragrafo di prosa viene spezzato a fine frase. */
 const LONG_PARAGRAPH = 420;
@@ -104,9 +110,28 @@ const ABBREV_SET = new Set(ABBREVIATIONS.map((a) => a.toLowerCase()));
 /**
  * Spezza un testo in frasi, tenendo insieme le abbreviazioni ("ecc. Il resto…") e le
  * sigle puntate. Ricompone SEMPRE l'originale: `splitSentences(t).join("") === t`.
+ *
+ * LO SPAZIO CHE NON C'È. Il feed usa spesso il punto fermo senza spazio dopo —
+ * «la struttura lo consente.La zona notte è ben distinta». Di norma non arriva fin qui:
+ * `splitGluedSentences` in realsmart/description.ts lo intercetta prima e ne fa un
+ * confine di PARAGRAFO. Ma `toParagraphs` può riunire una riga di continuazione a quella
+ * precedente, e in quel caso la giuntura ricompare dentro un paragrafo solo. Siccome
+ * tutto il modulo ragiona per frasi, un punto attaccato basterebbe a far saltare aggancio,
+ * invito finale, spezzatura dei paragrafi lunghi e riconoscimento degli elenchi (che
+ * rifiutano qualunque coda con un punto dentro). Questa è la rete: sul corpus attuale non
+ * cambia un blocco, e serve perché non ne cambi nessuno il giorno che la giuntura passa.
+ *
+ * Le due alternative NON sono simmetriche, ed è deliberato:
+ *   • con spazio  → si spezza anche davanti a una cifra («…nel 2017. 156 mq sono…»);
+ *   • senza spazio → SOLO davanti a maiuscola. Altrimenti «1.500» diventerebbe due
+ *     frasi e il prezzo si spaccherebbe in pagina.
+ * Il gruppo cattura il separatore (stringa vuota nel secondo caso), quindi l'identità
+ * `join("") === t` resta esatta e nessun carattere viene inventato.
  */
 export function splitSentences(text: string): string[] {
-  const pieces = text.split(/(?<=[.!?…])(\s+)(?=[«"“'(]?[A-ZÀ-ÖØ-Þ0-9])/);
+  const pieces = text.split(
+    /(?<=[.!?…])(\s+(?=[«"“'(]?[A-ZÀ-ÖØ-Þ0-9])|(?=[A-ZÀ-ÖØ-Þ]))/,
+  );
   const out: string[] = [];
   // Lo split con gruppo di cattura alterna frase / separatore: si riattacca il
   // separatore alla frase che lo precede, così nulla va perso.
@@ -252,6 +277,11 @@ function asteriskWrapped(text: string): string | null {
 function isAccent(text: string): boolean {
   if (text.length > ACCENT_MAX) return false;
   if (/[\d,]/.test(text)) return false;
+  // Deve poter COMINCIARE un discorso. Un frammento che riprende la frase di prima
+  // («sono solo alcuni plus che potrai venire a vedere») è corto e senza virgole quanto
+  // un accento, ma messo in display grande e con l'iniziale minuscola si legge come un
+  // errore di impaginazione. Capita davvero: è la coda di un elenco anteposto al verbo.
+  if (!/^[«"“'(*]?[A-ZÀ-ÖØ-Þ]/.test(text)) return false;
   // Una riga d'accento è retorica, non informativa: se contiene un dato (una metratura,
   // una classe energetica, una dotazione) è una riga di fatti e va letta come prosa —
   // dove può anche prendersi il grassetto, che in display non avrebbe senso.
@@ -300,6 +330,37 @@ function readSeparatorLine(text: string): string[] | null {
 interface EnumSplit {
   lead: string;
   items: string[];
+  /** Coda della STESSA frase che resta prosa sotto l'elenco (elenco anteposto al verbo). */
+  tail?: string;
+}
+
+/**
+ * Spezza la coda di una frase in voci d'elenco, separando la congiunzione finale.
+ * Non giudica: la validazione (quante voci, quanto lunghe) resta a chi chiama, perché
+ * le due porte d'ingresso — attacco lessicale e due punti — hanno soglie diverse.
+ */
+function enumItems(tail: string): string[] {
+  const chunks = tail.split(/,\s*/).map((c) => c.trim()).filter((c) => c.length > 0);
+  if (chunks.length < 2) return chunks;
+
+  const last = chunks[chunks.length - 1];
+
+  // Forma «…, due cantine, e il locale caldaia»: la virgola ha già separato, la congiunzione
+  // è solo il segno che l'elenco finisce. Si toglie da lì, senza toccare il resto.
+  const leadingConj = last.match(/^(?:e|ed)\s+(\S.*)$/i);
+  if (leadingConj) {
+    chunks[chunks.length - 1] = leadingConj[1].trim();
+    return chunks;
+  }
+
+  // Forma «…, due cantine e il locale caldaia»: l'ultimo blocco contiene due voci. Si separa
+  // la congiunzione finale, e solo quella (una sola occorrenza, l'ultima).
+  const conj = last.match(/^(.*\S)\s+(?:e|ed)\s+(\S.*)$/i);
+  if (conj) {
+    chunks[chunks.length - 1] = conj[1].trim();
+    chunks.push(conj[2].trim());
+  }
+  return chunks;
 }
 
 /**
@@ -316,22 +377,92 @@ function readEnumeration(sentence: string): EnumSplit | null {
   // Nessun punto fermo interno: se c'è, l'elenco non arriva a fine frase.
   if (/[.!?:]/.test(tail)) return null;
 
-  const chunks = tail.split(/,\s*/).map((c) => c.trim()).filter((c) => c.length > 0);
-  if (chunks.length < 2) return null;
-
-  // L'ultimo blocco è quasi sempre "… e un camino nel soggiorno": si separa la congiunzione
-  // finale, e solo quella (una sola occorrenza, l'ultima).
-  const last = chunks[chunks.length - 1];
-  const conj = last.match(/^(.*\S)\s+(?:e|ed)\s+(\S.*)$/i);
-  if (conj) {
-    chunks[chunks.length - 1] = conj[1].trim();
-    chunks.push(conj[2].trim());
-  }
-
+  const chunks = enumItems(tail);
   if (chunks.length < 3 || chunks.length > 8) return null;
   if (chunks.some((c) => c.length < 3 || c.length > 80)) return null;
   // Ogni voce deve restare un sintagma breve, non una subordinata.
-  if (chunks.some((c) => c.split(/\s+/).length > 12)) return null;
+  if (chunks.some((c) => c.split(/\s+/).length > 10)) return null;
+  if (!chunks.every(opensAsPhrase)) return null;
+
+  return { lead, items: chunks };
+}
+
+/**
+ * Una voce d'elenco comincia come un sintagma nominale, mai come la continuazione della
+ * voce precedente. Vedi `ITEM_STOP_OPENERS`: è qui che si decide se un'enumerazione è
+ * davvero un'enumerazione o solo prosa con delle virgole dentro.
+ */
+function opensAsPhrase(item: string): boolean {
+  // Prima parola, fermandosi all'apostrofo: "l'armonia" → "l" (articolo elidato, apre un
+  // sintagma), "dall'ingresso" → "dall" (preposizione elidata, non lo apre).
+  const first = item.match(/^\p{L}+/u)?.[0].toLowerCase();
+  return first !== undefined && !ITEM_STOP_OPENERS.has(first);
+}
+
+/**
+ * Elenco ANTEPOSTO al verbo — «Serramenti in legno, caldaia autonoma, porta blindata,
+ * zanzariere, tende da sole, antifurto, videocitofono e arredo cucina SONO solo alcuni
+ * plus che potrai venire a vedere.»
+ *
+ * È l'unica forma enumerativa che le altre due non possono vedere: qui l'elenco non ha
+ * un attacco davanti, ce l'ha DIETRO. Negli annunci reali è il paragrafo delle dotazioni
+ * — quello con dodici voci di fila — cioè esattamente il muro che questo modulo esiste
+ * per smontare, e l'unico punto in cui il tetto di 8 voci va alzato: un elenco di
+ * dotazioni lungo è lungo perché la casa ha molte dotazioni, non perché il testo divaga.
+ *
+ * Il verbo di chiusura è un lessico CHIUSO. Senza, «Gli spazi sono luminosi, ariosi e
+ * ben distribuiti» diventerebbe un elenco di aggettivi: lì il verbo sta in seconda
+ * posizione, quindi le voci prima di lui sono meno di quattro e la regola non scatta.
+ */
+const LIST_CLOSING_VERBS =
+  /\s+(?:sono|rappresentano|completano|costituiscono|arricchiscono|fanno parte)\b/i;
+
+function readFrontLoadedEnumeration(sentence: string): EnumSplit | null {
+  const verb = sentence.match(LIST_CLOSING_VERBS);
+  if (!verb || verb.index === undefined) return null;
+
+  const head = sentence.slice(0, verb.index).trim();
+  if (/[.!?:;]/.test(head)) return null;
+  // La prima voce apre la frase: deve essere un sintagma, non un complemento.
+  if (!opensAsPhrase(head)) return null;
+
+  const chunks = enumItems(head);
+  if (chunks.length < 4 || chunks.length > 14) return null;
+  if (chunks.some((c) => c.length < 3 || c.length > 60)) return null;
+  if (chunks.some((c) => c.split(/\s+/).length > 7)) return null;
+  if (!chunks.every(opensAsPhrase)) return null;
+
+  // Nessun attacco: l'elenco si apre da solo e la coda col verbo resta prosa sotto.
+  return { lead: "", items: chunks, tail: sentence.slice(verb.index).trim() };
+}
+
+/**
+ * Elenco introdotto dai DUE PUNTI — «…ciò che rende speciale questa abitazione: la luce,
+ * l'armonia degli spazi, la raffinatezza, la funzionalità.»
+ *
+ * È la seconda forma enumerativa degli annunci reali, e senza di lei metà delle
+ * enumerazioni restava prosa. I due punti però sono anche la punteggiatura più abusata
+ * della lingua ("la risposta è semplice: gli attici"), quindi qui le soglie sono molto
+ * più strette che dopo un attacco lessicale: ogni voce deve essere un sintagma NOMINALE
+ * corto — al massimo quattro parole e quaranta caratteri — altrimenti è prosa, e prosa
+ * resta. Il titoletto d'autore (`readHeading`) viene esaminato PRIMA, quindi le due
+ * regole non si contendono mai la stessa frase.
+ */
+function readColonEnumeration(sentence: string): EnumSplit | null {
+  const m = sentence.match(/^([\s\S]{8,180}?:)\s+(\S[\s\S]*)$/);
+  if (!m) return null;
+
+  const lead = m[1];
+  const tail = m[2].trim().replace(/[.;]+$/, "");
+  if (/[.!?:]/.test(tail)) return null;
+  // Servono almeno due virgole vere: "X: a, b e c" è un elenco, "X: a e b" è una frase.
+  if ((tail.match(/,/g)?.length ?? 0) < 2) return null;
+
+  const chunks = enumItems(tail);
+  if (chunks.length < 3 || chunks.length > 8) return null;
+  if (chunks.some((c) => c.length < 3 || c.length > 40)) return null;
+  if (chunks.some((c) => c.split(/\s+/).length > 4)) return null;
+  if (!chunks.every(opensAsPhrase)) return null;
 
   return { lead, items: chunks };
 }
@@ -381,6 +512,95 @@ function proseBlocks(text: string, budget: Budget): ListingBlock[] {
 }
 
 /**
+ * Profondità massima della ricorsione di `bodyBlocks`. Ogni passo consuma almeno una frase,
+ * quindi la ricorsione termina da sola: questo è solo il fermo di sicurezza.
+ */
+const MAX_BODY_DEPTH = 12;
+
+/**
+ * Classifica il CORPO di un testo — tutto tranne aggancio e invito finale.
+ *
+ * Ricorsiva di proposito. I feed di Domus Tua non hanno una punteggiatura di blocco
+ * affidabile: ci sono annunci consegnati in due soli paragrafi da 1.700 e 900 caratteri.
+ * Fermarsi al primo elenco trovato (o, peggio, mandare a prosa tutto ciò che sta attorno
+ * a un aggancio o a un invito) significava che proprio gli annunci più lunghi — quelli che
+ * più avevano bisogno di essere spezzati — restavano un muro. Qui invece ciò che resta
+ * attorno a un blocco riconosciuto torna in coda alla stessa classificazione, finché c'è
+ * budget e finché c'è testo.
+ */
+function bodyBlocks(
+  text: string,
+  previousKind: ListingBlock["kind"] | null,
+  budget: Budget,
+  depth = 0,
+): ListingBlock[] {
+  if (text.length === 0) return [];
+  if (depth >= MAX_BODY_DEPTH) return proseBlocks(text, budget);
+
+  // 4. A-parte evocativo → corsivo.
+  if (isAtmosphere(text)) {
+    return [{ kind: "atmosphere", runs: runsFromText(text) }];
+  }
+
+  // 5. Titoletto dell'autore in testa al paragrafo → accento + prosa.
+  if (budget.accents > 0 && previousKind !== "accent") {
+    const heading = readHeading(text);
+    if (heading) {
+      budget.accents -= 1;
+      return [
+        { kind: "accent", runs: [{ t: "text", v: heading.heading }] },
+        ...bodyBlocks(heading.rest, "accent", budget, depth + 1),
+      ];
+    }
+  }
+
+  // 6. Enumerazione di dotazioni → elenco puntato, con la prosa attorno conservata.
+  //    Due porte d'ingresso: l'attacco lessicale ("è dotata di…") e i due punti.
+  //    L'attacco lessicale ha la precedenza su TUTTO il testo — è la porta più
+  //    affidabile — e solo se nessuna frase lo espone si prova la seconda.
+  if (budget.lists > 0) {
+    const sentences = splitSentences(text);
+    for (const read of [readEnumeration, readFrontLoadedEnumeration, readColonEnumeration]) {
+      for (let i = 0; i < sentences.length; i += 1) {
+        const enumeration = read(sentences[i].trim());
+        if (!enumeration) continue;
+        budget.lists -= 1;
+        const before = sentences.slice(0, i).join("").trim();
+        // La coda dell'elenco anteposto («…sono solo alcuni plus») apre ciò che resta del
+        // paragrafo: nessuna parola cambia posto rispetto all'originale.
+        const after = [enumeration.tail, sentences.slice(i + 1).join("").trim()]
+          .filter((part): part is string => Boolean(part))
+          .join(" ");
+        // `before` si ferma alla prosa: se contenesse un altro elenco l'avrebbe già
+        // trovato il ciclo, che scorre le frasi dalla prima. `after` invece è testo
+        // ancora inesplorato e torna in classificazione per intero.
+        return [
+          ...(before ? proseBlocks(before, budget) : []),
+          {
+            kind: "list",
+            // Elenco senza attacco (riga a separatori, dotazioni anteposte al verbo):
+            // `lead` deve restare VUOTO, non una run di stringa vuota — altrimenti la
+            // pagina renderizza un paragrafo fantasma e ci aggancia pure l'aria-labelledby.
+            lead: enumeration.lead.trim() ? runsFromText(enumeration.lead.trim()) : [],
+            items: enumeration.items,
+          },
+          ...bodyBlocks(after, "list", budget, depth + 1),
+        ];
+      }
+    }
+  }
+
+  // 7. Riga lapidaria a metà racconto → display, ma mai due di fila.
+  if (budget.accents > 0 && previousKind !== "accent" && isAccent(text)) {
+    budget.accents -= 1;
+    return [{ kind: "accent", runs: runsFromText(text) }];
+  }
+
+  // 8. Prosa.
+  return proseBlocks(text, budget);
+}
+
+/**
  * Classifica UN paragrafo. Può produrre più blocchi (aggancio + resto, prosa + elenco,
  * prosa + invito finale). `previousKind` serve alla regola "mai due accenti di fila".
  */
@@ -407,78 +627,49 @@ function classify(
     return [{ kind: "accent", runs: [{ t: "text", v: wrapped }] }];
   }
 
+  // Il paragrafo può essere insieme apertura e chiusura (annunci in un blocco solo):
+  // si stacca prima l'aggancio in testa, poi l'invito in coda, e ciò che resta è corpo.
+  let body = text;
+  const head: ListingBlock[] = [];
+  const tail: ListingBlock[] = [];
+
   // 2. Apertura: l'aggancio. Se il primo paragrafo è lungo, solo la sua prima frase
-  //    diventa lead e il resto prosegue come prosa: nessun testo si sposta.
+  //    diventa lead e il resto prosegue come corpo: nessun testo si sposta.
   if (first) {
-    if (text.length <= LEAD_MAX) {
-      return [{ kind: "lead", runs: withHighlight(runsFromText(text), budget) }];
+    // Il paragrafo breve va tutto in aggancio — a meno che non sia ANCHE quello che
+    // chiude: un annuncio consegnato in un blocco solo si prenderebbe il display sopra
+    // l'invito a visitare, e la chiamata all'azione sparirebbe dentro la frase-amo.
+    if (body.length <= LEAD_MAX && !closing) {
+      return [{ kind: "lead", runs: withHighlight(runsFromText(body), budget) }];
     }
-    const sentences = splitSentences(text);
-    if (sentences.length >= 2) {
-      const head = sentences[0].trimEnd();
-      const rest = sentences.slice(1).join("").trim();
-      return [
-        { kind: "lead", runs: runsFromText(head) },
-        ...proseBlocks(rest, budget),
-      ];
+    const sentences = splitSentences(body);
+    if (sentences.length < 2) {
+      return [{ kind: "lead", runs: withHighlight(runsFromText(body), budget) }];
     }
-    return [{ kind: "lead", runs: withHighlight(runsFromText(text), budget) }];
+    head.push({ kind: "lead", runs: runsFromText(sentences[0].trimEnd()) });
+    body = sentences.slice(1).join("").trim();
   }
 
   // 3. Chiusura: il paragrafo eletto a invito finale, e solo la parte che invita davvero.
   if (closing) {
-    const sentences = splitSentences(text);
+    const sentences = splitSentences(body);
     const inviteAt = sentences.findIndex((s) => isClosing(s));
-    if (inviteAt > 0) {
-      const before = sentences.slice(0, inviteAt).join("").trim();
-      const invite = sentences.slice(inviteAt).join("").trim();
-      return [...proseBlocks(before, budget), { kind: "closing", runs: runsFromText(invite) }];
-    }
-    return [{ kind: "closing", runs: runsFromText(text) }];
-  }
-
-  // 4. A-parte evocativo → corsivo.
-  if (isAtmosphere(text)) {
-    return [{ kind: "atmosphere", runs: runsFromText(text) }];
-  }
-
-  // 5. Titoletto dell'autore in testa al paragrafo → accento + prosa.
-  if (budget.accents > 0 && previousKind !== "accent") {
-    const heading = readHeading(text);
-    if (heading) {
-      budget.accents -= 1;
-      return [
-        { kind: "accent", runs: [{ t: "text", v: heading.heading }] },
-        ...proseBlocks(heading.rest, budget),
-      ];
+    if (inviteAt < 0) {
+      // L'invito stava nella frase già ceduta all'aggancio: il resto è corpo normale.
+    } else if (inviteAt === 0 && head.length === 0) {
+      return [{ kind: "closing", runs: runsFromText(body) }];
+    } else {
+      tail.push({ kind: "closing", runs: runsFromText(sentences.slice(inviteAt).join("").trim()) });
+      body = sentences.slice(0, inviteAt).join("").trim();
     }
   }
 
-  // 6. Enumerazione di dotazioni → elenco puntato, con la prosa attorno conservata.
-  if (budget.lists > 0) {
-    const sentences = splitSentences(text);
-    for (let i = 0; i < sentences.length; i += 1) {
-      const enumeration = readEnumeration(sentences[i].trim());
-      if (!enumeration) continue;
-      budget.lists -= 1;
-      const before = sentences.slice(0, i).join("").trim();
-      const after = sentences.slice(i + 1).join("").trim();
-      return [
-        ...(before ? proseBlocks(before, budget) : []),
-        { kind: "list", lead: runsFromText(enumeration.lead.trim()), items: enumeration.items },
-        ...(after ? proseBlocks(after, budget) : []),
-      ];
-    }
-  }
-
-  // 7. Riga lapidaria a metà racconto → display, ma mai due di fila.
-  if (budget.accents > 0 && previousKind !== "accent" && isAccent(text)) {
-    budget.accents -= 1;
-    return [{ kind: "accent", runs: runsFromText(text) }];
-  }
-
-  // 8. Prosa.
-  return proseBlocks(text, budget);
+  // 4-8. Il corpo, ricorsivamente.
+  return [
+    ...head,
+    ...bodyBlocks(body, head.length > 0 ? head[head.length - 1].kind : previousKind, budget),
+    ...tail,
+  ];
 }
 
 // ── API pubblica ─────────────────────────────────────────────────────────────
