@@ -31,7 +31,7 @@ lettera, la lista di cose da fare in Vercel.
 | WhatsApp | il numero non c'è (problema di codice, non di Vercel) | sì |
 | chatbot | è **visibile senza provider** | sì |
 | Trustindex | il widget recensioni non è collegato | sì (avviso in anteprima) |
-| ranking semantico | manca `VOYAGE_API_KEY` | no |
+| ranking semantico | manca un provider di embeddings (`GEMINI_API_KEY` basta) | no |
 | hero video | non è ancora stato caricato | no |
 
 `--preview` non abbassa le soglie: trasforma in avvisi le verifiche che dipendono da variabili
@@ -100,8 +100,12 @@ Poi **Redeploy** dell'anteprima e `npm run verify:deploy -- <url-anteprima> --pr
 | 11 | **`NEXT_PUBLIC_PREVIEW_BADGE`** | **da NON impostare** | il badge "contenuti in verifica" non deve comparire ai clienti |
 | 12 | **`NEXT_PUBLIC_ENABLE_ASSISTANT`** | **da NON impostare** | la chat si accende solo dopo gli eval con soglie verdi ([assistant-rollout.md](assistant-rollout.md)) |
 
-Facoltative: `VOYAGE_API_KEY` (ranking semantico; senza, la ricerca usa le parole chiave),
-`AI_SEARCH_MODEL` / `AI_ASSISTANT_MODEL` (override dei modelli), `INSTAGRAM_WIDGET_URL`.
+Facoltative: `VOYAGE_API_KEY` (embeddings da Voyage invece che da Gemini — il ranking
+semantico funziona già con `GEMINI_API_KEY`), `AI_SEARCH_MODEL` / `AI_ASSISTANT_MODEL`
+(override dei modelli), `INSTAGRAM_WIDGET_URL`.
+
+**Da NON impostare:** `ASSISTANT_SEMANTIC_FLOOR`. Vuota tiene spento il retrieval semantico
+sulla knowledge base, che è la configurazione voluta e misurata ([assistant-knowledge.md](assistant-knowledge.md)).
 
 ### Fuori da Vercel
 

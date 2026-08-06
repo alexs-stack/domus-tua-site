@@ -220,7 +220,13 @@ export async function retrieveKnowledge(query: string, limit = 3): Promise<Retri
   const semantic = await semanticScores(query);
 
   // Senza livello semantico il risultato è già completo: è il percorso normale oggi.
-  if (!semantic) return lexical.slice(0, limit).map((row) => toResult(row.entry));
+  // `semanticScores` restituisce null anche quando la soglia non è stata misurata, quindi
+  // qui dentro SEMANTIC_FLOOR è per forza un numero — ma il controllo esplicito costa nulla
+  // e regge se un domani quella condizione cambia.
+  if (!semantic || SEMANTIC_FLOOR === null) {
+    return lexical.slice(0, limit).map((row) => toResult(row.entry));
+  }
+  const floor = SEMANTIC_FLOOR;
 
   const usable = verifiedEntries();
   const byId = new Map(usable.map((entry, index) => [entry.id, { entry, index }]));
@@ -229,7 +235,7 @@ export async function retrieveKnowledge(query: string, limit = 3): Promise<Retri
   // Unione delle due qualificazioni: ognuna con la propria soglia, nessuna abbassa l'altra.
   const candidates = new Set<string>([
     ...lexicalById.keys(),
-    ...[...semantic.entries()].filter(([, score]) => score >= SEMANTIC_FLOOR).map(([id]) => id),
+    ...[...semantic.entries()].filter(([, score]) => score >= floor).map(([id]) => id),
   ]);
 
   return [...candidates]

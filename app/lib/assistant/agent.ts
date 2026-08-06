@@ -71,6 +71,13 @@ type StreamProviderOptions = Parameters<typeof streamText>[0]["providerOptions"]
  * La qualità non cala: cala solo l'attesa. Da qui il minimo — che resta 124 ms sopra la
  * soglia di programma (p95 ≤ 2 s), l'unica non ancora raggiunta.
  *
+ * ⚠️ Come leggere una p95 alta. Il 2026-08-06, quattro `npm run eval` di fila sulla stessa
+ * chiave hanno dato p95 in salita monotona: 4569 → 5141 → 7370 → 8096 ms, con gli ultimi
+ * casi che tornavano FALLBACK_REPLY senza aver chiamato alcuno strumento — cioè il provider
+ * che rifiuta, non il modello che pensa. È la firma del rate limit, non di una regressione.
+ * Prima di dare la colpa al codice: aspetta che la quota si liberi e rimisura su una sola
+ * esecuzione. Una p95 che PEGGIORA a ogni run consecutivo non sta misurando il codice.
+ *
  * Vale solo per i modelli gemini-3.x: `thinkingLevel` su 2.5 verrebbe rifiutato dall'API.
  * Con un modello iniettato (test, eval simulato) non si tocca nulla.
  */

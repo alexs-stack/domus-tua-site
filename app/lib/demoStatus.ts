@@ -41,7 +41,13 @@ export interface DemoStatus {
   leadBackend: LeadBackend;
   /** Ricerca AI: parsing frase→filtri via Claude (altrimenti parser locale deterministico). */
   searchAiConfigured: boolean;
-  /** Ranking semantico via embeddings Voyage (altrimenti ranking per parole chiave). */
+  /**
+   * Ordinamento semantico degli IMMOBILI via embeddings, da Voyage o da Gemini
+   * (altrimenti ranking per parole chiave).
+   *
+   * Non dice nulla sul retrieval della knowledge base, che è un'altra cosa e ha il suo
+   * campo: `assistant.knowledgeSemanticConfigured`. Confonderli è già successo.
+   */
   semanticRankingConfigured: boolean;
 }
 

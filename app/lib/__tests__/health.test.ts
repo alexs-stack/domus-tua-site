@@ -88,6 +88,34 @@ describe("/api/health — cosa deve dichiarare", () => {
     }
   });
 
+  test("il semantico della knowledge base è dichiarato a parte da quello della ricerca", async () => {
+    // Erano lo stesso campo, e per un po' erano anche lo stesso valore. Dal 2026-08-06 no:
+    // gli embeddings esistono e il ranking immobili li usa, ma sulla knowledge base il
+    // livello semantico è spento di proposito (vedi docs/assistant-knowledge.md). Un health
+    // che dicesse "configurato" di una cosa deliberatamente spenta manderebbe fuori strada
+    // proprio chi sta controllando un deploy.
+    const body = (await payload()) as {
+      integrations: {
+        semanticRankingConfigured: boolean;
+        assistant: { knowledgeSemanticConfigured: boolean };
+      };
+    };
+    const { semanticRankingConfigured, assistant } = body.integrations;
+    assert.equal(typeof assistant.knowledgeSemanticConfigured, "boolean");
+    if (!process.env.ASSISTANT_SEMANTIC_FLOOR) {
+      assert.equal(
+        assistant.knowledgeSemanticConfigured,
+        false,
+        "senza soglia misurata il semantico sulla knowledge base non è configurato",
+      );
+    }
+    // Il contrario invece resta possibile: ranking acceso e knowledge spenta è lo stato
+    // normale, ma knowledge accesa senza embeddings non lo è mai.
+    if (assistant.knowledgeSemanticConfigured) {
+      assert.ok(semanticRankingConfigured, "knowledge semantica senza provider di embeddings");
+    }
+  });
+
   test("la mappa dei venduti è dichiarata con i suoi numeri", async () => {
     const body = (await payload()) as {
       integrations: { soldMap: { present: boolean; detected: number; manual: number } };

@@ -193,7 +193,9 @@ async function main() {
       detail: String(i.semanticRankingConfigured),
       // Opzionale: senza, la ricerca resta su parole chiave e funziona comunque.
       required: false,
-      fix: "VOYAGE_API_KEY (facoltativa: senza, la ricerca usa le parole chiave).",
+      // Riguarda SOLO l'ordinamento degli immobili. Il retrieval della knowledge base è
+      // lessicale per scelta misurata e non si accende da qui: vedi docs/assistant-knowledge.md.
+      fix: "GEMINI_API_KEY basta (gli embeddings li fa Gemini). VOYAGE_API_KEY solo se si preferisce Voyage. Senza nessuna delle due, la ricerca usa le parole chiave e funziona.",
     },
     {
       name: "hero video",
