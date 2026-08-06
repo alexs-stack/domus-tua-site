@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-01T12:54:44.081Z",
+  "generatedAt": "2026-08-06T23:49:18.144Z",
   "feed": "https://www.gestim2002.it/portali/immobili_724.xml",
   "counts": {
     "total": 194,
-    "sold": 165,
+    "sold": 166,
     "reserved": 1
   },
   "items": {
@@ -1118,10 +1118,10 @@
       "text": "SY AZ A RAD A TR A GI"
     },
     "2056": {
-      "sold": false,
-      "state": "available",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2969706.jpg",
-      "text": ""
+      "sold": true,
+      "state": "sold",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3033753.jpg",
+      "text": "PROPOSTA ACCETTATA"
     },
     "2057": {
       "sold": false,
