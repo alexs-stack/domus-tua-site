@@ -107,10 +107,9 @@ Dati immobili demo in `app/lib/properties.ts` (6 immobili fittizi → sostituire
 - [docs/env-and-deploy.md](docs/env-and-deploy.md) — variabili d'ambiente, Vercel, preview vs produzione
 - [docs/vercel-live-checklist.md](docs/vercel-live-checklist.md) — **verifica del deploy** e azioni manuali rimaste in Vercel
 - [docs/production-readiness.md](docs/production-readiness.md) — checklist di lancio
-- [docs/client-assets-needed.md](docs/client-assets-needed.md) — **asset da chiedere al cliente** (3 priorità)
+- [docs/da-chiedere-alla-cliente.md](docs/da-chiedere-alla-cliente.md) — **cosa deve ancora fornire la cliente**: contenuti, foto, video, dati, accessi, con i bloccanti marcati. Documento unico, verificato contro il codice
 - [docs/client-review-script.md](docs/client-review-script.md) — talk-track per la call di presentazione
 - [docs/phase-plan.md](docs/phase-plan.md) — Fase 1 (sito) vs Fase 2 (AI/CRM)
-- [docs/questions-for-client.md](docs/questions-for-client.md) — domande aperte per il cliente
 
 ## Prossimi passi (dal brief)
 

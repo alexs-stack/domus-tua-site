@@ -465,7 +465,7 @@ export default function Contact({
             </figure>
             {/* Nessuna firma grafica: il tracciato che stava qui era un calligrafico generico,
                 non la firma reale della fondatrice. L'animazione DrawOnScroll resta pronta:
-                appena arriva l'SVG vero (docs/client-assets-needed.md) basta rimetterlo qui. */}
+                appena arriva l'SVG vero (docs/da-chiedere-alla-cliente.md §2.12) basta rimetterlo qui. */}
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2">
               {contacts.map((item) => (

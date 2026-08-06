@@ -217,7 +217,7 @@ Dire con trasparenza — è un punto di forza, non una debolezza:
 
 ## 10. Cosa ci serve da voi (chiusura della call)
 
-Passare qui alla checklist operativa — dettaglio completo in `docs/questions-for-client.md`.
+Passare qui alla checklist operativa — dettaglio completo in `docs/da-chiedere-alla-cliente.md`.
 In sintesi, per sbloccare il "live":
 
 1. **File del logo ufficiale** (vettoriale + favicon).

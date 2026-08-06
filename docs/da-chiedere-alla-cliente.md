@@ -1,8 +1,9 @@
 # Cosa ci serve da voi per pubblicare il sito
 
-> Documento consolidato al **2026-08-06**, verificato contro il codice attuale.
-> Sostituisce `client-assets-needed.md` e `questions-for-client.md`, che contengono voci
-> ormai chiuse (orari, P.IVA/REA, handle social, link Google, widget Trustindex, ID YouTube).
+> Documento consolidato al **2026-08-06**, verificato contro il codice attuale. È la fonte
+> unica: ha sostituito `client-assets-needed.md` e `questions-for-client.md` (rimossi), che
+> chiedevano ancora cose ormai chiuse — orari, P.IVA/REA, handle social, link Google,
+> widget Trustindex, ID YouTube.
 
 Questo documento raccoglie **tutto** ciò che manca da parte vostra per mandare online il nuovo sito. È diviso per **tipo di cosa da consegnare** (foto, testi, documenti, accessi), non per pagina, così potete distribuire il lavoro fra più persone.
 
@@ -361,6 +362,26 @@ Queste non richiedono un file: richiedono una vostra risposta. Le portiamo in un
 17. **Quando facciamo il passaggio dal sito attuale a quello nuovo?** Ci serve una data e un'ora concordate.
 18. **Ci sono chiusure fisse da segnalare?** (agosto, festività)
 19. **Avete una prova del primato "la più recensita della provincia"?** Se sì possiamo rafforzare la frase; se no, resta quella attuale, che è già corretta.
+
+---
+
+## Dopo il lancio — niente di tutto questo blocca la pubblicazione
+
+Tre cose che non servono per andare online, ma che conviene mettere in agenda subito dopo, perché sono lente da raccogliere e sbloccano il lavoro successivo.
+
+**A. L'accesso ai vostri documenti di processo**
+Se ci date accesso in sola lettura alla cartella (Google Drive o simile) dove tenete i materiali operativi — la checklist documenti che consegnate al venditore, il testo dell'incarico, il modo in cui presentate la valutazione, le slide o i pieghevoli che usate agli appuntamenti — smettiamo di farvi domande una alla volta.
+- *Perché conviene a voi:* è la scorciatoia per chiudere in un colpo solo i sette temi del punto 1.10 e le validazioni dei punti 1.3, 1.4 e 1.5. Al posto di sette mail, una cartella.
+- *Va benissimo* anche una selezione: non ci serve tutto, ci servono i documenti che descrivono come lavorate.
+
+**B. Come lavorate un contatto dopo che è arrivato**
+Oggi il sito vi consegna i contatti e finisce lì: non c'è nessun gestionale collegato, ed è una scelta voluta per il lancio. Se in futuro volete che il sito faccia qualcosa in più — assegnare il contatto a una persona, mandare una conferma automatica a chi scrive, ricordarvi i richiami, invitare agli Open Domus — ci serve prima capire come funziona adesso.
+- *Cosa raccontarci, anche a voce:* chi riceve per primo un contatto e in quanto tempo risponde; se usate un gestionale o un foglio per seguirlo; quali passaggi si ripetono sempre (primo richiamo, appuntamento, valutazione, incarico, Open Domus, proposta, rogito); cosa vi fa perdere più tempo.
+- *A cosa serve:* a decidere insieme cosa vale la pena automatizzare. Senza questo, qualsiasi automazione sarebbe indovinata.
+
+**C. I vostri modelli di brochure e scheda immobile** *(fuori dal sito)*
+Se ci mandate i modelli che usate oggi — impaginazione, testi ricorrenti, elementi grafici — possiamo valutare se generarli in automatico dai dati degli immobili che il sito già legge.
+- *Nota onesta:* è un prodotto a parte, non una parte del sito. Lo segnaliamo qui solo perché il materiale è lo stesso e tanto vale raccoglierlo una volta sola.
 
 ---
 

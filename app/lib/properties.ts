@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // ⚠️  DATI DEMO — DA SOSTITUIRE prima del "live".
 // Gli immobili qui sotto sono fittizi e servono solo per la preview/presentazione.
-// Sorgente reale: gestionale RealSmart (vedi docs/client-assets-needed.md, Priorità 1).
+// Sorgente reale: gestionale RealSmart (vedi docs/da-chiedere-alla-cliente.md §4.1).
 // Non citare questi immobili come reali in demo col cliente.
 // ═══════════════════════════════════════════════════════════════════════════
 // ⚠️ DATI DEMO / FIXTURE — immobili fittizi. NON importare direttamente nei componenti visibili:

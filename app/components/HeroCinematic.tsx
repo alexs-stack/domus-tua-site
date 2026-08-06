@@ -579,7 +579,7 @@ export default function HeroCinematic() {
             {c.founder}
             {/* Nessuna firma grafica: il tracciato calligrafico che stava qui era generico,
                 non la firma reale di Raffaela Rizza. Si reintroduce solo con l'SVG/PNG
-                fornito dal cliente (docs/client-assets-needed.md). */}
+                fornito dal cliente (docs/da-chiedere-alla-cliente.md §2.12). */}
           </p>
 
           {/* CTA */}

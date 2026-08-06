@@ -588,7 +588,7 @@ export default function StarReviews() {
           {/* Sigillo Wikicasa: fluttua piano (dt-float), fermo con reduced-motion.
               Il claim di autorevolezza (ex banda Authority) chiude il cluster prova.
               Quando il cliente consegna la foto del certificato Top Agency 2026
-              (docs/client-assets-needed.md) il sigillo diventa il fronte di un
+              (docs/da-chiedere-alla-cliente.md §2.11) il sigillo diventa il fronte di un
               flip certificato/badge — lo slot è questo. */}
           <a
             href="https://www.wikicasa.it/agenzia-immobiliare/domus-tua-178643"
