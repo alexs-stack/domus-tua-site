@@ -289,6 +289,62 @@ export default function Services() {
             scrollTrigger: { trigger: gridRef.current, start: "top 75%", toggleActions: "restart none none reverse" },
           }
         );
+
+        const grid = gridRef.current;
+        const cards = gsap.utils.toArray<HTMLElement>(grid?.querySelectorAll("[data-service-card]") ?? []);
+        if (grid && cards.length) {
+          const byX = new Map<number, HTMLElement[]>();
+          cards.forEach((el) => {
+            const x = Math.round(el.getBoundingClientRect().left);
+            if (!byX.has(x)) byX.set(x, []);
+            byX.get(x)!.push(el);
+          });
+          const columns = [...byX.entries()].sort((a, b) => a[0] - b[0]).map(([, els]) => els);
+          const dy = cards[0].offsetHeight * 1.5;
+
+          const tl = gsap.timeline({ paused: true });
+          columns.forEach((column, colIndex) => {
+            const fromTop = colIndex % 2 === 0;
+            // fromTo e non from: `from` cattura i valori d'arrivo dallo stato
+            // corrente del DOM, e qui lo stato corrente al momento del setup
+            // non è garantito essere quello finale. Scriverli entrambi toglie
+            // ogni ambiguità.
+            tl.fromTo(
+              column,
+              { y: dy * (fromTop ? -1 : 1), opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.9,
+                ease: "power1.inOut",
+                stagger: { each: 0.06, from: fromTop ? "end" : "start" },
+              },
+              "grid-reveal"
+            );
+          });
+
+          const io = new IntersectionObserver(
+            (entries) =>
+              entries.forEach((e) => {
+                // restart(), non play(): dopo un reverse() la timeline resta in
+                // stato "reversed" e play() è ambiguo. restart() riparte da 0 in
+                // avanti sempre — è anche la convenzione del resto del sito
+                // ("restart none none reverse").
+                if (e.isIntersecting) tl.restart();
+                else tl.reverse();
+              }),
+            { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+          );
+          io.observe(grid);
+          // Rete di sicurezza del sito: se l'observer non scatta mai, la
+          // griglia non può restare invisibile.
+          const safety = window.setTimeout(() => tl.progress(1), 2500);
+          return () => {
+            io.disconnect();
+            window.clearTimeout(safety);
+            tl.kill();
+          };
+        }
       });
     },
     { scope: gridRef }
@@ -371,28 +427,33 @@ export default function Services() {
             </article>
           </div>
 
+          {/* Niente <Reveal> qui: le card non "appaiono" una dopo l'altra, si
+              COMPONGONO per colonna (vedi il reveal nel secondo useGSAP). Il
+              wrapper andava tolto anche perché interponeva un div fra la
+              griglia e l'article, e la colonna si misura sulla X del figlio
+              diretto della griglia. */}
           {c.services.map((s, i) => (
-            <Reveal key={s.title} delay={i * 70}>
-              <article
-                data-service-idx={i}
-                className="group flex h-full flex-col justify-between rounded-[2rem] border border-line bg-paper p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40"
-              >
-                <span className="block overflow-hidden">
-                  <span
-                    data-service-num
-                    className="block tnum font-display text-sm font-semibold text-red transition-colors duration-500 group-hover:text-red-dark"
-                  >
-                    0{i + 1}
-                  </span>
+            <article
+              key={s.title}
+              data-service-card
+              data-service-idx={i}
+              className="group flex h-full flex-col justify-between rounded-[2rem] border border-line bg-paper p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40"
+            >
+              <span className="block overflow-hidden">
+                <span
+                  data-service-num
+                  className="block tnum font-display text-sm font-semibold text-red transition-colors duration-500 group-hover:text-red-dark"
+                >
+                  0{i + 1}
                 </span>
-                <div className="mt-8">
-                  <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink">
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 text-[0.88rem] leading-relaxed text-stone">{s.copy}</p>
-                </div>
-              </article>
-            </Reveal>
+              </span>
+              <div className="mt-8">
+                <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-[0.88rem] leading-relaxed text-stone">{s.copy}</p>
+              </div>
+            </article>
           ))}
         </div>
 
