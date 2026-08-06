@@ -1014,7 +1014,10 @@ html[data-preloader] .dt-pre-char {
    una sfumatura verticale piena fra i due toni — mai un taglio. */
 .dt-toneshift {
   position: relative;
-  height: clamp(300px, 62svh, 680px);
+  /* Corto: il passaggio deve cucire, non aggiungere una sezione vuota da
+     attraversare. A 62svh il colore nuovo restava in scena per mezzo schermo
+     senza piu niente da dire. */
+  height: clamp(190px, 34svh, 360px);
   overflow: hidden;
   background: linear-gradient(to bottom, var(--ts-from), var(--ts-to));
 }
@@ -1069,8 +1072,11 @@ html[data-preloader] .dt-pre-char {
      Verticale: il pannello svanisce verso l'alto, altrimenti appena la tenda
      ha spazzato anche il bordo ALTO del blocco diventa il colore in arrivo e
      non combacia piu con la sezione che finisce (misurato: DeltaRGB 62). */
+  /* Bordo di testa DIAGONALE, non verticale: inclinandolo il fondo del
+     pannello arriva prima della cima, quindi la giuntura inferiore e coperta
+     mentre in alto la spazzata e ancora in corso. */
   mask-image:
-    linear-gradient(to right, #000 0%, #000 78%, transparent 100%),
+    linear-gradient(108deg, #000 0%, #000 72%, transparent 94%),
     linear-gradient(to bottom, transparent 0%, transparent 14%, #000 66%);
   mask-composite: intersect;
 }
@@ -1081,8 +1087,12 @@ html[data-preloader] .dt-pre-char {
    morph perché là il pannello di partenza è una fotografia già visibile,
    qui a progresso zero non deve esserci niente. --- */
 .dt-toneshift[data-v=iride] .dt-toneshift_in {
+  /* Quattro valori invece della scorciatoia a due: il lato BASSO resta
+     inchiodato a 0 perche la giuntura inferiore deve essere coperta da
+     subito. Gli altri tre partono dai valori esatti del riferimento. */
   clip-path: inset(
-    calc(22% * (1 - var(--tsp, 0))) calc(39% * (1 - var(--tsp, 0))) round calc(23vw * (1 - var(--tsp, 0)))
+    calc(44% * (1 - var(--tsp, 0))) calc(39% * (1 - var(--tsp, 0))) 0%
+      calc(39% * (1 - var(--tsp, 0))) round calc(23vw * (1 - var(--tsp, 0)))
   );
   opacity: calc(var(--tsp, 0) * 1.7);
 }
@@ -1100,6 +1110,11 @@ html[data-preloader] .dt-pre-char {
   background:
     radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
     var(--ts-to);
+  /* Origine in BASSO, non al centro: cosi i pannelli crescono dal bordo
+     inferiore e la giuntura con la sezione che arriva e coperta fin da
+     subito. Al centro lasciavano scoperto il fondo fino a corsa conclusa, e
+     li si vedeva il gradino. */
+  transform-origin: 50% 100%;
   transform: scale(calc(var(--tel-s) + (1 - var(--tel-s)) * var(--tsp, 0)));
   border-radius: calc(26vw * (1 - var(--tsp, 0)));
   opacity: calc(var(--tsp, 0) * 1.6);

@@ -84,12 +84,14 @@ export default function ToneShift({
           // mezzo schermo: la cucitura ha già finito di passare prima che
           // l'occhio arrivi al fondo del blocco.
           start: "top 98%",
-          // Finisce quando il BORDO BASSO del blocco tocca il fondo del
-          // viewport, non piu tardi. Le varianti che non salgono dal basso
-          // (telescopio, iride, tenda) coprono la giuntura inferiore solo a
-          // corsa conclusa: farla finire dopo lasciava un gradino misurabile
-          // (DeltaRGB 73 e 56) proprio sul confine con la sezione che arriva.
-          end: "bottom bottom",
+          // Finisce quando la giuntura e ARRIVATA DAVVERO, cioe a due terzi
+          // di schermo — non quando e ancora un viewport piu in basso. Con
+          // "bottom bottom" il gesto si chiudeva prestissimo e restava da
+          // attraversare un blocco di colore piatto: letto come fretta.
+          // Poterlo fare senza gradini dipende dal fatto che TUTTE le
+          // varianti ora coprono il bordo inferiore per prime (vedi le note
+          // su transform-origin, inset a quattro valori e testa diagonale).
+          end: "bottom 62%",
           scrub: 0.5,
           invalidateOnRefresh: true,
         } as const;
