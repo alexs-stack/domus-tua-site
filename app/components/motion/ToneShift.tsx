@@ -35,6 +35,7 @@
 
 import { useRef } from "react";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
+import { SegnoDomus } from "../BrandMotif";
 
 export type Tone = "cream" | "cream-deep" | "paper" | "espresso" | "wine" | "graphite";
 export type ShiftVariant = "arco" | "telescopio" | "iride" | "tenda" | "nebbia";
@@ -175,6 +176,14 @@ export default function ToneShift({
           {TELESCOPE.map((s) => (
             <span key={s} className="dt-toneshift_tel" style={{ "--tel-s": s } as React.CSSProperties} />
           ))}
+          {/* Uno zoom senza NIENTE da ingrandire non racconta nulla: pannelli
+              di colore piatto che convergono sono solo un colore che cresce.
+              Il Segno Domus dà al telescopio il suo soggetto — arriva dalla
+              profondità con i pannelli e si dissolve quando il colore chiude,
+              così non resta appiccicato sulla campitura. */}
+          <span className="dt-toneshift_mark">
+            <SegnoDomus className="h-full w-full" embrace={false} />
+          </span>
         </div>
       ) : (
         <div data-ts-in className="dt-toneshift_in" />

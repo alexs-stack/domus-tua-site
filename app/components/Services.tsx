@@ -4,7 +4,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import CharFlip from "./motion/CharFlip";
 import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
 // La distorsione liquida usa WebGL (ogl): il modulo arriva solo quando il componente entra in
@@ -360,12 +360,15 @@ export default function Services() {
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <TextLines
+          {/* CharFlip, non TextLines: il titolo dei servizi e breve e regge il
+              giro per carattere. Sullo stesso elemento i due rivelatori si
+              annullerebbero — uno maschera le righe, l altro gira i glifi. */}
+          <CharFlip
             as="h2"
             className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
           >
             {c.title}
-          </TextLines>
+          </CharFlip>
         </div>
 
         <div ref={gridRef} className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">

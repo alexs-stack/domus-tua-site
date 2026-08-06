@@ -72,7 +72,11 @@ export default function Home() {
         <OpenDomus />
         <ToneShift from="paper" to="cream-deep" variant="iride" />
         <DomusDocProtocol tone="cream-deep" />
-        <ToneShift from="cream-deep" to="cream" variant="arco" />
+        {/* NIENTE cucitura fra D.O.C. e Servizi: cream-deep e cream distano
+            ΔRGB 11, cioè sono lo stesso colore per l'occhio. Una transizione
+            fra due toni identici non nasconde uno stacco che non esiste — lo
+            INVENTA, e si nota proprio perché non serve. Le cuciture restano
+            dove il salto è reale (ΔRGB 61-72). */}
         <Services />
         <ToneShift from="cream" to="paper" variant="nebbia" />
         <FeaturedTestimonial />
