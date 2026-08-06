@@ -442,6 +442,31 @@ html[data-preloader] .dt-pre-char {
   }
 }
 
+/* ---------- Segno di apertura di un <details> ----------
+   Il segno Domus usato come indicatore di espansione: punta in GIÙ quando il pannello è
+   chiuso, torna in SU quando è aperto. Regola scritta a mano e non con la variante
+   `group-open:` di Tailwind perché quella, verificata in pagina, non generava alcuna
+   CSS: la classe finiva sull'elemento e non esisteva la regola corrispondente. Qui il
+   comportamento è esplicito e ispezionabile.
+   `rotate` (proprietà autonoma) e non `transform`: si compone senza azzerare le altre.
+
+   È la CHIUSURA a portare la rotazione, non l'apertura: scritta al contrario
+   (`base: 180deg` + `[open]: 0deg`) la regola di apertura veniva minificata in
+   `rotate: none` e — verificato in pagina — non vinceva mai sulla base, nonostante
+   specificità e ordine. Così invece esiste UNA sola dichiarazione: quando il pannello
+   si apre il selettore smette di applicarsi e il segno torna da solo a 0. */
+.dt-disclosure {
+  transition: rotate var(--dur-micro) var(--ease-domus);
+}
+details:not([open]) > summary .dt-disclosure {
+  rotate: 180deg;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-disclosure {
+    transition: none;
+  }
+}
+
 /* ---------- Utility: hairline ---------- */
 .hairline {
   background: linear-gradient(

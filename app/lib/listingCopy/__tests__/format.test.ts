@@ -240,11 +240,110 @@ test("una frase con virgole ma senza attacco d'elenco resta prosa", () => {
   assert.ok(blocks.every((b) => b.kind !== "list"));
 });
 
-test("gli elenchi non superano il tetto di due per annuncio", () => {
+test("gli elenchi non superano il tetto di tre per annuncio", () => {
   const sentence =
     "La villa è dotata di riscaldamento autonomo, caldaia a condensazione, radiatori in ghisa e un camino.";
-  const { blocks } = formatListingDescription(["Apertura.", ...Array(6).fill(sentence)]);
-  assert.equal(blocks.filter((b) => b.kind === "list").length, 2);
+  const { blocks } = formatListingDescription(["Apertura.", ...Array(8).fill(sentence)]);
+  assert.equal(blocks.filter((b) => b.kind === "list").length, 3);
+});
+
+test("i due punti introducono un elenco quando le voci sono sintagmi brevi", () => {
+  const { blocks } = formatListingDescription([
+    "Apertura.",
+    "Appena entri percepisci ciò che rende speciale questa abitazione: la luce, l’armonia degli spazi, la raffinatezza, la funzionalità.",
+  ]);
+  const list = blocks.find((b) => b.kind === "list");
+  assert.ok(list && list.kind === "list");
+  assert.deepEqual(list.items, ["la luce", "l’armonia degli spazi", "la raffinatezza", "la funzionalità"]);
+});
+
+test("i due punti di una frase normale non producono un elenco", () => {
+  const { blocks } = formatListingDescription([
+    "Apertura.",
+    "Oggi a Tradate la risposta è semplice: gli attici, che non si costruiscono ogni giorno, aspettano il momento giusto per cambiare proprietario.",
+  ]);
+  assert.ok(blocks.every((b) => b.kind !== "list"));
+});
+
+test("una voce che continua la precedente annulla l'elenco: resta prosa", () => {
+  // «dotato di…» e «comodo per…» descrivono il giardino, non sono altre voci.
+  const { blocks } = formatListingDescription([
+    "Apertura.",
+    "La proprietà comprende un bel giardino di 183 m2, dotato di passerella e portico, comodo per pranzi e cene all’aperto.",
+  ]);
+  assert.ok(blocks.every((b) => b.kind !== "list"));
+});
+
+test("la congiunzione dopo la virgola non diventa una voce d'elenco", () => {
+  const { blocks } = formatListingDescription([
+    "Apertura.",
+    "Nel seminterrato si trovano inoltre una comoda dispensa, una spaziosa lavanderia, due cantine, e il locale caldaia.",
+  ]);
+  const list = blocks.find((b) => b.kind === "list");
+  assert.ok(list && list.kind === "list");
+  assert.deepEqual(list.items, [
+    "una comoda dispensa",
+    "una spaziosa lavanderia",
+    "due cantine",
+    "il locale caldaia",
+  ]);
+});
+
+test("un elenco di dotazioni anteposto al verbo diventa un elenco", () => {
+  const { blocks } = formatListingDescription([
+    "Apertura.",
+    "Serramenti in legno con doppio vetro, caldaia autonoma, porta blindata, zanzariere, tende da sole, antifurto, aria condizionata e videocitofono sono solo alcuni plus che potrai venire a vedere.",
+  ]);
+  const list = blocks.find((b) => b.kind === "list");
+  assert.ok(list && list.kind === "list");
+  assert.deepEqual(list.items, [
+    "Serramenti in legno con doppio vetro",
+    "caldaia autonoma",
+    "porta blindata",
+    "zanzariere",
+    "tende da sole",
+    "antifurto",
+    "aria condizionata",
+    "videocitofono",
+  ]);
+  assert.deepEqual(list.lead, []);
+  // La coda col verbo resta prosa, sotto l'elenco: non viene persa.
+  assert.ok(
+    blocks.some((b) => b.kind === "para" && blockText(b).startsWith("sono solo alcuni plus")),
+    "coda dell'elenco anteposto persa",
+  );
+});
+
+test("un elenco di aggettivi non viene scambiato per dotazioni anteposte", () => {
+  const { blocks } = formatListingDescription([
+    "Apertura.",
+    "Gli spazi sono luminosi, ariosi, ben distribuiti e curati nei minimi dettagli.",
+  ]);
+  assert.ok(blocks.every((b) => b.kind !== "list"));
+});
+
+test("una frase con il punto fermo senza spazio viene comunque divisa", () => {
+  // Il feed scrive «…lo consente.La zona notte…»: senza questa divisione l'invito finale
+  // e gli elenchi del paragrafo resterebbero invisibili.
+  assert.equal(splitSentences("La struttura lo consente.La zona notte è distinta.").length, 2);
+  // …ma un prezzo NON è due frasi.
+  assert.equal(splitSentences("Prezzo di 1.500 euro al mese.").length, 1);
+});
+
+test("un annuncio in un solo paragrafo viene comunque strutturato", () => {
+  // Il caso peggiore del feed: aggancio, corpo con enumerazione e invito tutti in un blocco.
+  // Prima di `bodyBlocks` ricorsivo il corpo finiva integralmente in prosa.
+  const { blocks } = formatListingDescription([
+    [
+      "Una villa che non ti aspetti, a due passi dal centro.",
+      "Il piano rialzato ospita la zona giorno affacciata sul parco, con una vetrata continua che porta la luce fin dentro al corridoio.",
+      "Nel seminterrato si trovano una comoda dispensa, una spaziosa lavanderia, due cantine e il locale caldaia.",
+      "Chiamateci per fissare un appuntamento.",
+    ].join(" "),
+  ]);
+  assert.equal(blocks[0].kind, "lead");
+  assert.ok(blocks.some((b) => b.kind === "list"), "elenco non riconosciuto nel corpo");
+  assert.equal(blocks[blocks.length - 1].kind, "closing");
 });
 
 // ── 6. Disciplina del grassetto e degli accenti ─────────────────────────────

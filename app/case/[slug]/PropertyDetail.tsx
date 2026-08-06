@@ -274,12 +274,27 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   // Tipologia, piano, contratto e classe energetica vivono nel box "Dati principali" della
   // sidebar: ripeterli qui era la duplicazione più evidente della vecchia scheda.
   // Il filtro su "—" resta perché Terreno/Commerciale non hanno locali, camere o bagni.
+  // `p.rooms` vale "4 locali": giusto sulle card, dove il numero sta accanto a un'icona e
+  // senza etichetta. Qui l'etichetta c'è già, e "Locali / 4 locali" ripete il sostantivo
+  // dentro il suo stesso rigo. Si toglie solo in questa vista: la sorgente non cambia.
+  const bare = (value: string) => value.replace(/\s+(?:local[ei]|camere?|bagn[oi])$/i, "");
+
   const specs = [
-    { label: c.specSqm, value: p.sqm },
-    { label: c.specRooms, value: p.rooms },
-    { label: c.specBeds, value: p.beds },
-    { label: c.specBaths, value: p.baths },
-  ].filter((s) => s.value && s.value !== "—");
+    { factKey: "superficie", label: c.specSqm, value: p.sqm },
+    { factKey: "locali", label: c.specRooms, value: p.rooms },
+    { factKey: "camere", label: c.specBeds, value: p.beds },
+    { factKey: "bagni", label: c.specBaths, value: p.baths },
+  ]
+    .filter((s) => s.value && s.value !== "—")
+    .map((s) => ({ ...s, value: bare(s.value) }));
+
+  // Un fatto, un posto solo. I quattro numeri della striscia stanno sopra la piega, in
+  // display, ed erano ripetuti tali e quali dentro "Dati principali" — con perfino una
+  // formattazione diversa ("4 locali" contro "4"), che è peggio di una ripetizione: sembra
+  // che due fonti non vadano d'accordo. La striscia li tiene, il box tiene tutto il resto.
+  // L'elenco è DERIVATO da ciò che la striscia ha davvero reso: su un terreno senza locali
+  // la striscia non li mostra, e allora il box torna a essere il loro unico posto.
+  const specKeys = specs.map((s) => s.factKey);
 
   // Etichetta del <details> quando un gruppo supera le voci immediatamente visibili.
   const moreFactsLabel = (n: number) =>
@@ -431,10 +446,10 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
           <dl ref={specsRef} className="flex min-w-max gap-8 rounded-[2rem] border border-line bg-cream px-7 py-5 sm:min-w-0 sm:justify-between">
             {specs.map((s) => (
               <div key={s.label} className="shrink-0">
-                <dt className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-stone">
+                <dt className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-graphite">
                   {s.label}
                 </dt>
-                <dd className="tnum mt-1 font-display text-lg font-medium text-ink">{s.value}</dd>
+                <dd className="tnum mt-1 font-display text-xl font-medium text-ink">{s.value}</dd>
               </div>
             ))}
           </dl>
@@ -487,7 +502,12 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
             </div>
 
             {/* Box dei dati: uno per gruppo con contenuto, mai box vuoti, mai "—". */}
-            <PropertyFacts facts={p.facts} labels={c.factGroups} moreLabel={moreFactsLabel} />
+            <PropertyFacts
+              facts={p.facts}
+              labels={c.factGroups}
+              moreLabel={moreFactsLabel}
+              hiddenKeys={specKeys}
+            />
           </aside>
 
           {/* ── Colonna sinistra: il racconto ─────────────────────────────────────── */}
@@ -556,9 +576,9 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
               <p className="mt-3 max-w-xl text-[0.98rem] leading-relaxed text-graphite">
                 {c.safetyText}
               </p>
-              <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+              <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2.5">
                 {c.safetyPoints.map((point) => (
-                  <li key={point} className="inline-flex items-center gap-2 text-[0.9rem] text-ink">
+                  <li key={point} className="inline-flex items-center gap-2 text-[1rem] text-ink">
                     <span
                       aria-hidden
                       className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
@@ -581,12 +601,12 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
 
           {/* ── Elemento secondario finale della sidebar ──────────────────────────── */}
           <div className="order-3 rounded-[2rem] border border-line bg-paper p-6 lg:order-none lg:col-start-2 lg:row-start-2">
-            <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-stone">
+            <h2 className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-graphite">
               {c.assistTitle}
             </h2>
-            <ul className="mt-3 flex flex-col gap-2.5">
+            <ul className="mt-4 flex flex-col gap-2.5">
               {c.assistPoints.map((point) => (
-                <li key={point} className="flex items-start gap-2.5 text-[0.9rem] text-graphite">
+                <li key={point} className="flex items-start gap-2.5 text-[1rem] leading-snug text-graphite">
                   <span
                     aria-hidden
                     className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"

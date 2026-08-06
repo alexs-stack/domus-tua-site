@@ -58,12 +58,94 @@ export const CLOSING_CUES: readonly RegExp[] = [
  * Attacchi di ELENCO: introducono una sequenza di caratteristiche separate da virgole.
  * Solo dopo uno di questi attacchi una frase può diventare un elenco puntato — mai
  * per il semplice fatto di contenere delle virgole.
+ *
+ * PERCHÉ SONO TANTI. Con i soli attacchi "canonici" ("è dotata di", "si compone di") su
+ * venti annunci reali uscivano SETTE elenchi in tutto: tutte le altre enumerazioni —
+ * e sono la maggioranza — restavano prosa, cioè restavano il muro di testo che questo
+ * modulo esiste per smontare. Gli attacchi qui sotto sono tutti verbi di DOTAZIONE presi
+ * dal corpus reale; il rischio di falso positivo non sta nel verbo ma in ciò che segue,
+ * ed è lì che `readEnumeration` continua a essere severo (3-8 voci, sintagmi brevi,
+ * nessun punto fermo interno, niente subordinate).
  */
 // NB: il confine iniziale è un lookbehind Unicode, non `\b`. In JavaScript `\b` ragiona
 // solo su [A-Za-z0-9_]: davanti a "è dotata di" il confine cadrebbe SEMPRE, e l'attacco
 // più frequente degli annunci italiani non verrebbe mai riconosciuto.
-export const ENUM_LEAD_INS =
-  /(?<!\p{L})(?:è dotat[oa] di|sono dotat[ei] di|si compone di|è compost[oa] d[ai]|sono compost[ei] d[ai]|comprende|completa(?:no)? (?:il piano|la proprietà|l'immobile|l’immobile|la casa|la villa|l'appartamento|l’appartamento)|dispone di|include)\s+/iu;
+export const ENUM_LEAD_INS = new RegExp(
+  `(?<!\\p{L})(?:${[
+    // Dotazione esplicita
+    "(?:è |sono |ed è |e sono )?dotat[oaei] (?:anche )?di",
+    "corredat[oaei] (?:anche )?di",
+    "arricchit[oaei] d[ai]",
+    "caratterizzat[oaei] d[ai]",
+    "costituit[oaei] d[ai]",
+    // Composizione
+    "si compone di",
+    "(?:è |sono |ad oggi )?compost[oaei] d[ai]",
+    "si sviluppa (?:su|con)",
+    "comprende",
+    "include",
+    "dispone di",
+    // Offerta / possesso — il soggetto è l'immobile, l'elenco è ciò che mette a
+    // disposizione. Verbi frequentissimi negli annunci e sempre seguiti da sintagmi.
+    "offr(?:e|ono)",
+    "ospit(?:a|ano)",
+    "present(?:a|ano)",
+    "vant(?:a|ano)",
+    "annover(?:a|ano)",
+    // Inversione: "Completano il piano un ampio bagno, un disimpegno…". L'oggetto
+    // resta un elenco CHIUSO: senza, il lead si mangerebbe la prima voce.
+    "completa(?:no)? (?:il piano(?: terra| rialzato| primo| secondo| interrato)?|la proprietà|l'immobile|l’immobile|la casa|la villa|l'appartamento|l’appartamento|l'unità|l’unità|la zona giorno|la zona notte|la dotazione|il tutto|gli spazi)",
+    // "Al piano troviamo una camera, uno studio e due bagni."
+    "trov(?:iamo|i|ate)",
+    "si trov(?:a|ano)(?: inoltre| anche)?",
+    "abbiamo",
+  ].join("|")})\\s+`,
+  "iu",
+);
+
+/**
+ * Parole con cui una VOCE D'ELENCO non può mai cominciare.
+ *
+ * È il vero guardiano degli elenchi, e vale più dell'attacco che li introduce. Una voce
+ * d'elenco è un sintagma NOMINALE — «un disimpegno con arredo», «radiatori in ghisa» —
+ * mentre la prosa spezzata alle virgole comincia sistematicamente per preposizione,
+ * congiunzione, avverbio o participio: «ognuna con la possibilità di…», «mentre la
+ * graziosa cucina…», «dotato di passerella…», «soprattutto nel caso in cui…».
+ *
+ * Basta UNA voce che cominci così perché l'intero elenco venga rifiutato e il paragrafo
+ * resti prosa: in una vera enumerazione non ce n'è nessuna, in un falso positivo ce n'è
+ * quasi sempre più d'una. È la regola che permette di allargare gli attacchi (ENUM_LEAD_INS)
+ * senza pagare in elenchi sbagliati — e un elenco sbagliato è peggio di nessun elenco.
+ */
+export const ITEM_STOP_OPENERS: ReadonlySet<string> = new Set([
+  // Preposizioni e locuzioni
+  "con", "senza", "per", "tra", "fra", "da", "di", "in", "su", "a", "ad", "presso", "verso",
+  "dal", "dalla", "dallo", "dai", "dalle", "del", "della", "dello", "dei", "delle", "degli",
+  "nel", "nella", "nello", "nei", "nelle", "negli", "sul", "sulla", "sullo", "sui", "sulle",
+  "al", "alla", "allo", "ai", "alle", "agli", "col", "coi",
+  // Forme elise: la voce viene troncata all'apostrofo, quindi qui basta il moncone
+  // ("dall'ingresso" → "dall"). L'articolo elidato — "l'armonia", "un'ampia" — resta fuori:
+  // quello un sintagma lo apre eccome.
+  "dall", "dell", "nell", "sull", "all", "coll", "quell",
+  // Congiunzioni e connettivi
+  "e", "ed", "o", "od", "oppure", "ma", "però", "mentre", "come", "così", "che", "chi", "cui",
+  "dove", "quando", "se", "perché", "poiché", "sebbene", "benché", "nonché", "ovvero", "cioè",
+  "quindi", "dunque", "anzi", "ossia", "né",
+  // Avverbi e quantificatori che continuano il periodo
+  "oltre", "più", "meno", "non", "mai", "sempre", "già", "ancora", "anche", "pure", "solo",
+  "soltanto", "soprattutto", "specialmente", "particolarmente", "veramente", "davvero",
+  "infine", "inoltre", "poi", "sia", "ognuno", "ognuna", "ciascuno", "ciascuna", "entrambi",
+  "entrambe", "tutto", "tutti", "tutta", "tutte",
+  // Participi e aggettivi predicativi: descrivono la voce PRECEDENTE, non ne aprono una nuova
+  "dotato", "dotata", "dotati", "dotate", "composto", "composta", "composti", "composte",
+  "corredato", "corredata", "corredati", "corredate", "arricchito", "arricchita",
+  "sviluppato", "sviluppata", "sviluppati", "sviluppate", "situato", "situata", "situati",
+  "situate", "posto", "posta", "collegato", "collegata", "affacciato", "affacciata",
+  "completo", "completa", "completi", "complete", "unito", "unita", "uniti", "unite",
+  "comodo", "comoda", "comodi", "comode", "ideale", "ideali", "adatto", "adatta",
+  "perfetto", "perfetta", "perfetti", "perfette", "fantastico", "fantastica",
+  "ottimo", "ottima", "utile", "utili", "pratico", "pratica", "magnifico", "splendido",
+]);
 
 /**
  * PUNTI DI FORZA che meritano il grassetto — in ordine di priorità.
@@ -134,4 +216,10 @@ export const ABBREVIATIONS: readonly string[] = [
   "v.le",
   "c.a",
   "art",
+  // Ragioni sociali: senza queste "S.p.A. con sede…" si spezza dopo "S.p." — il punto
+  // fermo senza spazio ora è un confine valido, e le sigle vanno protette a mano.
+  "s.p",
+  "s.r",
+  "s.a",
+  "s.n",
 ];

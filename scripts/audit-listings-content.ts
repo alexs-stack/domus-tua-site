@@ -86,6 +86,19 @@ function structuralFindings(p: NormalizedProperty, raw: RealSmartListingRaw): Fi
     out.push({ severity: "FAIL", check: "descrizione-vuota", detail: "nessun paragrafo pubblicabile" });
   }
 
+  // Segnaposto mai compilati. Nel feed live esiste davvero «un ampio bagno di oltre ____ mq»:
+  // qualcuno ha scritto la frase pensando di tornarci e non ci è tornato. È un buco nel testo
+  // che arriva a chi deve comprare casa, e nessun livello di presentazione può ripararlo —
+  // si ripara nel gestionale, quindi va segnalato qui e deve far fallire il comando.
+  const placeholder = text.match(/_{3,}|\bX{3,}\b|\bTBD\b|\bN\/D\b|\[[a-z ]{2,20}\]/i);
+  if (placeholder) {
+    out.push({
+      severity: "FAIL",
+      check: "segnaposto-non-compilato",
+      detail: `segnaposto pubblicato nella descrizione: "${placeholder[0]}"`,
+    });
+  }
+
   // Camere: devono venire dal campo <Camere>, mai da "locali - 1".
   const camere = p.facts.find((f) => f.key === "camere");
   const camereRaw = Number.parseInt(String(raw.camere ?? "0").replace(/\D/g, ""), 10) || 0;
