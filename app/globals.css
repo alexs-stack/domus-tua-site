@@ -476,14 +476,19 @@ html[data-preloader] .dt-pre-char {
    sulle utility di sfondo → nessuna modifica ai componenti.
    ============================================================ */
 
-/* Sezioni chiare: bloom di luce dall'alto (quasi-bianco) + velatura calda rossa in basso
-   a destra + leggera messa a terra in fondo → luce direzionale e volume, non tinta piatta. */
+/* Sezioni chiare: bloom di luce dall'alto (quasi-bianco) + velatura calda rossa
+   in basso a destra → luce direzionale e volume, non tinta piatta.
+
+   LA MESSA A TERRA È STATA TOLTA (2026-08-06, direttiva cliente). Era
+   `linear-gradient(180deg, transparent 64%, rgba(64,52,44,0.075))`: un'ombra
+   in fondo a OGNI sezione chiara. Presa da sola dava volume; messe in fila,
+   quelle ombre disegnavano una riga scura a ogni giunzione e lo scroll
+   leggeva come una pila di diapositive invece che come una pagina sola. */
 .bg-cream,
 .bg-cream-deep {
   background-image:
     radial-gradient(125% 82% at 50% -12%, rgba(255, 252, 244, 0.92), rgba(255, 252, 244, 0) 58%),
-    radial-gradient(92% 75% at 90% 116%, rgba(200, 40, 26, 0.08), transparent 62%),
-    linear-gradient(180deg, transparent 64%, rgba(64, 52, 44, 0.075));
+    radial-gradient(92% 75% at 90% 116%, rgba(200, 40, 26, 0.08), transparent 62%);
 }
 
 /* Carta (card e superfici in evidenza): solo luce morbida dall'alto, resta pulita e "alzata". */
@@ -950,66 +955,55 @@ html[data-preloader] .dt-pre-char {
 }
 
 /* ---------- ToneShift: la cucitura fra due colori di fondo ----------
-   Vedi app/components/motion/ToneShift.tsx. Il colore in arrivo sale dal
-   basso dentro la sagoma dell'arco (la stessa del preloader e del sipario)
-   e si allarga finché le sue gambe superano il viewport. */
+   Vedi app/components/motion/ToneShift.tsx.
+
+   GEOMETRIA: l'ARCO RIBASSATO della cupola di HorizonStory — raggi ellittici
+   50vw x 22vh, largo mezzo schermo e basso. È la curva che il sito usa già
+   per far salire una pagina sopra un'altra, e alla scala di un confine di
+   sezione legge come orizzonte, non come porta.
+   La prima stesura usava l'arco stretto del preloader ritagliato in
+   mask-image: troppo piccolo, e a metà corsa diventava comunque una banda
+   piatta. Qui non c'è maschera e non c'è ritaglio: il pannello del colore in
+   arrivo ha semplicemente il bordo curvo e SALE. Una sola transform, tutta
+   su GPU.
+
+   Senza JS o con reduced-motion il pannello non esiste e il blocco resta una
+   sfumatura verticale piena fra i due toni: transizione statica onesta. */
 .dt-toneshift {
   position: relative;
-  /* Alto quanto basta perché la porta si legga come porta: sotto i ~160px il
-     semicerchio non ha spazio per mostrarsi e resta solo un colore che sale.
-     Sopra i 380px il passaggio comincia a sembrare una sezione vuota. */
-  height: clamp(160px, 34svh, 380px);
+  /* Grande: è un orizzonte che passa, non un bordo. Sotto ~300px l'arco
+     ribassato non ha spazio per distendersi e torna a sembrare un taglio. */
+  height: clamp(300px, 62svh, 680px);
   overflow: hidden;
-  /* CONTINUARE LA MESSA A TERRA. .bg-cream e .bg-cream-deep chiudono con
-     `linear-gradient(180deg, transparent 64%, rgba(64,52,44,0.075))`: l'ultimo
-     pixel di quelle sezioni è quindi ~15/canale più scuro del tono dichiarato.
-     Un blocco che partisse dal tono puro rimetterebbe esattamente il taglio
-     che deve togliere (misurato: ΔRGB 40-42 sul bordo). Qui la messa a terra
-     riparte dal suo valore pieno e si scioglie: la giuntura sparisce.
-     --ts-shade vale 0 quando sopra c'è .bg-paper, che quella coda non ce l'ha. */
-  background:
-    linear-gradient(180deg, rgba(64, 52, 44, var(--ts-shade, 0)), rgba(64, 52, 44, 0) 55%),
-    linear-gradient(to bottom, var(--ts-from), var(--ts-to));
+  background: linear-gradient(to bottom, var(--ts-from), var(--ts-to));
 }
 .dt-toneshift_in {
   position: absolute;
-  inset: 0;
-  /* AGGANCIARE IL BLOOM DELLA SEZIONE CHE ARRIVA. .bg-cream/.bg-cream-deep
-     aprono con una luce quasi bianca dall'alto: il loro primo pixel è più
-     chiaro del tono dichiarato. Un pannello piatto lasciava una giuntura sul
-     bordo basso (misurato: ΔRGB 17). Qui la stessa luce è ancorata SOTTO il
-     blocco, così il pannello arriva al confine già alla lucentezza giusta. */
+  left: 0;
+  right: 0;
+  top: 0;
+  /* Piu alto del blocco: l'eccedenza e la corsa che serve alla curva per
+     uscire sopra il bordo, cosi alla fine il colore copre piatto. */
+  height: calc(100% + 30svh);
+  border-top-left-radius: 50vw 22vh;
+  border-top-right-radius: 50vw 22vh;
+  /* Il bloom d'apertura della sezione che arriva, ancorato al bordo BASSO del
+     blocco: cosi il pannello raggiunge la giuntura gia alla lucentezza giusta
+     e non lascia un salto (misurato: senza, DeltaRGB 17). */
   background:
     radial-gradient(140% 128% at 50% 116%, rgba(255, 252, 244, var(--ts-bloom, 0)), rgba(255, 252, 244, 0) 60%),
     var(--ts-to);
-  /* Il pannello esiste solo quando JS può animarlo: da fermo coprirebbe la
-     sfumatura con una campitura piatta e rimetterebbe il taglio in alto. */
+  /* Esiste solo quando JS puo animarlo: da fermo coprirebbe la sfumatura. */
   opacity: 0;
 }
 .dt-toneshift[data-on] {
-  background:
-    linear-gradient(180deg, rgba(64, 52, 44, var(--ts-shade, 0)), rgba(64, 52, 44, 0) 55%),
-    var(--ts-from);
+  background: var(--ts-from);
 }
 .dt-toneshift[data-on] .dt-toneshift_in {
   opacity: 1;
 }
-/* L'ARCO PIENO (560×5600): semicerchio di raggio 280 sopra due gambe lunghe.
-   I punti di controllo sono 0.5523×r = 154.64, l'approssimazione cubica
-   standard del quarto di cerchio: con valori arrotondati la spalla dell'arco
-   si appiattirebbe visibilmente alle larghezze grandi.
-   È il complemento della maschera di .dt-arch-mask, che ritaglia il BUCO
-   ad arco; qui serve la sagoma piena. */
-.dt-toneshift[data-on="arch"] .dt-toneshift_in {
-  --arch-w: 26vw;
-  --arch-y: 34svh;
-  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='560' height='5600' viewBox='0 0 560 5600'><path d='M0 5600V280C0 125.36 125.36 0 280 0C434.64 0 560 125.36 560 280V5600Z' fill='white'/></svg>");
-  mask-size: var(--arch-w) calc(var(--arch-w) * (5600 / 560));
-  mask-position: center var(--arch-y);
-  mask-repeat: no-repeat;
-}
 .dt-toneshift[data-live] .dt-toneshift_in {
-  will-change: mask-position, mask-size, clip-path;
+  will-change: transform;
 }
 
 /* ---------- Le cinque stelle: ORO, non fotografie (2026-08-06) ----------
