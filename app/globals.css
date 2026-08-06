@@ -797,6 +797,71 @@ html[data-preloader] .dt-pre-char {
     36.04% 30.79%
   );
 }
+/* ---------- Seguici: la rotaia orizzontale ----------
+   Otto scatti che scorrono di lato mentre la pagina scende, con l'immagine
+   che pana dentro la cornice in senso contrario alla corsa (vedi Social.tsx).
+   Default = scroll orizzontale NATIVO con snap: sul touch trascinare è il
+   gesto atteso. [data-on] (≥1024 + motion ok, messo da JS) toglie lo scroll
+   nativo e passa il nastro a GSAP. */
+.dt-socialrail {
+  position: relative;
+  margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.dt-socialrail::-webkit-scrollbar {
+  display: none;
+}
+.dt-socialrail[data-on] {
+  overflow: hidden;
+  scroll-snap-type: none;
+}
+.dt-socialrail_track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: clamp(0.75rem, 1.6vw, 1.75rem);
+  /* Il nastro non parte incollato al bordo: un margine d'aria a sinistra dice
+     che c'è altro fuori campo. */
+  padding-inline: clamp(1.25rem, 5vw, 5rem);
+}
+.dt-socialrail_item {
+  flex: none;
+  scroll-snap-align: center;
+  /* Le quote disuguali sono il ritmo editoriale: allineate darebbero una
+     griglia coricata. */
+  transform: translateY(var(--lift, 0));
+  /* Sotto lg le larghezze in vw del ritmo desktop diventano francobolli. */
+  width: clamp(200px, 58vw, 320px);
+}
+@media (min-width: 1024px) {
+  .dt-socialrail_item {
+    width: var(--w);
+  }
+}
+.dt-socialrail_frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: clamp(0.9rem, 1.2vw, 1.5rem);
+  aspect-ratio: var(--ratio, 1 / 1);
+  box-shadow: var(--shadow-card);
+}
+/* Il pannello è più largo della cornice: è la corsa in cui l'immagine pana
+   senza mai scoprire un bordo. 118% = ±9% di gioco per lato, più del massimo
+   `depth` in gioco (9). */
+.dt-socialrail_pan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -9%;
+  width: 118%;
+}
+
 /* ---------- ToneShift: la cucitura fra due colori di fondo ----------
    Vedi app/components/motion/ToneShift.tsx. Il colore in arrivo sale dal
    basso dentro la sagoma dell'arco (la stessa del preloader e del sipario)
