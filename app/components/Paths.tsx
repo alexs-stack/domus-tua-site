@@ -404,6 +404,7 @@ export default function Paths() {
                 key={p.id}
                 id={p.id}
                 data-paths-panel
+                data-surface="dark"
                 className="dt-paths_panel relative flex min-h-[92svh] items-center overflow-hidden"
               >
                 <div data-paths-img className="absolute inset-0">

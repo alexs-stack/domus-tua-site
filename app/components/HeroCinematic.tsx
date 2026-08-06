@@ -470,7 +470,7 @@ export default function HeroCinematic() {
   ];
 
   return (
-    <section ref={sectionRef} id="top" className="relative flex min-h-[100dvh] w-full overflow-hidden bg-espresso text-cream">
+    <section ref={sectionRef} id="top" data-surface="dark" className="relative flex min-h-[100dvh] w-full overflow-hidden bg-espresso text-cream">
       {/* Canvas media (foto + eventuale video) in un layer parallax unico */}
       <div ref={mediaRef} className="absolute inset-0">
         {/* Layer profondità puntatore: mediaRef è già owner di clip/scale del

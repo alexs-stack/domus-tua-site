@@ -158,6 +158,7 @@ export default function Footer() {
 
   return (
     <footer
+      data-surface="dark"
       ref={footerRef}
       className="dt-footer-reveal-target topo-ambient relative bg-graphite text-cream"
     >
