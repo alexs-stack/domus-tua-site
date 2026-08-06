@@ -3,8 +3,14 @@
 /* ============================================================
    DOMUS TUA — DESIGN SYSTEM
    Editorial Luxury × fiducia locale. Palette: rosso / grigio / bianco caldo.
-   No oro, no blu. Didone Playfair Display (display, la stessa dell'hero) +
+   No blu. Didone Playfair Display (display, la stessa dell'hero) +
    Plus Jakarta Sans (UI).
+
+   ORO — eccezione unica e circoscritta (direttiva 2026-08-06). La regola
+   storica era "no oro"; resta valida ovunque tranne che per LE STELLE del
+   capitolo recensioni, dove l'oro non è decorazione ma il materiale proprio
+   della valutazione (le cinque stelle Google). Non usarlo per testo, bordi,
+   CTA o superfici: se serve calore, la strada è cream/sand, non l'oro.
    ============================================================ */
 
 @theme inline {
@@ -26,6 +32,14 @@
   /* Darks caldi (bordeaux/espresso) — profondità nelle sezioni scure, mai grigio/nero piatto */
   --color-espresso: #1c1512;
   --color-wine: #2a100f;
+
+  /* Oro delle stelle — SOLO il capitolo recensioni (vedi intestazione).
+     Rampa a quattro tappe: ombra, corpo, luce, speculare. Tirata verso il
+     caldo della carta (niente ottone verdastro, niente giallo acido). */
+  --color-gold-deep: #a9812a;
+  --color-gold: #c9a227;
+  --color-gold-light: #eed07a;
+  --color-gold-spec: #fff6d4;
 
   /* Fonts (provided by next/font on <html>). Un solo serif per tutto il sito:
      la didone dell'hero (rif. era-residence) è anche il display editoriale.
@@ -783,8 +797,123 @@ html[data-preloader] .dt-pre-char {
     36.04% 30.79%
   );
 }
-.dt-starrev_tileclip {
+/* ---------- Le cinque stelle: ORO, non fotografie (2026-08-06) ----------
+   Le tessere non portano più foto ritagliate: la stella a 5 punte tagliava i
+   volti sulle punte e lasciava le foto in letterbox. Ora le cinque stelle
+   sono il segno pieno della valutazione — oro metallico, accese una alla
+   volta DAL CENTRO nel momento in cui la stella fotografica dell'intro si
+   posa nella tessera centrale, e percorse da un riflesso che viaggia lungo
+   la fila come luce su metallo.
+   Compositing: nessun `box-shadow` (la clip-path lo taglierebbe) e nessun
+   `filter` animato. L'alone è una stella gemella sfocata dietro il corpo:
+   si anima in opacity/scale, cioè solo su GPU. */
+.dt-starrev_star {
+  position: relative;
+  display: block;
+  /* 82%, non 100%: la stella a 5 punte tocca i bordi del suo riquadro (i
+     vertici orizzontali stanno a 2.45% e 97.55%), quindi a piena larghezza
+     le punte di due stelle adiacenti si sfiorano e la fila legge come una
+     banda continua. L'aria la deve fare la forma, non solo il gap. */
+  width: 82%;
+  aspect-ratio: 1 / 1;
+}
+/* Alone caldo dietro la stella: sborda quel tanto che basta a disegnare un
+   filo di luce sul bordo — la stella legge come medaglia coniata, non come
+   campitura piatta. */
+.dt-starrev_halo {
+  position: absolute;
+  inset: -5%;
   clip-path: var(--dt-star);
+  background: radial-gradient(
+    circle at 50% 44%,
+    var(--color-gold-spec) 0%,
+    var(--color-gold-light) 38%,
+    var(--color-gold) 62%,
+    rgba(201, 162, 39, 0) 80%
+  );
+  filter: blur(9px);
+  opacity: 0.5;
+}
+/* Corpo metallico: bande alternate chiaro/scuro = lettura "metallo", non
+   "giallo piatto". L'inclinazione a 158° tiene la luce in alto a sinistra,
+   coerente con l'illuminazione delle fotografie del sito. */
+.dt-starrev_gold {
+  position: absolute;
+  inset: 0;
+  clip-path: var(--dt-star);
+  background: linear-gradient(
+    158deg,
+    var(--color-gold-deep) 0%,
+    var(--color-gold-light) 12%,
+    var(--color-gold) 26%,
+    var(--color-gold-spec) 44%,
+    var(--color-gold) 56%,
+    /* Una sola banda scura, e tenuta alta: due bande d'ombra facevano virare
+       la metà inferiore della stella al marrone sulla carta calda. */ var(--color-gold-deep) 70%,
+    var(--color-gold-light) 86%,
+    #bb9430 100%
+  );
+}
+/* Riflesso speculare: banda inclinata che attraversa il corpo. Vive DENTRO
+   la clip del corpo, quindi non serve mascherarla a parte. */
+.dt-starrev_sweep {
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: 0;
+  width: 42%;
+  /* Ordine translate→rotate: lo stesso che compone GSAP sotto [data-on].
+     Invertirlo farebbe viaggiare la banda lungo l'asse inclinato invece che
+     per orizzontale, e il fallback CSS non combacerebbe più con la timeline. */
+  transform: translate3d(-160%, 0, 0) rotate(16deg);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 246, 212, 0) 0%,
+    rgba(255, 246, 212, 0.42) 38%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(255, 246, 212, 0.42) 62%,
+    rgba(255, 246, 212, 0) 100%
+  );
+  pointer-events: none;
+}
+/* Il riflesso è l'unica cosa che gira di continuo: la promuoviamo solo dove
+   serve, e solo quando la sezione è in scena (JS mette/toglie [data-lit]). */
+.dt-starrev[data-lit] .dt-starrev_sweep,
+.dt-starrev[data-lit] .dt-starrev_halo {
+  will-change: transform, opacity;
+}
+/* Senza [data-on] (mobile, reduced-motion, no-JS) il riflesso è CSS puro:
+   la fila resta viva anche dove la timeline scrubbata non esiste. */
+@media (prefers-reduced-motion: no-preference) {
+  .dt-starrev:not([data-on]) .dt-starrev_sweep {
+    animation: dt-star-sweep 5.4s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(1) .dt-starrev_sweep {
+    animation-delay: 0s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(2) .dt-starrev_sweep {
+    animation-delay: 0.14s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(3) .dt-starrev_sweep {
+    animation-delay: 0.28s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(4) .dt-starrev_sweep {
+    animation-delay: 0.42s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(5) .dt-starrev_sweep {
+    animation-delay: 0.56s;
+  }
+}
+@keyframes dt-star-sweep {
+  0% {
+    transform: translate3d(-160%, 0, 0) rotate(16deg);
+  }
+  /* La corsa occupa il primo 40% del ciclo: il resto è la pausa fra un
+     passaggio di luce e il successivo (il metallo deve respirare). */
+  40%,
+  100% {
+    transform: translate3d(420%, 0, 0) rotate(16deg);
+  }
 }
 /* Il continuo di scroll (grammatica dell'orizzonte): runway + schermo sticky.
    Lo scrub del morph vive su questa geometria; senza [data-on] i wrapper
