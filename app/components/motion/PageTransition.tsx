@@ -68,6 +68,37 @@ function labelForPath(rawPath: string, nav: NavDict): string | null {
   }
 }
 
+/* La parola-destinazione si compone LETTERA PER LETTERA, con lo stesso gesto
+   del preloader (rotazione su Y + salita da sotto la maschera). Il testo
+   arriva da labelForPath a runtime, quindi lo split va fatto qui e non nel
+   markup: `textContent = label` avrebbe un glifo solo da animare. */
+const CHAR = "dt-tr-char";
+
+/** Riempie il layer con la parola splittata; ritorna i glifi da animare. */
+function writeWord(el: HTMLElement, text: string): HTMLElement[] {
+  clearWord(el);
+  if (!text) return [];
+  const line = document.createElement("span");
+  line.className = "dt-tr-line";
+  for (const ch of text) {
+    const glyph = document.createElement("span");
+    glyph.className = CHAR;
+    // Spazio unificatore: uno spazio normale collassa fra due inline-block e
+    // la parola si salderebbe mentre le lettere entrano.
+    glyph.textContent = ch === " " ? " " : ch;
+    line.appendChild(glyph);
+  }
+  el.appendChild(line);
+  return Array.from(line.children) as HTMLElement[];
+}
+
+/** Svuota il layer uccidendo prima i tween dei glifi che sta per rimuovere. */
+function clearWord(el: HTMLElement) {
+  const glyphs = el.querySelectorAll<HTMLElement>(`.${CHAR}`);
+  if (glyphs.length) gsap.killTweensOf(glyphs);
+  el.textContent = "";
+}
+
 let navigateImpl: ((href: string) => void) | null = null;
 let coveringGlobal = false;
 
@@ -137,7 +168,7 @@ export default function PageTransition() {
       const tl = gsap.timeline({
         onComplete() {
           gsap.set(panel, arch ? { autoAlpha: 0 } : { autoAlpha: 0, clipPath: CLOSED });
-          if (word) word.textContent = ""; // a riposo il layer resta vuoto
+          if (word) clearWord(word); // a riposo il layer resta vuoto
           stopSpin();
           setCovering(false);
           getLenis()?.start();
@@ -172,7 +203,7 @@ export default function PageTransition() {
 
       // La parola-destinazione va nel DOM ORA, prima che il sipario copra.
       // Timeline separata da quella della porta: non deve spostare l'onComplete
-      // che fa il push — la scivolata può proseguire mentre la route carica.
+      // che fa il push — la composizione può proseguire mentre la route carica.
       const word = wordRef.current;
       if (word) {
         let destPath = href;
@@ -183,22 +214,56 @@ export default function PageTransition() {
         }
         const label = labelForPath(destPath, dictRef.current.nav);
         gsap.killTweensOf(word);
-        word.textContent = label ?? "";
-        if (label) {
-          gsap
-            .timeline()
-            // Alpha rapida mentre la porta chiude…
-            .fromTo(
-              word,
-              { xPercent: -6, autoAlpha: 0 },
-              { autoAlpha: 1, duration: 0.3, ease: "none" },
-              0.1
-            )
-            // …scivolata orizzontale sottile con la coda lunga della firma.
-            .to(word, { xPercent: 0, duration: dur.transition, ease: "domus" }, 0.1);
+        const glyphs = writeWord(word, label ?? "");
+        if (glyphs.length) {
+          // Il contenitore è visibile subito: il reveal ce l'hanno le lettere,
+          // e un secondo fade sopra darebbe il doppio-hide (stessa regola dei
+          // rivelatori di testo del sito).
+          gsap.set(word, { autoAlpha: 1 });
+          gsap.fromTo(
+            glyphs,
+            { opacity: 0, yPercent: 60, rotateY: 90, transformPerspective: 800 },
+            {
+              opacity: 1,
+              yPercent: 0,
+              rotateY: 0,
+              // Più stretti del preloader (1.3s / 0.075): là il lockup ha
+              // cinque secondi davanti, qui la porta chiude in poco più di
+              // mezzo — con le misure dell'intro la parola arriverebbe a
+              // sipario già alzato.
+              duration: 0.72,
+              stagger: 0.042,
+              ease: "dtOut",
+              delay: 0.14,
+            }
+          );
         } else {
           gsap.set(word, { autoAlpha: 0 });
         }
+      }
+
+      // La composizione progressiva della corona: le 60 tacche dell'anello si
+      // accendono una dopo l'altra, come un quadrante che si riempie. Non è il
+      // logo a comporsi — quello il brand book vieta di ridisegnarlo — è la
+      // cornice attorno, e il monogramma ci entra dentro girando.
+      const ticks = markLayerRef.current?.querySelectorAll<SVGLineElement>(
+        "[data-rot-ring] line"
+      );
+      if (ticks?.length) {
+        gsap.killTweensOf(ticks);
+        gsap.fromTo(
+          ticks,
+          { opacity: 0 },
+          {
+            // Ogni tacca torna alla PROPRIA opacità (le cardinali sono più
+            // marcate): un valore unico appiattirebbe il rosone.
+            opacity: (_i, el: SVGLineElement) => Number(el.getAttribute("opacity") ?? 1),
+            duration: 0.45,
+            stagger: { each: 0.009, from: "start" },
+            ease: "none",
+            delay: 0.22,
+          }
+        );
       }
 
       const tl = gsap.timeline({
@@ -228,7 +293,14 @@ export default function PageTransition() {
           ease: "domus.inOut",
         });
       }
-      tl.to(markLayerRef.current, { autoAlpha: 1, duration: 0.25, ease: "none" }, 0.2);
+      // Il marchio non compare: si posa. Alpha corta più una scala che si
+      // apre, così la corona "arriva" invece di accendersi a interruttore.
+      tl.to(markLayerRef.current, { autoAlpha: 1, duration: 0.25, ease: "none" }, 0.2).fromTo(
+        markLayerRef.current,
+        { scale: 0.84 },
+        { scale: 1, duration: 0.8, ease: "dtOut" },
+        0.2
+      );
     };
 
     navigateImpl = navigate;
@@ -326,7 +398,7 @@ export default function PageTransition() {
         const tl = gsap.timeline({
           onComplete() {
             gsap.set(panel, arch ? { autoAlpha: 0 } : { autoAlpha: 0, clipPath: CLOSED });
-            if (word) word.textContent = ""; // a riposo il layer resta vuoto
+            if (word) clearWord(word); // a riposo il layer resta vuoto
             stopSpin();
             setCovering(false);
             getLenis()?.start();
@@ -372,29 +444,41 @@ export default function PageTransition() {
             "radial-gradient(120% 90% at 50% -10%, rgba(150, 26, 24, 0.28), transparent 60%), radial-gradient(120% 100% at 50% 115%, rgba(24, 12, 12, 0.85), transparent 65%)",
         }}
       >
-        {/* Il marchio vive sopra il pannello: monogramma fermo, anello in
-            rotazione (tween avviato da navigate, fermato a fine entrata). */}
-        <div
-          ref={markLayerRef}
-          className="absolute inset-0 flex items-center justify-center text-cream/90"
-          style={{ opacity: 0 }}
-        >
-          <MarkBadge className="h-14 w-14" dark />
+        {/* Una colonna sola al centro: la corona col marchio, e sotto il nome
+            della pagina in arrivo. Prima erano due segni scollegati — il
+            monogramma piccolo al centro e la parola in un angolo — con in
+            mezzo uno schermo vuoto. */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-[5vh] px-[6vw]">
+          {/* Il marchio dentro la corona: monogramma e anello in
+              controrotazione (tween avviato da navigate, fermato a fine
+              entrata), la corona di luce in CSS. */}
+          <div ref={markLayerRef} className="dt-loader text-cream/90" style={{ opacity: 0 }}>
+            <span aria-hidden className="dt-loader_halo">
+              {/* Tre copie via via più sfocate: sono loro l'alone, non un
+                  box-shadow — un'ombra non gira col gradiente e resterebbe
+                  ferma mentre la corona ruota. */}
+              <span />
+              <span />
+              <span />
+            </span>
+            <span aria-hidden className="dt-loader_core" />
+            <MarkBadge className="dt-loader_mark" dark />
+          </div>
+          {/* Parola-destinazione: nome tradotto della pagina in arrivo, nella
+              didone dei momenti-hero e con lo stesso gesto del lockup del
+              preloader. A riposo: vuota e autoAlpha 0 — il testo, e lo split
+              in lettere, li scrive navigate. */}
+          <div
+            ref={wordRef}
+            aria-hidden
+            className="pointer-events-none select-none whitespace-nowrap text-center font-hero italic leading-[0.95] tracking-[-0.01em] text-cream"
+            style={{
+              fontSize: "clamp(2.75rem, 7.5vw, 7rem)",
+              opacity: 0,
+              visibility: "hidden",
+            }}
+          />
         </div>
-        {/* Parola-destinazione: nome tradotto della pagina in arrivo, outline
-            nella didone dei momenti-hero, composizione editoriale in basso a
-            sinistra. A riposo: vuota e autoAlpha 0 (il testo lo scrive navigate). */}
-        <div
-          ref={wordRef}
-          aria-hidden
-          className="pointer-events-none absolute bottom-[7vh] left-[4vw] select-none whitespace-nowrap font-hero italic leading-none text-transparent"
-          style={{
-            fontSize: "11vw",
-            WebkitTextStroke: "1.5px rgba(255, 252, 244, 0.35)",
-            opacity: 0,
-            visibility: "hidden",
-          }}
-        />
       </div>
     </div>
   );

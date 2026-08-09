@@ -1613,6 +1613,133 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   transform: translateX(-50%);
 }
 
+/* ---------- IL CARICAMENTO FRA LE PAGINE (PageTransition.tsx) ----------
+   Il sipario mostrava un monogramma da 56px e la parola-destinazione in un
+   angolo: due segni piccoli in mezzo a uno schermo intero. Ora il marchio sta
+   dentro una CORONA che gira — un disco di gradiente con tre copie via via
+   più sfocate dietro, cioè il trucco dello snippet Uiverse indicato dal
+   cliente (terenceodonoghue), riportato nei colori del marchio invece del
+   viola/azzurro dell'originale — e la parola si compone al centro, lettera per
+   lettera, con lo stesso gesto del preloader.
+
+   Il logo NON viene ridisegnato né deformato (divieto del brand book, vedi
+   RotatingMark): la "composizione progressiva" è delle 60 tacche dell'anello,
+   che si accendono una dopo l'altra come un quadrante che si riempie. Il
+   monogramma si limita a girare, come fa già ovunque.
+
+   Il sipario non compare mai con reduced-motion (il gate è in PageTransition),
+   ma la corona è un'animazione CSS: la si spegne comunque qui, perché una
+   regola che dipende SOLO da un gate JS è una regola che il prossimo refactor
+   può perdere per strada. */
+.dt-loader {
+  /* Il badge del sipario stava a 56px: il monogramma dentro ne misurava 29,
+     cioè un francobollo in mezzo a uno schermo. Qui la corona parte da 160 e
+     arriva a 240, e il marchio la riempie per il 58% — il monogramma vero
+     passa da 29 a ~55px. */
+  --dt-loader-size: clamp(160px, 20vmin, 240px);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--dt-loader-size);
+  height: var(--dt-loader-size);
+}
+/* Tutti i piani nella stessa cella: corona, poi il cuore scuro che ne copre la
+   sbavatura interna, poi il marchio. È quell'ordine a tenere il monogramma
+   leggibile dentro l'alone — e va scritto con z-index ESPLICITI, non lasciato
+   all'ordine del DOM: la corona ha un `transform` (ruota), quindi è un
+   contesto di impilamento, e da elemento posizionato si dipingerebbe SOPRA
+   due fratelli statici comunque li si metta nel markup. Misurato: senza
+   questi tre indici il cuore non copriva nulla e il marchio spariva dentro
+   un disco di luce. */
+.dt-loader > * {
+  grid-area: 1 / 1;
+}
+.dt-loader_core,
+.dt-loader_mark {
+  position: relative;
+}
+.dt-loader_halo {
+  z-index: 0;
+}
+.dt-loader_core {
+  z-index: 1;
+}
+.dt-loader_mark {
+  z-index: 2;
+}
+.dt-loader_halo {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  border-radius: 50%;
+  background-image: linear-gradient(
+    var(--color-red),
+    #e0483d,
+    var(--color-red-soft),
+    var(--color-cream)
+  );
+  animation: dt-loader-spin 1.9s linear infinite;
+}
+.dt-loader_halo > span {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-image: inherit;
+}
+.dt-loader_halo > span:nth-of-type(1) {
+  filter: blur(7px);
+}
+.dt-loader_halo > span:nth-of-type(2) {
+  filter: blur(18px);
+  opacity: 0.85;
+}
+.dt-loader_halo > span:nth-of-type(3) {
+  filter: blur(38px);
+  opacity: 0.55;
+}
+/* Il cuore scuro: NON un disco pieno, che stamperebbe un bordo netto sul
+   fondo del sipario (espresso + due radiali, quindi mai una tinta sola). È
+   una sfumatura che si spegne dove comincia la corona: il marchio ha il suo
+   fondo profondo, la corona resta un anello di luce, e in mezzo non c'è
+   nessuna giuntura da notare. */
+.dt-loader_core {
+  height: 100%;
+  width: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(28, 21, 18, 0.97) 58%,
+    rgba(28, 21, 18, 0.88) 74%,
+    rgba(28, 21, 18, 0) 100%
+  );
+}
+.dt-loader_mark {
+  height: 58%;
+  width: 58%;
+}
+@keyframes dt-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-loader_halo {
+    animation: none;
+  }
+}
+/* La parola-destinazione, lettera per lettera sotto una maschera (stessa
+   costruzione di PreChars nel preloader): il padding/margin che si annullano
+   servono a non tagliare le discendenti della didone. */
+.dt-tr-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+.dt-tr-char {
+  display: inline-block;
+}
+
 /* ---------- Cursor custom (solo pointer fine + motion ok) ---------- */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
   html.dt-cursor-active,

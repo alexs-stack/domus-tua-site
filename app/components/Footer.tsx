@@ -1,6 +1,5 @@
 "use client";
 
-import MarkDomus from "./MarkDomus";
 import Link from "next/link";
 import { useRef } from "react";
 import { Logo } from "./Logo";
@@ -188,10 +187,10 @@ export default function Footer() {
             <span className="inline-flex rounded-xl bg-paper px-3.5 py-2.5">
               <Logo light />
             </span>
-            {/* Monogramma ufficiale sul footer scuro (variante negativa:
-                crema + rosso del logo), vettoriale dal 2026-08-06. */}
-            <MarkDomus variant="light" className="mt-6 block h-9 w-auto opacity-85" />
-            <p className="mt-4 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
+            {/* Qui sotto c'era il monogramma da solo: due volte lo stesso segno
+                a due righe di distanza, perché la chip qui sopra lo porta già
+                dentro il logo completo (2026-08-09, direttiva cliente). */}
+            <p className="mt-6 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
               Con Domus Tua è facile vendere ed è sicuro acquistare.
             </p>
             <div className="tap-list mt-7 flex flex-col gap-3 text-sm text-cream/70">
@@ -290,14 +289,19 @@ export default function Footer() {
 
         {/* Wordmark gigante — filigrana di chiusura, sale dalla maschera durante
             l'uncover desktop; su mobile è una texture statica. Decorativo:
-            il nome vero vive nel logo e nei metadata. */}
+            il nome vero vive nel logo e nei metadata.
+            "Tua" in rosso come nel logo (2026-08-09, direttiva cliente): il
+            filo di marca è quello, e ripeterlo anche in filigrana costa una
+            parola. L'opacità NON è la stessa delle due metà — il crema al 10%
+            e il rosso al 10% non pesano uguale sul graphite, e la filigrana
+            leggerebbe come un errore di stampa invece che come il logo. */}
         <div aria-hidden className="mt-16 select-none overflow-hidden">
           <div
             ref={wordmarkRef}
             className="whitespace-nowrap font-display font-medium italic leading-[0.85] tracking-tight text-cream/[0.1]"
             style={{ fontSize: "clamp(4.5rem, 13.5vw, 13rem)" }}
           >
-            Domus Tua
+            Domus <span className="text-red/30">Tua</span>
           </div>
         </div>
 
