@@ -55,7 +55,6 @@ const copy = {
       "Il giudizio che conta è il riflesso di chi ci ha scelto: famiglie che hanno venduto o comprato casa con noi e l'hanno raccontato, con nome e cognome.",
     revCta: "Leggi le recensioni",
     revAlt: "Raffaela Rizza sorride alla sua immagine riflessa nello specchio della sede",
-    thanksWord: "Grazie",
     vidCap: "Video recensioni",
     vidTitle: "Le voci, in prima persona.",
     vidBody:
@@ -95,7 +94,6 @@ const copy = {
       "The judgement that matters is the reflection of those who chose us: families who sold or bought a home with us and told the story, with their full name.",
     revCta: "Read the reviews",
     revAlt: "Raffaela Rizza smiling at her reflection in the office mirror",
-    thanksWord: "Thank you",
     vidCap: "Video reviews",
     vidTitle: "The voices, first-hand.",
     vidBody:
@@ -135,7 +133,6 @@ const copy = {
       "Le jugement qui compte est le reflet de ceux qui nous ont choisis : des familles qui ont vendu ou acheté avec nous et l'ont raconté, avec leur nom.",
     revCta: "Lire les avis",
     revAlt: "Raffaela Rizza souriant à son reflet dans le miroir de l'agence",
-    thanksWord: "Merci",
     vidCap: "Avis en vidéo",
     vidTitle: "Les voix, à la première personne.",
     vidBody:
@@ -175,7 +172,6 @@ const copy = {
       "Das Urteil, das zählt, ist das Spiegelbild derer, die uns gewählt haben: Familien, die mit uns verkauft oder gekauft haben — und es mit vollem Namen erzählen.",
     revCta: "Bewertungen lesen",
     revAlt: "Raffaela Rizza lächelt ihrem Spiegelbild im Büro zu",
-    thanksWord: "Danke",
     vidCap: "Video-Bewertungen",
     vidTitle: "Die Stimmen, aus erster Hand.",
     vidBody:
@@ -215,7 +211,6 @@ const copy = {
       "El juicio que cuenta es el reflejo de quienes nos eligieron: familias que vendieron o compraron casa con nosotros y lo contaron, con nombre y apellido.",
     revCta: "Leer las reseñas",
     revAlt: "Raffaela Rizza sonríe a su reflejo en el espejo de la agencia",
-    thanksWord: "Gracias",
     vidCap: "Videorreseñas",
     vidTitle: "Las voces, en primera persona.",
     vidBody:
@@ -432,13 +427,17 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
         {/* Pannello recensioni — lo specchio: il riflesso è il giudizio di chi
             ci ha scelto. Numeri SOLO da site.ts (fonte unica verificata). */}
         <div className="dt-horizon_panel relative flex items-center">
-          {/* La parola che le recensioni ci lasciano, fiorita come una dedica. */}
+          {/* L'angolo fiorito che chiude il pannello delle recensioni. Qui c'era
+              la parola "Grazie" scritta in fiori: tolta su richiesta del cliente
+              (2026-08-09, «togli la scritta e mettici dei fiori»). Restano i
+              fiori — lo stesso tralcio d'angolo degli altri pannelli, così il
+              gesto botanico è uno solo in tutto il set piece. */}
           <div
             aria-hidden
-            data-horizon-flower="drift-x"
-            className="pointer-events-none absolute bottom-[6vh] left-[6vw] z-10 hidden h-[12vh] w-[24vw] lg:block"
+            data-horizon-flower="drift-y"
+            className="pointer-events-none absolute -bottom-8 -left-6 z-10 hidden h-[38vh] w-[17vw] lg:block"
           >
-            <Fioritura word={c.thanksWord} variant="corner-bl" className="h-full w-full" />
+            <Fioritura variant="corner-bl" className="h-full w-full" />
           </div>
           <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-10 px-5 py-20 sm:px-8 lg:grid lg:grid-cols-[minmax(0,55fr)_minmax(0,45fr)] lg:items-center lg:gap-16 lg:py-0">
             <div>

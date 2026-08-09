@@ -2198,6 +2198,25 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
 .dt-rail_track > * {
   flex: none;
 }
+/* ---------- .dt-railway — il corridoio del nastro (prop `runway`) ----------
+   Il nastro si PARCHEGGIA al centro dello schermo e la corsa orizzontale si
+   prende tutta la sua strada davanti agli occhi prima che la pagina riprenda a
+   scendere (2026-08-09, direttiva cliente sul carosello dei Servizi).
+   Runway + sticky, mai il pin di GSAP: stessa grammatica di dt-horizon,
+   dt-wall, dt-paths e dt-tt — la ragione sta nel commento di dt-paths (il pin
+   litiga con lo stacking di main/footer-uncover).
+   [data-on] e le due misure arrivano SOLO da JS (desktop ≥1024 + motion ok, e
+   solo se `runway` è dichiarata): senza, questo blocco è un div qualunque e il
+   nastro resta esattamente dov'era. --rail-len è l'altezza vera del nastro,
+   --rail-top la quota a cui si aggancia. */
+.dt-railway[data-on] {
+  position: relative;
+  height: calc(var(--rail-len, 0px) + var(--rail-run, 120) * 1svh);
+}
+.dt-railway[data-on] > .dt-rail {
+  position: sticky;
+  top: var(--rail-top, 0px);
+}
 /* Secondo piano: il pannello è più largo della sua cornice, ed è la corsa in
    cui il media pana in senso contrario alla rotaia senza mai scoprire un
    bordo. 118% = ±9% di gioco per lato (il `data-depth` massimo sensato è 9). */

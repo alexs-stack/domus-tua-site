@@ -321,15 +321,22 @@ export default function Services() {
       </div>
 
       {/* ── IL NASTRO DEI SERVIZI ────────────────────────────────────────────
-          Lo scroll orizzontale chiesto dal cliente, e NON pinnato: la home ha
-          già cinque sezioni che rubano scroll e una sesta la farebbe sembrare
-          interminabile invece che immersiva. Qui il nastro corre nel tempo che
-          la sezione impiega ad attraversare il viewport.
+          Lo scroll orizzontale chiesto dal cliente. Il nastro si ferma al
+          centro dello schermo e compie tutta la corsa lì, davanti agli occhi:
+          prima cominciava mentre affacciava da sotto e finiva mentre usciva da
+          sopra, quindi metà del gesto avveniva fuori campo e "durava poco"
+          proprio perché lo si vedeva poco.
           Full-bleed, fuori dal contenitore: un nastro che non tocca i bordi
           dello schermo è solo una riga. Sotto i 1024px torna scroll orizzontale
-          nativo, con tutte le lastre presenti e trascinabili. */}
+          nativo, con tutte le lastre presenti e trascinabili — e senza
+          corridoio: quello vive solo dove il nastro è pilotato da GSAP. */}
       <div ref={railRef} className="relative mt-12 sm:mt-16">
-        <HorizontalRail snapMobile cursor="scopri">
+        {/* `runway`: il nastro si ferma al centro dello schermo e la corsa dura
+            un corridoio di scroll tutto suo (2026-08-09, direttiva cliente).
+            120svh è la misura scelta: la corsa orizzontale è di ~850px su un
+            1920, e distribuirla su ~1,2 schermate la fa leggere lenta senza
+            trasformare la sezione in una sosta. */}
+        <HorizontalRail snapMobile cursor="scopri" runway={120}>
           {c.services.map((s, i) => (
             /* Lastra = link, non solo scheda. Due motivi, uno di forma e uno di
                sostanza: dà a ogni servizio la sua uscita verso i contatti (come

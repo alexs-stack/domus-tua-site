@@ -227,6 +227,26 @@ export default function FeaturedTestimonial(props: Props) {
             />
           </MaskReveal>
 
+          {/* IL TRALCIO — DENTRO la lastra, nell'angolo in alto a sinistra
+              (2026-08-09, direttiva cliente: «i fiori vanno dentro la card, in
+              questo caso l'immagine»). Prima nasceva sul crema e scavalcava il
+              bordo alto della lastra; adesso l'`overflow: hidden` della lastra
+              lo rifila e il tralcio fiorisce sulla fotografia.
+              Sta DOPO la MaskReveal (quindi sopra la foto e il velo) e PRIMA
+              della colonna di testo (quindi sotto la citazione): l'ordine del
+              DOM è l'ordine di pittura, ed è così che la regola «mai un fiore
+              sopra un testo» regge da sola. In alto a sinistra, poi, il testo
+              non c'è: la prima riga della colonna è il tondo del video, ancorato
+              a destra.
+              `palette="dark"`: il fondo qui è fotografia velata di scuro, e su
+              quella i rossi di brand si spengono. È la stessa scelta già presa
+              per i due tralci che vivono su una foto (Metodo, lastra Servizi). */}
+          <Fioritura
+            variant="corner-tl"
+            palette="dark"
+            className="pointer-events-none absolute left-0 top-0 hidden h-[26vh] w-[12vw] lg:block"
+          />
+
           {/* La colonna di testo detta l'altezza della lastra: la foto è
               `absolute inset-0` e si adatta, quindi non esiste una misura
               scritta due volte che possa divergere. */}
@@ -305,16 +325,6 @@ export default function FeaturedTestimonial(props: Props) {
         </div>
       </div>
 
-      {/* Il tralcio apre l'alternanza degli angoli nel ventre della home
-          (tl → br → tr → bl). Sta DOPO la lastra nel DOM di proposito: prima,
-          la banda opaca gli passerebbe sopra e resterebbe invisibile.
-          Nasce sul crema e SCAVALCA il bordo alto della lastra: è la stessa
-          ragione per cui esiste la superficie continua — un segno che
-          attraversa la giuntura la fa smettere di essere una giuntura.
-          Misurato: finisce 30px sopra l'occhiello, quindi non sta su un testo.
-          0.40 è il massimo che la regola concede sul crema, e sotto quella
-          soglia sul crema chiaro il tralcio sparisce. */}
-      <Fioritura variant="corner-tl" className="absolute left-[1%] -top-4 hidden h-[24vh] w-[11vw] lg:block" />
     </section>
   );
 }

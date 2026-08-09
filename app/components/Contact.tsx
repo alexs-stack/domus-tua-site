@@ -430,11 +430,25 @@ export default function Contact({
     <section id="contatti" data-tone="cream-deep" className="relative bg-cream-deep text-ink">
       <Atmosphere glow />
       {/* Angolo fiorito (solo desktop): il congedo del filo botanico che
-          attraversa la home. Scudo overflow: i tralci sbordano senza scrollbar. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          attraversa la home.
+          LO SCUDO TAGLIA SOLO IN ORIZZONTALE. Serviva a impedire che i tralci
+          sbordassero a destra portandosi dietro una barra di scorrimento, ma
+          `overflow: hidden` li rifilava anche in basso: il tralcio finiva
+          tranciato di netto sulla giuntura con la fascia sotto (2026-08-09,
+          segnalazione cliente: «sono tagliati, vorrei che fossero continui
+          anche sotto»). `overflow-x: clip` è l'unica forma che consente di
+          lasciare `visible` sull'altro asse — con `hidden` il CSS degraderebbe
+          il verticale ad `auto`, e la sezione si ritroverebbe una barra di
+          scorrimento propria.
+          Il tralcio scavalca la giuntura e resta VISIBILE sopra la fascia che
+          segue senza bisogno di uno z-index: è un discendente posizionato, e
+          i discendenti posizionati si dipingono dopo gli sfondi in flusso dei
+          fratelli successivi. Niente z-index apposta: alzarlo lo porterebbe
+          anche sopra il form, che sotto i 1300px gli passa accanto. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-x-clip">
         <Fioritura
           variant="corner-br"
-          className="absolute -bottom-6 -right-5 hidden h-[30vh] w-[13vw] lg:block"
+          className="absolute -bottom-[12vh] -right-5 hidden h-[42vh] w-[16vw] lg:block"
         />
       </div>
       <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">

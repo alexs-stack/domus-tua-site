@@ -386,7 +386,11 @@ export default function Method() {
     <section ref={rootRef} id="metodo" data-tone="cream-deep" className="relative overflow-hidden bg-cream-deep text-ink">
       {/* Aria: il nome del metodo in filigrana + bagliori caldi. */}
       <Atmosphere word="Metodo Domus Tua" glow drift={-1} wordClassName="right-[1%] top-[2.5%] text-[8.5vw]" />
-      <div className="relative mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
+      {/* Respiro ASIMMETRICO: sopra quello di sempre, sotto meno della metà.
+          Tolta la cucitura fra Metodo e Open Domus (vedi page.tsx), quello che
+          restava a separare i due capitoli erano solo due padding pieni: il
+          monogramma di chiusura finiva a mezzo schermo dal capitolo dopo. */}
+      <div className="relative mx-auto max-w-6xl px-5 pb-14 pt-24 sm:px-8 sm:pb-16 sm:pt-32">
         {/* Header — testa di capitolo.
             Il Reveal è SPEZZATO (stesso schema di OpenDomus): titolo e
             sottotitolo restano nudi, perché CharFlip e TextLines hanno già il
@@ -655,7 +659,7 @@ export default function Method() {
             di 64×60): 0.14×64/99 ≈ 0.09 e 14×99/64 ≈ 22, così il bordo
             d'inchiostro ha la stessa grana di prima.
             Senza JS / reduced-motion: già completo. */}
-        <div ref={segnoWrapRef} className="mt-20 flex justify-center pb-2 lg:mt-24">
+        <div ref={segnoWrapRef} className="mt-14 flex justify-center pb-2 lg:mt-16">
           <svg
             viewBox={MARK_VIEWBOX}
             aria-hidden

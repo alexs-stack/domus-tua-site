@@ -276,24 +276,7 @@ export default function DomusDocProtocol({
   return (
     <section ref={rootRef} id={id} data-tone={tone} className={bg}>
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        {/* `relative` sul Reveal: è il blocco contenitore del tralcio qui sotto.
-            Senza, l'ancoraggio dipenderebbe dal `transform` che .reveal si porta
-            dietro — vero oggi, ma è una dipendenza invisibile e il fallback
-            `scripting: none` la toglie. */}
-        <Reveal className="relative">
-          {/* IL TRALCIO — sta DENTRO il Reveal e PRIMA della card, e non è un
-              dettaglio di stile ma di ordine di pittura: il Reveal ha un
-              `filter` (blur) e quindi crea un contesto di impilamento, perciò
-              un assoluto messo fuori gli passerebbe SOPRA, addosso ai pilastri.
-              Da qui invece la card (posizionata, e successiva nel DOM) lo
-              copre: del tralcio resta visibile solo la parte che sporge sopra
-              il bordo alto, dentro il respiro della sezione. È il modo più
-              semplice di rispettare la regola «mai sopra un testo» senza
-              affidarla a una misura che il primo cambio di copy smentisce.
-              L'offset negativo è verticale soltanto: uno orizzontale, sotto i
-              1290px, spingerebbe il tralcio oltre il bordo della finestra e si
-              porterebbe dietro una barra di scorrimento. */}
-          <Fioritura variant="corner-tr" className="absolute -top-40 -right-6 hidden h-[26vh] w-[12vw] lg:block" />
+        <Reveal>
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
             {/* watermark motif: lenta deriva parallax dentro la card (profondità) */}
             <div className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>
@@ -301,6 +284,24 @@ export default function DomusDocProtocol({
                 <SegnoDomus className="h-40 w-72" embrace={false} />
               </Parallax>
             </div>
+
+            {/* IL TRALCIO — DENTRO la card, nell'angolo in basso a sinistra
+                (2026-08-09, direttiva cliente). Prima sporgeva sopra il bordo
+                alto, fuori dalla card: un fiore sospeso nel respiro della
+                sezione. Qui l'`overflow: hidden` della card lo rifila sui suoi
+                stessi raggi, quindi il tralcio è dentro la carta e non può mai
+                sbordare né portarsi dietro una barra di scorrimento.
+                Sta PRIMA della griglia nel DOM apposta: entrambi sono
+                posizionati e l'ordine di pittura è quello del documento, così
+                il contenuto gli passa sempre sopra — è la regola «mai un fiore
+                sopra un testo» tenuta dalla struttura e non da una misura che
+                il primo cambio di copy smentirebbe. La colonna di sinistra
+                (intro + CTA) finisce ben più in alto dei cinque pilastri:
+                l'angolo basso è aria, ed è lì che il tralcio fiorisce. */}
+            <Fioritura
+              variant="corner-bl"
+              className="pointer-events-none absolute bottom-0 left-0 hidden h-[26vh] w-[12vw] lg:block"
+            />
 
             <div className="relative grid gap-y-12 lg:grid-cols-[0.95fr_1px_1.05fr] lg:gap-x-14 lg:gap-y-0">
               {/* Intro */}

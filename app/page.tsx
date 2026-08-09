@@ -69,7 +69,16 @@ export default function Home() {
             marchio, quindi il confine fra due capitoli disegna il logo.
             Varia solo la PROFONDITÀ: più bassa dove il capitolo è breve, più
             alta dove si apre un respiro. */}
-        <ToneShift from="cream-deep" to="paper" depth="22svh" />
+        {/* NIENTE cucitura fra Metodo e Open Domus (2026-08-09, direttiva
+            cliente: «questo stacco non mi piace, c'è una transizione inutile lì
+            in mezzo»). Qui la cupola non copriva un taglio: il monogramma che
+            chiude il Metodo la precede già come congedo, e il blocco vuoto
+            sotto — 19svh di gesto più i respiri delle due sezioni — apriva
+            mezzo schermo di nulla fra un capitolo e l'altro. Il colore continua
+            comunque a virare senza bordi, perché a interpolare cream-deep →
+            paper è la superficie continua (SurfaceFlow), non la cucitura: le
+            due tappe `data-tone` restano dove sono. Le altre cupole della home
+            restano: lì il gesto arriva su un confine che altrimenti si vede. */}
         <OpenDomus />
         <ToneShift from="paper" to="cream-deep" depth="17svh" />
         <DomusDocProtocol tone="cream-deep" />

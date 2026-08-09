@@ -1,35 +1,39 @@
 "use client";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   HORIZONTALRAIL — il nastro orizzontale NON pinnato.
+   HORIZONTALRAIL — il nastro orizzontale.
 
    Estratto dal nastro "Seguici" (Social.tsx), che è la versione già collaudata
    di questo gesto: il track trasla di tutta la propria eccedenza nel tempo che
    la sezione impiega ad attraversare il viewport.
-
-   PERCHÉ NON PINNATO. La home ha già cinque sezioni che rubano scroll
-   (orizzonte, muro delle voci, stelle, percorsi, corridoio del team). Un sesto
-   pin nella seconda metà non aggiunge un momento: aggiunge attrito, e la
-   pagina passa da "immersiva" a "interminabile" — che è lo stesso difetto con
-   un altro nome. Il riferimento (era-residence) ha UNA sola sezione pinnata in
-   tutta la home, e non a caso.
 
    DUE PIANI, NON UNO. Il track scorre; dentro ogni cornice il media pana in
    senso CONTRARIO di una quota diversa per tessera (`data-depth`). Sono le due
    velocità a fare la profondità: un nastro che scorre e basta è solo una fila
    che si muove.
 
+   IL CORRIDOIO (opt-in `runway`). Senza, il nastro corre nel tempo che la
+   sezione impiega ad attraversare il viewport: la corsa comincia mentre il
+   nastro affaccia da sotto e finisce mentre esce da sopra, quindi buona parte
+   del gesto avviene fuori campo. Con `runway` il nastro si PARCHEGGIA al
+   centro dello schermo e la corsa si prende tutta la sua strada davanti agli
+   occhi prima che la pagina riprenda a scendere (2026-08-09, direttiva
+   cliente: «l'effetto del carosello vorrei durasse un po' di più»).
+   Sticky su un corridoio alto, MAI il pin di GSAP: è la grammatica già
+   collaudata da dt-horizon / dt-wall / dt-paths / dt-tt, e la ragione è
+   scritta lì — il pin litiga con lo stacking di main/footer-uncover.
+
    PROGRESSIVE ENHANCEMENT. Il default è uno scroll orizzontale NATIVO — sul
    touch trascinare è il gesto che la gente si aspetta, e pilotarlo dallo
    scroll verticale glielo toglierebbe. Solo da 1024px in su e con motion ok
    il JS mette [data-on], spegne lo scroll nativo e passa il nastro a GSAP.
-   Senza JS resta tutto visibile e trascinabile.
+   Senza JS resta tutto visibile e trascinabile, e il corridoio non esiste.
 
-   Le regole di layout stanno in globals.css (blocco ".dt-rail").
+   Le regole di layout stanno in globals.css (blocchi ".dt-rail"/".dt-railway").
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { useRef } from "react";
-import { gsap, useGSAP, MQ } from "../../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
 
 export default function HorizontalRail({
   children,
@@ -42,6 +46,9 @@ export default function HorizontalRail({
   snapMobile = false,
   /** etichetta del cursore custom mentre il nastro è sotto il puntatore */
   cursor = "trascina",
+  /** corridoio in svh: quanto scroll il nastro si tiene, parcheggiato al
+      centro dello schermo, per compiere la sua corsa. 0 = nessun corridoio. */
+  runway = 0,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -49,26 +56,57 @@ export default function HorizontalRail({
   speed?: number;
   snapMobile?: boolean;
   cursor?: string;
+  runway?: number;
 }) {
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const railRef = useRef<HTMLDivElement | null>(null);
 
   useGSAP(
     () => {
+      const wrap = wrapRef.current;
       const rail = railRef.current;
       const track = rail?.querySelector<HTMLElement>(".dt-rail_track");
-      if (!rail || !track) return;
+      if (!wrap || !rail || !track) return;
 
       const mm = gsap.matchMedia();
       mm.add(`${MQ.motionOk} and (min-width: 1024px)`, () => {
         rail.setAttribute("data-on", "");
 
-        const st = {
-          trigger: rail,
-          start: "top 96%",
-          end: "bottom 4%",
-          scrub: 0.6,
-          invalidateOnRefresh: true,
-        } as const;
+        // Le due misure del corridoio, rifatte a ogni refresh: l'altezza vera
+        // del nastro (le lastre sono in vw) e la quota a cui si parcheggia.
+        // Trappola nota del dossier: altezze dinamiche + ScrollTrigger.
+        const parked = runway > 0;
+        let top = 0;
+        const size = () => {
+          top = Math.max(0, Math.round((window.innerHeight - rail.offsetHeight) / 2));
+          wrap.style.setProperty("--rail-len", `${rail.offsetHeight}px`);
+          wrap.style.setProperty("--rail-top", `${top}px`);
+        };
+        if (parked) {
+          wrap.setAttribute("data-on", "");
+          size();
+          ScrollTrigger.addEventListener("refreshInit", size);
+        }
+
+        // Parcheggiato, la corsa coincide ESATTAMENTE con la finestra in cui il
+        // nastro sta fermo in mezzo allo schermo: comincia quando lo sticky si
+        // aggancia e finisce quando si stacca. Se sforasse da una parte o
+        // dall'altra, resterebbe scroll speso su un nastro immobile.
+        const st = parked
+          ? {
+              trigger: wrap,
+              start: () => `top ${top}px`,
+              end: () => `bottom ${top + rail.offsetHeight}px`,
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+            }
+          : {
+              trigger: rail,
+              start: "top 96%",
+              end: "bottom 4%",
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+            };
 
         // Eccedenza ricalcolata a ogni refresh: le larghezze sono in vw, e una
         // misura congelata al primo layout diventa un bug al primo resize.
@@ -90,6 +128,12 @@ export default function HorizontalRail({
 
         return () => {
           rail.removeAttribute("data-on");
+          if (parked) {
+            ScrollTrigger.removeEventListener("refreshInit", size);
+            wrap.removeAttribute("data-on");
+            wrap.style.removeProperty("--rail-len");
+            wrap.style.removeProperty("--rail-top");
+          }
           move.scrollTrigger?.kill();
           move.kill();
           pan?.scrollTrigger?.kill();
@@ -97,17 +141,23 @@ export default function HorizontalRail({
         };
       });
     },
-    { scope: railRef, dependencies: [speed], revertOnUpdate: true }
+    { scope: wrapRef, dependencies: [speed, runway], revertOnUpdate: true }
   );
 
   return (
     <div
-      ref={railRef}
-      className={`dt-rail ${className}`}
-      data-snap={snapMobile ? "" : undefined}
-      data-cursor={cursor}
+      ref={wrapRef}
+      className="dt-railway"
+      style={runway > 0 ? ({ "--rail-run": runway } as React.CSSProperties) : undefined}
     >
-      <div className={`dt-rail_track ${trackClassName}`}>{children}</div>
+      <div
+        ref={railRef}
+        className={`dt-rail ${className}`}
+        data-snap={snapMobile ? "" : undefined}
+        data-cursor={cursor}
+      >
+        <div className={`dt-rail_track ${trackClassName}`}>{children}</div>
+      </div>
     </div>
   );
 }
