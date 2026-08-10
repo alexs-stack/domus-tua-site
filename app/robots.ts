@@ -1,18 +1,14 @@
 import type { MetadataRoute } from "next";
-import { siteUrl } from "./lib/site";
+import { headers } from "next/headers";
+import { siteUrl, isIndexableDeployment } from "./lib/site";
 
 // Origin: fonte unica in app/lib/site.ts.
 const base = siteUrl;
 
-// Indicizzazione SOLO in produzione. Su preview/staging (o quando il badge di anteprima è
-// attivo) blocchiamo i crawler: gli URL di anteprima Vercel NON devono finire su Google.
-// - Vercel imposta VERCEL_ENV = "production" | "preview" | "development".
-// - Fallback (assente): consideriamo "produzione" solo se il badge anteprima NON è "true".
-// Prima del go-live verificare che il dominio finale sia in VERCEL_ENV=production. Vedi
-// docs/vercel-live-checklist.md (§SEO).
-const isProduction = process.env.VERCEL_ENV
-  ? process.env.VERCEL_ENV === "production"
-  : process.env.NEXT_PUBLIC_PREVIEW_BADGE !== "true";
+// Questa rotta legge gli header della richiesta (serve l'host reale, vedi
+// isIndexableDeployment): Next la tratta quindi come dinamica invece di generarla una volta
+// in build. È voluto — un robots.txt deciso in build non può sapere da quale dominio verrà
+// servito, che è esattamente l'informazione che qui conta.
 
 // Bot che recuperano pagine per RISPONDERE a una persona, non per addestrare un modello.
 // Sono due cose diverse e vanno tenute separate: OpenAI scrive che «Sites that are opted out
@@ -35,8 +31,19 @@ const RETRIEVAL_BOTS = [
   "Bingbot",
 ];
 
-export default function robots(): MetadataRoute.Robots {
-  if (!isProduction) {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const h = await headers();
+  // Dietro il proxy di Vercel l'host richiesto arriva in x-forwarded-host; host resta il
+  // ripiego per chi serve l'app senza proxy davanti.
+  const requestHost = h.get("x-forwarded-host") ?? h.get("host");
+
+  if (
+    !isIndexableDeployment({
+      vercelEnv: process.env.VERCEL_ENV,
+      previewBadge: process.env.NEXT_PUBLIC_PREVIEW_BADGE,
+      requestHost,
+    })
+  ) {
     // Anteprima/staging: niente indicizzazione, nessun sitemap esposto ai crawler.
     //
     // ⚠️ I gruppi nominati NON vanno emessi qui, e non è una svista da correggere.

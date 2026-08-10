@@ -100,6 +100,42 @@ export const site = {
  */
 export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.domustua.com";
 
+/** Host del dominio canonico ("www.domustua.com"): serve a robots per riconoscersi. */
+export const siteHost = new URL(siteUrl).host;
+
+/**
+ * Questo deploy può essere indicizzato?
+ *
+ * NON basta `VERCEL_ENV === "production"`. Il 10 agosto 2026 il sito girava su
+ * `domus-tua-ten.vercel.app` con robots aperto a tutti e un `Sitemap:` che puntava a
+ * www.domustua.com — dominio che allora serviva ancora il vecchio WordPress. Cioè: una copia
+ * completa del sito, indicizzabile, che dichiarava come proprie delle URL altrui.
+ * Il difetto non era la variabile mancante ma il fatto che NESSUNA variabile può sapere da
+ * quale host sta rispondendo il server: `NEXT_PUBLIC_SITE_URL` dice dove il sito *vorrebbe*
+ * stare, non dove *sta*.
+ *
+ * Quindi si guarda l'host della richiesta. Finché il dominio non è agganciato, ogni anteprima
+ * Vercel resta chiusa da sola, senza che nessuno debba ricordarsi di impostare un flag.
+ *
+ * In locale (nessun VERCEL_ENV) la regola resta quella di prima — il badge di anteprima —
+ * altrimenti `npm run dev` mostrerebbe sempre un robots chiuso e non si potrebbe verificare
+ * quello vero.
+ */
+export function isIndexableDeployment(env: {
+  vercelEnv?: string;
+  previewBadge?: string;
+  requestHost?: string | null;
+}): boolean {
+  if (!env.vercelEnv) return env.previewBadge !== "true";
+  if (env.vercelEnv !== "production") return false;
+  if (!env.requestHost) return false;
+  // www e apex contano come lo stesso sito: uno dei due reindirizza all'altro, e far
+  // dipendere l'indicizzazione da quale dei due è stato configurato primario sarebbe una
+  // trappola silenziosa il giorno del passaggio.
+  const bare = (h: string) => h.toLowerCase().replace(/^www\./, "");
+  return bare(env.requestHost) === bare(siteHost);
+}
+
 // Href assoluti verso le pagine dedicate.
 export const nav = [
   { key: "vendi", label: "Vendi", href: "/vendi" },

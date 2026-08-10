@@ -73,13 +73,30 @@ Non era un difetto di interfaccia, quindi non è costato lavoro di interfaccia. 
 emette `SoldOut` sul venduto e distingue vendita da locazione con `businessFunction` — prima un
 affitto da 800 € e una villa da 800.000 € portavano lo stesso identico markup.
 
-### 1.4 Non esiste alcuna misurazione
+### 1.4 Una copia del sito era indicizzabile su un dominio di servizio — [RISOLTO]
+
+Trovato il 10 agosto 2026 mentre si preparava il passaggio: `domus-tua-ten.vercel.app`
+rispondeva con `robots.txt` aperto a tutti i crawler e una riga
+`Sitemap: https://www.domustua.com/sitemap.xml`. Cioè una copia completa del sito, indicizzabile,
+che dichiarava come proprie delle URL servite in quel momento dal **vecchio WordPress**.
+
+Il difetto non era una variabile dimenticata: `VERCEL_ENV` valeva legittimamente `production`,
+perché quello *è* il deploy di produzione — solo su un dominio provvisorio. Nessuna variabile
+d'ambiente può accorgersi della differenza, perché `NEXT_PUBLIC_SITE_URL` dice dove il sito
+*vorrebbe* stare, non da dove *sta rispondendo*.
+
+Ora la decisione guarda l'host della richiesta: il sito si dichiara indicizzabile solo quando
+risponde dal proprio dominio (apex o `www`, indifferentemente). Conseguenza pratica: ogni
+anteprima resta chiusa da sé, e il giorno in cui il dominio viene agganciato il sito si apre da
+sé. Nessuna casella da spuntare in un momento in cui si stanno già spuntando venti caselle.
+
+### 1.5 Non esiste alcuna misurazione
 
 Nessun GA4, nessun Vercel Analytics, nessun tag. Confermato dal codice e da
 [da-chiedere-alla-cliente.md](da-chiedere-alla-cliente.md) §5.9. Un retainer senza baseline non
 è misurabile: la misurazione è il primo deliverable, non un accessorio.
 
-### 1.5 Quello che invece è già fatto bene
+### 1.6 Quello che invece è già fatto bene
 
 Non è un sito da rifare. È un sito da far uscire e poi far crescere.
 
@@ -363,6 +380,9 @@ ancora, no.
   *impostata male* (l'URL `vercel.app` dell'anteprima) non dà errore da nessuna parte: canonical,
   Open Graph e l'intero sitemap si autodichiarerebbero fuori dominio. Asserzione in CI più
   controllo a occhio sull'HTML del primo deploy in produzione.
+  L'indicizzazione, invece, **non dipende più da questa variabile**: il sito si apre ai
+  crawler solo quando risponde davvero dal proprio dominio (§1.4), quindi il giorno del
+  passaggio non c'è alcun flag da ricordarsi di girare.
 - **`domustua.com` e `www.domustua.com` entrambi sul progetto Vercel**, `www` primario, apex in
   redirect permanente. Il vecchio WordPress sta su `www`: un apex scoperto apre due host
   indicizzabili nel giorno peggiore.
@@ -471,7 +491,7 @@ test in CI, che si aggiungono quando si aggiunge la prima rotta nuova.
 
 | Fix | Dove | Perché |
 |---|---|---|
-| Il venduto: stato in pagina **e** nello schema | [app/case/[slug]/page.tsx](../app/case/[slug]/page.tsx), [app/sitemap.ts](../app/sitemap.ts) | Non è solo JSON-LD: §1.3 dice che *la pagina* non ha alcun trattamento del venduto. Correggere solo il markup inverte il disallineamento. Badge di stato e prezzo presentato come prezzo concluso (o rimosso) **nello stesso rilascio**. Valori esatti: `SoldOut` (non `OutOfStock`, che significa temporaneamente esaurito) e `businessFunction` `Sell`/`LeaseOut` — [availability.ts](../app/lib/availability.ts) documenta che `sold` copre "venduto **o affittato**", e oggi un affitto da 800 € e una villa da 800.000 € hanno lo stesso identico markup |
+| Il venduto: stato in pagina **e** nello schema | [app/case/[slug]/page.tsx](../app/case/[slug]/page.tsx), [app/sitemap.ts](../app/sitemap.ts) | La pagina il venduto lo mostrava già (§1.3): erano i dati strutturati a contraddirla. Valori esatti: `SoldOut` (non `OutOfStock`, che significa temporaneamente esaurito) e `businessFunction` `Sell`/`LeaseOut` — [availability.ts](../app/lib/availability.ts) documenta che `sold` copre "venduto **o affittato**", e prima un affitto da 800 € e una villa da 800.000 € portavano lo stesso identico markup |
 | Fine vita dell'URL dell'immobile | idem + `sold-detected.json` | Lo slug che sparisce dal feed oggi finisce in `notFound()`: 404 secco. `sold-detected.json` esiste già ed è già mantenuto: si usa per un 301 verso `/acquista` filtrato sul comune, oppure per tenere in piedi una pagina "venduto". Far evaporare quegli URL a ogni rogito butta via la long tail che §4 indica come terreno da presidiare |
 | `["Product","Residence"]` → `RealEstateListing` + nodo collegato | idem | `Product` richiede un prodotto realmente acquistabile con prezzo esposto e vincolante: un immobile in trattativa non lo è. **Non è una sostituzione uno-a-uno**: `RealEstateListing` è sottotipo di `WebPage` e non porta `address`, `geo`, superficie o locali. Due nodi: `RealEstateListing` (`url`, `datePosted`, `offers`) con `mainEntity` → `Apartment`/`House`/`SingleFamilyResidence` che porta `address`, `geo`, `floorSize` come `QuantitativeValue` in m², `numberOfRooms`, `yearBuilt`. **In proposta va detto che nessuna delle due forme produce un rich result**: Google non ne ha uno per gli immobili. Si fa per pulizia di entità |
 | Grafo di entità: gli `@id` prima di tutti gli altri schema | [app/layout.tsx:102](../app/layout.tsx:102) e ogni rotta con JSON-LD | In tutto il repo **non esiste un solo `@id`**: ogni pagina ripete oggetti letterali. Stiamo per aggiungere `Person`, `Service`, `Article` e `VideoObject` su decine di rotte: senza `@id` Raffaela diventa cinque entità diverse e l'agenzia un nodo scollegato ripetuto ovunque. `${siteUrl}/#organization`, `${siteUrl}/#website` (senza `SearchAction`, dismesso), `${siteUrl}/chi-siamo/<slug>#person`. Va fatto **prima**: rifarlo dopo significa toccare tutte le rotte |
@@ -486,7 +506,7 @@ test in CI, che si aggiungono quando si aggiunge la prima rotta nuova.
 | Verificare "4.9/5 da oltre 500 recensioni" | [app/layout.tsx:74](../app/layout.tsx:74) | È nella meta description di default, quindi **ereditata da ogni rotta** che non la sovrascrive. §13 dice che il dato viene dal widget Trustindex, cioè auto-riportato. §5.5 impone che i contatori del *vecchio* sito siano documentabili o rimossi: la stessa regola vale per il nuovo |
 | Togliere l'array `keywords` | [app/layout.tsx:78](../app/layout.tsx:78) | Google non lo usa da oltre quindici anni. Stesso ragionamento di `changeFrequency` |
 | Audit `nosnippet` / `max-snippet` | tutto il sito | È **l'unico requisito tecnico** per comparire nelle AI feature: *"a page must be indexed and eligible to be shown with a snippet"* |
-| robots.txt: i gruppi nominati **dentro** il ramo di produzione | [app/robots.ts:18](../app/robots.ts:18) | Nel protocollo robots i gruppi **non si sommano**: `User-agent: OAI-SearchBot` non eredita le regole di `*`, vince il più specifico. Oggi in preview si emette `{ userAgent: "*", disallow: "/" }`: aggiungendo i gruppi nominati in modo incondizionato, sulle anteprime i bot di retrieval smettono di essere coperti dal blocco — cioè si rompe la protezione che §1.5 elenca fra le cose già fatte bene, su un sito che **vive ancora sulle anteprime**. Quindi: gruppi nominati dentro `isProduction`, test in CI che in preview non ne venga emesso nessuno, test di parità che ogni futuro `Disallow` su `*` sia replicato |
+| robots.txt: i gruppi nominati **dentro** il ramo di produzione | [app/robots.ts:18](../app/robots.ts:18) | Nel protocollo robots i gruppi **non si sommano**: `User-agent: OAI-SearchBot` non eredita le regole di `*`, vince il più specifico. Oggi in preview si emette `{ userAgent: "*", disallow: "/" }`: aggiungendo i gruppi nominati in modo incondizionato, sulle anteprime i bot di retrieval smettono di essere coperti dal blocco — cioè si rompe la protezione che §1.6 elenca fra le cose già fatte bene, su un sito che **vive ancora sulle anteprime**. Quindi: gruppi nominati dentro `isProduction`, test in CI che in preview non ne venga emesso nessuno, test di parità che ogni futuro `Disallow` su `*` sia replicato |
 | Google-Extended: riga a sé, non fra i bot di training | idem | Non è un crawler assimilabile a GPTBot e ClaudeBot: è un token che governa se il contenuto già raccolto da Googlebot può essere usato dalle app Gemini e dal grounding di Vertex. Il grounding è **retrieval**: bloccarlo toglie Domus Tua dalle risposte di Gemini. Presentarlo alla cliente come scelta indolore sull'addestramento ne sottostima il costo. (AI Overviews e AI Mode seguono Googlebot e non hanno opt-out separato) |
 | Sitemap immagini | [app/sitemap.ts](../app/sitemap.ts) | Next.js supporta il campo `images` nativamente. Le foto sono un asset proprietario |
 | Breadcrumb come primitiva condivisa | 3 pagine + `PropertyDetail` | Oggi è scritto a mano in tre punti e duplicato a parte. Nav visibile e JSON-LD dalla stessa fonte, con test di integrità: stiamo per aggiungere cinque famiglie di rotte a profondità due, ed è uno dei pochi rich result ancora vivi e rilevanti |
