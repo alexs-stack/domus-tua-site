@@ -72,18 +72,15 @@ export const metadata: Metadata = {
   },
   description:
     "Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. 4.9/5 da oltre 500 recensioni.",
-  alternates: {
-    canonical: "/",
-  },
-  keywords: [
-    "agenzia immobiliare Tradate",
-    "vendere casa Tradate",
-    "comprare casa Varese",
-    "valutazione immobile",
-    "Domus Tua",
-    "Open Domus",
-    "home staging",
-  ],
+  // NESSUN canonical qui, ed è deliberato. Un canonical nel layout è un valore EREDITATO da
+  // ogni rotta che non lo sovrascrive: le 12 rotte editoriali lo fanno, /privacy e /cookie no
+  // — e si ritrovavano a dichiarare la home come propria versione canonica. Un canonical
+  // sbagliato è peggio di nessun canonical (Google lo tratta come segnale forte di
+  // consolidamento), e la trappola sarebbe scattata su ogni rotta aggiunta da qui in avanti.
+  // La home lo dichiara per conto suo in app/page.tsx.
+  //
+  // Niente `keywords`: Google non lo usa da oltre quindici anni. Come `changeFrequency` nel
+  // sitemap, era codice morto che suggerisce a chi legge il repo una leva che non esiste.
   // Le icone (favicon + apple-touch) sono generate dalle file-convention app/icon.tsx e
   // app/apple-icon.tsx (monogramma di marca via next/og): niente metadata manuale qui.
   openGraph: {
@@ -99,9 +96,14 @@ export const metadata: Metadata = {
 
 // Dati strutturati per SEO locale (Google). Dati societari/orari/geo VERIFICATI
 // (domustua.com + Registro Imprese). aggregateRating volutamente omesso (policy Google).
+// L'@id è il perno del grafo: senza, ogni pagina che nomina l'agenzia crea un nodo nuovo e
+// scollegato. Le schede immobile ci puntano già (provider/seller → #organization) e ci
+// punteranno le pagine persona e servizio: va messo PRIMA di aggiungere altri schema,
+// perché farlo dopo significa tornare su tutte le rotte.
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "RealEstateAgent",
+  "@id": `${siteUrl}/#organization`,
   name: "Domus Tua Immobiliare",
   legalName: site.legal,
   vatID: site.vat,

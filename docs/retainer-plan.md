@@ -43,23 +43,35 @@ Due conseguenze, e la seconda ha una scadenza.
    restituisce le immagini a piena risoluzione. È un'attività di due ore che, saltata, ne costa
    venti.
 
-### 1.2 Alla migrazione, 24 URL su 25 andrebbero in 404
+### 1.2 Alla migrazione, 24 URL su 25 sarebbero andati in 404 — [RISOLTO]
 
-[next.config.ts:31](../next.config.ts:31) contiene **un solo redirect** (`/case` → `/acquista`).
-Il vecchio sito ne espone 25, fra cui 7 legati al team e 7 ai servizi che nel sito nuovo non
-hanno alcun corrispondente. Senza mappa, il go-live butta via l'autorità accumulata dal 2007.
+[next.config.ts](../next.config.ts) conteneva **un solo redirect** (`/case` → `/acquista`). Il
+vecchio sito ne espone 25, fra cui 7 legati al team e 7 ai servizi che nel sito nuovo non hanno
+alcun corrispondente.
 
-### 1.3 Gli immobili venduti mentono a Google
+Mappa completa scritta e verificata sul server: tutti gli URL legacy atterrano su 200. Gli URL
+con lo slash finale — cioè tutti quelli del vecchio sito — passano da **due** risposte, non una:
+Next normalizza `/vendi-casa/` → `/vendi-casa` e poi applica il redirect. È accettabile (Google
+segue le catene brevi senza penalità) ed è documentato nel file, così nessuno lo "corregge"
+introducendo un middleware che non serve. `permanent: true` emette **308**, non 301: chi
+verifica con `curl` deve accettarlo, altrimenti segnala 25 falsi errori.
 
-[app/case/[slug]/page.tsx:87](../app/case/[slug]/page.tsx:87) scrive
-`availability: "https://schema.org/InStock"` senza mai guardare `p.sold`;
-[app/sitemap.ts:36](../app/sitemap.ts:36) li include tutti; la pagina non ha alcun trattamento
-del venduto. E questo mentre il resto del sito ha un predicato unico apposta
-([app/lib/availability.ts](../app/lib/availability.ts)), introdotto proprio per non ripetere la
-regola in quattro punti. La scheda è rimasta fuori dal consolidamento.
+Resta da fare **prima del passaggio**, e non dipende da noi: incrociare questi 25 URL con il
+rapporto Pagine di Search Console degli ultimi 16 mesi. Venticinque è il conteggio del sitemap
+WordPress, non dell'indicizzato (§5.0).
 
-Google chiede che i dati strutturati siano *"a true representation of the page content"*.
-Qui dichiariamo disponibile ciò che è venduto.
+### 1.3 Gli immobili venduti mentivano a Google — [RISOLTO]
+
+La scheda **mostrava correttamente** il venduto a chi legge: il blocco "questo immobile è stato
+venduto" esiste in cinque lingue in
+[PropertyDetail.tsx:408](../app/case/[slug]/PropertyDetail.tsx:408). Erano i dati strutturati a
+dire il contrario — `availability: InStock` scritto senza mai guardare `p.sold`. La stessa
+pagina affermava due cose opposte: *venduto* a una persona, *disponibile* a Google, che chiede
+invece dati strutturati che siano *"a true representation of the page content"*.
+
+Non era un difetto di interfaccia, quindi non è costato lavoro di interfaccia. Oggi la scheda
+emette `SoldOut` sul venduto e distingue vendita da locazione con `businessFunction` — prima un
+affitto da 800 € e una villa da 800.000 € portavano lo stesso identico markup.
 
 ### 1.4 Non esiste alcuna misurazione
 
@@ -232,11 +244,46 @@ Domus Tua ha 531 recensioni a 4,9. Il KPI non è il totale — è saturo. Il KPI
 
 ---
 
-## 5. Mese 1 — Avvio presidiato
+## 5. Il lancio — una settimana, non un mese
 
-Il mese più denso, e l'unico che non si ripete. Fatturato a parte come avvio.
+Il sito è pronto per andare online. Quindi l'avvio non è un mese di lavoro: è una settimana di
+cose che vanno fatte **nell'ordine giusto**, più due che dipendono da quando la cliente stacca
+il vecchio hosting. Fatturato a parte come avvio, perché non si ripete.
 
-### 5.0 Prima di tutto: archiviare il vecchio sito — [scadenza: prima dello spegnimento]
+### 5.-1 Cosa è già stato fatto — 10 agosto 2026
+
+Il debito tecnico che avrebbe reso sbagliato il go-live è chiuso. Verificato sul server, non
+solo scritto:
+
+| Fatto | Verifica |
+|---|---|
+| Mappa completa dei redirect legacy | 15 URL provati con `curl`: tutti finiscono su 200 |
+| `SoldOut` e `businessFunction` sulle schede | La prima scheda del sitemap è un venduto, e ora lo dichiara |
+| `["Product","Residence"]` → grafo `RealEstateListing` + `Apartment`/`House`/`Place` + `Offer` | Nodi legati da `@id`, superficie in `QuantitativeValue` (MTK), locali e bagni |
+| `@id` sull'organizzazione | `https://www.domustua.com/#organization`, già referenziato da `provider` e `seller` di ogni scheda |
+| `lastmod` che mentiva → rimosso | 0 `lastmod`, 0 `changefreq` nel sitemap |
+| Immagini nel sitemap | 196 foto dichiarate, una per scheda |
+| Canonical ereditato dal layout → rimosso | `/privacy` e `/cookie` non dichiarano più la home come propria canonica |
+| Bot di retrieval nel `robots.txt` | 7 gruppi nominati, **solo** nel ramo di produzione |
+| `keywords` rimosso | Non compare più nel `<head>` |
+| Title delle schede | 63 caratteri su un caso reale, comune incluso |
+
+Typecheck pulito, 517 test verdi, parser 81/81, build a 196 schede, nessun errore a runtime.
+
+### 5.-0 Cosa resta, in ordine
+
+1. **Archiviare il vecchio sito** (§5.0) — l'unica cosa irreversibile, e ha una scadenza che
+   non decidiamo noi.
+2. **Chiudere l'inventario degli URL** con Search Console e completare la mappa: mezza giornata.
+3. **Misurazione** (§5.2): senza, il giorno del lancio non esiste un "prima".
+4. **Passaggio del dominio** con la checklist di §5.1 — TTL abbassato 48 ore prima.
+5. **Profilo Google** (§5.4) e baseline SERP geolocalizzata: si possono fare anche dopo, ma
+   entro la prima settimana.
+
+Dal giorno dopo si entra nel ciclo mensile di §6. Non c'è un "mese di preparazione": il primo
+mese di canone produce già contenuti.
+
+### 5.0 Archiviare il vecchio sito — [scadenza: prima dello spegnimento]
 
 Da fare **come primissima attività**, perché è l'unica irreversibile.
 
@@ -411,7 +458,16 @@ di rimozione, mai catene.
 11. **Fotografia del "prima"**: screenshot e export di tutto, incluso il report delle feature
     generative in GSC. Senza, fra sei mesi non si dimostra niente.
 
-### 5.3 I fix tecnici a costo quasi nullo
+### 5.3 I fix tecnici — quasi tutti già applicati
+
+Le righe elencate in §5.-1 sono **fatte e verificate**: restano qui perché la colonna "perché"
+è la motivazione da dare alla cliente se chiede conto di una scelta, e perché chi tocca quei
+file fra sei mesi deve sapere che non erano sviste.
+
+Non ancora fatte, e sono le uniche tre che richiedono lavoro vero:
+**sitemap segmentate per tipo** (poche ore, prima della prima ondata di pagine),
+**soglia di qualità in ingresso dal feed**, e **breadcrumb come primitiva condivisa**. Più i
+test in CI, che si aggiungono quando si aggiunge la prima rotta nuova.
 
 | Fix | Dove | Perché |
 |---|---|---|
@@ -792,15 +848,16 @@ medio local 1.557 $/mese (pagina aggiornata agosto 2024); tariffe orarie europee
 sopra i 125 $/h. **Una survey italiana con metodologia pubblica non esiste**: i 500-1.500 €/mese
 che circolano per PMI e local vengono da listini di agenzie, non da una rilevazione.
 
-### Avvio — una tantum, 2.400 €
+### Avvio — una tantum, 1.900 €
 
-Archivio del vecchio sito (§5.0), go-live presidiato con la checklist di cutover, mappa dei
-redirect verificata *prima* del passaggio, fix tecnici di §5.3, misurazione da zero con eventi e
-UTM, Google Business Profile, baseline SERP geolocalizzata, mappa intento→URL e rotte editoriali
-(§7.0), riscrittura di title e description delle 15 rotte esistenti, smontaggio una tantum di
-OMH e Dove.it (mezza giornata, a mano su una decina di contenuti: formati da copiare, lacune da
-occupare, pattern di title e schema letti sull'HTML grezzo), fotografia del "prima". Senza
-questo non parte nessun livello.
+**Il prezzo scende da 2.400 perché una parte del lavoro è già stata fatta** (§5.-1): redirect,
+schema, sitemap, robots, canonical e title sono chiusi e verificati. Resta: archivio del vecchio
+sito, inventario degli URL da Search Console, checklist di cutover e passaggio del dominio,
+misurazione da zero con eventi e UTM, profilo Google, baseline SERP geolocalizzata, mappa
+intento→URL e rotte editoriali (§7.0), riscrittura di title e description delle 15 rotte
+esistenti, smontaggio una tantum di OMH e Dove.it, fotografia del "prima".
+
+Una settimana di lavoro, non un mese. Senza, non parte nessun livello.
 
 ### Presidio — 890 €/mese
 

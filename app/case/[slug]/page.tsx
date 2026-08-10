@@ -21,8 +21,13 @@ export async function generateMetadata({
   const p = await getVisibleListing(slug);
   if (!p) return { title: "Immobile non trovato" };
   const canonical = `/case/${p.slug}`;
+  // `absolute` scavalca il template " · Domus Tua Immobiliare" del layout: sommato a
+  // titolo + zona superava i ~70 caratteri utili e la prima cosa a sparire nella
+  // troncatura era il COMUNE — cioè l'unica parola per cui questa pagina può essere
+  // cercata. È la famiglia di URL più numerosa del sito: vale una riga.
+  const title = `${p.title}, ${p.zone} | Domus Tua`;
   return {
-    title: `${p.title}, ${p.zone}`,
+    title: { absolute: title },
     description: p.excerpt,
     alternates: { canonical },
     openGraph: {
@@ -57,38 +62,107 @@ export default async function PropertyPage({
     ...all.filter((r) => r.slug !== p.slug && r.zone !== p.zone),
   ].slice(0, 3);
 
-  // Dati strutturati per l'immobile (schema.org). Offer inclusa solo con prezzo numerico
-  // valido (> 0), come richiesto per i Rich Results Google.
+  // Dati strutturati per l'immobile (schema.org).
+  //
+  // PERCHÉ NON PIÙ `Product`. Product descrive un prodotto realmente acquistabile a prezzo
+  // esposto e vincolante: un immobile in trattativa non lo è, e dichiararlo tale è markup
+  // che non rappresenta la pagina. Da sapere prima di "migliorarlo": **nessuna delle due
+  // forme produce un rich result** — Google non ne ha uno per gli immobili. Qui si marca
+  // per chiarezza di entità, non per ottenere una decorazione in SERP.
+  //
+  // La forma è un grafo di tre nodi legati da @id, perché RealEstateListing è un sottotipo
+  // di WebPage e da solo non può portare indirizzo, superficie o locali:
+  //   #listing  RealEstateListing → la pagina dell'annuncio
+  //   #property Apartment/House/Place → la cosa: dove sta, quanto è grande
+  //   Offer     → il prezzo, con lo stato reale e il tipo di operazione
   const url = `${siteUrl}/case/${p.slug}`;
   const image = p.cover.startsWith("http") ? p.cover : `${siteUrl}${p.cover}`;
   const hasPrice = Number.isFinite(p.priceValue) && p.priceValue > 0;
 
+  // `sqm`/`rooms`/`baths` sono stringhe da mostrare ("145 m²", "4 locali"): il numero si
+  // estrae, e se non c'è il campo si omette invece di inventarlo.
+  const firstNumber = (s: string | undefined): number | undefined => {
+    const m = s?.match(/\d+([.,]\d+)?/);
+    const n = m ? Number(m[0].replace(",", ".")) : NaN;
+    return Number.isFinite(n) ? n : undefined;
+  };
+  const floorSize = firstNumber(p.sqm);
+  const rooms = firstNumber(p.rooms);
+  const baths = firstNumber(p.baths);
+
+  // Terreno e Commerciale non sono alloggi: restano Place, che è vero per entrambi.
+  const propertyType =
+    p.type === "Villa"
+      ? "SingleFamilyResidence"
+      : p.type === "Appartamento" || p.type === "Attico"
+        ? "Apartment"
+        : "Place";
+
+  // Lo stato lo decide il flag del gestionale, lo stesso che la scheda usa per mostrare
+  // "questo immobile è stato venduto" (PropertyDetail). Prima di questo la pagina diceva
+  // "venduto" a chi la leggeva e InStock a Google: due affermazioni opposte nello stesso
+  // documento. SoldOut e non OutOfStock, che significa "temporaneamente esaurito".
+  // `status` distingue vendita e locazione: senza, un affitto da 800 € e una villa da
+  // 800.000 € portano lo stesso identico markup (vedi app/lib/availability.ts, dove il
+  // flag `sold` copre entrambi i casi).
+  const availability = p.sold
+    ? "https://schema.org/SoldOut"
+    : "https://schema.org/InStock";
+  const businessFunction =
+    p.status === "Affitto"
+      ? "http://purl.org/goodrelations/v1#LeaseOut"
+      : "http://purl.org/goodrelations/v1#Sell";
+
   const residenceJsonLd = {
     "@context": "https://schema.org",
-    "@type": ["Product", "Residence"],
-    name: p.title,
-    description: p.excerpt,
-    image,
-    url,
-    category: p.type,
-    areaServed: p.zone,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: p.zone,
-      addressRegion: site.address.province,
-      addressCountry: "IT",
-    },
-    ...(hasPrice
-      ? {
-          offers: {
-            "@type": "Offer",
-            price: p.priceValue,
-            priceCurrency: "EUR",
-            availability: "https://schema.org/InStock",
-            url,
-          },
-        }
-      : {}),
+    "@graph": [
+      {
+        "@type": "RealEstateListing",
+        "@id": `${url}#listing`,
+        url,
+        name: p.title,
+        description: p.excerpt,
+        image,
+        provider: { "@id": `${siteUrl}/#organization` },
+        mainEntity: { "@id": `${url}#property` },
+      },
+      {
+        "@type": propertyType,
+        "@id": `${url}#property`,
+        name: p.title,
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: p.zone,
+          addressRegion: site.address.province,
+          addressCountry: "IT",
+        },
+        ...(floorSize
+          ? {
+              floorSize: {
+                "@type": "QuantitativeValue",
+                value: floorSize,
+                unitCode: "MTK", // metri quadri, codice UN/CEFACT
+              },
+            }
+          : {}),
+        ...(rooms ? { numberOfRooms: rooms } : {}),
+        ...(baths ? { numberOfBathroomsTotal: baths } : {}),
+      },
+      ...(hasPrice
+        ? [
+            {
+              "@type": "Offer",
+              itemOffered: { "@id": `${url}#property` },
+              seller: { "@id": `${siteUrl}/#organization` },
+              price: p.priceValue,
+              priceCurrency: "EUR",
+              availability,
+              businessFunction,
+              url,
+            },
+          ]
+        : []),
+    ],
   };
 
   const breadcrumbJsonLd = {
