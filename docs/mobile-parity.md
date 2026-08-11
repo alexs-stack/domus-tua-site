@@ -841,3 +841,68 @@ Due affermazioni di questo documento nascono da un errore di misura mio, corrett
 lasciato a verbale invece che cancellato: il vuoto apparente della home (§1.6) e lo
 scroll che sembrava passare attraverso il blocco (§1.5a). Le lascio scritte perché
 sono le due trappole in cui ricadrà chiunque misuri questa cosa dopo di me.
+
+
+---
+
+## 11. Fase 5 — la verifica finale, e il numero che non torna
+
+`npm run lighthouse`, stesse condizioni della baseline (mobile 390×844, Slow 4G
+simulato, CPU ×4, build di produzione).
+
+| Rotta | | perf | a11y | SEO | LCP | CLS | TBT |
+|---|---|--:|--:|--:|--:|--:|--:|
+| `/` | Fase 0 | 0,64 | 0,97 | 1,00 | 5.668 ms | 0 | 572 ms |
+| | dopo il banner | 0,74 | 0,97 | 1,00 | 5.212 ms | 0 | **274 ms** ✓ |
+| | **fine wave** | **0,50** | 0,97 | 1,00 | **9.812 ms** | 0 | **1.045 ms** |
+| `/acquista` | Fase 0 | 0,79 | 1,00 | 1,00 | 5.135 ms | 0 | 152 ms |
+| | **fine wave** | **0,82** | 1,00 | 1,00 | **4.540 ms** | 0 | **125 ms** ✓ |
+
+`/acquista` migliora su tutta la riga. **La home peggiora, e la causa è nota:
+Lighthouse parte sempre con `sessionStorage` vuoto, quindi da oggi cammina
+SEMPRE sul percorso dell'intro.** Prima della Fase 3 non poteva: sotto i 768px
+il sipario non esisteva. Questi non sono numeri della stessa pagina misurata
+due volte — sono due pagine diverse.
+
+### 11.1 E qui i due strumenti si contraddicono, di brutto
+
+Sulla stessa build, stessa larghezza, stessa sessione fredda:
+
+| | LCP |
+|---|--:|
+| Throttling **applicato** (CDP: 1,6 Mbps, RTT 150 ms, CPU ×4) | **1.724 ms** |
+| Throttling **simulato** (Lighthouse/Lantern) | **9.812 ms** |
+
+Un fattore 5,7. Non è rumore ed è la stessa divergenza di §9.1.1, ma
+amplificata: là il modello non registrava un miglioramento di tre secondi, qui
+attribuisce otto secondi a un sipario che il cronometro misura in 1,75.
+
+Cosa credo, e perché lo distinguo:
+
+- **Il TBT è vero.** 274 → 1.045 ms è costo di thread principale, e Lantern lo
+  osserva invece di modellarlo: è la costruzione della timeline più
+  l'idratazione del chunk. **Sfora il budget di 745 ms ed è attribuibile
+  all'intro.** Questo va risolto, non spiegato.
+- **L'LCP simulato non lo credo alla lettera.** Lantern non cronometra, modella:
+  nello stesso report l'LCP *osservato* è una frazione di quello simulato, e il
+  throttling applicato — che è throttling vero — dice 1.724 ms con il sipario
+  caduto e Lenis che scorre.
+
+### 11.2 Cosa NON ho fatto
+
+Non ho toccato `lighthouserc.js`. La soglia resta scritta com'è, e la corsa
+resta rossa sulla home.
+
+Non ho camminato la scala di concessioni di §5.4 fino in fondo, e va detto
+perché: i suoi gradini (durata giù, atti tolti, chunk differito) agiscono sulla
+DURATA, e la durata è già a 1,75 s. Il numero che sfora davvero è il TBT, che
+non è durata ma lavoro — e il gradino che lo toccherebbe è il quarto, «atto 1
+tutto in CSS, il chunk prende il timone solo per il tuffo». Quello è lavoro
+vero, non una taratura, e cominciarlo con il contesto che mi resta avrebbe
+significato lasciarlo a metà.
+
+**Resta quindi aperto, e sul tavolo:** l'intro costa ~745 ms di TBT oltre il
+budget. Le tre opzioni di §5.5 sono ancora quelle, con un dato in più: adesso
+si sa che a sforare è il thread principale, non la banda — il che rende il
+gradino 4 della scala il candidato giusto, e le due strade fuori mandato (font,
+layer motion) meno rilevanti di quanto sembrasse in Fase 0.
