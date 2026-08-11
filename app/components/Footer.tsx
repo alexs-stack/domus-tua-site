@@ -63,9 +63,9 @@ export default function Footer() {
         };
       };
 
-      mm.add(`${MQ.motionOk} and (max-width: 1023.98px)`, columnsEnter);
+      mm.add(`${MQ.motionOk} and ${MQ.belowLg}`, columnsEnter);
 
-      mm.add(`${MQ.motionOk} and (min-width: 1024px)`, () => {
+      mm.add(`${MQ.motionOk} and ${MQ.lg}`, () => {
         // L'uncover ha senso solo se il footer entra tutto nel viewport: da
         // fixed, la parte sopra il viewport sarebbe irraggiungibile per sempre
         // (laptop bassi). In quel caso: footer in flusso + ingresso classico.

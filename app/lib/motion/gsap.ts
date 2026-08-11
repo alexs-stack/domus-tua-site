@@ -79,10 +79,41 @@ export const dist = {
 
 // Le media query usate da gsap.matchMedia in tutto il sito.
 // `motionOk` è la condizione base: nessuna animazione GSAP parte senza.
+//
+// ─── DUE SOGLIE, E VANNO SAPUTE ENTRAMBE ───────────────────────────────
+// `desktop` è 768 ed è la soglia degli effetti di sezione (camera, derive,
+// parallasse). `lg` è 1024 ed è la soglia dei SET PIECE: rotaia orizzontale,
+// corridoio, muro, filo. Non sono la stessa cosa e non vanno confuse — a 768
+// un set piece toccherebbe il contenuto.
+//
+// Prima della wave "parità mobile" `lg` non esisteva e TREDICI componenti se
+// lo riscrivevano a mano: nove in linea (FeaturedTestimonial, Footer, Paths,
+// Social, StarReviews, TeamTrail, HorizontalRail, HoverDistort, LiquidReveal)
+// e quattro dietro costanti private con commenti quasi identici (RAIL_MQ,
+// HORIZON_MQ, WALL_MQ, PIN_MQ). Adesso c'è un posto solo.
+//
+// Le forme "below" esistono per scrivere il RAMO MOBILE come cittadino di
+// prima classe invece che come negazione. Il confine è 1023.98 / 767.98, non
+// 1023 / 767: alle larghezze frazionarie (zoom del browser, dpr non interi)
+// un buco di un pixel lascia entrambi i rami spenti. È l'idioma che
+// LiquidReveal e Footer usavano già, promosso qui.
+//
+// `belowDesktop` e `coarse` non hanno ancora chiamanti: sono in anticipo sulla
+// wave, ed esistono perché la Fase 2 scriva il ramo mobile senza dover
+// reinventare i decimali. Se dopo la Fase 2 restano inusati, si tolgono.
 export const MQ = {
   motionOk: "(prefers-reduced-motion: no-preference)",
+  /** Effetti di sezione: da tablet in su. */
   desktop: "(min-width: 768px)",
+  /** Il gemello di `desktop`: telefono. */
+  belowDesktop: "(max-width: 767.98px)",
+  /** Set piece: solo desktop vero. */
+  lg: "(min-width: 1024px)",
+  /** Il gemello di `lg`: telefono e tablet. */
+  belowLg: "(max-width: 1023.98px)",
   finePointer: "(pointer: fine)",
+  /** Puntatore grosso: il dito. Mai usare `belowLg` per dire "touch". */
+  coarse: "(pointer: coarse)",
 } as const;
 
 export { gsap, ScrollTrigger, CustomEase, useGSAP };

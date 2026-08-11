@@ -73,6 +73,11 @@ export default function PageHero({
         };
       });
 
+      // La deriva d'uscita resta desktop: sarà la fase 2 ad aprirle il telefono.
+      // ASIMMETRIA VISTA IN RICOGNIZIONE (2026-08-11): l'entrata qui sopra NON è
+      // gated, quindi sul telefono scrive `opacity: 0` su [data-ph-el] già
+      // all'idratazione — badge, subcopy e CTA spariscono e rientrano, e si vede.
+      // Registrata qui apposta, ma non la tocchiamo adesso: è coreografia.
       mm.add(`${MQ.motionOk} and ${MQ.desktop}`, () => {
         gsap.to(contentRef.current, {
           yPercent: -8,

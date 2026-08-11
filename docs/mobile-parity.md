@@ -3,8 +3,9 @@
 > Wave "parità mobile", 2026-08-11. Questo documento è la **Fase 0**: l'inventario
 > verificato contro il codice, la misura di partenza, un verdetto per ogni effetto
 > chiuso fuori dal telefono, e la decisione sull'intro con il suo piano di misura.
-> Nessuna riga di prodotto è stata toccata. Le sole aggiunte sono tre strumenti di
-> misura in `scripts/` (§7).
+> In Fase 0 nessuna riga di prodotto è stata toccata: le sole aggiunte sono quattro
+> strumenti di misura in `scripts/` (§7). Le fasi successive aggiornano questo
+> documento invece di scriverne un altro — le decisioni prese stanno in §9.
 >
 > **Il mandato è parità d'intento, non parità d'implementazione.** Ogni momento di
 > firma deve arrivare su uno schermo da 390px, detto nella lingua gestuale che quello
@@ -154,9 +155,11 @@ env(safe-area-inset-bottom) = 0px · top = 0px
 aggiungerlo sposta tutti gli elementi ancorati al fondo nello stesso momento. Va
 fatto in Fase 4, insieme, non di sfuggita.
 
-**c. 366 elementi con `will-change` diverso da `auto`** dopo una passata di scroll
-sulla home. Non è un verdetto — è il numero contro cui misurare ogni layer che la
-wave aggiunge.
+**c. `will-change` diverso da `auto` su 360 elementi al caricamento della home, 367
+dopo una passata di scroll.** Non è un verdetto — è il numero contro cui misurare
+ogni layer che la wave aggiunge. Il fatto che salga solo di 7 scorrendo dice che non
+è il motion a promuoverli: **sono già lì nel markup** (73 solo nel lockup dell'hero,
+§6.14).
 
 ### 1.6 Le fotografie di riferimento
 
@@ -288,7 +291,7 @@ che esce.** Dove non esce niente, lo dico invece di inventare un sacrificio.
 | 9 | `CameraIn` (4 siti) | **TRANSLATE** | Salita piana `y 24 → 0` + opacità. Nessuno dei quattro siti tocca un candidato LCP | La *scala*. Un dolly su una colonna da 390px non legge come camera, legge come oscillazione |
 | 10 | `HeroCinematic` frame-in | **KEEP OFF** — ma con un port accanto | Il frame-in resta fuori: `clip-path` per frame sul layer LCP a pieno viewport è precisamente ciò che la legge 5 vieta, e il commento a `:152-153` lo dice già. **Ma** la foto dell'hero oggi è immobile a ogni quota di scroll: entra una deriva d'uscita `yPercent`, solo transform, zero paint | I marchi d'angolo `SegnoDomusVideoFrame`, che su mobile restano accesi per tutto l'hero perché a spegnerli è il ramo desktop. Si spengono con la nuova deriva |
 | 11 | `PageHero` deriva d'uscita | **PORT** | `gsap.to` scrubbato, transform + opacità, nessuno stato iniziale scritto al caricamento: neutro rispetto all'LCP. Si apre a tutte le larghezze | Niente esce, ma si **corregge** l'asimmetria: è il ramo *già attivo* su mobile (`:59`) a scrivere `opacity: 0` su `[data-ph-el]` all'idratazione — badge, subcopy e CTA lampeggiano. Il gate non c'entra |
-| 12 | `FaqContent` | **REPLACE** (è un gate di orientamento, non di moto) | Il gate va a 1024 per combaciare con lo sticky; sotto, l'indice smette di dichiarare `aria-current` invece di dichiararlo sbagliato per sempre | La finta indicazione «voce 01» congelata su tutta la pagina |
+| 12 | `FaqContent` | **REPLACE**, ma solo a metà (vedi §3.3) | Il gate va a 1024 per combaciare con lo sticky. Fatto in Fase 1 | La scrittura di `aria-current` su una nav già uscita di scena, fra 768 e 1023 |
 | 13 | **`Parallax`** (mancava) | **PORT, selettivo** | Si accende `mobile` caso per caso, non a tappeto: dove sta su una fotografia aggiunge profondità, dove sta su un blocco di testo no | Undici tween morti. Rimozione e aggiunta coincidono |
 | 14 | **`WordReveal`** (mancava) | **PORT, condizionato alla misura** | Il gate CSS scende, ma **solo dove l'elemento non è candidato LCP**: la QA del wow-layer ha già registrato che le parole `inline-block` frammentavano l'H1. Se non si riesce a renderlo sicuro, diventa KEEP OFF con la ragione scritta | Da decidere alla misura |
 | 15 | **I quattro gate fuori da `mm.add`** (mancava) | **PORT strutturale** | Entrano in `mm.add`, così GSAP gestisce teardown e ricostruzione | La rottura silenziosa alla rotazione del tablet |
@@ -313,7 +316,29 @@ reggerebbe: `screen > track > panel × 4` è già la forma di un carosello. Il
 Sarebbe un ridisegno travestito da porting. La traduzione onesta tiene la colonna e
 sposta l'asse dei trigger.
 
-### 3.2 Una nota sul capitolo recensioni
+### 3.2 Un verdetto ritirato: la seconda metà del 12
+
+Il verdetto 12 diceva due cose. La prima — spostare il gate da 768 a 1024 perché
+combaci con lo sticky dell'indice — è giusta ed è già in Fase 1. La seconda —
+«sotto, l'indice smette di dichiarare `aria-current` invece di dichiararlo sbagliato
+per sempre» — **è sbagliata, ed è stata ritirata implementandola.**
+
+Il codice portava già una decisione contraria, scritta e motivata
+(`FaqContent.tsx:169`): «Parte dal primo gruppo: prima che qualunque trigger scatti
+l'indice è già coerente con ciò che si vede, e senza JS resta acceso il primo — mai
+nessuno, mai tutti». Il verdetto 12 l'ha scavalcata senza averla letta.
+
+Ha ragione il codice. Sotto `lg` l'indice **non è appiccicato**: lo si attraversa una
+volta sola, stando in cima alla pagina, dove la voce 01 è esattamente quella giusta.
+Spegnere tutto avrebbe tolto l'orientamento a chi legge a schermo letto per correggere
+un'incoerenza che nessuno può vedere — e avrebbe cambiato anche il desktop, dove
+l'indice sarebbe rimasto spento fino al primo scroll.
+
+Resta solo lo scambio di soglia. La ragione del ritiro è scritta nel file, non solo
+qui: un commento che registra una decisione va contraddetto per iscritto o non va
+contraddetto.
+
+### 3.3 Una nota sul capitolo recensioni
 
 Nell'ordine attuale la home dice «recensioni» quattro volte di fila: pannello 3
 («Lo specchio del nostro lavoro»), pannello 4 («Le voci, in prima persona»),
@@ -520,10 +545,14 @@ esattamente i file che la wave apre.
    l'hover in un punto qualsiasi della colonna riveli **tutte** le etichette insieme.
 9. **`aria-current="true"`** (`ThreadNav.tsx:112`) invece di `"location"`/`"page"`,
    incoerente con `Header.tsx:325`.
-10. **Commenti scaduti** da non credere durante l'implementazione: `Preloader.tsx:10`,
-    `:141`, `:200-201`; `HeroCinematic.tsx:192-194`; `globals.css:262` («un centinaio
-    di livelli» → sono 21) e `:1522`; `ReviewsWall.tsx:5` (425vh → 520vh);
+10. **Commenti scaduti** da non credere durante l'implementazione: `Preloader.tsx:141`
+    e `:200-201`; `globals.css:262` («un centinaio di livelli» → sono 21) e `:1522`;
     `docs/performance.md:69`.
+    *Sanati in Fase 1*: `HeroCinematic.tsx:192-194` (lo `scale 0.75→1` che non
+    esiste), `ReviewsWall.tsx:5` (425vh → 520vh), `Preloader.tsx:7` e `:295` (lo
+    stesso `scale` fantasma, dall'altro capo dell'handoff), e il commento in
+    `HeroCinematic` che dava per assodato che l'LCP della home fosse il testo
+    dell'hero.
 11. **Il banner cookie occupa lo stesso identico rettangolo della barra azioni.**
     `CookieConsent.tsx:146` è `fixed inset-x-3 bottom-3 z-[60]`, `MobileActionBar.tsx:50`
     è `fixed inset-x-3` con `bottom: calc(0.75rem + …)` a `z-40`. Il banner vince e
@@ -545,7 +574,34 @@ esattamente i file che la wave apre.
     perché l'unico chiamante è `ThreadNav` su una nav `display:none`. Diventa un bug
     il giorno in cui il filo mobile riusa `watchSurfaceTone` su un elemento visibile
     della home — cioè esattamente ciò che propone il verdetto 4.
-14. **Il blocco dello scroll del menu mobile dipende da Lenis, non da `body`.**
+14. **Il lockup dell'hero è frammentato in span `inline-block` con
+    `will-change-transform` scritto nel markup SSR** (`HeroCinematic.tsx:124`). Due
+    conseguenze, entrambe misurate a 390px:
+    - la frammentazione toglie l'H1 dai candidati LCP, ed è il motivo per cui a
+      vincere è il banner cookie;
+    - il lockup promuove **73 livelli di compositing in permanenza**, non solo
+      durante l'animazione — mentre il resto del sito promuove solo dentro la
+      finestra animata (`globals.css:278-280` per `.reveal`).
+
+    | | span |
+    |---|--:|
+    | H1 (`data-hero-char`, «Domus» + «Tua») | 8 |
+    | script fratello (`data-hero-schar`, «Raffaela Rizza») | 13 |
+    | riga motto (`data-hero-tchar`) | 52 |
+    | **totale con `will-change` nella sezione hero** | **73** |
+
+    Un primo giro di questo documento scriveva «~20», che non corrisponde a nessuna
+    delle due letture possibili. Numero ora misurato, non stimato.
+15. **Un ridimensionamento della finestra spegne per sempre le pill dei canali di
+    `Social`.** Misurato prima e dopo la Fase 1, quindi *preesistente e non
+    introdotto dalla wave*: portando la finestra da 1440 a 900 e ritorno con la
+    sezione già superata, `opacity` resta a 0. Non è un revert di `matchMedia` — è
+    il `ScrollTrigger.refresh()` del resize che fa scattare `onLeaveBack`, e
+    `toggleActions: "restart none none reverse"` inverte il tween; la rete di
+    sicurezza (`setTimeout(reveal, 2500)`, `{ once: true }`) è già stata spesa al
+    primo passaggio. Sono link di navigazione veri. Vale per qualunque `fromTo` con
+    quel `toggleActions` e una rete `once`, quindi non è solo di `Social`.
+16. **Il blocco dello scroll del menu mobile dipende da Lenis, non da `body`.**
     `Header.tsx:112/116` scrive `document.body.style.overflow`, ma con
     `html { overflow-x: clip }` (`globals.css:147`) l'overflow del body non si
     propaga al viewport. A bloccare davvero è `getLenis()?.stop()` (`:119`). Sotto
@@ -578,6 +634,14 @@ Due note di manutenzione, entrambe pagate a caro prezzo in questa fase:
   Chromium passa attraverso `overflow: hidden`; a fermarlo sarebbe `clip`. Serve un
   gesto vero (`page.mouse.wheel`, `page.touchscreen`). La prima misura di §1.5a
   diceva l'esatto contrario del vero per questo motivo.
+- **Niente altre build mentre gira `npm run test:e2e`.** La suite fa il suo
+  `npm run build` e serve da `.next`; una seconda build in parallelo (per esempio per
+  confrontare con `HEAD`) glielo riscrive sotto e la corsa restituisce 36 rossi tutti
+  da `500 Internal Server Error`. Successo dopo, in sequenza: **154 passati, 11
+  saltati, 0 falliti**. Un confronto prima/dopo si fa a suite ferma.
+- **Un server `next start` avviato prima di una build serve la build vecchia.** Vale
+  la stessa regola: prima si costruisce, poi si avvia, poi si misura. Il primo
+  confronto sulla rotaia di `Social` è stato buttato per questo.
 
 ### 7.1 Cosa resta da misurare prima di impegnarsi
 
@@ -599,7 +663,7 @@ letture del codice, non numeri.
    Su mobile il registro ha **quattro** iscritti, non due: `Header.tsx:79` (scarica
    entrambe le varianti del wordmark), `CharFlip.tsx:164` (uno `SplitText` per ogni
    titolo della pagina), `Fioritura.tsx:567`, `TeamTrail.tsx:94`.
-5. **Se il menu mobile blocca davvero lo scroll con reduced-motion attivo** (§6.14).
+5. **Se il menu mobile blocca davvero lo scroll con reduced-motion attivo** (§6.16).
 6. **Se le tre cuciture `ToneShift` reggono ancora la direttiva «nessun taglio
    percepito» a 390px**, dove il rapporto dei raggi collassa a ≈1:1 (§2.3).
 7. **Il conteggio vero degli ScrollTrigger sulla home a 390px.** Ogni budget di questo
@@ -679,7 +743,7 @@ misurato con un **gesto vero**, mai con `window.scrollBy` (§7, note di manutenz
    senza foto. Se arrivano durante la wave, il taglio si annulla con una classe.
 2. `WordReveal` su mobile: assumo PORT, e se la misura dice che frammenta il
    candidato LCP diventa KEEP OFF con la ragione scritta a verbale.
-3. Il montaggio del capitolo recensioni (§3.2): assumo di **non** toccarlo. È
+3. Il montaggio del capitolo recensioni (§3.3): assumo di **non** toccarlo. È
    contenuto, non movimento.
 
 E una che non è più un'assunzione ma una consegna di Fase 4: `viewportFit: "cover"`

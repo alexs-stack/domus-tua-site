@@ -89,6 +89,14 @@ export default function FeaturedTestimonial(props: Props) {
       const card = cardRef.current;
       if (!card) return;
       const mm = gsap.matchMedia();
+
+      // DUE CONTESTI. L'ingresso non dipende dal puntatore né dalla larghezza;
+      // la parallasse sì. Tenerli insieme vorrebbe dire che GSAP reverte e
+      // ricostruisce ANCHE l'ingresso a ogni attraversamento dei 1024 — e la
+      // timeline riparte dal suo from-state (virgoletta a scale 0.7 e ruotata,
+      // stelle a 0.6) con `toggleActions` che sullo slot onLeave non fa nulla:
+      // se la card è già passata, resta rimpicciolita e storta fino a un nuovo
+      // ingresso dall'alto.
       mm.add(MQ.motionOk, () => {
         const tl = gsap.timeline({
           // Replay a ogni passaggio: restart all'ingresso, reverse risalendo
@@ -121,8 +129,9 @@ export default function FeaturedTestimonial(props: Props) {
             0.55
           );
         }
+      });
 
-        /* PARALLASSE DA PUNTATORE A LENTE LUNGA.
+      /* PARALLASSE DA PUNTATORE A LENTE LUNGA.
            Rif. _refs/three-skull — vedi docs/effetti-reference.md §2.5.
            Due piani che TRASLANO, mai che ruotano: il tilt su una card
            editoriale con dentro una citazione lunga la fa "ondeggiare" e il
@@ -132,42 +141,46 @@ export default function FeaturedTestimonial(props: Props) {
            CONTRARIO per la virgoletta (piano vicino). È l'opposizione a fare
            la profondità, non l'ampiezza.
            quickTo = smorzamento critico: il piano insegue il puntatore senza
-           rimbalzare e senza creare una tween nuova a ogni mousemove. */
-        const fine = window.matchMedia("(min-width: 1024px) and (pointer: fine)");
-        if (fine.matches) {
-          const photo = card.querySelector<HTMLElement>("[data-ft-photo]");
-          const glyph = glyphRef.current;
-          const set = (el: HTMLElement | null, amt: number) =>
-            el
-              ? {
-                  x: gsap.quickTo(el, "x", { duration: 0.7, ease: "power3" }),
-                  y: gsap.quickTo(el, "y", { duration: 0.7, ease: "power3" }),
-                  amt,
-                }
-              : null;
-          const planes = [set(photo, 0.05), set(glyph, -0.03)].filter(Boolean) as {
-            x: gsap.QuickToFunc;
-            y: gsap.QuickToFunc;
-            amt: number;
-          }[];
-          const onMove = (e: PointerEvent) => {
-            const r = card.getBoundingClientRect();
-            // Bersaglio fisso al centro della card: normalizzato -1..1.
-            const nx = (e.clientX - r.left) / r.width - 0.5;
-            const ny = (e.clientY - r.top) / r.height - 0.5;
-            planes.forEach((p) => {
-              p.x(nx * r.width * p.amt);
-              p.y(ny * r.height * p.amt);
-            });
-          };
-          const onLeave = () => planes.forEach((p) => (p.x(0), p.y(0)));
-          card.addEventListener("pointermove", onMove);
-          card.addEventListener("pointerleave", onLeave);
-          return () => {
-            card.removeEventListener("pointermove", onMove);
-            card.removeEventListener("pointerleave", onLeave);
-          };
-        }
+           rimbalzare e senza creare una tween nuova a ogni mousemove.
+           Sul dito resta spenta PER SEMPRE, e non è un buco della parità
+           mobile: senza puntatore non c'è nessun bersaglio da inseguire, e
+           l'effetto semplicemente non esiste.
+           La soglia sta nelle condizioni e non in un window.matchMedia letto a
+           mano: prima si decideva una volta sola all'idratazione, e un tablet
+           ruotato restava con la scelta di prima. */
+      mm.add(`${MQ.motionOk} and ${MQ.lg} and ${MQ.finePointer}`, () => {
+        const photo = card.querySelector<HTMLElement>("[data-ft-photo]");
+        const glyph = glyphRef.current;
+        const set = (el: HTMLElement | null, amt: number) =>
+          el
+            ? {
+                x: gsap.quickTo(el, "x", { duration: 0.7, ease: "power3" }),
+                y: gsap.quickTo(el, "y", { duration: 0.7, ease: "power3" }),
+                amt,
+              }
+            : null;
+        const planes = [set(photo, 0.05), set(glyph, -0.03)].filter(Boolean) as {
+          x: gsap.QuickToFunc;
+          y: gsap.QuickToFunc;
+          amt: number;
+        }[];
+        const onMove = (e: PointerEvent) => {
+          const r = card.getBoundingClientRect();
+          // Bersaglio fisso al centro della card: normalizzato -1..1.
+          const nx = (e.clientX - r.left) / r.width - 0.5;
+          const ny = (e.clientY - r.top) / r.height - 0.5;
+          planes.forEach((p) => {
+            p.x(nx * r.width * p.amt);
+            p.y(ny * r.height * p.amt);
+          });
+        };
+        const onLeave = () => planes.forEach((p) => (p.x(0), p.y(0)));
+        card.addEventListener("pointermove", onMove);
+        card.addEventListener("pointerleave", onLeave);
+        return () => {
+          card.removeEventListener("pointermove", onMove);
+          card.removeEventListener("pointerleave", onLeave);
+        };
       });
     },
     { scope: cardRef }

@@ -46,7 +46,7 @@ export default function LiquidReveal({ children, tone = "paper", className = "" 
       const mm = gsap.matchMedia();
 
       // Desktop: foro liquido che si apre in scrub mentre la sezione entra.
-      mm.add(`${MQ.motionOk} and (min-width: 1024px)`, () => {
+      mm.add(`${MQ.motionOk} and ${MQ.lg}`, () => {
         gsap.set(veil, { autoAlpha: 1 });
         gsap.set(circle, { attr: { r: 0 } });
         const tween = gsap.to(circle, {
@@ -63,7 +63,7 @@ export default function LiquidReveal({ children, tone = "paper", className = "" 
 
       // Mobile/tablet: sipario clip-path (il filtro ripitturato a ogni tick
       // sarebbe troppo per CPU/GPU mobile).
-      mm.add(`${MQ.motionOk} and (max-width: 1023.98px)`, () => {
+      mm.add(`${MQ.motionOk} and ${MQ.belowLg}`, () => {
         const inner = root.querySelector<HTMLElement>("[data-liquid-content]");
         if (!inner) return;
         // Replay a ogni passaggio: niente clearProps (romperebbe restart/reverse).

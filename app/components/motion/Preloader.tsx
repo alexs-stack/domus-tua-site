@@ -3,8 +3,10 @@
 // Preloader "Arco Domus" — prima visita della sessione.
 // Coreografia rif. era-residence.com (reverse-engineering/era-residence/):
 // lockup + progress, poi una PORTA AD ARCO sale dal fondo (maschera CSS a
-// 4 layer, vedi globals.css) e ci si "tuffa" dentro l'hero, che nel
-// frattempo scala 0.75→1 (handoff INTRO_EVENT → HeroCinematic).
+// 4 layer, vedi globals.css) e ci si "tuffa" dentro l'hero: al tuffo parte
+// INTRO_EVENT e HeroCinematic accende le lettere. (Qui c'era scritto che
+// l'hero «scala 0.75→1»: quel tween non esiste più, la foto resta a scale 1 —
+// è la sagoma del preloader a coincidere con lei pixel su pixel.)
 // L'attributo <html data-preloader> è messo da un inline script nel layout
 // PRIMA del primo paint (vedi app/layout.tsx): qui si coreografa e si smonta.
 // - Una volta per sessione (sessionStorage), ~5s, skip con click/tasto.
@@ -292,7 +294,7 @@ export default function Preloader() {
 
       // ── Atto III — la porta ad arco, e il tuffo (≈2.4s) ───────────────
       // Il contenuto si congeda mentre la porta sale; l'handoff all'hero
-      // (scale 0.75→1 in HeroCinematic) parte esattamente col tuffo.
+      // (INTRO_EVENT → le lettere di HeroCinematic) parte esattamente col tuffo.
       tl.addLabel("arch", 2.25);
       tl.to(
         content,

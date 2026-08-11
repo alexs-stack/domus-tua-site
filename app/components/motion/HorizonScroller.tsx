@@ -17,10 +17,12 @@
 //   data-horizon-slide-img       il media dentro lo slide (scale 1.15 → 1)
 //   data-horizon-flower="drift-x" | "drift-y"  decorazioni in deriva lenta
 //
-// SOLO desktop ≥1024 + motion ok: altrove (mobile, reduced-motion, no-JS) i
-// pannelli restano in colonna, statici e completi — l'attributo [data-on] che
-// attiva il layout orizzontale viene messo esclusivamente via JS, quindi senza
-// animazioni non esiste nessuno stato nascosto o clippato.
+// Il set piece orizzontale vive SOLO da lg in su + motion ok: l'attributo
+// [data-on] che accende il layout a track viene messo esclusivamente via JS,
+// quindi con reduced-motion o senza JS i pannelli restano in colonna, statici
+// e completi — nessuno stato nascosto o clippato. Sotto lg oggi vale lo stesso,
+// ma per mancanza e non per scelta: la Fase 2 della parità mobile porterà qui
+// una coreografia verticale sua (il track orizzontale resta comunque da 1024).
 import { useRef, type ReactNode } from "react";
 import { SplitText } from "gsap/SplitText";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
@@ -28,10 +30,6 @@ import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion
 // SplitText serve solo qui e in TextLines: registrazione locale, mai nel
 // chunk del layout (gsap.ts è importato da SmoothScroll).
 gsap.registerPlugin(SplitText);
-
-// Come il rail di ThreadNav: sotto i 1024 il set piece orizzontale toccherebbe
-// il contenuto — MQ.desktop (768) qui sarebbe troppo presto.
-const HORIZON_MQ = "(min-width: 1024px)";
 
 export default function HorizonScroller({
   children,
@@ -54,9 +52,18 @@ export default function HorizonScroller({
       if (!root) return;
 
       const mm = gsap.matchMedia();
-      mm.add({ desktop: HORIZON_MQ, motionOk: MQ.motionOk }, (ctx) => {
+      // Il track vuole la larghezza piena: MQ.lg, stessa ragione del rail di
+      // ThreadNav.
+      mm.add({ desktop: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
         const c = ctx.conditions as { desktop: boolean; motionOk: boolean };
-        if (!c.desktop || !c.motionOk) return;
+        if (!c.motionOk) return;
+
+        if (!c.desktop) {
+          // Ramo mobile/tablet: per ora silenzio voluto — niente [data-on],
+          // pannelli in colonna e completi. La coreografia verticale (reveal
+          // dei pannelli, chars, sipario) arriva con la Fase 2.
+          return;
+        }
 
         const screen = root.querySelector<HTMLElement>(".dt-horizon_screen");
         const track = root.querySelector<HTMLElement>(".dt-horizon_track");

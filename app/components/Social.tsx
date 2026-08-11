@@ -84,35 +84,48 @@ export default function Social() {
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        const cleanups: (() => void)[] = [];
 
+      // DUE CONTESTI, NON UNO. Le pill non dipendono dalla larghezza, la rotaia
+      // sì: tenerle insieme significherebbe che GSAP reverte e ricostruisce
+      // ANCHE le pill a ogni attraversamento dei 1024 (è il contratto di
+      // matchMedia — se una qualsiasi condizione cambia, il context intero
+      // ricomincia). Su un semplice resize le pill tornerebbero a opacity 0 e,
+      // se la sezione è già passata, `toggleActions` non le rigioca: link di
+      // navigazione invisibili fino alla rete di sicurezza a 2,5s.
+      mm.add(MQ.motionOk, () => {
         // Pill canali: micro-stagger orizzontale. Contengono link → opacity
         // (mai autoAlpha) + reti di sicurezza stile Reveal (focus/timeout).
         // Replay a ogni passaggio: niente clearProps (romperebbe restart/reverse).
         const row = channelsRef.current;
-        if (row) {
-          const pills = gsap.utils.toArray<HTMLElement>(row.querySelectorAll("li"));
-          const tween = gsap.fromTo(
-            pills,
-            { x: -10, opacity: 0 },
-            {
-              x: 0,
-              opacity: 1,
-              duration: dur.short,
-              ease: "domus",
-              stagger: stagger.cards / 2,
-              scrollTrigger: { trigger: row, start: "top 85%", toggleActions: "restart none none reverse" },
-            }
-          );
-          const reveal = () => tween.progress(1);
-          row.addEventListener("focusin", reveal, { once: true });
-          const safety = window.setTimeout(reveal, 2500);
-          cleanups.push(() => {
-            row.removeEventListener("focusin", reveal);
-            window.clearTimeout(safety);
-          });
-        }
+        if (!row) return;
+        const pills = gsap.utils.toArray<HTMLElement>(row.querySelectorAll("li"));
+        const tween = gsap.fromTo(
+          pills,
+          { x: -10, opacity: 0 },
+          {
+            x: 0,
+            opacity: 1,
+            duration: dur.short,
+            ease: "domus",
+            stagger: stagger.cards / 2,
+            scrollTrigger: { trigger: row, start: "top 85%", toggleActions: "restart none none reverse" },
+          }
+        );
+        const reveal = () => tween.progress(1);
+        row.addEventListener("focusin", reveal, { once: true });
+        const safety = window.setTimeout(reveal, 2500);
+        return () => {
+          row.removeEventListener("focusin", reveal);
+          window.clearTimeout(safety);
+        };
+      });
+
+      // La soglia sta nelle condizioni, non in un matchMedia letto a mano:
+      // prima era `window.matchMedia("(min-width: 1024px)").matches` letto una
+      // volta sola, quindi un tablet ruotato restava col nastro montato (o
+      // spento) per sbaglio, e `data-on` non veniva mai tolto scendendo.
+      mm.add(`${MQ.motionOk} and ${MQ.lg}`, () => {
+        const cleanups: (() => void)[] = [];
 
         // LA ROTAIA — parallasse orizzontale su due piani.
         // Piano 1: il nastro trasla di tutta la sua eccedenza mentre la sezione
@@ -129,9 +142,9 @@ export default function Social() {
           const pans = gsap.utils.toArray<HTMLElement>(railEl.querySelectorAll(".dt-socialrail_pan"));
           // Sotto lg il nastro resta uno scroll orizzontale nativo: sul touch
           // trascinare è il gesto che la gente si aspetta, e guidarlo dallo
-          // scroll verticale glielo toglierebbe.
-          const desktop = window.matchMedia("(min-width: 1024px)");
-          if (track && desktop.matches) {
+          // scroll verticale glielo toglierebbe. Non serve un ramo: questo
+          // context non esiste proprio sotto i 1024.
+          if (track) {
             railEl.setAttribute("data-on", "");
             const st = {
               trigger: railEl,

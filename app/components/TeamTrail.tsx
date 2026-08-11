@@ -122,7 +122,10 @@ export default function TeamTrail() {
       const N = units.length;
 
       const mm = gsap.matchMedia();
-      mm.add({ desktop: "(min-width: 1024px)", motionOk: MQ.motionOk }, (ctx) => {
+      // `lg` e non `desktop`: il corridoio 3D è un set piece — sotto i 1024 la
+      // camera non ha lo spazio per attraversare i piani senza tagliarli. Il
+      // ramo qui sotto è il gemello mobile, e c'è già.
+      mm.add({ desktop: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
         const cond = ctx.conditions as { desktop: boolean; motionOk: boolean };
         if (!cond.motionOk) return;
 
@@ -563,7 +566,13 @@ export default function TeamTrail() {
                             style={member.imagePos ? { objectPosition: member.imagePos } : undefined}
                           />
                         ) : (
-                          /* Segnaposto in attesa delle foto del cliente: monogramma */
+                          /* Segnaposto in attesa delle foto del cliente: monogramma.
+                             Misurato (ago 2026): in app/lib/team.ts la foto ce l'ha
+                             SOLO Raffaela — cinque persone su sei sono un arco vuoto
+                             che occupa comunque un min-h-[100svh] intero. Sul telefono
+                             sono cinque schermate di niente da scorrere. Le Fasi 2/4
+                             faranno collassare quei pannelli all'altezza naturale;
+                             finché le foto non arrivano, il monogramma resta. */
                           <div
                             data-tt-mono
                             className="flex h-full w-full flex-col items-center justify-center gap-5 bg-paper ring-1 ring-inset ring-line"

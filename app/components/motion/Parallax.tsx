@@ -21,7 +21,11 @@ type Props = {
   range?: number;
   /** sovradimensiona l'interno (es. 1.15 per immagini in cornice) */
   scale?: number;
-  /** attivo anche sotto i 768px (default: solo desktop) */
+  /** Attivo anche sotto i 768px (default: solo desktop). Il default `false` è
+      portante, non una svista: alla ricognizione del 2026-08-11 uno solo dei 12
+      punti di chiamata lo passa (l'hero di PageHero), quindi sul telefono gli
+      altri 11 parallassi sono fermi. La fase 2 della parità mobile li accende
+      uno per uno dal punto di chiamata — non tutti insieme cambiando qui. */
   mobile?: boolean;
   as?: ElementType;
 };

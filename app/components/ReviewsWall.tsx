@@ -2,10 +2,12 @@
 
 // ReviewsWall — "il muro delle voci", sticky grid scroll IDENTICO al
 // riferimento Codrops di Théo Plawinski (MIT, clonato per studio in
-// reverse-engineering/codrops-sticky-grid-scroll): runway di 425vh con
-// wrapper sticky; il wrapper viene scoperto in parallasse inversa
-// (from yPercent -100 sull'ingresso); il titolo, otticamente centrato,
-// sfuma dentro al 57%; poi la timeline in scrub (top 25% → bottom bottom):
+// reverse-engineering/codrops-sticky-grid-scroll): runway di 520vh con
+// wrapper sticky (i 425vh del riferimento più la corsa d'uscita delle card:
+// la matematica sta in globals.css, .dt-wall[data-on]); il wrapper viene
+// scoperto in parallasse inversa (from yPercent -100 sull'ingresso); il
+// titolo, otticamente centrato, sfuma dentro al 57%; poi la timeline in
+// scrub (top 25% → bottom bottom):
 // 1. le colonne della griglia volano dentro da sopra/sotto (dy oltre il
 //    viewport, stagger 0.06 dal fondo o dalla testa, power1.inOut);
 // 2. la griglia zooma DENTRO (scale 2.05, power3.inOut) mentre le colonne
@@ -26,7 +28,6 @@ import { site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
 
-const WALL_MQ = "(min-width: 1024px)";
 const NUM_COLUMNS = 3;
 
 const copy = {
@@ -85,9 +86,14 @@ export default function ReviewsWall() {
       if (!section || !wrapper || !content || !title || !desc || !btn || !grid) return;
 
       const mm = gsap.matchMedia();
-      mm.add({ desktop: WALL_MQ, motionOk: MQ.motionOk }, (ctx) => {
-        const cond = ctx.conditions as { desktop: boolean; motionOk: boolean };
-        if (!cond.desktop || !cond.motionOk) return;
+      mm.add({ lg: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
+        const cond = ctx.conditions as { lg: boolean; motionOk: boolean };
+        if (!cond.motionOk) return;
+        if (!cond.lg) {
+          // Sotto lg il muro resta la colonna statica completa: il suo gesto
+          // per telefono e tablet arriva in Fase 2, questo è il suo posto.
+          return;
+        }
 
         // Misure a font pronti (il titolo è Playfair): creato in async, quindi
         // trigger e set vanno revertiti a mano nel cleanup.
@@ -246,7 +252,7 @@ export default function ReviewsWall() {
           };
           grid.addEventListener("focusin", onGridFocus);
 
-          // La sezione è appena diventata alta 425vh: i trigger a valle vanno
+          // La sezione è appena diventata alta 520vh: i trigger a valle vanno
           // rimisurati (ThreadNav compreso).
           ScrollTrigger.refresh();
 

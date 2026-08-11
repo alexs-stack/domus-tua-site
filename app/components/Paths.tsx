@@ -215,9 +215,20 @@ export default function Paths() {
       if (!section || !runway || !screen) return;
 
       const mm = gsap.matchMedia();
-      mm.add({ desktop: "(min-width: 1024px)", motionOk: MQ.motionOk }, (ctx) => {
+      // `lg` e non `desktop`: questo è un set piece pinnato da 520vh, a 768
+      // le due pagine piene si mangerebbero il contenuto.
+      mm.add({ desktop: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
         const cond = ctx.conditions as { desktop: boolean; motionOk: boolean };
-        if (!cond.desktop || !cond.motionOk) return;
+        if (!cond.motionOk) return;
+
+        // ── Telefono e tablet: ancora muti, e per ora è voluto ────────────
+        if (!cond.desktop) {
+          // Il gemello mobile dei due percorsi arriva nella Fase 2 della wave
+          // "parità mobile". Fino ad allora sotto i 1024 vale il markup nudo:
+          // intro + pannelli in colonna, tutto già visibile. Non scrivere
+          // coreografia qui senza aver letto il piano della Fase 2.
+          return;
+        }
 
         section.setAttribute("data-on", "");
 

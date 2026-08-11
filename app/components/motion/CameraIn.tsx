@@ -25,6 +25,8 @@ export default function CameraIn({ children, className = "", as: Tag = "div", fr
       const el = ref.current;
       if (!el) return;
       const mm = gsap.matchMedia();
+      // Sotto i 768 la scena resta ferma solo per ora: la fase 2 della parità
+      // mobile le darà il gemello, una risalita semplice senza la scala.
       mm.add(`${MQ.motionOk} and ${MQ.desktop}`, () => {
         gsap.fromTo(
           el,

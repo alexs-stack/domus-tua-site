@@ -13,9 +13,6 @@ import { SegnoDomusBadge } from "../BrandMotif";
 import { ArrowUpRight } from "../Icons";
 import { gsap, useGSAP, MQ, dur } from "../../lib/motion/gsap";
 
-// Il pin vive solo da lg in su (come ThreadNav): sotto, la banda scorre.
-const PIN_MQ = "(min-width: 1024px)";
-
 // Stati del reveal in clip-path della sottolineatura: niente stroke-dash —
 // con preserveAspectRatio="none" + non-scaling-stroke Chrome calcola i dash
 // in spazio schermo e il tratto resta monco (o spunta) a seconda della
@@ -68,7 +65,8 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
       const underline = root.querySelector<SVGSVGElement>("[data-underline]");
 
       const mm = gsap.matchMedia();
-      mm.add({ pin: PIN_MQ, motionOk: MQ.motionOk }, (ctx) => {
+      // Il pin vive solo da lg in su (come ThreadNav): sotto, la banda scorre.
+      mm.add({ pin: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
         const c = ctx.conditions as { pin: boolean; motionOk: boolean };
         // Reduced-motion: nessun set via JS — testo pieno, sottolineatura intera.
         if (!c.motionOk) return;

@@ -28,6 +28,11 @@
    scroll verticale glielo toglierebbe. Solo da 1024px in su e con motion ok
    il JS mette [data-on], spegne lo scroll nativo e passa il nastro a GSAP.
    Senza JS resta tutto visibile e trascinabile, e il corridoio non esiste.
+   Il ramo mobile quindi ESISTE GIÀ ed è in CSS: sotto la soglia comanda il
+   dito, con l'aggancio opt-in di `snapMobile` (".dt-rail[data-snap]", che
+   Services usa). Chi aggiunge coreografia non porti [data-on] sotto 1024:
+   ".dt-rail[data-on]" mette `overflow: hidden; scroll-snap-type: none` e
+   spegnerebbe insieme il trascinamento e lo snap.
 
    Le regole di layout stanno in globals.css (blocchi ".dt-rail"/".dt-railway").
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -69,7 +74,7 @@ export default function HorizontalRail({
       if (!wrap || !rail || !track) return;
 
       const mm = gsap.matchMedia();
-      mm.add(`${MQ.motionOk} and (min-width: 1024px)`, () => {
+      mm.add(`${MQ.motionOk} and ${MQ.lg}`, () => {
         rail.setAttribute("data-on", "");
 
         // Le due misure del corridoio, rifatte a ogni refresh: l'altezza vera

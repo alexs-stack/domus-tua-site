@@ -6,8 +6,11 @@
 // in proporzione alla posizione reale delle sezioni nel documento.
 // - Parametrico: `chapters` (id sezione + etichetta già tradotta) per le
 //   pagine interne; senza prop restano i capitoli della home.
-// - Solo desktop ≥1024 + motion ok (sotto/reduced-motion: display none via
-//   Tailwind, nessun JS attivo — la nav vera resta l'header).
+// - Solo desktop ≥1024 + motion ok, e i cancelli sono DUE: uno JS (MQ.lg
+//   dentro matchMedia) e uno CSS (`motion-safe:lg:block` sul nav). Sotto la
+//   soglia il rail è display:none e la nav vera resta l'header. Chi porterà il
+//   filo sul telefono deve aprirli entrambi: aprirne uno solo lascia JS che
+//   anima il nulla, o un rail visibile e morto.
 // - Appare dopo il primo viewport (l'hero è scuro e va lasciato pulito).
 // - Etichette: SOLO stringhe già tradotte del dizionario nav + nome brand.
 // - Il fill anima solo transform (scaleY via quickSetter, zero layout).
@@ -17,10 +20,6 @@ import { getLenis } from "./SmoothScroll";
 import { watchSurfaceTone } from "../../lib/ui/surface";
 import { SegnoDomus } from "../BrandMotif";
 import { useDict } from "../i18n/LocaleProvider";
-
-// Il rail vive solo da lg in su (1024, come il footer reveal): MQ.desktop è
-// 768 e qui sarebbe troppo presto — il filo toccherebbe il contenuto.
-const RAIL_MQ = "(min-width: 1024px)";
 
 export type ThreadChapter = { id: string; label: string };
 
@@ -50,9 +49,18 @@ export default function ThreadNav({
       if (!root || !fill) return;
 
       const mm = gsap.matchMedia();
-      mm.add({ desktop: RAIL_MQ, motionOk: MQ.motionOk }, (ctx) => {
+      // Il filo vuole la colonna vuota sul bordo destro, che sotto i 1024 non
+      // c'è: MQ.lg, la stessa soglia dell'uncover del footer (Footer.tsx).
+      mm.add({ desktop: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
         const c = ctx.conditions as { desktop: boolean; motionOk: boolean };
-        if (!c.desktop || !c.motionOk) return;
+        if (!c.motionOk) return;
+        if (!c.desktop) {
+          // FASE 2: qui va il ramo telefono/tablet del filo. Oggi non esiste
+          // coreografia sotto lg — e chi la scriverà deve aprire anche il
+          // cancello CSS `motion-safe:lg:block` sul nav in fondo al file,
+          // altrimenti animerebbe un display:none.
+          return;
+        }
 
         const knots = gsap.utils.toArray<HTMLButtonElement>("[data-knot]", root);
         const setFill = gsap.quickSetter(fill, "scaleY");
@@ -148,6 +156,10 @@ export default function ThreadNav({
      Il campione si prende a SINISTRA del binario, non al suo centro: al
      centro elementFromPoint colpirebbe il binario stesso. Vedi lib/ui/surface
      per il motivo per cui un IntersectionObserver qui non basta. */
+  // DIFETTO NOTO, da sanare in Fase 2: questo effetto parte sempre, anche sotto
+  // lg dove il rail è display:none. Attacca scroll+resize passivi e un rAF per
+  // un elemento che non è in campo (il samplePoint torna null per width 0, così
+  // non sbaglia il tono — spreca soltanto). Va legato al cancello, non al mount.
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
@@ -163,7 +175,9 @@ export default function ThreadNav({
       ref={rootRef}
       aria-label="Domus Tua"
       // opacity 0 inline: senza JS (o prima del primo scroll) il rail non esiste
-      // visivamente; GSAP lo rivela. hidden sotto lg e con reduced-motion.
+      // visivamente; GSAP lo rivela. hidden sotto lg e con reduced-motion: è il
+      // gemello CSS del cancello MQ.lg dentro matchMedia, e in Fase 2 i due si
+      // aprono insieme o non si aprono affatto.
       style={{ opacity: 0, visibility: "hidden" }}
       className="group fixed right-6 top-1/2 z-30 hidden h-[44vh] w-6 -translate-y-1/2 motion-safe:lg:block"
     >

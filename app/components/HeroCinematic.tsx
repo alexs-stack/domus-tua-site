@@ -149,8 +149,12 @@ export default function HeroCinematic() {
       const section = sectionRef.current;
       if (!section) return;
       const mm = gsap.matchMedia();
-      // Gate desktop: su mobile il clip-path per frame sul layer LCP full-viewport
-      // costerebbe un repaint/maschera a ogni tick di scroll (Safari iOS, Android low-end).
+      // Gate desktop senza gemello mobile, e non è una dimenticanza: il clip-path
+      // per frame sul layer full-viewport costerebbe un repaint/maschera a ogni
+      // tick di scroll (Safari iOS, Android low-end). Il frame-in NON torna sul
+      // telefono, nemmeno in Fase 2. La deriva d'uscita di sola trasformazione
+      // prevista dal verdetto 10 di docs/mobile-parity.md è un'altra cosa e può
+      // arrivare: quella non dipinge niente.
       mm.add(`${MQ.motionOk} and ${MQ.desktop}`, () => {
         const scrub = {
           trigger: section,
@@ -188,14 +192,14 @@ export default function HeroCinematic() {
   );
 
   // Coreografia d'ingresso — a OGNI load (rif. era-residence: anche al
-  // refresh le scritte rientrano). Due percorsi:
-  // - CON preloader (prima visita di sessione): il canvas parte a scale 0.75
-  //   (è ciò che si vede DENTRO la porta ad arco) e arriva a 1 durante il
-  //   tuffo; le lettere partono al handoff INTRO_EVENT.
-  // - SENZA preloader (refresh/visite successive): niente scale sul canvas,
-  //   le lettere rientrano subito dopo l'idratazione. L'attributo
-  //   html[data-hero-intro] (inline script, pre-paint) le tiene a opacity
-  //   0.02: dipinte per l'LCP ma invisibili, senza flash prima del reveal.
+  // refresh le scritte rientrano). Il canvas non si muove in nessuno dei due
+  // percorsi: resta a scale 1 (il perché è nel commento della gsap.set qui
+  // sotto). Quel che cambia è solo QUANDO partono le lettere:
+  // - CON preloader (prima visita di sessione): al handoff INTRO_EVENT, cioè
+  //   mentre il tuffo dentro la porta ad arco è ancora in corso.
+  // - SENZA preloader (refresh/visite successive): subito dopo l'idratazione.
+  //   L'attributo html[data-hero-intro] (inline script, pre-paint) le tiene a
+  //   opacity 0.02: dipinte ma invisibili, così non c'è flash prima del reveal.
   // Subcopy/founder/CTA/recensioni NON sono di questa timeline:
   // appaiono al primo scroll (vedi blocco data-hero-rest più sotto).
   useGSAP(
@@ -225,10 +229,18 @@ export default function HeroCinematic() {
         // Raffaela nel preloader è la stessa foto con la stessa geometria
         // object-cover — quando l'arco passa su di lei, sagoma e foto
         // coincidono pixel su pixel e la stanza si materializza intorno.
-        // LCP: Chromium esclude le immagini full-viewport ("background"), quindi
-        // l'LCP della home è il TESTO dell'hero. Gli elementi restano DIPINTI a
-        // opacity 0.02 (opacity:0 li toglierebbe dai candidati LCP); lo stato
-        // coreografico vero viene applicato solo un attimo prima del reveal.
+        // Gli elementi restano DIPINTI a opacity 0.02 invece che a 0: lo stato
+        // coreografico vero si applica solo un attimo prima del reveal, così
+        // non c'è nessun lampo di testo composto.
+        //
+        // Qui c'era scritto che 0.02 serviva a tenerli fra i candidati LCP,
+        // «perché Chromium esclude le immagini full-viewport e quindi l'LCP
+        // della home è il TESTO dell'hero». Misurato (2026-08-11): l'LCP della
+        // home è il banner cookie, `p#cookie-consent-desc`. Questo H1 non è
+        // candidato affatto — `Chars` lo spezza in span inline-block e la
+        // frammentazione lo toglie di mezzo da sola. L'esclusione delle
+        // immagini full-viewport resta un'assunzione documentata e mai
+        // misurata: vedi docs/mobile-parity.md §7.1.
         gsap.set(allChars, { opacity: 0.02 });
         gsap.set([frameWrapRef.current, cueRef.current], { autoAlpha: 0 });
 
@@ -435,31 +447,39 @@ export default function HeroCinematic() {
   // sotto il mouse, insieme all'overscan a scale 1.04 che la accompagnava.)
 
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
-  // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto (leggera).
+  // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto: è
+  // una scelta di peso (megabyte e batteria), non un effetto in attesa di gemello.
   // Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
   // selezione della sorgente non entra nel percorso critico dell'immagine LCP.
+  // Il verdetto sta dentro gsap.matchMedia e non in due `.matches` letti a mano:
+  // così un tablet ruotato lo ri-valuta, invece di restare col responso del
+  // primo render (foto per sempre in orizzontale, o video rimasto in verticale).
   useEffect(() => {
     if (!heroCinematic.enabled) return;
-    const okMotion = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
-    const okWidth = window.matchMedia("(min-width: 768px)").matches;
-    if (!okMotion || !okWidth) return;
+    const mm = gsap.matchMedia();
+    mm.add(`${MQ.motionOk} and ${MQ.desktop}`, () => {
+      // Rimanda il mount del video oltre il paint LCP.
+      let raf = 0;
+      let idleId = 0;
+      // Feature-detect via "in": i tipi DOM danno requestIdleCallback come sempre presente,
+      // ma alcuni browser (Safari datati) non ce l'hanno, quindi serve il fallback setTimeout.
+      const hasIdle = "requestIdleCallback" in window;
+      if (hasIdle) {
+        idleId = window.requestIdleCallback(() => setPlayVideo(true), { timeout: 2500 });
+      } else {
+        raf = window.setTimeout(() => setPlayVideo(true), 1200);
+      }
 
-    // Rimanda il mount del video oltre il paint LCP.
-    let raf = 0;
-    let idleId = 0;
-    // Feature-detect via "in": i tipi DOM danno requestIdleCallback come sempre presente,
-    // ma alcuni browser (Safari datati) non ce l'hanno, quindi serve il fallback setTimeout.
-    const hasIdle = "requestIdleCallback" in window;
-    if (hasIdle) {
-      idleId = window.requestIdleCallback(() => setPlayVideo(true), { timeout: 2500 });
-    } else {
-      raf = window.setTimeout(() => setPlayVideo(true), 1200);
-    }
-
-    return () => {
-      if (hasIdle) window.cancelIdleCallback(idleId);
-      else window.clearTimeout(raf);
-    };
+      return () => {
+        if (hasIdle) window.cancelIdleCallback(idleId);
+        else window.clearTimeout(raf);
+        // Il <video> è montato da uno state React, che il revert di GSAP non sa
+        // disfare: se non lo rimettiamo giù a mano, chi restringe la finestra
+        // sotto i 768 si tiene il video acceso. Il poster torna a fare da hero.
+        setPlayVideo(false);
+      };
+    });
+    return () => mm.revert();
   }, []);
 
   // Chip di prova: gli asset proprietari sono cliccabili verso le rispettive sezioni
@@ -515,8 +535,8 @@ export default function HeroCinematic() {
 
       {/* Gradienti per leggibilità del testo centrato (lockup in alto, CTA in
           basso): velo scuro simmetrico, centro dell'immagine libero. Toni
-          espresso: durante l'intro (canvas a scale 0.75 dentro l'arco) i bordi
-          esposti leggono come "stanza" continua col pannello del preloader. */}
+          espresso: la foto resta a scale 1 anche dentro l'arco, e questo velo è
+          ciò che la fa leggere come la stessa "stanza" del pannello preloader. */}
       <div className="absolute inset-0 bg-gradient-to-b from-espresso/75 via-espresso/20 to-espresso/85" />
 
       {/* Cornice Segno Domus sul canvas (svanisce durante il frame-in) */}

@@ -228,9 +228,14 @@ export default function StarReviews() {
       if (!section || !stage || !intro || !row) return;
 
       const mm = gsap.matchMedia();
-      mm.add({ desktop: "(min-width: 1024px)", motionOk: MQ.motionOk }, (ctx) => {
-        const cond = ctx.conditions as { desktop: boolean; motionOk: boolean };
-        if (!cond.desktop || !cond.motionOk) return;
+      mm.add({ lg: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
+        const cond = ctx.conditions as { lg: boolean; motionOk: boolean };
+        if (!cond.motionOk) return;
+        if (!cond.lg) {
+          // Sotto lg la sezione resta statica, con le stelle già d'oro e il
+          // riflesso al CSS: il gesto telefono/tablet arriva in Fase 2.
+          return;
+        }
         const runway = runwayRef.current;
         const screen = screenRef.current;
         if (!runway || !screen) return;

@@ -168,6 +168,13 @@ export default function FaqContent() {
   //
   // Parte dal primo gruppo: prima che qualunque trigger scatti l'indice è già coerente
   // con ciò che si vede, e senza JS resta acceso il primo — mai nessuno, mai tutti.
+  //
+  // La wave "parità mobile" ha provato a farlo partire da `null` sotto `lg`, dove la
+  // lettura non è tracciata. Sbagliato, e vale la pena scrivere perché: sotto `lg`
+  // l'indice non è appiccicato, quindi lo si attraversa una volta sola stando in cima
+  // alla pagina — dove la 01 è esattamente la voce giusta. Spegnere tutto avrebbe tolto
+  // l'orientamento a chi legge a schermo letto per correggere un'incoerenza che nessuno
+  // può vedere. La regola resta quella di sopra.
   const [active, setActive] = useState<FaqGroupId>(groups[0].id);
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
@@ -176,11 +183,13 @@ export default function FaqContent() {
       const root = bodyRef.current;
       if (!root) return;
       const mm = gsap.matchMedia();
-      // Solo dove l'indice è appiccicato: sotto `lg` scorre via col resto della pagina
-      // e accendere una voce fuori dallo schermo non serve a nessuno.
+      // Il gate combacia con lo sticky della colonna d'indice (`lg:sticky`, nav qui sotto),
+      // non col breakpoint degli effetti di sezione: fra 768 e 1023 l'indice scorre via
+      // con la pagina, e scrivere `aria-current` su una nav già uscita dallo schermo manda
+      // fuori strada chi si orienta con la tastiera o con lo screen reader.
       // NB: nessuna condizione su motion: qui non si muove niente, si cambia un'etichetta.
       // Toglierla a chi ha reduced-motion vorrebbe dire togliergli un'informazione.
-      mm.add(MQ.desktop, () => {
+      mm.add(MQ.lg, () => {
         const triggers = Array.from(root.querySelectorAll<HTMLElement>("[data-faq-group]")).map(
           (section) =>
             ScrollTrigger.create({
@@ -194,7 +203,13 @@ export default function FaqContent() {
               },
             })
         );
-        return () => triggers.forEach((t) => t.kill());
+        return () => {
+          triggers.forEach((t) => t.kill());
+          // Rientrando sotto `lg` (rotazione del tablet, finestra ristretta) la lettura
+          // non è più tracciata: senza questo, l'ultima voce accesa resterebbe accesa
+          // per sempre. Si torna alla base documentata sopra, non a "nessuna".
+          setActive(groups[0].id);
+        };
       });
     },
     { scope: bodyRef, dependencies: [locale] }
