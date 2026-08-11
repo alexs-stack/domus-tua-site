@@ -53,7 +53,7 @@ import { site } from "../lib/site";
 import { useConsent } from "../lib/consent";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
-import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur } from "../lib/motion/gsap";
 import { starClipPath, STAR_INNER_RATIO } from "../lib/star-shape";
 
 type StarKey = "venditori" | "acquirenti" | "openDomus" | "esperienza" | "team";
@@ -232,9 +232,124 @@ export default function StarReviews() {
         const cond = ctx.conditions as { lg: boolean; motionOk: boolean };
         if (!cond.motionOk) return;
         if (!cond.lg) {
-          // Sotto lg la sezione resta statica, con le stelle già d'oro e il
-          // riflesso al CSS: il gesto telefono/tablet arriva in Fase 2.
-          return;
+          /* ── L'ACCENSIONE, SENZA IL MORPH (parità mobile, 2026-08-11) ──────
+             Il set piece qui sotto non si porta su un telefono, e non è una
+             questione di gusto: `applyClip` riserializza una clip-path a 10
+             vertici a partire da un getBoundingClientRect A OGNI FRAME di
+             scrub. È la cosa più cara per frame di tutto il sito, e del morph
+             non esiste una versione economica.
+             Quello che si porta è il SIGNIFICATO — «le cinque stelle sono
+             GUADAGNATE, e si accendono»: cioè il solo beat che il desktop
+             suona a 0.90, l'oro che si propaga dal centro verso i lati
+             nell'istante in cui la foto si posa. Qui la foto non arriva mai
+             (l'intro a tutta pagina resta display:none), quindi l'accensione
+             si presenta da sola, come ingresso semplice. UN solo
+             ScrollTrigger: niente runway, niente sticky, niente pin — la
+             sezione resta attraversabile con un gesto continuo. */
+          const tiles = gsap.utils.toArray<HTMLElement>(row.querySelectorAll("[data-sr-tile]"));
+          const halos = gsap.utils.toArray<HTMLElement>(row.querySelectorAll(".dt-starrev_halo"));
+          if (!tiles.length) return;
+
+          // Lo stato d'attesa nasce QUI e solo qui, un istante prima del
+          // trigger: nell'HTML servito, senza JS e con reduced-motion la fila
+          // è già completa e già d'oro. opacity e non autoAlpha per la legge
+          // scritta in app/lib/motion/gsap.ts; quello che è locale è CHI
+          // pagherebbe — dentro questo ramo ci sono due link veri, la CTA
+          // Google e il sigillo Wikicasa.
+          gsap.set(tiles, { opacity: 0, scale: 0.7 });
+          gsap.set(halos, { opacity: 0 });
+
+          // La quota d'ingresso, scritta una volta sola: la usano il trigger e
+          // la sua rete di sicurezza, e devono dire lo stesso numero.
+          const startPct = 85;
+          const ignite = gsap.timeline({
+            // `once`: dopo l'accensione il trigger si spegne da solo. Serve
+            // contro il difetto di famiglia registrato nell'audit (§6.15): un
+            // refresh da resize su `toggleActions … reverse` rispegnerebbe la
+            // fila con la rete di sicurezza già spesa.
+            scrollTrigger: { trigger: row, start: `top ${startPct}%`, once: true },
+          });
+          ignite
+            // 0.015 per tessera non è un numero nuovo: è quello del desktop.
+            // È ciò che fa leggere il gesto come UNA propagazione e non come
+            // cinque ingressi messi in fila.
+            .to(
+              tiles,
+              {
+                opacity: 1,
+                scale: 1,
+                duration: dur.short,
+                ease: "domus",
+                stagger: { each: 0.015, from: "center" },
+              },
+              0
+            )
+            // L'alone in due tempi, identico al desktop: colpo di luce a 1 e
+            // poi ritorno al valore di riposo del CSS (0.5). Due tween e non
+            // un keyframe perché così l'ultimo tween È lo stato finale — la
+            // rete di sicurezza ha un posto dove atterrare con progress(1).
+            .to(
+              halos,
+              { opacity: 1, duration: dur.micro, ease: "expo.out", stagger: { each: 0.015, from: "center" } },
+              0
+            )
+            .to(
+              halos,
+              { opacity: 0.5, duration: dur.short, ease: "domus.inOut", stagger: { each: 0.015, from: "center" } },
+              dur.micro
+            );
+
+          // Reti di sicurezza, stesso patto di Reveal/Footer: il fuoco da
+          // tastiera che entra nella scena accende comunque. Le stelle sono
+          // decorative (aria-hidden) ma stanno fra due link veri: nessuno deve
+          // tabulare dentro una fila spenta.
+          const reveal = () => ignite.progress(1);
+          stage.addEventListener("focusin", reveal, { once: true });
+          // La rete a tempo, invece, va GUARDATA, e la trappola merita di
+          // restare scritta: su un elemento a undici schermate dalla cima un
+          // timeout secco non salva l'animazione, LA ANNULLA. Nessuno arriva
+          // qui in due secondi e mezzo, quindi il timeout completava la
+          // timeline fuori scena; poi la fila attraversava davvero la quota e
+          // ScrollTrigger chiamava play() su una timeline già finita — niente
+          // accensione, il telefono si riprendeva la fila statica di prima.
+          // Scatta solo se il tween è ancora fermo E la riga d'ingresso è
+          // stata davvero superata: cioè solo quando il trigger ha mancato.
+          const safety = window.setTimeout(() => {
+            if (ignite.progress() > 0) return;
+            if (row.getBoundingClientRect().top < (window.innerHeight * startPct) / 100) reveal();
+          }, 2500);
+
+          /* REGOLA CHANEL — ciò che esce è il riflesso perpetuo.
+             Sotto lg il sweep è un'animazione CSS `infinite` che finora girava
+             sempre, anche con la sezione a venti schermate di distanza: cinque
+             loop di transform pagati in batteria per qualcosa che nessuno sta
+             guardando, e senza il gate di will-change che il desktop ha da
+             sempre. Da qui il telefono usa lo STESSO [data-lit] del ramo
+             desktop (vedi sotto): fuori scena il riflesso si ferma e i livelli
+             promossi vivono solo dentro la finestra utile.
+             [data-sr-gate] dice al CSS «il riflesso ce l'ha in mano JS»: senza
+             JS quella regola non si applica e il fallback resta quello di
+             prima, come promette il commento in globals.css. */
+          section.setAttribute("data-sr-gate", "");
+          const lit = ScrollTrigger.create({
+            trigger: section,
+            start: "top bottom",
+            end: "bottom top",
+            onToggle: (self) => {
+              if (self.isActive) section.setAttribute("data-lit", "");
+              else section.removeAttribute("data-lit");
+            },
+          });
+
+          return () => {
+            window.clearTimeout(safety);
+            stage.removeEventListener("focusin", reveal);
+            section.removeAttribute("data-sr-gate");
+            section.removeAttribute("data-lit");
+            ignite.scrollTrigger?.kill();
+            ignite.kill();
+            lit.kill();
+          };
         }
         const runway = runwayRef.current;
         const screen = screenRef.current;

@@ -17,8 +17,16 @@
 //
 // Contenuti: SOLO i video reali del canale (wallVideos, fonte unica
 // app/lib/videos.ts). Il layout del riferimento esiste solo sotto [data-on]
-// (JS, desktop ≥1024 + motion ok): mobile/reduced-motion = colonna statica
-// completa, nessuno stato nascosto.
+// (JS, desktop ≥1024 + motion ok).
+//
+// Sotto lg il muro non è più fermo (Fase 2 "parità mobile", 2026-08-11): la
+// griglia a due colonne compone in diagonale, UN TRIGGER PER TESSERA. Qui era
+// scritto «con UN solo trigger» ed era la scelta sbagliata: misurata, faceva
+// accadere due terzi della diagonale sotto il bordo dello schermo (la
+// contabilità sta nel ramo). La riga che stava qui — «mobile/reduced-motion =
+// colonna statica completa» — resta vera per reduced-motion e per il no-JS
+// (l'HTML servito è già completo e nessuno stato nascosto vive fuori da
+// matchMedia), non più per il telefono.
 import { useRef } from "react";
 import YoutubeThumb from "./YoutubeThumb";
 import { Play } from "./Icons";
@@ -26,7 +34,7 @@ import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
-import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur, dist, stagger } from "../lib/motion/gsap";
 
 const NUM_COLUMNS = 3;
 
@@ -90,9 +98,91 @@ export default function ReviewsWall() {
         const cond = ctx.conditions as { lg: boolean; motionOk: boolean };
         if (!cond.motionOk) return;
         if (!cond.lg) {
-          // Sotto lg il muro resta la colonna statica completa: il suo gesto
-          // per telefono e tablet arriva in Fase 2, questo è il suo posto.
-          return;
+          // Il muro su due colonne. Il gesto del desktop dice "le voci
+          // arrivano e compongono": a 390px la traduzione onesta non è la
+          // stessa rotaia più stretta, è lo stagger in ordine di DOM — su due
+          // colonne si legge come una diagonale che scende. Nessun runway,
+          // nessuno sticky, nessun [data-on], nessun ScrollTrigger.refresh()
+          // (l'altezza della sezione non cambia).
+          //
+          // E niente document.fonts.ready: qui non si misura niente. Ad
+          // aspettare i font è la centratura ottica del titolo, che è roba del
+          // ramo desktop — questo ramo non deve ereditarne l'attesa né la
+          // contabilità di cancelled/kills.
+          const tiles = gsap.utils.toArray<HTMLElement>("[data-wall-tile]", grid);
+          if (!tiles.length) return;
+
+          // La quota d'ingresso, scritta una volta sola: la usano i trigger e
+          // la loro rete di sicurezza, e devono dire lo stesso numero.
+          const startPct = 90;
+          // UN TRIGGER PER TESSERA (ScrollTrigger.batch, lo stesso idioma di
+          // SocialVideoWall), e non uno solo sulla griglia com'era in prima
+          // stesura. Il conto di allora: la griglia è alta 314px, le tre righe
+          // stanno a y locale 0/110/220 e "top 85%" scattava con la cima a
+          // 564px — la terza riga era a 784px, centoventi sotto il bordo di un
+          // viewport da 664. Quando entrava in campo le sue tessere erano già
+          // al 97% di opacità: la diagonale c'era, ma succedeva altrove.
+          // Adesso ogni coppia si prende il proprio ingresso, in scena — e
+          // proprio perché l'ingresso si vede, la corsa può dimezzarsi.
+          //
+          // opacity, non autoAlpha: ogni tessera è un link al video e
+          // visibility:hidden la toglierebbe dal tab order.
+          // E `pointerEvents: none` a fare l'altra metà del lavoro: senza,
+          // una tessera invisibile resta un bersaglio VIVO che apre YouTube.
+          // È la coppia obbligata della regola (lib/motion/gsap.ts): opacity
+          // tiene il link raggiungibile col Tab, pointer-events lo tiene fuori
+          // dal dito finché non c'è niente da vedere.
+          gsap.set(tiles, { y: dist.rise / 2, opacity: 0, pointerEvents: "none" });
+          ScrollTrigger.batch(tiles, {
+            start: `top ${startPct}%`,
+            // once: il muro si compone una volta e resta composto — sei
+            // tessere che rientrano a ogni risalita sarebbero un tic.
+            once: true,
+            onEnter: (els) =>
+              gsap.to(els, {
+                y: 0,
+                opacity: 1,
+                pointerEvents: "auto",
+                duration: dur.reveal,
+                stagger: stagger.cards,
+                ease: "domus",
+              }),
+          });
+
+          /* REGOLA CHANEL — ciò che esce è la rete `focusin`.
+             Questo ramo metteva tre cose (i trigger, un listener focusin sulla
+             griglia, un timeout) e non ne toglieva nessuna. Ma le due reti
+             erano la stessa rete: il timeout qui sotto è guardato dalla
+             posizione e i trigger sono `once`, quindi quando il focus da
+             tastiera arriva sulle tessere la griglia è per forza in scena —
+             cioè il trigger è già scattato e non c'è niente da accendere. Né
+             il listener era portante per la tastiera: le tessere sono spente
+             in opacity, non in visibility, e dall'ordine di tabulazione non
+             escono mai. Resta il timeout, che invece un lavoro ce l'ha. */
+
+          // Il timeout secco a 2500 ms di Footer e SocialVideoWall qui
+          // rivelerebbe il muro a tutti, perché la sezione sta a quindici
+          // schermate dalla cima e nessuno ci arriva in due secondi e mezzo.
+          // La rete accende solo le tessere che hanno passato la quota
+          // d'ingresso e sono rimaste spente: cioè solo se un trigger ha
+          // davvero mancato il colpo.
+          const safety = window.setTimeout(() => {
+            const late = tiles.filter(
+              (tile) =>
+                !gsap.isTweening(tile) &&
+                Number(gsap.getProperty(tile, "opacity")) === 0 &&
+                tile.getBoundingClientRect().top < (window.innerHeight * startPct) / 100
+            );
+            if (late.length) gsap.set(late, { y: 0, opacity: 1, pointerEvents: "auto" });
+          }, 2500);
+
+          // Set, tween e trigger li revoca il contesto di matchMedia: nascono
+          // in sincrono, non dopo un await come quelli del ramo desktop,
+          // quindi non serve (e non si deve) ripulirli a mano. È anche ciò che
+          // tiene separati i due teardown: attraversando i 1024 nessuno dei
+          // due rami tocca i target dell'altro — il clearProps del desktop
+          // resta affare del desktop. A mano resta solo il timeout.
+          return () => window.clearTimeout(safety);
         }
 
         // Misure a font pronti (il titolo è Playfair): creato in async, quindi
@@ -287,9 +377,14 @@ export default function ReviewsWall() {
           ref={contentRef}
           className="dt-wall_content mx-auto max-w-[1240px] py-24 text-center sm:py-28"
         >
+          {/* mx-auto: sotto lg il content è un blocco normale, quindi la
+              scatola da 16ch si appoggiava a sinistra e il testo centrato al
+              suo interno finiva ~20px fuori asse rispetto a paragrafo e
+              bottone. Sopra lg il content è flex con align-items:center e il
+              margine auto dà lo stesso risultato di prima. */}
           <h2
             ref={titleRef}
-            className="max-w-[16ch] font-display text-d2 display-tight font-medium text-ink"
+            className="mx-auto max-w-[16ch] font-display text-d2 display-tight font-medium text-ink"
           >
             {c.title}
           </h2>

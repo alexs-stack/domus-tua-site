@@ -12,8 +12,13 @@
 // Meccanica: sticky-screen già collaudata dal sito (dt-wall/dt-starrev) al
 // posto dei work_item `position:fixed` del riferimento — niente trappole di
 // stacking con main/footer-uncover.
-// Mobile / reduced-motion / no-JS: intro + pannelli in colonna, tutto
-// visibile e statico ([data-on] arriva solo via JS, desktop ≥1024).
+// reduced-motion / no-JS: intro + pannelli in colonna, tutto visibile e
+// statico ([data-on] arriva solo via JS, desktop ≥1024).
+// Mobile/tablet con motion (Fase 2 "parità mobile", 2026-08-11): la salita
+// senza il corridoio — un sipario per pannello che scopre VERSO IL BASSO e i
+// tre punti che entrano dai lati opposti, in una timeline sola per pannello.
+// Anche lì niente [data-on]: nessuna altezza cambia, nessun refresh da
+// rimettere in conto.
 import Image from "next/image";
 import SurfaceVeil from "./motion/SurfaceVeil";
 import { useRef } from "react";
@@ -23,7 +28,7 @@ import { Cta } from "./primitives/Cta";
 import { Check } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
-import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger, dist } from "../lib/motion/gsap";
 
 gsap.registerPlugin(SplitText);
 
@@ -216,25 +221,188 @@ export default function Paths() {
 
       const mm = gsap.matchMedia();
       // `lg` e non `desktop`: questo è un set piece pinnato da 520vh, a 768
-      // le due pagine piene si mangerebbero il contenuto.
+      // le due pagine piene si mangerebbero il contenuto. Il ramo qui sotto è
+      // il gemello mobile, e dice lo stesso gesto senza il corridoio.
       mm.add({ desktop: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
         const cond = ctx.conditions as { desktop: boolean; motionOk: boolean };
         if (!cond.motionOk) return;
 
-        // ── Telefono e tablet: ancora muti, e per ora è voluto ────────────
+        const panels = gsap.utils.toArray<HTMLElement>("[data-paths-panel]", screen);
+
+        // ── Telefono e tablet: la salita, senza il corridoio ──────────────
+        // Il desktop dice "due strade, e ne scegli una" con due pagine piene
+        // che si alzano e i punti che entrano da lati OPPOSTI. A 390px quel
+        // mirroring non esiste: `justify-start`/`justify-end` non spostano
+        // nulla perché `max-w-xl` riempie già la colonna. Quindi la lettura
+        // "due strade" sul telefono la reggono SOLO i punti, ed è lì che va
+        // speso il budget. Niente [data-on], niente runway da 520vh, nessun
+        // ScrollTrigger.refresh(): qui non cambia nessuna altezza.
+        // Ciò che NON scende quaggiù è lo SplitText dei due titoli: TextLines
+        // è già la casa di un reveal a righe e gira sui telefoni — mai due
+        // split sullo stesso testo.
         if (!cond.desktop) {
-          // Il gemello mobile dei due percorsi arriva nella Fase 2 della wave
-          // "parità mobile". Fino ad allora sotto i 1024 vale il markup nudo:
-          // intro + pannelli in colonna, tutto già visibile. Non scrivere
-          // coreografia qui senza aver letto il piano della Fase 2.
-          return;
+          const offs: Array<() => void> = [];
+
+          // UNA RIMISURA, UNA SOLA, QUANDO I FONT SONO ARRIVATI.
+          // `invalidateOnRefresh` da solo non basta: ricalcola le righe di
+          // partenza a ogni refresh, ma se nessuno chiama un refresh dopo che
+          // il documento è cresciuto, ricalcola sempre sugli stessi numeri
+          // sbagliati. E il documento cresce: ~238px dopo l'idratazione,
+          // quando i font si sostituiscono e il testo si riflette.
+          // Misurato prima di questa riga: il sipario scattava col pannello
+          // 92px sotto il bordo basso a 390, 94px a 768 — cioè partiva sempre
+          // fuori campo, su tutte le larghezze, per tutta la sessione.
+          // È un refresh globale e non se ne fanno a cuor leggero, ma è uno
+          // solo, arriva a pagina ferma e ripaga tutti i trigger, non solo i
+          // nostri. Il ramo desktop non ne ha bisogno: lì il runway da 520vh
+          // domina l'altezza del documento e 238px non spostano niente.
+          let refreshed = false;
+          void document.fonts?.ready.then(() => {
+            if (refreshed) return;
+            refreshed = true;
+            ScrollTrigger.refresh();
+          });
+          offs.push(() => {
+            refreshed = true;
+          });
+          panels.forEach((panel, i) => {
+            const points = gsap.utils.toArray<HTMLElement>("[data-paths-point]", panel);
+
+            // 1) Il sipario — e IL VERSO CONTA PIÙ DI OGNI ALTRO NUMERO QUI.
+            //    Meccanica come il ramo mobile di LiquidReveal: clip-path e
+            //    nient'altro. Ma il verso che sembra giusto è quello sbagliato.
+            //    Il pannello arriva dal basso, quindi l'istinto dice "sipario
+            //    che sale", cioè inset(TOP …) che scopre dal fondo verso l'alto.
+            //    Con quel verso il bordo ALTO del pannello è l'ultimo a
+            //    dipingersi, ed è esattamente l'unica fascia già a schermo
+            //    quando il trigger scatta: su un viewport da 664px il pannello
+            //    ne è alto 648, e fra due fotografie scure si apriva una fascia
+            //    di crema. Cioè il "taglio percepibile" che la cliente ha
+            //    escluso (memoria di progetto, 2026-08-06).
+            //    Con inset(… BOTTOM) si scopre dall'alto in giù: la prima cosa
+            //    dipinta è il labbro che si sta guardando, e la crema non
+            //    compare mai. Stesso gesto, senza il buco.
+            //    Lo start resta presto (90%): a trigger scattato solo ~10vh di
+            //    pannello sono a schermo, e il fronte del sipario corre molto
+            //    più veloce dello scroll — non lo si raggiunge mai.
+            //    (2026-08-11: TOLTO il dolly della foto, scale 1.06 → 1. La
+            //    nota che lo accompagnava ammetteva da sé che «senza corridoio
+            //    non c'è respiro da riempire»: sei centesimi di scala su una
+            //    foto a pieno schermo non si vedono, e costavano una tween in
+            //    più per pannello su un layer grande quanto lo schermo. Il
+            //    desktop tiene il suo 1.35 → 1.18, che si legge perché lì il
+            //    corridoio c'è.)
+            const rise = gsap.timeline({
+              scrollTrigger: {
+                trigger: panel,
+                start: "top 90%",
+                // Replay a ogni passaggio, come LiquidReveal e Footer: è anche
+                // ciò che rende innocua la rete di sicurezza qui sotto — un
+                // progress(1) anticipato non brucia l'ingresso, il restart lo
+                // rigioca. Niente clearProps: romperebbe restart/reverse.
+                toggleActions: "restart none none reverse",
+                // MISURA CHE INVECCHIA. Senza questo, il trigger si è
+                // rivelato fuori posto di 236px su tutti e due i pannelli, per
+                // sempre: il documento cresce di ~238px poco dopo
+                // l'idratazione, e la riga di partenza calcolata prima resta
+                // quella. Misurato a rotella vera su build di produzione: il
+                // sipario scattava col pannello 170px SOTTO il bordo basso —
+                // cioè non lo vedeva nessuno, a nessuna velocità.
+                invalidateOnRefresh: true,
+              },
+            });
+            rise.fromTo(
+              panel,
+              { clipPath: "inset(0% 0% 100% 0%)" },
+              { clipPath: "inset(0% 0% 0% 0%)", duration: dur.transition, ease: "expo.out" },
+              0
+            );
+
+            // 2) I tre punti dai lati OPPOSTI — vendi da destra, acquista da
+            //    sinistra: gli stessi versi del desktop, ed è il budget di cui
+            //    sopra. x piccola (dist.rise): non è una corsa da un capo
+            //    all'altro dello schermo, è il verso della strada.
+            //    IL TRIGGER È LORO, e la scelta è stata fatta due volte in
+            //    senso opposto: vale la pena scrivere perché ha vinto questo.
+            //    Attaccarli come secondo tempo di `rise` costava un trigger in
+            //    meno, ma legava il loro ingresso a un RITARDO FISSO invece che
+            //    alla loro posizione. Misurato a 390x664: allo scatto del
+            //    sipario la lista è 516px sotto il bordo basso, quindi i punti
+            //    entravano in campo solo dentro una finestra di velocità larga
+            //    pochi pixel al secondo — troppo piano e si compongono fuori
+            //    campo, troppo veloce e sono già a posto quando arrivano. Un
+            //    trigger sulla lista costa due ScrollTrigger in tutto e li fa
+            //    entrare quando li si guarda. La regola Chanel è pagata dal
+            //    dolly della foto, tolto qui sopra.
+            const list = points[0]?.closest("ul") ?? panel;
+            if (points.length) {
+              gsap.fromTo(
+                points,
+                { x: (i === 0 ? 1 : -1) * dist.rise, opacity: 0 },
+                {
+                  x: 0,
+                  opacity: 1,
+                  duration: dur.reveal,
+                  ease: "domus",
+                  stagger: stagger.cards,
+                  scrollTrigger: {
+                    trigger: list,
+                    start: "top 85%",
+                    toggleActions: "restart none none reverse",
+                    invalidateOnRefresh: true,
+                  },
+                }
+              );
+            }
+
+            // Rete di sicurezza, stessa forma di Footer/PageHero. Qui serve
+            // davvero: il sipario è clip-path, non visibility, quindi il CTA
+            // dentro il pannello resta nel tab order anche mentre è ritagliato
+            // via — senza questa rete ci si atterra col Tab su un link
+            // invisibile (WCAG 2.4.7). Il listener NON è { once: true }: con
+            // restart/reverse lo stato nascosto può tornare, e la rete deve
+            // valere anche la seconda volta.
+            const reveal = () => rise.progress(1);
+            panel.addEventListener("focusin", reveal);
+
+            // La GUARDIA sul timeout (2026-08-11). La versione secca sparava a
+            // 2,5s qualunque cosa stesse succedendo: misurato a t=3,2s con
+            // scrollY ancora a 0, tutti e due i sipari erano aperti e i sei
+            // punti a opacity 1 da cinque a tredici schermate sotto la piega.
+            // La sezione si giocava da sola prima di essere guardata. Adesso la
+            // rete interviene solo se il trigger ha davvero mancato il colpo:
+            // la timeline è ancora ferma a zero E la riga di partenza di QUESTO
+            // pannello è già stata superata. Il confronto scrollY/st.start è lo
+            // stesso idioma del ramo desktop qui sotto.
+            const rescue = () => {
+              if (rise.progress() > 0) return;
+              // LA GUARDIA LEGGE IL RETTANGOLO, NON `st.start`. Sembrava più
+              // preciso confrontare `window.scrollY` con la riga di partenza
+              // del trigger; è invece lo stesso numero stantio che il trigger
+              // aveva sbagliato, quindi la rete ereditava l'errore che doveva
+              // coprire e apriva il sipario col pannello ancora sotto il bordo
+              // (misurato a frame: 717px su 640 di viewport a 360, 1126 su
+              // 1024 a 768). La posizione vera dell'elemento non può invecchiare,
+              // e la soglia è la stessa dello start: 90% del viewport.
+              if (panel.getBoundingClientRect().top >= window.innerHeight * 0.9) return;
+              reveal();
+            };
+            const safety = window.setTimeout(rescue, 2500);
+
+            offs.push(() => {
+              panel.removeEventListener("focusin", reveal);
+              window.clearTimeout(safety);
+              rise.scrollTrigger?.kill();
+              rise.kill();
+            });
+          });
+          return () => offs.forEach((off) => off());
         }
 
         section.setAttribute("data-on", "");
 
         const introImg = screen.querySelector<HTMLElement>("[data-paths-intro-img]");
         const introTxt = screen.querySelector<HTMLElement>("[data-paths-intro-txt]");
-        const panels = gsap.utils.toArray<HTMLElement>("[data-paths-panel]", screen);
         const imgs = panels.map((p) => p.querySelector<HTMLElement>("[data-paths-img]"));
         const veils = panels.map((p) => p.querySelector<HTMLElement>("[data-paths-veil]"));
         if (!introImg || panels.length !== 2) return;

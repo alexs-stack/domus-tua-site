@@ -14,7 +14,7 @@ import { heroCinematic } from "../lib/media";
 import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
+import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 import { INTRO_EVENT } from "./motion/Preloader";
 import { getLenis } from "./motion/SmoothScroll";
 
@@ -351,26 +351,43 @@ export default function HeroCinematic() {
         rest.forEach((el) => {
           el.style.animation = "none";
         });
-        gsap.set(rest, { autoAlpha: 0, y: 28 });
+        // opacity, MAI autoAlpha. Qui sotto non c'è solo del testo: c'è il CTA
+        // PRIMARIO ("Valuta il tuo immobile"), il secondario, il link alle
+        // recensioni. autoAlpha scrive visibility:hidden, e quello li toglie dal
+        // tab order — chi naviga col Tab salta la conversione dell'hero. Toglie
+        // anche l'unica cosa da cui la rete del focusin qui sotto poteva
+        // scattare. L'altra metà del guaio la chiude pointer-events: senza,
+        // opacity 0 lascerebbe un bersaglio invisibile in mezzo all'hero.
+        gsap.set(rest, { opacity: 0, pointerEvents: "none", y: 28 });
 
         let revealed = false;
-        const reveal = () => {
+        // `fast` = il dito. Il perché sta nel commento del gesto touch più giù:
+        // è un parametro e non una seconda timeline perché la coreografia è la
+        // stessa, cambia solo il tempo.
+        const reveal = (fast = false) => {
           if (revealed) return;
           revealed = true;
           section.removeEventListener("focusin", onFocusIn);
           gsap.to(rest, {
-            autoAlpha: 1,
+            opacity: 1,
+            // pointer-events non si interpola: GSAP lo scrive all'attacco della
+            // tween di ciascun elemento, quindi il CTA torna cliccabile subito,
+            // mentre sta ancora salendo.
+            pointerEvents: "auto",
             y: 0,
-            duration: dur.short,
-            stagger: 0.08,
+            duration: fast ? dur.micro : dur.short,
+            stagger: fast ? stagger.chars : 0.08,
             ease: "domus",
             overwrite: true,
           });
         };
         // Tastiera: mai lasciare CTA invisibili nel tab order — al primo focus
-        // dentro l'hero il blocco si rivela comunque (autoAlpha gestisce anche
-        // la visibility, quindi finché è nascosto non è nemmeno focalizzabile:
-        // il focusin arriva dai link ancora visibili sopra).
+        // dentro l'hero il blocco si rivela comunque.
+        // (Qui c'era scritto che con autoAlpha il blocco «non è nemmeno
+        // focalizzabile, il focusin arriva dai link ancora visibili sopra». Era
+        // esatto, ed era il difetto: voleva dire che al CTA primario col Tab non
+        // ci si arrivava proprio. Adesso ci si arriva, e questa rete scatta dal
+        // CTA stesso.)
         function onFocusIn() {
           reveal();
         }
@@ -380,22 +397,48 @@ export default function HeroCinematic() {
         // basta (richiesta cliente — l'immagine resta piena dietro). Lo scroll
         // vero riparte al gesto successivo, ~0.9s dopo (fine del reveal).
         // Se si arriva già scrollati (ancora, restore) non si blocca nulla.
+        //
+        // ROTELLA SÌ, DITO NO (2026-08-11, wave "parità mobile"). Il fermo era
+        // su entrambi. Misurato su un telefono: `getLenis()?.stop()` mette
+        // `lenis-stopped` su <html>, che in globals.css è `overflow: hidden` —
+        // quindi non è un rallentamento, è un blocco duro, e durava 991ms
+        // (docs/mobile-parity.md §1.5a). Col mouse quel fermo-immagine è una
+        // finezza: la rotella è un gesto ripetuto e discreto, se ne fa un altro.
+        // Col dito è una pagina che non risponde al primo scorrimento — cioè la
+        // prima impressione del sito è che sia rotto. Il gesto resta identico
+        // dove funziona, sparisce dove tradisce. Il blocco NON è la firma: la
+        // firma è che il blocco sotto si compone; e quella arriva comunque.
         let holding = false;
         const release = () => {
           if (!holding) return;
           holding = false;
           getLenis()?.start();
         };
-        const onFirstGesture = (e: Event) => {
+        const onWheelGesture = () => {
           if (revealed) return;
-          // Rotella e dito: il primo gesto rivela e la pagina resta ferma
-          // sull'immagine piena (richiesta cliente). Nessun tasto qui dentro.
-          void e;
           holding = true;
           getLenis()?.stop();
           reveal();
           // Fine del reveal: lo scroll torna all'utente (nessun hijack lungo).
           window.setTimeout(release, 950);
+        };
+        // Dito: rivela e basta, come già fa la tastiera qui sotto. Nessuno stop,
+        // nessun timer da cui dipendere — la pagina non smette mai di scorrere,
+        // e non ci torna (decisione chiusa, docs/mobile-parity.md §9.2).
+        //
+        // MA SENZA IL FERMO IL BLOCCO SI COMPONE SU UNA PAGINA IN CORSA, e il
+        // tempo della rotella qui non regge: dur.short più 0.08 di stagger fanno
+        // ~0.84s da capo a fondo, mentre una scorsa di pollice porta via
+        // 700-1000px in mezzo secondo. Il CTA finirebbe di salire i suoi 28px
+        // quando è già uscito dallo schermo — un'animazione che nessuno vede
+        // mai finire. Sul dito la composizione va chiusa prima che la vista
+        // cambi: dur.micro e lo stagger più stretto del vocabolario, cioè tutti
+        // e quattro i blocchi in moto entro ~0.18s e l'ultimo posato a ~0.48s.
+        // La rotella tiene il suo tempo disteso: lì la pagina sta ferma per
+        // costruzione, e il blocco si compone davanti a occhi fermi.
+        const onTouchGesture = () => {
+          if (revealed) return;
+          reveal(true);
         };
 
         /**
@@ -418,8 +461,8 @@ export default function HeroCinematic() {
           if (revealed || e.metaKey || e.ctrlKey || e.altKey) return;
           reveal();
         };
-        window.addEventListener("wheel", onFirstGesture, { passive: true });
-        window.addEventListener("touchmove", onFirstGesture, { passive: true });
+        window.addEventListener("wheel", onWheelGesture, { passive: true });
+        window.addEventListener("touchmove", onTouchGesture, { passive: true });
         window.addEventListener("keydown", onFirstKey);
 
         // Arrivo già scrollato (ancora, restore del browser): nessun blocco.
@@ -431,8 +474,8 @@ export default function HeroCinematic() {
 
         return () => {
           section.removeEventListener("focusin", onFocusIn);
-          window.removeEventListener("wheel", onFirstGesture);
-          window.removeEventListener("touchmove", onFirstGesture);
+          window.removeEventListener("wheel", onWheelGesture);
+          window.removeEventListener("touchmove", onTouchGesture);
           window.removeEventListener("keydown", onFirstKey);
           window.removeEventListener("scroll", onScroll);
           release();

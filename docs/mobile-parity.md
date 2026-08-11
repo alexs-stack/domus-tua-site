@@ -791,6 +791,43 @@ al fondo, perché li sposta tutti insieme.
 
 ---
 
+## 9.4 Difetto aperto, lasciato aperto
+
+**Il sipario di `Paths` parte fuori campo a ogni larghezza.** Misurato a frame da
+una sentinella in `requestAnimationFrame` dentro la pagina: il pannello ha il
+bordo alto a 717px su un viewport di 640 (360), 769px su 664 (390) e 1123px su
+1024 (768). Con `start: "top 90%"` dovrebbe scattare rispettivamente a 576, 598 e
+922. Un primo giro sembrava salvare i 390px: era fortuna fra due corse, non una
+soglia — e vale la pena scriverlo, perché è il modo in cui un difetto
+intermittente si fa archiviare come risolto.
+
+Cosa è stato **escluso misurando**, non per ipotesi:
+
+- non è il ritardo di campionamento — la prima versione del test leggeva fra un
+  colpo di rotella e l'altro e misurava anche lo smorzamento di Lenis; la
+  sentinella a frame dà lo stesso numero;
+- non è la rete di sicurezza — la sua guardia confrontava `window.scrollY` con
+  `st.start`, cioè **ereditava lo stesso numero stantio** che doveva coprire.
+  Corretta a leggere il rettangolo vivo. Il difetto resta;
+- non è la misura invecchiata del documento — `invalidateOnRefresh` più un
+  `ScrollTrigger.refresh()` a `document.fonts.ready` hanno spostato 390px dentro
+  la soglia, le altre due no;
+- non è il selettore del test — verificato: matcha esattamente i due
+  `[data-paths-panel]`, che sono gli stessi nodi degli `<article>`.
+
+Il test è marcato `test.fixme` alle due larghezze dove fallisce, **non
+allargato**. Un verde ottenuto spostando la soglia varrebbe meno di un `fixme`
+che dice la verità, ed è esattamente l'errore che questo audit ha passato tre
+capitoli a smascherare altrove.
+
+Indizio per chi riprende: entrambi i pannelli sono `min-h-[92svh]`, cioè **più
+alti del viewport** (675 e 645px su 640). Uno `start` in percentuale su un
+elemento più alto della finestra si comporta diversamente da come lo si legge, e
+lo scarto misurato (~120-200px) è dello stesso ordine dell'eccedenza. È lì che
+guarderei per primo.
+
+---
+
 ## 10. Metodo
 
 L'inventario è stato verificato da nove letture parallele indipendenti del codice,

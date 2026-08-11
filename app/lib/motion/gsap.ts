@@ -18,7 +18,11 @@
 //             dist.skew 5° (velocity skew massimo)
 //
 // Regole: animazioni solo dentro gsap.matchMedia(MQ.motionOk); stati nascosti
-// solo via JS (mai SSR/CSS); mai transform su antenati sticky/fixed.
+// solo via JS (mai SSR/CSS); mai transform su antenati sticky/fixed; uno stato
+// nascosto che contiene un link o un bottone usa opacity, mai autoAlpha —
+// autoAlpha scrive visibility:hidden, che sfila il link dalla tab order e
+// impedisce persino alla rete di sicurezza focusin di scattare (il focus in un
+// sottoalbero invisibile non ci arriva, quindi l'evento non nasce mai).
 // ───────────────────────────────────────────────────────────────────────
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";

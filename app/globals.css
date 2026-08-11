@@ -1382,6 +1382,17 @@ html[data-surfaceflow] .dt-toneshift {
   .dt-starrev:not([data-on]) li:nth-child(5) .dt-starrev_sweep {
     animation-delay: 0.56s;
   }
+  /* …ma "viva" non vuol dire "in moto per sempre" (parità mobile, 2026-08-11).
+     Il ramo sotto lg di StarReviews marca la sezione con [data-sr-gate] e
+     accende [data-lit] solo mentre la fila è davvero in scena: fuori campo i
+     cinque loop di transform si fermano dove sono, ed è batteria che il
+     telefono smette di spendere per qualcosa che nessuno sta guardando.
+     Il patto del commento qui sopra resta intatto dove conta davvero: senza JS
+     [data-sr-gate] non compare, questa regola non si applica, e il riflesso
+     continua a girare come prima. */
+  .dt-starrev[data-sr-gate]:not([data-lit]) .dt-starrev_sweep {
+    animation-play-state: paused;
+  }
 }
 @keyframes dt-star-sweep {
   0% {

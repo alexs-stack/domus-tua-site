@@ -4,12 +4,13 @@
 // (tecnica dal dossier reverse-engineering/era-residence §11, contenuti nostri):
 // 1. fondale: la foto aerea reale resta pinnata (sticky) mentre...
 // 2. ...la cupola crema — arco ribassato, variante Domus del semicerchio del
-//    riferimento — le sale sopra dal basso, col titolo curvato su un textPath
-//    circolare le cui parole si distendono lungo l'arco in scrub;
+//    riferimento — le sale sopra dal basso, col titolo curvato e FERMO su un
+//    textPath circolare (perché fermo: vedi la nota sull'SVG, atto 2);
 // 3. i pannelli orizzontali (HorizonScroller): manifesto + territorio.
-// Mobile / reduced-motion: fondale semplice, cupola statica, pannelli in
-// colonna — tutto visibile senza JS.
-import { useRef, type ReactNode } from "react";
+// Mobile: fondale semplice, pannelli in colonna — ma con la loro coreografia
+// verticale (il ramo mobile di HorizonScroller, Fase 2 della parità mobile).
+// Reduced-motion o senza JS: tutto fermo, tutto visibile.
+import type { ReactNode } from "react";
 import Image from "next/image";
 import SurfaceVeil from "./motion/SurfaceVeil";
 import Link from "next/link";
@@ -21,7 +22,6 @@ import { SegnoDomus } from "./BrandMotif";
 import { ArrowRight, ArrowUpRight, Play, Star } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site } from "../lib/site";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 const copy = {
   it: {
@@ -229,31 +229,6 @@ const ARC_PATH = "M 800,1900 m -1800,0 a 1800,1800 0 1,1 3600,0 a 1800,1800 0 1,
 export default function HorizonStory({ children }: { children?: ReactNode }) {
   const { locale } = useLocale();
   const c = copy[locale];
-  const domeRef = useRef<HTMLDivElement | null>(null);
-
-  // La firma della cupola: le parole del titolo curvato si distendono lungo
-  // l'arco mentre la sezione attraversa il viewport (rif. §11.4 del dossier).
-  useGSAP(
-    () => {
-      const dome = domeRef.current;
-      if (!dome) return;
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        const texts = dome.querySelectorAll("[data-dome-text]");
-        if (!texts.length) return;
-        gsap.fromTo(
-          texts,
-          { wordSpacing: "0em" },
-          {
-            wordSpacing: "0.55em",
-            ease: "none",
-            scrollTrigger: { trigger: dome, start: "top bottom", end: "bottom top", scrub: 0.25 },
-          }
-        );
-      });
-    },
-    { scope: domeRef, dependencies: [locale] }
-  );
 
   return (
     <>
@@ -284,8 +259,24 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
       <div data-tone-keep="cream" className="dt-dome relative z-10 -mt-[60svh] bg-cream">
         {/* Atto 2 — l'intro sotto l'arco. Il titolo curvato è decorativo
             (aria-hidden): il testo leggibile vive nell'h2 sr-only. */}
-        <div ref={domeRef} className="mx-auto max-w-[1600px] px-5 pb-6 pt-[16svh] sm:px-8">
+        <div className="mx-auto max-w-[1600px] px-5 pb-6 pt-[16svh] sm:px-8">
           <h2 className="sr-only">{c.domeTitle}</h2>
+          {/* Qui le parole del titolo si distendevano lungo l'arco in scrub
+              (word-spacing 0 → 0.55em, rif. §11.4 del dossier). TOLTO — e non
+              è una svista, non rimettercelo. Il motivo non è la larghezza:
+              word-spacing è una proprietà di LAYOUT, quindi ogni fotogramma
+              dello scrub rifaceva il layout del testo e costringeva il
+              textPath a rimisurare e ripiazzare ogni glifo lungo la curva.
+              La Fase 2 si era limitata a chiuderlo dentro MQ.lg contando il
+              taglio come regola Chanel: mezza misura, perché la legge «solo
+              transform, opacity, clip-path» non ha una clausola «tranne che
+              sul desktop». Con il tween se n'è andato l'unico useGSAP del
+              file, e con lui uno ScrollTrigger in scrub acceso per tutta la
+              sezione. Il titolo fermo si legge benissimo: il gesto è l'arco,
+              non il respiro delle parole. Il credito Chanel della parità
+              mobile ora lo paga lo scrub dei gradini in HorizonScroller.
+              L'SVG resta identico, `data-dome-text` compreso: è un marcatore
+              inerte, nessuno lo interroga più. */}
           <div aria-hidden className="mx-auto w-full max-w-[1240px]">
             <svg viewBox="0 0 1600 460" width="100%" height="100%" className="block">
               <defs>
