@@ -1,4 +1,6 @@
+import type { Page } from "@playwright/test";
 import { test, expect, setConsent } from "./helpers";
+import { INTRO_EVENT, INTRO_KEY } from "../app/components/motion/Preloader";
 
 // Coreografia mobile — wave "parità mobile".
 //
@@ -221,3 +223,430 @@ for (const rotta of ROTTE) {
     expect(excess, `${rotta} trabocca di ${excess}px in orizzontale`).toBeLessThanOrEqual(0);
   });
 }
+
+// ── IL SIPARIO ARCO DOMUS, ADESSO CHE SUONA ANCHE SUL TELEFONO ────────────
+// Fase 3 della parità mobile (2026-08-11). Prima di questo blocco l'intro
+// aveva DUE test e nessuno dei due la misurava — docs/mobile-parity.md §6.1 li
+// smonta uno per uno, e vale la pena riscriverli qui perché sono tre modi
+// diversi di scrivere un'asserzione vuota, non un solo errore ripetuto:
+//   • `home.spec.ts:36` guarda `overflow` su **body**, ma il blocco è su
+//     **html** (`html[data-preloader]{overflow:hidden}`, globals.css:1592, e
+//     `.lenis.lenis-stopped`, :164). Su body non c'è mai stato niente da
+//     leggere: l'asserzione passa a sipario alzato e a sipario calato;
+//   • `toBeVisible()` ignora l'opacità, e l'h1 dell'hero sta a **0.02** per
+//     costruzione (`html[data-hero-intro]`, globals.css:1661) sotto un overlay
+//     `z-index:96`: è "visibile" dal primo fotogramma, con l'intro in corso;
+//   • `home.spec.ts:33` preme Invio subito dopo `domcontentloaded`, cioè quasi
+//     certamente prima che il chunk `ssr:false` abbia attaccato il listener —
+//     lo skip non viene provato, viene mancato.
+//
+// Qui si misura invece il contratto vero, che è di TRE righe: il sipario deve
+// partire, deve poter essere saltato col primo dito, e — la sola che vale
+// davvero — deve restituire una pagina che SCORRE. Un telefono che esce
+// dall'intro con Lenis fermo non è un telefono con un'animazione sbagliata: è
+// una pagina morta che sembra arrivata, e l'unico gesto che la salva è il
+// ricaricamento (§5.3, ed è il motivo per cui `SmoothScroll` si è preso una
+// rete propria).
+//
+// TRE SCELTE DI METODO, tutte e tre ereditate dai commenti qui sopra:
+//  1. NIENTE fixture `goto`. Quella scrive `dt-intro-seen` prima del
+//     caricamento: è il modo giusto di togliersi l'intro dai piedi in tutti
+//     gli altri test, ed è il modo sicuro di non provare niente in questi.
+//     Si carica con `page.goto` nudo, come un visitatore nuovo.
+//  2. Si aspetta un SEGNALE, mai un ritardo. Il segnale è `data-pre-live`, che
+//     `Preloader.tsx` scrive in cima al proprio layout effect: i listener di
+//     skip li attacca in fondo allo stesso effect, quindi quando l'attributo è
+//     leggibile da fuori quel corpo è già girato per intero. È l'unico istante
+//     in cui "il chunk è pronto" è un fatto e non una speranza.
+//  3. La misura si prende DENTRO la pagina. Il registro qui sotto è installato
+//     prima del primo script (`addInitScript`) e osserva `document`: vede
+//     l'attributo messo dallo script di boot *prima del primo paint*, vede il
+//     takeover e vede la caduta, ognuno col suo istante. Dal driver, quegli
+//     istanti sarebbero già passati.
+//
+// QUEL CHE QUI NON SI PROVA, detto per intero: la sfogliata vera col pollice.
+// Playwright non ha un gesto di swipe (`touchscreen` ha solo `tap`), e
+// costruirlo a mano con `Input.dispatchTouchEvent` via CDP misurerebbe il
+// nostro finto dito, non il sito. Lo scorrimento si guida quindi con la
+// rotella — che va bene come prova del blocco, perché la serratura è
+// `overflow:hidden` su <html> e quella ferma anche il dito.
+
+/** Ciò che il registro in-pagina raccoglie di ogni documento. */
+type RegistroIntro = {
+  /** `data-preloader` è comparso (lo scrive l'inline script, pre-paint). */
+  visto: boolean;
+  /** Il vero overlay ha preso il timone: il chunk ssr:false è atterrato. */
+  live: boolean;
+  /** Opacità delle lettere dell'h1 nell'istante del takeover. */
+  heroOpacita: number | null;
+  tVisto: number | null;
+  tLive: number | null;
+  /** Istante in cui il sipario è caduto (attributo rimosso, da chiunque). */
+  tCaduto: number | null;
+  /** Primo `pointerdown` arrivato alla finestra (in cattura: precede tutti). */
+  tocco: number | null;
+  /** Istante di INTRO_EVENT, l'handoff all'hero. */
+  handoff: number | null;
+};
+
+type ConRegistro = { __dtIntro: RegistroIntro };
+
+/**
+ * Il registro, installato prima di ogni documento.
+ *
+ * `document.documentElement` qui non esiste ancora — l'init script gira prima
+ * che <html> sia analizzato — quindi si osserva `document` con `subtree`, che
+ * è l'unico bersaglio già presente, e si guarda dentro solo quando c'è.
+ */
+function registraIntro(evento: string) {
+  const rec: RegistroIntro = {
+    visto: false,
+    live: false,
+    heroOpacita: null,
+    tVisto: null,
+    tLive: null,
+    tCaduto: null,
+    tocco: null,
+    handoff: null,
+  };
+  (window as unknown as ConRegistro).__dtIntro = rec;
+
+  const leggi = () => {
+    const html = document.documentElement;
+    if (!html) return;
+    const coperto = html.hasAttribute("data-preloader");
+    if (coperto && !rec.visto) {
+      rec.visto = true;
+      rec.tVisto = performance.now();
+    }
+    if (!rec.live && html.hasAttribute("data-pre-live")) {
+      rec.live = true;
+      rec.tLive = performance.now();
+      // L'hero mentre il sipario è a schermo: la lettura che `toBeVisible()`
+      // non fa. Si prende qui e non dal driver perché all'handoff (il tuffo,
+      // 0,95s sul telefono) le lettere salgono a 1 mentre l'attributo è
+      // ancora su <html>: campionando da fuori si misurerebbe la corsa.
+      const ch = document.querySelector("[data-hero-char]");
+      rec.heroOpacita = ch ? Number(getComputedStyle(ch).opacity) : null;
+    }
+    if (rec.visto && !coperto && rec.tCaduto === null) rec.tCaduto = performance.now();
+  };
+  leggi();
+  new MutationObserver(leggi).observe(document, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["data-preloader", "data-pre-live"],
+  });
+
+  // In CATTURA: questo listener precede quello di skip del preloader (che sta
+  // su window in bolla), quindi l'istante registrato è quello del dito, non
+  // quello di ciò che il dito ha provocato.
+  window.addEventListener(
+    "pointerdown",
+    () => {
+      if (rec.tocco === null) rec.tocco = performance.now();
+    },
+    { capture: true },
+  );
+  window.addEventListener(evento, () => {
+    if (rec.handoff === null) rec.handoff = performance.now();
+  });
+}
+
+const leggiRegistro = (page: Page) =>
+  page.evaluate(() => (window as unknown as ConRegistro).__dtIntro);
+
+/** Le due serrature dello scroll, lette dove stanno davvero: <html>, mai body. */
+const bloccata = (page: Page) =>
+  page.evaluate(() => ({
+    lenis: document.documentElement.classList.contains("lenis-stopped"),
+    overflow: getComputedStyle(document.documentElement).overflowY,
+    attributo: document.documentElement.hasAttribute("data-preloader"),
+  }));
+
+test.describe("il sipario Arco Domus a sessione fredda", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(registraIntro, INTRO_EVENT);
+  });
+
+  test("suona davvero, copre l'hero, e si chiude da solo", async ({ page }) => {
+    // `page.goto` nudo: la fixture salterebbe il soggetto del test.
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    expect(
+      (await leggiRegistro(page)).visto,
+      "html[data-preloader] non è mai comparso: a sessione fredda l'intro non è nemmeno prevista",
+    ).toBe(true);
+
+    await expect
+      .poll(async () => (await leggiRegistro(page)).live, {
+        timeout: 15_000,
+        message:
+          "il chunk ssr:false non ha mai preso il timone (data-pre-live): a schermo c'è il fondo del boot script, non la coreografia",
+      })
+      .toBe(true);
+
+    const alTimone = await leggiRegistro(page);
+    expect(
+      alTimone.heroOpacita,
+      "nessuna lettera [data-hero-char] da leggere: o l'hero non è più reso dal server, o l'attributo è cambiato nome",
+    ).not.toBeNull();
+    // 0.02 per costruzione. È QUESTA la lettura che manca a `toBeVisible()`:
+    // l'h1 è nel DOM, dipinto e "visibile", e non lo vede nessuno.
+    expect(
+      alTimone.heroOpacita!,
+      `con il sipario a schermo le lettere dell'hero stanno a ${alTimone.heroOpacita}: dovrebbero essere ancora nascoste`,
+    ).toBeLessThan(0.1);
+
+    // Si chiude da solo: nessun gesto, nessun tasto.
+    await expect
+      .poll(async () => (await leggiRegistro(page)).tCaduto !== null, {
+        timeout: 25_000,
+        message:
+          "il sipario non è mai caduto da solo: la pagina resta murata (html[data-preloader] è overflow:hidden)",
+      })
+      .toBe(true);
+
+    const fine = await leggiRegistro(page);
+    const durata = Math.round(fine.tCaduto! - (fine.tLive ?? fine.tVisto!));
+    test.info().annotations.push({ type: "durata intro", description: `${durata}ms dal takeover alla caduta` });
+
+    // IL BUDGET SI ASSERISCE, non si annota. Tutta la Fase 3 esiste per portare
+    // l'intro del telefono da 4,63s a meno di 1,8; registrarlo e basta vuol dire
+    // che la suite resta verde se domani qualcuno allunga un tuffo o rimette
+    // un'attesa senza tetto. È lo stesso principio per cui in questa wave i
+    // difetti aperti si dichiarano invece di allargare la soglia.
+    // Il margine sopra il bersaglio copre il ticker (l'ultimo fotogramma cade
+    // dopo la fine nominale) e il tempo di lettura del registro, non un atto.
+    const budget = page.viewportSize()!.width < 768 ? 1900 : 4800;
+    expect(
+      durata,
+      `l'intro è durata ${durata}ms, budget ${budget}ms — il taglio mobile è §5.4 di docs/mobile-parity.md`,
+    ).toBeLessThan(budget);
+
+    // E l'overlay non resta sopra la pagina a mangiarsi i click: `.dt-preloader`
+    // torna `display:none` con l'attributo (globals.css:1583-1591), quindi al
+    // centro dello schermo deve esserci il sito.
+    const sopra = await page.evaluate(() => {
+      const el = document.elementFromPoint(
+        Math.round(window.innerWidth / 2),
+        Math.round(window.innerHeight / 2),
+      );
+      return el?.closest(".dt-preloader") ? "preloader" : (el?.tagName ?? "niente");
+    });
+    expect(sopra, "al centro dello schermo c'è ancora l'overlay dell'intro").not.toBe("preloader");
+  });
+
+  test("si salta al PRIMO tocco, e il tocco lo si aspetta @layout", async ({ page }, testInfo) => {
+    test.skip(
+      !testInfo.project.use.hasTouch,
+      "serve un contesto touch: qui il gesto del dito non esiste",
+    );
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    // Il segnale, non un ritardo: `data-pre-live` significa che il layout
+    // effect del preloader è girato per intero — listener di skip compresi.
+    await page.waitForFunction(
+      () => document.documentElement.hasAttribute("data-pre-live"),
+      undefined,
+      { timeout: 15_000, polling: "raf" },
+    );
+
+    // Un dito vero. Il listener di skip è `pointerdown`, e Chromium lo genera
+    // dal tocco (verificato: pointerdown arriva PRIMA di touchstart). Il tap
+    // cade al centro, dove c'è l'overlay stesso: nessun link sotto da attivare
+    // per sbaglio.
+    const vp = page.viewportSize()!;
+    await page.touchscreen.tap(Math.round(vp.width / 2), Math.round(vp.height / 2));
+
+    await expect
+      .poll(async () => (await leggiRegistro(page)).handoff !== null, {
+        timeout: 8_000,
+        message: "dal tocco non è mai partito INTRO_EVENT: l'handoff all'hero non è avvenuto",
+      })
+      .toBe(true);
+
+    const sonda = await leggiRegistro(page);
+    expect(
+      sonda.tocco,
+      "il tap non ha prodotto nessun pointerdown: il listener dello skip non è nemmeno raggiungibile dal dito",
+    ).not.toBeNull();
+
+    // LA DISCRIMINANTE. Lo skip chiama `fireIntro()` in modo SINCRONO dentro
+    // il gestore del pointerdown: fra il dito e l'handoff non c'è un frame.
+    // L'intro naturale invece ci arriva al `dive`, cioè 0,95s dopo il takeover
+    // sul telefono e 3,13s su desktop. Senza questo confronto un'asserzione
+    // "dopo il tocco l'intro finisce" passerebbe identica anche se lo skip non
+    // esistesse: finirebbe da sola, e nessuno se ne accorgerebbe.
+    const ritardo = sonda.handoff! - sonda.tocco!;
+    expect(
+      ritardo,
+      `il tuffo era già partito ${Math.abs(Math.round(ritardo))}ms PRIMA del tocco: la misura è persa perché l'intro naturale ha vinto la corsa — non è un difetto dello skip`,
+    ).toBeGreaterThanOrEqual(0);
+    expect(
+      ritardo,
+      `fra il dito e l'handoff sono passati ${Math.round(ritardo)}ms: lo skip è sincrono, questo è il tuffo che sarebbe arrivato comunque`,
+    ).toBeLessThan(200);
+
+    // Saltare fa `seek("dive")`, quindi la porta suona per intero (0,8s sul
+    // telefono, 1,5s su desktop): lo skip taglia il preambolo, non il tuffo.
+    await expect
+      .poll(async () => (await bloccata(page)).attributo, {
+        timeout: 10_000,
+        message: "saltata l'intro, il sipario è rimasto su <html>: la pagina resta bloccata",
+      })
+      .toBe(false);
+    await expect
+      .poll(async () => (await bloccata(page)).lenis, {
+        timeout: 5_000,
+        message: "l'uscita per skip ha lasciato Lenis fermo: pagina viva a vedersi, morta a scorrere",
+      })
+      .toBe(false);
+  });
+
+  // ── L'ASSERZIONE PER CUI ESISTE TUTTA LA FASE ───────────────────────────
+  // @layout non perché il layout cambi, ma perché il MONTAGGIO cambia a 768
+  // (`MQ.belowDesktop`, 767.98: sotto 1,75s e due atti, sopra 4,63s e quattro)
+  // e la serratura è la stessa a tutte e cinque le larghezze. Un'uscita che
+  // lascia Lenis fermo non è un difetto d'animazione: è il sito che non scorre.
+  test("uscita l'intro, la pagina scorre di nuovo @layout", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    // Prima di aspettare l'uscita: c'era davvero qualcosa da cui uscire. Senza
+    // questa riga, il giorno in cui il sipario non partisse più questo test
+    // diventerebbe verde e muto — aspetterebbe la caduta di un attributo mai
+    // comparso e la troverebbe subito.
+    expect(
+      (await leggiRegistro(page)).visto,
+      "nessun sipario da cui uscire: `data-preloader` non è mai comparso",
+    ).toBe(true);
+    await page.waitForFunction(
+      () => !document.documentElement.hasAttribute("data-preloader"),
+      undefined,
+      { timeout: 30_000, polling: "raf" },
+    );
+
+    // Le due serrature, lette dove stanno davvero: <html>, non body.
+    await expect
+      .poll(async () => (await bloccata(page)).lenis, {
+        timeout: 5_000,
+        message:
+          "<html> porta ancora `lenis-stopped` dopo l'intro: in globals.css è overflow:hidden, cioè un viewport murato",
+      })
+      .toBe(false);
+    const serrature = await bloccata(page);
+    expect(
+      serrature.overflow,
+      "l'overflow verticale di <html> è ancora hidden a intro finita",
+    ).not.toBe("hidden");
+
+    // E poi il gesto vero, perché gli attributi possono anche essere a posto
+    // mentre la pagina non si muove. Rotella e non `window.scrollTo`: Lenis
+    // alimenta ScrollTrigger coi propri eventi, e uno scroll programmatico
+    // scavalcherebbe esattamente il pezzo che stiamo provando.
+    //
+    // Si insiste per qualche secondo di proposito: il PRIMO colpo di rotella
+    // sull'hero è il fermo-immagine voluto (§9.2) e tiene la pagina ferma
+    // ~950ms. Un solo colpo misurerebbe quel fermo e lo scambierebbe per una
+    // pagina morta.
+    let y = 0;
+    const scadenza = Date.now() + 10_000;
+    while (Date.now() < scadenza && y === 0) {
+      await page.mouse.wheel(0, 400);
+      await page.waitForTimeout(120);
+      y = await page.evaluate(() => Math.round(window.scrollY));
+    }
+    expect(
+      y,
+      "dopo l'intro la pagina non si è mossa di un pixel in 10s di rotella: è il modo peggiore di rompersi, perché sembra che il sito sia arrivato",
+    ).toBeGreaterThan(0);
+  });
+
+  test("nella stessa sessione non si rivede alla seconda navigazione", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    // Il tasto DOPO il segnale, che è l'errore di home.spec.ts:33: premuto
+    // subito dopo `domcontentloaded` non trova nessun listener e non salta
+    // niente. Qui serve anche a chiudere l'intro in fretta, ma la condizione
+    // che si aspetta è quella vera: il budget della sessione va segnato speso.
+    await page.waitForFunction(
+      () => document.documentElement.hasAttribute("data-pre-live"),
+      undefined,
+      { timeout: 15_000, polling: "raf" },
+    );
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(
+      (chiave) =>
+        !document.documentElement.hasAttribute("data-preloader") &&
+        sessionStorage.getItem(chiave) === "1",
+      INTRO_KEY,
+      { timeout: 20_000, polling: "raf" },
+    );
+
+    // Seconda navigazione: documento nuovo, registro nuovo. `visto` a false
+    // vuol dire che l'attributo non è comparso NEMMENO PER UN FOTOGRAMMA —
+    // una lettura a posteriori non saprebbe distinguerlo da un lampo.
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const ritorno = await leggiRegistro(page);
+    expect(
+      ritorno.visto,
+      "alla seconda navigazione della stessa sessione il sipario è ricomparso",
+    ).toBe(false);
+    expect(
+      await page.locator(".dt-preloader").count(),
+      "l'overlay è stato montato lo stesso: 119 nodi e la sagoma da 79 KB scaricati per nessuno",
+    ).toBe(0);
+
+    // E l'hero è leggibile davvero: senza preloader le lettere le rivela
+    // HeroCinematic un respiro dopo l'idratazione. Se restassero a 0.02 la
+    // pagina sarebbe "visibile" e vuota — di nuovo la trappola di §6.1.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const el = document.querySelector("[data-hero-char]");
+            return el ? Number(getComputedStyle(el).opacity) : 0;
+          }),
+        {
+          timeout: 10_000,
+          message: "le lettere dell'hero sono rimaste nascoste sulla visita di ritorno",
+        },
+      )
+      .toBeGreaterThan(0.9);
+  });
+
+  test.describe("con reduced-motion", () => {
+    test.use({ contextOptions: { reducedMotion: "reduce" } });
+
+    test("l'intro non parte mai e la pagina arriva intera", async ({ page }) => {
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+
+      const registro = await leggiRegistro(page);
+      expect(
+        registro.visto,
+        "con reduced-motion `data-preloader` è comparso lo stesso: l'inline script del layout non sta escludendo la preferenza",
+      ).toBe(false);
+      expect(
+        await page.locator(".dt-preloader").count(),
+        "overlay dell'intro montato con reduced-motion",
+      ).toBe(0);
+
+      // Nessuna serratura, di nessun tipo: qui Lenis non esiste nemmeno
+      // (SmoothScroll lo distrugge), quindi `lenis-stopped` sarebbe un
+      // residuo che nessuno verrebbe più a togliere.
+      const serrature = await bloccata(page);
+      expect(serrature.lenis, "`lenis-stopped` su <html> con reduced-motion").toBe(false);
+      expect(serrature.overflow, "<html> con overflow nascosto e nessuno che lo riapra").not.toBe(
+        "hidden",
+      );
+
+      // "Completa" non vuol dire "presente": senza intro non c'è nessun tween
+      // che rivelerà l'hero, quindi tutto ciò che l'intro avrebbe rivelato
+      // deve essere già a piena opacità — lettere del lockup e blocco sotto.
+      const spente = await page.evaluate(() =>
+        Array.from(document.querySelectorAll("[data-hero-char], .dt-hero-rest")).filter(
+          (el) => Number(getComputedStyle(el).opacity) < 0.9,
+        ).length,
+      );
+      expect(spente, "pezzi dell'hero rimasti trasparenti in attesa di un'animazione che non parte").toBe(0);
+    });
+  });
+});

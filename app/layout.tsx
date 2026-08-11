@@ -14,12 +14,30 @@ import { ChromeMount, PreloaderMount } from "./components/motion/ChromeMount";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
 // Anti-flash del preloader: marca <html data-preloader> PRIMA del primo paint,
-// solo alla prima visita di sessione, senza reduced-motion e SOLO desktop —
-// su mobile l'intro costerebbe l'LCP della prima visita (l'overlay ritarda il
-// primo paint utile) e la filosofia del layer è "mobile semplificato".
+// solo alla prima visita di sessione e senza reduced-motion.
+//
+// LA SOGLIA 768 NON C'È PIÙ (fase 3 della parità mobile, 2026-08-11).
+// Qui c'era scritto che su mobile l'intro «costerebbe l'LCP della prima visita»
+// e che la filosofia del layer è «mobile semplificato». La misura dice altro:
+// il telefono scaricava GIÀ il chunk del preloader (22,5 KB) e la sagoma webp
+// (79.000 byte) e montava GIÀ 119 nodi a display:none, per un'intro che non
+// vedeva mai. Portarla sul telefono non aggiunge quel costo: lo mette a frutto.
+// Quel che aggiunge è tempo di thread principale e il trattenimento della
+// pagina — ed è per questo che sul telefono l'intro è un ALTRO montaggio, non
+// lo stesso più veloce (1,7s contro 4,63s: vedi Preloader.tsx).
 // Senza JS l'attributo non esiste mai → overlay display:none (globals.css).
-// Failsafe a 2,5s: se il bundle non idrata mai, l'attributo va rimosso comunque. Era 8s, e
-// su una connessione lenta teneva il sipario (e quindi l'LCP) fino a 8 secondi buoni.
+//
+// I DUE FAILSAFE, DERIVATI DALLA STESSA REGOLA: "quanto siamo disposti a
+// tenere la pagina se il bundle non idrata mai". Sul telefono è 1,8s, cioè
+// quanto dura l'intro stessa: tenere un sipario muto più a lungo dell'intro
+// vera non ha senso. Su desktop resta 2,5s (era 8s, e su rete lenta teneva
+// l'LCP in ostaggio per otto secondi buoni). L'autohide CSS di globals.css è
+// lo stesso numero + 0,5s di margine, e la rete riarmata negli abort di
+// Preloader.tsx è di nuovo lo stesso numero: tre orologi, una sola regola.
+// `__dtPreArmed` resta sul window a dire "il sipario era previsto": è come il
+// chunk, se atterra dopo che il failsafe è scattato, capisce di dover
+// rimettere in moto Lenis invece di uscire in silenzio (mobile-parity §5.3).
+//
 // Il banner cookie viaggia sullo stesso meccanismo, e per una ragione misurata:
 // era l'elemento LCP della home. Montandosi solo all'idratazione dipingeva a
 // 5,6s su rete lenta — 5,2 dei quali di puro "render delay", contro 453ms di
@@ -27,8 +45,19 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // script decide prima del paint se mostrarlo, esattamente come per il sipario.
 // Non si mostra sotto il sipario: lì sposterebbe il focus su "Accetta" mentre
 // è coperto (Invio per saltare l'intro accetterebbe i cookie alla cieca), e ci
-// pensa CookieConsent a metterlo al handoff.
-const preloaderBootScript = `try{var h=document.documentElement;var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var pre=!sessionStorage.getItem("dt-intro-seen")&&m&&matchMedia("(min-width: 768px)").matches;if(pre){h.setAttribute("data-preloader","");window.__dtPreFailsafe=setTimeout(function(){h.removeAttribute("data-preloader")},2500)}if(m){h.setAttribute("data-hero-rest","");h.setAttribute("data-hero-intro","")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
+// pensa CookieConsent a metterlo al handoff. La relazione regge invariata ora
+// che anche il telefono suona il sipario: `pre` è vero → niente `data-consent`
+// pre-paint → il banner arriva su INTRO_EVENT. Conseguenza da sapere: sulla
+// PRIMA visita mobile l'elemento LCP non è più il banner.
+// Il deep-link con ancora (/#contatti) esce di scena QUI e non più a
+// idratazione avvenuta: la coreografia dell'arco presuppone la pagina in cima
+// e combatterebbe lo scroll all'ancora, quindi l'intro non parte comunque —
+// ma decidendolo prima del paint si risparmiano anche il primo fotogramma
+// (che altrimenti lampeggerebbe espresso per tutto il tempo dell'idratazione),
+// l'overflow:hidden inutile e i 79 KB della sagoma. Il "budget intro" della
+// sessione si segna speso, che è ciò che faceva `finish(true)` dal componente:
+// stesso contratto, deciso prima.
+const preloaderBootScript = `try{var h=document.documentElement;var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var deep=!!location.hash;if(deep){try{sessionStorage.setItem("dt-intro-seen","1")}catch(e){}}var pre=!deep&&m&&!sessionStorage.getItem("dt-intro-seen");if(pre){h.setAttribute("data-preloader","");window.__dtPreArmed=1;window.__dtPreFailsafe=setTimeout(function(){try{sessionStorage.setItem("dt-intro-seen","1")}catch(e){}h.removeAttribute("data-preloader")},matchMedia("(max-width: 767.98px)").matches?1800:2500)}if(m){h.setAttribute("data-hero-rest","");h.setAttribute("data-hero-intro","")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -161,6 +190,21 @@ export default function RootLayout({
     >
       <body className="flex min-h-dvh flex-col bg-paper text-ink">
         <script dangerouslySetInnerHTML={{ __html: preloaderBootScript }} />
+        {/* IL PRIMO FOTOGRAMMA DEL SIPARIO, RESO DAL SERVER.
+            Qui la documentazione dava per assodato che «l'overlay è già montato
+            dallo script inline prima dell'idratazione». Non lo è: lo script
+            mette un ATTRIBUTO, il markup dell'overlay arriva col chunk dinamico
+            (ssr:false). Fra il primo paint e l'atterraggio del chunk si vedeva
+            quindi l'hero, e poi calava l'espresso — un salto che su desktop
+            dura 150ms e nessuno nota, e che su un telefono in 4G lenta dura un
+            secondo pieno. Questo pannello è il fondo e basta: nessuna immagine,
+            nessun testo, nessuna richiesta di rete: solo il colore e il
+            gradiente che l'overlay vero ha già (`.dt-pre-fondo`, sorgente
+            unica in globals.css). Compare solo sotto `html[data-preloader]` e
+            sparisce appena il vero overlay prende il timone
+            (`html[data-pre-live]`, messo da Preloader.tsx) — altrimenti
+            resterebbe visibile DENTRO il buco dell'arco durante il tuffo. */}
+        <div className="dt-preloader-boot dt-pre-fondo" aria-hidden />
         <a
           href="#main"
           className="sr-only rounded-full bg-ink px-5 py-3 font-medium text-cream shadow-lg focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]"

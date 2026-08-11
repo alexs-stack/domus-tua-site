@@ -23,10 +23,19 @@
 //   • SCADENZA DURA. Il precarico non può trattenere nessuno dietro il
 //     sipario: su rete lenta si rinuncia e si entra comunque. Un sito che si
 //     apre in ritardo è peggio di un sito che singhiozza a metà pagina.
+//     E la scadenza è UNA, non due in fila: vedi il commento dentro
+//     `runWarmup`, dove il tetto vero era 1,1s più alto di quello dichiarato.
 //   • MAI UN'ECCEZIONE. Un lavoro che fallisce non deve impedire agli altri di
 //     partire né bloccare l'ingresso: `allSettled`, sempre.
 //   • IDEMPOTENTE. Chi torna sul sito salta l'intro: lì il precarico gira a
 //     ruota libera (`requestIdleCallback`) e non deve rifare ciò che è fatto.
+//   • SUL TELEFONO NON SI SCALDA TUTTO (2026-08-11, l'intro arriva su mobile).
+//     Dietro un'intro da cinque secondi su desktop, svegliare ogni immagine
+//     della pagina è un affare. Dietro un'intro da 1,7s su una connessione
+//     cellulare è una gara contro l'unica immagine che conta in quel momento:
+//     quella dell'hero, che l'arco sta per scoprire. Sul telefono il preloader
+//     usa `warmFirstFold` e rimanda il registro a `scheduleIdleWarmup()`, dopo
+//     l'handoff. Vedi Preloader.tsx.
 
 /** Un lavoro da scaldare. Deve essere idempotente e non lanciare mai. */
 export type WarmupTask = () => void | Promise<void>;
@@ -104,6 +113,43 @@ export async function warmAllImages(): Promise<void> {
 }
 
 /**
+ * L'hero e la prima piega, e basta — il precarico del telefono.
+ *
+ * A differenza di `warmAllImages` qui non si SVEGLIA niente: nessuna `lazy`
+ * viene promossa a `eager`. Si aspetta soltanto ciò che il browser sta già
+ * scaricando dentro il primo schermo, cioè esattamente ciò che l'arco sta per
+ * scoprire. Tutto il resto del lavoro passa dal registro, dopo l'handoff.
+ *
+ * Ha una scadenza propria perché è l'unica cosa che il sipario mobile aspetta:
+ * se la foto dell'hero non arriva, si entra lo stesso e la si vede comparire.
+ */
+export async function warmFirstFold(deadlineMs = 1200): Promise<void> {
+  // 1,15 schermi: qualche pixel sotto la piega vale la pena, un'intera
+  // sezione no. Le `lazy` sono escluse per definizione — se il browser le ha
+  // lasciate dormire, non sono nel primo schermo.
+  const soglia = window.innerHeight * 1.15;
+  const prime = Array.from(document.images).filter((img) => {
+    if (img.loading === "lazy") return false;
+    const r = img.getBoundingClientRect();
+    return r.width > 0 && r.top < soglia && r.bottom > 0;
+  });
+
+  const lavoro = Promise.all(
+    prime.map(async (img) => {
+      if (!img.complete) {
+        await new Promise<void>((r) => {
+          const fine = () => r();
+          img.addEventListener("load", fine, { once: true });
+          img.addEventListener("error", fine, { once: true });
+        });
+      }
+      await warmImage(img);
+    })
+  );
+  await Promise.race([lavoro, new Promise<void>((r) => setTimeout(r, deadlineMs))]);
+}
+
+/**
  * Scalda tutti i lavori dichiarati, entro la scadenza.
  *
  * Torna quando i lavori sono finiti O quando scade il tempo — chi chiama può
@@ -112,11 +158,27 @@ export async function warmAllImages(): Promise<void> {
 export function runWarmup(deadlineMs = 2200): Promise<void> {
   if (running) return running;
   running = (async () => {
+    // ⚠️ UNA SOLA SCADENZA, ACCESA QUI — non due in fila.
+    // Prima il cronometro dei giri partiva DOPO la corsa dei font: il tetto
+    // vero era 1200 + deadlineMs = 5,7s contro un'intro di 4,63s. In mezzo
+    // c'era un buco di 1,1s in cui l'arco era già completamente aperto, la
+    // pagina SEMBRAVA pronta, e `data-preloader` era ancora su <html> — cioè
+    // overflow:hidden e Lenis fermo. L'utente vedeva una pagina finita che non
+    // scorreva (docs/mobile-parity.md §5.2). Ora `deadlineMs` è il tetto di
+    // TUTTO il precarico, corsa dei font compresa, e chi chiama può derivarlo
+    // dalla durata della propria intro sapendo che sarà rispettato.
+    const scadenza = new Promise<void>((r) => setTimeout(r, deadlineMs));
+    let scaduto = false;
+    void scadenza.then(() => {
+      scaduto = true;
+    });
+
     // I font PRIMA di tutto: Fioritura campiona una scritta, e campionarla con
     // il fallback Georgia significa buttare il lavoro e rifarlo dopo lo swap.
     await Promise.race([
       document.fonts?.ready ?? Promise.resolve(),
       new Promise((r) => setTimeout(r, Math.min(1200, deadlineMs))),
+      scadenza,
     ]);
 
     // ⚠️ FINESTRA DI RACCOLTA — il difetto della prima versione.
@@ -131,12 +193,6 @@ export function runWarmup(deadlineMs = 2200): Promise<void> {
     // Si drena a giri: fra un giro e l'altro si cede il controllo al browser,
     // così chi si iscrive nel frattempo (o chi si iscrive DENTRO un lavoro)
     // entra nel giro successivo. Si esce quando nessuno si fa più vivo.
-    const scadenza = new Promise<void>((r) => setTimeout(r, deadlineMs));
-    let scaduto = false;
-    void scadenza.then(() => {
-      scaduto = true;
-    });
-
     for (let giro = 0; giro < 6 && !scaduto; giro += 1) {
       // Due frame: il primo lascia montare i componenti, il secondo raccoglie
       // chi si è iscritto durante il primo.

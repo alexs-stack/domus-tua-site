@@ -258,11 +258,19 @@ body {
 
 /* I caratteri del preloader sono promossi SOLO mentre il sipario è alzato.
    Il componente resta montato per tutta la sessione: con `will-change` in
-   classe fissa restavano un centinaio di livelli compositati in memoria per
-   un'animazione durata cinque secondi e mai più ripetuta. L'attributo
-   `data-preloader` cade quando l'intro finisce, e con lui la promozione. */
-html[data-preloader] .dt-pre-char {
-  will-change: transform;
+   classe fissa restavano ventuno livelli compositati in memoria per
+   un'animazione durata cinque secondi e mai più ripetuta (il commento diceva
+   «un centinaio»: sono 21, contati). L'attributo `data-preloader` cade quando
+   l'intro finisce, e con lui la promozione.
+   E SOLO SU DESKTOP: sul telefono le lettere non si animano una per una — sale
+   la RIGA intera, sotto la maschera che ha già (vedi il blocco dell'intro
+   mobile in fondo al file). Ventuno livelli promossi per un testo che a quella
+   velocità nessuno legge lettera per lettera erano il costo più facile da
+   togliere. */
+@media (min-width: 768px) {
+  html[data-preloader] .dt-pre-char {
+    will-change: transform;
+  }
 }
 
 /* ---------- Scroll reveal ---------- */
@@ -1566,8 +1574,12 @@ html[data-consent] .dt-consent {
 
 /* ---------- Preloader "Segno Domus" ----------
    L'inline script nel layout marca <html data-preloader> PRIMA del primo
-   paint (solo prima visita di sessione + motion ok): niente flash di
-   contenuto prima dell'overlay, e senza JS l'attributo non esiste mai. */
+   paint (prima visita di sessione, motion ok, nessuna ancora nell'URL), e
+   senza JS l'attributo non esiste mai.
+   Qui c'era scritto «niente flash di contenuto prima dell'overlay». Non era
+   vero: l'attributo arriva prima del paint, ma il MARKUP di `.dt-preloader`
+   arriva col chunk dinamico, cioè quando la rete vuole — fino ad allora si
+   vedeva la pagina. A dirlo davvero è `.dt-preloader-boot` qui sotto. */
 .dt-preloader {
   position: fixed;
   inset: 0;
@@ -1580,8 +1592,34 @@ html[data-preloader] .dt-preloader {
 html[data-preloader] {
   overflow: hidden;
 }
+
+/* Profondità calda, mai nero piatto: il fondo del sipario. Sta qui e non in
+   uno `style` inline perché ha DUE portatori — l'overlay vero (Preloader.tsx)
+   e il primo fotogramma reso dal server (layout.tsx) — e devono essere lo
+   stesso identico colore, o il passaggio dall'uno all'altro si vede. */
+.dt-pre-fondo {
+  background-image: radial-gradient(95% 130% at 12% -10%, rgba(150, 26, 24, 0.32), transparent 55%),
+    radial-gradient(90% 120% at 102% 112%, rgba(24, 12, 12, 0.9), transparent 60%);
+}
+
+/* Il primo fotogramma, reso dal server (vedi il commento in layout.tsx).
+   `:not([data-pre-live])`: appena l'overlay vero è montato questo sparisce —
+   se restasse, durante il tuffo lo si vedrebbe DENTRO il buco dell'arco al
+   posto dell'hero. z-index 95: subito sotto l'overlay, sopra tutto il resto. */
+.dt-preloader-boot {
+  display: none;
+}
+html[data-preloader]:not([data-pre-live]) .dt-preloader-boot {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  background-color: var(--color-espresso);
+}
 /* Il contenuto interno appare via GSAP: prima dell'idratazione si vede solo
-   il pannello espresso pulito (l'overlay è decorativo e aria-hidden). */
+   il pannello espresso pulito (l'overlay è decorativo e aria-hidden).
+   Sul telefono no: lì il primo atto è CSS e questa regola viene ribaltata
+   (vedi il blocco dell'intro mobile più sotto). */
 .dt-preloader [data-pre-content] {
   opacity: 0;
 }
@@ -1597,9 +1635,14 @@ html[data-preloader] {
     visibility: hidden;
   }
 }
-html[data-preloader] .dt-preloader {
-  /* Allineata al failsafe JS del boot script (2,5s, PR perf): se il bundle
-     non idrata mai, l'overlay non deve tenere l'LCP in ostaggio. */
+html[data-preloader] .dt-preloader,
+html[data-preloader]:not([data-pre-live]) .dt-preloader-boot {
+  /* Il failsafe JS del boot script PIÙ mezzo secondo di margine: questa rete
+     serve solo se nemmeno quel timer è scattato (scheda congelata, timer
+     strozzati), quindi deve partire DOPO di lui, mai prima — o taglierebbe
+     un'intro legittima. Desktop 2,5 + 0,5 = 3s; telefono 1,8 + 0,5 = 2,3s
+     (vedi sotto). Il numero era già 3s ma il commento lo dichiarava
+     «allineato a 2,5s», che è un'altra cosa: ora è derivato, non coincidente. */
   animation: dt-pre-autohide 0.5s ease 3s forwards;
 }
 
@@ -1690,6 +1733,134 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   height: calc(var(--arch-h) * 1.03);
   top: calc(var(--arch-y) - var(--arch-h) * 0.015);
   transform: translateX(-50%);
+}
+
+/* ---------- L'INTRO SUL TELEFONO ----------------------------------------
+   Fase 3 della parità mobile (2026-08-11). Sul telefono l'intro non è la
+   stessa più veloce: è un altro montaggio. Restano la porta che sale e il
+   tuffo — IL momento — e il primo atto passa da GSAP al CSS.
+
+   PERCHÉ IL PRIMO ATTO STA QUI E NON IN GSAP. Il markup dell'overlay arriva
+   col chunk dinamico, e il chunk arriva quando la rete vuole; un'animazione
+   CSS di sole opacity/transform parte nell'istante esatto in cui i nodi
+   entrano nel documento, sul compositore, mentre il thread principale è
+   ancora occupato a idratare mezza pagina. Le stesse righe fatte con GSAP
+   aspettano il primo tick del ticker — cioè aspettano proprio il thread che
+   in quel momento è il collo di bottiglia. In più spariscono 21 tween per
+   lettera e i 21 `will-change` che li accompagnavano.
+
+   IL BUDGET (Preloader.tsx tiene i numeri della parte GSAP):
+     0,00–0,77  questo blocco: sagoma, marchio, le due righe del lockup sotto
+                la maschera che hanno già, la firma, le due righe di promessa
+     0,25–0,95  la porta sale        (GSAP)
+     0,60–1,00  il lockup si congeda (GSAP)
+     0,95–1,75  il tuffo             (GSAP, ease dtDiveIn, invariata)
+   Totale 1,75s contro i 4,63s del desktop. Il gesto è lo stesso, sono gli
+   ATTI a essere meno. */
+@media (max-width: 767.98px) {
+  /* Una porta più larga in proporzione: 40vw su 390px sono 156px, e sotto i
+     ~150 l'arco smette di leggersi come una porta e diventa una feritoia.
+     Solo `.dt-preloader`: il sipario di PageTransition condivide la maschera
+     ma si scrive i propri valori da GSAP, e non è di questa fase. */
+  .dt-preloader {
+    --arch-w: 40vw;
+  }
+
+  /* Failsafe CSS = failsafe JS del boot script (1,8s) + 0,5 di margine. */
+  html[data-preloader] .dt-preloader,
+  html[data-preloader]:not([data-pre-live]) .dt-preloader-boot {
+    animation-delay: 2.3s;
+  }
+
+  /* ── Atto I, in CSS ── */
+  /* Il contenuto è visibile dal primo fotogramma: a comporlo sono le regole
+     qui sotto, non più il tween di apertura di GSAP. `opacity` statica, non
+     un'animazione con `forwards`: al tuffo GSAP scrive `opacity` inline su
+     questo stesso nodo, e un'animazione CSS vincerebbe sullo stile inline. */
+  html[data-preloader] .dt-preloader [data-pre-content] {
+    opacity: 1;
+  }
+  html[data-preloader] .dt-preloader [data-pre-figure] {
+    animation: dt-pre-in-fade 0.5s var(--ease-out-expo) both;
+  }
+  html[data-preloader] .dt-preloader [data-pre-badge] {
+    animation: dt-pre-in-fade 0.4s var(--ease-out-expo) 0.05s both;
+  }
+  /* Le righe del lockup salgono INTERE da sotto la maschera overflow-hidden
+     che PreChars costruisce già per il titolo: è l'idioma di TextLines, e qui
+     costa due elementi animati invece di ventuno. Le lettere restano nel
+     markup (è lo stesso HTML a tutte le larghezze) ma sul telefono sono
+     inerti: nessun tween, nessun `will-change`. */
+  html[data-preloader] .dt-preloader [data-pre-line] {
+    animation: dt-pre-in-line 0.55s var(--ease-out-expo) 0.02s both;
+  }
+  html[data-preloader] .dt-preloader [data-pre-line="1"] {
+    animation-delay: 0.09s;
+  }
+  /* La firma non ha maschera (ruoterebbe fuori dai bordi): entra di lato. */
+  html[data-preloader] .dt-preloader [data-pre-sline] {
+    animation: dt-pre-in-side 0.5s var(--ease-out-expo) 0.16s both;
+  }
+  html[data-preloader] .dt-preloader [data-pre-word] {
+    animation: dt-pre-in-line 0.5s var(--ease-out-expo) 0.2s both;
+  }
+  html[data-preloader] .dt-preloader [data-pre-word="2"] {
+    animation-delay: 0.27s;
+  }
+
+  /* ── Fuori l'atto II ──
+     Un filo alto 64px e largo 1 su uno schermo da 390: non guadagna niente e
+     soprattutto non misura niente — non è mai stato collegato a un
+     caricamento vero, nonostante il nome. */
+  html[data-preloader] .dt-preloader [data-pre-progress] {
+    display: none;
+  }
+
+  /* ── Fuori gli anelli eco ──
+     Non è una questione di gusto: `width`, `height` e `top` degli anelli sono
+     calcolati da --arch-w/--arch-y, cioè rifatti a OGNI fotogramma del tuffo.
+     Sono due elementi che fanno layout per frame proprio sul dispositivo che
+     meno se lo può permettere, e la regola del progetto è transform/opacity/
+     clip-path/mask e basta. Sul desktop restano (debito noto, non aperto qui). */
+  .dt-preloader [data-pre-arch-echo] {
+    display: none;
+  }
+
+  /* La rete dell'hero senza JS: 6s di testo quasi invisibile stanno in piedi
+     dietro un'intro da 4,63s, non dietro una da 1,75. 4s = l'intro più il
+     margine perché HeroCinematic possa idratare e prendersi il timone (è lui
+     a spegnere questa animation quando ci riesce). */
+  html[data-hero-rest] .dt-hero-rest,
+  html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
+    animation-delay: 4s;
+  }
+}
+
+@keyframes dt-pre-in-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dt-pre-in-line {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes dt-pre-in-side {
+  from {
+    opacity: 0;
+    transform: translate(6vw, 12%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
 }
 
 /* ---------- IL CARICAMENTO FRA LE PAGINE (PageTransition.tsx) ----------
