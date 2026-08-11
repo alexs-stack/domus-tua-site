@@ -9,6 +9,7 @@ import SocialLinks from "./primitives/SocialLinks";
 import { site } from "../lib/site";
 import { IframeWidget } from "./WidgetEmbeds";
 import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
+import RailProgress from "./motion/RailProgress";
 import { useLocale } from "./i18n/LocaleProvider";
 
 /* LA ROTAIA — otto scatti che scorrono di lato mentre la pagina scende.
@@ -249,32 +250,47 @@ export default function Social() {
       {/* LA ROTAIA — full-bleed, fuori dal contenitore: il nastro deve toccare
           i due bordi dello schermo, altrimenti non è un nastro ma una riga. */}
       {!site.embeds.instagramIframe && (
-        <div ref={railRef} className="dt-socialrail" aria-hidden>
-          <ul className="dt-socialrail_track">
-            {rail.map((t) => (
-              <li
-                key={t.src}
-                className="dt-socialrail_item"
-                style={
-                  { "--w": t.w, "--ratio": t.ratio, "--lift": t.lift } as React.CSSProperties
-                }
-              >
-                <span className="dt-socialrail_frame">
-                  {/* Il pannello è più largo della cornice: è lo spazio in cui
-                      l'immagine pana senza mai scoprire un bordo. */}
-                  <span className="dt-socialrail_pan" data-depth={t.depth}>
-                    <Image
-                      src={t.src}
-                      alt=""
-                      fill
-                      sizes="(max-width: 1023px) 60vw, 30vw"
-                      className="photo-warm object-cover"
-                    />
+        <div className="relative">
+          <div ref={railRef} className="dt-socialrail" aria-hidden>
+            <ul className="dt-socialrail_track">
+              {rail.map((t) => (
+                <li
+                  key={t.src}
+                  className="dt-socialrail_item"
+                  style={
+                    { "--w": t.w, "--ratio": t.ratio, "--lift": t.lift } as React.CSSProperties
+                  }
+                >
+                  <span className="dt-socialrail_frame">
+                    {/* Il pannello è più largo della cornice: è lo spazio in cui
+                        l'immagine pana senza mai scoprire un bordo. */}
+                    <span className="dt-socialrail_pan" data-depth={t.depth}>
+                      <Image
+                        src={t.src}
+                        alt=""
+                        fill
+                        sizes="(max-width: 1023px) 60vw, 30vw"
+                        className="photo-warm object-cover"
+                      />
+                    </span>
                   </span>
-                </span>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* L'INVITO DEL NASTRO (sotto i 1024, dove comanda il dito). La barra
+              nativa è nascosta apposta, quindi niente diceva che il nastro
+              continua oltre il bordo destro. In sovrimpressione e non in
+              flusso: la rotaia tiene già in cassa il suo `padding-bottom`
+              (clamp 2.5→4.5rem, l'aria per le quote disuguali delle tessere),
+              e l'indicatore si siede LÌ invece di allungare la sezione — su
+              una home che su un telefono è già lunga 46 schermate, un'aggiunta
+              che non costa una riga di pagina è l'unica onesta.
+              Il wrapper esiste solo per dargli quel riferimento: `relative` non
+              può stare sulla rotaia, che è il contenitore che scorre — un
+              assoluto dentro uno scroller scorrerebbe col contenuto. */}
+          <RailProgress scroller={railRef} className="absolute inset-x-0 bottom-4" />
         </div>
       )}
     </section>

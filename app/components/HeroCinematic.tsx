@@ -14,7 +14,7 @@ import { heroCinematic } from "../lib/media";
 import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
+import { gsap, useGSAP, MQ, dur, dist, stagger } from "../lib/motion/gsap";
 import { INTRO_EVENT } from "./motion/Preloader";
 import { getLenis } from "./motion/SmoothScroll";
 
@@ -149,12 +149,13 @@ export default function HeroCinematic() {
       const section = sectionRef.current;
       if (!section) return;
       const mm = gsap.matchMedia();
-      // Gate desktop senza gemello mobile, e non è una dimenticanza: il clip-path
-      // per frame sul layer full-viewport costerebbe un repaint/maschera a ogni
-      // tick di scroll (Safari iOS, Android low-end). Il frame-in NON torna sul
-      // telefono, nemmeno in Fase 2. La deriva d'uscita di sola trasformazione
-      // prevista dal verdetto 10 di docs/mobile-parity.md è un'altra cosa e può
-      // arrivare: quella non dipinge niente.
+      // Gate desktop, e il gemello mobile qui sotto NON è il frame-in: il
+      // clip-path per frame sul layer full-viewport costerebbe un
+      // repaint/maschera a ogni tick di scroll (Safari iOS, Android low-end).
+      // Il frame-in NON torna sul telefono, nemmeno in Fase 2. La deriva
+      // d'uscita di sola trasformazione prevista dal verdetto 10 di
+      // docs/mobile-parity.md è un'altra cosa ed è arrivata: quella non dipinge
+      // niente.
       mm.add(`${MQ.motionOk} and ${MQ.desktop}`, () => {
         const scrub = {
           trigger: section,
@@ -186,6 +187,43 @@ export default function HeroCinematic() {
           ease: "none",
           scrollTrigger: { trigger: section, start: "top top-=1", end: "top top-=140", scrub: true },
         });
+      });
+
+      // Il gemello mobile: una DERIVA D'USCITA, non una camera. Sul telefono
+      // questa foto oggi è ferma a qualunque quota di scroll — Parallax qui non
+      // gira e `.ken-burns` non esiste più — quindi l'unica cosa che si muove è
+      // la pagina che le passa sopra. Il canvas resta indietro di poco mentre
+      // l'hero esce: è profondità, non un movimento.
+      //
+      // yPercent POSITIVO, e non è indifferente: il layer è `inset-0` senza
+      // overscan, quindi verso l'alto scoprirebbe una banda espresso in fondo
+      // alla sezione. Verso il basso il vuoto si apre in cima, cioè sopra il
+      // bordo alto del viewport, dove non c'è nessuno a vederlo.
+      // Ampiezza a metà di dist.parallax: quello è il massimo di un fondale che
+      // attraversa tutta la pagina, qui la corsa è un hero solo.
+      mm.add(`${MQ.motionOk} and ${MQ.belowDesktop}`, () => {
+        // will-change solo mentre lo scrub è vivo (il revert lo toglie):
+        // §1.5c dell'audit conta i livelli promossi, e questo ne aggiunge uno.
+        gsap.set(mediaRef.current, { willChange: "transform" });
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: section, start: "top top", end: "bottom top", scrub: true },
+          defaults: { ease: "none" },
+        });
+        tl.to(mediaRef.current, { yPercent: dist.parallax * 50 }, 0);
+        // NIENTE `frameWrapRef` QUI DENTRO, ed è una rinuncia consapevole.
+        // Sembrava lo scambio giusto (i marchi d'angolo restano accesi per
+        // tutto l'hero sul telefono, perché a spegnerli era il frame-in che su
+        // mobile non gira), ma darebbe alla cornice DUE padroni: la timeline
+        // d'ingresso non è gated per larghezza — `data-hero-intro` è messo a
+        // ogni larghezza — e su un telefono la porta comunque da autoAlpha 0 a
+        // 1 a t=1,7s. Uno scrub che scrive la stessa opacità mentre l'altra
+        // timeline la sta ancora accendendo è una lite, e la lite si vede.
+        // La deriva della foto vale da sola: è quella che il telefono non
+        // aveva. La cornice si spegnerà quando avrà un padrone solo.
+        //
+        // Chanel, allora, sul costo e non sull'effetto: la deriva è UNA tween
+        // di solo `yPercent` agganciata allo scrub che l'hero ha già — nessun
+        // ScrollTrigger nuovo, nessun layer nuovo, nessun paint.
       });
     },
     { scope: sectionRef }

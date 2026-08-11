@@ -219,12 +219,22 @@ export default function Team() {
             </Reveal>
           </div>
 
-          {/* Colonna foto: leggera deriva in primo piano allo scroll (solo desktop);
-              nessun elemento sticky all'interno.
+          {/* Colonna foto: leggera deriva in primo piano allo scroll; nessun
+              elemento sticky all'interno.
               La foto di GRUPPO non sta più qui: è diventata la banda a tutta
               larghezza che apre il corridoio delle persone (in fondo al file).
               Resta il ritratto della fondatrice, che in colonna stretta
-              funziona proprio perché è un ritratto. */}
+              funziona proprio perché è un ritratto.
+              Il «(solo desktop)» che stava scritto qui è stato tolto, non
+              dimenticato: dalla parità mobile (2026-08-11) la deriva vale a
+              ogni larghezza. La ragione della riga sopra è anche la ragione per
+              accenderla — il ritratto regge la colonna stretta, e sotto lg è
+              l'unica immagine di questo capitolo prima del corridoio. */}
+          {/* `mobile` tolta dopo la misura: la figura è alta 284px e
+              `speed -0.08` vale ±1,12% di quella, cioè 6,4px di corsa totale.
+              Sotto la soglia di percepibilità con cui la wave ha cancellato
+              altri due effetti. Il ritratto sul telefono ha già il sipario di
+              Reveal: quello si vede. */}
           <Parallax speed={-0.08}>
             <Reveal delay={120}>
               <figure className="group overflow-hidden rounded-[2rem] border border-line bg-paper p-2">

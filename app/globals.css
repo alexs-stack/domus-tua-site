@@ -336,12 +336,25 @@ html[data-preloader] .dt-pre-char {
    parole inline-block ogni .w è un frammento minuscolo e l'H1 dell'hero non
    diventa mai il candidato (vince qualunque paragrafo montato dopo). Base:
    display:inline (l'H1 si aggrega in UN candidato a FCP); la meccanica
-   animata per-parola vive solo dove serve: desktop + motion ok. */
+   animata per-parola vive solo dove serve: desktop + motion ok.
+
+   Parità mobile, fase 2b (2026-08-11) — l'ultima riga qui sopra va letta con
+   una correzione, e la scrivo invece di cancellarla. "Dove serve" adesso
+   include il telefono, ma a dirlo non è più la larghezza: è il punto di
+   chiamata. Sotto i 768 la meccanica si accende SOLO su [data-wr-mobile],
+   che WordReveal stampa quando riceve la prop `mobile`.
+   Perché il gate non è semplicemente sceso: 768px non ha mai voluto dire
+   "schermo grande", voleva dire "sotto questa soglia c'è un hero e non voglio
+   frammentargli l'H1". È una domanda che si fa a un titolo per volta, e la
+   risposta sta accanto al titolo. La prima metà del commento resta valida e
+   non va toccata: è il motivo per cui la base è `inline` e non `inline-block`,
+   e vale a ogni larghezza. */
 .word-reveal .w {
   display: inline;
   /* niente margin: lo spazio tra parole è un VERO spazio nel markup
-     (WordReveal) — serve come opportunità di a-capo quando le parole
-     sono inline. */
+     (WordReveal) — serve come opportunità di a-capo. Vale in entrambi i rami:
+     lo spazio è un nodo di testo inline FUORI da .w, quindi resta un punto di
+     a-capo anche quando .w diventa inline-block. */
 }
 @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
   .word-reveal .w {
@@ -357,6 +370,46 @@ html[data-preloader] .dt-pre-char {
   .word-reveal.is-in .w {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+/* Il gemello telefono, a opt-in. 767.98 e non 767: alle larghezze frazionarie
+   (zoom del browser, dpr non interi) un buco di un pixel lascerebbe spenti
+   tutti e due i rami. È il confine di MQ.belowDesktop (app/lib/motion/gsap.ts).
+   Una differenza voluta rispetto al ramo sopra: qui NON si scrive will-change.
+   Un titolo editoriale è di tre o quattro parole e la corsa è mezzo em; la
+   home mobile porta già 360 elementi con will-change al caricamento (audit di
+   parità §1.5c, il numero contro cui si misura ogni layer che questa wave
+   aggiunge) e tre livelli promossi in più non comprano un frame. Il desktop,
+   che quel conto non ce l'ha, se li tiene. */
+@media (prefers-reduced-motion: no-preference) and (max-width: 767.98px) {
+  .word-reveal[data-wr-mobile] .w {
+    display: inline-block;
+    transform: translateY(0.5em);
+    opacity: 0;
+    transition: transform 0.85s var(--ease-out-expo), opacity 0.85s var(--ease-out-expo);
+  }
+  .word-reveal[data-wr-mobile].is-in .w {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+/* Fallback senza JS, come già fa .reveal più su. Senza scripting `.is-in` non
+   arriva mai: le parole resterebbero a `opacity: 0` per sempre, cioè un titolo
+   invisibile per chi ha JS spento e per un crawler che non lo esegue. Il
+   gemello .reveal aveva questa rete dal primo giorno e .word-reveal no. L'audit
+   di parità (§2.2, la riga su WordReveal) segnalava un solo disallineamento fra
+   i due primitivi, il gate di larghezza; questo è il secondo, trovato portando
+   la meccanica sul telefono, e vale da 768 in su esattamente quanto sotto.
+   Sta QUI e non nel blocco (scripting: none) di sopra per una ragione di
+   cascata: a parità di specificità vince l'ultima regola, e i due selettori
+   sono scritti entrambi perché [data-wr-mobile] pareggi il ramo mobile. */
+@media (scripting: none) {
+  .word-reveal .w,
+  .word-reveal[data-wr-mobile] .w {
+    display: inline;
+    transform: none;
+    opacity: 1;
+    transition: none;
   }
 }
 

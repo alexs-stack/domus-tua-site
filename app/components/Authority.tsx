@@ -210,7 +210,14 @@ export default function Authority() {
             </Reveal>
           </div>
 
-          {/* Card rating — deriva leggera contro la colonna testo (solo desktop) */}
+          {/* Card rating — deriva leggera contro la colonna testo (solo desktop).
+              Resta desktop anche dopo la parità mobile, ed è una scelta: la
+              deriva ha senso finché la card sta ACCANTO alla colonna di testo e
+              le scorre contro. Sotto lg la griglia diventa una colonna sola, la
+              card va sotto il testo, e non resta nessuna controparte — solo un
+              blocco di cifre (il 4.9, le tre mini-stat) che si muove mentre lo
+              si legge. La profondità qui la fanno già lo scrub sul 4.9 e la
+              timeline delle stelle, che sono ungated e girano sul telefono. */}
           <Reveal delay={120}>
             <Parallax speed={-0.06}>
               <div ref={cardRef} className="rounded-[2rem] bg-white p-7 text-ink shadow-[0_40px_90px_-50px_rgba(80,4,4,0.9)] sm:p-9">

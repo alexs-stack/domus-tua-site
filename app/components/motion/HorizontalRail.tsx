@@ -34,11 +34,17 @@
    ".dt-rail[data-on]" mette `overflow: hidden; scroll-snap-type: none` e
    spegnerebbe insieme il trascinamento e lo snap.
 
+   Quello che al ramo mobile mancava non era il gesto ma l'INVITO: la barra
+   nativa è nascosta, quindi niente diceva che il nastro continua fuori dal
+   bordo destro. Lo dice RailProgress, sotto — e non è motion, è la barra di
+   scorrimento che il CSS aveva tolto (2026-08-11, parità mobile).
+
    Le regole di layout stanno in globals.css (blocchi ".dt-rail"/".dt-railway").
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { useRef } from "react";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
+import RailProgress from "./RailProgress";
 
 export default function HorizontalRail({
   children,
@@ -163,6 +169,12 @@ export default function HorizontalRail({
       >
         <div className={`dt-rail_track ${trackClassName}`}>{children}</div>
       </div>
+      {/* In flusso, non in sovrimpressione: il corridoio non tiene aria di
+          riserva sotto il nastro (la tiene sopra e sotto la sezione), quindi
+          l'indicatore la sua riga se la prende. Esiste solo sotto i 1024,
+          dove ".dt-railway" è un div qualunque: a [data-on] la sua altezza è
+          dichiarata in CSS e nessun figlio in più la sposta. */}
+      <RailProgress scroller={railRef} className="mt-6" />
     </div>
   );
 }

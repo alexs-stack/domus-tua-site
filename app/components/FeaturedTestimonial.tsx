@@ -212,12 +212,17 @@ export default function FeaturedTestimonial(props: Props) {
               data-ft-photo: il piano lontano della parallasse da puntatore.
               Sta DENTRO la maschera e FUORI dal Parallax di scroll, così i due
               movimenti non si contendono la stessa transform.
+              Il Parallax di scroll è `mobile`: sul telefono la parallasse da
+              puntatore non esiste (non c'è puntatore) e questa lastra è la
+              fotografia più grande della home. Restava l'unica immagine a
+              piena larghezza completamente immobile — che è precisamente il
+              momento in cui una foto grande legge come uno sfondo incollato.
               Il velo sta anch'esso DENTRO la maschera: fuori, prima che il
               sipario si apra, si vedrebbe un rettangolo scuro a tutta pagina —
               esattamente la giuntura che non vogliamo. */}
           <MaskReveal from="right" zoom={1.1} className="absolute inset-0" innerClassName="absolute inset-0">
             <div data-ft-photo className="absolute inset-0">
-              <Parallax speed={0.12} scale={1.12} className="absolute inset-0" innerClassName="absolute inset-0">
+              <Parallax speed={0.12} scale={1.12} mobile className="absolute inset-0" innerClassName="absolute inset-0">
                 <Image
                   src={image}
                   alt={alt}

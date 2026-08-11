@@ -390,7 +390,11 @@ export default function Services() {
             NON tagli: la lastra ha overflow-hidden e un tralcio messo dentro
             verrebbe rifilato sul bordo. */}
         <div className="relative mt-14 sm:mt-20">
-          {/* Feature card — sipario sull'immagine + parallasse di profondità molto sottile */}
+          {/* Feature card — sipario sull'immagine + parallasse di profondità molto
+              sottile, accesa anche sul telefono: il rendering è l'unica immagine
+              di tutto il capitolo Servizi che non scorre di lato (la rotaia sopra
+              ce l'ha già, nativa), e la deriva è ciò che le impedisce di leggersi
+              come un fondale dietro al testo in overlay. */}
           <article
             data-cursor="scopri"
             className="group relative min-h-[24rem] overflow-hidden rounded-[2rem] border border-line sm:min-h-[32rem] lg:min-h-[38rem]"
@@ -401,6 +405,14 @@ export default function Services() {
               className="absolute inset-0"
               innerClassName="absolute inset-0"
             >
+              {/* `mobile` NON passata, e la misura dice perché. A 390x664 la
+                  cornice è alta 405px e `speed 0.06` vale ±0,84% della sua
+                  altezza: 6,4px di corsa totale. È sotto la stessa soglia con
+                  cui questa wave ha già cancellato la cupola (21px) e i
+                  gradini (6-7px) — e sotto quella con cui, tre righe più in
+                  là, ha rifiutato la filigrana del D.O.C. a ±2,7px. Accenderla
+                  qui sarebbe stato pagare uno ScrollTrigger scrubbato per un
+                  movimento che non esiste. */}
               <Parallax
                 speed={0.06}
                 scale={1.06}

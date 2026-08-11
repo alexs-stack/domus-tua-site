@@ -6,6 +6,7 @@ import { SegnoDomusBadge } from "./BrandMotif";
 import { Cta } from "./primitives/Cta";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
+import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
 type CTA = { label: string; href: string };
@@ -49,7 +50,7 @@ export default function PageHero({
   // Entrata standard delle pagine interne (atterraggio delle page transition):
   // badge → subcopy → CTA → trust in coda alle righe del titolo (TextLines si
   // coreografa da sé). Il blocco contiene link: opacity + reti di sicurezza.
-  // Uscita: leggera deriva verso l'alto in scrub (solo desktop).
+  // Uscita: leggera deriva verso l'alto in scrub, a ogni larghezza.
   useGSAP(
     () => {
       const root = rootRef.current;
@@ -59,6 +60,21 @@ export default function PageHero({
       mm.add(MQ.motionOk, () => {
         const els = gsap.utils.toArray<HTMLElement>("[data-ph-el]", root);
         if (!els.length) return;
+        // NIENTE LAMPO (verdetto 11 di docs/mobile-parity.md). Un fromTo rende
+        // il proprio stato di partenza nell'istante stesso in cui nasce: se la
+        // pagina è già dipinta sotto gli occhi di chi legge, badge, subcopy,
+        // CTA e riga trust SPARISCONO all'idratazione e rientrano un quarto di
+        // secondo dopo. Non era un difetto del telefono e il gate non c'entrava
+        // — succedeva a ogni larghezza, su ogni pagina interna aperta da un
+        // link esterno, da una ricarica o dal tasto Indietro.
+        //
+        // Quindi lo stato nascosto si scrive solo su ciò che nessuno ha ancora
+        // visto: sotto il sipario di PageTransition, dove la porta ad arco
+        // copre l'intero viewport e dove questa entrata è esattamente la
+        // coreografia d'atterraggio per cui è nata — si compone al buio e
+        // arriva a porta aperta. A freddo il primo paint è già avvenuto: la
+        // pagina si lascia com'è, che è poi ciò che si vede anche senza JS.
+        if (!isTransitionCovering()) return;
         const tween = gsap.fromTo(
           els,
           { y: 22, opacity: 0 },
@@ -73,12 +89,20 @@ export default function PageHero({
         };
       });
 
-      // La deriva d'uscita resta desktop: sarà la fase 2 ad aprirle il telefono.
-      // ASIMMETRIA VISTA IN RICOGNIZIONE (2026-08-11): l'entrata qui sopra NON è
-      // gated, quindi sul telefono scrive `opacity: 0` su [data-ph-el] già
-      // all'idratazione — badge, subcopy e CTA spariscono e rientrano, e si vede.
-      // Registrata qui apposta, ma non la tocchiamo adesso: è coreografia.
-      mm.add(`${MQ.motionOk} and ${MQ.desktop}`, () => {
+      // La deriva d'uscita si apre a TUTTE le larghezze (verdetto 11): è una
+      // `gsap.to` scrubbata, solo transform + opacità, e non scrive nessuno
+      // stato al caricamento — l'immagine LCP non la vede passare. Il gate
+      // desktop non la stava proteggendo da niente.
+      //
+      // Qui era registrata un'ASIMMETRIA vista in ricognizione (2026-08-11):
+      // «l'entrata qui sopra NON è gated, quindi sul telefono scrive
+      // `opacity: 0` su [data-ph-el] già all'idratazione — badge, subcopy e CTA
+      // spariscono e rientrano, e si vede», con la chiusa «non la tocchiamo
+      // adesso: è coreografia». Adesso è la Fase 2 e la si è toccata, quindi lo
+      // metto per iscritto: il difetto non era del telefono né del gate, era il
+      // fromTo che rende il from-state a pagina già dipinta — a ogni larghezza.
+      // La correzione sta nel blocco qui sopra.
+      mm.add(MQ.motionOk, () => {
         gsap.to(contentRef.current, {
           yPercent: -8,
           opacity: 0.3,

@@ -996,6 +996,14 @@ export default function LavoraConNoiContent() {
             è il vincolo di CameraIn. */}
         <CameraIn className="mx-auto block max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
           <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
+            {/* Niente `mobile`: questo Parallax non avvolge una fotografia, ne
+                avvolge una CON SOTTO il player del video di squadra e la sua
+                didascalia. Sotto lg la colonna è tutta la pagina, quindi
+                accenderlo vorrebbe dire far derivare anche il bersaglio da
+                toccare per far partire il video. La foto da sola si potrebbe
+                salvare spostando il wrapper dentro la figure, ma sarebbe una
+                ristrutturazione del markup fatta di passaggio: se serve, si fa
+                con la sua ragione, non dentro un giro di prop. */}
             <Parallax speed={-0.06}>
               <Reveal>
                 <figure className="overflow-hidden rounded-[2rem] border border-line bg-paper p-2">

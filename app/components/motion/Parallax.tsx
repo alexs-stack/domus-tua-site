@@ -17,15 +17,27 @@ type Props = {
   /** -0.5 … 0.5 — intensità e direzione del movimento */
   speed?: number;
   /** ampiezza in px (± range): per elementi piccoli, dove yPercent è impercettibile.
-      Il segno di `speed` continua a dare la direzione. */
+      Il segno di `speed` continua a dare la direzione.
+      Attenzione prima di accoppiarlo a `mobile`: è l'unica ampiezza che NON si
+      rimpicciolisce da sola in colonna stretta. `yPercent` è una frazione
+      dell'altezza dell'elemento, quindi su un telefono la corsa cala insieme al
+      contenuto; 26px restano 26px anche su 390. */
   range?: number;
   /** sovradimensiona l'interno (es. 1.15 per immagini in cornice) */
   scale?: number;
-  /** Attivo anche sotto i 768px (default: solo desktop). Il default `false` è
-      portante, non una svista: alla ricognizione del 2026-08-11 uno solo dei 12
-      punti di chiamata lo passa (l'hero di PageHero), quindi sul telefono gli
-      altri 11 parallassi sono fermi. La fase 2 della parità mobile li accende
-      uno per uno dal punto di chiamata — non tutti insieme cambiando qui. */
+  /** Attivo anche sotto i 768px. Il default `false` è PORTANTE e va lasciato
+      dov'è: la scelta si fa al punto di chiamata, uno alla volta.
+      La regola con cui è stata fatta (parità mobile, fase 2b, 2026-08-11): sopra
+      una FOTOGRAFIA la deriva aggiunge profondità e si accende; sopra un blocco
+      di TESTO non aggiunge niente e in una colonna da 390px rende la lettura
+      instabile, quindi resta spenta. Alla ricognizione del 2026-08-11 uno solo
+      dei 12 punti di chiamata passava `mobile` (l'hero di PageHero) e gli altri
+      11 erano fermi sul telefono; adesso lo passano sei — l'hero e le cinque
+      fotografie. I sei che non lo passano hanno la ragione scritta accanto, al
+      punto di chiamata, non qui.
+      Chi ribaltasse il default accenderebbe in blocco anche quei sei: le due
+      card di riepilogo, il numero-fantasma editoriale, la filigrana al 6% e la
+      colonna con dentro il player. Non è una scorciatoia, è un'altra decisione. */
   mobile?: boolean;
   as?: ElementType;
 };

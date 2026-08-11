@@ -48,13 +48,25 @@ export default function EditorialRows({
                 }`}
               >
                 {/* Cornice immagine: sipario che si apre dal lato visivo del capitolo
-                    (righe dispari invertite via order) + parallasse lenta all'interno. */}
+                    (righe dispari invertite via order) + parallasse lenta all'interno.
+                    `mobile`: la deriva vive dentro la cornice, sotto l'overscan
+                    1.1 — sul telefono si muove la fotografia, non il suo bordo.
+                    È l'unico posto di questa riga dove la parallasse aggiunge
+                    profondità invece di far ballare quello che si sta leggendo. */}
                 <MaskReveal
                   from={reversed ? "right" : "left"}
                   zoom={1.14}
                   className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line"
                   innerClassName="absolute inset-0"
                 >
+                  {/* `mobile` tolta dopo la misura: sotto sm la cornice è
+                      `aspect-[5/4]` in una colonna da 350px, quindi alta 306px,
+                      e `speed 0.1` vale ±1,4% — 7,8px di corsa totale su
+                      quattro righe per pagina, su tre rotte. Sotto la soglia
+                      con cui questa wave ha cancellato la cupola e i gradini:
+                      dodici ScrollTrigger scrubbati per un movimento invisibile
+                      sarebbe il conto peggiore della fase. Se un giorno la
+                      cornice si alza sotto sm, la si riaccende. */}
                   <Parallax
                     speed={0.1}
                     scale={1.1}
@@ -72,7 +84,14 @@ export default function EditorialRows({
                 </MaskReveal>
                 {/* Il Reveal resta solo sulla colonna testo: l'immagine ha già il suo ingresso. */}
                 <Reveal className={reversed ? "lg:pr-6" : "lg:pl-6"}>
-                  {/* Numero-fantasma: deriva più veloce del flusso, effetto collage editoriale. */}
+                  {/* Numero-fantasma: deriva più veloce del flusso, effetto collage editoriale.
+                      Niente `mobile`, e sono due ragioni che vanno nella stessa
+                      direzione: il collage esiste perché a due colonne il numero
+                      scorre CONTRO la fotografia accanto, e sotto lg quella
+                      fotografia gli sta sopra invece che a fianco — non c'è più
+                      nulla contro cui derivare. E l'ampiezza qui è in px: 52px
+                      di corsa su un numerale incollato al titolo, in colonna
+                      stretta, si legge come un titolo che non sta fermo. */}
                   <Parallax speed={-1} range={26} className="w-fit">
                     <span className="font-display text-5xl font-medium text-red/25">{r.n}</span>
                   </Parallax>

@@ -211,9 +211,15 @@ export default function OpenDomus() {
             è una richiesta da girare alla cliente.
             Il LiquidReveal resta esattamente dov'era (è la firma della
             sezione) e la deriva sale da 0.12 a 0.18: una banda larga ha
-            bisogno di più corsa per non sembrare incollata. */}
+            bisogno di più corsa per non sembrare incollata.
+            `mobile` senza abbassare lo 0.18, e non è una dimenticanza: la
+            corsa è in `yPercent`, cioè una frazione dell'altezza della
+            cornice. Sul telefono la banda torna verticale (aspect 4/5) ed è
+            più bassa dei 72svh del desktop, quindi la stessa cifra vale ~11px
+            per lato invece di ~16. Il numero si adatta da sé; scriverne un
+            secondo sarebbe una soglia in più da tenere allineata a mano. */}
         <Reveal className="mt-14 lg:mt-20">
-          <Parallax speed={0.18}>
+          <Parallax speed={0.18} mobile>
             <div className="relative rounded-[2rem] border border-line bg-cream p-2">
               <SegnoDomusCorner className="left-3.5 top-3.5 z-10" rotate={0} />
               <a
@@ -254,7 +260,14 @@ export default function OpenDomus() {
                   <Play className="h-6 w-6" />
                 </span>
               </a>
-              {/* card flottante — controderiva rispetto alla foto, nessun clip aggiunto */}
+              {/* card flottante — controderiva rispetto alla foto, nessun clip aggiunto.
+                  Niente `mobile`: è testo, e per giunta testo agganciato al
+                  bordo basso della cornice. Una controderiva lo staccherebbe
+                  da quel bordo di una ventina di px per volta, che è l'unica
+                  cosa che si vede quando le due corse sono opposte in colonna
+                  stretta. Spenta, la card viaggia dentro la deriva della
+                  cornice qui sopra: sul telefono l'insieme si muove come un
+                  pezzo solo, ed è la lettura giusta. */}
               <Parallax
                 speed={-0.08}
                 className="absolute -bottom-5 left-5 right-5 sm:left-auto sm:right-6 sm:w-64"

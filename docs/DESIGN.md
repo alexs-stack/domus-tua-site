@@ -103,7 +103,12 @@ Titoli display fluidi impostati inline con Tailwind, non come classi di scala fi
 - **`.reveal`** — ingresso allo scroll: da `opacity 0` + `translateY(2.5rem)` + `blur(6px)`
   a stato pieno quando riceve `.is-in`. Durata 0.9s, `ease-out-expo`.
 - **`.word-reveal`** — titoli editoriali parola-per-parola: ogni `.w` sale da `translateY(0.5em)`
-  con opacità, 0.85s. Supporta `startDelay` (vedi Hero).
+  con opacità, 0.85s. Supporta `startDelay`. La base è `display: inline` a ogni larghezza
+  (un titolo intero resta UN candidato LCP); la meccanica animata spezza il titolo in span
+  `inline-block`, quindi vive da 768px in su e, sotto, **solo** dove il punto di chiamata
+  passa `mobile` — cioè su un titolo che sulla sua rotta non può essere candidato LCP
+  (parità mobile, fase 2b). Il riferimento «vedi Hero» era scaduto: l'hero usa un altro
+  meccanismo, e dal 2026-08-11 il componente ha un solo punto di chiamata (`CareerApplication`).
 - **Scroll-driven:** il progresso di pagina vive nel filo rosso di `ThreadNav`
   (rail di navigazione desktop, GSAP scrub); la vecchia barra `.scroll-progress`
   e `.hero-parallax` sono state rimosse (2026-07).

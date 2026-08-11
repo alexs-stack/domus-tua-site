@@ -29,7 +29,9 @@
 // stato nascosto (fromTo solo via JS).
 //
 // Le foto delle persone arriveranno dal cliente: `image`/`imagePos` in
-// app/lib/team.ts. Senza foto, il ritratto è un monogramma tipografico.
+// app/lib/team.ts. Senza foto, il ritratto è un monogramma tipografico —
+// e sotto lg quel pannello smette anche di prenotare uno schermo intero
+// (la ragione per esteso sta nel markup, sull'altezza dell'unità).
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { SegnoDomus } from "./BrandMotif";
@@ -130,6 +132,17 @@ export default function TeamTrail() {
         if (!cond.motionOk) return;
 
         // ── Mobile/tablet con motion: colonna con scia scrubbata per pannello ──
+        // Le due soglie reggono anche adesso che i pannelli senza foto sono
+        // più corti dello schermo (~553px contro 664, a 390×664 — vedi la nota
+        // sull'altezza nel markup). I conti sulla geometria: "top 78%" scatta
+        // comunque appena il pannello entra da sotto, e "center 45%" chiude
+        // quando è TUTTO in campo (bordo alto a +22px invece di -33). La
+        // finestra di scrub perde il 10% (495px invece di 551) e due pannelli
+        // consecutivi continuano a non sovrapporsi: il successivo comincia
+        // ~57px di scroll DOPO che il precedente ha finito. Nessuna soglia da
+        // ritoccare — ancorare la fine al bordo alto le renderebbe uguali, ma
+        // toglierebbe al pannello con la foto la chiusura in centro schermo,
+        // che è esattamente ciò che quel formato si guadagna.
         if (!cond.desktop) {
           units.forEach((panel) => {
             const tl = gsap.timeline({
@@ -507,10 +520,27 @@ export default function TeamTrail() {
             const nameClass =
               "dt-trail relative z-10 font-display text-[clamp(2.8rem,9vw,7rem)] font-medium leading-none tracking-tight text-ink";
             return (
+              /* L'altezza del pannello la decide LA FOTO, non l'indice.
+                 Misurato (ago 2026, 390×664): il contenuto di un'unità sta in
+                 433px, e cinque persone su sei non hanno ritratto — cinque
+                 schermate intere prenotate per un arco vuoto con due iniziali,
+                 il tratto di nulla più lungo di tutta la home su un telefono.
+                 Sotto lg quei pannelli scendono all'altezza naturale: le 9vh di
+                 respiro restano, non è una compressione ma la fine di una
+                 prenotazione. Chi la foto ce l'ha si tiene lo schermo pieno: è
+                 il formato che la foto si guadagna, e oggi è quello di Raffaela.
+                 Sopra lg NULLA cambia — il corridoio 3D pretende che ogni unità
+                 sia uno schermo, e con [data-on] le unità sono comunque
+                 `inset: 0`; il `lg:` serve al desktop senza [data-on]
+                 (reduced-motion, JS spento), dove la colonna resta piena.
+                 Si annulla DA SOLO il giorno che il cliente consegna i ritratti:
+                 la condizione è `member.image`, non un indice né una data. */
               <li
                 key={member.name}
                 data-tt-unit
-                className={`dt-tt_unit relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden py-[9vh] ${
+                className={`dt-tt_unit relative flex ${
+                  member.image ? "min-h-[100svh]" : "lg:min-h-[100svh]"
+                } flex-col items-center justify-center overflow-hidden py-[9vh] ${
                   i % 2 === 0 ? "bg-cream" : "bg-cream-deep"
                 }`}
               >
@@ -569,9 +599,10 @@ export default function TeamTrail() {
                           /* Segnaposto in attesa delle foto del cliente: monogramma.
                              Misurato (ago 2026): in app/lib/team.ts la foto ce l'ha
                              SOLO Raffaela — cinque persone su sei sono un arco vuoto
-                             che occupa comunque un min-h-[100svh] intero. Sul telefono
-                             sono cinque schermate di niente da scorrere. Le Fasi 2/4
-                             faranno collassare quei pannelli all'altezza naturale;
+                             che occupava comunque un min-h-[100svh] intero. Sul
+                             telefono erano cinque schermate di niente da scorrere.
+                             Il collasso all'altezza naturale annunciato qui è FATTO
+                             (Fase 2b, sotto lg: vedi l'altezza dell'unità qui sopra);
                              finché le foto non arrivano, il monogramma resta. */
                           <div
                             data-tt-mono

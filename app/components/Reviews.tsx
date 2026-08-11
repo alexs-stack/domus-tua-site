@@ -202,7 +202,12 @@ export default function Reviews() {
             </Reveal>
           </div>
 
-          {/* Card riepilogo — deriva leggera contro la colonna titolo (solo desktop) */}
+          {/* Card riepilogo — deriva leggera contro la colonna titolo (solo desktop).
+              Stessa decisione della card di Authority, e per la stessa ragione:
+              «contro la colonna titolo» è la deriva, e sotto lg quella colonna
+              non è più a fianco. Qui c'è un motivo in più per lasciarla ferma —
+              dentro la card c'è una CTA verso Google, e un bersaglio che deriva
+              sotto il dito è un bersaglio più difficile da prendere. */}
           <Reveal delay={100}>
             <Parallax speed={-0.06}>
               <div className="rounded-[1.75rem] border border-line bg-cream p-6">

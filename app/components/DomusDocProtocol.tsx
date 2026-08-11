@@ -278,7 +278,14 @@ export default function DomusDocProtocol({
       <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <Reveal>
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
-            {/* watermark motif: lenta deriva parallax dentro la card (profondità) */}
+            {/* watermark motif: lenta deriva parallax dentro la card (profondità).
+                Niente `mobile`, e stavolta la ragione è aritmetica prima che di
+                gusto: speed -0.12 su un segno alto 160px vale ±2,7px, cioè meno
+                di un capello a 390. Sarebbe uno ScrollTrigger scrubbato in più
+                sul telefono per un movimento che nessuno può vedere — la
+                filigrana sta al 6% di opacità. La decorazione di questa card è
+                già desktop-only per scelta (il tralcio qui sotto è
+                `hidden lg:block`): questa riga tiene lo stesso confine. */}
             <div className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>
               <Parallax speed={-0.12}>
                 <SegnoDomus className="h-40 w-72" embrace={false} />
