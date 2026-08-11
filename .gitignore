@@ -72,3 +72,10 @@ eval-search-report.md
 
 # Materiale di studio temporaneo (mai importato, mai spedito)
 _refs/
+
+# Screenshot di riferimento della wave "parità mobile" (scripts/mobile-shots.ts,
+# scripts/mobile-filmstrip.ts). Sono ~90 MB di PNG a pagina intera: servono a
+# confrontare un prima e un dopo sulla propria macchina, non a stare in un
+# repository — e una fotografia committata invecchia in silenzio, come i report
+# delle eval qui sopra. Si rigenerano con un comando.
+/docs/shots/
