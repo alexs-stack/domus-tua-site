@@ -178,7 +178,7 @@ export default function Footer() {
       </div>
       {/* pb extra su mobile: lascia spazio alla MobileActionBar fissa (~64px + safe-area)
           così l'ultima riga legale non finisce mai sotto la barra "Valuta gratis". */}
-      <div className="relative mx-auto max-w-[1240px] px-5 pb-28 pt-16 sm:px-8 sm:py-20">
+      <div className="relative mx-auto max-w-[1240px] px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-16 sm:px-8 sm:py-20">
         <div ref={gridRef} className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
           {/* Brand */}
           <div>

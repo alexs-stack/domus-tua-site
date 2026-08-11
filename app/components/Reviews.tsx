@@ -272,13 +272,21 @@ export default function Reviews() {
             </Reveal>
             {/* Filtri categoria */}
             <Reveal className="mt-6">
+              {/* `tap-target` e non un `min-h-11` come le pill di PropertySearch: qui la
+                  pillola disegnata è alta 42 e deve restare 42 — allungarla di due pixel
+                  si vedrebbe, e la regola di questa fase è che il riquadro disegnato non
+                  si muove. Il ::before porta l'area a 44 sbordando un pixel per lato.
+                  Niente `tap-list`: il passo verticale quando le pill vanno a capo è
+                  42+8 = 50, quindi fra due bande da 44 restano 6px liberi; in orizzontale
+                  il ::before non si allarga (`inset-inline: 0`), e le pill affiancate non
+                  si contendono nessun pixel. */}
               <div className="flex flex-wrap gap-2">
                 {filters.map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
                     aria-pressed={filter === f}
-                    className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                    className={`tap-target rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                       filter === f
                         ? "border-red bg-red text-white hover:bg-red-dark"
                         : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"

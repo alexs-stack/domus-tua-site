@@ -59,9 +59,37 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // stesso contratto, deciso prima.
 const preloaderBootScript = `try{var h=document.documentElement;var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var deep=!!location.hash;if(deep){try{sessionStorage.setItem("dt-intro-seen","1")}catch(e){}}var pre=!deep&&m&&!sessionStorage.getItem("dt-intro-seen");if(pre){h.setAttribute("data-preloader","");window.__dtPreArmed=1;window.__dtPreFailsafe=setTimeout(function(){try{sessionStorage.setItem("dt-intro-seen","1")}catch(e){}h.removeAttribute("data-preloader")},matchMedia("(max-width: 767.98px)").matches?1800:2500)}if(m){h.setAttribute("data-hero-rest","");h.setAttribute("data-hero-intro","")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
 
+// `viewportFit: "cover"` — la riga che rende veri tutti gli `env(safe-area-inset-*)`
+// del progetto (parità mobile, fase 4).
+//
+// Senza `viewport-fit=cover` il browser tiene la pagina DENTRO l'area sicura e ogni
+// `env(safe-area-inset-*)` risolve a zero. Misurato: `bottom = 0px`, `top = 0px`.
+// Cioè MobileActionBar, il launcher della chat e la regola del footer in globals.css
+// scrivevano `calc(qualcosa + 0px)` da sempre: un'aritmetica che sembrava rispettare
+// la barra gesti dell'iPhone e non la rispettava, perché non c'era niente da
+// rispettare — la pagina finiva sopra di essa e basta.
+//
+// Da qui in avanti l'inset è un numero vero (34px su un iPhone col notch, 21 in
+// orizzontale) e TUTTO ciò che è ancorato al fondo si alza nello stesso istante.
+// Per questo l'attributo non arriva mai da solo: nello stesso commit ogni elemento
+// ancorato al bordo è stato ricontato uno per uno.
+//   · MobileActionBar   `calc(0.75rem + env(…))`  — l'inset compare UNA volta, i
+//     12px sono il margine gemello di `inset-x-3`, non un compenso allo zero: sale
+//     e basta, senza raddoppiare.
+//   · launcher chat      `calc(5.25rem + env(…))` — 84px è l'altezza della barra
+//     azioni più il suo margine; l'inset compare una volta anche qui, quindi i due
+//     salgono insieme e la distanza fra loro resta quella disegnata.
+//   · pannello chat      `bottom-0` + `padding-bottom: env(…)` — è un foglio a filo
+//     del bordo: giusto che il fondo lo tocchi, è il CONTENUTO a doversene stare
+//     fuori. Idioma corretto, invariato.
+//   · banner cookie      era `bottom-3` SENZA `env()`: l'unico che con l'inset vero
+//     sarebbe finito sotto la barra gesti. Corretto in CookieConsent.tsx.
+//   · footer `pb-28`     112px di padding contro un ingombro che passa da 64 a 98px:
+//     stringe, ma tiene. Non lo tocco (vedi nota in globals.css).
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: "#faf7f1",
 };
 
@@ -226,11 +254,24 @@ export default function RootLayout({
               (useDict). Il posizionamento è fixed, quindi la posizione nel
               tree non cambia nulla di visivo. */}
           <ChromeMount />
+          {/* IL BANNER COOKIE STA PRIMA DI #main, ED È UNA SCELTA DI TASTIERA.
+              Era in fondo al body, e ci poteva stare finché rubava il focus
+              all'idratazione: chi non vede lo schermo ci finiva dentro comunque.
+              Ora non lo ruba più (vedi CookieConsent.tsx), quindi la posizione nel
+              documento È l'ordine di tabulazione — e in fondo al body, su una home
+              lunga 46 schermate, i tre comandi del consenso sarebbero stati
+              l'ultima cosa raggiungibile con il Tab di una pagina intera.
+              Qui invece il primo Tab dopo lo skip-link li trova, che è esattamente
+              dove stanno per gli occhi. È `position: fixed`: nulla cambia a video,
+              e neppure nell'ordine di pittura — sopra ci sono solo `.grain`
+              (z-60, ancora prima nel body, quindi resta sotto) e il pannello chat
+              (z-60, ancora dopo), che comunque non può aprirsi mentre il banner è
+              a schermo perché il launcher si toglie di mezzo. */}
+          <CookieConsent />
           <div id="main" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
             {children}
           </div>
           <PreviewBadge checklist={checklist} />
-          <CookieConsent />
           <AssistantMount />
           <MobileActionBar />
         </LocaleProvider>

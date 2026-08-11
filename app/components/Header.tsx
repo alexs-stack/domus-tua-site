@@ -104,16 +104,43 @@ export default function Header() {
   // Ownership dello scroll-lock: start() SOLO se è stato questo menu a fare
   // stop() (mai al mount con open=false) e MAI mentre il sipario di
   // PageTransition copre (è lui il proprietario dello stop in quel momento).
+  //
+  // [2026-08-11] Il lock stava su `body` e non bloccava un bel niente
+  // (docs/mobile-parity.md §6.16, dubbio ora sciolto leggendo la regola CSS).
+  // L'overflow del body governa il viewport SOLO se la radice è `visible` su
+  // entrambi gli assi; `html { overflow-x: clip }` (globals.css:147) glielo
+  // toglie, quindi quella riga era una scrittura a vuoto. A bloccare davvero
+  // era il solo `getLenis()?.stop()`, che mette `lenis-stopped` su <html> e da
+  // lì `overflow: hidden`. Ma con prefers-reduced-motion Lenis viene distrutto
+  // e `getLenis()` torna null (SmoothScroll.tsx:135-150): su quel telefono il
+  // menu si apriva sopra una pagina che continuava a scorrere sotto il dito.
+  // Ora il lock è scritto dove l'overflow conta — su <html> — con la stessa
+  // forma già usata da Assistant e CaseQuickLook, e Lenis resta la seconda
+  // mandata dove esiste (le due serrature dicono la stessa cosa, non litigano).
   const menuLockedRef = useRef(false);
   useEffect(() => {
+    const root = document.documentElement;
     const release = () => {
       if (!menuLockedRef.current) return;
       menuLockedRef.current = false;
-      document.body.style.overflow = "";
+      root.style.overflowY = "";
+      root.style.scrollbarGutter = "";
       if (!isTransitionCovering()) getLenis()?.start();
     };
     if (open) {
-      document.body.style.overflow = "hidden";
+      // Prima il posto della barra di scorrimento, poi il blocco. Dove le barre
+      // occupano spazio (Windows/Linux, e il menu vive fino a 1279px: succede
+      // anche su un desktop stretto) farla sparire allarga il viewport e sposta
+      // TUTTO di quei ~15px, compresi gli elementi fixed — l'ICB è il viewport.
+      // `scrollbar-gutter: stable` glielo tiene occupato. Con le barre a
+      // sovrapposizione (telefoni, macOS) la misura è 0 e non si tocca nulla,
+      // così non si introduce un vuoto dove non c'era.
+      if (window.innerWidth - root.clientWidth > 0) root.style.scrollbarGutter = "stable";
+      // Solo l'asse Y: la scorciatoia `overflow` sovrascriverebbe anche
+      // l'`overflow-x: clip` della radice, e `hidden` — a differenza di `clip` —
+      // fa di <html> un contenitore di scorrimento orizzontale (un focus() su un
+      // nodo che sborda lo trascinerebbe di lato, senza tornare indietro).
+      root.style.overflowY = "hidden";
       // Con Lenis attivo lo scroll virtuale va fermato insieme a quello nativo,
       // altrimenti la pagina dietro il menu continua a "muoversi" con la rotella.
       getLenis()?.stop();
@@ -121,6 +148,9 @@ export default function Header() {
     } else {
       release();
     }
+    // Un solo punto di rilascio per tutte le vie d'uscita: Escape, il click su
+    // una voce, il passaggio del breakpoint xl (l'effetto matchMedia qui sotto)
+    // e lo smontaggio passano tutti da `open=false` o da questa cleanup.
     return release;
   }, [open]);
 
@@ -408,7 +438,18 @@ export default function Header() {
         // bg pieno, niente backdrop-blur: un blur full-viewport ricalcolato a
         // ogni frame del clip-path sarebbe il costo compositor peggiore
         // possibile proprio sull'interazione mobile più frequente.
-        className={`fixed inset-0 z-40 flex flex-col bg-cream px-6 pb-10 pt-28 xl:hidden ${
+        //
+        // `overflow-y-auto`: il pannello è `fixed inset-0` e otto voci in
+        // font-display 3xl più il blocco in coda chiedono ~900px — su un
+        // telefono basso, o su qualunque telefono in orizzontale, WhatsApp e la
+        // lingua finivano fuori schermo e IRRAGGIUNGIBILI (un elemento fixed non
+        // si raggiunge scorrendo la pagina). `data-lenis-prevent` qui sopra
+        // dichiarava già l'intenzione — "questo sottoalbero scorre per conto
+        // suo" — ma senza un contenitore di scorrimento non aveva niente da
+        // proteggere. Ora ce l'ha, e con la radice bloccata è l'unico modo per
+        // arrivare in fondo al menu. `overscroll-contain` perché la regola
+        // gemella in globals.css vale solo con Lenis attivo.
+        className={`fixed inset-0 z-40 flex flex-col overflow-y-auto overscroll-contain bg-cream px-6 pb-10 pt-28 xl:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >

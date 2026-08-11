@@ -90,10 +90,26 @@ export default function Atmosphere({
     { scope: rootRef }
   );
 
+  /* `inert` accanto ad `aria-hidden`, e non è un doppione (parità mobile,
+     Fase 4, 2026-08-11). Lighthouse dava `color-contrast` rosso proprio su
+     queste parole: 1,07 di rapporto sul crema. Ed è esattamente il punto —
+     sono texture, non testo, e WCAG 1.4.3 esenta la decorazione pura.
+     Scurirle per far diventare verde un audit vorrebbe dire cancellarle.
+     Ma `aria-hidden` da solo NON toglie il nodo dall'audit: la regola
+     color-contrast di axe-core nasce con `excludeHidden: false` e il suo
+     matcher non guarda mai aria-hidden. Guarda invece `inert`, e su un
+     sottoalbero inerte si ferma prima di misurare (letto in
+     node_modules/axe-core/axe.js, non dedotto — è il motivo per cui il
+     rosso era ancora lì nonostante l'aria-hidden ci fosse già dal primo
+     giorno). `inert` per giunta dice la cosa vera: qui dentro non c'è nulla
+     da leggere, nulla da mettere a fuoco, nulla da toccare. Non sottrae
+     niente a chi usa uno screen reader — aria-hidden l'aveva già sottratto —
+     né al dito, perché pointer-events-none c'era già. */
   return (
     <div
       ref={rootRef}
       aria-hidden
+      inert
       className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
     >
       {glow && (

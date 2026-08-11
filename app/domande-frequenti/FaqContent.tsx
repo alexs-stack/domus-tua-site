@@ -242,7 +242,15 @@ export default function FaqContent() {
               <Reveal>
                 <p className="eyebrow">{c.indexLabel}</p>
               </Reveal>
-              <ul className="mt-5 flex flex-col gap-2.5">
+              {/* `tap-list` + `tap-target` (idioma di casa, `@media (pointer: coarse)`):
+                  col dito queste voci erano alte quanto la loro riga — 350×20 e 207×20.
+                  Le due classi vanno SEMPRE insieme: il ::before porta l'area a 44px, e
+                  il row-gap sale da 10 a 24 perché il passo deve salire con lei. Con il
+                  passo vecchio due bande da 44 si sarebbero sovrapposte per 14px, e un
+                  tocco a metà fra due gruppi sarebbe finito su quello sbagliato — che è
+                  peggio di un bersaglio piccolo. Col mouse non cambia niente: le voci
+                  restano dove sono e la colonna non si allunga. */}
+              <ul className="tap-list mt-5 flex flex-col gap-2.5">
                 {groups.map((group, i) => {
                   const current = group.id === active;
                   return (
@@ -250,7 +258,7 @@ export default function FaqContent() {
                       <a
                         href={`#${group.id}`}
                         aria-current={current ? "true" : undefined}
-                        className={`group inline-flex items-baseline gap-3 font-display text-lg font-medium transition-colors duration-300 hover:text-red ${
+                        className={`tap-target group inline-flex items-baseline gap-3 font-display text-lg font-medium transition-colors duration-300 hover:text-red ${
                           current ? "text-red" : "text-ink"
                         }`}
                       >
@@ -279,17 +287,21 @@ export default function FaqContent() {
 
               <Reveal delay={280}>
                 <span aria-hidden className="hairline my-8 block" />
-                <div className="flex flex-col gap-3">
+                {/* Stessa coppia di classi delle voci qui sopra, e per la stessa ragione:
+                    sono due link di navigazione impilati, alti quanto la loro riga. Il
+                    passo passa da 12 a 24 di gap: con righe da 20px fa esattamente 44,
+                    cioè due bande che si toccano senza mai accavallarsi. */}
+                <div className="tap-list flex flex-col gap-3">
                   <Link
                     href="/open-domus"
-                    className="group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                    className="tap-target group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
                   >
                     {c.linkOpenDomus}
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                   <Link
                     href="/metodo"
-                    className="group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                    className="tap-target group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
                   >
                     {c.linkMetodo}
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

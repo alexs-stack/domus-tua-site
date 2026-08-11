@@ -1101,7 +1101,12 @@ export default function LavoraConNoiContent() {
               {c.faq.map((item, i) => (
                 <Reveal as="div" key={item.q} delay={i * 45}>
                   <details className="group border-b border-line py-5">
-                    <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left font-display text-lg font-medium leading-snug text-ink transition-colors duration-300 hover:text-red [&::-webkit-details-marker]:hidden">
+                    {/* Gemello del markup di components/FaqList.tsx: se cambia una classe
+                        qui, cambiala anche lì. `tap-target` porta la riga della domanda da
+                        32 a 44px di area toccabile lasciando intatto il riquadro disegnato;
+                        il passo fra due domande resta 73px (il `py-5` qui sopra), quindi
+                        niente `tap-list` — le bande non si sfiorano nemmeno. */}
+                    <summary className="tap-target flex cursor-pointer list-none items-start justify-between gap-6 text-left font-display text-lg font-medium leading-snug text-ink transition-colors duration-300 hover:text-red [&::-webkit-details-marker]:hidden">
                       {item.q}
                       <span
                         aria-hidden

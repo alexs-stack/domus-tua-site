@@ -27,7 +27,16 @@ export default function FaqList({
       {entries.map((item, i) => (
         <Reveal as="div" key={item.id} delay={startDelay + i * 45}>
           <details className="group border-b border-line py-5">
-            <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left font-display text-lg font-medium leading-snug text-ink transition-colors duration-300 hover:text-red [&::-webkit-details-marker]:hidden">
+            {/* `tap-target`: col dito la riga della domanda misurava 32px (350×32 a 390,
+                704×32 a 768) — dodici sotto la soglia, su ogni accordion del sito. Il
+                ::before invisibile porta l'area a 44px SENZA toccare il riquadro
+                disegnato: il titolo, il segno + e la riga di bordo restano dove sono.
+                Nessun `tap-list` qui, e vale la pena scrivere perché: il `py-5` del
+                <details> tiene il passo fra due domande a 73px, quindi due bande da 44
+                distano 29px l'una dall'altra. La banda non esce nemmeno dal proprio
+                <details> (sborda 6px nei 20 di padding): un tocco fra due domande non
+                può finire su quella sbagliata. */}
+            <summary className="tap-target flex cursor-pointer list-none items-start justify-between gap-6 text-left font-display text-lg font-medium leading-snug text-ink transition-colors duration-300 hover:text-red [&::-webkit-details-marker]:hidden">
               {item.q}
               <span
                 aria-hidden

@@ -34,6 +34,9 @@ test("il contrasto regge anche sul pannello dell'assistente", async ({ page, got
   const launcher = page.getByRole("button", { name: /assistente/i }).first();
   await expect(async () => {
     await launcher.click();
+    // Il pannello dell'assistente è un dialogo VERO — si apre perché lo si è
+    // chiesto, e intrappola il focus davvero. Resta `role="dialog"`: è il
+    // banner cookie ad aver smesso di fingersi modale (Fase 4), non questo.
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 2_000 });
   }).toPass({ timeout: 25_000 });
 
@@ -44,7 +47,7 @@ test("il contrasto regge anche sul pannello dell'assistente", async ({ page, got
 test("il banner cookie è accessibile", async ({ page }) => {
   await page.context().clearCookies();
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("dialog", { name: /cookie/i })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("region", { name: /cookie/i })).toBeVisible({ timeout: 15_000 });
 
   const violations = await a11yViolations(page);
   expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);

@@ -845,7 +845,14 @@ html[data-surfaceflow] main::before {
    finirebbe su quella che sta sopra — imprevedibile, peggio del bersaglio piccolo.
 
    Solo su puntatore grosso: col mouse 20px si centrano benissimo, e allargare
-   ovunque vorrebbe dire allungare il footer su desktop senza motivo. */
+   ovunque vorrebbe dire allungare il footer su desktop senza motivo.
+
+   DOVE ARRIVA (Fase 4 parità mobile): footer, hero, HorizonStory — e ora anche il
+   <summary> di ogni accordion (FaqList, la FAQ di /lavora-con-noi), l'indice di
+   /domande-frequenti e le pill dei filtri recensioni. Erano fuori perché nessuno
+   aveva misurato: la sonda scripts/mobile-ergonomics.ts li dava a 32, 20 e 42px.
+   `tap-list` serve SOLO dove il passo è più stretto di 44 — l'indice (10px di gap)
+   sì, gli accordion no, perché il `py-5` del <details> tiene già il passo a 73. */
 @media (pointer: coarse) {
   .tap-list {
     row-gap: 1.5rem;

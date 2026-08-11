@@ -95,7 +95,9 @@ const copy = {
     consentGate:
       "Il widget delle recensioni è di Trustindex: si carica solo dopo il tuo consenso ai cookie. Puoi leggerle subito su Google.",
     iframeTitle: "Recensioni Google verificate di Domus Tua (Trustindex)",
-    awardAria: "Top Agency 2026 su Wikicasa — apri il profilo di Domus Tua (scheda nuova)",
+    // Solo la CODA del nome accessibile: la testa è il testo visibile, e la
+    // compone il JSX. Vedi il commento sul link del sigillo, in fondo.
+    awardAriaHint: "apri il profilo di Domus Tua (scheda nuova)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
     claim: site.authority,
@@ -120,7 +122,7 @@ const copy = {
     consentGate:
       "The reviews widget is provided by Trustindex: it loads only after you accept cookies. You can read the reviews on Google right away.",
     iframeTitle: "Verified Google reviews of Domus Tua (Trustindex)",
-    awardAria: "Top Agency 2026 on Wikicasa — open the Domus Tua profile (new tab)",
+    awardAriaHint: "open the Domus Tua profile (new tab)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
     claim: "Among the most-reviewed independent real estate agencies in the province of Varese.",
@@ -145,7 +147,7 @@ const copy = {
     consentGate:
       "Le widget d'avis est fourni par Trustindex : il ne se charge qu'après votre consentement aux cookies. Vous pouvez lire les avis sur Google dès maintenant.",
     iframeTitle: "Avis Google vérifiés de Domus Tua (Trustindex)",
-    awardAria: "Top Agency 2026 sur Wikicasa — ouvrir le profil de Domus Tua (nouvel onglet)",
+    awardAriaHint: "ouvrir le profil de Domus Tua (nouvel onglet)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
     claim: "Parmi les agences immobilières indépendantes les plus commentées de la province de Varese.",
@@ -170,7 +172,7 @@ const copy = {
     consentGate:
       "Das Bewertungs-Widget stammt von Trustindex: Es lädt erst nach Ihrer Cookie-Einwilligung. Die Bewertungen können Sie sofort auf Google lesen.",
     iframeTitle: "Verifizierte Google-Bewertungen von Domus Tua (Trustindex)",
-    awardAria: "Top Agency 2026 auf Wikicasa — das Profil von Domus Tua öffnen (neuer Tab)",
+    awardAriaHint: "das Profil von Domus Tua öffnen (neuer Tab)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
     claim: "Eine der meistbewerteten unabhängigen Immobilienagenturen in der Provinz Varese.",
@@ -195,7 +197,7 @@ const copy = {
     consentGate:
       "El widget de reseñas es de Trustindex: se carga solo tras tu consentimiento de cookies. Puedes leer las reseñas en Google ahora mismo.",
     iframeTitle: "Reseñas de Google verificadas de Domus Tua (Trustindex)",
-    awardAria: "Top Agency 2026 en Wikicasa — abrir el perfil de Domus Tua (nueva pestaña)",
+    awardAriaHint: "abrir el perfil de Domus Tua (nueva pestaña)",
     awardLabel: "Top Agency 2026",
     awardSub: "Wikicasa",
     claim: "Entre las agencias inmobiliarias independientes con más reseñas de la provincia de Varese.",
@@ -710,11 +712,23 @@ export default function StarReviews() {
               Quando il cliente consegna la foto del certificato Top Agency 2026
               (docs/da-chiedere-alla-cliente.md §2.11) il sigillo diventa il fronte di un
               flip certificato/badge — lo slot è questo. */}
+          {/* IL NOME ACCESSIBILE NASCE DAL TESTO VISIBILE (parità mobile,
+              Fase 4, 2026-08-11). Lighthouse dava qui
+              `label-content-name-mismatch`: l'etichetta diceva «Top Agency
+              2026 SU Wikicasa — …» e quel «su» in mezzo bastava perché le
+              parole che si leggono non fossero più contenute nel nome che si
+              sente. Non è un cavillo di conformità: chi guida il sito a voce
+              pronuncia ciò che vede, e con quel «su» il comando non aggancia
+              più il link. Ora la testa dell'etichetta è composta con le
+              STESSE due costanti che stanno a schermo, quindi non può più
+              divergere quando il copy cambia — e la coda (dove va, e che si
+              apre altrove) resta, perché è l'informazione che il testo
+              visibile non dà. */}
           <a
             href="https://www.wikicasa.it/agenzia-immobiliare/domus-tua-178643"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={c.awardAria}
+            aria-label={`${c.awardLabel} ${c.awardSub} — ${c.awardAriaHint}`}
             className="dt-starrev_award group flex items-center gap-3"
           >
             <span className="block" style={{ animation: "dt-float 7s ease-in-out infinite" }}>
@@ -728,7 +742,14 @@ export default function StarReviews() {
               />
             </span>
             <span className="leading-tight">
-              <span className="block text-sm font-semibold text-ink">{c.awardLabel}</span>
+              {/* Lo spazio esplicito qui sotto non è una svista e non si vede:
+                  fra due span `block` il browser scarta lo spazio bianco, il
+                  disegno non si muove di un pixel. Serve nel DOM, perché il
+                  testo visibile lo si ricava concatenando i nodi di testo
+                  SENZA separatore: senza questo spazio si leggerebbe «Top
+                  Agency 2026Wikicasa» tutto attaccato, e l'etichetta qui sopra
+                  — che lo spazio ce l'ha — non lo conterrebbe più. */}
+              <span className="block text-sm font-semibold text-ink">{c.awardLabel}</span>{" "}
               <span className="link-draw block text-[0.8rem] text-stone">{c.awardSub}</span>
             </span>
           </a>
