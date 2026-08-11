@@ -62,20 +62,37 @@ export default function CookieConsent() {
   // Elemento a cui restituire il focus alla chiusura (chi aveva il focus prima del banner).
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
+  // La VISIBILITÀ non la decide più questo effect: la decide `html[data-consent]`,
+  // messo dall'inline script del layout prima del primo paint (vedi globals.css,
+  // blocco .dt-consent). Il markup è sempre nel documento. Qui si governa solo
+  // ciò che il CSS non può sapere: il focus, il registro degli overlay, e il caso
+  // in cui il banner debba aspettare la fine dell'intro.
   useEffect(() => {
-    if (readConsent() !== null) return; // scelta già fatta: nessun banner
+    const html = document.documentElement;
+    if (readConsent() !== null) {
+      // Scelta già fatta. Lo script pre-paint lo sapeva già e non ha messo
+      // l'attributo; questa è la rete per il caso in cui il cookie sia arrivato
+      // fra il paint e l'idratazione (un'altra scheda, un back/forward).
+      html.removeAttribute("data-consent");
+      return;
+    }
     // Mai sotto il preloader: il banner sposterebbe il focus su "Accetta" mentre
     // è coperto dall'overlay (Enter per saltare l'intro accetterebbe i cookie
-    // alla cieca). Appare al handoff dell'intro.
+    // alla cieca). Appare al handoff dell'intro — ed è per questo che lo script
+    // pre-paint NON mette l'attributo quando il sipario sta per partire.
     if (!isIntroRunning()) {
+      html.setAttribute("data-consent", ""); // idempotente: lo script l'ha già messo
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShow(true);
       return;
     }
-    const onIntroDone = () => setShow(true);
+    const onIntroDone = () => {
+      html.setAttribute("data-consent", "");
+      setShow(true);
+    };
     window.addEventListener(INTRO_EVENT, onIntroDone, { once: true });
     // Safety: se l'evento va perso, il banner appare comunque.
-    const safety = window.setTimeout(() => setShow(true), 6000);
+    const safety = window.setTimeout(onIntroDone, 6000);
     return () => {
       window.removeEventListener(INTRO_EVENT, onIntroDone);
       window.clearTimeout(safety);
@@ -93,6 +110,8 @@ export default function CookieConsent() {
   const choose = useCallback((v: ConsentValue) => {
     // Scrive il cookie E notifica i gate montati (es. Trustindex in Reviews): niente reload.
     writeConsent(v);
+    // L'attributo è ciò che rende visibile il pannello: toglierlo è la chiusura.
+    document.documentElement.removeAttribute("data-consent");
     setShow(false);
     // Ripristina il focus a chi lo aveva prima (o al body come fallback sicuro).
     const target = returnFocusRef.current;
@@ -133,8 +152,12 @@ export default function CookieConsent() {
     return () => setOverlay("cookie-consent", false);
   }, [show]);
 
-  if (!show) return null;
-
+  // Nessun `if (!show) return null`: il pannello sta SEMPRE nel documento e a
+  // nasconderlo è `.dt-consent { display: none }` finché l'attributo non arriva.
+  // È la differenza fra un elemento che dipinge col resto della pagina e uno che
+  // aspetta l'idratazione — cioè fra 1,4s e 5,6s di LCP su rete lenta.
+  // `display: none` lo toglie anche dall'albero di accessibilità e dal giro del
+  // Tab, quindi nascosto non è raggiungibile: è la stessa garanzia di prima.
   return (
     <div
       ref={panelRef}
@@ -143,7 +166,7 @@ export default function CookieConsent() {
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-desc"
       onKeyDown={onKeyDown}
-      className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-paper/95 p-4 shadow-[0_30px_70px_-30px_rgba(26,24,22,0.5)] backdrop-blur-xl sm:inset-x-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:p-5"
+      className="dt-consent fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-paper/95 p-4 shadow-[0_30px_70px_-30px_rgba(26,24,22,0.5)] backdrop-blur-xl sm:inset-x-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:p-5"
     >
       <h2 id="cookie-consent-title" className="sr-only">
         {c.aria}

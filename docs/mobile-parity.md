@@ -715,14 +715,53 @@ l'intro. È l'unico intervento che agisce sull'elemento effettivamente misurato
 (`p#cookie-consent-desc`, §1.2), sta dentro il mandato, e senza di esso la misura di
 laboratorio non dice la verità su nulla — né sull'intro né sul resto.
 
-Conseguenze operative:
+**Fatto** (primo commit della Fase 2). Il pannello è ora nell'HTML servito e a
+deciderne la visibilità è `html[data-consent]`, messo dall'inline script del layout
+prima del primo paint — lo stesso meccanismo del sipario, che il repository già usa
+e già documenta. Lo script non lo mette quando il sipario sta per partire: lì il
+banner ruberebbe il focus sotto l'overlay, e ci pensa `CookieConsent` al handoff.
 
-- diventa **il primo commit della Fase 2**, non un accessorio della Fase 3: tutto
-  ciò che si misura dopo va confrontato con una baseline pulita;
-- va rimisurato subito dopo, isolato, così si sa quanto valeva davvero il banner;
-- **non basterà** a portare 0,64 → 0,90. Il resto del divario resta dov'è
-  (291 kB di font, ~550 kB di layer motion) e resta fuori mandato. Se dopo la Fase 3
-  il budget è ancora rosso, torno con i numeri: non rilasso l'asserzione.
+### 9.1.1 Il risultato, e la sorpresa
+
+Misurato con throttling **applicato** (CDP: 1,6 Mbps, RTT 150 ms, CPU ×4), stesso
+probe sui due build, `PerformanceObserver` sull'entry `largest-contentful-paint`:
+
+| | FCP | candidati LCP | **LCP finale** |
+|---|--:|---|--:|
+| Prima | 1736 ms | `span` @1736, poi `p#cookie-consent-desc` @4748 | **4748 ms** |
+| Dopo | 1740 ms | solo `p#cookie-consent-desc` @1740 | **1740 ms** |
+
+**Tre secondi in meno, e sotto il budget.** Per una persona vera il banner adesso
+compare con la pagina invece che quattro secondi dopo — che è anche il
+comportamento giusto per un avviso di consenso, non solo un numero migliore.
+
+E qui la sorpresa, che cambia come va giudicata tutta la wave:
+
+| | prima | dopo |
+|---|--:|--:|
+| LCP **misurato** (throttling applicato) | 4.748 ms | **1.740 ms** |
+| LCP **Lighthouse** (throttling simulato) | 5.668 ms | 5.212 ms |
+| TBT Lighthouse | 572 ms | **274 ms** ✓ |
+| performance Lighthouse | 0,64 | 0,74 |
+
+Il TBT rientra nel budget e il punteggio sale di dieci punti, ma **l'LCP simulato
+non registra i tre secondi**. Non è un errore di misura: Lighthouse non cronometra
+la pagina, la *modella* (Lantern), e nello stesso report `observedLargestContentfulPaint`
+vale 411 ms contro i 5.333 ms simulati. Il modello è dominato dal grafo di rete e dal
+CSS bloccante, non da quando l'elemento dipinge davvero. `docs/performance.md:109-111`
+lo dice già: «i tempi di rete nel report sono **osservati**, le metriche invece sono
+**simulate**; confrontare le due colonne porta fuori strada».
+
+**Conseguenza da mettere sul tavolo**: l'asserzione `largest-contentful-paint ≤ 2500`
+di `lighthouserc.js` non è in grado di accorgersi di questa correzione. Con il
+throttling simulato quel numero è governato dai 291 kB di font e dai ~550 kB di
+layer motion — cioè dalle due strade dichiarate fuori mandato — e resterà rosso
+qualunque cosa faccia questa wave. **Il throttling applicato invece la vede.**
+
+Non tocco `lighthouserc.js`: la soglia resta scritta com'è. Ma da qui in avanti
+riporto **entrambe** le colonne, e per giudicare l'intro userò quella misurata.
+La scelta fra le tre opzioni di §5.5 resta tua, con un dato in più: l'opzione 1 è
+fatta, ha funzionato per gli utenti, e non ha spostato il cancello.
 
 ### 9.2 Il fermo-immagine dell'hero: **via su touch, resta su rotella**
 

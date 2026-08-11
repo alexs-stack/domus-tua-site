@@ -20,7 +20,15 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // Senza JS l'attributo non esiste mai → overlay display:none (globals.css).
 // Failsafe a 2,5s: se il bundle non idrata mai, l'attributo va rimosso comunque. Era 8s, e
 // su una connessione lenta teneva il sipario (e quindi l'LCP) fino a 8 secondi buoni.
-const preloaderBootScript = `try{var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;if(!sessionStorage.getItem("dt-intro-seen")&&m&&matchMedia("(min-width: 768px)").matches){document.documentElement.setAttribute("data-preloader","");window.__dtPreFailsafe=setTimeout(function(){document.documentElement.removeAttribute("data-preloader")},2500)}if(m){document.documentElement.setAttribute("data-hero-rest","");document.documentElement.setAttribute("data-hero-intro","")}}catch(e){}`;
+// Il banner cookie viaggia sullo stesso meccanismo, e per una ragione misurata:
+// era l'elemento LCP della home. Montandosi solo all'idratazione dipingeva a
+// 5,6s su rete lenta — 5,2 dei quali di puro "render delay", contro 453ms di
+// TTFB. Non arrivava tardi: ESISTEVA tardi. Ora il markup è nell'HTML e questo
+// script decide prima del paint se mostrarlo, esattamente come per il sipario.
+// Non si mostra sotto il sipario: lì sposterebbe il focus su "Accetta" mentre
+// è coperto (Invio per saltare l'intro accetterebbe i cookie alla cieca), e ci
+// pensa CookieConsent a metterlo al handoff.
+const preloaderBootScript = `try{var h=document.documentElement;var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var pre=!sessionStorage.getItem("dt-intro-seen")&&m&&matchMedia("(min-width: 768px)").matches;if(pre){h.setAttribute("data-preloader","");window.__dtPreFailsafe=setTimeout(function(){h.removeAttribute("data-preloader")},2500)}if(m){h.setAttribute("data-hero-rest","");h.setAttribute("data-hero-intro","")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
 
 export const viewport: Viewport = {
   width: "device-width",

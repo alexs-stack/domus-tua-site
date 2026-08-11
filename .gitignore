@@ -79,3 +79,7 @@ _refs/
 # repository — e una fotografia committata invecchia in silenzio, come i report
 # delle eval qui sopra. Si rigenerano con un comando.
 /docs/shots/
+
+# Sonde usa-e-getta della wave "parità mobile" (probe di misura scritti in
+# radice per poter risolvere @playwright/test, e cancellati subito dopo).
+.dt-*.mjs

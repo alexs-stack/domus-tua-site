@@ -1485,6 +1485,21 @@ html[data-surfaceflow] .dt-toneshift {
    senza JS o con reduced-motion nessuno di questi esiste.
    ============================================================ */
 
+/* ---------- Banner consenso cookie ----------
+   Stessa meccanica del sipario qui sotto, e per lo stesso motivo: il markup
+   sta nell'HTML e a decidere se mostrarlo è l'inline script del layout, PRIMA
+   del primo paint. Prima il banner si montava all'idratazione ed era
+   l'elemento LCP della home — 5,6s di cui 5,2 di render delay.
+   Senza JS l'attributo non esiste mai, quindi il banner non compare: giusto
+   così, perché senza JS non si può nemmeno registrare la scelta (e nessuno
+   script di terze parti parte, che è ciò che il consenso governa). */
+.dt-consent {
+  display: none;
+}
+html[data-consent] .dt-consent {
+  display: block;
+}
+
 /* ---------- Preloader "Segno Domus" ----------
    L'inline script nel layout marca <html data-preloader> PRIMA del primo
    paint (solo prima visita di sessione + motion ok): niente flash di
