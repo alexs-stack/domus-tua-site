@@ -3,6 +3,7 @@
 // eccezione su campi mancanti. Se il feed reale userà nomi diversi, si adatta qui la mappatura.
 
 import { normalizeDescription } from "./description";
+import { redactParagraphs, redactPrivateText } from "./privacy";
 import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
 import { splitDescription } from "./descriptionSplit";
 import { getListingOverride } from "./overrides.data";
@@ -194,10 +195,19 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // Override manuale approvato: è la fonte con priorità massima (vedi ./overrides.ts).
   const override = getListingOverride(raw.codice);
 
+  // Privacy-first: l'indirizzo civico si pubblica SOLO se un override lo autorizza. È una policy,
+  // decisa qui una volta e applicata a ogni output (testo compreso), non un dettaglio di rendering.
+  const showAddress = override?.mostraIndirizzo === true;
+
   // Descrizione: una sola normalizzazione, riusata da paragrafi, estratto ed estrazione fatti.
   // Se il cliente ci ha fornito un testo approvato, quello sostituisce integralmente il feed.
   const description = normalizeDescription(raw.descrizione);
-  const paragraphs = override?.descrizione ?? description.paragraphs;
+  const sourceParagraphs = override?.descrizione ?? description.paragraphs;
+
+  // REDAZIONE PRIVACY DETERMINISTICA (app/lib/realsmart/privacy.ts). Applicata PRIMA di estrarre
+  // fatti/estratto, così indirizzi civici (se showAddress=false) e telefoni non escono da nessun
+  // output pubblico. Il comune sostituisce l'indirizzo redatto, preservando il contesto di zona.
+  const paragraphs = redactParagraphs(sourceParagraphs, { showAddress, comune: town }).paragraphs;
 
   // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
   // Gli override manuali approvati si innestano davanti a tutto in ./overrides.ts.
@@ -243,7 +253,8 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     structuredFactLines: split.structuredFactLines.map((l) => l.line),
     keptFactLines: split.keptFactLines,
     contentPreservation: split.contentPreservation,
-    excerpt: description.excerpt,
+    // Estratto (card, meta description, JSON-LD): redatto con la stessa policy dei paragrafi.
+    excerpt: redactPrivateText(description.excerpt, { showAddress, comune: town }).text,
     price,
     priceLabel,
     contract,
@@ -252,7 +263,8 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     province,
     address: addressRaw,
     // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
-    showAddress: override?.mostraIndirizzo === true,
+    // `showAddress` è la const decisa una volta sopra (riusata dalla redazione dei paragrafi/estratto).
+    showAddress,
     docVerified,
     sqm: toNumber(raw.mq),
     rooms: toNumber(raw.locali),
