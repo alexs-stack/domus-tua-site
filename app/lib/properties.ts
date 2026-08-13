@@ -247,6 +247,39 @@ export const properties: Property[] = [
   },
 ];
 
+/**
+ * Residenziale o no. Un negozio, un ufficio, un capannone, un terreno NON sono alloggi:
+ * per loro il lessico "camere/bagni" è sbagliato (le camere da letto) o rumore in vetrina
+ * (i bagni). L'unico segnale di categoria nel modello è `type`, già bucketizzato dal feed
+ * in toProperty.ts — questa funzione lo interpreta senza reinventare regole sul testo.
+ */
+export function isNonResidential(type: Property["type"]): boolean {
+  return type === "Commerciale" || type === "Terreno";
+}
+
+/**
+ * Quali delle quattro specifiche "a colpo d'occhio" (superficie/locali/camere/bagni) ha
+ * senso mostrare per la tipologia, su card e striscia della scheda.
+ *
+ * Modello allineato a come i portali (Immobiliare.it, Idealista) trattano il commerciale:
+ *  • superficie: vale sempre;
+ *  • terreno: solo la superficie (niente locali/camere/bagni);
+ *  • commerciale (negozio/ufficio/…): superficie, vani/locali e i SERVIZI (bagni) — sì,
+ *    perché un bagno è un dato reale d'uso; NO camere, che sono lessico da abitazione;
+ *  • residenziale: tutte e quattro.
+ * Le fonti dati non cambiano: cambia solo cosa si rende.
+ */
+export function specVisibility(type: Property["type"]): {
+  sqm: boolean;
+  rooms: boolean;
+  beds: boolean;
+  baths: boolean;
+} {
+  if (type === "Terreno") return { sqm: true, rooms: false, beds: false, baths: false };
+  if (type === "Commerciale") return { sqm: true, rooms: true, beds: false, baths: true };
+  return { sqm: true, rooms: true, beds: true, baths: true };
+}
+
 export function getProperty(slug: string) {
   return properties.find((p) => p.slug === slug);
 }

@@ -4,7 +4,8 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyDetail from "./PropertyDetail";
-import { getVisibleListings, getVisibleListing } from "../../lib/listings";
+import { getVisibleListings, getVisibleListing, onlyAvailable } from "../../lib/listings";
+import { isNonResidential, type Property } from "../../lib/properties";
 import { site, siteUrl, jsonLdScript } from "../../lib/site";
 
 export async function generateStaticParams() {
@@ -56,10 +57,19 @@ export default async function PropertyPage({
   const p = await getVisibleListing(slug);
   if (!p) notFound();
 
+  // "Altre case da scoprire": suggeriamo solo immobili ANCORA DISPONIBILI — proporre un
+  // venduto a chi cerca casa è un vicolo cieco (era il bug: getVisibleListings include i
+  // venduti di proposito, per la vetrina "venduto", ma qui non hanno senso). A parità,
+  // preferiamo la stessa zona e la stessa famiglia (residenziale vs commerciale/terreno):
+  // su una scheda di negozio non ha senso spingere una villa, e viceversa.
   const all = await getVisibleListings();
+  const pool = onlyAvailable(all).filter((r) => r.slug !== p.slug);
+  const sameFamily = (r: Property) => isNonResidential(r.type) === isNonResidential(p.type);
   const related = [
-    ...all.filter((r) => r.slug !== p.slug && r.zone === p.zone),
-    ...all.filter((r) => r.slug !== p.slug && r.zone !== p.zone),
+    ...pool.filter((r) => r.zone === p.zone && sameFamily(r)),
+    ...pool.filter((r) => r.zone === p.zone && !sameFamily(r)),
+    ...pool.filter((r) => r.zone !== p.zone && sameFamily(r)),
+    ...pool.filter((r) => r.zone !== p.zone && !sameFamily(r)),
   ].slice(0, 3);
 
   // Dati strutturati per l'immobile (schema.org).

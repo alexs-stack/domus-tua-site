@@ -597,10 +597,20 @@ export function factsFromFields(input: FieldFactsInput): PropertyFact[] {
     const c = input.contratto.toLowerCase() === "affitto" ? "Affitto" : "Vendita";
     facts.push(fieldFact("contratto", c));
   }
+  // Residenziale o no. Le keyword rispecchiano quelle di toType() (app/lib/realsmart/
+  // toProperty.ts): un negozio/ufficio non ha "camere" (le camere DA LETTO), lessico da
+  // abitazione — il campo grezzo può riportare un valore, ma non lo pubblichiamo come fatto.
+  // I "bagni", invece, restano: sul commerciale sono i SERVIZI, un dato d'uso reale (così li
+  // trattano i portali). Un terreno non ha né locali, né camere, né bagni. La superficie vale
+  // per tutte le tipologie.
+  const tipologia = input.tipologia ?? "";
+  const isLand = /terreno/i.test(tipologia);
+  const isCommercial = /negozio|ufficio|capannone|commerciale|laboratorio/i.test(tipologia);
+  const nonResidential = isLand || isCommercial;
   if (input.mq && input.mq > 0) facts.push(fieldFact("superficie", `${input.mq} m²`));
-  if (input.locali && input.locali > 0) facts.push(fieldFact("locali", String(input.locali)));
-  if (input.camere && input.camere > 0) facts.push(fieldFact("camere", String(input.camere)));
-  if (input.bagni && input.bagni > 0) facts.push(fieldFact("bagni", String(input.bagni)));
+  if (input.locali && input.locali > 0 && !isLand) facts.push(fieldFact("locali", String(input.locali)));
+  if (input.camere && input.camere > 0 && !nonResidential) facts.push(fieldFact("camere", String(input.camere)));
+  if (input.bagni && input.bagni > 0 && !isLand) facts.push(fieldFact("bagni", String(input.bagni)));
   const floor = floorLabel(input.piano);
   if (floor) facts.push(fieldFact("piano", floor));
   if (input.classeEnergetica) {
@@ -617,7 +627,7 @@ export function factsFromFields(input: FieldFactsInput): PropertyFact[] {
   }
   // Sui TERRENI il gestionale usa <Giardino>/<mq_giardino> per l'area del lotto: pubblicarli
   // significherebbe chiamare "giardino privato" un terreno agricolo e ripetere la superficie.
-  const isLand = /terreno/i.test(input.tipologia ?? "");
+  // (`isLand` è già stato calcolato sopra, tra i dati principali.)
   if (d.giardino && !isLand) {
     facts.push(fieldFact("giardino", d.tipoGiardino?.toLowerCase()));
   }

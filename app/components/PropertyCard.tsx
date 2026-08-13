@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight, Bed, Ruler, Rooms, Check } from "./Icons";
+import { ArrowUpRight, Bed, Bath, Ruler, Rooms, Check } from "./Icons";
 import Badge from "./primitives/Badge";
 import { SegnoDomusCorner } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import type { GridProperty } from "../lib/properties";
+import { specVisibility, type GridProperty } from "../lib/properties";
 
 // Etichette statiche del componente (CTA + badge). I VALORI dei dati immobile
 // (zona, prezzo, m², badge dal gestionale) NON vengono tradotti: arrivano da RealSmart.
@@ -76,6 +76,9 @@ export default function PropertyCard({
   const { locale } = useLocale();
   const c = copy[locale];
   const statusLabel = p.status === "Affitto" ? c.forRent : c.forSale;
+  // Un negozio/ufficio non ha "camere", un terreno nemmeno "locali": la vetrina non deve
+  // mostrare specifiche che non appartengono alla tipologia (vedi specVisibility).
+  const spec = specVisibility(p.type);
   const [copied, setCopied] = useState(false);
 
   // Mostriamo al massimo 2 badge sull'immagine, dando priorità a quelli "forti"
@@ -210,24 +213,24 @@ export default function PropertyCard({
         </h3>
 
         <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.82rem] text-stone">
-          {p.sqm !== "—" && (
+          {spec.sqm && p.sqm !== "—" && (
             <span className="tnum inline-flex items-center gap-1.5">
               <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
             </span>
           )}
-          {p.rooms !== "—" && (
+          {spec.rooms && p.rooms !== "—" && (
             <span className="tnum inline-flex items-center gap-1.5">
               <Rooms className="h-4 w-4 text-graphite" /> {p.rooms}
             </span>
           )}
-          {p.beds !== "—" && (
+          {spec.beds && p.beds !== "—" && (
             <span className="tnum inline-flex items-center gap-1.5">
               <Bed className="h-4 w-4 text-graphite" /> {p.beds}
             </span>
           )}
-          {p.baths !== "—" && (
+          {spec.baths && p.baths !== "—" && (
             <span className="tnum inline-flex items-center gap-1.5">
-              <span className="h-1 w-1 rounded-full bg-graphite/50" aria-hidden /> {p.baths}
+              <Bath className="h-4 w-4 text-graphite" /> {p.baths}
             </span>
           )}
         </div>

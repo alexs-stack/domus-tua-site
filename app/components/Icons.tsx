@@ -86,6 +86,17 @@ export const Bed = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const Bath = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    {/* Vasca: rubinetto in alto a sinistra, bordo, catino e due piedini. */}
+    <path d="M4 12V5.6A1.6 1.6 0 0 1 6.7 4.5L8.7 6.5" />
+    <path d="M9.2 5.9 7.9 7.2" />
+    <path d="M2.6 12h18.8" />
+    <path d="M4.6 12v3a3.4 3.4 0 0 0 3.4 3.4h8a3.4 3.4 0 0 0 3.4-3.4v-3" />
+    <path d="M7 18.6 6.2 20.4M17 18.6 17.8 20.4" />
+  </svg>
+);
+
 export const Ruler = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="3" y="8" width="18" height="8" rx="1.5" transform="rotate(0 12 12)" />

@@ -17,7 +17,7 @@ import { Cta } from "../../components/primitives/Cta";
 import { site } from "../../lib/site";
 import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
-import type { Property } from "../../lib/properties";
+import { specVisibility, type Property } from "../../lib/properties";
 import { useLocale } from "../../components/i18n/LocaleProvider";
 
 const copy = {
@@ -279,13 +279,16 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   // dentro il suo stesso rigo. Si toglie solo in questa vista: la sorgente non cambia.
   const bare = (value: string) => value.replace(/\s+(?:local[ei]|camere?|bagn[oi])$/i, "");
 
+  // Le specifiche non applicabili alla tipologia si tolgono a monte del filtro "—":
+  // un commerciale non ha camere/bagni, un terreno nemmeno i locali (vedi specVisibility).
+  const spec = specVisibility(p.type);
   const specs = [
-    { factKey: "superficie", label: c.specSqm, value: p.sqm },
-    { factKey: "locali", label: c.specRooms, value: p.rooms },
-    { factKey: "camere", label: c.specBeds, value: p.beds },
-    { factKey: "bagni", label: c.specBaths, value: p.baths },
+    { factKey: "superficie", label: c.specSqm, value: p.sqm, show: spec.sqm },
+    { factKey: "locali", label: c.specRooms, value: p.rooms, show: spec.rooms },
+    { factKey: "camere", label: c.specBeds, value: p.beds, show: spec.beds },
+    { factKey: "bagni", label: c.specBaths, value: p.baths, show: spec.baths },
   ]
-    .filter((s) => s.value && s.value !== "—")
+    .filter((s) => s.show && s.value && s.value !== "—")
     .map((s) => ({ ...s, value: bare(s.value) }));
 
   // Un fatto, un posto solo. I quattro numeri della striscia stanno sopra la piega, in
