@@ -5,6 +5,7 @@ import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyDetail from "./PropertyDetail";
 import { getVisibleListings, getVisibleListing } from "../../lib/listings";
+import { relatedListings } from "../../lib/related";
 import { site, siteUrl, jsonLdScript } from "../../lib/site";
 
 export async function generateStaticParams() {
@@ -56,11 +57,11 @@ export default async function PropertyPage({
   const p = await getVisibleListing(slug);
   if (!p) notFound();
 
+  // Correlati: SOLO disponibili, mai l'immobile corrente, stessa zona prima. La regola vive in
+  // app/lib/related.ts — qui non si ripete lo stato "venduto". Prima questa lista pescava dal
+  // feed visibile venduti inclusi, e una scheda disponibile poteva suggerire case già vendute.
   const all = await getVisibleListings();
-  const related = [
-    ...all.filter((r) => r.slug !== p.slug && r.zone === p.zone),
-    ...all.filter((r) => r.slug !== p.slug && r.zone !== p.zone),
-  ].slice(0, 3);
+  const related = relatedListings(all, p);
 
   // Dati strutturati per l'immobile (schema.org).
   //

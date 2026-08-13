@@ -6,6 +6,7 @@ import PropertyGallery from "../../components/PropertyGallery";
 import PropertyFacts from "./PropertyFacts";
 import ListingCopy from "./ListingCopy";
 import { formatListingDescription } from "../../lib/listingCopy/format";
+import { isAvailable } from "../../lib/availability";
 import PropertyCard from "../../components/PropertyCard";
 import ListingsGrid from "../../components/ListingsGrid";
 import Badge from "../../components/primitives/Badge";
@@ -378,7 +379,12 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   );
 
   // Related: solo altre case fornite via props (stessa sorgente). Mai fetch/invenzione.
-  const relatedItems = (related ?? []).filter((r) => r.slug !== p.slug).slice(0, 3);
+  // Difesa in profondità: anche se a monte arrivasse un venduto, qui non viene mai reso —
+  // stesso predicato di disponibilità della selezione (app/lib/related.ts), niente stato
+  // "venduto" duplicato a mano.
+  const relatedItems = (related ?? [])
+    .filter((r) => r.slug !== p.slug && isAvailable(r))
+    .slice(0, 3);
 
   // WhatsApp precompilato con titolo + riferimento immobile → conversazione già in contesto.
   const waTalk = buildWhatsAppUrl(
@@ -637,7 +643,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
 
       {/* Related properties strip: solo se fornite via props (stessa sorgente). */}
       {relatedItems.length > 0 && (
-        <section className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
+        <section data-testid="related-listings" className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
           <SegnoDomusDivider className="mb-12" />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
