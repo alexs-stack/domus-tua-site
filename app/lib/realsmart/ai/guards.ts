@@ -13,11 +13,24 @@
 //    (comune) che non compaiono nei campi sorgente = inventati.
 
 // ── Rilevatori privacy (indirizzo civico, telefono) ─────────────────────────
-const STREET_KEYWORD =
-  "(?:via|viale|v\\.le|piazza(?:le)?|p\\.zza|largo|vicolo|corso|c\\.so|strad[ae]|str\\.|localit[aà]|loc\\.|frazione|fraz\\.|borgo|contrada)";
+// La parola-chiave stradale è case-insensitive, ma SENZA il gruppo inline `(?i:…)`: quel
+// modificatore in linea non è supportato su tutti i runtime V8/Node (in CI/produzione fallisce con
+// "Invalid regular expression: Invalid group") e va evitato in codice che deve caricarsi ovunque.
+// Rendiamo ogni lettera case-insensitive con una classe a due casi, così il resto del pattern resta
+// case-sensitive e `\p{Lu}` (iniziale maiuscola = nome proprio) conta davvero.
+const anyCase = (s: string): string =>
+  s.replace(/[a-zà-ÿ]/gi, (c) => `[${c.toLowerCase()}${c.toUpperCase()}]`);
+
+const STREET_WORDS = [
+  "via", "viale", "v\\.le", "piazza(?:le)?", "p\\.zza", "largo", "vicolo", "corso",
+  "c\\.so", "strada", "strade", "str\\.", "localita", "località", "loc\\.",
+  "frazione", "fraz\\.", "borgo", "contrada",
+];
+const STREET_KEYWORD = `(?:${STREET_WORDS.map(anyCase).join("|")})`;
+const CIVIC_TOKEN = `(?:${anyCase("n")}(?:\\.|${anyCase("umero")})?|${anyCase("civico")})`;
 
 const CIVIC_ADDRESS_RE = new RegExp(
-  `\\b(?i:${STREET_KEYWORD})\\s+\\p{Lu}[\\p{L}'’.]*(?:\\s+\\p{L}[\\p{L}'’.]*){0,3}\\s*,?\\s*(?:(?i:n(?:\\.|umero)?|civico)\\s*)?\\d+[A-Za-z]?\\b`,
+  `\\b${STREET_KEYWORD}\\s+\\p{Lu}[\\p{L}'’.]*(?:\\s+\\p{L}[\\p{L}'’.]*){0,3}\\s*,?\\s*(?:${CIVIC_TOKEN}\\s*)?\\d+[A-Za-z]?\\b`,
   "gu",
 );
 
