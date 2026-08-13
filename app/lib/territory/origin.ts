@@ -27,6 +27,17 @@ export interface ResolvedOrigin {
   authorization?: TerritoryOriginAuthorization;
 }
 
+/** Campi ORIGINE di un record/profilo, derivati dall'origine risolta (coord server-only + precisione). */
+export function originFields(origin: ResolvedOrigin) {
+  return {
+    origin: origin.coord,
+    originPrecision: origin.precision,
+    originAccuracyMeters: origin.accuracyMeters,
+    originLabel: origin.label,
+    ...(origin.authorization ? { originAuthorization: origin.authorization } : {}),
+  };
+}
+
 /** Nome leggibile del comune dallo slug: "venegono-superiore" → "Venegono Superiore". */
 export function municipalityLabelFromSlug(slug: string): string {
   return slug

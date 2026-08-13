@@ -8,7 +8,17 @@
 import { TERRITORY_POI_CATEGORIES, type TerritoryPoiCategory } from "./categories";
 import type { EnrichmentFailureKind, ListingTerritoryEnrichment } from "./types";
 import type { EnrichmentOutcome } from "./engine";
+import type { ProfileCacheSource } from "./profileCache";
 import type { SyncDecision } from "./sync";
+
+/** Conteggi della cache dei profili comunali (Prompt 5). */
+export interface ProfileCacheMetrics {
+  hit: number;
+  refreshed: number;
+  stale: number;
+  unavailable: number;
+  budgetSkipped: number;
+}
 
 const FAILURE_KINDS: EnrichmentFailureKind[] = [
   "timeout",
@@ -26,6 +36,7 @@ export interface TerritoryMetricsSnapshot {
   missingCoordinates: number;
   missingCode: number;
   disabledMunicipality: number;
+  /** Query REALI al provider (una per refresh di profilo, non per immobile). */
   providerCalls: number;
   providerFailuresByKind: Record<EnrichmentFailureKind, number>;
   rateLimitResponses: number;
@@ -33,6 +44,8 @@ export interface TerritoryMetricsSnapshot {
   skippedByBudget: number;
   budgetLimit: number | null;
   budgetReached: boolean;
+  /** Cache dei profili: hit (nessuna query) vs refresh/stale/unavailable/budget. */
+  profileCache: ProfileCacheMetrics;
   /** Media dei POI trattenuti per categoria (fra i record arricchiti in questo run). */
   avgResultsPerCategory: Record<TerritoryPoiCategory, number>;
 }
@@ -54,6 +67,13 @@ export class TerritoryRunMetrics {
   private rateLimitResponses = 0;
   private draftsCreated = 0;
   private skippedByBudget = 0;
+  private readonly profileCache: ProfileCacheMetrics = {
+    hit: 0,
+    refreshed: 0,
+    stale: 0,
+    unavailable: 0,
+    budgetSkipped: 0,
+  };
   private readonly failuresByKind: Record<EnrichmentFailureKind, number>;
   private readonly perCategorySum: Record<TerritoryPoiCategory, number>;
 
@@ -90,16 +110,45 @@ export class TerritoryRunMetrics {
     this.skippedByBudget += 1;
   }
 
-  /** Registra l'ESITO di una chiamata al provider (arricchito o fallito). */
+  /** Una query REALE al provider (una per refresh di profilo). Chiamata dal ProfileRefresher. */
+  recordProviderCall(): void {
+    this.providerCalls += 1;
+  }
+
+  /** Provenienza della risoluzione di un profilo (hit/refreshed/stale/unavailable/budget-skipped). */
+  recordProfileResult(source: ProfileCacheSource): void {
+    switch (source) {
+      case "hit":
+        this.profileCache.hit += 1;
+        break;
+      case "refreshed":
+        this.profileCache.refreshed += 1;
+        break;
+      case "stale":
+        this.profileCache.stale += 1;
+        break;
+      case "unavailable":
+        this.profileCache.unavailable += 1;
+        break;
+      case "budget-skipped":
+        this.profileCache.budgetSkipped += 1;
+        break;
+    }
+  }
+
+  /**
+   * Registra l'ESITO per immobile. NB: `providerCalls` NON si tocca qui — le query sono contate
+   * dal ProfileRefresher (una per profilo), non per immobile (sarebbe un doppio conteggio).
+   */
   recordOutcome(outcome: EnrichmentOutcome): void {
     if (outcome.action === "enriched") {
-      this.providerCalls += 1;
       this.draftsCreated += 1;
       this.addCategoryCounts(outcome.record);
     } else if (outcome.action === "failed") {
-      this.providerCalls += 1;
       this.failuresByKind[outcome.failure.kind] += 1;
       if (outcome.failure.kind === "rate-limit") this.rateLimitResponses += 1;
+    } else if (outcome.action === "skipped-budget") {
+      this.skippedByBudget += 1;
     }
   }
 
@@ -131,6 +180,7 @@ export class TerritoryRunMetrics {
       skippedByBudget: this.skippedByBudget,
       budgetLimit: this.budgetLimit,
       budgetReached: this.budgetLimit !== null && this.skippedByBudget > 0,
+      profileCache: { ...this.profileCache },
       avgResultsPerCategory: avg,
     };
   }

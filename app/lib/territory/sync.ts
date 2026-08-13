@@ -10,6 +10,7 @@
 import type { NormalizedProperty } from "../realsmart/types";
 import { normalizeMunicipality } from "./geo";
 import { decideEnrichment, enrichListing, type EnrichmentDeps } from "./engine";
+import { ProfileRefresher } from "./profileCache";
 import { resolveMunicipalityOrigin } from "./origin";
 import { TerritoryRunMetrics, type TerritoryMetricsSnapshot } from "./metrics";
 import type { EnrichmentStatus } from "./types";
@@ -116,7 +117,14 @@ export async function planListing(
   const resolveOrigin = deps.resolveOrigin ?? resolveMunicipalityOrigin;
   const code = property.sourceRef?.codice?.trim() ?? "";
   const existing = code ? await deps.repository.getListingEnrichment(code) : null;
-  const decision = decideEnrichment(property, existing, deps.config, deps.now(), resolveOrigin);
+  const decision = decideEnrichment(
+    property,
+    existing,
+    deps.config,
+    deps.now(),
+    deps.provider.name,
+    resolveOrigin,
+  );
 
   const base = {
     realSmartCode: code,
@@ -196,13 +204,17 @@ function aggregate(
       case "enrich":
         report.eligible += 1;
         report.wouldEnrich += 1;
-        report.estimatedProviderCalls += 1;
         if (r.outcome === "enriched") report.enriched += 1;
         else if (r.outcome === "failed") report.failed += 1;
         else if (r.outcome === "skipped-budget") report.skippedByBudget += 1;
         break;
     }
   }
+  // Stima chiamate = numero di ORIGINI (profili) UNICHE fra le decisioni "enrich": N immobili sullo
+  // stesso centroide condividono un profilo → UNA sola query, non N (Prompt 5).
+  report.estimatedProviderCalls = new Set(
+    results.filter((r) => r.decision === "enrich").map((r) => r.municipality),
+  ).size;
   return report;
 }
 
@@ -220,9 +232,19 @@ export async function syncListings(
   const maxCalls = options.maxCalls ?? deps.config.maxCallsPerRun ?? null;
 
   const metrics = new TerritoryRunMetrics(maxCalls);
-  // Contatore di chiamate: incrementato SINCRONAMENTE prima dell'await, così anche con concorrenza
-  // il tetto non viene superato (nessuna corsa fra il controllo e l'incremento).
-  let callsMade = 0;
+  // UN SOLO refresher di profili per tutto il run (Prompt 5): dedup delle query per origine,
+  // single-flight per la concorrenza, e il BUDGET applicato alle QUERY (non agli immobili). Le
+  // metriche providerCalls/profileCache sono alimentate dai suoi callback.
+  const refresher = new ProfileRefresher({
+    provider: deps.provider,
+    repository: deps.repository,
+    config: deps.config,
+    now: deps.now,
+    maxQueries: maxCalls,
+    onQuery: () => metrics.recordProviderCall(),
+    onResult: (source) => metrics.recordProfileResult(source),
+  });
+  const depsWithRefresher: EnrichmentDeps = { ...deps, refresher };
 
   const results = await mapPool(selected, concurrency, async (property) => {
     const plan = await planListing(property, deps);
@@ -230,15 +252,8 @@ export async function syncListings(
 
     if (options.dryRun || plan.decision !== "enrich") return plan;
 
-    // Budget: se il tetto è raggiunto, salta pulito senza chiamare il provider.
-    if (maxCalls !== null && callsMade >= maxCalls) {
-      metrics.recordBudgetSkip();
-      return { ...plan, outcome: "skipped-budget" as const };
-    }
-    callsMade += 1;
-
-    // Esecuzione reale: il motore rifà la decisione e chiama il provider una sola volta.
-    const outcome = await enrichListing(property, deps);
+    // Esecuzione reale: il motore risolve il profilo (una query per origine, budget nel refresher).
+    const outcome = await enrichListing(property, depsWithRefresher);
     metrics.recordOutcome(outcome);
     return { ...plan, outcome: outcome.action };
   });

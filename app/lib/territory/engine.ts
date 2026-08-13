@@ -14,13 +14,8 @@
 //  12. su errore: conserva l'approvato e registra un fallimento sanificato.
 
 import type { NormalizedProperty } from "../realsmart/types";
-import { haversineMeters } from "./geo";
 import { buildFingerprint, fingerprintsEqual } from "./fingerprint";
-import {
-  isRecordFresh,
-  sortAndLimitPois,
-  toPublicListingTerritory,
-} from "./public";
+import { isRecordFresh, toPublicListingTerritory } from "./public";
 import type {
   ListingTerritoryEnrichment,
   TerritoryPoi,
@@ -36,12 +31,13 @@ import {
   ProviderRateLimitError,
   ProviderResponseError,
   ProviderTimeoutError,
-  type ProviderPlace,
   type TerritoryPlacesProvider,
 } from "./provider/provider";
 import type { TerritoryRepository } from "./store/repository";
 import type { EnrichmentConfig } from "./config";
-import { resolveMunicipalityOrigin, type ResolvedOrigin } from "./origin";
+import { resolveMunicipalityOrigin, originFields, type ResolvedOrigin } from "./origin";
+import { ProfileRefresher } from "./profileCache";
+import type { MunicipalityTerritoryProfile } from "./types";
 
 export interface EnrichmentDeps {
   provider: TerritoryPlacesProvider;
@@ -51,6 +47,11 @@ export interface EnrichmentDeps {
   config: EnrichmentConfig;
   /** Risolutore d'origine (default: centroide comune). */
   resolveOrigin?: (property: NormalizedProperty) => ResolvedOrigin | null;
+  /**
+   * Coordinatore di refresh dei profili CONDIVISO nel run (Prompt 5): dedup delle query per origine,
+   * single-flight e budget. Se assente, il motore ne crea uno per la singola chiamata.
+   */
+  refresher?: ProfileRefresher;
 }
 
 export type EnrichmentOutcome =
@@ -58,7 +59,8 @@ export type EnrichmentOutcome =
   | { action: "skipped-missing-coordinates"; realSmartCode: string }
   | { action: "skipped-disabled-municipality"; realSmartCode: string; municipality: string }
   | { action: "skipped-unchanged"; realSmartCode: string; record: ListingTerritoryEnrichment }
-  | { action: "enriched"; realSmartCode: string; record: ListingTerritoryEnrichment }
+  | { action: "skipped-budget"; realSmartCode: string }
+  | { action: "enriched"; realSmartCode: string; record: ListingTerritoryEnrichment; queried: boolean }
   | {
       action: "failed";
       realSmartCode: string;
@@ -86,33 +88,37 @@ function failureFrom(err: unknown, providerName: TerritoryProvider, now: Date): 
   };
 }
 
-/** Costruisce un TerritoryPoi (bozza) da un ProviderPlace, con distanza in linea d'aria. */
-function toPoi(place: ProviderPlace, origin: ResolvedOrigin, attribution: string): TerritoryPoi {
+/**
+ * Deriva il record dell'immobile dal PROFILO comunale (Prompt 5): i POI vengono dal profilo (una
+ * sola query per origine), ma ogni immobile mantiene le PROPRIE approvazioni per-POI (overlay per
+ * providerId): la decisione dell'editor sopravvive al refresh. I POI nuovi nascono draft. Il record
+ * torna "draft" (serve ri-pubblicazione), mentre `lastApprovedPublic` preserva la vista approvata.
+ */
+export function deriveListingFromProfile(
+  realSmartCode: string,
+  origin: ResolvedOrigin,
+  profile: MunicipalityTerritoryProfile,
+  existing: ListingTerritoryEnrichment | null,
+  config: EnrichmentConfig,
+  now: Date,
+  lastApprovedPublic: PublicListingTerritory | undefined,
+): ListingTerritoryEnrichment {
+  const priorApproval = new Map(existing?.pois.map((p) => [p.providerId, p.approval]) ?? []);
+  const pois: TerritoryPoi[] = profile.pois.map((p) => ({
+    ...p,
+    approval: priorApproval.get(p.providerId) ?? { state: "draft" },
+  }));
   return {
-    providerId: place.providerId,
-    category: place.category,
-    name: place.name,
-    distanceMeters: haversineMeters(origin.coord, place.coord),
-    distanceMethod: "straight-line",
-    source: {
-      provider: place.provider,
-      retrievedAt: place.retrievedAt,
-      attribution,
-      ...(place.sourceUrl ? { sourceUrl: place.sourceUrl } : {}),
-    },
-    approval: { state: "draft" },
-    coord: place.coord, // server-side: mai proiettato nel pubblico
-  };
-}
-
-/** Campi ORIGINE del record, derivati dall'origine risolta (coord server-only + gerarchia precisione). */
-function originFields(origin: ResolvedOrigin) {
-  return {
-    origin: origin.coord,
-    originPrecision: origin.precision,
-    originAccuracyMeters: origin.accuracyMeters,
-    originLabel: origin.label,
-    ...(origin.authorization ? { originAuthorization: origin.authorization } : {}),
+    schemaVersion: config.schemaVersion,
+    realSmartCode,
+    municipality: origin.municipality,
+    ...originFields(origin),
+    fingerprint: profile.fingerprint,
+    status: "draft",
+    pois,
+    retrievedAt: profile.retrievedAt,
+    updatedAt: now.toISOString(),
+    ...(lastApprovedPublic ? { lastApprovedPublic } : {}),
   };
 }
 
@@ -157,6 +163,7 @@ export function decideEnrichment(
   existing: ListingTerritoryEnrichment | null,
   config: EnrichmentConfig,
   now: Date,
+  providerName: TerritoryProvider,
   resolveOrigin: (p: NormalizedProperty) => ResolvedOrigin | null = resolveMunicipalityOrigin,
 ): EnrichmentDecision {
   // 1) Codice RealSmart.
@@ -172,11 +179,14 @@ export function decideEnrichment(
     return { kind: "disabled-municipality", realSmartCode, municipality: origin.municipality };
   }
 
-  // 4) Fingerprint.
+  // 4) Fingerprint dell'ORIGINE DI QUERY: coord + raggio + categorie + provider + schema. NON la
+  //    UltimaModifica dell'immobile → un edit non-di-posizione non innesca una nuova query.
   const fingerprint = buildFingerprint({
     municipality: origin.municipality,
     origin: origin.coord,
-    ultimaModifica: property.updatedAt ?? "",
+    radiusMeters: config.searchRadiusMeters,
+    categories: config.categories,
+    provider: providerName,
     schemaVersion: config.schemaVersion,
     roundDp: config.roundDp,
   });
@@ -212,7 +222,7 @@ export async function enrichListing(
 
   const existing = await repository.getListingEnrichment(realSmartCode);
   const nowDate = now();
-  const decision = decideEnrichment(property, existing, config, nowDate, resolveOrigin);
+  const decision = decideEnrichment(property, existing, config, nowDate, provider.name, resolveOrigin);
 
   switch (decision.kind) {
     case "missing-code":
@@ -228,69 +238,54 @@ export async function enrichListing(
   }
 
   const origin = decision.origin;
-  const fingerprint = decision.fingerprint;
 
   // Snapshot pubblico approvato da preservare in ogni esito (constraint 11/12).
   const lastApprovedPublic = preservedApproved(existing, nowDate, config);
 
-  // 6) Query alle sole 5 categorie.
-  let places: ProviderPlace[];
-  try {
-    places = await provider.searchNearby({
-      origin: origin.coord,
-      radiusMeters: config.searchRadiusMeters,
-      categories: config.categories,
-      language: "it",
-    });
-  } catch (err) {
-    // 12) Fallimento: conserva l'approvato, registra un fallimento sanificato.
-    const failure = failureFrom(err, provider.name, nowDate);
-    if (existing) {
-      await repository.recordFailure(realSmartCode, failure);
-    } else {
-      const iso = nowDate.toISOString();
-      await repository.putListingEnrichment({
-        schemaVersion: config.schemaVersion,
-        realSmartCode,
-        municipality: origin.municipality,
-        ...originFields(origin),
-        fingerprint,
-        status: "failed",
-        pois: [],
-        retrievedAt: iso,
-        updatedAt: iso,
-        failure,
-      });
-    }
-    return { action: "failed", realSmartCode, failure, preservedApproved: lastApprovedPublic !== undefined };
+  // Risolve il PROFILO comunale (una sola query per origine, condivisa fra tutti gli immobili del
+  // comune). Il refresher è condiviso nel run se fornito; altrimenti uno per questa chiamata.
+  const refresher = deps.refresher ?? new ProfileRefresher({ provider, repository, config, now });
+  const result = await refresher.resolve(origin);
+
+  // Profilo disponibile (cache hit o refresh riuscito) → deriva il record dell'immobile.
+  if (result.profile && (result.source === "hit" || result.source === "refreshed")) {
+    const record = deriveListingFromProfile(
+      realSmartCode,
+      origin,
+      result.profile,
+      existing,
+      config,
+      nowDate,
+      lastApprovedPublic,
+    );
+    await repository.putListingEnrichment(record);
+    return { action: "enriched", realSmartCode, record, queried: result.queried };
   }
 
-  // 7) Distanza locale + scarto fuori raggio (difensivo: il provider filtra già).
-  const withinRadius = places.filter(
-    (p) => haversineMeters(origin.coord, p.coord) <= config.searchRadiusMeters,
-  );
+  // Budget esaurito: nessun lavoro per questo immobile (il report lo conta a parte).
+  if (result.source === "budget-skipped") {
+    return { action: "skipped-budget", realSmartCode };
+  }
 
-  // 8+9) Rank deterministico e max 2 per categoria.
-  const pois = sortAndLimitPois(
-    withinRadius.map((p) => toPoi(p, origin, provider.attribution)),
-    config.maxPerCategory,
-  );
-
-  // 10+11) Salva come draft, preservando l'ultimo pubblico approvato.
-  const iso = nowDate.toISOString();
-  const record: ListingTerritoryEnrichment = {
-    schemaVersion: config.schemaVersion,
-    realSmartCode,
-    municipality: origin.municipality,
-    ...originFields(origin),
-    fingerprint,
-    status: "draft",
-    pois,
-    retrievedAt: iso,
-    updatedAt: iso,
-    ...(lastApprovedPublic ? { lastApprovedPublic } : {}),
-  };
-
-  await repository.putListingEnrichment(record);
-  return { action: "enriched", realSmartCode, record };
+  // Refresh fallito (stale/unavailable): NON si sovrascrive l'approvato. Si conserva la vista
+  // pubblica approvata e si registra un fallimento sanificato (constraint 7/11/12).
+  const failure = failureFrom(result.error, provider.name, nowDate);
+  if (existing) {
+    await repository.recordFailure(realSmartCode, failure);
+  } else {
+    const iso = nowDate.toISOString();
+    await repository.putListingEnrichment({
+      schemaVersion: config.schemaVersion,
+      realSmartCode,
+      municipality: origin.municipality,
+      ...originFields(origin),
+      fingerprint: result.fingerprint,
+      status: "failed",
+      pois: [],
+      retrievedAt: iso,
+      updatedAt: iso,
+      failure,
+    });
+  }
+  return { action: "failed", realSmartCode, failure, preservedApproved: lastApprovedPublic !== undefined };
 }
