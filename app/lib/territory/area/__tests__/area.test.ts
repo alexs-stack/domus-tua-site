@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { AreaFactSchema, type AreaFact } from "../types";
 import { findSubjectiveViolations, isFactualText } from "../subjective";
 import { toPublicAreaProfile, factsDueForReview, localizeFactText, isPublishable } from "../public";
-import { approvalBlockers } from "../validate";
+import { approvalBlockers, approveAreaFact, rejectAreaFact, AreaApprovalError } from "../validate";
 import { parseAreaFactsBundle, serializeAreaFacts, AREA_FACT_TEMPLATE } from "../importExport";
 import { getPublicAreaProfile } from "../data";
 
@@ -104,6 +104,45 @@ describe("staleness / promemoria di revisione", () => {
     const later = fact({ id: "later", reviewBy: "2027-06-01T00:00:00.000Z" });
     const due = factsDueForReview([soon, later], NOW, 30);
     assert.deepEqual(due.map((f) => f.id), ["soon"]);
+  });
+});
+
+describe("review editoriale dei fatti d'area", () => {
+  const REV = { approver: "raffaela", at: "2026-08-14T10:00:00.000Z" };
+  test("approveAreaFact promuove a approved con traccia quando non ci sono blocker", () => {
+    const out = approveAreaFact(fact({ status: "draft" }), REV);
+    assert.equal(out.status, "approved");
+    assert.equal(out.approvedBy, "raffaela");
+    assert.equal(out.approvedAt, REV.at);
+  });
+  test("approveAreaFact RIFIUTA un fatto soggettivo (guard come rete finale)", () => {
+    assert.throws(() => approveAreaFact(fact({ status: "draft", text: "Zona prestigiosa." }), REV), AreaApprovalError);
+  });
+  test("approveAreaFact RIFIUTA un fatto scaduto (reviewBy passato)", () => {
+    assert.throws(
+      () => approveAreaFact(fact({ status: "draft", reviewBy: "2026-01-01T00:00:00.000Z" }), REV),
+      AreaApprovalError,
+    );
+  });
+  test("approveAreaFact RIFIUTA con conflitti di fonte non risolti", () => {
+    assert.throws(
+      () =>
+        approveAreaFact(
+          fact({
+            status: "draft",
+            conflicts: [
+              { source: { url: "https://x.example/a", owner: "Fonte A", retrievedAt: "2026-08-01T00:00:00.000Z" }, note: "in conflitto" },
+            ],
+          }),
+          REV,
+        ),
+      AreaApprovalError,
+    );
+  });
+  test("rejectAreaFact segna rejected con traccia", () => {
+    const out = rejectAreaFact(fact({ status: "draft" }), REV);
+    assert.equal(out.status, "rejected");
+    assert.equal(out.approvedBy, "raffaela");
   });
 });
 

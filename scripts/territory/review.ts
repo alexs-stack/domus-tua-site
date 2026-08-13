@@ -1,11 +1,14 @@
-// CLI editoriale dell'arricchimento territoriale (Prompt 6).
+// CLI editoriale dell'arricchimento territoriale (Prompt 6, esteso in Prompt 10).
 //
-// Comandi controllati per la review umana: elenca le bozze, ispeziona un record, approva/rifiuta
-// POI o l'intero record, disabilita o marca stale, confronta bozza e approvato. NESSUNA AI, nessun
-// token o endpoint di scrittura nel browser: si opera solo da terminale, sul RealSmart code.
+// Comandi controllati per la review umana: elenca la coda, ispeziona un record, confronta bozza e
+// approvato, approva/rifiuta POI o l'intero record, ritira dal pubblico, annota, approva in blocco
+// (SOLO stesso profilo e con conferma) ed emette il pacchetto di review deterministico (JSON/MD).
 //
-// Sicurezza dell'output: non stampa MAI coordinate esatte né chiavi. --dry-run mostra cosa
-// cambierebbe senza scrivere. Serve sempre un codice esplicito: nessun "approva tutto".
+// Tutte le SCRITTURE passano da TerritoryReviewService: concorrenza ottimistica + audit immutabile in
+// un solo punto. NESSUNA AI, nessun token o endpoint di scrittura: si opera solo da terminale, sul
+// RealSmart code. Le coordinate NON si stampano mai, tranne nel pacchetto con --with-coordinates
+// (editor autorizzato). --dry-run mostra cosa cambierebbe senza scrivere. Serve sempre un codice
+// esplicito: nessun "approva tutto" implicito.
 //
 // USO:
 //   npm run territory:review -- list [--status=draft]
@@ -14,21 +17,24 @@
 //   npm run territory:review -- approve <codice> --by=<nome> [--note="..."] [--dry-run]
 //   npm run territory:review -- approve-poi <codice> --ids=<id1,id2> --by=<nome> [--dry-run]
 //   npm run territory:review -- reject-poi <codice> --ids=<id1,id2> --by=<nome> [--dry-run]
-//   npm run territory:review -- disable <codice> --by=<nome> [--dry-run]
-//   npm run territory:review -- stale <codice> [--dry-run]
+//   npm run territory:review -- unpublish <codice> --by=<nome> [--note="..."] [--dry-run]
+//   npm run territory:review -- note <codice> --by=<nome> --note="..."
+//   npm run territory:review -- bulk-approve --codes=<c1,c2> --by=<nome> [--confirm] [--dry-run]
+//   npm run territory:review -- pack [--municipality=<slug>] [--status=draft] [--format=md|json]
+//                                    [--with-coordinates] [--out=<file>]
 
 import "../load-env";
 
 import { createTerritoryRepository } from "../../app/lib/territory/store/config";
-import type { TerritoryRepository } from "../../app/lib/territory/store/repository";
-import type { ListingTerritoryEnrichment, EnrichmentStatus } from "../../app/lib/territory/types";
+import { diffDraftAgainstApproved } from "../../app/lib/territory/approval";
+import { TerritoryReviewService } from "../../app/lib/territory/review/service";
 import {
-  approveRecord,
-  disableRecord,
-  markRecordStale,
-  setPoiApproval,
-  diffDraftAgainstApproved,
-} from "../../app/lib/territory/approval";
+  buildReviewPack,
+  renderReviewPackMarkdown,
+  serializeReviewPackJson,
+} from "../../app/lib/territory/review/artifacts";
+import type { ListingTerritoryEnrichment, EnrichmentStatus } from "../../app/lib/territory/types";
+import { writeFile } from "node:fs/promises";
 
 // ── Parsing argomenti ─────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
@@ -68,24 +74,11 @@ function requireIds(): string[] {
   return ids;
 }
 
-async function loadRecord(repo: TerritoryRepository, code: string): Promise<ListingTerritoryEnrichment> {
-  const rec = await repo.getListingEnrichment(code);
-  if (!rec) fail(`Nessun record per il codice ${code}.`);
-  return rec;
-}
-
-/** Scrive con concorrenza ottimistica, oppure spiega cosa farebbe in dry-run. */
-async function persist(
-  repo: TerritoryRepository,
-  before: ListingTerritoryEnrichment,
-  after: ListingTerritoryEnrichment,
-): Promise<void> {
-  if (dryRun) {
-    console.log(`  (dry-run) ${before.realSmartCode}: ${before.status} → ${after.status}, nessuna scrittura.`);
-    return;
-  }
-  await repo.putListingEnrichment(after, { ifUpdatedAt: before.updatedAt });
-  console.log(`  ✓ ${after.realSmartCode}: salvato (status ${after.status}).`);
+function requireCodes(): string[] {
+  const raw = flags.get("codes");
+  const codes = (raw ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (codes.length === 0) fail("--codes=<c1,c2> obbligatorio per l'approvazione in blocco.");
+  return codes;
 }
 
 // ── Stampa sicura (mai coordinate, mai chiavi) ─────────────────────────────────
@@ -122,33 +115,36 @@ function printRecord(rec: ListingTerritoryEnrichment): void {
 // ── Comandi ────────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
   const repo = createTerritoryRepository();
+  const service = new TerritoryReviewService(repo, { now: () => new Date() });
 
   switch (command) {
     case "list": {
       const statusFilter = flags.get("status") as EnrichmentStatus | undefined;
-      const meta = await repo.listEnrichmentMetadata();
-      const rows = statusFilter ? meta.filter((m) => m.status === statusFilter) : meta;
+      const rows = await service.listForReview(statusFilter ? { status: statusFilter } : undefined);
       if (rows.length === 0) {
-        console.log("Nessun record." + (statusFilter ? ` (status=${statusFilter})` : ""));
+        console.log("Nessun record da rivedere." + (statusFilter ? ` (status=${statusFilter})` : ""));
         return;
       }
-      console.log(`codice        comune               status     POI  appr.  aggiornato`);
+      console.log(`codice        comune               status     POI  appr.  versione`);
       for (const m of rows) {
         console.log(
           `${m.realSmartCode.padEnd(13)} ${m.municipality.padEnd(20)} ${m.status.padEnd(10)} ` +
-            `${String(m.poiCount).padStart(3)}  ${String(m.approvedPoiCount).padStart(4)}   ${m.retrievedAt}`,
+            `${String(m.poiCount).padStart(3)}  ${String(m.approvedPoiCount).padStart(4)}   ${m.version}`,
         );
       }
       return;
     }
 
     case "show": {
-      printRecord(await loadRecord(repo, requireCode()));
+      const rec = await repo.getListingEnrichment(requireCode());
+      if (!rec) fail(`Nessun record per il codice ${requireCode()}.`);
+      printRecord(rec);
       return;
     }
 
     case "compare": {
-      const rec = await loadRecord(repo, requireCode());
+      const rec = await repo.getListingEnrichment(requireCode());
+      if (!rec) fail(`Nessun record per il codice ${requireCode()}.`);
       const diff = diffDraftAgainstApproved(rec);
       console.log(`Confronto bozza ↔ ultimo approvato per ${rec.realSmartCode}:`);
       console.log(`  + aggiunti (${diff.added.length}): ${diff.added.map((e) => e.name).join(", ") || "—"}`);
@@ -158,45 +154,115 @@ async function main(): Promise<void> {
     }
 
     case "approve": {
-      const before = await loadRecord(repo, requireCode());
-      const after = approveRecord(before, { approver: requireBy(), at: nowIso(), ...(flags.get("note") ? { note: flags.get("note") } : {}) });
-      console.log(`Approvazione ${before.realSmartCode}: ${after.lastApprovedPublic?.pois.length} POI pubblici.`);
-      await persist(repo, before, after);
+      const code = requireCode();
+      const by = requireBy();
+      const rec = await repo.getListingEnrichment(code);
+      if (!rec) fail(`Nessun record per il codice ${code}.`);
+      if (dryRun) {
+        console.log(`  (dry-run) ${code}: ${rec.status} → approved, ${rec.pois.filter((p) => p.approval.state !== "rejected").length} POI pubblici, nessuna scrittura.`);
+        return;
+      }
+      const after = await service.approveListing(code, rec.updatedAt, {
+        actor: by,
+        at: nowIso(),
+        ...(flags.get("note") ? { note: flags.get("note") } : {}),
+      });
+      console.log(`✓ ${code}: approvato — ${after.lastApprovedPublic?.pois.length ?? 0} POI pubblici (audit registrato).`);
       return;
     }
 
     case "approve-poi":
     case "reject-poi": {
-      const before = await loadRecord(repo, requireCode());
+      const code = requireCode();
+      const by = requireBy();
+      const ids = requireIds();
       const state = command === "approve-poi" ? "approved" : "rejected";
-      const after = setPoiApproval(before, requireIds(), state, {
-        approver: requireBy(),
+      const rec = await repo.getListingEnrichment(code);
+      if (!rec) fail(`Nessun record per il codice ${code}.`);
+      if (dryRun) {
+        console.log(`  (dry-run) ${code}: ${ids.length} POI → ${state}, nessuna scrittura.`);
+        return;
+      }
+      await service.setPoiDecisions(code, rec.updatedAt, ids, state, {
+        actor: by,
         at: nowIso(),
         ...(flags.get("note") ? { note: flags.get("note") } : {}),
       });
-      console.log(`${state === "approved" ? "Approvati" : "Rifiutati"} ${requireIds().length} POI su ${before.realSmartCode}.`);
-      await persist(repo, before, after);
+      console.log(`✓ ${state === "approved" ? "Approvati" : "Rifiutati"} ${ids.length} POI su ${code} (audit registrato).`);
       return;
     }
 
-    case "disable": {
-      const before = await loadRecord(repo, requireCode());
-      const after = disableRecord(before, { approver: requireBy(), at: nowIso() });
-      await persist(repo, before, after);
+    case "unpublish": {
+      const code = requireCode();
+      const by = requireBy();
+      const rec = await repo.getListingEnrichment(code);
+      if (!rec) fail(`Nessun record per il codice ${code}.`);
+      if (dryRun) {
+        console.log(`  (dry-run) ${code}: ${rec.status} → disabled, nessuna scrittura.`);
+        return;
+      }
+      await service.unpublish(code, rec.updatedAt, {
+        actor: by,
+        at: nowIso(),
+        ...(flags.get("note") ? { note: flags.get("note") } : {}),
+      });
+      console.log(`✓ ${code}: ritirato dal pubblico (audit registrato).`);
       return;
     }
 
-    case "stale": {
-      const before = await loadRecord(repo, requireCode());
-      const after = markRecordStale(before, nowIso());
-      await persist(repo, before, after);
+    case "note": {
+      const code = requireCode();
+      const by = requireBy();
+      const note = flags.get("note");
+      if (!note || note === "true") fail('--note="..." obbligatorio per annotare.');
+      await service.addNote(code, { actor: by, at: nowIso(), note });
+      console.log(`✓ Nota registrata su ${code} (nessun cambio di stato).`);
+      return;
+    }
+
+    case "bulk-approve": {
+      const codes = requireCodes();
+      const by = requireBy();
+      const plan = await service.planBulkApprove(codes);
+      console.log(plan.summary);
+      console.log(`  codici: ${plan.codes.join(", ")}`);
+      if (!flags.has("confirm")) {
+        console.log("  ⓘ conferma richiesta: rilancia con --confirm per applicare.");
+        return;
+      }
+      if (dryRun) {
+        console.log(`  (dry-run) approverei ${plan.codes.length} immobili, nessuna scrittura.`);
+        return;
+      }
+      const n = await service.applyBulkApprove(plan, { actor: by, at: nowIso(), ...(flags.get("note") ? { note: flags.get("note") } : {}) }, true);
+      console.log(`✓ Approvati in blocco ${n} immobili (audit per ciascuno).`);
+      return;
+    }
+
+    case "pack": {
+      const withCoords = flags.has("with-coordinates");
+      const format = flags.get("format") ?? "md";
+      const pack = await buildReviewPack(service, {
+        generatedAt: nowIso(),
+        ...(flags.get("municipality") ? { municipality: flags.get("municipality") } : {}),
+        ...(flags.get("status") ? { status: flags.get("status") as EnrichmentStatus } : {}),
+        includeCoordinates: withCoords,
+      });
+      const output = format === "json" ? serializeReviewPackJson(pack) : renderReviewPackMarkdown(pack);
+      const out = flags.get("out");
+      if (out && out !== "true") {
+        await writeFile(out, output, "utf8");
+        console.log(`✓ Pacchetto di review (${pack.items.length} immobili, ${format}) scritto in ${out}.`);
+      } else {
+        process.stdout.write(output);
+      }
       return;
     }
 
     default:
       fail(
         `Comando sconosciuto: ${command ?? "(nessuno)"}. Usa: list | show | compare | approve | ` +
-          `approve-poi | reject-poi | disable | stale.`,
+          `approve-poi | reject-poi | unpublish | note | bulk-approve | pack.`,
       );
   }
 }

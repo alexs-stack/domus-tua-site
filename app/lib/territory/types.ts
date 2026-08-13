@@ -244,6 +244,7 @@ export const TerritoryAuditActionSchema = z.enum([
   "unpublish",
   "refresh",
   "fail",
+  "note",
   "authorize-origin",
   "revoke-origin",
   "import",
