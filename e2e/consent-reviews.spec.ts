@@ -45,6 +45,35 @@ test("accettando, il gate si apre", async ({ page, goto }) => {
   await expect(page.getByRole("region", { name: /cookie/i })).toHaveCount(0);
 });
 
+test("col consenso il widget recensioni resta pigro finché non ci si avvicina", async ({
+  page,
+  goto,
+  guards,
+}) => {
+  // `guards` monta il mock delle terze parti: lo script di Trustindex, se
+  // parte, viene servito vuoto invece di raggiungere la rete.
+  void guards;
+  await setConsent(page, "accepted");
+
+  await goto("/");
+  // Il widget vive in fondo al capitolo recensioni, sotto la piega. Il suo
+  // iframe usa `srcDoc`, su cui `loading="lazy"` non ha effetto: senza il
+  // cancello IntersectionObserver monterebbe — e caricherebbe Trustindex — già
+  // al primo paint, mentre si guarda ancora l'hero (~700ms di thread principale
+  // di terze parti, misurati). Deve restare fuori dal DOM.
+  const frame = page.locator('iframe[title*="Trustindex" i]');
+  await page.waitForTimeout(1200);
+  await expect(frame).toHaveCount(0);
+
+  // Avvicinandosi (rootMargin 600px), il cancello si arma e l'iframe monta.
+  await page
+    .getByRole("heading", {
+      name: /parola per parola|word for word|mot pour mot|wort für wort|palabra por palabra/i,
+    })
+    .scrollIntoViewIfNeeded();
+  await expect(frame).toHaveCount(1, { timeout: 10_000 });
+});
+
 test("il banner si usa con la tastiera e non intrappola il focus @layout", async ({ page, goto, isMobile }) => {
   test.skip(!!isMobile, "il Tab si verifica sui viewport desktop: su un dispositivo touch non c'è");
   await goto("/");

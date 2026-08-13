@@ -237,6 +237,7 @@ export default function ServiziContent() {
       <Services />
 
       <EditorialRows
+        id="servizi-creativi"
         eyebrow={c.editorialEyebrow}
         title={c.editorialTitle}
         intro={c.editorialIntro}

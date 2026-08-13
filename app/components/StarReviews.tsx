@@ -98,8 +98,6 @@ const copy = {
     // Solo la CODA del nome accessibile: la testa è il testo visibile, e la
     // compone il JSX. Vedi il commento sul link del sigillo, in fondo.
     awardAriaHint: "apri il profilo di Domus Tua (scheda nuova)",
-    awardLabel: "Top Agency 2026",
-    awardSub: "Wikicasa",
     claim: site.authority,
   },
   en: {
@@ -123,8 +121,6 @@ const copy = {
       "The reviews widget is provided by Trustindex: it loads only after you accept cookies. You can read the reviews on Google right away.",
     iframeTitle: "Verified Google reviews of Domus Tua (Trustindex)",
     awardAriaHint: "open the Domus Tua profile (new tab)",
-    awardLabel: "Top Agency 2026",
-    awardSub: "Wikicasa",
     claim: "Among the most-reviewed independent real estate agencies in the province of Varese.",
   },
   fr: {
@@ -148,8 +144,6 @@ const copy = {
       "Le widget d'avis est fourni par Trustindex : il ne se charge qu'après votre consentement aux cookies. Vous pouvez lire les avis sur Google dès maintenant.",
     iframeTitle: "Avis Google vérifiés de Domus Tua (Trustindex)",
     awardAriaHint: "ouvrir le profil de Domus Tua (nouvel onglet)",
-    awardLabel: "Top Agency 2026",
-    awardSub: "Wikicasa",
     claim: "Parmi les agences immobilières indépendantes les plus commentées de la province de Varese.",
   },
   de: {
@@ -173,8 +167,6 @@ const copy = {
       "Das Bewertungs-Widget stammt von Trustindex: Es lädt erst nach Ihrer Cookie-Einwilligung. Die Bewertungen können Sie sofort auf Google lesen.",
     iframeTitle: "Verifizierte Google-Bewertungen von Domus Tua (Trustindex)",
     awardAriaHint: "das Profil von Domus Tua öffnen (neuer Tab)",
-    awardLabel: "Top Agency 2026",
-    awardSub: "Wikicasa",
     claim: "Eine der meistbewerteten unabhängigen Immobilienagenturen in der Provinz Varese.",
   },
   es: {
@@ -198,8 +190,6 @@ const copy = {
       "El widget de reseñas es de Trustindex: se carga solo tras tu consentimiento de cookies. Puedes leer las reseñas en Google ahora mismo.",
     iframeTitle: "Reseñas de Google verificadas de Domus Tua (Trustindex)",
     awardAriaHint: "abrir el perfil de Domus Tua (nueva pestaña)",
-    awardLabel: "Top Agency 2026",
-    awardSub: "Wikicasa",
     claim: "Entre las agencias inmobiliarias independientes con más reseñas de la provincia de Varese.",
   },
 };
@@ -725,10 +715,10 @@ export default function StarReviews() {
               apre altrove) resta, perché è l'informazione che il testo
               visibile non dà. */}
           <a
-            href="https://www.wikicasa.it/agenzia-immobiliare/domus-tua-178643"
+            href={site.award.href}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`${c.awardLabel} ${c.awardSub} — ${c.awardAriaHint}`}
+            aria-label={`${site.award.label} ${site.award.issuer} — ${c.awardAriaHint}`}
             className="dt-starrev_award group flex items-center gap-3"
           >
             <span className="block" style={{ animation: "dt-float 7s ease-in-out infinite" }}>
@@ -749,8 +739,8 @@ export default function StarReviews() {
                   SENZA separatore: senza questo spazio si leggerebbe «Top
                   Agency 2026Wikicasa» tutto attaccato, e l'etichetta qui sopra
                   — che lo spazio ce l'ha — non lo conterrebbe più. */}
-              <span className="block text-sm font-semibold text-ink">{c.awardLabel}</span>{" "}
-              <span className="link-draw block text-[0.8rem] text-stone">{c.awardSub}</span>
+              <span className="block text-sm font-semibold text-ink">{site.award.label}</span>{" "}
+              <span className="link-draw block text-[0.8rem] text-stone">{site.award.issuer}</span>
             </span>
           </a>
         </div>

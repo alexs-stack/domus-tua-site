@@ -204,6 +204,23 @@ const SHOTS = [
   "/images/reali/open-domus-teresa.jpg",
 ];
 
+// Dove porta ogni lastra, nell'ordine dell'elenco `services`. Prima puntavano
+// TUTTE a `#contatti`: chi clicca un servizio si aspetta di saperne di più, non
+// di finire nel form. Ora vanno all'INFORMAZIONE del servizio.
+//   · Open Domus ha una pagina dedicata (/open-domus): è lì che va.
+//   · Home staging e video vivono nella sezione creativa di /servizi
+//     (#servizi-creativi, EditorialRows).
+//   · Gli altri due non hanno ancora una sezione propria → alla pagina /servizi.
+// Quando arriveranno le pagine-dettaglio dei servizi (fuori da questa fase),
+// basta cambiare qui: la navigazione non si tocca.
+const SERVICE_LINKS = [
+  "/servizi", // Servizi tecnico-legali
+  "/servizi#servizi-creativi", // Home staging
+  "/servizi#servizi-creativi", // Emotional video real estate
+  "/servizi", // Contenuti e campagne marketing
+  "/open-domus", // Open Domus (pagina dedicata)
+];
+
 // Profondità del secondo piano, lastra per lastra (la quota di cui la foto pana
 // in senso contrario alla corsa del nastro). Volutamente IRREGOLARI: una
 // progressione ordinata si legge come un effetto, cinque valori sparsi si
@@ -339,14 +356,14 @@ export default function Services() {
         <HorizontalRail snapMobile cursor="scopri" runway={120}>
           {c.services.map((s, i) => (
             /* Lastra = link, non solo scheda. Due motivi, uno di forma e uno di
-               sostanza: dà a ogni servizio la sua uscita verso i contatti (come
-               fa già la fascia D.O.C. qui sotto), e soprattutto rende il nastro
+               sostanza: dà a ogni servizio la sua uscita verso l'INFORMAZIONE
+               del servizio (vedi SERVICE_LINKS), e soprattutto rende il nastro
                raggiungibile da tastiera — una regione che scorre e non contiene
                nulla di focalizzabile è una violazione WCAG 2.1.1 vera, che axe
                segnala e che la nostra suite fa fallire. */
             <a
               key={s.title}
-              href="#contatti"
+              href={SERVICE_LINKS[i] ?? "/servizi"}
               data-service-card
               className="group relative block aspect-[4/5] w-[76vw] overflow-hidden rounded-[2rem] border border-line sm:w-[48vw] lg:w-[26vw]"
             >

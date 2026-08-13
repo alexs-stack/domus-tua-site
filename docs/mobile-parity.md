@@ -906,3 +906,92 @@ budget. Le tre opzioni di §5.5 sono ancora quelle, con un dato in più: adesso
 si sa che a sforare è il thread principale, non la banda — il che rende il
 gradino 4 della scala il candidato giusto, e le due strade fuori mandato (font,
 layer motion) meno rilevanti di quanto sembrasse in Fase 0.
+
+---
+
+## 12. Riverifica del TBT (2026-08-13) — e la correzione di §11
+
+Il §11 lascia sul tavolo una tesi: «l'intro costa ~745 ms di TBT», dedotta
+confrontando un build *senza* intro mobile (274 ms) con uno *con* intro mobile
+(1.045 ms). Quel confronto cambia due cose insieme — è nato l'intro E sono
+cambiate altre cose fra i due build — quindi non isola l'intro. Questa fase la
+isola, misurando lo **stesso** build in due modi.
+
+### 12.1 Metodo
+
+Build di produzione, servita da `next start`. Sonda Playwright con throttling
+**applicato** via CDP (CPU ×4, Slow-4G: 1,6 Mbps / RTT 150 ms), viewport 390×844,
+sessione fredda con `dt_consent=accepted` (come `lighthouserc.js`). Il TBT qui è
+un *proxy*: somma del blocking dei long task nella finestra FCP→FCP+8s. Non è il
+numero di Lighthouse (finestra FCP→TTI, throttling *simulato*), e non va
+confrontato con esso in valore assoluto — serve per un **prima/dopo sulla stessa
+macchina**, che è l'unica cosa che regge al rumore. Mediana su 3 run.
+
+Due letture, stesso build (pre-intervento):
+
+| Modo | intro | TBT proxy (mediana) |
+|---|---|--:|
+| **A freddo** | suona | **3.561 ms** |
+| **A caldo** (`dt-intro-seen` preimpostata) | non suona | **3.908 ms** |
+
+**L'intro che suona NON aggiunge TBT netto — semmai leva.** La tesi di §11 non
+regge alla misura diretta: il collo di bottiglia è presente identico con e senza
+sipario. §11 aveva ragione su una cosa (il TBT è vero e sfora) e torto
+sull'imputato (non è l'intro).
+
+### 12.2 Chi paga davvero (CPU profile, stesso probe)
+
+Aggregando il self-time per script durante il caricamento a freddo:
+
+- **`react-dom` (chunk da 227 kB): il long task dominante** — l'idratazione
+  dell'albero client della home. In un Lighthouse locale il singolo task arriva
+  a ~2 s. È il costo strutturale: la home monta ~15 componenti client di motion
+  e idrata ~1.774 nodi in un colpo solo.
+- **GSAP + ScrollTrigger (chunk da 121 kB): ~0,5 s** di init/refresh per i set
+  piece della home.
+- **Trustindex `loader.js`: ~736 ms** di thread principale di **terze parti**.
+
+### 12.3 Cosa è stato corretto (dentro mandato, rischio zero sul motion)
+
+**Il widget Trustindex era pigro solo a parole.** `TrustindexEmbed` montava un
+iframe con `srcDoc` e `loading="lazy"`: ma `loading="lazy"` differisce un `src`
+da scaricare, e con `srcDoc` di `src` non ce n'è — il browser monta il documento
+subito, e con lui lo script di Trustindex. Il widget vive a **~11.800 px** dalla
+cima (fondo del capitolo recensioni): stava caricandosi al primo paint, sopra la
+piega, per qualcosa a dodici schermate di distanza. E la misura di laboratorio dà
+il consenso preimpostato, quindi quei ~736 ms finivano nel TBT della home anche
+se un visitatore nuovo — senza consenso — non li paga mai.
+
+Corretto con un vero cancello di viewport (IntersectionObserver, `rootMargin
+600px`): l'iframe — e quindi lo script — nasce solo quando ci si avvicina. Il
+consenso resta il cancello di prima istanza; questo è il secondo, di sola
+performance. Nessun contenuto, nessuna semantica di consenso, nessun CLS toccati
+(il contenitore riserva l'altezza). Copre anche `/recensioni` (stesso componente).
+
+| | TBT proxy a freddo (mediana) |
+|---|--:|
+| Prima | 3.561 ms |
+| **Dopo** | **2.898 ms** |
+
+**−663 ms**, coerente con i ~736 ms del loader tolti dalla finestra iniziale.
+Verificato anche dal vivo su build di produzione: con consenso dato, in cima alla
+home, **zero iframe e zero richieste a Trustindex** finché non ci si avvicina.
+Test e2e in `e2e/consent-reviews.spec.ts`.
+
+### 12.4 Il numero che resta, con l'imputato giusto
+
+Dopo la correzione il long task dominante è **ancora l'idratazione di react-dom**
+(~2 s in un Lighthouse locale). È il «layer motion» che `docs/performance.md:89-97`
+dichiara **fuori mandato**, riletto: non è (solo) il peso di GSAP in transito, è
+il **costo di idratazione** dell'albero client della home, pagato tutto al primo
+render. Ridurlo davvero significa **differire l'idratazione delle sezioni sotto la
+piega** — e in App Router non c'è un modo di farlo che non rinunci al contenuto
+reso dal server (quindi alla SEO) o che non tocchi ~15 componenti con animazioni
+già approvate. È esattamente la strada che le fasi precedenti hanno segnato come
+rischiosa. **Va decisa (go/no-go), non fatta di soppiatto in coda a questa fase.**
+
+Nota sul rumore: un `npm run lighthouse` locale su questa macchina, con un server
+attivo, ha dato TBT ben oltre il documentato 1.045 ms (fino a 7 s con una build in
+corso in parallelo). L'assoluto di Lighthouse in locale non è affidabile sotto
+carico; il prima/dopo controllato della sonda sì. Il gate CI resta scritto e
+resta rosso sulla home finché non si percorre la strada dell'idratazione.

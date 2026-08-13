@@ -7,12 +7,19 @@ import Badge from "./primitives/Badge";
 import { SegnoDomusCorner } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { GridProperty } from "../lib/properties";
+import { isResidential, factApplies } from "../lib/propertyKind";
 
 // Etichette statiche del componente (CTA + badge). I VALORI dei dati immobile
 // (zona, prezzo, m², badge dal gestionale) NON vengono tradotti: arrivano da RealSmart.
+//
+// Due CTA, e la scelta è semantica: `cta` con «casa» solo per gli immobili
+// abitativi; `ctaProperty`, neutra, per commerciale e terreno — un negozio o un
+// capannone non è una casa e non va invitato come tale (traduzioni neutre e
+// accurate, non copy definitivo del cliente).
 const copy = {
   it: {
     cta: "Scopri la casa",
+    ctaProperty: "Scopri l'immobile",
     forSale: "In vendita",
     forRent: "In affitto",
     share: "Condividi",
@@ -21,6 +28,7 @@ const copy = {
   },
   en: {
     cta: "Discover the home",
+    ctaProperty: "Discover the property",
     forSale: "For sale",
     forRent: "For rent",
     share: "Share",
@@ -29,6 +37,7 @@ const copy = {
   },
   fr: {
     cta: "Découvrir la maison",
+    ctaProperty: "Découvrir le bien",
     forSale: "À vendre",
     forRent: "À louer",
     share: "Partager",
@@ -37,6 +46,7 @@ const copy = {
   },
   de: {
     cta: "Das Zuhause entdecken",
+    ctaProperty: "Die Immobilie entdecken",
     forSale: "Zu verkaufen",
     forRent: "Zu vermieten",
     share: "Teilen",
@@ -45,6 +55,7 @@ const copy = {
   },
   es: {
     cta: "Descubre la casa",
+    ctaProperty: "Descubre el inmueble",
     forSale: "En venta",
     forRent: "En alquiler",
     share: "Compartir",
@@ -76,6 +87,8 @@ export default function PropertyCard({
   const { locale } = useLocale();
   const c = copy[locale];
   const statusLabel = p.status === "Affitto" ? c.forRent : c.forSale;
+  // CTA neutra fuori dal residenziale: un commerciale/terreno non è «casa».
+  const ctaLabel = isResidential(p.type) ? c.cta : c.ctaProperty;
   const [copied, setCopied] = useState(false);
 
   // Mostriamo al massimo 2 badge sull'immagine, dando priorità a quelli "forti"
@@ -209,23 +222,26 @@ export default function PropertyCard({
           {p.title}
         </h3>
 
+        {/* Solo i numeri pertinenti alla categoria E davvero presenti: camere e
+            bagni non compaiono su un commerciale o un terreno, i locali non su
+            un terreno. La superficie vale ovunque. Vedi lib/propertyKind.ts. */}
         <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.82rem] text-stone">
           {p.sqm !== "—" && (
             <span className="tnum inline-flex items-center gap-1.5">
               <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
             </span>
           )}
-          {p.rooms !== "—" && (
+          {p.rooms !== "—" && factApplies(p.type, "rooms") && (
             <span className="tnum inline-flex items-center gap-1.5">
               <Rooms className="h-4 w-4 text-graphite" /> {p.rooms}
             </span>
           )}
-          {p.beds !== "—" && (
+          {p.beds !== "—" && factApplies(p.type, "beds") && (
             <span className="tnum inline-flex items-center gap-1.5">
               <Bed className="h-4 w-4 text-graphite" /> {p.beds}
             </span>
           )}
-          {p.baths !== "—" && (
+          {p.baths !== "—" && factApplies(p.type, "baths") && (
             <span className="tnum inline-flex items-center gap-1.5">
               <span className="h-1 w-1 rounded-full bg-graphite/50" aria-hidden /> {p.baths}
             </span>
@@ -245,10 +261,10 @@ export default function PropertyCard({
           {/* CTA = stretched link: il ::after copre l'intera card */}
           <a
             href={`/case/${p.slug}`}
-            aria-label={`${c.cta}: ${p.title}`}
+            aria-label={`${ctaLabel}: ${p.title}`}
             className="inline-flex items-center gap-2 text-[0.8rem] font-semibold text-graphite transition-colors duration-300 after:absolute after:inset-0 after:content-[''] group-hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
           >
-            {c.cta}
+            {ctaLabel}
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream-deep text-ink transition-all duration-300 group-hover:bg-red group-hover:text-white">
               <ArrowUpRight className="h-4 w-4" />
             </span>

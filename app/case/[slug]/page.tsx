@@ -133,7 +133,9 @@ export default async function PropertyPage({
         address: {
           "@type": "PostalAddress",
           addressLocality: p.zone,
-          addressRegion: site.address.province,
+          // Sigla ISO (schema.org addressRegion), coerente col nodo organizzazione
+          // in layout.tsx — prima qui era "Varese" e là "VA": stessa fonte ora.
+          addressRegion: site.address.region,
           addressCountry: "IT",
         },
         ...(floorSize

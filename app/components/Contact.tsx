@@ -9,6 +9,7 @@ import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
+import { isEmailFormat, isPhoneFormat } from "../lib/forms/contactChannel";
 import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
 import Atmosphere from "./motion/Atmosphere";
@@ -39,8 +40,20 @@ const copy = {
     leadCareer: "Lavora con noi",
     nameLabel: "Nome e cognome",
     namePlaceholder: "Es. Maria Rossi",
-    contactLabel: "Telefono o email",
-    contactPlaceholder: "Es. 333 1234567 o maria@email.it",
+    phoneLabel: "Telefono",
+    phonePlaceholder: "Es. 333 1234567",
+    emailLabel: "Email",
+    emailPlaceholder: "Es. maria@email.it",
+    surfaceLabel: "Superficie (m²)",
+    surfacePlaceholder: "Es. 120",
+    timingLabel: "Tempistica",
+    timingPlaceholder: "Quando vorresti procedere?",
+    timing: {
+      asap: "Il prima possibile",
+      within3: "Entro 3 mesi",
+      within12: "Da 3 a 12 mesi",
+      exploring: "Sto solo valutando",
+    },
     placeLabelSell: "Comune dell’immobile",
     placeLabelBuy: "Zona desiderata",
     placeLabelOpen: "Zona di interesse",
@@ -62,6 +75,8 @@ const copy = {
     submitCareer: "Invia la candidatura",
     errName: "Inserisci il tuo nome.",
     errContact: "Lasciaci un telefono o un’email per ricontattarti.",
+    errEmail: "Controlla l’indirizzo email.",
+    errPhone: "Controlla il numero di telefono.",
     sentPrefix: "Stiamo aprendo WhatsApp. Se non si apre,",
     sentLink: "scrivici al",
     gdpr: "Usiamo i tuoi dati solo per rispondere alla tua richiesta.",
@@ -87,8 +102,20 @@ const copy = {
     leadCareer: "Work with us",
     nameLabel: "Full name",
     namePlaceholder: "E.g. Maria Rossi",
-    contactLabel: "Phone or email",
-    contactPlaceholder: "E.g. 333 1234567 or maria@email.it",
+    phoneLabel: "Phone",
+    phonePlaceholder: "E.g. 333 1234567",
+    emailLabel: "Email",
+    emailPlaceholder: "E.g. maria@email.it",
+    surfaceLabel: "Surface area (m²)",
+    surfacePlaceholder: "E.g. 120",
+    timingLabel: "Timing",
+    timingPlaceholder: "When would you like to proceed?",
+    timing: {
+      asap: "As soon as possible",
+      within3: "Within 3 months",
+      within12: "3 to 12 months",
+      exploring: "Just exploring",
+    },
     placeLabelSell: "Where the property is",
     placeLabelBuy: "Preferred area",
     placeLabelOpen: "Area of interest",
@@ -110,6 +137,8 @@ const copy = {
     submitCareer: "Send your application",
     errName: "Please enter your name.",
     errContact: "Leave us a phone number or an email so we can reply.",
+    errEmail: "Please check the email address.",
+    errPhone: "Please check the phone number.",
     sentPrefix: "We’re opening WhatsApp. If it doesn’t open,",
     sentLink: "message us at",
     gdpr: "We use your data only to reply to your request.",
@@ -135,8 +164,20 @@ const copy = {
     leadCareer: "Rejoignez-nous",
     nameLabel: "Nom et prénom",
     namePlaceholder: "Ex. Maria Rossi",
-    contactLabel: "Téléphone ou e-mail",
-    contactPlaceholder: "Ex. 333 1234567 ou maria@email.it",
+    phoneLabel: "Téléphone",
+    phonePlaceholder: "Ex. 333 1234567",
+    emailLabel: "E-mail",
+    emailPlaceholder: "Ex. maria@email.it",
+    surfaceLabel: "Surface (m²)",
+    surfacePlaceholder: "Ex. 120",
+    timingLabel: "Échéance",
+    timingPlaceholder: "Quand souhaitez-vous avancer ?",
+    timing: {
+      asap: "Dès que possible",
+      within3: "Sous 3 mois",
+      within12: "De 3 à 12 mois",
+      exploring: "Je me renseigne",
+    },
     placeLabelSell: "Où se situe le bien",
     placeLabelBuy: "Secteur souhaité",
     placeLabelOpen: "Secteur d’intérêt",
@@ -158,6 +199,8 @@ const copy = {
     submitCareer: "Envoyer ma candidature",
     errName: "Veuillez indiquer votre nom.",
     errContact: "Laissez-nous un téléphone ou un e-mail pour vous recontacter.",
+    errEmail: "Veuillez vérifier l’adresse e-mail.",
+    errPhone: "Veuillez vérifier le numéro de téléphone.",
     sentPrefix: "Nous ouvrons WhatsApp. S’il ne s’ouvre pas,",
     sentLink: "écrivez-nous au",
     gdpr: "Nous utilisons vos données uniquement pour répondre à votre demande.",
@@ -183,8 +226,20 @@ const copy = {
     leadCareer: "Arbeiten Sie mit uns",
     nameLabel: "Vor- und Nachname",
     namePlaceholder: "Z. B. Maria Rossi",
-    contactLabel: "Telefon oder E-Mail",
-    contactPlaceholder: "Z. B. 333 1234567 oder maria@email.it",
+    phoneLabel: "Telefon",
+    phonePlaceholder: "Z. B. 333 1234567",
+    emailLabel: "E-Mail",
+    emailPlaceholder: "Z. B. maria@email.it",
+    surfaceLabel: "Fläche (m²)",
+    surfacePlaceholder: "Z. B. 120",
+    timingLabel: "Zeitrahmen",
+    timingPlaceholder: "Wann möchten Sie starten?",
+    timing: {
+      asap: "So bald wie möglich",
+      within3: "Innerhalb von 3 Monaten",
+      within12: "3 bis 12 Monate",
+      exploring: "Ich informiere mich nur",
+    },
     placeLabelSell: "Wo sich die Immobilie befindet",
     placeLabelBuy: "Gewünschte Gegend",
     placeLabelOpen: "Gegend von Interesse",
@@ -206,6 +261,8 @@ const copy = {
     submitCareer: "Bewerbung senden",
     errName: "Bitte geben Sie Ihren Namen ein.",
     errContact: "Hinterlassen Sie uns eine Telefonnummer oder E-Mail für den Rückruf.",
+    errEmail: "Bitte prüfen Sie die E-Mail-Adresse.",
+    errPhone: "Bitte prüfen Sie die Telefonnummer.",
     sentPrefix: "Wir öffnen WhatsApp. Falls es sich nicht öffnet,",
     sentLink: "schreiben Sie uns an",
     gdpr: "Wir verwenden Ihre Daten ausschließlich zur Beantwortung Ihrer Anfrage.",
@@ -231,8 +288,20 @@ const copy = {
     leadCareer: "Trabaja con nosotras",
     nameLabel: "Nombre y apellidos",
     namePlaceholder: "Ej. Maria Rossi",
-    contactLabel: "Teléfono o correo",
-    contactPlaceholder: "Ej. 333 1234567 o maria@email.it",
+    phoneLabel: "Teléfono",
+    phonePlaceholder: "Ej. 333 1234567",
+    emailLabel: "Correo",
+    emailPlaceholder: "Ej. maria@email.it",
+    surfaceLabel: "Superficie (m²)",
+    surfacePlaceholder: "Ej. 120",
+    timingLabel: "Plazos",
+    timingPlaceholder: "¿Cuándo quieres avanzar?",
+    timing: {
+      asap: "Lo antes posible",
+      within3: "En menos de 3 meses",
+      within12: "De 3 a 12 meses",
+      exploring: "Solo estoy valorando",
+    },
     placeLabelSell: "Dónde está el inmueble",
     placeLabelBuy: "Zona deseada",
     placeLabelOpen: "Zona de interés",
@@ -254,6 +323,8 @@ const copy = {
     submitCareer: "Enviar la candidatura",
     errName: "Introduce tu nombre.",
     errContact: "Déjanos un teléfono o un correo para poder responderte.",
+    errEmail: "Revisa la dirección de correo.",
+    errPhone: "Revisa el número de teléfono.",
     sentPrefix: "Estamos abriendo WhatsApp. Si no se abre,",
     sentLink: "escríbenos al",
     gdpr: "Usamos tus datos solo para responder a tu solicitud.",
@@ -288,7 +359,12 @@ export default function Contact({
   const [intent, setIntent] = useState<LeadIntent>(initialIntent ?? "seller");
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; contact?: string; consent?: string }>({});
+  const [errors, setErrors] = useState<{
+    name?: string;
+    phone?: string;
+    email?: string;
+    consent?: string;
+  }>({});
   const formRef = useRef<HTMLFormElement | null>(null);
   const sentRef = useRef<HTMLParagraphElement | null>(null);
   const checkRef = useRef<SVGPathElement | null>(null);
@@ -380,19 +456,33 @@ export default function Contact({
     if (val("company")) return;
 
     const name = val("name");
-    const contact = val("contact");
+    const phone = val("phone");
+    const email = val("email");
     const consent = data.get("consent") != null;
 
-    // Validazione client-side: nome + contatto + consenso privacy obbligatori.
-    const nextErrors: { name?: string; contact?: string; consent?: string } = {};
+    // Validazione client-side (specchio del server, app/lib/forms/validateLead.ts):
+    // nome obbligatorio; ALMENO UNO fra telefono ed email, e quello lasciato deve
+    // avere un formato plausibile; consenso privacy obbligatorio.
+    const nextErrors: { name?: string; phone?: string; email?: string; consent?: string } = {};
     if (!name) nextErrors.name = c.errName;
-    if (!contact) nextErrors.contact = c.errContact;
+    if (!phone && !email) {
+      nextErrors.phone = c.errContact;
+    } else {
+      if (phone && !isPhoneFormat(phone)) nextErrors.phone = c.errPhone;
+      if (email && !isEmailFormat(email)) nextErrors.email = c.errEmail;
+    }
     if (!consent) nextErrors.consent = c.errConsent;
-    if (nextErrors.name || nextErrors.contact || nextErrors.consent) {
+    if (nextErrors.name || nextErrors.phone || nextErrors.email || nextErrors.consent) {
       setErrors(nextErrors);
       // A11y: porta il focus sul primo campo non valido (dopo il re-render).
       const form = e.currentTarget;
-      const firstInvalid = nextErrors.name ? "name" : nextErrors.contact ? "contact" : "consent";
+      const firstInvalid = nextErrors.name
+        ? "name"
+        : nextErrors.phone
+          ? "phone"
+          : nextErrors.email
+            ? "email"
+            : "consent";
       requestAnimationFrame(() =>
         form.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus(),
       );
@@ -403,9 +493,12 @@ export default function Contact({
     const lead: Lead = {
       intent,
       name,
-      contact,
+      phone: phone || undefined,
+      email: email || undefined,
       place: val("place") || undefined,
       propertyType: val("propertyType") || undefined,
+      surface: val("surface") || undefined,
+      timing: val("timing") || undefined,
       budget: val("budget") || undefined,
       features: val("features") || undefined,
       message: val("message") || undefined,
@@ -546,7 +639,7 @@ export default function Contact({
                 ))}
               </div>
 
-              {/* Nome + contatto: sempre presenti e obbligatori. */}
+              {/* Nome sempre presente e obbligatorio. */}
               <Field
                 name="name"
                 label={c.nameLabel}
@@ -556,15 +649,33 @@ export default function Contact({
                 autoCapitalize="words"
                 error={errors.name}
               />
-              <Field
-                name="contact"
-                label={c.contactLabel}
-                placeholder={c.contactPlaceholder}
-                required
-                autoCapitalize="none"
-                spellCheck={false}
-                error={errors.contact}
-              />
+              {/* Telefono ed email in campi DISTINTI (canali separati). Ne serve
+                  almeno uno: l'errore "lascia un recapito" vive sul telefono, il
+                  primo dei due. Tastiere mobili dedicate (tel / email). */}
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field
+                  name="phone"
+                  type="tel"
+                  label={c.phoneLabel}
+                  placeholder={c.phonePlaceholder}
+                  autoComplete="tel"
+                  inputMode="tel"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  error={errors.phone}
+                />
+                <Field
+                  name="email"
+                  type="email"
+                  label={c.emailLabel}
+                  placeholder={c.emailPlaceholder}
+                  autoComplete="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  error={errors.email}
+                />
+              </div>
 
               {/* Campi dinamici per intento. `initialPlace` (zona della scheda) precompila
                   la zona desiderata quando il form parte da un immobile. */}
@@ -647,11 +758,21 @@ function IntentFields({
   c: Copy;
   initialPlace?: string;
 }) {
+  const timingOptions = [
+    { value: c.timing.asap },
+    { value: c.timing.within3 },
+    { value: c.timing.within12 },
+    { value: c.timing.exploring },
+  ];
   if (intent === "seller") {
     return (
       <>
         <Field name="place" label={c.placeLabelSell} placeholder={c.placePlaceholderSell} autoComplete="address-level2" autoCapitalize="words" />
-        <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
+          <Field name="surface" label={c.surfaceLabel} placeholder={c.surfacePlaceholder} inputMode="numeric" autoCapitalize="none" spellCheck={false} />
+        </div>
+        <Select name="timing" label={c.timingLabel} placeholder={c.timingPlaceholder} options={timingOptions} />
         <TextArea name="message" label={c.messageLabel} placeholder={c.messagePlaceholderSell} />
       </>
     );
@@ -667,9 +788,13 @@ function IntentFields({
           autoComplete="address-level2"
           autoCapitalize="words"
         />
-        <Field name="budget" label={c.budgetLabel} placeholder={c.budgetPlaceholder} inputMode="numeric" />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field name="budget" label={c.budgetLabel} placeholder={c.budgetPlaceholder} inputMode="numeric" />
+          <Field name="surface" label={c.surfaceLabel} placeholder={c.surfacePlaceholder} inputMode="numeric" autoCapitalize="none" spellCheck={false} />
+        </div>
         <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
         <Field name="features" label={c.featuresLabel} placeholder={c.featuresPlaceholder} />
+        <Select name="timing" label={c.timingLabel} placeholder={c.timingPlaceholder} options={timingOptions} />
       </>
     );
   }
@@ -766,6 +891,41 @@ function TextArea({
         placeholder={placeholder}
         className="rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
       />
+    </div>
+  );
+}
+
+// Select opzionale (tempistica): la prima voce vuota è il placeholder, così il
+// campo non forza una scelta e "non valorizzato" resta un esito valido.
+function Select({
+  name,
+  label,
+  placeholder,
+  options,
+}: {
+  name: string;
+  label: string;
+  placeholder: string;
+  options: { value: string }[];
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor={name} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
+        {label}
+      </label>
+      <select
+        id={name}
+        name={name}
+        defaultValue=""
+        className="rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.value}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

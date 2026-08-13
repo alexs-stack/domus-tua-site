@@ -31,20 +31,36 @@ Google/Trustindex**, non testimonianze decorative.
 3. `Reviews.tsx` mostra automaticamente il **widget reale** al posto della griglia demo (branch
    `site.embeds.trustindexSrc`).
 
-**B) Recensioni reali statiche**
-1. Sostituisci l'array `reviews` in `app/lib/reviews.ts` con recensioni reali (testo, nome, luogo,
-   rating, data ISO, fonte, `verified: true`).
-2. Aggiorna `googleReviewsUrl` con l'**URL del profilo Google Business** reale (non una ricerca).
+**B) Recensioni native reali (card sul sito)**
+1. Aggiungi le recensioni reali all'array **`approvedNativeReviews`** in `app/lib/reviews.ts`,
+   ciascuna con **`status: "approved"`**, la **provenienza** (`google` / `trustindex` / `native`),
+   testo, nome, luogo, rating (1–5) e data ISO. **NON** si tocca l'array `demoReviews` e **non** si
+   inventa nulla.
+2. Da quel momento `nativeReviews()` mostra le approvate **anche in produzione** (e il selettore
+   ignora del tutto le demo). Il bollino "verificata" compare solo su queste.
+3. Aggiorna `googleReviewsUrl` con l'**URL del profilo Google Business** reale (non una ricerca).
 
-## Cosa serve dal cliente
-- Codice widget Trustindex.
-- URL profilo Google Business.
-- Eventuale selezione delle recensioni migliori da mostrare in evidenza.
+> Il vecchio campo `verified: boolean` non esiste più: una demo poteva dichiararsi `verified:true` e
+> sembrare reale. Ora è lo **stato di pubblicazione** (`demo` vs `approved`) a decidere, e solo
+> `approved` va in produzione — vedi `isPublishableReview` / `nativeReviews`.
+
+## Cosa serve dal cliente per abilitare le testimonianze native
+Finché non arriva quanto segue, `approvedNativeReviews` resta **vuoto** e la sezione a card **non**
+compare in produzione (restano voto reale + link a Google + widget Trustindex sotto consenso):
+
+1. **Le recensioni da pubblicare come card**, scelte dal cliente fra quelle vere di Google/Trustindex.
+2. Per ciascuna: **testo** (o estratto fedele), **nome** (anche solo nome + iniziale, come lo mostra
+   Google), **luogo**, **voto**, **data**, **provenienza**.
+3. Il **permesso a ripubblicarle sul sito** (una recensione pubblica su Google non implica il
+   consenso a replicarla altrove come testimonianza — meglio metterlo per iscritto).
+4. Conferma che **non** vogliamo aggiungere dati strutturati di recensione (schema `AggregateRating`)
+   finché non c'è contenuto reale e visibile a supporto (policy Google; oggi deliberatamente omesso).
+- Restano validi: **codice widget Trustindex** e **URL profilo Google Business**.
 
 ## Nota
-Le recensioni demo sono marcate come tali nei commenti di `app/lib/reviews.ts`. Non presentare i
-testi demo come reali in una demo cliente senza dirlo. In produzione le card demo **non** vengono
-mai mostrate (vedi ramo 3 sopra).
+Le recensioni demo sono marcate `status: "demo"` in `app/lib/reviews.ts`. Non presentarle come reali
+in una demo cliente senza dirlo. In produzione **non** vengono mai mostrate: il selettore le esclude,
+non solo un ramo del componente.
 
 ## Checklist di lancio (recensioni)
 Da spuntare sul **dominio di produzione finale** prima del go-live:

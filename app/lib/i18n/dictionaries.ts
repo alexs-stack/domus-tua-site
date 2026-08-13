@@ -19,7 +19,7 @@ export const localeShort: Record<Locale, string> = {
 };
 
 type Dict = {
-  nav: { vendi: string; acquista: string; metodo: string; openDomus: string; case: string; recensioni: string; chiSiamo: string; lavora: string; contatti: string; percorso: string };
+  nav: { vendi: string; acquista: string; metodo: string; servizi: string; openDomus: string; case: string; recensioni: string; chiSiamo: string; lavora: string; contatti: string; percorso: string };
   header: { valuta: string; whatsapp: string };
   cursor: { scopri: string; trascina: string };
   hero: {
@@ -42,7 +42,7 @@ type Dict = {
 
 export const dictionaries: Record<Locale, Dict> = {
   it: {
-    nav: { vendi: "Vendi", acquista: "Acquista", metodo: "Metodo Domus", openDomus: "Open Domus", case: "Case", recensioni: "Recensioni", chiSiamo: "Chi siamo", lavora: "Lavora con noi", contatti: "Contatti", percorso: "Percorso" },
+    nav: { vendi: "Vendi", acquista: "Acquista", metodo: "Metodo Domus", servizi: "Servizi", openDomus: "Open Domus", case: "Case", recensioni: "Recensioni", chiSiamo: "Chi siamo", lavora: "Lavora con noi", contatti: "Contatti", percorso: "Percorso" },
     header: { valuta: "Valuta la tua casa", whatsapp: "Scrivici su WhatsApp" },
     cursor: { scopri: "Scopri", trascina: "Trascina" },
     hero: {
@@ -73,7 +73,7 @@ export const dictionaries: Record<Locale, Dict> = {
     lang: { label: "Lingua" },
   },
   en: {
-    nav: { vendi: "Sell", acquista: "Buy", metodo: "The Method", openDomus: "Open Domus", case: "Homes", recensioni: "Reviews", chiSiamo: "About us", lavora: "Work with us", contatti: "Contact", percorso: "Journey" },
+    nav: { vendi: "Sell", acquista: "Buy", metodo: "The Method", servizi: "Services", openDomus: "Open Domus", case: "Homes", recensioni: "Reviews", chiSiamo: "About us", lavora: "Work with us", contatti: "Contact", percorso: "Journey" },
     header: { valuta: "Value your home", whatsapp: "Message us on WhatsApp" },
     cursor: { scopri: "View", trascina: "Drag" },
     hero: {
@@ -104,7 +104,7 @@ export const dictionaries: Record<Locale, Dict> = {
     lang: { label: "Language" },
   },
   fr: {
-    nav: { vendi: "Vendre", acquista: "Acheter", metodo: "La Méthode", openDomus: "Open Domus", case: "Biens", recensioni: "Avis", chiSiamo: "À propos", lavora: "Rejoignez-nous", contatti: "Contact", percorso: "Parcours" },
+    nav: { vendi: "Vendre", acquista: "Acheter", metodo: "La Méthode", servizi: "Services", openDomus: "Open Domus", case: "Biens", recensioni: "Avis", chiSiamo: "À propos", lavora: "Rejoignez-nous", contatti: "Contact", percorso: "Parcours" },
     header: { valuta: "Estimez votre bien", whatsapp: "Écrivez-nous sur WhatsApp" },
     cursor: { scopri: "Découvrir", trascina: "Glisser" },
     hero: {
@@ -135,7 +135,7 @@ export const dictionaries: Record<Locale, Dict> = {
     lang: { label: "Langue" },
   },
   de: {
-    nav: { vendi: "Verkaufen", acquista: "Kaufen", metodo: "Die Methode", openDomus: "Open Domus", case: "Immobilien", recensioni: "Bewertungen", chiSiamo: "Über uns", lavora: "Karriere", contatti: "Kontakt", percorso: "Ablauf" },
+    nav: { vendi: "Verkaufen", acquista: "Kaufen", metodo: "Die Methode", servizi: "Leistungen", openDomus: "Open Domus", case: "Immobilien", recensioni: "Bewertungen", chiSiamo: "Über uns", lavora: "Karriere", contatti: "Kontakt", percorso: "Ablauf" },
     header: { valuta: "Immobilie bewerten", whatsapp: "Schreib uns auf WhatsApp" },
     cursor: { scopri: "Entdecken", trascina: "Ziehen" },
     hero: {
@@ -166,7 +166,7 @@ export const dictionaries: Record<Locale, Dict> = {
     lang: { label: "Sprache" },
   },
   es: {
-    nav: { vendi: "Vender", acquista: "Comprar", metodo: "El Método", openDomus: "Open Domus", case: "Inmuebles", recensioni: "Reseñas", chiSiamo: "Quiénes somos", lavora: "Únete al equipo", contatti: "Contacto", percorso: "Recorrido" },
+    nav: { vendi: "Vender", acquista: "Comprar", metodo: "El Método", servizi: "Servicios", openDomus: "Open Domus", case: "Inmuebles", recensioni: "Reseñas", chiSiamo: "Quiénes somos", lavora: "Únete al equipo", contatti: "Contacto", percorso: "Recorrido" },
     header: { valuta: "Valora tu casa", whatsapp: "Escríbenos por WhatsApp" },
     cursor: { scopri: "Descubrir", trascina: "Arrastrar" },
     hero: {

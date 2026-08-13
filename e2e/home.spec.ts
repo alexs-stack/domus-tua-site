@@ -64,6 +64,8 @@ test("l'header porta alle sezioni del sito @layout", async ({ page, goto, isMobi
       () => expect(panel.getByRole("link", { name: "Vendi", exact: true })).toBeVisible(),
     );
     await expect(panel.getByRole("link", { name: "Acquista", exact: true })).toBeVisible();
+    // Servizi è raggiungibile dalla navigazione anche sul telefono.
+    await expect(panel.getByRole("link", { name: "Servizi", exact: true })).toBeVisible();
     // Escape richiude e restituisce il focus al bottone.
     await page.keyboard.press("Escape");
     await expect(menu).toBeFocused();
@@ -74,6 +76,7 @@ test("l'header porta alle sezioni del sito @layout", async ({ page, goto, isMobi
       "Vendi",
       "Acquista",
       "Metodo Domus",
+      "Servizi",
       "Open Domus",
       "Recensioni",
       "Chi siamo",

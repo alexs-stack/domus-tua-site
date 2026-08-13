@@ -22,7 +22,8 @@
     "test:e2e:live": "playwright test --config=playwright.live.config.ts",
     "perf:report": "tsx scripts/perf-report.ts",
     "lighthouse": "lhci autorun",
-    "verify:deploy": "tsx scripts/verify-deploy.ts"
+    "verify:deploy": "tsx scripts/verify-deploy.ts",
+    "smoke": "tsx scripts/smoke.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.25",

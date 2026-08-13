@@ -188,10 +188,15 @@ Stessa situazione della privacy, più una decisione che spetta a voi. Oggi la po
 - *Cosa deve elencare il testo definitivo:* i terzi che ci sono davvero — il servizio delle recensioni, la mappa nella pagina Contatti, i video YouTube, le mappe della ricerca immobili, ed eventualmente il widget Instagram — con finalità e durata.
 
 **3.3 Gli orari di apertura definitivi — [BLOCCANTE]**
-Nel sito convivono tre versioni diverse, e una di queste finisce nella scheda che Google legge:
-- pomeriggio infrasettimanale: **14:30–19:00** in una parte del sito, **15:00–19:00** nella pagina Contatti (in tutte e cinque le lingue);
-- domenica: "su appuntamento" nel footer e in Contatti, "chiuso" nelle risposte dell'assistente.
-- *Cosa ci serve:* **una riga sola e definitiva** — lunedì-venerdì mattina e pomeriggio, sabato, domenica (chiusa oppure su appuntamento, e in che modo). Diteci anche se ci sono chiusure fisse (agosto, festività) da segnalare. Con la vostra riga allineiamo tutto, dati per Google compresi.
+Aggiornamento 2026-08-13: il sito ora mostra **un valore solo** per il pomeriggio
+infrasettimanale — **14:30–19:00** — dalla fonte unica `app/lib/site.ts`, dati per Google
+compresi. La pagina Contatti mostrava **15:00–19:00** ed è stata allineata al 14:30 già presente
+nel resto del sito e nei dati strutturati (il meno rischioso da cambiare: non tocca ciò che
+Google ha già letto). **Non abbiamo deciso quale sia il valore vero:** entrambi restano
+candidati, registrati in `pendingConfirmation.weekdayAfternoonOpening` (struttura di solo codice,
+mai mostrata agli utenti). Resta anche la domenica: "su appuntamento" nel footer e in Contatti,
+"chiuso" nelle risposte dell'assistente.
+- *Cosa ci serve:* **una riga sola e definitiva** — lunedì-venerdì mattina e pomeriggio (14:30 o 15:00?), sabato, domenica (chiusa oppure su appuntamento, e in che modo). Diteci anche se ci sono chiusure fisse (agosto, festività). Con la vostra riga cambiamo **un valore in un posto** e si allinea tutto.
 
 **3.4 Estremi di iscrizione come mediatori, polizza professionale e PEC**
 Nel piè di pagina compaiono ragione sociale, partita IVA, REA e capitale sociale, ma mancano i dati che vi identificano come mediatori abilitati.

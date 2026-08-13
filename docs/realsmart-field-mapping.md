@@ -121,10 +121,59 @@ Utili da chiudere quando arriva il feed reale:
 
 ---
 
+## 4. Robustezza dell'ingestione (2026-08-13)
+
+La pipeline non fida del feed. Tre reti, tutte DETERMINISTICHE e senza eccezioni:
+
+- **Segnaposto → assenza.** `cleanField` (`app/lib/realsmart/validate.ts`) tratta `N/D`, `-`,
+  `da definire`, `non disponibile`… come campo **vuoto**: un segnaposto mostrato come dato è
+  peggio di un campo assente. Passano da qui titolo, comune, provincia, tipologia, classe
+  energetica, piano, indirizzo, riferimento.
+- **Avvisi strutturati.** `validateListing` produce avvisi deterministici sui record sospetti
+  (`images-missing`, `price-missing`, `type-missing`, `location-missing`, `surface-missing`,
+  `status-unmapped`, `placeholder-field`), col valore GREZZO conservato per diagnostica. Finiscono
+  in `NormalizedProperty.warnings` e nei log server (mai in pagina). Riepilogo a build:
+  `npm run audit:listings-content`.
+- **Isolamento degli errori.** `normalizeListings` normalizza uno per uno: un singolo record
+  abbastanza corrotto da far lanciare viene **scartato**, gli altri passano. *Un annuncio rotto
+  non svuota il catalogo.*
+
+**Preparazione AI (spenta di default).** `app/lib/realsmart/aiNormalizer.ts` definisce un
+`AiNormalizer` tipizzato che potrà *migliorare* (mai sostituire) i campi già normalizzati. È
+attivabile SOLO da env server-only (`REALSMART_AI_NORMALIZE=true` **e** una chiave presente —
+mai una chiave reale nel codice/test), il default resta deterministico, un errore dell'AI ricade
+in modo sicuro sul deterministico, e `normalizedBy` registra se l'AI è stata usata. I test usano
+un provider finto.
+
+## 5. Problemi di qualità DA SISTEMARE IN REALSMART (non sul sito)
+
+Il sito ripiega in modo sicuro, ma questi restano difetti del DATO e vanno corretti a monte:
+
+1. **Stati di pubblicazione non mappati** (`status-unmapped`): allineare i nomi degli stati del
+   gestionale ai cinque attesi (`draft/published/reserved/sold/withdrawn`). Uno stato ignoto oggi
+   è nascosto per sicurezza (draft): un immobile pubblicabile potrebbe sparire.
+2. **Prezzo mancante/non numerico** (`price-missing`): decidere se è davvero «su richiesta» o un
+   buco di compilazione. Il sito mostra «Prezzo su richiesta».
+3. **Foto assenti** (`images-missing`): senza foto la scheda usa un segnaposto neutro. Le foto
+   vanno caricate nel gestionale, non aggiunte sul sito.
+4. **Tipologia assente o segnaposto** (`type-missing`): senza tipologia si ripiega su «Immobile» e
+   i filtri per categoria non funzionano.
+5. **Comune/superficie mancanti** (`location-missing`, `surface-missing`): compromettono ricerca e
+   schede. Vanno compilati nel gestionale.
+6. **Segnaposto testuali** (`placeholder-field`): «N/D», «-» in classe energetica/piano ecc. — il
+   sito li nasconde, ma andrebbero puliti alla fonte.
+
+Il conteggio degli avvisi nel tempo (log `[realsmart] qualità dati:`) è il segnale: se cresce, il
+feed peggiora e va sistemato prima del go-live.
+
+---
+
 ## File coinvolti
 
-- `app/lib/realsmart/types.ts` — definizione `RealSmartListingRaw` + `NormalizedProperty`.
-- `app/lib/realsmart/normalize.ts` — `normalizeRealSmartListing()` e helper (`toNumber`, `slugify`, `deriveBadges`, `sortMedia`).
+- `app/lib/realsmart/types.ts` — definizione `RealSmartListingRaw` + `NormalizedProperty` (con `normalizedBy`, `warnings`).
+- `app/lib/realsmart/normalize.ts` — `normalizeRealSmartListing()`, `normalizeListings()` (isolamento errori) e helper.
+- `app/lib/realsmart/validate.ts` — `cleanField` (segnaposto) + `validateListing` (avvisi).
+- `app/lib/realsmart/aiNormalizer.ts` — interfaccia AI opzionale, env-gated, fallback sicuro.
 - `app/lib/realsmart/client.ts` — `getLiveListings()`, `HIDDEN_STATUSES`, ordinamento, `REVALIDATE_SECONDS`.
 - `app/components/PropertyCard.tsx`, `PropertyGallery.tsx`, `PropertySearch.tsx`, `Listings.tsx`, `app/case/[slug]/page.tsx` — superfici UI di destinazione.
 - Contesto e domande aperte: `docs/realsmart-integration-notes.md`.

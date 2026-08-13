@@ -18,6 +18,7 @@ import { site } from "../../lib/site";
 import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 import type { Property } from "../../lib/properties";
+import { factApplies, type CoreFactKey } from "../../lib/propertyKind";
 import { useLocale } from "../../components/i18n/LocaleProvider";
 
 const copy = {
@@ -279,13 +280,20 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   // dentro il suo stesso rigo. Si toglie solo in questa vista: la sorgente non cambia.
   const bare = (value: string) => value.replace(/\s+(?:local[ei]|camere?|bagn[oi])$/i, "");
 
-  const specs = [
-    { factKey: "superficie", label: c.specSqm, value: p.sqm },
-    { factKey: "locali", label: c.specRooms, value: p.rooms },
-    { factKey: "camere", label: c.specBeds, value: p.beds },
-    { factKey: "bagni", label: c.specBaths, value: p.baths },
-  ]
-    .filter((s) => s.value && s.value !== "—")
+  // Il filtro su "—" copre il caso normale (un terreno non ha locali → il feed
+  // dà "—"); `factApplies` copre il caso di rumore (il feed che riporta comunque
+  // camere/bagni su un commerciale): camere e bagni sono residenziali e non
+  // vanno su un negozio o un terreno, i locali non su un terreno. Un posto solo
+  // per la regola: lib/propertyKind.ts.
+  const specs = (
+    [
+      { factKey: "superficie", core: "sqm", label: c.specSqm, value: p.sqm },
+      { factKey: "locali", core: "rooms", label: c.specRooms, value: p.rooms },
+      { factKey: "camere", core: "beds", label: c.specBeds, value: p.beds },
+      { factKey: "bagni", core: "baths", label: c.specBaths, value: p.baths },
+    ] satisfies { factKey: string; core: CoreFactKey; label: string; value: string }[]
+  )
+    .filter((s) => s.value && s.value !== "—" && factApplies(p.type, s.core))
     .map((s) => ({ ...s, value: bare(s.value) }));
 
   // Un fatto, un posto solo. I quattro numeri della striscia stanno sopra la piega, in
@@ -438,7 +446,13 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
 
         {/* Gallery hero */}
         <div className="mt-8">
-          <PropertyGallery images={p.gallery} title={p.title} />
+          {/* Alt della foto principale da campi VERIFICATI (titolo + zona
+              dell'annuncio), non dal nome file né generato a runtime. */}
+          <PropertyGallery
+            images={p.gallery}
+            title={p.title}
+            principalAlt={p.zone ? `${p.title}, ${p.zone}` : p.title}
+          />
         </div>
 
         {/* Key facts strip sotto la gallery */}
