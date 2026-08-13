@@ -11,12 +11,14 @@
 //  • i dati approvati restano leggibili anche se un refresh fallisce (constraint 12);
 //  • nessun segreto e nessun payload grezzo del provider viene persistito.
 
+import { TerritoryAuditEventSchema } from "../types";
 import type {
   ListingTerritoryEnrichment,
   MunicipalityTerritoryProfile,
   EnrichmentFailure,
   EnrichmentStatus,
   OriginPrecision,
+  TerritoryAuditEvent,
 } from "../types";
 
 /**
@@ -75,6 +77,8 @@ export interface TerritoryRepository {
   ): Promise<void>;
   /** Elenca i metadati leggeri di tutti gli arricchimenti, senza caricarne i `pois`. */
   listEnrichmentMetadata(): Promise<EnrichmentMetadata[]>;
+  /** Elenca TUTTI i profili comunali (per export/backup e report). */
+  listMunicipalityProfiles(): Promise<MunicipalityTerritoryProfile[]>;
   /** Marca un record come `stale` (lo ritira dal pubblico senza cancellarne i dati). */
   markStale(realSmartCode: string): Promise<void>;
   /**
@@ -92,6 +96,24 @@ export interface TerritoryRepository {
   tryAcquireLease(key: string, holder: string, expiresAtIso: string, now: Date): Promise<boolean>;
   /** Rilascia il lease se detenuto da `holder` (no-op altrimenti). */
   releaseLease(key: string, holder: string): Promise<void>;
+
+  /**
+   * AUDIT (Prompt 7): appende un evento IMMUTABILE (approve/publish/revoke…). La storia non si
+   * modifica né si cancella. Ritorna l'evento memorizzato (con id assegnato se assente).
+   */
+  appendAuditEvent(event: TerritoryAuditEventInput): Promise<TerritoryAuditEvent>;
+  /** Elenca gli eventi di audit (dal più recente), opzionalmente filtrati per codice immobile. */
+  listAuditEvents(filter?: { realSmartCode?: string; limit?: number }): Promise<TerritoryAuditEvent[]>;
+}
+
+/** Evento di audit in ingresso: l'id è opzionale (lo assegna lo store). */
+export type TerritoryAuditEventInput = Omit<TerritoryAuditEvent, "id"> & { id?: string };
+
+/** Contatore monotòno per id di audit deterministici e ordinabili (senza Date.now/random). */
+let auditSeq = 0;
+export function nextAuditId(): string {
+  auditSeq += 1;
+  return `evt_${auditSeq.toString(36).padStart(6, "0")}`;
 }
 
 /**
@@ -112,6 +134,28 @@ export class InMemoryLeaseTable {
   release(key: string, holder: string): void {
     const current = this.leases.get(key);
     if (current && current.holder === holder) this.leases.delete(key);
+  }
+}
+
+/** Log di audit APPEND-ONLY in memoria: valida ogni evento, non modifica né cancella la storia. */
+export class InMemoryAuditLog {
+  private readonly events: TerritoryAuditEvent[] = [];
+
+  append(event: TerritoryAuditEventInput): TerritoryAuditEvent {
+    const withId: TerritoryAuditEvent = { ...event, id: event.id ?? nextAuditId() };
+    const parsed = TerritoryAuditEventSchema.safeParse(withId);
+    if (!parsed.success) {
+      throw new TerritoryStorageError(`Evento di audit non valido: ${parsed.error.message}`);
+    }
+    this.events.push(parsed.data); // append-only: nessuna mutazione degli eventi passati
+    return { ...parsed.data };
+  }
+
+  list(filter?: { realSmartCode?: string; limit?: number }): TerritoryAuditEvent[] {
+    let out = this.events;
+    if (filter?.realSmartCode) out = out.filter((e) => e.realSmartCode === filter.realSmartCode);
+    const ordered = [...out].reverse(); // dal più recente
+    return filter?.limit != null ? ordered.slice(0, filter.limit) : ordered;
   }
 }
 

@@ -15,12 +15,15 @@ import {
   TerritoryConcurrencyError,
   TerritoryStorageError,
   InMemoryLeaseTable,
+  InMemoryAuditLog,
   toEnrichmentMetadata,
   withFailure,
   type EnrichmentMetadata,
   type PutOptions,
   type TerritoryRepository,
+  type TerritoryAuditEventInput,
 } from "./repository";
+import type { TerritoryAuditEvent } from "../types";
 
 function validateListing(record: ListingTerritoryEnrichment): ListingTerritoryEnrichment {
   const parsed = ListingTerritoryEnrichmentSchema.safeParse(record);
@@ -46,6 +49,7 @@ export class MemoryTerritoryRepository implements TerritoryRepository {
   private readonly listings = new Map<string, ListingTerritoryEnrichment>();
   private readonly profiles = new Map<string, MunicipalityTerritoryProfile>();
   private readonly leases = new InMemoryLeaseTable();
+  private readonly audit = new InMemoryAuditLog();
 
   async tryAcquireLease(key: string, holder: string, expiresAtIso: string, now: Date): Promise<boolean> {
     return this.leases.tryAcquire(key, holder, expiresAtIso, now);
@@ -53,6 +57,14 @@ export class MemoryTerritoryRepository implements TerritoryRepository {
 
   async releaseLease(key: string, holder: string): Promise<void> {
     this.leases.release(key, holder);
+  }
+
+  async appendAuditEvent(event: TerritoryAuditEventInput): Promise<TerritoryAuditEvent> {
+    return this.audit.append(event);
+  }
+
+  async listAuditEvents(filter?: { realSmartCode?: string; limit?: number }): Promise<TerritoryAuditEvent[]> {
+    return this.audit.list(filter);
   }
 
   async getListingEnrichment(realSmartCode: string): Promise<ListingTerritoryEnrichment | null> {
@@ -103,6 +115,12 @@ export class MemoryTerritoryRepository implements TerritoryRepository {
     return [...this.listings.values()]
       .sort((a, b) => (a.realSmartCode < b.realSmartCode ? -1 : 1))
       .map(toEnrichmentMetadata);
+  }
+
+  async listMunicipalityProfiles(): Promise<MunicipalityTerritoryProfile[]> {
+    return [...this.profiles.values()]
+      .sort((a, b) => (a.municipality < b.municipality ? -1 : 1))
+      .map((p) => structuredClone(p));
   }
 
   async markStale(realSmartCode: string): Promise<void> {

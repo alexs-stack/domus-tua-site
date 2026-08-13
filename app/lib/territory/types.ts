@@ -202,6 +202,43 @@ export const EnrichmentFingerprintSchema = z
   .strict();
 export type EnrichmentFingerprint = z.infer<typeof EnrichmentFingerprintSchema>;
 
+/**
+ * EVENTO DI AUDIT immutabile (Prompt 7): traccia append-only delle azioni editoriali/operative.
+ * Nessuna coordinata, nessun segreto: solo chi/quando/cosa. La storia non si modifica né si
+ * cancella — è la prova di ogni approvazione/pubblicazione/revoca.
+ */
+export const TerritoryAuditActionSchema = z.enum([
+  "approve",
+  "reject",
+  "publish",
+  "unpublish",
+  "refresh",
+  "fail",
+  "authorize-origin",
+  "revoke-origin",
+  "import",
+]);
+export type TerritoryAuditAction = z.infer<typeof TerritoryAuditActionSchema>;
+
+export const TerritoryAuditEventSchema = z
+  .object({
+    /** ID stabile dell'evento (assegnato dallo store se assente). */
+    id: z.string().min(1),
+    at: z.iso.datetime(),
+    action: TerritoryAuditActionSchema,
+    /** Chi ha compiuto l'azione (editor, "cron", "cli"…). */
+    actor: z.string().min(1),
+    /** Entità toccata: codice immobile e/o comune (mai coordinate). */
+    realSmartCode: z.string().min(1).optional(),
+    municipality: z.string().min(1).optional(),
+    fromStatus: EnrichmentStatusSchema.optional(),
+    toStatus: EnrichmentStatusSchema.optional(),
+    /** Nota editoriale opzionale (PII-safe: nessun indirizzo/coordinata). */
+    note: z.string().optional(),
+  })
+  .strict();
+export type TerritoryAuditEvent = z.infer<typeof TerritoryAuditEventSchema>;
+
 /** Approvazione a livello di record: chi, quando, nota opzionale (constraint: audit). */
 export const RecordApprovalSchema = z
   .object({

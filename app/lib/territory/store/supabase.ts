@@ -1,10 +1,18 @@
-// Adattatore Supabase: PREVISTO ma DISABILITATO nell'MVP.
+// Adattatore Supabase: PROGETTATO, in attesa di AUTORIZZAZIONE (Prompt 7).
 //
-// L'ADR-001 indica Supabase come strada di produzione futura (quando servisse scrittura a runtime
-// o un'interfaccia editoriale). Nell'MVP non è cablato: l'integrazione non è configurata nel
-// repository e richiede autenticazione. Per rispettare "keep it disabled without configuration"
-// (Prompt 3), qui NON si indovina lo schema delle API: la costruzione fallisce con un errore
-// operativo chiaro finché le variabili non sono presenti e l'adattatore non viene implementato.
+// STATO. Lo schema durevole di produzione è progettato per intero — vedi le migrazioni in
+// `supabase/migrations/0001_territory_schema.sql` (tabelle, indici, RLS server-only, colonne di
+// versione per la concorrenza) e la decisione in `docs/adr/004-territory-durable-storage.md`.
+//
+// NON è attivato: creare/provisionare un progetto Supabase (o Postgres) ed eseguire le migrazioni è
+// un'azione infrastrutturale che richiede AUTORIZZAZIONE ESPLICITA del cliente (constraint: non
+// creare account/servizi né eseguire migrazioni in produzione senza approvazione). Finché non è
+// approvato, questo costruttore fallisce in modo esplicito e sicuro: mai storage effimero, mai un
+// adattatore che finge di essere attivo.
+//
+// ATTIVAZIONE (dopo approvazione): (1) provisioning del progetto; (2) applicare la migrazione;
+// (3) implementare qui le query tipizzate contro lo schema (leggendo la doc ufficiale Supabase);
+// (4) impostare SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY (server-only) + TERRITORY_STORE_ADAPTER=supabase.
 
 import { TerritoryStorageError } from "./repository";
 
@@ -16,9 +24,7 @@ export interface SupabaseStoreEnv {
 /**
  * Punto di costruzione dell'adattatore Supabase. Oggi fallisce SEMPRE in modo esplicito:
  *  • se mancano le variabili → errore di configurazione (fail-safe, mai storage effimero);
- *  • se presenti → errore "non implementato nell'MVP", così nessuno crede sia attivo.
- * Quando verrà implementato, si leggerà la documentazione ufficiale Supabase prima di scrivere
- * qualunque query (constraint: non indovinare formati/endpoint).
+ *  • se presenti → errore "in attesa di autorizzazione", così nessuno crede sia attivo.
  */
 export function createSupabaseTerritoryRepository(env: SupabaseStoreEnv): never {
   if (!env.url || !env.serviceRoleKey) {
@@ -28,7 +34,8 @@ export function createSupabaseTerritoryRepository(env: SupabaseStoreEnv): never 
     );
   }
   throw new TerritoryStorageError(
-    "Adattatore Supabase non implementato nell'MVP (vedi ADR-001). Resta disabilitato: " +
-      "usa lo store JSON committato in produzione.",
+    "Adattatore Supabase progettato ma non ancora attivato (vedi supabase/migrations/ e ADR-004): " +
+      "richiede autorizzazione, provisioning e implementazione delle query. Usa lo store JSON " +
+      "committato in produzione finché non è approvato.",
   );
 }

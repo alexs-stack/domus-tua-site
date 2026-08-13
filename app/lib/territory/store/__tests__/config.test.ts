@@ -89,13 +89,13 @@ describe("createTerritoryRepository", () => {
     );
   });
 
-  test("supabase configurato ma non implementato → errore esplicito", () => {
+  test("supabase configurato ma non ancora attivato → errore esplicito", () => {
     assert.throws(
       () =>
         createTerritoryRepository(
           baseConfig({ adapter: "supabase", supabase: { url: "https://x.supabase.co", serviceRoleKey: "k" } }),
         ),
-      /non implementato/,
+      /non ancora attivato|autorizzazione/i,
     );
   });
 });

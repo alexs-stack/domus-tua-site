@@ -27,7 +27,9 @@
     "smoke": "tsx scripts/smoke.ts",
     "territory:review": "tsx scripts/territory/review.ts",
     "territory:sync": "tsx scripts/territory/sync.ts",
-    "territory:report": "tsx scripts/territory/report.ts"
+    "territory:report": "tsx scripts/territory/report.ts",
+    "territory:export": "tsx scripts/territory/export.ts",
+    "territory:import": "tsx scripts/territory/import.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.25",

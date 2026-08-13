@@ -19,9 +19,11 @@ import { join } from "node:path";
 import {
   ListingTerritoryEnrichmentSchema,
   MunicipalityTerritoryProfileSchema,
+  TerritoryAuditEventSchema,
   type ListingTerritoryEnrichment,
   type MunicipalityTerritoryProfile,
   type EnrichmentFailure,
+  type TerritoryAuditEvent,
 } from "../types";
 import { parseListingEnrichmentMigrated, parseMunicipalityProfileMigrated } from "../migrate";
 import {
@@ -33,6 +35,7 @@ import {
   type EnrichmentMetadata,
   type PutOptions,
   type TerritoryRepository,
+  type TerritoryAuditEventInput,
 } from "./repository";
 
 if (typeof window !== "undefined") {
@@ -43,6 +46,7 @@ if (typeof window !== "undefined") {
 
 export const LISTINGS_FILE = "enrichment.private.json";
 export const MUNICIPALITIES_FILE = "municipalities.private.json";
+export const AUDIT_FILE = "audit.private.json";
 
 /** Legge un file JSON come mappa chiave→record; `{}` se il file non esiste. */
 function readJsonMap(path: string): Record<string, unknown> {
@@ -78,6 +82,7 @@ function writeJsonMapAtomic(path: string, dir: string, map: Record<string, unkno
 export class FilesystemTerritoryRepository implements TerritoryRepository {
   protected readonly listingsPath: string;
   protected readonly municipalitiesPath: string;
+  protected readonly auditPath: string;
   // Lease PER-ISTANZA (best-effort): coordina i run nello stesso processo. Il lease cross-istanza
   // durevole arriva con lo store approvato (Prompt 7).
   private readonly leases = new InMemoryLeaseTable();
@@ -96,6 +101,7 @@ export class FilesystemTerritoryRepository implements TerritoryRepository {
     }
     this.listingsPath = join(dir, LISTINGS_FILE);
     this.municipalitiesPath = join(dir, MUNICIPALITIES_FILE);
+    this.auditPath = join(dir, AUDIT_FILE);
   }
 
   protected readListings(): Map<string, ListingTerritoryEnrichment> {
@@ -210,6 +216,10 @@ export class FilesystemTerritoryRepository implements TerritoryRepository {
     this.writeListings(map);
   }
 
+  async listMunicipalityProfiles(): Promise<MunicipalityTerritoryProfile[]> {
+    return [...this.readProfiles().values()].sort((a, b) => (a.municipality < b.municipality ? -1 : 1));
+  }
+
   async recordFailure(realSmartCode: string, failure: EnrichmentFailure): Promise<void> {
     const map = this.readListings();
     const existing = map.get(realSmartCode);
@@ -220,5 +230,38 @@ export class FilesystemTerritoryRepository implements TerritoryRepository {
     }
     map.set(realSmartCode, withFailure(existing, failure));
     this.writeListings(map);
+  }
+
+  // ── AUDIT append-only su file (durevole per il flusso CLI) ──────────────────
+  // Memorizzato come mappa {id → evento}: gli id sono monotòni (evt_000001…), quindi l'ordine per
+  // chiave è cronologico. Si aggiunge soltanto: gli eventi passati non si toccano mai.
+  private readAuditMap(): Record<string, unknown> {
+    return readJsonMap(this.auditPath);
+  }
+
+  async appendAuditEvent(event: TerritoryAuditEventInput): Promise<TerritoryAuditEvent> {
+    const raw = this.readAuditMap();
+    const id = event.id ?? `evt_${(Object.keys(raw).length + 1).toString(36).padStart(6, "0")}`;
+    const parsed = TerritoryAuditEventSchema.safeParse({ ...event, id });
+    if (!parsed.success) {
+      throw new TerritoryStorageError(`Evento di audit non valido: ${parsed.error.message}`);
+    }
+    if (raw[id] !== undefined) {
+      throw new TerritoryStorageError(`Audit append-only: l'id ${id} esiste già.`);
+    }
+    raw[id] = parsed.data;
+    writeJsonMapAtomic(this.auditPath, this.dir, raw);
+    return { ...parsed.data };
+  }
+
+  async listAuditEvents(filter?: { realSmartCode?: string; limit?: number }): Promise<TerritoryAuditEvent[]> {
+    const raw = this.readAuditMap();
+    const events = Object.keys(raw)
+      .sort()
+      .map((k) => TerritoryAuditEventSchema.parse(raw[k]));
+    let out = events;
+    if (filter?.realSmartCode) out = out.filter((e) => e.realSmartCode === filter.realSmartCode);
+    const ordered = [...out].reverse();
+    return filter?.limit != null ? ordered.slice(0, filter.limit) : ordered;
   }
 }

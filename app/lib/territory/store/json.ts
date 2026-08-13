@@ -14,6 +14,7 @@ import { FilesystemTerritoryRepository } from "./filesystem";
 import type {
   ListingTerritoryEnrichment,
   MunicipalityTerritoryProfile,
+  TerritoryAuditEvent,
 } from "../types";
 
 const READ_ONLY =
@@ -43,6 +44,10 @@ export class JsonTerritoryRepository implements TerritoryRepository {
     return this.reader.listEnrichmentMetadata();
   }
 
+  listMunicipalityProfiles(): Promise<MunicipalityTerritoryProfile[]> {
+    return this.reader.listMunicipalityProfiles();
+  }
+
   // Le scritture sono chiuse: firme senza parametri (assegnabili all'interfaccia) che falliscono
   // sempre. Chi scrive deve usare il filesystem nei CLI, non il runtime di produzione.
   async putListingEnrichment(): Promise<void> {
@@ -69,5 +74,14 @@ export class JsonTerritoryRepository implements TerritoryRepository {
 
   releaseLease(key: string, holder: string): Promise<void> {
     return this.reader.releaseLease(key, holder);
+  }
+
+  // L'audit committato è di SOLA LETTURA in produzione (scritto offline dai CLI e committato).
+  listAuditEvents(filter?: { realSmartCode?: string; limit?: number }): Promise<TerritoryAuditEvent[]> {
+    return this.reader.listAuditEvents(filter);
+  }
+
+  async appendAuditEvent(): Promise<never> {
+    throw new TerritoryStorageError(READ_ONLY);
   }
 }
