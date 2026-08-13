@@ -299,6 +299,15 @@ export const MunicipalityTerritoryProfileSchema = z
     retrievedAt: z.iso.datetime(),
     expiresAt: z.iso.datetime().optional(),
     failure: EnrichmentFailureSchema.optional(),
+    // ── Stato di RETRY (Prompt 6): guida lo scheduler equo ──────────────────
+    /** Tentativi di refresh FALLITI consecutivi (0 dopo un successo). */
+    attempts: z.number().int().nonnegative().optional(),
+    /** ISO dell'ultimo TENTATIVO di refresh (successo o meno): è il cursore di equità. */
+    lastAttemptAt: z.iso.datetime().optional(),
+    /** ISO prima del quale non ritentare (backoff). Assente = subito eleggibile. */
+    nextAttemptAt: z.iso.datetime().optional(),
+    /** true se ha esaurito i retry: messo in "dead-letter", richiede intervento umano. */
+    deadLettered: z.boolean().optional(),
     updatedAt: z.iso.datetime(),
   })
   .strict()

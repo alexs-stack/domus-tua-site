@@ -82,6 +82,37 @@ export interface TerritoryRepository {
    * resta pubblicabile, il fallimento viene solo annotato (constraint 12).
    */
   recordFailure(realSmartCode: string, failure: EnrichmentFailure): Promise<void>;
+
+  /**
+   * LEASE (Prompt 6): prova ad acquisire un lock con scadenza per una chiave di profilo. Ritorna
+   * true se ottenuto. Deve essere ATOMICO (compare-and-set) così due run non arricchiscono lo
+   * stesso profilo due volte. Negli adattatori MVP è per-istanza; l'adattatore durevole (Prompt 7)
+   * lo rende cross-istanza con una update condizionale.
+   */
+  tryAcquireLease(key: string, holder: string, expiresAtIso: string, now: Date): Promise<boolean>;
+  /** Rilascia il lease se detenuto da `holder` (no-op altrimenti). */
+  releaseLease(key: string, holder: string): Promise<void>;
+}
+
+/**
+ * Tabella di lease IN MEMORIA (per-istanza), atomica grazie al single-thread di JS: `tryAcquire`
+ * fa read+write senza await in mezzo, quindi due chiamate concorrenti non si interlacciano.
+ */
+export class InMemoryLeaseTable {
+  private readonly leases = new Map<string, { holder: string; expiresAt: number }>();
+
+  tryAcquire(key: string, holder: string, expiresAtIso: string, now: Date): boolean {
+    const current = this.leases.get(key);
+    const nowMs = now.getTime();
+    if (current && current.expiresAt > nowMs && current.holder !== holder) return false;
+    this.leases.set(key, { holder, expiresAt: Date.parse(expiresAtIso) });
+    return true;
+  }
+
+  release(key: string, holder: string): void {
+    const current = this.leases.get(key);
+    if (current && current.holder === holder) this.leases.delete(key);
+  }
 }
 
 /** Proietta un record completo nel suo metadato leggero (nessun `pois` nel risultato). */

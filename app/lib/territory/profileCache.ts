@@ -12,14 +12,54 @@ import { buildFingerprint, fingerprintsEqual } from "./fingerprint";
 import { haversineMeters } from "./geo";
 import { isFresh, sortAndLimitPois } from "./public";
 import { originFields, type ResolvedOrigin } from "./origin";
+import { nextRetryState } from "./retry";
 import type { EnrichmentConfig } from "./config";
-import type { ProviderPlace, TerritoryPlacesProvider } from "./provider/provider";
+import {
+  ProviderDisabledError,
+  ProviderError,
+  ProviderRateLimitError,
+  ProviderResponseError,
+  ProviderTimeoutError,
+  type ProviderPlace,
+  type TerritoryPlacesProvider,
+} from "./provider/provider";
 import type { TerritoryRepository } from "./store/repository";
 import type {
+  EnrichmentFailure,
+  EnrichmentFailureKind,
   EnrichmentFingerprint,
   MunicipalityTerritoryProfile,
   TerritoryPoi,
+  TerritoryProvider,
 } from "./types";
+
+/** Classifica un errore del provider in un tipo di fallimento sanificato. */
+function classifyFailureKind(err: unknown): EnrichmentFailureKind {
+  if (err instanceof ProviderRateLimitError) return "rate-limit";
+  if (err instanceof ProviderTimeoutError) return "timeout";
+  if (err instanceof ProviderResponseError) return "invalid-response";
+  if (err instanceof ProviderDisabledError) return "disabled";
+  return "unknown";
+}
+
+/** Fallimento sanificato per il profilo: messaggio corto, senza segreti né coordinate. */
+function profileFailure(err: unknown, providerName: TerritoryProvider, now: Date): EnrichmentFailure {
+  const message = err instanceof Error ? err.message : String(err);
+  return {
+    at: now.toISOString(),
+    kind: classifyFailureKind(err),
+    reason: message.slice(0, 200),
+    provider: err instanceof ProviderError ? err.provider : providerName,
+  };
+}
+
+/** Retry-After (ms) da un errore rate-limit, se disponibile. */
+function retryAfterMsOf(err: unknown): number | undefined {
+  if (err instanceof ProviderRateLimitError && typeof err.retryAfterSeconds === "number") {
+    return err.retryAfterSeconds * 1000;
+  }
+  return undefined;
+}
 
 /** Esito della risoluzione di un profilo, con la provenienza (per metriche e conteggio budget). */
 export type ProfileCacheSource = "hit" | "refreshed" | "stale" | "unavailable" | "budget-skipped";
@@ -45,6 +85,8 @@ export interface ProfileRefresherDeps {
   onQuery?: () => void;
   /** Callback per la provenienza di ogni risoluzione (hit/refreshed/stale/…). */
   onResult?: (source: ProfileCacheSource) => void;
+  /** Generatore casuale per il jitter del backoff (iniettabile per test deterministici). */
+  random?: () => number;
 }
 
 /** Costruisce un TerritoryPoi (bozza) da un ProviderPlace, con distanza in linea d'aria dall'origine. */
@@ -170,13 +212,40 @@ export class ProfileRefresher {
         status: "draft",
         pois,
         retrievedAt: nowIso,
+        // Successo: azzera lo stato di retry (constraint 5).
+        attempts: 0,
+        lastAttemptAt: nowIso,
+        deadLettered: false,
         updatedAt: nowIso,
       };
       await repository.putMunicipalityProfile(profile);
       onResult?.("refreshed");
       return { profile, source: "refreshed", queried: true, fingerprint };
     } catch (err) {
-      // Errore provider: conserva l'ultimo profilo buono (stale) o segnala unavailable. Mai un buco.
+      // Errore provider: registra lo stato di RETRY sul profilo (attempts/backoff/dead-letter) e
+      // conserva l'ultimo profilo buono (stale) o segnala unavailable. Mai un buco, mai un'eccezione.
+      const nowDate = now();
+      const retry = nextRetryState(existing?.attempts ?? 0, nowDate, {
+        random: this.deps.random,
+        retryAfterMs: retryAfterMsOf(err),
+      });
+      const failure = profileFailure(err, provider.name, nowDate);
+      const failedProfile: MunicipalityTerritoryProfile = {
+        schemaVersion: config.schemaVersion,
+        municipality: origin.municipality,
+        ...originFields(origin),
+        fingerprint,
+        status: "failed",
+        pois: existing?.pois ?? [],
+        retrievedAt: existing?.retrievedAt ?? nowIso,
+        attempts: retry.attempts,
+        lastAttemptAt: nowIso,
+        ...(retry.nextAttemptAt ? { nextAttemptAt: retry.nextAttemptAt } : {}),
+        deadLettered: retry.deadLettered,
+        failure,
+        updatedAt: nowIso,
+      };
+      await repository.putMunicipalityProfile(failedProfile);
       if (existing) {
         onResult?.("stale");
         return { profile: existing, source: "stale", queried: true, fingerprint, error: err };

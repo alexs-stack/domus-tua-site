@@ -73,9 +73,12 @@ export class ProviderDisabledError extends ProviderError {
 
 /** HTTP 429 / quota: il chiamante deve rallentare (constraint: rate-limit-aware). */
 export class ProviderRateLimitError extends ProviderError {
-  constructor(provider: TerritoryProvider, message = "rate limit") {
+  /** Secondi indicati dal provider (header Retry-After), se presenti: onorati dal backoff. */
+  readonly retryAfterSeconds?: number;
+  constructor(provider: TerritoryProvider, message = "rate limit", retryAfterSeconds?: number) {
     super(`Provider ${provider}: ${message}`, provider);
     this.name = "ProviderRateLimitError";
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 

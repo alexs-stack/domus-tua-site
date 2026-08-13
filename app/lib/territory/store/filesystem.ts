@@ -27,6 +27,7 @@ import { parseListingEnrichmentMigrated, parseMunicipalityProfileMigrated } from
 import {
   TerritoryConcurrencyError,
   TerritoryStorageError,
+  InMemoryLeaseTable,
   toEnrichmentMetadata,
   withFailure,
   type EnrichmentMetadata,
@@ -77,6 +78,17 @@ function writeJsonMapAtomic(path: string, dir: string, map: Record<string, unkno
 export class FilesystemTerritoryRepository implements TerritoryRepository {
   protected readonly listingsPath: string;
   protected readonly municipalitiesPath: string;
+  // Lease PER-ISTANZA (best-effort): coordina i run nello stesso processo. Il lease cross-istanza
+  // durevole arriva con lo store approvato (Prompt 7).
+  private readonly leases = new InMemoryLeaseTable();
+
+  async tryAcquireLease(key: string, holder: string, expiresAtIso: string, now: Date): Promise<boolean> {
+    return this.leases.tryAcquire(key, holder, expiresAtIso, now);
+  }
+
+  async releaseLease(key: string, holder: string): Promise<void> {
+    this.leases.release(key, holder);
+  }
 
   constructor(protected readonly dir: string) {
     if (typeof window !== "undefined") {

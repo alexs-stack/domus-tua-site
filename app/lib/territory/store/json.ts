@@ -60,4 +60,14 @@ export class JsonTerritoryRepository implements TerritoryRepository {
   async recordFailure(): Promise<void> {
     throw new TerritoryStorageError(READ_ONLY);
   }
+
+  // Il lease è coordinazione a RUNTIME (in memoria, per-istanza), non una scrittura sui dati:
+  // delegato al reader. In produzione (sola lettura) i job non girano comunque su questo store.
+  tryAcquireLease(key: string, holder: string, expiresAtIso: string, now: Date): Promise<boolean> {
+    return this.reader.tryAcquireLease(key, holder, expiresAtIso, now);
+  }
+
+  releaseLease(key: string, holder: string): Promise<void> {
+    return this.reader.releaseLease(key, holder);
+  }
 }

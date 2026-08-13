@@ -78,7 +78,7 @@ function classifyFailure(err: unknown): EnrichmentFailureKind {
 }
 
 /** Fallimento sanificato: messaggio corto, senza segreti né coordinate. */
-function failureFrom(err: unknown, providerName: TerritoryProvider, now: Date): EnrichmentFailure {
+export function failureFrom(err: unknown, providerName: TerritoryProvider, now: Date): EnrichmentFailure {
   const message = err instanceof Error ? err.message : String(err);
   return {
     at: now.toISOString(),
@@ -127,7 +127,7 @@ export function deriveListingFromProfile(
  * record esistente è approvato e ancora pubblicabile — la sua proiezione pubblica. `undefined` se
  * non c'è nulla di approvato da conservare.
  */
-function preservedApproved(
+export function preservedApproved(
   existing: ListingTerritoryEnrichment | null,
   now: Date,
   config: EnrichmentConfig,

@@ -14,6 +14,7 @@ import {
 import {
   TerritoryConcurrencyError,
   TerritoryStorageError,
+  InMemoryLeaseTable,
   toEnrichmentMetadata,
   withFailure,
   type EnrichmentMetadata,
@@ -44,6 +45,15 @@ function validateProfile(profile: MunicipalityTerritoryProfile): MunicipalityTer
 export class MemoryTerritoryRepository implements TerritoryRepository {
   private readonly listings = new Map<string, ListingTerritoryEnrichment>();
   private readonly profiles = new Map<string, MunicipalityTerritoryProfile>();
+  private readonly leases = new InMemoryLeaseTable();
+
+  async tryAcquireLease(key: string, holder: string, expiresAtIso: string, now: Date): Promise<boolean> {
+    return this.leases.tryAcquire(key, holder, expiresAtIso, now);
+  }
+
+  async releaseLease(key: string, holder: string): Promise<void> {
+    this.leases.release(key, holder);
+  }
 
   async getListingEnrichment(realSmartCode: string): Promise<ListingTerritoryEnrichment | null> {
     const found = this.listings.get(realSmartCode);

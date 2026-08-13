@@ -14,6 +14,7 @@
 // il flusso offline via CLI la strada supportata dell'MVP. Vedi ADR-001.
 
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { getLiveListings } from "../../../lib/realsmart/client";
 import { readEnrichmentConfig } from "../../../lib/territory/config";
 import { createTerritoryRepository } from "../../../lib/territory/store/config";
@@ -25,8 +26,17 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-/** Limite d'esecuzione stretto: mai un backfill di massa da un tick di cron. */
-const CRON_MAX_LISTINGS = 5;
+/** Budget STRETTO di QUERY al provider (profili) per tick: mai un backfill di massa da un cron. */
+const CRON_MAX_QUERIES = 5;
+
+/** Confronto a tempo COSTANTE del token, per non trapelare la lunghezza/valore via timing. */
+function tokenMatches(provided: string | null, secret: string): boolean {
+  if (!provided) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(`Bearer ${secret}`);
+  if (a.length !== b.length) return false; // lunghezze diverse: già non uguale
+  return timingSafeEqual(a, b);
+}
 
 export async function GET(req: Request) {
   // 1. Configurazione dello scheduler: senza segreto, l'endpoint non è utilizzabile.
@@ -35,8 +45,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: "cron non configurato" }, { status: 503 });
   }
 
-  // 2. Autenticazione dello scheduler.
-  if (req.headers.get("authorization") !== `Bearer ${secret}`) {
+  // 2. Autenticazione dello scheduler (confronto a tempo costante).
+  if (!tokenMatches(req.headers.get("authorization"), secret)) {
     return NextResponse.json({ ok: false, error: "non autorizzato" }, { status: 401 });
   }
 
@@ -56,11 +66,11 @@ export async function GET(req: Request) {
     // 4. SOLO immobili RealSmart; nessuna coordinata dal chiamante (body/query ignorati).
     const listings = await getLiveListings();
 
-    // 5. Limite d'esecuzione stretto: sia sul numero di immobili sia sul budget di chiamate.
+    // 5. Scheduler EQUO: pianifica l'INTERO scope, poi spende un budget STRETTO di query sui profili
+    //    più trascurati (cursore di equità). Nessuna starvation, idempotente (lease per profilo).
     const report = await syncListings(listings, { provider, repository, now: () => new Date(), config }, {
       dryRun: false,
-      limit: CRON_MAX_LISTINGS,
-      maxCalls: CRON_MAX_LISTINGS,
+      maxCalls: CRON_MAX_QUERIES,
       concurrency: 1,
     });
 
@@ -68,6 +78,7 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         ok: true,
+        executionId: report.executionId,
         provider: provider.name,
         realProvider: isReal,
         considered: report.totalConsidered,
@@ -75,7 +86,12 @@ export async function GET(req: Request) {
         unchanged: report.unchanged,
         failed: report.failed,
         providerCalls: report.metrics.providerCalls,
+        profilesRefreshed: report.profilesRefreshed,
+        cacheHitListings: report.cacheHitListings,
         rateLimited: report.metrics.rateLimitResponses,
+        retryPending: report.retryPending,
+        deadLettered: report.deadLettered,
+        leaseSkipped: report.leaseSkipped,
         budgetReached: report.budgetReached,
         estimatedProviderCalls: report.estimatedProviderCalls,
       },
