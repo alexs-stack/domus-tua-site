@@ -2,13 +2,22 @@
 //
 // STATO: feed XML pubblico RealSmart COLLEGATO. getLiveListings() scarica, parsa e normalizza
 // gli annunci reali dell'agenzia; mapping e campi sono da validare col cliente prima del
-// lancio definitivo (checklist: docs/realsmart-live-validation.md). Su errore del feed,
-// fallback difensivo ai mock per non mostrare mai una pagina vuota.
+// lancio definitivo (checklist: docs/realsmart-live-validation.md).
+//
+// COMPORTAMENTO SU ERRORE DEL FEED — regola di sicurezza (Prompt 3 del reaudit):
+//   In produzione un immobile FINTO non deve MAI essere spacciato per reale. Perciò, se il
+//   feed cade:
+//     1) si serve l'ultimo snapshot BUONO in memoria dell'istanza (dato reale, solo un po'
+//        vecchio: `source: "stale"`), se disponibile;
+//     2) altrimenti si fallisce CHIUSI (`source: "unavailable"`, lista vuota): le pagine
+//        mostrano lo stato "vuoto" garbato già esistente e il resto del sito regge.
+//   I mock demo (app/lib/realsmart/mocks.ts) NON sono più un ripiego di produzione: si servono
+//   SOLO nella modalità offline esplicita (NEXT_PUBLIC_USE_REALSMART="false") e SOLO fuori
+//   produzione — vedi mockModeAllowed().
 //
 // Comportamento per ambiente (flag NEXT_PUBLIC_USE_REALSMART):
-//   • dev locale: default mock possibile (USE_REALSMART="false") per lavorare offline;
-//   • Vercel preview: RealSmart live se il feed è stabile (USE_REALSMART="true"/assente);
-//   • produzione: RealSmart live (default ON).
+//   • dev locale: modalità mock offline con USE_REALSMART="false" (nessuna rete);
+//   • Vercel preview/produzione: RealSmart live (default ON); su errore → stale/unavailable.
 // Dettagli, domande aperte e note: docs/realsmart-integration-notes.md.
 
 import { unstable_cache } from "next/cache";
@@ -42,38 +51,66 @@ const HIDDEN_STATUSES: ReadonlySet<NormalizedProperty["status"]> = new Set([
   "withdrawn",
 ]);
 
-/** Da dove arrivano davvero gli immobili di uno snapshot: gestionale reale o fixture demo. */
-export type ListingsSource = "live" | "mock";
+/**
+ * Provenienza degli immobili di uno snapshot:
+ *  • "live"        → feed reale, appena scaricato;
+ *  • "stale"       → ultimo snapshot BUONO in memoria, servito dopo un refresh fallito
+ *                    (dato reale, solo un po' vecchio);
+ *  • "mock"        → fixture demo, SOLO modalità offline esplicita fuori produzione;
+ *  • "unavailable" → fail-closed: feed caduto e nessun buono precedente, lista vuota.
+ */
+export type ListingsSource = "live" | "stale" | "mock" | "unavailable";
 
-/** Immobili + provenienza del dato, memorizzati insieme nella stessa voce di cache. */
+/** true se lo snapshot viene dal gestionale REALE (live o ultimo-buono), non da mock/vuoto. */
+export function isRealListingSource(source: ListingsSource): boolean {
+  return source === "live" || source === "stale";
+}
+
+/** Immobili + diagnostica del dato, memorizzati insieme nella stessa voce di cache. */
 export interface ListingsSnapshot {
   listings: NormalizedProperty[];
   source: ListingsSource;
+  /** ISO 8601: quando è stato prodotto il dato servito (freschezza). */
+  fetchedAt: string;
+  /** Numero di immobili pubblicabili nello snapshot. */
+  itemCount: number;
+  /** Avvisi deterministici totali sui record (qualità dati), server-only. */
+  warnings: number;
+  /** true se stiamo servendo l'ultimo-buono dopo un refresh fallito. */
+  stale: boolean;
+  /** true se lo snapshot contiene dati usabili; false = fail-closed (vuoto). */
+  ok: boolean;
 }
 
 /**
- * Recupera gli annunci in forma GREZZA dalla sorgente.
+ * I dati demo (fixture) sono ammessi SOLO fuori produzione e SOLO con la modalità offline
+ * esplicita NEXT_PUBLIC_USE_REALSMART="false".
  *
- * MODALITÀ MOCK (NEXT_PUBLIC_USE_REALSMART="false"): ritorna i mock locali, nessuna rete —
- * utile per sviluppo offline.
+ * PERCHÉ `VERCEL_ENV` E NON `NODE_ENV`. `next build`/`next start` impostano NODE_ENV="production"
+ * in QUALSIASI ambiente, CI compresa: usarlo forzerebbe le build di CI/anteprima — che girano di
+ * proposito con USE_REALSMART="false" per essere deterministiche e senza rete — a scaricare il
+ * feed live. Il segnale della produzione VERA (il sito pubblico su Vercel) è VERCEL_ENV="production".
  *
- * MODALITÀ LIVE (default): scarica il feed XML pubblico RealSmart, lo parsa e lo normalizza.
- * Il payload grezzo (unknown) passa SEMPRE per parseRealSmartPayload(), che lo trasforma in
- * RealSmartListingRaw[] in modo difensivo (mai throw su dati sporchi).
- *
- * NB: il feed è collegato e funzionante. Ciò che resta da confermare col cliente è il
- *     MAPPING dei campi (non l'endpoint): province, classe energetica ed eventuali campi
- *     mancanti. Checklist di validazione live: docs/realsmart-live-validation.md.
+ * In produzione reale i mock NON vengono mai serviti: se per errore il flag fosse "false", si
+ * prende comunque la strada live e, se cade, si fallisce chiusi — mai un immobile finto. È il
+ * cancello unico usato anche dalla facciata app/lib/listings.ts per la fixture statica.
  */
-async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
+export function mockModeAllowed(): boolean {
+  return !getRealSmartConfig().useRealSmart && process.env.VERCEL_ENV !== "production";
+}
+
+/**
+ * Scarica il feed XML pubblico RealSmart e lo trasforma in forma GREZZA (RealSmartListingRaw[]).
+ *
+ * SOLO percorso live: nessuna diramazione ai mock. Il payload (unknown) passa SEMPRE per
+ * parseRealSmartPayload(), difensivo (mai throw su dati sporchi, entry non valide scartate).
+ * Lancia solo su errore di RETE/HTTP o XML non parsabile — lì decide loadListings.
+ *
+ * NB: il feed è collegato. Resta da confermare col cliente il MAPPING dei campi (province,
+ *     classe energetica, campi mancanti), non l'endpoint. Vedi docs/realsmart-live-validation.md.
+ */
+async function fetchLiveRaw(): Promise<RealSmartListingRaw[]> {
   const config = getRealSmartConfig();
-
-  // Modalità mock (default): nessuna credenziale richiesta, nessuna rete.
-  if (!config.useRealSmart) {
-    return getMockRealSmartListings();
-  }
-
-  // Modalità live: scarica il feed XML pubblico RealSmart, lo parsa e lo normalizza.
   // getRealSmartConfig() garantisce config.feedUrl (default al feed pubblico dell'agenzia).
   const res = await fetch(config.feedUrl!, {
     headers: config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : undefined,
@@ -82,7 +119,7 @@ async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
     // (molto più piccolo), condiviso tra worker/richieste e rivalidato ogni REVALIDATE_SECONDS.
     cache: "no-store",
     // Timeout duro: se il feed è lento/irraggiungibile la fetch NON deve appendere il build
-    // (SSG di ~186 pagine /case) fino al timeout della piattaforma. Su errore -> fallback ai mock.
+    // (SSG di ~186 pagine /case) fino al timeout della piattaforma. Su errore → decide loadListings.
     signal: AbortSignal.timeout(15000),
   });
   if (!res.ok) throw new Error(`RealSmart feed ${res.status}`);
@@ -93,39 +130,27 @@ async function fetchRawListings(): Promise<RealSmartListingRaw[]> {
 }
 
 /**
- * Immobili pubblicabili sul sito, in forma pulita e già filtrata.
+ * Ultimo snapshot BUONO in memoria di questa istanza.
  *
- * - Normalizza ogni annuncio grezzo.
- * - Esclude gli stati non pubblici (venduti/ritirati/bozze).
- * - Ordina dal più recentemente aggiornato.
- *
- * In caso di errore della sorgente reale, il fallback ai mock evita una pagina vuota.
- *
- * Esportata NON memorizzata: `getLiveListings` la avvolge in unstable_cache, che fuori dal
- * runtime di Next non è utilizzabile. È il modo per poter testare davvero il ripiegamento
- * quando il feed è irraggiungibile (app/lib/realsmart/__tests__/fallback.test.ts).
+ * Best-effort, PER-ISTANZA (serverless): non è uno store durevole condiviso, sopravvive finché
+ * l'istanza resta calda. Copre il caso comune — un blip del feed durante una rivalidazione su
+ * un'istanza già scaldata — senza introdurre un database esterno (fuori scope senza approvazione:
+ * vedi la proposta in docs/realsmart-integration-notes.md). A freddo, senza un buono precedente,
+ * si fallisce chiusi. Viene aggiornato SOLO su fetch riuscita: non lo sovrascriviamo mai con
+ * stale/unavailable, così continua a servire l'ultimo dato davvero buono.
  */
-export async function loadListings(): Promise<ListingsSnapshot> {
-  const config = getRealSmartConfig();
-  // Modalità mock esplicita (sviluppo offline): la sorgente NON è il gestionale.
-  let source: ListingsSource = config.useRealSmart ? "live" : "mock";
-  let raw: RealSmartListingRaw[];
-  try {
-    raw = await fetchRawListings();
-  } catch (err) {
-    source = "mock";
-    // Fallback difensivo: meglio i mock che una lista vuota / errore in pagina.
-    // Logghiamo il MOTIVO (server-only, mai esposto al client) per poter MONITORARE i
-    // fallback: il badge di anteprima mostra la modalità PREVISTA (RealSmart), non se una
-    // singola build/finestra di cache è caduta nei mock. Un fallback ripetuto nei log =
-    // il feed è instabile e va indagato prima del lancio.
-    console.error(
-      "[realsmart] feed non disponibile → fallback ai mock:",
-      err instanceof Error ? err.message : err,
-    );
-    raw = getMockRealSmartListings();
-  }
+let lastGood: ListingsSnapshot | null = null;
 
+/** Reset dell'ultimo-buono — SOLO per i test, per isolare gli scenari. */
+export function __resetLastKnownGoodForTests(): void {
+  lastGood = null;
+}
+
+/** Normalizza, filtra e ordina i grezzi in uno snapshot pubblicabile con diagnostica. */
+async function buildSnapshot(
+  raw: RealSmartListingRaw[],
+  source: ListingsSource,
+): Promise<ListingsSnapshot> {
   // ── ISOLAMENTO DEGLI ERRORI ─────────────────────────────────────────────
   // Un SINGOLO annuncio malformato non deve mai far cadere l'intero catalogo:
   // `normalizeListings` normalizza uno per uno e SCARTA chi lancia (mai una
@@ -168,20 +193,81 @@ export async function loadListings(): Promise<ListingsSnapshot> {
     return kb.localeCompare(ka); // più recente prima
   });
 
-  return { listings, source };
+  return {
+    listings,
+    source,
+    fetchedAt: new Date().toISOString(),
+    itemCount: listings.length,
+    warnings: warned,
+    stale: false,
+    ok: true,
+  };
 }
 
 /**
- * Immobili pubblicabili sul sito CON la provenienza del dato.
+ * Immobili pubblicabili sul sito, in forma pulita e già filtrata, con diagnostica.
+ *
+ * Comportamento (vedi intestazione del file):
+ *  • modalità mock offline (dev/test, USE_REALSMART="false") → fixture demo, `source: "mock"`;
+ *  • live riuscito → dato reale, `source: "live"`, memorizzato come ultimo-buono;
+ *  • live fallito con ultimo-buono in memoria → `source: "stale"` (dato reale, un po' vecchio);
+ *  • live fallito senza ultimo-buono → fail-closed, `source: "unavailable"`, lista vuota.
+ *
+ * `fetchRaw` è iniettabile: di default scarica il feed reale; nei test si passa una sorgente
+ * deterministica per verificare live/stale/unavailable senza rete.
+ *
+ * Esportata NON memorizzata: `getLiveListingsSnapshot` la avvolge in unstable_cache, che fuori
+ * dal runtime di Next non è utilizzabile — così gli scenari sono testabili davvero.
+ */
+export async function loadListings(
+  fetchRaw: () => Promise<RealSmartListingRaw[]> = fetchLiveRaw,
+): Promise<ListingsSnapshot> {
+  // Modalità mock offline: SOLO dev/test con flag esplicito. Mai in produzione.
+  if (mockModeAllowed()) {
+    return buildSnapshot(getMockRealSmartListings(), "mock");
+  }
+
+  try {
+    const snapshot = await buildSnapshot(await fetchRaw(), "live");
+    lastGood = snapshot; // memorizza l'ultimo buono (solo su successo)
+    return snapshot;
+  } catch (err) {
+    // Motivo server-only, MAI esposto al client e SENZA URL/credenziali del feed. Un errore
+    // ripetuto qui = il gestionale è instabile e va indagato prima/dopo il lancio.
+    console.error(
+      "[realsmart] feed non disponibile:",
+      err instanceof Error ? err.message : String(err),
+    );
+    if (lastGood) {
+      // Ultimo-buono: dato REALE, solo un po' vecchio. Meglio dei mock e di una pagina vuota.
+      return { ...lastGood, source: "stale", stale: true };
+    }
+    // Fail-closed: nessun buono precedente. MAI i mock in produzione. Lista vuota + stato
+    // "non disponibile": il catalogo mostra il suo stato vuoto garbato, il resto del sito regge.
+    return {
+      listings: [],
+      source: "unavailable",
+      fetchedAt: new Date().toISOString(),
+      itemCount: 0,
+      warnings: 0,
+      stale: true,
+      ok: false,
+    };
+  }
+}
+
+/**
+ * Immobili pubblicabili sul sito CON la diagnostica del dato.
  * Cache condivisa (unstable_cache) sul RISULTATO normalizzato (~1MB, ben sotto il limite):
  * una sola elaborazione per finestra REVALIDATE_SECONDS, riusata da tutte le pagine e
- * invalidabile on-demand via tag "realsmart-listings". Fallback ai mock su errore feed.
+ * invalidabile on-demand via tag "realsmart-listings". Su errore feed → stale/unavailable,
+ * mai i mock (vedi loadListings).
  *
- * `source` distingue il dato reale dal fallback demo. Le pagine del sito non lo usano
- * (per loro un fallback è meglio di una pagina vuota), ma l'assistente conversazionale SÌ:
- * non deve mai citare immobili mock come reali (app/lib/assistant/listings.ts).
+ * `source`/`ok`/`stale` distinguono il dato reale (live/stale) dal vuoto fail-closed e dai mock
+ * demo. Le pagine mostrano lo stato vuoto garbato quando `ok` è false; l'assistente non cita
+ * mai immobili non reali (app/lib/assistant/listings.ts, isRealListingSource).
  */
-export const getLiveListingsSnapshot = unstable_cache(loadListings, ["realsmart-listings-v3"], {
+export const getLiveListingsSnapshot = unstable_cache(() => loadListings(), ["realsmart-listings-v4"], {
   revalidate: REVALIDATE_SECONDS,
   tags: ["realsmart-listings"],
 });

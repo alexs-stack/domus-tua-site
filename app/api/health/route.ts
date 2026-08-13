@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDemoStatus } from "../../lib/demoStatus";
 import { getListingDataSourceStatus } from "../../lib/realsmart/status";
+import { getListingsRuntimeStatus } from "../../lib/listings";
+import { isRealListingSource } from "../../lib/realsmart/client";
 import {
   AI_PROVIDER,
   assistantAiEnabled,
@@ -32,6 +34,9 @@ function deployedCommit(): string | null {
 export async function GET() {
   const s = getDemoStatus();
   const listings = getListingDataSourceStatus();
+  // Stato REALE del feed a runtime (stessa cache del sito): live/stale/mock/unavailable,
+  // freschezza e conteggio. Difensivo: un errore imprevisto non deve far cadere l'health.
+  const runtime = await getListingsRuntimeStatus().catch(() => null);
   const soldMap = soldMapSize();
 
   return NextResponse.json(
@@ -55,9 +60,24 @@ export async function GET() {
       integrations: {
         // ── Immobili ──────────────────────────────────────────────────────
         realsmart: {
+          /** Modalità ATTESA dal flag (config), non l'esito a runtime. */
           live: listings.mode === "realsmart",
           feedConfigured: listings.feedConfigured,
-          fallbackPossible: listings.fallbackPossible,
+          /**
+           * Stato REALE del feed a questa richiesta. `source`: live | stale | mock | unavailable.
+           * `ok:false` = fail-closed (feed caduto, nessun ultimo-buono): il sito mostra lo stato
+           * vuoto, MAI immobili finti. `stale:true` = si serve l'ultimo-buono in memoria.
+           * null solo se la lettura dello snapshot è fallita in modo imprevisto.
+           */
+          runtime: runtime
+            ? {
+                source: runtime.source,
+                ok: runtime.ok,
+                stale: runtime.stale,
+                itemCount: runtime.itemCount,
+                lastFetch: runtime.fetchedAt,
+              }
+            : null,
         },
         /** Mappa dei venduti: se è vuota, un immobile venduto può comparire fra i disponibili. */
         soldMap: {
@@ -100,8 +120,13 @@ export async function GET() {
           model: ASSISTANT_MODEL,
           /** Il canale email può davvero inviare. Senza, nessun falso successo. */
           leadEmailConfigured: emailEnabled,
-          /** Gli immobili live sono la sorgente dell'assistente (mai i mock). */
-          realsmartAvailable: listings.mode === "realsmart" && listings.feedConfigured,
+          /**
+           * L'assistente ha immobili REALI da citare in questo istante: sorgente reale
+           * (live o stale) e almeno un immobile. Mai i mock, mai il vuoto fail-closed.
+           * Riflette lo stato a runtime, non la sola configurazione attesa.
+           */
+          realsmartAvailable:
+            runtime !== null && isRealListingSource(runtime.source) && runtime.itemCount > 0,
           /** Quante voci di conoscenza sono approvate: 0 = l'assistente sa rispondere solo sugli immobili. */
           knowledgeVerifiedEntries: verifiedEntries().length,
           /**
