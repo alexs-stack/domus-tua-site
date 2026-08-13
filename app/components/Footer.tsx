@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { Logo } from "./Logo";
+import { reopenConsent } from "../lib/consent";
 import { Phone, Whatsapp, Mail, Pin } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import SocialLinks from "./primitives/SocialLinks";
@@ -314,6 +315,14 @@ export default function Footer() {
           <div className="flex gap-5">
             <a href="/privacy" className="link-underline tap-target hover:text-cream">{d.footer.privacy}</a>
             <a href="/cookie" className="link-underline tap-target hover:text-cream">{d.footer.cookie}</a>
+            {/* Riapre il banner: la revoca del consenso è sempre a un clic (diritto GDPR). */}
+            <button
+              type="button"
+              onClick={() => reopenConsent()}
+              className="link-underline tap-target text-left hover:text-cream"
+            >
+              {d.footer.cookiePrefs}
+            </button>
             <a href="/contatti" className="link-underline tap-target hover:text-cream">{d.footer.contatti}</a>
           </div>
         </div>

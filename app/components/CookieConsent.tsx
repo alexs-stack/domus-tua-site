@@ -39,7 +39,7 @@ import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { useLocale } from "./i18n/LocaleProvider";
 import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
-import { readConsent, writeConsent, type ConsentValue } from "../lib/consent";
+import { readConsent, writeConsent, CONSENT_REOPEN_EVENT, type ConsentValue } from "../lib/consent";
 
 const copy = {
   it: {
@@ -123,6 +123,17 @@ export default function CookieConsent() {
       window.removeEventListener(INTRO_EVENT, onIntroDone);
       window.clearTimeout(safety);
     };
+  }, []);
+
+  // Riapertura: un link "Preferenze cookie" (footer/Cookie Policy) rimostra il banner anche
+  // dopo una scelta già fatta, così la revoca è sempre a un clic (reopenConsent in lib/consent).
+  useEffect(() => {
+    const onReopen = () => {
+      document.documentElement.setAttribute("data-consent", "");
+      setShow(true);
+    };
+    window.addEventListener(CONSENT_REOPEN_EVENT, onReopen);
+    return () => window.removeEventListener(CONSENT_REOPEN_EVENT, onReopen);
   }, []);
 
   // QUI C'ERANO DUE MECCANISMI, ED È GIUSTO DIRE PERCHÉ NON CI SONO PIÙ.

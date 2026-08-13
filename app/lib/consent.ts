@@ -20,6 +20,9 @@ export type ConsentValue = "accepted" | "rejected";
 /** Evento interno emesso quando l'utente sceglie: i gate si aggiornano senza reload. */
 export const CONSENT_EVENT = "dt:consent";
 
+/** Evento per RIAPRIRE il pannello preferenze e cambiare la scelta già fatta (diritto di revoca). */
+export const CONSENT_REOPEN_EVENT = "dt:consent-reopen";
+
 /** Durata della scelta (180 giorni), come da banner. */
 const MAX_AGE_SECONDS = 15552000;
 
@@ -38,6 +41,17 @@ export function readConsent(): ConsentValue | null {
 export function writeConsent(value: ConsentValue): void {
   document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${MAX_AGE_SECONDS}; samesite=lax`;
   window.dispatchEvent(new CustomEvent<ConsentValue>(CONSENT_EVENT, { detail: value }));
+}
+
+/**
+ * Riapre il pannello delle preferenze cookie, per cambiare una scelta già fatta.
+ * Lo ascolta CookieConsent, che rimostra il banner. Serve alla Cookie Policy, che promette
+ * «puoi modificare le tue scelte in qualsiasi momento riaprendo il pannello»: senza questo,
+ * quella frase non era vera.
+ */
+export function reopenConsent(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(CONSENT_REOPEN_EVENT));
 }
 
 /**
