@@ -206,3 +206,32 @@ in una vista apposita. Da confermare col cliente se desiderato.
 - `app/lib/realsmart/mocks.ts` — `getMockRealSmartListings()` (6 immobili zona Tradate/Varese).
 - `app/lib/realsmart/client.ts` — `getLiveListings()`, `REVALIDATE_SECONDS`, punto di innesto fetch reale.
 - `app/lib/realsmart/index.ts` — barrel dei re-export.
+
+## Comportamento su feed non disponibile (Prompt 3 del reaudit)
+
+Regola di sicurezza: **in produzione un immobile finto non deve mai essere spacciato per
+reale.** Su errore del feed live, `loadListings()` (client.ts):
+
+1. serve l'**ultimo snapshot buono in memoria** dell'istanza, marcato `source: "stale"`
+   (dato reale, solo un po' vecchio), se disponibile;
+2. altrimenti **fallisce chiuso** (`source: "unavailable"`, lista vuota): il catalogo mostra
+   lo stato vuoto garbato già esistente e il resto del sito regge.
+
+I mock demo (`mocks.ts`) e la fixture statica (`properties.ts`) **non sono più un ripiego di
+produzione**: si servono solo con `NEXT_PUBLIC_USE_REALSMART="false"` e solo fuori dalla
+produzione vera (`VERCEL_ENV !== "production"`), così le build di CI/anteprima restano
+deterministiche e senza rete. Cancello unico: `mockModeAllowed()`.
+
+Diagnostica: lo snapshot porta `source`/`fetchedAt`/`itemCount`/`warnings`/`stale`/`ok`
+(server-only, nessun URL o credenziale). `/api/health` → `integrations.realsmart.runtime` li
+espone per verificare lo stato reale dopo un deploy.
+
+### Proposta (da approvare): ultimo-buono DUREVOLE
+
+L'ultimo-buono attuale è **in memoria e per-istanza**: sopravvive finché l'istanza serverless
+resta calda e copre il caso comune (un blip del feed durante una rivalidazione). Un'istanza a
+freddo, senza un buono precedente, fallisce chiuso. Per un ultimo-buono **condiviso e durevole**
+(che sopravviva a cold start e riavvii) servirebbe uno store esterno — es. Vercel KV/Redis o
+Blob per un singolo JSON dello snapshot normalizzato (~1 MB). È un servizio a pagamento e **fuori
+scope senza approvazione del cliente**: qui si è implementato il percorso fail-closed sicuro e si
+lascia la scelta dello store durevole come passo successivo, se il feed dovesse rivelarsi instabile.
