@@ -16,7 +16,9 @@ import type { ListingTerritoryEnrichment } from "../types";
 const NOW = () => new Date("2026-08-13T10:00:00.000Z");
 const TRADATE: ResolvedOrigin = {
   coord: { lat: 45.708, lng: 8.906 },
-  coordSource: "municipality-centroid",
+  precision: "municipality-centroid",
+  accuracyMeters: 2000,
+  label: "Tradate",
   municipality: "tradate",
 };
 

@@ -42,7 +42,9 @@ function record(
     schemaVersion: TERRITORY_SCHEMA_VERSION,
     realSmartCode: "1043",
     municipality: "tradate",
-    coordSource: "municipality-centroid",
+    originPrecision: "municipality-centroid",
+    originAccuracyMeters: 2000,
+    originLabel: "Tradate",
     origin: { lat: 45.708, lng: 8.906 },
     fingerprint: {
       municipality: "tradate",

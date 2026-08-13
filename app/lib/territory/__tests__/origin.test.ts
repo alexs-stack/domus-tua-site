@@ -10,7 +10,7 @@ describe("resolveOriginFromMunicipality", () => {
     for (const town of ["Tradate", "Venegono Superiore", "Venegono Inferiore", "Lonate Ceppino"]) {
       const origin = resolveOriginFromMunicipality(town);
       assert.ok(origin, `atteso centroide per ${town}`);
-      assert.equal(origin.coordSource, "municipality-centroid");
+      assert.equal(origin.precision, "municipality-centroid");
       assert.ok(origin.coord.lat > 45 && origin.coord.lat < 46);
     }
   });

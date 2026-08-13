@@ -40,7 +40,9 @@ export function makeRecord(
     schemaVersion: TERRITORY_SCHEMA_VERSION,
     realSmartCode: code,
     municipality: "tradate",
-    coordSource: "municipality-centroid",
+    originPrecision: "municipality-centroid",
+    originAccuracyMeters: 2000,
+    originLabel: "Tradate",
     origin: { lat: 45.708, lng: 8.906 },
     fingerprint: {
       municipality: "tradate",
@@ -63,7 +65,9 @@ function makeProfile(slug: string): MunicipalityTerritoryProfile {
     schemaVersion: TERRITORY_SCHEMA_VERSION,
     municipality: slug,
     origin: { lat: 45.708, lng: 8.906 },
-    coordSource: "municipality-centroid",
+    originPrecision: "municipality-centroid",
+    originAccuracyMeters: 2000,
+    originLabel: "Tradate",
     fingerprint: {
       municipality: slug,
       coordKey: "45.708,8.906",
@@ -171,6 +175,7 @@ export function runRepositoryContract(
           realSmartCode: "1043",
           municipality: "tradate",
           method: "straight-line" as const,
+          originBasis: { precision: "municipality-centroid" as const, label: "Tradate" },
           retrievedAt: RETRIEVED,
           pois: [
             {

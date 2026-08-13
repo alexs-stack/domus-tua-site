@@ -23,6 +23,7 @@ function territory(pois: PublicTerritoryPoi[]): PublicListingTerritory {
     realSmartCode: "1043",
     municipality: "tradate",
     method: "straight-line",
+    originBasis: { precision: "municipality-centroid", label: "Tradate" },
     retrievedAt: "2026-08-13T10:00:00.000Z",
     pois,
   };

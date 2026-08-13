@@ -28,6 +28,7 @@ const PUBLIC_SNAPSHOT: PublicListingTerritory = {
   realSmartCode: "1043",
   municipality: "tradate",
   method: "straight-line",
+  originBasis: { precision: "municipality-centroid", label: "Tradate" },
   retrievedAt: FRESH,
   pois: [
     { category: "pharmacy", name: "Farmacia", distanceMeters: 200, distanceMethod: "straight-line", provider: "osm-overpass", attribution: "© OpenStreetMap contributors" },
@@ -39,7 +40,9 @@ function record(over: Partial<ListingTerritoryEnrichment>): ListingTerritoryEnri
     schemaVersion: TERRITORY_SCHEMA_VERSION,
     realSmartCode: "1043",
     municipality: "tradate",
-    coordSource: "municipality-centroid",
+    originPrecision: "municipality-centroid",
+    originAccuracyMeters: 2000,
+    originLabel: "Tradate",
     origin: { lat: 45.708, lng: 8.906 },
     fingerprint: { municipality: "tradate", coordKey: "45.708,8.906", ultimaModifica: "2026-08-01", schemaVersion: TERRITORY_SCHEMA_VERSION, hash: "x" },
     status: "draft",
