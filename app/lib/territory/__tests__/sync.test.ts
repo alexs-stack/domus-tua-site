@@ -131,28 +131,52 @@ describe("syncListings — esecuzione reale", () => {
   });
 });
 
-describe("syncListings — budget di chiamate (Prompt 10)", () => {
-  const THREE = [property("1", "Tradate"), property("2", "Tradate"), property("3", "Tradate")];
+describe("syncListings — riuso del profilo (Prompt 5)", () => {
+  const THREE_SAME = [property("1", "Tradate"), property("2", "Tradate"), property("3", "Tradate")];
+  const THREE_TOWNS = [
+    property("1", "Tradate"),
+    property("2", "Venegono Superiore"),
+    property("3", "Venegono Inferiore"),
+  ];
 
-  test("maxCalls limita le chiamate e salta il resto pulito", async () => {
+  test("N immobili stesso comune → UNA sola query, gli altri sono cache hit", async () => {
     const s = spy(new FakePlacesProvider());
     const deps = makeDeps({ provider: s.provider });
-    const report = await syncListings(THREE, deps, { dryRun: false, limit: 10, maxCalls: 2 });
+    const report = await syncListings(THREE_SAME, deps, { dryRun: false, limit: 10 });
 
-    assert.equal(s.calls(), 2, "solo 2 chiamate al provider");
+    assert.equal(s.calls(), 1, "un solo profilo → una sola query");
+    assert.equal(report.enriched, 3, "tutti e tre gli immobili derivati dal profilo");
+    assert.equal(report.metrics.providerCalls, 1);
+    assert.equal(report.metrics.profileCache.refreshed, 1);
+    assert.equal(report.metrics.profileCache.hit, 2, "il 2° e 3° immobile riusano il profilo");
+    assert.equal((await deps.repository.listEnrichmentMetadata()).length, 3);
+  });
+
+  test("dry-run: la stima è il numero di PROFILI unici, non di immobili", async () => {
+    const report = await syncListings(THREE_SAME, makeDeps(), { dryRun: true, limit: 10 });
+    assert.equal(report.wouldEnrich, 3);
+    assert.equal(report.estimatedProviderCalls, 1, "3 immobili, 1 comune → 1 query stimata");
+  });
+
+  test("il budget limita le QUERY (profili), non gli immobili", async () => {
+    const s = spy(new FakePlacesProvider());
+    const deps = makeDeps({ provider: s.provider });
+    // 3 comuni distinti = 3 profili; con maxCalls=2 il terzo profilo resta fuori budget.
+    const report = await syncListings(THREE_TOWNS, deps, { dryRun: false, limit: 10, maxCalls: 2 });
+
+    assert.equal(s.calls(), 2, "solo 2 query al provider");
     assert.equal(report.enriched, 2);
     assert.equal(report.skippedByBudget, 1);
     assert.equal(report.budgetReached, true);
     assert.equal(report.metrics.providerCalls, 2);
     assert.equal(report.metrics.budgetReached, true);
-    // Il terzo immobile non è stato scritto.
     assert.equal((await deps.repository.listEnrichmentMetadata()).length, 2);
   });
 
   test("il report porta le metriche privacy-safe del run", async () => {
-    const report = await syncListings(THREE, makeDeps(), { dryRun: false, limit: 10 });
+    const report = await syncListings(THREE_SAME, makeDeps(), { dryRun: false, limit: 10 });
     assert.equal(report.metrics.draftsCreated, 3);
-    assert.equal(report.metrics.providerCalls, 3);
+    assert.equal(report.metrics.providerCalls, 1, "3 immobili, 1 comune → 1 query");
     assert.equal(report.metrics.rateLimitResponses, 0);
     assert.ok(report.metrics.avgResultsPerCategory.pharmacy >= 0);
   });

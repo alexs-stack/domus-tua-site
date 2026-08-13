@@ -37,7 +37,7 @@ function record(pois: TerritoryPoi[]): ListingTerritoryEnrichment {
   };
 }
 
-const enriched = (pois: TerritoryPoi[]): EnrichmentOutcome => ({ action: "enriched", realSmartCode: "1043", record: record(pois) });
+const enriched = (pois: TerritoryPoi[]): EnrichmentOutcome => ({ action: "enriched", realSmartCode: "1043", record: record(pois), queried: true });
 const failed = (kind: "rate-limit" | "timeout"): EnrichmentOutcome => ({
   action: "failed",
   realSmartCode: "1043",
@@ -60,6 +60,9 @@ describe("TerritoryRunMetrics", () => {
     m.recordDecision("skip-unchanged");
     m.recordDecision("enrich");
     m.recordDecision("enrich");
+    // Le query al provider sono contate a parte (dal ProfileRefresher, una per profilo).
+    m.recordProviderCall();
+    m.recordProviderCall();
     m.recordOutcome(enriched([poi("pharmacy", "A"), poi("pharmacy", "B"), poi("park", "P")]));
     m.recordOutcome(enriched([poi("pharmacy", "C")]));
 
@@ -79,6 +82,8 @@ describe("TerritoryRunMetrics", () => {
 
   test("conta fallimenti per tipo e le risposte rate-limit", () => {
     const m = new TerritoryRunMetrics(null);
+    // Anche un refresh fallito conta come query (il refresher la conta prima dell'errore).
+    for (let i = 0; i < 3; i++) m.recordProviderCall();
     m.recordOutcome(failed("rate-limit"));
     m.recordOutcome(failed("rate-limit"));
     m.recordOutcome(failed("timeout"));

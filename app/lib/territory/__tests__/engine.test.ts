@@ -120,19 +120,20 @@ describe("3) coordinate cambiate → ri-arricchito, preserva l'approvato", () =>
 });
 
 describe("4) UltimaModifica cambiata → ri-arricchito", () => {
-  test("stesso comune/origine ma updatedAt diverso → non skippa", async () => {
+  test("stesso comune/origine, updatedAt diverso → SKIP (nessuna nuova query) [Prompt 5]", async () => {
     const repository = new MemoryTerritoryRepository();
     const first = await enrichListing(property({ updatedAt: "2026-08-01" }), makeDeps({ repository }));
     if (first.action !== "enriched") return assert.fail();
     await repository.putListingEnrichment(approve(first.record));
 
+    // updatedAt cambia ma l'origine no: l'impronta di query è la stessa → nessun ri-arricchimento.
     const s = spy(new FakePlacesProvider());
     const out = await enrichListing(
       property({ updatedAt: "2026-08-12" }),
       makeDeps({ repository, provider: s.provider }),
     );
-    assert.equal(out.action, "enriched");
-    assert.equal(s.calls(), 1);
+    assert.equal(out.action, "skipped-unchanged");
+    assert.equal(s.calls(), 0, "un edit non-di-posizione non spende budget");
   });
 });
 
@@ -202,11 +203,11 @@ describe("9) rate limiting → failed (rate-limit)", () => {
 });
 
 describe("10) enrichment stale → ri-arricchito", () => {
-  test("record approvato ma vecchio oltre la freschezza → non skippa", async () => {
+  test("listing approvato ma stale, profilo ancora fresco → ri-derivato SENZA nuova query", async () => {
     const repository = new MemoryTerritoryRepository();
     const first = await enrichListing(property(), makeDeps({ repository }));
     if (first.action !== "enriched") return assert.fail();
-    // Approvato ma con retrievedAt molto vecchio.
+    // Solo il LISTING è invecchiato; il profilo comunale resta fresco.
     await repository.putListingEnrichment({
       ...approve(first.record),
       retrievedAt: "2024-01-01T00:00:00.000Z",
@@ -214,8 +215,8 @@ describe("10) enrichment stale → ri-arricchito", () => {
     });
     const s = spy(new FakePlacesProvider());
     const out = await enrichListing(property(), makeDeps({ repository, provider: s.provider }));
-    assert.equal(out.action, "enriched");
-    assert.equal(s.calls(), 1);
+    assert.equal(out.action, "enriched", "il listing stale si ri-arricchisce…");
+    assert.equal(s.calls(), 0, "…ma dal profilo fresco in cache, senza una nuova query");
   });
 });
 
@@ -226,8 +227,11 @@ describe("11) preservazione dell'ultimo record approvato su fallimento", () => {
     if (first.action !== "enriched") return assert.fail();
     await repository.putListingEnrichment(approve(first.record));
 
+    // Un cambio di RAGGIO cambia l'impronta di query → serve un refresh del profilo, che però
+    // fallisce (rate-limit): il record approvato NON deve essere distrutto.
     const provider = new FakePlacesProvider({ rateLimited: true });
-    const out = await enrichListing(property({ updatedAt: "2026-08-12" }), makeDeps({ repository, provider }));
+    const config = { ...defaultEnrichmentConfig(), searchRadiusMeters: 3000 };
+    const out = await enrichListing(property(), makeDeps({ repository, provider, config }));
     assert.equal(out.action, "failed");
     if (out.action !== "failed") return;
     assert.equal(out.preservedApproved, true);
