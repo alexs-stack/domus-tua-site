@@ -149,7 +149,7 @@ export interface NormalizedImage {
 export interface NormalizedProperty {
   /** Identificativo stabile lato sito (deriva dal codice gestionale). */
   id: string;
-  /** Slug URL-safe generato da titolo + comune + codice. */
+  /** Slug URL-safe: il codice univoco RealSmart (es. "2079"), fedele al gestionale. */
   slug: string;
   title: string;
   /** Paragrafi NARRATIVI pubblicabili: le righe interamente tecniche sono già uscite. */

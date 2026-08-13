@@ -48,15 +48,19 @@ function toNumber(value: number | string | undefined | null): number {
   return 0;
 }
 
-/** Rende una stringa URL-safe (accenti rimossi, spazi → trattini). */
-function slugify(input: string): string {
-  return input
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // rimuove i diacritici (combining marks)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-") // non alfanumerici → trattino
+/**
+ * Rende URL-safe il codice RealSmart preservandone la forma (maiuscole incluse):
+ * lo slug dell'immobile È il suo codice univoco. Sostituisce solo i caratteri non
+ * ammessi in un segmento di path con un trattino; ripiega sul codice grezzo nel
+ * caso-limite di un codice fatto di soli simboli (mai visto nel feed reale).
+ */
+function codeSlug(codice: string): string {
+  const cleaned = codice
+    .trim()
+    .replace(/[^A-Za-z0-9-]+/g, "-") // spazi/simboli → trattino
     .replace(/^-+|-+$/g, "") // trim dei trattini
     .replace(/-{2,}/g, "-"); // collassa trattini multipli
+  return cleaned.length > 0 ? cleaned : codice.trim();
 }
 
 /**
@@ -171,8 +175,12 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     .map((f) => f.trim())
     .filter((f) => f.length > 0);
 
-  // Slug stabile: titolo + comune + codice (il codice garantisce univocità).
-  const slug = slugify([title, town, raw.codice].filter(Boolean).join(" "));
+  // Slug = codice univoco RealSmart (es. "2079", "T123"), fedele al sistema
+  // originale del gestionale: annunci.domustua.com/case/<codice>. NON è un testo
+  // derivato da titolo/comune. Il codice è tenuto VERBATIM (maiuscole comprese: il
+  // vecchio sito serviva /case/T123, non /case/t123); si sanificano solo i caratteri
+  // non-URL, e il fallback copre l'improbabile codice fatto di soli simboli.
+  const slug = codeSlug(raw.codice);
 
   // Media → solo foto per la gallery del sito, ordinate.
   const images: NormalizedImage[] = sortMedia(raw.media ?? [])
