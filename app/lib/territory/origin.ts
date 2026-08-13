@@ -9,14 +9,31 @@
 
 import { COMUNI_COORDS } from "../geo/comuni";
 import { normalizeMunicipality, type GeoCoord } from "./geo";
-import type { CoordSource } from "./types";
+import { ORIGIN_ACCURACY_METERS } from "./constants";
+import type { OriginPrecision, TerritoryOriginAuthorization } from "./types";
 import type { NormalizedProperty } from "../realsmart/types";
 
 export interface ResolvedOrigin {
   coord: GeoCoord;
-  coordSource: CoordSource;
+  /** Livello della gerarchia di precisione (MVP: sempre "municipality-centroid"). */
+  precision: OriginPrecision;
+  /** Raggio approssimato di incertezza in metri (metadato di accuratezza). */
+  accuracyMeters: number;
+  /** Etichetta leggibile della base (comune o zona), SENZA coordinate → alimenta originBasis. */
+  label: string;
   /** Slug normalizzato del comune risolto. */
   municipality: string;
+  /** Autorizzazione esplicita per le precisioni a livello di immobile (assente = non autorizzato). */
+  authorization?: TerritoryOriginAuthorization;
+}
+
+/** Nome leggibile del comune dallo slug: "venegono-superiore" → "Venegono Superiore". */
+export function municipalityLabelFromSlug(slug: string): string {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 /** Indice slug-normalizzato → coordinata, costruito una volta dalla tabella dei comuni. */
@@ -34,7 +51,15 @@ export function resolveOriginFromMunicipality(town: string): ResolvedOrigin | nu
   if (slug.length === 0) return null;
   const coord = CENTROID_BY_SLUG.get(slug);
   if (!coord) return null;
-  return { coord: { ...coord }, coordSource: "municipality-centroid", municipality: slug };
+  // MVP: sempre centroide del comune. Le precisioni più fini (zona/geocodifica/coordinata) si
+  // aggiungono nei prompt successivi, ognuna con la propria autorizzazione esplicita.
+  return {
+    coord: { ...coord },
+    precision: "municipality-centroid",
+    accuracyMeters: ORIGIN_ACCURACY_METERS["municipality-centroid"],
+    label: municipalityLabelFromSlug(slug),
+    municipality: slug,
+  };
 }
 
 /** Risolutore di default per un immobile normalizzato (usa il suo comune). */

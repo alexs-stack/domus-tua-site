@@ -23,6 +23,7 @@ import {
   type MunicipalityTerritoryProfile,
   type EnrichmentFailure,
 } from "../types";
+import { parseListingEnrichmentMigrated, parseMunicipalityProfileMigrated } from "../migrate";
 import {
   TerritoryConcurrencyError,
   TerritoryStorageError,
@@ -89,7 +90,9 @@ export class FilesystemTerritoryRepository implements TerritoryRepository {
     const raw = readJsonMap(this.listingsPath);
     const out = new Map<string, ListingTerritoryEnrichment>();
     for (const [key, value] of Object.entries(raw)) {
-      const parsed = ListingTerritoryEnrichmentSchema.safeParse(value);
+      // Migrazione allo schema corrente PRIMA della validazione: un record v1 su disco viene
+      // portato a v2 (gerarchia di precisione) senza mai cambiarne lo status.
+      const parsed = parseListingEnrichmentMigrated(value);
       if (!parsed.success) {
         throw new TerritoryStorageError(
           `Record immobile corrotto in ${this.listingsPath} (${key}): ${parsed.error.message}`,
@@ -104,7 +107,7 @@ export class FilesystemTerritoryRepository implements TerritoryRepository {
     const raw = readJsonMap(this.municipalitiesPath);
     const out = new Map<string, MunicipalityTerritoryProfile>();
     for (const [key, value] of Object.entries(raw)) {
-      const parsed = MunicipalityTerritoryProfileSchema.safeParse(value);
+      const parsed = parseMunicipalityProfileMigrated(value);
       if (!parsed.success) {
         throw new TerritoryStorageError(
           `Profilo comune corrotto in ${this.municipalitiesPath} (${key}): ${parsed.error.message}`,

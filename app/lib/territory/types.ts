@@ -39,9 +39,58 @@ export const GeoCoordSchema = z
   })
   .strict();
 
-/** Origine della coordinata usata per il calcolo distanze. */
-export const CoordSourceSchema = z.enum(["municipality-centroid", "property"]);
-export type CoordSource = z.infer<typeof CoordSourceSchema>;
+/**
+ * PRECISIONE dell'origine di calcolo, dalla più fine alla più grossolana. Sostituisce il vecchio
+ * `CoordSource` binario ("municipality-centroid" | "property"): Territory V2 supporta più livelli
+ * in sicurezza, e la precisione DECIDE come si descrive la distanza al pubblico (mai "dall'immobile"
+ * per un centroide). L'ordine dell'enum è dal più preciso al meno preciso.
+ */
+export const OriginPrecisionSchema = z.enum([
+  "property-coordinate", // coordinata dell'immobile autorizzata (server-only)
+  "address-geocode", // geocodifica di un indirizzo pubblico approvato
+  "zone-centroid", // centroide curato di una sotto-area denominata
+  "municipality-centroid", // ripiego a livello di comune (default MVP)
+]);
+export type OriginPrecision = z.infer<typeof OriginPrecisionSchema>;
+
+/** Precisioni a LIVELLO DI IMMOBILE: richiedono un'autorizzazione esplicita, mai dedotta. */
+export const PROPERTY_LEVEL_PRECISIONS = ["property-coordinate", "address-geocode"] as const;
+export function isPropertyLevelPrecision(p: OriginPrecision): boolean {
+  return (PROPERTY_LEVEL_PRECISIONS as readonly string[]).includes(p);
+}
+
+/**
+ * AUTORIZZAZIONE esplicita all'uso di un'origine a livello di immobile (coordinata/geocodifica).
+ * La sua PRESENZA è l'unico segnale valido: NON si deduce MAI dalla presenza di un indirizzo
+ * (constraint privacy). Porta con sé provenienza, revisore e data — la traccia di chi/quando.
+ */
+export const TerritoryOriginAuthorizationSchema = z
+  .object({
+    precision: z.enum(PROPERTY_LEVEL_PRECISIONS),
+    /** Da dove arriva l'autorizzazione (es. "consenso proprietario 2026-08", "policy legale"). */
+    source: z.string().min(1),
+    /** Chi ha autorizzato/verificato. */
+    reviewedBy: z.string().min(1),
+    /** Data ISO 8601 dell'autorizzazione. */
+    reviewedAt: z.iso.datetime(),
+  })
+  .strict();
+export type TerritoryOriginAuthorization = z.infer<typeof TerritoryOriginAuthorizationSchema>;
+
+/**
+ * BASE DELL'ORIGINE, forma PUBBLICA: dice AL PUBBLICO da dove sono misurate le distanze, SENZA
+ * mai una coordinata. `.strict()` impedisce di trascinare lat/lng. È il campo che rende impossibile
+ * spacciare una distanza dal centroide per una distanza dall'immobile: la precisione è esplicita e
+ * la frase in pagina/chat si deriva SOLO da qui.
+ */
+export const PublicOriginBasisSchema = z
+  .object({
+    precision: OriginPrecisionSchema,
+    /** Etichetta leggibile della base (comune o zona), senza coordinate. Es. "Tradate", "San Rocco". */
+    label: z.string().min(1),
+  })
+  .strict();
+export type PublicOriginBasis = z.infer<typeof PublicOriginBasisSchema>;
 
 // ─────────────────────────────────────────────────────────────
 // Provenienza e approvazione (constraint 13: provider + data + metodo)
@@ -191,6 +240,12 @@ export const PublicListingTerritorySchema = z
     municipality: z.string().min(1),
     /** Metodo complessivo, sempre "straight-line". */
     method: TerritoryDistanceMethodSchema,
+    /**
+     * BASE dell'origine, senza coordinate: dice da dove sono misurate le distanze. È il campo che
+     * rende IMPOSSIBILE etichettare una distanza dal centroide come "dall'immobile" — la frase in
+     * pagina/chat si deriva solo dalla `precision` qui dentro.
+     */
+    originBasis: PublicOriginBasisSchema,
     /** Data del dato ("Dati aggiornati al …"). */
     retrievedAt: z.iso.datetime(),
     pois: z.array(PublicTerritoryPoiSchema),
@@ -202,14 +257,42 @@ export type PublicListingTerritory = z.infer<typeof PublicListingTerritorySchema
 // Record PRIVATI (fonte di verità lato server)
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * Campi dell'ORIGINE, comuni ai record privati. La coordinata resta server-only; `originPrecision`
+ * dice a quale livello della gerarchia appartiene; `originAccuracyMeters` è il raggio approssimato
+ * di incertezza; `originLabel` è la base leggibile (comune/zona) SENZA coordinate; `originAuthorization`
+ * è l'autorizzazione esplicita, obbligatoria per le precisioni a livello di immobile.
+ */
+const ORIGIN_FIELDS = {
+  /** Origine del calcolo distanze. Server-only, mai nel pubblico. */
+  origin: GeoCoordSchema,
+  originPrecision: OriginPrecisionSchema,
+  originAccuracyMeters: z.number().nonnegative(),
+  originLabel: z.string().min(1),
+  originAuthorization: TerritoryOriginAuthorizationSchema.optional(),
+} as const;
+
+/** Una precisione a livello di immobile DEVE avere un'autorizzazione coerente (mai dedotta). */
+function refineOriginAuthorization(
+  value: { originPrecision: OriginPrecision; originAuthorization?: TerritoryOriginAuthorization },
+  ctx: z.RefinementCtx,
+): void {
+  if (!isPropertyLevelPrecision(value.originPrecision)) return;
+  if (!value.originAuthorization || value.originAuthorization.precision !== value.originPrecision) {
+    ctx.addIssue({
+      code: "custom",
+      message: `origine "${value.originPrecision}" richiede un'autorizzazione esplicita coerente`,
+      path: ["originAuthorization"],
+    });
+  }
+}
+
 /** Profilo territoriale a livello di comune: lo strato di dedup/cache per origine (centroide). */
 export const MunicipalityTerritoryProfileSchema = z
   .object({
     schemaVersion: z.number().int().nonnegative(),
     municipality: z.string().min(1),
-    /** Origine del calcolo (centroide comune nel pilota). Server-only. */
-    origin: GeoCoordSchema,
-    coordSource: CoordSourceSchema,
+    ...ORIGIN_FIELDS,
     fingerprint: EnrichmentFingerprintSchema,
     status: EnrichmentStatusSchema,
     pois: z.array(TerritoryPoiSchema),
@@ -218,7 +301,8 @@ export const MunicipalityTerritoryProfileSchema = z
     failure: EnrichmentFailureSchema.optional(),
     updatedAt: z.iso.datetime(),
   })
-  .strict();
+  .strict()
+  .superRefine(refineOriginAuthorization);
 export type MunicipalityTerritoryProfile = z.infer<typeof MunicipalityTerritoryProfileSchema>;
 
 /**
@@ -231,9 +315,7 @@ export const ListingTerritoryEnrichmentSchema = z
     schemaVersion: z.number().int().nonnegative(),
     realSmartCode: z.string().min(1),
     municipality: z.string().min(1),
-    coordSource: CoordSourceSchema,
-    /** Origine del calcolo distanze. Server-only, mai nel pubblico. */
-    origin: GeoCoordSchema,
+    ...ORIGIN_FIELDS,
     fingerprint: EnrichmentFingerprintSchema,
     status: EnrichmentStatusSchema,
     pois: z.array(TerritoryPoiSchema),
@@ -244,7 +326,8 @@ export const ListingTerritoryEnrichmentSchema = z
     lastApprovedPublic: PublicListingTerritorySchema.optional(),
     updatedAt: z.iso.datetime(),
   })
-  .strict();
+  .strict()
+  .superRefine(refineOriginAuthorization);
 export type ListingTerritoryEnrichment = z.infer<typeof ListingTerritoryEnrichmentSchema>;
 
 // ─────────────────────────────────────────────────────────────

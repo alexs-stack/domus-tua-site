@@ -100,7 +100,16 @@ function printRecord(rec: ListingTerritoryEnrichment): void {
   // NB: origin/coord NON vengono stampati (server-only).
   console.log(`Immobile ${rec.realSmartCode} — comune ${rec.municipality}`);
   console.log(`  status: ${rec.status} · schema v${rec.schemaVersion} · aggiornato ${rec.updatedAt}`);
-  console.log(`  origine: ${rec.coordSource} (coordinate non mostrate) · impronta ${rec.fingerprint.hash}`);
+  console.log(
+    `  origine: ${rec.originPrecision} (±${rec.originAccuracyMeters} m, base "${rec.originLabel}", ` +
+      `coordinate non mostrate) · impronta ${rec.fingerprint.hash}`,
+  );
+  if (rec.originAuthorization) {
+    console.log(
+      `  origine autorizzata: ${rec.originAuthorization.precision} — ${rec.originAuthorization.source} ` +
+        `(${rec.originAuthorization.reviewedBy} @ ${rec.originAuthorization.reviewedAt})`,
+    );
+  }
   if (rec.failure) console.log(`  ⚠ ultimo fallimento: ${rec.failure.kind} @ ${rec.failure.at}`);
   if (rec.approval) console.log(`  approvato da ${rec.approval.approvedBy} @ ${rec.approval.approvedAt}`);
   console.log(`  POI (${rec.pois.length}):`);

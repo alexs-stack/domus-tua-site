@@ -105,6 +105,17 @@ function toPoi(place: ProviderPlace, origin: ResolvedOrigin, attribution: string
   };
 }
 
+/** Campi ORIGINE del record, derivati dall'origine risolta (coord server-only + gerarchia precisione). */
+function originFields(origin: ResolvedOrigin) {
+  return {
+    origin: origin.coord,
+    originPrecision: origin.precision,
+    originAccuracyMeters: origin.accuracyMeters,
+    originLabel: origin.label,
+    ...(origin.authorization ? { originAuthorization: origin.authorization } : {}),
+  };
+}
+
 /**
  * Ricava lo snapshot pubblico approvato da preservare: prima quello già memorizzato, poi — se il
  * record esistente è approvato e ancora pubblicabile — la sua proiezione pubblica. `undefined` se
@@ -242,8 +253,7 @@ export async function enrichListing(
         schemaVersion: config.schemaVersion,
         realSmartCode,
         municipality: origin.municipality,
-        coordSource: origin.coordSource,
-        origin: origin.coord,
+        ...originFields(origin),
         fingerprint,
         status: "failed",
         pois: [],
@@ -272,8 +282,7 @@ export async function enrichListing(
     schemaVersion: config.schemaVersion,
     realSmartCode,
     municipality: origin.municipality,
-    coordSource: origin.coordSource,
-    origin: origin.coord,
+    ...originFields(origin),
     fingerprint,
     status: "draft",
     pois,

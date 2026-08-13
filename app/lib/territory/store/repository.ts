@@ -16,7 +16,7 @@ import type {
   MunicipalityTerritoryProfile,
   EnrichmentFailure,
   EnrichmentStatus,
-  CoordSource,
+  OriginPrecision,
 } from "../types";
 
 /**
@@ -27,7 +27,8 @@ export interface EnrichmentMetadata {
   realSmartCode: string;
   municipality: string;
   status: EnrichmentStatus;
-  coordSource: CoordSource;
+  /** Livello di precisione dell'origine (mai la coordinata). */
+  originPrecision: OriginPrecision;
   fingerprintHash: string;
   poiCount: number;
   approvedPoiCount: number;
@@ -89,7 +90,7 @@ export function toEnrichmentMetadata(record: ListingTerritoryEnrichment): Enrich
     realSmartCode: record.realSmartCode,
     municipality: record.municipality,
     status: record.status,
-    coordSource: record.coordSource,
+    originPrecision: record.originPrecision,
     fingerprintHash: record.fingerprint.hash,
     poiCount: record.pois.length,
     approvedPoiCount: record.pois.filter((p) => p.approval.state === "approved").length,

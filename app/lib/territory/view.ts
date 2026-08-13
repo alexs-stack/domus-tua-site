@@ -6,7 +6,7 @@
 // nel payload pubblico. Se non c'è nulla da mostrare ritorna null → la sezione si nasconde.
 
 import { TERRITORY_POI_CATEGORIES, type TerritoryPoiCategory } from "./categories";
-import type { PublicListingTerritory } from "./types";
+import type { PublicListingTerritory, PublicOriginBasis } from "./types";
 
 export type TerritoryLocale = "it" | "en" | "fr" | "de" | "es";
 
@@ -27,6 +27,11 @@ export interface TerritoryView {
   title: string;
   /** Etichetta esplicita del metodo: mai percorribilità. */
   methodLabel: string;
+  /**
+   * Frase esplicita sulla BASE dell'origine: es. "Distanze indicative dal centro di Tradate".
+   * Derivata SOLO dalla precisione dell'originBasis: mai "dall'immobile" per un centroide.
+   */
+  originLabel: string;
   /** Es. "Dati aggiornati al 13 agosto 2026". */
   updatedLabel: string;
   categories: TerritoryViewCategory[];
@@ -38,6 +43,12 @@ interface LocaleStrings {
   title: string;
   method: string;
   updatedPrefix: string;
+  /**
+   * Frasi che dicono DA DOVE sono misurate le distanze, per livello di precisione. `{label}` è la
+   * base leggibile (comune/zona). Mai "dall'immobile" per un centroide: la scelta è vincolata dalla
+   * precisione, non dal testo libero.
+   */
+  origin: { property: string; zone: string; municipality: string };
   categories: Record<TerritoryPoiCategory, string>;
 }
 
@@ -46,6 +57,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
     title: "Vivere in zona",
     method: "Distanza indicativa in linea d'aria",
     updatedPrefix: "Dati aggiornati al",
+    origin: { property: "Distanze indicative dall'immobile", zone: "Distanze indicative dal centro della zona {label}", municipality: "Distanze indicative dal centro di {label}" },
     categories: {
       "railway-station": "Stazione ferroviaria",
       pharmacy: "Farmacia",
@@ -58,6 +70,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
     title: "Living nearby",
     method: "Approximate straight-line distance",
     updatedPrefix: "Data updated on",
+    origin: { property: "Approximate distances from the property", zone: "Approximate distances from the centre of the {label} area", municipality: "Approximate distances from the centre of {label}" },
     categories: {
       "railway-station": "Railway station",
       pharmacy: "Pharmacy",
@@ -70,6 +83,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
     title: "Vivre dans le quartier",
     method: "Distance indicative à vol d'oiseau",
     updatedPrefix: "Données mises à jour le",
+    origin: { property: "Distances indicatives depuis le bien", zone: "Distances indicatives depuis le centre du quartier {label}", municipality: "Distances indicatives depuis le centre de {label}" },
     categories: {
       "railway-station": "Gare ferroviaire",
       pharmacy: "Pharmacie",
@@ -82,6 +96,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
     title: "Leben in der Umgebung",
     method: "Ungefähre Luftliniendistanz",
     updatedPrefix: "Daten aktualisiert am",
+    origin: { property: "Ungefähre Entfernungen ab der Immobilie", zone: "Ungefähre Entfernungen ab dem Zentrum des Gebiets {label}", municipality: "Ungefähre Entfernungen ab dem Zentrum von {label}" },
     categories: {
       "railway-station": "Bahnhof",
       pharmacy: "Apotheke",
@@ -94,6 +109,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
     title: "Vivir en la zona",
     method: "Distancia aproximada en línea recta",
     updatedPrefix: "Datos actualizados el",
+    origin: { property: "Distancias indicativas desde el inmueble", zone: "Distancias indicativas desde el centro de la zona {label}", municipality: "Distancias indicativas desde el centro de {label}" },
     categories: {
       "railway-station": "Estación de tren",
       pharmacy: "Farmacia",
@@ -112,6 +128,24 @@ export function formatDistance(meters: number, locale: TerritoryLocale): string 
     maximumFractionDigits: 1,
   }).format(meters / 1000);
   return `≈ ${km} km`;
+}
+
+/**
+ * Frase sulla base dell'origine, derivata dalla PRECISIONE (mai dal testo libero): property/
+ * address → "dall'immobile"; zone → "dal centro della zona X"; municipality → "dal centro di X".
+ * È qui che si rende IMPOSSIBILE etichettare un centroide come distanza dall'immobile.
+ */
+export function describeOriginBasis(basis: PublicOriginBasis, locale: TerritoryLocale): string {
+  const strings = STRINGS[locale] ?? STRINGS.it;
+  switch (basis.precision) {
+    case "property-coordinate":
+    case "address-geocode":
+      return strings.origin.property;
+    case "zone-centroid":
+      return strings.origin.zone.replace("{label}", basis.label);
+    case "municipality-centroid":
+      return strings.origin.municipality.replace("{label}", basis.label);
+  }
 }
 
 /** Data del dato in forma lunga localizzata (es. "13 agosto 2026"). */
@@ -158,6 +192,7 @@ export function buildTerritoryView(
   return {
     title: strings.title,
     methodLabel: strings.method,
+    originLabel: describeOriginBasis(territory.originBasis, locale),
     updatedLabel: updated ? `${strings.updatedPrefix} ${updated}` : "",
     categories,
     attribution: attributions,

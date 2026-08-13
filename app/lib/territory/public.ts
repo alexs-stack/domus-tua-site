@@ -119,6 +119,9 @@ export function toPublicListingTerritory(
     realSmartCode: record.realSmartCode,
     municipality: record.municipality,
     method: "straight-line",
+    // Base dell'origine SENZA coordinate: precisione + etichetta leggibile. È l'unica fonte da cui
+    // pagina e chatbot derivano la frase "distanze da …": impossibile spacciare un centroide per casa.
+    originBasis: { precision: record.originPrecision, label: record.originLabel },
     retrievedAt: record.retrievedAt,
     pois: limited.map(toPublicPoi),
   };

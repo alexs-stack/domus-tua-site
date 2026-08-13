@@ -5,7 +5,7 @@
 // luoghi restano tali e quali (dato, non istruzione): il prompt impone di trattarli come testo.
 
 import { TERRITORY_POI_CATEGORIES, TERRITORY_CATEGORY_LABEL_IT, type TerritoryPoiCategory } from "./categories";
-import { formatDistance } from "./view";
+import { formatDistance, describeOriginBasis } from "./view";
 import type { PublicListingTerritory } from "./types";
 
 export interface AssistantTerritoryPlace {
@@ -26,6 +26,12 @@ export interface AssistantTerritory {
   categorie: AssistantTerritoryCategory[];
   /** Etichetta esplicita del metodo: mai percorribilità. */
   metodo: string;
+  /**
+   * BASE dell'origine, in italiano: "Distanze indicative dal centro di Tradate" ecc. Derivata dalla
+   * precisione, così il modello sa (e deve dire) da dove sono misurate — mai "dall'immobile" per un
+   * centroide. Nessuna coordinata.
+   */
+  base: string;
   /** Data del dato, in forma leggibile italiana (es. "13 agosto 2026"). */
   aggiornatoAl: string;
   /** Attribuzione della fonte (es. "© OpenStreetMap contributors"). */
@@ -67,6 +73,7 @@ export function toAssistantTerritory(
   return {
     categorie,
     metodo: "distanza indicativa in linea d'aria",
+    base: describeOriginBasis(territory.originBasis, "it"),
     aggiornatoAl: formatUpdatedIt(territory.retrievedAt),
     fonte,
   };
