@@ -83,3 +83,6 @@ _refs/
 # Sonde usa-e-getta della wave "parità mobile" (probe di misura scritti in
 # radice per poter risolvere @playwright/test, e cancellati subito dopo).
 .dt-*.mjs
+
+# Report generati dall'audit contenuti (artefatti CI, non versionati)
+reports/

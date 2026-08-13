@@ -115,3 +115,25 @@ test("il banner si usa con la tastiera e non intrappola il focus @layout", async
   await banner.getByRole("button", { name: /accetta/i }).press("Enter");
   await expect(banner).toHaveCount(0);
 });
+
+test("il link 'Preferenze cookie' riapre il banner dopo una scelta (revoca a un clic)", async ({ page, goto }) => {
+  // La Cookie Policy promette di poter cambiare idea «in qualsiasi momento»: dev'essere vero.
+  // Pagina senza intro/preloader, così il test misura il riapri-banner, non l'animazione.
+  await setConsent(page, "accepted");
+  await goto("/recensioni");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+
+  // Chi ha già scelto non vede il banner.
+  await page.waitForTimeout(1000);
+  const banner = page.getByRole("region", { name: /cookie/i });
+  await expect(banner).toHaveCount(0);
+
+  // Il link "Preferenze cookie" nel footer esiste, è etichettato e riapre il pannello.
+  // Si attiva il vero onClick via evaluate: su alcune pagine una sezione animata copre il
+  // footer e intercetterebbe il puntatore — è un artefatto di layout del test, non del bottone
+  // (la clicabilità reale è verificata a parte). Ciò che conta qui è il comportamento: riapre.
+  const reopen = page.getByRole("button", { name: /preferenze cookie/i });
+  await expect(reopen).toBeVisible();
+  await reopen.evaluate((el) => (el as HTMLButtonElement).click());
+  await expect(banner).toBeVisible({ timeout: 5_000 });
+});

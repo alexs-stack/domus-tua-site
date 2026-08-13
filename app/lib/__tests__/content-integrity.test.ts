@@ -294,11 +294,17 @@ describe("content integrity — terze parti dietro al consenso", () => {
 });
 
 describe("content integrity — fonti uniche", () => {
-  test("NEXT_PUBLIC_SITE_URL letto in un posto solo (più /api/health, che è diagnostica)", () => {
+  test("NEXT_PUBLIC_SITE_URL letto in un posto solo (più diagnostica: /api/health e launch-check)", () => {
     const readers = productionSources().filter((f) =>
       /NEXT_PUBLIC_SITE_URL/.test(stripComments(fs.readFileSync(f, "utf8"))),
     );
-    assert.deepEqual(readers.map(REL).sort(), ["app/api/health/route.ts", "app/lib/site.ts"]);
+    // launchReadiness legge la env GREZZA di proposito: site.ts la default-a al dominio di
+    // produzione, nascondendo il caso "non impostata" che il launch-check deve invece rilevare.
+    assert.deepEqual(readers.map(REL).sort(), [
+      "app/api/health/route.ts",
+      "app/lib/launchReadiness.ts",
+      "app/lib/site.ts",
+    ]);
   });
 
   test("NEXT_PUBLIC_USE_REALSMART letto in un posto solo", () => {
