@@ -34,9 +34,14 @@ const liveDown = async (): Promise<RealSmartListingRaw[]> => {
 // Salviamo e ripristiniamo le env che governano la modalità.
 const ENV_USE = process.env.NEXT_PUBLIC_USE_REALSMART;
 const ENV_VERCEL = process.env.VERCEL_ENV;
+const ENV_ALLOW_MOCK = process.env.REALSMART_ALLOW_MOCK;
 function setVercelEnv(v: string | undefined): void {
   if (v === undefined) delete process.env.VERCEL_ENV;
   else process.env.VERCEL_ENV = v;
+}
+function setAllowMock(v: string | undefined): void {
+  if (v === undefined) delete process.env.REALSMART_ALLOW_MOCK;
+  else process.env.REALSMART_ALLOW_MOCK = v;
 }
 
 describe("feed live: successo, vuoto e diagnostica", () => {
@@ -56,7 +61,8 @@ describe("feed live: successo, vuoto e diagnostica", () => {
     assert.equal(snap.stale, false);
     assert.ok(snap.itemCount > 0);
     assert.equal(snap.itemCount, snap.listings.length);
-    assert.ok(snap.fetchedAt.length > 0);
+    assert.ok(snap.fetchedAt && snap.fetchedAt.length > 0, "live: fetchedAt valorizzato");
+    assert.ok(snap.lastAttemptAt.length > 0, "lastAttemptAt sempre valorizzato");
   });
 
   test("zero risultati: source 'live', ok, lista vuota (non è un errore)", async () => {
@@ -118,26 +124,38 @@ describe("feed live caduto: mai i mock, ultimo-buono o fail-closed", () => {
   });
 });
 
-describe("modalità mock offline: solo fuori produzione, con flag esplicito", () => {
+describe("modalità mock offline: autorizzazione SERVER-ONLY, mai in produzione", () => {
   after(() => {
     if (ENV_USE === undefined) delete process.env.NEXT_PUBLIC_USE_REALSMART;
     else process.env.NEXT_PUBLIC_USE_REALSMART = ENV_USE;
     setVercelEnv(ENV_VERCEL);
+    setAllowMock(ENV_ALLOW_MOCK);
   });
   beforeEach(() => __resetLastKnownGoodForTests());
 
-  test("CI/dev (VERCEL_ENV≠production) + USE_REALSMART=false: mock ammessi, source 'mock'", async () => {
+  test("CI/dev + USE_REALSMART=false + REALSMART_ALLOW_MOCK=true: mock ammessi, source 'mock'", async () => {
     process.env.NEXT_PUBLIC_USE_REALSMART = "false";
     setVercelEnv(undefined); // come una build di CI: nessun VERCEL_ENV
+    setAllowMock("true"); // autorizzazione server-only esplicita
     assert.equal(mockModeAllowed(), true);
     const snap = await loadListings(liveDown); // il fetcher non deve nemmeno essere chiamato
     assert.equal(snap.source, "mock");
     assert.ok(snap.itemCount > 0);
   });
 
-  test("PRODUZIONE VERA (VERCEL_ENV=production) + USE_REALSMART=false: NIENTE mock → 'unavailable'", async () => {
+  test("USE_REALSMART=false SENZA REALSMART_ALLOW_MOCK: niente mock → 'unavailable'", async () => {
+    process.env.NEXT_PUBLIC_USE_REALSMART = "false";
+    setVercelEnv(undefined);
+    setAllowMock(undefined); // manca l'autorizzazione server-only
+    assert.equal(mockModeAllowed(), false, "senza opt-in server-only i mock non sono ammessi");
+    const snap = await loadListings(liveDown);
+    assert.equal(snap.source, "unavailable");
+  });
+
+  test("PRODUZIONE VERA (VERCEL_ENV=production) sovrascrive ANCHE l'opt-in: NIENTE mock", async () => {
     process.env.NEXT_PUBLIC_USE_REALSMART = "false";
     setVercelEnv("production");
+    setAllowMock("true"); // anche con l'opt-in acceso…
     assert.equal(mockModeAllowed(), false, "in produzione reale i mock non sono mai ammessi");
     const snap = await loadListings(liveDown);
     assert.notEqual(snap.source, "mock");
