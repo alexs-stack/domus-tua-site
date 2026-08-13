@@ -135,7 +135,9 @@ function deriveBadges(
   if (has("esclusiv")) badges.push("In esclusiva");
   if (has("virtual") || has("tour")) badges.push("Virtual tour");
   if (has("open domus")) badges.push("Open Domus");
-  if (has("document") && has("verific")) badges.push("Documenti verificati");
+  // NB: il badge "Documenti verificati" NON si deduce più dal testo di marketing (era
+  // has("document") && has("verific")): è un'affermazione sul singolo immobile e si abilita
+  // solo con evidenza esplicita (override docVerified), aggiunta in normalizeRealSmartListing.
 
   // Deduplica preservando l'ordine.
   return Array.from(new Set(badges));
@@ -222,6 +224,16 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // I fatti pubblicati decidono quali righe telegrafiche possono uscire dal testo.
   const split = splitDescription(paragraphs, facts);
 
+  // Evidenza esplicita del protocollo D.O.C. su QUESTO immobile: SOLO dall'override manuale
+  // (con fonte/data/autore), mai dedotta dal testo di marketing. Abilita l'affermazione
+  // "verificata" sulla scheda e il badge "Documenti verificati".
+  const docVerified = override?.docVerified === true;
+  const derivedBadges = deriveBadges(status, features, contract);
+  const verifiedBadges = docVerified ? [...derivedBadges, "Documenti verificati"] : derivedBadges;
+  const badges = raw.inEvidenza
+    ? Array.from(new Set(["In evidenza", ...verifiedBadges]))
+    : Array.from(new Set(verifiedBadges));
+
   const property: NormalizedProperty = {
     id: raw.codice,
     slug,
@@ -241,6 +253,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     address: addressRaw,
     // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
     showAddress: override?.mostraIndirizzo === true,
+    docVerified,
     sqm: toNumber(raw.mq),
     rooms: toNumber(raw.locali),
     bedrooms: toNumber(raw.camere),
@@ -252,9 +265,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     factsReview: descriptionFacts.review,
     images,
     status,
-    badges: raw.inEvidenza
-      ? Array.from(new Set(["In evidenza", ...deriveBadges(status, features, contract)]))
-      : deriveBadges(status, features, contract),
+    badges,
     publishedAt: raw.dataPubblicazione?.trim() ?? "",
     updatedAt: raw.dataAggiornamento?.trim() ?? "",
     sourceRef: {
