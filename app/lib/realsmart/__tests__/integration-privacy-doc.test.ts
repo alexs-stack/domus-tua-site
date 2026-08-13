@@ -50,14 +50,17 @@ function publicText(p: ReturnType<typeof normalizeRealSmartListing>): string {
 }
 
 describe("integrazione #35+#36 — privacy e Domus D.O.C. sullo stesso immobile", () => {
+  // `listingOverrides` è esposta come ReadonlyMap (produzione); qui, SOLO nel test, la trattiamo
+  // come mutabile per iniettare override sintetici e ripulirli subito dopo.
+  const mutableOverrides = listingOverrides as Map<string, ListingOverride>;
   const INJECTED: string[] = [];
   function injectOverride(o: ListingOverride) {
-    listingOverrides.set(o.codice.trim(), o);
+    mutableOverrides.set(o.codice.trim(), o);
     INJECTED.push(o.codice.trim());
   }
   afterEach(() => {
     // Non contaminare gli altri test: la mappa override è un modulo condiviso.
-    for (const code of INJECTED.splice(0)) listingOverrides.delete(code);
+    for (const code of INJECTED.splice(0)) mutableOverrides.delete(code);
   });
 
   test("redazione privacy CABLATA nella normalizzazione (nessun override, showAddress=false di default)", () => {

@@ -17,7 +17,8 @@
 
 import { normalizeRealSmartListing } from "./normalize";
 import { normalizeDescription } from "./description";
-import { hasCivicAddress, hasPhoneNumber } from "./privacy";
+import { hasCivicAddress, hasPhoneNumber, redactPrivateText } from "./privacy";
+import { verifyRedaction } from "./privacyVerify";
 import { FACT_GROUPS, type FactGroup } from "./facts";
 import type { NormalizedProperty, RealSmartListingRaw } from "./types";
 
@@ -69,15 +70,16 @@ export function structuralFindings(p: NormalizedProperty, raw: RealSmartListingR
   }
 
   // Segnaposto mai compilati. Nel feed live esiste davvero «un ampio bagno di oltre ____ mq»:
-  // qualcuno ha scritto la frase pensando di tornarci e non ci è tornato. È un buco nel testo
-  // che arriva a chi deve comprare casa, e nessun livello di presentazione può ripararlo —
-  // si ripara nel gestionale, quindi va segnalato qui e deve far fallire il comando.
-  const placeholder = text.match(/_{3,}|\bX{3,}\b|\bTBD\b|\bN\/D\b|\[[a-z ]{2,20}\]/i);
-  if (placeholder) {
+  // qualcuno ha scritto la frase pensando di tornarci e non ci è tornato. La pipeline lo mette in
+  // QUARANTENA in pubblicazione (placeholders.ts) — così nessun «____» arriva a chi compra casa —
+  // e alza `placeholderQuarantined`. Qui quel segnale diventa FAIL: la riparazione VERA sta nel
+  // gestionale o in un override approvato, non nella rete di sicurezza. Nessuna PII nel dettaglio.
+  if (p.placeholderQuarantined) {
     out.push({
       severity: "FAIL",
       check: "segnaposto-non-compilato",
-      detail: `segnaposto pubblicato nella descrizione: "${placeholder[0]}"`,
+      detail:
+        "segnaposto non compilato nella descrizione a gestionale (quarantenato in pubblicazione, da correggere alla fonte o via override approvato)",
     });
   }
 
@@ -166,20 +168,28 @@ export function structuralFindings(p: NormalizedProperty, raw: RealSmartListingR
  */
 export function privacyFindings(p: NormalizedProperty, raw: RealSmartListingRaw): Finding[] {
   const out: Finding[] = [];
-  const published = [...p.descriptionParagraphs, p.excerpt];
+  const published = [...p.descriptionParagraphs, p.excerpt].join("\n");
 
-  if (!p.showAddress && published.some(hasCivicAddress)) {
+  // Rete di sicurezza con VERIFICATORE INDIPENDENTE (app/lib/realsmart/privacyVerify.ts): NON usa
+  // gli stessi pattern del redattore, così un buco in privacy.ts non si rispecchia qui. Confronta
+  // per token con l'indirizzo strutturato noto e con un corpus di fuga scritto a parte.
+  const verdict = verifyRedaction(published, {
+    showAddress: p.showAddress,
+    sourceAddress: raw.localita?.indirizzo,
+  });
+  if (verdict.reasons.some((r) => r.startsWith("leak-address"))) {
     out.push({
       severity: "FAIL",
       check: "privacy-leak-indirizzo",
-      detail: "indirizzo civico nell'output pubblicato con showAddress=false: la redazione ha un buco",
+      detail:
+        "indirizzo civico ancora nell'output pubblicato con showAddress=false (verificatore indipendente): la redazione ha un buco",
     });
   }
-  if (published.some(hasPhoneNumber)) {
+  if (verdict.reasons.includes("leak-phone-corpus")) {
     out.push({
       severity: "FAIL",
       check: "privacy-leak-telefono",
-      detail: "numero di telefono nell'output pubblicato: la redazione ha un buco",
+      detail: "numero di telefono ancora nell'output pubblicato (verificatore indipendente): la redazione ha un buco",
     });
   }
 
@@ -326,6 +336,16 @@ export interface AuditArtifact {
   }>;
 }
 
+/**
+ * Rete finale anti-PII per gli artefatti: qualunque dettaglio, prima di essere scritto, passa dal
+ * redattore (indirizzi civici → comune/"zona riservata", telefoni → via). I dettagli sono già
+ * costruiti senza PII, ma un dettaglio DINAMICO (es. una riga tecnica non risolta) non deve poter
+ * far uscire un indirizzo o un recapito nel report. Choke point unico, deterministico.
+ */
+export function sanitizeFindingDetail(detail: string): string {
+  return redactPrivateText(detail, { showAddress: false }).text;
+}
+
 /** Costruisce l'artefatto machine-readable (JSON), senza PII e con date iniettabile. */
 export function buildAuditArtifact(audits: readonly ListingAudit[], generatedAt: string): AuditArtifact {
   const byCheck = new Map<string, number>();
@@ -344,7 +364,7 @@ export function buildAuditArtifact(audits: readonly ListingAudit[], generatedAt:
       riferimento: a.riferimento,
       slug: a.slug,
       stato: a.stato,
-      findings: a.findings,
+      findings: a.findings.map((f) => ({ ...f, detail: sanitizeFindingDetail(f.detail) })),
     })),
   };
 }

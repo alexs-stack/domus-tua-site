@@ -1,12 +1,16 @@
 # RealSmart — contenuti da correggere alla fonte (gestionale)
 
-Il sito redige e protegge già i contenuti in automatico (redazione privacy deterministica,
-`app/lib/realsmart/privacy.ts`): **nessun indirizzo civico o telefono esce in pubblicazione**
+Il sito redige e protegge già i contenuti in automatico (redazione privacy deterministica a più
+livelli, `app/lib/realsmart/privacy.ts`, con verificatore INDIPENDENTE in
+`app/lib/realsmart/privacyVerify.ts`): **nessun indirizzo civico o telefono esce in pubblicazione**
 quando l'indirizzo non è autorizzato. Ma alcune cose il sito non può ripararle da solo — vanno
 corrette nel gestionale RealSmart. Questo elenco è l'esito dell'audit contenuti
 (`npm run audit:listings-content`, artefatto completo in `reports/listings-content-audit.json`).
 
-Ultimo audit di riferimento: **196 annunci → 53 PASS, 142 REVIEW, 1 FAIL**.
+Ultimo audit di riferimento: **196 annunci → 46 PASS, 149 REVIEW, 1 FAIL**. La redazione più
+estesa (layer sull'indirizzo strutturato noto, più toponimi, nomi con articolo) e il verificatore
+indipendente portano a **zero fughe** in output; il maggior numero di REVIEW rispetto al passato è
+solo miglior RILEVAZIONE degli indirizzi da togliere alla fonte, non più contenuto pubblicato.
 
 ## 1. Bloccante (FAIL) — da correggere prima del lancio
 
@@ -27,13 +31,13 @@ recapito dell'agenzia ha i suoi spazi (contatti, WhatsApp), non il corpo dell'an
 - NT307 (cod. 2063)
 - T381 (cod. 2070)
 
-## 3. Indirizzi civici nella descrizione (123) — redatti in pubblicazione
+## 3. Indirizzi civici nella descrizione (131) — redatti in pubblicazione
 
-In 123 descrizioni compare un indirizzo civico esatto (via/piazza + numero) mentre l'indirizzo
+In 131 descrizioni compare un indirizzo civico esatto (via/piazza + numero) mentre l'indirizzo
 **non** è autorizzato alla pubblicazione. Il sito **sostituisce automaticamente** l'indirizzo con
-il Comune (es. «in via Saporiti 50» → «in Lonate Ceppino»), quindi **non c'è alcuna fuga**: la
-verifica `privacy-leak-indirizzo` è a **zero**. Restano due decisioni per il cliente, annuncio
-per annuncio (elenco completo dei codici nell'artefatto JSON):
+il Comune (esempio sintetico: «in via Esempio 10» → «in Lonate Ceppino»), quindi **non c'è alcuna
+fuga**: la verifica indipendente `privacy-leak-indirizzo` è a **zero**. Restano due decisioni per
+il cliente, annuncio per annuncio (elenco completo dei codici nell'artefatto JSON):
 
 1. **Togliere l'indirizzo dalla descrizione** nel gestionale (consigliato), oppure
 2. **Autorizzare la pubblicazione dell'indirizzo** per quello specifico immobile (override

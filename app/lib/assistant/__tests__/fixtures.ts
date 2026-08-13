@@ -28,6 +28,7 @@ function listing(overrides: Partial<NormalizedProperty> & { id: string }): Norma
     structuredFactLines: [],
     keptFactLines: [],
     contentPreservation: 1,
+    placeholderQuarantined: false,
     excerpt: "Descrizione di prova.",
     showAddress: false,
     docVerified: false,

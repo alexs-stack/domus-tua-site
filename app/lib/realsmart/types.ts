@@ -160,6 +160,8 @@ export interface NormalizedProperty {
   keptFactLines: FactLineOutcome[];
   /** Quota di parole conservate rispetto alla descrizione normalizzata (1 = nessuna rimozione). */
   contentPreservation: number;
+  /** true se una frase con segnaposto non compilato («____») è stata messa in quarantena. */
+  placeholderQuarantined: boolean;
   /** Estratto già pulito per card, meta description e JSON-LD. */
   excerpt: string;
   /** Prezzo numerico (0 se non disponibile / su richiesta). */

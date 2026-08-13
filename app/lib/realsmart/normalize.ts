@@ -2,8 +2,9 @@
 // (forma pulita usata dal sito). Funzione PURA e difensiva: nessun side effect, nessuna
 // eccezione su campi mancanti. Se il feed reale userà nomi diversi, si adatta qui la mappatura.
 
-import { normalizeDescription } from "./description";
-import { redactParagraphs, redactPrivateText } from "./privacy";
+import { normalizeDescription, buildExcerpt } from "./description";
+import { redactParagraphs } from "./privacy";
+import { quarantineParagraphs } from "./placeholders";
 import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
 import { splitDescription } from "./descriptionSplit";
 import { getListingOverride } from "./overrides.data";
@@ -207,7 +208,20 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // REDAZIONE PRIVACY DETERMINISTICA (app/lib/realsmart/privacy.ts). Applicata PRIMA di estrarre
   // fatti/estratto, così indirizzi civici (se showAddress=false) e telefoni non escono da nessun
   // output pubblico. Il comune sostituisce l'indirizzo redatto, preservando il contesto di zona.
-  const paragraphs = redactParagraphs(sourceParagraphs, { showAddress, comune: town }).paragraphs;
+  // `sourceAddress` è l'indirizzo strutturato del gestionale: alimenta il layer a più alta
+  // precisione (redazione dell'indirizzo NOTO e delle sue varianti), oltre al pattern generico.
+  const redactedParagraphs = redactParagraphs(sourceParagraphs, {
+    showAddress,
+    comune: town,
+    sourceAddress: addressRaw,
+  }).paragraphs;
+
+  // QUARANTENA SEGNAPOSTO (app/lib/realsmart/placeholders.ts). Un «____» non compilato non deve mai
+  // finire in pagina: si toglie la frase-misura incompleta (senza inventare la misura). Il segnale
+  // viaggia su `placeholderQuarantined` e fa fallire l'audit — la correzione vera è alla fonte/override.
+  const quarantine = quarantineParagraphs(redactedParagraphs);
+  const paragraphs = quarantine.paragraphs;
+  const placeholderQuarantined = quarantine.quarantined > 0;
 
   // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
   // Gli override manuali approvati si innestano davanti a tutto in ./overrides.ts.
@@ -253,8 +267,15 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     structuredFactLines: split.structuredFactLines.map((l) => l.line),
     keptFactLines: split.keptFactLines,
     contentPreservation: split.contentPreservation,
-    // Estratto (card, meta description, JSON-LD): redatto con la stessa policy dei paragrafi.
-    excerpt: redactPrivateText(description.excerpt, { showAddress, comune: town }).text,
+    // true se una frase-segnaposto è stata messa in quarantena: l'audit lo trasforma in FAIL.
+    placeholderQuarantined,
+    // Estratto (card, meta description, JSON-LD): DERIVATO dal corpo GIÀ redatto (`paragraphs`),
+    // non dall'estratto del feed. Due conseguenze volute:
+    //   • se un override sostituisce il corpo, l'estratto nasce dal testo approvato — scheda e meta
+    //     description non mostrano più due testi diversi (era la incoerenza estratto/override);
+    //   • l'estratto è per costruzione un sottoinsieme del corpo redatto: non può contenere un
+    //     indirizzo/telefono che il corpo non contiene già.
+    excerpt: buildExcerpt(paragraphs),
     price,
     priceLabel,
     contract,
