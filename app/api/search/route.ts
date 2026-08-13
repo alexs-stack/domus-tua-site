@@ -4,7 +4,7 @@ import { comuniFacet } from "../../lib/comune";
 import { parseQuery } from "../../lib/ai/parseQuery";
 import { applyFilters, rankResults } from "../../lib/ai/rank";
 import { MAX_QUERY_LEN } from "../../lib/ai/config";
-import { rateLimit, clientIp, SEARCH_LIMIT } from "../../lib/security/rateLimit";
+import { rateLimitShared, clientKey, SEARCH_LIMIT } from "../../lib/security/rateLimit";
 import type { FeatureLabel, SearchFacets, SearchResponse } from "../../lib/ai/types";
 
 // Ricerca in linguaggio naturale: frase -> filtri (Claude Haiku o parser locale) ->
@@ -16,8 +16,10 @@ export const dynamic = "force-dynamic";
 const FEATURE_LABELS: FeatureLabel[] = ["Giardino", "Box / posto auto", "Terrazzo", "Doppi servizi"];
 
 export async function POST(req: Request): Promise<NextResponse<SearchResponse>> {
-  // Rate limit per IP (best-effort in-memory): scoraggia flood/scraping della ricerca.
-  const rl = rateLimit(`search:${clientIp(req)}`, SEARCH_LIMIT);
+  // Rate limit CONDIVISO tra le istanze (Redis se configurato, altrimenti in-memory best-effort):
+  // scoraggia flood/scraping della ricerca. Chiave con IP hashato (privacy). Fail-open sul locale
+  // se lo store condiviso è giù: la ricerca ha comunque un fallback client (filtri manuali).
+  const rl = await rateLimitShared(clientKey(req, "search"), SEARCH_LIMIT);
   if (!rl.ok) {
     return NextResponse.json(
       { ok: false, reason: "rate-limited" },
