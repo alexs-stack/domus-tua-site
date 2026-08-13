@@ -5,6 +5,8 @@ import Link from "next/link";
 import PropertyGallery from "../../components/PropertyGallery";
 import PropertyFacts from "./PropertyFacts";
 import ListingCopy from "./ListingCopy";
+import VivereInZona from "./VivereInZona";
+import type { PublicListingTerritory } from "../../lib/territory/types";
 import { formatListingDescription } from "../../lib/listingCopy/format";
 import PropertyCard from "../../components/PropertyCard";
 import ListingsGrid from "../../components/ListingsGrid";
@@ -266,7 +268,16 @@ const copy = {
 // ⚠️ DATI DEMO / FIXTURE — `p` e `related` arrivano dalla facciata getVisibleListing/
 // getVisibleListings (oggi fixture demo, domani RealSmart). Qui nessun dato viene
 // inventato: la striscia "related" è opzionale e, se assente, mostra solo il link a /acquista.
-export default function PropertyDetail({ p, related }: { p: Property; related?: Property[] }) {
+export default function PropertyDetail({
+  p,
+  related,
+  territory,
+}: {
+  p: Property;
+  related?: Property[];
+  /** Dato territoriale approvato, letto lato server (mai coordinate). Null → sezione nascosta. */
+  territory?: PublicListingTerritory | null;
+}) {
   const { locale, d } = useLocale();
   const c = copy[locale];
 
@@ -620,6 +631,9 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
           </div>
         </div>
       </div>
+
+      {/* "Vivere in zona": dato territoriale approvato (server). Si nasconde da sé se assente. */}
+      <VivereInZona territory={territory} />
 
       {/* Related properties strip: solo se fornite via props (stessa sorgente). */}
       {relatedItems.length > 0 && (

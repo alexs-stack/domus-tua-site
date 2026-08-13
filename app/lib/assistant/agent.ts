@@ -25,6 +25,7 @@ import {
   assistantAiEnabled,
 } from "./config";
 import { getAssistantListings, type AssistantListings } from "./listings";
+import { getAssistantTerritory } from "../territory/read";
 import { FALLBACK_REPLY, buildSystemPrompt } from "./prompt";
 import { createAssistantTools } from "./tools";
 import type { AssistantEvent, ClientMessage, ListingCard } from "./types";
@@ -162,6 +163,8 @@ export async function* runAssistantTurn(
     listings,
     pagePath: options.pagePath,
     emit: (event) => pending.push(event),
+    // Dati territoriali verificati (coord-free, dato locale approvato): flag dedicato, mai rete.
+    territory: (code) => getAssistantTerritory(code),
   });
 
   let produced = false;

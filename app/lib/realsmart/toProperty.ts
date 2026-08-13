@@ -54,5 +54,7 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
     energyClass: n.energyClass,
     sold,
     ref: n.sourceRef.riferimento,
+    // Codice RealSmart: chiave server-only per l'arricchimento territoriale. Mai in UI.
+    code: n.sourceRef.codice,
   };
 }

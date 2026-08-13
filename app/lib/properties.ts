@@ -40,6 +40,11 @@ export type Property = {
   sold?: boolean;
   /** Riferimento commerciale mostrato all'utente (es. "1043"), se fornito dal gestionale. */
   ref?: string;
+  /**
+   * Codice RealSmart (chiave stabile del gestionale). Serve SOLO lato server per leggere
+   * l'arricchimento territoriale approvato (mai mostrato all'utente). Assente sulle fixture demo.
+   */
+  code?: string;
 };
 
 export const properties: Property[] = [

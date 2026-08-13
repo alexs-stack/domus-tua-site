@@ -11,6 +11,7 @@ import {
 import { verifiedEntries } from "../../lib/assistant/knowledge/entries";
 import { SEMANTIC_FLOOR } from "../../lib/assistant/knowledge/semantic";
 import { soldMapSize } from "../../lib/realsmart/soldOverrides";
+import { territoryFlagsSnapshot } from "../../lib/territory/flags";
 
 // Self-check runtime (server-only). Serve a verificare al volo lo stato dell'ambiente DOPO un
 // deploy su Vercel, senza aprire la dashboard: `curl https://<dominio>/api/health`.
@@ -117,6 +118,10 @@ export async function GET() {
            */
           knowledgeSemanticConfigured: SEMANTIC_FLOOR !== null && s.semanticRankingConfigured,
         },
+        // ── Arricchimento territoriale ────────────────────────────────────
+        // Solo booleani/conteggi: quali flag sono attivi. Nessun segreto, nessuna coordinata.
+        // Tutti spenti di default: senza configurazione, niente job/sezione/assistente territoriale.
+        territory: territoryFlagsSnapshot(),
         // ── Compatibilità ─────────────────────────────────────────────────
         // Nomi piatti mantenuti per gli strumenti che già li leggono (smoke test live).
         listingsMode: listings.mode,

@@ -5,6 +5,7 @@ import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyDetail from "./PropertyDetail";
 import { getVisibleListings, getVisibleListing } from "../../lib/listings";
+import { getPublicTerritory } from "../../lib/territory/read";
 import { site, siteUrl, jsonLdScript } from "../../lib/site";
 
 export async function generateStaticParams() {
@@ -61,6 +62,10 @@ export default async function PropertyPage({
     ...all.filter((r) => r.slug !== p.slug && r.zone === p.zone),
     ...all.filter((r) => r.slug !== p.slug && r.zone !== p.zone),
   ].slice(0, 3);
+
+  // Arricchimento territoriale approvato (server-only, dato locale committato: nessuna chiamata
+  // esterna). Null quando il flag è spento, non c'è dato approvato/fresco o lo store non è pronto.
+  const territory = await getPublicTerritory(p.code);
 
   // Dati strutturati per l'immobile (schema.org).
   //
@@ -186,7 +191,7 @@ export default async function PropertyPage({
         dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
       <Header />
-      <PropertyDetail p={p} related={related} />
+      <PropertyDetail p={p} related={related} territory={territory} />
       <Footer />
       <WhatsAppFloat />
     </>
