@@ -23,14 +23,26 @@
 // Parola-chiave stradale + nome PROPRIO (iniziale maiuscola, come nel feed reale) + eventuale
 // "n."/"civico" + NUMERO. Il numero è obbligatorio: è ciò che rende l'indirizzo "esatto". Un
 // toponimo senza numero ("vista Monte Rosa", "in corso di valutazione") non viene toccato.
-const STREET_KEYWORD =
-  "(?:via|viale|v\\.le|piazza(?:le)?|p\\.zza|largo|vicolo|corso|c\\.so|strad[ae]|str\\.|localit[aà]|loc\\.|frazione|fraz\\.|borgo|contrada)";
+// Ogni lettera della parola-chiave è case-insensitive tramite una classe a due casi, NON con il
+// gruppo inline `(?i:…)`: quel modificatore in linea non è supportato da tutti i runtime V8/Node
+// (in CI/produzione `new RegExp` lancia "Invalid regular expression: Invalid group", e il modulo si
+// carica nel percorso di normalizzazione di OGNI annuncio) e va evitato. Le abbreviazioni con punto
+// tengono il `\.` letterale; le varianti a/à e strada/strade sono elencate esplicitamente.
+const anyCase = (s: string): string =>
+  s.replace(/[a-zà-ÿ]/gi, (c) => `[${c.toLowerCase()}${c.toUpperCase()}]`);
+
+const STREET_WORDS = [
+  "via", "viale", "v\\.le", "piazza(?:le)?", "p\\.zza", "largo", "vicolo", "corso",
+  "c\\.so", "strada", "strade", "str\\.", "localita", "località", "loc\\.",
+  "frazione", "fraz\\.", "borgo", "contrada",
+];
+const STREET_KEYWORD = `(?:${STREET_WORDS.map(anyCase).join("|")})`;
+const CIVIC_TOKEN = `(?:${anyCase("n")}(?:\\.|${anyCase("umero")})?|${anyCase("civico")})`;
 
 // Il nome della via DEVE iniziare maiuscolo (nome proprio): evita i falsi positivi degli idiomi
-// ("via libera a 3 offerte"). La parola-chiave stradale è case-insensitive col modificatore in
-// linea `(?i:…)`, così il resto del pattern resta case-sensitive e `\p{Lu}` conta davvero.
+// ("via libera a 3 offerte") perché `\p{Lu}` resta case-sensitive.
 const CIVIC_ADDRESS_RE = new RegExp(
-  `\\b(?i:${STREET_KEYWORD})\\s+\\p{Lu}[\\p{L}'’.]*(?:\\s+\\p{L}[\\p{L}'’.]*){0,3}\\s*,?\\s*(?:(?i:n(?:\\.|umero)?|civico)\\s*)?\\d+[A-Za-z]?\\b`,
+  `\\b${STREET_KEYWORD}\\s+\\p{Lu}[\\p{L}'’.]*(?:\\s+\\p{L}[\\p{L}'’.]*){0,3}\\s*,?\\s*(?:${CIVIC_TOKEN}\\s*)?\\d+[A-Za-z]?\\b`,
   "gu",
 );
 
