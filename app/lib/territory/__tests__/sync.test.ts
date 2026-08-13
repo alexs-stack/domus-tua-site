@@ -3,7 +3,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { syncListings, selectListings, DEFAULT_MAX_LISTINGS } from "../sync";
+import { syncListings, selectListings } from "../sync";
 import { defaultEnrichmentConfig } from "../config";
 import { FakePlacesProvider } from "../provider/fake";
 import type { TerritoryPlacesProvider } from "../provider/provider";
@@ -74,10 +74,11 @@ describe("selectListings", () => {
     assert.deepEqual(sel.map((p) => p.sourceRef.codice), ["2"]);
   });
 
-  test("limite esplicito", () => {
+  test("NON taglia più prima dell'eleggibilità (Prompt 6): ritorna l'intero scope del pilota", () => {
     const many = Array.from({ length: 10 }, (_, i) => property(`c${i}`, "Tradate"));
-    assert.equal(selectListings(many, makeDeps(), { dryRun: true, limit: 3 }).length, 3);
-    assert.equal(selectListings(many, makeDeps(), { dryRun: true }).length, DEFAULT_MAX_LISTINGS);
+    // Il taglio prima della pianificazione era il bug di starvation: ora si pianifica tutto.
+    assert.equal(selectListings(many, makeDeps(), { dryRun: true }).length, 10);
+    assert.equal(selectListings(many, makeDeps(), { dryRun: true, limit: 3 }).length, 10);
   });
 });
 
@@ -145,10 +146,10 @@ describe("syncListings — riuso del profilo (Prompt 5)", () => {
     const report = await syncListings(THREE_SAME, deps, { dryRun: false, limit: 10 });
 
     assert.equal(s.calls(), 1, "un solo profilo → una sola query");
-    assert.equal(report.enriched, 3, "tutti e tre gli immobili derivati dal profilo");
+    assert.equal(report.enriched, 3, "tutti e tre gli immobili derivati dallo stesso profilo");
     assert.equal(report.metrics.providerCalls, 1);
     assert.equal(report.metrics.profileCache.refreshed, 1);
-    assert.equal(report.metrics.profileCache.hit, 2, "il 2° e 3° immobile riusano il profilo");
+    assert.equal(report.profilesRefreshed, 1, "un solo profilo interrogato per tutti e tre");
     assert.equal((await deps.repository.listEnrichmentMetadata()).length, 3);
   });
 
