@@ -178,8 +178,13 @@ export interface NormalizedProperty {
    * True solo se un override manuale ATTESTA che il protocollo Domus D.O.C. è stato applicato a
    * questo immobile. Mai dedotto da caratteristiche/descrizione. Abilita l'affermazione D.O.C.
    * "verificata" e il badge "Documenti verificati" sul singolo immobile.
+   *
+   * OPZIONALE di proposito (assente = false): è un campo AGGIUNTIVO. Renderlo obbligatorio
+   * costringerebbe ogni altro literal `NormalizedProperty` (fixture di test di altri moduli, es.
+   * le fixture AI del Prompt 12) a dichiararlo, rompendo il typecheck all'integrazione senza motivo.
+   * Tutti i consumatori lo leggono con `=== true`, quindi `undefined` è gestito in sicurezza.
    */
-  docVerified: boolean;
+  docVerified?: boolean;
   /** Metri quadri (0 se ignoto). */
   sqm: number;
   /** Numero locali (0 se ignoto). */
