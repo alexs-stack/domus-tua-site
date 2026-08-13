@@ -136,6 +136,11 @@ export const TerritorySourceSchema = z
     attribution: z.string().min(1),
     /** URL pubblico della fonte, solo se permesso e sicuro. */
     sourceUrl: z.url().optional(),
+    /**
+     * Evidenza ESATTA della classificazione: il tag che ha deciso la categoria, in forma
+     * `chiave=valore` (es. "railway=station"). Provenienza verificabile, mai inventata. Server-side.
+     */
+    evidence: z.string().min(1).optional(),
   })
   .strict();
 export type TerritorySource = z.infer<typeof TerritorySourceSchema>;

@@ -9,6 +9,7 @@ import {
   ProviderDisabledError,
   ProviderRateLimitError,
   ProviderResponseError,
+  ProviderSchemaError,
 } from "../provider";
 
 const ORIGIN = { lat: 45.708, lng: 8.906 };
@@ -191,13 +192,20 @@ describe("searchNearby — errori e retry", () => {
     );
   });
 
-  test("corpo senza elements → ProviderResponseError", async () => {
+  test("corpo senza elements → ProviderSchemaError (JSON valido, struttura errata)", async () => {
     const { impl } = queuedFetch([{ body: { version: 0.6 } }]);
     const provider = makeProvider(impl);
     await assert.rejects(
       () => provider.searchNearby({ origin: ORIGIN, radiusMeters: 1500, categories: ["pharmacy"] }),
-      ProviderResponseError,
+      ProviderSchemaError,
     );
+  });
+
+  test("evidenza di classificazione (tag) conservata sul luogo", async () => {
+    const { impl } = queuedFetch([{ body: { elements: [SAMPLE_ELEMENTS[0]] } }]);
+    const provider = makeProvider(impl);
+    const [poi] = await provider.searchNearby({ origin: ORIGIN, radiusMeters: 1500, categories: ["pharmacy"] });
+    assert.deepEqual(poi.evidence, { key: "amenity", value: "pharmacy" });
   });
 
   test("signal già annullato → non chiama la rete", async () => {

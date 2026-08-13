@@ -1,34 +1,49 @@
-// Provider REALE: OpenStreetMap via Overpass API.
+// Provider REALE: OpenStreetMap via Overpass API — indurito (Prompt 11).
 //
 // Contratto verificato sulla documentazione ufficiale (wiki.openstreetmap.org/wiki/Overpass_API):
-//  • endpoint POST https://overpass-api.de/api/interpreter, query nel corpo come `data=<QL>`;
-//  • risposta [out:json] con `elements[]`; ogni elemento ha type/id, lat/lon (nodi) o center
-//    {lat,lon} (way/relation con `out center`), e `tags`;
-//  • HTTP 429 → pausa 30s prima di riprovare; serve un User-Agent identificativo.
+//  • endpoint POST /api/interpreter, query nel corpo come `data=<QL>`, Content-Type
+//    application/x-www-form-urlencoded; risposta [out:json] con `elements[]`; ogni elemento ha
+//    type/id, lat/lon (nodi) o center {lat,lon} (way/relation con `out center`), e `tags`;
+//  • HTTP 429 / 504 sotto carico → rispettare Retry-After (se presente) o attendere; User-Agent
+//    identificativo obbligatorio (nominatim usage policy → vale anche per Overpass pubblico).
 //
-// Sicurezza/qualità (Prompt 4): chiave non necessaria (dato pubblico), timeout+abort, validazione
-// runtime della risposta, deduplica, scarto dei luoghi senza nome, nessun payload grezzo trattenuto,
-// retry SOLO su errori transitori con limite stretto, nessun log di coordinate esatte o segreti.
+// Resilienza e conformità (Prompt 11):
+//  • pool di endpoint approvati con circuit breaker + salute (endpoints.ts): niente traffico a caso;
+//  • Retry-After onorato (secondi o data HTTP), con tetto; timeout, DNS/rete, rate-limit, 4xx, 5xx e
+//    schema sono errori DISTINTI (il motore reagisce diversamente);
+//  • tetti su byte, Content-Type e numero di elementi PRIMA di trattenere qualunque dato;
+//  • nomi normalizzati in modo sicuro (no controlli/HTML/prompt-injection); evidenza di tag conservata;
+//  • nessun payload grezzo trattenuto o loggato; nessuna coordinata dell'immobile inviata (solo origine).
 
 import { z } from "zod";
 import { assertValidCoord, type GeoCoord } from "../geo";
 import { TERRITORY_POI_CATEGORIES, type TerritoryPoiCategory } from "../categories";
+import { DEFAULT_OVERPASS_ENDPOINTS, OverpassEndpointPool } from "./endpoints";
 import {
+  ProviderAllEndpointsDownError,
   ProviderDisabledError,
+  ProviderNetworkError,
+  ProviderPayloadTooLargeError,
   ProviderRateLimitError,
   ProviderResponseError,
+  ProviderSchemaError,
   ProviderTimeoutError,
   dedupePlaces,
   filterWithinRadius,
+  isTransientProviderError,
+  normalizeProviderName,
   sortByDistance,
   type ProviderPlace,
   type SearchNearbyInput,
+  type TagEvidence,
   type TerritoryPlacesProvider,
 } from "./provider";
 
-const DEFAULT_ENDPOINT = "https://overpass-api.de/api/interpreter";
 const OSM_ATTRIBUTION = "© OpenStreetMap contributors";
 const DEFAULT_USER_AGENT = "DomusTuaTerritory/1.0 (+https://domustua.it; territorial enrichment)";
+const DEFAULT_MAX_RESPONSE_BYTES = 8_000_000; // ~8 MB: una query per comune non supera questo
+const DEFAULT_MAX_ELEMENTS = 5_000; // oltre → risposta sospetta/troppo grande: rifiutata
+const DEFAULT_MAX_RATE_LIMIT_PAUSE_MS = 120_000; // tetto al Retry-After: non si aspetta all'infinito
 
 /** Coppia tag OSM che DEFINISCE ciascuna categoria. Solo un match esatto conta come evidenza. */
 const CATEGORY_TAGS: Record<TerritoryPoiCategory, { key: string; value: string }> = {
@@ -58,12 +73,25 @@ type OverpassElement = z.infer<typeof OverpassElementSchema>;
 
 export interface OsmProviderOptions {
   enabled?: boolean;
+  /** Endpoint singolo (retrocompat) OPPURE usa `endpoints` per il pool. */
   endpoint?: string;
+  /** Pool di endpoint approvati (default: istanza principale). I mirror sono opt-in. */
+  endpoints?: readonly string[];
   timeoutMs?: number;
   /** Numero massimo di retry su errori TRANSITORI (default 2). */
   maxRetries?: number;
-  /** Pausa dopo un 429, come da policy Overpass (default 30s). */
+  /** Pausa dopo un 429 SENZA Retry-After, come da policy Overpass (default 30s). */
   rateLimitPauseMs?: number;
+  /** Tetto alla pausa da Retry-After (default 120s). */
+  maxRateLimitPauseMs?: number;
+  /** Tetto ai byte della risposta prima di trattenerla (default ~8 MB). */
+  maxResponseBytes?: number;
+  /** Tetto al numero di elementi (default 5000). */
+  maxElements?: number;
+  /** Circuit breaker: fallimenti consecutivi per aprire (default 4). */
+  failureThreshold?: number;
+  /** Circuit breaker: cooldown prima del half-open (default 60s). */
+  circuitCooldownMs?: number;
   userAgent?: string;
   /** Iniettabili per i test: nessuna rete reale nei test unitari. */
   fetchImpl?: typeof fetch;
@@ -78,10 +106,13 @@ export class OsmOverpassProvider implements TerritoryPlacesProvider {
   readonly attribution = OSM_ATTRIBUTION;
   readonly enabled: boolean;
 
-  private readonly endpoint: string;
+  private readonly pool: OverpassEndpointPool;
   private readonly timeoutMs: number;
   private readonly maxRetries: number;
   private readonly rateLimitPauseMs: number;
+  private readonly maxRateLimitPauseMs: number;
+  private readonly maxResponseBytes: number;
+  private readonly maxElements: number;
   private readonly userAgent: string;
   private readonly fetchImpl: typeof fetch;
   private readonly sleepImpl: (ms: number) => Promise<void>;
@@ -89,14 +120,27 @@ export class OsmOverpassProvider implements TerritoryPlacesProvider {
 
   constructor(options: OsmProviderOptions = {}) {
     this.enabled = options.enabled ?? true;
-    this.endpoint = options.endpoint ?? DEFAULT_ENDPOINT;
+    const endpoints = options.endpoints ?? (options.endpoint ? [options.endpoint] : DEFAULT_OVERPASS_ENDPOINTS);
     this.timeoutMs = options.timeoutMs ?? 25_000;
     this.maxRetries = Math.max(0, options.maxRetries ?? 2);
     this.rateLimitPauseMs = options.rateLimitPauseMs ?? 30_000;
+    this.maxRateLimitPauseMs = options.maxRateLimitPauseMs ?? DEFAULT_MAX_RATE_LIMIT_PAUSE_MS;
+    this.maxResponseBytes = Math.max(1, options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES);
+    this.maxElements = Math.max(1, options.maxElements ?? DEFAULT_MAX_ELEMENTS);
     this.userAgent = options.userAgent ?? DEFAULT_USER_AGENT;
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.sleepImpl = options.sleepImpl ?? defaultSleep;
     this.now = options.now ?? (() => new Date());
+    this.pool = new OverpassEndpointPool(endpoints, {
+      failureThreshold: options.failureThreshold,
+      cooldownMs: options.circuitCooldownMs,
+      now: this.now,
+    });
+  }
+
+  /** Salute degli endpoint (osservabilità/diagnostica). */
+  endpointHealth() {
+    return this.pool.snapshot();
   }
 
   /** Costruisce la query Overpass QL per le categorie richieste attorno all'origine. */
@@ -123,6 +167,14 @@ export class OsmOverpassProvider implements TerritoryPlacesProvider {
     const query = this.buildQuery(input.origin, input.radiusMeters, categories);
     const body = await this.fetchWithRetry(query, input.signal);
 
+    // Tetto sul numero di elementi PRIMA di mappare/trattenere.
+    if (body.elements.length > this.maxElements) {
+      throw new ProviderPayloadTooLargeError(
+        "osm-overpass",
+        `${body.elements.length} elementi oltre il tetto di ${this.maxElements}`,
+      );
+    }
+
     const retrievedAt = this.now().toISOString();
     const places = this.mapElements(body.elements, retrievedAt);
 
@@ -131,7 +183,11 @@ export class OsmOverpassProvider implements TerritoryPlacesProvider {
     return typeof input.limit === "number" ? deduped.slice(0, input.limit) : deduped;
   }
 
-  /** POST della query con timeout+abort e retry limitato sui soli errori transitori. */
+  /**
+   * POST della query con pool di endpoint, circuit breaker e retry limitato sui soli errori
+   * TRANSITORI. Onora Retry-After; ruota endpoint sui transitori; se tutti i circuiti sono aperti,
+   * NON chiama la rete e fallisce con ProviderAllEndpointsDownError.
+   */
   private async fetchWithRetry(
     query: string,
     externalSignal?: AbortSignal,
@@ -139,22 +195,36 @@ export class OsmOverpassProvider implements TerritoryPlacesProvider {
     let attempt = 0;
     // Tentativi = 1 + maxRetries.
     for (;;) {
+      const endpoint = this.pool.pick();
+      if (!endpoint) throw new ProviderAllEndpointsDownError("osm-overpass");
       try {
-        return await this.fetchOnce(query, externalSignal);
+        const res = await this.fetchOnce(endpoint, query, externalSignal);
+        this.pool.recordSuccess(endpoint);
+        return res;
       } catch (err) {
-        const transient =
-          err instanceof ProviderRateLimitError || err instanceof ProviderTimeoutError;
-        if (!transient || attempt >= this.maxRetries) throw err;
-        // 429 → pausa da policy; timeout → piccola attesa progressiva.
+        if (!isTransientProviderError(err)) throw err; // 4xx/schema/payload: riprovare non aiuta
+        this.pool.recordFailure(endpoint);
+        if (attempt >= this.maxRetries) throw err;
         const pause =
-          err instanceof ProviderRateLimitError ? this.rateLimitPauseMs : 500 * (attempt + 1);
+          err instanceof ProviderRateLimitError
+            ? this.rateLimitPauseFor(err.retryAfterSeconds)
+            : 500 * (attempt + 1);
         await this.sleepImpl(pause);
         attempt++;
       }
     }
   }
 
+  /** Pausa da onorare per un rate-limit: Retry-After (con tetto) oppure la pausa di default. */
+  private rateLimitPauseFor(retryAfterSeconds?: number): number {
+    if (typeof retryAfterSeconds === "number" && retryAfterSeconds >= 0) {
+      return Math.min(retryAfterSeconds * 1000, this.maxRateLimitPauseMs);
+    }
+    return this.rateLimitPauseMs;
+  }
+
   private async fetchOnce(
+    endpoint: string,
     query: string,
     externalSignal?: AbortSignal,
   ): Promise<z.infer<typeof OverpassResponseSchema>> {
@@ -167,7 +237,7 @@ export class OsmOverpassProvider implements TerritoryPlacesProvider {
 
     let res: Response;
     try {
-      res = await this.fetchImpl(this.endpoint, {
+      res = await this.fetchImpl(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -178,51 +248,80 @@ export class OsmOverpassProvider implements TerritoryPlacesProvider {
       });
     } catch (err) {
       if (externalSignal?.aborted) throw err; // annullamento del chiamante: propaga
-      throw new ProviderTimeoutError("osm-overpass", (err as Error).message);
+      if (controller.signal.aborted) throw new ProviderTimeoutError("osm-overpass", "timeout"); // il nostro timeout
+      throw new ProviderNetworkError("osm-overpass", (err as Error).message); // DNS/connessione/TLS
     } finally {
       clearTimeout(timeout);
     }
 
-    if (res.status === 429) throw new ProviderRateLimitError("osm-overpass", "HTTP 429");
-    // 504/502/503 sono transitori su Overpass sotto carico → trattati come timeout (ri-provabili).
-    if (res.status === 504 || res.status === 502 || res.status === 503) {
+    // Rate-limit: onora Retry-After (secondi o data HTTP).
+    if (res.status === 429) {
+      throw new ProviderRateLimitError("osm-overpass", "HTTP 429", parseRetryAfter(res.headers.get("retry-after"), this.now()));
+    }
+    // 502/503/504 sono transitori su Overpass sotto carico → trattati come timeout (ri-provabili).
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
       throw new ProviderTimeoutError("osm-overpass", `HTTP ${res.status}`);
     }
     if (!res.ok) throw new ProviderResponseError("osm-overpass", `HTTP ${res.status}`);
 
+    // Content-Type: un mirror sovraccarico può servire una pagina HTML di errore → rifiuta subito.
+    const contentType = res.headers.get("content-type") ?? "";
+    if (/html|xml/i.test(contentType)) {
+      throw new ProviderResponseError("osm-overpass", `Content-Type inatteso: ${contentType}`);
+    }
+
+    // Tetto byte via Content-Length (se dichiarato).
+    const declaredLength = Number(res.headers.get("content-length") ?? "");
+    if (Number.isFinite(declaredLength) && declaredLength > this.maxResponseBytes) {
+      throw new ProviderPayloadTooLargeError("osm-overpass", `Content-Length ${declaredLength} oltre ${this.maxResponseBytes} byte`);
+    }
+
+    // Legge il corpo come testo e RIFIUTA se oltre il tetto (difesa quando Content-Length manca).
+    let text: string;
+    try {
+      text = await res.text();
+    } catch (err) {
+      throw new ProviderNetworkError("osm-overpass", `lettura corpo: ${(err as Error).message}`);
+    }
+    const byteLength = Buffer.byteLength(text, "utf8");
+    if (byteLength > this.maxResponseBytes) {
+      throw new ProviderPayloadTooLargeError("osm-overpass", `corpo ${byteLength} byte oltre ${this.maxResponseBytes}`);
+    }
+
     let json: unknown;
     try {
-      json = await res.json();
+      json = JSON.parse(text);
     } catch (err) {
       throw new ProviderResponseError("osm-overpass", `JSON non valido: ${(err as Error).message}`);
     }
 
     const parsed = OverpassResponseSchema.safeParse(json);
     if (!parsed.success) {
-      throw new ProviderResponseError("osm-overpass", `risposta inattesa: ${parsed.error.message}`);
+      throw new ProviderSchemaError("osm-overpass", parsed.error.message);
     }
     return parsed.data;
   }
 
-  /** Mappa gli elementi Overpass in ProviderPlace, scartando i malformati o senza nome. */
+  /** Mappa gli elementi Overpass in ProviderPlace, scartando i malformati o senza nome sicuro. */
   private mapElements(elements: OverpassElement[], retrievedAt: string): ProviderPlace[] {
     const out: ProviderPlace[] = [];
     for (const el of elements) {
-      const category = classify(el);
-      if (!category) continue; // nessuna evidenza di tag → scartato (mai supermercato "generico")
+      const classified = classify(el);
+      if (!classified) continue; // nessuna evidenza di tag → scartato (mai supermercato "generico")
 
-      const name = el.tags?.name ?? el.tags?.["name:it"];
-      if (!name || name.trim().length === 0) continue; // luogo senza nome → scartato
+      const name = normalizeProviderName(el.tags?.name ?? el.tags?.["name:it"]);
+      if (!name) continue; // nome assente/insicuro (controlli/HTML/injection) → scartato
 
       const coord = coordOf(el);
       if (!coord) continue; // way/relation senza center, o nodo senza lat/lon → scartato
 
       out.push({
         providerId: `${el.type}/${el.id}`,
-        category,
-        name: name.trim(),
+        category: classified.category,
+        name,
         coord,
         provider: "osm-overpass",
+        evidence: classified.evidence,
         sourceUrl: `https://www.openstreetmap.org/${el.type}/${el.id}`,
         retrievedAt,
       });
@@ -231,13 +330,16 @@ export class OsmOverpassProvider implements TerritoryPlacesProvider {
   }
 }
 
-/** Classifica un elemento in una categorie SOLO se ha il tag esatto che la definisce. */
-function classify(el: OverpassElement): TerritoryPoiCategory | null {
+/**
+ * Classifica un elemento in una categoria SOLO se ha il tag esatto che la definisce, e restituisce
+ * l'EVIDENZA (il tag) usata: nessun POI entra senza provenienza verificabile.
+ */
+function classify(el: OverpassElement): { category: TerritoryPoiCategory; evidence: TagEvidence } | null {
   const tags = el.tags;
   if (!tags) return null;
   for (const category of TERRITORY_POI_CATEGORIES) {
     const { key, value } = CATEGORY_TAGS[category];
-    if (tags[key] === value) return category;
+    if (tags[key] === value) return { category, evidence: { key, value } };
   }
   return null;
 }
@@ -251,4 +353,18 @@ function coordOf(el: OverpassElement): GeoCoord | null {
     return { lat: el.center.lat, lng: el.center.lon };
   }
   return null;
+}
+
+/**
+ * Interpreta l'header `Retry-After`: numero di secondi, oppure una data HTTP (→ secondi da ora).
+ * Ritorna `undefined` se assente o non interpretabile. `now` iniettato per determinismo.
+ */
+export function parseRetryAfter(header: string | null, now: Date): number | undefined {
+  if (!header) return undefined;
+  const trimmed = header.trim();
+  if (/^\d+$/.test(trimmed)) return Number(trimmed);
+  const when = Date.parse(trimmed);
+  if (Number.isNaN(when)) return undefined;
+  const seconds = Math.round((when - now.getTime()) / 1000);
+  return seconds > 0 ? seconds : 0;
 }

@@ -26,6 +26,7 @@
     "launch-check": "tsx scripts/launch-readiness.ts",
     "smoke": "tsx scripts/smoke.ts",
     "territory:review": "tsx scripts/territory/review.ts",
+    "territory:provider-probe": "tsx scripts/territory/provider-probe.ts",
     "territory:sync": "tsx scripts/territory/sync.ts",
     "territory:report": "tsx scripts/territory/report.ts",
     "territory:export": "tsx scripts/territory/export.ts",

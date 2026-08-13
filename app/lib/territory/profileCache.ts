@@ -15,11 +15,16 @@ import { originFields, type ResolvedOrigin } from "./origin";
 import { nextRetryState } from "./retry";
 import type { EnrichmentConfig } from "./config";
 import {
+  ProviderAllEndpointsDownError,
   ProviderDisabledError,
   ProviderError,
+  ProviderNetworkError,
+  ProviderPayloadTooLargeError,
   ProviderRateLimitError,
   ProviderResponseError,
+  ProviderSchemaError,
   ProviderTimeoutError,
+  evidenceToString,
   type ProviderPlace,
   type TerritoryPlacesProvider,
 } from "./provider/provider";
@@ -37,7 +42,9 @@ import type {
 function classifyFailureKind(err: unknown): EnrichmentFailureKind {
   if (err instanceof ProviderRateLimitError) return "rate-limit";
   if (err instanceof ProviderTimeoutError) return "timeout";
-  if (err instanceof ProviderResponseError) return "invalid-response";
+  if (err instanceof ProviderNetworkError || err instanceof ProviderAllEndpointsDownError) return "network";
+  if (err instanceof ProviderResponseError || err instanceof ProviderSchemaError || err instanceof ProviderPayloadTooLargeError)
+    return "invalid-response";
   if (err instanceof ProviderDisabledError) return "disabled";
   return "unknown";
 }
@@ -102,6 +109,7 @@ function placeToPoi(place: ProviderPlace, origin: ResolvedOrigin, attribution: s
       retrievedAt: place.retrievedAt,
       attribution,
       ...(place.sourceUrl ? { sourceUrl: place.sourceUrl } : {}),
+      evidence: evidenceToString(place.evidence),
     },
     approval: { state: "draft" },
     coord: place.coord, // server-side: mai proiettato nel pubblico

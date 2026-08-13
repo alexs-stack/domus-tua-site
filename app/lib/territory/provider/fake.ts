@@ -29,6 +29,8 @@ export interface FakePlace {
   name: string;
   coord: GeoCoord;
   sourceUrl?: string;
+  /** Evidenza di classificazione (opzionale): se assente, se ne genera una sintetica stabile. */
+  evidence?: { key: string; value: string };
 }
 
 export interface FakeProviderOptions {
@@ -110,6 +112,7 @@ export class FakePlacesProvider implements TerritoryPlacesProvider {
         name: p.name,
         coord: p.coord,
         provider: "fake" as const,
+        evidence: p.evidence ?? { key: "fake", value: p.category },
         retrievedAt,
         ...(p.sourceUrl ? { sourceUrl: p.sourceUrl } : {}),
       }));
