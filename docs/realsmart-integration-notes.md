@@ -235,3 +235,52 @@ freddo, senza un buono precedente, fallisce chiuso. Per un ultimo-buono **condiv
 Blob per un singolo JSON dello snapshot normalizzato (~1 MB). È un servizio a pagamento e **fuori
 scope senza approvazione del cliente**: qui si è implementato il percorso fail-closed sicuro e si
 lascia la scelta dello store durevole come passo successivo, se il feed dovesse rivelarsi instabile.
+
+---
+
+## Prompt 3 — irrobustimento fail-closed e rilascio (aggiornamento)
+
+### Macchina a stati dello snapshot
+
+```
+                 fetch live OK ─────────────► LIVE  (ok, fetchedAt=ora)  ──► scrive ultimo-buono
+mockModeAllowed ─► MOCK (solo dev/CI, opt-in server-only)                     │
+                 fetch live FALLISCE ──┬─ c'è ultimo-buono ─► STALE (ok, fetchedAt=ORIGINALE,
+                                       │                              lastAttempt=ora)
+                                       └─ nessun ultimo-buono ─► UNAVAILABLE (fail-closed,
+                                                                  fetchedAt=null, listino vuoto)
+```
+
+`fetchedAt` = quando il dato SERVITO è stato scaricato (null se nessun dato reale); `lastAttemptAt`
+= quando è stato tentato l'ultimo refresh. Un dato vecchio (STALE) non si spaccia mai per fresco.
+
+### Autorizzazione mock (server-only, difesa a più livelli)
+
+Il mock è servibile **solo** se: `REALSMART_ALLOW_MOCK="true"` (opt-in **server-only**) **e** non è
+produzione vera (`isProductionRuntime()` = `VERCEL_ENV==="production"` o `REALSMART_ENV==="production"`)
+**e** `NEXT_PUBLIC_USE_REALSMART="false"`. Una `NEXT_PUBLIC_*`/`VERCEL_ENV` mal configurata **non
+basta** ad accendere i mock: manca l'autorizzazione server-only, che la produzione non imposta mai.
+
+### Politica di caching (retry-aware)
+
+`getLiveListingsSnapshot` non usa più `unstable_cache` (TTL unico): usa un memo in-process a **due
+TTL** con **single-flight**. Snapshot BUONO → TTL positivo `REVALIDATE_SECONDS` (12 min, limita il
+polling). Snapshot FAIL-CLOSED → TTL negativo `NEGATIVE_REVALIDATE_SECONDS` (~1 min): appena il feed
+torna, il sito lo rivede in fretta senza aspettare 12 minuti. `revalidateListingsSnapshot()` è il
+gancio di invalidazione on-demand (il tag Next non era usato da nessuno).
+
+### Cancello di rilascio (build/deploy ≠ runtime)
+
+Il **degrado a runtime** (stale/unavailable con garbo) è tollerato; un **rilascio** no: `evaluateRelease`
+(app/lib/realsmart/release.ts) blocca la promozione se, con feed richiesto in produzione, la sorgente
+non è reale (live/stale) o gli immobili sono sotto `REALSMART_MIN_LISTINGS` (default 5). Override
+esplicito e auditabile: `REALSMART_ALLOW_EMPTY_RELEASE="true"`. `/api/health` espone
+`integrations.realsmart.release.{ready,verdict,reasons}`, e `npm run verify:deploy` lo verifica.
+
+### Decisione storage (ultimo-buono durevole)
+
+L'ultimo-buono è oggi **in memoria per-istanza** (`createMemoryLastKnownGoodStore`). L'interfaccia
+`LastKnownGoodStore` (app/lib/realsmart/lastKnownGood.ts) è pronta per un adapter **durevole**
+compatibile con lo storage Territory (Prompt 7): una riga `realsmart_last_known_good` nello store
+approvato. **Non attivato senza approvazione**: `REALSMART_LKG_STORE="durable"` ripiega su `memory`
+con avviso. Piano di migrazione completo nell'intestazione di `lastKnownGood.ts`.

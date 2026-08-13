@@ -60,8 +60,10 @@ export interface ListingsRuntimeStatus {
   stale: boolean;
   /** Immobili pubblicabili nello snapshot attuale. */
   itemCount: number;
-  /** ISO 8601: quando è stato prodotto il dato servito (freschezza). */
-  fetchedAt: string;
+  /** ISO 8601: quando il dato servito è stato scaricato (freschezza reale). null se nessun dato reale. */
+  fetchedAt: string | null;
+  /** ISO 8601: quando è stato tentato l'ultimo refresh (successo o meno). */
+  lastAttemptAt: string;
 }
 
 /**
@@ -77,5 +79,6 @@ export async function getListingsRuntimeStatus(): Promise<ListingsRuntimeStatus>
     stale: snap.stale,
     itemCount: snap.itemCount,
     fetchedAt: snap.fetchedAt,
+    lastAttemptAt: snap.lastAttemptAt,
   };
 }

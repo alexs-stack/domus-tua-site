@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { getDemoStatus } from "../../lib/demoStatus";
 import { getListingDataSourceStatus } from "../../lib/realsmart/status";
 import { getListingsRuntimeStatus } from "../../lib/listings";
-import { isRealListingSource } from "../../lib/realsmart/client";
+import { isRealListingSource, lastKnownGoodKind } from "../../lib/realsmart/client";
+import { isProductionRuntime, releaseMinListings, releaseAllowEmpty } from "../../lib/realsmart/env";
+import { evaluateRelease } from "../../lib/realsmart/release";
 import {
   AI_PROVIDER,
   assistantAiEnabled,
@@ -59,26 +61,60 @@ export async function GET() {
       },
       integrations: {
         // ── Immobili ──────────────────────────────────────────────────────
-        realsmart: {
-          /** Modalità ATTESA dal flag (config), non l'esito a runtime. */
-          live: listings.mode === "realsmart",
-          feedConfigured: listings.feedConfigured,
-          /**
-           * Stato REALE del feed a questa richiesta. `source`: live | stale | mock | unavailable.
-           * `ok:false` = fail-closed (feed caduto, nessun ultimo-buono): il sito mostra lo stato
-           * vuoto, MAI immobili finti. `stale:true` = si serve l'ultimo-buono in memoria.
-           * null solo se la lettura dello snapshot è fallita in modo imprevisto.
-           */
-          runtime: runtime
-            ? {
-                source: runtime.source,
-                ok: runtime.ok,
-                stale: runtime.stale,
-                itemCount: runtime.itemCount,
-                lastFetch: runtime.fetchedAt,
-              }
-            : null,
-        },
+        realsmart: (() => {
+          const configuredLive = listings.mode === "realsmart";
+          // In produzione VERA con modalità live, il feed è obbligatorio: il rilascio non deve
+          // promuovere un catalogo vuoto/implausibile. Fuori produzione il gate è permissivo.
+          const policy = {
+            requireLive: isProductionRuntime() && configuredLive,
+            minListings: releaseMinListings(),
+            allowEmpty: releaseAllowEmpty(),
+          };
+          const release = runtime
+            ? evaluateRelease(
+                { source: runtime.source, ok: runtime.ok, itemCount: runtime.itemCount },
+                policy,
+              )
+            : { verdict: "BLOCKED" as const, ready: false, reasons: ["snapshot non leggibile"] };
+          return {
+            /** Modalità ATTESA dal flag (config), non l'esito a runtime. Campo storico. */
+            live: configuredLive,
+            feedConfigured: listings.feedConfigured,
+            /** true se questo è un runtime di PRODUZIONE vera (segnali server-only). */
+            productionRuntime: isProductionRuntime(),
+            /** Adapter dell'ultimo-buono attivo: "memory" (per-istanza) | "durable". */
+            lastKnownGood: lastKnownGoodKind(),
+            /**
+             * Stato REALE del feed a questa richiesta — la VERITÀ a runtime, distinta dalla
+             * modalità attesa (`live`). `source`: live | stale | mock | unavailable.
+             * `ok:false` = fail-closed (feed caduto, nessun ultimo-buono): il sito mostra lo stato
+             * vuoto, MAI immobili finti. `stale:true` = si serve l'ultimo-buono.
+             * `lastFetch` = quando il dato servito è stato scaricato (null se nessun dato reale);
+             * `lastAttempt` = quando è stato TENTATO l'ultimo refresh (distinto dal successo).
+             */
+            runtime: runtime
+              ? {
+                  source: runtime.source,
+                  ok: runtime.ok,
+                  stale: runtime.stale,
+                  itemCount: runtime.itemCount,
+                  lastFetch: runtime.fetchedAt,
+                  lastAttempt: runtime.lastAttemptAt,
+                }
+              : null,
+            /**
+             * Cancello di RILASCIO: `ready:false` = questo deploy NON va promosso (catalogo vuoto/
+             * implausibile con feed richiesto). Lo consuma `npm run verify:deploy`. Solo booleani,
+             * enum e numeri — i motivi testuali restano server-side (log), fuori dall'endpoint.
+             */
+            release: {
+              ready: release.ready,
+              verdict: release.verdict,
+              requireLive: policy.requireLive,
+              minListings: policy.minListings,
+            },
+          };
+        })(),
         /** Mappa dei venduti: se è vuota, un immobile venduto può comparire fra i disponibili. */
         soldMap: {
           present: soldMap.detected + soldMap.manual > 0,

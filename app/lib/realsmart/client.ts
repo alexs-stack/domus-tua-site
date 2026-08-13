@@ -20,10 +20,10 @@
 //   • Vercel preview/produzione: RealSmart live (default ON); su errore → stale/unavailable.
 // Dettagli, domande aperte e note: docs/realsmart-integration-notes.md.
 
-import { unstable_cache } from "next/cache";
 import { XMLParser } from "fast-xml-parser";
-import { getRealSmartConfig } from "./env";
+import { getRealSmartConfig, mockAuthorized } from "./env";
 import { getMockRealSmartListings } from "./mocks";
+import { selectLastKnownGoodStore, type LastKnownGoodStore } from "./lastKnownGood";
 import { normalizeListings } from "./normalize";
 import { parseRealSmartPayload } from "./parse";
 import { getAiNormalizer } from "./aiNormalizer";
@@ -70,8 +70,14 @@ export function isRealListingSource(source: ListingsSource): boolean {
 export interface ListingsSnapshot {
   listings: NormalizedProperty[];
   source: ListingsSource;
-  /** ISO 8601: quando è stato prodotto il dato servito (freschezza). */
-  fetchedAt: string;
+  /**
+   * ISO 8601: quando il DATO SERVITO è stato scaricato dal feed (freschezza reale). Su "stale"
+   * resta l'ORIGINALE dell'ultimo-buono — un dato vecchio NON si spaccia per appena scaricato.
+   * `null` quando non c'è alcun dato reale servito (unavailable / mai riuscito).
+   */
+  fetchedAt: string | null;
+  /** ISO 8601: quando è stato TENTATO l'ultimo refresh. Distinto da fetchedAt (successo vs tentativo). */
+  lastAttemptAt: string;
   /** Numero di immobili pubblicabili nello snapshot. */
   itemCount: number;
   /** Avvisi deterministici totali sui record (qualità dati), server-only. */
@@ -96,7 +102,10 @@ export interface ListingsSnapshot {
  * cancello unico usato anche dalla facciata app/lib/listings.ts per la fixture statica.
  */
 export function mockModeAllowed(): boolean {
-  return !getRealSmartConfig().useRealSmart && process.env.VERCEL_ENV !== "production";
+  // Intento offline (flag pubblico) + AUTORIZZAZIONE server-only (mockAuthorized): entrambe
+  // necessarie. In produzione vera mockAuthorized() è sempre false → mai un immobile finto,
+  // qualunque cosa dicano NEXT_PUBLIC_USE_REALSMART o VERCEL_ENV.
+  return !getRealSmartConfig().useRealSmart && mockAuthorized();
 }
 
 /**
@@ -139,12 +148,21 @@ async function fetchLiveRaw(): Promise<RealSmartListingRaw[]> {
  * si fallisce chiusi. Viene aggiornato SOLO su fetch riuscita: non lo sovrascriviamo mai con
  * stale/unavailable, così continua a servire l'ultimo dato davvero buono.
  */
-let lastGood: ListingsSnapshot | null = null;
+let lkgStore: LastKnownGoodStore = selectLastKnownGoodStore();
 
-/** Reset dell'ultimo-buono — SOLO per i test, per isolare gli scenari. */
-export function __resetLastKnownGoodForTests(): void {
-  lastGood = null;
+/** Adapter dell'ultimo-buono attivo ("memory" | "durable"), per /api/health. Nessun segreto. */
+export function lastKnownGoodKind(): LastKnownGoodStore["kind"] {
+  return lkgStore.kind;
 }
+
+/** Reset di ultimo-buono E cache in-process — SOLO per i test, per isolare gli scenari. */
+export function __resetRealSmartStateForTests(): void {
+  lkgStore = selectLastKnownGoodStore();
+  revalidateListingsSnapshot();
+}
+
+/** Alias storico (compatibilità coi test esistenti). */
+export const __resetLastKnownGoodForTests = __resetRealSmartStateForTests;
 
 /** Normalizza, filtra e ordina i grezzi in uno snapshot pubblicabile con diagnostica. */
 async function buildSnapshot(
@@ -193,10 +211,12 @@ async function buildSnapshot(
     return kb.localeCompare(ka); // più recente prima
   });
 
+  const nowIso = new Date().toISOString();
   return {
     listings,
     source,
-    fetchedAt: new Date().toISOString(),
+    fetchedAt: nowIso,
+    lastAttemptAt: nowIso,
     itemCount: listings.length,
     warnings: warned,
     stale: false,
@@ -222,14 +242,15 @@ async function buildSnapshot(
 export async function loadListings(
   fetchRaw: () => Promise<RealSmartListingRaw[]> = fetchLiveRaw,
 ): Promise<ListingsSnapshot> {
-  // Modalità mock offline: SOLO dev/test con flag esplicito. Mai in produzione.
+  // Modalità mock offline: SOLO dev/test con flag esplicito + autorizzazione server-only. Mai in prod.
   if (mockModeAllowed()) {
     return buildSnapshot(getMockRealSmartListings(), "mock");
   }
 
+  const attemptedAt = new Date().toISOString();
   try {
     const snapshot = await buildSnapshot(await fetchRaw(), "live");
-    lastGood = snapshot; // memorizza l'ultimo buono (solo su successo)
+    await lkgStore.write(snapshot); // memorizza l'ultimo buono (SOLO su successo)
     return snapshot;
   } catch (err) {
     // Motivo server-only, MAI esposto al client e SENZA URL/credenziali del feed. Un errore
@@ -238,16 +259,20 @@ export async function loadListings(
       "[realsmart] feed non disponibile:",
       err instanceof Error ? err.message : String(err),
     );
-    if (lastGood) {
+    const good = await lkgStore.read();
+    if (good) {
       // Ultimo-buono: dato REALE, solo un po' vecchio. Meglio dei mock e di una pagina vuota.
-      return { ...lastGood, source: "stale", stale: true };
+      // `fetchedAt` resta l'ORIGINALE (non si finge freschezza); `lastAttemptAt` segna il tentativo.
+      return { ...good, source: "stale", stale: true, lastAttemptAt: attemptedAt };
     }
     // Fail-closed: nessun buono precedente. MAI i mock in produzione. Lista vuota + stato
     // "non disponibile": il catalogo mostra il suo stato vuoto garbato, il resto del sito regge.
+    // `fetchedAt: null` — non c'è alcun dato reale servito: non lo si data come se fosse fresco.
     return {
       listings: [],
       source: "unavailable",
-      fetchedAt: new Date().toISOString(),
+      fetchedAt: null,
+      lastAttemptAt: attemptedAt,
       itemCount: 0,
       warnings: 0,
       stale: true,
@@ -257,20 +282,61 @@ export async function loadListings(
 }
 
 /**
- * Immobili pubblicabili sul sito CON la diagnostica del dato.
- * Cache condivisa (unstable_cache) sul RISULTATO normalizzato (~1MB, ben sotto il limite):
- * una sola elaborazione per finestra REVALIDATE_SECONDS, riusata da tutte le pagine e
- * invalidabile on-demand via tag "realsmart-listings". Su errore feed → stale/unavailable,
- * mai i mock (vedi loadListings).
- *
- * `source`/`ok`/`stale` distinguono il dato reale (live/stale) dal vuoto fail-closed e dai mock
- * demo. Le pagine mostrano lo stato vuoto garbato quando `ok` è false; l'assistente non cita
- * mai immobili non reali (app/lib/assistant/listings.ts, isRealListingSource).
+ * Finestra di caching NEGATIVA (in secondi). Uno snapshot NON utilizzabile (unavailable) non deve
+ * restare in cache per l'intera finestra positiva di 12 minuti: se il feed si riprende, il sito
+ * deve tornare a mostrarlo in fretta. Perciò un risultato fail-closed si ricontrolla dopo ~1 minuto.
  */
-export const getLiveListingsSnapshot = unstable_cache(() => loadListings(), ["realsmart-listings-v4"], {
-  revalidate: REVALIDATE_SECONDS,
-  tags: ["realsmart-listings"],
-});
+export const NEGATIVE_REVALIDATE_SECONDS = 60;
+
+interface SnapshotCacheEntry {
+  snapshot: ListingsSnapshot;
+  at: number; // Date.now() al momento della memorizzazione
+}
+let snapshotCache: SnapshotCacheEntry | null = null;
+let snapshotInFlight: Promise<ListingsSnapshot> | null = null;
+
+/** TTL in ms per uno snapshot: positivo se usabile, negativo (breve) se fail-closed. Esportato per i test. */
+export function snapshotTtlMs(snapshot: ListingsSnapshot): number {
+  // TTL POSITIVO per i dati usabili (live/stale/mock), TTL NEGATIVO breve per il fail-closed.
+  return (snapshot.ok ? REVALIDATE_SECONDS : NEGATIVE_REVALIDATE_SECONDS) * 1000;
+}
+
+/**
+ * Immobili pubblicabili sul sito CON la diagnostica del dato, con cache in-process RETRY-AWARE.
+ *
+ * SCELTA DI CACHING (Prompt 3). Sostituisce `unstable_cache` (TTL unico e fisso) con un memo a due
+ * TTL: uno snapshot BUONO vive ~12 minuti (limita il polling del feed), uno snapshot FAIL-CLOSED
+ * vive solo ~1 minuto (recupero rapido appena il feed torna). Un `inFlight` singolo evita che a
+ * freddo N pagine scarichino il feed in parallelo (single-flight). Il tag di rivalidazione
+ * on-demand non era usato da nessuno: `revalidateListingsSnapshot()` resta il gancio per il futuro.
+ *
+ * Compromesso: si perde la persistenza cross-istanza della Data Cache di Next; la copre, quando
+ * approvato, lo store DUREVOLE dell'ultimo-buono (app/lib/realsmart/lastKnownGood.ts).
+ */
+export async function getLiveListingsSnapshot(
+  fetchRaw?: () => Promise<RealSmartListingRaw[]>,
+): Promise<ListingsSnapshot> {
+  const now = Date.now();
+  if (snapshotCache && now - snapshotCache.at < snapshotTtlMs(snapshotCache.snapshot)) {
+    return snapshotCache.snapshot;
+  }
+  if (snapshotInFlight) return snapshotInFlight; // single-flight: una sola elaborazione concorrente
+  snapshotInFlight = loadListings(fetchRaw)
+    .then((snapshot) => {
+      snapshotCache = { snapshot, at: Date.now() };
+      return snapshot;
+    })
+    .finally(() => {
+      snapshotInFlight = null;
+    });
+  return snapshotInFlight;
+}
+
+/** Svuota la cache in-process dello snapshot (rivalidazione on-demand / test). */
+export function revalidateListingsSnapshot(): void {
+  snapshotCache = null;
+  snapshotInFlight = null;
+}
 
 /**
  * Immobili pubblicabili sul sito, in forma pulita e filtrata.
