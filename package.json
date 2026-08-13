@@ -24,7 +24,10 @@
     "lighthouse": "lhci autorun",
     "verify:deploy": "tsx scripts/verify-deploy.ts",
     "launch-check": "tsx scripts/launch-readiness.ts",
-    "smoke": "tsx scripts/smoke.ts"
+    "smoke": "tsx scripts/smoke.ts",
+    "territory:review": "tsx scripts/territory/review.ts",
+    "territory:sync": "tsx scripts/territory/sync.ts",
+    "territory:report": "tsx scripts/territory/report.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.25",
