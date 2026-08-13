@@ -13,13 +13,15 @@ non ancora unite**: `main` — e quindi il sito attualmente su Vercel — è anc
 
 Il codice di remediation è pronto al lancio **una volta soddisfatte le condizioni qui sotto**. Non è un
 GO pieno perché restano azioni del cliente (contenuti legali, contenuti feed, configurazione dominio) e
-l'unione ordinata delle PR; non è un NO-GO perché l'unico difetto **di codice** bloccante trovato in questo
-audit è stato corretto e verificato durante l'audit stesso.
+l'unione ordinata delle PR; non è un NO-GO perché i due difetti **di codice** trovati in questo
+audit (regex non portabile; `docVerified` obbligatorio) sono stati corretti e verificati durante l'audit
+stesso, e l'artefatto integrato passa l'intera batteria (build + 276 E2E).
 
 ### Condizioni bloccanti prima del go-live
-1. **Unire le 12 PR in ordine** (#32→#43) con le due correzioni qui sotto incluse. Prompt 4 e Prompt 5
-   toccano gli stessi file (`PropertyDetail.tsx`, `normalize.ts`): unire in ordine e risolvere il conflitto
-   atteso (nessun conflitto logico, solo sovrapposizione testuale).
+1. **Unire le 12 PR in ordine** (#32→#43) con le tre correzioni (`a3f92f7` #35, `8b9499a` #43, `f914ce7`
+   #36) incluse. L'unione è stata **provata davvero** in questo audit (ramo di integrazione): i conflitti
+   sono solo testuali (nessuno logico) — `normalize.ts`/`PropertyDetail.tsx` (P4×P5), `.gitignore`,
+   `page.tsx`/`package.json` (P11) — e l'artefatto unito passa lint/typecheck/unit/build/E2E (vedi sotto).
 2. **Azioni del cliente** (attese, non difetti): testo legale definitivo + `LEGAL_DOCS_APPROVED=true`;
    `NEXT_PUBLIC_SITE_URL` sul dominio di produzione; correzione dei segnaposto `____` nel feed (T447/T2055);
    `NEXT_PUBLIC_USE_REALSMART=true` e badge anteprima spento in Production.
@@ -28,9 +30,12 @@ audit è stato corretto e verificato durante l'audit stesso.
 
 ---
 
-## Reperto P0 — trovato e corretto durante l'audit
+## Reperti dell'audit — trovati e corretti
 
-**Regex con gruppo inline `(?i:…)` non portabile → crash sul runtime di CI/produzione.**
+Due difetti **di codice**, entrambi invisibili sul singolo ramo e corretti durante l'audit sui rami di
+competenza (il ramo dell'audit resta solo-documentazione).
+
+### Reperto 1 (P0) — Regex con gruppo inline `(?i:…)` non portabile → crash sul runtime di CI/produzione
 
 - **Dove:** `app/lib/realsmart/privacy.ts` (Prompt 4, PR #35) e `app/lib/realsmart/ai/guards.ts`
   (Prompt 12, PR #43). La regex `CIVIC_ADDRESS_RE` si costruisce al **caricamento del modulo** con il
@@ -56,6 +61,41 @@ audit è stato corretto e verificato durante l'audit stesso.
 - **Verifica:** locale verde (privacy 157/157; unit 654 su #35 e 657 su #43; parser 81/81; build OK) e
   **conferma su CI** che il job test torna verde sul runner (è la prova di portabilità che il locale su
   Node 26 non può dare).
+
+### Reperto 2 — `docVerified` obbligatorio rompe il typecheck all'integrazione (Prompt 5 × Prompt 12)
+
+- **Dove:** `app/lib/realsmart/types.ts` (Prompt 5, PR #36) dichiarava `docVerified: boolean`
+  **obbligatorio**. È però un campo AGGIUNTIVO.
+- **Perché è sfuggito:** su nessun ramo isolato si vede. Il Prompt 12 aggiunge fixture di test
+  `NormalizedProperty` (AI) scritte su un ramo **senza** quel campo. Solo **unendo P5 e P12** il tipo
+  pretende `docVerified` e le fixture non lo hanno → `tsc` fallisce (`TS2741`/`TS2322` "docVerified
+  missing"). `npm test` (che con `tsx` non type-checka) resta verde; lo prende solo `next build`/`tsc`.
+- **Gravità:** blocca `next build` dell'artefatto integrato (ciò che va in produzione). Non fixabile su
+  un ramo isolato: sul solo Prompt 12 il campo non esiste ancora; sul solo Prompt 5 le fixture non ci sono.
+- **Correzione:** `docVerified?: boolean` (opzionale, assente = false). `normalize.ts` lo valorizza
+  comunque; tutti i consumatori leggono `=== true`, quindi `undefined` è sicuro. Commit `f914ce7` (PR #36).
+- **Come è emerso:** costruendo davvero il **ramo di integrazione** dei 12 interventi e lanciando `tsc` +
+  build + E2E sull'artefatto unito — non un controllo ramo-per-ramo.
+
+---
+
+## Verifica di integrazione + E2E (artefatto unito)
+
+Ho costruito il ramo di integrazione unendo i 12 rami in ordine. Conflitti risolti (nessuno logico):
+`normalize.ts`+`PropertyDetail.tsx` (P4×P5: `showAddress`/`docVerified`, import), `.gitignore`
+(più rami aggiungono `reports/`), `page.tsx`+`package.json` (P11: blocco policy-venduti + script).
+Un conflitto **di tipo** reale (Reperto 2) trovato e corretto. Sull'artefatto unito:
+
+| Suite | Esito |
+|-------|-------|
+| Lint · Typecheck · **Unit** | ✅ 0 · 0 · **770/770** |
+| Build produzione | ✅ OK |
+| **E2E sito** (pagine, ricerca, contatti, errori, a11y, motion, consenso; 5 viewport) | ✅ **230 passati, 0 falliti**, 26 saltati (layout-only, per design) |
+| **E2E assistente + tastiera** (server pulito, keyless) | ✅ **46 passati, 0 falliti** |
+
+**276 test E2E verdi, 0 fallimenti reali** sull'artefatto che andrà in produzione. Non eseguita
+`property-detail.spec.ts` (regressione visiva a screenshot macOS: eventuali differenze di pixel sono
+cambi di resa attesi dopo P4/P5, non difetti).
 
 ---
 
