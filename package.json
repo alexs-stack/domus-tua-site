@@ -23,6 +23,7 @@
     "perf:report": "tsx scripts/perf-report.ts",
     "lighthouse": "lhci autorun",
     "verify:deploy": "tsx scripts/verify-deploy.ts",
+    "redirect-audit": "tsx scripts/redirect-audit.ts",
     "smoke": "tsx scripts/smoke.ts"
   },
   "dependencies": {

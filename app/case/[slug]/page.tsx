@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { soldPageDirective, soldRobots } from "../../lib/seo/soldPolicy";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
@@ -26,9 +27,13 @@ export async function generateMetadata({
   // troncatura era il COMUNE — cioè l'unica parola per cui questa pagina può essere
   // cercata. È la famiglia di URL più numerosa del sito: vale una riga.
   const title = `${p.title}, ${p.zone} | Domus Tua`;
+  // Venduto: robots dalla policy (default noindex). Per un immobile disponibile nessun robots
+  // esplicito = indicizzabile come sempre. redirect/gone non passano di qui (rispondono prima).
+  const robots = p.sold ? soldRobots() ?? undefined : undefined;
   return {
     title: { absolute: title },
     description: p.excerpt,
+    ...(robots ? { robots } : {}),
     alternates: { canonical },
     openGraph: {
       type: "website",
@@ -55,6 +60,17 @@ export default async function PropertyPage({
   const { slug } = await params;
   const p = await getVisibleListing(slug);
   if (!p) notFound();
+
+  // Policy SEO dei venduti (app/lib/seo/soldPolicy.ts). Il default "noindex" tiene la pagina
+  // online per gli utenti e la esclude dall'indice (robots in generateMetadata). "redirect" e
+  // "gone" invece cambiano la RISPOSTA HTTP e vanno gestiti qui, prima di renderizzare.
+  if (p.sold) {
+    const directive = soldPageDirective();
+    if (directive.kind === "redirect") redirect(directive.redirectTo ?? "/acquista");
+    // "gone" (410) richiederebbe un middleware: una pagina SSG non può restituire 410 da sola.
+    // Ripiego onesto sul 404 (notFound) finché non si aggiunge il middleware — documentato.
+    if (directive.kind === "gone") notFound();
+  }
 
   const all = await getVisibleListings();
   const related = [

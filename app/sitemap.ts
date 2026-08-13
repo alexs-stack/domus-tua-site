@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getVisibleListings } from "./lib/listings";
 import { siteUrl } from "./lib/site";
+import { soldEligibleForSitemap } from "./lib/seo/soldPolicy";
 
 // Origin: fonte unica in app/lib/site.ts (era ricalcolato qui, in robots, nel layout e nella scheda).
 const base = siteUrl;
@@ -33,10 +34,16 @@ export const NON_INDEXABLE_ROUTES = ["/privacy", "/cookie"] as const;
 export function buildSitemap(
   origin: string,
   routes: readonly string[],
-  listings: readonly { slug: string; cover: string }[],
+  listings: readonly { slug: string; cover: string; sold?: boolean }[],
+  soldInSitemap: boolean = soldEligibleForSitemap(),
 ): MetadataRoute.Sitemap {
   const pages = routes.map((r) => ({ url: `${origin}${r}` }));
-  const casePages = listings.map((p) => ({
+  // Solo immobili ELEGGIBILI: i venduti entrano SOLO se la policy è "index" (soldPolicy.ts). Gli
+  // immobili nascosti/ritirati/bozza sono già esclusi a monte (getVisibleListings/normalize) e i
+  // mock non arrivano mai in produzione (client.ts, Prompt 3). Un annuncio con contenuto FAIL
+  // (segnaposto "____", ecc.) non raggiunge la produzione: l'audit blocca il deploy (Prompt 4).
+  const eligible = listings.filter((p) => soldInSitemap || !p.sold);
+  const casePages = eligible.map((p) => ({
     url: `${origin}/case/${p.slug}`,
     images: [p.cover.startsWith("http") ? p.cover : `${origin}${p.cover}`],
   }));
