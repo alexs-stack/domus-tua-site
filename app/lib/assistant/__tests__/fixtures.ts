@@ -49,6 +49,7 @@ function listing(overrides: Partial<NormalizedProperty> & { id: string }): Norma
     facts: [],
     factsReview: [],
     sourceRef: { codice: id },
+    normalizedBy: "deterministic",
     ...rest,
   };
 }

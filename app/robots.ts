@@ -21,7 +21,7 @@ const base = siteUrl;
 //     grounding di Vertex. Attenzione: il grounding è recupero, non addestramento, quindi
 //     negarlo toglie l'agenzia dalle risposte di Gemini. Non è la scelta indolore che sembra.
 //     (AI Overviews e AI Mode seguono Googlebot e non hanno un opt-out separato.)
-const RETRIEVAL_BOTS = [
+export const RETRIEVAL_BOTS = [
   "OAI-SearchBot",
   "ChatGPT-User",
   "PerplexityBot",
@@ -31,19 +31,13 @@ const RETRIEVAL_BOTS = [
   "Bingbot",
 ];
 
-export default async function robots(): Promise<MetadataRoute.Robots> {
-  const h = await headers();
-  // Dietro il proxy di Vercel l'host richiesto arriva in x-forwarded-host; host resta il
-  // ripiego per chi serve l'app senza proxy davanti.
-  const requestHost = h.get("x-forwarded-host") ?? h.get("host");
-
-  if (
-    !isIndexableDeployment({
-      vercelEnv: process.env.VERCEL_ENV,
-      previewBadge: process.env.NEXT_PUBLIC_PREVIEW_BADGE,
-      requestHost,
-    })
-  ) {
+/**
+ * Le regole robots.txt a partire dalla sola decisione «indicizzabile?». Pura e
+ * verificabile senza il runtime di Next (robots() ci arriva dopo aver letto
+ * l'host dalla richiesta). Vedi il test di go-live.
+ */
+export function robotsRules(indexable: boolean): MetadataRoute.Robots {
+  if (!indexable) {
     // Anteprima/staging: niente indicizzazione, nessun sitemap esposto ai crawler.
     //
     // ⚠️ I gruppi nominati NON vanno emessi qui, e non è una svista da correggere.
@@ -62,4 +56,19 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     ],
     sitemap: `${base}/sitemap.xml`,
   };
+}
+
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const h = await headers();
+  // Dietro il proxy di Vercel l'host richiesto arriva in x-forwarded-host; host resta il
+  // ripiego per chi serve l'app senza proxy davanti.
+  const requestHost = h.get("x-forwarded-host") ?? h.get("host");
+
+  return robotsRules(
+    isIndexableDeployment({
+      vercelEnv: process.env.VERCEL_ENV,
+      previewBadge: process.env.NEXT_PUBLIC_PREVIEW_BADGE,
+      requestHost,
+    }),
+  );
 }

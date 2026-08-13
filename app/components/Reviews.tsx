@@ -10,7 +10,7 @@ import { Star, Google, Check } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import TrustindexEmbed from "./TrustindexEmbed";
 import { site } from "../lib/site";
-import { reviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
+import { nativeReviews, hasApprovedNativeReviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
 import { useConsent } from "../lib/consent";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -164,10 +164,14 @@ export default function Reviews() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [filter, setFilter] = useState<(typeof filters)[number]>("Tutte");
-  const shown = filter === "Tutte" ? reviews : reviews.filter((r) => r.category === filter);
-  // In produzione NON mostriamo mai recensioni demo come reali: le card di esempio (con nota
-  // "esempi dimostrativi") compaiono solo in anteprima. Vedi docs/reviews-integration.md.
+  // In produzione NON mostriamo mai recensioni demo come reali: `nativeReviews`
+  // torna le APPROVATE (oggi nessuna) o, solo in anteprima, le demo — mai
+  // fabbricate. Vedi app/lib/reviews.ts e docs/reviews-integration.md.
   const PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_BADGE === "true";
+  const native = nativeReviews({ preview: PREVIEW });
+  const shown = filter === "Tutte" ? native : native.filter((r) => r.category === filter);
+  // Le card mostrate sono demo (da etichettare) o approvate (reali, prima parte)?
+  const showingDemo = native.length > 0 && !hasApprovedNativeReviews;
 
   // GATE DI CONSENSO. Trustindex è un terzo che carica script e cookie propri: prima del
   // consolidamento l'iframe partiva al primo render, cioè PRIMA di qualsiasi scelta
@@ -177,6 +181,11 @@ export default function Reviews() {
   const consent = useConsent();
   const showTrustindex = site.embeds.trustindexLoader.length > 0 && consent === "accepted";
   const awaitingConsent = site.embeds.trustindexLoader.length > 0 && consent !== "accepted";
+  // Le recensioni approvate sono di prima parte (nessun cookie): si mostrano
+  // anche se il consenso a Trustindex è negato — negarlo non deve nascondere le
+  // NOSTRE recensioni. Le demo, invece, restano fuori dallo stato "attesa
+  // consenso" (lì la pagina mostra la prova reale: voto + link a Google).
+  const showNativeCards = shown.length > 0 && (hasApprovedNativeReviews || !awaitingConsent);
 
   return (
     <section id="recensioni" className="relative bg-paper">
@@ -259,17 +268,19 @@ export default function Reviews() {
               <TrustindexEmbed title={c.iframeTitle} />
             </div>
           </Reveal>
-        ) : PREVIEW && !awaitingConsent ? (
+        ) : showNativeCards ? (
           <>
-            {/* Nota onestà: finché il widget Trustindex non è collegato, queste sono demo.
-                Questo ramo è raggiungibile SOLO in anteprima (NEXT_PUBLIC_PREVIEW_BADGE=true):
-                in produzione non mostriamo mai recensioni demo come reali. */}
-            <Reveal className="mt-10">
-              <p className="inline-flex items-center gap-2 rounded-full border border-line bg-cream px-4 py-2 text-[0.8rem] text-stone">
-                <span className="h-1.5 w-1.5 rounded-full bg-red" />
-                {c.demoBanner}
-              </p>
-            </Reveal>
+            {/* Nota onestà: quando le card sono DEMO (nessuna recensione nativa
+                approvata) va sempre detto. In produzione le demo non arrivano
+                mai qui (nativeReviews torna []); l'etichetta è la cintura in più. */}
+            {showingDemo ? (
+              <Reveal className="mt-10">
+                <p className="inline-flex items-center gap-2 rounded-full border border-line bg-cream px-4 py-2 text-[0.8rem] text-stone">
+                  <span className="h-1.5 w-1.5 rounded-full bg-red" />
+                  {c.demoBanner}
+                </p>
+              </Reveal>
+            ) : null}
             {/* Filtri categoria */}
             <Reveal className="mt-6">
               {/* `tap-target` e non un `min-h-11` come le pill di PropertySearch: qui la
@@ -343,7 +354,10 @@ export default function Reviews() {
                       <span className="flex-1 leading-tight">
                         <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
                           {r.name}
-                          {r.verified && (
+                          {/* Il bollino "verificata" è SOLO per le recensioni
+                              approvate reali: una demo non può portarlo (prima il
+                              vecchio `verified:true` glielo dava, sembrando vera). */}
+                          {r.status === "approved" && (
                             <span
                               className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red text-white"
                               title={c.verifiedReview}

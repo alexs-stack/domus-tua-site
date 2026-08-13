@@ -7,6 +7,8 @@ import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
 import { splitDescription } from "./descriptionSplit";
 import { getListingOverride } from "./overrides.data";
 import { applyRemovals, overrideFacts } from "./overrides";
+import { cleanField, validateListing } from "./validate";
+import { applyAiNormalization, type AiNormalizer } from "./aiNormalizer";
 import type {
   ContractType,
   ListingStatus,
@@ -150,9 +152,14 @@ function toImage(media: RealSmartMedia): NormalizedImage {
  * Difensiva: gestisce campi mancanti senza lanciare eccezioni.
  */
 export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedProperty {
-  const title = raw.titolo?.trim() ?? "";
-  const town = raw.localita?.comune?.trim() ?? "";
-  const province = raw.localita?.provincia?.trim() ?? "";
+  // Campi testuali passano TUTTI da cleanField: trim + i segnaposto ("N/D", "-",
+  // "da definire"…) diventano assenti, mai dati (vedi ./validate.ts).
+  const title = cleanField(raw.titolo) ?? "";
+  const town = cleanField(raw.localita?.comune) ?? "";
+  const province = cleanField(raw.localita?.provincia) ?? "";
+  const typology = cleanField(raw.tipologia);
+  const energyClass = cleanField(raw.classeEnergetica);
+  const floorValue = cleanField(typeof raw.piano === "number" ? String(raw.piano) : raw.piano);
 
   const contract = normalizeContract(raw.contratto);
   const status = normalizeStatus(raw.statoPubblicazione);
@@ -172,7 +179,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     .filter((m) => m.tipo === undefined || m.tipo === "foto")
     .map(toImage);
 
-  const addressRaw = raw.localita?.indirizzo?.trim();
+  const addressRaw = cleanField(raw.localita?.indirizzo);
 
   // Override manuale approvato: è la fonte con priorità massima (vedi ./overrides.ts).
   const override = getListingOverride(raw.codice);
@@ -185,14 +192,14 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
   // Gli override manuali approvati si innestano davanti a tutto in ./overrides.ts.
   const fieldFacts = factsFromFields({
-    tipologia: raw.tipologia?.trim(),
+    tipologia: typology,
     contratto: contract,
     mq: toNumber(raw.mq),
     locali: toNumber(raw.locali),
     camere: toNumber(raw.camere), // MAI dedotte da "locali - 1"
     bagni: toNumber(raw.bagni),
-    piano: typeof raw.piano === "number" ? String(raw.piano) : raw.piano,
-    classeEnergetica: raw.classeEnergetica,
+    piano: floorValue,
+    classeEnergetica: energyClass,
     statoAttestatoEnergetico: raw.statoAttestatoEnergetico,
     dettagli: raw.dettagli,
   });
@@ -207,7 +214,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // I fatti pubblicati decidono quali righe telegrafiche possono uscire dal testo.
   const split = splitDescription(paragraphs, facts);
 
-  return {
+  const property: NormalizedProperty = {
     id: raw.codice,
     slug,
     title: titleize(title),
@@ -220,18 +227,18 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     price,
     priceLabel,
     contract,
-    type: raw.tipologia?.trim() ?? "Immobile",
+    type: typology ?? "Immobile",
     town,
     province,
-    address: addressRaw && addressRaw.length > 0 ? addressRaw : undefined,
+    address: addressRaw,
     // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
     showAddress: override?.mostraIndirizzo === true,
     sqm: toNumber(raw.mq),
     rooms: toNumber(raw.locali),
     bedrooms: toNumber(raw.camere),
     baths: toNumber(raw.bagni),
-    floor: typeof raw.piano === "number" ? String(raw.piano) : raw.piano?.trim() || undefined,
-    energyClass: raw.classeEnergetica?.trim() || undefined,
+    floor: floorValue,
+    energyClass,
     features,
     facts,
     factsReview: descriptionFacts.review,
@@ -244,7 +251,45 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     updatedAt: raw.dataAggiornamento?.trim() ?? "",
     sourceRef: {
       codice: raw.codice,
-      riferimento: raw.riferimento?.trim() || undefined,
+      riferimento: cleanField(raw.riferimento),
     },
+    // Default e unica strada oggi: la normalizzazione è deterministica.
+    // L'eventuale passo AI (opzionale, spento) lo riscrive in applyAiNormalization.
+    normalizedBy: "deterministic",
   };
+
+  // Avvisi deterministici sui dati sospetti (audit/go-live, mai in pagina).
+  const warnings = validateListing(property, raw);
+  return warnings.length > 0 ? { ...property, warnings } : property;
+}
+
+/**
+ * Normalizza un LOTTO di annunci con ISOLAMENTO DEGLI ERRORI: un singolo record
+ * malformato che facesse lanciare `normalizeRealSmartListing` viene SCARTATO
+ * (mai un catalogo vuoto per un record rotto), gli altri passano. Restituisce
+ * anche i grezzi scartati, per diagnostica.
+ *
+ * `ai` è iniettabile: di norma `null` (deterministico, il default); un provider
+ * (reale o finto nei test) migliora ogni record con fallback sicuro.
+ */
+export async function normalizeListings(
+  raw: readonly RealSmartListingRaw[],
+  ai: AiNormalizer | null = null,
+): Promise<{ listings: NormalizedProperty[]; skipped: RealSmartListingRaw[] }> {
+  const listings: NormalizedProperty[] = [];
+  const skipped: RealSmartListingRaw[] = [];
+  for (const r of raw) {
+    try {
+      let n = normalizeRealSmartListing(r);
+      if (ai) n = await applyAiNormalization(n, r, ai);
+      listings.push(n);
+    } catch (err) {
+      skipped.push(r);
+      console.error(
+        `[realsmart] annuncio ${r?.codice ?? "(codice ignoto)"} scartato — normalizzazione fallita:`,
+        err instanceof Error ? err.message : "errore",
+      );
+    }
+  }
+  return { listings, skipped };
 }

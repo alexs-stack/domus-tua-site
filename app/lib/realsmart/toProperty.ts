@@ -6,13 +6,42 @@ import type { NormalizedProperty } from "./types";
 import type { Property } from "../properties";
 import { isListingSold } from "./soldOverrides";
 
-/** Bucket di tipologia usati dai filtri del sito. */
-function toType(raw: string): Property["type"] {
+/** Bucket di tipologia usati dai filtri del sito.
+    Non residenziale (negozi/uffici/capannoni MA ANCHE box, garage, magazzini,
+    posti auto): confluisce in "Commerciale". Non è una finezza di etichetta —
+    è ciò che tiene «camere/bagni» e la CTA «Scopri la casa» fuori da un immobile
+    che casa non è. Un box classificato "Appartamento" (il vecchio default)
+    avrebbe ereditato l'aspetto di un'abitazione. Esportata per i test. */
+export function toType(raw: string): Property["type"] {
   const s = raw.toLowerCase();
   if (s.includes("attico")) return "Attico";
-  if (s.includes("negozio") || s.includes("ufficio") || s.includes("capannone") || s.includes("commerciale") || s.includes("laboratorio")) return "Commerciale";
-  if (s.includes("terreno")) return "Terreno";
-  if (s.includes("villa") || s.includes("casa") || s.includes("terratetto") || s.includes("terra-tetto") || s.includes("rustico") || s.includes("schiera") || s.includes("bifam") || s.includes("trifam")) return "Villa";
+  if (
+    s.includes("negozio") ||
+    s.includes("ufficio") ||
+    s.includes("capannone") ||
+    s.includes("commerciale") ||
+    s.includes("laboratorio") ||
+    s.includes("magazzino") ||
+    s.includes("deposito") ||
+    s.includes("box") ||
+    s.includes("garage") ||
+    s.includes("autorimessa") ||
+    s.includes("posto auto") ||
+    s.includes("posto-auto")
+  )
+    return "Commerciale";
+  if (s.includes("terreno") || s.includes("terreni")) return "Terreno";
+  if (
+    s.includes("villa") ||
+    s.includes("casa") ||
+    s.includes("terratetto") ||
+    s.includes("terra-tetto") ||
+    s.includes("rustico") ||
+    s.includes("schiera") ||
+    s.includes("bifam") ||
+    s.includes("trifam")
+  )
+    return "Villa";
   return "Appartamento";
 }
 

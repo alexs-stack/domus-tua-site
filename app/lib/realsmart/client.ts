@@ -15,8 +15,9 @@ import { unstable_cache } from "next/cache";
 import { XMLParser } from "fast-xml-parser";
 import { getRealSmartConfig } from "./env";
 import { getMockRealSmartListings } from "./mocks";
-import { normalizeRealSmartListing } from "./normalize";
+import { normalizeListings } from "./normalize";
 import { parseRealSmartPayload } from "./parse";
+import { getAiNormalizer } from "./aiNormalizer";
 import { buildOverridesReport } from "./overrides";
 import { listingOverrides } from "./overrides.data";
 import type { NormalizedProperty, RealSmartListingRaw } from "./types";
@@ -125,9 +126,23 @@ export async function loadListings(): Promise<ListingsSnapshot> {
     raw = getMockRealSmartListings();
   }
 
-  const normalized = raw
-    .map(normalizeRealSmartListing)
-    .filter((p) => !HIDDEN_STATUSES.has(p.status));
+  // ── ISOLAMENTO DEGLI ERRORI ─────────────────────────────────────────────
+  // Un SINGOLO annuncio malformato non deve mai far cadere l'intero catalogo:
+  // `normalizeListings` normalizza uno per uno e SCARTA chi lancia (mai una
+  // pagina vuota per un record rotto). L'AI è di norma spenta (deterministico è
+  // il default) e ha comunque un fallback sicuro — vedi ./aiNormalizer.ts.
+  const { listings: normalizedAll, skipped } = await normalizeListings(raw, getAiNormalizer());
+  const normalized = normalizedAll.filter((p) => !HIDDEN_STATUSES.has(p.status));
+
+  // Riepilogo di qualità (server-only, mai in pagina): record scartati e avvisi
+  // deterministici. Un numero che cresce nel tempo = il feed va sistemato a monte.
+  const warned = normalized.reduce((acc, p) => acc + (p.warnings?.length ?? 0), 0);
+  if (skipped.length > 0 || warned > 0) {
+    console.warn(
+      `[realsmart] qualità dati: ${skipped.length} annunci scartati, ${warned} avvisi su ${raw.length} record ` +
+        "(dettaglio: npm run audit:listings-content).",
+    );
+  }
 
   // Override ORFANI: puntano a un immobile che il gestionale non espone più. Non è un errore
   // di build (l'immobile può essere stato ritirato) ma va sempre segnalato, altrimenti resta

@@ -9,6 +9,9 @@
 
 import type { FactReviewItem, PropertyFact } from "./facts";
 import type { FactLineOutcome } from "./descriptionSplit";
+// Type-only (erasi a runtime): nessun ciclo di import a runtime.
+import type { NormalizationSource } from "./aiNormalizer";
+import type { ListingWarning } from "./validate";
 
 // ─────────────────────────────────────────────────────────────
 // Stato di pubblicazione di un annuncio (union chiusa).
@@ -198,4 +201,16 @@ export interface NormalizedProperty {
     codice: string;
     riferimento?: string;
   };
+  /**
+   * Come è stato prodotto il record: "deterministic" (default e unica strada
+   * oggi) o "ai" se un normalizzatore AI opzionale l'ha migliorato. Metadato di
+   * diagnostica, mai mostrato in pagina. Vedi ./aiNormalizer.ts.
+   */
+  normalizedBy: NormalizationSource;
+  /**
+   * Avvisi deterministici sui dati sospetti (niente foto, prezzo mancante, stato
+   * non mappato…). Alimentano audit e log di go-live: MAI resi in pagina.
+   * Vedi ./validate.ts. Assente/undefined = nessun avviso.
+   */
+  warnings?: ListingWarning[];
 }

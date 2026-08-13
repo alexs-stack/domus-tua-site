@@ -8,7 +8,7 @@ const base = siteUrl;
 // Solo pagine INDICIZZABILI. /privacy e /cookie sono escluse finché restano `noindex`
 // (testo legale placeholder da validare): rimetterle qui quando saranno finalizzate e indicizzabili
 // — includere URL noindex nel sitemap è una segnalazione contraddittoria per i crawler.
-const routes = [
+export const SITEMAP_ROUTES = [
   "",
   "/vendi",
   "/acquista",
@@ -20,7 +20,28 @@ const routes = [
   "/contatti",
   "/lavora-con-noi",
   "/domande-frequenti",
-];
+] as const;
+
+/** Rotte NON indicizzabili: non devono MAI comparire nel sitemap (segnalazione
+    contraddittoria). Serve al test di go-live per accorgersene se una rientra. */
+export const NON_INDEXABLE_ROUTES = ["/privacy", "/cookie"] as const;
+
+/**
+ * Costruisce il sitemap da host + rotte + immobili. Puro e deterministico:
+ * verificabile senza rete né cache (sitemap() gli passa gli immobili veri).
+ */
+export function buildSitemap(
+  origin: string,
+  routes: readonly string[],
+  listings: readonly { slug: string; cover: string }[],
+): MetadataRoute.Sitemap {
+  const pages = routes.map((r) => ({ url: `${origin}${r}` }));
+  const casePages = listings.map((p) => ({
+    url: `${origin}/case/${p.slug}`,
+    images: [p.cover.startsWith("http") ? p.cover : `${origin}${p.cover}`],
+  }));
+  return [...pages, ...casePages];
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const listings = await getVisibleListings();
@@ -39,14 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   //
   // Niente `changeFrequency`: Google lo ignora, dichiarato. Era codice morto che prometteva
   // una cadenza che nessuno rispetta e nessuno legge.
-  const pages = routes.map((r) => ({ url: `${base}${r}` }));
-
-  // Le foto degli immobili sono un asset proprietario e non stanno da nessun'altra parte:
-  // dichiararle qui è il modo di farle scoprire senza una sitemap immagini separata.
-  const casePages = listings.map((p) => ({
-    url: `${base}/case/${p.slug}`,
-    images: [p.cover.startsWith("http") ? p.cover : `${base}${p.cover}`],
-  }));
-
-  return [...pages, ...casePages];
+  // Le foto degli immobili sono un asset proprietario: buildSitemap le dichiara
+  // (image sitemap inline) invece di una sitemap immagini separata.
+  return buildSitemap(base, SITEMAP_ROUTES, listings);
 }

@@ -23,6 +23,7 @@ import { getLenis } from "./motion/SmoothScroll";
 import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 import type { GridProperty } from "../lib/properties";
+import { factApplies } from "../lib/propertyKind";
 
 // Registrazione locale (come in PropertySearch): Flip non entra nel chunk del layout.
 gsap.registerPlugin(Flip);
@@ -265,17 +266,19 @@ export default function CaseQuickLook({
               data-ql-fact
               className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.85rem] text-stone"
             >
+              {/* Solo i numeri pertinenti alla categoria (vedi lib/propertyKind.ts):
+                  camere fuori da un commerciale/terreno, locali fuori da un terreno. */}
               {p.sqm !== "—" && (
                 <span className="tnum inline-flex items-center gap-1.5">
                   <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
                 </span>
               )}
-              {p.rooms !== "—" && (
+              {p.rooms !== "—" && factApplies(p.type, "rooms") && (
                 <span className="tnum inline-flex items-center gap-1.5">
                   <Rooms className="h-4 w-4 text-graphite" /> {p.rooms}
                 </span>
               )}
-              {p.beds !== "—" && (
+              {p.beds !== "—" && factApplies(p.type, "beds") && (
                 <span className="tnum inline-flex items-center gap-1.5">
                   <Bed className="h-4 w-4 text-graphite" /> {p.beds}
                 </span>

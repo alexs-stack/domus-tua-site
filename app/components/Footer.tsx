@@ -244,10 +244,12 @@ export default function Footer() {
                   Domus D.O.C.
                 </Link>
               </li>
-              {/* "Domande frequenti" vive qui e non in `nav`: la barra desktop è già
-                  piena a otto voci (2026-08, con "Lavora con noi" entrata in `nav`) e
-                  una nona la manderebbe a capo. Il footer è su ogni pagina, e la FAQ è
-                  comunque linkata dai blocchi in coda a /vendi e /acquista. */}
+              {/* "Domande frequenti" vive qui e non in `nav`: è un link di
+                  supporto, non una destinazione primaria. La barra desktop ora
+                  porta nove voci ("Servizi" aggiunta il 2026-08-13): misurate a
+                  1280px stanno in 780px, senza andare a capo — ma la FAQ resta
+                  comunque qui, ed è già linkata dai blocchi in coda a /vendi e
+                  /acquista. */}
               <li>
                 <Link
                   href="/domande-frequenti"

@@ -12,8 +12,19 @@ export const site = {
   since: 2007,
   address: {
     street: "Corso Bernacchi 91",
+    // Parti ATOMICHE per i dati strutturati (schema.org PostalAddress): prima
+    // erano ricopiate a mano in layout.tsx ("21049", "Tradate", "VA"), e la
+    // sigla provincia divergeva pure — layout diceva "VA", la scheda immobile
+    // `site.address.province` cioè "Varese". Una fonte sola, nessuna divergenza.
+    postalCode: "21049",
+    /** Comune (schema.org addressLocality). */
+    locality: "Tradate",
+    /** Forma di visualizzazione (CAP + comune): usata nel corpo del sito. */
     city: "21049 Tradate",
+    /** Nome esteso della provincia (display). */
     province: "Varese",
+    /** Sigla ISO della provincia (schema.org addressRegion). */
+    region: "VA",
   },
   phone: { label: "0331 844898", href: "tel:+390331844898" },
   whatsapp: {
@@ -30,6 +41,10 @@ export const site = {
   openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 14:30-19:00", "Sa 09:00-12:30"],
   rating: "4.9",
   reviewsCount: "531",
+  /** Conteggio ARROTONDATO per difetto, per le frasi "oltre 500 recensioni".
+      Derivato da reviewsCount (531): stessa fonte, così i due non divergono
+      (il test di content-integrity lo verifica). */
+  reviewsApprox: "500",
   // NB: nessun conteggio video qui. Il vecchio `videosCountLabel: "440+"` era una stima non
   // verificata mostrata come dato: rimosso. Se il cliente fornisce il numero reale del canale
   // (@DOMUSTUASRLIMMOBILIARE) si potrà reintrodurre, con la fonte annotata come per gli altri
@@ -37,6 +52,14 @@ export const site = {
   // Claim descrittivo/verificabile (non superlativo assoluto senza fonte, art. 2598 c.c.).
   // Se il cliente documenta il primato "più recensita", si può ripristinare la versione forte.
   authority: "Tra le agenzie immobiliari indipendenti più recensite della provincia di Varese.",
+  // Riconoscimento Wikicasa (mostrato accanto al voto in StarReviews). Le parti
+  // stabili stanno qui, una volta sola, invece che ripetute nella copy per ogni
+  // lingua; il testo accessibile localizzato resta nel componente.
+  award: {
+    label: "Top Agency 2026",
+    issuer: "Wikicasa",
+    href: "https://www.wikicasa.it/agenzia-immobiliare/domus-tua-178643",
+  },
   // Google Business reale (CID ricavato dal Maps embed del sito ufficiale Domus Tua).
   googleReviewsUrl: "https://www.google.com/maps?cid=1402630747648240075",
   // Canali social REALI di Domus Tua Tradate (verificati).
@@ -91,6 +114,48 @@ export const site = {
 } as const;
 
 /**
+ * VALORI PUBBLICATI MA NON CONFERMATI DAL CLIENTE.
+ *
+ * Struttura SOLO di codice: non viene MAI resa in pagina (niente etichette "da
+ * confermare" o "TBD" visibili agli utenti — quelle sarebbero peggio del dato).
+ * Serve a due cose: (1) documentare, in modo tipizzato e verificabile, le voci
+ * su cui due sorgenti interne divergevano o il cui ruolo non è chiaro; (2) NON
+ * scegliere al posto del cliente — ogni voce conserva TUTTI i candidati, indica
+ * quale è pubblicato oggi e perché (il meno rischioso / già nella fonte unica),
+ * e resta in attesa di conferma. La lista "conferme richieste" per il cliente si
+ * ricava da qui. Il test di content-integrity verifica che il valore pubblicato
+ * qui coincida con quello effettivamente usato dalla fonte unica.
+ */
+export const pendingConfirmation = {
+  weekdayAfternoonOpening: {
+    field: "Orario di riapertura pomeridiana, da lunedì a venerdì",
+    published: "14:30",
+    candidates: ["14:30", "15:00"],
+    note:
+      "site.ts e i dati strutturati (schema.org openingHours) dichiarano 14:30, " +
+      "annotato come verificato da domustua.com; la pagina /contatti mostrava 15:00. " +
+      "Unificato a 14:30 — il valore già presente nella fonte unica e nei dati " +
+      "strutturati, quindi senza cambiare ciò che leggono i motori di ricerca. " +
+      "NON è una decisione sul valore vero: entrambi restano candidati fino alla " +
+      "conferma del cliente.",
+  },
+  emailRoles: {
+    field: "Indirizzi email — pubblico vs operativo",
+    published: {
+      public: site.email.label, // mostrata sul sito
+      operational: "immobiliare@domustua.it", // casella dove arrivano i lead (assistant/config.ts)
+      sender: "assistente@domustua.it", // mittente tecnico delle notifiche (Resend)
+    },
+    candidates: [site.email.label, "immobiliare@domustua.it"],
+    note:
+      "Sul sito compaiono ruoli diversi: l'email PUBBLICA è " +
+      `${site.email.label}, mentre i lead vengono instradati a immobiliare@domustua.it. ` +
+      "Da confermare col cliente che siano corretti e intenzionalmente distinti " +
+      "(pubblico ≠ casella operativa). Nessuno dei due viene scelto o unificato qui.",
+  },
+} as const;
+
+/**
  * Origin pubblico del sito — FONTE UNICA.
  *
  * Prima era ricalcolato (con lo stesso fallback copiaincollato) in layout.tsx, sitemap.ts,
@@ -141,6 +206,10 @@ export const nav = [
   { key: "vendi", label: "Vendi", href: "/vendi" },
   { key: "acquista", label: "Acquista", href: "/acquista" },
   { key: "metodo", label: "Metodo Domus", href: "/metodo" },
+  // Il metodo, poi i servizi che lo mettono in pratica, poi Open Domus (uno di
+  // quei servizi, messo in evidenza). La pagina /servizi esisteva ma non era
+  // raggiungibile dalla navigazione principale.
+  { key: "servizi", label: "Servizi", href: "/servizi" },
   { key: "openDomus", label: "Open Domus", href: "/open-domus" },
   { key: "recensioni", label: "Recensioni", href: "/recensioni" },
   { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo" },
@@ -164,4 +233,44 @@ export function jsonLdScript(data: unknown): string {
     .replace(/</g, "\\u003c")
     .replace(/\u2028/g, "\\u2028")
     .replace(/\u2029/g, "\\u2029");
+}
+
+/**
+ * Dati strutturati dell'organizzazione (schema.org RealEstateAgent) \u2014 nodo perno
+ * del grafo (`@id` #organization). Dati societari/orari/geo VERIFICATI. NIENTE
+ * `aggregateRating` (policy Google + nessun contenuto recensioni idoneo, vedi
+ * app/lib/reviews.ts). Estratto qui da layout.tsx per essere verificabile con un
+ * test di go-live (dati strutturati critici). Vedi app/lib/__tests__/golive.test.ts.
+ */
+export function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "@id": `${siteUrl}/#organization`,
+    name: "Domus Tua Immobiliare",
+    legalName: site.legal,
+    vatID: site.vat,
+    foundingDate: String(site.since),
+    url: siteUrl,
+    image: `${siteUrl}/images/reali/raffaela-ritratto.jpg`,
+    telephone: site.phone.href.replace("tel:", ""),
+    email: site.email.label,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: site.address.street,
+      postalCode: site.address.postalCode,
+      addressLocality: site.address.locality,
+      addressRegion: site.address.region,
+      addressCountry: "IT",
+    },
+    geo: { "@type": "GeoCoordinates", latitude: 45.7114282, longitude: 8.905019 },
+    areaServed: "Tradate e provincia di Varese",
+    openingHours: site.openingHours,
+    sameAs: [
+      site.social.instagram.href,
+      site.social.facebook.href,
+      site.social.tiktok.href,
+      site.social.youtube.href,
+    ],
+  } as const;
 }

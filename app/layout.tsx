@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Playfair_Display, Pinyon_Script } from "next/font/google";
 import "./globals.css";
-import { jsonLdScript, site, siteUrl } from "./lib/site";
+import { jsonLdScript, organizationJsonLd, siteUrl } from "./lib/site";
 import { defaultLocale, type Locale } from "./lib/i18n/dictionaries";
 import { LocaleProvider } from "./components/i18n/LocaleProvider";
 import PreviewBadge from "./components/PreviewBadge";
@@ -159,42 +159,11 @@ export const metadata: Metadata = {
   },
 };
 
-// Dati strutturati per SEO locale (Google). Dati societari/orari/geo VERIFICATI
-// (domustua.com + Registro Imprese). aggregateRating volutamente omesso (policy Google).
-// L'@id è il perno del grafo: senza, ogni pagina che nomina l'agenzia crea un nodo nuovo e
-// scollegato. Le schede immobile ci puntano già (provider/seller → #organization) e ci
-// punteranno le pagine persona e servizio: va messo PRIMA di aggiungere altri schema,
-// perché farlo dopo significa tornare su tutte le rotte.
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
-  "@id": `${siteUrl}/#organization`,
-  name: "Domus Tua Immobiliare",
-  legalName: site.legal,
-  vatID: site.vat,
-  foundingDate: String(site.since),
-  url: siteUrl,
-  image: `${siteUrl}/images/reali/raffaela-ritratto.jpg`,
-  telephone: site.phone.href.replace("tel:", ""),
-  email: site.email.label,
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: site.address.street,
-    postalCode: "21049",
-    addressLocality: "Tradate",
-    addressRegion: "VA",
-    addressCountry: "IT",
-  },
-  geo: { "@type": "GeoCoordinates", latitude: 45.7114282, longitude: 8.905019 },
-  areaServed: "Tradate e provincia di Varese",
-  openingHours: site.openingHours,
-  sameAs: [
-    site.social.instagram.href,
-    site.social.facebook.href,
-    site.social.tiktok.href,
-    site.social.youtube.href,
-  ],
-};
+// Dati strutturati per SEO locale (schema.org RealEstateAgent). Estratti in
+// app/lib/site.ts (organizationJsonLd) per essere verificabili da un test —
+// vedi app/lib/__tests__/golive.test.ts. `aggregateRating` resta volutamente
+// omesso (policy Google, nessun contenuto recensioni idoneo).
+const jsonLd = organizationJsonLd();
 
 export default function RootLayout({
   children,

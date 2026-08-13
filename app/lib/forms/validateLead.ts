@@ -9,6 +9,7 @@
 // solo il salvataggio server-side. Vedi docs/form-backend-next-step.md.
 
 import type { LeadIntent } from "./lead";
+import { isEmailFormat, isPhoneFormat, CONTACT_MAX } from "./contactChannel";
 
 const INTENTS: readonly LeadIntent[] = ["seller", "buyer", "question", "open-domus", "career"];
 
@@ -16,8 +17,12 @@ const INTENTS: readonly LeadIntent[] = ["seller", "buyer", "question", "open-dom
 const MAX = {
   name: 120,
   contact: 160,
+  phone: CONTACT_MAX.phone,
+  email: CONTACT_MAX.email,
   place: 160,
   propertyType: 120,
+  surface: 12,
+  timing: 80,
   budget: 80,
   features: 300,
   message: 1200,
@@ -31,13 +36,21 @@ const MAX = {
   locale: 8,
 } as const;
 
+// Il formato di email e telefono vive in ./contactChannel.ts, condiviso col
+// form (client): la regola dev'essere la stessa da entrambi i lati.
+
 /** Lead validato e ripulito, pronto per la persistenza. Solo campi noti e nei limiti. */
 export interface ValidatedLead {
   intent: LeadIntent;
   name: string;
-  contact: string;
+  /** Recapito combinato (solo candidature, ripiego di retro-compatibilità). */
+  contact?: string;
+  phone?: string;
+  email?: string;
   place?: string;
   propertyType?: string;
+  surface?: string;
+  timing?: string;
   budget?: string;
   features?: string;
   message?: string;
@@ -57,6 +70,8 @@ export type LeadError =
   | "invalid-intent"
   | "missing-name"
   | "missing-contact"
+  | "invalid-email"
+  | "invalid-phone"
   | "missing-consent";
 
 export type LeadValidationResult =
@@ -69,6 +84,12 @@ function str(v: unknown, max: number): string | undefined {
   const trimmed = v.trim();
   if (trimmed.length === 0) return undefined;
   return trimmed.slice(0, max);
+}
+
+/** Solo cifre e separatori tipografici: taglia lettere/simboli dalla superficie. */
+function digits(v: string, max: number): string | undefined {
+  const only = v.replace(/[^\d]/g, "").slice(0, max);
+  return only.length ? only : undefined;
 }
 
 /**
@@ -87,11 +108,21 @@ export function validateLead(input: unknown): LeadValidationResult {
   }
   const intent = p.intent as LeadIntent;
 
-  // Nome e contatto obbligatori.
+  // Nome obbligatorio.
   const name = str(p.name, MAX.name);
   if (!name) return { ok: false, error: "missing-name" };
+
+  // Recapiti: telefono ed email distinti (form contatti), più `contact`
+  // combinato (candidature). Se presenti vengono validati nel FORMATO; ne serve
+  // ALMENO UNO, o la richiesta non è ricontattabile.
+  const phoneRaw = str(p.phone, MAX.phone);
+  if (phoneRaw && !isPhoneFormat(phoneRaw)) return { ok: false, error: "invalid-phone" };
+  const emailRaw = str(p.email, MAX.email);
+  if (emailRaw && !isEmailFormat(emailRaw)) return { ok: false, error: "invalid-email" };
   const contact = str(p.contact, MAX.contact);
-  if (!contact) return { ok: false, error: "missing-contact" };
+  if (!phoneRaw && !emailRaw && !contact) {
+    return { ok: false, error: "missing-contact" };
+  }
 
   // Consenso: se PRESENTE nel payload deve essere true. Se assente, ammesso (lo enforce il form).
   let consent: boolean | undefined;
@@ -101,11 +132,22 @@ export function validateLead(input: unknown): LeadValidationResult {
   }
 
   // Costruzione whitelist: solo campi noti, ognuno troncato al proprio cap.
-  const lead: ValidatedLead = { intent, name, contact };
+  const lead: ValidatedLead = { intent, name };
+  if (phoneRaw) lead.phone = phoneRaw;
+  if (emailRaw) lead.email = emailRaw;
+  if (contact) lead.contact = contact;
   const place = str(p.place, MAX.place);
   if (place) lead.place = place;
   const propertyType = str(p.propertyType, MAX.propertyType);
   if (propertyType) lead.propertyType = propertyType;
+  // Superficie: solo il numero (i m² li mette la presentazione). "120 m²" → "120".
+  const surface = str(p.surface, MAX.surface);
+  if (surface) {
+    const n = digits(surface, MAX.surface);
+    if (n) lead.surface = n;
+  }
+  const timing = str(p.timing, MAX.timing);
+  if (timing) lead.timing = timing;
   const budget = str(p.budget, MAX.budget);
   if (budget) lead.budget = budget;
   const features = str(p.features, MAX.features);

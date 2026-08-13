@@ -16,10 +16,11 @@ test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
 });
 
-/** Compila i due campi obbligatori del form (nome e canale di ricontatto) e il consenso. */
+/** Compila i campi obbligatori del form (nome + un recapito) e il consenso.
+    Telefono ed email sono ora campi DISTINTI: ne basta uno. */
 async function fillLeadForm(page: import("@playwright/test").Page, withConsent = true) {
   await page.getByRole("textbox", { name: /nome e cognome/i }).first().fill("Mario Rossi");
-  await page.getByRole("textbox", { name: /telefono o email/i }).first().fill("mario.rossi@example.com");
+  await page.getByRole("textbox", { name: /^email$/i }).first().fill("mario.rossi@example.com");
   if (withConsent) await page.getByRole("checkbox").first().check();
 }
 
@@ -44,11 +45,54 @@ test("il form manda il lead all'endpoint e passa la parola a WhatsApp", async ({
   await expect(page.getByText(/stiamo aprendo whatsapp/i).first()).toBeVisible({ timeout: 15_000 });
   await expect(leadForm(page).locator('a[href^="https://wa.me/"]').first()).toBeVisible();
 
-  // E intanto il lead è partito verso l'endpoint, con i campi giusti.
+  // E intanto il lead è partito verso l'endpoint, con i campi giusti — email in
+  // un campo suo, non più nel vecchio `contact` combinato.
   await expect.poll(() => sent, { timeout: 10_000 }).toBeTruthy();
-  expect(sent!).toMatchObject({ name: "Mario Rossi", contact: "mario.rossi@example.com" });
+  expect(sent!).toMatchObject({ name: "Mario Rossi", email: "mario.rossi@example.com" });
   // Il consenso privacy viaggia con la richiesta: senza, il server la rifiuta.
   expect(sent!.consent).toBeTruthy();
+});
+
+test("un'email non valida mostra un errore accessibile e non perde i dati scritti", async ({ page, goto }) => {
+  let called = false;
+  await page.route("**/api/lead", (route) => {
+    called = true;
+    return route.fulfill({ status: 200, body: JSON.stringify({ ok: true }) });
+  });
+
+  await goto("/contatti");
+  const email = page.getByRole("textbox", { name: /^email$/i }).first();
+  await page.getByRole("textbox", { name: /nome e cognome/i }).first().fill("Mario Rossi");
+  await email.fill("non-una-email");
+  await page.getByRole("checkbox").first().check();
+  await page.getByRole("button", { name: /invia|richiedi|valuta|trova|scopri/i }).first().click();
+
+  // Il client blocca prima dell'invio: la richiesta non parte.
+  await page.waitForTimeout(500);
+  expect(called, "una email non valida non deve partire verso l'endpoint").toBe(false);
+
+  // Errore accessibile: il campo è marcato invalido, l'errore ha role=alert ed è
+  // collegato al campo via aria-describedby (uno screen reader lo annuncia).
+  await expect(email).toHaveAttribute("aria-invalid", "true");
+  const describedBy = await email.getAttribute("aria-describedby");
+  expect(describedBy, "il campo email non punta al proprio messaggio d'errore").toBeTruthy();
+  const err = page.locator(`#${describedBy}`);
+  await expect(err).toHaveRole("alert");
+  await expect(err).toBeVisible();
+
+  // Il valore scritto NON si perde dopo l'errore recuperabile.
+  await expect(email).toHaveValue("non-una-email");
+});
+
+test("senza né telefono né email l'errore invita a lasciare un recapito", async ({ page, goto }) => {
+  await goto("/contatti");
+  await page.getByRole("textbox", { name: /nome e cognome/i }).first().fill("Mario Rossi");
+  await page.getByRole("checkbox").first().check();
+  await page.getByRole("button", { name: /invia|richiedi|valuta|trova|scopri/i }).first().click();
+
+  const phone = page.getByRole("textbox", { name: /^telefono$/i }).first();
+  await expect(phone).toHaveAttribute("aria-invalid", "true");
+  await expect(phone).toBeFocused();
 });
 
 test("se l'endpoint cade, il form non promette nulla che non possa mantenere", async ({ page, goto, context }) => {

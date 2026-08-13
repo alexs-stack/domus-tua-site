@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { site } from "./lib/site";
 
 // Card social 1200x630 di marca (Playfair Display + Jakarta + logo reale), generata a build.
 // File-convention Next: diventa l'og:image / twitter:image di default del sito.
@@ -86,7 +87,7 @@ export default async function OpengraphImage() {
               fontWeight: 600,
             }}
           >
-            Dal 2007 · 4,9 ★ Google
+            Dal {site.since} · {site.rating.replace(".", ",")} ★ Google
           </div>
         </div>
       </div>
