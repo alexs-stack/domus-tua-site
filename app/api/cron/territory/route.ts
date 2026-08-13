@@ -21,6 +21,8 @@ import { createTerritoryRepository } from "../../../lib/territory/store/config";
 import { selectProviderFromEnv } from "../../../lib/territory/provider/select";
 import { isEnrichmentJobsEnabled } from "../../../lib/territory/flags";
 import { syncListings } from "../../../lib/territory/sync";
+import { makeAuthorizedResolver } from "../../../lib/territory/originAuthz";
+import { defaultOriginSources } from "../../../lib/territory/territoryOrigin.data";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,7 +70,10 @@ export async function GET(req: Request) {
 
     // 5. Scheduler EQUO: pianifica l'INTERO scope, poi spende un budget STRETTO di query sui profili
     //    più trascurati (cursore di equità). Nessuna starvation, idempotente (lease per profilo).
-    const report = await syncListings(listings, { provider, repository, now: () => new Date(), config }, {
+    // Risolutore d'origine AUTORIZZATO (Prompt 8): usa coordinate curate/geocode SOLO se un umano le
+    // ha autorizzate (dati vuoti di default → resta centroide comunale). Coordinate server-only.
+    const resolveOrigin = makeAuthorizedResolver(defaultOriginSources());
+    const report = await syncListings(listings, { provider, repository, now: () => new Date(), config, resolveOrigin }, {
       dryRun: false,
       maxCalls: CRON_MAX_QUERIES,
       concurrency: 1,

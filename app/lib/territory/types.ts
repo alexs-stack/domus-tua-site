@@ -78,6 +78,36 @@ export const TerritoryOriginAuthorizationSchema = z
 export type TerritoryOriginAuthorization = z.infer<typeof TerritoryOriginAuthorizationSchema>;
 
 /**
+ * COORDINATA CURATA a mano (Prompt 8): la fonte a PIÙ ALTA fiducia per l'origine di un immobile.
+ * Porta con sé la traccia (chi/quando/da dove): è AUTO-autorizzante per la precisione
+ * "property-coordinate". La coordinata resta server-only.
+ */
+export const TerritoryManualCoordSchema = z
+  .object({
+    coord: GeoCoordSchema,
+    source: z.string().min(1),
+    reviewedBy: z.string().min(1),
+    reviewedAt: z.iso.datetime(),
+  })
+  .strict();
+export type TerritoryManualCoord = z.infer<typeof TerritoryManualCoordSchema>;
+
+/**
+ * CENTROIDE DI ZONA curato (Prompt 8): sotto-area denominata di un comune. È un punto PUBBLICO
+ * (centro zona), non l'immobile: non richiede autorizzazione. La coord resta server-only; al pubblico
+ * va solo il `label`.
+ */
+export const TerritoryZoneCentroidSchema = z
+  .object({
+    slug: z.string().min(1),
+    label: z.string().min(1),
+    municipality: z.string().min(1),
+    coord: GeoCoordSchema,
+  })
+  .strict();
+export type TerritoryZoneCentroid = z.infer<typeof TerritoryZoneCentroidSchema>;
+
+/**
  * BASE DELL'ORIGINE, forma PUBBLICA: dice AL PUBBLICO da dove sono misurate le distanze, SENZA
  * mai una coordinata. `.strict()` impedisce di trascinare lat/lng. È il campo che rende impossibile
  * spacciare una distanza dal centroide per una distanza dall'immobile: la precisione è esplicita e
