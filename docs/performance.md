@@ -111,3 +111,59 @@ Diventa bloccante quando una delle due strade sopra è percorsa.
   invece sono **simulate**. Confrontare le due colonne porta fuori strada.
 - `npm run perf:report` misura byte **non compressi** e si ferma a `load`: dopo, Next preleva in
   anticipo le rotte dei link in vista, e contarle direbbe quanto pesa la navigazione futura.
+
+---
+
+## 6. Reaudit — payload lista e rischio cache (Prompt 10)
+
+Misure **deterministiche** (byte serializzati, non Lighthouse) sul feed reale (196 annunci):
+
+| Cosa | Prima | Dopo | Come |
+|---|--:|--:|---|
+| `/acquista` — GridProperty[] serializzato (28 card disponibili) | 75 KB | **16 KB** | `toGridProperty` ora scarta anche `facts` |
+| Voce cache `getLiveListingsSnapshot` (196 annunci) | 1512 KB / 2048 | 1512 KB | invariata (vedi sotto) |
+
+**`facts` fuori dal payload di griglia (−59 KB non compressi su `/acquista`).** La card mostra
+copertina, badge e i quattro numeri; filtro, ranking e ricerca usano `features`/`excerpt`/`badges`,
+**mai** `facts` (verificato: `app/lib/ai/rank.ts`, `PropertyCard`, `PropertySearch`). I fatti
+strutturati servono solo alla scheda `/case/[slug]`, che li ha dai propri dati. Era il campo più
+pesante della card dopo descrizione e galleria (già escluse). Vale anche per le risposte di
+`/api/search`, che restituisce GridProperty. Test: `app/lib/__tests__/gridProperty.test.ts`.
+
+**Rischio cache (§5 del prompt).** La voce `unstable_cache` degli immobili normalizzati pesa
+**1512 KB su 2048** (74%): con la crescita del catalogo (~265 annunci) supererebbe il limite,
+`unstable_cache` **smetterebbe di memorizzare** e ogni richiesta rielaborerebbe il feed da 2,6 MB —
+un guasto silenzioso. È già **presidiato in CI**: l'audit contenuti (`npm run audit:listings-content`,
+job "Audit contenuti annunci") misura il payload e **fallisce oltre i 2 MB**. Ripartizione per campo:
+`images` 524 KB, `descriptionParagraphs` 428 KB, `facts` 389 KB (di cui ~77 KB di `source`, tracciabilità
+non renderizzata). Riduzioni possibili senza toccare il design, come lavoro successivo: togliere dalla
+sola voce di cache `facts[].source`/`evidence` e i campi solo-audit (`factsReview`/`keptFactLines`/…,
+~85 KB) o **separare indice e dettaglio** (la card non ha bisogno di gallery/descrizione). Non fatte
+qui per non introdurre type-surgery e rischio su una voce già presidiata.
+
+## 7. Il divario Lighthouse resta fuori mandato — budget scaglionati
+
+La baseline CI del reaudit (Home perf **0,41**, LCP **9,83 s**; `/acquista` **0,53**, LCP **5,21 s**)
+è più severa della misura locale in §1: runner GitHub, throttling e cold start la peggiorano. Il
+collo di bottiglia resta la **banda**, non il codice (§4):
+
+1. **Font** — è il singolo fattore più grande (bloccandoli l'LCP scende di ~1,5 s). Ridurre pesi/
+   famiglie tocca il marchio: **decisione del cliente**, non un'ottimizzazione tecnica. (Pinyon è
+   nel hero: `preload:false` darebbe un FOUT visibile sul fregio, non fatto.)
+2. **Livello motion** (~550 kB: GSAP/ScrollTrigger/Lenis) — differirlo componente per componente è
+   un lavoro a sé con rischio reale sulle animazioni approvate.
+
+Perciò `0,90` **non è raggiungibile qui** senza una di queste due decisioni. Il job Lighthouse
+resta **informativo** (le soglie vere restano scritte). **Proposta di budget scaglionati** —
+diventano bloccanti quando la decisione arriva:
+
+| Tappa | Prerequisito | Budget perf | Budget LCP |
+|---|---|--:|--:|
+| Oggi | — (informativo) | — | — |
+| T1 | Cliente approva riduzione font | ≥ 0,70 | ≤ 4,0 s |
+| T2 | Motion layer differito | ≥ 0,85 | ≤ 3,0 s |
+| T3 | Entrambe | **≥ 0,90** | **≤ 2,5 s** |
+
+> ⚠️ I numeri di questa sezione che riguardano Lighthouse (0,41/9,83…) sono la baseline CI citata
+> dal prompt: non li ho riprodotti in locale (questo ambiente ha varianza da carico). Vanno
+> riconfermati su un run CI pulito prima di fissare le tappe con date.

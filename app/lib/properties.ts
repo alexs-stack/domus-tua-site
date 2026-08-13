@@ -255,16 +255,20 @@ export function getProperty(slug: string) {
  * Proiezione "da griglia": l'immobile senza il testo lungo e senza la galleria.
  *
  * Perché esiste: /case e /acquista rendono un componente client, quindi ogni campo degli
- * immobili finisce serializzato nell'HTML per l'idratazione. Descrizione e galleria non
- * servono a una scheda della griglia — servono alla pagina dell'immobile, che le carica per
- * conto suo. Con 193 annunci nel feed reale sono decine di kilobyte di HTML per niente.
+ * immobili finisce serializzato nell'HTML per l'idratazione. Descrizione, galleria e i FATTI
+ * strutturati non servono a una scheda della griglia — servono alla pagina dell'immobile, che
+ * li carica per conto suo. La card mostra copertina, badge e i quattro numeri (mq/locali/camere/
+ * bagni), e il filtro/ranking usa `features`/`excerpt`/`badges`, MAI `facts` (verificato:
+ * app/lib/ai/rank.ts, PropertyCard, PropertySearch). Su 196 annunci reali `facts` è il campo più
+ * pesante dopo descrizione e galleria (~300 kB non compressi di HTML per niente).
  */
-export type GridProperty = Omit<Property, "description" | "gallery">;
+export type GridProperty = Omit<Property, "description" | "gallery" | "facts">;
 
 /** Toglie dal payload ciò che la griglia non mostra. Il tipo garantisce che resti così. */
 export function toGridProperty(p: Property): GridProperty {
   const rest = { ...p } as Partial<Property>;
   delete rest.description;
   delete rest.gallery;
+  delete rest.facts;
   return rest as GridProperty;
 }
