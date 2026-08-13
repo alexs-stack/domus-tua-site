@@ -30,6 +30,7 @@ function listing(overrides: Partial<NormalizedProperty> & { id: string }): Norma
     contentPreservation: 1,
     excerpt: "Descrizione di prova.",
     showAddress: false,
+    docVerified: false,
     price: 250000,
     priceLabel: "€ 250.000",
     contract: "vendita",
