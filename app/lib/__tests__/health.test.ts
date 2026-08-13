@@ -39,7 +39,6 @@ describe("/api/health — niente segreti", () => {
       "deploy.environment",
       "deploy.siteUrl",
       "deploy.nodeEnv",
-      "integrations.leadBackend",
       "integrations.listingsMode",
       "integrations.assistant.model",
     ];
@@ -76,13 +75,11 @@ describe("/api/health — cosa deve dichiarare", () => {
     for (const key of [
       "realsmart",
       "soldMap",
-      "emailLead",
-      "whatsappConfigured",
+      "leadDelivery",
       "trustindexLive",
       "heroVideoLive",
       "semanticRankingConfigured",
       "assistant",
-      "leadBackend",
     ]) {
       assert.ok(key in body.integrations, `manca integrations.${key}`);
     }
@@ -128,15 +125,18 @@ describe("/api/health — cosa deve dichiarare", () => {
     assert.equal(m.present, true);
   });
 
-  test("il backend dei lead è dichiarato, e con un valore previsto", async () => {
-    const body = (await payload()) as { integrations: { leadBackend: string } };
-    // I valori li definisce LeadBackend in app/lib/demoStatus.ts. Il punto del controllo non è
-    // QUALE backend sia configurato — cambia da ambiente ad ambiente — ma che l'endpoint lo
-    // dica con una delle etichette note, invece di inventarne una che nessuno sa leggere.
-    assert.ok(
-      ["sheets", "whatsapp", "not-configured"].includes(body.integrations.leadBackend),
-      `backend lead non previsto: ${body.integrations.leadBackend}`,
-    );
+  test("la consegna lead è dichiarata canale per canale, in modo veritiero", async () => {
+    const body = (await payload()) as {
+      integrations: {
+        leadDelivery: { email: boolean; sheet: boolean; whatsapp: boolean; serverDelivered: boolean };
+      };
+    };
+    const d = body.integrations.leadDelivery;
+    // WhatsApp NON è una consegna server: la verità è che serverDelivered = email || sheet.
+    for (const k of ["email", "sheet", "whatsapp", "serverDelivered"] as const) {
+      assert.equal(typeof d[k], "boolean", `leadDelivery.${k} deve essere booleano`);
+    }
+    assert.equal(d.serverDelivered, d.email || d.sheet, "serverDelivered deve derivare da email/sheet");
     // L'endpoint riporta lo stato, non lo decide: nessun nome di variabile d'ambiente né
     // dettaglio del provider deve comparire nel suo sorgente.
     for (const leak of ["SHEETS_WEBHOOK_URL", "Apps Script", "RESEND_API_KEY"]) {

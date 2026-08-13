@@ -92,11 +92,11 @@ describe("GET /api/health", () => {
   it("riporta separatamente lo stato di ogni canale dell'assistente", async () => {
     const res = await HEALTH();
     const body = (await res.json()) as {
-      integrations: { assistant: Record<string, unknown>; whatsappConfigured: unknown };
+      integrations: { assistant: Record<string, unknown>; leadDelivery: { whatsapp: unknown } };
     };
 
-    // Il programma chiede queste voci distinte. `whatsappConfigured` sta un livello più su:
-    // WhatsApp è un canale del sito, non dell'assistente, e vale anche a chat spenta.
+    // Il programma chiede queste voci distinte. WhatsApp sta un livello più su, in leadDelivery:
+    // è un canale del sito, non dell'assistente, e vale anche a chat spenta.
     for (const chiave of [
       "enabled",
       "providerConfigured",
@@ -110,7 +110,7 @@ describe("GET /api/health", () => {
         `${chiave} non è un booleano`,
       );
     }
-    assert.equal(typeof body.integrations.whatsappConfigured, "boolean");
+    assert.equal(typeof body.integrations.leadDelivery.whatsapp, "boolean");
   });
 
   it("dice quante voci di conoscenza sono approvate", async () => {

@@ -508,8 +508,9 @@ export default function Contact({
       propertyRef: propertyRef || undefined,
     };
 
-    // Cattura server-side (Google Sheet se configurato) — best-effort, non blocca il flusso.
-    // `submitting` disabilita il bottone durante la scrittura (niente doppio invio) e dà feedback.
+    // Consegna server-side (email Resend + Google Sheet se configurato) — best-effort, non blocca
+    // il flusso e il suo esito NON viene spacciato per "inviato": la UI dice solo che sta aprendo
+    // WhatsApp. `submitting` disabilita il bottone durante la scrittura (niente doppio invio).
     setSubmitting(true);
     void submitLead(lead).finally(() => setSubmitting(false));
 

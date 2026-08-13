@@ -30,9 +30,7 @@ type Health = {
   integrations?: {
     realsmart?: { live?: boolean; feedConfigured?: boolean };
     soldMap?: { present?: boolean; detected?: number; manual?: number };
-    leadBackend?: string;
-    emailLead?: { configured?: boolean };
-    whatsappConfigured?: boolean;
+    leadDelivery?: { email?: boolean; sheet?: boolean; whatsapp?: boolean; serverDelivered?: boolean };
     trustindexLive?: boolean;
     heroVideoLive?: boolean;
     semanticRankingConfigured?: boolean;
@@ -156,19 +154,20 @@ async function main() {
       fix: "Esegui npm run detect-sold e committa sold-detected.json: senza, un venduto può comparire fra i disponibili.",
     },
     {
-      name: "lead del form: destinazione configurata",
-      // Il caso da impedire è "not-configured": il form accetta la richiesta e non la
-      // consegna a nessuno. Con "whatsapp" il canale c'è, ma il lead non viene archiviato:
-      // è una scelta legittima, non un guasto — quindi avviso, non blocco.
-      pass: i.leadBackend !== undefined && i.leadBackend !== "not-configured",
-      detail: `destinazione: ${i.leadBackend ?? "—"}`,
+      name: "lead del form: consegna server configurata",
+      // La verità: WhatsApp è UX immediata, NON una consegna server. Un lead arriva davvero
+      // all'agenzia solo con email (Resend) o Google Sheet. Se serverDelivered è false, la
+      // richiesta scritta non raggiunge nessuno se l'utente non preme invio su WhatsApp: è una
+      // scelta legittima ma va vista, quindi avviso — non blocco.
+      pass: i.leadDelivery?.serverDelivered === true,
+      detail: `email: ${i.leadDelivery?.email ?? "—"} · sheet: ${i.leadDelivery?.sheet ?? "—"}`,
       required: hard(true),
-      fix: "SHEETS_WEBHOOK_URL per archiviare i lead, oppure CONTACT_FORM_MODE=whatsapp per il solo canale immediato.",
+      fix: "Configura ASSISTANT_EMAIL_API_KEY (Resend) per recapitare i lead via email, e/o SHEETS_WEBHOOK_URL per salvarli su foglio.",
     },
     {
       name: "WhatsApp configurato",
-      pass: i.whatsappConfigured === true,
-      detail: String(i.whatsappConfigured),
+      pass: i.leadDelivery?.whatsapp === true,
+      detail: String(i.leadDelivery?.whatsapp),
       required: true,
       fix: "Il numero vive in app/lib/site.ts: se è false, è un problema di codice, non di Vercel.",
     },

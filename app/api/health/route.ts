@@ -65,17 +65,19 @@ export async function GET() {
           detected: soldMap.detected,
           manual: soldMap.manual,
         },
-        // ── Contatti ──────────────────────────────────────────────────────
-        /** Dove finiscono i lead del form. Vedi app/lib/demoStatus.ts per i valori possibili. */
-        leadBackend: s.leadBackend,
+        // ── Consegna lead ─────────────────────────────────────────────────
         /**
-         * Canale email: oggi lo usa l'assistente, non il form contatti (che passa da
-         * /api/lead). Dichiararlo a parte evita di far credere che il form spedisca email.
+         * Come arriva davvero un lead del form all'agenzia. WhatsApp è UX immediata — è l'utente
+         * a premere invio — NON una consegna server. La consegna reale è l'EMAIL (Resend, stessa
+         * config dell'assistente) ed eventualmente il Google Sheet. `serverDelivered` dice se il
+         * lead viene recapitato lato server: se è false, senza WhatsApp la richiesta non arriva.
          */
-        emailLead: {
-          configured: emailEnabled,
+        leadDelivery: {
+          email: s.leadEmailConfigured,
+          sheet: s.leadSheetConfigured,
+          whatsapp: WHATSAPP_NUMBER.length > 0,
+          serverDelivered: s.leadEmailConfigured || s.leadSheetConfigured,
         },
-        whatsappConfigured: WHATSAPP_NUMBER.length > 0,
         // ── Terze parti e AI ──────────────────────────────────────────────
         trustindexLive: s.trustindexLive,
         heroVideoLive: s.heroVideoLive,
