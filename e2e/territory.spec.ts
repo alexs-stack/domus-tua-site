@@ -10,13 +10,30 @@
 //   • PRIVACY: nessuna coordinata nella sezione, nessun tile di mappa in rete;
 //   • accessibilità: nessuna violazione axe sulla pagina.
 
-import { test, expect, a11yViolations } from "./helpers";
+import { test, expect, a11yViolations, clickUntil } from "./helpers";
 
 const PREVIEW = "/territory-preview";
 
 /** La sezione territoriale, individuata dal suo heading (non da una classe che può cambiare). */
 function section(page: import("@playwright/test").Page) {
   return page.locator("section", { has: page.getByRole("heading", { name: "Vivere in zona" }) });
+}
+
+/**
+ * Apre l'esploratore in modo robusto. Il bottone è nell'HTML SERVER fin da subito, ma il gestore
+ * React si attacca solo a idratazione completata: un click sparato troppo presto viene ignorato e
+ * il test fallisce per un difetto SUO, non del sito. `clickUntil` riprova finché il pannello c'è.
+ */
+async function apriEsploratore(page: import("@playwright/test").Page) {
+  const bottone = page.getByRole("button", { name: "Esplora le distanze" });
+  const pannello = page.locator("#territory-distance-explorer");
+  await clickUntil(
+    () => bottone.click(),
+    async () => {
+      await expect(pannello).toBeVisible({ timeout: 2000 });
+    },
+  );
+  return pannello;
 }
 
 test.describe("Vivere in zona", () => {
@@ -59,15 +76,21 @@ test.describe("Vivere in zona", () => {
 
     const stazione = s.getByRole("button", { name: "Stazione ferroviaria" });
     // NB: si punta alla CARD del POI (il link), non al testo: "Stazione di Tradate" compare anche
-    // nella descrizione d'area ("La stazione di Tradate è servita dalla linea S40…").
+    // nella descrizione d'area ("La stazione di Tradate è sulla linea Saronno–Laveno…").
     const cardStazione = s.getByRole("link", { name: "Stazione di Tradate" });
 
     await expect(stazione).toHaveAttribute("aria-pressed", "true");
     await expect(cardStazione).toBeVisible();
 
-    await stazione.click();
+    // Stessa cautela dell'esploratore: il chip è nell'HTML server, il gestore arriva con
+    // l'idratazione. Si riprova finché lo stato cambia davvero.
+    await clickUntil(
+      () => stazione.click(),
+      async () => {
+        await expect(stazione).toHaveAttribute("aria-pressed", "false", { timeout: 2000 });
+      },
+    );
 
-    await expect(stazione).toHaveAttribute("aria-pressed", "false");
     await expect(cardStazione).toHaveCount(0);
     // Le altre categorie restano: una mancante non nasconde le valide.
     await expect(s.getByText("Farmacia Centrale")).toBeVisible();
@@ -83,10 +106,8 @@ test.describe("Vivere in zona", () => {
 
     const apri = s.getByRole("button", { name: "Esplora le distanze" });
     await expect(apri).toHaveAttribute("aria-expanded", "false");
-    await apri.click();
 
-    const diagramma = page.locator("#territory-distance-explorer");
-    await expect(diagramma).toBeVisible();
+    const diagramma = await apriEsploratore(page);
     // È un'immagine con descrizione sintetica per screen reader, non un elemento muto.
     await expect(diagramma.getByRole("img")).toHaveAttribute("aria-label", /distanze in linea d'aria/i);
     // La didascalia dichiara che le direzioni sono illustrative: onestà del diagramma.
@@ -99,8 +120,7 @@ test.describe("Vivere in zona", () => {
 
     await goto(PREVIEW);
     const s = section(page);
-    await s.getByRole("button", { name: "Esplora le distanze" }).click();
-    await expect(page.locator("#territory-distance-explorer")).toBeVisible();
+    await apriEsploratore(page);
 
     // 1) Nessuna coordinata nel markup della sezione (l'esploratore usa percentuali, non lat/lng).
     const html = await s.innerHTML();
@@ -117,8 +137,7 @@ test.describe("Vivere in zona", () => {
 
   test("nessuna violazione di accessibilità sulla pagina @layout", async ({ goto, page }) => {
     await goto(PREVIEW);
-    await section(page).getByRole("button", { name: "Esplora le distanze" }).click();
-    await expect(page.locator("#territory-distance-explorer")).toBeVisible();
+    await apriEsploratore(page);
 
     const violazioni = await a11yViolations(page);
     expect(violazioni, JSON.stringify(violazioni, null, 2)).toHaveLength(0);
@@ -126,8 +145,7 @@ test.describe("Vivere in zona", () => {
 
   test("nessun errore di console né richiesta fallita", async ({ goto, page, guards }) => {
     await goto(PREVIEW);
-    await section(page).getByRole("button", { name: "Esplora le distanze" }).click();
-    await expect(page.locator("#territory-distance-explorer")).toBeVisible();
+    await apriEsploratore(page);
 
     expect(guards.consoleErrors, guards.consoleErrors.join("\n")).toHaveLength(0);
     expect(guards.failedRequests, guards.failedRequests.join("\n")).toHaveLength(0);

@@ -32,13 +32,13 @@ const FIXTURE: PublicListingTerritory = {
   ],
 };
 
-// Descrizioni d'area DIMOSTRATIVE per Tradate: fatti reali e verificabili (stazione S40, ospedale
+// Descrizioni d'area DIMOSTRATIVE per Tradate: fatti verificabili (linea Saronno–Laveno, ospedale
 // Galmarini, Parco Pineta…), neutri e senza superlativi (passano il guard soggettivo), ognuno con la
 // fonte primaria e la data di verifica. È l'esempio di qualità "10/10" della sezione "La zona".
 const AREA_FIXTURE: PublicAreaProfile = {
   municipality: "tradate",
   facts: [
-    { category: "transport", scope: "municipality", text: "Dalla stazione di Tradate la linea S40 di Trenord porta diretti a Milano Cadorna e a Como San Giovanni.", sourceOwner: "Trenord", sourceUrl: "https://www.trenord.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
+    { category: "transport", scope: "municipality", text: "La stazione di Tradate è sulla linea Saronno–Laveno di Ferrovienord: i treni Trenord arrivano a Milano Cadorna passando da Saronno.", sourceOwner: "Ferrovienord / Trenord", sourceUrl: "https://www.ferrovienord.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
     { category: "regional-connection", scope: "municipality", text: "La Varesina, la ex statale 233, attraversa Tradate e collega Varese a Milano.", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
     { category: "municipal-service", scope: "municipality", text: "In centro a Tradate ci sono la biblioteca civica e gli uffici dell'anagrafe.", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
     { category: "healthcare", scope: "municipality", text: "A Tradate c'è l'ospedale Galmarini, che fa parte dell'ASST dei Sette Laghi.", sourceOwner: "ASST Sette Laghi", sourceUrl: "https://www.asst-settelaghi.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },

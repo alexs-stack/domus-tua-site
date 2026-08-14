@@ -194,7 +194,7 @@ describe("qualità editoriale: vero non basta, deve anche essere leggibile", () 
 
   test("le versioni riscritte dei 5 fatti sono pulite", () => {
     const riscritti = [
-      "Dalla stazione di Tradate la linea S40 di Trenord porta diretti a Milano Cadorna e a Como San Giovanni.",
+      "La stazione di Tradate è sulla linea Saronno–Laveno di Ferrovienord: i treni Trenord arrivano a Milano Cadorna passando da Saronno.",
       "La Varesina, la ex statale 233, attraversa Tradate e collega Varese a Milano.",
       "In centro a Tradate ci sono la biblioteca civica e gli uffici dell'anagrafe.",
       "A Tradate c'è l'ospedale Galmarini, che fa parte dell'ASST dei Sette Laghi.",
@@ -269,7 +269,7 @@ describe("lingua: mai un paragrafo italiano dentro una pagina tradotta", () => {
 describe("descrizioni d'area sulla pagina (buildAreaView) + qualità 10/10", () => {
   // I 6 fatti dimostrativi di Tradate mostrati nella preview: devono essere FATTUALI e NEUTRI.
   const TRADATE_FACTS: string[] = [
-    "La stazione di Tradate è servita dalla linea suburbana S40 di Trenord, con collegamenti diretti verso Milano Cadorna e Como San Giovanni.",
+    "La stazione di Tradate è sulla linea Saronno–Laveno di Ferrovienord: i treni Trenord arrivano a Milano Cadorna passando da Saronno.",
     "Il territorio comunale è attraversato dalla ex strada statale 233 Varesina, direttrice storica tra Varese e Milano.",
     "Nel centro cittadino hanno sede la biblioteca civica e gli sportelli anagrafici del Comune.",
     "L'ospedale «Galmarini» di Tradate fa parte dell'ASST dei Sette Laghi.",
