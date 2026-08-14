@@ -30,6 +30,9 @@ function fact(over: Partial<AreaFact> = {}): AreaFact {
     reviewBy: over.reviewBy ?? "2027-02-14T00:00:00.000Z",
     status: over.status ?? "approved",
     conflicts: over.conflicts ?? [],
+    // `zone` va propagata: senza, un fatto di scope "zone" nasce senza zona e i test sullo scope
+    // passerebbero per il motivo sbagliato (escluso perché privo di zona, non perché non combacia).
+    ...(over.zone ? { zone: over.zone } : {}),
     ...(over.approvedBy ? { approvedBy: over.approvedBy } : {}),
     ...(over.approvedAt ? { approvedAt: over.approvedAt } : {}),
   };
@@ -165,6 +168,58 @@ describe("import/export", () => {
     const { zone: _zone, ...rest } = AREA_FACT_TEMPLATE;
     void _zone;
     assert.equal(AreaFactSchema.safeParse(rest).success, true);
+  });
+});
+
+describe("SCOPE di zona: un fatto di frazione non finisce su tutto il comune", () => {
+  const comunale = fact({ id: "c", scope: "municipality", category: "transport", text: "La stazione di Tradate è sulla linea regionale." });
+  const diZona = fact({ id: "z", scope: "zone", zone: "abbiate-guazzone", category: "municipal-service", text: "Ad Abbiate Guazzone si tiene un mercato settimanale." });
+
+  test("senza zona richiesta il fatto di zona è ESCLUSO (non vale per tutto il comune)", () => {
+    const p = toPublicAreaProfile([comunale, diZona], { now: NOW, locale: "it", municipality: "tradate" });
+    assert.equal(p?.facts.length, 1);
+    assert.match(p!.facts[0].text, /stazione di Tradate/);
+  });
+
+  test("con la zona giusta il fatto compare, e viene PRIMA di quello comunale (più specifico)", () => {
+    const p = toPublicAreaProfile([comunale, diZona], { now: NOW, locale: "it", municipality: "tradate", zone: "abbiate-guazzone" });
+    assert.equal(p?.facts.length, 2);
+    assert.match(p!.facts[0].text, /Abbiate Guazzone/);
+  });
+
+  test("con una zona DIVERSA il fatto di quella frazione resta escluso", () => {
+    const p = toPublicAreaProfile([comunale, diZona], { now: NOW, locale: "it", municipality: "tradate", zone: "ceppine" });
+    assert.equal(p?.facts.length, 1);
+    assert.match(p!.facts[0].text, /stazione di Tradate/);
+  });
+});
+
+describe("lingua: mai un paragrafo italiano dentro una pagina tradotta", () => {
+  const soloItaliano = fact({ id: "it", text: "La biblioteca comunale è aperta dal lunedì al sabato." });
+  const tradotto = fact({
+    id: "en",
+    text: "La stazione è servita da una linea regionale.",
+    translations: [{ locale: "en", text: "The station is served by a regional line.", approved: true }],
+  });
+
+  test("in italiano si vede tutto", () => {
+    const p = toPublicAreaProfile([soloItaliano, tradotto], { now: NOW, locale: "it", municipality: "tradate" });
+    assert.equal(p?.facts.length, 2);
+  });
+
+  test("in inglese si vedono SOLO i fatti con traduzione approvata", () => {
+    const p = toPublicAreaProfile([soloItaliano, tradotto], { now: NOW, locale: "en", municipality: "tradate" });
+    assert.equal(p?.facts.length, 1);
+    assert.equal(p!.facts[0].text, "The station is served by a regional line.");
+  });
+
+  test("nessuna traduzione approvata → profilo null (sezione nascosta, non testo italiano)", () => {
+    assert.equal(toPublicAreaProfile([soloItaliano], { now: NOW, locale: "de", municipality: "tradate" }), null);
+  });
+
+  test("una traduzione NON approvata non basta", () => {
+    const bozza = fact({ id: "b", translations: [{ locale: "fr", text: "Traduction non revue.", approved: false }] });
+    assert.equal(toPublicAreaProfile([bozza], { now: NOW, locale: "fr", municipality: "tradate" }), null);
   });
 });
 

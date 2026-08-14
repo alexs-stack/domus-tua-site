@@ -40,7 +40,7 @@ export function allAreaFacts(): readonly AreaFact[] {
  */
 export function getPublicAreaProfile(
   municipality: string,
-  options: { now: Date; locale: KnowledgeLocale },
+  options: { now: Date; locale: KnowledgeLocale; zone?: string },
 ): ReturnType<typeof toPublicAreaProfile> {
   return toPublicAreaProfile(AREA_FACTS, { ...options, municipality });
 }

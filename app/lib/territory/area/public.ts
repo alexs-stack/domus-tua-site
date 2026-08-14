@@ -40,16 +40,44 @@ export function localizeFactText(fact: AreaFact, locale: KnowledgeLocale): strin
 }
 
 /**
+ * true se esiste un testo APPROVATO nella lingua richiesta (italiano: sempre; altre lingue: solo con
+ * traduzione approvata).
+ *
+ * AGGIORNA ADR-006. La regola originale faceva ripiego sulla canonica italiana anche per un
+ * visitatore inglese: su una pagina per il resto tradotta uscivano paragrafi in italiano — veri, ma
+ * con l'aria di un errore. Qui il fatto viene semplicemente OMESSO per quella lingua: se non ne resta
+ * nessuno la sezione non compare. Coerente col principio del sistema: si mostra solo ciò che è
+ * verificato PER QUEL CONTESTO. `localizeFactText` resta invariata (è ancora il modo giusto di
+ * ottenere il testo una volta deciso che il fatto è mostrabile).
+ */
+export function hasApprovedText(fact: AreaFact, locale: KnowledgeLocale): boolean {
+  if (locale === "it") return true;
+  return fact.translations.some((t) => t.locale === locale && t.approved);
+}
+
+/**
  * Costruisce il profilo pubblico d'area per un comune: solo fatti pubblicabili, ordinati per
  * categoria, localizzati. `null` se non c'è nulla da mostrare (l'assistente lo dice).
  */
 export function toPublicAreaProfile(
   facts: readonly AreaFact[],
-  options: { now: Date; locale: KnowledgeLocale; municipality: string },
+  options: { now: Date; locale: KnowledgeLocale; municipality: string; zone?: string },
 ): PublicAreaProfile | null {
   const usable = facts
     .filter((f) => f.municipality === options.municipality && isPublishable(f, options.now))
+    // SCOPE: un fatto di ZONA riguarda quella zona, non tutto il comune. Senza una zona richiesta
+    // viene ESCLUSO — mostrarlo a ogni annuncio del comune significherebbe attribuire a un immobile
+    // i fatti di un'altra frazione. I fatti comunali/regionali valgono per tutti.
+    .filter((f) => (f.scope === "zone" ? options.zone !== undefined && f.zone === options.zone : true))
+    // LINGUA: per le lingue diverse dall'italiano si tengono SOLO i fatti con traduzione approvata.
+    // Vedi `hasApprovedText`: meglio non mostrare nulla che mostrare un paragrafo italiano dentro
+    // una pagina tradotta (aggiornamento ad ADR-006, documentato lì).
+    .filter((f) => hasApprovedText(f, options.locale))
     .sort((a, b) => {
+      // Più SPECIFICO prima: un fatto della zona dell'immobile viene prima di uno comunale.
+      const sa = a.scope === "zone" ? 0 : 1;
+      const sb = b.scope === "zone" ? 0 : 1;
+      if (sa !== sb) return sa - sb;
       const ca = AREA_CATEGORY_ORDER.indexOf(a.category);
       const cb = AREA_CATEGORY_ORDER.indexOf(b.category);
       if (ca !== cb) return ca - cb;

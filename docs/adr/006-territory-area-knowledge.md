@@ -79,6 +79,25 @@ senza scartare in silenzio; `serializeAreaFacts` produce un bundle deterministic
 
 **NON popolare fatti di produzione senza autorizzazione esplicita alla ricerca e approvazione umana.**
 
+## Aggiornamenti dopo il Prompt 18 (due difetti trovati sul codice reale)
+
+**1. Lo SCOPE di zona non veniva applicato.** `AreaFact` ha `scope: municipality | zone | region` e
+un campo `zone`, ma la proiezione pubblica filtrava SOLO per comune: un fatto di frazione (es. il
+mercato di Abbiate Guazzone) sarebbe comparso su OGNI annuncio del comune, anche in un'altra
+frazione — attribuire a un immobile i fatti di un altro quartiere. Ora:
+
+- i fatti `scope: "zone"` compaiono **solo** se si chiede quella zona; senza zona sono **esclusi**
+  (non valgono per tutto il comune);
+- i fatti di zona vengono **prima** di quelli comunali: più specifici, più rilevanti per l'immobile;
+- la zona entra nella CHIAVE di cache, così due frazioni non condividono la stessa voce.
+
+**2. La lingua: niente italiano dentro una pagina tradotta.** La regola originale (sopra) faceva
+ripiego sulla canonica italiana per le lingue senza traduzione approvata. Su una pagina per il resto
+in inglese uscivano paragrafi in italiano: veri, ma con l'aria di un errore. **Decisione aggiornata:**
+per le lingue diverse dall'italiano si mostrano SOLO i fatti con traduzione **approvata**; se non ne
+resta nessuno la sezione non compare. Resta invariato il divieto di usare traduzioni non approvate.
+`localizeFactText` non cambia; il filtro è `hasApprovedText`. Reversibile: è un singolo predicato.
+
 ## Acceptance coperta
 
 - l'assistente può rispondere "com'è vivere a Tradate?" da fatti d'area approvati, senza inventare

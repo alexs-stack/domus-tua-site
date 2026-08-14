@@ -73,13 +73,16 @@ export async function getPublicListingTerritory(slug: string): Promise<PublicLis
 export async function getPublicAreaProfileFor(
   municipality: string,
   locale: KnowledgeLocale = "it",
+  zone?: string,
 ): Promise<PublicAreaProfile | null> {
   if (!isPublicSectionEnabled()) return null;
   const slug = normalizeMunicipality(municipality);
+  const zoneSlug = zone ? normalizeMunicipality(zone) : undefined;
   const cached = unstable_cache(
-    async (m: string) => getPublicAreaProfile(m, { now: new Date(), locale }),
-    ["territory-public-area", slug, locale],
+    // La zona entra nella CHIAVE: due frazioni dello stesso comune non devono condividere la voce.
+    async (m: string, z?: string) => getPublicAreaProfile(m, { now: new Date(), locale, ...(z ? { zone: z } : {}) }),
+    ["territory-public-area", slug, zoneSlug ?? "-", locale],
     { tags: ["territory", `territory:profile:${slug}`], revalidate: 3600 },
   );
-  return cached(slug);
+  return cached(slug, zoneSlug);
 }
