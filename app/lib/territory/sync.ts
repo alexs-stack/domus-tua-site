@@ -18,6 +18,8 @@ import {
   type EnrichmentDecision,
 } from "./engine";
 import { ProfileRefresher } from "./profileCache";
+import { callsThisMonth, evaluateCallBudget, readBudgets, type TerritoryBudgets } from "./budget";
+import { sinkFromEnv, type ObservabilitySink } from "./observe";
 import { fingerprintsEqual } from "./fingerprint";
 import { isFresh } from "./public";
 import { isRetryDue } from "./retry";
@@ -59,6 +61,10 @@ export interface SyncOptions {
   leaseTtlMs?: number;
   /** Generatore casuale per il jitter del backoff (iniettabile per test deterministici). */
   random?: () => number;
+  /** Budget mensili + kill switch. Se assente si leggono dall'ambiente. */
+  budgets?: TerritoryBudgets;
+  /** Sink di osservabilità. Se assente si sceglie dall'ambiente (nullo se il logging è spento). */
+  sink?: ObservabilitySink;
 }
 
 export type SyncDecision =
@@ -97,6 +103,11 @@ export interface SyncReport {
   skippedByBudget: number;
   /** true se il tetto di chiamate è stato raggiunto durante il run. */
   budgetReached: boolean;
+  /**
+   * true se il BUDGET MENSILE (o il kill switch) ha impedito nuove chiamate esterne. I profili già
+   * approvati restano serviti: si ferma l'acquisizione, non si cancella nulla.
+   */
+  monthlyBudgetBlocked: boolean;
   /** ID di esecuzione/correlazione del run (per i log; nessuna coordinata). */
   executionId: string;
   /** Profili REALMENTE interrogati (refresh) in questo run. */
@@ -322,6 +333,7 @@ interface SchedulerExtras {
   retryPending: number;
   deadLettered: number;
   leaseSkipped: number;
+  monthlyBudgetBlocked: boolean;
 }
 
 /** Aggrega i risultati per immobile in un report (con le metriche dello scheduler). */
@@ -346,6 +358,7 @@ function aggregate(
     estimatedProviderCalls: extras.estimatedProviderCalls,
     skippedByBudget: 0,
     budgetReached: metrics.budgetReached,
+    monthlyBudgetBlocked: extras.monthlyBudgetBlocked,
     executionId: extras.executionId,
     profilesRefreshed: extras.profilesRefreshed,
     cacheHitListings: extras.cacheHitListings,
@@ -444,6 +457,7 @@ export async function syncListings(
   if (options.dryRun) {
     return aggregate(plans.map((p) => p.result), true, metrics.snapshot(), {
       ...extrasBase,
+      monthlyBudgetBlocked: false, // dry-run: nessuna chiamata, quindi nessun blocco
       profilesRefreshed: 0,
       cacheHitListings: 0,
       leaseSkipped: 0,
@@ -471,6 +485,25 @@ export async function syncListings(
 
   // 6) NEEDS-QUERY → ordine EQUO, budget, lease, refresh, deriva/fallisci.
   needsQuery.sort(profilePriorityCompare);
+
+  // BUDGET MENSILE + kill switch (Prompt 14, cablato qui): si contano le chiamate già fatte QUESTO
+  // mese dai profili memorizzati e si consulta il gate PRIMA di ogni nuova query. Un breach ferma le
+  // NUOVE chiamate; i profili approvati restano serviti (nulla viene cancellato).
+  const budgets = options.budgets ?? readBudgets();
+  const storedProfiles = await deps.repository.listMunicipalityProfiles();
+  let monthlyUsed = callsThisMonth(storedProfiles.map((p) => p.retrievedAt), nowDate);
+  let monthlyBlocked = false;
+  const allowProviderCall = () => {
+    const decision = evaluateCallBudget("poi", monthlyUsed, budgets);
+    if (!decision.allowed) {
+      monthlyBlocked = true;
+      return false;
+    }
+    monthlyUsed += 1; // la chiamata sta per partire: conta subito
+    return true;
+  };
+
+  const sink = options.sink ?? sinkFromEnv();
   const refresher = new ProfileRefresher({
     provider: deps.provider,
     repository: deps.repository,
@@ -480,6 +513,9 @@ export async function syncListings(
     onQuery: () => metrics.recordProviderCall(),
     onResult: (source) => metrics.recordProfileResult(source),
     random: options.random,
+    sink,
+    runId: executionId,
+    allowProviderCall,
   });
   let queries = 0;
   let profilesRefreshed = 0;
@@ -529,6 +565,7 @@ export async function syncListings(
 
   return aggregate(plans.map((p) => p.result), false, metrics.snapshot(), {
     ...extrasBase,
+    monthlyBudgetBlocked: monthlyBlocked,
     profilesRefreshed,
     cacheHitListings,
     leaseSkipped,

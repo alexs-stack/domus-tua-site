@@ -104,6 +104,18 @@ esterno ≈ 0**, dominato dallo storage (trascurabile per il pilota). Esempio pi
 per un provider a pagamento futuro: si popolano `prezzo_POI`/`prezzo_geocode` e i budget mensili
 fanno da tetto rigido.
 
+## Stato del CABLAGGIO (aggiornato dopo il Prompt 18)
+
+Le metriche e il budget non sono più solo definiti: sono **collegati ai percorsi reali**.
+
+- `provider-call` (con latenza ed esito), `profile-cache` e `record-status` sono emessi da
+  `ProfileRefresher`; `assistant-tool`/`assistant-fallback` dai tool territoriali; `public-impression`
+  dalla lettura server-side della sezione pubblica. Sempre attraverso `guarded()`.
+- Il **budget mensile** è consultato PRIMA di ogni nuova query (`allowProviderCall` nel refresher):
+  un breach instrada nel percorso `budget-skipped` già esistente — le nuove chiamate si fermano, il
+  profilo approvato resta servito. Il report di sync espone `monthlyBudgetBlocked`.
+- Test dedicati (`__tests__/wiring.test.ts`) falliscono se qualcuno scollega uno di questi percorsi.
+
 ## Acceptance coperta
 
 - salute leggibile senza database (`/api/health.territory`, aggregato);

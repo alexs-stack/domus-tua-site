@@ -28,6 +28,7 @@ import {
   type ProviderPlace,
   type TerritoryPlacesProvider,
 } from "./provider/provider";
+import type { ObservabilitySink } from "./observe";
 import type { TerritoryRepository } from "./store/repository";
 import type {
   EnrichmentFailure,
@@ -94,6 +95,18 @@ export interface ProfileRefresherDeps {
   onResult?: (source: ProfileCacheSource) => void;
   /** Generatore casuale per il jitter del backoff (iniettabile per test deterministici). */
   random?: () => number;
+  /**
+   * Sink di osservabilità (Prompt 14, cablato qui): riceve provider-call (con latenza), profile-cache
+   * e record-status. Sempre `guarded` a monte: nessuna coordinata può entrare in un evento.
+   */
+  sink?: ObservabilitySink;
+  /** ID di correlazione del run, per legare gli eventi di uno stesso sync. */
+  runId?: string;
+  /**
+   * Gate di BUDGET: chiamato PRIMA di ogni nuova query al provider. `false` = budget mensile esaurito
+   * o kill switch → si tratta come budget-skipped (il dato approvato resta servito, nulla sparisce).
+   */
+  allowProviderCall?: () => boolean;
 }
 
 /** Costruisce un TerritoryPoi (bozza) da un ProviderPlace, con distanza in linea d'aria dall'origine. */
@@ -149,8 +162,19 @@ export class ProfileRefresher {
    * Risolve il profilo per un'origine: cache hit (nessuna query), oppure refresh (una query, con
    * single-flight e budget). Su errore conserva l'ultimo profilo buono (stale) o segnala unavailable.
    */
+  /** Emette un evento di cache e lo notifica al callback delle metriche. */
+  private noteResult(source: ProfileCacheSource, municipality: string): void {
+    this.deps.onResult?.(source);
+    this.deps.sink?.emit({
+      kind: "profile-cache",
+      result: source,
+      municipality,
+      ...(this.deps.runId ? { runId: this.deps.runId } : {}),
+    });
+  }
+
   async resolve(origin: ResolvedOrigin): Promise<ProfileResult> {
-    const { repository, config, now, maxQueries, onResult } = this.deps;
+    const { repository, config, now, maxQueries, allowProviderCall } = this.deps;
     const key = origin.municipality;
     const fingerprint = this.fingerprintFor(origin);
     const existing = await repository.getMunicipalityProfile(key);
@@ -162,7 +186,7 @@ export class ProfileRefresher {
       existing.status !== "failed" &&
       isFresh(existing.retrievedAt, now(), config.freshnessDays, existing.expiresAt)
     ) {
-      onResult?.("hit");
+      this.noteResult("hit", key);
       return { profile: existing, source: "hit", queried: false, fingerprint };
     }
 
@@ -170,13 +194,20 @@ export class ProfileRefresher {
     const pending = this.inFlight.get(key);
     if (pending) {
       const r = await pending;
-      onResult?.(r.source);
+      this.noteResult(r.source, key);
       return { ...r, queried: false }; // la query l'ha contata chi l'ha davvero eseguita
     }
 
-    // Budget: una NUOVA query solo se il tetto lo consente.
+    // Budget: una NUOVA query solo se il tetto DEL RUN lo consente…
     if (maxQueries != null && this.queriesMade >= maxQueries) {
-      onResult?.("budget-skipped");
+      this.noteResult("budget-skipped", key);
+      return { profile: existing ?? null, source: "budget-skipped", queried: false, fingerprint };
+    }
+
+    // …e solo se il BUDGET MENSILE / kill switch lo consente (Prompt 14, cablato qui). Il dato già
+    // approvato resta servito: si salta la nuova chiamata, non si cancella nulla.
+    if (allowProviderCall && !allowProviderCall()) {
+      this.noteResult("budget-skipped", key);
       return { profile: existing ?? null, source: "budget-skipped", queried: false, fingerprint };
     }
 
@@ -194,10 +225,12 @@ export class ProfileRefresher {
     fingerprint: EnrichmentFingerprint,
     existing: MunicipalityTerritoryProfile | null,
   ): Promise<ProfileResult> {
-    const { provider, repository, config, now, onQuery, onResult } = this.deps;
+    const { provider, repository, config, now, onQuery } = this.deps;
     this.queriesMade += 1;
     onQuery?.();
     const nowIso = now().toISOString();
+    // Latenza misurata attorno alla SOLA chiamata al provider (per l'evento provider-call).
+    const startedAt = now().getTime();
     try {
       const places = await provider.searchNearby({
         origin: origin.coord,
@@ -205,6 +238,7 @@ export class ProfileRefresher {
         categories: config.categories,
         language: "it",
       });
+      this.emitProviderCall(provider.name, "ok", origin.municipality, now().getTime() - startedAt);
       const withinRadius = places.filter(
         (p) => haversineMeters(origin.coord, p.coord) <= config.searchRadiusMeters,
       );
@@ -227,12 +261,20 @@ export class ProfileRefresher {
         updatedAt: nowIso,
       };
       await repository.putMunicipalityProfile(profile);
-      onResult?.("refreshed");
+      this.noteResult("refreshed", origin.municipality);
+      this.deps.sink?.emit({ kind: "record-status", status: "draft", municipality: origin.municipality });
       return { profile, source: "refreshed", queried: true, fingerprint };
     } catch (err) {
       // Errore provider: registra lo stato di RETRY sul profilo (attempts/backoff/dead-letter) e
       // conserva l'ultimo profilo buono (stale) o segnala unavailable. Mai un buco, mai un'eccezione.
       const nowDate = now();
+      this.emitProviderCall(
+        provider.name,
+        "failed",
+        origin.municipality,
+        nowDate.getTime() - startedAt,
+        classifyFailureKind(err),
+      );
       const retry = nextRetryState(existing?.attempts ?? 0, nowDate, {
         random: this.deps.random,
         retryAfterMs: retryAfterMsOf(err),
@@ -255,11 +297,30 @@ export class ProfileRefresher {
       };
       await repository.putMunicipalityProfile(failedProfile);
       if (existing) {
-        onResult?.("stale");
+        this.noteResult("stale", origin.municipality);
         return { profile: existing, source: "stale", queried: true, fingerprint, error: err };
       }
-      onResult?.("unavailable");
+      this.noteResult("unavailable", origin.municipality);
       return { profile: null, source: "unavailable", queried: true, fingerprint, error: err };
     }
+  }
+
+  /** Emette l'evento di chiamata al provider (latenza + esito). Mai coordinate: solo comune/enum. */
+  private emitProviderCall(
+    provider: TerritoryProvider,
+    outcome: "ok" | "failed",
+    municipality: string,
+    latencyMs: number,
+    failure?: EnrichmentFailureKind,
+  ): void {
+    this.deps.sink?.emit({
+      kind: "provider-call",
+      provider,
+      outcome,
+      latencyMs: Math.max(0, Math.round(latencyMs)),
+      municipality,
+      ...(failure ? { failure } : {}),
+      ...(this.deps.runId ? { runId: this.deps.runId } : {}),
+    });
   }
 }

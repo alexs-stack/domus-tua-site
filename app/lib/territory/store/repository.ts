@@ -82,6 +82,12 @@ export interface TerritoryRepository {
   /** Marca un record come `stale` (lo ritira dal pubblico senza cancellarne i dati). */
   markStale(realSmartCode: string): Promise<void>;
   /**
+   * CANCELLAZIONE definitiva di un arricchimento (Prompt 16: ritenzione). Da usare SOLO per record
+   * `disabled` oltre la finestra di ritenzione, tramite la CLI di purge con conferma esplicita.
+   * L'AUDIT non viene toccato: la storia resta. Ritorna true se il record esisteva.
+   */
+  deleteListingEnrichment(realSmartCode: string): Promise<boolean>;
+  /**
    * Registra un tentativo fallito SENZA distruggere i dati approvati: se il record era `approved`
    * resta pubblicabile, il fallimento viene solo annotato (constraint 12).
    */

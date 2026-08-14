@@ -67,6 +67,17 @@ export function createGetListingDetails(ctx: ToolContext) {
 
       // Territorio: SOLO se la feature è attiva; sempre dato approvato+fresco, mai coordinate.
       const territorio = ctx.territory ? await ctx.territory.forListing(slug) : null;
+      if (ctx.territory) {
+        ctx.sink?.emit({
+          kind: "assistant-tool",
+          tool: "get_listing_details",
+          hadTerritory: territorio !== null,
+          ...(ctx.turnId ? { turnId: ctx.turnId } : {}),
+        });
+        if (!territorio) {
+          ctx.sink?.emit({ kind: "assistant-fallback", reason: "missing", scope: "listing", ...(ctx.turnId ? { turnId: ctx.turnId } : {}) });
+        }
+      }
       const nota = ctx.territory
         ? NOTA_BASE + (territorio ? NOTA_TERRITORIO_OK : NOTA_TERRITORIO_ASSENTE)
         : NOTA_BASE;

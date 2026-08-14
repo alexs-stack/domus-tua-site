@@ -165,6 +165,9 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   const title = cleanField(raw.titolo) ?? "";
   const town = cleanField(raw.localita?.comune) ?? "";
   const province = cleanField(raw.localita?.provincia) ?? "";
+  // Zona/quartiere: la si porta avanti SOLO se il feed la dichiara (l'agenzia l'ha già resa
+  // pubblica). Alimenta la precisione d'origine per zona; non è un indirizzo e non lo sostituisce.
+  const zoneName = cleanField(raw.localita?.zona);
   const typology = cleanField(raw.tipologia);
   const energyClass = cleanField(raw.classeEnergetica);
   const floorValue = cleanField(typeof raw.piano === "number" ? String(raw.piano) : raw.piano);
@@ -282,6 +285,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     type: typology ?? "Immobile",
     town,
     province,
+    ...(zoneName ? { zoneName } : {}),
     address: addressRaw,
     // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
     // `showAddress` è la const decisa una volta sopra (riusata dalla redazione dei paragrafi/estratto).

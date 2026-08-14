@@ -173,6 +173,12 @@ export interface NormalizedProperty {
   type: string;
   town: string;
   province: string;
+  /**
+   * Zona/quartiere DICHIARATA DAL FEED (es. "Abbiate Guazzone"), se l'agenzia l'ha pubblicata.
+   * Serve a risolvere un centroide di zona (precisione ±500 m invece di ±2000 m). NON è un indirizzo:
+   * è la stessa area che l'annuncio già dichiara. Assente = si resta al centroide comunale.
+   */
+  zoneName?: string;
   address?: string;
   /** True solo se un override manuale autorizza la pubblicazione dell'indirizzo civico. */
   showAddress: boolean;

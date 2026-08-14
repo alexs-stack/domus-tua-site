@@ -16,6 +16,8 @@
 import { ORIGIN_ACCURACY_METERS } from "./constants";
 import { checkPlausibility, type PlausibilityVerdict } from "./plausibility";
 import { resolveMunicipalityOrigin, type ResolvedOrigin } from "./origin";
+import { parseZoneField } from "./zone";
+import { normalizeMunicipality } from "./geo";
 import type { NormalizedProperty } from "../realsmart/types";
 import type { TerritoryManualCoord, TerritoryZoneCentroid } from "./types";
 
@@ -32,6 +34,12 @@ export interface OriginSources {
   /** Coordinata geocodificata GIÀ in cache (server-only). Il geocoding vero è in un job a parte. */
   cachedGeocode?(address: string, municipality: string): { lat: number; lng: number } | undefined;
   zoneFor?(code: string): TerritoryZoneCentroid | undefined;
+  /**
+   * Zona dedotta dal NOME che il feed già dichiara ("Tradate, Abbiate Guazzone"). Copre tutti gli
+   * annunci presenti e futuri di quella zona senza una mappa codice→zona da mantenere a mano.
+   * Consultata dopo `zoneFor` (curatura puntuale) e prima del ripiego comunale.
+   */
+  zoneByName?(municipality: string, zone: string): TerritoryZoneCentroid | undefined;
 }
 
 export interface AuthorizedOriginResult {
@@ -112,7 +120,15 @@ export function resolveAuthorizedOrigin(
   }
 
   // 3) Centroide di zona (pubblico, nessuna autorizzazione).
-  const zone = code ? sources.zoneFor?.(code) : undefined;
+  //    3a) curatura puntuale per codice; 3b) altrimenti dedotta dal NOME di zona del feed.
+  const zoneFromName = (() => {
+    if (!sources.zoneByName || !property.zoneName) return undefined;
+    const parsed = parseZoneField(property.zoneName, property.town);
+    const zoneSlug = parsed.zone ?? normalizeMunicipality(property.zoneName);
+    if (!zoneSlug || zoneSlug === base.municipality) return undefined;
+    return sources.zoneByName(base.municipality, zoneSlug);
+  })();
+  const zone = (code ? sources.zoneFor?.(code) : undefined) ?? zoneFromName;
   if (zone) {
     return {
       origin: {

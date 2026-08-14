@@ -18,6 +18,7 @@ import {
 } from "./types";
 import type { GeocodeAuthorization, OriginSources } from "./originAuthz";
 import { geocodeAddressKey } from "./geocoder";
+import { buildZoneIndex } from "./zone";
 
 if (typeof window !== "undefined") {
   throw new Error("[territory/origin.data] dati d'origine curati: modulo server-only.");
@@ -48,6 +49,13 @@ for (const [slug, z] of Object.entries(ZONES)) {
   if (!r.success) throw new Error(`[origin.data] zona non valida (${slug}): ${r.error.message}`);
 }
 
+/**
+ * Indice delle zone PER NOME: curando una volta il centroide di una zona, TUTTI gli annunci presenti
+ * e futuri che il feed dichiara in quella zona guadagnano la precisione ±500 m, senza mappa
+ * codice→zona da mantenere. Costruito dai soli `ZONES` curati: finché è vuoto, si resta al comune.
+ */
+const zoneByNameIndex = buildZoneIndex(Object.values(ZONES));
+
 /** Fonti d'origine di produzione, costruite dai dati curati (vuoti finché non si aggiunge nulla). */
 export function defaultOriginSources(): OriginSources {
   return {
@@ -58,5 +66,6 @@ export function defaultOriginSources(): OriginSources {
       const slug = ZONE_OF_CODE[code];
       return slug ? ZONES[slug] : undefined;
     },
+    zoneByName: (municipality, zone) => zoneByNameIndex(municipality, zone),
   };
 }

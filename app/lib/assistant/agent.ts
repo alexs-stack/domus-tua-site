@@ -30,6 +30,7 @@ import { createAssistantTools } from "./tools";
 import { createStoreTerritoryReader, type AssistantTerritoryReader } from "./tools/territory";
 import { isAssistantTerritoryEnabled } from "../territory/flags";
 import { createTerritoryRepository } from "../territory/store/config";
+import { sinkFromEnv, makeTurnId } from "../territory/observe";
 import type { AssistantEvent, ClientMessage, ListingCard } from "./types";
 
 /** Lettore territoriale del turno: attivo solo a feature accesa (constraint 9: solo store, no provider). */
@@ -173,7 +174,7 @@ export async function* runAssistantTurn(
   const pending: AssistantEvent[] = [];
   const tools = createAssistantTools({
     listings,
-    ...(territory ? { territory } : {}),
+    ...(territory ? { territory, sink: sinkFromEnv(), turnId: makeTurnId() } : {}),
     pagePath: options.pagePath,
     emit: (event) => pending.push(event),
   });

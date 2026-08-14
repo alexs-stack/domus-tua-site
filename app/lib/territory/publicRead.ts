@@ -14,6 +14,7 @@ import { createTerritoryRepository } from "./store/config";
 import { readEnrichmentConfig } from "./config";
 import { isPublicSectionEnabled } from "./flags";
 import { normalizeMunicipality } from "./geo";
+import { sinkFromEnv } from "./observe";
 import type { PublicListingTerritory } from "./types";
 import type { PublicAreaProfile } from "./area/types";
 import type { KnowledgeLocale } from "./area/types";
@@ -58,7 +59,11 @@ export async function getPublicListingTerritory(slug: string): Promise<PublicLis
     ["territory-public-listing", slug],
     { tags: territoryCacheTags(slug), revalidate: 3600 },
   );
-  return cached(slug);
+  const result = await cached(slug);
+  // Impression della sezione pubblica: emessa SOLO quando c'è davvero qualcosa da mostrare. Solo il
+  // comune "grosso" (già pubblico), nessun identificativo utente, nessuna coordinata.
+  if (result) sinkFromEnv().emit({ kind: "public-impression", municipality: result.municipality });
+  return result;
 }
 
 /**

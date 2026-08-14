@@ -29,6 +29,8 @@
     "territory:provider-probe": "tsx scripts/territory/provider-probe.ts",
     "territory:ops-report": "tsx scripts/territory/ops-report.ts",
     "territory:pilot": "tsx scripts/territory/pilot.ts",
+    "territory:purge": "tsx scripts/territory/purge.ts",
+    "territory:zones": "tsx scripts/territory/zones.ts",
     "territory:sync": "tsx scripts/territory/sync.ts",
     "territory:report": "tsx scripts/territory/report.ts",
     "territory:export": "tsx scripts/territory/export.ts",

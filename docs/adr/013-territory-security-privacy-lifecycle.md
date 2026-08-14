@@ -91,6 +91,18 @@ admin — il limiter in-memory è best-effort per-istanza.
 → **DA CLIENTE/LEGALE:** aggiungere alla Privacy/Cookie Policy la voce "dati territoriali da
 OpenStreetMap (ODbL), elaborati server-side, nessun dato personale, nessun cookie".
 
+## Stato del CABLAGGIO (aggiornato dopo il Prompt 18)
+
+- La **ritenzione** è ora eseguibile: `TerritoryRepository.deleteListingEnrichment` esiste in tutti gli
+  adattatori scrivibili (il `json` di sola lettura rifiuta) e la CLI `npm run territory:purge` elenca i
+  candidati in **dry-run**, cancellando solo con `--confirm`. L'audit non viene mai toccato.
+- **Precisione di zona**: il feed dichiara la zona in `localita.zona`; la normalizzazione ora la
+  conserva (`NormalizedProperty.zoneName`) e un centroide di zona curato UNA volta copre tutti gli
+  annunci di quella zona (±500 m invece di ±2000 m), senza mappa codice→zona da mantenere.
+  La zona si usa **solo se il feed la dichiara**: non si rivela nulla che l'agenzia non pubblichi già.
+  **Misurato sul feed reale: 125 annunci nei comuni del pilota, 0 con `zona` valorizzata** → oggi il
+  meccanismo non si attiva. `npm run territory:zones` rende la cosa misurabile nel tempo.
+
 ## Approvazioni NON risolte (constraint acceptance — elencate, non indovinate)
 
 1. **DA LEGALE** — OSM ODbL: conferma *Produced Work* vs *Derived Database* per l'export di dataset.

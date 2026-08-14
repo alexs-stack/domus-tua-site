@@ -131,6 +131,10 @@ export class MemoryTerritoryRepository implements TerritoryRepository {
     this.listings.set(realSmartCode, { ...structuredClone(existing), status: "stale" });
   }
 
+  async deleteListingEnrichment(realSmartCode: string): Promise<boolean> {
+    return this.listings.delete(realSmartCode);
+  }
+
   async recordFailure(realSmartCode: string, failure: EnrichmentFailure): Promise<void> {
     const existing = this.listings.get(realSmartCode);
     if (!existing) {

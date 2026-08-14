@@ -39,7 +39,14 @@ export function createGetAreaProfile(ctx: ToolContext) {
       }
 
       const profilo = await ctx.territory.forMunicipality(normalizeMunicipality(comune));
+      ctx.sink?.emit({
+        kind: "assistant-tool",
+        tool: "get_area_profile",
+        hadTerritory: profilo !== null,
+        ...(ctx.turnId ? { turnId: ctx.turnId } : {}),
+      });
       if (!profilo) {
+        ctx.sink?.emit({ kind: "assistant-fallback", reason: "missing", scope: "area", ...(ctx.turnId ? { turnId: ctx.turnId } : {}) });
         return {
           esito: "non-disponibile",
           comune,

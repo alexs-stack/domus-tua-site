@@ -62,6 +62,10 @@ export class JsonTerritoryRepository implements TerritoryRepository {
     throw new TerritoryStorageError(READ_ONLY);
   }
 
+  async deleteListingEnrichment(): Promise<boolean> {
+    throw new TerritoryStorageError(READ_ONLY);
+  }
+
   async recordFailure(): Promise<void> {
     throw new TerritoryStorageError(READ_ONLY);
   }

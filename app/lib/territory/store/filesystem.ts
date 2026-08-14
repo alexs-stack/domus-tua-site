@@ -216,6 +216,13 @@ export class FilesystemTerritoryRepository implements TerritoryRepository {
     this.writeListings(map);
   }
 
+  async deleteListingEnrichment(realSmartCode: string): Promise<boolean> {
+    const map = this.readListings();
+    if (!map.delete(realSmartCode)) return false;
+    this.writeListings(map);
+    return true;
+  }
+
   async listMunicipalityProfiles(): Promise<MunicipalityTerritoryProfile[]> {
     return [...this.readProfiles().values()].sort((a, b) => (a.municipality < b.municipality ? -1 : 1));
   }
