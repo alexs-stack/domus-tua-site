@@ -32,18 +32,22 @@ const FIXTURE: PublicListingTerritory = {
   ],
 };
 
-// Descrizioni d'area DIMOSTRATIVE per Tradate: fatti verificabili (linea Saronno–Laveno, ospedale
-// Galmarini, Parco Pineta…), neutri e senza superlativi (passano il guard soggettivo), ognuno con la
-// fonte primaria e la data di verifica. È l'esempio di qualità "10/10" della sezione "La zona".
+// Descrizioni d'area DIMOSTRATIVE per Tradate.
+//
+// Ognuna è stata VERIFICATA contro la sua fonte, una affermazione alla volta, usando la checklist di
+// `area/claims.ts`. Il controllo ha trovato due errori miei: la linea ferroviaria (non è la S40, e
+// non c'è un diretto per Como San Giovanni) e i servizi comunali («in centro» univa due sedi che
+// stanno in vie diverse — anagrafe in piazza Mazzini, biblioteca in via Zara). Restano dimostrative:
+// prima della pubblicazione un revisore umano deve ri-verificarle sulle fonti correnti.
 const AREA_FIXTURE: PublicAreaProfile = {
   municipality: "tradate",
   facts: [
-    { category: "transport", scope: "municipality", text: "La stazione di Tradate è sulla linea Saronno–Laveno di Ferrovienord: i treni Trenord arrivano a Milano Cadorna passando da Saronno.", sourceOwner: "Ferrovienord / Trenord", sourceUrl: "https://www.ferrovienord.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
-    { category: "regional-connection", scope: "municipality", text: "La Varesina, la ex statale 233, attraversa Tradate e collega Varese a Milano.", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
-    { category: "municipal-service", scope: "municipality", text: "In centro a Tradate ci sono la biblioteca civica e gli uffici dell'anagrafe.", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
-    { category: "healthcare", scope: "municipality", text: "A Tradate c'è l'ospedale Galmarini, che fa parte dell'ASST dei Sette Laghi.", sourceOwner: "ASST Sette Laghi", sourceUrl: "https://www.asst-settelaghi.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
-    { category: "school", scope: "municipality", text: "A Tradate ci sono scuole di ogni grado, dall'infanzia alle superiori.", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
-    { category: "park-facility", scope: "municipality", text: "Il Parco Pineta di Appiano Gentile e Tradate è un parco regionale protetto di circa 4.800 ettari.", sourceOwner: "Parco Pineta / Regione Lombardia", sourceUrl: "https://www.parcopineta.org/", reviewedAt: "2026-08-10T00:00:00.000Z" },
+    { category: "transport", scope: "municipality", text: "La stazione di Tradate è sulla linea Saronno–Laveno di Ferrovienord: i treni Trenord arrivano a Milano Cadorna passando da Saronno.", sourceOwner: "Ferrovienord / Trenord", sourceUrl: "https://www.ferrovienord.it/", reviewedAt: "2026-08-14T00:00:00.000Z" },
+    { category: "regional-connection", scope: "municipality", text: "La Varesina, la ex statale 233, attraversa Tradate e collega Varese a Milano.", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-14T00:00:00.000Z" },
+    { category: "municipal-service", scope: "municipality", text: "Il Comune di Tradate ha gli uffici dell'anagrafe in piazza Mazzini; la biblioteca civica è in via Zara.", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-14T00:00:00.000Z" },
+    { category: "healthcare", scope: "municipality", text: "A Tradate c'è l'ospedale Galmarini, che fa parte dell'ASST dei Sette Laghi.", sourceOwner: "ASST Sette Laghi", sourceUrl: "https://www.asst-settelaghi.it/", reviewedAt: "2026-08-14T00:00:00.000Z" },
+    { category: "school", scope: "municipality", text: "A Tradate ci sono scuole di ogni grado, comprese le superiori dell'ISIS «Don Milani».", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-14T00:00:00.000Z" },
+    { category: "park-facility", scope: "municipality", text: "Il Parco Pineta di Appiano Gentile e Tradate è un parco regionale protetto di circa 4.800 ettari.", sourceOwner: "Parco Pineta / Regione Lombardia", sourceUrl: "https://www.parcopineta.org/", reviewedAt: "2026-08-14T00:00:00.000Z" },
   ],
 };
 

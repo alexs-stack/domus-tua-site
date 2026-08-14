@@ -296,7 +296,7 @@ describe("qualità editoriale: vero non basta, deve anche essere leggibile", () 
     const riscritti = [
       "La stazione di Tradate è sulla linea Saronno–Laveno di Ferrovienord: i treni Trenord arrivano a Milano Cadorna passando da Saronno.",
       "La Varesina, la ex statale 233, attraversa Tradate e collega Varese a Milano.",
-      "In centro a Tradate ci sono la biblioteca civica e gli uffici dell'anagrafe.",
+      "Il Comune di Tradate ha gli uffici dell'anagrafe in piazza Mazzini; la biblioteca civica è in via Zara.",
       "A Tradate c'è l'ospedale Galmarini, che fa parte dell'ASST dei Sette Laghi.",
       "Il Parco Pineta di Appiano Gentile e Tradate è un parco regionale protetto di circa 4.800 ettari.",
     ];
