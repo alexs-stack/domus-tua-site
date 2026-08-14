@@ -6,7 +6,9 @@
 // nel payload pubblico. Se non c'è nulla da mostrare ritorna null → la sezione si nasconde.
 
 import { TERRITORY_POI_CATEGORIES, type TerritoryPoiCategory } from "./categories";
+import { AREA_CATEGORY_LABEL_IT } from "./area/categories";
 import type { PublicListingTerritory, PublicOriginBasis } from "./types";
+import type { PublicAreaProfile } from "./area/types";
 
 export type TerritoryLocale = "it" | "en" | "fr" | "de" | "es";
 
@@ -211,6 +213,36 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
   },
 };
 
+// ─────────────────────────────────────────────────────────────
+// Descrizioni d'AREA (fatti verificati del comune/zona) — testo, non solo distanze
+// ─────────────────────────────────────────────────────────────
+
+/** Etichette della sezione "La zona": titolo, fonte, data di verifica. */
+const AREA_STRINGS: Record<TerritoryLocale, { title: string; sourcePrefix: string; reviewedPrefix: string }> = {
+  it: { title: "La zona in sintesi", sourcePrefix: "Fonte", reviewedPrefix: "verificato il" },
+  en: { title: "The area at a glance", sourcePrefix: "Source", reviewedPrefix: "verified on" },
+  fr: { title: "Le quartier en bref", sourcePrefix: "Source", reviewedPrefix: "vérifié le" },
+  de: { title: "Die Gegend auf einen Blick", sourcePrefix: "Quelle", reviewedPrefix: "geprüft am" },
+  es: { title: "La zona en breve", sourcePrefix: "Fuente", reviewedPrefix: "verificado el" },
+};
+
+export function areaSectionStrings(locale: TerritoryLocale) {
+  return AREA_STRINGS[locale] ?? AREA_STRINGS.it;
+}
+
+export interface AreaViewFact {
+  categoryLabel: string;
+  text: string;
+  sourceOwner: string;
+  sourceUrl?: string;
+  reviewedLabel: string;
+}
+
+export interface AreaView {
+  title: string;
+  facts: AreaViewFact[];
+}
+
 /** Formatta una distanza in metri, senza mai implicare percorribilità. */
 export function formatDistance(meters: number, locale: TerritoryLocale): string {
   if (meters < 1000) return `≈ ${Math.round(meters)} m`;
@@ -250,6 +282,27 @@ export function originModeOf(basis: PublicOriginBasis): TerritoryOriginMode {
     case "municipality-centroid":
       return "municipality";
   }
+}
+
+/**
+ * Costruisce la vista delle DESCRIZIONI D'AREA (fatti verificati del comune/zona) da un profilo
+ * pubblico già approvato/fresco/localizzato. Ogni fatto porta la fonte primaria e la data di verifica.
+ * Ritorna null se non c'è nulla di pubblicabile → la sezione "La zona" non compare.
+ */
+export function buildAreaView(profile: PublicAreaProfile | null | undefined, locale: TerritoryLocale): AreaView | null {
+  if (!profile || profile.facts.length === 0) return null;
+  const s = areaSectionStrings(locale);
+  const facts: AreaViewFact[] = profile.facts.map((f) => ({
+    categoryLabel: AREA_CATEGORY_LABEL_IT[f.category],
+    text: f.text,
+    sourceOwner: f.sourceOwner,
+    ...(f.sourceUrl ? { sourceUrl: f.sourceUrl } : {}),
+    reviewedLabel: (() => {
+      const d = formatUpdated(f.reviewedAt, locale);
+      return d ? `${s.reviewedPrefix} ${d}` : "";
+    })(),
+  }));
+  return { title: s.title, facts };
 }
 
 /** Data del dato in forma lunga localizzata (es. "13 agosto 2026"). */

@@ -6,7 +6,7 @@ import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyDetail from "./PropertyDetail";
 import { getVisibleListings, getVisibleListing } from "../../lib/listings";
 import { relatedListings } from "../../lib/related";
-import { getPublicListingTerritory } from "../../lib/territory/publicRead";
+import { getPublicListingTerritory, getPublicAreaProfileFor } from "../../lib/territory/publicRead";
 import { site, siteUrl, jsonLdScript } from "../../lib/site";
 
 export async function generateStaticParams() {
@@ -68,6 +68,9 @@ export default async function PropertyPage({
   // payload minimo (niente coordinate/storico). A feature spenta o senza dato approvato: null →
   // la sezione non entra nel DOM e non costa nulla al client. Nessuna chiamata a provider al render.
   const territory = await getPublicListingTerritory(p.slug);
+  // Descrizioni d'area del comune (fatti verificati), lette server-side e cacheate. Null in assenza
+  // di fatti approvati o a feature spenta → la sezione "La zona" non compare.
+  const area = await getPublicAreaProfileFor(p.zone);
 
   // Dati strutturati per l'immobile (schema.org).
   //
@@ -195,7 +198,7 @@ export default async function PropertyPage({
         dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
       <Header />
-      <PropertyDetail p={p} related={related} territory={territory} />
+      <PropertyDetail p={p} related={related} territory={territory} area={area} />
       <Footer />
       <WhatsAppFloat />
     </>

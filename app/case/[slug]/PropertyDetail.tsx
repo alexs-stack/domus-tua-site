@@ -27,6 +27,7 @@ import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 import type { Property } from "../../lib/properties";
 import type { PublicListingTerritory } from "../../lib/territory/types";
+import type { PublicAreaProfile } from "../../lib/territory/area/types";
 import { factApplies, type CoreFactKey } from "../../lib/propertyKind";
 import { useLocale } from "../../components/i18n/LocaleProvider";
 
@@ -250,10 +251,12 @@ export default function PropertyDetail({
   p,
   related,
   territory,
+  area,
 }: {
   p: Property;
   related?: Property[];
   territory?: PublicListingTerritory | null;
+  area?: PublicAreaProfile | null;
 }) {
   const { locale, d } = useLocale();
   const c = copy[locale];
@@ -631,9 +634,9 @@ export default function PropertyDetail({
         </div>
       </div>
 
-      {/* Vivere in zona: territorio APPROVATO letto server-side (payload minimo, niente coordinate).
-          Renderizzato SOLO se c'è dato: null → nessun componente, nessun chunk, zero costo. */}
-      {territory ? <VivereInZona territory={territory} /> : null}
+      {/* Vivere in zona: territorio + descrizioni d'area APPROVATI, letti server-side (niente
+          coordinate). Renderizzato SOLO se c'è almeno un dato: altrimenti nessun componente/chunk. */}
+      {territory || area ? <VivereInZona territory={territory} area={area} /> : null}
 
       {/* Related properties strip: solo se fornite via props (stessa sorgente). */}
       {relatedItems.length > 0 && (

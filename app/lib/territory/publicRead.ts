@@ -9,11 +9,14 @@
 
 import { unstable_cache } from "next/cache";
 import { toPublicListingTerritory } from "./public";
+import { getPublicAreaProfile } from "./area/data";
 import { createTerritoryRepository } from "./store/config";
 import { readEnrichmentConfig } from "./config";
 import { isPublicSectionEnabled } from "./flags";
 import { normalizeMunicipality } from "./geo";
 import type { PublicListingTerritory } from "./types";
+import type { PublicAreaProfile } from "./area/types";
+import type { KnowledgeLocale } from "./area/types";
 
 /** Tag di cache per un immobile e per il profilo del suo comune. Puro e testabile. */
 export function territoryCacheTags(realSmartCode: string, municipality?: string): string[] {
@@ -54,6 +57,24 @@ export async function getPublicListingTerritory(slug: string): Promise<PublicLis
     async (s: string) => readPublicTerritory(s),
     ["territory-public-listing", slug],
     { tags: territoryCacheTags(slug), revalidate: 3600 },
+  );
+  return cached(slug);
+}
+
+/**
+ * DESCRIZIONI d'area pubbliche del comune (fatti verificati), lette server-side e cacheate con il tag
+ * del profilo del comune. Null a feature spenta o senza fatti approvati. Nessuna coordinata.
+ */
+export async function getPublicAreaProfileFor(
+  municipality: string,
+  locale: KnowledgeLocale = "it",
+): Promise<PublicAreaProfile | null> {
+  if (!isPublicSectionEnabled()) return null;
+  const slug = normalizeMunicipality(municipality);
+  const cached = unstable_cache(
+    async (m: string) => getPublicAreaProfile(m, { now: new Date(), locale }),
+    ["territory-public-area", slug, locale],
+    { tags: ["territory", `territory:profile:${slug}`], revalidate: 3600 },
   );
   return cached(slug);
 }

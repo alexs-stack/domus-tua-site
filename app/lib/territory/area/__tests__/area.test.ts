@@ -10,6 +10,7 @@ import { toPublicAreaProfile, factsDueForReview, localizeFactText, isPublishable
 import { approvalBlockers, approveAreaFact, rejectAreaFact, AreaApprovalError } from "../validate";
 import { parseAreaFactsBundle, serializeAreaFacts, AREA_FACT_TEMPLATE } from "../importExport";
 import { getPublicAreaProfile } from "../data";
+import { buildAreaView } from "../../view";
 
 const NOW = new Date("2026-08-14T10:00:00.000Z");
 
@@ -164,6 +165,48 @@ describe("import/export", () => {
     const { zone: _zone, ...rest } = AREA_FACT_TEMPLATE;
     void _zone;
     assert.equal(AreaFactSchema.safeParse(rest).success, true);
+  });
+});
+
+describe("descrizioni d'area sulla pagina (buildAreaView) + qualità 10/10", () => {
+  // I 6 fatti dimostrativi di Tradate mostrati nella preview: devono essere FATTUALI e NEUTRI.
+  const TRADATE_FACTS: string[] = [
+    "La stazione di Tradate è servita dalla linea suburbana S40 di Trenord, con collegamenti diretti verso Milano Cadorna e Como San Giovanni.",
+    "Il territorio comunale è attraversato dalla ex strada statale 233 Varesina, direttrice storica tra Varese e Milano.",
+    "Nel centro cittadino hanno sede la biblioteca civica e gli sportelli anagrafici del Comune.",
+    "L'ospedale «Galmarini» di Tradate fa parte dell'ASST dei Sette Laghi.",
+    "A Tradate sono presenti scuole di ogni grado, dall'infanzia alla secondaria di secondo grado.",
+    "Il Parco Pineta di Appiano Gentile e Tradate è un'area naturale protetta regionale estesa su circa 4.800 ettari.",
+  ];
+
+  test("tutti i fatti dimostrativi passano il guard soggettivo (nessun giudizio, 10/10)", () => {
+    for (const t of TRADATE_FACTS) {
+      assert.deepEqual(findSubjectiveViolations(t), [], `fatto soggettivo: "${t}"`);
+    }
+  });
+
+  test("buildAreaView localizza categoria, fonte e data; coord-free", () => {
+    const profile = toPublicAreaProfile(
+      [
+        fact({ id: "t", category: "transport", text: TRADATE_FACTS[0] }),
+        fact({ id: "p", category: "park-facility", text: TRADATE_FACTS[5] }),
+      ],
+      { now: NOW, locale: "it", municipality: "tradate" },
+    );
+    const view = buildAreaView(profile, "it");
+    assert.ok(view);
+    assert.equal(view.title, "La zona in sintesi");
+    assert.equal(view.facts.length, 2);
+    assert.equal(view.facts[0].categoryLabel, "Trasporti");
+    assert.match(view.facts[0].reviewedLabel, /verificato il .*2026/);
+    assert.ok(view.facts[0].sourceOwner.length > 0);
+    const json = JSON.stringify(view);
+    for (const bad of ["lat", "lng", "coord", "45.7"]) assert.equal(json.includes(bad), false);
+  });
+
+  test("profilo vuoto/nullo → null (la sezione 'La zona' non compare)", () => {
+    assert.equal(buildAreaView(null, "it"), null);
+    assert.equal(buildAreaView({ municipality: "tradate", facts: [] }, "it"), null);
   });
 });
 

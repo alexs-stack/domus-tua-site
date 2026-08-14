@@ -13,9 +13,10 @@ import dynamic from "next/dynamic";
 
 import { useLocale } from "../../components/i18n/LocaleProvider";
 import { SegnoDomusDivider } from "../../components/BrandMotif";
-import { buildTerritoryView, type TerritoryLocale } from "../../lib/territory/view";
+import { buildTerritoryView, buildAreaView, type TerritoryLocale } from "../../lib/territory/view";
 import type { TerritoryPoiCategory } from "../../lib/territory/categories";
 import type { PublicListingTerritory } from "../../lib/territory/types";
+import type { PublicAreaProfile } from "../../lib/territory/area/types";
 
 // Code-split: il diagramma entra nel bundle solo quando l'utente lo apre. ssr:false → mai in SSR,
 // così il percorso "feature spenta / non aperto" non aggiunge JS client apprezzabile.
@@ -30,11 +31,14 @@ const TerritoryDistanceExplorer = dynamic(() => import("./TerritoryDistanceExplo
 
 export default function VivereInZona({
   territory,
+  area,
 }: {
   territory: PublicListingTerritory | null | undefined;
+  area?: PublicAreaProfile | null;
 }) {
   const { locale } = useLocale();
   const view = useMemo(() => buildTerritoryView(territory, locale as TerritoryLocale), [territory, locale]);
+  const areaView = useMemo(() => buildAreaView(area, locale as TerritoryLocale), [area, locale]);
 
   // Filtro categorie: null = tutte. Selezione multipla, a stato locale (nessun impatto SSR/SEO).
   const [selected, setSelected] = useState<TerritoryPoiCategory[] | null>(null);
@@ -45,8 +49,8 @@ export default function VivereInZona({
     return selected === null ? view.categories : view.categories.filter((c) => selected.includes(c.category));
   }, [view, selected]);
 
-  // Empty-state: nessun dato approvato/fresco → nessuna sezione.
-  if (!view) return null;
+  // Empty-state: né distanze né descrizioni d'area approvate → nessuna sezione.
+  if (!view && !areaView) return null;
 
   function toggle(category: TerritoryPoiCategory) {
     setSelected((prev) => {
@@ -57,6 +61,7 @@ export default function VivereInZona({
   }
 
   const isActive = (category: TerritoryPoiCategory) => selected === null || selected.includes(category);
+  const sectionTitle = view ? view.title : areaView!.title;
 
   return (
     <section aria-labelledby="vivere-in-zona-title" className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
@@ -66,15 +71,19 @@ export default function VivereInZona({
           id="vivere-in-zona-title"
           className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl"
         >
-          {view.title}
+          {sectionTitle}
         </h2>
         {/* Base d'origine ESPLICITA (mai "dall'immobile" per un centroide) + metodo (linea d'aria). */}
-        <p className="text-sm text-ink">{view.originLabel}</p>
-        <p className="text-sm text-graphite">
-          {view.contextLabel} · {view.methodLabel}
-        </p>
+        {view && <p className="text-sm text-ink">{view.originLabel}</p>}
+        {view && (
+          <p className="text-sm text-graphite">
+            {view.contextLabel} · {view.methodLabel}
+          </p>
+        )}
       </div>
 
+      {view && (
+      <>
       {/* Filtro per categoria: controlli semantici, aria-pressed, focus visibile, navigabili da tastiera. */}
       <div className="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label={view.explorer.filterLegend}>
         <button
@@ -162,6 +171,43 @@ export default function VivereInZona({
           {view.updatedLabel && view.attribution ? " · " : ""}
           {view.attribution}
         </p>
+      )}
+      </>
+      )}
+
+      {/* La zona in sintesi: DESCRIZIONI d'area verificate (fatti, non giudizi), ognuna con la fonte
+          primaria e la data di verifica. Nessuna coordinata, nessun superlativo (guard a monte). */}
+      {areaView && (
+        <div className={view ? "mt-14" : ""}>
+          {view && (
+            <h3 className="font-display text-xl font-medium tracking-tight text-ink sm:text-2xl">
+              {areaView.title}
+            </h3>
+          )}
+          <ul className="mt-6 flex flex-col gap-5">
+            {areaView.facts.map((f, i) => (
+              <li key={i} className="border-l-2 border-line pl-4">
+                <p className="text-[0.7rem] font-semibold uppercase tracking-wide text-graphite">{f.categoryLabel}</p>
+                <p className="mt-1 text-ink">{f.text}</p>
+                <p className="mt-1 text-xs text-graphite">
+                  {f.sourceUrl ? (
+                    <a
+                      href={f.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      className="underline decoration-line underline-offset-2 transition-colors hover:text-red"
+                    >
+                      {f.sourceOwner}
+                    </a>
+                  ) : (
+                    f.sourceOwner
+                  )}
+                  {f.reviewedLabel ? ` · ${f.reviewedLabel}` : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </section>
   );
