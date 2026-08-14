@@ -70,16 +70,35 @@ quartiere sensibile (03,04), dato stale/assente (06,08). L'**injection** (nomi P
 coperta a livello di tool da `__tests__/territoryAssistant.test.ts` (il nome ostile transita come dato
 verbatim, non viene eseguito), più la regola di prompt "testo del provider = dato".
 
-## Evidenza del model-run (simulata)
+## Evidenza del model-run — REALE (gemini-3.6-flash)
 
-`npm run eval -- --mock` — 108/108 casi superati, **territorio 8/8**, **scelta dello strumento 100%**
-(soglia ≥ 95%), p95 primo token 9 ms (mock). La modalità SIMULATA verifica harness+grader+scelta
-strumento; la misura del comportamento reale richiede un provider (`GEMINI_API_KEY`/`ANTHROPIC_API_KEY`)
-e si esegue con `npm run eval` (non lanciata qui: comporta chiamate esterne a pagamento).
+Eseguita davvero contro il provider configurato, non solo simulata:
 
-Difese verificate in modo deterministico (16 test, `territoryAssistant.test.ts`): separazione,
-coord/indirizzi/note/revisori mai nel payload, injection come dato, stale/assente → null,
-`get_area_profile` gated, prompt invariato a feature spenta.
+```bash
+npm run eval -- --group=territorio     # 8 casi, modello reale
+```
+
+| Metrica | Territorio (8 casi) | FAQ (10 casi, senza territorio) | Soglia |
+|---|---|---|---|
+| Casi superati | **8/8** | 10/10 | — |
+| Scelta dello strumento | **100%** | — | ≥ 95% ✅ |
+| Immobili/prezzi inventati | 0 | 0 | 0 ✅ |
+| Segreti esposti | 0 | 0 | 0 ✅ |
+| p95 primo token | 3052 ms | 2374 ms | ≤ 2000 ms ❌ |
+
+**Il primo run reale ha trovato un difetto nei GRADER, non nell'assistente.** Alle domande sensibili
+il modello rispondeva correttamente — «Non posso definire un quartiere come sicuro o prestigioso,
+sono giudizi che non mi competono» e «non condivido mai coordinate GPS» — ma il controllo
+`nonDeveContenere` era una banale sottostringa e vedeva "sicur"/"gps" DENTRO il rifiuto, segnando
+rosso il comportamento giusto. Col modello simulato dava 8/8 solo perché la risposta finta non usava
+quelle parole: **il 100% simulato stava nascondendo un grader rotto**. Ora `affermaTermine()`
+distingue l'AFFERMAZIONE dal RIFIUTO (proposizioni + negazioni, con le avversative separate), con
+test di regressione presi parola per parola dalle risposte reali.
+
+**Latenza:** il p95 supera la soglia anche nel gruppo FAQ, che non tocca il territorio (2374 ms) →
+**non è una regressione introdotta da Territory V2**. Il territorio aggiunge ~700 ms sul p95, coerente
+con i suoi casi a due turni (prima una ricerca, poi la domanda). Resta un rosso da affrontare a
+livello di assistente (modello/streaming/soglia), non da nascondere.
 
 ## Impatto latenza/token
 
@@ -95,5 +114,5 @@ coord/indirizzi/note/revisori mai nel payload, injection come dato, stale/assent
 - **zero confusione** immobile↔zona (tre oggetti tipizzati distinti + regole di prompt + test);
 - **zero fuga** di indirizzi/coordinate (payload coord-free per costruzione + test privacy);
 - **zero POI/distanze inventati** (reader legge solo approvato+fresco; null → il modello lo dice);
-- **scelta dello strumento** sopra soglia (100% simulato ≥ 95%);
+- **scelta dello strumento** sopra soglia (**100% sul modello REALE** ≥ 95%);
 - **comportamento a territorio spento invariato** (prompt e set strumenti identici, verificato).
