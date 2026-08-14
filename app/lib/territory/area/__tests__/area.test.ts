@@ -7,7 +7,8 @@ import assert from "node:assert/strict";
 import { AreaFactSchema, type AreaFact } from "../types";
 import { findSubjectiveViolations, isFactualText } from "../subjective";
 import { toPublicAreaProfile, factsDueForReview, localizeFactText, isPublishable } from "../public";
-import { approvalBlockers, approveAreaFact, rejectAreaFact, AreaApprovalError } from "../validate";
+import { approvalBlockers, approveAreaFact, rejectAreaFact, areaQualitySuggestions, AreaApprovalError } from "../validate";
+import { areaQualityHints, isWellWritten } from "../quality";
 import { parseAreaFactsBundle, serializeAreaFacts, AREA_FACT_TEMPLATE } from "../importExport";
 import { getPublicAreaProfile } from "../data";
 import { buildAreaView } from "../../view";
@@ -168,6 +169,48 @@ describe("import/export", () => {
     const { zone: _zone, ...rest } = AREA_FACT_TEMPLATE;
     void _zone;
     assert.equal(AreaFactSchema.safeParse(rest).success, true);
+  });
+});
+
+describe("qualità editoriale: vero non basta, deve anche essere leggibile", () => {
+  test("il burocratese viene segnalato con l'alternativa", () => {
+    const h = areaQualityHints("Nel centro cittadino hanno sede la biblioteca civica e gli sportelli anagrafici del Comune.");
+    assert.ok(h.some((x) => x.kind === "gergo" && /si trova/.test(x.message)));
+    assert.ok(h.some((x) => x.match === "sportelli"));
+  });
+
+  test("il registro da atto («il territorio comunale») viene segnalato", () => {
+    const h = areaQualityHints("Il territorio comunale è attraversato dalla ex strada statale 233.");
+    assert.ok(h.some((x) => /chi ci vive/.test(x.message)));
+  });
+
+  test("una frase senza dati concreti è segnalata come vaga", () => {
+    assert.ok(areaQualityHints("in zona ci sono diversi servizi utili").some((x) => x.kind === "vago"));
+  });
+
+  test("una frase troppo lunga viene segnalata", () => {
+    assert.ok(areaQualityHints("A Tradate c'è " + "un servizio pubblico molto articolato ".repeat(8)).some((x) => x.kind === "lungo"));
+  });
+
+  test("le versioni riscritte dei 5 fatti sono pulite", () => {
+    const riscritti = [
+      "Dalla stazione di Tradate la linea S40 di Trenord porta diretti a Milano Cadorna e a Como San Giovanni.",
+      "La Varesina, la ex statale 233, attraversa Tradate e collega Varese a Milano.",
+      "In centro a Tradate ci sono la biblioteca civica e gli uffici dell'anagrafe.",
+      "A Tradate c'è l'ospedale Galmarini, che fa parte dell'ASST dei Sette Laghi.",
+      "Il Parco Pineta di Appiano Gentile e Tradate è un parco regionale protetto di circa 4.800 ettari.",
+    ];
+    for (const t of riscritti) {
+      assert.deepEqual(areaQualityHints(t), [], `da migliorare: "${t}"`);
+      assert.equal(isWellWritten(t), true);
+      assert.deepEqual(findSubjectiveViolations(t), [], `soggettivo: "${t}"`);
+    }
+  });
+
+  test("i suggerimenti NON bloccano l'approvazione (la verità sì, lo stile no)", () => {
+    const brutto = fact({ status: "draft", text: "Nel centro cittadino hanno sede gli sportelli del Comune di Tradate." });
+    assert.ok(areaQualitySuggestions(brutto).length > 0, "ha suggerimenti di stile");
+    assert.deepEqual(approvalBlockers(brutto, NOW), [], "ma resta approvabile: è vero");
   });
 });
 

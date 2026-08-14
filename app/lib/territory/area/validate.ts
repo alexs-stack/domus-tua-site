@@ -1,7 +1,17 @@
 // Regole di APPROVABILITÀ di un fatto d'area (Prompt 9): cosa impedisce di approvarlo/pubblicarlo.
 
 import { findSubjectiveViolations } from "./subjective";
+import { areaQualityHints, type AreaQualityHint } from "./quality";
 import type { AreaFact } from "./types";
+
+/**
+ * SUGGERIMENTI di forma per il revisore (gergo, vaghezza, lunghezza). NON bloccano: un fatto vero
+ * scritto male resta vero. Servono a far uscire dalla review un testo che suona come il sito, non
+ * come una circolare. La verità la difendono `approvalBlockers` e il guard soggettivo.
+ */
+export function areaQualitySuggestions(fact: AreaFact): AreaQualityHint[] {
+  return areaQualityHints(fact.text);
+}
 
 export class AreaApprovalError extends Error {
   constructor(message: string) {
