@@ -111,4 +111,45 @@ describe("buildTerritoryView", () => {
     );
     assert.equal(withUrl?.categories[0].pois[0].sourceUrl, "https://www.openstreetmap.org/node/1");
   });
+
+  test("distanza numerica esposta accanto all'etichetta (per l'esploratore)", () => {
+    const view = buildTerritoryView(territory([poi({ category: "pharmacy", distanceMeters: 320 })]), "it");
+    assert.equal(view?.categories[0].pois[0].distanceMeters, 320);
+    assert.equal(view?.categories[0].pois[0].distanceLabel, "≈ 320 m");
+  });
+
+  test("modalità e stringhe esploratore presenti e localizzate", () => {
+    const view = buildTerritoryView(territory([poi({ category: "pharmacy" })]), "it");
+    assert.equal(view?.originMode, "municipality");
+    assert.equal(view?.explorer.reveal, "Esplora le distanze");
+    assert.equal(view?.explorer.centerLabel, "Tradate");
+  });
+});
+
+describe("modalità d'origine: property vs zone vs municipality", () => {
+  function withBasis(precision: PublicListingTerritory["originBasis"]["precision"], label: string): PublicListingTerritory {
+    return { ...territory([poi({ category: "pharmacy" })]), originBasis: { precision, label } };
+  }
+
+  test("property-coordinate → 'dall'immobile', centro 'Immobile'", () => {
+    const v = buildTerritoryView(withBasis("property-coordinate", "Via Roma 1"), "it");
+    assert.equal(v?.originMode, "property");
+    assert.equal(v?.originLabel, "Distanze indicative dall'immobile");
+    assert.equal(v?.explorer.centerLabel, "Immobile");
+  });
+
+  test("zone-centroid → 'dal centro della zona X'", () => {
+    const v = buildTerritoryView(withBasis("zone-centroid", "San Rocco"), "it");
+    assert.equal(v?.originMode, "zone");
+    assert.equal(v?.originLabel, "Distanze indicative dal centro della zona San Rocco");
+    assert.equal(v?.contextLabel, "Zona San Rocco");
+    assert.equal(v?.explorer.centerLabel, "Zona San Rocco");
+  });
+
+  test("municipality-centroid → 'dal centro di X' (mai dall'immobile)", () => {
+    const v = buildTerritoryView(withBasis("municipality-centroid", "Tradate"), "it");
+    assert.equal(v?.originMode, "municipality");
+    assert.equal(v?.originLabel, "Distanze indicative dal centro di Tradate");
+    assert.equal(v?.contextLabel, "Comune di Tradate");
+  });
 });
