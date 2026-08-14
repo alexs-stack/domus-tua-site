@@ -48,6 +48,9 @@ describe("/api/health — niente segreti", () => {
       "integrations.realsmart.runtime.lastFetch", // ISO 8601 o null
       "integrations.realsmart.runtime.lastAttempt", // ISO 8601
       "integrations.realsmart.release.verdict", // READY | BLOCKED | OVERRIDDEN
+      // Territorio (Prompt 14): SOLO lo stato aggregato è una stringa; tutto il resto è
+      // numeri/booleani. Enum pubblico, nessun nome di revisore né origine.
+      "territory.status", // ok | warning | critical | unknown
     ];
     for (const [key, value] of leaves(body)) {
       if (typeof value !== "string") continue;

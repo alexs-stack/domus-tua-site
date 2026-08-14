@@ -15,6 +15,45 @@ import {
 import { verifiedEntries } from "../../lib/assistant/knowledge/entries";
 import { SEMANTIC_FLOOR } from "../../lib/assistant/knowledge/semantic";
 import { soldMapSize } from "../../lib/realsmart/soldOverrides";
+import { createTerritoryRepository } from "../../lib/territory/store/config";
+import { computeTerritoryHealth } from "../../lib/territory/healthReport";
+import { readThresholds } from "../../lib/territory/thresholds";
+import { territoryFlagsSnapshot, isEnrichmentJobsEnabled, isPublicSectionEnabled } from "../../lib/territory/flags";
+import { readBudgets } from "../../lib/territory/budget";
+
+/**
+ * Blocco AGGREGATO di salute territoriale (Prompt 14): solo numeri, livelli ed enum. MAI nomi di
+ * revisori, origini precise o dettagli di fonte. Difensivo: un errore dello store non fa cadere health.
+ */
+async function territoryHealthBlock() {
+  const flags = territoryFlagsSnapshot();
+  const budgets = readBudgets();
+  try {
+    const repo = createTerritoryRepository();
+    const metadata = await repo.listEnrichmentMetadata();
+    const enablementActive = isEnrichmentJobsEnabled() || isPublicSectionEnabled();
+    const h = computeTerritoryHealth(metadata, { now: new Date(), thresholds: readThresholds(), enablementActive });
+    return {
+      flags,
+      killSwitch: budgets.killSwitch,
+      budgets: { poiMonthly: budgets.poiMonthly, geocodeMonthly: budgets.geocodeMonthly },
+      status: h.level,
+      counts: h.counts,
+      municipalitiesCovered: h.municipalitiesCovered,
+      staleCoverage: Math.round(h.staleCoverage * 100) / 100,
+      backlog: h.backlog,
+      oldestPendingHours: Math.round(h.oldestPendingHours),
+      providerErrorRate: Math.round(h.providerErrorRate * 100) / 100,
+      avgApprovalTurnaroundHours: h.avgApprovalTurnaroundHours === null ? null : Math.round(h.avgApprovalTurnaroundHours),
+      // Livelli per segnale come mappa nome→bool "in allerta": numeri/booleani, nessuna stringa
+      // che vari (il dettaglio testuale resta in computeTerritoryHealth per report e runbook).
+      alerts: Object.fromEntries(h.signals.map((s) => [s.name, s.level !== "ok"])),
+    };
+  } catch {
+    // Nessun dato leggibile: si espone comunque lo stato dei flag, senza rompere l'endpoint.
+    return { flags, killSwitch: budgets.killSwitch, budgets: { poiMonthly: budgets.poiMonthly, geocodeMonthly: budgets.geocodeMonthly }, status: "unknown" as const };
+  }
+}
 
 // Self-check runtime (server-only). Serve a verificare al volo lo stato dell'ambiente DOPO un
 // deploy su Vercel, senza aprire la dashboard: `curl https://<dominio>/api/health`.
@@ -40,6 +79,7 @@ export async function GET() {
   // freschezza e conteggio. Difensivo: un errore imprevisto non deve far cadere l'health.
   const runtime = await getListingsRuntimeStatus().catch(() => null);
   const soldMap = soldMapSize();
+  const territory = await territoryHealthBlock().catch(() => null);
 
   return NextResponse.json(
     {
@@ -183,6 +223,13 @@ export async function GET() {
         listingsMode: listings.mode,
         listingsFeedConfigured: listings.feedConfigured,
       },
+      /**
+       * Salute AGGREGATA del territorio (Prompt 14): stato ok/warning/critical, conteggi per stato,
+       * copertura, backlog, tasso d'errore, kill switch e budget. Solo numeri/enum: nessun nome di
+       * revisore, nessuna origine precisa, nessun dettaglio di fonte. Un operatore capisce se il
+       * territorio è sano senza aprire il database.
+       */
+      territory,
     },
     // Mai in cache: deve riflettere lo stato reale dell'ambiente a ogni chiamata.
     { headers: { "cache-control": "no-store" } },
