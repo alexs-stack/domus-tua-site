@@ -9,6 +9,7 @@ import { findSubjectiveViolations, isFactualText } from "../subjective";
 import { toPublicAreaProfile, factsDueForReview, localizeFactText, isPublishable } from "../public";
 import { approvalBlockers, approveAreaFact, rejectAreaFact, areaQualitySuggestions, AreaApprovalError } from "../validate";
 import { areaQualityHints, isWellWritten } from "../quality";
+import { extractClaims, claimsChecklist, hasVolatileClaim } from "../claims";
 import { parseAreaFactsBundle, serializeAreaFacts, AREA_FACT_TEMPLATE } from "../importExport";
 import { getPublicAreaProfile } from "../data";
 import { buildAreaView } from "../../view";
@@ -158,6 +159,16 @@ describe("import/export", () => {
     assert.equal(report.errors.length, 0);
     assert.ok(report.blockers.some((b) => b.id === "x"));
   });
+  test("l'import consegna al revisore COSA verificare, non solo cosa è rotto", () => {
+    const sbagliato = fact({ id: "s40", text: "Dalla stazione di Tradate la linea S40 di Trenord porta a Milano Cadorna." });
+    const report = parseAreaFactsBundle({ facts: [sbagliato] });
+    // Nessun blocker: è ben scritto e non giudica. È proprio il caso pericoloso.
+    assert.deepEqual(report.blockers, []);
+    const v = report.verification.find((x) => x.id === "s40")!;
+    assert.ok(v.checklist.join("\n").includes("S40"), "la sigla da verificare deve essere esplicita");
+    assert.equal(v.volatile, true, "una sigla di linea va ricontrollata a ogni revisione");
+  });
+
   test("serialize è deterministico (ordinato per id)", () => {
     const s1 = serializeAreaFacts([fact({ id: "b" }), fact({ id: "a" })]);
     const s2 = serializeAreaFacts([fact({ id: "a" }), fact({ id: "b" })]);
@@ -169,6 +180,54 @@ describe("import/export", () => {
     const { zone: _zone, ...rest } = AREA_FACT_TEMPLATE;
     void _zone;
     assert.equal(AreaFactSchema.safeParse(rest).success, true);
+  });
+});
+
+describe("scomposizione in affermazioni: ciò che il revisore deve spuntare", () => {
+  // LA FRASE SBAGLIATA VERA, scritta su questo repo e presentata come esemplare. Superava ogni
+  // guard ed era falsa due volte: Tradate non è sulla S40, e non c'è un diretto per Como San
+  // Giovanni. Serve da caso di prova permanente: la scomposizione deve far EMERGERE entrambi gli
+  // errori come domande separate, perché è l'unico modo in cui un umano li becca.
+  const SBAGLIATA = "Dalla stazione di Tradate la linea S40 di Trenord porta diretti a Milano Cadorna e a Como San Giovanni.";
+
+  test("gli errori reali diventano domande separate e verificabili", () => {
+    const domande = claimsChecklist(SBAGLIATA).join("\n");
+    assert.match(domande, /S40/, "la sigla sbagliata deve diventare una domanda a sé");
+    assert.match(domande, /Como San Giovanni/, "la destinazione sbagliata deve diventare una domanda a sé");
+    // Non è una frase sola da approvare a colpo d'occhio: sono più cose da controllare.
+    assert.ok(extractClaims(SBAGLIATA).length >= 4);
+  });
+
+  test("una sigla di linea è marcata VOLATILE (da ricontrollare a ogni revisione)", () => {
+    assert.equal(hasVolatileClaim(SBAGLIATA), true);
+    const sigla = extractClaims(SBAGLIATA).find((c) => c.kind === "designazione");
+    assert.equal(sigla?.value, "S40");
+    assert.equal(sigla?.volatile, true);
+  });
+
+  test("le quantità diventano una verifica sul numero", () => {
+    const c = extractClaims("Il Parco Pineta di Appiano Gentile e Tradate è un parco regionale protetto di circa 4.800 ettari.");
+    assert.ok(c.some((x) => x.kind === "quantità" && /4\.800/.test(x.value)));
+  });
+
+  test("gli enti vengono estratti senza l'articolo iniziale né frammenti di sigla", () => {
+    const valori = extractClaims("Il Parco Pineta di Appiano Gentile e Tradate è protetto.").map((c) => c.value);
+    assert.ok(valori.includes("Parco Pineta di Appiano Gentile"), JSON.stringify(valori));
+    assert.ok(!valori.some((v) => v.startsWith("Il ")), "l'articolo non fa parte del nome");
+    assert.ok(!valori.some((v) => v.length < 3), "niente frammenti di una lettera");
+  });
+
+  test("un testo senza dati verificabili lo dichiara invece di fingere una checklist", () => {
+    assert.match(claimsChecklist("in zona ci sono servizi").join(""), /nessun dato verificabile|più concreto/);
+  });
+
+  test("il fatto corretto produce una checklist coerente con la fonte", () => {
+    const domande = claimsChecklist("La stazione di Tradate è sulla linea Saronno–Laveno di Ferrovienord: i treni Trenord arrivano a Milano Cadorna passando da Saronno.").join("\n");
+    for (const atteso of ["Tradate", "Ferrovienord", "Trenord", "Milano Cadorna"]) {
+      assert.match(domande, new RegExp(atteso));
+    }
+    // Nessuna sigla di linea: niente da ricontrollare a ogni giro.
+    assert.equal(hasVolatileClaim("La stazione di Tradate è sulla linea Saronno–Laveno di Ferrovienord."), false);
   });
 });
 

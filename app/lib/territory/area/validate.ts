@@ -2,6 +2,7 @@
 
 import { findSubjectiveViolations } from "./subjective";
 import { areaQualityHints, type AreaQualityHint } from "./quality";
+import { claimsChecklist, hasVolatileClaim } from "./claims";
 import type { AreaFact } from "./types";
 
 /**
@@ -11,6 +12,20 @@ import type { AreaFact } from "./types";
  */
 export function areaQualitySuggestions(fact: AreaFact): AreaQualityHint[] {
   return areaQualityHints(fact.text);
+}
+
+/**
+ * Le AFFERMAZIONI da spuntare una per una contro la fonte, per questo fatto. Nessun controllo
+ * automatico può dire se sono vere: questa è la lista di ciò che l'umano deve guardare. Nata da un
+ * errore reale (una sigla di linea sbagliata sopravvissuta a tutti i guard) — vedi claims.ts.
+ */
+export function areaVerificationChecklist(fact: AreaFact): string[] {
+  return claimsChecklist(fact.text);
+}
+
+/** true se il fatto contiene dati che invecchiano in fretta (sigle di linea, numeri di servizio). */
+export function areaNeedsFrequentReview(fact: AreaFact): boolean {
+  return hasVolatileClaim(fact.text);
 }
 
 export class AreaApprovalError extends Error {

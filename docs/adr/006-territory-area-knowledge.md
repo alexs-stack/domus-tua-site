@@ -98,6 +98,30 @@ per le lingue diverse dall'italiano si mostrano SOLO i fatti con traduzione **ap
 resta nessuno la sezione non compare. Resta invariato il divieto di usare traduzioni non approvate.
 `localizeFactText` non cambia; il filtro è `hasApprovedText`. Reversibile: è un singolo predicato.
 
+## Il limite dei guard, e cosa ci si mette accanto
+
+**Nessun controllo deterministico sa se un'affermazione è VERA.** Lo si è imparato su questo
+repository, non in teoria: era stata scritta — e presentata come esemplare — la frase
+
+> «Dalla stazione di Tradate la linea **S40** di Trenord porta diretti a Milano Cadorna e a **Como
+> San Giovanni**.»
+
+Ha superato schema, guard soggettivo e controlli di stile: nessun giudizio, dati concreti, fonte
+citata, scritta bene. Era falsa due volte (Tradate non è sulla S40; non esiste un diretto per Como
+San Giovanni). Il difetto non era nei guard: `subjective.ts` guarda i giudizi, `quality.ts` il
+registro. La verità la può stabilire solo una persona con la fonte davanti.
+
+Quello che il codice PUÒ fare è rendere quel controllo facile invece che teorico: `claims.ts`
+scompone il testo nelle singole affermazioni e ne fa una **checklist** — sigle di linea, quantità,
+enti — una domanda per riga. Chi legge una frase scorrevole annuisce; chi ha davanti sei caselle ne
+controlla sei. Sulla frase sbagliata sarebbero emerse subito «la sigla è la S40?» e «arriva a Como
+San Giovanni?».
+
+Le sigle di linea e i numeri di servizio sono marcati **volatili**: non basta verificarli una volta,
+vanno ricontrollati a ogni revisione perché cambiano con i riassetti di orario. `parseAreaFactsBundle`
+restituisce per ogni fatto `verification { checklist, hints, volatile }`, così l'elenco arriva a chi
+approva insieme al bundle.
+
 ## Acceptance coperta
 
 - l'assistente può rispondere "com'è vivere a Tradate?" da fatti d'area approvati, senza inventare
