@@ -3,7 +3,9 @@
 // Obiettivo: rendere la cattura lead sicura e pulita prima di persistere sul Google Sheet.
 //  • Whitelist dei campi: tutto ciò che non è previsto viene SCARTATO (no injection nel foglio).
 //  • Cap di lunghezza per campo: taglia payload abnormi (difesa da abuso), non rompe input reali.
-//  • Intento tra quelli ammessi; nome e contatto obbligatori; consenso, se presente, = true.
+//  • Intento tra quelli ammessi; nome e contatto obbligatori; consenso privacy OBBLIGATORIO
+//    (= true, senza coercizioni): il form lo richiede a schermo, ma il confine di sicurezza è
+//    qui — una POST diretta che salta il form non deve poter aggirare l'informativa.
 //
 // Il flusso WhatsApp lato client NON passa da qui e resta invariato: questa validazione riguarda
 // solo il salvataggio server-side. Vedi docs/form-backend-next-step.md.
@@ -57,7 +59,8 @@ export interface ValidatedLead {
   role?: string;
   experience?: string;
   portfolio?: string;
-  consent?: boolean;
+  /** Sempre `true`: un lead validato porta con sé il consenso affermativo. Vedi validateLead. */
+  consent: true;
   // ── metadata ammessi (contesto, non PII sensibile) ──
   sourcePage?: string;
   propertySlug?: string;
@@ -124,15 +127,19 @@ export function validateLead(input: unknown): LeadValidationResult {
     return { ok: false, error: "missing-contact" };
   }
 
-  // Consenso: se PRESENTE nel payload deve essere true. Se assente, ammesso (lo enforce il form).
-  let consent: boolean | undefined;
-  if ("consent" in p) {
-    if (p.consent !== true) return { ok: false, error: "missing-consent" };
-    consent = true;
-  }
+  // Consenso privacy: OBBLIGATORIO e deve valere ESATTAMENTE `true`.
+  //
+  // Il server è il confine di sicurezza, non il form: la UI richiede la spunta, ma una POST
+  // diretta a /api/lead che salti il browser aggirerebbe l'informativa se ci accontentassimo
+  // di "consenso assente = ammesso". Un campo mancante viene quindi rifiutato esattamente come
+  // `false`. Nessuna coercizione: né la stringa "true", né valori truthy (1, "on") passano —
+  // solo il booleano `true`. Ogni intento gestito qui è una raccolta di dati personali che per
+  // legge richiede il consenso; non esistono chiamate lead/interne che debbano saltarlo (i bot
+  // vengono già fermati prima, dall'honeypot in /api/lead).
+  if (p.consent !== true) return { ok: false, error: "missing-consent" };
 
   // Costruzione whitelist: solo campi noti, ognuno troncato al proprio cap.
-  const lead: ValidatedLead = { intent, name };
+  const lead: ValidatedLead = { intent, name, consent: true };
   if (phoneRaw) lead.phone = phoneRaw;
   if (emailRaw) lead.email = emailRaw;
   if (contact) lead.contact = contact;
@@ -162,7 +169,6 @@ export function validateLead(input: unknown): LeadValidationResult {
   if (experience) lead.experience = experience;
   const portfolio = str(p.portfolio, MAX.portfolio);
   if (portfolio) lead.portfolio = portfolio;
-  if (consent !== undefined) lead.consent = consent;
 
   // Metadata ammessi (contesto): sourcePage, propertySlug, locale. Tutto il resto è scartato.
   const sourcePage = str(p.sourcePage, MAX.sourcePage);

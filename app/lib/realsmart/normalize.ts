@@ -2,7 +2,9 @@
 // (forma pulita usata dal sito). Funzione PURA e difensiva: nessun side effect, nessuna
 // eccezione su campi mancanti. Se il feed reale userà nomi diversi, si adatta qui la mappatura.
 
-import { normalizeDescription } from "./description";
+import { normalizeDescription, buildExcerpt } from "./description";
+import { redactParagraphs } from "./privacy";
+import { quarantineParagraphs } from "./placeholders";
 import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
 import { splitDescription } from "./descriptionSplit";
 import { getListingOverride } from "./overrides.data";
@@ -135,7 +137,9 @@ function deriveBadges(
   if (has("esclusiv")) badges.push("In esclusiva");
   if (has("virtual") || has("tour")) badges.push("Virtual tour");
   if (has("open domus")) badges.push("Open Domus");
-  if (has("document") && has("verific")) badges.push("Documenti verificati");
+  // NB: il badge "Documenti verificati" NON si deduce più dal testo di marketing (era
+  // has("document") && has("verific")): è un'affermazione sul singolo immobile e si abilita
+  // solo con evidenza esplicita (override docVerified), aggiunta in normalizeRealSmartListing.
 
   // Deduplica preservando l'ordine.
   return Array.from(new Set(badges));
@@ -192,10 +196,32 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // Override manuale approvato: è la fonte con priorità massima (vedi ./overrides.ts).
   const override = getListingOverride(raw.codice);
 
+  // Privacy-first: l'indirizzo civico si pubblica SOLO se un override lo autorizza. È una policy,
+  // decisa qui una volta e applicata a ogni output (testo compreso), non un dettaglio di rendering.
+  const showAddress = override?.mostraIndirizzo === true;
+
   // Descrizione: una sola normalizzazione, riusata da paragrafi, estratto ed estrazione fatti.
   // Se il cliente ci ha fornito un testo approvato, quello sostituisce integralmente il feed.
   const description = normalizeDescription(raw.descrizione);
-  const paragraphs = override?.descrizione ?? description.paragraphs;
+  const sourceParagraphs = override?.descrizione ?? description.paragraphs;
+
+  // REDAZIONE PRIVACY DETERMINISTICA (app/lib/realsmart/privacy.ts). Applicata PRIMA di estrarre
+  // fatti/estratto, così indirizzi civici (se showAddress=false) e telefoni non escono da nessun
+  // output pubblico. Il comune sostituisce l'indirizzo redatto, preservando il contesto di zona.
+  // `sourceAddress` è l'indirizzo strutturato del gestionale: alimenta il layer a più alta
+  // precisione (redazione dell'indirizzo NOTO e delle sue varianti), oltre al pattern generico.
+  const redactedParagraphs = redactParagraphs(sourceParagraphs, {
+    showAddress,
+    comune: town,
+    sourceAddress: addressRaw,
+  }).paragraphs;
+
+  // QUARANTENA SEGNAPOSTO (app/lib/realsmart/placeholders.ts). Un «____» non compilato non deve mai
+  // finire in pagina: si toglie la frase-misura incompleta (senza inventare la misura). Il segnale
+  // viaggia su `placeholderQuarantined` e fa fallire l'audit — la correzione vera è alla fonte/override.
+  const quarantine = quarantineParagraphs(redactedParagraphs);
+  const paragraphs = quarantine.paragraphs;
+  const placeholderQuarantined = quarantine.quarantined > 0;
 
   // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
   // Gli override manuali approvati si innestano davanti a tutto in ./overrides.ts.
@@ -222,6 +248,16 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // I fatti pubblicati decidono quali righe telegrafiche possono uscire dal testo.
   const split = splitDescription(paragraphs, facts);
 
+  // Evidenza esplicita del protocollo D.O.C. su QUESTO immobile: SOLO dall'override manuale
+  // (con fonte/data/autore), mai dedotta dal testo di marketing. Abilita l'affermazione
+  // "verificata" sulla scheda e il badge "Documenti verificati".
+  const docVerified = override?.docVerified === true;
+  const derivedBadges = deriveBadges(status, features, contract);
+  const verifiedBadges = docVerified ? [...derivedBadges, "Documenti verificati"] : derivedBadges;
+  const badges = raw.inEvidenza
+    ? Array.from(new Set(["In evidenza", ...verifiedBadges]))
+    : Array.from(new Set(verifiedBadges));
+
   const property: NormalizedProperty = {
     id: raw.codice,
     slug,
@@ -231,7 +267,15 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     structuredFactLines: split.structuredFactLines.map((l) => l.line),
     keptFactLines: split.keptFactLines,
     contentPreservation: split.contentPreservation,
-    excerpt: description.excerpt,
+    // true se una frase-segnaposto è stata messa in quarantena: l'audit lo trasforma in FAIL.
+    placeholderQuarantined,
+    // Estratto (card, meta description, JSON-LD): DERIVATO dal corpo GIÀ redatto (`paragraphs`),
+    // non dall'estratto del feed. Due conseguenze volute:
+    //   • se un override sostituisce il corpo, l'estratto nasce dal testo approvato — scheda e meta
+    //     description non mostrano più due testi diversi (era la incoerenza estratto/override);
+    //   • l'estratto è per costruzione un sottoinsieme del corpo redatto: non può contenere un
+    //     indirizzo/telefono che il corpo non contiene già.
+    excerpt: buildExcerpt(paragraphs),
     price,
     priceLabel,
     contract,
@@ -240,7 +284,9 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     province,
     address: addressRaw,
     // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
-    showAddress: override?.mostraIndirizzo === true,
+    // `showAddress` è la const decisa una volta sopra (riusata dalla redazione dei paragrafi/estratto).
+    showAddress,
+    docVerified,
     sqm: toNumber(raw.mq),
     rooms: toNumber(raw.locali),
     bedrooms: toNumber(raw.camere),
@@ -252,9 +298,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     factsReview: descriptionFacts.review,
     images,
     status,
-    badges: raw.inEvidenza
-      ? Array.from(new Set(["In evidenza", ...deriveBadges(status, features, contract)]))
-      : deriveBadges(status, features, contract),
+    badges,
     publishedAt: raw.dataPubblicazione?.trim() ?? "",
     updatedAt: raw.dataAggiornamento?.trim() ?? "",
     sourceRef: {

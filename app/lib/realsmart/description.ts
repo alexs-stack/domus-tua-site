@@ -298,7 +298,7 @@ const EXCERPT_TARGET = 150;
 const EXCERPT_HARD_LIMIT = 170;
 
 /** Estratto per frasi intere (mai tagliato a metà parola). */
-function buildExcerpt(paragraphs: readonly string[]): string {
+export function buildExcerpt(paragraphs: readonly string[]): string {
   const source = paragraphs.join(" ").trim();
   if (!source) return "";
 

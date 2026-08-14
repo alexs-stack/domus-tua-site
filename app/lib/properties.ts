@@ -40,6 +40,12 @@ export type Property = {
   sold?: boolean;
   /** Riferimento commerciale mostrato all'utente (es. "1043"), se fornito dal gestionale. */
   ref?: string;
+  /**
+   * true SOLO se un override attesta il protocollo Domus D.O.C. su questo immobile (mai dedotto
+   * dal marketing). Sblocca l'affermazione D.O.C. "verificata" sulla scheda. Assente/false →
+   * copy neutra (metodo). Vedi app/lib/domusDoc.ts.
+   */
+  docVerified?: boolean;
 };
 
 export const properties: Property[] = [
@@ -56,6 +62,8 @@ export const properties: Property[] = [
     beds: "3 camere",
     baths: "2 bagni",
     badges: ["In esclusiva", "Documenti verificati"],
+    // Demo: immobile con evidenza D.O.C. → mostra la variante "verificata" del blocco e il badge.
+    docVerified: true,
     cover: "/images/hero_02_attico_travi_living.jpg",
     gallery: [
       "/images/hero_02_attico_travi_living.jpg",
@@ -161,6 +169,7 @@ export const properties: Property[] = [
     beds: "1 camera",
     baths: "1 bagno",
     badges: ["Documenti verificati"],
+    docVerified: true,
     cover: "/images/rendering_01_living_divano_grigio.jpg",
     gallery: [
       "/images/rendering_01_living_divano_grigio.jpg",

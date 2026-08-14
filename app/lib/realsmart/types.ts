@@ -160,6 +160,8 @@ export interface NormalizedProperty {
   keptFactLines: FactLineOutcome[];
   /** Quota di parole conservate rispetto alla descrizione normalizzata (1 = nessuna rimozione). */
   contentPreservation: number;
+  /** true se una frase con segnaposto non compilato («____») è stata messa in quarantena. */
+  placeholderQuarantined: boolean;
   /** Estratto già pulito per card, meta description e JSON-LD. */
   excerpt: string;
   /** Prezzo numerico (0 se non disponibile / su richiesta). */
@@ -174,6 +176,12 @@ export interface NormalizedProperty {
   address?: string;
   /** True solo se un override manuale autorizza la pubblicazione dell'indirizzo civico. */
   showAddress: boolean;
+  /**
+   * True solo se un override manuale ATTESTA che il protocollo Domus D.O.C. è stato applicato a
+   * questo immobile. Mai dedotto da caratteristiche/descrizione. Abilita l'affermazione D.O.C.
+   * "verificata" e il badge "Documenti verificati" sul singolo immobile.
+   */
+  docVerified: boolean;
   /** Metri quadri (0 se ignoto). */
   sqm: number;
   /** Numero locali (0 se ignoto). */

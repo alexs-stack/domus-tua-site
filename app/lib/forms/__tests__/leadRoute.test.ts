@@ -69,8 +69,17 @@ describe("POST /api/lead", () => {
     assert.equal(b.error, "invalid-phone");
   });
 
-  test("senza consenso → 400 missing-consent", async () => {
+  test("consenso false → 400 missing-consent", async () => {
     const b = await json(await POST(post({ ...VALID, consent: false })));
+    assert.equal(b.error, "missing-consent");
+  });
+
+  test("consenso ASSENTE (POST diretta senza il campo) → 400 missing-consent", async () => {
+    const { consent: _omit, ...noConsent } = VALID;
+    void _omit;
+    const res = await POST(post(noConsent));
+    assert.equal(res.status, 400);
+    const b = await json(res);
     assert.equal(b.error, "missing-consent");
   });
 
