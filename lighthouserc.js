@@ -26,7 +26,9 @@ module.exports = {
         // cambierebbe il punteggio da sola, ed è il motivo per cui non se ne
         // aggancia un'altra a mano.
       ],
-      numberOfRuns: 1,
+      // Multi-run: Lighthouse CI riporta la MEDIANA di N esecuzioni per pagina (Prompt 15). Una
+      // sola misura ballerina non è un budget; la mediana di 3 lo è. Override con LHCI_RUNS.
+      numberOfRuns: Number(process.env.LHCI_RUNS ?? 3),
       startServerCommand: process.env.LHCI_URL ? undefined : `npx next start --port ${PORT}`,
       startServerReadyPattern: "Ready",
       startServerReadyTimeout: 120000,

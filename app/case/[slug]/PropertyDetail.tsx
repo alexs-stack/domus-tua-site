@@ -10,6 +10,12 @@ import { isAvailable } from "../../lib/availability";
 import { domusDocSafety } from "../../lib/domusDoc";
 import PropertyCard from "../../components/PropertyCard";
 import ListingsGrid from "../../components/ListingsGrid";
+import dynamic from "next/dynamic";
+
+// Code-split: "Vivere in zona" entra nel bundle SOLO quando c'è territorio approvato da mostrare.
+// A feature spenta (territory=null) non viene mai renderizzato → costo client effettivamente zero.
+// Nessun ssr:false: le card statiche restano nell'HTML server (constraint 5), solo l'esploratore è lazy.
+const VivereInZona = dynamic(() => import("./VivereInZona"));
 import Badge from "../../components/primitives/Badge";
 import Contact from "../../components/Contact";
 import DrawOnScroll from "../../components/motion/DrawOnScroll";
@@ -20,6 +26,7 @@ import { site } from "../../lib/site";
 import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 import type { Property } from "../../lib/properties";
+import type { PublicListingTerritory } from "../../lib/territory/types";
 import { factApplies, type CoreFactKey } from "../../lib/propertyKind";
 import { useLocale } from "../../components/i18n/LocaleProvider";
 
@@ -239,7 +246,15 @@ const copy = {
 // ⚠️ DATI DEMO / FIXTURE — `p` e `related` arrivano dalla facciata getVisibleListing/
 // getVisibleListings (oggi fixture demo, domani RealSmart). Qui nessun dato viene
 // inventato: la striscia "related" è opzionale e, se assente, mostra solo il link a /acquista.
-export default function PropertyDetail({ p, related }: { p: Property; related?: Property[] }) {
+export default function PropertyDetail({
+  p,
+  related,
+  territory,
+}: {
+  p: Property;
+  related?: Property[];
+  territory?: PublicListingTerritory | null;
+}) {
   const { locale, d } = useLocale();
   const c = copy[locale];
   // Blocco Domus D.O.C.: copy da FONTE UNICA (app/lib/domusDoc.ts). L'affermazione sul singolo
@@ -615,6 +630,10 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
           </div>
         </div>
       </div>
+
+      {/* Vivere in zona: territorio APPROVATO letto server-side (payload minimo, niente coordinate).
+          Renderizzato SOLO se c'è dato: null → nessun componente, nessun chunk, zero costo. */}
+      {territory ? <VivereInZona territory={territory} /> : null}
 
       {/* Related properties strip: solo se fornite via props (stessa sorgente). */}
       {relatedItems.length > 0 && (
