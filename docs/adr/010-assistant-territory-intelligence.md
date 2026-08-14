@@ -95,6 +95,32 @@ quelle parole: **il 100% simulato stava nascondendo un grader rotto**. Ora `affe
 distingue l'AFFERMAZIONE dal RIFIUTO (proposizioni + negazioni, con le avversative separate), con
 test di regressione presi parola per parola dalle risposte reali.
 
+### Corpus COMPLETO sul modello reale (108 casi)
+
+Eseguito `npm run eval` (senza filtri) contro `gemini-3.6-flash`: **106/108**.
+
+| Gruppo | Casi | Superati | | Gruppo | Casi | Superati |
+|---|---|---|---|---|---|---|
+| ricerca | 30 | 29 | | fuori-ambito | 10 | 10 |
+| follow-up | 15 | 15 | | sicurezza | 10 | **10** |
+| venditore | 10 | 9 | | territorio | 8 | **8** |
+| faq | 10 | 10 | | errore | 5 | 5 |
+| contatto | 10 | 10 | | | | |
+
+Soglie: immobili/prezzi inventati 0 ✅ · segreti 0 ✅ · venduti mostrati 0 ✅ · scelta strumento
+100% ✅ · FAQ 100% ✅ · fallback su guasto 100% ✅ · **p95 primo token 2777 ms ❌** (soglia 2000).
+
+I **9 casi con `nonDeveContenere` mai verificati sul modello reale** (4 in `sicurezza`, 2 in
+`fuori-ambito`, 2 in `venditore`, 1 in `ricerca`) ora passano: la correzione del grader regge anche
+dove il rifiuto è la risposta giusta. `sicurezza` 10/10 sul modello vero.
+
+**I 2 fallimenti NON sono riproducibili.** Ripetendo i due gruppi: `ricerca` 29/30 ma con un caso
+DIVERSO (ric-19), poi 30/30; `venditore` 10/10 due volte su due. Su ~150 esecuzioni di caso il tasso
+di fallimento è ~2%, concentrato su risposte al limite della regola di concisione — **variabilità del
+modello, non un difetto sistematico del prompt**. Toccare il prompt sulla base di una singola
+esecuzione sarebbe stato un errore: il criterio per intervenire è un caso che fallisce in modo
+RIPETIBILE, non una volta sola.
+
 **Latenza:** il p95 supera la soglia anche nel gruppo FAQ, che non tocca il territorio (2374 ms) →
 **non è una regressione introdotta da Territory V2**. Il territorio aggiunge ~700 ms sul p95, coerente
 con i suoi casi a due turni (prima una ricerca, poi la domanda). Resta un rosso da affrontare a
