@@ -41,7 +41,7 @@ export interface AreaClaim {
 const DESIGNAZIONE = /\b(?:[SR]E?\d{1,3}|SS\s?\d{1,3}|statale\s+\d{1,3})\b/gi;
 
 /** Quantità con eventuale unità. Richiede almeno una cifra. */
-const QUANTITA = /\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*(?:ettari|ettaro|metri|m|km|minuti|min|ore|abitanti|posti|%)?\b/gi;
+const QUANTITA = /\b\d+(?:[.\s]\d{3})*(?:,\d+)?\s*(?:ettari|ettaro|metri|km|minuti|min|ore|abitanti|posti|%)?\b/gi;
 
 /**
  * Sequenze con iniziale maiuscola (nomi propri), inclusi i composti con trattino/apostrofo:
@@ -49,11 +49,34 @@ const QUANTITA = /\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*(?:ettari|ettaro|metri|m|k
  */
 const ENTITA = /\p{Lu}[\p{L}'’]*(?:[\s–-]+(?:d[ei]l?|de|della|dei|delle)?\s*\p{Lu}[\p{L}'’]*)*/gu;
 
-/** Parole che iniziano una frase e non sono nomi propri: non vanno chieste come entità. */
-const APERTURE = new Set([
-  "la", "il", "lo", "le", "i", "gli", "un", "una", "uno", "nel", "nella", "dal", "dalla",
-  "a", "ad", "in", "di", "da", "per", "con", "su", "tra", "fra", "questo", "questa",
+/**
+ * Parole che possono comparire MAIUSCOLE a inizio frase senza essere nomi propri: articoli,
+ * preposizioni, ma anche verbi e participi che aprono tipicamente una frase descrittiva
+ * («Aperta dal lunedì…», «Ospita corsi serali»), più giorni e mesi.
+ *
+ * LIMITE DICHIARATO: è una lista, non un analizzatore grammaticale. Un nome proprio raro che apre
+ * una frase e non compare altrove può sfuggire, e un verbo non elencato può passare. La scelta è
+ * deliberata: un falso positivo («verifica «Aperta»») insegna al revisore a saltare la checklist, ed
+ * è il danno peggiore. Meglio una casella in meno che una casella assurda.
+ */
+export const NON_NOMI_PROPRI = new Set([
+  // articoli e preposizioni
+  "la", "il", "lo", "le", "i", "gli", "un", "una", "uno", "nel", "nella", "nei", "nelle",
+  "dal", "dalla", "dai", "dalle", "del", "della", "dei", "delle", "al", "alla", "ai", "alle",
+  "a", "ad", "in", "di", "da", "per", "con", "su", "tra", "fra", "questo", "questa", "questi",
+  // aperture verbali/avverbiali tipiche di una frase descrittiva
+  "aperta", "aperto", "chiusa", "chiuso", "ospita", "ospitano", "situato", "situata",
+  "presente", "presenti", "attivo", "attiva", "dotato", "dotata", "comprende", "include",
+  "offre", "offrono", "sorge", "sorgono", "si", "vi", "ci", "non", "ogni", "tutti", "tutte",
+  "durante", "oltre", "circa", "inoltre", "sono", "è", "e", "collega", "collegano",
+  // giorni e mesi
+  "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato", "domenica",
+  "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto",
+  "settembre", "ottobre", "novembre", "dicembre",
 ]);
+
+/** Alias storico interno. */
+const APERTURE = NON_NOMI_PROPRI;
 
 function dedupe(values: string[]): string[] {
   const seen = new Set<string>();
@@ -72,11 +95,17 @@ function dedupe(values: string[]): string[] {
  * «Parco Pineta») e scarta i frammenti troppo corti, come la «S» avanzata da una sigla già contata.
  */
 function normalizzaEntita(grezza: string): string | null {
-  const parole = grezza.trim().split(/\s+/);
+  // Articolo ELISO attaccato al nome: «L'ospedale», «Dell'ASST». Si toglie il prefisso e si giudica
+  // ciò che resta: se riparte in minuscolo è un nome comune, non un ente da verificare.
+  let testo = grezza.trim().replace(/^(?:[LDNSC]|Un|Al|Dal|Nel|Sull)['’]/u, "");
+  const parole = testo.split(/\s+/);
   while (parole.length > 1 && APERTURE.has(parole[0].toLowerCase())) parole.shift();
-  const pulita = parole.join(" ").trim();
-  if (pulita.length < 3) return null; // singole lettere/sigle spezzate: rumore, non affermazioni
-  return pulita;
+  testo = parole.join(" ").trim();
+  if (testo.length < 3) return null; // frammenti di sigla o lettere sciolte: rumore
+  if (!/^\p{Lu}/u.test(testo)) return null; // dopo l'elisione è un nome comune («ospedale»)
+  // Parola SINGOLA che è un'apertura tipica («Aperta», «Ospita», «Martedì»): non è un nome proprio.
+  if (parole.length === 1 && APERTURE.has(testo.toLowerCase())) return null;
+  return testo;
 }
 
 /**

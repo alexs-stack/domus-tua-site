@@ -231,6 +231,47 @@ describe("scomposizione in affermazioni: ciò che il revisore deve spuntare", ()
   });
 });
 
+describe("scomposizione: batteria avversariale (difetti trovati testando, non immaginando)", () => {
+  // Ognuno di questi casi ha ROTTO l'estrattore alla prima esecuzione. Restano qui perché un
+  // estrattore a espressioni regolari regredisce in silenzio: un falso positivo assurdo
+  // («verifica «Aperta»») insegna al revisore a saltare la checklist, ed è il danno peggiore.
+
+  test("un verbo a inizio frase non è un ente da verificare", () => {
+    const v = extractClaims("Aperta dal lunedì al sabato. Chiusa la domenica.").map((c) => c.value);
+    assert.deepEqual(v, [], `falsi positivi: ${JSON.stringify(v)}`);
+  });
+
+  test("un nome proprio a inizio frase invece SÌ (ed è anche un'ancora)", () => {
+    assert.deepEqual(extractClaims("Tradate ospita un mercato settimanale.").map((c) => c.value), ["Tradate"]);
+    // Regressione: veniva giudicata «vaga» perché l'ancora era la prima parola.
+    assert.deepEqual(areaQualityHints("Tradate ospita un mercato settimanale."), []);
+  });
+
+  test("l'articolo eliso non fa diventare ente un nome comune", () => {
+    const v = extractClaims("L'ospedale è gestito dall'ASST dei Sette Laghi.").map((c) => c.value);
+    assert.deepEqual(v, ["ASST dei Sette Laghi"], JSON.stringify(v));
+  });
+
+  test("un anno viene estratto come quantità verificabile", () => {
+    const c = extractClaims("Nel 2024 è stata inaugurata la palestra comunale.");
+    assert.ok(c.some((x) => x.kind === "quantità" && x.value === "2024"), JSON.stringify(c));
+  });
+
+  test("un giorno della settimana maiuscolo non è un ente", () => {
+    assert.deepEqual(extractClaims("Il mercato si tiene ogni Martedì.").map((c) => c.value), []);
+  });
+
+  test("una seconda frase che apre con un verbo non inventa enti", () => {
+    assert.deepEqual(extractClaims("La biblioteca è in centro. Ospita corsi serali.").map((c) => c.value), []);
+  });
+
+  test("sigla e località convivono senza confondersi", () => {
+    const c = extractClaims("La linea RE5 collega Varese a Milano.");
+    assert.equal(c.find((x) => x.kind === "designazione")?.value, "RE5");
+    assert.deepEqual(c.filter((x) => x.kind === "entità").map((x) => x.value), ["Varese", "Milano"]);
+  });
+});
+
 describe("qualità editoriale: vero non basta, deve anche essere leggibile", () => {
   test("il burocratese viene segnalato con l'alternativa", () => {
     const h = areaQualityHints("Nel centro cittadino hanno sede la biblioteca civica e gli sportelli anagrafici del Comune.");

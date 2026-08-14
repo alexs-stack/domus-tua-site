@@ -10,6 +10,8 @@
 // consiglia. Compaiono nel pacchetto di review accanto al fatto, così chi approva vede subito
 // cosa migliorare senza doverlo intuire.
 
+import { NON_NOMI_PROPRI } from "./claims";
+
 /** Gergo burocratico → come lo direbbe una persona. Le chiavi sono in minuscolo. */
 const BUROCRATESE: Array<{ pattern: RegExp; suggerimento: string }> = [
   { pattern: /\bhanno sede\b|\bha sede\b/i, suggerimento: "«ha sede» → «si trova», «è in»" },
@@ -48,9 +50,14 @@ const MAX_CHARS = 200;
  */
 function haAncora(testo: string): boolean {
   if (/\d/.test(testo)) return true;
-  // Nome proprio: una maiuscola non a inizio frase (esclusi i mesi/articoli comuni a inizio).
-  const parole = testo.split(/\s+/).slice(1);
-  return parole.some((p) => /^[«"']?\p{Lu}\p{L}+/u.test(p));
+  // Nome proprio ovunque, PRIMA PAROLA COMPRESA: «Tradate ospita un mercato» ha un'ancora, e
+  // giudicarla vaga era un falso positivo. Le aperture tipiche («Aperta…», «Ospita…») non contano:
+  // stessa lista usata dalla scomposizione in affermazioni, così i due controlli non si contraddicono.
+  return testo.split(/\s+/).some((p) => {
+    const parola = p.replace(/^[«"'(]+/u, "").replace(/[.,;:!?»")]+$/u, "");
+    if (!/^\p{Lu}\p{L}+/u.test(parola)) return false;
+    return !NON_NOMI_PROPRI.has(parola.toLowerCase());
+  });
 }
 
 /**
