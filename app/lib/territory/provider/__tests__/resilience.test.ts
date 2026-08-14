@@ -159,8 +159,9 @@ describe("Difesa dei nomi (controlli/HTML/prompt-injection)", () => {
 
 describe("Circuit breaker con rotazione fra endpoint", () => {
   test("il primo endpoint fallisce e si apre; ruota sul secondo che risponde", async () => {
-    const A = "https://a.example/api/interpreter";
-    const B = "https://b.example/api/interpreter";
+    // Host reali in allowlist: la politica SSRF scarta gli host non approvati.
+    const A = "https://overpass-api.de/api/interpreter";
+    const B = "https://overpass.kumi.systems/api/interpreter";
     const calls: string[] = [];
     const impl = (async (url: string) => {
       calls.push(url);

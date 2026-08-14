@@ -5,8 +5,10 @@ import assert from "node:assert/strict";
 
 import { OverpassEndpointPool } from "../endpoints";
 
-const A = "https://a.example/api/interpreter";
-const B = "https://b.example/api/interpreter";
+// Host REALI in allowlist (la politica SSRF scarta gli host non approvati): qui contano le meccaniche
+// del circuito, non l'allowlist.
+const A = "https://overpass-api.de/api/interpreter";
+const B = "https://overpass.kumi.systems/api/interpreter";
 
 /** Orologio mutabile per pilotare il cooldown. */
 function clock(startMs: number) {

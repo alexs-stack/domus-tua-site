@@ -44,6 +44,8 @@ export type RateLimitResult =
 const TEN_MIN = 10 * 60 * 1000;
 export const SEARCH_LIMIT: RateLimitConfig = { limit: 20, windowMs: TEN_MIN };
 export const LEAD_LIMIT: RateLimitConfig = { limit: 8, windowMs: TEN_MIN };
+/** Cron/admin territoriale: pochi tick leciti in 10 minuti — argine se il segreto trapelasse. */
+export const TERRITORY_CRON_LIMIT: RateLimitConfig = { limit: 6, windowMs: TEN_MIN };
 
 /** Rimuove le chiavi ormai vuote/scadute quando la Map cresce troppo. */
 function sweep(now: number, windowMs: number): void {

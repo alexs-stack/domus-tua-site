@@ -252,6 +252,8 @@ export const TerritoryAuditActionSchema = z.enum([
   "note",
   "authorize-origin",
   "revoke-origin",
+  "geocode", // geocodifica di un indirizzo pubblico approvato (traccia della chiamata)
+  "withdraw", // immobile ritirato/venduto/eliminato: territorio disabilitato + origine ridotta
   "import",
 ]);
 export type TerritoryAuditAction = z.infer<typeof TerritoryAuditActionSchema>;

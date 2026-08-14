@@ -1,3 +1,5 @@
+import { filterSafeEndpoints } from "../endpointPolicy";
+
 // Pool di endpoint Overpass APPROVATI con circuit breaker e health scoring (Prompt 11).
 //
 // Overpass è servito da più istanze pubbliche. Regola di cittadinanza (constraint 3): NON sparare
@@ -58,8 +60,17 @@ export class OverpassEndpointPool {
   private readonly now: () => Date;
 
   constructor(endpoints: readonly string[] = DEFAULT_OVERPASS_ENDPOINTS, options: EndpointPoolOptions = {}) {
-    const unique = [...new Set(endpoints)].filter((e) => e.trim().length > 0);
-    if (unique.length === 0) throw new Error("OverpassEndpointPool: nessun endpoint approvato configurato.");
+    const nonEmpty = [...new Set(endpoints)].filter((e) => e.trim().length > 0);
+    // Difesa SSRF (Prompt 16): scarta gli endpoint non sicuri (non-HTTPS, host non in allowlist, IP
+    // privato/loopback/link-local). Un endpoint iniettato verso la rete interna non entra nel pool.
+    const unique = filterSafeEndpoints(nonEmpty);
+    if (unique.length === 0) {
+      throw new Error(
+        nonEmpty.length === 0
+          ? "OverpassEndpointPool: nessun endpoint approvato configurato."
+          : "OverpassEndpointPool: nessun endpoint SICURO (host non in allowlist o rete privata).",
+      );
+    }
     this.order = unique;
     this.failureThreshold = Math.max(1, options.failureThreshold ?? 4);
     this.cooldownMs = Math.max(0, options.cooldownMs ?? 60_000);

@@ -15,6 +15,7 @@
 
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
+import { rateLimit, clientIp, TERRITORY_CRON_LIMIT } from "../../../lib/security/rateLimit";
 import { getLiveListings } from "../../../lib/realsmart/client";
 import { readEnrichmentConfig } from "../../../lib/territory/config";
 import { createTerritoryRepository } from "../../../lib/territory/store/config";
@@ -50,6 +51,16 @@ export async function GET(req: Request) {
   // 2. Autenticazione dello scheduler (confronto a tempo costante).
   if (!tokenMatches(req.headers.get("authorization"), secret)) {
     return NextResponse.json({ ok: false, error: "non autorizzato" }, { status: 401 });
+  }
+
+  // 2b. Rate limit (best-effort in-memory): un tick legittimo è raro; molti in 10 minuti sono abuso
+  //     (segreto trapelato). In produzione multi-istanza usare il limiter condiviso.
+  const rl = rateLimit(`territory-cron:${clientIp(req)}`, TERRITORY_CRON_LIMIT);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { ok: false, error: "rate-limited" },
+      { status: 429, headers: { "retry-after": String(rl.retryAfterSeconds) } },
+    );
   }
 
   // 3. Feature flag: spento di default in produzione.

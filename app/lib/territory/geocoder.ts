@@ -10,6 +10,7 @@
 // (Nominatim/OpenStreetMap) resta DISABILITATO finché non è configurato esplicitamente.
 
 import type { GeoCoord } from "./geo";
+import { isSafeEndpoint, UnsafeEndpointError } from "./endpointPolicy";
 
 export type GeocoderProvider = "manual" | "nominatim" | "fake";
 
@@ -91,6 +92,11 @@ export function createNominatimGeocoder(env: {
         );
       }
       const base = env.baseUrl ?? "https://nominatim.openstreetmap.org";
+      // Difesa SSRF (Prompt 16): il baseUrl configurato deve essere HTTPS, host in allowlist, mai una
+      // rete interna. Un endpoint iniettato verso 169.254.169.254 o localhost viene rifiutato QUI.
+      if (!isSafeEndpoint(`${base}/search`)) {
+        throw new UnsafeEndpointError(base, "baseUrl del geocoder non in allowlist o rete privata");
+      }
       const q = encodeURIComponent(`${address}, ${municipality}, Italia`);
       const res = await fetch(`${base}/search?format=jsonv2&limit=1&q=${q}`, {
         headers: { "User-Agent": env.userAgent!, "Accept-Language": "it" },
