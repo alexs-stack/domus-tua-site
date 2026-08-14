@@ -5,6 +5,7 @@
 // Deterministico dato `now`: la stessa istantanea produce lo stesso stato.
 
 import type { EnrichmentMetadata } from "./store/repository";
+import type { TerritoryAuditEvent } from "./types";
 import {
   classifyAscending,
   worst,
@@ -41,6 +42,43 @@ export interface HealthOptions {
   thresholds: TerritoryThresholds;
   /** true se la feature è stata ABILITATA: allora "zero approvati" è critico. */
   enablementActive: boolean;
+  /**
+   * Eventi di audit, per calcolare il turnaround di approvazione REALE (comparsa del record →
+   * evento `approve`) invece di un'approssimazione. Se assenti, il turnaround resta `null`:
+   * meglio "non misurato" che un numero che non significa ciò che dichiara.
+   */
+  auditEvents?: readonly TerritoryAuditEvent[];
+}
+
+/**
+ * Turnaround di approvazione REALE, in ore: per ogni immobile approvato, distanza fra il PRIMO
+ * evento che lo riguarda (creazione/refresh della bozza) e il suo evento `approve`. Solo coppie
+ * complete; nessuna coppia → null (non misurato).
+ */
+function approvalTurnaroundHours(events: readonly TerritoryAuditEvent[]): number | null {
+  const first = new Map<string, number>();
+  const approved = new Map<string, number>();
+  for (const e of events) {
+    const code = e.realSmartCode;
+    if (!code) continue;
+    const at = Date.parse(e.at);
+    if (Number.isNaN(at)) continue;
+    const prev = first.get(code);
+    if (prev === undefined || at < prev) first.set(code, at);
+    if (e.action === "approve") {
+      const prevOk = approved.get(code);
+      // Prima approvazione: è quella che misura l'attesa iniziale della review.
+      if (prevOk === undefined || at < prevOk) approved.set(code, at);
+    }
+  }
+  const durations: number[] = [];
+  for (const [code, okAt] of approved) {
+    const start = first.get(code);
+    if (start === undefined || okAt < start) continue;
+    durations.push((okAt - start) / HOUR_MS);
+  }
+  if (durations.length === 0) return null;
+  return durations.reduce((a, b) => a + b, 0) / durations.length;
 }
 
 function ageHours(iso: string, now: Date): number {
@@ -60,16 +98,10 @@ export function computeTerritoryHealth(
   const counts = { draft: 0, approved: 0, stale: 0, failed: 0, disabled: 0, total: metadata.length };
   const coveredMunicipalities = new Set<string>();
   const pendingAges: number[] = []; // draft + failed in attesa di intervento
-  const turnaroundHours: number[] = [];
 
   for (const m of metadata) {
     if (m.status in counts) (counts as Record<string, number>)[m.status] += 1;
-    if (m.status === "approved") {
-      coveredMunicipalities.add(m.municipality);
-      // Proxy di turnaround: dal recupero del dato all'ultima scrittura (l'approvazione).
-      const t = ageHours(m.retrievedAt, options.now) - ageHours(m.updatedAt, options.now);
-      if (t >= 0) turnaroundHours.push(t);
-    }
+    if (m.status === "approved") coveredMunicipalities.add(m.municipality);
     if (m.status === "draft" || m.status === "failed") pendingAges.push(ageHours(m.updatedAt, options.now));
   }
 
@@ -78,8 +110,8 @@ export function computeTerritoryHealth(
   const backlog = counts.draft + counts.failed;
   const oldestPendingHours = pendingAges.length > 0 ? Math.max(...pendingAges) : 0;
   const providerErrorRate = counts.total > 0 ? counts.failed / counts.total : 0;
-  const avgApprovalTurnaroundHours =
-    turnaroundHours.length > 0 ? turnaroundHours.reduce((a, b) => a + b, 0) / turnaroundHours.length : null;
+  // Turnaround dalla STORIA reale (audit), non da un'approssimazione sui timestamp del record.
+  const avgApprovalTurnaroundHours = options.auditEvents ? approvalTurnaroundHours(options.auditEvents) : null;
   const zeroApprovedAfterEnablement = options.enablementActive && counts.approved === 0;
 
   const t = options.thresholds;

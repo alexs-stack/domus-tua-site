@@ -32,7 +32,14 @@ async function territoryHealthBlock() {
     const repo = createTerritoryRepository();
     const metadata = await repo.listEnrichmentMetadata();
     const enablementActive = isEnrichmentJobsEnabled() || isPublicSectionEnabled();
-    const h = computeTerritoryHealth(metadata, { now: new Date(), thresholds: readThresholds(), enablementActive });
+    // L'audit serve al turnaround REALE di approvazione (comparsa della bozza → evento approve).
+    const auditEvents = await repo.listAuditEvents({}).catch(() => []);
+    const h = computeTerritoryHealth(metadata, {
+      now: new Date(),
+      thresholds: readThresholds(),
+      enablementActive,
+      auditEvents,
+    });
     return {
       flags,
       killSwitch: budgets.killSwitch,

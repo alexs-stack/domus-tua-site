@@ -5,6 +5,8 @@
 // non finisce nella sitemap, non è indicizzabile.
 
 import { notFound } from "next/navigation";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 import VivereInZona from "../case/[slug]/VivereInZona";
 import type { PublicListingTerritory } from "../lib/territory/types";
 import type { PublicAreaProfile } from "../lib/territory/area/types";
@@ -45,11 +47,27 @@ const AREA_FIXTURE: PublicAreaProfile = {
   ],
 };
 
+/**
+ * Visibile in sviluppo e, in un build di produzione, SOLO con `TERRITORY_PREVIEW=1` esplicito —
+ * è così che la suite E2E può misurarla su un build vero. I deploy di produzione non impostano
+ * mai quella variabile: lì la route resta 404 (e comunque `noindex`).
+ */
+function previewAllowed(): boolean {
+  if (process.env.TERRITORY_PREVIEW === "1") return true;
+  return process.env.NODE_ENV !== "production";
+}
+
 export default function TerritoryPreviewPage() {
-  if (process.env.NODE_ENV === "production") notFound();
+  if (!previewAllowed()) notFound();
+  // Header/Footer reali: l'anteprima deve somigliare a una pagina vera, non a un frammento —
+  // è anche la condizione perché la suite E2E misuri la sezione nel suo contesto (chrome inclusa).
   return (
-    <main className="py-16">
-      <VivereInZona territory={FIXTURE} area={AREA_FIXTURE} />
-    </main>
+    <>
+      <Header />
+      <main id="main" className="py-16">
+        <VivereInZona territory={FIXTURE} area={AREA_FIXTURE} />
+      </main>
+      <Footer />
+    </>
   );
 }

@@ -114,6 +114,32 @@ describe("salute aggregata contro le soglie", () => {
     assert.equal(h.signals.find((s) => s.name === "oldest-pending-hours")?.level, "critical");
   });
 
+  test("turnaround di approvazione calcolato dall'AUDIT (non da un proxy sui timestamp)", () => {
+    // Bozza comparsa alle 10:00, approvata alle 16:00 → 6 ore, indipendentemente da updatedAt.
+    const auditEvents: TerritoryAuditEvent[] = [
+      { id: "1", at: "2026-08-13T10:00:00.000Z", action: "refresh", actor: "cron", realSmartCode: "a" },
+      { id: "2", at: "2026-08-13T16:00:00.000Z", action: "approve", actor: "raffaela", realSmartCode: "a" },
+      // Un record mai approvato non entra nella media.
+      { id: "3", at: "2026-08-13T10:00:00.000Z", action: "refresh", actor: "cron", realSmartCode: "b" },
+    ];
+    const h = computeTerritoryHealth([meta({ realSmartCode: "a", status: "approved" })], {
+      now: NOW,
+      thresholds: t,
+      enablementActive: true,
+      auditEvents,
+    });
+    assert.equal(h.avgApprovalTurnaroundHours, 6);
+  });
+
+  test("senza audit il turnaround è null (non misurato), mai un numero inventato", () => {
+    const h = computeTerritoryHealth([meta({ realSmartCode: "a", status: "approved" })], {
+      now: NOW,
+      thresholds: t,
+      enablementActive: true,
+    });
+    assert.equal(h.avgApprovalTurnaroundHours, null);
+  });
+
   test("nessuna coordinata/PII nell'output di salute", () => {
     const h = computeTerritoryHealth([meta({ realSmartCode: "f", status: "approved" })], { now: NOW, thresholds: t, enablementActive: true });
     const json = JSON.stringify(h);

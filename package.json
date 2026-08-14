@@ -18,6 +18,7 @@
     "eval:search": "node --import tsx scripts/eval-search.ts",
     "calibrate:semantic": "node --import tsx scripts/calibrate-semantic.ts",
     "e2e:assistant": "playwright test --config playwright.assistant.config.ts",
+    "e2e:territory": "playwright test --config playwright.territory.config.ts",
     "test:e2e": "playwright test --config=playwright.site.config.ts",
     "test:e2e:live": "playwright test --config=playwright.live.config.ts",
     "perf:report": "tsx scripts/perf-report.ts",

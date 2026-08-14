@@ -19,6 +19,16 @@ import { buildEvalTerritoryReader } from "../app/lib/assistant/__evals__/territo
 
 const usaMock = process.argv.includes("--mock") || !assistantAiEnabled;
 
+/**
+ * Filtro per GRUPPO: `npm run eval -- --group=territorio` esegue solo quel gruppo. Serve a misurare
+ * sul modello REALE una parte specifica senza pagare l'intero corpus — utile quando si tocca il
+ * prompt di un'area sola (es. le regole territoriali).
+ */
+const gruppoFiltro = process.argv
+  .find((a) => a.startsWith("--group="))
+  ?.split("=")[1]
+  ?.trim();
+
 /** Soglie del programma. */
 const SOGLIE = {
   toolSelection: 0.95,
@@ -54,12 +64,23 @@ async function main() {
   );
 
   const risultati: EvalResult[] = [];
+  // Filtro di gruppo (opzionale): misurare una sola area sul modello reale costa molto meno.
+  const casiDaEseguire = gruppoFiltro
+    ? EVAL_CASES.filter((c) => c.gruppo === gruppoFiltro)
+    : EVAL_CASES;
+  if (gruppoFiltro) {
+    if (casiDaEseguire.length === 0) {
+      console.error(`\u2717 Gruppo sconosciuto: "${gruppoFiltro}". Gruppi: ${[...new Set(EVAL_CASES.map((c) => c.gruppo))].join(", ")}`);
+      process.exit(1);
+    }
+    console.log(`Filtro attivo: gruppo "${gruppoFiltro}" \u2014 ${casiDaEseguire.length} casi su ${EVAL_CASES.length}.\n`);
+  }
   // Anche in modalità reale i casi di guasto girano sul modello simulato: provider giù,
   // output vuoto e tool sbagliati non sono riproducibili con un provider che funziona.
-  const simulati = EVAL_CASES.filter(richiedeModelloSimulato).length;
+  const simulati = casiDaEseguire.filter(richiedeModelloSimulato).length;
   // Reader territoriale fixture: attivo per i casi del gruppo "territorio" (Prompt 13).
   const territoryReader = buildEvalTerritoryReader();
-  for (const caso of EVAL_CASES) {
+  for (const caso of casiDaEseguire) {
     const result = await runCase(caso, {
       listings,
       slugNonDisponibili: nonDisponibili,

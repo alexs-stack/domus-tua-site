@@ -37,7 +37,9 @@ const LAYOUT_ONLY = /@layout/;
 export default defineConfig({
   testDir: "./e2e",
   // Le specifiche delle altre due configurazioni: hanno bisogno di un altro build (vedi sopra).
-  testIgnore: ["property-detail.spec.ts", "assistant.spec.ts", "tastiera.spec.ts"],
+  // territory.spec.ts ha bisogno di un build con TERRITORY_PREVIEW=1 (la route di anteprima è
+  // 404 in produzione): gira con playwright.territory.config.ts.
+  testIgnore: ["property-detail.spec.ts", "assistant.spec.ts", "tastiera.spec.ts", "territory.spec.ts"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
