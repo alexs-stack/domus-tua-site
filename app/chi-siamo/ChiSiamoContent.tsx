@@ -9,6 +9,7 @@ import Highlights from "../components/Highlights";
 import Stats from "../components/Stats";
 import Team from "../components/Team";
 import Reveal from "../components/Reveal";
+import { site, yearsActive } from "../lib/site";
 import MaskReveal from "../components/motion/MaskReveal";
 import TextLines from "../components/motion/TextLines";
 import Contact from "../components/Contact";
@@ -34,23 +35,23 @@ const copy = {
     storiaEyebrow: "La nostra storia",
     storiaTitle: (year: number) => `Tutto è nato nel ${year}, a Tradate.`,
     storiaP1:
-      "Domus Tua nasce dalla visione di Raffaela Rizza: un’agenzia immobiliare indipendente dove la compravendita non è una transazione, ma un passaggio importante nella vita delle persone.",
+      `Domus Tua nasce dalla visione di Raffaela Rizza: rendere la vendita di un immobile più chiara, più protetta e meglio organizzata. Dal 2007 quella visione è diventata un metodo, riconosciuto da ${site.reviewsCount} clienti e premiato per tre anni consecutivi tra le migliori 400 agenzie immobiliari d’Italia.`,
     storiaP2:
-      "In oltre quindici anni abbiamo costruito un metodo che unisce cura, documenti, marketing e tecnologia. Restando però fedeli a ciò che conta di più: l’ascolto e la fiducia.",
+      `In ${yearsActive()} anni abbiamo costruito un metodo che unisce cura, documenti, marketing e tecnologia. Restando però fedeli a ciò che conta di più: l’ascolto e la fiducia.`,
     valoriEyebrow: "I nostri valori",
-    valoriTitle: "Tre parole che non sono slogan, ma pratica quotidiana.",
+    valoriTitle: "Tre cose che facciamo, e che potete verificare.",
     valori: [
       {
-        title: "Professionalità",
-        copy: "Competenza, metodo e rigore in ogni fase, dalla valutazione al rogito.",
+        title: "Non prendiamo un incarico se il prezzo non sta in piedi.",
+        copy: "Un immobile fuori mercato non si vende: resta fermo per mesi e si svaluta da solo. Preferiamo dirlo prima.",
       },
       {
-        title: "Innovazione",
-        copy: "Rendering, video, marketing e strumenti digitali al servizio del risultato.",
+        title: "Controlliamo i documenti prima di pubblicare, non durante la trattativa.",
+        copy: "Catasto, urbanistica e impianti si guardano all'inizio: se c'è un problema, c'è ancora tempo per risolverlo.",
       },
       {
-        title: "Integrità",
-        copy: "Trasparenza totale e rispetto delle persone, sempre. Anche quando è più difficile.",
+        title: "Rispondiamo noi al telefono. La stessa persona, dalla prima chiamata al rogito.",
+        copy: "Nessun passaggio di mano, nessun centralino: chi vi ha valutato casa è chi vi accompagna alla firma.",
       },
     ],
     squadraEyebrow: "La nostra squadra",
@@ -81,23 +82,23 @@ const copy = {
     storiaEyebrow: "Our story",
     storiaTitle: (year: number) => `It all began in ${year}, in Tradate.`,
     storiaP1:
-      "Domus Tua was born from Raffaela Rizza’s vision: an independent real-estate agency where buying and selling is not a transaction, but an important step in people’s lives.",
+      `Domus Tua was born from Raffaela Rizza’s vision: to make selling a home clearer, better protected and better organised. Since 2007 that vision has become a method, recognised by ${site.reviewsCount} clients and awarded three years running among Italy’s 400 best estate agencies.`,
     storiaP2:
-      "Over more than fifteen years we have built a method that combines care, paperwork, marketing and technology. While remaining faithful to what matters most: listening and trust.",
+      `Over ${yearsActive()} years we have built a method that combines care, paperwork, marketing and technology. While remaining faithful to what matters most: listening and trust.`,
     valoriEyebrow: "Our values",
-    valoriTitle: "Three words that are not slogans, but daily practice.",
+    valoriTitle: "Three things we do, and you can check.",
     valori: [
       {
-        title: "Professionalism",
-        copy: "Expertise, method and rigour at every stage, from valuation to the deed of sale.",
+        title: "We turn down a mandate if the price does not hold up.",
+        copy: "A home priced out of the market does not sell: it sits for months and loses value on its own. We would rather say so upfront.",
       },
       {
-        title: "Innovation",
-        copy: "Renderings, video, marketing and digital tools at the service of the result.",
+        title: "We check the paperwork before listing, not during the negotiation.",
+        copy: "Land registry, planning and building systems are examined at the start: if there is a problem, there is still time to fix it.",
       },
       {
-        title: "Integrity",
-        copy: "Total transparency and respect for people, always. Even when it is harder.",
+        title: "We answer the phone ourselves. The same person, from the first call to the deed.",
+        copy: "No handovers, no switchboard: whoever valued your home is who walks you to the signing.",
       },
     ],
     squadraEyebrow: "Our team",
@@ -128,23 +129,23 @@ const copy = {
     storiaEyebrow: "Notre histoire",
     storiaTitle: (year: number) => `Tout a commencé en ${year}, à Tradate.`,
     storiaP1:
-      "Domus Tua est née de la vision de Raffaela Rizza : une agence immobilière indépendante où la vente n’est pas une transaction, mais une étape importante dans la vie des personnes.",
+      `Domus Tua est née de la vision de Raffaela Rizza : rendre la vente d’un bien plus claire, mieux protégée et mieux organisée. Depuis 2007, cette vision est devenue une méthode, reconnue par ${site.reviewsCount} clients et primée trois années consécutives parmi les 400 meilleures agences immobilières d’Italie.`,
     storiaP2:
-      "En plus de quinze ans, nous avons bâti une méthode qui allie soin, documents, marketing et technologie. Tout en restant fidèles à ce qui compte le plus : l’écoute et la confiance.",
+      `En ${yearsActive()} ans, nous avons bâti une méthode qui allie soin, documents, marketing et technologie. Tout en restant fidèles à ce qui compte le plus : l’écoute et la confiance.`,
     valoriEyebrow: "Nos valeurs",
-    valoriTitle: "Trois mots qui ne sont pas des slogans, mais une pratique quotidienne.",
+    valoriTitle: "Trois choses que nous faisons, et que vous pouvez vérifier.",
     valori: [
       {
-        title: "Professionnalisme",
-        copy: "Compétence, méthode et rigueur à chaque étape, de l’estimation à l’acte de vente.",
+        title: "Nous refusons un mandat si le prix ne tient pas.",
+        copy: "Un bien hors marché ne se vend pas : il reste des mois et se dévalue tout seul. Nous préférons le dire d'emblée.",
       },
       {
-        title: "Innovation",
-        copy: "Rendus, vidéos, marketing et outils numériques au service du résultat.",
+        title: "Nous vérifions les documents avant la mise en ligne, pas pendant la négociation.",
+        copy: "Cadastre, urbanisme et installations s'examinent au début : s'il y a un problème, il est encore temps de le régler.",
       },
       {
-        title: "Intégrité",
-        copy: "Transparence totale et respect des personnes, toujours. Même quand c’est plus difficile.",
+        title: "C'est nous qui répondons au téléphone. La même personne, du premier appel à l'acte.",
+        copy: "Aucun transfert, aucun standard : celle qui a estimé votre bien est celle qui vous accompagne à la signature.",
       },
     ],
     squadraEyebrow: "Notre équipe",
@@ -175,23 +176,23 @@ const copy = {
     storiaEyebrow: "Unsere Geschichte",
     storiaTitle: (year: number) => `Alles begann ${year} in Tradate.`,
     storiaP1:
-      "Domus Tua entstand aus der Vision von Raffaela Rizza: eine unabhängige Immobilienagentur, in der Kauf und Verkauf keine Transaktion sind, sondern ein wichtiger Schritt im Leben der Menschen.",
+      `Domus Tua entstand aus der Vision von Raffaela Rizza: den Verkauf einer Immobilie klarer, geschützter und besser organisiert zu machen. Seit 2007 ist aus dieser Vision eine Methode geworden — anerkannt von ${site.reviewsCount} Kundinnen und Kunden und drei Jahre in Folge unter Italiens 400 besten Immobilienagenturen ausgezeichnet.`,
     storiaP2:
-      "In mehr als fünfzehn Jahren haben wir eine Methode aufgebaut, die Sorgfalt, Unterlagen, Marketing und Technologie vereint. Und dabei dem treu geblieben, was am meisten zählt: dem Zuhören und dem Vertrauen.",
+      `In ${yearsActive()} Jahren haben wir eine Methode aufgebaut, die Sorgfalt, Unterlagen, Marketing und Technologie vereint. Und dabei dem treu geblieben, was am meisten zählt: dem Zuhören und dem Vertrauen.`,
     valoriEyebrow: "Unsere Werte",
-    valoriTitle: "Drei Worte, die keine Slogans sind, sondern gelebte Praxis.",
+    valoriTitle: "Drei Dinge, die wir tun — und die Sie überprüfen können.",
     valori: [
       {
-        title: "Professionalität",
-        copy: "Kompetenz, Methode und Sorgfalt in jeder Phase, von der Bewertung bis zum Notartermin.",
+        title: "Wir lehnen einen Auftrag ab, wenn der Preis nicht trägt.",
+        copy: "Eine über Markt bepreiste Immobilie verkauft sich nicht: Sie steht monatelang und verliert von selbst an Wert. Das sagen wir lieber vorher.",
       },
       {
-        title: "Innovation",
-        copy: "Renderings, Videos, Marketing und digitale Werkzeuge im Dienst des Ergebnisses.",
+        title: "Wir prüfen die Unterlagen vor der Veröffentlichung, nicht während der Verhandlung.",
+        copy: "Kataster, Baurecht und Anlagen werden am Anfang angesehen: Gibt es ein Problem, bleibt noch Zeit, es zu lösen.",
       },
       {
-        title: "Integrität",
-        copy: "Vollständige Transparenz und Respekt gegenüber den Menschen, immer. Auch wenn es schwerer fällt.",
+        title: "Wir gehen selbst ans Telefon. Dieselbe Person, vom ersten Anruf bis zum Notartermin.",
+        copy: "Keine Übergaben, keine Zentrale: Wer Ihre Immobilie bewertet hat, begleitet Sie auch zur Unterschrift.",
       },
     ],
     squadraEyebrow: "Unser Team",
@@ -222,23 +223,23 @@ const copy = {
     storiaEyebrow: "Nuestra historia",
     storiaTitle: (year: number) => `Todo comenzó en ${year}, en Tradate.`,
     storiaP1:
-      "Domus Tua nace de la visión de Raffaela Rizza: una agencia inmobiliaria independiente donde comprar y vender no es una transacción, sino un paso importante en la vida de las personas.",
+      `Domus Tua nace de la visión de Raffaela Rizza: hacer que vender un inmueble sea más claro, más protegido y mejor organizado. Desde 2007 esa visión se ha convertido en un método, reconocido por ${site.reviewsCount} clientes y premiado tres años consecutivos entre las 400 mejores agencias inmobiliarias de Italia.`,
     storiaP2:
-      "En más de quince años hemos construido un método que une cuidado, documentos, marketing y tecnología. Manteniéndonos fieles a lo que más importa: la escucha y la confianza.",
+      `En ${yearsActive()} años hemos construido un método que une cuidado, documentos, marketing y tecnología. Manteniéndonos fieles a lo que más importa: la escucha y la confianza.`,
     valoriEyebrow: "Nuestros valores",
-    valoriTitle: "Tres palabras que no son eslóganes, sino práctica diaria.",
+    valoriTitle: "Tres cosas que hacemos, y que puedes comprobar.",
     valori: [
       {
-        title: "Profesionalidad",
-        copy: "Competencia, método y rigor en cada fase, desde la valoración hasta la escritura.",
+        title: "No aceptamos un encargo si el precio no se sostiene.",
+        copy: "Un inmueble fuera de mercado no se vende: se queda parado meses y se devalúa solo. Preferimos decirlo antes.",
       },
       {
-        title: "Innovación",
-        copy: "Renders, vídeo, marketing y herramientas digitales al servicio del resultado.",
+        title: "Comprobamos los documentos antes de publicar, no durante la negociación.",
+        copy: "Catastro, urbanismo e instalaciones se miran al principio: si hay un problema, aún hay tiempo para resolverlo.",
       },
       {
-        title: "Integridad",
-        copy: "Transparencia total y respeto por las personas, siempre. Incluso cuando es más difícil.",
+        title: "Contestamos nosotras al teléfono. La misma persona, desde la primera llamada hasta la escritura.",
+        copy: "Sin traspasos, sin centralita: quien ha valorado tu casa es quien te acompaña a la firma.",
       },
     ],
     squadraEyebrow: "Nuestro equipo",

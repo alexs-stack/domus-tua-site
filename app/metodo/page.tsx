@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import MetodoContent from "./MetodoContent";
 
 export const metadata: Metadata = {
-  title: "Il Metodo Domus Tua",
+  title: "Il Metodo Domus Tua: come vendiamo casa, passo per passo",
   description:
-    "Il sistema proprietario Domus Tua: valutazione, documenti verificati, preparazione, marketing, Open Domus, trattativa e assistenza fino al rogito. Un percorso, non un annuncio.",
+    "Nove passaggi dalla prima stima alla firma: ascolto, valutazione, verifica documentale, preparazione, marketing, Open Domus, trattativa, rogito.",
   alternates: { canonical: "/metodo" },
   openGraph: {
-    title: "Il Metodo Domus Tua",
+    title: "Il Metodo Domus Tua: come vendiamo casa, passo per passo",
     description:
-      "Il sistema proprietario Domus Tua: valutazione, documenti verificati, preparazione, marketing, Open Domus, trattativa e assistenza fino al rogito. Un percorso, non un annuncio.",
+    "Nove passaggi dalla prima stima alla firma: ascolto, valutazione, verifica documentale, preparazione, marketing, Open Domus, trattativa, rogito.",
   },
 };
 

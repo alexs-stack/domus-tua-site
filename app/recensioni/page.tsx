@@ -5,14 +5,14 @@ import WhatsAppFloat from "../components/WhatsAppFloat";
 import RecensioniContent from "./RecensioniContent";
 
 export const metadata: Metadata = {
-  title: "Recensioni dei clienti",
+  title: "Recensioni Domus Tua: 531 clienti raccontano",
   description:
-    "Oltre 500 recensioni e una media di 4.9/5. Le storie di chi ha venduto e acquistato casa con Domus Tua: fiducia, cura e accompagnamento fino al rogito.",
+    "Leggi e guarda le recensioni di chi ha venduto o acquistato casa con Domus Tua a Tradate e in provincia di Varese. Media 4,9/5 su Google.",
   alternates: { canonical: "/recensioni" },
   openGraph: {
-    title: "Recensioni dei clienti",
+    title: "Recensioni Domus Tua: 531 clienti raccontano",
     description:
-      "Oltre 500 recensioni e una media di 4.9/5. Le storie di chi ha venduto e acquistato casa con Domus Tua: fiducia, cura e accompagnamento fino al rogito.",
+    "Leggi e guarda le recensioni di chi ha venduto o acquistato casa con Domus Tua a Tradate e in provincia di Varese. Media 4,9/5 su Google.",
   },
 };
 

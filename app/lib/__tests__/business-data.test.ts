@@ -113,8 +113,40 @@ describe("fonte unica — recensioni e riconoscimento", () => {
 
   test("il riconoscimento è centralizzato: StarReviews consuma site.award", () => {
     const src = read("components/StarReviews.tsx");
-    assert.match(src, /site\.award\.(label|issuer|href)/);
+    assert.match(src, /site\.award\.(label|years|href)/);
     assert.doesNotMatch(src, /wikicasa\.it\/agenzia/, "URL del riconoscimento hardcoded invece di site.award.href");
-    assert.equal(site.award.label, "Top Agency 2026");
+  });
+
+  // Il difetto che questi tre controlli tengono chiuso: il premio era pubblicato come
+  // "Top Agency 2026" — un anno solo, senza l'ente e senza la ripetizione. Tre anni
+  // consecutivi sono l'unica prova indipendente dal voto Google che l'agenzia possiede,
+  // e un anno alla volta la butta via.
+  test("la denominazione nomina l'ente e NON incorpora un anno", () => {
+    assert.match(site.award.label, /Wikicasa/, "la denominazione deve dire chi assegna il premio");
+    assert.doesNotMatch(
+      site.award.label,
+      /\d{4}/,
+      "l'anno sta in `years` (sono tre): incorporarlo nella denominazione riduce il premio a uno"
+    );
+  });
+
+  test("gli anni sono tre, consecutivi e in ordine", () => {
+    const years = [...site.award.years];
+    assert.equal(years.length, 3, "il claim pubblicato dice «tre anni consecutivi»");
+    for (let i = 1; i < years.length; i++) {
+      assert.equal(years[i], years[i - 1] + 1, `anni non consecutivi: ${years.join(", ")}`);
+    }
+  });
+
+  test("il claim di autorevolezza non rimpicciolisce il premio a fatto provinciale", () => {
+    // La versione precedente diceva "più recensite della provincia di Varese":
+    // territorio sbagliato (nazionale → provinciale) e criterio sbagliato
+    // (fatturato → recensioni), per giunta duplicando la prova del 4,9/531.
+    assert.match(site.authority, /Italia/, "il perimetro del premio è nazionale");
+    assert.doesNotMatch(
+      site.authority,
+      /più recensit/i,
+      "il criterio della classifica è il fatturato, non le recensioni"
+    );
   });
 });

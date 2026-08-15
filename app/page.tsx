@@ -20,17 +20,21 @@ import KineticStrip from "./components/motion/KineticStrip";
 import ThreadNav from "./components/motion/ThreadNav";
 import ToneShift from "./components/motion/ToneShift";
 
+// Il title dice COSA e DOVE, non lo slogan: "agenzia immobiliare a Tradate" è la query
+// con cui le persone cercano davvero, e la vecchia versione ("Vendere senza stress,
+// acquistare con sicurezza") non la conteneva. La sigla (VA) disambigua il comune —
+// esiste anche una Tradate omonima nei risultati di altre province.
 export const metadata: Metadata = {
   title: {
-    absolute: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
+    absolute: "Agenzia Immobiliare a Tradate (VA) | Domus Tua",
   },
   description:
-    "Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. 4.9/5 da oltre 500 recensioni.",
+    "Vendi casa a Tradate e in provincia di Varese: valutazione professionale, documenti verificati prima del mercato, Open Domus e assistenza fino al rogito. 4,9/5 su 531 recensioni Google. Dal 2007.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
+    title: "Agenzia Immobiliare a Tradate (VA) | Domus Tua",
     description:
-      "Un metodo completo per vendere e acquistare casa con cura, trasparenza e assistenza fino al rogito. Tradate (VA), dal 2007.",
+      "Vendi casa a Tradate e in provincia di Varese: valutazione professionale, documenti verificati prima del mercato, Open Domus e assistenza fino al rogito. Dal 2007.",
   },
 };
 

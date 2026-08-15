@@ -11,6 +11,7 @@ import { Star, Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { site } from "../lib/site";
 import { heroCinematic } from "../lib/media";
+import { youtubeWatch } from "../lib/videos";
 import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -18,80 +19,105 @@ import { gsap, useGSAP, MQ, dur, dist, stagger } from "../lib/motion/gsap";
 import { INTRO_EVENT } from "./motion/Preloader";
 import { getLenis } from "./motion/SmoothScroll";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// L'H1 È UNA PROMESSA, NON IL MARCHIO.
+//
+// Fino al 15 agosto 2026 l'H1 tecnico di questa pagina era il lockup «Domus Tua»: la
+// pagina più importante del sito non diceva né cosa fa l'agenzia né dove. Il marchio
+// resta protagonista a schermo (è il ponte visivo con il preloader) ma non è più
+// l'intestazione: il lockup è tipografia di marca, e il nome vive già nel logo di
+// testata, nel <title> e nei dati strutturati.
+//
+// `title1`/`title2` compongono una frase sola, spezzata sul divisore: la seconda metà
+// è la parte che porta l'argomento. Tre cose la reggono, e vanno tenute insieme se un
+// giorno la si riscrive:
+//   • è all'imperativo — parla a una persona, non descrive un'attività;
+//   • contiene «a Tradate» — è la chiave con cui le persone cercano davvero, e nessuna
+//     versione precedente ce l'aveva;
+//   • «al prezzo giusto» attacca la paura numero uno di chi vende (svendere), non la
+//     quarta (lo stress); «nei tempi giusti» non promette né lentezza né velocità, ed è
+//     coerente con la FAQ che si rifiuta di promettere tempi di vendita.
+// È asimmetrica di proposito: parla al proprietario. Chi compra ha la CTA secondaria.
+// ─────────────────────────────────────────────────────────────────────────────
 const copy = {
   it: {
-    badge: "Agenzia immobiliare · Tradate dal 2007",
-    title1: "Vendere casa, senza stress.",
-    title2: "Acquistare casa, con sicurezza.",
+    badge: "Agenzia immobiliare a Tradate · dal 2007",
+    title1: "Vendi casa a Tradate",
+    title2: "al prezzo giusto, nei tempi giusti.",
     subcopy:
-      "Emozione, documenti verificati e metodo: Domus Tua ti accompagna dalla prima visita al rogito.",
+      "Valutazione professionale, documenti verificati prima di andare sul mercato, marketing curato e Open Domus. Un unico metodo, dalla prima stima alla firma dal notaio.",
     founder: "Con Raffaela Rizza e il team Domus Tua",
-    ctaValuta: "Valuta il tuo immobile",
+    ctaValuta: "Richiedi la valutazione del tuo immobile",
     ctaCerco: "Cerco casa",
     ctaVideo: "Guarda il video",
-    reviews: "Oltre 500 recensioni",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    reviews: `${site.reviewsCount} recensioni Google`,
+    place: "A Tradate dal 2007",
+    awardChip: "3 anni consecutivi fra le migliori 400 agenzie d'Italia — Wikicasa Top Agency",
+    noCost: "Nessun costo anticipato",
     heroAlt: "Raffaela Rizza presenta il soggiorno di un attico luminoso con terrazza proposto da Domus Tua",
   },
   en: {
-    badge: "Real estate agency · Tradate since 2007",
-    title1: "Sell your home, stress-free.",
-    title2: "Buy your home, with confidence.",
+    badge: "Estate agency in Tradate · since 2007",
+    title1: "Sell your home in Tradate",
+    title2: "at the right price, in the right time.",
     subcopy:
-      "Emotion, verified documents and method: Domus Tua guides you from the first viewing to the deed.",
+      "Professional valuation, paperwork verified before going to market, careful marketing and Open Domus. One method, from the first estimate to the signing at the notary.",
     founder: "With Raffaela Rizza and the Domus Tua team",
-    ctaValuta: "Value your property",
+    ctaValuta: "Request a valuation of your property",
     ctaCerco: "I'm looking for a home",
     ctaVideo: "Watch the video",
-    reviews: "Over 500 reviews",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    reviews: `${site.reviewsCount} Google reviews`,
+    place: "In Tradate since 2007",
+    awardChip: "Three years running among Italy's top 400 agencies — Wikicasa Top Agency",
+    noCost: "No upfront costs",
     heroAlt: "Raffaela Rizza presenting the living room of a bright penthouse with terrace offered by Domus Tua",
   },
   fr: {
-    badge: "Agence immobilière · Tradate depuis 2007",
-    title1: "Vendre sans stress.",
-    title2: "Acheter en toute sécurité.",
+    badge: "Agence immobilière à Tradate · depuis 2007",
+    title1: "Vendez votre bien à Tradate",
+    title2: "au juste prix, dans les bons délais.",
     subcopy:
-      "Émotion, documents vérifiés et méthode : Domus Tua vous accompagne de la première visite à l'acte.",
+      "Estimation professionnelle, documents vérifiés avant la mise sur le marché, marketing soigné et Open Domus. Une seule méthode, de la première estimation à la signature chez le notaire.",
     founder: "Avec Raffaela Rizza et l'équipe Domus Tua",
-    ctaValuta: "Estimez votre bien",
+    ctaValuta: "Demandez l'estimation de votre bien",
     ctaCerco: "Je cherche un bien",
     ctaVideo: "Voir la vidéo",
-    reviews: "Plus de 500 avis",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    reviews: `${site.reviewsCount} avis Google`,
+    place: "À Tradate depuis 2007",
+    awardChip: "Trois années consécutives parmi les 400 meilleures agences d'Italie — Wikicasa Top Agency",
+    noCost: "Aucun frais d'avance",
     heroAlt: "Raffaela Rizza présente le séjour d'un penthouse lumineux avec terrasse proposé par Domus Tua",
   },
   de: {
-    badge: "Immobilienagentur · Tradate seit 2007",
-    title1: "Verkaufen ohne Stress.",
-    title2: "Kaufen mit Sicherheit.",
+    badge: "Immobilienagentur in Tradate · seit 2007",
+    title1: "Verkaufen Sie Ihr Haus in Tradate",
+    title2: "zum richtigen Preis, in der richtigen Zeit.",
     subcopy:
-      "Emotion, geprüfte Dokumente und Methode: Domus Tua begleitet Sie von der ersten Besichtigung bis zum Notartermin.",
+      "Professionelle Bewertung, vor dem Markteintritt geprüfte Unterlagen, sorgfältiges Marketing und Open Domus. Eine Methode, von der ersten Schätzung bis zur Unterschrift beim Notar.",
     founder: "Mit Raffaela Rizza und dem Domus-Tua-Team",
-    ctaValuta: "Immobilie bewerten",
+    ctaValuta: "Bewertung Ihrer Immobilie anfordern",
     ctaCerco: "Ich suche ein Zuhause",
     ctaVideo: "Video ansehen",
-    reviews: "Über 500 Bewertungen",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    reviews: `${site.reviewsCount} Google-Bewertungen`,
+    place: "In Tradate seit 2007",
+    awardChip: "Drei Jahre in Folge unter Italiens besten 400 Agenturen — Wikicasa Top Agency",
+    noCost: "Keine Kosten im Voraus",
     heroAlt: "Raffaela Rizza präsentiert das Wohnzimmer eines hellen Penthouses mit Terrasse im Angebot von Domus Tua",
   },
   es: {
-    badge: "Agencia inmobiliaria · Tradate desde 2007",
-    title1: "Vender sin estrés.",
-    title2: "Comprar con seguridad.",
+    badge: "Agencia inmobiliaria en Tradate · desde 2007",
+    title1: "Vende tu casa en Tradate",
+    title2: "al precio justo, en el tiempo justo.",
     subcopy:
-      "Emoción, documentos verificados y método: Domus Tua te acompaña desde la primera visita hasta la escritura.",
+      "Valoración profesional, documentos verificados antes de salir al mercado, marketing cuidado y Open Domus. Un único método, desde la primera estimación hasta la firma ante notario.",
     founder: "Con Raffaela Rizza y el equipo Domus Tua",
-    ctaValuta: "Valora tu inmueble",
+    ctaValuta: "Solicita la valoración de tu inmueble",
     ctaCerco: "Busco casa",
     ctaVideo: "Ver el vídeo",
-    reviews: "Más de 500 reseñas",
-    ratingOn: "Google",
-    place: "Tradate · Varese",
+    reviews: `${site.reviewsCount} reseñas de Google`,
+    place: "En Tradate desde 2007",
+    awardChip: "Tres años consecutivos entre las 400 mejores agencias de Italia — Wikicasa Top Agency",
+    noCost: "Sin costes por adelantado",
     heroAlt: "Raffaela Rizza presenta el salón de un ático luminoso con terraza ofrecido por Domus Tua",
   },
 };
@@ -563,12 +589,21 @@ export default function HeroCinematic() {
     return () => mm.revert();
   }, []);
 
-  // Chip di prova: gli asset proprietari sono cliccabili verso le rispettive sezioni
-  // (hero solo in homepage → ancore same-page). Il luogo resta statico.
+  // `site.rating` è il valore macchina ("4.9"): in italiano, francese, tedesco e
+  // spagnolo il separatore decimale è la virgola, e "4.9" letto da un italiano è un
+  // refuso, non un numero. L'inglese resta col punto.
+  const ratingDisplay = locale === "en" ? site.rating : site.rating.replace(".", ",");
+
+  // Barra prove. Quattro prove DIVERSE fra loro, che è il punto: il voto Google
+  // (volume), il premio Wikicasa (giudizio di terzi su base nazionale), l'anzianità
+  // (radicamento) e il costo (rischio zero per chi si affida). Le due chip che stavano
+  // qui prima — Open Domus e Domus D.O.C. — non sono prove ma nomi di servizi, hanno
+  // una sezione ciascuna a pochi centimetri di scroll e ripeterle qui rubava lo spazio
+  // all'unica prova indipendente che l'agenzia possiede.
   const chips: { label: string; href?: string }[] = [
-    { label: "Open Domus", href: "#open-domus" },
-    { label: "Domus D.O.C.", href: "#domus-doc" },
+    { label: c.awardChip, href: site.award.href },
     { label: c.place },
+    { label: c.noCost },
   ];
 
   return (
@@ -635,15 +670,18 @@ export default function HeroCinematic() {
         {/* Il x/y del parallasse puntatore sta su questo blocco interno:
             contentRef è già owner dello yPercent del frame-in. */}
         <div className="flex w-full flex-1 flex-col items-center">
-          {/* Lockup: didone + script sovrapposto, come nel preloader */}
+          {/* Lockup: didone + script sovrapposto, come nel preloader.
+              NON è più l'h1 (vedi la nota sopra `copy`): è tipografia di marca, e il
+              titolo della pagina è la promessa qui sotto. Le lettere animate sono
+              aria-hidden per costruzione (vedi Chars), quindi il nome leggibile vive
+              nello span sr-only — un aria-label su un <div> senza ruolo verrebbe
+              ignorato dalle AT e segnalato da axe (aria-prohibited-attr). */}
           <div className="relative">
-            <h1
-              aria-label="Domus Tua — agenzia immobiliare a Tradate"
-              className="font-hero text-[clamp(3rem,min(14vh,19vw),8rem)] font-medium leading-[0.95] tracking-[-0.01em] text-cream"
-            >
+            <div className="font-hero text-[clamp(3rem,min(14vh,19vw),8rem)] font-medium leading-[0.95] tracking-[-0.01em] text-cream">
+              <span className="sr-only">Domus Tua</span>
               <Chars text="Domus" className="block" />
               <Chars text="Tua" className="block" />
-            </h1>
+            </div>
             <span
               data-hero-script
               aria-hidden
@@ -653,15 +691,25 @@ export default function HeroCinematic() {
             </span>
           </div>
 
-          {/* Riga del motto (posizione della riga "A place · to return to").
-              Le lettere animate sono aria-hidden (vedi Chars): il testo leggibile vive
-              nello span sr-only — aria-label su un <p> è vietato (axe: aria-prohibited-attr). */}
-          <p className="mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-hero text-[clamp(1.4rem,2.4vw,2.75rem)] font-medium leading-[1.15] tracking-[-0.012em] text-cream">
+          {/* Sovratitolo: cosa fa l'agenzia e dove, prima ancora della promessa.
+              NIENTE `dt-hero-rest` qui, di proposito: quel gruppo resta invisibile fino
+              al primo scroll (vedi globals.css), e un sovratitolo che dice "agenzia
+              immobiliare a Tradate" solo a chi scorre non serve a niente — è la prima
+              cosa che deve esserci nel primo fotogramma, insieme al lockup e all'H1. */}
+          <p className="mt-10 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cream/70">
+            {c.badge}
+          </p>
+
+          {/* L'H1 (posizione della riga "A place · to return to"): una frase sola,
+              spezzata sul divisore. Le lettere animate sono aria-hidden (vedi Chars):
+              il testo leggibile vive nello span sr-only — un aria-label qui sarebbe
+              vietato (axe: aria-prohibited-attr). */}
+          <h1 className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-hero text-[clamp(1.4rem,2.4vw,2.75rem)] font-medium leading-[1.15] tracking-[-0.012em] text-cream">
             <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
             <Chars variant="tagline" text={c.title1} />
             <span aria-hidden className="hidden h-px w-10 bg-cream/40 sm:block" />
             <Chars variant="tagline" text={c.title2} className="italic text-red-soft" />
-          </p>
+          </h1>
 
           {/* Spazio respiro: l'immagine resta protagonista al centro */}
           <div className="flex-1" />
@@ -698,8 +746,14 @@ export default function HeroCinematic() {
             <Cta href="#cerca" variant="ghost-dark" size="lg">
               {c.ctaCerco}
             </Cta>
+            {/* Un video PRECISO, non il canale.
+                Puntava alla home di @DOMUSTUASRLIMMOBILIARE: chi cliccava "Guarda il
+                video" atterrava su una griglia di decine di clip e doveva scegliere da
+                solo — cioè non guardava niente. Qui va la storia in evidenza (la villa
+                di Roberta, venduta al primo Open Domus), che è anche il video già
+                incorporato più in basso nella pagina. */}
             <Cta
-              href={site.social.youtube.href}
+              href={youtubeWatch(site.videos.featured.id)}
               variant="ghost-dark"
               size="lg"
               arrow={false}
@@ -727,16 +781,23 @@ export default function HeroCinematic() {
                   <Star key={i} className="h-4 w-4 text-gold-light" />
                 ))}
               </span>
+              {/* Voto e conteggio in UN elemento solo: erano due, e affiancati
+                  dicevano "4.9/5 Google" e poi "531 recensioni Google" — la stessa
+                  parola due volte in dieci centimetri. */}
               <span className="text-sm font-semibold text-cream">
-                {site.rating}/5 {c.ratingOn}
+                {ratingDisplay}/5 · {c.reviews}
               </span>
             </a>
-            <span className="text-sm font-medium text-cream/75">{c.reviews}</span>
-            {chips.map((ch) =>
-              ch.href ? (
+            {chips.map((ch) => {
+              // La destinazione del premio è fuori dal sito (profilo Wikicasa): apre in
+              // una scheda nuova come ogni altro link esterno del sito, e con rel
+              // completo. Le ancore same-page restano nella stessa scheda.
+              const external = ch.href?.startsWith("http");
+              return ch.href ? (
                 <a
                   key={ch.label}
                   href={ch.href}
+                  {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   className="tap-target text-[0.82rem] font-medium text-cream/70 underline-offset-4 transition-colors duration-300 hover:text-cream hover:underline"
                 >
                   {ch.label}
@@ -745,8 +806,8 @@ export default function HeroCinematic() {
                 <span key={ch.label} className="text-[0.82rem] font-medium text-cream/70">
                   {ch.label}
                 </span>
-              )
-            )}
+              );
+            })}
           </div>
         </div>
       </div>

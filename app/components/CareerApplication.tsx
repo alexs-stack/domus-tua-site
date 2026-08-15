@@ -127,7 +127,7 @@ const copy = {
     whereCopy: "In sede, a Tradate. Il lavoro è sul territorio: Tradate e la provincia di Varese.",
     whatsappTitle: "Preferisci scrivere?",
     whatsappCopy: "Mandaci un messaggio: rispondiamo negli orari di apertura.",
-    whatsappCta: "Scrivici su WhatsApp",
+    whatsappCta: "Parla con noi su WhatsApp",
     imageAlt: "Il team Domus Tua nella sede di Tradate",
   },
   en: {
@@ -178,7 +178,7 @@ const copy = {
     whereCopy: "At our office in Tradate. The work is local: Tradate and the province of Varese.",
     whatsappTitle: "Prefer to write?",
     whatsappCopy: "Send us a message: we reply during opening hours.",
-    whatsappCta: "Message us on WhatsApp",
+    whatsappCta: "Talk to us on WhatsApp",
     imageAlt: "The Domus Tua team at the Tradate office",
   },
   fr: {
@@ -229,7 +229,7 @@ const copy = {
     whereCopy: "Dans nos locaux, à Tradate. Le travail est local : Tradate et la province de Varese.",
     whatsappTitle: "Vous préférez écrire ?",
     whatsappCopy: "Envoyez-nous un message : nous répondons aux heures d’ouverture.",
-    whatsappCta: "Écrivez-nous sur WhatsApp",
+    whatsappCta: "Parlez-nous sur WhatsApp",
     imageAlt: "L’équipe Domus Tua dans les locaux de Tradate",
   },
   de: {
@@ -280,7 +280,7 @@ const copy = {
     whereCopy: "In unserem Büro in Tradate. Die Arbeit findet vor Ort statt: Tradate und die Provinz Varese.",
     whatsappTitle: "Lieber schreiben?",
     whatsappCopy: "Senden Sie uns eine Nachricht: Wir antworten während der Öffnungszeiten.",
-    whatsappCta: "Schreiben Sie uns auf WhatsApp",
+    whatsappCta: "Sprechen Sie mit uns auf WhatsApp",
     imageAlt: "Das Domus-Tua-Team im Büro in Tradate",
   },
   es: {
@@ -331,7 +331,7 @@ const copy = {
     whereCopy: "En la oficina, en Tradate. El trabajo es local: Tradate y la provincia de Varese.",
     whatsappTitle: "¿Prefieres escribir?",
     whatsappCopy: "Mándanos un mensaje: respondemos en horario de apertura.",
-    whatsappCta: "Escríbenos por WhatsApp",
+    whatsappCta: "Habla con nosotras por WhatsApp",
     imageAlt: "El equipo Domus Tua en la sede de Tradate",
   },
 } as const;

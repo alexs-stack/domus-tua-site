@@ -49,15 +49,31 @@ export const site = {
   // verificata mostrata come dato: rimosso. Se il cliente fornisce il numero reale del canale
   // (@DOMUSTUASRLIMMOBILIARE) si potrà reintrodurre, con la fonte annotata come per gli altri
   // campi di questo file. Vedi il test di content integrity.
-  // Claim descrittivo/verificabile (non superlativo assoluto senza fonte, art. 2598 c.c.).
-  // Se il cliente documenta il primato "più recensita", si può ripristinare la versione forte.
-  authority: "Tra le agenzie immobiliari indipendenti più recensite della provincia di Varese.",
+  // Claim di autorevolezza.
+  //
+  // La versione precedente ("Tra le agenzie immobiliari indipendenti più recensite della
+  // provincia di Varese") sbagliava tre cose in una riga: rimpiccioliva il territorio
+  // (una classifica nazionale raccontata come provinciale), sbagliava il criterio
+  // (Wikicasa Top Agency è costruita sul fatturato, non sulle recensioni) e buttava via
+  // la ripetizione (tre anni consecutivi diventavano uno). E soprattutto DUPLICAVA la
+  // prova già data dal 4,9/531 invece di aggiungerne una indipendente.
+  //
+  // L'ultima frase non è un ornamento: il premio da solo dice "siamo grandi", il premio
+  // più "una sola sede, indipendenti, a guida femminile" dice quanto vale arrivarci da
+  // Tradate, senza una rete nazionale dietro.
+  authority:
+    "Tre anni consecutivi tra le migliori 400 agenzie immobiliari d'Italia, in una classifica nazionale costruita sul fatturato. Da un'agenzia indipendente, a guida femminile, con una sola sede: Tradate.",
   // Riconoscimento Wikicasa (mostrato accanto al voto in StarReviews). Le parti
   // stabili stanno qui, una volta sola, invece che ripetute nella copy per ogni
   // lingua; il testo accessibile localizzato resta nel componente.
+  //
+  // `years` è la ripetizione, ed è la parte che conta: un anno è un risultato, tre
+  // consecutivi sono un andamento. `label` resta la dicitura del riconoscimento.
+  // Niente `issuer` separato: l'ente è dentro la denominazione ("Top Agency Wikicasa"),
+  // e tenerlo come campo a parte significava soltanto stamparlo due volte di fila.
   award: {
-    label: "Top Agency 2026",
-    issuer: "Wikicasa",
+    label: "Top Agency Wikicasa",
+    years: [2024, 2025, 2026],
     href: "https://www.wikicasa.it/agenzia-immobiliare/domus-tua-178643",
   },
   // Google Business reale (CID ricavato dal Maps embed del sito ufficiale Domus Tua).
@@ -138,6 +154,26 @@ export const pendingConfirmation = {
       "strutturati, quindi senza cambiare ciò che leggono i motori di ricerca. " +
       "NON è una decisione sul valore vero: entrambi restano candidati fino alla " +
       "conferma del cliente.",
+  },
+  wikicasaAward: {
+    field: "Premio Wikicasa — denominazione esatta, anni e perimetro",
+    published: {
+      label: site.award.label,
+      years: site.award.years,
+      perimeter: "migliori 400 agenzie d'Italia, classifica nazionale su base fatturato",
+    },
+    candidates: [
+      "Top Agency Wikicasa 2024/2025/2026 — nazionale, su fatturato",
+      "Top Agency 2026 — provinciale, sulle recensioni (versione pubblicata fino al 2026-08-15)",
+    ],
+    note:
+      "Il claim è stato riscritto perché quello precedente era sbagliato per difetto: " +
+      "raccontava come provinciale e basata sulle recensioni una classifica che è " +
+      "nazionale e costruita sul fatturato, e citava un anno solo invece di tre. " +
+      "La fonte verificabile è il profilo pubblico Wikicasa (site.award.href). " +
+      "PRIMA DEL GO-LIVE la direzione deve confermare denominazione esatta, i tre anni " +
+      "e il perimetro: una prova vale perché è esatta, non perché è forte, e questa è " +
+      "l'unica prova indipendente dal voto Google che l'agenzia possiede.",
   },
   emailRoles: {
     field: "Indirizzi email — pubblico vs operativo",
@@ -221,6 +257,18 @@ export const nav = [
 ] as const;
 
 /**
+ * Anni di attività, derivati da `site.since` — MAI scritti a mano.
+ *
+ * Il sito diceva tre cose diverse sulla stessa età: "oltre quindici anni" nel Metodo e in
+ * Chi siamo, il conteggio esatto nei numeri della home, "dal 2007" nel footer. Quindici era
+ * vero nel 2022. Una funzione (non una costante di modulo) perché un server che resta su per
+ * mesi attraverserebbe un capodanno con il valore congelato all'import.
+ */
+export function yearsActive(): number {
+  return new Date().getFullYear() - site.since;
+}
+
+/**
  * Serializza dati strutturati per un tag `<script type="application/ld+json">`.
  *
  * `JSON.stringify` da solo non basta: non tocca la sequenza `</script>`, e i titoli e le
@@ -264,8 +312,20 @@ export function organizationJsonLd() {
       addressCountry: "IT",
     },
     geo: { "@type": "GeoCoordinates", latitude: 45.7114282, longitude: 8.905019 },
-    areaServed: "Tradate e provincia di Varese",
+    // Il territorio dichiarato era più piccolo di quello reale: "Tradate e provincia di
+    // Varese" mentre a catalogo ci sono immobili a Mozzate, che è provincia di Como.
+    // Dichiarare meno di quello che si copre significa escludersi da soli da metà del
+    // proprio mercato naturale — la fascia fra Varese e Como è continua, non si ferma
+    // al confine amministrativo.
+    areaServed: ["Tradate", "Provincia di Varese", "Alta provincia di Como"],
     openingHours: site.openingHours,
+    // Il premio come dato strutturato, non solo come immagine in pagina: un anno per
+    // voce, che è la forma che schema.org si aspetta e che rende leggibile la
+    // ripetizione (tre anni consecutivi) invece del solo anno corrente.
+    award: site.award.years.map((y) => `${site.award.label} ${y}`),
+    // Fascia di prezzo del SERVIZIO di mediazione, non degli immobili. Google la usa
+    // nella scheda locale; senza, il campo resta vuoto e viene compilato da terzi.
+    priceRange: "€€",
     sameAs: [
       site.social.instagram.href,
       site.social.facebook.href,

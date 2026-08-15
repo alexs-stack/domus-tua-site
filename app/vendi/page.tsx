@@ -5,14 +5,14 @@ import WhatsAppFloat from "../components/WhatsAppFloat";
 import VendiContent from "./VendiContent";
 
 export const metadata: Metadata = {
-  title: "Vendere casa a Tradate, senza stress",
+  title: "Vendere casa a Tradate: valutazione gratuita",
   description:
-    "Vendi casa con il metodo Domus Tua: valutazione professionale, documenti verificati, home staging, rendering, marketing e Open Domus, con assistenza fino al rogito.",
+    "Nessun costo anticipato, si paga solo a vendita conclusa. Valutazione professionale, documenti verificati, home staging, video e Open Domus compresi nel metodo.",
   alternates: { canonical: "/vendi" },
   openGraph: {
-    title: "Vendere casa a Tradate, senza stress",
+    title: "Vendere casa a Tradate: valutazione gratuita",
     description:
-      "Vendi casa con il metodo Domus Tua: valutazione professionale, documenti verificati, home staging, rendering, marketing e Open Domus, con assistenza fino al rogito.",
+    "Nessun costo anticipato, si paga solo a vendita conclusa. Valutazione professionale, documenti verificati, home staging, video e Open Domus compresi nel metodo.",
   },
 };
 

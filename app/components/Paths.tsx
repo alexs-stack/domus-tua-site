@@ -62,7 +62,7 @@ const copy = {
           "Foto, video, rendering e home staging",
           "Campagne marketing e Open Domus",
         ],
-        cta: "Voglio vendere casa",
+        cta: "Richiedi la valutazione del tuo immobile",
         alt: "Consulenza Domus Tua: il percorso di vendita spiegato al tavolo",
       },
       acquista: {
@@ -93,7 +93,7 @@ const copy = {
           "Photography, video, rendering and home staging",
           "Marketing campaigns and Open Domus",
         ],
-        cta: "I want to sell my home",
+        cta: "Request a valuation of your property",
         alt: "Domus Tua consultation: the selling journey explained at the table",
       },
       acquista: {
@@ -124,7 +124,7 @@ const copy = {
           "Photos, vidéos, rendus et home staging",
           "Campagnes marketing et Open Domus",
         ],
-        cta: "Je veux vendre mon bien",
+        cta: "Demandez l’estimation de votre bien",
         alt: "Consultation Domus Tua : le parcours de vente expliqué à la table",
       },
       acquista: {
@@ -155,7 +155,7 @@ const copy = {
           "Fotos, Videos, Renderings und Home Staging",
           "Marketingkampagnen und Open Domus",
         ],
-        cta: "Ich möchte meine Immobilie verkaufen",
+        cta: "Bewertung Ihrer Immobilie anfordern",
         alt: "Domus Tua Beratung: der Verkaufsweg, am Tisch erklärt",
       },
       acquista: {
@@ -186,7 +186,7 @@ const copy = {
           "Fotos, vídeos, renders y home staging",
           "Campañas de marketing y Open Domus",
         ],
-        cta: "Quiero vender mi casa",
+        cta: "Solicita la valoración de tu inmueble",
         alt: "Consultoría Domus Tua: el recorrido de venta explicado en la mesa",
       },
       acquista: {

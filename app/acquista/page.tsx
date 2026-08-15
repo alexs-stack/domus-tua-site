@@ -7,14 +7,14 @@ import { toGridProperty } from "../lib/properties";
 import AcquistaContent from "./AcquistaContent";
 
 export const metadata: Metadata = {
-  title: "Comprare casa a Tradate, con sicurezza",
+  title: "Case in vendita a Tradate e provincia di Varese",
   description:
-    "Acquista casa con Domus Tua: ricerca mirata, informazioni chiare prima della visita, documentazione verificata e assistenza in ogni passaggio fino al rogito.",
+    "Appartamenti, ville, attici e immobili commerciali a Tradate, Venegono, Gornate Olona e Mozzate. Documenti verificati prima della visita, assistenza fino al rogito.",
   alternates: { canonical: "/acquista" },
   openGraph: {
-    title: "Comprare casa a Tradate, con sicurezza",
+    title: "Case in vendita a Tradate e provincia di Varese",
     description:
-      "Acquista casa con Domus Tua: ricerca mirata, informazioni chiare prima della visita, documentazione verificata e assistenza in ogni passaggio fino al rogito.",
+    "Appartamenti, ville, attici e immobili commerciali a Tradate, Venegono, Gornate Olona e Mozzate. Documenti verificati prima della visita, assistenza fino al rogito.",
   },
 };
 
