@@ -416,7 +416,7 @@ export default function HeroCinematic() {
           el.style.animation = "none";
         });
         // opacity, MAI autoAlpha. Qui sotto non c'è solo del testo: c'è il CTA
-        // PRIMARIO ("Valuta il tuo immobile"), il secondario, il link alle
+        // PRIMARIO (la richiesta di valutazione), il secondario, il link alle
         // recensioni. autoAlpha scrive visibility:hidden, e quello li toglie dal
         // tab order — chi naviga col Tab salta la conversione dell'hero. Toglie
         // anche l'unica cosa da cui la rete del focusin qui sotto poteva
