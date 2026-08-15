@@ -107,6 +107,39 @@ semantico funziona già con `GEMINI_API_KEY`), `AI_SEARCH_MODEL` / `AI_ASSISTANT
 **Da NON impostare:** `ASSISTANT_SEMANTIC_FLOOR`. Vuota tiene spento il retrieval semantico
 sulla knowledge base, che è la configurazione voluta e misurata ([assistant-knowledge.md](assistant-knowledge.md)).
 
+### Misurazione — da accendere nella dashboard, non nel codice
+
+Il codice è già a posto: `<Analytics />` e `<SpeedInsights />` sono montati in
+[app/components/SiteAnalytics.tsx](../app/components/SiteAnalytics.tsx) e gli eventi di
+conversione partono da [app/lib/analytics.ts](../app/lib/analytics.ts). Ma **finché i due
+prodotti non sono attivati nel progetto Vercel, gli script non vengono serviti e non si
+raccoglie niente.** Sono due interruttori, non uno.
+
+| # | Azione | Dove | Perché |
+|---|---|---|---|
+| 16 | Attivare **Web Analytics** | Vercel → progetto → Analytics | pagine viste e conversioni (`lead_valutazione`, `lead_whatsapp`, `lead_telefono`) |
+| 17 | Attivare **Speed Insights** | Vercel → progetto → Speed Insights | Core Web Vitals sul traffico vero — è l'unico modo di chiudere il punto 34 della checklist, che chiede dati reali e non di laboratorio |
+
+> Va fatto **prima** del cutover del dominio, non dopo. Il valore di queste misure sta quasi
+> tutto nelle due settimane successive alla migrazione: se si accendono dopo, manca proprio
+> la finestra in cui servivano.
+
+Nessuna variabile d'ambiente, nessun consenso cookie: la misurazione è cookieless (il perché
+sta nel commento in testa a `app/lib/analytics.ts`). Resta però un adempimento **non** tecnico:
+nominare il fornitore fra i responsabili nell'informativa privacy — vedi
+[legal-launch-inventory.md](legal-launch-inventory.md).
+
+### Search Console — l'unica che vede la migrazione andare male
+
+| # | Azione | Dove |
+|---|---|---|
+| 18 | Verificare la proprietà del dominio e inviare `https://www.domustua.com/sitemap.xml` | [Google Search Console](https://search.google.com/search-console), account Google dell'agenzia |
+| 19 | **Prima** del cutover: esportare il rapporto Pagine degli ultimi 16 mesi dal vecchio sito | idem — è l'inventario reale dell'indicizzato, che il sitemap WordPress non dà (§5.0-5.1 di [retainer-plan.md](retainer-plan.md)) |
+| 20 | **Dopo** il cutover: sorvegliare gli errori 404 e le impression per due settimane | idem |
+
+Il punto 20 è la ragione per cui esiste il punto 18. Senza Search Console, una mappa di
+redirect sbagliata si scopre dal telefono che smette di squillare, con settimane di ritardo.
+
 ### Fuori da Vercel
 
 | # | Azione | Dove |

@@ -80,6 +80,11 @@ export default function MobileActionBar() {
 
   return (
     <div
+      // Etichetta per la misurazione delle conversioni: la barra non sta dentro né header
+      // né footer, quindi senza questa il clic su WhatsApp finirebbe attribuito a
+      // "fluttuante" insieme alla bolla desktop — e sono due cose diverse (una è il pollice
+      // sul telefono, l'altra il puntatore su schermo grande). Vedi SiteAnalytics.tsx.
+      data-conv-source="barra-mobile"
       className={`fixed inset-x-3 z-40 flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] sm:hidden ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       }`}

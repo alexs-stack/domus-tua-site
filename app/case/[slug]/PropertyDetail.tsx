@@ -391,7 +391,10 @@ export default function PropertyDetail({
   );
 
   return (
-    <main className="flex-1 bg-paper">
+    // `data-conv-source`: un contatto che parte da una scheda immobile è la conversione
+    // più preziosa del sito — la persona sa già cosa vuole vedere. Va distinta da tutte
+    // le altre nelle misure. Vedi SiteAnalytics.tsx.
+    <main data-conv-source="scheda-immobile" className="flex-1 bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 pt-32 sm:px-8 sm:pt-36">
         {/* Breadcrumb: orientamento Home › Case › immobile corrente (allineato al JSON-LD). */}
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-stone">

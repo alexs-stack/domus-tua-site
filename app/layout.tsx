@@ -8,6 +8,7 @@ import PreviewBadge from "./components/PreviewBadge";
 import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
+import SiteAnalytics from "./components/SiteAnalytics";
 import SmoothScroll from "./components/motion/SmoothScroll";
 import SurfaceFlow from "./components/motion/SurfaceFlow";
 import { ChromeMount, PreloaderMount } from "./components/motion/ChromeMount";
@@ -243,6 +244,10 @@ export default function RootLayout({
           <PreviewBadge checklist={checklist} />
           <AssistantMount />
           <MobileActionBar />
+          {/* In fondo di proposito: non rende nulla a schermo e non deve competere per
+              la banda del primo fotogramma. Vedi SiteAnalytics.tsx per il perché non
+              passa dal gate del consenso. */}
+          <SiteAnalytics />
         </LocaleProvider>
       </body>
     </html>

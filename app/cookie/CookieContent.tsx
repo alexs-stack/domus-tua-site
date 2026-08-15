@@ -56,8 +56,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         copy: "Necessari al funzionamento del sito e alla tua navigazione. Non richiedono consenso e non possono essere disattivati.",
       },
       {
-        label: "Cookie analitici",
-        copy: "Ci aiutano a capire, in forma aggregata, come viene utilizzato il sito per migliorarne i contenuti. Installati solo previo consenso.",
+        label: "Misurazione del traffico",
+        copy: "Contiamo in forma aggregata le pagine viste e le prestazioni del sito per migliorarlo. Lo strumento che usiamo NON scrive cookie e non legge informazioni dal tuo dispositivo: per questo non c'è nulla da accettare o rifiutare.",
       },
       {
         label: "Cookie di marketing",
@@ -74,7 +74,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         title: "2. Tipologie di cookie utilizzati",
         body: [
-          "Il sito utilizza cookie tecnici, cookie analitici e, previo consenso, cookie di marketing di terze parti. Le principali categorie sono riepilogate nella tabella qui sopra.",
+          "Il sito utilizza cookie tecnici e, previo consenso, cookie di terze parti (widget recensioni, mappe, contenuti social). La misurazione del traffico è senza cookie. Le principali categorie sono riepilogate nella tabella qui sopra.",
         ],
       },
       {
@@ -130,8 +130,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         copy: "Necessary for the site to function and for you to browse it. They require no consent and cannot be disabled.",
       },
       {
-        label: "Analytics cookies",
-        copy: "They help us understand, in aggregate form, how the site is used so we can improve its content. Installed only with your consent.",
+        label: "Traffic measurement",
+        copy: "We count page views and site performance in aggregate form so we can improve it. The tool we use does NOT write cookies and does not read information from your device: there is therefore nothing to accept or reject.",
       },
       {
         label: "Marketing cookies",
@@ -148,7 +148,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         title: "2. Types of cookies used",
         body: [
-          "The site uses technical cookies, analytics cookies and, subject to your consent, third-party marketing cookies. The main categories are summarised in the table above.",
+          "The site uses technical cookies and, subject to your consent, third-party cookies (reviews widget, maps, social content). Traffic measurement is cookieless. The main categories are summarised in the table above.",
         ],
       },
       {
@@ -204,8 +204,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         copy: "Nécessaires au fonctionnement du site et à votre navigation. Ils ne requièrent aucun consentement et ne peuvent pas être désactivés.",
       },
       {
-        label: "Cookies analytiques",
-        copy: "Ils nous aident à comprendre, de façon agrégée, comment le site est utilisé afin d’en améliorer les contenus. Installés uniquement avec votre consentement.",
+        label: "Mesure d’audience",
+        copy: "Nous comptons de façon agrégée les pages vues et les performances du site afin de l’améliorer. L’outil utilisé n’écrit AUCUN cookie et ne lit aucune information sur votre appareil : il n’y a donc rien à accepter ou à refuser.",
       },
       {
         label: "Cookies de marketing",
@@ -222,7 +222,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         title: "2. Types de cookies utilisés",
         body: [
-          "Le site utilise des cookies techniques, des cookies analytiques et, sous réserve de votre consentement, des cookies de marketing de tiers. Les principales catégories sont résumées dans le tableau ci-dessus.",
+          "Le site utilise des cookies techniques et, sous réserve de votre consentement, des cookies de tiers (widget d’avis, cartes, contenus sociaux). La mesure d’audience se fait sans cookie. Les principales catégories sont résumées dans le tableau ci-dessus.",
         ],
       },
       {
@@ -278,8 +278,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         copy: "Für den Betrieb der Website und Ihre Navigation erforderlich. Sie bedürfen keiner Einwilligung und können nicht deaktiviert werden.",
       },
       {
-        label: "Analyse-Cookies",
-        copy: "Sie helfen uns, in aggregierter Form zu verstehen, wie die Website genutzt wird, um deren Inhalte zu verbessern. Werden nur mit Ihrer Einwilligung gesetzt.",
+        label: "Reichweitenmessung",
+        copy: "Wir zählen in aggregierter Form Seitenaufrufe und Performance, um die Website zu verbessern. Das eingesetzte Werkzeug schreibt KEINE Cookies und liest keine Informationen von Ihrem Gerät: Es gibt daher nichts zu akzeptieren oder abzulehnen.",
       },
       {
         label: "Marketing-Cookies",
@@ -296,7 +296,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         title: "2. Verwendete Cookie-Arten",
         body: [
-          "Die Website verwendet technische Cookies, Analyse-Cookies und, vorbehaltlich Ihrer Einwilligung, Marketing-Cookies von Dritten. Die wichtigsten Kategorien sind in der Tabelle oben zusammengefasst.",
+          "Die Website verwendet technische Cookies und, vorbehaltlich Ihrer Einwilligung, Cookies von Dritten (Bewertungs-Widget, Karten, Social-Inhalte). Die Reichweitenmessung erfolgt ohne Cookies. Die wichtigsten Kategorien sind in der Tabelle oben zusammengefasst.",
         ],
       },
       {
@@ -352,8 +352,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         copy: "Necesarias para el funcionamiento del sitio y para tu navegación. No requieren consentimiento y no pueden desactivarse.",
       },
       {
-        label: "Cookies analíticas",
-        copy: "Nos ayudan a entender, de forma agregada, cómo se utiliza el sitio para mejorar sus contenidos. Se instalan solo con tu consentimiento.",
+        label: "Medición del tráfico",
+        copy: "Contamos de forma agregada las páginas vistas y el rendimiento del sitio para mejorarlo. La herramienta que usamos NO escribe cookies ni lee información de tu dispositivo: por eso no hay nada que aceptar o rechazar.",
       },
       {
         label: "Cookies de marketing",
@@ -370,7 +370,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         title: "2. Tipos de cookies utilizadas",
         body: [
-          "El sitio utiliza cookies técnicas, cookies analíticas y, previo consentimiento, cookies de marketing de terceros. Las principales categorías se resumen en la tabla anterior.",
+          "El sitio utiliza cookies técnicas y, previo consentimiento, cookies de terceros (widget de reseñas, mapas, contenidos sociales). La medición del tráfico se hace sin cookies. Las principales categorías se resumen en la tabla anterior.",
         ],
       },
       {

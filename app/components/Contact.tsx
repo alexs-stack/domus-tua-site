@@ -10,6 +10,7 @@ import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import { isEmailFormat, isPhoneFormat } from "../lib/forms/contactChannel";
+import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
 import Atmosphere from "./motion/Atmosphere";
@@ -512,6 +513,12 @@ export default function Contact({
     // `submitting` disabilita il bottone durante la scrittura (niente doppio invio) e dà feedback.
     setSubmitting(true);
     void submitLead(lead).finally(() => setSubmitting(false));
+
+    // La conversione. Va registrata QUI, dopo la validazione e prima di aprire WhatsApp:
+    // è il momento in cui la richiesta esiste davvero. Passa solo il tipo di richiesta,
+    // mai il contenuto del lead — quello ha il suo canale (submitLead) ed è l'unico
+    // autorizzato a vederlo. Vedi app/lib/analytics.ts.
+    trackConversion(CONVERSIONS.valutazione, "modulo", { intent });
 
     // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
