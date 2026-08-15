@@ -26,8 +26,8 @@ import type { GridProperty } from "../lib/properties";
 import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
 
 // Flip serve solo al riordino dei risultati al cambio filtri: registrato
-// localmente (stesso pattern di SocialVideoWall) per non finire nel chunk
-// del layout via gsap.ts.
+// localmente (stesso pattern di TextLines con SplitText) per non finire nel
+// chunk del layout via gsap.ts.
 gsap.registerPlugin(Flip);
 
 // Dizionario UI inline. Le VALUE dei filtri (contract/type/feature) restano in italiano

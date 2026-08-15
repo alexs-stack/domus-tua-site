@@ -91,7 +91,7 @@ export const site = {
   },
 
   // Video REALI dal canale YouTube Domus Tua (@DOMUSTUASRLIMMOBILIARE), verificati.
-  // Sorgente unica usata da SocialVideoWall + FeaturedTestimonial. Il cliente può
+  // Sorgente unica usata da ReviewsWall + FeaturedTestimonial. Il cliente può
   // sostituire/aggiungere ID e timestamp; qui usiamo clip già pubbliche del canale.
   videos: {
     // Storia di successo — "Venduta al primo Open Domus" (villa di Roberta).
