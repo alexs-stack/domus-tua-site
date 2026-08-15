@@ -231,6 +231,37 @@ describe("scomposizione in affermazioni: ciò che il revisore deve spuntare", ()
   });
 });
 
+describe("affermazioni CONDIVISE: due cose vere unite da un legame falso", () => {
+  // Il SECONDO errore vero trovato sul repo. Ogni pezzo era vero (la biblioteca esiste, l'anagrafe
+  // esiste, Tradate esiste) ma le due sedi stanno in vie diverse: falso era il legame «in centro».
+  // Prima di questo controllo la scomposizione produceva UNA sola casella («Tradate») e non lo
+  // vedeva: l'avevo dichiarato intercettato quando non lo era.
+  const SBAGLIATA = "In centro a Tradate ci sono la biblioteca civica e gli uffici dell'anagrafe.";
+
+  test("riconosce i due soggetti che condividono la stessa affermazione", () => {
+    const c = extractClaims(SBAGLIATA).filter((x) => x.kind === "condivisa");
+    assert.equal(c.length, 1, JSON.stringify(c));
+    assert.match(c[0].value, /biblioteca civica/);
+    assert.match(c[0].value, /uffici dell['’]anagrafe/, "l'apostrofo fa parte della parola");
+    assert.match(c[0].question, /ENTRAMBI/);
+  });
+
+  test("NON scatta su verbi coordinati («attraversa X e collega Y»)", () => {
+    const c = extractClaims("La Varesina, la ex statale 233, attraversa Tradate e collega Varese a Milano.");
+    assert.equal(c.filter((x) => x.kind === "condivisa").length, 0);
+  });
+
+  test("NON scatta su un nome proprio che contiene «e»", () => {
+    const c = extractClaims("Il Parco Pineta di Appiano Gentile e Tradate è un parco di circa 4.800 ettari.");
+    assert.equal(c.filter((x) => x.kind === "condivisa").length, 0);
+  });
+
+  test("la riscrittura corretta (due sedi, due proposizioni) non scatta", () => {
+    const c = extractClaims("Il Comune di Tradate ha gli uffici dell'anagrafe in piazza Mazzini; la biblioteca civica è in via Zara.");
+    assert.equal(c.filter((x) => x.kind === "condivisa").length, 0);
+  });
+});
+
 describe("scomposizione: batteria avversariale (difetti trovati testando, non immaginando)", () => {
   // Ognuno di questi casi ha ROTTO l'estrattore alla prima esecuzione. Restano qui perché un
   // estrattore a espressioni regolari regredisce in silenzio: un falso positivo assurdo

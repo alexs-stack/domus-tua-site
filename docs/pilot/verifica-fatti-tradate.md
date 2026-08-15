@@ -27,8 +27,14 @@ La verifica manuale ne ha trovati **due sbagliati su sei**.
   1. **dato inventato con sicurezza** (la sigla di linea e una destinazione plausibile ma inesistente);
   2. **due cose vere unite da un legame falso** («in centro» applicato a due sedi in vie diverse).
      È il caso più insidioso: ogni singolo pezzo è vero, la frase no.
-- La checklist di `claims.ts` avrebbe portato a entrambi: chiede «la fonte conferma «S40»?» e separa
-  «biblioteca civica» da «uffici dell'anagrafe» come due voci distinte.
+- **La checklist coglieva solo il primo.** Sul secondo errore produceva UNA sola casella
+  («Tradate»): «biblioteca civica» e «uffici dell'anagrafe» sono nomi comuni, giustamente non
+  trattati come nomi propri, e la parte falsa non era un nome ma il LEGAME fra i due. Avevo scritto
+  che la checklist l'avrebbe intercettato: **non era vero**, verificato eseguendola.
+  Da lì il controllo delle **affermazioni condivise** (`kind: "condivisa"`), che riconosce la forma
+  «A e B» con predicato in comune e chiede di verificare i due membri separatamente. Ora quella
+  frase produce la domanda giusta; le forme innocue (verbi coordinati, nomi propri che contengono
+  «e») restano senza flag, con test a fissarlo.
 
 ## Limiti di questa verifica
 

@@ -22,7 +22,8 @@
 export type ClaimKind =
   | "designazione" // sigla di linea/strada: S40, RE5, SS233 — cambia con gli orari e i riassetti
   | "entità" // ente, luogo, operatore: Trenord, ASST Sette Laghi, Milano Cadorna
-  | "quantità"; // numero, con o senza unità: 4.800 ettari, 12 posti
+  | "quantità" // numero, con o senza unità: 4.800 ettari, 12 posti
+  | "condivisa"; // UNA proprietà attribuita a PIÙ soggetti insieme — vedi sotto
 
 export interface AreaClaim {
   kind: ClaimKind;
@@ -36,6 +37,18 @@ export interface AreaClaim {
    */
   volatile: boolean;
 }
+
+/**
+ * Determinanti che aprono un sintagma nominale. Servono a riconoscere una COORDINAZIONE fra due
+ * soggetti («la biblioteca civica E gli uffici dell'anagrafe») e a distinguerla da una coordinazione
+ * fra verbi («attraversa Tradate E collega Varese») o da un nome che contiene «e» («Appiano Gentile
+ * e Tradate»), dove il secondo membro non ha determinante.
+ */
+const DETERMINANTE = /^(?:il|lo|la|i|gli|le|un|uno|una|l['’]|un['’]|dell['’]|degli|delle|dei|del|della)\b/i;
+
+/** L'ultimo sintagma nominale di una proposizione: «…ci sono la biblioteca civica» → «la biblioteca civica». */
+const CODA_NOMINALE =
+  /(?:\b(?:il|lo|la|i|gli|le|un|uno|una|dei|del|della|degli|delle)\b\s+|\b(?:l|dell|un|nell|sull)['’])[\p{L}'’]+(?:\s+[\p{L}'’]+)*$/iu;
 
 /** Sigle di linea/strada: S40, RE5, R17, SS233, "statale 233". */
 const DESIGNAZIONE = /\b(?:[SR]E?\d{1,3}|SS\s?\d{1,3}|statale\s+\d{1,3})\b/gi;
@@ -109,6 +122,52 @@ function normalizzaEntita(grezza: string): string | null {
 }
 
 /**
+ * AFFERMAZIONI CONDIVISE: una stessa proprietà attribuita a più soggetti in una frase sola.
+ *
+ * PERCHÉ — il secondo errore vero trovato su questo repository. Era stata scritta:
+ *   «In centro a Tradate ci sono la biblioteca civica E gli uffici dell'anagrafe.»
+ * Ogni pezzo è vero — la biblioteca esiste, l'anagrafe esiste, Tradate esiste — ma stanno in vie
+ * DIVERSE (anagrafe in piazza Mazzini, biblioteca in via Zara): falso è il LEGAME, non i pezzi.
+ * È la forma più insidiosa di mezza verità, e l'estrazione per nomi propri non la vedeva nemmeno:
+ * su quella frase produceva UNA sola casella, «Tradate».
+ *
+ * Qui non si pretende di analizzare la grammatica: si riconosce la FORMA a rischio — due sintagmi
+ * nominali uniti da «e»/«ed», entrambi con determinante — e si chiede di verificarli separatamente.
+ */
+function estraiCondivise(testo: string): AreaClaim[] {
+  const out: AreaClaim[] = [];
+  // Si guarda dentro ogni proposizione: una coordinazione vale nella frase in cui compare.
+  for (const frase of testo.split(/[.!?;]+/)) {
+    const parti = frase.split(/\s+\b(?:ed|e)\b\s+/i);
+    if (parti.length < 2) continue;
+    for (let i = 0; i < parti.length - 1; i++) {
+      const sinistra = parti[i].trim();
+      const destra = parti[i + 1].trim();
+      // A sinistra della «e» c'è tutta la proposizione: serve il sintagma nominale FINALE, cioè
+      // l'ultimo gruppo che parte da un determinante («…ci sono LA BIBLIOTECA CIVICA»). Prendere
+      // l'intera proposizione faceva fallire il riconoscimento — era il difetto della prima stesura.
+      const sxNome = sinistra.match(CODA_NOMINALE)?.[0]?.trim() ?? "";
+      // Entrambi i membri devono essere sintagmi nominali: è il caso «A e B» che condividono un
+      // predicato. Verbo + verbo o nome proprio senza determinante non sono a rischio.
+      if (sxNome.length === 0 || !DETERMINANTE.test(destra)) continue;
+      // Si tolgono solo virgolette e il punto finale: l'apostrofo fa parte della parola
+      // («dell'anagrafe»), toglierlo produceva «dellanagrafe» nella domanda al revisore.
+      const a = sxNome.replace(/[«»"]/g, "").trim();
+      const b = destra.replace(/[«»"]/g, "").replace(/\.$/, "").trim();
+      out.push({
+        kind: "condivisa",
+        value: `${a} + ${b}`,
+        question:
+          `la frase dice la STESSA cosa di «${a}» e di «${b}»: la fonte lo conferma per ENTRAMBI, ` +
+          "separatamente? (è la forma in cui due cose vere si uniscono in una frase falsa)",
+        volatile: false,
+      });
+    }
+  }
+  return out;
+}
+
+/**
  * Estrae le affermazioni verificabili contenute nel testo di un fatto d'area. Deterministica.
  * Non giudica: elenca ciò che un revisore deve poter spuntare contro la fonte.
  */
@@ -151,6 +210,8 @@ export function extractClaims(testo: string): AreaClaim[] {
       volatile: false,
     });
   }
+
+  claims.push(...estraiCondivise(testo));
 
   return claims;
 }

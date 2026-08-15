@@ -117,6 +117,13 @@ enti — una domanda per riga. Chi legge una frase scorrevole annuisce; chi ha d
 controlla sei. Sulla frase sbagliata sarebbero emerse subito «la sigla è la S40?» e «arriva a Como
 San Giovanni?».
 
+Un secondo errore, trovato verificando i fatti dimostrativi, ha mostrato il limite della prima
+versione: «In centro a Tradate ci sono la biblioteca civica **e** gli uffici dell'anagrafe» — ogni
+pezzo vero, il legame falso (sedi in vie diverse). La scomposizione per nomi propri non lo vedeva:
+produceva una sola casella. Da qui il tipo **`condivisa`**: riconosce «A e B» con un predicato in
+comune e chiede di verificare i due membri **separatamente**. È la forma in cui una mezza verità
+passa inosservata, e ora è l'unica che il controllo cerca esplicitamente.
+
 Le sigle di linea e i numeri di servizio sono marcati **volatili**: non basta verificarli una volta,
 vanno ricontrollati a ogni revisione perché cambiano con i riassetti di orario. `parseAreaFactsBundle`
 restituisce per ogni fatto `verification { checklist, hints, volatile }`, così l'elenco arriva a chi
