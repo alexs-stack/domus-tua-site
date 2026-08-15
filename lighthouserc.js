@@ -24,11 +24,14 @@ module.exports = {
         // dove `deep = !!location.hash`. Chi arriva su /#contatti da un link non vede il sipario,
         // perché la coreografia dell'arco presuppone la pagina in cima. Un frammento che non
         // corrisponde a nessun id non fa scorrere niente: resta solo l'effetto "intro già vista".
-        // Serve perché `${BASE}/` misura la PRIMA visita, e lì l'elemento LCP è il sipario stesso
-        // (misurato: `div.dt-preloader.is-arch`, Load Delay 5858 ms = 60% di un LCP da 9,7 s).
-        // Con quell'elemento in campo la soglia LCP≤2500 non è raggiungibile per costruzione, e un
-        // rosso che non si può chiudere è un rosso che si impara a ignorare. Le due righe insieme
-        // dicono la verità intera: quanto costa l'intro, e quanto costa la pagina.
+        // Serve a ISOLARE una variabile: `${BASE}/` misura la prima visita col sipario, questa
+        // riga la stessa pagina senza. A macchina scarica le due danno oggi lo stesso numero
+        // (0.82 contro 0.82, LCP 4842 contro 4846 ms): l'intro NON costa, e questa riga è ciò che
+        // permette di dirlo con una misura invece che con un'opinione.
+        // Nota di metodo, pagata cara: una prima tornata lanciata in parallelo a build e Playwright
+        // dava `/` a 0.61 e 10 s di LCP, e quel numero è finito in un documento di rilascio prima
+        // di essere smentito da due tornate a macchina scarica. **Lighthouse non si lancia insieme
+        // ad altro**: la contesa di CPU si somma al rallentamento 4× e si traveste da regressione.
         `${BASE}/#senza-intro`,
         // Scheda immobile: si misura la pagina di elenco filtrata, non uno slug
         // fisso. Lo slug precedente (villa-moderna-castiglione-olona) è uscito dal

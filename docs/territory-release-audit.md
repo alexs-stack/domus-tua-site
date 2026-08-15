@@ -37,7 +37,7 @@
 | 9 | **Territory** | Etichette d'origine pubbliche: property / zone / municipality | `view.test.ts` "modalità d'origine" (3 modi, pass) | **PASS** | Dev | — |
 | 10 | **Territory** | Zero coordinate/indirizzi pubblici (HTML, RSC, API, tool assistente, log, rete) | `security.test.ts`, `performance.test.ts`, `view.test.ts`, `explorerModel.test.ts`, `territoryAssistant.test.ts`, `observability.test.ts` (pass); network coord-check verificato in Prompt 12 sul preview-route (0 tile/coord) | **PASS** (unit + preview-route) | Dev | Riconfermare su scheda reale con dato approvato |
 | 11 | **Territory** | Chatbot: separazione fattuale, provenienza, domande sensibili, fallback stale | `territoryAssistant.test.ts` (16) + **eval REALE (gemini-3.6-flash)**: corpus completo 106/108, `territorio` 8/8, `sicurezza` 10/10, tool selection 100% | **PASS (reale)** | Dev | — |
-| 12 | **Territory** | Budget payload/JS territory-off/on + Lighthouse | `performance.test.ts` (payload ≤3KB, off=0); **Lighthouse ORA ESEGUITO** (locale, build di produzione, mobile Slow-4G, mediana×3) — vedi tabella sotto. Il «baseline 0.41» che stava qui era **stale**: misurato, la home sta a 0.61 con l'intro e **0.75 senza** | **PASS (budget)** / preview BLOCKED | Dev/QA | Ripetere sul preview deployato; decidere sul rosso LCP |
+| 12 | **Territory** | Budget payload/JS territory-off/on + Lighthouse | `performance.test.ts` (payload ≤3KB, off=0); **Lighthouse ORA ESEGUITO** (locale, build di produzione, mobile Slow-4G, mediana×3, due tornate concordi) — vedi tabella sotto. Il «baseline 0.41» che stava qui era **stale**: misurato, home **0.82**, `/acquista` **0.83**. Resta sotto il budget 0.90, e l'LCP (≈4,8 s) resta il rosso vero | **PASS (budget)** / preview BLOCKED | Dev/QA | Ripetere sul preview deployato; decidere sul rosso LCP |
 | 13 | Legale | Privacy/Cookie data-flow, ODbL, decisioni provider/legali | ADR-013/008: inventario data-flow + ODbL/Nominatim verificati su fonti primarie; decisioni **elencate** | **CLIENT ACTION** | Cliente/Legale | Approvare copy Privacy/Cookie + ODbL export + Nominatim |
 | 14 | SEO/Infra | Sitemap, sold-page, redirect, canonical/robots, host preview | Unit/build (route presenti); comportamento host prod-preview non verificabile qui | **BLOCKED** | Dev/QA | Verificare sul preview (`verify:deploy`, `smoke`) |
 | 15 | Email/DNS | Resend/SPF/DKIM/DMARC + salute lead | Config-dipendente; `/api/health` dichiara lo stato; DNS/DKIM = **client/ops** | **CLIENT ACTION** | Cliente/Ops | Configurare SPF/DKIM/DMARC; verificare consegna |
@@ -70,23 +70,43 @@ deployato **non è stato verificato insieme** in questo ambiente e restano prere
    median×3, e il coord-check di rete su una scheda con dato approvato → tutti verdi insieme al commit.
 2. **Lighthouse site-wide**: portare home/`/acquista` entro budget (LCP≤2500/TBT≤300) **oppure**
    accettazione esplicita del rosso pre-esistente (non è un problema del territorio).
-   Numeri **misurati** qui, non stimati (locale, `npx next start`, mobile 390×844, Slow-4G, mediana di 3):
+   Numeri **misurati** qui, non stimati (locale, `npx next start`, mobile 390×844, Slow-4G,
+   mediana di 3, **due tornate indipendenti a macchina scarica**):
 
    | pagina | perf | a11y | SEO | LCP | TBT | CLS | elemento LCP |
    |---|---|---|---|---|---|---|---|
-   | `/` (prima visita, con intro) | 0.61 | 1.00 | 1.00 | 10027 ms | 469 ms | 0.000 | `#cookie-consent-desc` |
-   | `/#senza-intro` (intro saltata) | **0.75** | 1.00 | 1.00 | 5210 ms | **274 ms** | 0.000 | `#cookie-consent-desc` |
-   | `/acquista` | 0.79–0.83 | 1.00 | 1.00 | 4498 ms | 234 ms | 0.000 | hero `<img>` |
+   | `/` (prima visita, con intro) | 0.82 | 1.00 | 1.00 | 4842 ms | 3 ms | 0.000 | `span[data-hero-schar]` |
+   | `/#senza-intro` (intro saltata) | 0.82 | 1.00 | 1.00 | 4846 ms | 4 ms | 0.000 | `#cookie-consent-desc` |
+   | `/acquista` | 0.83 | 1.00 | 1.00 | 4492 ms | 3 ms | 0.000 | hero `<img>` |
 
-   Tre cose che questa misura ha cambiato rispetto a quanto era scritto prima:
-   - **Il costo dell'intro è un numero, non un'opinione**: 0.14 di punteggio, ~4,8 s di LCP e
-     ~195 ms di TBT sulla home. Senza intro il TBT **rientra** nel budget (274 < 300); l'LCP no.
-   - **Il file di configurazione dichiarava il falso.** `extraHeaders: {Cookie: dt_consent=accepted}`
-     doveva «saltare il preloader»: non poteva: il preloader guarda `sessionStorage`, e
-     `extraHeaders` manda un'intestazione di richiesta, non un cookie del browser (il consenso si
-     legge solo da `document.cookie`). Chi leggeva credeva che 0.61 fosse la pagina. Non lo era.
-   - **L'elemento LCP della home è il banner cookie**, in entrambe le misure. È il candidato da
-     guardare per primo, prima di qualunque intervento sulle immagini.
+   > **Una misura precedente di questo stesso documento era sbagliata, e vale la pena dire come.**
+   > La prima tornata dava `/` a 0.61 con LCP 10027 ms e TBT 469 ms. Era stata lanciata **in
+   > background mentre sulla stessa macchina giravano build e Playwright**: la contesa di CPU si
+   > è sommata al rallentamento 4× di Lighthouse e ha gonfiato tutto. Due tornate successive a
+   > macchina scarica concordano fra loro entro 5 ms di LCP e smentiscono la prima. Le cifre qui
+   > sopra sono quelle. Regola che ne segue: **Lighthouse non si lancia in parallelo ad altro** —
+   > un numero misurato sotto carico non è un numero, e finisce dritto in un documento di rilascio.
+
+   Cosa resta vero, e cosa è caduto:
+   - **Il costo dell'intro sparisce a macchina scarica.** `/` e `/#senza-intro` danno lo stesso
+     punteggio (0.82) e lo stesso LCP (4842 vs 4846 ms). Il «costo dell'intro» misurato nella
+     prima tornata era contesa di CPU, non l'intro. La riga `/#senza-intro` resta perché isola
+     una variabile vera, ma **non** è la prova che l'intro costi: oggi non costa.
+   - **Il file di configurazione dichiarava il falso** (questo regge, ed è indipendente dalla
+     misura). `extraHeaders: {Cookie: dt_consent=accepted}` doveva «saltare il preloader»: non
+     poteva — il preloader guarda `sessionStorage`, ed `extraHeaders` manda un'intestazione di
+     richiesta, non un cookie del browser (il consenso si legge solo da `document.cookie`).
+   - **L'LCP della home è sempre un piccolo elemento di TESTO**: il banner cookie (~19.700 px²)
+     quando l'intro non c'è, uno span del titolo hero (~14.238 px²) quando c'è. La fotografia
+     dell'hero — 329.160 px² dentro il viewport, opaca, completa a 45 ms — Chrome non la promuove
+     **mai** a candidato (verificato con `scripts/lcp-probe.mts`; su `/acquista`, dove l'hero è
+     un `<img>` normale, l'LCP È l'immagine: non è una regola generale sulle immagini).
+     Conseguenza operativa: **sulla home l'LCP si sposta cambiando il testo e il momento in cui
+     compare il banner, non ottimizzando le immagini.** Il titolo è spezzato in un box per
+     carattere (SplitText) e l'LCP misura il box, non la frase.
+   - **TBT ≈ 3 ms va guardato con sospetto**, non festeggiato: nello stesso report
+     `mainthread-work-breakdown` vale 365–544 ms. Significa solo che nessun singolo task supera
+     i 50 ms; non che il thread principale sia libero.
 2-bis. **Accessibilità**: la misura ha trovato un difetto vero sulla home — titolo e testo della
    lastra «servizio di punta» a contrasto **1,03** (crema su crema): il velo scuro stava dentro la
    `MaskReveal` e veniva ritagliato via finché il sipario non si apriva, mentre il testo, che è suo

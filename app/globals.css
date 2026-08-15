@@ -1664,7 +1664,25 @@ html[data-hero-rest] .dt-hero-rest {
 }
 /* Lockup, motto e script rientrano a OGNI load (rif. era-residence: refresh
    compreso). 0.02 = dipinti (l'LCP conta il testo) ma invisibili; il reveal
-   vero è di GSAP; failsafe a 6s se il bundle non idrata mai. */
+   vero è di GSAP; failsafe a 6s se il bundle non idrata mai.
+
+   VERIFICATO, e non era scontato: 0.02 funziona davvero. Chrome promuove a
+   candidato LCP uno di questi span a opacity 0.02 (misurato a ~150 ms con
+   scripts/lcp-probe.mts). Chi passa di qui pensando «0.02 sarà ignorato come
+   0» si fermi: è già stato provato, ed è falso.
+   Quel che NON funziona è ciò che si spera che ne consegua. Il titolo è
+   spezzato in un box per CARATTERE (serve alla riga per riga di SplitText), e
+   l'LCP misura il box, non la frase: ogni carattere vale ~14.000 px², non i
+   ~300.000 del titolo intero. Sulla home il banner cookie (~19.700 px², un
+   solo blocco di testo) è quindi PIÙ GRANDE di qualunque carattere dell'hero:
+   senza intro vince lui, con l'intro vince uno span del titolo. In entrambi i
+   casi l'LCP è un elementino di testo, e vale ~4,85 s su Slow-4G.
+   La foto dell'hero, che sarebbe 329.160 px² dentro il viewport, Chrome non
+   la promuove mai: non è una questione di opacity o di caricamento (è a
+   opacity 1, completa a 45 ms) — semplicemente non entra fra i candidati.
+   Conseguenza pratica: l'LCP della home si sposta cambiando COME il titolo è
+   spezzato, non ottimizzando le immagini. È una decisione di motion design,
+   non di performance, e va presa come tale. */
 html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
   opacity: 0.02;
   animation: dt-rest-failsafe 0.5s ease 6s forwards;

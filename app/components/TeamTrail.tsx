@@ -585,12 +585,30 @@ export default function TeamTrail() {
                             /* `loading="eager"` e non `priority`: la foto deve
                                essere in rete SUBITO — con lazy arrivava quando
                                la camera le era gia' addosso (misurato: +2,9s
-                               dal caricamento, a scroll in corso). `priority`
-                               aggiungerebbe anche un <link rel=preload> in
-                               testa, rubando banda all'immagine LCP dell'hero:
-                               qui basta non aspettare il viewport.
+                               dal caricamento, a scroll in corso).
                                Le 8 copie condividono la stessa URL: per il
-                               browser resta UNA richiesta. */
+                               browser resta UNA richiesta.
+
+                               ATTENZIONE, misurato il 2026-08-15 e diverso da
+                               quanto diceva questo commento: la seconda metà
+                               («`priority` aggiungerebbe anche un <link
+                               rel=preload> in testa … qui basta non aspettare
+                               il viewport») NON regge più su Next 16. Nell'HTML
+                               della home il preload di questa foto C'È lo
+                               stesso — 39,2 KB in testa, sulla stessa banda
+                               dell'hero — e `preload={false}` esplicito non lo
+                               toglie (provato: link ancora presente dopo il
+                               build). È `loading="eager"` a produrlo.
+                               Quindi l'effetto che si voleva evitare c'è: resta
+                               da decidere se accettarlo o pagare i +2,9s. Da
+                               provare, in quest'ordine: `fetchPriority="low"`
+                               accanto a eager (dovrebbe declassare anche il
+                               preload) e, se non basta, un caricamento pilotato
+                               a mano invece dell'attributo. Non toccato qui
+                               perché va MISURATO sui due fronti insieme —
+                               banda dell'hero e ritardo della foto — non
+                               scelto a naso: `npm run lighthouse` più
+                               `scripts/lcp-probe.mts`. */
                             loading="eager"
                             className="object-cover"
                             style={member.imagePos ? { objectPosition: member.imagePos } : undefined}

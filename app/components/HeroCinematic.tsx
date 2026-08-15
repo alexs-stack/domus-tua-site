@@ -584,11 +584,26 @@ export default function HeroCinematic() {
             src={heroCinematic.base}
             alt={c.heroAlt}
             fill
-            priority
+            // `preload`, non `priority`: quest'ultima è DEPRECATA da Next 16
+            // (docs image.md: «the `priority` property has been deprecated in
+            // favor of the `preload` property»). Stesso effetto — il <link
+            // rel=preload> in <head> — con il nome che dice cosa fa. PageHero
+            // era già migrata, questa no: erano le due sole hero del sito a
+            // divergere sulla stessa API.
+            //
+            // NB per chi ci tornerà a caccia di LCP: questa foto NON è
+            // l'elemento LCP della home, per quanto sia la cosa più grande in
+            // pagina. Misurato con scripts/lcp-probe.mts: 390×898 al top,
+            // 329.160 px² dentro il viewport, caricata a 45 ms, opacity 1,
+            // visibility visible — e Chrome non la promuove MAI a candidato.
+            // Vince invece un elemento di testo da 14-20 mila px². Il preload
+            // resta comunque giusto (la foto è la prima cosa che si vede), ma
+            // non aspettarti che spostarlo muova l'LCP: non è lui a decidere.
             // Qualità 78 (non 60): la sorgente è una foto WhatsApp già molto
             // compressa e ricampionata — una seconda compressione aggressiva
             // la sgranerebbe visibilmente sull'immagine luminosa a tutto schermo.
             quality={78}
+            preload
             sizes="100vw"
             className="object-cover"
             style={{ objectPosition: "50% 70%" }}
