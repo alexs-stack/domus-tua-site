@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
+import Posizionamento from "./components/Posizionamento";
 import HomeSearchGateway from "./components/HomeSearchGateway";
 import HorizonStory from "./components/HorizonStory";
 import StarReviews from "./components/StarReviews";
@@ -47,6 +48,13 @@ export default function Home() {
       <ThreadNav />
       <main className="flex-1">
         <HeroCinematic />
+        {/* Fra l'hero e la ricerca, e non è un dettaglio di ordine.
+            Il primo blocco interattivo della home era la ricerca immobili: lo spazio più
+            prezioso della pagina assegnato a chi COMPRA. Ma chi compra arriva comunque dai
+            portali ed è volume; chi deve scegliere a chi affidare un incarico è il
+            fatturato, e trovava un modulo di ricerca al posto di una ragione per
+            fidarsi. Adesso prima si dice cosa distingue l'agenzia, poi si cerca casa. */}
+        <Posizionamento />
         <HomeSearchGateway />
         {/* Il set piece "orizzonte": fondale aereo + cupola + pannelli orizzontali
             (tecnica dal dossier era-residence §11, contenuti e forme nostri).

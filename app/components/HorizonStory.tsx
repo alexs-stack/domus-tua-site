@@ -19,9 +19,8 @@ import Fioritura from "./motion/Fioritura";
 import ReviewsWall from "./ReviewsWall";
 import Reveal from "./Reveal";
 import { SegnoDomus } from "./BrandMotif";
-import { ArrowRight, ArrowUpRight, Play, Star } from "./Icons";
+import { ArrowRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
-import { site } from "../lib/site";
 
 const copy = {
   it: {
@@ -47,21 +46,6 @@ const copy = {
       "Lavoriamo dove viviamo: Tradate e i comuni della provincia di Varese, tra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Conosciamo il valore di ogni via, perché è anche la nostra.",
     cta: "Vedi le case disponibili",
     imageAlt: "Attico con terrazzo a Tradate seguito da Domus Tua",
-    revCap: "Recensioni",
-    revTitle: "Lo specchio del nostro lavoro.",
-    revOf: "su 5",
-    revCount: `${site.reviewsCount} recensioni Google verificate`,
-    revBody:
-      "Il giudizio che conta è il riflesso di chi ci ha scelto: famiglie che hanno venduto o comprato casa con noi e l'hanno raccontato, con nome e cognome.",
-    revCta: "Leggi le recensioni",
-    revAlt: "Raffaela Rizza sorride alla sua immagine riflessa nello specchio della sede",
-    vidCap: "Video recensioni",
-    vidTitle: "Le voci, in prima persona.",
-    vidBody:
-      "Le storie più belle non le scriviamo noi: le raccontano i clienti davanti alla camera. Guardale sul nostro canale, prima ancora di conoscerci.",
-    vidCta: "Guarda le video recensioni",
-    vidAlt: "Raffaela Rizza in sede accanto allo specchio, sorridente verso la camera",
-    vidAlt2: "Raffaela Rizza di profilo osserva il proprio riflesso nello specchio",
   },
   en: {
     backdropAlt: "Aerial view of the rooftops and greenery around Tradate",
@@ -86,21 +70,6 @@ const copy = {
       "We work where we live: Tradate and the towns of the Varese province, between the green of the Pineta park and the connections to Milan and Malpensa. We know the value of every street, because it is ours too.",
     cta: "View available homes",
     imageAlt: "Penthouse with terrace in Tradate listed by Domus Tua",
-    revCap: "Reviews",
-    revTitle: "The mirror of our work.",
-    revOf: "out of 5",
-    revCount: `${site.reviewsCount} verified Google reviews`,
-    revBody:
-      "The judgement that matters is the reflection of those who chose us: families who sold or bought a home with us and told the story, with their full name.",
-    revCta: "Read the reviews",
-    revAlt: "Raffaela Rizza smiling at her reflection in the office mirror",
-    vidCap: "Video reviews",
-    vidTitle: "The voices, first-hand.",
-    vidBody:
-      "The best stories are not written by us: clients tell them on camera. Watch them on our channel, even before meeting us.",
-    vidCta: "Watch the video reviews",
-    vidAlt: "Raffaela Rizza by the mirror, smiling at the camera",
-    vidAlt2: "Raffaela Rizza in profile looking at her reflection in the mirror",
   },
   fr: {
     backdropAlt: "Vue aérienne des toits et de la verdure autour de Tradate",
@@ -125,21 +94,6 @@ const copy = {
       "Nous travaillons là où nous vivons : Tradate et les communes de la province de Varese, entre le vert du parc Pineta et les liaisons vers Milan et Malpensa. Nous connaissons la valeur de chaque rue, parce qu'elle est aussi la nôtre.",
     cta: "Voir les biens disponibles",
     imageAlt: "Attique avec terrasse à Tradate proposé par Domus Tua",
-    revCap: "Avis",
-    revTitle: "Le miroir de notre travail.",
-    revOf: "sur 5",
-    revCount: `${site.reviewsCount} avis Google vérifiés`,
-    revBody:
-      "Le jugement qui compte est le reflet de ceux qui nous ont choisis : des familles qui ont vendu ou acheté avec nous et l'ont raconté, avec leur nom.",
-    revCta: "Lire les avis",
-    revAlt: "Raffaela Rizza souriant à son reflet dans le miroir de l'agence",
-    vidCap: "Avis en vidéo",
-    vidTitle: "Les voix, à la première personne.",
-    vidBody:
-      "Les plus belles histoires, ce ne sont pas nous qui les écrivons : les clients les racontent face caméra. Regardez-les sur notre chaîne, avant même de nous rencontrer.",
-    vidCta: "Voir les avis en vidéo",
-    vidAlt: "Raffaela Rizza près du miroir, souriant à la caméra",
-    vidAlt2: "Raffaela Rizza de profil, observant son reflet dans le miroir",
   },
   de: {
     backdropAlt: "Luftaufnahme der Dächer und des Grüns rund um Tradate",
@@ -164,21 +118,6 @@ const copy = {
       "Wir arbeiten dort, wo wir leben: Tradate und die Gemeinden der Provinz Varese, zwischen dem Grün des Pineta-Parks und den Verbindungen nach Mailand und Malpensa. Wir kennen den Wert jeder Straße — denn es sind auch unsere.",
     cta: "Verfügbare Immobilien ansehen",
     imageAlt: "Penthouse mit Terrasse in Tradate im Angebot von Domus Tua",
-    revCap: "Bewertungen",
-    revTitle: "Der Spiegel unserer Arbeit.",
-    revOf: "von 5",
-    revCount: `${site.reviewsCount} verifizierte Google-Bewertungen`,
-    revBody:
-      "Das Urteil, das zählt, ist das Spiegelbild derer, die uns gewählt haben: Familien, die mit uns verkauft oder gekauft haben — und es mit vollem Namen erzählen.",
-    revCta: "Bewertungen lesen",
-    revAlt: "Raffaela Rizza lächelt ihrem Spiegelbild im Büro zu",
-    vidCap: "Video-Bewertungen",
-    vidTitle: "Die Stimmen, aus erster Hand.",
-    vidBody:
-      "Die schönsten Geschichten schreiben nicht wir: Unsere Kunden erzählen sie vor der Kamera. Sehen Sie sie auf unserem Kanal — noch bevor Sie uns kennenlernen.",
-    vidCta: "Video-Bewertungen ansehen",
-    vidAlt: "Raffaela Rizza am Spiegel, lächelnd in die Kamera",
-    vidAlt2: "Raffaela Rizza im Profil, den Blick auf ihr Spiegelbild gerichtet",
   },
   es: {
     backdropAlt: "Vista aérea de los tejados y el verde alrededor de Tradate",
@@ -203,21 +142,6 @@ const copy = {
       "Trabajamos donde vivimos: Tradate y los municipios de la provincia de Varese, entre el verde del parque Pineta y las conexiones con Milán y Malpensa. Conocemos el valor de cada calle, porque también es la nuestra.",
     cta: "Ver las casas disponibles",
     imageAlt: "Ático con terraza en Tradate ofrecido por Domus Tua",
-    revCap: "Reseñas",
-    revTitle: "El espejo de nuestro trabajo.",
-    revOf: "sobre 5",
-    revCount: `${site.reviewsCount} reseñas de Google verificadas`,
-    revBody:
-      "El juicio que cuenta es el reflejo de quienes nos eligieron: familias que vendieron o compraron casa con nosotros y lo contaron, con nombre y apellido.",
-    revCta: "Leer las reseñas",
-    revAlt: "Raffaela Rizza sonríe a su reflejo en el espejo de la agencia",
-    vidCap: "Videorreseñas",
-    vidTitle: "Las voces, en primera persona.",
-    vidBody:
-      "Las mejores historias no las escribimos nosotros: las cuentan los clientes ante la cámara. Míralas en nuestro canal, incluso antes de conocernos.",
-    vidCta: "Mira las videorreseñas",
-    vidAlt: "Raffaela Rizza junto al espejo, sonriendo a la cámara",
-    vidAlt2: "Raffaela Rizza de perfil, observando su reflejo en el espejo",
   },
 } as const;
 
@@ -415,141 +339,23 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
           </div>
         </div>
 
-        {/* Pannello recensioni — lo specchio: il riflesso è il giudizio di chi
-            ci ha scelto. Numeri SOLO da site.ts (fonte unica verificata). */}
-        <div className="dt-horizon_panel relative flex items-center">
-          {/* L'angolo fiorito che chiude il pannello delle recensioni. Qui c'era
-              la parola "Grazie" scritta in fiori: tolta su richiesta del cliente
-              (2026-08-09, «togli la scritta e mettici dei fiori»). Restano i
-              fiori — lo stesso tralcio d'angolo degli altri pannelli, così il
-              gesto botanico è uno solo in tutto il set piece. */}
-          <div
-            aria-hidden
-            data-horizon-flower="drift-y"
-            className="pointer-events-none absolute -bottom-8 -left-6 z-10 hidden h-[38vh] w-[17vw] lg:block"
-          >
-            <Fioritura variant="corner-bl" className="h-full w-full" />
-          </div>
-          <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-10 px-5 py-20 sm:px-8 lg:grid lg:grid-cols-[minmax(0,55fr)_minmax(0,45fr)] lg:items-center lg:gap-16 lg:py-0">
-            <div>
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red">
-                {c.revCap}
-              </p>
-              <h2 className="mt-6 font-display text-d3 display-tight font-medium text-ink">
-                {c.revTitle}
-              </h2>
-              <div data-horizon-reveal="track" className="mt-9 max-w-md">
-                <p className="flex items-end gap-3">
-                  <span className="tnum font-display text-6xl font-medium leading-none text-ink sm:text-7xl">
-                    {site.rating}
-                  </span>
-                  <span className="pb-1 text-sm font-semibold uppercase tracking-[0.14em] text-graphite">
-                    {c.revOf}
-                  </span>
-                </p>
-                {/* Oro: è il voto, non il marchio (vedi globals.css) */}
-                <p className="mt-3 flex items-center gap-1.5" aria-hidden>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-gold" />
-                  ))}
-                </p>
-                <p className="mt-2 text-sm font-medium text-graphite">{c.revCount}</p>
-                <p className="mt-5 text-[0.95rem] leading-relaxed text-stone sm:text-base">
-                  {c.revBody}
-                </p>
-                <Link
-                  href="/recensioni"
-                  className="tap-target group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
-                >
-                  {c.revCta}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </div>
-            <div
-              data-horizon-slide
-              className="relative aspect-[3/4] w-full overflow-hidden rounded-card lg:aspect-auto lg:h-[74vh]"
-            >
-              <Image
-                data-horizon-slide-img
-                src="/images/reali/raffaela-specchio-riflesso.jpg"
-                alt={c.revAlt}
-                fill
-                sizes="(min-width: 1024px) 42vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </div>
+        {/* QUI STAVANO DUE PANNELLI RECENSIONI, E SONO STATI TOLTI.
+            («Lo specchio del nostro lavoro» e «Le voci, in prima persona».)
 
-        {/* Pannello video recensioni — la voce diretta dei clienti, sul canale
-            reale dell'agenzia (stesso target della CTA di Authority). */}
-        <div className="dt-horizon_panel relative flex items-center">
-          {/* Chiusura del set piece: il tralcio fiorisce dall'angolo basso. */}
-          <div
-            aria-hidden
-            data-horizon-flower="drift-y"
-            className="pointer-events-none absolute -bottom-6 -right-5 z-10 hidden h-[38vh] w-[17vw] lg:block"
-          >
-            <Fioritura variant="corner-br" className="h-full w-full" />
-          </div>
-          <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-10 px-5 py-20 sm:px-8 lg:grid lg:grid-cols-[minmax(0,42fr)_minmax(0,58fr)] lg:items-center lg:gap-16 lg:py-0">
-            <div>
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red">
-                {c.vidCap}
-              </p>
-              <h2 className="mt-6 font-display text-d3 display-tight font-medium text-ink">
-                {c.vidTitle}
-              </h2>
-              <div data-horizon-reveal="track" className="mt-8 max-w-md">
-                <p className="text-[0.95rem] leading-relaxed text-stone sm:text-base">{c.vidBody}</p>
-                <a
-                  href={site.social.youtube.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="tap-target group mt-7 inline-flex items-center gap-3 text-sm font-semibold text-red transition-colors hover:text-red-dark"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 ease-soft group-hover:scale-105">
-                    <Play className="ml-0.5 h-4 w-4" />
-                  </span>
-                  {c.vidCta}
-                  <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </a>
-              </div>
-            </div>
-            <div className="relative">
-              <div
-                data-horizon-slide
-                className="relative aspect-[4/3] w-full overflow-hidden rounded-card lg:h-[64vh] lg:aspect-auto"
-              >
-                <Image
-                  data-horizon-slide-img
-                  src="/images/reali/raffaela-specchio-sorriso.jpg"
-                  alt={c.vidAlt}
-                  fill
-                  sizes="(min-width: 1024px) 52vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-              {/* Carta secondaria: il profilo allo specchio, sfalsata come una
-                  polaroid appoggiata (solo desktop: sotto ruberebbe spazio). */}
-              <div
-                data-horizon-slide
-                className="absolute -bottom-10 -left-14 hidden w-[15vw] overflow-hidden rounded-card shadow-card lg:block"
-              >
-                <Image
-                  data-horizon-slide-img
-                  src="/images/reali/raffaela-specchio-profilo.jpg"
-                  alt={c.vidAlt2}
-                  width={640}
-                  height={480}
-                  sizes="15vw"
-                  className="h-auto w-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+            La home aveva CINQUE sezioni di recensioni — questi due, il muro delle voci,
+            «Cinque stelle, una alla volta» e «Parola per parola» — e in nessuna delle
+            cinque si leggeva una parola scritta da un cliente. Cinque titoli diversi per
+            dire la stessa cosa non sono cinque prove: sono una prova sola, ripetuta
+            cinque volte, e ogni ripetizione la indebolisce.
+
+            Sono caduti questi due perché erano i più deboli: bellissimi da guardare, ma
+            parlavano DI recensioni invece di mostrarne una. Restano il muro delle voci
+            (Atto 4), che porta i titoli veri delle storie dei clienti, e StarReviews
+            (Atto 5), che porta voto, premio e il widget di verifica.
+
+            Il set piece orizzontale torna a due pannelli — la promessa e il territorio —
+            che è poi il suo arco naturale: chi siamo, e dove. */}
+
         </HorizonScroller>
 
         {/* Atto 4 — dall'ultimo fotogramma orizzontale lo scroll torna

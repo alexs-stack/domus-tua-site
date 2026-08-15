@@ -90,7 +90,7 @@ const copy = {
       esperienza: { label: "Esperienza", caption: "Ogni passaggio spiegato, ogni dubbio ascoltato." },
       team: { label: "Il team", caption: "Persone prima degli immobili, ogni giorno." },
     },
-    widgetTitle: "Parola per parola.",
+    widgetTitle: "Verificate da Trustindex",
     widgetNote: "Recensioni Google verificate tramite Trustindex.",
     consentGate:
       "Il widget delle recensioni è di Trustindex: si carica solo dopo il tuo consenso ai cookie. Puoi leggerle subito su Google.",
@@ -115,7 +115,7 @@ const copy = {
       esperienza: { label: "Experience", caption: "Every step explained, every doubt heard." },
       team: { label: "The team", caption: "People before properties, every day." },
     },
-    widgetTitle: "Word for word.",
+    widgetTitle: "Verified by Trustindex",
     widgetNote: "Google reviews verified via Trustindex.",
     consentGate:
       "The reviews widget is provided by Trustindex: it loads only after you accept cookies. You can read the reviews on Google right away.",
@@ -139,7 +139,7 @@ const copy = {
       esperienza: { label: "Expérience", caption: "Chaque étape expliquée, chaque doute écouté." },
       team: { label: "L'équipe", caption: "Les personnes avant les biens, chaque jour." },
     },
-    widgetTitle: "Mot pour mot.",
+    widgetTitle: "Vérifiés par Trustindex",
     widgetNote: "Avis Google vérifiés via Trustindex.",
     consentGate:
       "Le widget d'avis est fourni par Trustindex : il ne se charge qu'après votre consentement aux cookies. Vous pouvez lire les avis sur Google dès maintenant.",
@@ -163,7 +163,7 @@ const copy = {
       esperienza: { label: "Erfahrung", caption: "Jeder Schritt erklärt, jeder Zweifel gehört." },
       team: { label: "Das Team", caption: "Menschen vor Immobilien, jeden Tag." },
     },
-    widgetTitle: "Wort für Wort.",
+    widgetTitle: "Von Trustindex verifiziert",
     widgetNote: "Google-Bewertungen, verifiziert über Trustindex.",
     consentGate:
       "Das Bewertungs-Widget stammt von Trustindex: Es lädt erst nach Ihrer Cookie-Einwilligung. Die Bewertungen können Sie sofort auf Google lesen.",
@@ -187,7 +187,7 @@ const copy = {
       esperienza: { label: "Experiencia", caption: "Cada paso explicado, cada duda escuchada." },
       team: { label: "El equipo", caption: "Personas antes que inmuebles, cada día." },
     },
-    widgetTitle: "Palabra por palabra.",
+    widgetTitle: "Verificadas por Trustindex",
     widgetNote: "Reseñas de Google verificadas mediante Trustindex.",
     consentGate:
       "El widget de reseñas es de Trustindex: se carga solo tras tu consentimiento de cookies. Puedes leer las reseñas en Google ahora mismo.",
@@ -765,10 +765,16 @@ export default function StarReviews() {
         </div>
       </div>
 
-      {/* Parola per parola: il widget Trustindex (o la prova reale senza consenso) */}
+      {/* Il widget Trustindex (o la prova reale senza consenso).
+          NON è più una sezione con un titolo suo. Si chiamava «Parola per parola» ed era
+          la quinta intestazione di recensioni della home: cinque titoli diversi per la
+          stessa prova, che così si indebolisce invece di rafforzarsi (§ item 11).
+          Adesso è quello che è sempre stato nei fatti — la verifica di terza parte in coda
+          al blocco del voto, sotto lo stesso titolo — e il ruolo lo dice una riga di
+          servizio, non un'intestazione che promette una sezione nuova. */}
       <div className="mx-auto max-w-[1240px] px-5 pb-16 sm:px-8 sm:pb-20">
         <div ref={widgetRef}>
-          <h3 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">{c.widgetTitle}</h3>
+          <p className="eyebrow">{c.widgetTitle}</p>
           {showTrustindex ? (
             <div className="mt-6">
               <TrustindexEmbed title={c.iframeTitle} />
