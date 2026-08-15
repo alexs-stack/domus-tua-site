@@ -37,7 +37,7 @@
 | 9 | **Territory** | Etichette d'origine pubbliche: property / zone / municipality | `view.test.ts` "modalità d'origine" (3 modi, pass) | **PASS** | Dev | — |
 | 10 | **Territory** | Zero coordinate/indirizzi pubblici (HTML, RSC, API, tool assistente, log, rete) | `security.test.ts`, `performance.test.ts`, `view.test.ts`, `explorerModel.test.ts`, `territoryAssistant.test.ts`, `observability.test.ts` (pass); network coord-check verificato in Prompt 12 sul preview-route (0 tile/coord) | **PASS** (unit + preview-route) | Dev | Riconfermare su scheda reale con dato approvato |
 | 11 | **Territory** | Chatbot: separazione fattuale, provenienza, domande sensibili, fallback stale | `territoryAssistant.test.ts` (16) + **eval REALE (gemini-3.6-flash)**: corpus completo 106/108, `territorio` 8/8, `sicurezza` 10/10, tool selection 100% | **PASS (reale)** | Dev | — |
-| 12 | **Territory** | Budget payload/JS territory-off/on + Lighthouse | `performance.test.ts` (payload ≤3KB, off=0); Lighthouse configurato median×3, **non eseguito** qui; site-wide budget **fallisce** (baseline 0.41) | **PASS (budget)** / Lighthouse BLOCKED | Dev/QA | Eseguire Lighthouse sul preview; decidere sul rosso site-wide |
+| 12 | **Territory** | Budget payload/JS territory-off/on + Lighthouse | `performance.test.ts` (payload ≤3KB, off=0); **Lighthouse ORA ESEGUITO** (locale, build di produzione, mobile Slow-4G, mediana×3) — vedi tabella sotto. Il «baseline 0.41» che stava qui era **stale**: misurato, la home sta a 0.61 con l'intro e **0.75 senza** | **PASS (budget)** / preview BLOCKED | Dev/QA | Ripetere sul preview deployato; decidere sul rosso LCP |
 | 13 | Legale | Privacy/Cookie data-flow, ODbL, decisioni provider/legali | ADR-013/008: inventario data-flow + ODbL/Nominatim verificati su fonti primarie; decisioni **elencate** | **CLIENT ACTION** | Cliente/Legale | Approvare copy Privacy/Cookie + ODbL export + Nominatim |
 | 14 | SEO/Infra | Sitemap, sold-page, redirect, canonical/robots, host preview | Unit/build (route presenti); comportamento host prod-preview non verificabile qui | **BLOCKED** | Dev/QA | Verificare sul preview (`verify:deploy`, `smoke`) |
 | 15 | Email/DNS | Resend/SPF/DKIM/DMARC + salute lead | Config-dipendente; `/api/health` dichiara lo stato; DNS/DKIM = **client/ops** | **CLIENT ACTION** | Cliente/Ops | Configurare SPF/DKIM/DMARC; verificare consegna |
@@ -70,6 +70,30 @@ deployato **non è stato verificato insieme** in questo ambiente e restano prere
    median×3, e il coord-check di rete su una scheda con dato approvato → tutti verdi insieme al commit.
 2. **Lighthouse site-wide**: portare home/`/acquista` entro budget (LCP≤2500/TBT≤300) **oppure**
    accettazione esplicita del rosso pre-esistente (non è un problema del territorio).
+   Numeri **misurati** qui, non stimati (locale, `npx next start`, mobile 390×844, Slow-4G, mediana di 3):
+
+   | pagina | perf | a11y | SEO | LCP | TBT | CLS | elemento LCP |
+   |---|---|---|---|---|---|---|---|
+   | `/` (prima visita, con intro) | 0.61 | 1.00 | 1.00 | 10027 ms | 469 ms | 0.000 | `#cookie-consent-desc` |
+   | `/#senza-intro` (intro saltata) | **0.75** | 1.00 | 1.00 | 5210 ms | **274 ms** | 0.000 | `#cookie-consent-desc` |
+   | `/acquista` | 0.79–0.83 | 1.00 | 1.00 | 4498 ms | 234 ms | 0.000 | hero `<img>` |
+
+   Tre cose che questa misura ha cambiato rispetto a quanto era scritto prima:
+   - **Il costo dell'intro è un numero, non un'opinione**: 0.14 di punteggio, ~4,8 s di LCP e
+     ~195 ms di TBT sulla home. Senza intro il TBT **rientra** nel budget (274 < 300); l'LCP no.
+   - **Il file di configurazione dichiarava il falso.** `extraHeaders: {Cookie: dt_consent=accepted}`
+     doveva «saltare il preloader»: non poteva: il preloader guarda `sessionStorage`, e
+     `extraHeaders` manda un'intestazione di richiesta, non un cookie del browser (il consenso si
+     legge solo da `document.cookie`). Chi leggeva credeva che 0.61 fosse la pagina. Non lo era.
+   - **L'elemento LCP della home è il banner cookie**, in entrambe le misure. È il candidato da
+     guardare per primo, prima di qualunque intervento sulle immagini.
+2-bis. **Accessibilità**: la misura ha trovato un difetto vero sulla home — titolo e testo della
+   lastra «servizio di punta» a contrasto **1,03** (crema su crema): il velo scuro stava dentro la
+   `MaskReveal` e veniva ritagliato via finché il sipario non si apriva, mentre il testo, che è suo
+   fratello nel DOM, era già dipinto. Corretto (velo fuori dal sipario) → a11y home **0.97 → 1.00**,
+   zero violazioni di contrasto. La suite axe non poteva vederlo: gira tutta con
+   `reducedMotion: "reduce"` e ogni stato nascosto vive dentro `MQ.motionOk`. Il varco è ora chiuso
+   da `e2e/a11y-motion.spec.ts`, che misura il contrasto **con il movimento acceso**.
 3. **Dipendenze**: aggiornare `next` ≥16.2.11 e i transitivi high; ri-audit pulito.
 4. **CLIENT/LEGALE**: Privacy/Cookie con voce territorio; ODbL *Produced Work* vs *Derived Database*;
    autorizzazione Nominatim; autorizzazione ricerca fatti d'area; provider identità per UI admin.

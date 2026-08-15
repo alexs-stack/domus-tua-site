@@ -458,13 +458,28 @@ export default function Services() {
                   />
                 </HoverDistort>
               </Parallax>
-              {/* pointer-events-none: il gradiente è decorativo ma copre tutta
-                  la card; senza, intercetterebbe l'hit-testing e il pointer-
-                  enter non raggiungerebbe mai il layer HoverDistort sotto.
-                  Restando dopo Parallax nel DOM, continua a dipingersi SOPRA
-                  il canvas: contrasto del testo intatto durante l'hover. */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
             </MaskReveal>
+            {/* IL VELO STA FUORI DAL SIPARIO, e ci sta per un difetto misurato.
+                Prima viveva dentro la MaskReveal, insieme alla foto. Ma la
+                colonna di testo qui sotto è SORELLA della MaskReveal, non figlia:
+                finché il sipario è chiuso — `clip-path: inset(100% 0% 0%)`, cioè
+                da pagina caricata fino a quando non ci si scorre sopra — il velo
+                veniva ritagliato via e il titolo crema restava su fondo crema.
+                Lighthouse sulla home: rapporto 1,03 e 1,02 (#f2ebda su #efe7d6).
+                La suite di accessibilità non poteva vederlo: gira tutta con
+                `reducedMotion: "reduce"`, e lo stato nascosto esiste solo dentro
+                `MQ.motionOk`. Ora lo copre e2e/a11y-motion.spec.ts.
+                È poi la regola che le lastre del nastro qui sopra già seguono:
+                il velo tiene il contrasto «non la fortuna» — e un velo che si
+                dipinge solo a animazione avvenuta è esattamente fortuna.
+                Restando DOPO la MaskReveal nel DOM continua a dipingersi sopra il
+                canvas di HoverDistort (stesso contesto di impilamento, ordine del
+                DOM = ordine di pittura): il contrasto durante l'hover, che era la
+                ragione della posizione precedente, regge identico.
+                pointer-events-none: il velo copre tutta la card e senza di questo
+                intercetterebbe l'hit-testing, e il pointer-enter non arriverebbe
+                mai al layer HoverDistort sotto. */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-7 sm:p-9 lg:p-12">
               <span className="rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-cream">
                 {c.featureBadge}

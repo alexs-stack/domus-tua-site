@@ -19,6 +19,17 @@ module.exports = {
       url: [
         `${BASE}/`,
         `${BASE}/acquista`,
+        // LA STESSA HOME, SENZA L'INTRO — e non con un trucco: con il meccanismo del sito.
+        // Lo script di boot in app/layout.tsx fa `if(deep){sessionStorage.setItem("dt-intro-seen","1")}`,
+        // dove `deep = !!location.hash`. Chi arriva su /#contatti da un link non vede il sipario,
+        // perché la coreografia dell'arco presuppone la pagina in cima. Un frammento che non
+        // corrisponde a nessun id non fa scorrere niente: resta solo l'effetto "intro già vista".
+        // Serve perché `${BASE}/` misura la PRIMA visita, e lì l'elemento LCP è il sipario stesso
+        // (misurato: `div.dt-preloader.is-arch`, Load Delay 5858 ms = 60% di un LCP da 9,7 s).
+        // Con quell'elemento in campo la soglia LCP≤2500 non è raggiungibile per costruzione, e un
+        // rosso che non si può chiudere è un rosso che si impara a ignorare. Le due righe insieme
+        // dicono la verità intera: quanto costa l'intro, e quanto costa la pagina.
+        `${BASE}/#senza-intro`,
         // Scheda immobile: si misura la pagina di elenco filtrata, non uno slug
         // fisso. Lo slug precedente (villa-moderna-castiglione-olona) è uscito dal
         // catalogo e il 404 fermava l'INTERA misura — un rosso che non diceva
@@ -58,9 +69,19 @@ module.exports = {
           downloadThroughputKbps: 0,
           uploadThroughputKbps: 0,
         },
-        // Il preloader parte una volta per sessione: Lighthouse apre sempre una sessione nuova,
-        // quindi lo misurerebbe ogni volta. Lo si salta come farebbe chi torna sul sito.
-        extraHeaders: JSON.stringify({ Cookie: "dt_consent=accepted" }),
+        // QUI C'ERA UN `extraHeaders: { Cookie: "dt_consent=accepted" }` con scritto accanto che
+        // serviva a saltare il preloader «come farebbe chi torna sul sito». Non lo faceva, per due
+        // motivi indipendenti, e nel frattempo la riga raccontava a chi leggeva che il numero della
+        // home fosse quello della pagina senza intro. Era la bugia più costosa del file.
+        //   1. Il preloader non guarda i cookie. Lo script di boot decide con
+        //      `!sessionStorage.getItem("dt-intro-seen")`, e Lighthouse apre una sessione pulita a
+        //      ogni run: l'intro suonava sempre, ed era lei l'elemento LCP della home.
+        //   2. `extraHeaders` aggiunge un'INTESTAZIONE DI RICHIESTA, non un cookie nel browser.
+        //      Il consenso qui si legge solo da `document.cookie` (app/lib/consent.ts, nessun
+        //      lettore server), che restava vuoto: il banner compariva comunque — e in una delle
+        //      misure è finito lui elemento LCP (`#cookie-consent-desc`).
+        // Tolta: era inerte. L'intro si salta con il deep link qui sopra, che è il meccanismo vero
+        // del sito; il banner resta in campo perché una prima visita lo vede davvero.
         skipAudits: ["uses-http2", "canonical"],
       },
     },

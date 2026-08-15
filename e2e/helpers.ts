@@ -163,6 +163,28 @@ export async function a11yViolations(page: Page, disable: string[] = []) {
   }));
 }
 
+/**
+ * Solo il contrasto, con TUTTI i nodi che lo violano e il perché di ciascuno.
+ *
+ * Serve alla suite con il movimento ACCESO (a11y-motion.spec.ts), dove il punto non è quante
+ * regole falliscono ma QUALE testo resta senza il suo fondale: il messaggio di axe contiene i
+ * due colori calcolati e il rapporto, cioè la prova. `a11yViolations` tiene solo il primo nodo
+ * per regola e basta per un gate; qui serve l'elenco, perché ogni nodo è un componente diverso.
+ */
+export async function contrastViolations(page: Page) {
+  const results = await new AxeBuilder({ page })
+    .withRules(["color-contrast"])
+    .exclude("iframe")
+    .analyze();
+  return results.violations.flatMap((v) =>
+    v.nodes.map((n) => ({
+      target: n.target.join(" "),
+      html: n.html.slice(0, 120),
+      perche: (n.any[0]?.message ?? "").replace(/\s+/g, " ").trim(),
+    })),
+  );
+}
+
 /** Il primo immobile della griglia, qualunque sia — i test non conoscono nessuno slug. */
 export function firstListingLink(page: Page) {
   return page.locator('a[href^="/case/"]').first();
