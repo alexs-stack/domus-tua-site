@@ -14,6 +14,7 @@ import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
 import FaqTeaser from "../components/FaqTeaser";
+import CostiChiari from "../components/CostiChiari";
 import ScrubWords from "../components/motion/ScrubWords";
 import { Cta } from "../components/primitives/Cta";
 import { FAQ_SELLER } from "../domande-frequenti/faq";
@@ -91,7 +92,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       trust: [
         "Il primo incontro è senza impegno e senza costi",
         "Nessun costo anticipato, paghi solo a vendita conclusa",
-        "Foto, video, home staging e certificazione inclusi",
+        "Foto, video, home staging e verifica dei documenti inclusi",
       ],
     },
     highlights: {
@@ -105,8 +106,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "Una valutazione professionale su dati reali: né troppo alto, così l’immobile non resta fermo, né troppo basso, così non lasci valore sul tavolo.",
         },
         {
-          title: "L’immobile certificato",
-          copy: "Con il protocollo Domus D.O.C. verifichiamo la conformità a monte: documenti a posto prima di andare sul mercato, niente sorprese in trattativa.",
+          title: "I documenti verificati",
+          copy: "Con il protocollo Domus D.O.C. verifichiamo la conformità a monte: documenti a posto prima di andare sul mercato, così i problemi emergono prima della trattativa.",
         },
         {
           title: "Il marketing che vende",
@@ -213,7 +214,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "È lo stesso metodo che i venditori raccontano nelle loro recensioni, che dà vita agli eventi Open Domus e che porta alla certificazione Domus D.O.C.",
+        "È lo stesso metodo che i venditori raccontano nelle loro recensioni, che dà vita agli eventi Open Domus e che porta al protocollo Domus D.O.C.",
       ctaLabel: "Richiedi la valutazione del tuo immobile",
     },
     openDomus: {
@@ -239,7 +240,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       trust: [
         "The first meeting carries no obligation and no cost",
         "No upfront costs, you pay only once the sale is closed",
-        "Photography, video, home staging and certification included",
+        "Photography, video, home staging and document checks included",
       ],
     },
     highlights: {
@@ -253,7 +254,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "A professional valuation based on real data: not too high, so the property doesn’t sit on the market, and not too low, so you don’t leave value on the table.",
         },
         {
-          title: "The certified property",
+          title: "The paperwork, verified",
           copy: "With the Domus D.O.C. protocol we verify compliance upfront: paperwork in order before going to market, so issues surface before the negotiation.",
         },
         {
@@ -361,7 +362,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "It’s the same method sellers describe in their reviews, that brings the Open Domus events to life and that leads to the Domus D.O.C. certification.",
+        "It’s the same method sellers describe in their reviews, that brings the Open Domus events to life and that leads to the Domus D.O.C. protocol.",
       ctaLabel: "Request a valuation of your property",
     },
     openDomus: {
@@ -387,7 +388,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       trust: [
         "Le premier rendez-vous est sans engagement et sans frais",
         "Aucuns frais d’avance, vous ne payez qu’à la vente conclue",
-        "Photos, vidéo, home staging et certification inclus",
+        "Photos, vidéo, home staging et vérification des documents inclus",
       ],
     },
     highlights: {
@@ -401,7 +402,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "Une estimation professionnelle fondée sur des données réelles : ni trop élevé, pour que le bien ne stagne pas, ni trop bas, pour ne pas laisser de valeur sur la table.",
         },
         {
-          title: "Le bien certifié",
+          title: "Les documents vérifiés",
           copy: "Avec le protocole Domus D.O.C., nous vérifions la conformité en amont : dossier en règle avant la mise sur le marché, pour que les problèmes ressortent avant la négociation.",
         },
         {
@@ -509,7 +510,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "C’est la même méthode que les vendeurs racontent dans leurs avis, qui donne vie aux événements Open Domus et qui mène à la certification Domus D.O.C.",
+        "C’est la même méthode que les vendeurs racontent dans leurs avis, qui donne vie aux événements Open Domus et qui mène au protocole Domus D.O.C.",
       ctaLabel: "Demandez l’estimation de votre bien",
     },
     openDomus: {
@@ -535,7 +536,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       trust: [
         "Das erste Gespräch ist unverbindlich und kostenfrei",
         "Keine Vorabkosten, Sie zahlen erst nach erfolgtem Verkauf",
-        "Fotos, Video, Home Staging und Zertifizierung inklusive",
+        "Fotos, Video, Home Staging und Unterlagenprüfung inklusive",
       ],
     },
     highlights: {
@@ -549,7 +550,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "Eine professionelle Bewertung auf Basis echter Daten: nicht zu hoch, damit die Immobilie nicht liegen bleibt, und nicht zu niedrig, damit Sie keinen Wert verschenken.",
         },
         {
-          title: "Die zertifizierte Immobilie",
+          title: "Die geprüften Unterlagen",
           copy: "Mit dem Domus-D.O.C.-Protokoll prüfen wir die Konformität vorab: Unterlagen in Ordnung, bevor es an den Markt geht, damit Probleme vor der Verhandlung auftauchen.",
         },
         {
@@ -657,7 +658,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "Es ist dieselbe Methode, die Verkäufer in ihren Bewertungen beschreiben, die die Open-Domus-Events zum Leben erweckt und die zur Zertifizierung Domus D.O.C. führt.",
+        "Es ist dieselbe Methode, die Verkäufer in ihren Bewertungen beschreiben, die die Open-Domus-Events zum Leben erweckt und die zum Protokoll Domus D.O.C. führt.",
       ctaLabel: "Bewertung Ihrer Immobilie anfordern",
     },
     openDomus: {
@@ -683,7 +684,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       trust: [
         "El primer encuentro es sin compromiso y sin coste",
         "Sin costes por adelantado, pagas solo con la venta cerrada",
-        "Fotos, vídeo, home staging y certificación incluidos",
+        "Fotos, vídeo, home staging y verificación de los documentos incluidos",
       ],
     },
     highlights: {
@@ -697,7 +698,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "Una valoración profesional sobre datos reales: ni demasiado alto, para que el inmueble no se quede parado, ni demasiado bajo, para que no dejes valor sobre la mesa.",
         },
         {
-          title: "El inmueble certificado",
+          title: "Los documentos verificados",
           copy: "Con el protocolo Domus D.O.C. verificamos la conformidad de antemano: documentos en regla antes de salir al mercado, para que los problemas salgan antes de la negociación.",
         },
         {
@@ -805,7 +806,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "Es el mismo método que los vendedores cuentan en sus reseñas, que da vida a los eventos Open Domus y que conduce a la certificación Domus D.O.C.",
+        "Es el mismo método que los vendedores cuentan en sus reseñas, que da vida a los eventos Open Domus y que conduce al protocolo Domus D.O.C.",
       ctaLabel: "Solicita la valoración de tu inmueble",
     },
     openDomus: {
@@ -936,6 +937,14 @@ export default function VendiContent() {
           secondary={{ label: c.hero.secondaryLabel, href: "#percorso" }}
           trust={c.hero.trust}
         />
+
+        {/* IN CIMA, subito sotto l'hero (§6.4). Il costo è la prima obiezione di chi
+            deve dare un incarico, e su questa pagina viveva solo come uno dei tre
+            bullet di fiducia dell'hero — una riga di otto parole per l'argomento più
+            forte che l'agenzia possiede. */}
+        {/* Cream, non paper: così l'alternanza della pagina resta quella di prima
+            (cream → paper → cream) invece di affiancare due bande dello stesso tono. */}
+        <CostiChiari surface="cream" />
 
         <Highlights
           tone="paper"

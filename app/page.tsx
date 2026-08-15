@@ -9,6 +9,7 @@ import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
 import DomusDocProtocol from "./components/DomusDocProtocol";
 import Services from "./components/Services";
+import CostiChiari from "./components/CostiChiari";
 import FeaturedTestimonial from "./components/FeaturedTestimonial";
 import Social from "./components/Social";
 import Team from "./components/Team";
@@ -93,6 +94,12 @@ export default function Home() {
             dove il salto è reale (ΔRGB 61-72). */}
         <Services />
         <ToneShift from="cream" to="paper" depth="19svh" />
+        {/* Subito dopo l'elenco di tutto ciò che è compreso arriva la domanda che
+            quell'elenco fa nascere — «e quanto mi costa?». La risposta stava solo
+            dentro un accordion delle FAQ. Nessuna cucitura con FeaturedTestimonial:
+            sono entrambe paper, e una transizione fra due toni identici inventerebbe
+            uno stacco invece di nasconderlo (vedi la nota qui sopra). */}
+        <CostiChiari surface="paper" />
         <FeaturedTestimonial />
         <div data-tone="paper" className="bg-paper">
           <SectionDivider tone="paper" />

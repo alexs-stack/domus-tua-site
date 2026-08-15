@@ -51,7 +51,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "costi",
           q: "Quanto costa vendere casa con Domus Tua?",
-          a: "Il primo incontro è senza impegno e senza costi, e non ci sono costi anticipati: si paga solo a vendita conclusa. Foto, video, home staging e certificazione dei documenti fanno parte del metodo, non sono extra da aggiungere in fondo.",
+          a: "Il primo incontro è senza impegno e senza costi, e non ci sono costi anticipati: si paga solo a vendita conclusa. Foto, video, home staging e verifica dei documenti fanno parte del metodo, non sono extra da aggiungere in fondo.",
         },
         {
           id: "prezzo",
@@ -142,7 +142,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "costi",
           q: "How much does it cost to sell with Domus Tua?",
-          a: "The first meeting carries no obligation and no cost, and there are no upfront costs: you pay only once the sale is closed. Photography, video, home staging and document certification are part of the method, not extras added at the end.",
+          a: "The first meeting carries no obligation and no cost, and there are no upfront costs: you pay only once the sale is closed. Photography, video, home staging and document checks are part of the method, not extras added at the end.",
         },
         {
           id: "prezzo",
@@ -233,7 +233,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "costi",
           q: "Combien coûte la vente avec Domus Tua ?",
-          a: "Le premier rendez-vous est sans engagement et sans frais, et il n'y a aucun frais d'avance : vous ne payez qu'une fois la vente conclue. Photos, vidéo, home staging et certification des documents font partie de la méthode, ce ne sont pas des suppléments ajoutés à la fin.",
+          a: "Le premier rendez-vous est sans engagement et sans frais, et il n'y a aucun frais d'avance : vous ne payez qu'une fois la vente conclue. Photos, vidéo, home staging et vérification des documents font partie de la méthode, ce ne sont pas des suppléments ajoutés à la fin.",
         },
         {
           id: "prezzo",
@@ -324,7 +324,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "costi",
           q: "Was kostet der Verkauf mit Domus Tua?",
-          a: "Das erste Gespräch ist unverbindlich und kostenfrei, und es fallen keine Vorabkosten an: Sie zahlen erst nach erfolgreichem Verkauf. Fotos, Video, Home Staging und die Zertifizierung der Unterlagen gehören zur Methode und sind keine Extras am Ende.",
+          a: "Das erste Gespräch ist unverbindlich und kostenfrei, und es fallen keine Vorabkosten an: Sie zahlen erst nach erfolgreichem Verkauf. Fotos, Video, Home Staging und die Prüfung der Unterlagen gehören zur Methode und sind keine Extras am Ende.",
         },
         {
           id: "prezzo",
@@ -415,7 +415,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "costi",
           q: "¿Cuánto cuesta vender con Domus Tua?",
-          a: "El primer encuentro es sin compromiso y sin coste, y no hay costes por adelantado: se paga solo cuando la venta se cierra. Fotos, vídeo, home staging y certificación de los documentos forman parte del método, no son extras que aparecen al final.",
+          a: "El primer encuentro es sin compromiso y sin coste, y no hay costes por adelantado: se paga solo cuando la venta se cierra. Fotos, vídeo, home staging y verificación de los documentos forman parte del método, no son extras que aparecen al final.",
         },
         {
           id: "prezzo",
