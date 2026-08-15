@@ -19,9 +19,24 @@
 // quindi non c'è niente su cui chiedere il consenso *cookie*. Il resto degli obblighi
 // (nomina del responsabile nell'informativa) è nel commento di app/lib/analytics.ts.
 //
-// In sviluppo i due componenti non inviano nulla: si accendono in produzione. Restano
-// montati comunque, perché un `if (production)` qui vorrebbe dire che il percorso che va
-// in produzione non è mai quello che si è provato.
+// ⚠️ PERCHÉ I DUE SCRIPT SONO CONDIZIONATI (e l'ascoltatore no)
+// I due componenti caricano `/_vercel/insights/script.js` e
+// `/_vercel/speed-insights/script.js`: percorsi che ESISTONO SOLO su un deploy Vercel,
+// serviti dal suo edge. Fuori da lì — la CI, un `next start` in locale, un self-host —
+// quelle due richieste tornano 404 e il browser aggiunge un secondo errore
+// («Refused to execute script … MIME type text/html»). Non è un dettaglio da laboratorio:
+// la suite e2e ha una guardia che pretende zero errori di console e zero richieste
+// fallite, e li ha visti tutti e quattro. Sarebbe stato rumore anche nella console di un
+// utente vero, il giorno in cui il sito girasse altrove.
+//
+// Quindi la decisione arriva DAL SERVER (`enabled`, calcolato in layout.tsx da
+// `process.env.VERCEL`) e non da `NEXT_PUBLIC_VERCEL_ENV`, che è esposto al client solo se
+// qualcuno ha lasciato attiva l'opzione giusta nella dashboard — cioè una condizione che
+// si rompe in silenzio.
+//
+// L'ascoltatore delegato resta montato SEMPRE: non fa richieste di rete, e senza script
+// `track` accoda e basta. Tenerlo acceso ovunque significa che il comportamento che si
+// prova in locale è lo stesso che gira in produzione.
 
 import { useEffect } from "react";
 import { Analytics } from "@vercel/analytics/next";
@@ -55,7 +70,15 @@ function sourceOf(el: Element): ConversionSource {
   return "fluttuante";
 }
 
-export default function SiteAnalytics() {
+export default function SiteAnalytics({
+  /**
+   * Siamo su Vercel? Lo decide il server (layout.tsx): solo lì esistono gli endpoint
+   * `/_vercel/*` che i due script chiedono. Vedi la nota in testa al file.
+   */
+  enabled,
+}: {
+  enabled: boolean;
+}) {
   // UN SOLO ASCOLTATORE, non dodici onClick.
   //
   // WhatsApp e telefono compaiono in dodici punti del sito (testata, footer, barra mobile,
@@ -90,6 +113,10 @@ export default function SiteAnalytics() {
     document.addEventListener("click", onClick, { capture: true });
     return () => document.removeEventListener("click", onClick, { capture: true });
   }, []);
+
+  // Fuori da Vercel gli endpoint non esistono: montare i due script vorrebbe dire due 404
+  // e due errori di console a ogni pagina, per nessun dato raccolto in cambio.
+  if (!enabled) return null;
 
   return (
     <>
