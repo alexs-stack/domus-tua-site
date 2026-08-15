@@ -26,19 +26,36 @@ const copy = {
     subtitle: "Domus di Origine Certificata",
     intro:
       "Il protocollo Domus Tua per rendere più chiaro, verificato e sicuro il percorso immobiliare. Si controlla prima, non dopo: chi vende ha una trattativa più solida, chi compra non ha sorprese.",
+    // ─────────────────────────────────────────────────────────────────────────
+    // PROMESSE DI AZIONE, NON DI RISULTATO.
+    //
+    // Questo blocco diceva «nessun abuso o difformità nascosta», «niente stop al
+    // rogito», «la trattativa non salta per un documento mancante», «verifiche
+    // certificate». Sono esiti che un mediatore NON controlla: dipendono dal Comune,
+    // dal notaio, dalla banca dell'acquirente, da difformità non ispezionabili a vista.
+    // Una sola di quelle frasi, contraddetta da un rogito andato storto, è una
+    // contestazione con il testo del sito come prova.
+    //
+    // La regola: non si promette che non ci saranno sorprese, si dichiara con
+    // precisione cosa si fa perché non ce ne siano. È anche più persuasivo — è
+    // specifico e verificabile, e nessun concorrente scrive così.
+    //
+    // «certificato/certificazione» non si usa mai riferito all'immobile: Domus D.O.C.
+    // è un protocollo INTERNO, non una certificazione rilasciata da terzi.
+    // ─────────────────────────────────────────────────────────────────────────
     sellerLabel: "Chi vende",
     buyerLabel: "Chi compra",
     cta: "Scopri come proteggiamo la vendita",
     pillars: [
       {
         t: "Documenti",
-        seller: "Tutte le carte raccolte e pronte: la trattativa non salta per un documento mancante.",
+        seller: "Raccogliamo tutti i documenti prima di partire: è la causa più frequente di trattative che saltano.",
         buyer: "Sai cosa stai comprando, nero su bianco, fin dalla prima visita.",
       },
       {
         t: "Conformità",
-        seller: "Catasto, urbanistica e impianti in regola prima di vendere: niente stop al rogito.",
-        buyer: "Nessun abuso o difformità nascosta dietro le mura.",
+        seller: "Controlliamo catasto, urbanistica e impianti prima di pubblicare, non durante la trattativa.",
+        buyer: "Se c’è un problema, lo troviamo noi — quando c’è ancora tempo per risolverlo.",
       },
       {
         t: "Trasparenza",
@@ -56,7 +73,7 @@ const copy = {
         buyer: "Un percorso accompagnato e sicuro fino alla firma dal notaio.",
       },
     ] as Pillar[],
-    footnote: "Un unico protocollo per ogni incarico Domus Tua: verifiche certificate e servizi completi.",
+    footnote: "Un unico protocollo per ogni incarico Domus Tua: verifiche documentali e tecnico-urbanistiche svolte prima della messa sul mercato.",
   },
   en: {
     eyebrow: "Proprietary protocol",
@@ -69,13 +86,13 @@ const copy = {
     pillars: [
       {
         t: "Documents",
-        seller: "Every paper gathered and ready: the deal won’t collapse over a missing document.",
+        seller: "We gather every document before going to market: a missing paper is the most common reason deals fall through.",
         buyer: "You know what you’re buying, in black and white, from the very first viewing.",
       },
       {
         t: "Compliance",
-        seller: "Land registry, planning and systems in order before selling: no block at the deed.",
-        buyer: "No hidden breach or irregularity behind the walls.",
+        seller: "We check land registry, planning and building systems before listing, not during negotiations.",
+        buyer: "If there is a problem, we are the ones who find it — while there is still time to fix it.",
       },
       {
         t: "Transparency",
@@ -93,7 +110,7 @@ const copy = {
         buyer: "A guided, safe path all the way to signing at the notary.",
       },
     ] as Pillar[],
-    footnote: "One protocol for every Domus Tua mandate: certified checks and complete services.",
+    footnote: "One protocol for every Domus Tua mandate: document and planning checks carried out before going to market.",
   },
   fr: {
     eyebrow: "Protocole propriétaire",
@@ -106,13 +123,13 @@ const copy = {
     pillars: [
       {
         t: "Documents",
-        seller: "Tous les papiers réunis et prêts : la négociation ne capote pas pour un document manquant.",
+        seller: "Nous réunissons tous les documents avant de commencer : c’est la cause la plus fréquente des négociations qui échouent.",
         buyer: "Vous savez ce que vous achetez, noir sur blanc, dès la première visite.",
       },
       {
         t: "Conformité",
-        seller: "Cadastre, urbanisme et installations en règle avant de vendre : aucun blocage à l’acte.",
-        buyer: "Aucune infraction ni non-conformité cachée derrière les murs.",
+        seller: "Nous vérifions cadastre, urbanisme et installations avant la mise en ligne, pas pendant la négociation.",
+        buyer: "S’il y a un problème, c’est nous qui le trouvons — quand il est encore temps de le régler.",
       },
       {
         t: "Transparence",
@@ -130,7 +147,7 @@ const copy = {
         buyer: "Un parcours accompagné et sûr jusqu’à la signature chez le notaire.",
       },
     ] as Pillar[],
-    footnote: "Un seul protocole pour chaque mandat Domus Tua : vérifications certifiées et services complets.",
+    footnote: "Un seul protocole pour chaque mandat Domus Tua : vérifications documentaires et techniques réalisées avant la mise sur le marché.",
   },
   de: {
     eyebrow: "Eigenes Protokoll",
@@ -143,13 +160,13 @@ const copy = {
     pillars: [
       {
         t: "Unterlagen",
-        seller: "Alle Papiere gesammelt und bereit: Der Deal scheitert nicht an einem fehlenden Dokument.",
+        seller: "Wir sammeln alle Unterlagen, bevor es losgeht: ein fehlendes Papier ist der häufigste Grund für geplatzte Verhandlungen.",
         buyer: "Sie wissen, was Sie kaufen – schwarz auf weiß, ab der ersten Besichtigung.",
       },
       {
         t: "Konformität",
-        seller: "Kataster, Baurecht und Anlagen vor dem Verkauf in Ordnung: kein Stopp beim Notar.",
-        buyer: "Kein verborgener Verstoß oder Mangel hinter den Mauern.",
+        seller: "Wir prüfen Kataster, Baurecht und Anlagen vor der Veröffentlichung, nicht während der Verhandlung.",
+        buyer: "Wenn es ein Problem gibt, finden wir es — solange noch Zeit bleibt, es zu lösen.",
       },
       {
         t: "Transparenz",
@@ -167,7 +184,7 @@ const copy = {
         buyer: "Ein begleiteter, sicherer Weg bis zur Unterschrift beim Notar.",
       },
     ] as Pillar[],
-    footnote: "Ein Protokoll für jeden Domus-Tua-Auftrag: zertifizierte Prüfungen und vollständige Leistungen.",
+    footnote: "Ein Protokoll für jeden Domus-Tua-Auftrag: Unterlagen- und Baurechtsprüfungen vor dem Markteintritt.",
   },
   es: {
     eyebrow: "Protocolo propietario",
@@ -180,13 +197,13 @@ const copy = {
     pillars: [
       {
         t: "Documentos",
-        seller: "Todos los papeles reunidos y listos: la negociación no se cae por un documento que falta.",
+        seller: "Reunimos todos los documentos antes de empezar: es la causa más frecuente de negociaciones que se caen.",
         buyer: "Sabes qué estás comprando, negro sobre blanco, desde la primera visita.",
       },
       {
         t: "Conformidad",
-        seller: "Catastro, urbanismo e instalaciones en regla antes de vender: sin bloqueos en la escritura.",
-        buyer: "Ninguna infracción ni disconformidad oculta detrás de las paredes.",
+        seller: "Comprobamos catastro, urbanismo e instalaciones antes de publicar, no durante la negociación.",
+        buyer: "Si hay un problema, lo encontramos nosotros — cuando aún hay tiempo para resolverlo.",
       },
       {
         t: "Transparencia",
@@ -204,7 +221,7 @@ const copy = {
         buyer: "Un recorrido acompañado y seguro hasta la firma ante notario.",
       },
     ] as Pillar[],
-    footnote: "Un único protocolo para cada encargo de Domus Tua: verificaciones certificadas y servicios completos.",
+    footnote: "Un único protocolo para cada encargo de Domus Tua: verificaciones documentales y técnico-urbanísticas realizadas antes de salir al mercado.",
   },
 } as const;
 

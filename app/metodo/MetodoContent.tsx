@@ -28,12 +28,12 @@ const copy = {
     heroSubcopy:
       "Ogni vendita e ogni acquisto seguono un percorso chiaro fatto di cura, documenti, marketing e assistenza fino al rogito. È il modo in cui lavoriamo dal 2007.",
     heroAlt: "Attico con travi a vista e salotto elegante",
-    heroPrimary: "Inizia dal tuo immobile",
+    heroPrimary: "Richiedi la valutazione del tuo immobile",
     heroSecondary: "Vedi i nove passi",
-    highlightsEyebrow: "Cinque fasi, una garanzia",
+    highlightsEyebrow: "Cinque fasi, un metodo",
     highlightsTitle: "Cura, trasparenza, accompagnamento.",
     highlightsIntro:
-      "Il metodo si sviluppa in cinque fasi ancorate al protocollo Domus D.O.C.: intervista analitica per capire la tua casa, i tuoi obiettivi e i tuoi tempi; valutazione e certificazione D.O.C., con stima professionale sul valore reale e verifica tecnico-legale; Marketing+ con foto, video emozionale, home staging e campagne mirate su portali e social; il sistema Open Domus, con visite organizzate e selezionate senza viavai di curiosi; e la multi-proposta, che mette più offerte a confronto per vendere al prezzo concordato.",
+      "Il metodo si sviluppa in cinque fasi ancorate al protocollo Domus D.O.C.: intervista analitica per capire la tua casa, i tuoi obiettivi e i tuoi tempi; valutazione e verifica D.O.C., con stima professionale sul valore reale e controllo tecnico-legale; Marketing+ con foto, video emozionale, home staging e campagne mirate su portali e social; il sistema Open Domus, con visite organizzate e selezionate senza viavai di curiosi; e la multi-proposta, che mette più offerte a confronto per vendere al prezzo concordato.",
     item1Title: "Documenti verificati",
     item1Copy:
       "Controlliamo tutto prima: conformità, titoli, pratiche. Si arriva al rogito senza sorprese.",
@@ -61,12 +61,12 @@ const copy = {
     heroSubcopy:
       "Every sale and every purchase follows a clear path built on care, paperwork, marketing and support right through to the deed. It’s how we’ve worked since 2007.",
     heroAlt: "Penthouse with exposed beams and an elegant living room",
-    heroPrimary: "Start with your property",
+    heroPrimary: "Request a valuation of your property",
     heroSecondary: "See the nine steps",
-    highlightsEyebrow: "Five phases, one guarantee",
+    highlightsEyebrow: "Five phases, one method",
     highlightsTitle: "Care, transparency, guidance.",
     highlightsIntro:
-      "The method unfolds in five phases anchored to the Domus D.O.C. protocol: an analytical interview to understand your home, your goals and your timing; valuation and D.O.C. certification, with a professional estimate of the real value and a technical and legal check; Marketing+ with photography, an emotional video, home staging and targeted campaigns across portals and social; the Open Domus system, with organised and selected viewings and no parade of the merely curious; and the multi-offer stage, which puts several offers side by side to sell at the agreed price.",
+      "The method unfolds in five phases anchored to the Domus D.O.C. protocol: an analytical interview to understand your home, your goals and your timing; valuation and the D.O.C. check, with a professional estimate of the real value and a technical and legal review; Marketing+ with photography, an emotional video, home staging and targeted campaigns across portals and social; the Open Domus system, with organised and selected viewings and no parade of the merely curious; and the multi-offer stage, which puts several offers side by side to sell at the agreed price.",
     item1Title: "Verified documents",
     item1Copy:
       "We check everything up front: compliance, titles, procedures. You reach the deed with no surprises.",
@@ -94,12 +94,12 @@ const copy = {
     heroSubcopy:
       "Chaque vente et chaque achat suivent un parcours clair fait de soin, de documents, de marketing et d’accompagnement jusqu’à l’acte notarié. C’est notre façon de travailler depuis 2007.",
     heroAlt: "Attique avec poutres apparentes et salon élégant",
-    heroPrimary: "Commencez par votre bien",
+    heroPrimary: "Demandez l’estimation de votre bien",
     heroSecondary: "Voir les neuf étapes",
-    highlightsEyebrow: "Cinq phases, une garantie",
+    highlightsEyebrow: "Cinq phases, une méthode",
     highlightsTitle: "Soin, transparence, accompagnement.",
     highlightsIntro:
-      "La méthode se déploie en cinq phases ancrées au protocole Domus D.O.C. : un entretien analytique pour comprendre votre bien, vos objectifs et vos délais ; l’estimation et la certification D.O.C., avec une évaluation professionnelle de la valeur réelle et une vérification technique et juridique ; Marketing+ avec photos, vidéo émotionnelle, home staging et campagnes ciblées sur les portails et les réseaux ; le système Open Domus, avec des visites organisées et sélectionnées, sans défilé de curieux ; et la multi-proposition, qui met plusieurs offres en regard pour vendre au prix convenu.",
+      "La méthode se déploie en cinq phases ancrées au protocole Domus D.O.C. : un entretien analytique pour comprendre votre bien, vos objectifs et vos délais ; l’estimation et le contrôle D.O.C., avec une évaluation professionnelle de la valeur réelle et une vérification technique et juridique ; Marketing+ avec photos, vidéo émotionnelle, home staging et campagnes ciblées sur les portails et les réseaux ; le système Open Domus, avec des visites organisées et sélectionnées, sans défilé de curieux ; et la multi-proposition, qui met plusieurs offres en regard pour vendre au prix convenu.",
     item1Title: "Documents vérifiés",
     item1Copy:
       "Nous vérifions tout en amont : conformité, titres, démarches. On arrive à l’acte sans mauvaises surprises.",
@@ -127,12 +127,12 @@ const copy = {
     heroSubcopy:
       "Jeder Verkauf und jeder Kauf folgt einem klaren Weg aus Sorgfalt, Unterlagen, Marketing und Begleitung bis zum Notartermin. So arbeiten wir seit 2007.",
     heroAlt: "Penthouse mit sichtbaren Balken und elegantem Wohnzimmer",
-    heroPrimary: "Beginnen Sie mit Ihrer Immobilie",
+    heroPrimary: "Bewertung Ihrer Immobilie anfordern",
     heroSecondary: "Die neun Schritte ansehen",
-    highlightsEyebrow: "Fünf Phasen, eine Garantie",
+    highlightsEyebrow: "Fünf Phasen, eine Methode",
     highlightsTitle: "Sorgfalt, Transparenz, Begleitung.",
     highlightsIntro:
-      "Die Methode entfaltet sich in fünf Phasen, verankert im Protokoll Domus D.O.C.: ein analytisches Gespräch, um Ihre Immobilie, Ihre Ziele und Ihren Zeitrahmen zu verstehen; Bewertung und D.O.C.-Zertifizierung, mit einer professionellen Schätzung des realen Werts und einer technisch-rechtlichen Prüfung; Marketing+ mit Fotos, emotionalem Video, Home Staging und gezielten Kampagnen auf Portalen und Social Media; das System Open Domus, mit organisierten und ausgewählten Besichtigungen ohne Kommen und Gehen Neugieriger; und die Multi-Angebot-Phase, die mehrere Angebote gegenüberstellt, um zum vereinbarten Preis zu verkaufen.",
+      "Die Methode entfaltet sich in fünf Phasen, verankert im Protokoll Domus D.O.C.: ein analytisches Gespräch, um Ihre Immobilie, Ihre Ziele und Ihren Zeitrahmen zu verstehen; Bewertung und D.O.C.-Kontrolle, mit einer professionellen Schätzung des realen Werts und einer technisch-rechtlichen Prüfung; Marketing+ mit Fotos, emotionalem Video, Home Staging und gezielten Kampagnen auf Portalen und Social Media; das System Open Domus, mit organisierten und ausgewählten Besichtigungen ohne Kommen und Gehen Neugieriger; und die Multi-Angebot-Phase, die mehrere Angebote gegenüberstellt, um zum vereinbarten Preis zu verkaufen.",
     item1Title: "Geprüfte Unterlagen",
     item1Copy:
       "Wir prüfen alles vorab: Konformität, Eigentumstitel, Verfahren. So kommt man ohne Überraschungen zum Notartermin.",
@@ -160,12 +160,12 @@ const copy = {
     heroSubcopy:
       "Cada venta y cada compra siguen un recorrido claro hecho de cuidado, documentos, marketing y acompañamiento hasta la escritura. Es como trabajamos desde 2007.",
     heroAlt: "Ático con vigas a la vista y salón elegante",
-    heroPrimary: "Empieza por tu inmueble",
+    heroPrimary: "Solicita la valoración de tu inmueble",
     heroSecondary: "Ver los nueve pasos",
-    highlightsEyebrow: "Cinco fases, una garantía",
+    highlightsEyebrow: "Cinco fases, un método",
     highlightsTitle: "Cuidado, transparencia, acompañamiento.",
     highlightsIntro:
-      "El método se desarrolla en cinco fases ancladas al protocolo Domus D.O.C.: una entrevista analítica para entender tu casa, tus objetivos y tus tiempos; valoración y certificación D.O.C., con una estimación profesional del valor real y una verificación técnica y legal; Marketing+ con fotos, vídeo emotivo, home staging y campañas específicas en portales y redes; el sistema Open Domus, con visitas organizadas y seleccionadas, sin ir y venir de curiosos; y la multipropuesta, que pone varias ofertas en comparación para vender al precio acordado.",
+      "El método se desarrolla en cinco fases ancladas al protocolo Domus D.O.C.: una entrevista analítica para entender tu casa, tus objetivos y tus tiempos; valoración y control D.O.C., con una estimación profesional del valor real y una verificación técnica y legal; Marketing+ con fotos, vídeo emotivo, home staging y campañas específicas en portales y redes; el sistema Open Domus, con visitas organizadas y seleccionadas, sin ir y venir de curiosos; y la multipropuesta, que pone varias ofertas en comparación para vender al precio acordado.",
     item1Title: "Documentos verificados",
     item1Copy:
       "Lo comprobamos todo antes: conformidad, títulos, trámites. Se llega a la escritura sin sorpresas.",

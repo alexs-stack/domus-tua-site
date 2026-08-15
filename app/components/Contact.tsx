@@ -10,6 +10,7 @@ import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import { isEmailFormat, isPhoneFormat } from "../lib/forms/contactChannel";
+import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
 import Atmosphere from "./motion/Atmosphere";
@@ -68,10 +69,10 @@ const copy = {
     messageLabel: "Messaggio",
     messagePlaceholderSell: "Raccontaci qualcosa in più sull’immobile…",
     messagePlaceholderQuestion: "Come possiamo aiutarti?",
-    submitSeller: "Richiedi una valutazione",
+    submitSeller: "Richiedi la valutazione del tuo immobile",
     submitBuyer: "Trova la casa giusta",
     submitQuestion: "Invia la richiesta",
-    submitOpenDomus: "Scopri Open Domus",
+    submitOpenDomus: "Scopri se Open Domus è adatto al tuo immobile",
     submitCareer: "Invia la candidatura",
     errName: "Inserisci il tuo nome.",
     errContact: "Lasciaci un telefono o un’email per ricontattarti.",
@@ -130,10 +131,10 @@ const copy = {
     messageLabel: "Message",
     messagePlaceholderSell: "Tell us a little more about the property…",
     messagePlaceholderQuestion: "How can we help you?",
-    submitSeller: "Request a valuation",
+    submitSeller: "Request a valuation of your property",
     submitBuyer: "Find the right home",
     submitQuestion: "Send your request",
-    submitOpenDomus: "Discover Open Domus",
+    submitOpenDomus: "See if Open Domus suits your property",
     submitCareer: "Send your application",
     errName: "Please enter your name.",
     errContact: "Leave us a phone number or an email so we can reply.",
@@ -192,10 +193,10 @@ const copy = {
     messageLabel: "Message",
     messagePlaceholderSell: "Dites-nous en un peu plus sur le bien…",
     messagePlaceholderQuestion: "Comment pouvons-nous vous aider ?",
-    submitSeller: "Demander une estimation",
+    submitSeller: "Demandez l’estimation de votre bien",
     submitBuyer: "Trouver le bon logement",
     submitQuestion: "Envoyer la demande",
-    submitOpenDomus: "Découvrir Open Domus",
+    submitOpenDomus: "Découvrez si Open Domus convient à votre bien",
     submitCareer: "Envoyer ma candidature",
     errName: "Veuillez indiquer votre nom.",
     errContact: "Laissez-nous un téléphone ou un e-mail pour vous recontacter.",
@@ -254,10 +255,10 @@ const copy = {
     messageLabel: "Nachricht",
     messagePlaceholderSell: "Erzählen Sie uns etwas mehr über die Immobilie…",
     messagePlaceholderQuestion: "Wie können wir Ihnen helfen?",
-    submitSeller: "Bewertung anfordern",
+    submitSeller: "Bewertung Ihrer Immobilie anfordern",
     submitBuyer: "Das passende Zuhause finden",
     submitQuestion: "Anfrage senden",
-    submitOpenDomus: "Open Domus entdecken",
+    submitOpenDomus: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
     submitCareer: "Bewerbung senden",
     errName: "Bitte geben Sie Ihren Namen ein.",
     errContact: "Hinterlassen Sie uns eine Telefonnummer oder E-Mail für den Rückruf.",
@@ -316,10 +317,10 @@ const copy = {
     messageLabel: "Mensaje",
     messagePlaceholderSell: "Cuéntanos algo más sobre el inmueble…",
     messagePlaceholderQuestion: "¿Cómo podemos ayudarte?",
-    submitSeller: "Solicita una valoración",
+    submitSeller: "Solicita la valoración de tu inmueble",
     submitBuyer: "Encuentra la casa ideal",
     submitQuestion: "Enviar la solicitud",
-    submitOpenDomus: "Descubre Open Domus",
+    submitOpenDomus: "Descubre si Open Domus encaja con tu inmueble",
     submitCareer: "Enviar la candidatura",
     errName: "Introduce tu nombre.",
     errContact: "Déjanos un teléfono o un correo para poder responderte.",
@@ -512,6 +513,12 @@ export default function Contact({
     // `submitting` disabilita il bottone durante la scrittura (niente doppio invio) e dà feedback.
     setSubmitting(true);
     void submitLead(lead).finally(() => setSubmitting(false));
+
+    // La conversione. Va registrata QUI, dopo la validazione e prima di aprire WhatsApp:
+    // è il momento in cui la richiesta esiste davvero. Passa solo il tipo di richiesta,
+    // mai il contenuto del lead — quello ha il suo canale (submitLead) ed è l'unico
+    // autorizzato a vederlo. Vedi app/lib/analytics.ts.
+    trackConversion(CONVERSIONS.valutazione, "modulo", { intent });
 
     // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));

@@ -38,6 +38,8 @@
     "@ai-sdk/anthropic": "^4.0.25",
     "@ai-sdk/google": "^4.0.31",
     "@gsap/react": "^2.1.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "ai": "^7.0.44",
     "fast-xml-parser": "^5.9.3",
     "gsap": "^3.15.0",

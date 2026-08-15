@@ -8,6 +8,7 @@ import PreviewBadge from "./components/PreviewBadge";
 import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
+import SiteAnalytics from "./components/SiteAnalytics";
 import SmoothScroll from "./components/motion/SmoothScroll";
 import SurfaceFlow from "./components/motion/SurfaceFlow";
 import { ChromeMount, PreloaderMount } from "./components/motion/ChromeMount";
@@ -243,6 +244,17 @@ export default function RootLayout({
           <PreviewBadge checklist={checklist} />
           <AssistantMount />
           <MobileActionBar />
+          {/* In fondo di proposito: non rende nulla a schermo e non deve competere per
+              la banda del primo fotogramma. Vedi SiteAnalytics.tsx per il perché non
+              passa dal gate del consenso.
+
+              `VERCEL` è impostata da Vercel su ogni deploy e non esiste altrove: è la
+              risposta esatta alla domanda «gli endpoint /_vercel/* esistono qui?». La
+              lettura avviene QUI, nel server component, e non dentro il componente client:
+              la variante NEXT_PUBLIC_ arriva al browser solo se nella dashboard è rimasta
+              attiva l'esposizione automatica delle variabili di sistema, cioè una
+              condizione che si può spegnere per sbaglio e che fallirebbe in silenzio. */}
+          <SiteAnalytics enabled={Boolean(process.env.VERCEL)} />
         </LocaleProvider>
       </body>
     </html>

@@ -41,7 +41,7 @@ const copy = {
     },
     highlights: {
       eyebrow: "Comprare sereni",
-      title: "Una casa è una scelta importante. Meriti di farla informato.",
+      title: "Comprare casa è una scelta importante. Meriti chiarezza, prima di decidere.",
       intro:
         "Acquistare casa non dovrebbe significare dubbi e ansie. Con Domus Tua ogni decisione poggia su informazioni chiare e su un team al tuo fianco.",
       items: [
@@ -135,7 +135,7 @@ const copy = {
     },
     highlights: {
       eyebrow: "Buy with peace of mind",
-      title: "A home is an important choice. You deserve to make it well informed.",
+      title: "Buying a home is an important choice. You deserve clarity, before you decide.",
       intro:
         "Buying a home shouldn’t mean doubts and anxiety. With Domus Tua every decision rests on clear information and on a team by your side.",
       items: [
@@ -229,7 +229,7 @@ const copy = {
     },
     highlights: {
       eyebrow: "Acheter sereinement",
-      title: "Une maison est un choix important. Vous méritez de le faire en connaissance de cause.",
+      title: "Acheter un bien est un choix important. Vous méritez d’y voir clair, avant de décider.",
       intro:
         "Acheter une maison ne devrait pas rimer avec doutes et inquiétudes. Avec Domus Tua, chaque décision repose sur des informations claires et sur une équipe à vos côtés.",
       items: [
@@ -323,7 +323,7 @@ const copy = {
     },
     highlights: {
       eyebrow: "Entspannt kaufen",
-      title: "Ein Zuhause ist eine wichtige Entscheidung. Sie verdienen es, sie gut informiert zu treffen.",
+      title: "Ein Haus zu kaufen ist eine wichtige Entscheidung. Sie verdienen Klarheit, bevor Sie entscheiden.",
       intro:
         "Ein Zuhause zu kaufen sollte nicht Zweifel und Sorgen bedeuten. Mit Domus Tua ruht jede Entscheidung auf klaren Informationen und auf einem Team an Ihrer Seite.",
       items: [
@@ -417,7 +417,7 @@ const copy = {
     },
     highlights: {
       eyebrow: "Comprar con tranquilidad",
-      title: "Una casa es una elección importante. Mereces hacerla bien informado.",
+      title: "Comprar casa es una elección importante. Mereces claridad, antes de decidir.",
       intro:
         "Comprar casa no debería significar dudas y ansiedad. Con Domus Tua cada decisión se apoya en información clara y en un equipo a tu lado.",
       items: [

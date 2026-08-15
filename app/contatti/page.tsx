@@ -6,19 +6,24 @@ import Contact from "../components/Contact";
 import ContattiContent from "./ContattiContent";
 import { site } from "../lib/site";
 
-// Testo identico a prima, ma numeri e indirizzo derivati da app/lib/site.ts: erano l'unica
-// copia dei recapiti fuori dalla fonte unica, quindi si sarebbero disallineati in silenzio.
+// Recapiti e orari derivati da app/lib/site.ts: erano l'unica copia fuori dalla fonte
+// unica, quindi si sarebbero disallineati in silenzio (ed è esattamente quello che era
+// successo con l'orario pomeridiano, 15:00 qui contro 14:30 ovunque).
+//
+// Il title porta l'indirizzo: per una ricerca locale "dove sono" è l'informazione che
+// decide il clic, e "Contatti" da solo non la dava.
+const title = `Contatti — Domus Tua, ${site.address.street}, ${site.address.locality} (${site.address.region})`;
+
 const description =
-  `Domus Tua Immobiliare, ${site.address.street}, Tradate (VA). ` +
-  `Telefono ${site.phone.label}, WhatsApp ${site.whatsapp.label}. ` +
-  `Scrivici per una valutazione o per cercare casa.`;
+  `Telefono ${site.phone.label}, WhatsApp ${site.whatsapp.label}, ${site.email.label}. ` +
+  `Aperti lunedì–venerdì ${site.hours.weekdays}, sabato ${site.hours.saturday}.`;
 
 export const metadata: Metadata = {
-  title: "Contatti",
+  title,
   description,
   alternates: { canonical: "/contatti" },
   openGraph: {
-    title: "Contatti",
+    title,
     description,
   },
 };

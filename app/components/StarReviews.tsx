@@ -121,7 +121,8 @@ const copy = {
       "The reviews widget is provided by Trustindex: it loads only after you accept cookies. You can read the reviews on Google right away.",
     iframeTitle: "Verified Google reviews of Domus Tua (Trustindex)",
     awardAriaHint: "open the Domus Tua profile (new tab)",
-    claim: "Among the most-reviewed independent real estate agencies in the province of Varese.",
+    claim:
+      "Three years running among Italy's 400 best estate agencies, in a national ranking built on revenue. From an independent, women-led agency with a single office: Tradate.",
   },
   fr: {
     eyebrow: "Avis",
@@ -144,7 +145,8 @@ const copy = {
       "Le widget d'avis est fourni par Trustindex : il ne se charge qu'après votre consentement aux cookies. Vous pouvez lire les avis sur Google dès maintenant.",
     iframeTitle: "Avis Google vérifiés de Domus Tua (Trustindex)",
     awardAriaHint: "ouvrir le profil de Domus Tua (nouvel onglet)",
-    claim: "Parmi les agences immobilières indépendantes les plus commentées de la province de Varese.",
+    claim:
+      "Trois années consécutives parmi les 400 meilleures agences immobilières d'Italie, dans un classement national fondé sur le chiffre d'affaires. Par une agence indépendante, dirigée par des femmes, avec une seule adresse : Tradate.",
   },
   de: {
     eyebrow: "Bewertungen",
@@ -167,7 +169,8 @@ const copy = {
       "Das Bewertungs-Widget stammt von Trustindex: Es lädt erst nach Ihrer Cookie-Einwilligung. Die Bewertungen können Sie sofort auf Google lesen.",
     iframeTitle: "Verifizierte Google-Bewertungen von Domus Tua (Trustindex)",
     awardAriaHint: "das Profil von Domus Tua öffnen (neuer Tab)",
-    claim: "Eine der meistbewerteten unabhängigen Immobilienagenturen in der Provinz Varese.",
+    claim:
+      "Drei Jahre in Folge unter den 400 besten Immobilienagenturen Italiens, in einem nationalen Ranking nach Umsatz. Von einer unabhängigen, von Frauen geführten Agentur mit einem einzigen Standort: Tradate.",
   },
   es: {
     eyebrow: "Reseñas",
@@ -190,7 +193,8 @@ const copy = {
       "El widget de reseñas es de Trustindex: se carga solo tras tu consentimiento de cookies. Puedes leer las reseñas en Google ahora mismo.",
     iframeTitle: "Reseñas de Google verificadas de Domus Tua (Trustindex)",
     awardAriaHint: "abrir el perfil de Domus Tua (nueva pestaña)",
-    claim: "Entre las agencias inmobiliarias independientes con más reseñas de la provincia de Varese.",
+    claim:
+      "Tres años consecutivos entre las 400 mejores agencias inmobiliarias de Italia, en una clasificación nacional basada en la facturación. De una agencia independiente, liderada por mujeres, con una sola sede: Tradate.",
   },
 };
 
@@ -199,6 +203,10 @@ const copy = {
 export default function StarReviews() {
   const { locale } = useLocale();
   const c = copy[locale];
+  // "2024 · 2025 · 2026". Composto qui e usato SIA nel testo visibile SIA nella coda
+  // dell'aria-label: se un giorno cambia un anno, i due non possono divergere — che è
+  // esattamente il difetto (label-content-name-mismatch) già corretto una volta qui.
+  const awardYears = site.award.years.join(" · ");
   const consent = useConsent();
   const showTrustindex = site.embeds.trustindexLoader.length > 0 && consent === "accepted";
   const awaitingConsent = site.embeds.trustindexLoader.length > 0 && consent !== "accepted";
@@ -718,7 +726,7 @@ export default function StarReviews() {
             href={site.award.href}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`${site.award.label} ${site.award.issuer} — ${c.awardAriaHint}`}
+            aria-label={`${site.award.label} ${awardYears} — ${c.awardAriaHint}`}
             className="dt-starrev_award group flex items-center gap-3"
           >
             <span className="block" style={{ animation: "dt-float 7s ease-in-out infinite" }}>
@@ -739,8 +747,13 @@ export default function StarReviews() {
                   SENZA separatore: senza questo spazio si leggerebbe «Top
                   Agency 2026Wikicasa» tutto attaccato, e l'etichetta qui sopra
                   — che lo spazio ce l'ha — non lo conterrebbe più. */}
+              {/* Sotto il nome del premio vanno gli ANNI, non l'ente: l'ente è già
+                  dentro il nome ("Top Agency Wikicasa") e ripeterlo dava «Top Agency
+                  Wikicasa / Wikicasa». Gli anni invece sono l'informazione che il badge
+                  da solo non dà, ed è quella che conta: uno è un risultato, tre
+                  consecutivi sono un andamento. */}
               <span className="block text-sm font-semibold text-ink">{site.award.label}</span>{" "}
-              <span className="link-draw block text-[0.8rem] text-stone">{site.award.issuer}</span>
+              <span className="link-draw block text-[0.8rem] text-stone">{awardYears}</span>
             </span>
           </a>
         </div>

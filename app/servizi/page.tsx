@@ -5,14 +5,14 @@ import WhatsAppFloat from "../components/WhatsAppFloat";
 import ServiziContent from "./ServiziContent";
 
 export const metadata: Metadata = {
-  title: "Servizi immobiliari, oltre l'annuncio",
+  title: "Home staging, rendering e video per vendere casa",
   description:
-    "I servizi Domus Tua: valutazione, servizi tecnici e legali, rendering e virtual rendering, home staging, emotional video, marketing e Open Domus. Valorizziamo, proteggiamo e raccontiamo la tua casa.",
+    "Home staging, rendering e virtual rendering, video emozionali, campagne marketing e servizi tecnico-legali. Tutto compreso nel mandato di vendita.",
   alternates: { canonical: "/servizi" },
   openGraph: {
-    title: "Servizi immobiliari, oltre l'annuncio",
+    title: "Home staging, rendering e video per vendere casa",
     description:
-      "I servizi Domus Tua: valutazione, servizi tecnici e legali, rendering e virtual rendering, home staging, emotional video, marketing e Open Domus. Valorizziamo, proteggiamo e raccontiamo la tua casa.",
+    "Home staging, rendering e virtual rendering, video emozionali, campagne marketing e servizi tecnico-legali. Tutto compreso nel mandato di vendita.",
   },
 };
 

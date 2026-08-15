@@ -7,13 +7,20 @@ test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
 });
 
+// I title sono quelli definitivi del §6.8 del Documento finale di sintesi: dicono COSA si
+// trova nella pagina, non come si chiama la sezione del menu. Due di queste voci non
+// contengono più la parola che le nominava — /acquista non dice «comprare casa» ma «case
+// in vendita», /servizi non dice «servizi» ma i servizi veri (home staging, rendering,
+// video) — ed è voluto: sono le parole con cui le persone cercano.
+// I pattern qui sotto puntano quindi al contenuto informativo del titolo, non a
+// un'etichetta di navigazione.
 const PAGES = [
-  { path: "/acquista", title: /comprare casa/i },
-  { path: "/vendi", title: /vendere casa/i },
-  { path: "/metodo", title: /metodo/i },
+  { path: "/acquista", title: /case in vendita a tradate/i },
+  { path: "/vendi", title: /vendere casa a tradate/i },
+  { path: "/metodo", title: /metodo domus tua/i },
   { path: "/open-domus", title: /open domus/i },
   { path: "/chi-siamo", title: /chi siamo|domus tua/i },
-  { path: "/servizi", title: /servizi/i },
+  { path: "/servizi", title: /home staging, rendering e video/i },
   { path: "/recensioni", title: /recensioni/i },
   { path: "/contatti", title: /contatti/i },
   { path: "/domande-frequenti", title: /domande frequenti/i },

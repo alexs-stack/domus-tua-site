@@ -417,11 +417,18 @@ export default function ReviewsWall() {
                 data-wall-tile
                 className="dt-wall_item relative aspect-video overflow-hidden rounded-card bg-espresso"
               >
+                {/* Il titolo è VISIBILE, non solo in aria-label.
+                    Era il copy migliore del sito e non lo leggeva nessuno: «Villa di
+                    Roberta, venduta al primo Open Domus», «Teresa, venduta al primo
+                    Open Domus». Nascosto in un attributo dava sei miniature mute — niente
+                    da leggere per chi guarda, niente da indicizzare per Google e nessun
+                    motivo per cliccare. Il testo era già scritto: bastava tirarlo fuori.
+                    Con il titolo nel flusso, l'aria-label non serve più (anzi: duplicherebbe
+                    il nome accessibile del link). */}
                 <a
                   href={youtubeWatch(v.id)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={v.title}
                   className="group absolute inset-0 block"
                 >
                   <YoutubeThumb
@@ -430,10 +437,15 @@ export default function ReviewsWall() {
                     sizes="(min-width: 1024px) 17vw, 50vw"
                     className="object-cover transition-transform duration-500 ease-soft group-hover:scale-[1.05]"
                   />
+                  {/* Velo più deciso in basso: prima serviva solo a dare profondità,
+                      adesso deve reggere del testo bianco su una miniatura qualsiasi. */}
                   <span
                     aria-hidden
-                    className="absolute inset-0 bg-gradient-to-t from-espresso/60 via-transparent to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100"
+                    className="absolute inset-0 bg-gradient-to-t from-espresso/85 via-espresso/25 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100"
                   />
+                  <span className="absolute inset-x-2.5 bottom-2.5 pr-10 text-left text-[0.72rem] font-medium leading-snug text-white sm:text-sm">
+                    {v.title}
+                  </span>
                   <span className="absolute bottom-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 ease-soft group-hover:scale-110">
                     <Play className="ml-0.5 h-3 w-3" />
                   </span>

@@ -6,14 +6,14 @@ import { site } from "../lib/site";
 import ChiSiamoContent from "./ChiSiamoContent";
 
 export const metadata: Metadata = {
-  title: "Chi siamo",
+  title: "Chi siamo — agenzia immobiliare a Tradate dal 2007",
   description:
-    "Dal 2007 a Tradate, Domus Tua è l'agenzia immobiliare indipendente nata dalla visione di Raffaela Rizza. Professionalità, innovazione e integrità al servizio delle persone.",
+    "Domus Tua nasce nel 2007 dalla visione di Raffaela Rizza: agenzia indipendente a guida femminile, tre anni consecutivi Top Agency Wikicasa.",
   alternates: { canonical: "/chi-siamo" },
   openGraph: {
-    title: "Chi siamo",
+    title: "Chi siamo — agenzia immobiliare a Tradate dal 2007",
     description:
-      "Dal 2007 a Tradate, Domus Tua è l'agenzia immobiliare indipendente nata dalla visione di Raffaela Rizza. Professionalità, innovazione e integrità al servizio delle persone.",
+    "Domus Tua nasce nel 2007 dalla visione di Raffaela Rizza: agenzia indipendente a guida femminile, tre anni consecutivi Top Agency Wikicasa.",
   },
 };
 

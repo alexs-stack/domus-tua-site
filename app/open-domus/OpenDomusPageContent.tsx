@@ -37,7 +37,7 @@ const copy = {
     heroSubcopy:
       "Un format evoluto che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la visita in un momento consapevole, ordinato e professionale.",
     heroAlt: "Living moderno con accenti senape",
-    heroPrimary: "Vorrei vendere con Open Domus",
+    heroPrimary: "Scopri se Open Domus è adatto al tuo immobile",
     heroSecondary: "Come si svolge",
     heroSubtitle: "Non una semplice visita. Un’esperienza preparata per vendere meglio.",
 
@@ -161,7 +161,7 @@ const copy = {
     finalTitle: "La tua casa merita più di una visita qualunque.",
     finalText:
       "Raccontaci il tuo immobile: valutiamo insieme se Open Domus è la strada giusta per venderlo meglio.",
-    finalCta: "Vorrei vendere con Open Domus",
+    finalCta: "Scopri se Open Domus è adatto al tuo immobile",
   },
   en: {
     heroEyebrow: "Proprietary asset",
@@ -175,7 +175,7 @@ const copy = {
     heroSubcopy:
       "A refined format that brings together preparation, hospitality, documentation and pre-qualification. It turns a viewing into a considered, orderly and professional moment.",
     heroAlt: "Modern living room with mustard accents",
-    heroPrimary: "I’d like to sell with Open Domus",
+    heroPrimary: "See if Open Domus suits your property",
     heroSecondary: "How it works",
     heroSubtitle: "Not just a viewing. An experience prepared to sell better.",
 
@@ -299,7 +299,7 @@ const copy = {
     finalTitle: "Your home deserves more than an ordinary viewing.",
     finalText:
       "Tell us about your property: together we’ll assess whether Open Domus is the right way to sell it better.",
-    finalCta: "I’d like to sell with Open Domus",
+    finalCta: "See if Open Domus suits your property",
   },
   fr: {
     heroEyebrow: "Atout propriétaire",
@@ -313,7 +313,7 @@ const copy = {
     heroSubcopy:
       "Un format évolué qui réunit préparation, accueil, documentation et préqualification. Il transforme la visite en un moment réfléchi, ordonné et professionnel.",
     heroAlt: "Séjour moderne aux accents moutarde",
-    heroPrimary: "Je veux vendre avec Open Domus",
+    heroPrimary: "Découvrez si Open Domus convient à votre bien",
     heroSecondary: "Comment ça se passe",
     heroSubtitle: "Pas une simple visite. Une expérience préparée pour mieux vendre.",
 
@@ -437,7 +437,7 @@ const copy = {
     finalTitle: "Votre maison mérite mieux qu’une visite ordinaire.",
     finalText:
       "Parlez-nous de votre bien : ensemble, nous évaluons si Open Domus est la bonne voie pour mieux le vendre.",
-    finalCta: "Je veux vendre avec Open Domus",
+    finalCta: "Découvrez si Open Domus convient à votre bien",
   },
   de: {
     heroEyebrow: "Eigenes Format",
@@ -451,7 +451,7 @@ const copy = {
     heroSubcopy:
       "Ein durchdachtes Format, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die Besichtigung in einen bewussten, geordneten und professionellen Moment.",
     heroAlt: "Modernes Wohnzimmer mit senffarbenen Akzenten",
-    heroPrimary: "Ich möchte mit Open Domus verkaufen",
+    heroPrimary: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
     heroSecondary: "So läuft es ab",
     heroSubtitle: "Keine gewöhnliche Besichtigung. Ein Erlebnis, vorbereitet für den besseren Verkauf.",
 
@@ -575,7 +575,7 @@ const copy = {
     finalTitle: "Ihr Zuhause verdient mehr als eine gewöhnliche Besichtigung.",
     finalText:
       "Erzählen Sie uns von Ihrer Immobilie: Gemeinsam prüfen wir, ob Open Domus der richtige Weg ist, sie besser zu verkaufen.",
-    finalCta: "Ich möchte mit Open Domus verkaufen",
+    finalCta: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
   },
   es: {
     heroEyebrow: "Formato propio",
@@ -589,7 +589,7 @@ const copy = {
     heroSubcopy:
       "Un formato evolucionado que reúne preparación, acogida, documentación y precalificación. Convierte la visita en un momento consciente, ordenado y profesional.",
     heroAlt: "Salón moderno con acentos mostaza",
-    heroPrimary: "Quiero vender con Open Domus",
+    heroPrimary: "Descubre si Open Domus encaja con tu inmueble",
     heroSecondary: "Cómo se desarrolla",
     heroSubtitle: "No una simple visita. Una experiencia preparada para vender mejor.",
 
@@ -713,7 +713,7 @@ const copy = {
     finalTitle: "Tu casa merece más que una visita cualquiera.",
     finalText:
       "Cuéntanos tu inmueble: valoramos juntos si Open Domus es el camino adecuado para venderlo mejor.",
-    finalCta: "Quiero vender con Open Domus",
+    finalCta: "Descubre si Open Domus encaja con tu inmueble",
   },
 };
 

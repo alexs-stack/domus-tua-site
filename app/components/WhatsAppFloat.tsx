@@ -22,6 +22,8 @@ export default function WhatsAppFloat() {
     // il magnetismo avvolge il bottone dentro. Pulse discreto ~8s sull'icona
     // (spento da reduced-motion via regola globale).
     <div
+      // La bolla desktop: distinta dalla barra mobile nelle conversioni (SiteAnalytics.tsx).
+      data-conv-source="fluttuante"
       style={{ bottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
       className={`fixed right-5 z-50 hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] sm:block ${
         show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"

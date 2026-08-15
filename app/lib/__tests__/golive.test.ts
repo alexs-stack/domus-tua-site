@@ -14,12 +14,19 @@ import { buildSitemap, SITEMAP_ROUTES, NON_INDEXABLE_ROUTES } from "../../sitema
 import { robotsRules, RETRIEVAL_BOTS } from "../../robots";
 import { organizationJsonLd, siteUrl } from "../site";
 
-type Redirect = { source: string; destination: string; permanent?: boolean };
+type Has = { type: string; key?: string; value?: string };
+type Redirect = { source: string; destination: string; permanent?: boolean; has?: Has[] };
 
 async function getRedirects(): Promise<Redirect[]> {
   const r = nextConfig.redirects ? await nextConfig.redirects() : [];
   return r as Redirect[];
 }
+
+/**
+ * Una regola vincolata a un host DIVERSO dal nostro (il sottodominio annunci) è l'unica
+ * a cui è concessa — anzi, imposta — una destinazione assoluta: vedi il test dedicato.
+ */
+const isCrossHost = (r: Redirect) => r.has?.some((h) => h.type === "host") ?? false;
 
 describe("redirect legacy — go-live", () => {
   test("sono configurati (l'inventario WordPress non è vuoto)", async () => {
@@ -30,7 +37,16 @@ describe("redirect legacy — go-live", () => {
   test("ogni redirect ha source/destination assoluti e permanent:true (308 accettato)", async () => {
     for (const r of await getRedirects()) {
       assert.ok(r.source.startsWith("/"), `source non assoluto: ${r.source}`);
-      assert.ok(r.destination.startsWith("/"), `destination non assoluta: ${r.destination}`);
+      // Le regole intra-sito restano relative; quelle legate a un host esterno DEVONO
+      // essere assolute, altrimenti il salto non lascia il sottodominio (vedi sotto).
+      if (isCrossHost(r)) {
+        assert.ok(
+          r.destination.startsWith(`${siteUrl}/`),
+          `${r.source}: regola host-scoped con destinazione non assoluta sul dominio canonico: ${r.destination}`
+        );
+      } else {
+        assert.ok(r.destination.startsWith("/"), `destination non assoluta: ${r.destination}`);
+      }
       assert.equal(r.permanent, true, `${r.source}: atteso permanent (Next emette 308)`);
     }
   });
@@ -74,9 +90,49 @@ describe("redirect legacy — go-live", () => {
       ["/privacy-policy", "/privacy"],
       ["/cookies-policy", "/cookie"],
       ["/wp-sitemap.xml", "/sitemap.xml"],
+      // Catalogo immobili del vecchio dominio: esatto e figlie.
+      ["/proprieta", "/acquista"],
+      ["/proprieta/:path*", "/acquista"],
     ] as const) {
       assert.equal(map.get(source), dest, `redirect mancante/errato: ${source} → ${dest}`);
     }
+  });
+});
+
+// Il sottodominio del vecchio catalogo. Se resta raggiungibile insieme al sito nuovo è
+// contenuto duplicato dell'INTERO catalogo immobili, cioè l'agenzia che compete con sé
+// stessa sulle stesse schede.
+describe("sottodominio annunci — go-live", () => {
+  const annunciRule = async () =>
+    (await getRedirects()).find((r) =>
+      r.has?.some((h) => h.type === "host" && h.value === "annunci.domustua.com")
+    );
+
+  test("esiste una regola che cattura ogni percorso del sottodominio", async () => {
+    const rule = await annunciRule();
+    assert.ok(rule, "nessun redirect per annunci.domustua.com: il catalogo vecchio resterebbe vivo");
+    assert.equal(rule.source, "/:path*", "la regola deve catturare TUTTO il sottodominio, radice compresa");
+    assert.equal(rule.permanent, true);
+  });
+
+  test("la destinazione è assoluta sul dominio canonico — altrimenti è un ciclo infinito", async () => {
+    const rule = await annunciRule();
+    assert.ok(rule);
+    // Con una destinazione relativa il browser resterebbe su annunci.domustua.com,
+    // l'host tornerebbe a combaciare e la regola si riapplicherebbe all'infinito.
+    assert.equal(rule.destination, `${siteUrl}/acquista`);
+    assert.notEqual(new URL(rule.destination).host, "annunci.domustua.com");
+  });
+
+  test("è la PRIMA regola: dal sottodominio si esce in un salto solo", async () => {
+    const redirects = await getRedirects();
+    const i = redirects.findIndex((r) =>
+      r.has?.some((h) => h.type === "host" && h.value === "annunci.domustua.com")
+    );
+    // Se stesse dopo, `annunci.domustua.com/vendi-casa` combacerebbe prima con la riga
+    // `/vendi-casa` e atterrerebbe su `annunci.domustua.com/vendi`: host sbagliato, e un
+    // secondo salto per rimediare.
+    assert.equal(i, 0, "la regola host-scoped deve precedere le regole di percorso");
   });
 });
 

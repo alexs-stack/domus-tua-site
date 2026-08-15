@@ -10,7 +10,7 @@ import { Cta } from "./primitives/Cta";
 import { Play } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { MARK_D, MARK_RED_D, MARK_VIEWBOX } from "./MarkDomus";
-import { site } from "../lib/site";
+import { site, yearsActive } from "../lib/site";
 import { youtubeWatch } from "../lib/videos";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
@@ -59,8 +59,8 @@ const copy = {
     eyebrow: "Il Metodo Domus Tua",
     title: "Un percorso chiaro, dalla prima stima alla firma.",
     subcopy:
-      "Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in oltre quindici anni di lavoro sul territorio.",
-    cta: "Inizia dal tuo immobile",
+      `Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in ${yearsActive()} anni di lavoro sul territorio.`,
+    cta: "Richiedi la valutazione del tuo immobile",
     actVideo: "Guarda la video recensione",
     acts: [
       { up: "Prima,", down: "le persone", alt: "Raffaela Rizza, fondatrice di Domus Tua, in ascolto" },
@@ -83,8 +83,8 @@ const copy = {
     eyebrow: "The Domus Tua Method",
     title: "A clear journey, from the first estimate to signing.",
     subcopy:
-      "Every sale and every purchase follows nine precise steps: no improvisation, only a method built over more than fifteen years of work in the local area.",
-    cta: "Start with your property",
+      `Every sale and every purchase follows nine precise steps: no improvisation, only a method built over ${yearsActive()} years of work in the local area.`,
+    cta: "Request a valuation of your property",
     actVideo: "Watch the video review",
     acts: [
       { up: "First,", down: "the people", alt: "Raffaela Rizza, founder of Domus Tua, listening" },
@@ -107,8 +107,8 @@ const copy = {
     eyebrow: "La Méthode Domus Tua",
     title: "Un parcours clair, de la première estimation à la signature.",
     subcopy:
-      "Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en plus de quinze ans de travail sur le territoire.",
-    cta: "Commencez par votre bien",
+      `Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en ${yearsActive()} ans de travail sur le territoire.`,
+    cta: "Demandez l’estimation de votre bien",
     actVideo: "Voir l’avis en vidéo",
     acts: [
       { up: "D'abord,", down: "les personnes", alt: "Raffaela Rizza, fondatrice de Domus Tua, à l'écoute" },
@@ -131,8 +131,8 @@ const copy = {
     eyebrow: "Die Domus Tua Methode",
     title: "Ein klarer Weg, von der ersten Schätzung bis zur Unterschrift.",
     subcopy:
-      "Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in über fünfzehn Jahren Arbeit vor Ort gewachsen ist.",
-    cta: "Beginnen Sie mit Ihrer Immobilie",
+      `Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in ${yearsActive()} Jahren Arbeit vor Ort gewachsen ist.`,
+    cta: "Bewertung Ihrer Immobilie anfordern",
     actVideo: "Video-Bewertung ansehen",
     acts: [
       { up: "Zuerst", down: "die Menschen", alt: "Raffaela Rizza, Gründerin von Domus Tua, beim Zuhören" },
@@ -155,8 +155,8 @@ const copy = {
     eyebrow: "El Método Domus Tua",
     title: "Un recorrido claro, desde la primera tasación hasta la firma.",
     subcopy:
-      "Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en más de quince años de trabajo en el territorio.",
-    cta: "Empieza por tu inmueble",
+      `Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en ${yearsActive()} años de trabajo en el territorio.`,
+    cta: "Solicita la valoración de tu inmueble",
     actVideo: "Ver la reseña en vídeo",
     acts: [
       { up: "Primero,", down: "las personas", alt: "Raffaela Rizza, fundadora de Domus Tua, escuchando" },

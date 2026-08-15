@@ -148,7 +148,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua è un’agenzia indipendente di Tradate: piccola per scelta, esigente per abitudine. Se ti riconosci nel modo in cui lavoriamo, raccontaci chi sei.",
+      "Domus Tua è un’agenzia indipendente di Tradate: indipendente per scelta, esigente per cultura. Se ti riconosci nel modo in cui lavoriamo, raccontaci chi sei.",
     heroAlt: "Raffaela Rizza consegna una proposta d’acquisto a una cliente, nella sede di Tradate",
     heroPrimary: "Invia la tua candidatura",
     heroSecondary: "Perché proprio qui",
@@ -265,7 +265,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua is an independent agency in Tradate: small by choice, demanding by habit. If you recognise yourself in the way we work, tell us who you are.",
+      "Domus Tua is an independent agency in Tradate: independent by choice, demanding by culture. If you recognise yourself in the way we work, tell us who you are.",
     heroAlt: "Raffaela Rizza handing a purchase offer to a client at the Tradate office",
     heroPrimary: "Send your application",
     heroSecondary: "Why here",
@@ -398,7 +398,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua est une agence indépendante de Tradate : petite par choix, exigeante par habitude. Si vous vous reconnaissez dans notre façon de travailler, dites-nous qui vous êtes.",
+      "Domus Tua est une agence indépendante de Tradate : indépendante par choix, exigeante par culture. Si vous vous reconnaissez dans notre façon de travailler, dites-nous qui vous êtes.",
     heroAlt: "Raffaela Rizza remet une offre d’achat à une cliente, dans les locaux de Tradate",
     heroPrimary: "Envoyer ma candidature",
     heroSecondary: "Pourquoi ici",
@@ -531,7 +531,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua ist eine unabhängige Agentur in Tradate: klein aus Überzeugung, anspruchsvoll aus Gewohnheit. Wenn Sie sich in unserer Arbeitsweise wiederfinden, erzählen Sie uns, wer Sie sind.",
+      "Domus Tua ist eine unabhängige Agentur in Tradate: unabhängig aus Überzeugung, anspruchsvoll aus Kultur. Wenn Sie sich in unserer Arbeitsweise wiederfinden, erzählen Sie uns, wer Sie sind.",
     heroAlt: "Raffaela Rizza übergibt einer Kundin ein Kaufangebot im Büro in Tradate",
     heroPrimary: "Bewerbung senden",
     heroSecondary: "Warum hier",
@@ -664,7 +664,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua es una agencia independiente de Tradate: pequeña por elección, exigente por costumbre. Si te reconoces en nuestra forma de trabajar, cuéntanos quién eres.",
+      "Domus Tua es una agencia independiente de Tradate: independiente por elección, exigente por cultura. Si te reconoces en nuestra forma de trabajar, cuéntanos quién eres.",
     heroAlt: "Raffaela Rizza entrega una propuesta de compra a una clienta, en la sede de Tradate",
     heroPrimary: "Enviar la candidatura",
     heroSecondary: "Por qué aquí",
