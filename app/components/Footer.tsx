@@ -284,7 +284,7 @@ export default function Footer() {
             </ul>
             {/* /#contatti (non #contatti): su /privacy e /cookie non esiste
                 l'ancora locale e la CTA sarebbe un link morto. */}
-            <Cta href="/#contatti" variant="reveal-cream" size="sm" className="mt-6">
+            <Cta href="/valutazione-immobile-tradate" variant="reveal-cream" size="sm" className="mt-6">
               {d.footer.valuta}
             </Cta>
           </div>

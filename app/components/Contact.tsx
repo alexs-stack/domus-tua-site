@@ -85,6 +85,8 @@ const copy = {
     consentLinkText: "informativa privacy",
     consentPost: " e acconsento al trattamento dei miei dati per essere ricontattato.",
     errConsent: "Per procedere accetta l’informativa privacy.",
+    reassure:
+      "Ti ricontattiamo personalmente entro 24 ore lavorative. Nessun preventivo automatico, nessun dato ceduto a terzi. E se poi non è il momento giusto, va benissimo.",
     contactPhoneSub: "Lun–Sab",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Scrivici una mail",
@@ -147,6 +149,8 @@ const copy = {
     consentLinkText: "privacy policy",
     consentPost: " and consent to the processing of my data to be contacted back.",
     errConsent: "Please accept the privacy policy to continue.",
+    reassure:
+      "We get back to you personally within 24 working hours. No automated estimate, no data passed to third parties. And if it turns out not to be the right moment, that is absolutely fine.",
     contactPhoneSub: "Mon–Sat",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Send us an email",
@@ -209,6 +213,8 @@ const copy = {
     consentLinkText: "politique de confidentialité",
     consentPost: " et je consens au traitement de mes données pour être recontacté.",
     errConsent: "Veuillez accepter la politique de confidentialité pour continuer.",
+    reassure:
+      "Nous vous recontactons personnellement sous 24 heures ouvrées. Aucun devis automatique, aucune donnée cédée à des tiers. Et si ce n’est finalement pas le bon moment, c’est très bien ainsi.",
     contactPhoneSub: "Lun–Sam",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Écrivez-nous un e-mail",
@@ -271,6 +277,8 @@ const copy = {
     consentLinkText: "Datenschutzerklärung",
     consentPost: " gelesen und willige in die Verarbeitung meiner Daten zur Kontaktaufnahme ein.",
     errConsent: "Bitte akzeptieren Sie die Datenschutzerklärung, um fortzufahren.",
+    reassure:
+      "Wir melden uns persönlich innerhalb von 24 Werkstunden. Kein automatischer Kostenvoranschlag, keine Weitergabe von Daten an Dritte. Und wenn es doch nicht der richtige Moment ist, ist das völlig in Ordnung.",
     contactPhoneSub: "Mo–Sa",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Schreiben Sie uns eine E-Mail",
@@ -333,6 +341,8 @@ const copy = {
     consentLinkText: "política de privacidad",
     consentPost: " y doy mi consentimiento al tratamiento de mis datos para que me contacten.",
     errConsent: "Para continuar, acepta la política de privacidad.",
+    reassure:
+      "Te contactamos personalmente en 24 horas laborables. Sin presupuesto automático, sin ceder datos a terceros. Y si al final no es el momento adecuado, no pasa nada.",
     contactPhoneSub: "Lun–Sáb",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Escríbenos un correo",
@@ -716,6 +726,13 @@ export default function Contact({
               <SendCta submitting={submitting} size="lg" className="mt-1 w-full">
                 {submitLabels[intent]}
               </SendCta>
+              {/* §6.6 — sta SOTTO il pulsante, non sopra: si legge nell'istante esatto in
+                  cui si esita a premerlo. Dice quando richiamiamo, che i dati non escono
+                  di qui, e che si può anche non farne nulla — è quest'ultima a togliere la
+                  paura di essere inseguiti, che è la barriera vera. */}
+              <p className="mt-3 text-center text-[0.78rem] leading-relaxed text-stone">
+                {c.reassure}
+              </p>
               {sent ? (
                 <p
                   ref={sentRef}
