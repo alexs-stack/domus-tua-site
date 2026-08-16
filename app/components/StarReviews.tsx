@@ -773,7 +773,12 @@ export default function StarReviews() {
           al blocco del voto, sotto lo stesso titolo — e il ruolo lo dice una riga di
           servizio, non un'intestazione che promette una sezione nuova. */}
       <div className="mx-auto max-w-[1240px] px-5 pb-16 sm:px-8 sm:pb-20">
-        <div ref={widgetRef}>
+        {/* `data-reviews-widget` è l'appiglio per i test, e non è zucchero: la suite
+            trovava questo blocco cercando il testo del suo titolo, quindi un cambio di
+            copy — che è lavoro editoriale normale — faceva fallire un test sul
+            CARICAMENTO PIGRO, che col copy non c'entra niente. Un attributo stabile
+            separa le due cose: la copy può cambiare, il cancello resta verificabile. */}
+        <div ref={widgetRef} data-reviews-widget>
           <p className="eyebrow">{c.widgetTitle}</p>
           {showTrustindex ? (
             <div className="mt-6">
