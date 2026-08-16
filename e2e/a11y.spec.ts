@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
 });
 
-const PAGES = ["/", "/acquista", "/vendi", "/metodo", "/open-domus", "/contatti", "/privacy"];
+const PAGES = ["/", "/acquista", "/case-vendute", "/vendi", "/metodo", "/open-domus", "/contatti", "/privacy"];
 
 for (const path of PAGES) {
   test(`${path} non ha violazioni di accessibilità`, async ({ page, goto }) => {
