@@ -68,6 +68,8 @@ type Copy = {
     intro: string;
     items: { n: string; title: string; copy: string }[];
     proof: string;
+    /** Link ai risultati reali: la prova che il metodo ha prodotto vendite. */
+    proofLink: string;
     ctaLabel: string;
   };
   openDomus: { text: string; cta: string };
@@ -215,6 +217,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ],
       proof:
         "È lo stesso metodo che i venditori raccontano nelle loro recensioni, che dà vita agli eventi Open Domus e che porta al protocollo Domus D.O.C.",
+      proofLink: "Guarda le case che abbiamo venduto",
       ctaLabel: "Richiedi la valutazione del tuo immobile",
     },
     openDomus: {
@@ -363,6 +366,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ],
       proof:
         "It’s the same method sellers describe in their reviews, that brings the Open Domus events to life and that leads to the Domus D.O.C. protocol.",
+      proofLink: "See the homes we have sold",
       ctaLabel: "Request a valuation of your property",
     },
     openDomus: {
@@ -511,6 +515,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ],
       proof:
         "C’est la même méthode que les vendeurs racontent dans leurs avis, qui donne vie aux événements Open Domus et qui mène au protocole Domus D.O.C.",
+      proofLink: "Voir les biens que nous avons vendus",
       ctaLabel: "Demandez l’estimation de votre bien",
     },
     openDomus: {
@@ -659,6 +664,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ],
       proof:
         "Es ist dieselbe Methode, die Verkäufer in ihren Bewertungen beschreiben, die die Open-Domus-Events zum Leben erweckt und die zum Protokoll Domus D.O.C. führt.",
+      proofLink: "Die Immobilien ansehen, die wir verkauft haben",
       ctaLabel: "Bewertung Ihrer Immobilie anfordern",
     },
     openDomus: {
@@ -807,6 +813,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ],
       proof:
         "Es el mismo método que los vendedores cuentan en sus reseñas, que da vida a los eventos Open Domus y que conduce al protocolo Domus D.O.C.",
+      proofLink: "Mira las casas que hemos vendido",
       ctaLabel: "Solicita la valoración de tu inmueble",
     },
     openDomus: {
@@ -898,9 +905,19 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
         <Reveal delay={120} className="mt-14">
           <div className="rounded-[1.75rem] border border-line bg-paper p-8 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
             <p className="max-w-2xl text-[1.02rem] leading-relaxed text-graphite">{prep.proof}</p>
-            <Cta href="#contatti" variant="cta" size="md" className="mt-6 shrink-0 sm:mt-0">
-              {prep.ctaLabel}
-            </Cta>
+            <div className="mt-6 flex shrink-0 flex-col items-start gap-3 sm:mt-0 sm:items-end">
+              <Cta href="#contatti" variant="cta" size="md">
+                {prep.ctaLabel}
+              </Cta>
+              {/* La prova sta a un clic: chi legge "è lo stesso metodo" ha appena maturato
+                  la domanda «e ha funzionato?». /case-vendute risponde con le schede reali. */}
+              <a
+                href="/case-vendute"
+                className="link-underline text-[0.85rem] font-medium text-graphite transition-colors duration-300 hover:text-red"
+              >
+                {prep.proofLink}
+              </a>
+            </div>
           </div>
         </Reveal>
       </div>

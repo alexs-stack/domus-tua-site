@@ -16,6 +16,7 @@ test.beforeEach(async ({ page }) => {
 // un'etichetta di navigazione.
 const PAGES = [
   { path: "/acquista", title: /case in vendita a tradate/i },
+  { path: "/case-vendute", title: /case vendute/i },
   { path: "/vendi", title: /vendere casa a tradate/i },
   { path: "/metodo", title: /metodo domus tua/i },
   { path: "/open-domus", title: /open domus/i },

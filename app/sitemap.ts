@@ -12,6 +12,10 @@ export const SITEMAP_ROUTES = [
   "",
   "/vendi",
   "/acquista",
+  // I risultati reali. È la pagina che nessun concorrente della zona ha, quindi è anche
+  // quella che non deve restare invisibile: senza questa riga esisterebbe solo per chi
+  // conosce già l'indirizzo.
+  "/case-vendute",
   "/metodo",
   "/open-domus",
   "/servizi",
