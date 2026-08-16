@@ -66,11 +66,13 @@ test("col consenso il widget recensioni resta pigro finché non ci si avvicina",
   await expect(frame).toHaveCount(0);
 
   // Avvicinandosi (rootMargin 600px), il cancello si arma e l'iframe monta.
-  await page
-    .getByRole("heading", {
-      name: /parola per parola|word for word|mot pour mot|wort für wort|palabra por palabra/i,
-    })
-    .scrollIntoViewIfNeeded();
+  //
+  // Il blocco si trova con `[data-reviews-widget]`, non con il testo del suo titolo.
+  // Prima era `getByRole("heading", …)` con le cinque traduzioni di «Parola per parola»:
+  // quel titolo è stato tolto — era la quinta intestazione di recensioni della home, e il
+  // documento ne chiedeva due — e questo test è morto per un motivo che col caricamento
+  // pigro non c'entrava nulla. Un appiglio stabile tiene separate le due cose.
+  await page.locator("[data-reviews-widget]").scrollIntoViewIfNeeded();
   await expect(frame).toHaveCount(1, { timeout: 10_000 });
 });
 
