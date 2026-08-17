@@ -102,9 +102,14 @@ export const dist = {
 // un buco di un pixel lascia entrambi i rami spenti. È l'idioma che
 // LiquidReveal e Footer usavano già, promosso qui.
 //
-// `belowDesktop` e `coarse` non hanno ancora chiamanti: sono in anticipo sulla
-// wave, ed esistono perché la Fase 2 scriva il ramo mobile senza dover
-// reinventare i decimali. Se dopo la Fase 2 restano inusati, si tolgono.
+// `belowDesktop` ha tre chiamanti (HeroCinematic per la deriva d'uscita
+// dell'hero, CameraIn per la salita piana, Preloader per il ramo mobile
+// dell'intro): il decimale vive qui e in nessuno dei tre. `coarse` invece non
+// ha ancora nessun chiamante — i quattro effetti del puntatore si spengono con
+// `finePointer` e la regola touch del CSS usa la sua `@media (pointer: coarse)`.
+// Resta perché è il nome giusto per ciò che riguarda SOLO il dito (skip al
+// tocco, chunk del cursore da non scaricare — onda «parità mobile 2», legge 5),
+// e quando quel lavoro arriva deve trovarlo qui, non reinventarlo in linea.
 export const MQ = {
   motionOk: "(prefers-reduced-motion: no-preference)",
   /** Effetti di sezione: da tablet in su. */

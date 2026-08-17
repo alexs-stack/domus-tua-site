@@ -32,12 +32,20 @@ type Props = {
       di TESTO non aggiunge niente e in una colonna da 390px rende la lettura
       instabile, quindi resta spenta. Alla ricognizione del 2026-08-11 uno solo
       dei 12 punti di chiamata passava `mobile` (l'hero di PageHero) e gli altri
-      11 erano fermi sul telefono; adesso lo passano sei — l'hero e le cinque
-      fotografie. I sei che non lo passano hanno la ragione scritta accanto, al
+      11 erano fermi sul telefono; oggi lo passano TRE — l'hero di PageHero, la
+      lastra della testimonianza (FeaturedTestimonial) e la cornice del ritratto
+      di Open Domus. Le altre fotografie sono state accese e poi rispente dopo la
+      misura (6-8 px di corsa totale a 390: Servizi, ritratto del team, righe
+      editoriali). I nove che non lo passano hanno la ragione scritta accanto, al
       punto di chiamata, non qui.
-      Chi ribaltasse il default accenderebbe in blocco anche quei sei: le due
-      card di riepilogo, il numero-fantasma editoriale, la filigrana al 6% e la
-      colonna con dentro il player. Non è una scorciatoia, è un'altra decisione. */
+      Chi ribaltasse il default accenderebbe in blocco anche quei nove: le due
+      card di riepilogo, il numero-fantasma editoriale, la filigrana al 6%, la
+      card flottante di Open Domus, la colonna con dentro il player e le tre
+      fotografie sotto soglia. Non è una scorciatoia, è un'altra decisione — ed
+      è sul tavolo dell'onda «parità mobile 2» (verdetto raccomandato: default
+      `true` con `speed` dimezzato, chi resta spento lo dice con `mobile={false}`
+      esplicito e il motivo accanto). Finché quel verdetto non è preso e misurato,
+      il default resta questo. */
   mobile?: boolean;
   as?: ElementType;
 };

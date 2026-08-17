@@ -21,6 +21,8 @@
     "test:e2e": "playwright test --config=playwright.site.config.ts",
     "test:e2e:live": "playwright test --config=playwright.live.config.ts",
     "perf:report": "tsx scripts/perf-report.ts",
+    "probe:mobile": "tsx scripts/mobile-cdp-probe.ts",
+    "filmstrip:intro": "tsx scripts/intro-filmstrip.ts",
     "lighthouse": "lhci autorun",
     "verify:deploy": "tsx scripts/verify-deploy.ts",
     "launch-check": "tsx scripts/launch-readiness.ts",

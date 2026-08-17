@@ -203,7 +203,18 @@ for (const { nome, sel, prop } of SET_PIECE) {
 // Passava già prima della wave, e resta scritto come rete: è il difetto che si
 // nota per primo su un telefono, e ogni ramo mobile nuovo è un'occasione di
 // reintrodurlo.
-const ROTTE = ["/", "/acquista", "/vendi", "/metodo", "/chi-siamo", "/contatti"] as const;
+// `/case-vendute` e `/valutazione-immobile-tradate` sono in `app/sitemap.ts` (e in
+// a11y.spec.ts): rotte vere, non le si lascia fuori dalla rete.
+const ROTTE = [
+  "/",
+  "/acquista",
+  "/vendi",
+  "/metodo",
+  "/chi-siamo",
+  "/contatti",
+  "/case-vendute",
+  "/valutazione-immobile-tradate",
+] as const;
 
 for (const rotta of ROTTE) {
   test(`nessun traboccamento orizzontale su ${rotta} @layout`, async ({ page, goto }) => {
@@ -425,7 +436,7 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     ).toBeLessThan(budget);
 
     // E l'overlay non resta sopra la pagina a mangiarsi i click: `.dt-preloader`
-    // torna `display:none` con l'attributo (globals.css:1583-1591), quindi al
+    // torna `display:none` con l'attributo (globals.css:1590-1598), quindi al
     // centro dello schermo deve esserci il sito.
     const sopra = await page.evaluate(() => {
       const el = document.elementFromPoint(

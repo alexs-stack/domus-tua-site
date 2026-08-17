@@ -58,8 +58,19 @@ module.exports = {
           downloadThroughputKbps: 0,
           uploadThroughputKbps: 0,
         },
-        // Il preloader parte una volta per sessione: Lighthouse apre sempre una sessione nuova,
-        // quindi lo misurerebbe ogni volta. Lo si salta come farebbe chi torna sul sito.
+        // Questo cookie NON salta il preloader, e va saputo prima di leggere i numeri della
+        // home. Il preloader vive di `sessionStorage['dt-intro-seen']` (lo script di boot in
+        // app/layout.tsx), e Lighthouse apre sempre una sessione nuova: quindi l'intro è ARMATA
+        // sempre, a ogni run, su `/` come su `/acquista` — il numero misurato è quello a
+        // freddo, con il sipario. E «armata» non vuol dire «vista»: con CPU ×4 il chunk del
+        // preloader atterra DOPO il failsafe dello script di boot, il sipario cade muto e l'LCP
+        // della home diventa il banner cookie, che aspetta quel chunk (misurato il 2026-08-17,
+        // docs/mobile-parity-2.md §5.3). Il cookie parla a un'altra cosa: il banner del consenso
+        // (`data-consent` nel boot script, `readConsent()` in app/lib/consent.ts). E nemmeno
+        // con certezza: mandato come header di richiesta non entra in `document.cookie`, che
+        // è dove entrambi leggono (docs/mobile-parity.md §1.2). Per una misura «come chi torna»
+        // serve una sonda con la sessione preimpostata (docs/mobile-parity.md §12.1), non un
+        // header qui.
         extraHeaders: JSON.stringify({ Cookie: "dt_consent=accepted" }),
         skipAudits: ["uses-http2", "canonical"],
       },
