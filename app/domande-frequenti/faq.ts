@@ -25,6 +25,9 @@ export type FaqEntryId =
   | "prezzo"
   | "prima-online"
   | "doc"
+  | "non-vendo"
+  | "eredita"
+  | "mutuo"
   | "tempi"
   | "open-domus"
   | "documenti-acquisto"
@@ -72,6 +75,21 @@ export const faq: Record<Locale, FaqGroup[]> = {
           id: "tempi",
           q: "In quanto tempo si vende una casa?",
           a: "Non lo promettiamo, e diffida di chi lo fa: dipende dall'immobile, dalla zona, dal prezzo e dal momento del mercato. Quello che possiamo garantirti è di partire con il prezzo giusto, i documenti in ordine e la casa raccontata bene — cioè le tre cose che i tempi li accorciano davvero.",
+        },
+        {
+          id: "non-vendo",
+          q: "E se poi non vendo?",
+          a: "Non ci devi niente. Valutazione, fotografie, video, home staging e verifica dei documenti sono compresi nel metodo e non si pagano a parte: se la casa non si vende, l'unica cosa che hai speso è il tempo delle visite. Durata dell'incarico e condizioni le mettiamo per iscritto prima di firmare, e le leggiamo insieme.",
+        },
+        {
+          id: "eredita",
+          q: "Ho ereditato una casa: posso venderla?",
+          a: "Sì, ma prima la successione dev'essere in ordine: dichiarazione presentata, volture catastali aggiornate e — se gli eredi sono più di uno — tutti d'accordo a vendere, perché serve la firma di ciascuno. Sono le prime cose che guardiamo nella verifica documentale, così eventuali nodi emergono all'inizio e non davanti al notaio.",
+        },
+        {
+          id: "mutuo",
+          q: "Sulla casa c'è ancora un mutuo. È un problema?",
+          a: "No, è una situazione normalissima. Il mutuo residuo si estingue al rogito con una parte del ricavato: la banca prepara il conteggio di estinzione e il notaio si occupa della cancellazione dell'ipoteca. Serve solo saperlo per tempo, perché il conteggio ha una data di validità e va richiesto prima della firma.",
         },
         {
           id: "open-domus",
@@ -165,6 +183,21 @@ export const faq: Record<Locale, FaqGroup[]> = {
           a: "We don't promise a figure, and be wary of anyone who does: it depends on the property, the area, the price and the moment. What we can promise is starting with the right price, the paperwork in order and the home well told — the three things that genuinely shorten the wait.",
         },
         {
+          id: "non-vendo",
+          q: "And what if it doesn't sell?",
+          a: "You owe us nothing. Valuation, photography, video, home staging and document checks are part of the method and are not billed separately: if the home doesn't sell, the only thing you've spent is the time of the viewings. The mandate's duration and terms are put in writing before signing, and we read them through together.",
+        },
+        {
+          id: "eredita",
+          q: "I inherited a house — can I sell it?",
+          a: "Yes, but the succession has to be in order first: declaration filed, land registry transfers updated and — if there is more than one heir — everyone agreeing to sell, because each signature is needed. These are the first things we look at during the document check, so any knots surface at the start rather than in front of the notary.",
+        },
+        {
+          id: "mutuo",
+          q: "There's still a mortgage on the house. Is that a problem?",
+          a: "No, it's an entirely normal situation. The outstanding mortgage is settled at the deed out of the proceeds: the bank issues a redemption figure and the notary handles cancelling the charge. It just needs to be known in good time, because that figure has an expiry date and must be requested before signing.",
+        },
+        {
           id: "open-domus",
           q: "What is an Open Domus?",
           a: "It is our viewing format: a dedicated day where the home is prepared, the documents are already available and pre-qualified buyers visit by appointment, with no parade of the merely curious. The Open Domus page walks through how it unfolds.",
@@ -254,6 +287,21 @@ export const faq: Record<Locale, FaqGroup[]> = {
           id: "tempi",
           q: "En combien de temps vend-on un bien ?",
           a: "Nous ne le promettons pas, et méfiez-vous de qui le promet : cela dépend du bien, du quartier, du prix et du moment. Ce que nous garantissons, c'est de partir avec le bon prix, les documents en règle et une maison bien racontée — les trois choses qui raccourcissent vraiment les délais.",
+        },
+        {
+          id: "non-vendo",
+          q: "Et si finalement je ne vends pas ?",
+          a: "Vous ne nous devez rien. Estimation, photos, vidéo, home staging et vérification des documents font partie de la méthode et ne se paient pas à part : si le bien ne se vend pas, la seule chose que vous aurez dépensée, c'est le temps des visites. La durée du mandat et ses conditions sont mises par écrit avant la signature, et nous les lisons ensemble.",
+        },
+        {
+          id: "eredita",
+          q: "J'ai hérité d'un bien : puis-je le vendre ?",
+          a: "Oui, mais la succession doit d'abord être en règle : déclaration déposée, mutations cadastrales à jour et — s'il y a plusieurs héritiers — tous d'accord pour vendre, car la signature de chacun est nécessaire. Ce sont les premières choses que nous regardons lors de la vérification documentaire, afin que les nœuds ressortent au début et non devant le notaire.",
+        },
+        {
+          id: "mutuo",
+          q: "Il reste un prêt sur le bien. Est-ce un problème ?",
+          a: "Non, c'est une situation tout à fait courante. Le prêt restant s'éteint à l'acte avec une partie du produit de la vente : la banque prépare le décompte de remboursement et le notaire s'occupe de la mainlevée de l'hypothèque. Il faut simplement le savoir à temps, car ce décompte a une date de validité et doit être demandé avant la signature.",
         },
         {
           id: "open-domus",
@@ -347,6 +395,21 @@ export const faq: Record<Locale, FaqGroup[]> = {
           a: "Wir versprechen keine Zahl, und seien Sie misstrauisch, wenn es jemand tut: Es hängt von der Immobilie, der Lage, dem Preis und dem Zeitpunkt ab. Versprechen können wir den richtigen Startpreis, geordnete Unterlagen und eine gut erzählte Immobilie — die drei Dinge, die die Dauer wirklich verkürzen.",
         },
         {
+          id: "non-vendo",
+          q: "Und wenn ich am Ende nicht verkaufe?",
+          a: "Dann schulden Sie uns nichts. Bewertung, Fotos, Video, Home Staging und Unterlagenprüfung gehören zur Methode und werden nicht separat berechnet: Verkauft sich die Immobilie nicht, haben Sie nur die Zeit der Besichtigungen aufgewendet. Laufzeit und Bedingungen des Auftrags werden vor der Unterschrift schriftlich festgehalten und gemeinsam durchgelesen.",
+        },
+        {
+          id: "eredita",
+          q: "Ich habe ein Haus geerbt — kann ich es verkaufen?",
+          a: "Ja, aber zuerst muss die Erbfolge geordnet sein: Erklärung eingereicht, Katasterumschreibungen aktualisiert und — bei mehreren Erben — alle mit dem Verkauf einverstanden, denn es braucht jede Unterschrift. Das sind die ersten Punkte, die wir bei der Unterlagenprüfung ansehen, damit Knoten am Anfang auftauchen und nicht beim Notar.",
+        },
+        {
+          id: "mutuo",
+          q: "Auf dem Haus lastet noch ein Darlehen. Ist das ein Problem?",
+          a: "Nein, das ist völlig normal. Das Restdarlehen wird beim Notartermin aus dem Erlös abgelöst: Die Bank stellt die Ablösesumme aus, der Notar kümmert sich um die Löschung der Hypothek. Man muss es nur rechtzeitig wissen, denn die Ablösesumme hat ein Gültigkeitsdatum und muss vor der Unterschrift angefordert werden.",
+        },
+        {
           id: "open-domus",
           q: "Was ist ein Open Domus?",
           a: "Unser Besichtigungsformat: ein eigener Tag, an dem das Haus vorbereitet ist, die Unterlagen bereitliegen und vorqualifizierte Interessenten nach Termin kommen — ohne Schaulustige. Auf der Seite Open Domus steht Schritt für Schritt, wie es abläuft.",
@@ -438,6 +501,21 @@ export const faq: Record<Locale, FaqGroup[]> = {
           a: "No lo prometemos, y desconfía de quien lo haga: depende del inmueble, la zona, el precio y el momento. Lo que sí garantizamos es salir con el precio correcto, los documentos en regla y la casa bien contada: las tres cosas que de verdad acortan los plazos.",
         },
         {
+          id: "non-vendo",
+          q: "¿Y si al final no vendo?",
+          a: "No nos debes nada. Valoración, fotos, vídeo, home staging y verificación de los documentos están incluidos en el método y no se pagan aparte: si la casa no se vende, lo único que habrás gastado es el tiempo de las visitas. La duración del encargo y sus condiciones se ponen por escrito antes de firmar, y las leemos juntos.",
+        },
+        {
+          id: "eredita",
+          q: "He heredado una casa, ¿puedo venderla?",
+          a: "Sí, pero antes la sucesión debe estar en regla: declaración presentada, cambios catastrales actualizados y —si hay más de un heredero— todos de acuerdo en vender, porque hace falta la firma de cada uno. Son las primeras cosas que miramos en la verificación documental, así los nudos salen al principio y no delante del notario.",
+        },
+        {
+          id: "mutuo",
+          q: "Sobre la casa todavía hay una hipoteca. ¿Es un problema?",
+          a: "No, es una situación de lo más normal. La hipoteca pendiente se cancela en la escritura con una parte de lo obtenido: el banco prepara el cálculo de cancelación y el notario se ocupa de levantar la carga. Solo hay que saberlo con tiempo, porque ese cálculo tiene fecha de validez y debe pedirse antes de la firma.",
+        },
+        {
           id: "open-domus",
           q: "¿Qué es un Open Domus?",
           a: "Es nuestro formato de visita: una jornada dedicada en la que la casa está preparada, los documentos ya disponibles y los compradores precualificados visitan con cita, sin desfile de curiosos. En la página Open Domus está el paso a paso.",
@@ -511,7 +589,11 @@ export function faqPick(locale: Locale, ids: readonly FaqEntryId[]): FaqEntry[] 
 }
 
 /** Le domande mostrate in coda a /vendi. */
-export const FAQ_SELLER: readonly FaqEntryId[] = ["costi", "prezzo", "tempi", "doc"];
+// «E se poi non vendo?» sta in cima: il documento la chiama la domanda che ferma la
+// firma, ed è la prima cosa che un proprietario vuole sapere dopo aver letto come si
+// vende. Lasciarla solo su /domande-frequenti significava nasconderla a chi è già
+// sulla pagina giusta.
+export const FAQ_SELLER: readonly FaqEntryId[] = ["non-vendo", "costi", "prezzo", "tempi", "doc"];
 /** Le domande mostrate in coda a /acquista. */
 export const FAQ_BUYER: readonly FaqEntryId[] = [
   "documenti-acquisto",

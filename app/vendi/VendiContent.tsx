@@ -134,7 +134,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Verifica documentale",
-        copy: "Controlliamo conformità, titoli e documenti prima di mettere in vendita. Così arrivi alla trattativa e al rogito senza intoppi né brutte sorprese.",
+        copy: "Controlliamo conformità, titoli e documenti prima di mettere in vendita. Se emerge un problema, emerge adesso: quando c'è ancora tempo per risolverlo.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Living elegante con libreria",
       },
@@ -479,7 +479,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Avec Domus D.O.C., vous vendez sans surprises : des délais plus courts, des négociations plus solides, zéro surprise à l’acte. Voici ce que nous faisons, sereinement et en amont, pour protéger votre vente.",
+        "Avec Domus D.O.C., les problèmes ressortent au début, pas devant le notaire : des délais plus courts et des négociations plus solides. Voici ce que nous faisons, sereinement et en amont, pour protéger votre vente.",
     },
     prep: {
       eyebrow: "Avant la mise en ligne",
@@ -644,7 +644,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         {
           n: "02",
           title: "Prüfung der Unterlagen",
-          copy: "Wir prüfen Konformität, Rechtstitel und Grundrisse vorab, damit Sie den Notartermin ohne Überraschungen erreichen.",
+          copy: "Wir prüfen Konformität, Rechtstitel und Grundrisse vor der Veröffentlichung: Gibt es ein Problem, bleibt noch Zeit, es zu lösen.",
         },
         {
           n: "03",

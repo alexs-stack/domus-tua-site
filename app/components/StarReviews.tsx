@@ -84,7 +84,7 @@ const copy = {
     ratingLine: (count: string) => `su 5 · ${count} recensioni Google verificate`,
     cta: "Leggi tutte le recensioni su Google",
     stars: {
-      venditori: { label: "Venditori", caption: "Dalla valutazione seria al rogito, senza sorprese." },
+      venditori: { label: "Venditori", caption: "Dalla valutazione seria al rogito, un riferimento solo." },
       acquirenti: { label: "Acquirenti", caption: "La casa giusta, con documenti già verificati." },
       openDomus: { label: "Open Domus", caption: "La visita che trasforma l'interesse in proposte." },
       esperienza: { label: "Esperienza", caption: "Ogni passaggio spiegato, ogni dubbio ascoltato." },
@@ -109,7 +109,7 @@ const copy = {
     ratingLine: (count: string) => `out of 5 · ${count} verified Google reviews`,
     cta: "Read all reviews on Google",
     stars: {
-      venditori: { label: "Sellers", caption: "From a serious valuation to the deed, no surprises." },
+      venditori: { label: "Sellers", caption: "From a serious valuation to the deed, a single point of contact." },
       acquirenti: { label: "Buyers", caption: "The right home, with documents already verified." },
       openDomus: { label: "Open Domus", caption: "The visit that turns interest into offers." },
       esperienza: { label: "Experience", caption: "Every step explained, every doubt heard." },
@@ -133,7 +133,7 @@ const copy = {
     ratingLine: (count: string) => `sur 5 · ${count} avis Google vérifiés`,
     cta: "Lire tous les avis sur Google",
     stars: {
-      venditori: { label: "Vendeurs", caption: "De l'estimation sérieuse à l'acte, sans surprises." },
+      venditori: { label: "Vendeurs", caption: "De l'estimation sérieuse à l'acte, un seul interlocuteur." },
       acquirenti: { label: "Acheteurs", caption: "Le bon logement, avec des documents déjà vérifiés." },
       openDomus: { label: "Open Domus", caption: "La visite qui transforme l'intérêt en offres." },
       esperienza: { label: "Expérience", caption: "Chaque étape expliquée, chaque doute écouté." },
@@ -157,7 +157,7 @@ const copy = {
     ratingLine: (count: string) => `von 5 · ${count} verifizierte Google-Bewertungen`,
     cta: "Alle Bewertungen auf Google lesen",
     stars: {
-      venditori: { label: "Verkäufer", caption: "Von der seriösen Bewertung bis zum Notartermin, ohne Überraschungen." },
+      venditori: { label: "Verkäufer", caption: "Von der seriösen Bewertung bis zum Notartermin, eine einzige Ansprechperson." },
       acquirenti: { label: "Käufer", caption: "Das richtige Zuhause, mit bereits geprüften Dokumenten." },
       openDomus: { label: "Open Domus", caption: "Der Besuch, der Interesse in Angebote verwandelt." },
       esperienza: { label: "Erfahrung", caption: "Jeder Schritt erklärt, jeder Zweifel gehört." },
@@ -181,7 +181,7 @@ const copy = {
     ratingLine: (count: string) => `sobre 5 · ${count} reseñas de Google verificadas`,
     cta: "Leer todas las reseñas en Google",
     stars: {
-      venditori: { label: "Vendedores", caption: "De la tasación seria a la escritura, sin sorpresas." },
+      venditori: { label: "Vendedores", caption: "De la tasación seria a la escritura, una sola referencia." },
       acquirenti: { label: "Compradores", caption: "La casa adecuada, con documentos ya verificados." },
       openDomus: { label: "Open Domus", caption: "La visita que convierte el interés en propuestas." },
       esperienza: { label: "Experiencia", caption: "Cada paso explicado, cada duda escuchada." },
