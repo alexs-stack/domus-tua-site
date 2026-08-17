@@ -158,7 +158,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 come tutti gli altri job (engines: node >=22): i pacchetti AI SDK richiedono
+          # Node 22, e un job su 20 avrebbe potuto passare qui e rompere altrove.
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
