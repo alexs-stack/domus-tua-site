@@ -284,6 +284,38 @@ export function jsonLdScript(data: unknown): string {
 }
 
 /**
+ * Il sito come entit\u00e0, con la sua ricerca interna (punto 26).
+ *
+ * `SearchAction` dichiara a Google che il sito ha una ricerca propria e come interrogarla.
+ * Serve al box di ricerca nei risultati (sitelinks searchbox) e, pi\u00f9 in generale, a far
+ * capire che /acquista non \u00e8 un elenco statico ma uno strumento.
+ *
+ * \u26a0\ufe0f IL PARAMETRO DEV'ESSERE VERO, E LO \u00c8: `?q=` viene letto da PropertySearch, che
+ * pre-imposta i filtri dai query param (\u00e8 lo stesso meccanismo con cui HomeSearchGateway
+ * passa la ricerca dalla home). Dichiarare un endpoint di ricerca che non esiste \u00e8 una
+ * delle poche cose che Google verifica davvero \u2014 e qui non serve mentire, la ricerca c'\u00e8.
+ */
+export function webSiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    url: siteUrl,
+    name: site.name,
+    inLanguage: "it-IT",
+    publisher: { "@id": `${siteUrl}/#organization` },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteUrl}/acquista?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+/**
  * Dati strutturati dell'organizzazione (schema.org RealEstateAgent) \u2014 nodo perno
  * del grafo (`@id` #organization). Dati societari/orari/geo VERIFICATI. NIENTE
  * `aggregateRating` (policy Google + nessun contenuto recensioni idoneo, vedi

@@ -107,6 +107,19 @@ clausole del vostro mandato e inventarle sarebbe peggio che ometterle:
 - *Cosa ci serve:* due o tre righe per ciascuna, nel vostro linguaggio. Le trasformiamo noi
   in FAQ e le traduciamo nelle cinque lingue.
 
+**1.14 Date di pubblicazione dei video del canale**
+Il punto 26 del documento di sintesi chiede fra i dati strutturati anche `VideoObject` — il
+markup che fa comparire i video nei risultati di Google con anteprima e durata. **Non l'ho
+messo**, e non per dimenticanza: Google richiede `uploadDate` e `description`, e di ognuno
+dei nostri sei video abbiamo solo id e titolo. Inventare la data di pubblicazione di un
+video vero sarebbe la cosa peggiore di tutte — è un dato verificabile in dieci secondi da
+chiunque apra il canale.
+- *Cosa ci serve:* per i sei video già usati sul sito (villa di Roberta, le tre recensioni,
+  Teresa/Open Domus, presentazione del team), la **data di pubblicazione** e una **riga di
+  descrizione**. Si leggono dal canale YouTube: è un lavoro da dieci minuti.
+- *Cosa sblocca:* i video nei risultati di ricerca con anteprima, invece che come semplici
+  link. È il tipo di risultato che occupa più spazio a schermo di qualunque testo.
+
 ---
 
 ## 2. Foto e materiali grafici
