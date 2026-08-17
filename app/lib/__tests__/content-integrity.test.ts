@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { site } from "../site";
-import { allVideoIds, videoCollection, featuredVideo, testimonialVideo } from "../videos";
+import { allVideoIds, wallVideos } from "../videos";
 import { isAvailable, isSold, onlyAvailable } from "../availability";
 import { CONSENT_COOKIE } from "../consent";
 import { team, teamInitials, teamRoleLabels } from "../team";
@@ -152,14 +152,19 @@ describe("content integrity — video YouTube", () => {
     );
   });
 
-  test("evidenza e testimonianza non sono ripetute nella griglia", () => {
-    assert.equal(videoCollection.some((v) => v.id === featuredVideo.id), false);
-    assert.equal(videoCollection.some((v) => v.id === testimonialVideo.id), false);
-  });
-
+  // La vecchia collezione filtrabile (videoCollection) è stata rimossa col suo componente
+  // il 2026-08-15: qui si controlla il muro, l'unica griglia montata. Che la testimonianza
+  // non vi rientri lo garantisce già il test di unicità sopra (allVideoIds la include).
   test("ogni card porta il titolo reale del video sul canale", () => {
-    const byId = new Map<string, string>(site.videos.reviews.map((r) => [r.id, r.title]));
-    for (const v of videoCollection) {
+    const byId = new Map<string, string>(
+      [
+        site.videos.featured,
+        site.videos.openDomus,
+        site.videos.team,
+        ...site.videos.reviews,
+      ].map((v) => [v.id, v.title]),
+    );
+    for (const v of wallVideos) {
       assert.ok(v.title.length > 0, `slot ${v.id} senza titolo`);
       assert.equal(
         v.title,
