@@ -18,7 +18,7 @@ describe("WebSite e la ricerca interna", () => {
     // Due nodi che si citano formano un grafo; due nodi che ripetono gli stessi campi
     // sono due entità diverse agli occhi di un crawler.
     assert.equal((w.publisher as Record<string, string>)["@id"], `${siteUrl}/#organization`);
-    assert.equal((organizationJsonLd() as Record<string, string>)["@id"], `${siteUrl}/#organization`);
+    assert.equal(organizationJsonLd()["@id"], `${siteUrl}/#organization`);
   });
 
   test("il SearchAction punta a un endpoint che esiste davvero", () => {
