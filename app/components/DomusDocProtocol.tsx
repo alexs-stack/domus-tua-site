@@ -25,7 +25,7 @@ const copy = {
     eyebrow: "Protocollo proprietario",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Il protocollo Domus Tua per rendere più chiaro, verificato e sicuro il percorso immobiliare. Si controlla prima, non dopo: chi vende ha una trattativa più solida, chi compra non ha sorprese.",
+      "Il protocollo Domus Tua per rendere più chiaro, verificato e sicuro il percorso immobiliare. Si controlla prima, non dopo: chi vende ha una trattativa più solida, chi compra vede i problemi quando c’è ancora tempo per risolverli.",
     // ─────────────────────────────────────────────────────────────────────────
     // PROMESSE DI AZIONE, NON DI RISULTATO.
     //
@@ -79,7 +79,7 @@ const copy = {
     eyebrow: "Proprietary protocol",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "The Domus Tua protocol that makes the property journey clearer, verified and safer. We check beforehand, not after: sellers get a stronger negotiation, buyers face no surprises.",
+      "The Domus Tua protocol that makes the property journey clearer, verified and safer. We check beforehand, not after: sellers get a stronger negotiation, buyers see the problems while there is still time to fix them.",
     sellerLabel: "For sellers",
     buyerLabel: "For buyers",
     cta: "See how we protect your sale",
@@ -116,7 +116,7 @@ const copy = {
     eyebrow: "Protocole propriétaire",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Le protocole Domus Tua qui rend le parcours immobilier plus clair, vérifié et sûr. On contrôle avant, pas après : le vendeur a une négociation plus solide, l’acquéreur n’a aucune surprise.",
+      "Le protocole Domus Tua qui rend le parcours immobilier plus clair, vérifié et sûr. On contrôle avant, pas après : le vendeur a une négociation plus solide, l’acquéreur voit les problèmes quand il est encore temps de les régler.",
     sellerLabel: "Pour les vendeurs",
     buyerLabel: "Pour les acquéreurs",
     cta: "Découvrez comment nous protégeons la vente",
@@ -153,7 +153,7 @@ const copy = {
     eyebrow: "Eigenes Protokoll",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Das Domus-Tua-Protokoll, das den Immobilienweg klarer, geprüft und sicherer macht. Wir prüfen vorher, nicht danach: Verkäufer erhalten eine solidere Verhandlung, Käufer erleben keine Überraschungen.",
+      "Das Domus-Tua-Protokoll, das den Immobilienweg klarer, geprüft und sicherer macht. Wir prüfen vorher, nicht danach: Verkäufer erhalten eine solidere Verhandlung, Käufer sehen Probleme, solange noch Zeit bleibt, sie zu lösen.",
     sellerLabel: "Für Verkäufer",
     buyerLabel: "Für Käufer",
     cta: "Sehen Sie, wie wir den Verkauf schützen",
@@ -190,7 +190,7 @@ const copy = {
     eyebrow: "Protocolo propietario",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "El protocolo Domus Tua para hacer más claro, verificado y seguro el recorrido inmobiliario. Se comprueba antes, no después: quien vende tiene una negociación más sólida, quien compra no tiene sorpresas.",
+      "El protocolo Domus Tua para hacer más claro, verificado y seguro el recorrido inmobiliario. Se comprueba antes, no después: quien vende tiene una negociación más sólida, quien compra ve los problemas cuando aún hay tiempo de resolverlos.",
     sellerLabel: "Para quien vende",
     buyerLabel: "Para quien compra",
     cta: "Descubre cómo protegemos la venta",

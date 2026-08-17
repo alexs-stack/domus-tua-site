@@ -70,7 +70,7 @@ const copy = {
     steps: [
       { title: "Primo ascolto", copy: "Partiamo da te: obiettivi, tempi, aspettative. Prima delle case vengono le persone." },
       { title: "Valutazione", copy: "Analisi del mercato locale e del tuo immobile per definire valore e strategia, senza illusioni." },
-      { title: "Verifica documentale", copy: "Titoli, conformità e documenti controllati prima di partire: si arriva alla firma senza sorprese." },
+      { title: "Verifica documentale", copy: "Titoli, conformità e documenti controllati prima di partire: se c'è un problema emerge adesso, non davanti al notaio." },
       { title: "Preparazione immobile", copy: "Valorizziamo gli spazi con consigli mirati e, dove serve, home staging." },
       { title: "Racconto visivo", copy: "Foto, video emozionali e rendering: la casa raccontata con la cura che merita." },
       { title: "Marketing e social preview", copy: "Campagne multicanale e anteprime social per portarla davanti alle persone giuste." },
@@ -94,7 +94,7 @@ const copy = {
     steps: [
       { title: "First, we listen", copy: "We start with you: goals, timing, expectations. People come before homes." },
       { title: "Valuation", copy: "Analysis of the local market and your property to define value and strategy, without illusions." },
-      { title: "Document check", copy: "Titles, compliance and documents verified before we begin: we reach the signing without surprises." },
+      { title: "Document check", copy: "Titles, compliance and documents verified before we begin: if there is a problem it surfaces now, not in front of the notary." },
       { title: "Property preparation", copy: "We enhance your spaces with targeted advice and, where needed, home staging." },
       { title: "Visual storytelling", copy: "Photos, emotional videos and renderings: the home told with the care it deserves." },
       { title: "Marketing and social preview", copy: "Multichannel campaigns and social previews to bring it in front of the right people." },
@@ -118,7 +118,7 @@ const copy = {
     steps: [
       { title: "Première écoute", copy: "Nous partons de vous : objectifs, délais, attentes. Avant les maisons viennent les personnes." },
       { title: "Estimation", copy: "Analyse du marché local et de votre bien pour définir valeur et stratégie, sans illusions." },
-      { title: "Vérification documentaire", copy: "Titres, conformité et documents contrôlés avant de commencer : on arrive à la signature sans surprises." },
+      { title: "Vérification documentaire", copy: "Titres, conformité et documents contrôlés avant de commencer : s'il y a un problème, il ressort maintenant et non devant le notaire." },
       { title: "Préparation du bien", copy: "Nous valorisons les espaces avec des conseils ciblés et, si nécessaire, du home staging." },
       { title: "Récit visuel", copy: "Photos, vidéos émotionnelles et rendus : la maison racontée avec le soin qu'elle mérite." },
       { title: "Marketing et aperçu social", copy: "Campagnes multicanales et aperçus sur les réseaux pour la présenter aux bonnes personnes." },
@@ -142,7 +142,7 @@ const copy = {
     steps: [
       { title: "Erstes Zuhören", copy: "Wir beginnen bei Ihnen: Ziele, Zeitrahmen, Erwartungen. Vor den Häusern kommen die Menschen." },
       { title: "Bewertung", copy: "Analyse des lokalen Marktes und Ihrer Immobilie, um Wert und Strategie festzulegen, ohne Illusionen." },
-      { title: "Dokumentenprüfung", copy: "Titel, Konformität und Unterlagen werden vorab geprüft: So kommt man ohne Überraschungen zur Unterschrift." },
+      { title: "Dokumentenprüfung", copy: "Titel, Konformität und Unterlagen werden vorab geprüft: Gibt es ein Problem, zeigt es sich jetzt und nicht beim Notar." },
       { title: "Vorbereitung der Immobilie", copy: "Wir werten die Räume mit gezielten Ratschlägen und, wo nötig, Home Staging auf." },
       { title: "Visuelles Storytelling", copy: "Fotos, emotionale Videos und Renderings: das Zuhause erzählt mit der Sorgfalt, die es verdient." },
       { title: "Marketing und Social-Vorschau", copy: "Multikanal-Kampagnen und Social-Vorschauen, um sie den richtigen Menschen zu zeigen." },
@@ -166,7 +166,7 @@ const copy = {
     steps: [
       { title: "Primera escucha", copy: "Partimos de ti: objetivos, plazos, expectativas. Antes que las casas están las personas." },
       { title: "Valoración", copy: "Análisis del mercado local y de tu inmueble para definir valor y estrategia, sin ilusiones." },
-      { title: "Verificación documental", copy: "Títulos, conformidad y documentos comprobados antes de empezar: se llega a la firma sin sorpresas." },
+      { title: "Verificación documental", copy: "Títulos, conformidad y documentos comprobados antes de empezar: si hay un problema sale ahora, no delante del notario." },
       { title: "Preparación del inmueble", copy: "Valorizamos los espacios con consejos específicos y, cuando hace falta, home staging." },
       { title: "Relato visual", copy: "Fotos, vídeos emotivos y renders: la casa contada con el cuidado que merece." },
       { title: "Marketing y anticipo social", copy: "Campañas multicanal y anticipos en redes para presentarla ante las personas adecuadas." },
