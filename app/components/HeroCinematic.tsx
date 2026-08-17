@@ -739,7 +739,7 @@ export default function HeroCinematic() {
           >
             {/* CTA primaria magnetica (solo pointer fine + motion ok) */}
             <Magnetic className="w-full sm:w-auto" strength={0.18}>
-              <Cta href="#contatti" variant="cta-solid" size="lg" className="w-full">
+              <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="lg" className="w-full">
                 {c.ctaValuta}
               </Cta>
             </Magnetic>

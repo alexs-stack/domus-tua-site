@@ -95,7 +95,7 @@ export default function MobileActionBar() {
       style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
       <Cta
-        href="/#contatti"
+        href="/valutazione-immobile-tradate"
         variant="cta-solid"
         size="md"
         className="flex-1 !shadow-[0_18px_40px_-16px_rgba(210,10,10,0.75)]"

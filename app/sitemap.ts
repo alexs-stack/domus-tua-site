@@ -11,6 +11,9 @@ const base = siteUrl;
 export const SITEMAP_ROUTES = [
   "",
   "/vendi",
+  // La ricerca a più alta intenzione commerciale del settore. Fino a ieri era un 404 e i
+  // pulsanti "Richiedi la valutazione" saltavano a un'ancora in fondo alla home (§5.4).
+  "/valutazione-immobile-tradate",
   "/acquista",
   // I risultati reali. È la pagina che nessun concorrente della zona ha, quindi è anche
   // quella che non deve restare invisibile: senza questa riga esisterebbe solo per chi

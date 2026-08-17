@@ -391,7 +391,7 @@ export default function Header() {
           </div>
 
           <Cta
-            href="/#contatti"
+            href="/valutazione-immobile-tradate"
             variant="cta-solid"
             size="sm"
             className="!hidden sm:!inline-flex"
@@ -474,7 +474,7 @@ export default function Header() {
 
         <div data-menu-bottom className="mt-auto flex flex-col gap-3 pt-8">
           <Cta
-            href="/#contatti"
+            href="/valutazione-immobile-tradate"
             variant="cta-solid"
             size="lg"
             onClick={() => setOpen(false)}

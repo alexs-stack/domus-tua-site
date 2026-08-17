@@ -17,6 +17,9 @@ test.beforeEach(async ({ page }) => {
 const PAGES = [
   { path: "/acquista", title: /case in vendita a tradate/i },
   { path: "/case-vendute", title: /case vendute/i },
+  // "gratuita" nel title è deliberato e vive SOLO qui (§3.2): se sparisce, la pagina
+  // ha perso la chiave di ricerca per cui esiste.
+  { path: "/valutazione-immobile-tradate", title: /valutazione immobile gratuita a tradate/i },
   { path: "/vendi", title: /vendere casa a tradate/i },
   { path: "/metodo", title: /metodo domus tua/i },
   { path: "/open-domus", title: /open domus/i },
