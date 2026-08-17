@@ -90,6 +90,23 @@ Le domande sul lavoro oggi in pagina riguardano solo il funzionamento del modulo
 Oggi elenchiamo: rendering e virtual rendering (in evidenza), servizi tecnico-legali, home staging, video emozionale, contenuti e campagne marketing, Open Domus.
 - *Cosa ci serve:* conferma che siano questi e che non ne manchino; e in particolare se la **consulenza catastale e urbanistica** la fate internamente o tramite un tecnico esterno abilitato. Nel secondo caso lo scriviamo esplicitamente: è il punto più esposto della sezione, perché si somma alle promesse del Domus D.O.C.
 
+**1.13 Durata dell'incarico ed esclusiva — le due domande che fermano la firma**
+Il documento di sintesi (punto 32) chiede sei FAQ nuove. Tre le abbiamo scritte, perché la
+risposta si ricava dal sito o descrive una procedura standard: *e se poi non vendo*, *casa
+ereditata*, *mutuo in corso*. Le altre due **non possiamo scriverle noi**, perché sono
+clausole del vostro mandato e inventarle sarebbe peggio che ometterle:
+- *Quanto dura l'incarico?* — la durata standard che proponete, e cosa succede alla scadenza
+  (si rinnova da solo? si rinegozia? decade?).
+- *È in esclusiva?* — se lavorate solo in esclusiva, se accettate anche incarichi non
+  esclusivi, e se sì con quali differenze. E se il proprietario può recedere prima della
+  scadenza: a quali condizioni.
+- *Perché conta:* è la domanda che ferma la firma più di ogni altra. Il documento lo dice
+  senza mezzi termini — chi risponde per primo a «e se poi non vendo?» in provincia di
+  Varese prende il mercato. Metà della risposta (non costa niente) è già online; manca la
+  metà contrattuale.
+- *Cosa ci serve:* due o tre righe per ciascuna, nel vostro linguaggio. Le trasformiamo noi
+  in FAQ e le traduciamo nelle cinque lingue.
+
 ---
 
 ## 2. Foto e materiali grafici
