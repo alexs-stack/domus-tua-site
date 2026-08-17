@@ -446,14 +446,23 @@ export default function ValutazioneContent() {
                 {c.whyTitle}
               </h2>
               <dl className="mt-8 space-y-6">
+                {/* `Reveal` È il div del gruppo, non ne avvolge un secondo.
+                    Con `<dl> → <Reveal> → <div> → <dt>` c'erano due livelli di wrapper
+                    fra la lista e le sue voci, e axe lo boccia (definition-list +
+                    dlitem, 16 violazioni serie): dentro un <dl> ci sta al massimo UN
+                    livello di raggruppamento. Reveal accetta `as` e `className`, quindi
+                    fa da sé quel livello. */}
                 {c.whyItems.map((w, i) => (
-                  <Reveal key={w.t} delay={100 + i * 80}>
-                    <div className="border-t border-line pt-5">
-                      <dt className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-red">
-                        {w.t}
-                      </dt>
-                      <dd className="mt-2 text-[0.98rem] leading-relaxed text-graphite">{w.c}</dd>
-                    </div>
+                  <Reveal
+                    key={w.t}
+                    as="div"
+                    delay={100 + i * 80}
+                    className="border-t border-line pt-5"
+                  >
+                    <dt className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-red">
+                      {w.t}
+                    </dt>
+                    <dd className="mt-2 text-[0.98rem] leading-relaxed text-graphite">{w.c}</dd>
                   </Reveal>
                 ))}
               </dl>
