@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Playfair_Display, Pinyon_Script } from "next/font/google";
 import "./globals.css";
-import { jsonLdScript, organizationJsonLd, siteUrl } from "./lib/site";
+import { jsonLdScript, organizationJsonLd, webSiteJsonLd, siteUrl } from "./lib/site";
 import { defaultLocale, type Locale } from "./lib/i18n/dictionaries";
 import { LocaleProvider } from "./components/i18n/LocaleProvider";
 import PreviewBadge from "./components/PreviewBadge";
@@ -165,6 +165,9 @@ export const metadata: Metadata = {
 // vedi app/lib/__tests__/golive.test.ts. `aggregateRating` resta volutamente
 // omesso (policy Google, nessun contenuto recensioni idoneo).
 const jsonLd = organizationJsonLd();
+// Il sito come entità + la sua ricerca interna. Nodo distinto dall'organizzazione, che
+// referenzia via @id: un grafo con due nodi collegati, non due dichiarazioni scollegate.
+const webSite = webSiteJsonLd();
 
 export default function RootLayout({
   children,
@@ -212,6 +215,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(webSite) }}
         />
         <div className="grain" aria-hidden />
         <SmoothScroll />
