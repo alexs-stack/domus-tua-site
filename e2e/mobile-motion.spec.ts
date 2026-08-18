@@ -1235,8 +1235,13 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     // subito dopo `domcontentloaded` non trova nessun listener e non salta
     // niente. Qui serve anche a chiudere l'intro in fretta, ma la condizione
     // che si aspetta è quella vera: il budget della sessione va segnato speso.
+    // Oppure il film è già finito da solo (JS oltre il failsafe di boot, sotto
+    // il carico dei quattro worker): il budget della sessione è segnato lo
+    // stesso — è ciò che questo test vuole — e il tasto non serve a niente.
     await page.waitForFunction(
-      () => document.documentElement.hasAttribute("data-pre-live"),
+      () =>
+        document.documentElement.hasAttribute("data-pre-live") ||
+        !document.documentElement.hasAttribute("data-preloader"),
       undefined,
       { timeout: 15_000, polling: "raf" },
     );
