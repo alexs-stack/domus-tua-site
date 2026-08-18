@@ -449,7 +449,7 @@ async function main() {
         console.log(
           r.error
             ? `ERRORE: ${r.error}`
-            : `FCP ${fmt(r.fcp)} · LCP ${fmt(r.lcp)} · TBT ${fmt(r.tbt)} · jank p95 ${fmt1(r.jankP95)} (${Math.round(r.durationMs / 1000)} s)`,
+            : `FCP ${fmt(r.fcp)} · LCP ${fmt(r.lcp)} · TBT ${fmt(r.tbt)} · jank p95 ${fmt1(r.jankP95)} · h ${fmt(r.scrollHeight)} (${Math.round(r.durationMs / 1000)} s)`,
         );
       }
       results[route][m] = aggregate(rs);
@@ -458,7 +458,14 @@ async function main() {
   await browser.close();
 
   // ── Tabella leggibile ─────────────────────────────────────────────────
-  const head = ["rotta", "modo", "FCP", "LCP", "TBT", "long", "will-ch", "wc post-scroll", "pin-sp", "data-on", "jank p95", ">50ms", "intro", "run ok"];
+  // `altezza` (scrollHeight a fine caricamento) sta in tabella e non solo nel JSON: è la
+  // sentinella del confronto A/B fra due build. Il 2026-08-18 la HEAD di laboratorio serviva
+  // /acquista PRERENDERIZZATA A VUOTO («0 immobili trovati», 16 710 px, ○ nel build log —
+  // memo fail-closed dentro il worker di prerender) e la build in prova la serviva dinamica
+  // con 24 schede (28 798 px): +8 s di scansione, +600 ms di TBT e +20 punti di jank
+  // attribuiti agli effetti erano 12 000 px e 1 100 nodi di catalogo. Due altezze diverse
+  // sulla stessa rotta = due pagine diverse, e il delta non è un delta.
+  const head = ["rotta", "modo", "FCP", "LCP", "TBT", "long", "will-ch", "wc post-scroll", "pin-sp", "data-on", "jank p95", ">50ms", "altezza", "intro", "run ok"];
   const rows: string[][] = [head];
   for (const route of routes) {
     for (const m of modes) {
@@ -478,6 +485,7 @@ async function main() {
         fmt(d.dataOn),
         fmt1(d.jankP95, "ms"),
         fmt1(d.jankLongPct, "%"),
+        fmt(d.scrollHeight, "px"),
         fmt(d.introDone, "ms"),
         `${a.validRuns}/${a.runs.length}`,
       ]);

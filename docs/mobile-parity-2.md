@@ -1052,3 +1052,175 @@ il listener di skip lo raggiunge): il tocco non va perso e sta nei 1 700; (2) i
 film → **handoff e chiusura ora partono da `animationstart`/`animationend` di
 `dt-pre-dive`** (o `dt-pre-curtain`) sulla root, i timer restano come rete
 (`Preloader.tsx`, «GLI EVENTI DEL FILM PRIMA DEI TIMER»).
+
+## 9. Fase 2 — l'A/B su `/acquista` era falso: due pagine diverse (2026-08-18)
+
+**Il sintomo.** A/B alternato HEAD :3181 vs Fase 2 :3182 (`docs/shots/after-fase2/ab/`),
+`/acquista` a caldo: TBT 2 357/2 374 → 3 003/2 981 ms, % >50 22/27 → 29/43, durata
+per run 22-23 → 29-31 s. Riprodotto (3 run: HEAD TBT 2 683, 23 s; Fase 2 TBT 3 360,
+28-31 s).
+
+**La causa non è nel diff.** Le due porte servivano **due pagine diverse**:
+`scrollHeight` 16 710 vs 28 798 px, 1 357 vs 2 472 nodi. La HEAD di laboratorio
+(`build-head2`, 12:08) ha PRERENDERIZZATO `/acquista` (`○` nel build log,
+`x-nextjs-prerender: 1`, `s-maxage=31536000`) con **«0 immobili trovati»**: nel worker
+di prerender una route precedente aveva già fatto scattare il `revalidate: 0` del
+feed («Dynamic server usage» → catturato come «feed non disponibile» →
+snapshot fail-closed VUOTO nel memo in-process di `getLiveListingsSnapshot`, TTL
+60 s), quindi `/acquista` ha letto il memo senza mai chiamare `fetch`, nessun bailout
+dinamico, statica e vuota per sempre. La build di Fase 2 (`ƒ /acquista`) la serve
+dinamica con **24 schede su 196**: `#case` 13 560 px e 1 196 nodi contro 1 472 px e
+80. La sonda aveva `scrollHeight` nel JSON e non in tabella: ora è la colonna
+`altezza` (`scripts/mobile-cdp-probe.ts`). **Regola**: altezze diverse sulla stessa
+rotta = confronto nullo. (Il memo fail-closed che rende statica una pagina vuota è
+un difetto del data layer, fuori da quest'onda: aperto a parte.)
+
+**A contenuto pari** (script di scratchpad `profile2.ts`: `#case` rimosso in pagina
+su :3182 prima dello scroll + refresh di ScrollTrigger via nudge di larghezza; handler
+cronometrati in pagina, `drawImage` contato; CPU ×4, 390×844, Slow-4G):
+
+| | HEAD | Fase 2 (senza `#case`) |
+|---|--:|--:|
+| ticker GSAP (Lenis + ScrollTrigger + scrub) per frame | 7,4-8,8 ms | 7,7-8,6 ms |
+| lettura di layout all'evento scroll | Lenis `actualScroll` **5,5-9,7 ms** | footer `update()` **6,3-7,1 ms**, Lenis 0,4-0,5 |
+| Fioritura `tick` (4 tralci, cap 900, dpr 1,5) | — | 4,0-5,0 ms × 43-51 tick per scansione ≈ 200-260 ms su 10 s; 4 700-7 600 `drawImage` |
+| trace scroll: UpdateLayoutTree / Layout / Paint / Layerize | 2 592 / 720 / 564 / 1 709 | 2 685 / 694 / 440 / 1 781 |
+
+Letture: (a) i tralci costano ~2 % del tempo di scansione, ~1-1,7 ms reali per tick,
+solo mentre sono in viewport (l'IO ferma il rAF fuori campo; il probe `isCovered`
+una volta al secondo); (b) il listener scroll del footer **non è additivo**: paga il
+flush di layout che altrimenti paga Lenis nel suo listener nativo (con il listener
+del footer tolto in pagina Lenis torna a 9,7 ms); (c) CameraIn scrub e (d) Parallax
+vivono nel ticker, che non si muove; (e) la coda fixed dentro `clip-path`: senza la
+classe `dt-footer-reveal` Paint/Layerize non cambiano (493/1 824 vs 440/1 781). Il
+jank per frame sulla macchina di laboratorio oscilla di ±30 punti fra run identici
+(carico esterno): i numeri validi sono i costi per handler qui sopra, non il p95.
+
+**Correzioni**: colonna `altezza` nella sonda; nota di misura in `Footer.tsx` accanto
+al listener (nessun throttling: non cambierebbe il conto). Nessun effetto spento.
+
+
+## 10. Fase 2 — hero e cromo: cosa è stato fatto (2026-08-18)
+
+Cinque famiglie in parallelo, ciascuna col proprio file, poi revisione
+adversariale (una correzione vera: il ramo mobile del footer non vedeva un
+resize di sola altezza — aggiunto il listener con la guardia).
+
+| Scheda | Esito | Parametri mobile / alleggerimento |
+|---|---|---|
+| 2 · HeroCinematic frame-in | **PORT** — un solo `mm.add` con condizioni `{motionOk, desktop, phone}`, stessa timeline (clip-path inset + yPercent 6 + scale 1.05, contenuto −14 %/.2, cornice, cue) | sotto 768 `inset(6% 5% 10% 5% round 1.5rem)` (desktop 6/4/10/4 round 2.5rem); `will-change: transform, clip-path` sul canvas SOLO in `onToggle` (anche il desktop: prima permanente); i ~68 span dell'hero perdono `will-change-transform` in classe: GSAP lo scrive in `play()` e lo toglie con `clearProps` (anticipo di Fase 4). Il commento «il frame-in NON torna sul telefono» è riscritto con la ragione nuova; cornice a solo transform scartata (altra trasformazione = TRANSLATE) |
+| 3 · «resto» al primo gesto | PORT già in essere — meccanica intatta, commenti | — |
+| 4 · video hero | **KEEP OFF motivato** — asset 5,4 MB 1080p, `enabled=false`; ricetta PORT nel commento del gate (`<source media>`, `preload=none`, `muted playsInline`, dopo `dt:intro:done`, mai con `saveData`/2g) | — |
+| 9 · scroll cue | **PORT** — visibile a ogni larghezza (`h-6 md:h-8`) | quota mobile `calc(0.75rem + 52px + env(safe-area-inset-bottom))` = bordo alto della MobileActionBar; pulse in `.dt-hero-cue-pulse` con `animation-play-state: paused` via `[data-cue-off]` scritto dallo scrub |
+| 5 · CameraIn | **PORT** — stesso dolly in scrub (`scale→1 + y→0`, `top 94% → 42%`) | sotto 768 scale .98→1 e y 15 (distanze dimezzate); via once/opacity/pointer-events/focusin/timeout/guardia «già in viewport»; `data-camera-in` per le prove |
+| 10 · PageTransition uscita | **PORT** — 0,65 / 0,45 s a ogni larghezza | −1 `matchMedia` fuori da `mm.add` (la costante `mobile` non serviva a nessuna geometria) |
+| 7 · Parallax | **PORT** — default `mobile=true`, `PHONE_SPEED_FACTOR = 0.5` (speed e range dimezzati sotto 768) in un solo `mm.add({motionOk, phone})` | `will-change` solo in `onToggle` (prima dal mount al revert). Call-site: **mob off** con misura scritta (corsa < ~10 px a 390 = invisibile) EditorialRows:70 (~4 px), DomusDocProtocol:307 (~1,3), OpenDomus:271 (<1), Services:433 (~3), Team:238 (~3), Reviews:221 (<1), LavoraConNoi:1007 (~2); **acceso** EditorialRows:95 (numero-fantasma, 26 px); PageHero/FeaturedTestimonial/OpenDomus:222 tengono `mobile` e ricevono la corsa dimezzata (PageHero ±10,6 px) |
+| 6 · Fioritura d'angolo | **PORT, una per sezione** — soglia locale 640 → `MQ.sm`/`belowSm` (gsap.ts); canvas `min(dpr, 1.5)` sotto `lg`; cap 900 particelle per i tralci d'angolo sotto `sm`; nuova prop `variantBelowLg` (stesso tralcio, angolo d'aria sotto lg) per Services e DomusDocProtocol dove l'angolo desktop è testo | accese sotto lg con box ~110-140 px: FeaturedTestimonial, HorizonStory:248 (manifesto), Method, Services (alto a destra), DomusDocProtocol (alto a destra), Paths:561 (intro, `top-0` sotto lg: lo sbordo di 24 px finiva sulla scritta cinetica della fascia sopra), Footer (18svh × 28vw, alto a destra nell'aria scura). Restano `hidden lg:block` con motivo: HorizonStory:338 e Paths:609 e Team:130 («una per sezione»), **Contact:566** («mai un fiore sopra un testo»: a 390 la chiusura è la scritta corsiva centrata larga quasi quanto lo schermo, un tralcio in qualunque angolo basso ne copre la fine e gli angoli alti sono la card del form — visto negli screenshot `docs/shots/after-fase2/fiorite-390/`; il footer subito sotto ha il suo tralcio) |
+| 8 · WordReveal | **PORT** — default `mobile=true`, opt-in tolto da CareerApplication | nessun titolo cambia stato |
+| 11 · Footer | **PORT condizionato → uncover PARZIALE** sotto lg: la coda `[data-footer-tail]` (wordmark + riga legale, ~280 px, con il pb per la MobileActionBar) diventa `fixed` dentro una cornice in flusso `[data-footer-tail-frame]` alta quanto lei e con `clip-path: inset(0)` (ritaglia i discendenti fixed senza essere containing block): la pagina le scorre sopra e la scopre dal basso come il main scopre il footer sul desktop; colonne in flusso con `columnsEnter`; settle (legale y56/opacity .3→1, wordmark yPercent 68→0) calcolato dalla geometria viva su `scroll` passivo — con `ignoreMobileResize` un end di ScrollTrigger calcolato a barra estesa resterebbe irraggiungibile a barra ritratta | `--dt-footer-h` = altezza della coda (~280 invece di ~1 393); guardia `tail.offsetHeight > innerHeight → solo colonne`; `focusin` sulla coda → scroll in fondo; un solo ResizeObserver condiviso; nessun `ScrollTrigger.refresh()` dal footer sul telefono; nessun `will-change`; ramo ≥ lg invariato |
+
+**Misura.** L'A/B della fase è stato rifatto dopo la scoperta di §9 (la HEAD del
+primo giro serviva `/acquista` vuota): con **due build che rendono `/acquista`
+dinamica** (24 schede, 28 798 px su entrambe, `altezza` uguale nella sonda), run
+alternati HEAD/Fase 2 × 2 corse (`docs/shots/after-fase2/ab-acquista/`):
+
+| Build | Modo | FCP | LCP | TBT proxy | will-change | jank p95 | % >50 | intro / caduta |
+|---|---|--:|--:|--:|--:|--:|--:|--:|
+| HEAD | freddo | 1 600 / 1 744 | 2 148 / 1 880 | 2 489 / 2 757 | 29 | 83 / 117 | 24 / 30 | 8 525 / 6 623 |
+| Fase 2 | freddo | 1 824 / 1 724 | 2 084 / 2 096 | **1 931 / 1 902** | 64 | 67 / 83 | **15 / 13** | 6 487 / 7 451 |
+| HEAD | caldo | 1 648 / 1 672 | 2 136 / 2 136 | 2 871 / 3 834 | 65 / 92 | 83 / 150 | 15 / 53 | — |
+| Fase 2 | caldo | 1 760 / 1 924 | 2 116 / 2 172 | 4 152 / 1 917 | 28 / 64 | 183 / 67 | 61 / 13 | — |
+
+A freddo la Fase 2 è **più leggera** (TBT −600 ms, frame lunghi dimezzati); a
+caldo una raffica di carico ha colpito due corse consecutive di build diverse
+(`head-2` 53 %, `wip-1` 61 %) — le altre due dicono 15 vs 13 %. Sulla home
+(`after-fase2/ab/`) le differenze stanno nel rumore. `will-change` a fine
+caricamento su `/` scende da 358 a 100-287 (a tempo). A contenuto pari, per
+handler (§9): Fioritura ~2 % del tempo di scroll, footer non additivo, resto
+invariato.
+
+**Screenshot a 390** (`docs/shots/after-fase2/fiorite-390/`, un fotogramma per
+canvas dopo la fioritura): i tralci stanno negli angoli d'aria (foto, sfondi,
+filigrane); i due che toccavano un testo (Contact in basso a destra sulla
+scritta corsiva; Paths con lo sbordo di 24 px sulla scritta cinetica della
+fascia sopra) sono stati corretti come sopra.
+
+**Aperto (Fase 3/4):** `HorizonScroller.tsx:218-221` dice ancora «i fiori restano
+spenti» — il tralcio del manifesto ora è visibile sotto lg e il ramo mobile deve
+dargli lo stesso drift-y del desktop; le tre parallassi «al limite» (PageHero,
+FeaturedTestimonial, OpenDomus:222 ≈ 10 px di corsa a 390) vanno viste in
+pellicola; il velo della cornice del footer (`::before` .35 → 0) da valutare a
+occhio; memoria iOS con 7-8 canvas sulla home (checklist iPhone).
+
+### 10.1 Quello che la verifica ha ribaltato (2026-08-18, sera)
+
+Due verdetti della Fase 2 sono stati corretti **dopo** averli visti, non prima.
+
+**Scheda 9 · scroll cue → da PORT a KEEP OFF misurato.** Il PORT era stato
+deciso senza guardare. Misura a otto larghezze (sonda + e2e `mobile-effects`):
+sotto 768 **l'hero sfonda sempre il viewport** — 1 052 px su 844 a 390, 1 067
+su 640 a 360, 1 027 su 800 a 480, 988 su 900 a 700 — perché copy, founder, due
+CTA e link recensioni si impilano. Conseguenze: il cue ancorato al fondo della
+sezione (come sul desktop) finiva a 988 px, cioè **sotto la piega**, e lo scrub
+lo spegneva a 140 px prima che qualcuno lo vedesse; ancorarlo al fondo del
+primo schermo lo metterebbe a 756 px, **sopra il blocco dei due CTA** (605-832).
+E il suo mestiere — «sotto c'è dell'altro» — sul telefono lo fa già il
+contenuto tagliato dalla piega. Quindi `hidden md:block`, con la misura scritta
+nel codice: se un giorno l'hero mobile entrerà in uno schermo, il verdetto va
+rifatto. Restano della Fase 2 il `data-cue-off` che mette il pulse in pausa
+(non ticchetta più invisibile) e l'attributo per le prove.
+
+**Il cue sui viewport bassi, anche sul desktop.** La stessa prova ha trovato un
+difetto **pre-esistente**: a 1366×768 l'hero sfonda di 38 px e il cue finiva 14
+px sotto la piega. Ora è ancorato al **primo schermo**
+(`top: calc(100svh - 1.5rem - 2rem)`), non al fondo della sezione: le due quote
+coincidono dove l'hero ci sta (768×1024) e divergono dove non ci sta.
+
+**Footer · `--dt-footer-h` e il launcher dell'assistente.** Col launcher montato
+la coda cresce di **padding** (`body:has([data-assistant-launcher])`), e la
+content-box non cambia: il `ResizeObserver` non vedeva niente, `--dt-footer-h` e
+la cornice restavano all'altezza di prima e l'uncover scopriva un pezzo di
+troppo. Corretto osservando la **border-box** (`ro.observe(target, { box:
+"border-box" })`).
+
+**Non un difetto:** `next build` avvisa «Unexpected end of input» su
+`pb-[calc(7rem+env(safe-area-inset-bottom))]` (Footer, pre-esistente): la CSS
+servita è corretta (`calc(7rem + env(safe-area-inset-bottom))`, computata 112 px
++ safe-area), l'avviso riguarda una forma intermedia di lightningcss. Lasciato
+com'è.
+
+**Prove.** `e2e/mobile-effects.spec.ts` (nuovo, ~1 000 righe): frame-in che
+ritaglia e scala anche a 390 con `will-change` a tempo, cue (spento sotto 768 e
+dentro il primo schermo sopra), dolly di CameraIn come matrix con scala e
+risalita su `/contatti`, parallasse su `/vendi` e lastra Servizi ferma sotto
+768, sette tralci d'angolo che sbocciano davvero (uno per sezione), WordReveal
+parola per parola su `/lavora-con-noi`, footer che scopre la coda fissa con il
+link Privacy raggiungibile su `/` e `/privacy`, porta di PageTransition ≥ 600 ms
+con le variabili della maschera in movimento, reduced-motion fermo su tutto.
+**58 passed, 0 failed** sui cinque progetti.
+
+### 10.2 Un difetto che la Fase 2 ha fatto emergere: la navigazione era ostaggio dell'animazione
+
+La suite completa (cinque progetti, quattro worker) ha cominciato a fallire
+**nove** prove con la stessa firma: si clicca un link interno e l'URL non
+cambia — su telefono *e* desktop, mentre la stessa prova in isolamento passa.
+
+Il meccanismo: `PageTransition` intercetta il click, chiude la porta e chiama
+`router.push` **solo** nell'`onComplete` della timeline. Con il thread
+principale affamato il ticker di GSAP arriva tardi e una timeline «di 0,65 s»
+ne mette molti di più: chi ha toccato il link resta davanti a una porta chiusa
+senza che la pagina cambi. Non è un difetto dei test — è quello che vive un
+telefono lento, o chiunque tocchi un link mentre la pagina sta ancora
+idratando. La Fase 2 non l'ha causato (l'`onComplete` era già l'unico
+percorso): l'ha reso visibile, portando l'uscita mobile da 0,5 a 0,65 s e
+appesantendo le pagine sotto i quattro worker.
+
+**Correzione**: il push ha una **scadenza** — parte alla fine del gesto o a
+`durata + 250 ms`, qualunque venga prima, una sola volta
+(`PageTransition.tsx`, «LA NAVIGAZIONE NON È OSTAGGIO DELL'ANIMAZIONE»). Non
+taglia l'effetto: a quel punto lo schermo è già coperto dalla porta, e
+l'apertura sulla pagina nuova è un'altra timeline. Su una macchina libera
+vince sempre `onComplete` e la rete non si vede mai.
+
+**Esito**: `errors`, `home`, `search`, `mobile-effects` sui cinque progetti →
+**100 passed, 0 failed** (prima: 9 rossi).
