@@ -18,13 +18,44 @@ test.beforeEach(async ({ page }) => {
 // sul dito. Col mouse è una finezza; col dito era una pagina che non rispondeva
 // per quasi un secondo — misurato 991ms, ed è un blocco vero perché
 // `lenis.stop()` mette `lenis-stopped` su <html>, che in CSS è `overflow: hidden`.
+// L'hero è «pronto al gesto» quando HeroCinematic ha idratato e ha armato il
+// rito del primo scroll: lo si legge dallo stile inline `animation: none` che
+// scrive sul blocco `.dt-hero-rest` (spegne la rete CSS: da lì comanda GSAP).
+// Prima si aspettava un timer fisso (600 ms dopo domcontentloaded): sotto il
+// carico dei quattro worker l'idratazione arriva dopo, il listener non esiste
+// ancora e il gesto cade nel vuoto — un rosso che non dice niente sul sito.
+// Se invece è già scattata la rete CSS (idratazione oltre HERO_REST_WARM_MS,
+// 6 s: il blocco è visibile e il rito è ceduto alla CSS per scelta), lo si
+// dichiara: il test del fermo-immagine si salta col numero in chiaro.
+async function heroReady(page: Page) {
+  await page.waitForFunction(
+    () => {
+      const el = document.querySelector<HTMLElement>(".dt-hero-rest");
+      if (!el) return false;
+      // Chromium serializza lo shorthand inline come «none 0s ease 0s …»: si legge il longhand.
+      return el.style.animationName === "none" || Number(getComputedStyle(el).opacity) > 0.9;
+    },
+    null,
+    { timeout: 20_000, polling: 50 },
+  );
+}
+async function heroNetAlreadyFired(page: Page) {
+  return page.evaluate(() => {
+    const el = document.querySelector<HTMLElement>(".dt-hero-rest");
+    return !!el && el.style.animationName !== "none";
+  });
+}
+
 test.describe("il primo gesto sull'hero", () => {
   test("con la rotella la pagina si ferma un istante, ed è voluto", async ({ page, goto }) => {
     // `goto` e non `page.goto`: da 768 in su il sipario parte, e finché copre
     // tiene Lenis fermo per conto suo. Senza saltarlo, questi due test
     // leggerebbero `lenis-stopped` e crederebbero di aver misurato il gesto.
     await goto("/");
-    await page.waitForTimeout(600);
+    await heroReady(page);
+    if (await heroNetAlreadyFired(page)) {
+      test.skip(true, "idratazione oltre HERO_REST_WARM_MS: il rito del primo gesto è ceduto alla rete CSS (voluto)");
+    }
 
     await page.mouse.wheel(0, 200);
     // Il blocco deve comparire: è la firma del gesto sul puntatore.
@@ -50,7 +81,7 @@ test.describe("il primo gesto sull'hero", () => {
       "serve un contesto touch: qui il gesto del dito non esiste",
     );
     await goto("/");
-    await page.waitForTimeout(600);
+    await heroReady(page);
 
     // Il gesto vero del dito, come lo sente il listener della hero.
     await page.evaluate(() => window.dispatchEvent(new Event("touchmove", { bubbles: true })));
