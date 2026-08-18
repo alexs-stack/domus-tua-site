@@ -14,7 +14,7 @@ import SurfaceFlow from "./components/motion/SurfaceFlow";
 import { ChromeMount } from "./components/motion/ChromeMount";
 import PreloaderShell from "./components/motion/PreloaderShell";
 import Preloader from "./components/motion/Preloader";
-import { INTRO_KEY, PRE_FAILSAFE_MS } from "./lib/motion/intro-constants";
+import { INTRO_KEY, PRE_FAILSAFE_MS, INTRO_T } from "./lib/motion/intro-constants";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
 // Anti-flash del preloader: marca <html data-preloader> PRIMA del primo paint,
@@ -91,7 +91,11 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // della shell) appesi al <head> prima del paint: sulla prima visita partono
 // col documento, sulle visite di ritorno non esistono. `type=image/webp` così
 // chi non legge il webp non lo scarica per niente.
-const preloaderBootScript = `try{var h=document.documentElement;var lc=/(^|; )dt_locale=(it|en|fr|de|es)(;|$)/.exec(document.cookie);h.setAttribute("data-locale",lc?lc[2]:"it");var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var deep=!!location.hash;if(deep){try{sessionStorage.setItem("${INTRO_KEY}","1")}catch(e){}}var pre=!deep&&m&&!sessionStorage.getItem("${INTRO_KEY}");if(pre){h.setAttribute("data-preloader","");window.__dtPreArmed=1;window.__dtPreT0=performance.now();var lk=function(u,q){var l=document.createElement("link");l.rel="preload";l.as="image";l.type="image/webp";l.href=u;l.media=q;l.setAttribute("fetchpriority","high");document.head.appendChild(l)};lk("/media/raffaela-sagoma-m.webp","(max-width: 767.98px)");lk("/media/raffaela-sagoma.webp","(min-width: 768px)");window.__dtPreFailsafe=setTimeout(function(){try{sessionStorage.setItem("${INTRO_KEY}","1")}catch(e){}h.removeAttribute("data-preloader")},${PRE_FAILSAFE_MS})}if(m){h.setAttribute("data-hero-rest",pre?"intro":"");h.setAttribute("data-hero-intro",pre?"intro":"")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
+// L'istante del tuffo, in secondi: oltre quello lo skip non ha più senso
+// (la porta è già aperta) e il boot script smette di offrirlo.
+const DIVE_S = INTRO_T.dive;
+
+const preloaderBootScript = `try{var h=document.documentElement;var lc=/(^|; )dt_locale=(it|en|fr|de|es)(;|$)/.exec(document.cookie);h.setAttribute("data-locale",lc?lc[2]:"it");var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var deep=!!location.hash;if(deep){try{sessionStorage.setItem("${INTRO_KEY}","1")}catch(e){}}var pre=!deep&&m&&!sessionStorage.getItem("${INTRO_KEY}");if(pre){h.setAttribute("data-preloader","");window.__dtPreArmed=1;window.__dtPreT0=performance.now();var lk=function(u,q){var l=document.createElement("link");l.rel="preload";l.as="image";l.type="image/webp";l.href=u;l.media=q;l.setAttribute("fetchpriority","high");document.head.appendChild(l)};lk("/media/raffaela-sagoma-m.webp","(max-width: 767.98px)");lk("/media/raffaela-sagoma.webp","(min-width: 768px)");window.__dtPreFailsafe=setTimeout(function(){try{sessionStorage.setItem("${INTRO_KEY}","1")}catch(e){}h.removeAttribute("data-preloader")},${PRE_FAILSAFE_MS});var sk=function(e){if(e&&e.type==="keydown"){if(e.metaKey||e.ctrlKey||e.altKey)return;var k=e.key;if(!(k==="Enter"||k===" "||k==="Escape"||k.length===1))return}if(h.hasAttribute("data-pre-skip"))return;var t=(performance.now()-window.__dtPreT0)/1000;if(t>=${DIVE_S})return;h.style.setProperty("--pre-skip",t.toFixed(3)+"s");h.setAttribute("data-pre-skip","");window.__dtPreSkipAt=t;off()},off=function(){window.removeEventListener("pointerdown",sk,true);window.removeEventListener("keydown",sk,true)};window.addEventListener("pointerdown",sk,true);window.addEventListener("keydown",sk,true);window.__dtPreSkipOff=off}if(m){h.setAttribute("data-hero-rest",pre?"intro":"");h.setAttribute("data-hero-intro",pre?"intro":"")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
 // `viewportFit: "cover"` — la riga che rende veri tutti gli `env(safe-area-inset-*)`
 // del progetto (parità mobile, fase 4).
 //

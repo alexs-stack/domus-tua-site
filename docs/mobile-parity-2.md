@@ -1224,3 +1224,24 @@ vince sempre `onComplete` e la rete non si vede mai.
 
 **Esito**: `errors`, `home`, `search`, `mobile-effects` sui cinque progetti →
 **100 passed, 0 failed** (prima: 9 rossi).
+
+### 10.3 Lo skip esce dal JavaScript (2026-08-18)
+
+L'ultimo rosso della suite completa non era rumore: a 360, un tocco arrivato a
+**650 ms** veniva servito a **2 792** — 2,1 s dopo, oltre il tetto di 1 700 ms
+del mandato — perché il listener dello skip vive in `Preloader.tsx` e a quel
+momento React non aveva ancora idratato (JS al timone a 2 427 ms). Il film è in
+CSS dalla Fase 1: era rimasto in JavaScript il suo unico **comando**.
+
+Ora il primo tocco (e il primo tasto) lo raccoglie lo **script di boot**, prima
+del paint: calcola l'ora del film da `__dtPreT0`, scrive `--pre-skip` e
+`data-pre-skip` su `<html>` — le stesse due cose che scriveva `seekToDive` — e
+si stacca. Le keyframe vanno al tuffo senza aspettare nessuno. `Preloader.tsx`,
+quando idrata, riconosce lo skip già avvenuto (`__dtPreSkipAt`), spara subito
+l'handoff e allinea la chiusura a «ora dello skip + tuffo»; se invece idrata
+prima, `seekToDive` spegne i listener del boot e comanda lui.
+
+Oltre `INTRO_T.dive` il boot script non offre più lo skip: la porta è già
+aperta, e saltare non vorrebbe dire niente.
+
+`e2e/mobile-motion.spec.ts` sui cinque progetti: **62 passed, 0 failed**.

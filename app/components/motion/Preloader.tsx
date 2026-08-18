@@ -479,11 +479,30 @@ export default function Preloader() {
         if (ms <= 0) fn();
         else timers.add(window.setTimeout(fn, ms));
       };
+      // LO SKIP PUÒ ESSERE GIÀ AVVENUTO, PRIMA CHE QUESTO CODICE ESISTESSE.
+      // Dal 2026-08-18 il primo tocco lo raccoglie lo script di boot (vedi
+      // layout.tsx): il film è in CSS, e sarebbe assurdo che il suo unico
+      // comando aspettasse React — misurato a 360, un tocco a 650 ms veniva
+      // servito a 2 792, cioè 2,1 s dopo, perché l'idratazione arrivava
+      // allora. Se l'attributo c'è già, qui si prende atto: il tuffo sta
+      // suonando dall'ora scritta in `__dtPreSkipAt`, e i timer si allineano
+      // a quella invece che al film intero.
+      const skipAt = html.hasAttribute("data-pre-skip")
+        ? (window as unknown as { __dtPreSkipAt?: number }).__dtPreSkipAt
+        : undefined;
+      const giaSaltato = typeof skipAt === "number";
+
       at(INTRO_T.act1End, unwill);
-      at(diveAt, () => {
+      if (giaSaltato) {
         diving = true;
+        unwill();
         fireIntro();
-      });
+      } else {
+        at(diveAt, () => {
+          diving = true;
+          fireIntro();
+        });
+      }
       // La chiusura: a fine film. Se un timer arriva in ritardo (thread
       // occupato) l'autohide CSS ha già sfumato l'overlay a PRE_AUTOHIDE_MS:
       // l'utente vede la pagina, e qui si tolgono attributo e blocco scroll
@@ -496,7 +515,9 @@ export default function Preloader() {
         endTimer = window.setTimeout(onFilmEnd, ms);
         timers.add(endTimer);
       };
-      scheduleEnd(endAt);
+      // Con lo skip già avvenuto la fine è «ora dello skip + tuffo», non la
+      // fine del film: è lo stesso conto che fa `seekToDive` qui sotto.
+      scheduleEnd(giaSaltato ? skipAt! + diveDur : endAt);
 
       // ── GLI EVENTI DEL FILM PRIMA DEI TIMER ──────────────────────────
       // I setTimeout qui sopra sono una rete, non l'orologio: sotto carico
@@ -541,6 +562,9 @@ export default function Preloader() {
       // suona comunque per intero (1,5 s a ogni larghezza): lo skip taglia il
       // preambolo, non la porta — un taglio secco lascerebbe l'arco a metà.
       seekToDive = () => {
+        // I listener del boot script non servono più: da qui comanda questo
+        // modulo (e un doppio `--pre-skip` riposizionerebbe il tuffo).
+        (window as unknown as { __dtPreSkipOff?: () => void }).__dtPreSkipOff?.();
         const t = now();
         root.style.setProperty("--pre-skip", `${t.toFixed(3)}s`);
         html.setAttribute("data-pre-skip", "");
