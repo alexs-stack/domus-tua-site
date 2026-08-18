@@ -15,7 +15,7 @@ import { youtubeWatch } from "../lib/videos";
 import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ, dur, dist, stagger } from "../lib/motion/gsap";
+import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 import { INTRO_EVENT, HERO_REST_MS, HERO_REST_WARM_MS } from "../lib/motion/intro-constants";
 import { hasIntroFired } from "./motion/Preloader";
 import { getLenis } from "./motion/SmoothScroll";
@@ -164,6 +164,11 @@ function heroNetFired(node: Element | null | undefined): boolean {
 // ogni char è uno <span> animabile; gli spazi restano nodi di testo normali.
 // I wrapper sono aria-hidden: il testo accessibile vive sull'aria-label del
 // genitore (h1/p), i motori di ricerca leggono comunque il testo nel DOM.
+// Niente `will-change-transform` in classe (c'era fino al 2026-08-18: ~68
+// span promossi dall'SSR per tutta la vita della pagina, mobile compreso):
+// il will-change lo scrive GSAP un attimo prima dell'ingresso e lo toglie a
+// ingresso finito (vedi `play()` più giù) — a tempo, come per i chars del
+// preloader. Era lavoro di Fase 4 (prompt §8), anticipato perché è una riga.
 function Chars({
   text,
   variant = "title",
@@ -185,7 +190,7 @@ function Chars({
         ch === " " ? (
           " "
         ) : (
-          <span key={i} {...attr} className="inline-block will-change-transform">
+          <span key={i} {...attr} className="inline-block">
             {ch}
           </span>
         )
@@ -208,87 +213,115 @@ export default function HeroCinematic() {
   // contrae in una tavola editoriale con angoli arrotondati (clip-path) mentre
   // resta "indietro" in profondità; il contenuto sale più veloce e sfuma, la
   // cornice Segno svanisce. Solo scrub post-idratazione: SSR/LCP intatti.
+  //
+  // A OGNI LARGHEZZA, dal 2026-08-18 (onda «parità mobile 2», scheda 2 di
+  // docs/mobile-parity-2.md, verdetto PORT). Qui c'era scritto che «il
+  // clip-path per frame sul layer full-viewport costerebbe un repaint a ogni
+  // tick di scroll» e che «il frame-in NON torna sul telefono, nemmeno in Fase
+  // 2»; sotto 768 girava una sola deriva `yPercent 6.5`. La dottrina è
+  // cambiata: il costo si paga con l'alleggerimento, non togliendo l'effetto
+  // (legge 2), e il criterio del paint ammette il clip-path per frame se si
+  // nomina cosa si alleggerisce. Sul telefono suona quindi LA STESSA timeline
+  // — clip-path + yPercent + scale sul canvas, contenuto che sale e sfuma,
+  // cornice che svanisce, cue che si spegne — e cambiano solo i numeri legati
+  // alla geometria (FRAME qui sotto). Non la cornice «a solo transform»
+  // (wrapper overflow:hidden + border-radius + scale): avrebbe voluto un
+  // wrapper in più, non riproduce l'inset asimmetrico 6/10 senza un secondo
+  // tween, e — angolo arrotondato su un layer composito — in Chromium finisce
+  // comunque in una maschera; sarebbe stata un'altra trasformazione, cioè
+  // TRANSLATE, non PORT. Se la misura per frame di §4.6 dell'audit dovesse
+  // smentire, si cambia lì e per tutte le larghezze insieme.
+  //
+  // Alleggerimento nominato (regola Chanel): `will-change` sul canvas — prima
+  // `transform` scritto al mount del ramo e vivo finché il trigger esiste —
+  // ora `transform, clip-path` SOLO mentre lo ScrollTrigger è attivo
+  // (`onToggle`): fuori dall'hero il layer full-viewport non resta promosso.
   useGSAP(
     () => {
       const section = sectionRef.current;
-      if (!section) return;
+      const media = mediaRef.current;
+      const cue = cueRef.current;
+      if (!section || !media) return;
       const mm = gsap.matchMedia();
-      // Gate desktop, e il gemello mobile qui sotto NON è il frame-in: il
-      // clip-path per frame sul layer full-viewport costerebbe un
-      // repaint/maschera a ogni tick di scroll (Safari iOS, Android low-end).
-      // Il frame-in NON torna sul telefono, nemmeno in Fase 2. La deriva
-      // d'uscita di sola trasformazione prevista dal verdetto 10 di
-      // docs/mobile-parity.md è un'altra cosa ed è arrivata: quella non dipinge
-      // niente.
-      mm.add(`${MQ.motionOk} and ${MQ.desktop}`, () => {
-        const scrub = {
-          trigger: section,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
-        } as const;
-        // will-change solo quando lo scrub è attivo (revert lo rimuove).
-        gsap.set(mediaRef.current, { willChange: "transform" });
-        const tl = gsap.timeline({ scrollTrigger: scrub, defaults: { ease: "none" } });
-        tl.fromTo(
-          mediaRef.current,
-          { clipPath: "inset(0% 0% 0% 0% round 0rem)" },
-          {
-            clipPath: "inset(6% 4% 10% 4% round 2.5rem)",
-            // yPercent deve restare sotto l'inset bottom al netto dello scale
-            // (1.05 spinge il bordo giù di ~2%): con 6 il bordo inferiore
-            // arrotondato resta visibile (~2%) per tutto lo scrub.
-            yPercent: 6,
-            scale: 1.05,
-          },
-          0
-        )
-          .to(contentRef.current, { yPercent: -14, opacity: 0.2 }, 0)
-          .to(frameWrapRef.current, { opacity: 0 }, 0);
-        // Lo scroll cue sparisce appena il racconto comincia.
-        gsap.to(cueRef.current, {
-          autoAlpha: 0,
-          ease: "none",
-          scrollTrigger: { trigger: section, start: "top top-=1", end: "top top-=140", scrub: true },
-        });
-      });
-
-      // Il gemello mobile: una DERIVA D'USCITA, non una camera. Sul telefono
-      // questa foto oggi è ferma a qualunque quota di scroll — Parallax qui non
-      // gira e `.ken-burns` non esiste più — quindi l'unica cosa che si muove è
-      // la pagina che le passa sopra. Il canvas resta indietro di poco mentre
-      // l'hero esce: è profondità, non un movimento.
-      //
-      // yPercent POSITIVO, e non è indifferente: il layer è `inset-0` senza
-      // overscan, quindi verso l'alto scoprirebbe una banda espresso in fondo
-      // alla sezione. Verso il basso il vuoto si apre in cima, cioè sopra il
-      // bordo alto del viewport, dove non c'è nessuno a vederlo.
-      // Ampiezza a metà di dist.parallax: quello è il massimo di un fondale che
-      // attraversa tutta la pagina, qui la corsa è un hero solo.
-      mm.add(`${MQ.motionOk} and ${MQ.belowDesktop}`, () => {
-        // will-change solo mentre lo scrub è vivo (il revert lo toglie):
-        // §1.5c dell'audit conta i livelli promossi, e questo ne aggiunge uno.
-        gsap.set(mediaRef.current, { willChange: "transform" });
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: section, start: "top top", end: "bottom top", scrub: true },
-          defaults: { ease: "none" },
-        });
-        tl.to(mediaRef.current, { yPercent: dist.parallax * 50 }, 0);
-        // NIENTE `frameWrapRef` QUI DENTRO, ed è una rinuncia consapevole.
-        // Sembrava lo scambio giusto (i marchi d'angolo restano accesi per
-        // tutto l'hero sul telefono, perché a spegnerli era il frame-in che su
-        // mobile non gira), ma darebbe alla cornice DUE padroni: la timeline
-        // d'ingresso non è gated per larghezza — `data-hero-intro` è messo a
-        // ogni larghezza — e su un telefono la porta comunque da autoAlpha 0 a
-        // 1 a t=1,7s. Uno scrub che scrive la stessa opacità mentre l'altra
-        // timeline la sta ancora accendendo è una lite, e la lite si vede.
-        // La deriva della foto vale da sola: è quella che il telefono non
-        // aveva. La cornice si spegnerà quando avrà un padrone solo.
-        //
-        // Chanel, allora, sul costo e non sull'effetto: la deriva è UNA tween
-        // di solo `yPercent` agganciata allo scrub che l'hero ha già — nessun
-        // ScrollTrigger nuovo, nessun layer nuovo, nessun paint.
-      });
+      // Il ramo di larghezza sta DENTRO un solo mm.add (condizioni), così una
+      // rotazione lo ri-valuta e la timeline è una sola, con due set di numeri.
+      mm.add(
+        { motionOk: MQ.motionOk, desktop: MQ.desktop, phone: MQ.belowDesktop },
+        (ctx) => {
+          const cond = (ctx.conditions ?? {}) as { motionOk?: boolean; desktop?: boolean };
+          if (!cond.motionOk) return;
+          // I numeri legati alla geometria. Inset in %: a 390 il 4 % laterale
+          // del desktop sono 15,6 px, troppo pochi perché il canvas «diventi una
+          // tavola» accanto a un raggio di 24 px — 5 % (19,5 px). Il raggio
+          // scala con la larghezza: 2,5 rem (40 px) a 390 mangerebbe il 10 %
+          // dell'inset, 1,5 rem legge come lo stesso angolo. Alto/basso 6/10 %
+          // restano: su 844 px sono 50/84 px, come sul desktop in proporzione.
+          const FRAME = cond.desktop
+            ? { clip: "inset(6% 4% 10% 4% round 2.5rem)" }
+            : { clip: "inset(6% 5% 10% 5% round 1.5rem)" };
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "bottom top",
+              scrub: true,
+              // will-change a tempo: promosso solo mentre lo scrub è attivo.
+              // Scritto a mano e non con gsap.set: i callback girano fuori dal
+              // contesto di matchMedia, e il revert non li saprebbe disfare —
+              // il cleanup qui sotto lo toglie comunque.
+              onToggle: (self) => {
+                media.style.willChange = self.isActive ? "transform, clip-path" : "";
+              },
+            },
+            defaults: { ease: "none" },
+          });
+          tl.fromTo(
+            media,
+            { clipPath: "inset(0% 0% 0% 0% round 0rem)" },
+            {
+              clipPath: FRAME.clip,
+              // yPercent deve restare sotto l'inset bottom al netto dello scale
+              // (1.05 spinge il bordo giù di ~2%): con 6 il bordo inferiore
+              // arrotondato resta visibile (~2%) per tutto lo scrub.
+              yPercent: 6,
+              scale: 1.05,
+            },
+            0
+          )
+            .to(contentRef.current, { yPercent: -14, opacity: 0.2 }, 0)
+            // La cornice ha due padroni (questo scrub e la timeline d'ingresso
+            // più giù, che la porta a 1 a t=1,7 s) a OGNI larghezza, come il
+            // desktop ha sempre avuto: non litigano perché durante l'intro
+            // Lenis è fermo e lo scrub sta a progress 0. Il commento che qui
+            // temeva la lite sul telefono difendeva la deriva-senza-cornice;
+            // portando il ramo tale e quale si porta anche la convivenza.
+            .to(frameWrapRef.current, { opacity: 0 }, 0);
+          // Lo scroll cue sparisce appena il racconto comincia. Il pulse CSS
+          // sull'elemento interno si mette in pausa quando il cue è spento
+          // (`data-cue-off` → `animation-play-state: paused` in globals.css):
+          // un'animazione infinita su un nodo a visibility:hidden non dipinge
+          // ma continua a ticchettare — è l'alleggerimento nominato del cue.
+          if (cue) {
+            gsap.to(cue, {
+              autoAlpha: 0,
+              ease: "none",
+              scrollTrigger: {
+                trigger: section,
+                start: "top top-=1",
+                end: "top top-=140",
+                scrub: true,
+                onLeave: () => cue.setAttribute("data-cue-off", ""),
+                onEnterBack: () => cue.removeAttribute("data-cue-off"),
+                onRefresh: (self) => cue.toggleAttribute("data-cue-off", self.progress >= 1),
+              },
+            });
+          }
+          return () => {
+            media.style.willChange = "";
+            cue?.removeAttribute("data-cue-off");
+          };
+        }
+      );
     },
     { scope: sectionRef }
   );
@@ -365,6 +398,10 @@ export default function HeroCinematic() {
           // Stati iniziali del riferimento (README §7): titoli/motto per
           // lettere con rotazione su Y, script per lettere con rotazione su X
           // e slittamento orizzontale (origine al piede del glifo).
+          // will-change SOLO per la finestra dell'ingresso: promosso qui,
+          // demosso a timeline finita (onComplete). Prima stava in classe su
+          // ogni span, per sempre.
+          gsap.set(allChars, { willChange: "transform" });
           gsap.set([...titleChars, ...taglineChars], {
             opacity: 0,
             yPercent: 50,
@@ -380,7 +417,11 @@ export default function HeroCinematic() {
           });
           // Ritmo disteso (richiesta cliente 2026-08-03): durate a dur.hero e
           // stagger più larghi — le lettere si posano, non sfrecciano.
-          const tl = gsap.timeline({ defaults: { ease: "domus" } });
+          const tl = gsap.timeline({
+            defaults: { ease: "domus" },
+            // Le lettere sono ferme da qui in poi: i ~68 livelli tornano giù.
+            onComplete: () => gsap.set(allChars, { clearProps: "willChange" }),
+          });
           tl.to(
               titleChars,
               {
@@ -564,6 +605,12 @@ export default function HeroCinematic() {
         // e quattro i blocchi in moto entro ~0.18s e l'ultimo posato a ~0.48s.
         // La rotella tiene il suo tempo disteso: lì la pagina sta ferma per
         // costruzione, e il blocco si compone davanti a occhi fermi.
+        //
+        // Onda «parità mobile 2» (scheda 3 di docs/mobile-parity-2.md): questo
+        // NON è un effetto tradotto, è già PORT — la trasformazione è la stessa
+        // (opacity + y 28, stesso ease, stesso ordine), il TEMPO è il parametro
+        // adattato e sopra c'è la misura che lo fissa. Non riportare
+        // dur.short/.08 sul dito senza il fermo (che la legge 4 vieta).
         const onTouchGesture = () => {
           if (revealed) return;
           reveal(true);
@@ -618,8 +665,32 @@ export default function HeroCinematic() {
   // sotto il mouse, insieme all'overscan a scale 1.04 che la accompagnava.)
 
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
-  // e solo se i file sono attivati. Su mobile / reduced-motion resta la foto: è
-  // una scelta di peso (megabyte e batteria), non un effetto in attesa di gemello.
+  // e solo se i file sono attivati. Oggi `heroCinematic.enabled=false`
+  // (media.ts, scelta cliente 2026-08-03): il gate non decide nulla.
+  //
+  // KEEP OFF MOTIVATO sotto 768 (onda «parità mobile 2», scheda 4 di
+  // docs/mobile-parity-2.md, verdetto di Fase 0): non è la legge 5, è che
+  // MANCA L'ASSET — `domus-hero.mp4` è 5,4 MB a 1920×1080, senza webm né
+  // variante mobile, e a 390 sarebbe l'esatto contrario della legge 2 («il
+  // costo si paga con gli asset»). La ricetta PORT, pronta per quando arriva
+  // `hero-mobile.mp4` (≤ 3 MB, 720p, ~1,5 Mbps, stesso taglio) e il cliente
+  // riaccende il video — è core dell'MVP:
+  //   1. il gate qui sotto diventa `MQ.motionOk` a ogni larghezza (una sola
+  //      timeline, i numeri nel markup);
+  //   2. `<source media="(max-width: 767.98px)" src=hero-mobile.mp4>` PRIMA
+  //      del sorgente 1080p — il browser prende il primo che passa (Lusion:
+  //      `reel/mobile.mp4`); la soglia è la stessa di MQ.belowDesktop;
+  //   3. `preload="none"` (non "metadata"), `muted playsInline` come oggi:
+  //      il poster resta il candidato LCP, il video non entra nel critico;
+  //   4. montato solo DOPO `dt:intro:done` (INTRO_EVENT, come l'ingresso
+  //      delle lettere: `hasIntroFired()` o listener once) E dopo il paint del
+  //      poster (l'idle callback qui sotto), mai durante il sipario;
+  //   5. mai con `navigator.connection.saveData` o `effectiveType` 2g/slow-2g
+  //      (la stessa lista di device della variante corta del preloader,
+  //      audit §3.6): lì resta la foto, senza gate di larghezza.
+  // Prova a chiusura: `perf:report` a 390 senza richieste `.mp4` finché
+  // l'asset mobile non c'è; con l'asset, ≤ 3 MB e nessuna richiesta 1080p.
+  //
   // Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
   // selezione della sorgente non entra nel percorso critico dell'immagine LCP.
   // Il verdetto sta dentro gsap.matchMedia e non in due `.matches` letti a mano:
@@ -672,8 +743,10 @@ export default function HeroCinematic() {
 
   return (
     <section ref={sectionRef} id="top" data-surface="dark" className="relative flex min-h-[100dvh] w-full overflow-hidden bg-espresso text-cream">
-      {/* Canvas media (foto + eventuale video) in un layer parallax unico */}
-      <div ref={mediaRef} className="absolute inset-0">
+      {/* Canvas media (foto + eventuale video) in un layer parallax unico.
+          `data-hero-media` è per sonde ed e2e (il frame-in si prova leggendo
+          clip-path/transform di questo nodo a ogni larghezza). */}
+      <div ref={mediaRef} data-hero-media className="absolute inset-0">
         {/* Layer profondità puntatore: mediaRef è già owner di clip/scale del
             frame-in e l'IMG del ken-burns — il transform x/y vive SOLO qui.
             Il clip-path del genitore ritaglia comunque l'overscan. */}
@@ -876,19 +949,35 @@ export default function HeroCinematic() {
         </div>
       </div>
 
-      {/* Scroll cue: sottile linea verticale, solo desktop (reduced-motion gestito
-          globalmente). Il pulse CSS sta sull'elemento interno: l'animazione CSS
-          vincerebbe sull'opacity inline di GSAP, quindi il fade allo scroll è
-          sul wrapper esterno. */}
+      {/* Scroll cue: sottile linea verticale in fondo all'hero, da 768 in su.
+          KEEP OFF sotto 768, ed è un verdetto MISURATO, non ereditato — la
+          scheda 9 dell'onda «parità mobile 2» diceva PORT, e la Fase 2 l'ha
+          acceso ovunque prima di guardare. Poi si è guardato (2026-08-18, e2e
+          `mobile-effects` + sonda a otto larghezze): sotto 768 l'hero SFONDA
+          sempre il viewport — 1 052 px su 844 a 390, 1 067 su 640 a 360, 988
+          su 900 a 700 — perché copy, founder, due CTA e link recensioni si
+          impilano. Il cue, ancorato al fondo della SEZIONE come sul desktop,
+          finiva a 988 px: sotto la piega, e spento dallo scrub (140 px) prima
+          che qualcuno potesse vederlo. Ancorarlo invece al fondo del primo
+          SCHERMO lo metterebbe a 756 px, cioè SOPRA il blocco dei due CTA
+          (605-832): una linea decorativa sopra il bottone della conversione.
+          E il suo mestiere — «sotto c'è dell'altro» — sul telefono lo fa già
+          il contenuto, che si vede tagliato dalla piega. Da 768 in su la
+          sezione sta esatta nel viewport (1 024 su 1 024) e il cue vive dove
+          è sempre vissuto. Se un giorno l'hero mobile entrerà in uno schermo,
+          questo verdetto va rifatto — non prima.
+          Il pulse CSS sta sull'elemento interno: l'animazione CSS vincerebbe
+          sull'opacity inline di GSAP, quindi il fade allo scroll è sul wrapper
+          esterno; `data-cue-off` (scritto dallo scrub) mette il pulse in
+          pausa quando il cue è spento — così non ticchetta invisibile.
+          Reduced-motion gestito globalmente. */}
       <span
         ref={cueRef}
         aria-hidden
-        className="absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 md:block"
+        data-hero-cue
+        className="dt-hero-cue absolute left-1/2 z-20 hidden -translate-x-1/2 md:block"
       >
-        <span
-          className="block h-8 w-px bg-cream/40"
-          style={{ animation: "dt-scrollcue 1.8s var(--ease-soft) infinite" }}
-        />
+        <span className="dt-hero-cue-pulse block h-8 w-px bg-cream/40" />
       </span>
       {/* Il salto più violento della home: foto scura contro crema, ΔRGB 520.
           Il velo porta il colore della pagina DENTRO la foto prima della

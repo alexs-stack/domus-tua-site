@@ -346,15 +346,16 @@ html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
 
    Parità mobile, fase 2b (2026-08-11) — l'ultima riga qui sopra va letta con
    una correzione, e la scrivo invece di cancellarla. "Dove serve" adesso
-   include il telefono, ma a dirlo non è più la larghezza: è il punto di
-   chiamata. Sotto i 768 la meccanica si accende SOLO su [data-wr-mobile],
-   che WordReveal stampa quando riceve la prop `mobile`.
-   Perché il gate non è semplicemente sceso: 768px non ha mai voluto dire
-   "schermo grande", voleva dire "sotto questa soglia c'è un hero e non voglio
-   frammentargli l'H1". È una domanda che si fa a un titolo per volta, e la
-   risposta sta accanto al titolo. La prima metà del commento resta valida e
-   non va toccata: è il motivo per cui la base è `inline` e non `inline-block`,
-   e vale a ogni larghezza. */
+   include il telefono. Sotto i 768 la meccanica si accende su
+   [data-wr-mobile], che WordReveal stampa quando `mobile` è vero e
+   `immediate` no — e dall'onda «parità mobile 2» (verdetto 8) `mobile` è
+   vero di DEFAULT: l'attributo manca solo su un titolo `immediate` (il
+   candidato LCP, above-the-fold) o su un `mobile={false}` motivato. Il gate
+   non è sceso in CSS perché 768px non ha mai voluto dire "schermo grande",
+   voleva dire "sotto questa soglia c'è un hero e non voglio frammentargli
+   l'H1": la risposta la dà `immediate` accanto al titolo, non la larghezza.
+   La prima metà del commento resta valida e non va toccata: è il motivo per
+   cui la base è `inline` e non `inline-block`, e vale a ogni larghezza. */
 .word-reveal .w {
   display: inline;
   /* niente margin: lo spazio tra parole è un VERO spazio nel markup
@@ -378,7 +379,8 @@ html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
     opacity: 1;
   }
 }
-/* Il gemello telefono, a opt-in. 767.98 e non 767: alle larghezze frazionarie
+/* Il gemello telefono (acceso di default da «parità mobile 2», tace solo con
+   `immediate` o con un `mobile={false}` motivato). 767.98 e non 767: alle larghezze frazionarie
    (zoom del browser, dpr non interi) un buco di un pixel lascerebbe spenti
    tutti e due i rami. È il confine di MQ.belowDesktop (app/lib/motion/gsap.ts).
    Una differenza voluta rispetto al ramo sopra: qui NON si scrive will-change.
@@ -497,6 +499,36 @@ html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
     transform: translateY(6px);
     opacity: 1;
   }
+}
+/* Lo scroll cue dell'hero (HeroCinematic.tsx), a ogni larghezza dal
+   2026-08-18 (onda «parità mobile 2», scheda 9). Sotto sm (640: la soglia è
+   quella della barra, `sm:hidden` in MobileActionBar.tsx, non i 768 degli
+   effetti di sezione — qui si allinea a un oggetto, non a un ramo) la quota
+   dal fondo è quella della MobileActionBar (`bottom: 0.75rem + env()` + i
+   suoi 52 px di altezza): barra e cue non convivono mai nel tempo (barra da
+   scrollY 520, cue spento a 140), ma sopra la barra il cue resta fuori dal
+   bordo del browser e dalla safe-area, ed è la stessa quota che il pollice
+   impara. Da sm in su la barra non c'è e il cue torna a 1,5 rem dal fondo.
+   Il pulse è qui e non inline così può andare in pausa:
+   `data-cue-off` lo scrive lo scrub di GSAP quando il cue è a autoAlpha 0 —
+   un'animazione infinita su un nodo `visibility:hidden` non dipinge, ma
+   continua a ticchettare (l'alleggerimento nominato del cue). */
+/* Il cue vive solo da 768 in su (HeroCinematic: sotto, l'hero sfonda il
+   viewport e non c'è posto che non sia sopra i CTA — misura del 2026-08-18).
+   Sta in fondo al PRIMO SCHERMO, non al fondo della sezione: sui viewport
+   bassi l'hero sfonda anche sul desktop (1366×768: 38 px, e il cue finiva 14
+   px sotto la piega — un invito a scorrere visibile solo dopo aver scorso).
+   La sezione comincia a y=0, quindi la quota dal suo top è la quota dal top
+   del viewport; `svh` è la misura conservativa. 2rem = altezza del pulse. */
+.dt-hero-cue {
+  top: calc(100svh - 1.5rem - 2rem);
+  bottom: auto;
+}
+.dt-hero-cue-pulse {
+  animation: dt-scrollcue 1.8s var(--ease-soft) infinite;
+}
+.dt-hero-cue[data-cue-off] .dt-hero-cue-pulse {
+  animation-play-state: paused;
 }
 
 /* Entrata morbida del blocco copy dell'hero (sotto l'H1, che resta immediate per l'LCP).
@@ -824,9 +856,12 @@ html[data-surfaceflow] main::before {
    Condizionato alla presenza del launcher: la chat è dietro un flag e oggi in
    produzione è spenta — senza `:has()` si aggiungerebbe spazio morto in fondo a
    ogni pagina per una funzione che nessuno vede. Dove `:has()` non c'è si torna
-   al comportamento di prima: nessun danno. */
+   al comportamento di prima: nessun danno.
+   Il padding sta sulla CODA del footer ([data-footer-tail], dove vive il
+   `pb-28`) e non sul contenitore: sotto lg la coda è la parte fixed
+   dell'uncover parziale e lo spazio deve viaggiare con lei. */
 @media (max-width: 767px) {
-  body:has([data-assistant-launcher]) footer > div {
+  body:has([data-assistant-launcher]) footer [data-footer-tail] {
     padding-bottom: calc(9.5rem + env(safe-area-inset-bottom));
   }
 }
@@ -2740,10 +2775,51 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
 }
 
 /* ---------- Footer reveal (uncover) ----------
-   Il footer resta fisso dietro al main, che gli scorre sopra e lo "scopre"
-   nell'ultimo tratto di scroll. Niente transform sugli antenati: main riceve
-   solo z-index/margine, quindi header/WhatsApp/action-bar (fixed) sono salvi.
-   Attivo solo desktop + motion ok; la classe è gestita da Footer.tsx. */
+   Lo stesso effetto a ogni larghezza, con due tagli (classe html.dt-footer-reveal
+   e var --dt-footer-h gestite da Footer.tsx, solo con motion ok):
+   · ≥1024: TUTTO il footer resta fisso dietro al main, che gli scorre sopra e
+     lo "scopre" nell'ultimo tratto di scroll (--dt-footer-h = altezza del
+     footer). Niente transform sugli antenati: main riceve solo z-index/margine,
+     quindi header/WhatsApp/action-bar (fixed) sono salvi.
+   · <1024: uncover PARZIALE («parità mobile 2», scheda 11 — a 390 il footer
+     misura ~1 393px contro 844 di viewport: fissarlo tutto renderebbe
+     irraggiungibile ciò che sta sopra). È fissa solo la coda
+     ([data-footer-tail]: wordmark + riga legale, --dt-footer-h = la SUA
+     altezza), dentro una cornice in flusso ([data-footer-tail-frame]) alta
+     quanto lei e con clip-path: inset(0): il clip-path ritaglia anche i
+     discendenti fixed (overflow: hidden non lo farebbe) e NON è un
+     containing block per i fixed (transform/filter/contain lo sarebbero),
+     quindi la coda resta ancorata al viewport e la cornice, salendo con la
+     pagina, la scopre dal basso — come il main scopre il footer sul desktop.
+     Il main e le colonne non cambiano né z-index né fondo: la texture
+     topografica resta visibile sotto le colonne e nessun antenato dei fixed
+     di cromo viene toccato. Il velo in cima alla cornice è l'ombra che sul
+     desktop il main getta sul footer. */
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+  html.dt-footer-reveal [data-footer-tail-frame] {
+    position: relative;
+    height: var(--dt-footer-h, auto);
+    clip-path: inset(0);
+  }
+  html.dt-footer-reveal [data-footer-tail-frame]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+  }
+  html.dt-footer-reveal [data-footer-tail] {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+}
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
   html.dt-footer-reveal main {
     position: relative;
