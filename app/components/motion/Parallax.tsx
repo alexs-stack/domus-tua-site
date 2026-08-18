@@ -25,30 +25,34 @@ type Props = {
   range?: number;
   /** sovradimensiona l'interno (es. 1.15 per immagini in cornice) */
   scale?: number;
-  /** Attivo anche sotto i 768px. Il default `false` è PORTANTE e va lasciato
-      dov'è: la scelta si fa al punto di chiamata, uno alla volta.
-      La regola con cui è stata fatta (parità mobile, fase 2b, 2026-08-11): sopra
-      una FOTOGRAFIA la deriva aggiunge profondità e si accende; sopra un blocco
-      di TESTO non aggiunge niente e in una colonna da 390px rende la lettura
-      instabile, quindi resta spenta. Alla ricognizione del 2026-08-11 uno solo
-      dei 12 punti di chiamata passava `mobile` (l'hero di PageHero) e gli altri
-      11 erano fermi sul telefono; oggi lo passano TRE — l'hero di PageHero, la
-      lastra della testimonianza (FeaturedTestimonial) e la cornice del ritratto
-      di Open Domus. Le altre fotografie sono state accese e poi rispente dopo la
-      misura (6-8 px di corsa totale a 390: Servizi, ritratto del team, righe
-      editoriali). I nove che non lo passano hanno la ragione scritta accanto, al
-      punto di chiamata, non qui.
-      Chi ribaltasse il default accenderebbe in blocco anche quei nove: le due
-      card di riepilogo, il numero-fantasma editoriale, la filigrana al 6%, la
-      card flottante di Open Domus, la colonna con dentro il player e le tre
-      fotografie sotto soglia. Non è una scorciatoia, è un'altra decisione — ed
-      è sul tavolo dell'onda «parità mobile 2» (verdetto raccomandato: default
-      `true` con `speed` dimezzato, chi resta spento lo dice con `mobile={false}`
-      esplicito e il motivo accanto). Finché quel verdetto non è preso e misurato,
-      il default resta questo. */
+  /** Attivo anche sotto i 768px. Il default è `true` dall'onda «parità mobile 2»
+      (verdetto 7, PORT: stesso effetto, parametri adattati): sul telefono la
+      deriva è la STESSA — stesso scrub, stessa direzione — con la corsa
+      dimezzata (`PHONE_SPEED_FACTOR`, qui sotto, non ai punti di chiamata).
+      L'onda precedente (fase 2b, 2026-08-11) aveva il default `false` con la
+      regola «sopra una fotografia sì, sopra un testo no», e tre punti di
+      chiamata su dodici passavano `mobile` (l'hero di PageHero, la lastra
+      della testimonianza, la cornice del ritratto di Open Domus): quei tre
+      continuano a passarlo, per leggibilità, ma non è più un opt-in.
+      Chi resta fermo sotto 768 lo dichiara con `mobile={false}` esplicito e la
+      ragione scritta accanto, al punto di chiamata, non qui. Il criterio con
+      cui si è deciso (2026-08-18): una parallasse che a 390 muove meno di
+      ~10 px di corsa totale — con la corsa già dimezzata — è invisibile e non
+      vale uno ScrollTrigger scrubbato (filigrana al 6% del D.O.C., card di
+      riepilogo, card flottante di Open Domus, la colonna col player, le tre
+      fotografie basse: Servizi, ritratto del team, cornici editoriali). Sopra i
+      10 px si accende (il numero-fantasma editoriale, 26 px). `mobile={false}`
+      NON è «mobile off e basta»: è una misura fatta a 390 e scritta lì. */
   mobile?: boolean;
   as?: ElementType;
 };
+
+/** Il parametro adattato del telefono (sotto `MQ.desktop`): la corsa — `speed`
+    o `range` — vale la metà. È il modello di ERA (`data-parallax` acceso anche
+    su mobile, cambiano i numeri) e vive QUI, una volta, non ai punti di
+    chiamata: così nessuno riscrive la soglia a mano e il criterio «sotto ~10 px
+    è invisibile» si applica a una cifra sola. */
+const PHONE_SPEED_FACTOR = 0.5;
 
 export default function Parallax({
   children,
@@ -58,7 +62,7 @@ export default function Parallax({
   speed = 0.25,
   range,
   scale,
-  mobile = false,
+  mobile = true,
   as: Tag = "div",
 }: Props) {
   const outerRef = useRef<HTMLElement | null>(null);
@@ -70,15 +74,22 @@ export default function Parallax({
       const inner = innerRef.current;
       if (!outer || !inner) return;
 
-      const media = mobile ? MQ.motionOk : `${MQ.motionOk} and ${MQ.desktop}`;
+      // Un solo matchMedia con le condizioni nominate: quando la larghezza
+      // attraversa 768 (rotazione di un tablet, finestra ridimensionata) GSAP
+      // annulla e rifà il tween con il fattore giusto — non due `matchMedia`
+      // a mano che si contendono la stessa transform.
       const mm = gsap.matchMedia();
-      mm.add(media, () => {
-        // will-change solo mentre l'animazione è attiva (revert lo pulisce):
-        // niente layer promossi per utenti reduced-motion / senza scrub.
-        gsap.set(inner, { willChange: "transform" });
+      mm.add({ motionOk: MQ.motionOk, phone: MQ.belowDesktop }, (ctx) => {
+        const { motionOk, phone } = ctx.conditions as { motionOk: boolean; phone: boolean };
+        if (!motionOk) return;
+        if (phone && !mobile) return;
+        const k = phone ? PHONE_SPEED_FACTOR : 1;
         // Ampiezza: yPercent per media grandi, px (range) per elementi piccoli.
         const dir = Math.sign(speed) || 1;
-        const move = range != null ? { unit: "y" as const, amp: range * dir } : { unit: "yPercent" as const, amp: speed * 14 };
+        const move =
+          range != null
+            ? { unit: "y" as const, amp: range * dir * k }
+            : { unit: "yPercent" as const, amp: speed * 14 * k };
         gsap.fromTo(
           inner,
           { [move.unit]: move.amp, scale: scale ?? 1 },
@@ -91,9 +102,24 @@ export default function Parallax({
               start: "top bottom",
               end: "bottom top",
               scrub: true,
+              // will-change SOLO mentre il trigger è attivo, cioè mentre
+              // l'elemento è fra il bordo basso e il bordo alto del viewport
+              // (prima stava dal mount al revert: ogni parallasse della pagina
+              // era un layer promosso anche fuori scena). È l'alleggerimento
+              // nominato del verdetto 7 — sulla home a 390 sono i layer delle
+              // parallassi accese in più col nuovo default. Si scrive sullo
+              // stile e non con gsap.set perché una set dentro un callback non
+              // finisce nel context e il revert non la pulirebbe: la pulizia
+              // sta nel cleanup qui sotto.
+              onToggle: (self) => {
+                inner.style.willChange = self.isActive ? "transform" : "";
+              },
             },
           }
         );
+        return () => {
+          inner.style.willChange = "";
+        };
       });
     },
     { scope: outerRef, dependencies: [speed, range, scale, mobile] }

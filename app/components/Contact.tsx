@@ -539,8 +539,18 @@ export default function Contact({
   return (
     <section id="contatti" data-tone="cream-deep" className="relative bg-cream-deep text-ink">
       <Atmosphere glow />
-      {/* Angolo fiorito (solo desktop): il congedo del filo botanico che
-          attraversa la home.
+      {/* Angolo fiorito: il congedo del filo botanico che attraversa la home.
+          SOTTO lg RESTA SPENTO — ed è l'unica delle Fioriture d'angolo che
+          l'onda «parità mobile 2» (verdetto 6) lascia spenta sul telefono,
+          con la ragione vista, non dedotta (screenshot a 390, 2026-08-18,
+          docs/shots/after-fase2/fiorite-390): a 390 la chiusura della sezione
+          è la scritta corsiva centrata «Vendi casa a Tradate / al prezzo
+          giusto, nei tempi giusti», larga quasi quanto lo schermo, e un
+          tralcio in QUALUNQUE angolo basso ne copre la fine; gli angoli alti
+          sono la card del form. «Mai un fiore sopra un testo» vince sulla
+          parità. E subito sotto c'è il footer, che il suo tralcio ce l'ha
+          (in alto a destra, nell'aria scura): il filo botanico non si
+          interrompe. Da lg in su l'angolo destro basso è vuoto: come sempre.
           LO SCUDO TAGLIA SOLO IN ORIZZONTALE. Serviva a impedire che i tralci
           sbordassero a destra portandosi dietro una barra di scorrimento, ma
           `overflow: hidden` li rifilava anche in basso: il tralcio finiva
@@ -558,7 +568,7 @@ export default function Contact({
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-x-clip">
         <Fioritura
           variant="corner-br"
-          className="absolute -bottom-[12vh] -right-5 hidden h-[42vh] w-[16vw] lg:block"
+          className="absolute hidden lg:block -right-5 lg:-bottom-[12vh] lg:h-[42vh] lg:w-[16vw]"
         />
       </div>
       <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">

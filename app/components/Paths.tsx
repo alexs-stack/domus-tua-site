@@ -558,10 +558,19 @@ export default function Paths() {
             </div>
             {/* Scrim caldo per la leggibilità (mai nero pieno: wine/espresso) */}
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-wine/85 via-espresso/35 to-espresso/15" />
+            {/* Tralcio dell'intro, acceso anche sotto lg (onda «parità mobile
+                2», verdetto 6): delle due Fioriture del capitolo è questa che
+                resta a 390 — «una per sezione» — con box 117px quadrati
+                (`w-[30vw]`), dpr 1,5 e tetto 900 dentro Fioritura. L'angolo
+                alto a destra è aria a ogni larghezza: il testo dell'intro è
+                ancorato in basso (`items-end`). Sotto lg niente sbordo verso
+                l'alto (`top-0`, non `-top-6`): a 390 la fascia che precede
+                chiude con la scritta cinetica, e i 24px di sbordo le finivano
+                sopra (screenshot 2026-08-18) — «mai un fiore sopra un testo». */}
             <Fioritura
               variant="corner-tr"
               palette="dark"
-              className="absolute -right-4 -top-6 hidden h-[34vh] w-[15vw] lg:block"
+              className="absolute -right-4 top-0 h-[20vh] w-[30vw] lg:-top-6 lg:h-[34vh] lg:w-[15vw]"
             />
             <div
               data-paths-intro-txt
@@ -605,6 +614,10 @@ export default function Paths() {
                       : "bg-gradient-to-l from-wine/85 via-espresso/45 to-espresso/20"
                   }`}
                 />
+                {/* Sotto lg resta `hidden`: «una Fioritura per sezione a 390»
+                    (docs/effetti-reference.md; onda «parità mobile 2», verdetto
+                    6) — il capitolo tiene il tralcio dell'intro. Non è la
+                    dottrina «tradurre», è un tetto di densità. */}
                 {i === 1 && (
                   <Fioritura
                     variant="corner-br"

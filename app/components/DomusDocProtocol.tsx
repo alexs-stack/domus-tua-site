@@ -296,15 +296,16 @@ export default function DomusDocProtocol({
         <Reveal>
           <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
             {/* watermark motif: lenta deriva parallax dentro la card (profondità).
-                Niente `mobile`, e stavolta la ragione è aritmetica prima che di
-                gusto: speed -0.12 su un segno alto 160px vale ±2,7px, cioè meno
-                di un capello a 390. Sarebbe uno ScrollTrigger scrubbato in più
-                sul telefono per un movimento che nessuno può vedere — la
-                filigrana sta al 6% di opacità. La decorazione di questa card è
-                già desktop-only per scelta (il tralcio qui sotto è
-                `hidden lg:block`): questa riga tiene lo stesso confine. */}
+                mob off (misura), e la ragione è aritmetica prima che di gusto:
+                speed -0.12 su un segno alto 160px vale ±2,7px a piena corsa,
+                ~1,3px con la corsa dimezzata del telefono — meno di un capello
+                a 390, sotto i ~10px del criterio dell'onda «parità mobile 2».
+                Sarebbe uno ScrollTrigger scrubbato in più sul telefono per un
+                movimento che nessuno può vedere — la filigrana sta al 6% di
+                opacità. (Il tralcio qui sotto invece sul telefono c'è: la sua
+                decisione è la sua.) */}
             <div className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>
-              <Parallax speed={-0.12}>
+              <Parallax speed={-0.12} mobile={false}>
                 <SegnoDomus className="h-40 w-72" embrace={false} />
               </Parallax>
             </div>
@@ -321,10 +322,22 @@ export default function DomusDocProtocol({
                 sopra un testo» tenuta dalla struttura e non da una misura che
                 il primo cambio di copy smentirebbe. La colonna di sinistra
                 (intro + CTA) finisce ben più in alto dei cinque pilastri:
-                l'angolo basso è aria, ed è lì che il tralcio fiorisce. */}
+                l'angolo basso è aria, ed è lì che il tralcio fiorisce.
+                SOTTO lg (onda «parità mobile 2», verdetto 6: stesso tralcio,
+                angolo adattato) la card è una colonna sola e l'angolo basso a
+                sinistra è l'ultimo pilastro e la nota di chiusura, cioè testo:
+                lì il tralcio violerebbe la regola qui sopra. L'aria, in
+                colonna, sta in alto a destra: accanto al sigillo (64px alto, a
+                sinistra) e sopra il titolo, che parte a ~116px dal bordo. Il
+                box sotto lg è quindi `top-0 right-0`, alto 11vh (93px a 844,
+                113 a 1024: sempre sotto la prima riga del titolo) e il disegno
+                lo segue con `variantBelowLg="corner-tr"`. Il velo `hidden`
+                sotto lg è caduto: era la vecchia dottrina «tradurre», e qui
+                l'effetto sul telefono è lo stesso, con i suoi parametri. */}
             <Fioritura
               variant="corner-bl"
-              className="pointer-events-none absolute bottom-0 left-0 hidden h-[26vh] w-[12vw] lg:block"
+              variantBelowLg="corner-tr"
+              className="pointer-events-none absolute right-0 top-0 h-[11vh] w-[28vw] lg:bottom-0 lg:left-0 lg:right-auto lg:top-auto lg:h-[26vh] lg:w-[12vw]"
             />
 
             <div className="relative grid gap-y-12 lg:grid-cols-[0.95fr_1px_1.05fr] lg:gap-x-14 lg:gap-y-0">

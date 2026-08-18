@@ -547,12 +547,17 @@ export default function Method() {
                         titolo vive a sinistra), sopra la foto e sotto il
                         testo: non può essere tagliato e non tocca nessuna
                         parola. Opacità 0.5 perché il fondo è fotografia
-                        velata di scuro — su crema il tetto sarebbe 0.40. */}
+                        velata di scuro — su crema il tetto sarebbe 0.40.
+                        Acceso anche sotto lg (onda «parità mobile 2», verdetto
+                        6): il titolo è centrato in verticale sul pannello e
+                        sta sopra (z-20 contro z-[15]), quindi l'angolo basso a
+                        destra resta il suo posto; box 109px quadrati a 390
+                        (`w-[28vw]`), dpr 1,5 e tetto 900 dentro Fioritura. */}
                     {i === 1 ? (
                       <Fioritura
                         variant="corner-br"
                         palette="dark"
-                        className="absolute bottom-2 right-4 z-[15] hidden h-[26vh] w-[12vw] lg:block"
+                        className="absolute bottom-2 right-4 z-[15] h-[16vh] w-[28vw] lg:h-[26vh] lg:w-[12vw]"
                       />
                     ) : null}
 

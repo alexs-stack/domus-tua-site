@@ -216,8 +216,13 @@ export default function OpenDomus() {
             corsa è in `yPercent`, cioè una frazione dell'altezza della
             cornice. Sul telefono la banda torna verticale (aspect 4/5) ed è
             più bassa dei 72svh del desktop, quindi la stessa cifra vale ~11px
-            per lato invece di ~16. Il numero si adatta da sé; scriverne un
-            secondo sarebbe una soglia in più da tenere allineata a mano. */}
+            per lato invece di ~16 — e con la corsa dimezzata che Parallax
+            applica da sé sotto 768 (onda «parità mobile 2», PHONE_SPEED_FACTOR)
+            ~5,5px per lato, 11 di corsa totale: sopra i ~10px del criterio,
+            si vede. Il numero si adatta da sé; scriverne un secondo sarebbe
+            una soglia in più da tenere allineata a mano. `mobile` è ormai il
+            default: resta scritto perché questa cornice era una delle tre
+            accese sul telefono già prima, e la ragione sta qui sopra. */}
         <Reveal className="mt-14 lg:mt-20">
           <Parallax speed={0.18} mobile>
             <div className="relative rounded-[2rem] border border-line bg-cream p-2">
@@ -261,15 +266,18 @@ export default function OpenDomus() {
                 </span>
               </a>
               {/* card flottante — controderiva rispetto alla foto, nessun clip aggiunto.
-                  Niente `mobile`: è testo, e per giunta testo agganciato al
-                  bordo basso della cornice. Una controderiva lo staccherebbe
-                  da quel bordo di una ventina di px per volta, che è l'unica
-                  cosa che si vede quando le due corse sono opposte in colonna
+                  mob off (misura): `speed -0.08` su una card alta ~100px vale
+                  ±1,1px, mezzo pixel con la corsa dimezzata del telefono —
+                  invisibile come deriva propria (criterio ~10px dell'onda
+                  «parità mobile 2»). Quel che invece si vedrebbe è il
+                  distacco dal bordo basso della cornice, perché la card è
+                  agganciata lì e le due corse sono opposte in colonna
                   stretta. Spenta, la card viaggia dentro la deriva della
                   cornice qui sopra: sul telefono l'insieme si muove come un
                   pezzo solo, ed è la lettura giusta. */}
               <Parallax
                 speed={-0.08}
+                mobile={false}
                 className="absolute -bottom-5 left-5 right-5 sm:left-auto sm:right-6 sm:w-64"
               >
                 <div className="rounded-2xl border border-line bg-paper px-5 py-4 shadow-[0_30px_60px_-40px_rgba(26,24,22,0.6)]">

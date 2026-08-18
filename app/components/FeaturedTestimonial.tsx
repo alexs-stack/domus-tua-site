@@ -258,11 +258,16 @@ export default function FeaturedTestimonial(props: Props) {
               a destra.
               `palette="dark"`: il fondo qui è fotografia velata di scuro, e su
               quella i rossi di brand si spengono. È la stessa scelta già presa
-              per i due tralci che vivono su una foto (Metodo, lastra Servizi). */}
+              per i due tralci che vivono su una foto (Metodo, lastra Servizi).
+              Acceso anche sotto lg (onda «parità mobile 2», verdetto 6): a 390
+              l'angolo alto a sinistra è libero come sul desktop — la prima
+              riga della colonna è il tondo del video, a destra — e il box è
+              117px quadrati (`w-[30vw]`), con dpr 1,5 e tetto 900 dentro
+              Fioritura. È l'unica Fioritura della sezione. */}
           <Fioritura
             variant="corner-tl"
             palette="dark"
-            className="pointer-events-none absolute left-0 top-0 hidden h-[26vh] w-[12vw] lg:block"
+            className="pointer-events-none absolute left-0 top-0 h-[16vh] w-[30vw] lg:h-[26vh] lg:w-[12vw]"
           />
 
           {/* La colonna di testo detta l'altezza della lastra: la foto è

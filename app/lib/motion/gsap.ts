@@ -138,6 +138,13 @@ export const dist = {
 // e quando quel lavoro arriva deve trovarlo qui, non reinventarlo in linea.
 export const MQ = {
   motionOk: "(prefers-reduced-motion: no-preference)",
+  /** Il telefono stretto (gemello del `sm` di Tailwind): oggi decide solo la
+      TAGLIA degli effetti che ci sono comunque (il tetto di particelle di
+      Fioritura), mai se ci sono. Era una soglia locale in Fioritura.tsx:
+      promossa qui per la legge 7 dell'onda «parità mobile 2». */
+  sm: "(min-width: 640px)",
+  /** Il gemello di `sm`: sotto 640, stesso idioma decimale delle altre. */
+  belowSm: "(max-width: 639.98px)",
   /** Effetti di sezione: da tablet in su. */
   desktop: "(min-width: 768px)",
   /** Il gemello di `desktop`: telefono. */

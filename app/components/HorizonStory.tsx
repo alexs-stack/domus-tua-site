@@ -239,11 +239,18 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
         {/* Pannello manifesto */}
         <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center justify-center">
           {/* L'angolo fiorito del riferimento (era-residence §11.3): il tralcio
-              sboccia dall'angolo alto e deriva con la parallasse dei fiori. */}
+              sboccia dall'angolo alto e deriva con la parallasse dei fiori.
+              Acceso anche sotto lg (onda «parità mobile 2», verdetto 6): delle
+              due Fioriture di questo capitolo è QUESTA che resta a 390 — «una
+              per sezione» — con box 117px quadrati (`w-[30vw]`), dpr 1,5 e
+              tetto 900 dentro Fioritura; l'angolo alto a sinistra del
+              manifesto è aria anche in colonna (il testo è centrato e parte
+              sotto py-20). La deriva `drift-y` sotto lg la fa HorizonScroller
+              nel suo ramo mobile (Fase 3): qui c'è il tralcio, lì il moto. */}
           <div
             aria-hidden
             data-horizon-flower="drift-y"
-            className="pointer-events-none absolute -left-6 -top-8 z-10 hidden h-[44vh] w-[20vw] lg:block"
+            className="pointer-events-none absolute -left-6 -top-8 z-10 h-[22vh] w-[30vw] lg:h-[44vh] lg:w-[20vw]"
           >
             <Fioritura variant="corner-tl" className="h-full w-full" />
           </div>
@@ -329,7 +336,13 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
             </div>
           </div>
           {/* La scritta in fiori (tecnica WebGL-typing, canvas 2D): il nome del
-              territorio fiorisce come una firma botanica sotto i gradini. */}
+              territorio fiorisce come una firma botanica sotto i gradini.
+              Sotto lg resta `hidden` per la regola «una Fioritura per sezione
+              a 390» (docs/effetti-reference.md; onda «parità mobile 2»,
+              verdetto 6): il capitolo tiene il tralcio del manifesto qui
+              sopra, e fra le due questa è la più cara (una scritta campiona
+              ogni pixel: 2 200 particelle a passo 1). Non è la dottrina
+              «tradurre»: è un tetto di densità, e vale anche sul tablet. */}
           <div
             aria-hidden
             data-horizon-flower="drift-x"

@@ -211,14 +211,15 @@ export default function Reviews() {
             </Reveal>
           </div>
 
-          {/* Card riepilogo — deriva leggera contro la colonna titolo (solo desktop).
-              Stessa decisione della card di Authority, e per la stessa ragione:
-              «contro la colonna titolo» è la deriva, e sotto lg quella colonna
-              non è più a fianco. Qui c'è un motivo in più per lasciarla ferma —
-              dentro la card c'è una CTA verso Google, e un bersaglio che deriva
-              sotto il dito è un bersaglio più difficile da prendere. */}
+          {/* Card riepilogo — deriva leggera contro la colonna titolo.
+              mob off (misura): `speed -0.06` su una card alta ~200px vale
+              ±1,7px, meno di un pixel con la corsa dimezzata che Parallax
+              applica sotto 768 (onda «parità mobile 2») — invisibile, sotto i
+              ~10px del criterio. E c'è un motivo in più per lasciarla ferma:
+              dentro la card c'è una CTA verso Google, e un bersaglio che
+              deriva sotto il dito è un bersaglio più difficile da prendere. */}
           <Reveal delay={100}>
-            <Parallax speed={-0.06}>
+            <Parallax speed={-0.06} mobile={false}>
               <div className="rounded-[1.75rem] border border-line bg-cream p-6">
                 <div className="flex items-center gap-5">
                   <CountUp

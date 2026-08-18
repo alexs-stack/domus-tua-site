@@ -475,22 +475,23 @@ export default function CareerApplication({
               <SegnoDomusBadge>{c.badge}</SegnoDomusBadge>
             </div>
             <span className="eyebrow mt-4">{c.eyebrow}</span>
-            {/* `mobile`: la meccanica per-parola può accendersi anche sul
-                telefono, e la ragione sta qui invece che nel CSS. Questo è un
-                <h2> nell'ULTIMA sezione di /lavora-con-noi — sopra ci sono
-                l'hero, le cinque aree e le FAQ — quindi non entra mai nel primo
-                viewport e non può essere candidato LCP, che è l'unica cosa che
-                il gate a 768px stava proteggendo. Regge anche il caso scomodo,
-                un link condiviso a /lavora-con-noi#candidatura: il browser
-                atterra qui, ma nel viewport la foto del team (240px per ~320,
-                circa 60.000px² visibili) è più grande del titolo intero
-                (~25.000px²) — spezzarlo in tre parole non toglie un candidato
-                che comunque non vince. Se un giorno questo titolo sale in cima
-                alla pagina, la parola qui sotto si toglie e il telefono torna
-                al titolo intero. */}
+            {/* Meccanica per-parola a ogni larghezza: dall'onda «parità mobile
+                2» è il default di WordReveal (verdetto 8) e l'opt-in `mobile`
+                che stava qui è caduto — non cambia niente per questo titolo,
+                che era già acceso sul telefono. La domanda da farsi resta
+                quella dell'LCP, e la risposta è ancora questa: è un <h2>
+                nell'ULTIMA sezione di /lavora-con-noi — sopra ci sono l'hero,
+                le cinque aree e le FAQ — quindi non entra mai nel primo
+                viewport e non può essere candidato LCP. Regge anche il caso
+                scomodo, un link condiviso a /lavora-con-noi#candidatura: il
+                browser atterra qui, ma nel viewport la foto del team (240px
+                per ~320, circa 60.000px² visibili) è più grande del titolo
+                intero (~25.000px²) — spezzarlo in tre parole non toglie un
+                candidato che comunque non vince. Se un giorno questo titolo
+                sale in cima alla pagina, qui si passa `immediate` (SSR
+                visibile a ogni larghezza), non si tocca la larghezza. */}
             <WordReveal
               as="h2"
-              mobile
               className="mt-5 block font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.2rem]"
               text={c.title}
             />

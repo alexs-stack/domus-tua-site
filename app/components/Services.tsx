@@ -408,7 +408,8 @@ export default function Services() {
             verrebbe rifilato sul bordo. */}
         <div className="relative mt-14 sm:mt-20">
           {/* Feature card — sipario sull'immagine + parallasse di profondità molto
-              sottile, accesa anche sul telefono: il rendering è l'unica immagine
+              sottile (sul desktop: sul telefono è ferma, la misura sta al
+              punto di chiamata qui sotto): il rendering è l'unica immagine
               di tutto il capitolo Servizi che non scorre di lato (la rotaia sopra
               ce l'ha già, nativa), e la deriva è ciò che le impedisce di leggersi
               come un fondale dietro al testo in overlay. */}
@@ -422,17 +423,18 @@ export default function Services() {
               className="absolute inset-0"
               innerClassName="absolute inset-0"
             >
-              {/* `mobile` NON passata, e la misura dice perché. A 390x664 la
-                  cornice è alta 405px e `speed 0.06` vale ±0,84% della sua
-                  altezza: 6,4px di corsa totale. È sotto la stessa soglia con
-                  cui questa wave ha già cancellato la cupola (21px) e i
-                  gradini (6-7px) — e sotto quella con cui, tre righe più in
-                  là, ha rifiutato la filigrana del D.O.C. a ±2,7px. Accenderla
-                  qui sarebbe stato pagare uno ScrollTrigger scrubbato per un
-                  movimento che non esiste. */}
+              {/* mob off (misura). A 390x664 la cornice è alta 405px e
+                  `speed 0.06` vale ±0,84% della sua altezza: 6,4px di corsa
+                  totale a piena corsa, ~3px con la corsa dimezzata che
+                  Parallax applica sotto 768 — sotto i ~10px del criterio
+                  dell'onda «parità mobile 2», e sotto quella con cui il D.O.C.
+                  tiene ferma la sua filigrana. Accenderla qui sarebbe pagare
+                  uno ScrollTrigger scrubbato per un movimento che non esiste;
+                  il sipario di MaskReveal, quello sì, si vede. */}
               <Parallax
                 speed={0.06}
                 scale={1.06}
+                mobile={false}
                 className="absolute inset-0"
                 innerClassName="absolute inset-0"
               >
@@ -488,8 +490,22 @@ export default function Services() {
               posizionati, e l'ordine di pittura è l'ordine del DOM: solo così
               il tralcio si vede sopra la fotografia invece di sparirci dietro.
               Opacità 0.5 perché il fondo è una foto velata di scuro: su crema
-              il tetto sarebbe 0.40. */}
-          <Fioritura variant="corner-br" palette="dark" className="absolute bottom-6 right-6 z-10 hidden h-[28vh] w-[13vw] lg:block" />
+              il tetto sarebbe 0.40.
+              SOTTO lg (onda «parità mobile 2», verdetto 6: stesso tralcio,
+              angolo adattato) il testo in overlay è largo quanto la lastra e
+              l'angolo basso a destra è la fine del paragrafo: lì il tralcio
+              starebbe SOPRA un testo. L'angolo libero in colonna è quello alto
+              a destra — il testo è ancorato in basso e sopra ci sono ~135px
+              d'aria a 390 (lastra min 24rem, blocco di testo ~250px). Il box
+              sotto lg va lì (101px quadrati: `w-[26vw]` lo limita) e il
+              disegno lo segue con `variantBelowLg="corner-tr"`. Il velo
+              `hidden` sotto lg è caduto: la dottrina «tradurre» non c'è più. */}
+          <Fioritura
+            variant="corner-br"
+            variantBelowLg="corner-tr"
+            palette="dark"
+            className="absolute right-5 top-5 z-10 h-[16vh] w-[26vw] lg:bottom-6 lg:right-6 lg:top-auto lg:h-[28vh] lg:w-[13vw]"
+          />
         </div>
 
         {/* Protocollo Domus D.O.C. */}
