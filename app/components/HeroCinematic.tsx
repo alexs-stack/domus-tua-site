@@ -16,7 +16,8 @@ import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur, dist, stagger } from "../lib/motion/gsap";
-import { INTRO_EVENT } from "./motion/Preloader";
+import { INTRO_EVENT, HERO_REST_MS, HERO_REST_WARM_MS } from "../lib/motion/intro-constants";
+import { hasIntroFired } from "./motion/Preloader";
 import { getLenis } from "./motion/SmoothScroll";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -121,6 +122,43 @@ const copy = {
     heroAlt: "Raffaela Rizza presenta el salón de un ático luminoso con terraza ofrecido por Domus Tua",
   },
 };
+
+/**
+ * La rete CSS dell'hero (`dt-rest-failsafe`, delay HERO_REST_MS in
+ * globals.css) è già scattata? Dal 2026-08-17 (opzione D) quella rete non è
+ * più «se il JS non arriva mai» a 6 s: scatta a INTRO_T.dive + 200 ms, DENTRO
+ * l'intro, perché il film del preloader è tutto CSS e la porta si apre anche
+ * senza JS — le lettere devono accendersi quando l'arco le scopre. Sul
+ * telefono lento misurato (JS a 8-12 s) questo effect arriva DOPO: se
+ * rifacesse l'ingresso da zero, le lettere già accese sparirebbero e
+ * rientrerebbero. Quindi si legge l'orologio: `currentTime` dell'animazione
+ * CSS del nodo (conta dal suo start time, delay compreso: ≥ HERO_REST_MS
+ * vuol dire che la rete è almeno cominciata); di riserva il tempo dal boot
+ * script (`__dtPreT0`) o, senza di lui, dall'origine — che è in anticipo
+ * sul primo paint, quindi al più si dichiara «scattata» una rete che sta per
+ * scattare, mai il contrario.
+ */
+function heroNetFired(node: Element | null | undefined): boolean {
+  // Due reti, due orologi: con l'intro (`data-hero-rest="intro"`, boot
+  // script) la rete è a HERO_REST_MS dentro il film; senza intro (visita di
+  // ritorno) è quella di sempre a HERO_REST_WARM_MS. Confondere le due
+  // (2026-08-18) faceva saltare il rito del primo scroll a caldo su una
+  // macchina lenta: la rete «scattata» a 3,33 s che a caldo non esiste.
+  const withIntro = document.documentElement.getAttribute("data-hero-rest") === "intro";
+  const restMs = withIntro ? HERO_REST_MS : HERO_REST_WARM_MS;
+  try {
+    const anim = node
+      ?.getAnimations?.()
+      .find((a) => (a as CSSAnimation).animationName === "dt-rest-failsafe");
+    if (anim && typeof anim.currentTime === "number") return anim.currentTime >= restMs;
+  } catch {
+    /* getAnimations assente: la riserva qui sotto */
+  }
+  const t0 = (window as unknown as { __dtPreT0?: number }).__dtPreT0;
+  // Senza intro non c'è __dtPreT0: si conta dall'origine, che precede il
+  // primo paint — al più si dichiara scattata una rete che sta per scattare.
+  return performance.now() - (typeof t0 === "number" ? t0 : 0) >= restMs;
+}
 
 // Split in lettere reso in SSR (niente SplitText nel chunk della home):
 // ogni char è uno <span> animabile; gli spazi restano nodi di testo normali.
@@ -284,7 +322,16 @@ export default function HeroCinematic() {
         const scriptChars = gsap.utils.toArray<HTMLElement>("[data-hero-schar]", section);
         const allChars = [...titleChars, ...taglineChars, ...scriptChars];
 
-        // Il failsafe CSS (opacity a 1 dopo 6s) va spento: comanda GSAP.
+        // La rete CSS è già scattata (JS arrivato dopo INTRO_T.dive + 200 ms:
+        // il telefono lento, o un refresh con idratazione tarda)? Allora le
+        // lettere sono già accese, o si stanno accendendo in CSS: NON si
+        // rifà l'ingresso — né si toccano le loro animazioni, che finiscono da
+        // sole a opacity 1. Cornice e cue restano come sono (visibili). Il
+        // film percepito è «le lettere si sono accese quando la porta si è
+        // aperta», che è il film giusto; solo, l'ha suonato la CSS.
+        if (heroNetFired(allChars[0])) return;
+
+        // Il failsafe CSS (opacity a 1 a HERO_REST_MS) va spento: comanda GSAP.
         allChars.forEach((el) => {
           el.style.animation = "none";
         });
@@ -375,10 +422,20 @@ export default function HeroCinematic() {
         };
 
         if (withPreloader) {
-          // Parte all'uscita del preloader (una sola timeline percepita);
-          // safety: se l'evento va perso, si rivela comunque.
+          // Parte all'uscita del preloader (una sola timeline percepita).
+          // Se l'handoff è GIÀ partito — Preloader.tsx idratato a tuffo
+          // cominciato spara INTRO_EVENT nel proprio layout effect, che
+          // nell'albero precede questo: l'evento è passato prima che il
+          // listener esista — si parte adesso, senza aspettare la rete.
+          if (hasIntroFired()) {
+            play();
+            return;
+          }
+          // Safety: se l'evento va perso, si rivela comunque — HERO_REST_MS
+          // (intro-constants.ts: dive + 200 ms, lo stesso numero della rete
+          // CSS `data-hero-rest`, qui contato dal mount), non un numero sparso.
           window.addEventListener(INTRO_EVENT, play, { once: true });
-          const safety = window.setTimeout(play, 6000);
+          const safety = window.setTimeout(play, HERO_REST_MS);
           return () => {
             window.removeEventListener(INTRO_EVENT, play);
             window.clearTimeout(safety);
@@ -409,9 +466,16 @@ export default function HeroCinematic() {
       mm.add(MQ.motionOk, () => {
         const rest = gsap.utils.toArray<HTMLElement>(".dt-hero-rest", section);
         if (!rest.length) return;
-        // Il failsafe CSS (animation 6s) va spento: da qui comanda GSAP.
-        // L'attributo html resta (lo rileggono i remount di StrictMode/HMR):
-        // gli inline style di GSAP vincono comunque sull'opacity di classe.
+        // La rete CSS (HERO_REST_MS = dive + 200 ms, opzione D) è già scattata:
+        // il blocco è già visibile, o lo sta diventando. Nasconderlo di nuovo
+        // per rifare il rito del primo scroll sarebbe un lampo — su un telefono
+        // lento la prima cosa che si vede sparire è il CTA. Si lascia visibile
+        // e si esce: la finezza del primo scroll è per chi arriva in tempo.
+        if (heroNetFired(rest[0])) return;
+        // Il failsafe CSS (animation a HERO_REST_MS) va spento: da qui comanda
+        // GSAP. L'attributo html resta (lo rileggono i remount di
+        // StrictMode/HMR): gli inline style di GSAP vincono comunque
+        // sull'opacity di classe.
         rest.forEach((el) => {
           el.style.animation = "none";
         });

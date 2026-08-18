@@ -10,11 +10,13 @@
  *   npx tsx scripts/intro-filmstrip.ts [--url http://127.0.0.1:3181]
  *       [--widths "390x844,1440x900"] [--routes "/,/acquista"] [--tag fase0] [--out <cartella>]
  *   npm run filmstrip:intro -- --tag fase0
+ *   npx tsx scripts/intro-filmstrip.ts --cpu 1 …   # senza strozzatura CPU: per guardare il film
  *
  * Per ogni (larghezza, rotta):
- *   · naviga (`waitUntil: "commit"`), poi aspetta `html[data-pre-live]` — il momento in cui
- *     Preloader.tsx prende il timone. Se non compare entro 3 s parte comunque da lì e lo
- *     annota (in quel caso il t=0 della striscia NON è pre-live);
+ *   · naviga (`waitUntil: "commit"`), poi aspetta `html[data-preloader]` — il sipario armato
+ *     dallo script di boot prima del primo paint: dalla Fase 1 l'atto I è CSS reso dal server
+ *     e suona da lì. Se non compare entro 3 s parte comunque e lo annota. `data-pre-live`
+ *     (Preloader.tsx al timone) è solo un marcatore (★);
  *   · da quel t=0 uno screenshot ogni 250 ms fino a 5 s → 21 fotogrammi `<rotta>/NNNN-<ms>.jpg`
  *     (il `<ms>` è quello reale di scatto: se lo scatto è lento, la deriva si legge nel nome);
  *   · compone con sharp un contact-sheet `<rotta>.jpg` (max 7 per riga, timestamp sotto,
@@ -60,7 +62,10 @@ const sizes = arg("--widths", "390x844,1440x900")
 
 // ── Costanti ──────────────────────────────────────────────────────────────
 // Le stesse della sonda CDP: una misura e una pellicola sullo stesso telefono.
-const CPU_RATE = 4;
+// `--cpu 1` per VEDERE la coreografia: sotto ×4 lo screenshot stesso costa 1-4 s a fotogramma
+// (mask e keyframe in paint) e la pellicola perde i primi secondi — i tempi (▼ ✓) restano
+// validi anche a ×4, i fotogrammi no.
+const CPU_RATE = Number(arg("--cpu", "4")) || 4;
 const NET = {
   offline: false,
   latency: 150,
@@ -143,15 +148,18 @@ async function film(browser: Browser, w: number, h: number, route: string, dir: 
     // che con la rete strozzata arriverebbe a intro quasi finita.
     const tNav = Date.now();
     await page.goto(`${base}${route}`, { waitUntil: "commit", timeout: 60_000 });
-    let preLiveSeen = true;
+    // t=0 della striscia = il sipario ARMATO (`html[data-preloader]`, messo dallo script di
+    // boot prima del primo paint): dalla Fase 1 l'atto I è CSS reso dal server e suona da
+    // qui, prima di qualunque chunk — `data-pre-live` (il JS al timone dei timer) è solo un marcatore.
+    let armedSeen = true;
     try {
       await page.waitForFunction(
-        () => (window as unknown as Marks).__dtPreLive !== null,
+        () => (window as unknown as Marks).__dtPreArmed === 1,
         null,
-        { timeout: PRELIVE_WAIT_MS, polling: 50 },
+        { timeout: PRELIVE_WAIT_MS, polling: 20 },
       );
     } catch {
-      preLiveSeen = false;
+      armedSeen = false;
     }
     const t0 = Date.now();
     const t0FromCommit = t0 - tNav;
@@ -203,8 +211,8 @@ async function film(browser: Browser, w: number, h: number, route: string, dir: 
     const toStrip = (x: number | null) => (x === null ? null : x - marks.now + (marks.wall - t0));
 
     console.log(
-      `  ${w}×${h} ${route}: pre-live ${preLiveSeen ? `a ${ms(marks.preLive)} dal navigationStart (t=0 della striscia, ${t0FromCommit} ms dopo il commit)` : `NON comparso entro ${PRELIVE_WAIT_MS} ms → t=0 = commit + ${t0FromCommit} ms (annotato)`}` +
-        (marks.armed ? "" : " · html[data-preloader] mai armato dal boot (intro non prevista?)"),
+      `  ${w}×${h} ${route}: sipario armato ${armedSeen ? `(t=0 della striscia, ${t0FromCommit} ms dopo il commit)` : `NON armato entro ${PRELIVE_WAIT_MS} ms → t=0 = commit + ${t0FromCommit} ms (annotato)`}` +
+        ` · pre-live (JS al timone): ${ms(marks.preLive)} (pagina) = ${ms(toStrip(marks.preLive))} nella striscia`,
     );
     console.log(
       `    data-preloader caduto: ${ms(marks.preFall)} (pagina) = ${ms(toStrip(marks.preFall))} nella striscia · ` +
@@ -226,7 +234,7 @@ async function film(browser: Browser, w: number, h: number, route: string, dir: 
       const sheetH = rows * (H + label + gap) + gap;
       const fall = toStrip(marks.preFall);
       const done = toStrip(marks.introDone);
-      const live = preLiveSeen ? 0 : null;
+      const live = toStrip(marks.preLive);
       const composites = thumbs.flatMap((input, i) => {
         const col = i % perRow;
         const row = Math.floor(i / perRow);

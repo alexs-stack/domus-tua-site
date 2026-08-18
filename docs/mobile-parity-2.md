@@ -892,3 +892,163 @@ esatti, tkhd 1920×1080) e `pointer: coarse` — è `coarse` solo il `mobile-390
 di `playwright.site.config.ts:67` (`iPhone 13`), non quello di
 `playwright.config.ts:44` né il contesto di `scripts/perf-report.ts:39`
 (entrambi `Desktop Chrome`).
+
+---
+
+## 8. Fase 1 — cosa è stato fatto (preloader, 2026-08-17)
+
+Il preloader è **lo stesso oggetto a ogni larghezza**: stessi quattro atti,
+stessi tempi (4,63 s), stessi ease; e per la scoperta di §5.3 **l'atto I nasce
+prima del JavaScript** (opzione C: reso dal server, animato in CSS) — poi, per
+la misura di Fase 1, **il film intero** (opzione D, §8.5, che sostituisce le
+righe di §8.1 che nomina). Righe del working tree di Fase 1; verifica in mano
+all'orchestratore (build, e2e, sonda, filmstrip: §8.4, §8.5).
+
+### 8.1 Le scelte
+
+| # | Scelta | Dove |
+|---|---|---|
+| 1 | **Opzione C**: il markup dell'atto I (fondo, sagoma `<picture>`, MarkBadge, titolo e firma per lettera, caps, linea di carica, payoff, anelli eco) è un **server component** `PreloaderShell` reso nel root layout al posto di `.dt-preloader-boot` (che non esiste più: il primo fotogramma È la shell). Nessun `cookies()`/`headers()`. Stesso markup a ogni larghezza; le differenze mobile sono solo CSS | `app/components/motion/PreloaderShell.tsx`; `app/layout.tsx:217` |
+| 2 | **Payoff in 5 varianti** con `data-pre-payoff="xx"`; il boot script mette `html[data-locale=xx]` dal cookie `dt_locale` (solo it/en/fr/de/es, default it) e la CSS mostra la sola variante che combacia (`html:not([data-locale])` → it) | `layout.tsx:75`; `globals.css:1620-1631` |
+| 3 | **Atto I in CSS sui chars a ogni larghezza (strada A)**: `@keyframes dt-pre-char` (opacity 0→1, `perspective(800px) translateY(50%) rotateY(90deg)` → riposo, 1,3 s, `cubic-bezier(0.25,1,0.5,1)` = `dtOut`, delay `calc(0.12s + var(--i) * 0.075s)`), `dt-pre-schar` (rotateX 90 + x 6vw, origine center bottom, 0,6 + i×0,065), `dt-pre-cap` (y 14, 0,4 + i×0,11), `dt-pre-word` (110 %, 0,65 + i×0,14), sagoma 0,9 s lineare da 0,15, badge 0,4 s da 0,05. `--i` è scritto in SSR: contatore per gruppo (titolo continuo «Domus»→«Tua» da 5, come il fromTo unico del desktop; firma 0-12; caps 0-1; payoff 0-1). La **prospettiva è per lettera** (`perspective()` nel transform), non sul contenitore: è ciò che faceva `transformPerspective: 800` — stesso film. Il blocco mobile per RIGA (`dt-pre-in-line/-side`) è sparito | `globals.css:1633-1732` (blocco «Atto I»); `PreloaderShell.tsx` `PreChars`/`idx` |
+| 4 | **Preloader.tsx = coreografo degli atti II-IV**: rende `null`, al mount trova `#dt-preloader`, mette `data-pre-live` (ora vuol dire «GSAP al timone»), legge l'orologio CSS con `getAnimations()` sull'anello del badge (giro infinito) o sul primo char — `timeline.currentTime − startTime`, NON `currentTime`, che un'animazione finita tiene fermo alla propria fine (revisione: la prima lettera finisce a 1,42 s e un JS arrivato dopo avrebbe posizionato la porta in ritardo di altrettanto) — (riserva: `performance.now() − window.__dtPreT0`) e fa `tl.time(elapsed)`; se `elapsed ≥ tl.duration()` (timer del failsafe in coda dietro l'idratazione) chiude subito senza attaccare listener: linea di carica (`dtLoader` 1,55 s da 0,60), porta (`domus.inOut` 1,1 s da 2,25), congedo (2,35), tuffo (`dtDiveIn` 1,5 s da 3,13) suonano agli stessi istanti a ogni larghezza. **Un solo `T`** (i tempi sono `INTRO_T`); resta un solo oggetto di **geometria** `G` (mobile 40→58→165 vw / 16vh / congedo −20; desktop 24→36→125 vw / 15vh / −28). `time()` non attraversa le callback: se il JS arriva dopo 2,7 s la finestra `will-change` si chiude a mano, se dopo 3,13 s `fireIntro()` a mano | `Preloader.tsx` `elapsedFromCss`, «L'ALLINEAMENTO ALL'OROLOGIO CSS» |
+| 5 | **`--arch-y` resta in `vh` puri** (104vh → 16/15vh → −100vh): sui browser mobili `vh` è il viewport grande, quindi 104vh sta sotto il bordo anche a barra nascosta e 16vh è visibile in entrambi gli stati; dentro un tween di custom property non si mescolano unità (CSSPlugin le convertirebbe misurandole). Come ERA | `Preloader.tsx:326-337` (commento) |
+| 6 | **Import statico** di `Preloader` nel root layout (era `dynamic(..., {ssr:false})` in ChromeMount): il codice viaggia col bundle del layout invece che in un chunk che aspetta l'idratazione. `PreloaderMount` non esiste più. Letta `node_modules/next/dist/docs/01-app/02-guides/lazy-loading.md`: `ssr:false` vale solo in client component e non c'è un `modulepreload` documentato per un `dynamic()` — l'import statico è la via documentata; il costo è nel bundle del layout, non un chunk separato (Preloader importa già gsap/warmup/SmoothScroll che sono nel layout) | `layout.tsx:15-17, 243`; `ChromeMount.tsx` |
+| 7 | **Un failsafe solo, `PRE_FAILSAFE_MS = 4500`** (atto I 1,3 s + payoff + attesa), interpolato nel boot script; autohide CSS `5s` (= +0,5); riarmo negli abort = stesso numero; se il chunk arriva dopo, percorso di recupero come prima (`__dtPreArmed` → `fireIntro`, nessuna replica). Il boot script stampa `window.__dtPreT0` | `layout.tsx:75`; `globals.css:1757`; `Preloader.tsx:514` |
+| 8 | **`app/lib/motion/intro-constants.ts`** (puro, senza "use client"): `INTRO_EVENT`, `INTRO_KEY`, `INTRO_T` (tutti i tempi degli atti), `INTRO_MS` 4630, `PRE_FAILSAFE_MS` 4500, `PRE_AUTOHIDE_MS` 5000, `HERO_REST_MS` 6000, `WARM_FIRST_FOLD_MS` 3000. `Preloader.tsx` ri-esporta `INTRO_EVENT`/`INTRO_KEY` per e2e/helpers; HeroCinematic e CookieConsent importano `INTRO_EVENT` + `HERO_REST_MS` da lì (le reti a 6 000 non sono più numeri sparsi) | `intro-constants.ts`; `HeroCinematic.tsx:19,:383`; `CookieConsent.tsx:41-42,:123` |
+| 9 | **Test unitario `app/lib/__tests__/intro-clocks.test.ts`** (node:test, 17 asserzioni): rilegge `globals.css`, `layout.tsx`, `gsap.ts`, `Preloader.tsx`, `e2e/mobile-motion.spec.ts` con regex e pretende che autohide, hero-rest (nessun `4s` mobile), durate/base/stagger delle keyframe dell'atto I, la bezier = `dtOut`, il boot script (`${PRE_FAILSAFE_MS}`, `${INTRO_KEY}`, `__dtPreT0`, `data-locale`), gli anelli su transform, il budget e2e 4 800 combacino con le costanti. Verde: `npm test` 1 276/1 277 (1 skip preesistente) | `intro-clocks.test.ts` |
+| 10 | **Sagoma mobile** `public/media/raffaela-sagoma-m.webp`: sharp, 2000×1415 → **1000×708** (stesso aspect: stessa geometria object-cover, coincide ancora con la foto), q75 alpha 90 effort 6 → **25 818 B** (q60 23 382, q70 24 974, q80 28 792); `<source media="(max-width: 767.98px)">` prima del webp pieno | `PreloaderShell.tsx` `<picture>` |
+| 11 | **`loading="lazy"` sull'`<img>` della sagoma**: prima l'overlay non si renderizzava sulle visite di ritorno proprio per non scaricare 79 KB (un `<img>` eager parte anche dentro `display:none`); ora il markup c'è sempre, e un `<img>` lazy senza box non parte mai; con `data-preloader` è in viewport dal primo layout e parte subito. Zero byte per chi torna, come prima. (`warmFirstFold` esclude le lazy: la sagoma non è nel suo conto — giusto, non è l'hero) | `PreloaderShell.tsx` |
+| 12 | **MarkBadge in un file senza "use client"** (`MarkBadge.tsx`), ri-esportato da `RotatingMark.tsx`: nella shell server è markup puro, non un confine di idratazione. Rotazione in **@keyframes CSS** `dt-pre-spin` 6 s linear infinite (anello) / reverse (monogramma), come `spinMarkBadge(root, 6)`: gira anche prima del JS. `spinMarkBadge` resta per PageTransition | `MarkBadge.tsx`; `globals.css` «Il badge gira» |
+| 13 | **Warmup**: telefono `warmFirstFold(WARM_FIRST_FOLD_MS=3000)` (≤ intro − tuffo) + `scheduleIdleWarmup()` in `finish()`; desktop invariato (`warmAllImages` + `runWarmup(4500)`, richiesta cliente) | `Preloader.tsx:282-288` |
+| 14 | **Skip** a ogni larghezza: `pointerdown`/click/tasto → `tl.seek("dive")` (+ chiude la finestra will-change); ripiego clip-path 2,6 + 0,9 s a ogni larghezza | `Preloader.tsx:426-437, 392-404` |
+| 15 | **e2e**: `mobile-motion.spec.ts` budget `4800` a ogni larghezza (solo quel numero e il commento vicino); le nuove asserzioni le scrive un altro agente | `e2e/mobile-motion.spec.ts:425-440` |
+
+### 8.2 Alleggerimenti nominati (regola Chanel)
+
+- **−27 tween GSAP** dal chunk di Preloader (21 per lettera + caps 2 + payoff 2 + content 1 + sagoma 1) e **−2** del badge (`spinMarkBadge`): l'atto I e il badge sono CSS, su desktop e telefono insieme.
+- **`will-change` a tempo** sui 21 chars, a ogni larghezza (prima solo ≥768 e per tutta l'intro): `html[data-preloader]:not([data-pre-act2]) .dt-pre-char` — cade a `INTRO_T.act1End` (2,7 s, `data-pre-act2` da GSAP), o con l'attributo (`globals.css:257-269`). Non al takeover di GSAP: demuovere un livello mentre anima è jank.
+- **Anelli eco su transform** a ogni larghezza (prima layout per frame su desktop, `display:none` sul telefono): misure fisse a `--arch-w0` e `translate(-50%, quota) scale(var(--arch-s))` con origine `50% 0`; GSAP scrive `--arch-s` (= w/w0: 1 → 1,5 → 5,21 desktop; 1 → 1,45 → 4,13 mobile) negli stessi tween dell'arco. Il `box-shadow inset 1px` scala con l'anello (×4-5 al tuffo): **accettato** — un filo di luce; compensarlo con `calc(1px / var(--arch-s))` rimetterebbe una ridipintura per frame su un elemento alto dieci larghezze (`globals.css:1840-1875`).
+- **Sagoma −53 KB sotto i 768** (79 000 → 25 818 B) e **−79 KB su ogni visita di ritorno** grazie a `loading="lazy"` (era la garanzia del vecchio `attivo`).
+- **Un DOM in più a ogni visita**: la shell sono ~142 nodi / ~20 KB di HTML (misurato con `renderToStaticMarkup`) anche quando l'intro non suona (display:none). È il costo di C, dichiarato in §5.3; nessuna richiesta di rete lì.
+- Nessun chunk `ssr:false` per il preloader: −1 richiesta di script dopo l'idratazione (il codice sta nel bundle del layout: peso da rileggere in `perf:report`, non stimato qui).
+
+### 8.3 I numeri
+
+`INTRO_MS 4630` · `PRE_FAILSAFE_MS 4500` · autohide `5s` · `HERO_REST_MS 6000` (CSS `6s` a ogni larghezza; il `4s` mobile è sparito) · `WARM_FIRST_FOLD_MS 3000` · budget e2e `4800` · atti: sagoma 0,15/0,9 · chars 0,12/1,3/.075 · firma 0,6/1,3/.065 · caps 0,4/0,85/.11 · payoff 0,65/1,25/.14 · act1End 2,7 · progress 0,55 · track 0,6/1,55 · arch 2,25/1,1 · exit 2,35/0,55 · dive 3,13/1,5 · sipario 2,6/0,9. Verifiche locali: `npx tsc --noEmit` ✓, `npx eslint` sui file toccati ✓, `npm test` ✓.
+
+**Superati da §8.5 (opzione D)** per failsafe, autohide e rete dell'hero: `PRE_FAILSAFE_MS 5230`, autohide `4.73s`, `HERO_REST_MS 3330`. Gli atti e `INTRO_MS` non cambiano.
+
+### 8.4 Cosa resta da provare (orchestratore)
+
+1. `npm run build` + e2e `mobile-390` e `desktop-1440` (`playwright.site.config.ts`); il test dell'intro legge ancora `tLive` (GSAP al timone) come inizio: con l'atto I che parte al paint, `durata` da `tLive` è ≤ intro; l'asserzione «primo fotogramma prima dell'idratazione» va riscritta su **`#dt-preloader` visibile con `html[data-preloader]` e senza `data-pre-live`** (`.dt-preloader-boot` non esiste più — §6.2 del prompt lo nominava come contratto: sostituito dalla shell). Nuove asserzioni (quattro atti, `/acquista`, tocco → `dt:intro:done` ≤ 1 700) le scrive un altro agente.
+2. **Filmstrip** 390/1440 su `/` e `/acquista`: `scripts/intro-filmstrip.ts` parte da `data-pre-live` — ora l'atto I precede `data-pre-live`: conviene far partire gli scatti da `data-preloader` (paint) o dal commit; controllare che nessun fotogramma torni indietro (strada A: nessun `fromTo` sui nodi dell'atto I, GSAP non li tocca), che il lockup sia già in moto prima di `data-pre-live` sotto CPU ×4, e che i chars girino (matrix3d) a t≈0,5.
+3. Sonda CDP a freddo/caldo su `/` e `/acquista` contro la ri-baseline di Fase 1.0 (elemento LCP: la sagoma lazy in viewport è candidata; a caldo zero richieste della sagoma).
+4. `perf:report` a 390 con `iPhone 13`: sagoma-m ≤ 30 KB servita, sagoma piena assente; peso del bundle del layout prima/dopo (Preloader dentro).
+5. Da verificare a mano su Safari iOS: `getAnimations()` sul char (Safari ≥ 13.1 ✓), `loading="lazy"` dentro `display:none` (≥ 15.4), `mask-composite`, anelli in `scale()` con il filo di luce a ×4, `min(64px, 10svh)` della linea.
+6. `data-locale` sul `<html>` è nuovo: nulla lo legge oltre alla CSS del payoff (grep), ma è ora sempre presente anche senza intro.
+
+### 8.5 Opzione D — il film intero in CSS (2026-08-17, sera)
+
+**Perché.** La misura di Fase 1 (build pulita, CPU ×4 + Slow-4G, 390,
+`docs/shots/intro-390-fase1-smoke2`) ha visto ciò che C non poteva riparare: il
+JS della home atterra a **8-12 s**, `data-pre-live` non compare mai entro l'intro,
+e porta e tuffo — ancora GSAP — **non suonavano mai** sul telefono lento. Nessuna
+scelta «al mount» ripara un mount che arriva a film finito: gli atti II-IV
+dovevano esistere prima del JavaScript come l'atto I. Quindi:
+
+| # | Scelta (sostituisce le righe di §8.1 indicate) | Dove |
+|---|---|---|
+| D1 | **Tutto il film è `@keyframes` CSS** sulla shell server: linea di carica (`dt-pre-in-fade` 0,25 s da 0,55 sulla scatola; `dt-pre-track` 1,55 s da 0,60 con `linear(...)` campionata da `dtLoader` e bezier di ripiego), porta `dt-pre-door` (1,1 s, `cubic-bezier(0.66,0,0.22,1)` = `domus.inOut`, da 2,25, `both`), tuffo `dt-pre-dive` (1,5 s, `cubic-bezier(0.6,0,0,1)` = `dtDiveIn`, da 3,13, `forwards`), congedo `dt-pre-exit` (0,55 s da 2,35), sipario di ripiego `dt-pre-curtain` sotto `@supports not (mask-composite: add)`, autohide a `PRE_AUTOHIDE_MS`. Sostituisce §8.1 righe 4 e 14 | `globals.css` blocco «ATTI II-IV, IN CSS» |
+| D2 | **`@property`** per `--arch-w`/`--arch-y` (`<length>`, `inherits: true`, `initial-value: 0px` — le unità viewport non sono «computazionalmente indipendenti», il valore vero sta nella regola su `.dt-preloader`) e `--arch-s` (`<number>`, 1): senza registrazione le custom property scatterebbero al 50 %. `inherits: true` perché gli anelli eco (figli) leggono `--arch-y`/`--arch-s` | `globals.css` `@property` |
+| D3 | **Porta e tuffo sono due animazioni sovrapposte** sullo stesso nodo (0,22 s, come i due tween di sempre): il tuffo, dichiarato dopo, vince da 3,13 e parte dal valore che la porta ha a progresso 0,8 di `domus.inOut` = **0,972** della corsa (`--arch-k`, verificato numericamente: 0,9719); `INTRO_T`/`INTRO_MS` non slittano | `globals.css` `dt-pre-dive from`, `--arch-k` |
+| D4 | **Geometrie come custom property**: `--arch-w0/w1/w2`, `--arch-y1`, `--arch-s1/s2`, `--pre-exit-y` su `.dt-preloader` (desktop 24→36→125 vw / 15vh / 1,5 / 5,2083 / −28 px; ≤767.98: 40→58→165 / 16vh / 1,45 / 4,125 / −20). Il `G` di Preloader.tsx è solo il ripiego GSAP | `globals.css` `.dt-preloader`, blocco ≤767.98 |
+| D5 | **Preloader.tsx orchestra e basta**: al mount legge l'orologio CSS (`elapsedFromCss([root, ring, firstChar])`: `timeline.currentTime − startTime`), mette `data-pre-live` («il JS è al timone dei timer», non più «GSAP al timone»), poi — se `"registerProperty" in CSS` e `cssFilmAlive([root, panel])` — solo timer relativi al film: `data-pre-act2` a `act1End`, `INTRO_EVENT` a `dive`, `finish` a `INTRO_MS` (o al bordo del sipario); istanti già passati → subito; `elapsed ≥ fine` → chiude subito. Le scadenze del precarico (`runWarmup(4500)`, `warmFirstFold(3000)`) si contano SUL FILM (meno `elapsed`), o l'attributo resterebbe oltre il tuffo | `Preloader.tsx` «CHI GUIDA?», «LA CSS GUIDA» |
+| D6 | **Skip in CSS**: `html[data-pre-skip]` + `--pre-skip` (l'ora del film scritta inline sull'overlay) cambiano gli `animation-delay`: ciò che precede il tuffo va alla propria fine (delay negativi = durate), il tuffo parte da `var(--pre-skip)`, l'autohide a `+1,6 s`; i timer JS si riallineano (handoff subito, chiusura a +`diveDur`) — `css-animations-1`: cambiare `animation-*` a un'animazione in corso la ricalcola dallo stesso start time | `globals.css` «LO SKIP», `Preloader.tsx` `seekToDive` |
+| D7 | **Ripiego GSAP** (`html[data-pre-gsap]`, messo PRIMA di costruire la timeline; `root.style.animation="none"` toglie anche l'autohide): dove `@property` manca (Safari < 16.4, Firefox < 128) o le keyframe non sono partite; le regole degli atti II-IV sono `:not([data-pre-gsap])` quindi non lasciano fill residui. `tl.time(elapsed)`, `seek("dive")` allo skip, come prima | `Preloader.tsx` «IL RIPIEGO» |
+| D8 | **Orologi (sostituisce §8.1 righe 7-8 e §8.3)**: `PRE_AUTOHIDE_MS = INTRO_MS + 100` (4 730), `PRE_FAILSAFE_MS = INTRO_MS + 600` (5 230: dopo il film e dopo l'autohide — non può più tagliare un'intro legittima), `HERO_REST_MS = dive + 200 ms` (3 330: DENTRO l'intro, perché la porta si apre anche senza JS e le lettere dell'hero devono accendersi quando l'arco le scopre); il boot script scrive `dt-intro-seen` nel failsafe. `intro-clocks.test.ts` rilegge delay, durate e bezier di TUTTI e quattro gli atti, `--arch-k`, le geometrie, lo skip, i due `@property` | `intro-constants.ts`, `layout.tsx`, `globals.css` |
+| D9 | **HeroCinematic / CookieConsent**: se la rete CSS a `HERO_REST_MS` è già scattata (`heroNetFired`: `currentTime ≥ HERO_REST_MS` dell'animazione `dt-rest-failsafe`) NON si rifà l'ingresso (le lettere non spariscono e rientrano); se l'handoff è già partito prima che il listener esista (`hasIntroFired()`: Preloader idratato a tuffo cominciato spara nel proprio effect, che precede i loro) si parte subito; altrimenti l'ingresso GSAP a `INTRO_EVENT` è quello di sempre | `HeroCinematic.tsx`, `CookieConsent.tsx`, `Preloader.tsx` `hasIntroFired` |
+| D10 | **Senza JS**: attributo mai messo → shell `display:none`, nessuna keyframe. Con boot script ma bundle mai arrivato: film intero in CSS, autohide (opacity 0 + visibility hidden) a 4,73, attributo (e `overflow:hidden`) tolto dal failsafe a 5,23; SmoothScroll rilascia Lenis osservando la caduta dell'attributo. Reduced-motion: attributo mai messo | `globals.css`, `layout.tsx`, `SmoothScroll.tsx` |
+
+**Da provare (in più rispetto a §8.4):** e2e «tocco → `dt:intro:done` ≤ 1 700»
+in modalità CSS; filmstrip 390 sotto CPU ×4 con la porta che sale a 2,25 SENZA
+`data-pre-live`; Safari iOS 16.4+ (`@property`, `linear()` da 17.2 — sotto,
+la bezier di ripiego) e < 16.4 (ramo GSAP: `html[data-pre-gsap]` presente).
+
+### 8.6 Verifica di Fase 1 — misure (2026-08-18)
+
+**Ri-baseline su HEAD `1a3e7f3`** (Next 16.3, `Authority`/`SocialVideoWall`
+rimossi da PR upstream; stessa sonda, due corse, `docs/shots/baseline-1a3e7f3/`):
+`/` freddo FCP 2 544/2 488 · LCP 2 544/2 488 (lettera «f») · TBT 2 507/3 125 ·
+jank p95 283/267 · 60/52 % · intro 7 387/7 923 ms (sipario caduto a ~3,1 s: **in
+laboratorio l'intro non suonava**); `/` caldo TBT 2 747/2 967 · 43/60 %; `/acquista`
+freddo FCP 2 200/2 020 · TBT 1 410/1 309 · jank 67/100 · 9/17 % · intro 5 525/5 390;
+caldo TBT 1 200/1 984 · 10/21 %. `/acquista` era già migliorata dai PR upstream
+rispetto al `c4bccf8` (TBT ~3,7 s → ~1,3 s). **Questo è il riferimento dei delta**.
+
+**Le pellicole** (`scripts/intro-filmstrip.ts`, ora ancorata a `html[data-preloader]`
+e con `--cpu 1` per *guardare* — sotto ×4 lo screenshot stesso costa 1-4 s a
+fotogramma e la striscia perde i primi secondi; i marcatori ▼/✓ restano validi):
+- `docs/shots/intro-390-fase1D-cpu1/home.jpg` (390, Slow-4G, CPU ×1): fondo +
+  badge a 0; lettere «Domus Tua» per carattere 0,6-1,5 s con firma, caps, linea di
+  carica, payoff (uno solo, quello di `dt_locale`); porta ad arco con anelli eco
+  2,75-3,3 s; tuffo 3,5-3,75; hero con le lettere che entrano 4-5 s. `data-pre-live`
+  a 2,87 s, `dt:intro:done` a 3,65 s. **È il film del desktop**, in geometria
+  telefono.
+- `docs/shots/intro-1440-fase1D-cpu1b/home.jpg` (1440): lockup 0,8-2 s con
+  sagoma da subito (dopo il preload condizionale nel boot script — prima, con
+  `loading="lazy"` e senza preload, «saltava dentro» a ~2 s), porta 3,48,
+  tuffo 3,92, hero 4,1-4,4.
+- 390 sotto CPU ×4 (`intro-390-fase1-cpu4/`): `data-pre-live` **mai** entro il
+  film (il JS della home atterra a 8-12 s), sipario caduto a 5,3 s (failsafe di
+  boot, in ritardo di ~0,1-0,5 s per il thread occupato), `dt:intro:done` a
+  10,9-12,2 s: **il film lo ha suonato la CSS**, il JS ha solo chiuso i conti.
+
+**Sonda A/B pulita** (stessa macchina, stessa ora, due server in ascolto insieme —
+HEAD `../domus-head` :3181, Fase 1 :3182 — run alternati; `docs/shots/after-fase1/ab/`),
+`/acquista`:
+
+| Build | Modo | FCP | LCP | TBT proxy (3 run) | will-change | jank p95 | % >50 | intro / caduta sipario |
+|---|---|--:|--:|--:|--:|--:|--:|--:|
+| HEAD | freddo | 1 664 | 2 012 | **2 163** (2 163/1 973/2 195) | 65 | 67 | 13 | 7 002 / **3 383** (tagliata) |
+| Fase 1 | freddo | 1 600 | 1 964 | **2 052** (1 860/2 052/2 518) | 73 | 67 | 15 | 6 150 / **7 203** (film intero) |
+| HEAD | caldo | 1 908 | 2 036 | **1 710** (1 710/2 301/1 284) | 65 | 67 | 14 | — |
+| Fase 1 | caldo | 1 596 | 1 952 | **1 641** (1 468/2 290/1 641) | 65 | 67 | 13 | — |
+
+Delta entro il rumore (±0,7 s di TBT fra run identici della stessa build): **la
+Fase 1 non costa niente a `/acquista`**, né a freddo né a caldo, e a freddo l'intro
+ora esiste. Profilo CPU (`Profiler`) e trace `devtools.timeline` (UpdateLayoutTree
+4 057 vs 3 915 ms, Layout 806 vs 673, Paint 973 vs 1 094 sul medesimo scroll):
+nessuna categoria si muove; l'esperimento «`@property inherits:true` iniettato su
+HEAD» non alza il jank (13,3 %); la shell rimossa prima dello scroll cambia il jank
+di 5-8 punti, dentro l'oscillazione naturale (6-14 %) del baseline stesso.
+
+**La lezione sul rumore.** Una prima corsa «dopo» (`after-fase1/probe-a.json`,
+09:45) aveva dato `/acquista` TBT 3,3-3,6 s e jank 41-50 % *anche a caldo*: durate
+per run 30-53 s (normali 21-30), TBT 809 → 6 791 fra run consecutivi della stessa
+rotta, long task singoli da 6,5 s — la firma di un carico esterno sulla macchina,
+non di un costo di codice. Il confronto che vale è quello A/B con due server
+contemporanei e run alternati: da qui in avanti è **l'unico** ammesso per un
+delta di fase.
+
+**Cosa NON è ancora chiuso qui**: la home a freddo sotto CPU ×4 (`/` cold) resta
+rossa per l'idratazione (§0.2), non per l'intro; l'attributo `data-preloader`
+resta ~1 s oltre `INTRO_MS` sul thread occupato (l'autohide CSS a 4,73 s copre
+visivamente; `overflow:hidden` dura un secondo di più) — accettato e annotato;
+la checklist iPhone (§9.6 del prompt) resta da fare a mano.
+
+**E2E (playwright.site.config.ts, build con mock su :3177)** — `e2e/mobile-motion.spec.ts`
+riscritto per il contratto D: quattro atti su `/` e `/acquista` (HTML grezzo con la
+shell, tween per lettera, `dt-pre-track`, `--arch-y` monotona nella porta e nel
+tuffo, handoff ≤ 4 800 dall'armatura e non prima del tuffo, `finish()` e non
+failsafe, overlay nascosto, Lenis rilasciato, `scrollBy` > 0, sessione, nessuna
+replica), skip al tocco ≤ 1 700 col tuffo intero, banner cookie all'handoff,
+reduced-motion senza animazioni nella shell. **mobile-390: 19 passed, 0 failed;
+desktop-1440: 15 passed, 0 failed.** Due cose emerse: (1) un tocco arrivato PRIMA
+che il JS sia al timone (a ~520 ms, JS live a ~800) viene servito ~550-620 ms
+dopo — è l'idratazione selettiva di React nel dispatch (idrata in sincrono, poi
+il listener di skip lo raggiunge): il tocco non va perso e sta nei 1 700; (2) i
+`setTimeout` dell'handoff/chiusura sotto carico arrivavano 200-1 000 ms dopo il
+film → **handoff e chiusura ora partono da `animationstart`/`animationend` di
+`dt-pre-dive`** (o `dt-pre-curtain`) sulla root, i timer restano come rete
+(`Preloader.tsx`, «GLI EVENTI DEL FILM PRIMA DEI TIMER»).

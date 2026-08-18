@@ -16,7 +16,7 @@
  *   · iPhone 13 (UA, touch, dpr 3) a 390×844, cookie `dt_consent=accepted`.
  * Ogni run è un context nuovo: cache vuota, sessionStorage vuoto.
  *   · a freddo (`cold`): nessuna chiave → l'intro suona (su OGNI rotta, non solo la home:
- *     PreloaderMount sta nel root layout);
+ *     PreloaderShell/Preloader stanno nel root layout);
  *   · a caldo (`warm`): `sessionStorage['dt-intro-seen']='1'` via addInitScript → niente intro.
  *
  * Cosa misura, per run (poi mediana per metrica su `--runs`):

@@ -29,13 +29,15 @@
 //     partire né bloccare l'ingresso: `allSettled`, sempre.
 //   • IDEMPOTENTE. Chi torna sul sito salta l'intro: lì il precarico gira a
 //     ruota libera (`requestIdleCallback`) e non deve rifare ciò che è fatto.
-//   • SUL TELEFONO NON SI SCALDA TUTTO (2026-08-11, l'intro arriva su mobile).
-//     Dietro un'intro da cinque secondi su desktop, svegliare ogni immagine
-//     della pagina è un affare. Dietro un'intro da 1,7s su una connessione
+//   • SUL TELEFONO NON SI SCALDA TUTTO (2026-08-11, l'intro arriva su mobile;
+//     dal 2026-08-17 dura 4,63 s come su desktop, e la regola resta). Dietro
+//     un'intro da quasi cinque secondi su desktop, svegliare ogni immagine
+//     della pagina è un affare. Sulla stessa intro su una connessione
 //     cellulare è una gara contro l'unica immagine che conta in quel momento:
-//     quella dell'hero, che l'arco sta per scoprire. Sul telefono il preloader
-//     usa `warmFirstFold` e rimanda il registro a `scheduleIdleWarmup()`, dopo
-//     l'handoff. Vedi Preloader.tsx.
+//     quella dell'hero, che l'arco sta per scoprire — e la si perderebbe.
+//     Sul telefono il preloader usa `warmFirstFold(WARM_FIRST_FOLD_MS)`
+//     (3 s ≤ intro − tuffo, intro-constants.ts) e rimanda il registro a
+//     `scheduleIdleWarmup()`, dopo l'handoff. Vedi Preloader.tsx.
 
 /** Un lavoro da scaldare. Deve essere idempotente e non lanciare mai. */
 export type WarmupTask = () => void | Promise<void>;
