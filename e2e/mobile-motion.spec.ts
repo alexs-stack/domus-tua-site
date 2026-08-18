@@ -1058,6 +1058,18 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
       const r = await leggiRegistro(page);
       stato = { skip: r.tSkip !== null, handoff: r.handoff !== null, tocchi: r.tocchi.length };
     }
+    // Lo skip compare al dito (boot script), l'handoff arriva quando il JS
+    // idrata: qui si aspetta il secondo, altrimenti si leggerebbe il registro
+    // in mezzo ai due e si direbbe «l'handoff non è avvenuto» mentre sta per
+    // avvenire. Il tetto è quello del mandato più il margine dell'idratazione.
+    if (stato.skip && !stato.handoff) {
+      await expect
+        .poll(async () => (await leggiRegistro(page)).handoff !== null, {
+          timeout: 8_000,
+          message: "dopo lo skip il JS non ha mai sparato INTRO_EVENT",
+        })
+        .toBe(true);
+    }
     const sonda = await leggiRegistro(page);
     saltaSeAffamata(sonda, "skip al tocco");
     const rel = (t: number | null) => (t === null ? "—" : `${Math.round(t - (sonda.tVisto ?? 0))}`);
@@ -1077,56 +1089,47 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     ).not.toBeNull();
     expect(sonda.handoff, "dopo lo skip non è mai partito INTRO_EVENT: l'handoff all'hero non è avvenuto").not.toBeNull();
 
-    // LA DISCRIMINANTE. Lo skip chiama `fireIntro()` in modo SINCRONO dentro
-    // il gestore del pointerdown: fra il dito che ha saltato e l'handoff non
-    // c'è un frame. L'intro naturale invece ci arriva al `dive`, 3,13 s dopo
-    // il paint. Senza questo confronto un'asserzione "dopo il tocco l'intro
-    // finisce" passerebbe identica anche se lo skip non esistesse: finirebbe
-    // da sola, e nessuno se ne accorgerebbe. Il mandato (§9.3) chiede
-    // tocco → dt:intro:done ≤ 1 700 ms.
-    // Il tocco che conta è l'ULTIMO prima dell'handoff: i precedenti, se ci
-    // sono, sono caduti prima del listener.
-    //
-    // MISURATO (2026-08-18, 390, tre giri): il tocco che arriva PRIMA che il
-    // JS sia al timone non va perso — viene SERVITO CON 550-620 ms DI RITARDO.
-    // Il registro lo mostra: `pointerdown` in cattura su window a ~520 ms,
-    // poi il `touchstart` dello STESSO tap a ~1 100, `data-pre-live` a ~800,
-    // skip e handoff a ~1 000. È l'idratazione selettiva di React: il
-    // listener di root (in cattura sul container) intercetta l'evento
-    // discreto su un albero non ancora idratato e idrata IN MODO SINCRONO,
-    // dentro il dispatch — il layout effect di Preloader gira lì, attacca il
-    // listener di skip su window in bolla, e il dispatch, proseguendo, lo
-    // raggiunge. Quindi «sincrono» vale dal tocco che il JS ha sentito
-    // (≥ tLive: < 200 ms), mentre per un tocco anteriore vale il tetto del
-    // mandato — e in ENTRAMBI i casi l'handoff arriva molto prima del tuffo
-    // naturale, che è la sola cosa che distingue uno skip da un'attesa.
-    const toccoBuono = sonda.tocchi.filter((t) => t <= sonda.handoff!).pop();
-    expect(toccoBuono, "l'handoff precede ogni tocco registrato").not.toBeUndefined();
+    // LA DISCRIMINANTE, RISCRITTA IL 2026-08-18 (lo skip è uscito dal JS).
+    // Prima skip e handoff erano lo stesso istante — li faceva entrambi
+    // `seekToDive()` nel gestore del pointerdown — e il test pretendeva che
+    // distassero meno di 200 ms. Ora il primo tocco lo raccoglie lo script di
+    // boot PRIMA del paint (layout.tsx): `data-pre-skip` compare al dito,
+    // mentre `INTRO_EVENT` lo spara Preloader.tsx quando idrata, che è più
+    // tardi. Quella distanza non è più un difetto: è la misura
+    // dell'idratazione, e la risposta VISIVA (le keyframe che vanno al tuffo)
+    // non l'ha aspettata. Quindi si pretendono tre cose diverse:
+    //   1. lo skip è servito al dito, sempre — è la garanzia nuova, e sotto i
+    //      200 ms anche quando React non c'è ancora;
+    //   2. lo skip precede il tuffo naturale: è ciò che distingue uno skip da
+    //      un'attesa (`data-pre-skip` lo scrive SOLO lo skip, e prima di dive);
+    //   3. l'handoff SEGUE lo skip ed entra nel tetto del mandato (1 700 ms).
+    // Il tocco che conta è l'ULTIMO prima dello skip: i precedenti, se ci
+    // sono, sono caduti quando ancora nessuno ascoltava.
+    const toccoBuono = sonda.tocchi.filter((t) => t <= sonda.tSkip!).pop();
+    expect(toccoBuono, "lo skip precede ogni tocco registrato").not.toBeUndefined();
+    const servito = sonda.tSkip! - toccoBuono!;
     const ritardo = sonda.handoff! - toccoBuono!;
     const dopoLive = sonda.tLive !== null && toccoBuono! >= sonda.tLive;
     test.info().annotations.push({
-      type: "tocco → handoff",
-      description: `${Math.round(ritardo)}ms (${dopoLive ? "tocco a JS già al timone" : "tocco PRIMA del JS, servito dall'idratazione selettiva"})`,
+      type: "tocco → skip → handoff",
+      description: `skip ${Math.round(servito)}ms, handoff ${Math.round(ritardo)}ms (${dopoLive ? "tocco a JS già al timone" : "tocco PRIMA del JS: lo serve il boot script"})`,
     });
-    if (dopoLive) {
-      expect(
-        ritardo,
-        `fra il dito e l'handoff sono passati ${Math.round(ritardo)}ms con il JS già al timone: lo skip non è sincrono (${cronologia})`,
-      ).toBeLessThan(200);
-    }
+    expect(
+      servito,
+      `fra il dito e html[data-pre-skip] sono passati ${Math.round(servito)}ms: lo skip non è più sincrono — il boot script dovrebbe servirlo senza JS (${cronologia})`,
+    ).toBeLessThan(200);
+    expect(
+      sonda.tSkip! - (sonda.tVisto ?? 0),
+      `lo skip è arrivato dopo il tuffo naturale (${Math.round(sonda.tSkip! - (sonda.tVisto ?? 0))}ms dall'armatura): non è uno skip, è un'attesa (${cronologia})`,
+    ).toBeLessThan(INTRO_T.dive * 1000);
+    expect(
+      sonda.handoff! - sonda.tSkip!,
+      `l'handoff precede lo skip di ${Math.round(sonda.tSkip! - sonda.handoff!)}ms: non viene da quel gesto (${cronologia})`,
+    ).toBeGreaterThan(-50);
     expect(
       ritardo,
       `tocco → dt:intro:done ${Math.round(ritardo)}ms, oltre il tetto del mandato di 1 700 ms (${cronologia})`,
     ).toBeLessThan(1700);
-    // Che non sia il tuffo naturale lo dice `data-pre-skip` (lo scrive SOLO
-    // lo skip) insieme alla vicinanza handoff↔skip qui sotto: un confronto
-    // con INTRO_T.dive sarebbe cieco quando, sotto carico, il tocco servito
-    // arriva a ridosso dei 3,13 s (misurato: JS al timone a 2 s, tocco a
-    // 2,63).
-    expect(
-      Math.abs(sonda.tSkip! - sonda.handoff!),
-      `html[data-pre-skip] e l'handoff distano ${Math.round(sonda.tSkip! - sonda.handoff!)}ms: non vengono dallo stesso gesto`,
-    ).toBeLessThan(200);
 
     // Saltare manda le keyframe al tuffo (`--pre-skip` + data-pre-skip),
     // quindi la porta suona per intero (1,5 s a ogni larghezza): lo skip
