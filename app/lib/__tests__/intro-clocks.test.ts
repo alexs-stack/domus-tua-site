@@ -122,7 +122,12 @@ describe("layout.tsx: il boot script interpola le costanti", () => {
   const script = m![1];
 
   test("il failsafe è ${PRE_FAILSAFE_MS}, non un numero", () => {
-    assert.match(script, /h\.removeAttribute\("data-preloader"\)\},\$\{PRE_FAILSAFE_MS\}\)/);
+    // La chiusura del sipario e una funzione sola (`fine`), armata a
+    // ${PRE_FAILSAFE_MS} e RI-armata a ${SKIP_TAIL_MS} quando il boot script
+    // serve uno skip: chi salta non deve aspettare il failsafe intero.
+    assert.match(script, /var fine=function\(\)\{[\s\S]*?h\.removeAttribute\("data-preloader"\)\}/);
+    assert.match(script, /setTimeout\(fine,\$\{PRE_FAILSAFE_MS\}\)/);
+    assert.match(script, /setTimeout\(fine,\$\{SKIP_TAIL_MS\}\)/);
     assert.doesNotMatch(script, /\b(1800|2500|4500|5230)\b/);
     // Un solo numero, nessuna soglia di larghezza per il failsafe: l'unico
     // 767.98 ammesso è il `media` del preload della sagoma (stesso confine

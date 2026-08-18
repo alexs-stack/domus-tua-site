@@ -1245,3 +1245,13 @@ Oltre `INTRO_T.dive` il boot script non offre più lo skip: la porta è già
 aperta, e saltare non vorrebbe dire niente.
 
 `e2e/mobile-motion.spec.ts` sui cinque progetti: **62 passed, 0 failed**.
+
+Completamento (stessa sera): lo skip del boot script **ri-arma anche il
+failsafe**. La risposta visiva era immediata (le keyframe vanno al tuffo e
+l'autohide si sposta a `--pre-skip + 1,6 s`), ma l'attributo `data-preloader` —
+e con lui il blocco dello scroll — cadeva solo con `finish()`, cioè
+all'idratazione: misurato a tablet-768, **4 693 ms dopo il tocco**. Ora il boot
+script, servendo lo skip, sostituisce il failsafe con uno da `INTRO_T.diveDur +
+350 ms`: chi salta riprende la pagina in ~1,9 s anche se il JavaScript non
+arriva affatto. La chiusura del sipario è una funzione sola (`fine`) armata due
+volte, e `intro-clocks` pretende entrambe le armature.
