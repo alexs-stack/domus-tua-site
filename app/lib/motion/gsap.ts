@@ -35,6 +35,32 @@ import { useGSAP } from "@gsap/react";
 // nel componente che li usa. CustomEase è ~2kb e definisce la firma: sta qui.
 gsap.registerPlugin(ScrollTrigger, CustomEase, useGSAP);
 
+// Su touch la barra URL che si ritrae/riespande è un resize di sola altezza:
+// senza questa opzione ogni ciclo rifà `ScrollTrigger.refresh()` su tutti i
+// trigger della pagina (pin ricalcolati, reveal che scattano a metà scroll).
+// GSAP applica il flag SOLO quando `isTouch === 1` (dito puro, non mouse+touch)
+// e continua comunque a fare refresh se cambia la larghezza o l'altezza salta
+// oltre il 25%: la rotazione resta gestita, voluto (onda «parità mobile 2»,
+// prompt §7.2, misura 4.8 dell'audit). Deve stare qui, a livello di modulo,
+// prima che qualunque trigger nasca.
+ScrollTrigger.config({ ignoreMobileResize: true });
+
+// Hook di prova per sonde ed e2e, mai per il prodotto. In produzione GSAP non è
+// sul `window`, quindi `scripts/mobile-cdp-probe.ts` conta [data-on]/.pin-spacer
+// come proxy dei trigger e non può misurare i refresh (audit §5.3, 4.8): con
+// `__dtST()` legge il numero vero, con `__dtSTRefresh` conta i refresh in un
+// ciclo 844→744→844 (barra URL, atteso 0) o in una rotazione (atteso > 0) —
+// e2e di prompt §9.3. Costo per l'utente: una closure e un intero.
+type STProbe = { __dtST?: () => number; __dtSTRefresh?: number };
+if (typeof window !== "undefined") {
+  const w = window as unknown as STProbe;
+  w.__dtST = () => ScrollTrigger.getAll().length;
+  w.__dtSTRefresh = 0;
+  ScrollTrigger.addEventListener("refresh", () => {
+    w.__dtSTRefresh = (w.__dtSTRefresh ?? 0) + 1;
+  });
+}
+
 // Ease firma "domus": out morbido con coda lunga — il "gesto" del sito.
 // Creata una sola volta a livello modulo (idempotente tra HMR/remount).
 CustomEase.create("domus", "M0,0 C0.22,0.9 0.36,1 1,1");
