@@ -1301,3 +1301,47 @@ prodotto non si inchioda in uno strumento).
 1. **Il corridoio mobile di TeamTrail era un no-op**: il codice animava `z` citando una regola CSS (`perspective` sul pannello) **che non esisteva**. Senza un antenato che proietti, `translateZ` non produce nessuna scala: il cuore della scheda 19 non si vedeva, e restava un gesto più povero di prima. Regola aggiunta.
 2. **I nodi del rail desktop erano diventati non cliccabili**: riscrivendo la className per il bersaglio mobile era caduto `lg:pointer-events-auto`, e il ramo desktop scriveva `pointerEvents` sul *root* — ma un figlio che dichiara `none` non torna bersaglio perché l'antenato dice `auto`. Ora i due rami hanno la stessa forma: una sorgente sola per il puntatore.
 3. **StarReviews rimisurava troppo tardi**: `measure()` era agganciata a `refresh`, che in GSAP arriva **dopo** che i valori-funzione sono stati ricongelati — dopo una rotazione lo zoom finiva alla misura precedente. Spostata su `refreshInit`, come già fa `HorizontalRail`.
+
+### 11.4 L'A/B della Fase 3, e cosa dice davvero
+
+Due server contemporanei (HEAD `76bd1fb` :3181, Fase 3 :3182), run alternati ×2,
+`docs/shots/after-fase3/ab/`. Prima di leggere i numeri, due giri sono stati
+**buttati** — e vale la pena scriverlo, perché è la stessa trappola due volte:
+
+1. **Server zombie.** Un `next start` tenuto aperto mentre `.next` viene
+   ricostruita (dalla suite e2e, che fa `npm run build` nel suo `webServer`)
+   continua a rispondere ma serve chunk 500/`text/plain`: la pagina non idrata,
+   e la sonda misura TBT 250-400 ms e jank ~0 — numeri bellissimi e privi di
+   senso. **Regola: mai tenere un server aperto mentre gira la suite e2e**, e
+   prima di fidarsi di un A/B controllare che il JS ci sia (`__dtST()`,
+   `.dt-hchar`, `html.lenis`).
+2. **Contenuto diverso, di nuovo.** Su `/acquista` il WIP serviva **6** schede
+   contro **24** (feed del momento): 19 494 px contro 28 798. La colonna
+   `altezza` della sonda — aggiunta in §9 proprio per questo — lo ha
+   intercettato. `/acquista` è quindi **non confrontabile** in questo giro.
+
+Sulla home, che è comparabile (32 286-32 564 px su entrambe) e che è la pagina
+pesante, i numeri sono questi:
+
+| Build | Modo | LCP | TBT proxy (mediana dei 2 giri) | jank p95 | % >50 |
+|---|---|--:|--:|--:|--:|
+| HEAD | freddo | 2 956 / 3 440 | 3 033 / 3 939 | 267 / 450 | 49 / 79 |
+| Fase 3 | freddo | 2 896 / 3 760 | **4 176 / 4 563** | 317 / 467 | 59 / 79 |
+| HEAD | caldo | 2 936 / 3 928 | 3 605 / 4 154 | 267 / 417 | 47 / 76 |
+| Fase 3 | caldo | 2 772 / 4 144 | **3 824 / 4 537** | 300 / 567 | 61 / 87 |
+
+**Onestamente: la Fase 3 sta dalla parte peggiore.** Il TBT è ~+400-600 ms e i
+frame lunghi ~+10 punti, in tutte e quattro le coppie. È dentro il rumore che
+questa macchina ha già dimostrato (±0,7 s di TBT fra run identici, ±30 punti di
+jank), quindi non è una prova — ma è un indizio coerente, e la sua causa
+plausibile è nota: la fase aggiunge lavoro alla home (SplitText di 69 caratteri
+sul manifesto, i gradini in scrub, il drift dei fiori, la parallasse delle due
+colonne del muro, il corridoio del team). `__dtST()` conta **80** ScrollTrigger
+contro 77.
+
+**Non lo chiudo dichiarando che è gratis.** Il modo giusto di misurarlo è quello
+di §9: profilo per handler (`Profiler` + trace) a contenuto pari, non il p95
+sotto carico. È il primo lavoro della **Fase 4**, che è la fase del peso — con
+due candidati già in mano: la sezione più cara per frame (che oggi non sappiamo
+quale sia) e i 69 span del manifesto, che nascono con `will-change` e non lo
+perdono finché la tween non finisce.
