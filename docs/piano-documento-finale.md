@@ -9,11 +9,13 @@
 > Restano aperte, in Fase 0, solo le due voci esterne: testi legali e
 > `NEXT_PUBLIC_SITE_URL`.
 >
-> ⚠️ **Bloccante scoperto durante la verifica, preesistente e indipendente da questo
-> lavoro:** il server di sviluppo risponde **500 su tutte le pagine** per un errore CSS
-> generato da Tailwind (`env()` senza argomento, da `Footer.tsx:448`). Il build di
-> produzione passa. Blocca la suite e2e e ogni verifica visiva in locale — quindi i
-> cancelli delle Fasi 2 e 3 non sono eseguibili finché non è risolto.
+> **Bloccante scoperto durante la verifica e risolto** (commit `9141b0b`): il server di
+> sviluppo rispondeva 500 su tutte le pagine per un errore CSS. La causa non era quella
+> che sembrava — non lo scanner di Tailwind che tronca `Footer.tsx`, ma una classe
+> **citata in forma abbreviata dentro `docs/mobile-parity-2.md`**, che Tailwind scandisce
+> come sorgente. Corretto a monte con `@source not "../docs"`. La suite e2e è di nuovo
+> eseguibile: **313 test verdi**, e lo smoke completo conferma che **tutti e 22 gli URL
+> legacy atterrano su 200** — la voce 01 passa da «configurata» a «verificata».
 
 > Verifica del *Documento Finale di Sintesi* (Domus Tua, 11 agosto 2026) contro il codice
 > reale, al 19 agosto 2026, e piano di esecuzione di ciò che resta.
@@ -338,7 +340,7 @@ npm run check
 
 | Fase | Verifica aggiuntiva |
 |---|---|
-| 0 | `npm run launch-check` deve uscire 0 · `npm run smoke -- <host>` su tutti i 25 legacy |
+| 0 | `npm run launch-check` deve uscire 0 · `npm run smoke -- <host>` su tutti i legacy — **eseguito in locale il 19 ago: 22/22 su 200** |
 | 1 | Il nuovo pattern `FORBIDDEN` in `content-integrity.test.ts` deve fallire prima della correzione e passare dopo |
 | 2 | `npm run test:e2e` (porta 3177) · verifica visiva mobile+desktop in una sola passata |
 | 3 | `structured-data.test.ts` esteso a `SITEMAP_ROUTES` · `e2e/a11y.spec.ts` su 15 rotte |
