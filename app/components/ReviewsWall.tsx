@@ -19,8 +19,12 @@
 // app/lib/videos.ts). Il layout del riferimento esiste solo sotto [data-on]
 // (JS, desktop ≥1024 + motion ok).
 //
-// Sotto lg il muro non è più fermo (Fase 2 "parità mobile", 2026-08-11): la
-// griglia a due colonne compone in diagonale, UN TRIGGER PER TESSERA. Qui era
+// Sotto lg il muro non è più fermo (wave "parità mobile", 2026-08-11): la
+// griglia a due colonne compone in diagonale, UN TRIGGER PER TESSERA; e dal
+// 2026-08-18 (onda «parità mobile 2», scheda 17) le due colonne SCORRONO IN
+// VERSI OPPOSTI in scrub sulla traversata — la cosa che si legge del set piece
+// desktop (le colonne non sono un blocco) senza il runway da 520vh né lo
+// schermo sticky, che sarebbero scroll rubato. Qui era
 // scritto «con UN solo trigger» ed era la scelta sbagliata: misurata, faceva
 // accadere due terzi della diagonale sotto il bordo dello schermo (la
 // contabilità sta nel ramo). La riga che stava qui — «mobile/reduced-motion =
@@ -175,6 +179,47 @@ export default function ReviewsWall() {
             );
             if (late.length) gsap.set(late, { y: 0, opacity: 1, pointerEvents: "auto" });
           }, 2500);
+
+          /* LE DUE COLONNE SI MUOVONO IN VERSI OPPOSTI (onda «parità mobile 2»,
+             scheda 17: PORT-SENZA-PIN). Sul desktop il muro fa tre cose: le
+             colonne volano dentro, la griglia zooma, le colonne si aprono. Il
+             telefono non può avere lo zoom — vuole il runway da 520vh e uno
+             schermo sticky, cioè lo scroll rubato che la legge 4 vieta — ma la
+             cosa che si LEGGE di quel set piece è che le colonne non sono un
+             blocco: scorrono a velocità diverse e la griglia si apre. Quello
+             si porta senza rubare niente: mentre la sezione attraversa il
+             viewport, la colonna di sinistra sale e quella di destra scende
+             (yPercent ∓, come le due metà del desktop), in scrub sulla
+             traversata naturale.
+             NIENTE WRAPPER NUOVI: le colonne del markup mobile sono le tessere
+             pari e dispari di una `grid-cols-2` (non esistono elementi
+             colonna, nemmeno sul desktop: là il bucketing è `i % 3` in JS).
+             `yPercent` su un grid item è transform, quindi non tocca il
+             layout — e le tessere restano dove il grid le mette.
+             L'ampiezza è quella di casa per una parallasse (`dist.parallax`,
+             il 13% di sé), dimezzata come tutte le parallassi del telefono
+             dalla Fase 2: un muro non è un carosello. */
+          const pari = tiles.filter((_, i) => i % 2 === 0);
+          const dispari = tiles.filter((_, i) => i % 2 === 1);
+          const AMPIEZZA = (dist.parallax * 100) / 2;
+          const drift = gsap.timeline({
+            scrollTrigger: {
+              trigger: grid,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+              invalidateOnRefresh: true,
+              /* `will-change` A TEMPO, e sulle tessere solo mentre la griglia
+                 è in corsa: sei miniature YouTube promosse per sempre sono sei
+                 livelli di composizione che il telefono si porta dietro per
+                 tutta la pagina (prompt §11). */
+              onToggle: (self) =>
+                gsap.set(tiles, { willChange: self.isActive ? "transform" : "auto" }),
+            },
+          });
+          drift
+            .fromTo(pari, { yPercent: AMPIEZZA }, { yPercent: -AMPIEZZA, ease: "none" }, 0)
+            .fromTo(dispari, { yPercent: -AMPIEZZA }, { yPercent: AMPIEZZA, ease: "none" }, 0);
 
           // Set, tween e trigger li revoca il contesto di matchMedia: nascono
           // in sincrono, non dopo un await come quelli del ramo desktop,
