@@ -7,8 +7,10 @@
 //    riferimento — le sale sopra dal basso, col titolo curvato e FERMO su un
 //    textPath circolare (perché fermo: vedi la nota sull'SVG, atto 2);
 // 3. i pannelli orizzontali (HorizonScroller): manifesto + territorio.
-// Mobile: fondale semplice, pannelli in colonna — ma con la loro coreografia
-// verticale (il ramo mobile di HorizonScroller, Fase 2 della parità mobile).
+// Mobile: fondale semplice, pannelli in colonna — con la stessa coreografia,
+// sull'asse verticale e senza pin (ramo mobile di HorizonScroller: chars del
+// manifesto, gradini, sipario e deriva del tralcio, verdetto 15 dell'onda
+// «parità mobile 2»).
 // Reduced-motion o senza JS: tutto fermo, tutto visibile.
 import type { ReactNode } from "react";
 import Image from "next/image";
