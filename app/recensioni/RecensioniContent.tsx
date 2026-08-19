@@ -1,5 +1,7 @@
 "use client";
 
+import { ratingLabel, site } from "../lib/site";
+
 import { useLocale } from "../components/i18n/LocaleProvider";
 import PageHero from "../components/PageHero";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
@@ -18,11 +20,11 @@ const copy = {
       </>
     ),
     subcopy:
-      "Oltre 500 famiglie hanno scelto Domus Tua. Le loro parole raccontano un modo diverso di vivere la compravendita: più umano, più chiaro, più seguito.",
+      `Chi ha scelto Domus Tua lo ha scritto: ${site.reviewsCount} recensioni su Google. Le loro parole raccontano un modo diverso di vivere la compravendita: più umano, più chiaro, più seguito.`,
     alt: "Soggiorno accogliente",
     primaryLabel: "Inizia anche tu",
     secondaryLabel: "Leggi le recensioni",
-    trust: ["4.9/5 di media", "Oltre 500 recensioni", "Google · Trustindex"],
+    trust: [`${ratingLabel("it")}/5 di media`, `${site.reviewsCount} recensioni`, "Google · Trustindex"],
   },
   en: {
     eyebrow: "Reviews",
@@ -34,11 +36,11 @@ const copy = {
       </>
     ),
     subcopy:
-      "More than 500 families have chosen Domus Tua. Their words describe a different way to buy and sell a home: more human, clearer, more supported.",
+      `Those who chose Domus Tua wrote it down: ${site.reviewsCount} reviews on Google. Their words describe a different way to buy and sell a home: more human, clearer, more supported.`,
     alt: "Welcoming living room",
     primaryLabel: "Start with us too",
     secondaryLabel: "Read the reviews",
-    trust: ["4.9/5 average", "Over 500 reviews", "Google · Trustindex"],
+    trust: [`${ratingLabel("en")}/5 average`, `${site.reviewsCount} reviews`, "Google · Trustindex"],
   },
   fr: {
     eyebrow: "Avis",
@@ -50,11 +52,11 @@ const copy = {
       </>
     ),
     subcopy:
-      "Plus de 500 familles ont choisi Domus Tua. Leurs mots racontent une autre façon de vendre et d’acheter : plus humaine, plus claire, plus accompagnée.",
+      `Ceux qui ont choisi Domus Tua l’ont écrit : ${site.reviewsCount} avis sur Google. Leurs mots racontent une autre façon de vendre et d’acheter : plus humaine, plus claire, plus accompagnée.`,
     alt: "Séjour chaleureux",
     primaryLabel: "Commencez vous aussi",
     secondaryLabel: "Lire les avis",
-    trust: ["4,9/5 de moyenne", "Plus de 500 avis", "Google · Trustindex"],
+    trust: [`${ratingLabel("fr")}/5 de moyenne`, `${site.reviewsCount} avis`, "Google · Trustindex"],
   },
   de: {
     eyebrow: "Bewertungen",
@@ -66,11 +68,11 @@ const copy = {
       </>
     ),
     subcopy:
-      "Über 500 Familien haben sich für Domus Tua entschieden. Ihre Worte erzählen von einer anderen Art zu kaufen und zu verkaufen: menschlicher, klarer, besser begleitet.",
+      `Wer sich für Domus Tua entschieden hat, hat es aufgeschrieben: ${site.reviewsCount} Bewertungen auf Google. Ihre Worte erzählen von einer anderen Art zu kaufen und zu verkaufen: menschlicher, klarer, besser begleitet.`,
     alt: "Einladendes Wohnzimmer",
     primaryLabel: "Starten auch Sie",
     secondaryLabel: "Bewertungen lesen",
-    trust: ["4,9/5 im Schnitt", "Über 500 Bewertungen", "Google · Trustindex"],
+    trust: [`${ratingLabel("de")}/5 im Schnitt`, `${site.reviewsCount} Bewertungen`, "Google · Trustindex"],
   },
   es: {
     eyebrow: "Reseñas",
@@ -82,11 +84,11 @@ const copy = {
       </>
     ),
     subcopy:
-      "Más de 500 familias han elegido Domus Tua. Sus palabras cuentan otra forma de comprar y vender casa: más humana, más clara, más acompañada.",
+      `Quienes eligieron Domus Tua lo escribieron: ${site.reviewsCount} reseñas en Google. Sus palabras cuentan otra forma de comprar y vender casa: más humana, más clara, más acompañada.`,
     alt: "Salón acogedor",
     primaryLabel: "Empieza tú también",
     secondaryLabel: "Leer las reseñas",
-    trust: ["4,9/5 de media", "Más de 500 reseñas", "Google · Trustindex"],
+    trust: [`${ratingLabel("es")}/5 de media`, `${site.reviewsCount} reseñas`, "Google · Trustindex"],
   },
 };
 

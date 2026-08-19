@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
-import { site, pendingConfirmation, organizationJsonLd } from "../site";
+import { site, pendingConfirmation, organizationJsonLd, ratingLabel } from "../site";
 
 const APP = path.join(process.cwd(), "app");
 const read = (rel: string) => fs.readFileSync(path.join(APP, rel), "utf8");
@@ -99,11 +99,28 @@ describe("valori non confermati — documentati, non decisi, non resi", () => {
 });
 
 describe("fonte unica — recensioni e riconoscimento", () => {
-  test("il conteggio arrotondato deriva da quello esatto (stessa fonte)", () => {
-    const exact = parseInt(site.reviewsCount, 10);
-    const approx = parseInt(site.reviewsApprox, 10);
-    assert.ok(approx % 100 === 0, "l'arrotondato è a centinaia");
-    assert.ok(approx <= exact && exact - approx < 100, "arrotondato per difetto, entro la stessa centinaia");
+  // Il conteggio arrotondato NON esiste più, ed è una scelta, non una dimenticanza.
+  // `reviewsApprox: "500"` reggeva le frasi "oltre 500 recensioni": quattordici punti del
+  // sito dicevano "oltre 500" mentre l'hero diceva "531", cioè due numeri per lo stesso
+  // dato (voce 16 della checklist). Il §6.3 spiega perché vince quello esatto: «le prove
+  // devono essere forti perché sono ESATTE, non perché sono assolute». Nessuno inventa
+  // un 531; "oltre 500" suona come una stima anche quando non lo è.
+  test("non esiste un conteggio arrotondato: la prova è il numero esatto", () => {
+    assert.ok(
+      !("reviewsApprox" in site),
+      "reviewsApprox è tornato: reintrodurlo significa riavere due numeri per lo stesso dato"
+    );
+    assert.match(site.reviewsCount, /^\d+$/, "il conteggio è un numero esatto, non una formula");
+  });
+
+  test("il voto si scrive con la virgola ovunque tranne che in inglese", () => {
+    // La regola stava dentro HeroCinematic come costante locale, e intanto /recensioni
+    // scriveva "4.9/5 di media" in italiano: una regola applicata a mano in posti diversi
+    // diverge sempre. Qui si verifica la funzione, non le sue copie.
+    assert.equal(ratingLabel("en"), site.rating);
+    for (const l of ["it", "fr", "de", "es"]) {
+      assert.equal(ratingLabel(l), site.rating.replace(".", ","), `separatore sbagliato in ${l}`);
+    }
   });
 
   test("la card OG deriva il voto da site.rating", () => {

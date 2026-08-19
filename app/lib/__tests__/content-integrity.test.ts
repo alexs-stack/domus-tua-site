@@ -149,6 +149,13 @@ const FORBIDDEN: { label: string; pattern: RegExp; why: string; fix?: string }[]
     fix: "Scrivere «Cinque fasi, un metodo» — e ricordare che il conteggio canonico è nove passaggi (§4.2).",
   },
   {
+    label: "conteggio recensioni arrotondato («oltre 500»)",
+    pattern:
+      /oltre 500|over 500|500+ reviews|plus de 500|über 500|mehr als 500|más de 500/i,
+    why: "due numeri per lo stesso dato: il sito diceva «oltre 500» in quattordici punti e «531» nell'hero (voce 16)",
+    fix: "Interpolare site.reviewsCount. Il §6.3 è esplicito: le prove sono forti perché ESATTE, non perché assolute — nessuno inventa un 531, «oltre 500» suona come una stima anche quando non lo è.",
+  },
+  {
     label: "«la trattativa non salta per un documento mancante»",
     pattern: /trattativa non salta|non salta per un documento/i,
     why: "esito che dipende anche dalle controparti (§3.3)",

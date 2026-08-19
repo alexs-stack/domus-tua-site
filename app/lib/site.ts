@@ -41,10 +41,14 @@ export const site = {
   openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 14:30-19:00", "Sa 09:00-12:30"],
   rating: "4.9",
   reviewsCount: "531",
-  /** Conteggio ARROTONDATO per difetto, per le frasi "oltre 500 recensioni".
-      Derivato da reviewsCount (531): stessa fonte, così i due non divergono
-      (il test di content-integrity lo verifica). */
-  reviewsApprox: "500",
+  // NB: qui NON c'è più `reviewsApprox: "500"`. Esisteva per reggere le frasi "oltre 500
+  // recensioni", ed era la metà sbagliata di un'incoerenza che il sito portava in giro:
+  // "oltre 500" in quattordici punti e "531" nell'hero, cioè due numeri per lo stesso dato
+  // (voce 16 della checklist). La decisione del Documento finale è unificare su 531 — e il
+  // motivo è nel §6.3: «le prove devono essere forti perché sono ESATTE, non perché sono
+  // assolute». 531 è più credibile di "oltre 500" proprio perché nessuno inventa un 531.
+  // Il campo è stato tolto invece di essere collegato: era vivo solo per una formula che
+  // non si usa più.
   // NB: nessun conteggio video qui. Il vecchio `videosCountLabel: "440+"` era una stima non
   // verificata mostrata come dato: rimosso. Se il cliente fornisce il numero reale del canale
   // (@DOMUSTUASRLIMMOBILIARE) si potrà reintrodurre, con la fonte annotata come per gli altri
@@ -190,6 +194,21 @@ export const pendingConfirmation = {
       "(pubblico ≠ casella operativa). Nessuno dei due viene scelto o unificato qui.",
   },
 } as const;
+
+/**
+ * Il voto come si SCRIVE nella lingua di chi legge.
+ *
+ * `site.rating` è il valore macchina ("4.9"), quello che va nei dati strutturati. Ma in
+ * italiano, francese, tedesco e spagnolo il separatore decimale è la virgola, e "4.9" letto
+ * da un italiano è un refuso, non un numero. L'inglese resta col punto.
+ *
+ * Stava dentro HeroCinematic come costante locale, e infatti /recensioni scriveva "4.9/5 di
+ * media" in italiano mentre il francese aveva già "4,9/5 de moyenne": la stessa regola
+ * applicata a mano in posti diversi diverge sempre. Qui è una funzione sola.
+ */
+export function ratingLabel(locale: string): string {
+  return locale === "en" ? site.rating : site.rating.replace(".", ",");
+}
 
 /**
  * Origin pubblico del sito — FONTE UNICA.

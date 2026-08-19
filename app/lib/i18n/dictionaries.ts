@@ -1,5 +1,7 @@
 // i18n — fondamenta. IT è la lingua principale (SEO). EN/FR/DE/ES tradotti per chrome + hero + ricerca.
 // Il resto del corpo pagina segue in fase successiva sulla stessa architettura.
+import { site } from "../site";
+
 export const locales = ["it", "en", "fr", "de", "es"] as const;
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "it";
@@ -52,7 +54,7 @@ export const dictionaries: Record<Locale, Dict> = {
       subcopy: "Dal 2007 mettiamo le persone prima degli immobili. Ti accompagniamo passo dopo passo, dalla valutazione al rogito, unendo calore umano e strumenti innovativi: rendering, video, home staging e Open Domus.",
       ctaValuta: "Richiedi la valutazione del tuo immobile", ctaMetodo: "Scopri il Metodo", ctaCerco: "Cerco casa",
       founderRole: "Fondatrice · con te dal 2007", watch: "Guarda i video",
-      ratingSuffix: "su Google · oltre 500 recensioni",
+      ratingSuffix: `su Google · ${site.reviewsCount} recensioni`,
       chips: ["Video immobiliari", "Open Domus", "Domus D.O.C.", "Tradate · Varese"],
     },
     search: {
@@ -83,7 +85,7 @@ export const dictionaries: Record<Locale, Dict> = {
       subcopy: "Since 2007 we put people before properties. We guide you step by step, from valuation to the deed, combining human warmth with innovative tools: renderings, video, home staging and Open Domus.",
       ctaValuta: "Request a valuation of your property", ctaMetodo: "Discover the Method", ctaCerco: "I’m looking for a home",
       founderRole: "Founder · with you since 2007", watch: "Watch the videos",
-      ratingSuffix: "on Google · 500+ reviews",
+      ratingSuffix: `on Google · ${site.reviewsCount} reviews`,
       chips: ["Property videos", "Open Domus", "Domus D.O.C.", "Tradate · Varese"],
     },
     search: {
@@ -114,7 +116,7 @@ export const dictionaries: Record<Locale, Dict> = {
       subcopy: "Depuis 2007, nous plaçons les personnes avant les biens. Nous vous accompagnons pas à pas, de l’estimation à l’acte, en alliant chaleur humaine et outils innovants : rendus, vidéo, home staging et Open Domus.",
       ctaValuta: "Demandez l’estimation de votre bien", ctaMetodo: "Découvrir la Méthode", ctaCerco: "Je cherche un bien",
       founderRole: "Fondatrice · à vos côtés depuis 2007", watch: "Voir les vidéos",
-      ratingSuffix: "sur Google · plus de 500 avis",
+      ratingSuffix: `sur Google · ${site.reviewsCount} avis`,
       chips: ["Vidéos immobilières", "Open Domus", "Domus D.O.C.", "Tradate · Varèse"],
     },
     search: {
@@ -145,7 +147,7 @@ export const dictionaries: Record<Locale, Dict> = {
       subcopy: "Seit 2007 stellen wir Menschen vor Immobilien. Wir begleiten Sie Schritt für Schritt, von der Bewertung bis zum Notartermin, mit menschlicher Wärme und innovativen Werkzeugen: Renderings, Video, Home Staging und Open Domus.",
       ctaValuta: "Bewertung Ihrer Immobilie anfordern", ctaMetodo: "Die Methode entdecken", ctaCerco: "Ich suche eine Immobilie",
       founderRole: "Gründerin · an Ihrer Seite seit 2007", watch: "Videos ansehen",
-      ratingSuffix: "auf Google · über 500 Bewertungen",
+      ratingSuffix: `auf Google · ${site.reviewsCount} Bewertungen`,
       chips: ["Immobilienvideos", "Open Domus", "Domus D.O.C.", "Tradate · Varese"],
     },
     search: {
@@ -176,7 +178,7 @@ export const dictionaries: Record<Locale, Dict> = {
       subcopy: "Desde 2007 ponemos a las personas antes que los inmuebles. Te acompañamos paso a paso, de la valoración a la escritura, uniendo calidez humana y herramientas innovadoras: renders, vídeo, home staging y Open Domus.",
       ctaValuta: "Solicita la valoración de tu inmueble", ctaMetodo: "Descubre el Método", ctaCerco: "Busco casa",
       founderRole: "Fundadora · contigo desde 2007", watch: "Ver los vídeos",
-      ratingSuffix: "en Google · más de 500 reseñas",
+      ratingSuffix: `en Google · ${site.reviewsCount} reseñas`,
       chips: ["Vídeos inmobiliarios", "Open Domus", "Domus D.O.C.", "Tradate · Varese"],
     },
     search: {

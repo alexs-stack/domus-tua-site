@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Playfair_Display, Pinyon_Script } from "next/font/google";
 import "./globals.css";
-import { jsonLdScript, organizationJsonLd, webSiteJsonLd, siteUrl } from "./lib/site";
+import { jsonLdScript, organizationJsonLd, ratingLabel, site, webSiteJsonLd, siteUrl } from "./lib/site";
 import { defaultLocale, type Locale } from "./lib/i18n/dictionaries";
 import { LocaleProvider } from "./components/i18n/LocaleProvider";
 import PreviewBadge from "./components/PreviewBadge";
@@ -178,7 +178,7 @@ export const metadata: Metadata = {
     template: "%s · Domus Tua Immobiliare",
   },
   description:
-    "Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. 4.9/5 da oltre 500 recensioni.",
+    `Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. ${ratingLabel("it")}/5 su ${site.reviewsCount} recensioni Google.`,
   // NESSUN canonical qui, ed è deliberato. Un canonical nel layout è un valore EREDITATO da
   // ogni rotta che non lo sovrascrive: le 12 rotte editoriali lo fanno, /privacy e /cookie no
   // — e si ritrovavano a dichiarare la home come propria versione canonica. Un canonical
