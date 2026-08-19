@@ -8,6 +8,11 @@ import { comuneOf } from "../lib/comune";
 import { isCompletedSale, soldDetectionDate } from "../lib/realsmart/soldOverrides";
 import { getListingDataSourceStatus } from "../lib/realsmart/status";
 import CaseVenduteContent, { type SoldCard, type SoldStats } from "./CaseVenduteContent";
+import { breadcrumbJsonLd, jsonLdScript } from "../lib/site";
+
+/** Voce del briciolo di pane per questa pagina (voce 26 della checklist). */
+const BREADCRUMB_NAME = "Case vendute";
+const BREADCRUMB_PATH = "/case-vendute";
 
 export const metadata: Metadata = {
   title: "Case vendute a Tradate e provincia: i risultati di Domus Tua",
@@ -78,6 +83,12 @@ export default async function CaseVendutePage() {
 
   return (
     <>
+      {/* Briciolo di pane: è ciò che Google mostra al posto dell'URL nudo nei
+          risultati. Costruito da breadcrumbJsonLd (site.ts), non ricopiato. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(BREADCRUMB_NAME, BREADCRUMB_PATH)) }}
+      />
       <Header />
       {/* Proiezione ai SOLI campi che la card disegna. `toGridProperty` non basta qui:
           toglie descrizione e galleria ma lascia facts, features, excerpt, badges e

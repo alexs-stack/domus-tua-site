@@ -62,7 +62,6 @@ const copy = {
     squadraTrioAlt: "Il team Domus Tua in studio",
     squadraRedAlt: "Gli agenti Domus Tua in blazer rosso nella sede",
     squadraPremioAlt: "Raffaela Rizza con il riconoscimento TOP AGENCY",
-    squadraPremioCaption: "Riconoscimento TOP AGENCY",
   },
   en: {
     heroEyebrow: "About us",
@@ -109,7 +108,6 @@ const copy = {
     squadraTrioAlt: "The Domus Tua team in the studio",
     squadraRedAlt: "The Domus Tua agents in red blazers at the office",
     squadraPremioAlt: "Raffaela Rizza with the TOP AGENCY recognition",
-    squadraPremioCaption: "TOP AGENCY recognition",
   },
   fr: {
     heroEyebrow: "Qui sommes-nous",
@@ -156,7 +154,6 @@ const copy = {
     squadraTrioAlt: "L’équipe Domus Tua en studio",
     squadraRedAlt: "Les agents Domus Tua en blazer rouge à l’agence",
     squadraPremioAlt: "Raffaela Rizza avec la distinction TOP AGENCY",
-    squadraPremioCaption: "Distinction TOP AGENCY",
   },
   de: {
     heroEyebrow: "Über uns",
@@ -203,7 +200,6 @@ const copy = {
     squadraTrioAlt: "Das Domus Tua Team im Studio",
     squadraRedAlt: "Die Domus Tua Berater in roten Blazern im Büro",
     squadraPremioAlt: "Raffaela Rizza mit der Auszeichnung TOP AGENCY",
-    squadraPremioCaption: "Auszeichnung TOP AGENCY",
   },
   es: {
     heroEyebrow: "Quiénes somos",
@@ -250,7 +246,6 @@ const copy = {
     squadraTrioAlt: "El equipo de Domus Tua en el estudio",
     squadraRedAlt: "Los agentes de Domus Tua con blazer rojo en la oficina",
     squadraPremioAlt: "Raffaela Rizza con el reconocimiento TOP AGENCY",
-    squadraPremioCaption: "Reconocimiento TOP AGENCY",
   },
 };
 
@@ -386,8 +381,23 @@ export default function ChiSiamoContent({ since }: { since: number }) {
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                 className="object-cover object-center"
               />
-              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent px-4 pb-3 pt-10 text-xs font-medium uppercase tracking-[0.14em] text-cream">
-                {c.squadraPremioCaption}
+              {/* §6.3 — la didascalia diceva «Riconoscimento TOP AGENCY»: il nome del premio
+                  senza la sua sostanza. Denominazione e ANNI arrivano da site.award, che è la
+                  fonte unica, e il link porta al profilo Wikicasa. Il documento è esplicito
+                  sul perché serva verificabile proprio qui: «le prove devono essere forti
+                  perché sono esatte». Un premio che si può controllare vale più di uno
+                  raccontato — e tre anni consecutivi sono un andamento, uno è un episodio. */}
+              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/80 to-transparent px-4 pb-3 pt-10 text-xs font-medium uppercase tracking-[0.14em] text-cream">
+                <a
+                  href={site.award.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link-draw tap-target inline-flex flex-wrap items-baseline gap-x-2 text-cream transition-opacity duration-300 hover:opacity-90"
+                >
+                  <span>{site.award.label}</span>
+                  <span aria-hidden className="opacity-70">·</span>
+                  <span>{site.award.years.join(" · ")}</span>
+                </a>
               </figcaption>
             </MaskReveal>
           </div>

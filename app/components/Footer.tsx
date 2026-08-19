@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRef } from "react";
 import { Logo } from "./Logo";
 import { reopenConsent } from "../lib/consent";
@@ -100,13 +101,23 @@ export default function Footer() {
       // di altezza), condiviso dai due tagli. La prima notifica post-observe è
       // ridondante (tutto appena misurato). Ritorna la disconnessione.
       const watchHeight = (target: HTMLElement, onChange: (h: number) => void) => {
-        let first = true;
         let lastH = target.offsetHeight;
+        // NIENTE flag `first` qui, e la sua assenza è il punto.
+        //
+        // C'era: la prima consegna del ResizeObserver veniva scartata a priori, perché RO
+        // notifica sempre una volta all'`observe()` senza che nulla sia cambiato. Ma quello
+        // scarto NON aggiornava `lastH`, e allora una variazione arrivata FRA la misura
+        // iniziale e quella prima consegna spariva per sempre: la callback che la portava
+        // veniva buttata, e le successive confrontavano contro un `lastH` ormai vecchio.
+        //
+        // È come si perdeva un pixel: il sigillo Wikicasa del footer è un SVG che risolve
+        // dopo il primo paint, alzava la colonna di 1px, e `--dt-footer-h` restava a 886
+        // mentre il footer era 887 — l'uncover scopriva un pixel di troppo, per sempre.
+        // Stesso meccanismo per un font che arriva tardi o per il launcher dell'assistente.
+        //
+        // Il confronto `h === lastH` fa già da solo il lavoro del flag: alla prima consegna
+        // l'altezza è invariata e si esce, senza però perdere il caso in cui non lo è.
         const ro = new ResizeObserver(() => {
-          if (first) {
-            first = false;
-            return;
-          }
           const h = target.offsetHeight;
           if (h === lastH) return;
           lastH = h;
@@ -341,6 +352,46 @@ export default function Footer() {
             <p className="mt-6 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
               Con Domus Tua è facile vendere ed è sicuro acquistare.
             </p>
+            {/* §6.3 — il premio va esposto anche nel footer, cioè su OGNI pagina: è l'unica
+                prova indipendente che l'agenzia possiede (il 4,9/531 è pur sempre il voto
+                dei suoi clienti), e finora viveva solo nel capitolo recensioni della home.
+                Chi atterra su una scheda immobile da Google non lo incontrava mai.
+
+                Il sigillo è lo stesso file di StarReviews, `alt=""` perché il testo accanto
+                lo dice già — due letture della stessa cosa per chi usa uno screen reader.
+                Il fondo qui è espresso e l'SVG è pensato per fondi chiari: sta dentro una
+                pastiglia carta, come il logo due righe sopra. */}
+            <a
+              href={site.award.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tap-target mt-6 inline-flex items-center gap-3 text-cream/70 transition-colors duration-300 hover:text-cream"
+            >
+              {/* Misure ESPLICITE sulla scatola, non solo sugli attributi dell'immagine.
+                  L'SVG è `unoptimized` e risolve dopo il primo paint: senza un'altezza
+                  fissata, la colonna del footer cresceva di 1px al suo arrivo — e il
+                  footer, qui, non è un blocco qualunque. La sua altezza è scritta in
+                  `--dt-footer-h`, su cui poggia tutto l'uncover del desktop: un pixel di
+                  scarto e la cornice scopre un pixel di troppo. L'ha visto l'e2e. */}
+              <span className="inline-flex h-[62px] w-[102px] shrink-0 items-center justify-center rounded-lg bg-paper">
+                <Image
+                  src="/badges/wikicasa-top-agency.svg"
+                  alt=""
+                  width={78}
+                  height={38}
+                  unoptimized
+                  className="block h-[38px] w-[78px]"
+                />
+              </span>
+              <span className="leading-tight">
+                <span className="block text-[0.8rem] font-semibold text-cream">
+                  {site.award.label}
+                </span>{" "}
+                <span className="link-draw block text-[0.75rem]">
+                  {site.award.years.join(" · ")}
+                </span>
+              </span>
+            </a>
             <div className="tap-list mt-7 flex flex-col gap-3 text-sm text-cream/70">
               <a href={site.phone.href} className="tap-target flex items-center gap-3 hover:text-cream">
                 <Phone className="h-4 w-4 text-red-soft" /> {site.phone.label}

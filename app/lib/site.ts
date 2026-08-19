@@ -196,6 +196,28 @@ export const pendingConfirmation = {
 } as const;
 
 /**
+ * BreadcrumbList di una pagina di secondo livello — FONTE UNICA.
+ *
+ * Era ricopiato a mano in cinque file, sempre nella stessa forma home → pagina, e otto
+ * rotte restavano scoperte (voce 26): /vendi, /acquista, /metodo, /open-domus, /servizi,
+ * /recensioni, /contatti, /case-vendute. Il briciolo di pane non è decorazione — è ciò
+ * che Google usa per mostrare il percorso al posto dell'URL nudo nei risultati.
+ *
+ * `path` con lo slash iniziale e senza quello finale ("/vendi"): è la forma delle rotte
+ * di questo sito, ed è quella che il canonical già usa.
+ */
+export function breadcrumbJsonLd(name: string, path: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: site.name, item: siteUrl },
+      { "@type": "ListItem", position: 2, name, item: `${siteUrl}${path}` },
+    ],
+  };
+}
+
+/**
  * Il territorio come si DICE in pagina — FONTE UNICA.
  *
  * Nei dati strutturati `areaServed` era già stato esteso all'alta provincia di Como (§5.5:

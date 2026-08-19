@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import MetodoContent from "./MetodoContent";
+import { breadcrumbJsonLd, jsonLdScript } from "../lib/site";
+
+/** Voce del briciolo di pane per questa pagina (voce 26 della checklist). */
+const BREADCRUMB_NAME = "Il Metodo Domus Tua";
+const BREADCRUMB_PATH = "/metodo";
 
 export const metadata: Metadata = {
   // §6.8: assoluto perché il title porta già il marchio — col suffisso del template
@@ -16,5 +21,15 @@ export const metadata: Metadata = {
 };
 
 export default function MetodoPage() {
-  return <MetodoContent />;
+  return (
+    <>
+      {/* Briciolo di pane: è ciò che Google mostra al posto dell'URL nudo nei
+          risultati. Costruito da breadcrumbJsonLd (site.ts), non ricopiato. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(BREADCRUMB_NAME, BREADCRUMB_PATH)) }}
+      />
+      <MetodoContent />
+    </>
+  );
 }
