@@ -749,8 +749,15 @@ export default function HeroCinematic() {
       <div ref={mediaRef} data-hero-media className="absolute inset-0">
         {/* Layer profondità puntatore: mediaRef è già owner di clip/scale del
             frame-in e l'IMG del ken-burns — il transform x/y vive SOLO qui.
-            Il clip-path del genitore ritaglia comunque l'overscan. */}
-        <div className="absolute inset-0">
+            Il clip-path del genitore ritaglia comunque l'overscan.
+            `data-hero-photo` è il gancio della FASCIA del telefono: sotto i 768
+            questo layer smette di essere `inset-0` e prende la geometria
+            condivisa con la sagoma del preloader (globals.css, blocco «La
+            fascia di Raffaela»). Sta qui e non su `[data-hero-media]` perché
+            quello resta padrone del clip-path e del parallax sull'INTERA
+            sezione: la cornice del frame-in continua a inquadrare la sezione,
+            non la fascia. */}
+        <div data-hero-photo className="absolute inset-0">
           {/* Base sempre presente: foto reale (poster finché non c'è il video) */}
           <Image
             src={heroCinematic.base}

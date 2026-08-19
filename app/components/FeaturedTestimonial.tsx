@@ -221,7 +221,7 @@ export default function FeaturedTestimonial(props: Props) {
               sipario si apra, si vedrebbe un rettangolo scuro a tutta pagina —
               esattamente la giuntura che non vogliamo. */}
           <MaskReveal from="right" zoom={1.1} className="absolute inset-0" innerClassName="absolute inset-0">
-            <div data-ft-photo className="absolute inset-0">
+            <div data-ft-photo className="dt-mob-band absolute inset-0">
               <Parallax speed={0.12} scale={1.12} mobile className="absolute inset-0" innerClassName="absolute inset-0">
                 <Image
                   src={image}

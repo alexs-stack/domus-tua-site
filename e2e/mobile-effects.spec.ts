@@ -438,6 +438,7 @@ test("parallax: su /vendi l'hero e il numero-fantasma derivano in translateY, wi
         tf: getComputedStyle(inner).transform,
         wc: inner.style.willChange,
         heroH: hero.offsetHeight,
+        innerH: inner.offsetHeight,
       };
     }, SEL);
 
@@ -446,11 +447,19 @@ test("parallax: su /vendi l'hero e il numero-fantasma derivano in translateY, wi
   expect(m0.a, "l'overscan 1.08 non è applicato").toBeCloseTo(1.08, 3);
   expect(a0.wc).toBe("transform");
 
-  await scrollTo(page, 400);
+  // A META' del layer, non a 400 px fissi. Da quando la foto di PageHero sotto
+  // i 768 e' una FASCIA (globals.css, "Le foto a tutto schermo diventano
+  // fasce") il layer non e' piu' alto quanto la sezione: a 390 sono ~304 px,
+  // quindi a scrollY 400 e' gia' uscito dal campo e will-change e' tolto —
+  // correttamente. L'asserzione da fare resta la stessa ("in campo il layer e'
+  // promosso"), ma il punto in cui la si misura va preso dalla geometria vera
+  // invece che da un numero scritto a mano.
+  const dentro = Math.max(80, Math.round((await leggi()).innerH / 2));
+  await scrollTo(page, dentro);
   await expect
     .poll(async () => Math.abs(matrice((await leggi()).tf).f - m0.f), {
       timeout: 10_000,
-      message: "fra scrollY 0 e 400 la translateY dell'hero di /vendi non cambia",
+      message: "lungo lo scrub la translateY dell'hero di /vendi non cambia",
     })
     .toBeGreaterThan(1);
   const a400 = await leggi();

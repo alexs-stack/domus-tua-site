@@ -160,18 +160,28 @@ export default function HorizonStory({ children }: { children?: ReactNode }) {
     <>
       {/* Atto 1 — fondale: la foto resta pinnata mentre la cupola le sale sopra. */}
       <div className="relative z-0 h-[160svh]">
-        <div className="sticky top-0 h-svh overflow-hidden">
-          <Image
-            src="/media/hero-aerial.jpg"
-            alt={c.backdropAlt}
-            fill
-            sizes="100vw"
-            // A differenza dell'hero in PageHero, qui la foto non ha velature scure:
-            // è il fondale a schermo intero del primo atto, quindi resta il soggetto
-            // — quality 60 la rendeva visibilmente sgranata sui tetti/alberi.
-            quality={75}
-            className="object-cover"
-          />
+        {/* `bg-cream-deep`: sul desktop non si vede — la foto copre il pannello
+            per intero — ma sotto i 768 la foto diventa una fascia centrata
+            (globals.css, «Le foto a tutto schermo diventano fasce») e attorno a
+            lei ci vuole il crema del capitolo, non il vuoto. Il tono è quello
+            del velo qui sotto: un campo solo, nessuna giuntura. */}
+        <div className="sticky top-0 h-svh overflow-hidden bg-cream-deep">
+          {/* Il wrapper esiste per la fascia: `Image fill` si posiziona da sé
+              su `inset-0` del pannello, e la geometria del telefono va scritta
+              su un nodo che possiamo governare. */}
+          <div className="dt-mob-band dt-mob-band--centro absolute inset-0">
+            <Image
+              src="/media/hero-aerial.jpg"
+              alt={c.backdropAlt}
+              fill
+              sizes="100vw"
+              // A differenza dell'hero in PageHero, qui la foto non ha velature scure:
+              // è il fondale a schermo intero del primo atto, quindi resta il soggetto
+              // — quality 60 la rendeva visibilmente sgranata sui tetti/alberi.
+              quality={75}
+              className="object-cover"
+            />
+          </div>
           {/* La ricerca (crema) consegna alla foto aerea: senza velo il bordo
               è un taglio da ΔRGB 583. Qui il crema entra dentro il cielo. */}
           <SurfaceVeil edge="top" tone="cream-deep" height="22svh" />

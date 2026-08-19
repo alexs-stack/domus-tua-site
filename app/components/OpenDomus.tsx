@@ -232,7 +232,13 @@ export default function OpenDomus() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={c.videoAria}
-                className="group relative block aspect-[4/5] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[16/10] lg:aspect-auto lg:h-[min(72svh,42rem)]"
+                /* `aspect-[3/2]` sotto i 640 (era 4/5): la sorgente
+                   raffaela-founder.jpg è 1024×682, cioè 3:2 esatto — in una
+                   cornice 4/5 `object-cover` ne buttava il 47 % della
+                   larghezza. Ora il rapporto della cornice è quello dello
+                   scatto e non si taglia più niente. Da 640 in su vale
+                   `sm:aspect-[16/10]`, e da 1024 `lg:aspect-auto`: invariati. */
+                className="group relative block aspect-[3/2] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[16/10] lg:aspect-auto lg:h-[min(72svh,42rem)]"
               >
                 {/* Reveal liquido sul solo media (signature della sezione):
                     link e play restano sopra il velo, mai clippati.

@@ -673,8 +673,8 @@ export default function Paths() {
         <div ref={screenRef} className="dt-paths_screen relative">
           {/* Fondale — il team, pinnato, col titolo gigante (rif. hero "Just
               scroll it"): è la pagina su cui i due percorsi saliranno. */}
-          <div className="dt-paths_intro relative flex min-h-[72svh] items-end overflow-hidden lg:min-h-0">
-            <div data-paths-intro-img className="absolute inset-0">
+          <div className="dt-paths_intro relative flex min-h-[72svh] items-end overflow-hidden bg-espresso lg:min-h-0">
+            <div data-paths-intro-img className="dt-mob-band absolute inset-0">
               <Image
                 src={INTRO_IMG}
                 alt={c.introAlt}

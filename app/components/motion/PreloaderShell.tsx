@@ -182,7 +182,10 @@ export default function PreloaderShell() {
                 <PreChars text="Raffaela Rizza" script />
               </span>
             </div>
-            <span className="mt-[11vh] flex flex-row items-center gap-4 md:absolute md:right-[7vw] md:top-1/2 md:mt-0 md:-translate-y-1/2 md:flex-col md:items-start md:gap-3">
+            <span
+              data-pre-caps
+              className="mt-[11vh] flex flex-row items-center gap-4 md:absolute md:right-[7vw] md:top-1/2 md:mt-0 md:-translate-y-1/2 md:flex-col md:items-start md:gap-3"
+            >
               <span data-pre-cap style={idx(0)} className={CAP}>
                 Immobiliare
               </span>
@@ -198,7 +201,7 @@ export default function PreloaderShell() {
               `linear()` campionata dalla CustomEase `dtLoader` di gsap.ts;
               GSAP solo in ripiego). Sul telefono è più spessa e più corta
               (globals.css), non assente. */}
-          <div className="flex flex-col items-center">
+          <div data-pre-foot className="flex flex-col items-center">
             <span data-pre-progress className="block h-16 w-px overflow-hidden bg-cream/20 opacity-0">
               <span data-pre-track className="block h-full w-full bg-cream" />
             </span>

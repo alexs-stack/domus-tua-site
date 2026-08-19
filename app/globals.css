@@ -2248,6 +2248,157 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
     height: min(64px, 10svh);
     width: 2px;
   }
+
+  /* ── LA FASCIA DI RAFFAELA ────────────────────────────────────────────
+     Il difetto, misurato prima di toccare niente (docs/foto-mobile.md §1):
+     la foto dell'hero e la sagoma del preloader sono lo stesso scatto
+     orizzontale, 2000×1415 (rapporto 1,413). A `object-cover` dentro una
+     scatola verticale il ritaglio è tutto sulla LARGHEZZA, e resta:
+
+       preloader  390×844   → 32,7 % della sorgente
+       hero       390×1052  → 26,2 %   (la sezione sfonda il viewport)
+
+     Cioè due terzi di stanza buttati, e la striscia che sopravvive è centrata
+     al 50 %: Raffaela sta a sinistra (corpo dal 4,5 % al 28 %, la mano fino al
+     46 %), quindi dentro la striscia non ci finisce lei — ci finisce il suo
+     AVAMBRACCIO, ingrandito tre volte. È l'immagine che ha segnalato il
+     cliente. Sul desktop non succede: a 1440×900 la scatola è più larga della
+     sorgente, `keepW` è il 100 % e si taglia solo l'8 % in alto.
+
+     La geometria dice che le strade sono due sole: o si cambia il RAPPORTO
+     della scatola, o si taglia un altro file. Qui si cambia il rapporto — la
+     foto smette di riempire l'altezza e diventa una FASCIA col rapporto della
+     sorgente, alla scala del desktop, appoggiata al piede della prima
+     schermata. Niente si ingrandisce più: si rimpicciolisce e si posiziona,
+     che è la richiesta.
+
+     Un solo insieme di numeri per DUE nodi — la sagoma del preloader e la foto
+     dell'hero — perché è quello che li fa coincidere quando l'arco si apre: la
+     silhouette diventa la stanza solo se le due immagini hanno la stessa
+     scatola. (Prima non coincidevano nemmeno: 844 contro 1052. Il patto
+     «pixel su pixel» scritto in PreloaderShell.tsx valeva solo da 768 in su.)
+     Entrambi i nodi partono da `top: 0` della propria scatola — il pannello
+     fisso del sipario e la sezione dell'hero cominciano tutti e due a y=0 con
+     la pagina ferma — quindi ancorarli con lo STESSO `top` calcolato li
+     sovrappone senza dipendere da come il browser conta l'altezza. */
+  :root {
+    /* La larghezza della fascia, in vw: è la manopola. 180vw = 702 px su 390,
+       cioè la foto alla scala che avrebbe su uno schermo largo il doppio.
+       Raffaela viene 132 px larga — il 34 % dello schermo, la stessa quota
+       che occupa sul desktop (475 px su 1440) — invece dei 1 190 px di
+       avambraccio di prima. */
+    --dt-fascia-w: 180vw;
+    --dt-fascia-h: calc(var(--dt-fascia-w) / 1.4134);
+    /* Lo scorrimento a sinistra: la figura sta nella metà sinistra dello
+       scatto, e questo la porta al bordo, dove sta anche sul desktop. Il
+       limite è la figura stessa: il suo fianco sinistro comincia al 4,5 %
+       della sorgente, cioè a 31,6 px di 702 — oltre i 7vw (27,3 px) le si
+       taglierebbe il braccio contro il bordo dello schermo, che è esattamente
+       il difetto da cui si parte. */
+    --dt-fascia-x: -7vw;
+  }
+  .dt-preloader [data-pre-figure],
+  [data-hero-media] [data-hero-photo] {
+    left: var(--dt-fascia-x);
+    right: auto;
+    width: var(--dt-fascia-w);
+    height: var(--dt-fascia-h);
+    top: calc(100svh - var(--dt-fascia-h));
+    bottom: auto;
+  }
+  /* Il bordo alto della fascia è un taglio netto solo sulla FOTO (la sagoma è
+     un ritaglio con canale alpha: lì non c'è nessun rettangolo da nascondere,
+     e una maschera le sfumerebbe la testa). Si spegne in dissolvenza sul
+     fondo espresso della sezione, così la fascia non legge come un'immagine
+     incollata ma come la stanza che emerge dal buio. */
+  [data-hero-media] [data-hero-photo] {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+  }
+
+  /* Ora che la figura c'è davvero, il testo del sipario deve farle posto — e
+     lo fa nel modo in cui glielo fa GIÀ il desktop: lì i caps stanno in
+     colonna sul bordo destro (`md:absolute md:right-[7vw]`) proprio perché a
+     sinistra c'è Raffaela. Sul telefono la stessa regola, con gli stessi
+     mezzi: caps in colonna a destra, e il piede (linea di carica + payoff)
+     allineato a destra. Prima erano centrati sopra la sua giacca bianca —
+     cream al 60 % su pizzo bianco, cioè illeggibili — e questo era vero solo
+     perché sotto non c'era nessuno. */
+  .dt-preloader [data-pre-caps] {
+    align-self: flex-end;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-top: 8vh;
+    padding-right: 6vw;
+  }
+  .dt-preloader [data-pre-foot] {
+    align-self: flex-end;
+    align-items: flex-end;
+    padding-right: 6vw;
+  }
+  .dt-preloader [data-pre-foot] p {
+    text-align: right;
+  }
+
+  /* ── LE FOTO A TUTTO SCHERMO DIVENTANO FASCE ──────────────────────────
+     Lo stesso difetto della fascia di Raffaela, moltiplicato per il resto del
+     sito. Misurato a 390 prima di toccare niente (`npm run probe:crop`):
+
+       hero-aerial.jpg        HorizonStory     23 % della larghezza
+       hero/premium_*.jpg     PageHero (×8)    27-31 %
+       raffaela-team-sede.jpg Paths, intro     36 %
+       consulenza.jpg         Testimonianza    42-48 %
+       rendering_01           Servizi, lastra  51 %
+       raffaela-founder.jpg   Open Domus       53 %
+
+     Sul desktop gli stessi nodi ne tengono l'80-94 %: non è una fotografia
+     sbagliata, è una scatola verticale che chiede a una fotografia
+     orizzontale di riempirle l'altezza. `object-cover` allora ingrandisce
+     finché l'altezza basta, e la larghezza la butta.
+
+     La geometria non lascia scelta: quanta sorgente sopravvive dipende SOLO
+     dal rapporto della scatola (`keepW = rapportoScatola / rapportoSorgente`).
+     Non c'è object-position che rimedi, non c'è `sizes` che rimedi, non c'è
+     scala che rimedi — spostare o ingrandire cambia QUALE striscia si vede,
+     non quanta. Quindi si cambia il rapporto: sotto i 768 il layer foto
+     smette di riempire l'altezza della sezione e diventa una FASCIA alta
+     78vw, cioè un rapporto di 1,28. Su una sorgente 16:9 tiene il 71 % della
+     larghezza invece del 29 %; su una 4:3 la tiene tutta.
+
+     La fascia si spegne in dissolvenza sul fondo scuro della sezione invece
+     di finire con un taglio netto: sotto continua il colore, non il vuoto, e
+     il testo che ci passa sopra resta leggibile come prima.
+
+     Non è una regola nuova per il telefono: è la regola del desktop —
+     «la fotografia si vede tutta» — resa possibile su uno schermo verticale.
+     Da 768 in su la classe non esiste e `absolute inset-0` resta intatto. */
+  .dt-mob-band {
+    top: 0;
+    bottom: auto;
+    height: var(--dt-band-h, 78vw);
+    -webkit-mask-image: linear-gradient(to bottom, #000 var(--dt-band-solid, 72%), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 var(--dt-band-solid, 72%), transparent 100%);
+  }
+  /* La variante ancorata in basso, per le sezioni in cui il testo sta sopra
+     la fotografia e non sotto. */
+  .dt-mob-band--basso {
+    top: auto;
+    bottom: 0;
+    -webkit-mask-image: linear-gradient(to top, #000 var(--dt-band-solid, 72%), transparent 100%);
+    mask-image: linear-gradient(to top, #000 var(--dt-band-solid, 72%), transparent 100%);
+  }
+  /* La variante centrata, per le fotografie che vivono in mezzo al crema e non
+     sotto un testo: lì la dissolvenza non serve — un bordo netto su un campo
+     chiaro legge come una fotografia impaginata, una sfumatura come una
+     stampa venuta male. */
+  .dt-mob-band--centro {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
 
 /* ---------- IL CARICAMENTO FRA LE PAGINE (PageTransition.tsx) ----------

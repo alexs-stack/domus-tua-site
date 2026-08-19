@@ -355,7 +355,13 @@ export default function ChiSiamoContent({ since }: { since: number }) {
             <MaskReveal
               from="bottom"
               delay={0.15}
-              className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line"
+              /* team-red.jpg è l'unica VERTICALE del gruppo (809×936, 0,86):
+                 in una cornice 4/3 `object-cover` le tagliava il 35 %
+                 dell'altezza, cioè teste e piedi. Sotto i 640 — dove la
+                 griglia è a una colonna — la cornice prende il rapporto dello
+                 scatto; da 640 in su resta 4/3 come le sorelle, per non
+                 sfilare la riga della griglia. */
+              className="relative aspect-[7/8] overflow-hidden rounded-[1.5rem] border border-line sm:aspect-[4/3]"
               innerClassName="absolute inset-0"
             >
               <Image

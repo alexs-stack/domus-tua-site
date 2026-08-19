@@ -423,12 +423,12 @@ export default function Services() {
               come un fondale dietro al testo in overlay. */}
           <article
             data-cursor="scopri"
-            className="group relative min-h-[24rem] overflow-hidden rounded-[2rem] border border-line sm:min-h-[32rem] lg:min-h-[38rem]"
+            className="group relative min-h-[24rem] overflow-hidden rounded-[2rem] border border-line bg-graphite sm:min-h-[32rem] lg:min-h-[38rem]"
           >
             <MaskReveal
               from="bottom"
               zoom={1.12}
-              className="absolute inset-0"
+              className="dt-mob-band absolute inset-0"
               innerClassName="absolute inset-0"
             >
               {/* mob off (misura). A 390x664 la cornice è alta 405px e
