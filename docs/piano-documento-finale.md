@@ -1,6 +1,19 @@
 # Piano di implementazione — Documento Finale di Sintesi
 
-> **Stato al 19 agosto 2026 — commit `8dfb7ba`.**
+> **Stato al 19 agosto 2026 — fino al commit `b60d58e`.**
+> **Fasi 0, 1 e 3 chiuse** per tutto ciò che non dipende dalla cliente. Restano aperte in
+> Fase 0 le due voci esterne (testi legali, `NEXT_PUBLIC_SITE_URL`); in Fase 3 restano tre
+> voci che sono **decisioni di copy**, non correzioni meccaniche, elencate in §4bis.
+>
+> Tre scoperte fatte eseguendo, che il piano non prevedeva:
+> - `reviewsApprox` — il campo nato per allineare «oltre 500» e «531» **non lo usava
+>   nessuno**: descriveva l'incoerenza invece di risolverla. Tolto; vince il numero esatto.
+> - Il blocco `hero` di `dictionaries.ts` teneva otto campi morti che erano la copia
+>   **ferma** dell'hero prima del §6.1 («Ti accompagniamo», «oltre 500»). Rimossi.
+> - Un pixel di scarto in `--dt-footer-h` ha rivelato un bug in `watchHeight`: il
+>   `ResizeObserver` scartava la prima consegna senza aggiornare il riferimento, e una
+>   variazione arrivata in quella finestra spariva per sempre.
+>
 > **Fase 1 chiusa** e **Fase 0 chiusa per la parte che non dipende dalla cliente.**
 > In esecuzione il residuo del §3.3 si è rivelato più profondo di quanto questo piano
 > stimasse: **24 occorrenze, non 14** — le forme aggettivali («mauvaises surprises»,
@@ -157,6 +170,17 @@ chieste in un colpo solo, non a rate.
 | 13 | Accensione di **Speed Insights** nella dashboard Vercel prima del cutover | Voce 34 |
 
 ---
+
+## 3bis. Cosa resta della Fase 3, e perché non l'ho fatto
+
+Tre voci. Nessuna è bloccata da noi: sono **decisioni di copy**, e vanno viste prima di
+essere scritte in cinque lingue.
+
+| Voce | Stato | Perché serve una decisione |
+|---|---|---|
+| `FAQPage` su `/open-domus` | Pronto a farsi | Le sue quattro domande **non** duplicano `/domande-frequenti` (verificate una per una), quindi la policy del repo — «tre FAQPage per lo stesso contenuto sarebbero tre dichiarazioni in conflitto» — non lo vieta. Ma il markup deve leggere le stesse stringhe che la pagina mostra, e quelle vivono dentro un blocco copy a cinque lingue: vanno estratte in un modulo come `app/lavora-con-noi/faq.ts`. È un refactor, non un'aggiunta. |
+| «Ti accompagniamo» → attività verificabili | Da approvare | Sei stringhe × cinque lingue. È **voce del brand**, non una correzione meccanica: il §2 dice cosa sostituire, non con quali parole. Alcune di quelle frasi contengono già lo specifico giusto dopo il verbo generico («nelle visite, nella documentazione, nella proposta»): va cambiato il verbo, non buttato il contenuto. |
+| Versioni brevi del metodo che si dichiarano tali | Da approvare | Stessa natura. Il §4.2 detta il senso — «I nove passaggi del Metodo Domus, in sintesi» — ma su `/open-domus` le cinque fasi sono quelle dell'**evento**, non del metodo, e vanno distinte invece che allineate a forza. |
 
 ## 4. Il piano
 
