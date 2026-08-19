@@ -1,5 +1,20 @@
 # Piano di implementazione — Documento Finale di Sintesi
 
+> **Stato al 19 agosto 2026 — commit `8dfb7ba`.**
+> **Fase 1 chiusa** e **Fase 0 chiusa per la parte che non dipende dalla cliente.**
+> In esecuzione il residuo del §3.3 si è rivelato più profondo di quanto questo piano
+> stimasse: **24 occorrenze, non 14** — le forme aggettivali («mauvaises surprises»,
+> «böse Überraschungen», «sorpresas desagradables») non erano state contate, e in
+> `VendiContent.tsx` l'italiano era già corretto mentre le quattro traduzioni no.
+> Restano aperte, in Fase 0, solo le due voci esterne: testi legali e
+> `NEXT_PUBLIC_SITE_URL`.
+>
+> ⚠️ **Bloccante scoperto durante la verifica, preesistente e indipendente da questo
+> lavoro:** il server di sviluppo risponde **500 su tutte le pagine** per un errore CSS
+> generato da Tailwind (`env()` senza argomento, da `Footer.tsx:448`). Il build di
+> produzione passa. Blocca la suite e2e e ogni verifica visiva in locale — quindi i
+> cancelli delle Fasi 2 e 3 non sono eseguibili finché non è risolto.
+
 > Verifica del *Documento Finale di Sintesi* (Domus Tua, 11 agosto 2026) contro il codice
 > reale, al 19 agosto 2026, e piano di esecuzione di ciò che resta.
 >
