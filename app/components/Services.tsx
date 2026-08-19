@@ -369,8 +369,16 @@ export default function Services() {
             >
               {/* Secondo piano: il pannello è più largo della cornice (118%) ed
                   è dentro quel gioco che la foto pana in senso contrario alla
-                  corsa del nastro, di una quota diversa per lastra. */}
-              <div className="dt-rail_pan" data-depth={DEPTHS[i]}>
+                  corsa del nastro, di una quota diversa per lastra.
+                  La quota è UNA e si dichiara due volte perché la leggono due
+                  padroni diversi: `data-depth` il tween GSAP da 1024 in su,
+                  `--depth` la regola CSS che sotto la soglia fa lo stesso pan
+                  sul dito («parità mobile 2», scheda 20). */}
+              <div
+                className="dt-rail_pan"
+                data-depth={DEPTHS[i]}
+                style={{ "--depth": DEPTHS[i] } as React.CSSProperties}
+              >
                 <Image
                   src={SHOTS[i]}
                   alt=""

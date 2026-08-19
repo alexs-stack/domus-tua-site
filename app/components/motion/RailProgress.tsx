@@ -11,6 +11,15 @@
    e una fila che esce dal bordo destro senza barra non dice a nessuno che c'è
    dell'altro fuori campo. Il gesto c'era, mancava l'invito.
 
+   E DA «PARITÀ MOBILE 2» (scheda 20) FA UN SECONDO MESTIERE. Il nastro
+   desktop ha due piani: il track che scorre e, dentro ogni cornice, il media
+   che pana in senso contrario di una quota per tessera (`data-depth`) — sono
+   le due velocità a fare la profondità. Sotto i 1024 il primo piano ce l'ha
+   già il dito, il secondo mancava del tutto. Adesso la stessa frazione 0→1
+   che muove il pallino viene scritta anche sullo scroller, e il CSS la
+   trasforma nello stesso `translateX` per pan: stesso effetto del desktop,
+   parametri (la corsa) dettati dal dito invece che dallo scroll verticale.
+
    NON È COREOGRAFIA, ED È DELIBERATO. Niente GSAP, niente ScrollTrigger,
    niente rAF: il dito è già la sorgente del tempo, e ricamparlo sarebbe
    lavoro in più sul thread principale per dire esattamente la stessa cosa.
@@ -94,8 +103,22 @@ export default function RailProgress({
       }
     };
     // Nell'handler resta una sola lettura, ed è l'unica che cambia davvero.
+    // La frazione si scrive in DUE posti, e il secondo è il pan del nastro
+    // («parità mobile 2», scheda 20): sull'host, dove muove il pallino, e
+    // sullo SCROLLER, da cui i `.dt-rail_pan`/`.dt-socialrail_pan` la
+    // ereditano per panare la foto dentro la cornice in senso contrario alla
+    // corsa — il secondo piano che da 1024 in su fa GSAP e che sotto non
+    // c'era. È una `setProperty` in più su un evento già in ascolto: niente
+    // ScrollTrigger, niente rAF, niente will-change (l'alleggerimento
+    // nominato è proprio questo — il pan mobile non porta con sé un trigger).
     const write = () => {
-      host.style.setProperty("--rail-p", room <= 1 ? "0" : `${el.scrollLeft / room}`);
+      const still = room <= 1;
+      const p = still ? 0 : el.scrollLeft / room;
+      host.style.setProperty("--rail-p", `${p}`);
+      // A nastro fermo (ci sta tutto, `data-flat`) il pallino va a inizio
+      // pista — ma il pan no: senza corsa non c'è parallasse, e 0 lo
+      // lascerebbe scentrato di `depth` per sempre. .5 è il riposo.
+      el.style.setProperty("--rail-p", still ? "0.5" : `${p}`);
     };
     measure();
     write();
@@ -118,6 +141,10 @@ export default function RailProgress({
     return () => {
       el.removeEventListener("scroll", write);
       window.removeEventListener("resize", onResize);
+      // Ruotando a landscape ≥1024 il nastro passa a GSAP, che scrive
+      // `xPercent` inline sugli stessi pan: la frazione va tolta o resterebbe
+      // ferma l'ultima posizione del dito sotto il tween nuovo.
+      el.style.removeProperty("--rail-p");
     };
   }, [touchRail, scroller]);
 

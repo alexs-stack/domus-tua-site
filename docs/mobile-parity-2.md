@@ -1255,3 +1255,49 @@ script, servendo lo skip, sostituisce il failsafe con uno da `INTRO_T.diveDur +
 350 ms`: chi salta riprende la pagina in ~1,9 s anche se il JavaScript non
 arriva affatto. La chiusura del sipario è una funzione sola (`fine`) armata due
 volte, e `intro-clocks` pretende entrambe le armature.
+
+## 11. Fase 3 — i set piece, e l'intro che torna lenta (2026-08-18)
+
+### 11.1 La durata dell'intro è una scelta di prodotto, e ha un numero solo
+
+Il cliente, guardando la Fase 1: «il preloader dev'essere lento come prima, sia
+da mobile che da desktop — è bello da vedere con le animazioni lente». La
+lettura è giusta e la causa non era una timeline accorciata: **il film non era
+stato tagliato**, misurato (pellicola a 1440 e 390: handoff a 3,6 s, sipario giù
+a 5,1 s, cioè esattamente i 4,63 s del montaggio desktop di sempre). Quello che
+è cambiato è *quando comincia*: fino alla Fase 1 il film partiva solo
+all'atterraggio del chunk JS (su HEAD: 2,4-4,7 s di fondo scuro immobile), quindi
+l'insieme occupava 7-9 s; da quando è CSS parte al primo fotogramma e finisce
+2-4 s prima. Stessi atti, meno intro da guardare.
+
+**`TEMPO = 2`** in `app/lib/motion/intro-constants.ts`: tutta `INTRO_T` è
+moltiplicata lì, e da lì discendono keyframe CSS, failsafe, autohide, reti
+dell'hero, budget e2e. Intro **9,26 s** a ogni larghezza — il riferimento
+(era-residence.com) ne tiene 10,15. Chi vorrà cambiarla cambierà un numero solo,
+e `intro-clocks.test.ts` (che ora *deriva* le sue asserzioni da `TEMPO` invece di
+inchiodare i letterali) dirà subito se qualcosa è rimasto indietro.
+
+Nuovi tempi: lockup fino a 4,7 s, congedo 4,7-5,8, **porta 4,5→6,7**, tuffo
+6,26→9,26, autohide 9,36, failsafe di boot 9,86; rete hero 6,46 (con intro),
+6 s a caldo. Pellicola: `docs/shots/intro-390-tempo-full/home.jpg` (45 fotogrammi
+su 11 s — `scripts/intro-filmstrip.ts` ha ora `--last`, perché una durata di
+prodotto non si inchioda in uno strumento).
+
+### 11.2 I set piece
+
+| Scheda | Esito | Come |
+|---|---|---|
+| 15 · HorizonScroller | **PORT-SENZA-PIN** | chars SplitText sull'h2 manifesto con la tween del desktop (rotateY 90/yPercent 50, 1,2 s, stagger .03); sipario `CURTAIN_DUR` 1,6 s anche sul telefono; **stairs portate**, non ferme: la nota che le fermava rispondeva a un'altra domanda (scrub verticale), il desktop fa `xPercent` e a 390 il problema è l'overflow laterale — corsa in **px clampati a ±16** (dentro i 20 px di margine), rapporti e direzioni del desktop, più `overflow-x: clip` sulla sezione; drift dei fiori acceso (il commento «i fiori restano spenti» era falso dalla Fase 2) |
+| 16 · StarReviews | **PORT-SENZA-PIN, timeline `once` a tempo** | morph della stella, zoom, flash e accensione delle tessere in ~3 s da `top 85%`, non in scrub (con schermo sticky 100 svh una runway ≤1,2 vh lascerebbe 0,2 vh). Alleggerimenti: rect dello schermo letto **una volta** su `refreshInit` (era a ogni frame: «la cosa più cara per frame del sito»), `will-change: clip-path` solo nel morph, e **il flash non usa più `filter`** — velo bianco in opacity, **anche sul desktop** |
+| 18 · Paths | **PORT-SENZA-PIN** | foto in scrub `scale 1.35→1.18` + `yPercent 8→0`, righe SplitText `lines`, extras; e **il difetto §9.4 chiuso**: l'innesco non è più `top 90%` su pannelli più alti del viewport — il `test.fixme` in `e2e/mobile-motion.spec.ts` è tornato un test |
+| 19 · TeamTrail | **PORT-SENZA-PIN, forma (a)** | ogni pannello si porta la prospettiva del corridoio (120,71 svh, la stessa dello schermo sticky) e il contenuto entra da `z = −0,5·GAP`, cioè due terzi di taglia: il tuffo del desktop misurato su una persona invece che su sei. Senza canvas atmosfera, senza pin. Il ritratto torna alle 14 vh del desktop (le 55 erano il rimpiazzo dell'avvicinamento che mancava) |
+| 14 · ThreadNav | **PORT dei nodi** | i nodi tornano bottoni a ogni larghezza, bersaglio `.dt-knot::before` 44×44 (`.tap-target` non serviva: il suo `::before` prende la larghezza dell'elemento, 8 px per un pallino), spaziatura minima 52 px fra i centri, `aria-label` e `aria-current`. La trappola è caduta col **rename**: `watchSurfaceTone` scrive `data-rail-tone` e non più `data-tone` (che è la tappa di SurfaceFlow), quindi il campionamento del tono si riaccende anche sul telefono |
+| 17 · ReviewsWall | **PORT-SENZA-PIN** | le due colonne (tessere pari/dispari della `grid-cols-2`) scorrono in versi opposti in scrub sulla traversata — la cosa che si legge del set piece desktop senza runway né sticky; `will-change` solo in `onToggle` |
+| 12 · ManifestoPin | **PORT-SENZA-PIN** | una sola timeline in scrub `top 85% → top 15%` (la sezione è già alta 70 svh: nessun pin serve), parole con lo `stagger` del desktop e ago dentro la stessa timeline (−1 ScrollTrigger) |
+| 20 · HorizontalRail | **PORT** | `--rail-p` scritta anche sullo scroller e una regola CSS `≤1023.98` applica il pan `translateX` ai `.dt-rail_pan`, gated `:not([data-on])` perché sopra lg il pan è di GSAP. Nessun ScrollTrigger, nessun `will-change` |
+
+### 11.3 Tre difetti veri trovati dalla revisione
+
+1. **Il corridoio mobile di TeamTrail era un no-op**: il codice animava `z` citando una regola CSS (`perspective` sul pannello) **che non esisteva**. Senza un antenato che proietti, `translateZ` non produce nessuna scala: il cuore della scheda 19 non si vedeva, e restava un gesto più povero di prima. Regola aggiunta.
+2. **I nodi del rail desktop erano diventati non cliccabili**: riscrivendo la className per il bersaglio mobile era caduto `lg:pointer-events-auto`, e il ramo desktop scriveva `pointerEvents` sul *root* — ma un figlio che dichiara `none` non torna bersaglio perché l'antenato dice `auto`. Ora i due rami hanno la stessa forma: una sorgente sola per il puntatore.
+3. **StarReviews rimisurava troppo tardi**: `measure()` era agganciata a `refresh`, che in GSAP arriva **dopo** che i valori-funzione sono stati ricongelati — dopo una rotazione lo zoom finiva alla misura precedente. Spostata su `refreshInit`, come già fa `HorizontalRail`.
