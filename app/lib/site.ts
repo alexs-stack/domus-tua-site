@@ -196,6 +196,20 @@ export const pendingConfirmation = {
 } as const;
 
 /**
+ * Il territorio come si DICE in pagina — FONTE UNICA.
+ *
+ * Nei dati strutturati `areaServed` era già stato esteso all'alta provincia di Como (§5.5:
+ * a catalogo ci sono immobili a Mozzate, che è provincia di Como). I testi visibili no:
+ * FAQ, HorizonStory e la conoscenza dell'assistente dicevano ancora "la provincia di
+ * Varese", cioè il sito escludeva a parole metà del suo mercato naturale mentre lo
+ * dichiarava a Google.
+ *
+ * Sta qui e non in tre posti perché è già successo che divergessero: il JSON-LD è stato
+ * corretto e le frasi sono rimaste indietro.
+ */
+export const territoryLabel = "la provincia di Varese e l'alta provincia di Como";
+
+/**
  * Il voto come si SCRIVE nella lingua di chi legge.
  *
  * `site.rating` è il valore macchina ("4.9"), quello che va nei dati strutturati. Ma in

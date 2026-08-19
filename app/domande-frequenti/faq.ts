@@ -18,7 +18,7 @@
 // format: qui c'è solo la voce di riepilogo, che rimanda a quella pagina.
 
 import type { Locale } from "../lib/i18n/dictionaries";
-import { site } from "../lib/site";
+import { site, territoryLabel } from "../lib/site";
 
 export type FaqEntryId =
   | "costi"
@@ -131,7 +131,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "zone",
           q: "In quali zone lavorate?",
-          a: `Tradate e i comuni della provincia di ${site.address.province}, fra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Lavoriamo dove viviamo: conosciamo il valore di ogni via perché è anche la nostra.`,
+          a: `Tradate e i comuni di ${territoryLabel}, fra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Lavoriamo dove viviamo: conosciamo il valore di ogni via perché è anche la nostra.`,
         },
         {
           id: "sede-orari",

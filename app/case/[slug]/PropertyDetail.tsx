@@ -72,7 +72,7 @@ const copy = {
       "Raccontaci cosa cerchi: seguiamo anche richieste su misura, prima ancora che l’immobile arrivi online.",
     notRightCta: "Raccontaci cosa cerchi",
     related: "Altre case da scoprire",
-    viewAll: "Vedi tutte le case",
+    viewAll: "Vedi le case in vendita",
   },
   en: {
     backToAll: "All properties",
@@ -114,7 +114,7 @@ const copy = {
       "Tell us what you’re after: we also handle bespoke requests, before a home even goes online.",
     notRightCta: "Tell us what you’re looking for",
     related: "More homes to discover",
-    viewAll: "View all properties",
+    viewAll: "See the homes for sale",
   },
   fr: {
     backToAll: "Tous les biens",
@@ -156,7 +156,7 @@ const copy = {
       "Dites-nous ce que vous cherchez : nous suivons aussi les demandes sur mesure, avant même la mise en ligne.",
     notRightCta: "Dites-nous ce que vous cherchez",
     related: "D’autres biens à découvrir",
-    viewAll: "Voir tous les biens",
+    viewAll: "Voir les biens à vendre",
   },
   de: {
     backToAll: "Alle Immobilien",
@@ -198,7 +198,7 @@ const copy = {
       "Sagen Sie uns, was Sie suchen: Wir betreuen auch maßgeschneiderte Anfragen, noch bevor eine Immobilie online geht.",
     notRightCta: "Sagen Sie uns, was Sie suchen",
     related: "Weitere Immobilien entdecken",
-    viewAll: "Alle Immobilien ansehen",
+    viewAll: "Immobilien zum Verkauf ansehen",
   },
   es: {
     backToAll: "Todas las propiedades",
@@ -240,7 +240,7 @@ const copy = {
       "Cuéntanos qué buscas: también gestionamos peticiones a medida, antes incluso de que el inmueble esté online.",
     notRightCta: "Cuéntanos qué buscas",
     related: "Más casas por descubrir",
-    viewAll: "Ver todas las casas",
+    viewAll: "Ver las casas en venta",
   },
 };
 

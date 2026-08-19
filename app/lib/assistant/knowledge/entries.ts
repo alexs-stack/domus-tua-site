@@ -17,7 +17,7 @@
 
 import { faqFlat, type FaqEntryId } from "../../../domande-frequenti/faq";
 import { faqIt as careersFaq, type CareersFaqId } from "../../../lavora-con-noi/faq";
-import { site } from "../../site";
+import { site, territoryLabel } from "../../site";
 import { team, teamRoleLabels } from "../../team";
 import { LEAD_EMAIL_TO } from "../config";
 
@@ -195,7 +195,7 @@ const VERIFIED: KnowledgeEntry[] = [
     category: "area",
     title: "Zona in cui operiamo",
     content:
-      "Lavoriamo su Tradate e nei comuni vicini della provincia di Varese. Gli immobili che trovi sul sito sono quelli che seguiamo direttamente.",
+      `Lavoriamo su Tradate e nei comuni di ${territoryLabel}. Gli immobili che trovi sul sito sono quelli che seguiamo direttamente.`,
     status: "verified",
     source: "catalogo immobili RealSmart (comuni effettivamente presenti nel feed)",
     lastVerified: "2026-07-31",
