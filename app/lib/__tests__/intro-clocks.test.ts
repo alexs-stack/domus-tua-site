@@ -23,6 +23,7 @@ import {
   PRE_FAILSAFE_MS,
   PRE_AUTOHIDE_MS,
   HERO_REST_MS,
+  TEMPO,
   HERO_REST_WARM_MS,
   WARM_FIRST_FOLD_MS,
 } from "../motion/intro-constants";
@@ -76,9 +77,14 @@ const gsapEase = (name: string) => {
 };
 
 describe("intro-constants: la sorgente", () => {
-  test("INTRO_MS è la fine del tuffo (dive + diveDur), 4 630 ms", () => {
+  test("INTRO_MS è la fine del tuffo (dive + diveDur)", () => {
     assert.equal(INTRO_MS, Math.round((INTRO_T.dive + INTRO_T.diveDur) * 1000));
-    assert.equal(INTRO_MS, 4630);
+    // Il VALORE è una scelta di prodotto e vive in `TEMPO` (intro-constants):
+    // qui si pretende solo che sia coerente e che resti nel campo del
+    // ragionevole — un'intro sotto i 3 s non è più il film del riferimento,
+    // sopra i 12 diventa un pedaggio. Chi cambia TEMPO cambia un numero solo.
+    assert.ok(INTRO_MS >= 3000 && INTRO_MS <= 12000, `INTRO_MS ${INTRO_MS} fuori campo`);
+    assert.equal(INTRO_MS, Math.round(4630 * TEMPO));
   });
 
   test("la rete dell'hero scatta al tuffo più un margine, DENTRO l'intro (opzione D)", () => {
@@ -191,7 +197,7 @@ describe("globals.css: i numeri rimasti in CSS combaciano", () => {
   test("atto II: linea di carica (progress 0,55/0,25 · track 0,60/1,55) con linear() campionata da dtLoader", () => {
     const p = animationOf("[data-pre-progress]", CSS_DRIVES);
     assert.equal(p.base, INTRO_T.progress);
-    assert.equal(p.dur, 0.25);
+    assert.equal(p.dur, 0.25 * TEMPO);
     const t = animationOf("[data-pre-track]", CSS_DRIVES);
     assert.equal(t.name, "dt-pre-track");
     assert.equal(t.base, INTRO_T.track);
@@ -221,9 +227,17 @@ describe("globals.css: i numeri rimasti in CSS combaciano", () => {
   });
 
   test("lo skip in CSS: html[data-pre-skip] manda al tuffo (delay negativi = durate; il tuffo da --pre-skip)", () => {
-    assert.match(css, /html\[data-preloader\]\[data-pre-skip\]:not\(\[data-pre-gsap\]\) \.dt-preloader \{\s*animation-delay: -1\.1s, var\(--pre-skip, 0s\), calc\(var\(--pre-skip, 0s\) \+ 1\.6s\)/);
-    assert.match(css, /\[data-pre-skip\][^{]*\[data-pre-track\] \{\s*animation-delay: -1\.55s/);
-    assert.match(css, /\[data-pre-skip\][^{]*\[data-pre-content\] \{\s*animation-delay: -0\.55s/);
+    // Derivati da INTRO_T: la porta va alla propria fine (delay = −archDur), il
+    // tuffo parte da `--pre-skip`, l'autohide da lì più il tuffo e un decimo.
+    const sec = (n: number) => String(Number(n.toFixed(3)));
+    assert.match(
+      css,
+      new RegExp(
+        `html\\[data-preloader\\]\\[data-pre-skip\\]:not\\(\\[data-pre-gsap\\]\\) \\.dt-preloader \\{\\s*animation-delay: -${sec(INTRO_T.archDur)}s, var\\(--pre-skip, 0s\\), calc\\(var\\(--pre-skip, 0s\\) \\+ ${sec(INTRO_T.diveDur + 0.1)}s\\)`,
+      ),
+    );
+    assert.match(css, new RegExp(`\\[data-pre-skip\\][^{]*\\[data-pre-track\\] \\{\\s*animation-delay: -${sec(INTRO_T.trackDur)}s`));
+    assert.match(css, new RegExp(`\\[data-pre-skip\\][^{]*\\[data-pre-content\\] \\{\\s*animation-delay: -${sec(INTRO_T.exitDur)}s`));
   });
 
   test("le geometrie dell'arco sono custom property (desktop 24→36→125 / 15vh; telefono 40→58→165 / 16vh)", () => {
@@ -237,10 +251,24 @@ describe("globals.css: i numeri rimasti in CSS combaciano", () => {
     const m = css.match(/animation: dt-rest-failsafe 0\.5s ease ([\d.]+)s forwards/g);
     assert.ok(m && m.length === 4, "attese quattro reti dt-rest-failsafe (rest/intro × caldo/intro)");
     const delays = m!.map((r) => sec(r.match(/ease ([\d.]+)s/)![1]) * 1000).sort((a, b) => a - b);
-    assert.deepEqual(delays, [HERO_REST_MS, HERO_REST_MS, HERO_REST_WARM_MS, HERO_REST_WARM_MS]);
-    // la rete corta è SOLO per l'intro: selettore col valore "intro"
-    assert.match(css, /html\[data-hero-rest="intro"\] \.dt-hero-rest \{\s*animation: dt-rest-failsafe 0\.5s ease 3\.33s/);
-    assert.match(css, /html\[data-hero-intro="intro"\][^{]*\{\s*animation: dt-rest-failsafe 0\.5s ease 3\.33s/);
+    // Ordinati entrambi: quale delle due reti sia la più corta dipende da
+    // TEMPO (con l'intro lunga, la rete dell'intro cade DOPO quella a caldo).
+    assert.deepEqual(
+      delays,
+      [HERO_REST_MS, HERO_REST_MS, HERO_REST_WARM_MS, HERO_REST_WARM_MS].sort((a, b) => a - b),
+    );
+    // la rete dell'intro è SOLO per l'intro: selettore col valore "intro", e il
+    // suo delay è HERO_REST_MS — niente regex, il testo esatto (le regex con i
+    // numeri interpolati sono già costate un falso verde).
+    const attesa = `animation: dt-rest-failsafe 0.5s ease ${HERO_REST_MS / 1000}s forwards;`;
+    for (const sel of ['html[data-hero-rest="intro"] .dt-hero-rest', 'html[data-hero-intro="intro"]']) {
+      const i = css.indexOf(sel);
+      assert.ok(i > -1, `selettore assente: ${sel}`);
+      assert.ok(
+        css.slice(i, i + 260).includes(attesa),
+        `${sel} non porta «${attesa}»`,
+      );
+    }
     // e il boot script marca "intro" solo quando l'intro suona
     assert.match(layout, /h\.setAttribute\("data-hero-rest",pre\?"intro":""\)/);
     assert.doesNotMatch(css, /animation-delay: 4s/);
@@ -336,9 +364,9 @@ describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
     assert.match(preloader, /INTRO_MS \/ 1000/);
   });
 
-  test("il budget e2e è uno solo (4 800) a ogni larghezza", () => {
-    assert.match(e2e, /const budget = 4800;/);
+  test("il budget e2e è uno solo, derivato da INTRO_MS, a ogni larghezza", () => {
+    // Derivato, non scritto: se cambia TEMPO il budget lo segue da sé.
+    assert.match(e2e, /const budget = INTRO_MS \+ \d+;/);
     assert.doesNotMatch(e2e, /width < 768 \? 1900/);
-    assert.ok(4800 >= INTRO_MS + 100);
   });
 });

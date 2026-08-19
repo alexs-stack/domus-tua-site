@@ -9,6 +9,7 @@
  *
  *   npx tsx scripts/intro-filmstrip.ts [--url http://127.0.0.1:3181]
  *       [--widths "390x844,1440x900"] [--routes "/,/acquista"] [--tag fase0] [--out <cartella>]
+ *       [--last 12000]   # fin dove guardare, in ms (default 5 000)
  *   npm run filmstrip:intro -- --tag fase0
  *   npx tsx scripts/intro-filmstrip.ts --cpu 1 …   # senza strozzatura CPU: per guardare il film
  *
@@ -73,8 +74,13 @@ const NET = {
   uploadThroughput: (750 * 1024) / 8,
 };
 const STEP_MS = 250;
-const LAST_MS = 5000;
-const FRAMES = LAST_MS / STEP_MS + 1; // 21
+// Fin dove si guarda. Default 5 s (il film di quando questo script è nato); con
+// `--last 12000` si copre anche un'intro lunga — la durata è una scelta di
+// prodotto e vive in `TEMPO` (app/lib/motion/intro-constants.ts), quindi qui
+// non si può inchiodare un numero. Il passo resta 250 ms: i fotogrammi crescono
+// col tempo osservato, e il contact-sheet li impagina da sé.
+const LAST_MS = Number(arg("--last", "5000")) || 5000;
+const FRAMES = Math.round(LAST_MS / STEP_MS) + 1;
 const PRELIVE_WAIT_MS = 3000;
 /** Il nome dell'evento di handoff dell'intro (Preloader.tsx:51, `INTRO_EVENT`). */
 const INTRO_EVENT = "dt:intro:done";

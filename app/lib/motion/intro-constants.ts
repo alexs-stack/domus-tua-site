@@ -42,35 +42,55 @@ export const INTRO_KEY = "dt-intro-seen";
  *   tuffo parte dal valore che la porta ha a 3,13 (progresso 0,8 di
  *   domus.inOut = 0,972 della corsa: `--arch-k` in globals.css) e da lì vince.
  */
+/**
+ * IL TEMPO DEL FILM, in un numero solo. 1 = la timeline com'era nata (4,63 s
+ * totali, il montaggio del desktop di sempre). 2 = quella di oggi.
+ *
+ * È una scelta di PRODOTTO, presa dal cliente il 2026-08-18 e misurata prima
+ * di prenderla: «il preloader dev'essere lento come prima, sia da mobile che
+ * da desktop — è bello da vedere con le animazioni lente». La lettura è
+ * giusta e la causa non era una timeline accorciata: fino alla Fase 1 il film
+ * cominciava solo quando atterrava il chunk JS (misurato su HEAD: 2,4-4,7 s di
+ * fondo scuro immobile), quindi l'insieme occupava 7-9 s. Da quando è CSS,
+ * parte al primo fotogramma e finisce 2-4 s prima: stessi atti, meno intro da
+ * guardare. Allungare il film restituisce il tempo — con la differenza che
+ * adesso è animazione, non attesa.
+ *
+ * Il riferimento (era-residence.com) tiene 10,15 s a ogni larghezza: con
+ * TEMPO = 2 siamo a 9,26, cioè lì. Tutto scala insieme — atti, stagger, reti,
+ * failsafe, autohide, keyframe CSS — e `intro-clocks.test.ts` lo pretende.
+ */
+export const TEMPO = 2;
+
 export const INTRO_T = {
-  figure: 0.15,
-  figureDur: 0.9,
-  chars: 0.12,
-  charsDur: 1.3,
-  charsStagger: 0.075,
-  script: 0.6,
-  scriptDur: 1.3,
-  scriptStagger: 0.065,
-  caps: 0.4,
-  capsDur: 0.85,
-  capsStagger: 0.11,
-  payoff: 0.65,
-  payoffDur: 1.25,
-  payoffStagger: 0.14,
+  figure: 0.15 * TEMPO,
+  figureDur: 0.9 * TEMPO,
+  chars: 0.12 * TEMPO,
+  charsDur: 1.3 * TEMPO,
+  charsStagger: 0.075 * TEMPO,
+  script: 0.6 * TEMPO,
+  scriptDur: 1.3 * TEMPO,
+  scriptStagger: 0.065 * TEMPO,
+  caps: 0.4 * TEMPO,
+  capsDur: 0.85 * TEMPO,
+  capsStagger: 0.11 * TEMPO,
+  payoff: 0.65 * TEMPO,
+  payoffDur: 1.25 * TEMPO,
+  payoffStagger: 0.14 * TEMPO,
   /** Fine dell'ultimo char dell'atto I: qui cade il `will-change` delle lettere. */
-  act1End: 2.7,
-  progress: 0.55,
-  track: 0.6,
-  trackDur: 1.55,
-  arch: 2.25,
-  archDur: 1.1,
-  exit: 2.35,
-  exitDur: 0.55,
-  dive: 3.13,
-  diveDur: 1.5,
+  act1End: 2.7 * TEMPO,
+  progress: 0.55 * TEMPO,
+  track: 0.6 * TEMPO,
+  trackDur: 1.55 * TEMPO,
+  arch: 2.25 * TEMPO,
+  archDur: 1.1 * TEMPO,
+  exit: 2.35 * TEMPO,
+  exitDur: 0.55 * TEMPO,
+  dive: 3.13 * TEMPO,
+  diveDur: 1.5 * TEMPO,
   /** Ripiego senza mask-composite: sipario clip-path. */
-  curtain: 2.6,
-  curtainDur: 0.9,
+  curtain: 2.6 * TEMPO,
+  curtainDur: 0.9 * TEMPO,
 } as const;
 
 /** Durata dell'intro con la maschera ad arco: 3,13 + 1,50 = 4,63 s. */

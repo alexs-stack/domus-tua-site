@@ -917,6 +917,20 @@ html[data-surfaceflow] main::before {
    colonna, tutto visibile e statico. [data-on] arriva SOLO via JS (desktop
    ≥1024 + motion ok) e attiva screen sticky + track in riga: senza JS non
    esiste alcuno stato clippato o nascosto. */
+/* Rete contro lo sbordo laterale in COLONNA (onda «parità mobile 2», verdetto
+   15): i gradini del titolo scivolano in x anche qui, e a 390 fra la riga
+   (350px) e il bordo restano 20px per lato. Le ampiezze sono già clampate a
+   ±16px nel ramo mobile di HorizonScroller — questa è la rete, non la cintura.
+   `clip` e non `hidden`: `hidden` farebbe della sezione un contenitore di
+   scorrimento e nessuno se ne accorgerebbe finché un giorno qui dentro non
+   arriva uno sticky. `overflow-clip-margin` lascia respirare il tralcio del
+   manifesto, che sporge di 24px dall'angolo alto a sinistra: ciò che sta nel
+   margine si dipinge, ma non genera scorrimento del documento. Dove browser
+   vecchi non lo conoscono il ripiego è il clip secco, che è lo stato sicuro. */
+.dt-horizon:not([data-on]) {
+  overflow-x: clip;
+  overflow-clip-margin: 2rem;
+}
 .dt-horizon[data-on] {
   overflow: clip;
 }
@@ -1020,9 +1034,11 @@ html[data-surfaceflow] main::before {
 
 /* ---------- Cinque stelle (capitolo recensioni home) ----------
    Rif. tecnica: codrops/FullscreenClipEffect — qui il morph è tra poligoni
-   stella a 10 vertici (app/lib/star-shape.ts). Layout scenico e intro SOLO
-   sotto [data-on] (desktop ≥1024 + motion ok, messo da JS): senza JS /
-   reduced-motion / mobile la sezione è in flusso normale, completa e statica. */
+   stella a 10 vertici (app/lib/star-shape.ts). Il film è lo stesso a ogni
+   larghezza (parità mobile 2, 2026-08-18): cambia il palcoscenico — [data-on]
+   = schermo sticky sopra i 1024 px, [data-sr-mob] = box ancorato alla fila
+   sotto — e li mette entrambi JS, con motion ok. Senza JS e con
+   reduced-motion la sezione è in flusso normale, completa e statica. */
 .dt-starrev {
   /* Stella "piena" delle recensioni: ratio interno 0.475, punta in alto.
      Stessa geometria di STAR_CLIP_SQUARE in star-shape.ts. */
@@ -1235,7 +1251,9 @@ html[data-surfaceflow] main::before {
 }
 /* Il pannello è più largo della cornice: è la corsa in cui l'immagine pana
    senza mai scoprire un bordo. 118% = ±9% di gioco per lato, più del massimo
-   `depth` in gioco (9). */
+   `depth` in gioco (9). Chi muove il pannello: da 1024 in su GSAP
+   (Social.tsx), sotto la regola CSS su `--rail-p` accanto a `.dt-rail_pan`
+   (una riga sola per i due nastri — «parità mobile 2», scheda 20). */
 .dt-socialrail_pan {
   position: absolute;
   top: 0;
@@ -1351,6 +1369,28 @@ html[data-surfaceflow] .dt-toneshift {
    Da lì la pillola bianca sul crema e il taglio netto che il cliente vedeva. */
 .dt-toneshift[data-live] .dt-toneshift_in {
   will-change: transform;
+}
+
+/* ---------- ThreadNav: il bersaglio del nodo ----------
+   Il pallino del capitolo resta 8px — è la texture del filo — ma il dito ne
+   deve trovare 44 (onda «parità mobile 2», scheda 14: i nodi sono bottoni a
+   ogni larghezza). `.tap-target` non serve qui: il suo `::before` prende la
+   larghezza dell'elemento (`inset-inline: 0`), che per un pallino sono 8px.
+   Qui il riquadro è quadrato e centrato, e non cambia la geometria della riga
+   di un pixel perché è un pseudo-elemento assoluto.
+   NON è dentro `@media (pointer: coarse)`: il bersaglio grande non fa danno al
+   mouse (sul rail verticale i nodi distano ~100px, sulla riga li tiene a 52px
+   `placeKnots`) e ci sono contesti touch che si dichiarano `pointer: fine`
+   (il progetto e2e `mobile-360` è Desktop Chrome con `hasTouch`) — gatarlo
+   renderebbe la prova impossibile proprio dove serve. */
+.dt-knot::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 /* --- il filo rosso che corre sulla curva della cupola ---
@@ -1529,7 +1569,41 @@ html[data-surfaceflow] .dt-toneshift {
 .dt-starrev[data-on] .dt-starrev_intro {
   display: block;
   z-index: 5;
+}
+/* Il BOX MOBILE del film (parità mobile 2, 2026-08-18 — scheda 16).
+   Sotto lg non c'è schermo sticky (legge 4: sul telefono non si pinna), quindi
+   `inset: 0` non sarebbe il viewport ma l'intera sezione, alta il doppio. Gli
+   stessi atti del desktop suonano allora dentro un riquadro ancorato alla FILA
+   delle stelle — dov'è la tessera in cui la foto deve posarsi: la quota la
+   scrive JS in `--sr-box-top`/`--sr-box-h`, una volta e a ogni refresh, perché
+   solo il layout sa dov'è la fila. Qui c'è il ripiego, e la garanzia che senza
+   JS (nessun attributo) il layer resti display:none. */
+.dt-starrev[data-sr-mob] .dt-starrev_intro {
+  display: block;
+  z-index: 5;
+  inset: auto 0 auto 0;
+  top: var(--sr-box-top, 0px);
+  height: var(--sr-box-h, 62svh);
+}
+/* `will-change` A TEMPO, a ogni larghezza. La clip-path a 10 vertici è paint
+   per frame — ammesso dalla dottrina dell'onda perché l'alleggerimento è
+   nominato (la misura del riquadro, che era un getBoundingClientRect per
+   frame, ora si fa una volta sola) — ma il livello promosso serve solo dentro
+   la finestra del film. Fino al 2026-08-18 la regola [data-on] qui sopra lo
+   teneva promosso per tutta la vita della pagina. */
+.dt-starrev_intro[data-sr-morph] {
   will-change: clip-path;
+}
+/* IL LAMPO, senza `filter` (parità mobile 2 — vale anche per il desktop).
+   Il colpo di luce a cavallo del fullscreen era `filter: brightness() saturate()`
+   tweenato due volte sulla fotografia: pixel ricalcolati per frame su
+   un'immagine a tutto schermo, cioè il primo anti-pattern dell'onda. Stesso
+   effetto con un velo di luce calda sopra la foto e sotto il velo di vino
+   (esattamente dov'era il filtro), animato in sola opacity: composited.
+   Il valore di riposo è 0: senza JS il velo non si vede. */
+.dt-starrev_flash {
+  background: var(--color-gold-spec);
+  opacity: 0;
 }
 /* Titolo-cover gigante sull'intro (esce per carattere durante il morph) */
 .dt-starrev_cover {
@@ -1574,8 +1648,16 @@ html[data-surfaceflow] .dt-toneshift {
   will-change: clip-path;
 }
 /* Le righe del titolo dei pannelli (grammatica data-line del riferimento):
-   wrapper che maschera, riga che sale. Esistono solo sotto [data-on] via JS. */
-.dt-paths_line {
+   wrapper che maschera, riga che sale. Dal 2026-08-18 (onda «parità mobile 2»,
+   verdetto 18) esistono a OGNI larghezza: sotto lg le crea il ramo mobile di
+   Paths.tsx, che porta la stessa tween del desktop senza il corridoio.
+   Il `will-change` resta però appeso al solo [data-on], cioè al desktop, dove
+   le righe vivono dentro uno schermo sticky da 520vh e il suggerimento paga
+   per tutta la corsa. Sotto lg il gesto dura 1,1s una volta per pannello: sei
+   span con un hint permanente sarebbero un layer promosso a vita per niente —
+   è uno degli alleggerimenti che pagano i tre gesti in più (regola Chanel,
+   commento in Paths.tsx). */
+.dt-paths[data-on] .dt-paths_line {
   will-change: transform;
 }
 
@@ -1697,23 +1779,23 @@ html[data-preloader] .dt-preloader [data-pre-content] {
   opacity: 1;
 }
 html[data-preloader] .dt-preloader [data-pre-figure] {
-  animation: dt-pre-in-fade 0.9s linear 0.15s both;
+  animation: dt-pre-in-fade 1.8s linear 0.3s both;
 }
 html[data-preloader] .dt-preloader [data-pre-badge] {
-  animation: dt-pre-in-fade 0.4s var(--ease-out-expo) 0.05s both;
+  animation: dt-pre-in-fade 0.8s var(--ease-out-expo) 0.1s both;
 }
 html[data-preloader] .dt-preloader [data-pre-char] {
-  animation: dt-pre-char 1.3s cubic-bezier(0.25, 1, 0.5, 1) calc(0.12s + var(--i, 0) * 0.075s) both;
+  animation: dt-pre-char 2.6s cubic-bezier(0.25, 1, 0.5, 1) calc(0.24s + var(--i, 0) * 0.15s) both;
 }
 html[data-preloader] .dt-preloader [data-pre-schar] {
   transform-origin: center bottom;
-  animation: dt-pre-schar 1.3s cubic-bezier(0.25, 1, 0.5, 1) calc(0.6s + var(--i, 0) * 0.065s) both;
+  animation: dt-pre-schar 2.6s cubic-bezier(0.25, 1, 0.5, 1) calc(1.2s + var(--i, 0) * 0.13s) both;
 }
 html[data-preloader] .dt-preloader [data-pre-cap] {
-  animation: dt-pre-cap 0.85s cubic-bezier(0.25, 1, 0.5, 1) calc(0.4s + var(--i, 0) * 0.11s) both;
+  animation: dt-pre-cap 1.7s cubic-bezier(0.25, 1, 0.5, 1) calc(0.8s + var(--i, 0) * 0.22s) both;
 }
 html[data-preloader] .dt-preloader [data-pre-word] {
-  animation: dt-pre-word 1.25s cubic-bezier(0.25, 1, 0.5, 1) calc(0.65s + var(--i, 0) * 0.14s) both;
+  animation: dt-pre-word 2.5s cubic-bezier(0.25, 1, 0.5, 1) calc(1.3s + var(--i, 0) * 0.28s) both;
 }
 /* Il badge gira per tutta l'intro, anello e monogramma in versi opposti (lo
    stesso gesto dell'header, 6 s a giro come faceva `spinMarkBadge(root, 6)`
@@ -1892,21 +1974,21 @@ html[data-preloader] .dt-preloader [data-rot-mark] {
    anche in ripiego GSAP (`html[data-pre-gsap]`: solo l'autohide, e Preloader.tsx
    la spegne con style.animation="none" quando prende lui il timone), la
    seconda — la CSS che guida — aggiunge porta e tuffo.
-   Delay/durate = INTRO_T (arch 2,25/1,1 · dive 3,13/1,5); le bezier SONO le
+   Delay/durate = INTRO_T (arch 4,5/2,2 · dive 6,26/3); le bezier SONO le
    ease di gsap.ts: domus.inOut «M0,0 C0.66,0 0.22,1 1,1» = cubic-bezier(0.66,
    0, 0.22, 1); dtDiveIn = cubic-bezier(0.6, 0, 0, 1). L'autohide parte a
-   PRE_AUTOHIDE_MS = INTRO_MS + 100 ms (4,73 s). */
+   PRE_AUTOHIDE_MS = INTRO_MS + 100 ms (9,36 s). */
 html[data-preloader] .dt-preloader {
-  animation: dt-pre-autohide 0.5s ease 4.73s forwards;
+  animation: dt-pre-autohide 0.5s ease 9.36s forwards;
 }
 html[data-preloader]:not([data-pre-gsap]) .dt-preloader {
   animation:
-    dt-pre-door 1.1s cubic-bezier(0.66, 0, 0.22, 1) 2.25s both,
-    dt-pre-dive 1.5s cubic-bezier(0.6, 0, 0, 1) 3.13s forwards,
-    dt-pre-autohide 0.5s ease 4.73s forwards;
+    dt-pre-door 2.2s cubic-bezier(0.66, 0, 0.22, 1) 4.5s both,
+    dt-pre-dive 3s cubic-bezier(0.6, 0, 0, 1) 6.26s forwards,
+    dt-pre-autohide 0.5s ease 9.36s forwards;
 }
-/* La linea di carica: la scatola si accende a INTRO_T.progress (0,55, 0,25 s
-   lineare, era autoAlpha) e la barra sale a INTRO_T.track (0,60, 1,55 s).
+/* La linea di carica: la scatola si accende a INTRO_T.progress (1,1, 0,5 s
+   lineare, era autoAlpha) e la barra sale a INTRO_T.track (1,2, 3,1 s).
    L'ease della barra è `dtLoader` di gsap.ts, una CustomEase a più segmenti
    (i «scatti» di un vero caricamento): non è una cubic-bezier, quindi qui è
    `linear(...)` campionata dalla curva SVG di gsap.ts ogni 1/16 (script di
@@ -1916,10 +1998,10 @@ html[data-preloader]:not([data-pre-gsap]) .dt-preloader {
    ai minimi quadrati della stessa curva (ricerca a griglia 0,05 su 31
    campioni) — la forma media, senza gli scatti. */
 html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-progress] {
-  animation: dt-pre-in-fade 0.25s linear 0.55s both;
+  animation: dt-pre-in-fade 0.5s linear 1.1s both;
 }
 html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
-  animation: dt-pre-track 1.55s cubic-bezier(0.2, 0.45, 0, 0.25) 0.6s both;
+  animation: dt-pre-track 3.1s cubic-bezier(0.2, 0.45, 0, 0.25) 1.2s both;
   animation-timing-function: linear(
     0 0%,
     0.148 6.3%,
@@ -1940,14 +2022,14 @@ html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
     1 100%
   );
 }
-/* Il congedo del lockup: INTRO_T.exit 2,35 / 0,55 s, domus.inOut. */
+/* Il congedo del lockup: INTRO_T.exit 4,7 / 1,1 s, domus.inOut. */
 html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-content] {
-  animation: dt-pre-exit 0.55s cubic-bezier(0.66, 0, 0.22, 1) 2.35s both;
+  animation: dt-pre-exit 1.1s cubic-bezier(0.66, 0, 0.22, 1) 4.7s both;
 }
 /* Il sipario di ripiego, dove la porta ad arco non può esistere. */
 @supports not (mask-composite: add) {
   html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-panel] {
-    animation: dt-pre-curtain 0.9s cubic-bezier(0.66, 0, 0.22, 1) 2.6s both;
+    animation: dt-pre-curtain 1.8s cubic-bezier(0.66, 0, 0.22, 1) 5.2s both;
   }
 }
 
@@ -1959,19 +2041,19 @@ html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-content] {
    alla propria fine qualunque sia l'istante; il tuffo invece deve partire da
    «ora», che la CSS non conosce — glielo scrive il JS in `--pre-skip`
    (= secondi già trascorsi sull'orologio CSS, inline sull'overlay), e
-   l'autohide slitta di conseguenza (tuffo 1,5 s + 0,1). Come `tl.seek("dive")`
+   l'autohide slitta di conseguenza (tuffo 3 s + 0,1). Come `tl.seek("dive")`
    di sempre: si taglia il preambolo, non la porta. */
 html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader {
-  animation-delay: -1.1s, var(--pre-skip, 0s), calc(var(--pre-skip, 0s) + 1.6s);
+  animation-delay: -2.2s, var(--pre-skip, 0s), calc(var(--pre-skip, 0s) + 3.1s);
 }
 html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-progress] {
-  animation-delay: -0.25s;
+  animation-delay: -0.5s;
 }
 html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
-  animation-delay: -1.55s;
+  animation-delay: -3.1s;
 }
 html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-content] {
-  animation-delay: -0.55s;
+  animation-delay: -1.1s;
 }
 @supports not (mask-composite: add) {
   html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-panel] {
@@ -1985,7 +2067,7 @@ html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre
    dall'inline script (solo motion ok → reduced-motion e no-JS vedono tutto).
    Il reveal è di GSAP (HeroCinematic); la rete CSS se il JS tarda o non
    arriva: con l'intro (`data-hero-rest="intro"`) HERO_REST_MS
-   (intro-constants.ts) = INTRO_T.dive + 200 ms = 3,33 s, a OGNI larghezza;
+   (intro-constants.ts) = INTRO_T.dive + 200 ms = 6,46 s, a OGNI larghezza;
    senza intro HERO_REST_WARM_MS = 6 s (la rete di sempre: a caldo non c'è
    nessuna porta che si apre, e a 3,33 s scatterebbe prima dell'idratazione
    lenta, rubando il rito del primo scroll). DENTRO l'intro, non dopo, ed è voluto (opzione D): il
@@ -2000,7 +2082,7 @@ html[data-hero-rest] .dt-hero-rest {
   animation: dt-rest-failsafe 0.5s ease 6s forwards;
 }
 html[data-hero-rest="intro"] .dt-hero-rest {
-  animation: dt-rest-failsafe 0.5s ease 3.33s forwards;
+  animation: dt-rest-failsafe 0.5s ease 6.46s forwards;
 }
 /* Lockup, motto e script rientrano a OGNI load (rif. era-residence: refresh
    compreso). 0.02 = dipinti (l'LCP conta il testo) ma invisibili; il reveal
@@ -2010,7 +2092,7 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   animation: dt-rest-failsafe 0.5s ease 6s forwards;
 }
 html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
-  animation: dt-rest-failsafe 0.5s ease 3.33s forwards;
+  animation: dt-rest-failsafe 0.5s ease 6.46s forwards;
 }
 @keyframes dt-rest-failsafe {
   to {
@@ -2761,6 +2843,22 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   background: transparent;
   transform-style: preserve-3d;
 }
+/* IL CORRIDOIO SENZA PIN, SOTTO lg (TeamTrail.tsx, «parità mobile 2», scheda
+   19). Sopra i 1024 la prospettiva sta sullo schermo sticky e la camera
+   attraversa sei piani sovrapposti; sotto non c'è schermo, quindi la stessa
+   prospettiva — stesso numero, 120.71svh, fov 45 del riferimento — sta su OGNI
+   pannello e i suoi quattro blocchi si avvicinano da z = −0.5·GAP.
+   SENZA QUESTA RIGA IL RAMO MOBILE NON SI VEDE: `z` senza un antenato che
+   proietti è una trasformazione che non produce nessuna scala, cioè il tuffo
+   che non c'è. La perspective fa dell'unità un containing block per fixed e
+   absolute e un contesto di impilamento: dentro `.dt-tt_unit` non c'è nulla di
+   `fixed` né di `sticky` (solo la scia in `position: relative`), quindi non
+   sposta niente. `:not([data-on])` e non una media query: la soglia la decide
+   già l'attributo, e con reduced-motion o senza JS qui non si anima nulla —
+   una prospettiva senza transform in z non cambia un pixel. */
+.dt-tt:not([data-on]) .dt-tt_unit {
+  perspective: 120.71svh;
+}
 /* L'atmosfera (canvas: fondale a blob + fiori in profondità) vive solo nel
    corridoio: fuori non esiste, né in flusso né in memoria. */
 .dt-tt_bg {
@@ -2949,5 +3047,36 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   bottom: 0;
   left: -9%;
   width: 118%;
+}
+/* ---------- Il secondo piano SOTTO i 1024 («parità mobile 2», scheda 20) ----------
+   Da 1024 in su il pan è di GSAP (`xPercent` da -depth a +depth lungo la
+   corsa del nastro). Sotto, il primo piano ce l'ha il dito — ma il secondo
+   non c'era affatto, e un nastro che scorre senza profondità è una fila che
+   si muove, non il nastro del sito. Qui torna, con la stessa trasformazione
+   (translateX per tessera, in percentuale di sé stessa) e un parametro solo
+   diverso: la corsa è quella del dito, non quella dello scroll verticale.
+
+   `--rail-p` (0→1) la scrive RailProgress sullo scroller a ogni evento di
+   scroll — nessun ScrollTrigger, nessun rAF, nessun `will-change`: è
+   l'alleggerimento nominato di questa riga. `--depth` la porta il sito di
+   chiamata accanto a `data-depth` (che resta la sorgente del ramo GSAP: una
+   quota sola, letta in due modi).
+
+   IL SEGNO È QUELLO DEL DESKTOP, e non è un dettaglio: la foto deve andare
+   verso destra mentre la cornice va verso sinistra, cioè RESTARE INDIETRO
+   rispetto alla cornice — è il ritardo a fare la profondità. A p=0 vale
+   -depth, a p=1 vale +depth, esattamente come il `fromTo` di
+   HorizontalRail/Social. (La scheda 20 dell'audit scriveva il fattore ×−2,
+   che inverte la parallasse facendo correre la foto PIÙ della cornice: qui
+   vince il tween desktop, perché il verdetto è «stesso effetto».)
+
+   Senza JS `--rail-p` non esiste mai: il fallback .5 tiene il pan al centro,
+   cioè esattamente com'era prima. `:not([data-on])` perché sopra la soglia il
+   pan è di GSAP e due padroni sullo stesso transform sono uno di troppo. */
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+  .dt-rail:not([data-on]) .dt-rail_pan,
+  .dt-socialrail:not([data-on]) .dt-socialrail_pan {
+    transform: translateX(calc((var(--rail-p, 0.5) - 0.5) * 2 * var(--depth, 6) * 1%));
+  }
 }
 

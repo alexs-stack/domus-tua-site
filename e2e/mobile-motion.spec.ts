@@ -127,19 +127,15 @@ for (const { nome, sel, prop } of SET_PIECE) {
       (testInfo.project.use.viewport?.width ?? 0) >= 1024,
       "questo è il contratto del ramo mobile: da lg in su comanda il set piece desktop",
     );
-    // DIFETTO NOTO, NON AGGIRATO. Il sipario di Paths scatta col pannello sotto
-    // il bordo basso a OGNI larghezza (misurato a frame: 717px su 640, 769px su
-    // 664, 1123px su 1024). Un primo giro sembrava salvare 390px: era fortuna,
-    // non una soglia. Escluse per misura, non per ipotesi: non è il ritardo di
-    // campionamento (la sentinella legge in rAF dentro la pagina), non è la rete
-    // di sicurezza (la sua guardia ora legge il rettangolo vivo, non `st.start`),
-    // non è il selettore (matcha esattamente i due pannelli). Resta aperto
-    // perché la causa non è isolata, e un verde ottenuto spostando la soglia
-    // varrebbe meno di un `fixme` che dice la verità.
-    test.fixme(
-      nome === "il sipario di Paths",
-      "difetto aperto: il sipario di Paths parte fuori campo — vedi docs/mobile-parity.md §9.4",
-    );
+    // IL `fixme` DI PATHS È CADUTO (onda «parità mobile 2», verdetto 18,
+    // 2026-08-18). Il sipario scattava col pannello sotto il bordo basso a ogni
+    // larghezza (717px su 640, 769 su 664, 1123 su 1024) perché il documento
+    // cresce SOPRA il pannello dopo l'ultima rimisura e la riga di partenza in
+    // cache resta quella vecchia. La cura non è un'altra rimisura — erano già
+    // state provate — ma separare l'armamento dalla decisione: ScrollTrigger
+    // arma a `top bottom`, e a decidere è `getBoundingClientRect()` nel frame in
+    // cui si guarda (Paths.tsx, ramo sotto lg). Una cache invecchiata può solo
+    // far armare tardi, mai far partire fuori campo. Questo test è la prova.
     await goto("/");
 
     // Si scende a passi piccoli e a ogni passo si guarda se QUALCUNO ha appena
@@ -767,21 +763,24 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
       // (e) L'HANDOFF: INTRO_EVENT è partito, dopo l'armatura di almeno il
       // tuffo (3,13 s: le lettere dell'hero non devono accendersi con la porta
       // ancora chiusa — sarebbe un altro tipo di intro) e comunque entro
-      // 4 800 ms — il budget del mandato — dall'istante in cui il boot script
-      // ha armato il sipario (`__dtPreT0`).
+      // il budget — INTRO_MS più un margine — dall'istante in cui il boot
+      // script ha armato il sipario (`__dtPreT0`). Derivato, non scritto: la
+      // durata del film è una scelta di prodotto e vive in `TEMPO`
+      // (intro-constants.ts).
       expect(fine.handoff, "INTRO_EVENT (dt:intro:done) non è mai partito").not.toBeNull();
       const handoffDaT0 = Math.round(fine.handoff! - t0);
       expect(
         handoffDaT0,
         `l'handoff è partito a ${handoffDaT0}ms dall'armatura: PRIMA del tuffo (INTRO_T.dive = ${INTRO_T.dive * 1000}ms) — nessuno l'ha saltato`,
       ).toBeGreaterThanOrEqual(INTRO_T.dive * 1000 - 150);
+      const tettoHandoff = INTRO_T.dive * 1000 + 1500;
       expect(
         handoffDaT0,
-        `l'handoff è partito a ${handoffDaT0}ms dall'armatura, budget 4800`,
-      ).toBeLessThan(4800);
+        `l'handoff è partito a ${handoffDaT0}ms dall'armatura, tetto ${tettoHandoff}ms (INTRO_T.dive + 1,5 s di margine per il ticker e la lettura del registro)`,
+      ).toBeLessThan(tettoHandoff);
 
       // IL BUDGET SI ASSERISCE, non si annota. Dal 2026-08-17 (onda «parità
-      // mobile 2», legge 3) l'intro è UN solo montaggio da 4,63 s a ogni
+      // mobile 2», legge 3) l'intro è UN solo montaggio, lungo INTRO_MS, a ogni
       // larghezza — INTRO_MS in app/lib/motion/intro-constants.ts — quindi il
       // budget è uno solo, telefono compreso (prima sotto i 768 era 1 900, per
       // il montaggio corto da 1,75 s che non c'è più). Registrarlo e basta
@@ -791,7 +790,10 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
       // dopo la fine nominale) e il tempo di lettura del registro, non un atto.
       // Nota: `durata` parte da `tLive` (il JS al timone), che ora arriva a
       // atto I già in corso: è ≤ dell'intro intera, il budget resta valido.
-      const budget = 4800;
+      // DERIVATO da INTRO_MS, non scritto: la durata del film è una scelta di
+      // prodotto che vive in `TEMPO` (intro-constants.ts) e può cambiare — il
+      // tetto la segue da sé, e resta un tetto.
+      const budget = INTRO_MS + 170;
       expect(
         durata,
         `l'intro è durata ${durata}ms, budget ${budget}ms — un solo montaggio, INTRO_MS in intro-constants.ts`,
@@ -880,7 +882,7 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
 
       // (d) ATTI III e IV: `--arch-y` letta computata sull'overlay. La porta
       // (2,25 → 3,35 s) porta la quota da 104vh alla quota di riposo `--arch-y1`
-      // (16vh sul telefono, 15vh su desktop); il tuffo (3,13 → 4,63) da lì a
+      // (16vh sul telefono, 15vh su desktop); il tuffo (INTRO_T.dive → fine) da lì a
       // −100vh: la quota SCENDE, sempre. Niente px assoluti — solo che si
       // muove, nel verso giusto, e negli intervalli giusti.
       //
@@ -943,7 +945,7 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
       });
       expect(
         soloTuffo.length > 0 || bucoTuffo >= 500,
-        `atto IV: --arch-y non è mai scesa sotto il riposo della porta (${arrotonda(geo.y1)}px) con la sentinella che copriva la finestra 3,3-4,63 s (buco massimo ${bucoTuffo}ms): il tuffo non è partito`,
+        `atto IV: --arch-y non è mai scesa sotto il riposo della porta (${arrotonda(geo.y1)}px) con la sentinella che copriva la finestra del tuffo (buco massimo ${bucoTuffo}ms): il tuffo non è partito`,
       ).toBe(true);
       if (soloTuffo.length > 0) {
         const tTuffo = soloTuffo.map((f) => Math.round(f.t - t0));
@@ -1136,7 +1138,7 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     // taglia il preambolo, non il tuffo. La chiusura arriva a +1,5 s: si
     // aspetta la caduta e si misura che NON sia stata istantanea (un taglio
     // secco lascerebbe l'arco a metà) e che non abbia aspettato l'intro
-    // naturale (4,63 s).
+    // naturale (INTRO_MS).
     await expect
       .poll(async () => (await bloccata(page)).attributo, {
         timeout: 10_000,
