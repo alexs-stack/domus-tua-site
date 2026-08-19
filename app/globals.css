@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/* La documentazione NON è sorgente: non va scansionata alla ricerca di classi.
+
+   Tailwind v4 rileva le sorgenti da solo e scandisce tutto ciò che git traccia — quindi
+   anche gli 85 file di `docs/`. Ma quei file CITANO le classi in prosa, e una citazione
+   abbreviata diventa una regola CSS vera. È già successo:
+   docs/mobile-parity-2.md:332 scrive `pb-[calc(7rem+env())]` come forma accorciata di
+   `pb-[calc(7rem+env(safe-area-inset-bottom))]` (quella reale, in Footer.tsx:448).
+   Da lì Tailwind generava `padding-bottom: calc(7rem + env())` — `env()` senza argomento
+   non è CSS valido, e Turbopack rifiutava l'INTERO foglio: 500 su ogni pagina in sviluppo,
+   suite e2e compresa. In produzione passava, il che è la parte peggiore: il difetto era
+   invisibile proprio dove si lavora.
+
+   Escludere `docs/` toglie la classe di guasto alla radice, invece di correggere la singola
+   riga di prosa e aspettare la prossima. Le classi vere continuano ad arrivare da app/,
+   che è l'unica cartella che finisce in pagina.
+
+   `_refs/` e `reverse-engineering/` non servono qui: sono gitignorati, e Tailwind li salta già. */
+@source not "../docs";
+
 /* ============================================================
    DOMUS TUA — DESIGN SYSTEM
    Editorial Luxury × fiducia locale. Palette: rosso / grigio / bianco caldo.
