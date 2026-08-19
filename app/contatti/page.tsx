@@ -19,7 +19,8 @@ const description =
   `Aperti lunedì–venerdì ${site.hours.weekdays}, sabato ${site.hours.saturday}.`;
 
 export const metadata: Metadata = {
-  title,
+  // §6.8: assoluto — il title porta già «Domus Tua» insieme all'indirizzo.
+  title: { absolute: title },
   description,
   alternates: { canonical: "/contatti" },
   openGraph: {

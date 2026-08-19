@@ -406,6 +406,20 @@ export default function Footer() {
                   {d.footer.faq}
                 </Link>
               </li>
+              {/* Le case vendute. La pagina esiste, sta nel sitemap ed è la sola prova
+                  di RISULTATO che il sito possiede — «nessun concorrente della zona la
+                  ha», dice il documento — ma la trovava solo chi passava da /vendi e
+                  arrivava in fondo. Un ingresso stabile da ogni pagina, qui e non nella
+                  barra: il menu porta già dieci voci, e questa è una prova da cercare,
+                  non una destinazione primaria (stesso criterio della FAQ, sopra). */}
+              <li>
+                <Link
+                  href="/case-vendute"
+                  className="link-draw tap-target text-sm text-cream/70 transition-colors duration-300 hover:text-cream"
+                >
+                  {d.footer.caseVendute}
+                </Link>
+              </li>
             </ul>
           </div>
 

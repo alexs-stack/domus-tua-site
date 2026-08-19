@@ -506,12 +506,16 @@ test("parallax: la lastra Servizi resta ferma sotto 768 e deriva sopra @layout",
   const w = larghezza(testInfo);
   await goto("/");
   await heroReady(page);
-  const SEL = 'article[data-cursor="scopri"] div[style*="scale(1.06"]';
+  // Ancora su , non sul tag: la lastra era un <article> ed è
+  // diventata un <a> il giorno in cui le hanno dato una destinazione (prometteva
+  // «Scopri» col cursore e non portava da nessuna parte). Un selettore legato al tag
+  // trasforma una correzione in una regressione finta.
+  const SEL = '[data-service-feature] div[style*="scale(1.06"]';
   await page.waitForFunction((sel) => !!document.querySelector(sel), SEL, { timeout: 20_000 });
   const leggi = () =>
     page.evaluate((sel) => {
       const inner = document.querySelector<HTMLElement>(sel)!;
-      const art = inner.closest("article")!;
+      const art = inner.closest("[data-service-feature]")!;
       return {
         tf: getComputedStyle(inner).transform,
         artTop: art.getBoundingClientRect().top + window.scrollY,

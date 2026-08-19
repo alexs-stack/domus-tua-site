@@ -175,7 +175,15 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
-    template: "%s · Domus Tua Immobiliare",
+    // §6.8: il suffisso è «| Domus Tua», non «· Domus Tua Immobiliare».
+    //
+    // Non è pignoleria tipografica: il title reso ha un budget di ~60-65 caratteri prima
+    // che Google lo tronchi, e il suffisso lungo se ne mangiava 26 su ogni pagina. Su
+    // /metodo diventava «Il Metodo Domus Tua: come vendiamo casa, passo per passo · Domus
+    // Tua Immobiliare» — 84 caratteri, con il marchio scritto DUE volte e la seconda
+    // tagliata via dai risultati. Le quattro pagine che portano già il nome nel proprio
+    // title usano `absolute` e non ereditano il suffisso.
+    template: "%s | Domus Tua",
   },
   description:
     `Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. ${ratingLabel("it")}/5 su ${site.reviewsCount} recensioni Google.`,

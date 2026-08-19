@@ -37,6 +37,15 @@ export const CONVERSIONS = {
   valutazione: "lead_valutazione",
   whatsapp: "lead_whatsapp",
   telefono: "lead_telefono",
+  // Le candidature di /lavora-con-noi. Il modulo esisteva e inviava lead senza registrare
+  // NIENTE: la voce 07 della checklist chiede gli eventi di conversione attivi prima del
+  // lancio, e un form su due era muto.
+  //
+  // Nome PROPRIO, non `valutazione`: una candidatura non è un contatto commerciale, e
+  // farle confluire nello stesso evento avrebbe gonfiato esattamente la metrica per cui
+  // questo file esiste — «quale blocco della pagina produce contatti». Chi legge il
+  // rapporto deve poterle separare senza indovinare.
+  candidatura: "lead_candidatura",
 } as const;
 
 export type ConversionName = (typeof CONVERSIONS)[keyof typeof CONVERSIONS];

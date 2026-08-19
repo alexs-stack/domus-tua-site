@@ -42,7 +42,7 @@ type Dict = {
     emptyTitle: string; emptyCopy: string; emptyCta: string;
   };
   whatsapp: { cta: string };
-  footer: { naviga: string; orari: string; monFri: string; sat: string; sun: string; onAppt: string; valuta: string; privacy: string; cookie: string; cookiePrefs: string; contatti: string; lavora: string; faq: string };
+  footer: { naviga: string; orari: string; caseVendute: string; monFri: string; sat: string; sun: string; onAppt: string; valuta: string; privacy: string; cookie: string; cookiePrefs: string; contatti: string; lavora: string; faq: string };
   lang: { label: string };
 };
 
@@ -70,7 +70,7 @@ export const dictionaries: Record<Locale, Dict> = {
       emptyCta: "Lasciaci la tua richiesta",
     },
     whatsapp: { cta: "Parla con noi su WhatsApp" },
-    footer: { naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Richiedi la valutazione", privacy: "Privacy", cookie: "Cookie", cookiePrefs: "Preferenze cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti" },
+    footer: { naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Richiedi la valutazione", privacy: "Privacy", cookie: "Cookie", cookiePrefs: "Preferenze cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti", caseVendute: "Case vendute" },
     lang: { label: "Lingua" },
   },
   en: {
@@ -96,7 +96,7 @@ export const dictionaries: Record<Locale, Dict> = {
       emptyCta: "Send us your request",
     },
     whatsapp: { cta: "Talk to us on WhatsApp" },
-    footer: { naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Request a valuation", privacy: "Privacy", cookie: "Cookies", cookiePrefs: "Cookie preferences", contatti: "Contact", lavora: "Work with us", faq: "FAQ" },
+    footer: { naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Request a valuation", privacy: "Privacy", cookie: "Cookies", cookiePrefs: "Cookie preferences", contatti: "Contact", lavora: "Work with us", faq: "FAQ", caseVendute: "Homes sold" },
     lang: { label: "Language" },
   },
   fr: {
@@ -122,7 +122,7 @@ export const dictionaries: Record<Locale, Dict> = {
       emptyCta: "Envoyez-nous votre demande",
     },
     whatsapp: { cta: "Parlez-nous sur WhatsApp" },
-    footer: { naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Demander l’estimation", privacy: "Confidentialité", cookie: "Cookies", cookiePrefs: "Préférences cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes" },
+    footer: { naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Demander l’estimation", privacy: "Confidentialité", cookie: "Cookies", cookiePrefs: "Préférences cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes", caseVendute: "Biens vendus" },
     lang: { label: "Langue" },
   },
   de: {
@@ -148,7 +148,7 @@ export const dictionaries: Record<Locale, Dict> = {
       emptyCta: "Senden Sie uns Ihre Anfrage",
     },
     whatsapp: { cta: "Sprechen Sie mit uns auf WhatsApp" },
-    footer: { naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Bewertung anfordern", privacy: "Datenschutz", cookie: "Cookies", cookiePrefs: "Cookie-Einstellungen", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen" },
+    footer: { naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Bewertung anfordern", privacy: "Datenschutz", cookie: "Cookies", cookiePrefs: "Cookie-Einstellungen", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen", caseVendute: "Verkaufte Immobilien" },
     lang: { label: "Sprache" },
   },
   es: {
@@ -174,7 +174,7 @@ export const dictionaries: Record<Locale, Dict> = {
       emptyCta: "Envíanos tu solicitud",
     },
     whatsapp: { cta: "Habla con nosotras por WhatsApp" },
-    footer: { naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Solicita la valoración", privacy: "Privacidad", cookie: "Cookies", cookiePrefs: "Preferencias de cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes" },
+    footer: { naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Solicita la valoración", privacy: "Privacidad", cookie: "Cookies", cookiePrefs: "Preferencias de cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes", caseVendute: "Casas vendidas" },
     lang: { label: "Idioma" },
   },
 };

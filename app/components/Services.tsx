@@ -421,9 +421,22 @@ export default function Services() {
               di tutto il capitolo Servizi che non scorre di lato (la rotaia sopra
               ce l'ha già, nativa), e la deriva è ciò che le impedisce di leggersi
               come un fondale dietro al testo in overlay. */}
-          <article
+          {/* Era un <article>, cioè una card che PROMETTE una destinazione e non ne ha:
+              `data-cursor="scopri"` fa scrivere «Scopri» al cursore, l'immagine si
+              ingrandisce all'hover, e al clic non succedeva niente. Delle sei uscite del
+              capitolo Servizi questa era l'unica muta (voce 25 della checklist).
+              Destinazione coerente con SERVICE_LINKS: il rendering vive nella sezione
+              creativa di /servizi. Un <a> come le altre card — anche perché una superficie
+              che si comporta da link e non lo è resta fuori dalla tastiera. */}
+          <a
+            href="/servizi#servizi-creativi"
             data-cursor="scopri"
-            className="group relative min-h-[24rem] overflow-hidden rounded-[2rem] border border-line bg-graphite sm:min-h-[32rem] lg:min-h-[38rem]"
+            /* Aggancio stabile per la suite: il test del parallasse cercava questa lastra
+               come `article`, cioè col suo TAG — e si è rotto nel momento in cui la card
+               ha smesso di essere muta. Un attributo dedicato (come `data-service-card`
+               per le sei del nastro) sopravvive ai cambi di elemento. */
+            data-service-feature
+            className="group relative block min-h-[24rem] overflow-hidden rounded-[2rem] border border-line bg-graphite sm:min-h-[32rem] lg:min-h-[38rem]"
           >
             <MaskReveal
               from="bottom"
@@ -490,7 +503,7 @@ export default function Services() {
                 {c.featureCopy}
               </p>
             </div>
-          </article>
+          </a>
           {/* IL TRALCIO — uno solo per schermata, e qui è nel margine destro
               della lastra grande: il testo è ancorato in basso a sinistra e non
               supera max-w-2xl, quindi il terzo destro resta libero anche a
