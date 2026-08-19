@@ -50,7 +50,7 @@ const copy = {
           copy: "Ti diciamo come stanno davvero le cose: pregi, vincoli e contesto di ogni immobile.",
         },
         {
-          title: "Nessuna sorpresa",
+          title: "Documenti verificati",
           copy: "Documentazione verificata prima della proposta: sai esattamente cosa stai acquistando.",
         },
         {
@@ -144,7 +144,7 @@ const copy = {
           copy: "We tell you how things really are: the strengths, the constraints and the setting of every property.",
         },
         {
-          title: "No surprises",
+          title: "Documents checked",
           copy: "Documentation verified before the offer: you know exactly what you are buying.",
         },
         {
@@ -238,7 +238,7 @@ const copy = {
           copy: "Nous vous disons les choses telles qu’elles sont vraiment : atouts, contraintes et contexte de chaque bien.",
         },
         {
-          title: "Aucune surprise",
+          title: "Documents vérifiés",
           copy: "Documentation vérifiée avant l’offre : vous savez exactement ce que vous achetez.",
         },
         {
@@ -332,7 +332,7 @@ const copy = {
           copy: "Wir sagen Ihnen, wie die Dinge wirklich stehen: Vorzüge, Einschränkungen und Umfeld jeder Immobilie.",
         },
         {
-          title: "Keine Überraschungen",
+          title: "Geprüfte Unterlagen",
           copy: "Unterlagen werden vor dem Angebot geprüft: Sie wissen genau, was Sie kaufen.",
         },
         {
@@ -426,7 +426,7 @@ const copy = {
           copy: "Te contamos cómo están realmente las cosas: virtudes, limitaciones y contexto de cada inmueble.",
         },
         {
-          title: "Ninguna sorpresa",
+          title: "Documentos verificados",
           copy: "Documentación verificada antes de la propuesta: sabes exactamente qué estás comprando.",
         },
         {

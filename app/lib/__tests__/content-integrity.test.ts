@@ -69,7 +69,7 @@ const REL = (f: string) => path.relative(process.cwd(), f).split(path.sep).join(
  * Contenuti VIETATI. Ognuno è stato mostrato come dato reale senza avere una fonte.
  * `why` finisce nel messaggio di errore: chi rompe il test capisce perché senza archeologia.
  */
-const FORBIDDEN: { label: string; pattern: RegExp; why: string }[] = [
+const FORBIDDEN: { label: string; pattern: RegExp; why: string; fix?: string }[] = [
   {
     label: "269.395 m² valutati",
     pattern: /\b269[.\s]?395\b/,
@@ -95,6 +95,65 @@ const FORBIDDEN: { label: string; pattern: RegExp; why: string }[] = [
     pattern: /\b440\s?\+/,
     why: "conteggio video stimato, mai verificato sul canale YouTube",
   },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // PROMESSE DI ESITO (§3.3 del Documento finale di sintesi).
+  //
+  // Non sono numeri senza fonte: sono affermazioni su ciò che NON accadrà, e un
+  // mediatore non lo controlla — dipende dal Comune, dal notaio, dalla banca
+  // dell'acquirente, da difformità non ispezionabili a vista. Una sola di queste
+  // frasi, contraddetta da un rogito andato storto, è una contestazione con il
+  // testo del sito come prova.
+  //
+  // Perché stanno QUI e non in una nota di stile: erano già state tolte una volta,
+  // e sono rientrate — «zero sorprese al rogito» è sparito nella forma letterale ed
+  // è tornato come «senza sorprese», «mauvaises surprises», «böse Überraschungen»,
+  // in quattro lingue su cinque. Una regola che vive solo in un commento viene
+  // riscoperta ogni volta da capo; questa fallisce in CI.
+  //
+  // NON vietati di proposito: «colloqui a sorpresa» su /lavora-con-noi (è il loro
+  // processo di selezione, interamente sotto il loro controllo) e la keyword di
+  // ricerca "sorprese" dell'assistente (aggancia la domanda, non è una risposta).
+  // Per questo i pattern chiedono il plurale o la locuzione intera.
+  // ───────────────────────────────────────────────────────────────────────────
+  {
+    label: "promessa di esito «senza sorprese» (5 lingue)",
+    pattern:
+      /senza sorprese|zero sorprese|nessuna sorpresa|no surprises|without surprises|unpleasant surprises|sans surprises|mauvaises? surprises?|aucune surprise|ohne (?:böse )?Überraschungen|keine Überraschungen|böse Überraschungen|sin sorpresas|sorpresas desagradables|ninguna sorpresa/i,
+    why: "promessa di RISULTATO che l'agenzia non controlla (§3.3)",
+    fix: "Nessuna fonte rende lecita questa frase: va RISCRITTA come promessa di azione — «I problemi emergono all'inizio, non davanti al notaio». Controlla tutte e cinque le lingue: l'ultima volta l'italiano fu corretto e le quattro traduzioni no.",
+  },
+  {
+    label: "«nessun abuso o difformità nascosta»",
+    pattern: /nessun abuso|difformità nascost|abusi? nascost/i,
+    why: "afferma l'assenza di abusi, che nessuna verifica a vista può garantire (§3.3)",
+    fix: "Sostituire con l'azione: «Controlliamo catasto, urbanistica e impianti prima di pubblicare. Se c'è un problema, lo troviamo noi — quando c'è ancora tempo per risolverlo.»",
+  },
+  {
+    label: "«verifiche certificate»",
+    pattern: /verifiche certificate|servizi certificati/i,
+    why: "«certificato» implica un ente terzo: Domus D.O.C. è uno standard interno (§3.3)",
+    fix: "Sostituire con «verifiche documentali e tecnico-urbanistiche svolte prima della messa sul mercato».",
+  },
+  {
+    label: "«certificato» riferito all'immobile",
+    pattern:
+      /(?:immobile|immobili|casa|abitazione|propriet[àa])s+certificat[oaie]|certificaziones+(?:dell'immobile|della casa|inclusa)/i,
+    why: "il protocollo si chiama Domus di Origine Certificata, ma l'IMMOBILE non è certificato da nessuno (§3.3)",
+    fix: "Tenere il nome del protocollo, mai il predicato sull'immobile: «documenti verificati», non «immobile certificato».",
+  },
+  {
+    label: "«cinque fasi, una garanzia»",
+    pattern: /cinque fasi,?s*una garanzia|five (?:phases|steps),?s*one guarantee/i,
+    why: "«garanzia» ha un significato giuridico preciso: il metodo è un metodo (§3.3)",
+    fix: "Scrivere «Cinque fasi, un metodo» — e ricordare che il conteggio canonico è nove passaggi (§4.2).",
+  },
+  {
+    label: "«la trattativa non salta per un documento mancante»",
+    pattern: /trattativa non salta|non salta per un documento/i,
+    why: "esito che dipende anche dalle controparti (§3.3)",
+    fix: "Sostituire con: «raccogliamo tutti i documenti prima di partire: è la causa più frequente di trattative che saltano».",
+  },
 ];
 
 describe("content integrity — numeri e claim senza fonte", () => {
@@ -104,7 +163,15 @@ describe("content integrity — numeri e claim senza fonte", () => {
     assert.ok(files.length > 50, `trovati solo ${files.length} file in app/`);
   });
 
-  for (const { label, pattern, why } of FORBIDDEN) {
+  // Il consiglio di rimedio cambia con la natura del divieto: per un NUMERO senza fonte si
+  // annota la fonte in site.ts; per una PROMESSA DI ESITO non esiste fonte che la renda
+  // lecita — va riscritta. Un messaggio unico manderebbe metà dei casi nella direzione
+  // sbagliata, e chi rompe il test in CI legge solo quello.
+  const RIMEDIO_NUMERO =
+    `Se il cliente ha fornito il dato reale, mettilo in app/lib/site.ts con la fonte ` +
+    `annotata e aggiorna questo test.`;
+
+  for (const { label, pattern, why, fix } of FORBIDDEN) {
     test(`"${label}" non compare nei file di produzione`, () => {
       const hits = files.filter((f) =>
         pattern.test(stripTechnicalValues(fs.readFileSync(f, "utf8"))),
@@ -112,9 +179,7 @@ describe("content integrity — numeri e claim senza fonte", () => {
       assert.deepEqual(
         hits.map(REL),
         [],
-        `"${label}" è tornato in pagina — ${why}. ` +
-          `Se il cliente ha fornito il dato reale, mettilo in app/lib/site.ts con la fonte ` +
-          `annotata e aggiorna questo test.`,
+        `"${label}" è tornato in pagina — ${why}. ${fix ?? RIMEDIO_NUMERO}`,
       );
     });
   }

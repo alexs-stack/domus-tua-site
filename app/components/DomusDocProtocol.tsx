@@ -25,7 +25,7 @@ const copy = {
     eyebrow: "Protocollo proprietario",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Il protocollo Domus Tua per rendere più chiaro, verificato e sicuro il percorso immobiliare. Si controlla prima, non dopo: chi vende ha una trattativa più solida, chi compra vede i problemi quando c’è ancora tempo per risolverli.",
+      "Il protocollo interno di Domus Tua per la verifica documentale e tecnico-urbanistica degli immobili che trattiamo: anticipa i controlli invece di subirli in trattativa. Chi vende ha una trattativa più solida, chi compra vede i problemi quando c’è ancora tempo per risolverli.",
     // ─────────────────────────────────────────────────────────────────────────
     // PROMESSE DI AZIONE, NON DI RISULTATO.
     //
@@ -73,13 +73,13 @@ const copy = {
         buyer: "Un percorso accompagnato e sicuro fino alla firma dal notaio.",
       },
     ] as Pillar[],
-    footnote: "Un unico protocollo per ogni incarico Domus Tua: verifiche documentali e tecnico-urbanistiche svolte prima della messa sul mercato.",
+    footnote: "Un unico protocollo per ogni incarico Domus Tua: verifiche documentali e tecnico-urbanistiche svolte prima della messa sul mercato. Domus D.O.C. è uno standard interno di Domus Tua, non una certificazione rilasciata da terzi.",
   },
   en: {
     eyebrow: "Proprietary protocol",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "The Domus Tua protocol that makes the property journey clearer, verified and safer. We check beforehand, not after: sellers get a stronger negotiation, buyers see the problems while there is still time to fix them.",
+      "Domus Tua's internal protocol for the document and planning checks on the properties we handle: it brings the checks forward instead of meeting them mid-negotiation. Sellers get a stronger negotiation, buyers see the problems while there is still time to fix them.",
     sellerLabel: "For sellers",
     buyerLabel: "For buyers",
     cta: "See how we protect your sale",
@@ -110,13 +110,13 @@ const copy = {
         buyer: "A guided, safe path all the way to signing at the notary.",
       },
     ] as Pillar[],
-    footnote: "One protocol for every Domus Tua mandate: document and planning checks carried out before going to market.",
+    footnote: "One protocol for every Domus Tua mandate: document and planning checks carried out before going to market. Domus D.O.C. is an internal Domus Tua standard, not a certification issued by a third party.",
   },
   fr: {
     eyebrow: "Protocole propriétaire",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Le protocole Domus Tua qui rend le parcours immobilier plus clair, vérifié et sûr. On contrôle avant, pas après : le vendeur a une négociation plus solide, l’acquéreur voit les problèmes quand il est encore temps de les régler.",
+      "Le protocole interne de Domus Tua pour la vérification documentaire et technique des biens que nous traitons : il anticipe les contrôles au lieu de les subir en négociation. Le vendeur a une négociation plus solide, l’acquéreur voit les problèmes quand il est encore temps de les régler.",
     sellerLabel: "Pour les vendeurs",
     buyerLabel: "Pour les acquéreurs",
     cta: "Découvrez comment nous protégeons la vente",
@@ -147,13 +147,13 @@ const copy = {
         buyer: "Un parcours accompagné et sûr jusqu’à la signature chez le notaire.",
       },
     ] as Pillar[],
-    footnote: "Un seul protocole pour chaque mandat Domus Tua : vérifications documentaires et techniques réalisées avant la mise sur le marché.",
+    footnote: "Un seul protocole pour chaque mandat Domus Tua : vérifications documentaires et techniques réalisées avant la mise sur le marché. Domus D.O.C. est un standard interne de Domus Tua, non une certification délivrée par un tiers.",
   },
   de: {
     eyebrow: "Eigenes Protokoll",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Das Domus-Tua-Protokoll, das den Immobilienweg klarer, geprüft und sicherer macht. Wir prüfen vorher, nicht danach: Verkäufer erhalten eine solidere Verhandlung, Käufer sehen Probleme, solange noch Zeit bleibt, sie zu lösen.",
+      "Das interne Protokoll von Domus Tua für die Unterlagen- und Baurechtsprüfung der Immobilien, die wir betreuen: Es zieht die Prüfungen vor, statt sie in der Verhandlung zu erleiden. Verkäufer erhalten eine solidere Verhandlung, Käufer sehen Probleme, solange noch Zeit bleibt, sie zu lösen.",
     sellerLabel: "Für Verkäufer",
     buyerLabel: "Für Käufer",
     cta: "Sehen Sie, wie wir den Verkauf schützen",
@@ -184,13 +184,13 @@ const copy = {
         buyer: "Ein begleiteter, sicherer Weg bis zur Unterschrift beim Notar.",
       },
     ] as Pillar[],
-    footnote: "Ein Protokoll für jeden Domus-Tua-Auftrag: Unterlagen- und Baurechtsprüfungen vor dem Markteintritt.",
+    footnote: "Ein Protokoll für jeden Domus-Tua-Auftrag: Unterlagen- und Baurechtsprüfungen vor dem Markteintritt. Domus D.O.C. ist ein interner Standard von Domus Tua, keine von Dritten ausgestellte Zertifizierung.",
   },
   es: {
     eyebrow: "Protocolo propietario",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "El protocolo Domus Tua para hacer más claro, verificado y seguro el recorrido inmobiliario. Se comprueba antes, no después: quien vende tiene una negociación más sólida, quien compra ve los problemas cuando aún hay tiempo de resolverlos.",
+      "El protocolo interno de Domus Tua para la verificación documental y técnico-urbanística de los inmuebles que gestionamos: adelanta los controles en lugar de sufrirlos en la negociación. Quien vende tiene una negociación más sólida, quien compra ve los problemas cuando aún hay tiempo de resolverlos.",
     sellerLabel: "Para quien vende",
     buyerLabel: "Para quien compra",
     cta: "Descubre cómo protegemos la venta",
@@ -221,7 +221,7 @@ const copy = {
         buyer: "Un recorrido acompañado y seguro hasta la firma ante notario.",
       },
     ] as Pillar[],
-    footnote: "Un único protocolo para cada encargo de Domus Tua: verificaciones documentales y técnico-urbanísticas realizadas antes de salir al mercado.",
+    footnote: "Un único protocolo para cada encargo de Domus Tua: verificaciones documentales y técnico-urbanísticas realizadas antes de salir al mercado. Domus D.O.C. es un estándar interno de Domus Tua, no una certificación emitida por terceros.",
   },
 } as const;
 

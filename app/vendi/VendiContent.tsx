@@ -283,7 +283,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Document verification",
-        copy: "We check compliance, titles and documents before going to market. That way you reach the negotiation and the final deed with no hitches or unpleasant surprises.",
+        copy: "We check compliance, titles and documents before going to market. If a problem comes up, it comes up now — while there is still time to fix it.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Elegant living room with a bookcase",
       },
@@ -432,7 +432,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Vérification documentaire",
-        copy: "Nous contrôlons conformité, titres et documents avant la mise en vente. Vous arrivez ainsi à la négociation et à l’acte sans accroc ni mauvaise surprise.",
+        copy: "Nous contrôlons conformité, titres et documents avant la mise en vente. Si un problème apparaît, il apparaît maintenant : quand il est encore temps de le résoudre.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Séjour élégant avec bibliothèque",
       },
@@ -495,7 +495,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         {
           n: "02",
           title: "Vérification documentaire",
-          copy: "Nous contrôlons conformité, titres et plans en amont, pour arriver à l’acte sans mauvaise surprise.",
+          copy: "Nous contrôlons conformité, titres et plans en amont : s’il y a un problème, il est encore temps de le résoudre.",
         },
         {
           n: "03",
@@ -581,7 +581,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Prüfung der Unterlagen",
-        copy: "Wir prüfen Konformität, Rechtstitel und Dokumente vor dem Verkaufsstart. So erreichen Sie Verhandlung und Notartermin ohne Hürden und böse Überraschungen.",
+        copy: "Wir prüfen Konformität, Rechtstitel und Dokumente vor dem Verkaufsstart. Taucht ein Problem auf, taucht es jetzt auf — solange noch Zeit bleibt, es zu lösen.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Elegantes Wohnzimmer mit Bücherregal",
       },
@@ -730,7 +730,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Verificación documental",
-        copy: "Comprobamos conformidad, títulos y documentos antes de poner a la venta. Así llegas a la negociación y a la escritura sin contratiempos ni sorpresas desagradables.",
+        copy: "Comprobamos conformidad, títulos y documentos antes de poner a la venta. Si aparece un problema, aparece ahora: cuando todavía hay tiempo para resolverlo.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Salón elegante con librería",
       },
