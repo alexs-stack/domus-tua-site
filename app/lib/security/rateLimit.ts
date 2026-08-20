@@ -3,9 +3,13 @@
 // Due livelli, con la stessa firma:
 //
 //  • `rateLimitShared` — CONDIVISO tra le istanze quando RATE_LIMIT_REDIS_URL e
-//    RATE_LIMIT_REDIS_TOKEN sono configurate. È la versione da usare sulle route.
+//    RATE_LIMIT_REDIS_TOKEN sono configurate. È la versione usata da TUTTE le route pubbliche
+//    (assistant, assistant-lead, lead, search): un solo argine, coerente tra gli endpoint.
 //  • `rateLimit` — in-memory, sliding-window log per IP. Fa da fondo quando lo store
-//    condiviso manca o non risponde.
+//    condiviso manca o non risponde (fail-open: meglio un limite più debole di un 500).
+//
+// CHIAVE: usare `clientKey(req, prefix)` — l'IP è hashato, non finisce in chiaro nello store, e
+// il `prefix` isola gli endpoint (un flood sulla ricerca non consuma la quota dei lead).
 //
 // ⚠️ LIMITE DEL SOLO IN-MEMORY: la Map vive PER-ISTANZA. Su Vercel serverless ogni lambda ha
 //    la sua, quindi chi abusa colpisce istanze diverse e il limite reale è un multiplo
@@ -16,6 +20,7 @@
 //    condividono indirizzi, e chi vuole aggirarlo può cambiarli. È un argine contro flood e
 //    scraping, non una difesa contro un attaccante determinato. Vedi docs/assistant-security.md.
 
+import { createHash } from "node:crypto";
 import { incrementWindow } from "./sharedStore";
 
 type Store = Map<string, number[]>;
@@ -124,4 +129,18 @@ export function clientIp(req: Request): string {
   const real = req.headers.get("x-real-ip");
   if (real?.trim()) return real.trim();
   return "unknown";
+}
+
+/**
+ * Chiave di rate limit privacy-conscious: `<prefix>:<hash-dell'IP>`.
+ *
+ * L'IP non finisce MAI in chiaro nella chiave (né in Redis né nella Map in-memory): si conserva
+ * solo un hash troncato, deterministico (stesso IP → stessa chiave, il limite regge) e non
+ * reversibile. La chiave scade comunque con la finestra (TTL su Redis), quindi nessun dato di
+ * navigazione viene trattenuto oltre il necessario. Il `prefix` separa gli endpoint: un flood
+ * sulla ricerca non consuma la quota dei lead.
+ */
+export function clientKey(req: Request, prefix: string): string {
+  const hash = createHash("sha256").update(clientIp(req)).digest("base64url").slice(0, 16);
+  return `${prefix}:${hash}`;
 }

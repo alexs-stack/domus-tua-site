@@ -40,6 +40,37 @@ describe("proiezione da griglia", () => {
     }
   });
 
+  // Il test qui sopra da solo NON basta, e per un motivo che si vede solo misurando:
+  // sulla fixture del mock `facts`, `energyClass` e `ref` sono ASSENTI. Tre asserzioni
+  // su sei passavano a vuoto — verificavano che un campo mancante restasse mancante.
+  // La proiezione poteva tornare una `Omit` e il test sarebbe rimasto verde.
+  //
+  // Qui l'immobile ha TUTTI i campi pesanti popolati, così l'asserzione tocca il caso
+  // vero: un immobile che arriva dal feed con i suoi fatti strutturati.
+  test("i campi pesanti non passano nemmeno quando ci sono davvero", () => {
+    const pieno: Property = {
+      ...sample,
+      facts: [
+        { key: "tipologia", group: "principali", label: "Tipologia", value: "Appartamento", source: "realsmart", confidence: "alta" },
+        { key: "superficie", group: "principali", label: "Superficie", value: "90 m²", source: "realsmart", confidence: "alta" },
+        { key: "terrazzi", group: "esterni", label: "Terrazzi", value: "2", source: "descrizione", confidence: "alta" },
+      ],
+      energyClass: "A2",
+      ref: "RS-00042",
+      docVerified: true,
+    };
+
+    const g = toGridProperty(pieno) as Record<string, unknown>;
+    for (const k of ["description", "gallery", "facts", "energyClass", "ref", "docVerified"]) {
+      assert.equal(g[k], undefined, `"${k}" è finito nel payload della griglia pur essendo popolato`);
+    }
+    // E i campi che la griglia disegna devono esserci comunque: una proiezione che
+    // tiene fuori il peso ma perde anche il titolo non è una difesa, è un guasto.
+    for (const k of ["slug", "title", "price", "cover"]) {
+      assert.notEqual(g[k], undefined, `"${k}" manca dal payload della griglia`);
+    }
+  });
+
   test("non introduce chiavi con valore undefined", () => {
     // `{ ref: undefined }` si serializza comunque nel flight payload: la proiezione deve
     // omettere la chiave, non impostarla a undefined.

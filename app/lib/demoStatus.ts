@@ -17,11 +17,24 @@ import { site } from "./site";
 import { heroCinematic } from "./media";
 import { isRealSmartLive } from "./realsmart/env";
 import { aiParseEnabled, semanticEnabled } from "./ai/config";
+import { emailEnabled } from "./assistant/config";
 
 /** Sorgente dati immobili: feed RealSmart live oppure fixture demo/mock. */
 export type DataSourceMode = "realsmart" | "mock";
 /** Destinazione dei lead: Google Sheet, solo WhatsApp, oppure non configurato. */
-export type LeadBackend = "sheets" | "whatsapp" | "not-configured";
+// NB: qui non c'è più `LeadBackend = "sheets" | "whatsapp" | "not-configured"`.
+//
+// Quella union descriveva un modello di consegna che il codice non usa più. Oggi
+// /api/lead consegna su DUE canali server — notifica email (Resend) e Google Sheet — e
+// risponde `ok:false, reason:"not-delivered"` se nessuno dei due prende in carico il
+// lead. WhatsApp è un canale del BROWSER: il form apre una chat precompilata, utile ma
+// fuori dal server, e non è una prova che la richiesta sia arrivata a qualcuno.
+//
+// Il difetto non era estetico. Senza Google Sheet configurato lo stato diceva «Solo
+// WhatsApp» e si segnava OK — verde — mentre l'email non veniva nemmeno guardata: la
+// dashboard dichiarava che i lead arrivavano proprio nella configurazione in cui
+// potevano non arrivare. Ora i due canali si dichiarano separati, e la riga è verde se
+// almeno uno dei due è configurato.
 
 /** Stato grezzo (booleani/enum) — nessun segreto. Adatto anche a /api/health. */
 export interface DemoStatus {
@@ -37,8 +50,10 @@ export interface DemoStatus {
   trustindexLive: boolean;
   /** Hero video reale attivo; altrimenti resta il poster (foto reale). */
   heroVideoLive: boolean;
-  /** Dove finiscono i lead una volta inviati. WhatsApp è comunque sempre attivo lato form. */
-  leadBackend: LeadBackend;
+  /** Notifica email dei lead (Resend) configurata: è un canale di consegna VERO. */
+  leadEmailConfigured: boolean;
+  /** Google Sheet configurato: l'altro canale di consegna vero. */
+  leadSheetConfigured: boolean;
   /** Ricerca AI: parsing frase→filtri via Claude (altrimenti parser locale deterministico). */
   searchAiConfigured: boolean;
   /**
@@ -61,13 +76,10 @@ export function getDemoStatus(): DemoStatus {
     site.embeds.trustindexLoader.trim().length > 0 ||
     (process.env.TRUSTINDEX_WIDGET_URL ?? "").trim().length > 0;
 
-  const webhookConfigured = (process.env.SHEETS_WEBHOOK_URL ?? "").trim().length > 0;
-  const formMode = (process.env.CONTACT_FORM_MODE ?? "whatsapp").trim().toLowerCase();
-  const leadBackend: LeadBackend = webhookConfigured
-    ? "sheets"
-    : formMode === "whatsapp"
-      ? "whatsapp"
-      : "not-configured";
+  // `CONTACT_FORM_MODE` non si legge più: non guidava più nessun comportamento, ma
+  // continuava a decidere il COLORE di questa riga. Una variabile morta che tinge di
+  // verde una dashboard è peggio di una variabile morta e basta.
+  const leadSheetConfigured = (process.env.SHEETS_WEBHOOK_URL ?? "").trim().length > 0;
 
   return {
     previewBadge: isTrue(process.env.NEXT_PUBLIC_PREVIEW_BADGE),
@@ -77,7 +89,8 @@ export function getDemoStatus(): DemoStatus {
     listingsMode: isRealSmartLive() ? "realsmart" : "mock",
     trustindexLive,
     heroVideoLive: heroCinematic.enabled,
-    leadBackend,
+    leadEmailConfigured: emailEnabled,
+    leadSheetConfigured,
     searchAiConfigured: aiParseEnabled,
     semanticRankingConfigured: semanticEnabled,
   };
@@ -120,14 +133,15 @@ export function demoChecklist(s: DemoStatus): DemoChecklistRow[] {
     },
     {
       label: "Lead",
-      value:
-        s.leadBackend === "sheets"
-          ? "Google Sheet + WhatsApp"
-          : s.leadBackend === "whatsapp"
-            ? "Solo WhatsApp"
-            : "Non configurato",
-      // WhatsApp è comunque un canale reale: giallo solo quando non c'è persistenza.
-      ok: s.leadBackend !== "not-configured",
+      value: [
+        s.leadEmailConfigured ? "Email" : null,
+        s.leadSheetConfigured ? "Google Sheet" : null,
+      ]
+        .filter(Boolean)
+        .join(" + ") || "Nessun canale di consegna",
+      // Verde se ALMENO UNO dei due canali server prende in carico il lead. WhatsApp non
+      // entra nel conto: apre una chat dal browser, non recapita niente a nessuno.
+      ok: s.leadEmailConfigured || s.leadSheetConfigured,
     },
   ];
 }

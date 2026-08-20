@@ -162,8 +162,16 @@ export async function GET() {
           manual: soldMap.manual,
         },
         // ── Contatti ──────────────────────────────────────────────────────
-        /** Dove finiscono i lead del form. Vedi app/lib/demoStatus.ts per i valori possibili. */
-        leadBackend: s.leadBackend,
+        /**
+         * I due canali di consegna VERI del form (/api/lead): notifica email e Google
+         * Sheet. Erano riassunti in un solo campo che contemplava "whatsapp" come se
+         * fosse una consegna — non lo è, apre una chat dal browser. Vedi demoStatus.ts.
+         */
+        leadDelivery: {
+          email: s.leadEmailConfigured,
+          sheet: s.leadSheetConfigured,
+          ok: s.leadEmailConfigured || s.leadSheetConfigured,
+        },
         /**
          * Canale email: oggi lo usa l'assistente, non il form contatti (che passa da
          * /api/lead). Dichiararlo a parte evita di far credere che il form spedisca email.

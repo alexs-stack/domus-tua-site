@@ -45,7 +45,12 @@ function ciLiteral(word: string): string {
 // case-insensitive da ciLiteral(); "piazzale" prima di "piazza" per preferire il match lungo.
 const STREET_KEYWORDS = [
   "via", "viale", "v.le", "piazzale", "piazza", "p.zza", "largo", "vicolo",
-  "corso", "c.so", "strada", "strade", "str.", "località", "loc.",
+  // "localita" SENZA accento non è un refuso da tollerare, è la grafia più comune in un
+  // gestionale: chi compila un campo di testo scrive spesso senza accentate. `ciLiteral()`
+  // rende insensibile alle MAIUSCOLE, non agli accenti — quindi "Localita Ronchetto 12"
+  // passava intera, con civico, mentre "Località Ronchetto 12" veniva redatta.
+  // Vale anche per "citta" nei toponimi composti.
+  "corso", "c.so", "strada", "strade", "str.", "località", "localita", "loc.",
   "frazione", "fraz.", "borgo", "contrada", "salita", "rotonda",
   "circonvallazione", "lungolago", "lungomare", "traversa",
 ];

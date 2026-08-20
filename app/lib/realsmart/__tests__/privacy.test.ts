@@ -21,6 +21,12 @@ describe("indirizzi civici — redatti con showAddress=false", () => {
     "Villa in Piazza Garibaldi 3.",
     "In Corso Italia, 15 troviamo un attico.",
     "Trilocale in Viale Europa 8B.",
+    // Toponimo SENZA accento: non è un refuso da tollerare, è la grafia più comune in
+    // un gestionale — chi compila un campo di testo scrive spesso senza accentate.
+    // `ciLiteral()` rende insensibile alle MAIUSCOLE, non agli accenti, quindi questa
+    // riga passava intera (civico compreso) mentre la gemella accentata veniva redatta.
+    "Rustico in Localita Ronchetto 12, immerso nel verde.",
+    "Casale in Località Ronchetto 12, immerso nel verde.",
   ];
   for (const text of cases) {
     test(`redatto: "${text.slice(0, 30)}…"`, () => {
