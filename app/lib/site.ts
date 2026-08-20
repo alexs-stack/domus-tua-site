@@ -442,3 +442,31 @@ export function organizationJsonLd() {
     ],
   } as const;
 }
+
+/**
+ * Chi richiama dopo l'invio di un modulo — FONTE UNICA.
+ *
+ * Il §6.6 del Documento Finale chiede che la conferma dica «chi vi chiamerà (nome e volto), da
+ * quale numero, entro quando». È la richiesta più utile di tutto il modulo e anche la più
+ * facile da tradire: una conferma che promette una persona e poi ne manda un'altra fa più
+ * danno del silenzio.
+ *
+ * Sta qui, e non dentro il componente, per due ragioni. La prima è che è un FATTO
+ * dell'agenzia, non una stringa di interfaccia: cambia se cambia chi risponde, non se cambia
+ * la pagina. La seconda è che va confermato dalla cliente, e un fatto da confermare deve
+ * stare in un posto solo, dove chi lo cambia lo trova.
+ *
+ * DA CONFERMARE — due cose, e nessuna delle due la può decidere il codice:
+ *   1. `name` — oggi è la persona che il sito già mostra accanto al modulo (la stessa foto,
+ *      lo stesso volto). Se al primo contatto risponde una collega, si cambia questa riga.
+ *   2. `phoneLabel` — è il fisso dell'agenzia. Se le chiamate in uscita partono da un
+ *      cellulare, il numero scritto qui è SBAGLIATO, e un numero sbagliato in una conferma
+ *      è peggio di nessun numero: insegna a non rispondere.
+ */
+export const callback = {
+  name: "Raffaela Rizza",
+  role: "Fondatrice · Domus Tua",
+  photo: "/images/reali/raffaela-keys.jpg",
+  /** Il numero che si vedrà sul telefono. Vedi la nota qui sopra. */
+  phoneLabel: site.phone.label,
+} as const;

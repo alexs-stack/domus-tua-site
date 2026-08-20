@@ -8,9 +8,14 @@ import { test, expect, setConsent } from "./helpers";
 //
 // Come si comporta il form (app/components/Contact.tsx): la scrittura server-side è
 // **best-effort e non bloccante**, il canale immediato è WhatsApp, aperto in modo sincrono col
-// gesto dell'utente. Perciò la conferma non dice "abbiamo ricevuto la tua richiesta" — dice che
-// sta aprendo WhatsApp e lascia il numero. È esattamente ciò che questi test presidiano: la
-// conferma non deve mai promettere una consegna che il sito non può garantire.
+// gesto dell'utente.
+//
+// La conferma dice «Abbiamo ricevuto la tua richiesta» SOLO quando un canale ha davvero preso
+// in carico il lead — cioè quando /api/lead risponde {ok:true}. In ogni altro esito (429, 502,
+// rete caduta, o il {ok:false, reason:"not-delivered"} che l API restituisce quando nessun
+// canale è configurato) la conferma parla solo di WhatsApp, che è l unica cosa che è davvero
+// successa. È esattamente ciò che questi test presidiano, ed è il motivo per cui ce ne sono
+// DUE: uno per il ramo che può promettere, uno per il ramo che non può.
 
 test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
@@ -41,9 +46,30 @@ test("il form manda il lead all'endpoint e passa la parola a WhatsApp", async ({
   await fillLeadForm(page);
   await page.getByRole("button", { name: /invia|richiedi|valuta|trova|scopri/i }).first().click();
 
-  // La conferma parla di WhatsApp e lascia il numero: non promette una consegna via email.
+  // La conferma parla di WhatsApp e lascia il numero.
   await expect(page.getByText(/stiamo aprendo whatsapp/i).first()).toBeVisible({ timeout: 15_000 });
   await expect(leadForm(page).locator('a[href^="https://wa.me/"]').first()).toBeVisible();
+
+  // E QUI, dove l'endpoint ha risposto ok, può anche dire che la richiesta è arrivata.
+  // È l'altra metà del test del 502: là questa frase è vietata, qui è dovuta.
+  await expect(page.getByText(/abbiamo ricevuto la tua richiesta/i).first()).toBeVisible({
+    timeout: 15_000,
+  });
+
+  // I quattro contenuti del §6.6 nella conferma: chi chiama, da quale numero, entro quando,
+  // cosa preparare. Sono la ragione per cui la conferma esiste — senza, è una spunta.
+  await expect(page.getByText(/cosa succede adesso/i).first()).toBeVisible();
+  await expect(page.getByText(/entro 24 ore lavorative/i).first()).toBeVisible();
+  await expect(page.getByText(/se ti arriva una chiamata dallo/i).first()).toBeVisible();
+  await expect(page.getByText(/cosa puoi preparare/i).first()).toBeVisible();
+
+  // Il link di scampo porta il messaggio GIÀ COMPOSTO, non il WhatsApp generico: chi lo usa
+  // è chi ha avuto il popup bloccato, cioè chi meno di tutti ha voglia di riscrivere.
+  const scampo = await leadForm(page).locator('a[href^="https://wa.me/"]').first().getAttribute("href");
+  expect(scampo ?? "").toMatch(/Mario(%20|\+)Rossi/i);
+
+  // Il pulsante di invio non è più premibile a vuoto: al suo posto un comando esplicito.
+  await expect(page.getByRole("button", { name: /manda un.altra richiesta/i })).toBeVisible();
 
   // E intanto il lead è partito verso l'endpoint, con i campi giusti — email in
   // un campo suo, non più nel vecchio `contact` combinato.
@@ -107,6 +133,12 @@ test("se l'endpoint cade, il form non promette nulla che non possa mantenere", a
 
   // Nessuna conferma di ricezione: la scrittura server-side è caduta e il testo non lo nasconde.
   await expect(page.getByText(/grazie|ricevut|ti risponderemo/i)).toHaveCount(0);
+  // E lo DICE, invece di tacere: la richiesta non è stata registrata, ecco la via che funziona.
+  await expect(page.getByText(/non è riuscito a registrarla/i).first()).toBeVisible({
+    timeout: 15_000,
+  });
+  // Il fisso resta cliccabile lì dentro: è il canale che non dipende né dall'endpoint né da WhatsApp.
+  await expect(leadForm(page).locator('a[href^="tel:"]').first()).toBeVisible();
   // Resta la via d'uscita vera, che non dipende dall'endpoint.
   await expect(leadForm(page).locator('a[href^="https://wa.me/"]').first()).toBeVisible({
     timeout: 15_000,

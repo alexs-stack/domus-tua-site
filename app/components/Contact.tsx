@@ -6,7 +6,7 @@ import { gsap, MQ } from "../lib/motion/gsap";
 import { Phone, Whatsapp, Mail, Pin } from "./Icons";
 import { SendCta } from "./primitives/Cta";
 import { SegnoDomusBadge } from "./BrandMotif";
-import { site } from "../lib/site";
+import { site, callback } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import { isEmailFormat, isPhoneFormat } from "../lib/forms/contactChannel";
@@ -17,6 +17,7 @@ import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
 import Fioritura from "./motion/Fioritura";
 import { useLocale } from "./i18n/LocaleProvider";
+import { getLenis } from "./motion/SmoothScroll";
 
 // Percorsi lead. `key` è il tipo lead (LeadIntent) — utile per una futura integrazione
 // CRM: lead type + source page + immobile selezionato (vedi docs/form-backend-next-step.md).
@@ -48,6 +49,7 @@ const copy = {
     surfaceLabel: "Superficie (m²)",
     surfacePlaceholder: "Es. 120",
     timingLabel: "Tempistica",
+    timingLabelSell: "In quanto tempo vorresti vendere?",
     timingPlaceholder: "Quando vorresti procedere?",
     timing: {
       asap: "Il prima possibile",
@@ -55,10 +57,10 @@ const copy = {
       within12: "Da 3 a 12 mesi",
       exploring: "Sto solo valutando",
     },
-    placeLabelSell: "Comune dell’immobile",
+    placeLabelSell: "Indirizzo dell’immobile",
     placeLabelBuy: "Zona desiderata",
     placeLabelOpen: "Zona di interesse",
-    placePlaceholderSell: "Es. Tradate, centro",
+    placePlaceholderSell: "Es. via Roma 12, Tradate — o anche solo il comune",
     placePlaceholderBuy: "Es. Tradate, Varese e dintorni",
     typeLabel: "Tipologia",
     typePlaceholder: "Es. Trilocale, villa, ufficio",
@@ -67,6 +69,7 @@ const copy = {
     featuresLabel: "Caratteristiche",
     featuresPlaceholder: "Es. giardino, box, ascensore",
     messageLabel: "Messaggio",
+    messageLabelOptional: "Messaggio (facoltativo)",
     messagePlaceholderSell: "Raccontaci qualcosa in più sull’immobile…",
     messagePlaceholderQuestion: "Come possiamo aiutarti?",
     submitSeller: "Richiedi la valutazione del tuo immobile",
@@ -90,6 +93,39 @@ const copy = {
     contactPhoneSub: "Lun–Sab",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Scrivici una mail",
+    // §6.6 — un testo sopra il modulo PER OGNI intento. Il documento ne scrive uno solo,
+    // per il proprietario, ma qui lo stesso modulo serve quattro pubblici con le tab: la
+    // frase del §6.6 sopra «Cerco casa» direbbe la cosa sbagliata alla persona sbagliata.
+    // Sul ramo venditore la frase è quella del documento, parola per parola.
+    subcopyBy: {
+      seller: "Raccontaci il tuo immobile. Ti diciamo cosa vale, cosa serve e qual è il percorso migliore.",
+      buyer: "Raccontaci cosa stai cercando. Ti diciamo cosa c’è, cosa sta per arrivare e cosa conviene guardare.",
+      question: "Scrivici la domanda. Ti risponde una persona, non un modulo automatico.",
+      "open-domus": "Raccontaci l’immobile. Ti diciamo se Open Domus è il formato giusto per venderlo.",
+      career: "Raccontaci chi sei. Leggiamo tutte le candidature che arrivano.",
+    } as Record<LeadIntent, string>,
+    sentTitleOk: "Abbiamo ricevuto la tua richiesta.",
+    sentTitlePending: "Il tuo messaggio è pronto su WhatsApp.",
+    sentNotDelivered:
+      "Il modulo non è riuscito a registrarla dai nostri sistemi: manda il messaggio che si è aperto, oppure chiamaci allo",
+    nextTitle: "Cosa succede adesso",
+    nextTitleIfFailed: "Cosa succede appena ci arriva",
+    nextWhen: "Ti richiamiamo entro 24 ore lavorative.",
+    nextNumberPre: "Se ti arriva una chiamata dallo",
+    nextNumberPost: ", siamo noi.",
+    prepareTitle: "Cosa puoi preparare, se ce l’hai",
+    prepareBy: {
+      seller:
+        "Planimetria catastale, atto di provenienza e attestato energetico. Se non li trovi non è un problema: la verifica dei documenti è compresa nel metodo.",
+      buyer:
+        "Quanto vuoi investire e le zone che escludi. Le esclusioni servono più delle preferenze: accorciano la ricerca invece di allungarla.",
+      question: "Niente. Se la domanda riguarda un immobile preciso, tieni a portata il riferimento.",
+      "open-domus":
+        "Le foto che hai dell’immobile e i documenti che ti ritrovi in casa. Al resto della preparazione pensiamo noi.",
+      career: "Il curriculum, se ne hai uno. Altrimenti bastano due righe su cosa sai fare.",
+    } as Record<LeadIntent, string>,
+    resend: "Manda un’altra richiesta",
+    aboutProperty: "Richiesta per questo immobile:",
     keysAlt: "Raffaela Rizza con le chiavi di casa",
   },
   en: {
@@ -112,6 +148,7 @@ const copy = {
     surfaceLabel: "Surface area (m²)",
     surfacePlaceholder: "E.g. 120",
     timingLabel: "Timing",
+    timingLabelSell: "How soon would you like to sell?",
     timingPlaceholder: "When would you like to proceed?",
     timing: {
       asap: "As soon as possible",
@@ -119,10 +156,10 @@ const copy = {
       within12: "3 to 12 months",
       exploring: "Just exploring",
     },
-    placeLabelSell: "Where the property is",
+    placeLabelSell: "Address of the property",
     placeLabelBuy: "Preferred area",
     placeLabelOpen: "Area of interest",
-    placePlaceholderSell: "E.g. Tradate, centre",
+    placePlaceholderSell: "E.g. via Roma 12, Tradate — or just the town",
     placePlaceholderBuy: "E.g. Tradate, Varese and nearby",
     typeLabel: "Property type",
     typePlaceholder: "E.g. two-bed flat, villa, office",
@@ -131,6 +168,7 @@ const copy = {
     featuresLabel: "Features",
     featuresPlaceholder: "E.g. garden, garage, lift",
     messageLabel: "Message",
+    messageLabelOptional: "Message (optional)",
     messagePlaceholderSell: "Tell us a little more about the property…",
     messagePlaceholderQuestion: "How can we help you?",
     submitSeller: "Request a valuation of your property",
@@ -154,6 +192,35 @@ const copy = {
     contactPhoneSub: "Mon–Sat",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Send us an email",
+    subcopyBy: {
+      seller: "Tell us about your property. We’ll tell you what it’s worth, what it needs and which route makes sense.",
+      buyer: "Tell us what you’re looking for. We’ll tell you what’s available, what’s coming and what’s worth seeing.",
+      question: "Write us your question. A person answers, not an autoresponder.",
+      "open-domus": "Tell us about the property. We’ll tell you whether Open Domus is the right format to sell it.",
+      career: "Tell us who you are. We read every application that reaches us.",
+    } as Record<LeadIntent, string>,
+    sentTitleOk: "Your request has reached us.",
+    sentTitlePending: "Your message is ready in WhatsApp.",
+    sentNotDelivered:
+      "The form could not log it on our systems: send the message that just opened, or call us on",
+    nextTitle: "What happens next",
+    nextTitleIfFailed: "What happens once it reaches us",
+    nextWhen: "We call you back within 24 working hours.",
+    nextNumberPre: "If a call comes in from",
+    nextNumberPost: ", that’s us.",
+    prepareTitle: "What you can get ready, if you have it",
+    prepareBy: {
+      seller:
+        "Cadastral floor plan, deed of provenance and energy certificate. If you can’t find them it’s no problem: checking the paperwork is part of the method.",
+      buyer:
+        "How much you want to spend, and the areas you rule out. Exclusions help more than preferences: they shorten the search instead of widening it.",
+      question: "Nothing. If your question is about a specific property, keep its reference to hand.",
+      "open-domus":
+        "Whatever photos of the property you have, and the documents you keep at home. The rest of the preparation is ours.",
+      career: "A CV, if you have one. Otherwise a couple of lines on what you can do.",
+    } as Record<LeadIntent, string>,
+    resend: "Send another request",
+    aboutProperty: "Request about this property:",
     keysAlt: "Raffaela Rizza holding the keys to a home",
   },
   fr: {
@@ -176,6 +243,7 @@ const copy = {
     surfaceLabel: "Surface (m²)",
     surfacePlaceholder: "Ex. 120",
     timingLabel: "Échéance",
+    timingLabelSell: "Dans quel délai souhaitez-vous vendre ?",
     timingPlaceholder: "Quand souhaitez-vous avancer ?",
     timing: {
       asap: "Dès que possible",
@@ -183,10 +251,10 @@ const copy = {
       within12: "De 3 à 12 mois",
       exploring: "Je me renseigne",
     },
-    placeLabelSell: "Où se situe le bien",
+    placeLabelSell: "Adresse du bien",
     placeLabelBuy: "Secteur souhaité",
     placeLabelOpen: "Secteur d’intérêt",
-    placePlaceholderSell: "Ex. Tradate, centre",
+    placePlaceholderSell: "Ex. via Roma 12, Tradate — ou simplement la commune",
     placePlaceholderBuy: "Ex. Tradate, Varese et alentours",
     typeLabel: "Type de bien",
     typePlaceholder: "Ex. trois-pièces, villa, bureau",
@@ -195,6 +263,7 @@ const copy = {
     featuresLabel: "Caractéristiques",
     featuresPlaceholder: "Ex. jardin, garage, ascenseur",
     messageLabel: "Message",
+    messageLabelOptional: "Message (facultatif)",
     messagePlaceholderSell: "Dites-nous en un peu plus sur le bien…",
     messagePlaceholderQuestion: "Comment pouvons-nous vous aider ?",
     submitSeller: "Demandez l’estimation de votre bien",
@@ -218,6 +287,35 @@ const copy = {
     contactPhoneSub: "Lun–Sam",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Écrivez-nous un e-mail",
+    subcopyBy: {
+      seller: "Parlez-nous de votre bien. Nous vous disons ce qu’il vaut, ce qu’il lui faut et quel est le meilleur parcours.",
+      buyer: "Dites-nous ce que vous cherchez. Nous vous disons ce qui existe, ce qui arrive et ce qui mérite une visite.",
+      question: "Écrivez-nous votre question. C’est une personne qui répond, pas un automate.",
+      "open-domus": "Parlez-nous du bien. Nous vous dirons si Open Domus est le bon format pour le vendre.",
+      career: "Dites-nous qui vous êtes. Nous lisons toutes les candidatures qui nous parviennent.",
+    } as Record<LeadIntent, string>,
+    sentTitleOk: "Nous avons bien votre demande.",
+    sentTitlePending: "Votre message est prêt dans WhatsApp.",
+    sentNotDelivered:
+      "Le formulaire n’a pas pu l’enregistrer sur nos systèmes : envoyez le message qui vient de s’ouvrir, ou appelez-nous au",
+    nextTitle: "Ce qui se passe maintenant",
+    nextTitleIfFailed: "Ce qui se passe dès que nous la recevons",
+    nextWhen: "Nous vous rappelons sous 24 heures ouvrées.",
+    nextNumberPre: "Si un appel arrive du",
+    nextNumberPost: ", c’est nous.",
+    prepareTitle: "Ce que vous pouvez préparer, si vous l’avez",
+    prepareBy: {
+      seller:
+        "Plan cadastral, titre de propriété et diagnostic de performance énergétique. Si vous ne les trouvez pas, ce n’est pas grave : la vérification des documents fait partie de la méthode.",
+      buyer:
+        "Votre budget et les secteurs que vous excluez. Les exclusions servent plus que les préférences : elles raccourcissent la recherche au lieu de l’élargir.",
+      question: "Rien. Si votre question porte sur un bien précis, gardez sa référence sous la main.",
+      "open-domus":
+        "Les photos que vous avez du bien et les documents que vous gardez chez vous. Le reste de la préparation, c’est nous.",
+      career: "Un CV, si vous en avez un. Sinon, deux lignes sur ce que vous savez faire.",
+    } as Record<LeadIntent, string>,
+    resend: "Envoyer une autre demande",
+    aboutProperty: "Demande concernant ce bien :",
     keysAlt: "Raffaela Rizza tenant les clés d’une maison",
   },
   de: {
@@ -240,6 +338,7 @@ const copy = {
     surfaceLabel: "Fläche (m²)",
     surfacePlaceholder: "Z. B. 120",
     timingLabel: "Zeitrahmen",
+    timingLabelSell: "In welchem Zeitraum möchten Sie verkaufen?",
     timingPlaceholder: "Wann möchten Sie starten?",
     timing: {
       asap: "So bald wie möglich",
@@ -247,10 +346,10 @@ const copy = {
       within12: "3 bis 12 Monate",
       exploring: "Ich informiere mich nur",
     },
-    placeLabelSell: "Wo sich die Immobilie befindet",
+    placeLabelSell: "Adresse der Immobilie",
     placeLabelBuy: "Gewünschte Gegend",
     placeLabelOpen: "Gegend von Interesse",
-    placePlaceholderSell: "Z. B. Tradate, Zentrum",
+    placePlaceholderSell: "Z. B. via Roma 12, Tradate — oder auch nur die Gemeinde",
     placePlaceholderBuy: "Z. B. Tradate, Varese und Umgebung",
     typeLabel: "Immobilientyp",
     typePlaceholder: "Z. B. Dreizimmerwohnung, Villa, Büro",
@@ -259,6 +358,7 @@ const copy = {
     featuresLabel: "Ausstattung",
     featuresPlaceholder: "Z. B. Garten, Garage, Aufzug",
     messageLabel: "Nachricht",
+    messageLabelOptional: "Nachricht (optional)",
     messagePlaceholderSell: "Erzählen Sie uns etwas mehr über die Immobilie…",
     messagePlaceholderQuestion: "Wie können wir Ihnen helfen?",
     submitSeller: "Bewertung Ihrer Immobilie anfordern",
@@ -282,6 +382,35 @@ const copy = {
     contactPhoneSub: "Mo–Sa",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Schreiben Sie uns eine E-Mail",
+    subcopyBy: {
+      seller: "Erzählen Sie uns von Ihrer Immobilie. Wir sagen Ihnen, was sie wert ist, was sie braucht und welcher Weg der richtige ist.",
+      buyer: "Sagen Sie uns, was Sie suchen. Wir sagen Ihnen, was es gibt, was kommt und was sich anzusehen lohnt.",
+      question: "Schreiben Sie uns Ihre Frage. Es antwortet ein Mensch, kein Automat.",
+      "open-domus": "Erzählen Sie uns von der Immobilie. Wir sagen Ihnen, ob Open Domus das richtige Format für den Verkauf ist.",
+      career: "Erzählen Sie uns, wer Sie sind. Wir lesen jede Bewerbung, die bei uns ankommt.",
+    } as Record<LeadIntent, string>,
+    sentTitleOk: "Ihre Anfrage ist bei uns angekommen.",
+    sentTitlePending: "Ihre Nachricht liegt bereit in WhatsApp.",
+    sentNotDelivered:
+      "Das Formular konnte sie in unseren Systemen nicht erfassen: Senden Sie die geöffnete Nachricht, oder rufen Sie uns an unter",
+    nextTitle: "Was jetzt passiert",
+    nextTitleIfFailed: "Was passiert, sobald sie bei uns ankommt",
+    nextWhen: "Wir rufen Sie innerhalb von 24 Arbeitsstunden zurück.",
+    nextNumberPre: "Wenn ein Anruf von",
+    nextNumberPost: " kommt, sind wir das.",
+    prepareTitle: "Was Sie bereitlegen können, falls vorhanden",
+    prepareBy: {
+      seller:
+        "Katasterplan, Eigentumsnachweis und Energieausweis. Finden Sie sie nicht, ist das kein Problem: die Prüfung der Unterlagen gehört zur Methode.",
+      buyer:
+        "Ihr Budget und die Lagen, die Sie ausschließen. Ausschlüsse helfen mehr als Wünsche: Sie verkürzen die Suche, statt sie zu verbreitern.",
+      question: "Nichts. Betrifft die Frage eine bestimmte Immobilie, halten Sie deren Referenz bereit.",
+      "open-domus":
+        "Die Fotos, die Sie von der Immobilie haben, und die Unterlagen, die zu Hause liegen. Um den Rest der Vorbereitung kümmern wir uns.",
+      career: "Einen Lebenslauf, falls vorhanden. Sonst genügen zwei Zeilen dazu, was Sie können.",
+    } as Record<LeadIntent, string>,
+    resend: "Eine weitere Anfrage senden",
+    aboutProperty: "Anfrage zu dieser Immobilie:",
     keysAlt: "Raffaela Rizza mit den Schlüsseln eines Hauses",
   },
   es: {
@@ -304,6 +433,7 @@ const copy = {
     surfaceLabel: "Superficie (m²)",
     surfacePlaceholder: "Ej. 120",
     timingLabel: "Plazos",
+    timingLabelSell: "¿En cuánto tiempo te gustaría vender?",
     timingPlaceholder: "¿Cuándo quieres avanzar?",
     timing: {
       asap: "Lo antes posible",
@@ -311,10 +441,10 @@ const copy = {
       within12: "De 3 a 12 meses",
       exploring: "Solo estoy valorando",
     },
-    placeLabelSell: "Dónde está el inmueble",
+    placeLabelSell: "Dirección del inmueble",
     placeLabelBuy: "Zona deseada",
     placeLabelOpen: "Zona de interés",
-    placePlaceholderSell: "Ej. Tradate, centro",
+    placePlaceholderSell: "Ej. via Roma 12, Tradate — o solo el municipio",
     placePlaceholderBuy: "Ej. Tradate, Varese y alrededores",
     typeLabel: "Tipología",
     typePlaceholder: "Ej. piso de tres ambientes, villa, oficina",
@@ -323,6 +453,7 @@ const copy = {
     featuresLabel: "Características",
     featuresPlaceholder: "Ej. jardín, garaje, ascensor",
     messageLabel: "Mensaje",
+    messageLabelOptional: "Mensaje (opcional)",
     messagePlaceholderSell: "Cuéntanos algo más sobre el inmueble…",
     messagePlaceholderQuestion: "¿Cómo podemos ayudarte?",
     submitSeller: "Solicita la valoración de tu inmueble",
@@ -346,6 +477,35 @@ const copy = {
     contactPhoneSub: "Lun–Sáb",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Escríbenos un correo",
+    subcopyBy: {
+      seller: "Cuéntanos tu inmueble. Te decimos cuánto vale, qué necesita y cuál es el mejor camino.",
+      buyer: "Cuéntanos qué buscas. Te decimos qué hay, qué está por llegar y qué merece una visita.",
+      question: "Escríbenos la pregunta. Responde una persona, no un automático.",
+      "open-domus": "Cuéntanos el inmueble. Te decimos si Open Domus es el formato adecuado para venderlo.",
+      career: "Cuéntanos quién eres. Leemos todas las candidaturas que nos llegan.",
+    } as Record<LeadIntent, string>,
+    sentTitleOk: "Tu solicitud nos ha llegado.",
+    sentTitlePending: "Tu mensaje está listo en WhatsApp.",
+    sentNotDelivered:
+      "El formulario no ha podido registrarla en nuestros sistemas: manda el mensaje que se ha abierto, o llámanos al",
+    nextTitle: "Qué pasa ahora",
+    nextTitleIfFailed: "Qué pasa en cuanto nos llegue",
+    nextWhen: "Te llamamos en menos de 24 horas laborables.",
+    nextNumberPre: "Si te entra una llamada del",
+    nextNumberPost: ", somos nosotras.",
+    prepareTitle: "Qué puedes preparar, si lo tienes",
+    prepareBy: {
+      seller:
+        "Plano catastral, título de propiedad y certificado energético. Si no los encuentras no pasa nada: la comprobación de los documentos está incluida en el método.",
+      buyer:
+        "Cuánto quieres invertir y las zonas que descartas. Las exclusiones sirven más que las preferencias: acortan la búsqueda en vez de ampliarla.",
+      question: "Nada. Si la pregunta es sobre un inmueble concreto, ten a mano su referencia.",
+      "open-domus":
+        "Las fotos que tengas del inmueble y los documentos que guardes en casa. Del resto de la preparación nos ocupamos nosotras.",
+      career: "El currículum, si lo tienes. Si no, bastan dos líneas sobre lo que sabes hacer.",
+    } as Record<LeadIntent, string>,
+    resend: "Enviar otra solicitud",
+    aboutProperty: "Solicitud sobre este inmueble:",
     keysAlt: "Raffaela Rizza con las llaves de una casa",
   },
 } as const;
@@ -370,6 +530,24 @@ export default function Contact({
   const [intent, setIntent] = useState<LeadIntent>(initialIntent ?? "seller");
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  /**
+   * Esito REALE della consegna al server, letto da submitLead.
+   *
+   * «pending» non è uno stato di attesa cosmetico: è l'unico onesto finché la POST non ha
+   * risposto. In quella finestra la conferma può dire che WhatsApp si sta aprendo — che è
+   * vero, è appena successo — ma non che la richiesta è arrivata, perché non lo sappiamo.
+   */
+  const [delivery, setDelivery] = useState<"pending" | "ok" | "failed">("pending");
+  /** L'URL WhatsApp col messaggio già composto, per il link di scampo. */
+  const [waUrl, setWaUrl] = useState<string>(site.whatsapp.href);
+  /**
+   * L'intento con cui si è inviato, congelato al submit.
+   *
+   * Serve perché «cosa preparare» cambia per pubblico, e le tab restano cliccabili anche
+   * dopo l'invio: senza congelarlo, chi tocca «Cerco casa» per curiosità vedrebbe cambiare
+   * sotto gli occhi i documenti da preparare per una richiesta che ha già mandato.
+   */
+  const [sentIntent, setSentIntent] = useState<LeadIntent>("seller");
   const [errors, setErrors] = useState<{
     name?: string;
     phone?: string;
@@ -397,6 +575,29 @@ export default function Contact({
       );
     }
   }, [errors]);
+
+  // La conferma CAMBIA L'ALTEZZA DELLA PAGINA, e Lenis va avvisato.
+  //
+  // Il pannello sostituisce tre righe con un blocco che porta volto, numero, tempi e documenti.
+  // Lenis tiene in cache l'altezza del documento: il suo `autoResize` c'è, ma passa da un
+  // ResizeObserver debounced, e nell'istante subito dopo l'invio il limite è ancora quello
+  // di prima. Qualunque scrollTo verso il fondo finisce quindi CLAMPATO al fondo vecchio.
+  //
+  // Non è un dettaglio di animazione. Il footer è `position: fixed` e si scopre sull'ultimo
+  // tratto di scroll; al focus da tastiera dentro la parte fissa chiama scrollToBottom per
+  // portare l'uncover a fine corsa, altrimenti un link a fuoco resta COPERTO dal main
+  // (Footer.tsx:89-98, WCAG 2.4.7). Col limite vecchio quel salto si fermava a 2324 invece
+  // che a 2681 e il link «Vendi» finiva sotto un div: focusabile e non cliccabile.
+  //
+  // Misurato: su albero pulito il test passa, con questo pannello no, e con questa riga
+  // torna verde. `ScrollTrigger.refresh()` NON serve — provato e tolto: `maxScroll` legge
+  // l'altezza dal vivo, era solo Lenis a rispondere con un numero di ieri.
+  //
+  // Fuori dalla guardia reduced-motion di proposito: un link coperto lo è per tutti.
+  useEffect(() => {
+    if (!sent) return;
+    getLenis()?.resize();
+  }, [sent, delivery]);
 
   useEffect(() => {
     if (!sent) return;
@@ -519,10 +720,20 @@ export default function Contact({
       propertyRef: propertyRef || undefined,
     };
 
-    // Cattura server-side (Google Sheet se configurato) — best-effort, non blocca il flusso.
-    // `submitting` disabilita il bottone durante la scrittura (niente doppio invio) e dà feedback.
+    // Cattura server-side (email e/o Google Sheet, se configurati) — best-effort, non blocca
+    // il flusso. `submitting` disabilita il bottone durante la scrittura e dà feedback.
+    //
+    // L'ESITO SI LEGGE. Prima si buttava via con `void`, e la conseguenza era che la conferma
+    // diceva la stessa cosa in ogni caso: richiesta registrata, 429 di rate limit, 502 del
+    // provider, rete caduta, e persino il `{ok:false, reason:"not-delivered"}` che l'API
+    // restituisce quando NESSUN canale è configurato (app/api/lead/route.ts:98-105). Il
+    // server era già onesto; era il client a non ascoltarlo.
     setSubmitting(true);
-    void submitLead(lead).finally(() => setSubmitting(false));
+    setDelivery("pending");
+    void submitLead(lead)
+      .then((r) => setDelivery(r.ok ? "ok" : "failed"))
+      .catch(() => setDelivery("failed"))
+      .finally(() => setSubmitting(false));
 
     // La conversione. Va registrata QUI, dopo la validazione e prima di aprire WhatsApp:
     // è il momento in cui la richiesta esiste davvero. Passa solo il tipo di richiesta,
@@ -531,9 +742,15 @@ export default function Contact({
     trackConversion(CONVERSIONS.valutazione, "modulo", { intent });
 
     // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
+    //
+    // L'URL si TIENE. Serve al link di scampo della conferma: chi lo clicca è esattamente chi
+    // ha avuto il popup bloccato, cioè chi ha più bisogno del messaggio già scritto — e prima
+    // si ritrovava mandato al WhatsApp generico, a riscriversi tutto a mano.
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
+    setWaUrl(url);
     window.open(url, "_blank", "noopener,noreferrer");
     setSent(true);
+    setSentIntent(intent);
   }
 
   return (
@@ -598,12 +815,23 @@ export default function Contact({
             {/* Paragrafo d'apertura: righe che salgono dalla maschera, con
                 l'uscita dalla parte opposta risalendo la pagina. Qui non c'è
                 nessun Reveal attorno, quindi niente doppio-hide. */}
+            {/* §6.6 «Sopra il modulo» — ma indicizzato per INTENTO.
+                Il documento scrive un testo solo, pensato per il proprietario. Qui lo stesso
+                modulo ha quattro tab, e la frase del §6.6 sopra «Cerco casa» parlerebbe alla
+                persona sbagliata: sul ramo venditore si usa la formula del documento parola
+                per parola, sugli altri tre la stessa promessa tradotta per quel pubblico.
+
+                `key` sull'intento è deliberato: fa rimontare TextLines a ogni cambio tab,
+                così le righe rientrano in animazione insieme ai campi che stanno cambiando
+                di fianco. Senza, il paragrafo cambierebbe testo di scatto mentre il resto
+                della card si muove. */}
             <TextLines
+              key={intent}
               as="p"
               exit
               className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone"
             >
-              {c.subcopy}
+              {c.subcopyBy[intent]}
             </TextLines>
 
             <figure className="arch-frame mt-8 w-full max-w-[15rem] border border-line">
@@ -649,6 +877,17 @@ export default function Contact({
                 <label htmlFor="company">Company</label>
                 <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
               </div>
+              {/* L'immobile da cui si arriva, DETTO.
+                  `propertyRef` viaggiava già col lead da quando esiste il pulsante «Richiedi
+                  una visita» sulla scheda, ma non compariva da nessuna parte: chi cliccava
+                  atterrava su un modulo che non nominava mai la casa che stava guardando, e
+                  finiva per riscriverne il titolo nel messaggio per sicurezza. Il dato c'era,
+                  mancava solo la riga che lo mostra. */}
+              {propertyRef ? (
+                <p className="rounded-2xl border border-line bg-cream px-4 py-2.5 text-[0.82rem] leading-relaxed text-stone">
+                  {c.aboutProperty} <span className="font-semibold text-ink">{propertyRef}</span>
+                </p>
+              ) : null}
               <div className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-cream p-1.5 sm:grid-cols-4">
                 {leadOptions.map((opt) => (
                   <button
@@ -733,9 +972,28 @@ export default function Contact({
                 ) : null}
               </div>
 
-              <SendCta submitting={submitting} size="lg" className="mt-1 w-full">
-                {submitLabels[intent]}
-              </SendCta>
+              {/* A invio avvenuto il pulsante sparisce e lascia il posto al comando esplicito
+                  di reinvio. Prima restava attivo e premibile: chi tornava da WhatsApp e non
+                  era sicuro di aver mandato ripremeva, aprendo una seconda scheda e scrivendo
+                  una seconda riga sul foglio. Toglierlo e basta però impedirebbe la correzione
+                  legittima («ho sbagliato il numero»), quindi il modo per rifarlo resta —
+                  solo, va chiesto. */}
+              {sent ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSent(false);
+                    setDelivery("pending");
+                  }}
+                  className="mt-1 w-full rounded-full border border-ink/15 px-5 py-3 text-sm font-semibold text-ink transition-colors hover:border-ink/35"
+                >
+                  {c.resend}
+                </button>
+              ) : (
+                <SendCta submitting={submitting} size="lg" className="mt-1 w-full">
+                  {submitLabels[intent]}
+                </SendCta>
+              )}
               {/* §6.6 — sta SOTTO il pulsante, non sopra: si legge nell'istante esatto in
                   cui si esita a premerlo. Dice quando richiamiamo, che i dati non escono
                   di qui, e che si può anche non farne nulla — è quest'ultima a togliere la
@@ -744,31 +1002,98 @@ export default function Contact({
                 {c.reassure}
               </p>
               {sent ? (
-                <p
+                <div
                   ref={sentRef}
                   role="status"
-                  className="flex items-center justify-center gap-2.5 rounded-2xl border border-red/25 bg-red-soft/60 px-4 py-3 text-center text-sm text-red-dark"
+                  className="rounded-2xl border border-red/25 bg-red-soft/60 px-4 py-4 text-sm text-red-dark"
                 >
-                  {/* Check che si disegna (senza JS/reduced-motion: già completo) */}
-                  <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-red">
-                    <path
-                      ref={checkRef}
-                      d="M4.5 12.5l5 5L19.5 7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span>
+                  {/* Titolo. È l'unica riga che cambia con l'esito, ed è quella che il §6.6
+                      chiede: «Abbiamo ricevuto la tua richiesta». Si dice SOLO quando è vero
+                      — cioè quando un canale ha davvero preso in carico il lead. */}
+                  <p className="flex items-center gap-2.5 font-semibold">
+                    {/* Check che si disegna (senza JS/reduced-motion: già completo) */}
+                    <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-red">
+                      <path
+                        ref={checkRef}
+                        d="M4.5 12.5l5 5L19.5 7"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span>{delivery === "ok" ? c.sentTitleOk : c.sentTitlePending}</span>
+                  </p>
+
+                  {/* Il canale immediato. Resta in tutti e tre gli esiti perché in tutti e tre
+                      è successo davvero: la scheda WhatsApp si è aperta col messaggio dentro. */}
+                  <p className="mt-2 leading-relaxed">
                     {c.sentPrefix}{" "}
-                    <a href={site.whatsapp.href} className="font-semibold underline">
+                    <a href={waUrl} className="font-semibold underline">
                       {c.sentLink} {site.whatsapp.label}
                     </a>
                     .
-                  </span>
-                </p>
+                  </p>
+
+                  {/* E quando il server NON ha preso il lead, lo si dice. Il testo regge anche
+                      nel caso in cui nessun canale sia configurato e WhatsApp sia l'unica
+                      consegna vera: non allarma, indica la strada che funziona. */}
+                  {delivery === "failed" ? (
+                    <p className="mt-2 leading-relaxed">
+                      {c.sentNotDelivered}{" "}
+                      <a href={site.phone.href} className="font-semibold underline">
+                        {site.phone.label}
+                      </a>
+                      .
+                    </p>
+                  ) : null}
+
+                  {/* §6.6 — «chi vi chiamerà (nome e volto), da quale numero, entro quando,
+                      cosa preparare». Sta QUI e non prima dell'invio: le stesse informazioni
+                      dette prima servono a far premere il pulsante, dette dopo servono a non
+                      far riscrivere la richiesta a chi non sa più cosa aspettarsi.
+                      Compare in tutti gli esiti: riguarda cosa succede dopo, non il canale. */}
+                  <div className="mt-4 border-t border-red/20 pt-3.5">
+                    {/* Il titolo cambia con l esito, e non e un dettaglio: «cosa succede
+                        adesso» presuppone che la richiesta sia arrivata. Se non e arrivata,
+                        nessuno richiama entro 24 ore — e le righe qui sotto diventerebbero
+                        una promessa che il sito non e in grado di mantenere. Una parola di
+                        differenza le rende condizionate a quello che deve ancora succedere. */}
+                    <p className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-red-dark/70">
+                      {delivery === "failed" ? c.nextTitleIfFailed : c.nextTitle}
+                    </p>
+                    <div className="mt-2.5 flex items-start gap-3">
+                      {/* Il volto. La stessa foto che sta accanto al modulo: chi ha appena
+                          scritto la riconosce, ed è il punto — sa chi si aspetta. */}
+                      <Image
+                        src={callback.photo}
+                        alt=""
+                        width={44}
+                        height={44}
+                        className="h-11 w-11 shrink-0 rounded-full object-cover"
+                      />
+                      <div className="leading-relaxed">
+                        <p>
+                          <span className="font-semibold">{callback.name}</span>
+                          <span className="text-red-dark/70"> · {callback.role}</span>
+                        </p>
+                        <p>{c.nextWhen}</p>
+                        {/* Il numero da cui arriva la chiamata. È la sola informazione che
+                            fa rispondere a un numero sconosciuto. */}
+                        <p>
+                          {c.nextNumberPre}{" "}
+                          <span className="font-semibold">{callback.phoneLabel}</span>
+                          {c.nextNumberPost}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mt-3 leading-relaxed">
+                      <span className="font-semibold">{c.prepareTitle}:</span>{" "}
+                      {c.prepareBy[sentIntent]}
+                    </p>
+                  </div>
+                </div>
               ) : null}
             </form>
           </div>
@@ -801,13 +1126,25 @@ function IntentFields({
   if (intent === "seller") {
     return (
       <>
+        {/* §6.6 chiede «Indirizzo dell'immobile», e l'etichetta ora lo dice. Ma
+            `autoComplete` resta `address-level2` e NON diventa `street-address`: quello
+            farebbe comparire l'autofill dell'indirizzo di casa di CHI VISITA, che non è
+            l'immobile in questione — e riempirebbe il campo con il dato sbagliato senza
+            che nessuno se ne accorga. Il placeholder dice che basta anche solo il comune:
+            l'etichetta chiede quello che serve, il placeholder toglie la barriera. */}
         <Field name="place" label={c.placeLabelSell} placeholder={c.placePlaceholderSell} autoComplete="address-level2" autoCapitalize="words" />
         <div className="grid gap-5 sm:grid-cols-2">
           <Field name="propertyType" label={c.typeLabel} placeholder={c.typePlaceholder} />
           <Field name="surface" label={c.surfaceLabel} placeholder={c.surfacePlaceholder} inputMode="numeric" autoCapitalize="none" spellCheck={false} />
         </div>
-        <Select name="timing" label={c.timingLabel} placeholder={c.timingPlaceholder} options={timingOptions} />
-        <TextArea name="message" label={c.messageLabel} placeholder={c.messagePlaceholderSell} />
+        {/* La tempistica come DOMANDA, che è la forma del §6.6. La select è la stessa che
+            serve l'acquirente, quindi l'etichetta neutra resta e la domanda si aggiunge
+            solo qui — stesso schema di placeLabelSell/placeLabelBuy. */}
+        <Select name="timing" label={c.timingLabelSell} placeholder={c.timingPlaceholder} options={timingOptions} />
+        {/* «(facoltativo)» solo su questo ramo: qui i campi sono otto e sapere quale si può
+            saltare vale qualcosa. Sul ramo «Ho una domanda» il messaggio È la richiesta, e
+            marcarlo facoltativo suonerebbe come «non ci interessa cosa scrivi». */}
+        <TextArea name="message" label={c.messageLabelOptional} placeholder={c.messagePlaceholderSell} />
       </>
     );
   }
