@@ -62,7 +62,7 @@ const copy = {
     steps: {
       eyebrow: "Come funziona l'acquisto",
       title: "Il percorso che ti porta alle chiavi, con serenità.",
-      intro: "Un metodo chiaro per scegliere bene, senza fretta e senza pressioni.",
+      intro: "Il percorso di chi compra — diverso da quello di chi vende, che è il Metodo Domus in nove passaggi. Qui sono quattro, e servono a scegliere bene senza fretta.",
       rows: [
         {
           title: "Ricerca mirata",
@@ -156,7 +156,7 @@ const copy = {
     steps: {
       eyebrow: "How buying works",
       title: "The journey that brings you to the keys, with peace of mind.",
-      intro: "A clear method to choose well, without haste and without pressure.",
+      intro: "The buyer’s path — different from the seller’s, which is the Domus Method in nine steps. Here there are four, and they are there to help you choose well, without haste.",
       rows: [
         {
           title: "Targeted search",
@@ -250,7 +250,7 @@ const copy = {
     steps: {
       eyebrow: "Comment se passe l’achat",
       title: "Le parcours qui vous mène jusqu’aux clés, en toute sérénité.",
-      intro: "Une méthode claire pour bien choisir, sans hâte et sans pression.",
+      intro: "Le parcours de l’acquéreur — distinct de celui du vendeur, qui est la Méthode Domus en neuf étapes. Ici elles sont quatre, et servent à bien choisir, sans hâte.",
       rows: [
         {
           title: "Recherche ciblée",
@@ -344,7 +344,7 @@ const copy = {
     steps: {
       eyebrow: "So läuft der Kauf",
       title: "Der Weg, der Sie zu den Schlüsseln bringt, ganz entspannt.",
-      intro: "Eine klare Methode, um gut zu wählen, ohne Eile und ohne Druck.",
+      intro: "Der Weg des Käufers — ein anderer als der des Verkäufers, der die Domus-Methode in neun Schritten ist. Hier sind es vier, und sie helfen, ohne Eile gut zu wählen.",
       rows: [
         {
           title: "Gezielte Suche",
@@ -438,7 +438,7 @@ const copy = {
     steps: {
       eyebrow: "Cómo funciona la compra",
       title: "El recorrido que te lleva hasta las llaves, con tranquilidad.",
-      intro: "Un método claro para elegir bien, sin prisas y sin presiones.",
+      intro: "El recorrido de quien compra — distinto del de quien vende, que es el Método Domus en nueve pasos. Aquí son cuatro, y sirven para elegir bien, sin prisas.",
       rows: [
         {
           title: "Búsqueda selectiva",
