@@ -17,6 +17,42 @@ async function gotoFirstListing(
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 }
 
+/**
+ * Apre una scheda con ALMENO `min` foto, provando le prime schede del catalogo.
+ *
+ * Serve perché i test del carosello, con un semplice `test.skip` sul conteggio,
+ * venivano SALTATI tutti: la prima scheda di /acquista ha poche foto e il nastro
+ * lì non scorre nemmeno. Un test che non gira è peggio di nessun test — dà la
+ * riga verde senza aver guardato niente.
+ */
+async function gotoListingConFoto(
+  page: import("@playwright/test").Page,
+  goto: (p: string) => Promise<void>,
+  min: number
+): Promise<number> {
+  await goto("/acquista");
+  const href = page.locator('#main a[href^="/case/"]');
+  await expect(href.first()).toBeVisible();
+  const rotte = (
+    await href.evaluateAll((as) =>
+      as.map((a) => (a as HTMLAnchorElement).getAttribute("href"))
+    )
+  )
+    .filter((h): h is string => !!h)
+    .filter((h, i, arr) => arr.indexOf(h) === i)
+    .slice(0, 8);
+
+  for (const r of rotte) {
+    await goto(r);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    const n = await page.getByRole("tab").count();
+    if (n >= min) return n;
+  }
+  throw new Error(
+    `nessuna delle prime ${rotte.length} schede del catalogo ha almeno ${min} foto`
+  );
+}
+
 test("la foto principale ha un alt descrittivo dai campi dell'annuncio, non posizionale", async ({
   page,
   goto,
@@ -122,4 +158,107 @@ test("nessuna violazione di accessibilità nella regione galleria @layout", asyn
     .analyze();
   const violations = results.violations.map((v) => ({ id: v.id, help: v.help }));
   expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+});
+
+// ── Il carosello: frecce sulla foto e nastro scorrevole ──────────────────────
+//
+// La griglia a 4 colonne stampava TUTTE le miniature: su una scheda da 46 foto
+// erano dodici righe sotto la foto grande, su una da 77 erano venti. Ora il
+// nastro ne mostra quante ne stanno e le altre le tiene in corsa.
+
+test("le frecce sfogliano le foto, e clic rapidi avanzano di uno per volta", async ({
+  page,
+  goto,
+}) => {
+  const n = await gotoListingConFoto(page, goto, 12);
+  const next = page.getByRole("button", { name: "Foto successiva" });
+  const tabs = page.getByRole("tab");
+
+  // Idratazione: si riprova finché il primo clic "prende".
+  await clickUntil(
+    () => next.click(),
+    () => expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true")
+  );
+
+  // CINQUE clic NELLO STESSO TICK devono avanzare di CINQUE, non di uno.
+  //
+  // I clic si sparano da `page.evaluate`, non con cinque `await next.click()`:
+  // Playwright aspetta fra un clic e l'altro, quindi ogni clic cade in un render
+  // diverso e il difetto NON si riproduce — il test passerebbe anche con il bug
+  // dentro (verificato: 23 verdi con la regressione reintrodotta). Nello stesso
+  // tick invece `select(active + 1)` legge cinque volte lo stesso `active` e la
+  // galleria avanza di una foto sola. È il caso di chi martella la freccia.
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll("button[aria-label]")].find(
+      (x) => x.getAttribute("aria-label") === "Foto successiva"
+    ) as HTMLButtonElement | undefined;
+    for (let i = 0; i < 5; i++) b?.click();
+  });
+  await expect(tabs.nth(6)).toHaveAttribute("aria-selected", "true");
+
+  // E il giro: dalla prima, indietro si arriva all'ultima.
+  const prev = page.getByRole("button", { name: "Foto precedente" });
+  for (let i = 0; i < 6; i++) await prev.click();
+  await expect(tabs.nth(0)).toHaveAttribute("aria-selected", "true");
+  await prev.click();
+  await expect(tabs.nth(n - 1)).toHaveAttribute("aria-selected", "true");
+});
+
+test("il nastro insegue la miniatura attiva senza muovere la pagina @layout", async ({
+  page,
+  goto,
+}) => {
+  const n = await gotoListingConFoto(page, goto, 12);
+  const tabs = page.getByRole("tab");
+
+  const next = page.getByRole("button", { name: "Foto successiva" });
+  await clickUntil(
+    () => next.click(),
+    () => expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true")
+  );
+
+  const pageYPrima = await page.evaluate(() => window.scrollY);
+  for (let i = 0; i < n - 2; i++) await next.click();
+
+  // L'ULTIMA miniatura è in vista dentro il nastro…
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const rail = document.querySelector(".dt-gallery-rail");
+        const att = [...document.querySelectorAll('[role="tab"]')].find(
+          (t) => t.getAttribute("aria-selected") === "true"
+        );
+        if (!rail || !att) return false;
+        const rr = rail.getBoundingClientRect();
+        const er = att.getBoundingClientRect();
+        return er.left >= rr.left - 2 && er.right <= rr.right + 2;
+      })
+    )
+    .toBe(true);
+
+  // …e la PAGINA non si è mossa. È il motivo per cui non si usa scrollIntoView:
+  // quello scorre anche gli antenati e farebbe saltare la scheda a ogni foto.
+  expect(await page.evaluate(() => window.scrollY)).toBe(pageYPrima);
+});
+
+test("le frecce del nastro si spengono a fine corsa, e non mentono @layout", async ({
+  page,
+  goto,
+}) => {
+  await gotoListingConFoto(page, goto, 12);
+
+  const indietro = page.getByRole("button", { name: "Scorri le miniature indietro" });
+  const avanti = page.getByRole("button", { name: "Scorri le miniature avanti" });
+
+  // A nastro fermo all'inizio: indietro spenta, avanti accesa.
+  await expect(indietro).toBeDisabled();
+  await expect(avanti).toBeEnabled();
+
+  // Dopo aver scorso, indietro si accende. Lo stato si RIMISURA dopo lo
+  // spostamento: aspettare solo l'evento `scroll` lasciava la freccia spenta
+  // con il nastro già a fondo corsa — un controllo che mente su dove si trova.
+  await clickUntil(
+    () => avanti.click(),
+    () => expect(indietro).toBeEnabled()
+  );
 });
