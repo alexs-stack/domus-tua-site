@@ -1,6 +1,17 @@
 # Piano di implementazione — Documento Finale di Sintesi
 
-> **Stato al 19 agosto 2026 — fino al commit `b60d58e`.**
+> **Stato al 20 agosto 2026 — fino al commit `5950c6a`.**
+> **Fasi 0, 1 e 3 chiuse** — ogni voce che non dipende dalla cliente è in `main`,
+> comprese le tre di copy del §3bis. Restano solo le due voci ESTERNE di Fase 0 (testi
+> legali validati, `NEXT_PUBLIC_SITE_URL`), la Fase 2 ferma sulle recensioni nominative
+> che deve consegnare la Direzione, e la decisione sulla barra prove (§2.1).
+>
+> **Le 16 PR aperte del 13 agosto sono state triagate e chiuse tutte** (dettaglio in
+> §3ter): tre mergiate, quattro residui riapplicati, nove chiuse con motivazione. Il loro
+> lavoro era già su `main` per un'altra strada — mergiarle avrebbe riportato indietro il
+> codice.
+>
+> Le vecchie righe qui sotto restano per storia:
 > **Fasi 0, 1 e 3 chiuse** per tutto ciò che non dipende dalla cliente. Restano aperte in
 > Fase 0 le due voci esterne (testi legali, `NEXT_PUBLIC_SITE_URL`); in Fase 3 restano tre
 > voci che sono **decisioni di copy**, non correzioni meccaniche, elencate in §4bis.
@@ -171,16 +182,42 @@ chieste in un colpo solo, non a rate.
 
 ---
 
-## 3bis. Cosa resta della Fase 3, e perché non l'ho fatto
+## 3bis. Le tre voci di copy della Fase 3
 
-Tre voci. Nessuna è bloccata da noi: sono **decisioni di copy**, e vanno viste prima di
-essere scritte in cinque lingue.
+**Chiuse tutte e tre.** Erano decisioni di copy, e le parole sono state scritte: restano
+da leggere, non da decidere. Le due voci di copy sono in `main` con una tabella
+prima/dopo nelle rispettive PR — è lì che la cliente le rivede in un colpo d'occhio.
 
 | Voce | Stato | Perché serve una decisione |
 |---|---|---|
 | ~~`FAQPage` su `/open-domus`~~ | **FATTO** | Estratto in `app/open-domus/faq.ts` come `lavora-con-noi`: il locale it e il markup leggono la stessa fonte, e una nuova guardia e2e verifica che il markup non dichiari domande assenti dalla pagina — e che non ricompaiano in `/domande-frequenti`, o tornerebbero le due dichiarazioni in conflitto. |
-| «Ti accompagniamo» → attività verificabili | Da approvare | Sei stringhe × cinque lingue. È **voce del brand**, non una correzione meccanica: il §2 dice cosa sostituire, non con quali parole. Alcune di quelle frasi contengono già lo specifico giusto dopo il verbo generico («nelle visite, nella documentazione, nella proposta»): va cambiato il verbo, non buttato il contenuto. |
-| Versioni brevi del metodo che si dichiarano tali | Da approvare | Stessa natura. Il §4.2 detta il senso — «I nove passaggi del Metodo Domus, in sintesi» — ma su `/open-domus` le cinque fasi sono quelle dell'**evento**, non del metodo, e vanno distinte invece che allineate a forza. |
+| ~~«Ti accompagniamo» → attività verificabili~~ | **FATTO** ([#60](https://github.com/alexs-stack/domus-tua-site/pull/60)) | 44 stringhe, cinque lingue. Regola seguita: cambiare il VERBO, non buttare il contenuto — quasi tutte avevano già lo specifico giusto dopo l'attacco generico. Riscrivendo sono saltati fuori due titoli che contraddicevano la propria copy («Trasparenza totale» sopra un testo che parla di vincoli; «Sempre accompagnato» sopra uno che promette un riferimento) e due assolute della famiglia del §3.3. Non toccate: le testimonianze dei clienti, e il title di /open-domus, che è testo approvato dal §6.8. |
+| ~~Versioni brevi del metodo che si dichiarano tali~~ | **FATTO** ([#61](https://github.com/alexs-stack/domus-tua-site/pull/61)) | Applicato NON alla lettera, e il perché è la parte utile: la formula del §4.2 sarebbe falsa in due casi su tre. Solo su `/vendi` i quattro passi sono la sintesi dei nove del mandato; su `/acquista` sono il percorso di CHI COMPRA (che i nove passaggi non li attraversa) e su `/open-domus` sono le fasi dell'EVENTO. Ogni pagina ora dice cosa elenca: il lettore non incontra più il conflitto, e nessuna riga mente. |
+
+
+## 3ter. Le 16 PR aperte del 13 agosto
+
+Sedici PR, tutte dello stesso giorno, **nessuna mai mergiata**. L'istinto dice di mergiarle;
+sarebbe stato l'errore.
+
+Il loro lavoro era già su `main`, arrivato per un'altra strada — riscritto su rami diversi e
+mergiato da lì. È anche la spiegazione dei conflitti: **tredici su sedici confliggevano perché
+il codice che volevano portare era già lì, in una versione più recente.** `launchReadiness.ts`,
+`security/rateLimit.ts`, l'intero `realsmart/`, `territory/`: tutto presente.
+
+Triage: una PR per agente, e un avversario su ogni verdetto «superata» — perché dichiarare
+superata una PR che porta ancora qualcosa significa **buttare lavoro**, ed è l'errore costoso
+in questa direzione.
+
+| Esito | PR | Cosa è stato fatto |
+|---|---|---|
+| **Mergiate** | #31 #40 #43 | Voce dell'assistente; rate limiting su `/api/lead` e `/api/search` (erano scoperte, con l'IP in chiaro nelle chiavi); MVP arricchimento AI — **spento di default**, serve `REALSMART_AI_NORMALIZE` più una chiave, e nessuna delle due è impostata. |
+| **Residui riapplicati** | #39→#56 · #29→#57 · #35 e #41→#58 | Il report che dichiarava consegnati i lead quando nessun canale li riceveva; le camere sugli uffici (§4.1); un indirizzo senza accento che sfuggiva alla redazione privacy; tre asserzioni che passavano a vuoto. |
+| **Chiuse, superate** | #32 #33 #34 #36 #37 #44 #45 | Contenuto già su `main`, riscritto meglio. Verificate una per una, con un secondo passaggio avversariale. |
+| **Chiuse, residuo annotato** | #30 #42 | Un sottocomando CLI di redazione e la policy tipizzata dei venduti. Fuori dal perimetro corrente; il residuo è descritto nel commento di chiusura perché non vada perso. |
+
+Ogni chiusura porta la sua motivazione scritta. Chiudere dodici PR in blocco, senza dire
+perché, sarebbe stato peggio che lasciarle aperte.
 
 ## 4. Il piano
 
