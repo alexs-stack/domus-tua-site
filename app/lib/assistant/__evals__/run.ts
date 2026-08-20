@@ -15,6 +15,7 @@ import { normalizedToProperty } from "../../realsmart/toProperty";
 import type { NormalizedProperty } from "../../realsmart/types";
 import type { ClientMessage } from "../types";
 import type { EvalCase } from "./cases";
+import type { AssistantTerritoryReader } from "../tools/territory";
 import { CRITERI_BLOCCANTI, grade, type EvalSignals, type Verdict } from "./graders";
 
 export interface EvalResult {
@@ -59,6 +60,8 @@ export interface RunOptions {
   listings: AssistantListings;
   /** Slug non disponibili (venduti), che non devono mai comparire. */
   slugNonDisponibili: string[];
+  /** Lettore territoriale (Prompt 13): attiva get_area_profile e il territorio in get_listing_details. */
+  territory?: AssistantTerritoryReader;
 }
 
 /**
@@ -129,6 +132,7 @@ async function eseguiTurno(
     messages: messaggi,
     model: options.makeModel?.(),
     listings: options.listings,
+    ...(options.territory ? { territory: options.territory } : {}),
     onToolCall: (name) => toolUsati.push(name),
   })) {
     if (evento.type === "text") {

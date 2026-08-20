@@ -11,7 +11,7 @@
 // trova immobili. Il feed è un URL pubblico, quindi in locale basta lasciare il default (live).
 // I test non dipendono dalla rete: usano fixture iniettate direttamente nei tool.
 
-import { getLiveListingsSnapshot, type ListingsSource } from "../realsmart/client";
+import { getLiveListingsSnapshot, isRealListingSource, type ListingsSource } from "../realsmart/client";
 import { comuneOf } from "../comune";
 import { normalizedToProperty } from "../realsmart/toProperty";
 import type { NormalizedProperty } from "../realsmart/types";
@@ -55,8 +55,9 @@ export function buildAssistantListings(
   listings: NormalizedProperty[],
   source: ListingsSource,
 ): AssistantListings {
-  // Sorgente non reale = nessun immobile citabile. Vedi la nota in testa al file.
-  if (source !== "live") return EMPTY;
+  // Solo dato REALE è citabile: "live" o "stale" (ultimo-buono dal gestionale). Mai "mock"
+  // (demo) né "unavailable" (fail-closed vuoto). Vedi la nota in testa al file.
+  if (!isRealListingSource(source)) return EMPTY;
 
   const normalizedBySlug = new Map<string, NormalizedProperty>();
   const properties: Property[] = [];

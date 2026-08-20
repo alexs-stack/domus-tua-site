@@ -38,8 +38,9 @@ import { useCallback, useEffect, useState } from "react";
 import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { useLocale } from "./i18n/LocaleProvider";
-import { INTRO_EVENT, isIntroRunning } from "./motion/Preloader";
-import { readConsent, writeConsent, type ConsentValue } from "../lib/consent";
+import { isIntroRunning, hasIntroFired } from "./motion/Preloader";
+import { INTRO_EVENT, HERO_REST_MS } from "../lib/motion/intro-constants";
+import { readConsent, writeConsent, CONSENT_REOPEN_EVENT, type ConsentValue } from "../lib/consent";
 
 const copy = {
   it: {
@@ -106,7 +107,10 @@ export default function CookieConsent() {
     // documento, sotto il sipario sarebbe il primo bersaglio del Tab — tre comandi
     // invisibili sotto un telo opaco. Appare al handoff dell'intro, ed è per questo
     // che lo script pre-paint NON mette l'attributo quando il sipario sta per partire.
-    if (!isIntroRunning()) {
+    // `hasIntroFired()`: l'handoff è già partito (Preloader idratato a tuffo
+    // cominciato lo spara nel proprio effect, che precede questo) — si mostra
+    // adesso, come se l'evento fosse appena arrivato, invece di aspettare la rete.
+    if (!isIntroRunning() || hasIntroFired()) {
       html.setAttribute("data-consent", ""); // idempotente: lo script l'ha già messo
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShow(true);
@@ -117,12 +121,25 @@ export default function CookieConsent() {
       setShow(true);
     };
     window.addEventListener(INTRO_EVENT, onIntroDone, { once: true });
-    // Safety: se l'evento va perso, il banner appare comunque.
-    const safety = window.setTimeout(onIntroDone, 6000);
+    // Safety: se l'evento va perso, il banner appare comunque — HERO_REST_MS
+    // (intro-constants.ts: dive + 200 ms, contato da qui), lo stesso orologio
+    // dell'hero. Il handoff vero arriva da Preloader.tsx a INTRO_T.dive.
+    const safety = window.setTimeout(onIntroDone, HERO_REST_MS);
     return () => {
       window.removeEventListener(INTRO_EVENT, onIntroDone);
       window.clearTimeout(safety);
     };
+  }, []);
+
+  // Riapertura: un link "Preferenze cookie" (footer/Cookie Policy) rimostra il banner anche
+  // dopo una scelta già fatta, così la revoca è sempre a un clic (reopenConsent in lib/consent).
+  useEffect(() => {
+    const onReopen = () => {
+      document.documentElement.setAttribute("data-consent", "");
+      setShow(true);
+    };
+    window.addEventListener(CONSENT_REOPEN_EVENT, onReopen);
+    return () => window.removeEventListener(CONSENT_REOPEN_EVENT, onReopen);
   }, []);
 
   // QUI C'ERANO DUE MECCANISMI, ED È GIUSTO DIRE PERCHÉ NON CI SONO PIÙ.

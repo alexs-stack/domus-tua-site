@@ -24,9 +24,13 @@
 //
 // Meccanica: sticky-screen collaudata (dt-paths) — runway + schermo sticky,
 // master timeline in scrub, [data-on] SOLO via JS (desktop ≥1024 + motion
-// ok). Mobile con motion: i pannelli in colonna tengono la scia scrubbata
-// per-pannello. Reduced-motion / no-JS: colonna statica completa, nessuno
-// stato nascosto (fromTo solo via JS).
+// ok). Sotto lg lo STESSO corridoio senza il pin («parità mobile 2»,
+// scheda 19, forma (a)): i pannelli restano in flusso e ognuno fa il PROPRIO
+// avvicinamento mentre entra — la prospettiva del corridoio sul pannello, il
+// contenuto che arriva da z = −0.5·GAP (due terzi di taglia) e la stessa scia
+// del desktop sopra (rotateY della testa, y+scale del ritratto).
+// Reduced-motion / no-JS: colonna statica completa, nessuno stato nascosto
+// (fromTo solo via JS).
 //
 // Le foto delle persone arriveranno dal cliente: `image`/`imagePos` in
 // app/lib/team.ts. Senza foto, il ritratto è un monogramma tipografico —
@@ -49,6 +53,17 @@ const BOTTOM_LAYERS = 3; // cognome: trail in sola y (riferimento)
    -0.9, 0.8, -0.7, 1, -0.7 in unità mondo ≈ 0.24·H): qui in frazioni di
    viewport height, smorzate perché il nome viaggia col ritratto. */
 const X_DRIFT = [-0.1, 0.09, -0.08, 0.11, -0.08, 0.09];
+
+/* La geometria del corridoio, in altezze di viewport: perspective = 120.71svh
+   (fov 45 del riferimento) e GAP fra due persone PARI alla perspective — il
+   piano successivo entra a metà taglia. Un solo numero per i due rami: il
+   desktop lo mette sullo schermo sticky (`globals.css`, .dt-tt[data-on]
+   .dt-tt_screen) e muove le unità in z; sotto lg la stessa perspective sta su
+   OGNI pannello (`.dt-tt:not([data-on]) .dt-tt_unit`) e il contenuto si
+   avvicina da −APPROACH·GAP. Con APPROACH = 0.5 la scala di partenza è
+   P/(P+0.5·P) = 2/3 esatti, qualunque sia l'altezza del telefono. */
+const PERSP_VH = 1.2071;
+const APPROACH = 0.5;
 
 /* Unità della master timeline: 1 = un GAP di viaggio camera (una persona).
    INTRO = fermo-immagine iniziale (la prima persona è GIÀ composta al pin
@@ -124,14 +139,47 @@ export default function TeamTrail() {
       const N = units.length;
 
       const mm = gsap.matchMedia();
-      // `lg` e non `desktop`: il corridoio 3D è un set piece — sotto i 1024 la
-      // camera non ha lo spazio per attraversare i piani senza tagliarli. Il
-      // ramo qui sotto è il gemello mobile, e c'è già.
-      mm.add({ desktop: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
-        const cond = ctx.conditions as { desktop: boolean; motionOk: boolean };
+      // `lg` e non `desktop`: la soglia dei set piece (1024). Quello che cambia
+      // qui NON è la trasformazione — è il PIN. Sopra 1024 il corridoio può
+      // permettersi uno schermo sticky e un runway di `len×140vh`, perché la
+      // camera attraversa davvero i piani sovrapposti in Z; sotto, sei pannelli
+      // pinnati 1,2 vh l'uno sarebbero sette schermate rubate (legge 4 di
+      // «parità mobile 2»). Il ramo qui sotto è il gemello, e fa lo STESSO tipo
+      // di trasformazione senza pin. La chiave si chiama `lg` come la sua
+      // media query: `desktop` in `MQ` è 768 e leggerlo qui ingannava.
+      mm.add({ lg: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
+        const cond = ctx.conditions as { lg: boolean; motionOk: boolean };
         if (!cond.motionOk) return;
 
-        // ── Mobile/tablet con motion: colonna con scia scrubbata per pannello ──
+        // ── Sotto lg: lo stesso corridoio, in flusso ──────────────────────
+        // PORT-SENZA-PIN, forma (a) (scheda 19). In flusso i pannelli stanno
+        // uno sotto l'altro e non si sovrappongono in Z: la camera non può
+        // attraversarli. Ma la sovrapposizione era il MEZZO, non l'effetto —
+        // quello che si guarda è che la persona ARRIVA DA LONTANO. Quindi ogni
+        // pannello si porta addosso la prospettiva del corridoio (120.71svh, la
+        // stessa dello schermo sticky) e il suo contenuto entra da z = −0.5·GAP,
+        // cioè a due terzi di taglia, crescendo fino a 1 mentre il pannello
+        // sale: è il tuffo del desktop misurato su una persona sola invece che
+        // su sei. Sopra ci resta la scia di IntroTrail com'era — rotateY 160
+        // della testa, y+scale del ritratto, stagger negativo — con le distanze
+        // del desktop, non più gonfiate: le 55vh di corsa del ritratto erano il
+        // rimpiazzo dell'avvicinamento che mancava; adesso l'avvicinamento c'è
+        // e il ritratto torna alle 14vh del desktop.
+        //
+        // NON portata: la composizione x alternata (X_DRIFT). Sul desktop
+        // l'unità è offset in x e la prospettiva la fa scivolare di lato mentre
+        // si avvicina, ma quell'offset resta addosso al pannello a fine corsa —
+        // in una colonna da 390 px vorrebbe dire contenuto fuori asse per
+        // sempre. Il tipo di trasformazione è l'avvicinamento, non la deriva.
+        //
+        // Alleggerimenti nominati (regola Chanel): niente canvas atmosfera —
+        // i 60 fiori in profondità, i 18 petali di velocità e i due blob del
+        // fondale non si dipingono mai qui (il ramo esce prima, e `.dt-tt_bg`
+        // è `display:none` senza [data-on]); niente pin, niente schermo sticky,
+        // niente runway; i pannelli senza foto restano alti quanto il loro
+        // contenuto; `will-change` solo per la finestra in cui il pannello è in
+        // corsa (sotto, sul trigger).
+        //
         // Le due soglie reggono anche adesso che i pannelli senza foto sono
         // più corti dello schermo (~553px contro 664, a 390×664 — vedi la nota
         // sull'altezza nel markup). I conti sulla geometria: "top 78%" scatta
@@ -143,8 +191,25 @@ export default function TeamTrail() {
         // ritoccare — ancorare la fine al bordo alto le renderebbe uguali, ma
         // toglierebbe al pannello con la foto la chiusura in centro schermo,
         // che è esattamente ciò che quel formato si guadagna.
-        if (!cond.desktop) {
+        if (!cond.lg) {
+          /* Il punto di partenza dell'avvicinamento, in px. Funzione e non
+             costante: `invalidateOnRefresh` la rilegge alla rotazione (la barra
+             URL non fa più refresh, `ScrollTrigger.config({ignoreMobileResize})`
+             in gsap.ts). */
+          const zFrom = () => -APPROACH * PERSP_VH * window.innerHeight;
+
           units.forEach((panel) => {
+            /* I quattro blocchi del pannello si avvicinano INSIEME: con la
+               prospettiva sul pannello e l'origine al suo centro, quattro
+               fratelli allo stesso z si proiettano esattamente come un unico
+               gruppo a quello z. Nessun wrapper da aggiungere al DOM per
+               portare il tuffo — e nessuna riga di markup che il desktop
+               dovrebbe poi ignorare. */
+            const blocks = panel.querySelectorAll<HTMLElement>(
+              "[data-tt-top], [data-tt-img], [data-tt-bottom], [data-tt-role]"
+            );
+            const photo = panel.querySelector<HTMLElement>("[data-tt-img]");
+
             const tl = gsap.timeline({
               scrollTrigger: {
                 trigger: panel,
@@ -152,15 +217,26 @@ export default function TeamTrail() {
                 end: "center 45%",
                 scrub: true,
                 invalidateOnRefresh: true,
+                /* `will-change` A TEMPO, e su un nodo solo: [data-tt-img] porta
+                   il filtro `photo-warm` e per tutta la corsa viene scalato
+                   dalla prospettiva — senza promozione il filtro si ricalcola a
+                   ogni frame. Acceso quando il pannello entra in corsa, spento
+                   appena esce: mai un livello permanente (prompt §11). */
+                onToggle: (self) =>
+                  gsap.set(photo, { willChange: self.isActive ? "transform" : "auto" }),
               },
               defaults: { duration: 1.4, ease: "power4" },
             });
-            tl.fromTo(
-              panel.querySelectorAll("[data-tt-img] > *"),
-              { y: () => window.innerHeight * 0.55, scale: 45 / 53 },
-              { y: 0, scale: 1, stagger: -0.03 },
-              0
-            )
+            /* L'avvicinamento è la camera: lineare sotto scrub, come il mondo
+               del desktop (`defaults: { ease: "none" }` della master timeline).
+               La scia sopra tiene il suo power4. */
+            tl.fromTo(blocks, { z: zFrom }, { z: 0, ease: "none" }, 0)
+              .fromTo(
+                panel.querySelectorAll("[data-tt-img] > *"),
+                { y: () => window.innerHeight * 0.14, scale: 45 / 53 },
+                { y: 0, scale: 1, stagger: -0.03 },
+                0
+              )
               .fromTo(
                 panel.querySelectorAll("[data-tt-top] > *"),
                 { y: () => -window.innerHeight * 0.14, rotateY: 160 },
@@ -188,7 +264,9 @@ export default function TeamTrail() {
 
         // GAP = perspective (120.71svh): il piano successivo appare a metà
         // taglia quando il corrente è a fuoco — la geometria del riferimento.
-        const GAP = () => window.innerHeight * 1.2071;
+        // Stesso numero del ramo sotto lg (PERSP_VH): i due rami non sono due
+        // corridoi diversi, è lo stesso con e senza pin.
+        const GAP = () => window.innerHeight * PERSP_VH;
 
         // Piazzamento 3D delle unità: z fisso per indice, x alternata.
         // Rifatto a ogni refresh (le funzioni di GAP dipendono dal viewport).

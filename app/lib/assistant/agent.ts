@@ -27,7 +27,17 @@ import {
 import { getAssistantListings, type AssistantListings } from "./listings";
 import { FALLBACK_REPLY, buildSystemPrompt } from "./prompt";
 import { createAssistantTools } from "./tools";
+import { createStoreTerritoryReader, type AssistantTerritoryReader } from "./tools/territory";
+import { isAssistantTerritoryEnabled } from "../territory/flags";
+import { createTerritoryRepository } from "../territory/store/config";
 import type { AssistantEvent, ClientMessage, ListingCard } from "./types";
+
+/** Lettore territoriale del turno: attivo solo a feature accesa (constraint 9: solo store, no provider). */
+function resolveTerritoryReader(override?: AssistantTerritoryReader): AssistantTerritoryReader | undefined {
+  if (override) return override;
+  if (!isAssistantTerritoryEnabled()) return undefined;
+  return createStoreTerritoryReader({ repository: createTerritoryRepository(), now: () => new Date() });
+}
 
 export interface RunTurnOptions {
   /** Cronologia già validata e ripulita dalla route. */
@@ -40,6 +50,8 @@ export interface RunTurnOptions {
   model?: LanguageModel;
   /** Override degli immobili: usato dai test per non dipendere dal feed. */
   listings?: AssistantListings;
+  /** Override del lettore territoriale: usato dai test/eval. In produzione dipende dal flag. */
+  territory?: AssistantTerritoryReader;
   /**
    * Osservatore degli strumenti invocati. Server-only: i nomi dei tool NON entrano nello
    * stream verso il client. Serve all'eval per misurare se l'assistente sceglie lo strumento
@@ -155,11 +167,13 @@ export async function* runAssistantTurn(
 
   const listings = options.listings ?? (await getAssistantListings());
   const shown = resolveShownListings(options.messages, listings);
+  const territory = resolveTerritoryReader(options.territory);
 
   // Coda degli eventi prodotti dai tool durante l'esecuzione (card immobili, handoff).
   const pending: AssistantEvent[] = [];
   const tools = createAssistantTools({
     listings,
+    ...(territory ? { territory } : {}),
     pagePath: options.pagePath,
     emit: (event) => pending.push(event),
   });
@@ -172,7 +186,7 @@ export async function* runAssistantTurn(
     const result = streamText({
       model: options.model ?? defaultModel(),
       providerOptions: providerOptions(options.model !== undefined),
-      system: buildSystemPrompt(shown),
+      system: buildSystemPrompt(shown, { territoryEnabled: territory !== undefined }),
       messages: toModelMessages(options.messages),
       tools,
       stopWhen: isStepCount(MAX_STEPS),

@@ -12,20 +12,23 @@ type Props = {
   startDelay?: number;
   /** Above-the-fold (es. H1 hero): mostra subito il testo (SSR visibile) per non ritardare l'LCP. */
   immediate?: boolean;
-  /** Accende la meccanica per-parola anche sotto i 768px. Il default `false` è
-      PORTANTE e va lasciato dov'è — stessa forma della prop `mobile` di
-      Parallax: la scelta si fa al punto di chiamata, un titolo alla volta.
-      La regola con cui è stata fatta (parità mobile, fase 2b, 2026-08-11):
-      la meccanica spezza il titolo in N span `inline-block`, e Chromium
-      aggrega i candidati LCP di testo per containing block — quindi un titolo
-      spezzato non è più UN candidato grande, sono N frammenti minuscoli che
-      perdono contro qualunque paragrafo montato dopo. Non è un'ipotesi: è già
-      successo all'H1 dell'hero ed è a verbale (docs/wow-layer-plan.md:178).
-      Quindi si accende SOLO su un titolo che sulla sua rotta non può essere
-      candidato LCP, cioè che non compare mai nel primo viewport. Alla
-      ricognizione del 2026-08-11 il componente aveva UN punto di chiamata
-      (l'<h2> di #candidatura, ultima sezione di /lavora-con-noi) e lo passa.
-      Chi ne aggiunge uno rifà la domanda: la larghezza non risponde per lui. */
+  /** Meccanica per-parola anche sotto i 768px. Il default è `true` dall'onda
+      «parità mobile 2» (verdetto 8, PORT): lo stesso titolo fa lo stesso gesto
+      a ogni larghezza. L'onda precedente (fase 2b, 2026-08-11) lo teneva a
+      `false` con opt-in al punto di chiamata, e la ragione era l'LCP: la
+      meccanica spezza il titolo in N span `inline-block`, e Chromium aggrega i
+      candidati LCP di testo per containing block — un titolo spezzato non è
+      più UN candidato grande, sono N frammenti minuscoli che perdono contro
+      qualunque paragrafo montato dopo (è successo all'H1 dell'hero,
+      docs/wow-layer-plan.md:178). Quella ragione resta vera, ma la risponde
+      `immediate`, non la larghezza: un titolo che sulla sua rotta può essere
+      candidato LCP passa `immediate` (SSR visibile, nessuna meccanica, a ogni
+      larghezza); tutti gli altri — l'unico chiamante oggi è l'<h2> di
+      #candidatura, ultima sezione di /lavora-con-noi — hanno la meccanica sul
+      telefono come sul desktop. `mobile={false}` resta possibile per un titolo
+      che sotto 768 sale in cima alla pagina senza esserlo sopra: la ragione va
+      scritta accanto. Chi aggiunge un chiamante above-the-fold passa
+      `immediate`, non toglie `mobile`. */
   mobile?: boolean;
 };
 
@@ -42,7 +45,7 @@ export default function WordReveal({
   stagger = 42,
   startDelay = 0,
   immediate = false,
-  mobile = false,
+  mobile = true,
 }: Props) {
   const ref = useRef<HTMLElement | null>(null);
   // In modalità `immediate` il testo è già "is-in" al primo render (anche in SSR):
@@ -67,12 +70,12 @@ export default function WordReveal({
 
   const words = text.split(" ");
 
-  // `immediate` e `mobile` dicono il contrario l'una dell'altra sullo stesso
-  // titolo: la prima "sono above-the-fold", la seconda "non lo sono". Se un
-  // punto di chiamata le scrive entrambe il telefono resta senza meccanica,
-  // perché i due errori non costano uguale: sbagliare verso il titolo intero
-  // costa un'animazione, sbagliare nell'altro verso costa il candidato LCP
-  // della rotta. L'attributo è la porta che apre il ramo < 768 in globals.css.
+  // `immediate` vince su `mobile` (che ora è `true` di default): la prima dice
+  // "sono above-the-fold", e se un titolo lo è il telefono resta senza
+  // meccanica, perché i due errori non costano uguale: sbagliare verso il
+  // titolo intero costa un'animazione, sbagliare nell'altro verso costa il
+  // candidato LCP della rotta. L'attributo è la porta che apre il ramo < 768
+  // in globals.css; sopra 768 il ramo è aperto dal solo `.word-reveal`.
   const splitOnPhone = mobile && !immediate;
 
   return (

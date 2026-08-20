@@ -15,6 +15,7 @@ import { buildAssistantListings } from "../app/lib/assistant/listings";
 import { FIXTURE_LISTINGS } from "../app/lib/assistant/__tests__/fixtures";
 import { AI_PROVIDER, ASSISTANT_MODEL, assistantAiEnabled } from "../app/lib/assistant/config";
 import { modelloSimulato, richiedeModelloSimulato } from "../app/lib/assistant/__evals__/mockModel";
+import { buildEvalTerritoryReader } from "../app/lib/assistant/__evals__/territoryFixture";
 
 const usaMock = process.argv.includes("--mock") || !assistantAiEnabled;
 
@@ -56,10 +57,13 @@ async function main() {
   // Anche in modalità reale i casi di guasto girano sul modello simulato: provider giù,
   // output vuoto e tool sbagliati non sono riproducibili con un provider che funziona.
   const simulati = EVAL_CASES.filter(richiedeModelloSimulato).length;
+  // Reader territoriale fixture: attivo per i casi del gruppo "territorio" (Prompt 13).
+  const territoryReader = buildEvalTerritoryReader();
   for (const caso of EVAL_CASES) {
     const result = await runCase(caso, {
       listings,
       slugNonDisponibili: nonDisponibili,
+      ...(caso.gruppo === "territorio" ? { territory: territoryReader } : {}),
       makeModel:
         usaMock || richiedeModelloSimulato(caso) ? () => modelloSimulato(caso) : undefined,
     });

@@ -40,6 +40,12 @@ export type Property = {
   sold?: boolean;
   /** Riferimento commerciale mostrato all'utente (es. "1043"), se fornito dal gestionale. */
   ref?: string;
+  /**
+   * true SOLO se un override attesta il protocollo Domus D.O.C. su questo immobile (mai dedotto
+   * dal marketing). Sblocca l'affermazione D.O.C. "verificata" sulla scheda. Assente/false →
+   * copy neutra (metodo). Vedi app/lib/domusDoc.ts.
+   */
+  docVerified?: boolean;
 };
 
 export const properties: Property[] = [
@@ -56,6 +62,8 @@ export const properties: Property[] = [
     beds: "3 camere",
     baths: "2 bagni",
     badges: ["In esclusiva", "Documenti verificati"],
+    // Demo: immobile con evidenza D.O.C. → mostra la variante "verificata" del blocco e il badge.
+    docVerified: true,
     cover: "/images/hero_02_attico_travi_living.jpg",
     gallery: [
       "/images/hero_02_attico_travi_living.jpg",
@@ -161,6 +169,7 @@ export const properties: Property[] = [
     beds: "1 camera",
     baths: "1 bagno",
     badges: ["Documenti verificati"],
+    docVerified: true,
     cover: "/images/rendering_01_living_divano_grigio.jpg",
     gallery: [
       "/images/rendering_01_living_divano_grigio.jpg",
@@ -252,19 +261,74 @@ export function getProperty(slug: string) {
 }
 
 /**
- * Proiezione "da griglia": l'immobile senza il testo lungo e senza la galleria.
+ * Proiezione "da griglia": SOLO i campi che la griglia legge davvero.
  *
- * Perché esiste: /case e /acquista rendono un componente client, quindi ogni campo degli
- * immobili finisce serializzato nell'HTML per l'idratazione. Descrizione e galleria non
- * servono a una scheda della griglia — servono alla pagina dell'immobile, che le carica per
- * conto suo. Con 193 annunci nel feed reale sono decine di kilobyte di HTML per niente.
+ * Perché esiste: /acquista rende un componente client, quindi ogni campo degli immobili
+ * finisce serializzato nell'HTML per l'idratazione. Con 196 annunci nel feed reale ogni
+ * campo inutile è un peso moltiplicato per 196.
+ *
+ * ⚠️ ERA UNA `Omit`, ED È IL MOTIVO PER CUI NON BASTAVA.
+ * `Omit<Property, "description" | "gallery">` toglie due campi e lascia passare tutti gli
+ * altri — compresi quelli aggiunti DOPO. Così nel payload viaggiavano ancora `facts` (i
+ * fatti strutturati della scheda, il campo più pesante che esista), `energyClass`, `ref` e
+ * `docVerified`: roba che la griglia non disegna e non filtra. /acquista pesava 1070 KB, ed
+ * è il difetto che il documento cita al punto 29.
+ *
+ * Ora è una `Pick`: elencare cosa entra invece di cosa esce sposta il default dalla parte
+ * giusta. Un campo nuovo su `Property` non finisce più qui per inerzia — ci finisce solo se
+ * qualcuno lo aggiunge a questa lista, e a quel punto sta guardando anche il peso.
+ *
+ * Chi consuma questi campi, al 2026-08-17: PropertySearch (filtri e ricerca testuale),
+ * PropertyCard (la scheda), CaseQuickLook (l'anteprima). `sold` non compare come `p.sold`
+ * ma serve: lo leggono `isAvailable`/`isSold` per il filtro disponibilità.
  */
-export type GridProperty = Omit<Property, "description" | "gallery">;
+export type GridProperty = Pick<
+  Property,
+  | "slug"
+  | "title"
+  | "zone"
+  | "type"
+  | "status"
+  | "price"
+  | "priceValue"
+  | "sqm"
+  | "rooms"
+  | "beds"
+  | "baths"
+  | "badges"
+  | "cover"
+  | "excerpt"
+  | "features"
+  | "sold"
+>;
 
-/** Toglie dal payload ciò che la griglia non mostra. Il tipo garantisce che resti così. */
+const GRID_FIELDS = [
+  "slug",
+  "title",
+  "zone",
+  "type",
+  "status",
+  "price",
+  "priceValue",
+  "sqm",
+  "rooms",
+  "beds",
+  "baths",
+  "badges",
+  "cover",
+  "excerpt",
+  "features",
+  "sold",
+] as const satisfies readonly (keyof GridProperty)[];
+
+/**
+ * Tiene SOLO ciò che la griglia mostra o filtra. Il tipo garantisce che resti così, e
+ * `satisfies` garantisce che l'elenco a runtime non diverga da quello del tipo.
+ */
 export function toGridProperty(p: Property): GridProperty {
-  const rest = { ...p } as Partial<Property>;
-  delete rest.description;
-  delete rest.gallery;
-  return rest as GridProperty;
+  const out = {} as Record<string, unknown>;
+  for (const k of GRID_FIELDS) {
+    if (p[k] !== undefined) out[k] = p[k];
+  }
+  return out as GridProperty;
 }

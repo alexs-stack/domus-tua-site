@@ -1,5 +1,20 @@
 # Prestazioni e accessibilità — misure, budget, divario
 
+> **Nota del 2026-08-17 — i numeri di questo documento sono superati.** La tabella di §1
+> (home 80 / LCP 5,4 s / TBT 80 ms) e il divario di §4 fotografano un momento precedente
+> all'onda «parità mobile» e alla misura di riverifica; le misure vere stanno in
+> `docs/mobile-parity.md` §11-12 e sono queste, sulla stessa configurazione Lighthouse:
+> home **perf 0,50 · LCP 9 812 ms · TBT 1 045 ms** (Lighthouse simulato, fine wave — e con
+> l'intro che ora suona SEMPRE in laboratorio, perché Lighthouse parte a `sessionStorage`
+> vuoto); con throttling **applicato** (sonda CDP, §12.1) LCP a freddo 1 724 ms e **TBT
+> proxy 2 898 ms** dopo il cancello di viewport su Trustindex (§12.3, era 3 561). L'imputato
+> del TBT non è l'intro (a freddo 3 561 ms contro 3 908 a caldo: l'intro non aggiunge TBT
+> netto, §12.1) ma **l'idratazione di react-dom** dell'albero client della home (~2 s in un
+> Lighthouse locale, §12.2/12.4). Il gate CI della home è rosso per questo, e il go/no-go
+> sull'idratazione differita è una decisione a parte, non un'ottimizzazione da fare di
+> passaggio. Il testo sotto resta come storia di ciò che è stato fatto e perché; dove cita
+> la durata dell'intro (§3) il numero è stato corretto in linea.
+
 Misure in condizioni Lighthouse mobile (Slow 4G simulato: 1,6 Mbps, RTT 150 ms, CPU ×4), su
 build di produzione servita in locale.
 
@@ -66,7 +81,15 @@ quando l'intro finisce. Il failsafe — per il caso in cui il bundle non si idra
 
 Non è teoria: nella prima misura, fatta per errore a larghezza desktop, l'LCP era **8,5 s**, di
 cui 7,9 s di "render delay". Il sipario restava sopra la pagina fino allo scadere del failsafe.
-Ora è **2,5 s**, allineato alla durata reale dell'intro (~2,2 s).
+Ora è **2,5 s** su desktop e **1,8 s** sotto i 768 px (`app/layout.tsx`, script di boot).
+Qui c'era scritto «allineato alla durata reale dell'intro (~2,2 s)»: quel numero non era la
+durata dell'intro. La timeline misurata dura **4,63 s su desktop** (3,50 s sul sipario di
+ripiego senza `mask-composite`) e **1,75 s sul telefono** (al `c4bccf8`, 2026-08-17; conto
+tween per tween in `docs/mobile-parity.md` §5.2 e nell'intestazione di `Preloader.tsx`). Il
+failsafe quindi non «segue» l'intro: è il tetto di attesa se il bundle non idrata mai, e sta
+sotto l'intro di proposito — un sipario muto più lungo dell'intro vera non ha senso. Quando
+scatta da solo, a rimettere in moto Lenis ci pensa la rete di `SmoothScroll.tsx`
+(`docs/mobile-parity.md` §5.3).
 
 ---
 

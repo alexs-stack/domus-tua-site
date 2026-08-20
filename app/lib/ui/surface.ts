@@ -24,6 +24,20 @@
    gradiente wine/espresso, cioè scure quanto una campitura — e un attributo
    sul pannello è più onesto (e molto più economico) di un campionamento di
    luminanza per frame.
+
+   TRE ATTRIBUTI, E NON SI TOCCANO (onda «parità mobile 2», trappola 1):
+     · `data-surface="dark|light"` — la SEZIONE dichiara com'è fatta. Lo LEGGE
+       questo file (`surfaceToneAt`, riga sotto).
+     · `data-tone="cream|cream-deep|paper"` — la SEZIONE è una tappa del flusso
+       di colore. Lo legge SurfaceFlow al mount e lo usa globals.css per
+       togliere gli sfondi.
+     · `data-rail-tone="dark"` — il verdetto che `watchSurfaceTone` SCRIVE
+       sull'elemento di chrome che sta guardando. Fino a questa onda scriveva
+       `data-tone`, cioè lo stesso attributo delle tappe: su una nav
+       `display:none` era innocuo, ma il filo di ThreadNav sul telefono è
+       visibile e sarebbe entrato nel flusso di SurfaceFlow come tappa
+       fantasma. Il rename è la condizione per accendere il campionamento
+       sotto i 1024.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export type SurfaceTone = "dark" | "light";
@@ -45,8 +59,10 @@ export function surfaceToneAt(x: number, y: number): SurfaceTone | null {
 }
 
 /**
- * Tiene aggiornato `data-tone` su un elemento fisso in base a cosa gli passa
- * sotto. Il punto campionato è deciso da chi chiama, perché ogni elemento del
+ * Tiene aggiornato `data-rail-tone` su un elemento fisso in base a cosa gli
+ * passa sotto — MAI `data-tone` (è la tappa di SurfaceFlow) né `data-surface`
+ * (è la dichiarazione della sezione): vedi le tre righe in testa al file.
+ * Il punto campionato è deciso da chi chiama, perché ogni elemento del
  * chrome ha la sua mezzeria — e campionare al centro dell'elemento stesso
  * colpirebbe l'elemento, non la pagina.
  *
@@ -68,8 +84,8 @@ export function watchSurfaceTone(
     queued = false;
     const p = samplePoint();
     const tone = p ? surfaceToneAt(p.x, p.y) : null;
-    if (tone === "dark") el.setAttribute("data-tone", "dark");
-    else el.removeAttribute("data-tone");
+    if (tone === "dark") el.setAttribute("data-rail-tone", "dark");
+    else el.removeAttribute("data-rail-tone");
   };
 
   const schedule = () => {
@@ -87,6 +103,6 @@ export function watchSurfaceTone(
     window.removeEventListener("scroll", schedule);
     window.removeEventListener("resize", schedule);
     if (raf) cancelAnimationFrame(raf);
-    el.removeAttribute("data-tone");
+    el.removeAttribute("data-rail-tone");
   };
 }

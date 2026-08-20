@@ -1,42 +1,68 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Playfair_Display, Pinyon_Script } from "next/font/google";
 import "./globals.css";
-import { jsonLdScript, organizationJsonLd, siteUrl } from "./lib/site";
+import { jsonLdScript, organizationJsonLd, ratingLabel, site, webSiteJsonLd, siteUrl } from "./lib/site";
 import { defaultLocale, type Locale } from "./lib/i18n/dictionaries";
 import { LocaleProvider } from "./components/i18n/LocaleProvider";
 import PreviewBadge from "./components/PreviewBadge";
 import CookieConsent from "./components/CookieConsent";
 import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
+import SiteAnalytics from "./components/SiteAnalytics";
 import SmoothScroll from "./components/motion/SmoothScroll";
 import SurfaceFlow from "./components/motion/SurfaceFlow";
-import { ChromeMount, PreloaderMount } from "./components/motion/ChromeMount";
+import { ChromeMount } from "./components/motion/ChromeMount";
+import PreloaderShell from "./components/motion/PreloaderShell";
+import Preloader from "./components/motion/Preloader";
+import { INTRO_KEY, PRE_FAILSAFE_MS, INTRO_T } from "./lib/motion/intro-constants";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
 // Anti-flash del preloader: marca <html data-preloader> PRIMA del primo paint,
 // solo alla prima visita di sessione e senza reduced-motion.
 //
-// LA SOGLIA 768 NON C'È PIÙ (fase 3 della parità mobile, 2026-08-11).
-// Qui c'era scritto che su mobile l'intro «costerebbe l'LCP della prima visita»
-// e che la filosofia del layer è «mobile semplificato». La misura dice altro:
-// il telefono scaricava GIÀ il chunk del preloader (22,5 KB) e la sagoma webp
-// (79.000 byte) e montava GIÀ 119 nodi a display:none, per un'intro che non
-// vedeva mai. Portarla sul telefono non aggiunge quel costo: lo mette a frutto.
-// Quel che aggiunge è tempo di thread principale e il trattenimento della
-// pagina — ed è per questo che sul telefono l'intro è un ALTRO montaggio, non
-// lo stesso più veloce (1,7s contro 4,63s: vedi Preloader.tsx).
-// Senza JS l'attributo non esiste mai → overlay display:none (globals.css).
+// UN SOLO MONTAGGIO, A OGNI LARGHEZZA (onda «parità mobile 2», 2026-08-17).
+// Qui c'era scritto che sul telefono l'intro era «un altro montaggio, non lo
+// stesso più veloce (1,7 s contro 4,63 s)» e che il failsafe mobile era 1,8 s
+// «cioè quanto dura l'intro stessa». La baseline di Fase 0 (docs/mobile-parity-2.md
+// §5.3) ha misurato che sotto CPU ×4 e Slow-4G quel montaggio non suonava
+// affatto: il chunk `ssr:false` arrivava DOPO il failsafe, il sipario cadeva
+// muto e l'LCP della home era il banner cookie che aspettava quel chunk. Poi
+// la misura di Fase 1 (CPU ×4 + Slow-4G, 390) ha visto che anche con l'atto I
+// in CSS il JS della home atterra a 8-12 s: porta e tuffo, ancora GSAP, non
+// suonavano mai sul telefono lento. Ora (opzione D, docs/mobile-parity-2.md
+// §8.5):
+//   • IL FILM INTERO — atto I (lockup, sagoma, marchio, payoff), linea di
+//     carica, porta ad arco, tuffo, congedo, anelli, autohide — è markup reso
+//     dal SERVER (<PreloaderShell/> qui sotto) animato da @keyframes CSS
+//     (globals.css) che partono al primo paint, deterministiche, senza
+//     aspettare nessun chunk (le custom property della maschera sono
+//     registrate con @property: è ciò che le rende interpolabili);
+//   • Preloader.tsx è importato STATICAMENTE (non più dynamic ssr:false): il
+//     suo codice viaggia col bundle del layout; rende null e al mount legge
+//     l'orologio CSS, mette i timer di handoff (INTRO_T.dive) e chiusura
+//     (INTRO_MS), gestisce lo skip, e guida con GSAP SOLO in ripiego (browser
+//     senza @property, keyframe mai partite: `html[data-pre-gsap]`) — 4,63 s,
+//     uguali su telefono e desktop (INTRO_T in lib/motion/intro-constants.ts);
+//   • senza JS l'attributo non esiste mai → overlay display:none (globals.css).
 //
-// I DUE FAILSAFE, DERIVATI DALLA STESSA REGOLA: "quanto siamo disposti a
-// tenere la pagina se il bundle non idrata mai". Sul telefono è 1,8s, cioè
-// quanto dura l'intro stessa: tenere un sipario muto più a lungo dell'intro
-// vera non ha senso. Su desktop resta 2,5s (era 8s, e su rete lenta teneva
-// l'LCP in ostaggio per otto secondi buoni). L'autohide CSS di globals.css è
-// lo stesso numero + 0,5s di margine, e la rete riarmata negli abort di
-// Preloader.tsx è di nuovo lo stesso numero: tre orologi, una sola regola.
-// `__dtPreArmed` resta sul window a dire "il sipario era previsto": è come il
-// chunk, se atterra dopo che il failsafe è scattato, capisce di dover
-// rimettere in moto Lenis invece di uscire in silenzio (mobile-parity §5.3).
+// IL FAILSAFE È UNO, ED È DERIVATO: `PRE_FAILSAFE_MS` (INTRO_MS + 600 = 5,23 s)
+// da lib/motion/intro-constants.ts, interpolato qui sotto. Sta DOPO la fine del
+// film — non deve mai tagliare un'intro CSS legittima, che ora suona intera
+// anche senza JS — e dopo l'autohide CSS (INTRO_MS + 100: prima l'overlay
+// sfuma, poi cade l'attributo e con lui overflow:hidden). È un setTimeout: su
+// un thread bloccato dall'idratazione scatta più tardi, accettato — la pagina
+// sotto è già visibile. Se il JS arriva prima lo cancella (Preloader.tsx) e
+// chiude lui a INTRO_MS; se arriva dopo, `__dtPreArmed` gli dice che il
+// sipario era previsto e già ritirato, e lui spara l'handoff senza replicare
+// l'intro (mobile-parity §5.3). La rete riarmata negli abort di Preloader.tsx
+// è di nuovo lo stesso numero, e il test app/lib/__tests__/intro-clocks.test.ts
+// pretende che restino uguali.
+// `__dtPreT0` è l'istante in cui l'attributo è stato messo: è l'orologio di
+// riserva di Preloader e HeroCinematic se `getAnimations()` non c'è.
+// `data-locale` (dal cookie dt_locale, default it — stesso contratto di
+// LocaleProvider) serve alla CSS per mostrare il payoff nella lingua giusta
+// fra le cinque varianti che la shell rende: niente cookies() nel layout, o
+// tutte le rotte diventerebbero dinamiche.
 //
 // Il banner cookie viaggia sullo stesso meccanismo, e per una ragione misurata:
 // era l'elemento LCP della home. Montandosi solo all'idratazione dipingeva a
@@ -45,20 +71,36 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // script decide prima del paint se mostrarlo, esattamente come per il sipario.
 // Non si mostra sotto il sipario: lì sposterebbe il focus su "Accetta" mentre
 // è coperto (Invio per saltare l'intro accetterebbe i cookie alla cieca), e ci
-// pensa CookieConsent a metterlo al handoff. La relazione regge invariata ora
-// che anche il telefono suona il sipario: `pre` è vero → niente `data-consent`
-// pre-paint → il banner arriva su INTRO_EVENT. Conseguenza da sapere: sulla
-// PRIMA visita mobile l'elemento LCP non è più il banner.
+// pensa CookieConsent a metterlo al handoff. `pre` è vero → niente
+// `data-consent` pre-paint → il banner arriva su INTRO_EVENT. Conseguenza da
+// sapere: sulla PRIMA visita l'elemento LCP non è più il banner.
 // Il deep-link con ancora (/#contatti) esce di scena QUI e non più a
 // idratazione avvenuta: la coreografia dell'arco presuppone la pagina in cima
 // e combatterebbe lo scroll all'ancora, quindi l'intro non parte comunque —
 // ma decidendolo prima del paint si risparmiano anche il primo fotogramma
 // (che altrimenti lampeggerebbe espresso per tutto il tempo dell'idratazione),
-// l'overflow:hidden inutile e i 79 KB della sagoma. Il "budget intro" della
+// l'overflow:hidden inutile e i byte della sagoma. Il "budget intro" della
 // sessione si segna speso, che è ciò che faceva `finish(true)` dal componente:
 // stesso contratto, deciso prima.
-const preloaderBootScript = `try{var h=document.documentElement;var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var deep=!!location.hash;if(deep){try{sessionStorage.setItem("dt-intro-seen","1")}catch(e){}}var pre=!deep&&m&&!sessionStorage.getItem("dt-intro-seen");if(pre){h.setAttribute("data-preloader","");window.__dtPreArmed=1;window.__dtPreFailsafe=setTimeout(function(){try{sessionStorage.setItem("dt-intro-seen","1")}catch(e){}h.removeAttribute("data-preloader")},matchMedia("(max-width: 767.98px)").matches?1800:2500)}if(m){h.setAttribute("data-hero-rest","");h.setAttribute("data-hero-intro","")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
+// La SAGOMA si precarica da qui, e solo se l'intro suona: nella shell l'<img> è
+// `loading="lazy"` perché la shell sta nell'HTML di OGNI visita (anche di
+// ritorno, display:none) e un img eager la scaricherebbe sempre — ma lazy vuol
+// dire fuori dal preload scanner, e sul desktop a 1,6 Mbps la sagoma «saltava
+// dentro» a ~2 s (pellicola 1440, 2026-08-18). Due <link rel=preload as=image>
+// con `media` (mobile ≤767.98 / desktop ≥768: la stessa soglia del <source>
+// della shell) appesi al <head> prima del paint: sulla prima visita partono
+// col documento, sulle visite di ritorno non esistono. `type=image/webp` così
+// chi non legge il webp non lo scarica per niente.
+// L'istante del tuffo, in secondi: oltre quello lo skip non ha più senso
+// (la porta è già aperta) e il boot script smette di offrirlo.
+const DIVE_S = INTRO_T.dive;
+// Quanto resta di film DOPO uno skip: il tuffo intero più un margine. Serve al
+// boot script per ri-armare il failsafe — altrimenti chi salta resterebbe con
+// l'attributo (e il blocco dello scroll) fino a PRE_FAILSAFE_MS o fino
+// all'idratazione, cioè fino a 4,7 s dopo aver detto che aveva fretta.
+const SKIP_TAIL_MS = Math.round((INTRO_T.diveDur + 0.35) * 1000);
 
+const preloaderBootScript = `try{var h=document.documentElement;var lc=/(^|; )dt_locale=(it|en|fr|de|es)(;|$)/.exec(document.cookie);h.setAttribute("data-locale",lc?lc[2]:"it");var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var deep=!!location.hash;if(deep){try{sessionStorage.setItem("${INTRO_KEY}","1")}catch(e){}}var pre=!deep&&m&&!sessionStorage.getItem("${INTRO_KEY}");if(pre){h.setAttribute("data-preloader","");window.__dtPreArmed=1;window.__dtPreT0=performance.now();var lk=function(u,q){var l=document.createElement("link");l.rel="preload";l.as="image";l.type="image/webp";l.href=u;l.media=q;l.setAttribute("fetchpriority","high");document.head.appendChild(l)};lk("/media/raffaela-sagoma-m.webp","(max-width: 767.98px)");lk("/media/raffaela-sagoma.webp","(min-width: 768px)");var fine=function(){try{sessionStorage.setItem("${INTRO_KEY}","1")}catch(e){}h.removeAttribute("data-preloader")};window.__dtPreFailsafe=setTimeout(fine,${PRE_FAILSAFE_MS});var sk=function(e){if(e&&e.type==="keydown"){if(e.metaKey||e.ctrlKey||e.altKey)return;var k=e.key;if(!(k==="Enter"||k===" "||k==="Escape"||k.length===1))return}if(h.hasAttribute("data-pre-skip"))return;var t=(performance.now()-window.__dtPreT0)/1000;if(t>=${DIVE_S})return;h.style.setProperty("--pre-skip",t.toFixed(3)+"s");h.setAttribute("data-pre-skip","");window.__dtPreSkipAt=t;clearTimeout(window.__dtPreFailsafe);window.__dtPreFailsafe=setTimeout(fine,${SKIP_TAIL_MS});off()},off=function(){window.removeEventListener("pointerdown",sk,true);window.removeEventListener("keydown",sk,true)};window.addEventListener("pointerdown",sk,true);window.addEventListener("keydown",sk,true);window.__dtPreSkipOff=off}if(m){h.setAttribute("data-hero-rest",pre?"intro":"");h.setAttribute("data-hero-intro",pre?"intro":"")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
 // `viewportFit: "cover"` — la riga che rende veri tutti gli `env(safe-area-inset-*)`
 // del progetto (parità mobile, fase 4).
 //
@@ -133,10 +175,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
-    template: "%s · Domus Tua Immobiliare",
+    // §6.8: il suffisso è «| Domus Tua», non «· Domus Tua Immobiliare».
+    //
+    // Non è pignoleria tipografica: il title reso ha un budget di ~60-65 caratteri prima
+    // che Google lo tronchi, e il suffisso lungo se ne mangiava 26 su ogni pagina. Su
+    // /metodo diventava «Il Metodo Domus Tua: come vendiamo casa, passo per passo · Domus
+    // Tua Immobiliare» — 84 caratteri, con il marchio scritto DUE volte e la seconda
+    // tagliata via dai risultati. Le quattro pagine che portano già il nome nel proprio
+    // title usano `absolute` e non ereditano il suffisso.
+    template: "%s | Domus Tua",
   },
   description:
-    "Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. 4.9/5 da oltre 500 recensioni.",
+    `Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. ${ratingLabel("it")}/5 su ${site.reviewsCount} recensioni Google.`,
   // NESSUN canonical qui, ed è deliberato. Un canonical nel layout è un valore EREDITATO da
   // ogni rotta che non lo sovrascrive: le 12 rotte editoriali lo fanno, /privacy e /cookie no
   // — e si ritrovavano a dichiarare la home come propria versione canonica. Un canonical
@@ -164,6 +214,9 @@ export const metadata: Metadata = {
 // vedi app/lib/__tests__/golive.test.ts. `aggregateRating` resta volutamente
 // omesso (policy Google, nessun contenuto recensioni idoneo).
 const jsonLd = organizationJsonLd();
+// Il sito come entità + la sua ricerca interna. Nodo distinto dall'organizzazione, che
+// referenzia via @id: un grafo con due nodi collegati, non due dichiarazioni scollegate.
+const webSite = webSiteJsonLd();
 
 export default function RootLayout({
   children,
@@ -187,21 +240,18 @@ export default function RootLayout({
     >
       <body className="flex min-h-dvh flex-col bg-paper text-ink">
         <script dangerouslySetInnerHTML={{ __html: preloaderBootScript }} />
-        {/* IL PRIMO FOTOGRAMMA DEL SIPARIO, RESO DAL SERVER.
-            Qui la documentazione dava per assodato che «l'overlay è già montato
-            dallo script inline prima dell'idratazione». Non lo è: lo script
-            mette un ATTRIBUTO, il markup dell'overlay arriva col chunk dinamico
-            (ssr:false). Fra il primo paint e l'atterraggio del chunk si vedeva
-            quindi l'hero, e poi calava l'espresso — un salto che su desktop
-            dura 150ms e nessuno nota, e che su un telefono in 4G lenta dura un
-            secondo pieno. Questo pannello è il fondo e basta: nessuna immagine,
-            nessun testo, nessuna richiesta di rete: solo il colore e il
-            gradiente che l'overlay vero ha già (`.dt-pre-fondo`, sorgente
-            unica in globals.css). Compare solo sotto `html[data-preloader]` e
-            sparisce appena il vero overlay prende il timone
-            (`html[data-pre-live]`, messo da Preloader.tsx) — altrimenti
-            resterebbe visibile DENTRO il buco dell'arco durante il tuffo. */}
-        <div className="dt-preloader-boot dt-pre-fondo" aria-hidden />
+        {/* IL SIPARIO, RESO DAL SERVER — il film intero, non più il solo fondo.
+            Fino al 2026-08-17 qui c'era un pannello espresso vuoto
+            (`.dt-preloader-boot`) e il lockup arrivava col chunk dinamico,
+            «quando la rete voleva» — cioè, misurato, dopo il failsafe. Ora il
+            markup di PreloaderShell è nel primo HTML: la CSS lo anima da
+            subito e fino in fondo (globals.css «Preloader»: atto I, linea,
+            porta, tuffo), Preloader.tsx orchestra handoff, skip e chiusura
+            sull'orologio CSS. Compare solo sotto `html[data-preloader]` (messo
+            dallo script qui sopra, che sta PRIMA nel body: le animazioni CSS
+            partono già armate) e senza attributo è display:none: senza JS,
+            con reduced-motion, alla seconda visita non esiste. */}
+        <PreloaderShell />
         <a
           href="#main"
           className="sr-only rounded-full bg-ink px-5 py-3 font-medium text-cream shadow-lg focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]"
@@ -212,12 +262,23 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(webSite) }}
+        />
         <div className="grain" aria-hidden />
         <SmoothScroll />
         {/* La superficie continua: si accende solo dove ci sono almeno due
             tappe `data-tone` (cioè in home), altrove non fa nulla. */}
         <SurfaceFlow />
-        <PreloaderMount />
+        {/* L'orchestratore dell'intro (timer di handoff e chiusura, skip,
+            ripiego GSAP): importato STATICAMENTE, così il suo codice viaggia
+            col bundle del layout invece che in un chunk che atterra dopo
+            l'idratazione (la causa dell'intro muta in laboratorio, audit
+            §5.3). Rende null: nessun markup, solo effetti; non legge
+            window nel render, quindi nessun mismatch. Sta fuori da
+            LocaleProvider (deve esserci prima di tutto) e prima di #main. */}
+        <Preloader />
         <LocaleProvider>
           {/* Dentro LocaleProvider: sipario e cursore usano stringhe tradotte
               (useDict). Il posizionamento è fixed, quindi la posizione nel
@@ -243,6 +304,17 @@ export default function RootLayout({
           <PreviewBadge checklist={checklist} />
           <AssistantMount />
           <MobileActionBar />
+          {/* In fondo di proposito: non rende nulla a schermo e non deve competere per
+              la banda del primo fotogramma. Vedi SiteAnalytics.tsx per il perché non
+              passa dal gate del consenso.
+
+              `VERCEL` è impostata da Vercel su ogni deploy e non esiste altrove: è la
+              risposta esatta alla domanda «gli endpoint /_vercel/* esistono qui?». La
+              lettura avviene QUI, nel server component, e non dentro il componente client:
+              la variante NEXT_PUBLIC_ arriva al browser solo se nella dashboard è rimasta
+              attiva l'esposizione automatica delle variabili di sistema, cioè una
+              condizione che si può spegnere per sbaglio e che fallirebbe in silenzio. */}
+          <SiteAnalytics enabled={Boolean(process.env.VERCEL)} />
         </LocaleProvider>
       </body>
     </html>

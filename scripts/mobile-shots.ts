@@ -18,7 +18,10 @@ const ROUTES = [
   ["home", "/"],
   ["acquista", "/acquista"],
   ["vendi", "/vendi"],
-  ["case", "/case"],
+  // `/case` non è più una pagina (app/case ha solo [slug]; next.config.ts la redirige a
+  // /acquista): al suo posto le due rotte del sitemap che mancavano.
+  ["case-vendute", "/case-vendute"],
+  ["valutazione-immobile-tradate", "/valutazione-immobile-tradate"],
   ["metodo", "/metodo"],
   ["open-domus", "/open-domus"],
   ["servizi", "/servizi"],
@@ -79,7 +82,8 @@ async function main() {
 
   // La prima schermata di una scheda immobile: la rotta dinamica esiste solo
   // attraverso la griglia, quindi si parte da lì invece di indovinare uno slug.
-  await page.goto(`${base}/case`, { waitUntil: "networkidle", timeout: 60_000 });
+  // La griglia vive su /acquista (`/case` è solo un 301 verso di essa).
+  await page.goto(`${base}/acquista`, { waitUntil: "networkidle", timeout: 60_000 });
   const first = page.locator('a[href^="/case/"]').first();
   if (await first.count()) {
     const href = await first.getAttribute("href");

@@ -263,8 +263,16 @@ export default function Social() {
                 >
                   <span className="dt-socialrail_frame">
                     {/* Il pannello è più largo della cornice: è lo spazio in cui
-                        l'immagine pana senza mai scoprire un bordo. */}
-                    <span className="dt-socialrail_pan" data-depth={t.depth}>
+                        l'immagine pana senza mai scoprire un bordo. La quota è
+                        una e si dichiara due volte perché la leggono in due:
+                        `data-depth` il tween GSAP da 1024 in su, `--depth` la
+                        regola CSS che sotto la soglia fa lo stesso pan sul dito
+                        («parità mobile 2», scheda 20). */}
+                    <span
+                      className="dt-socialrail_pan"
+                      data-depth={t.depth}
+                      style={{ "--depth": t.depth } as React.CSSProperties}
+                    >
                       <Image
                         src={t.src}
                         alt=""

@@ -10,6 +10,7 @@ import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import { isEmailFormat, isPhoneFormat } from "../lib/forms/contactChannel";
+import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
 import Atmosphere from "./motion/Atmosphere";
@@ -68,10 +69,10 @@ const copy = {
     messageLabel: "Messaggio",
     messagePlaceholderSell: "Raccontaci qualcosa in più sull’immobile…",
     messagePlaceholderQuestion: "Come possiamo aiutarti?",
-    submitSeller: "Richiedi una valutazione",
+    submitSeller: "Richiedi la valutazione del tuo immobile",
     submitBuyer: "Trova la casa giusta",
     submitQuestion: "Invia la richiesta",
-    submitOpenDomus: "Scopri Open Domus",
+    submitOpenDomus: "Scopri se Open Domus è adatto al tuo immobile",
     submitCareer: "Invia la candidatura",
     errName: "Inserisci il tuo nome.",
     errContact: "Lasciaci un telefono o un’email per ricontattarti.",
@@ -84,6 +85,8 @@ const copy = {
     consentLinkText: "informativa privacy",
     consentPost: " e acconsento al trattamento dei miei dati per essere ricontattato.",
     errConsent: "Per procedere accetta l’informativa privacy.",
+    reassure:
+      "Ti ricontattiamo personalmente entro 24 ore lavorative. Nessun preventivo automatico, nessun dato ceduto a terzi. E se poi non è il momento giusto, va benissimo.",
     contactPhoneSub: "Lun–Sab",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Scrivici una mail",
@@ -130,10 +133,10 @@ const copy = {
     messageLabel: "Message",
     messagePlaceholderSell: "Tell us a little more about the property…",
     messagePlaceholderQuestion: "How can we help you?",
-    submitSeller: "Request a valuation",
+    submitSeller: "Request a valuation of your property",
     submitBuyer: "Find the right home",
     submitQuestion: "Send your request",
-    submitOpenDomus: "Discover Open Domus",
+    submitOpenDomus: "See if Open Domus suits your property",
     submitCareer: "Send your application",
     errName: "Please enter your name.",
     errContact: "Leave us a phone number or an email so we can reply.",
@@ -146,6 +149,8 @@ const copy = {
     consentLinkText: "privacy policy",
     consentPost: " and consent to the processing of my data to be contacted back.",
     errConsent: "Please accept the privacy policy to continue.",
+    reassure:
+      "We get back to you personally within 24 working hours. No automated estimate, no data passed to third parties. And if it turns out not to be the right moment, that is absolutely fine.",
     contactPhoneSub: "Mon–Sat",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Send us an email",
@@ -192,10 +197,10 @@ const copy = {
     messageLabel: "Message",
     messagePlaceholderSell: "Dites-nous en un peu plus sur le bien…",
     messagePlaceholderQuestion: "Comment pouvons-nous vous aider ?",
-    submitSeller: "Demander une estimation",
+    submitSeller: "Demandez l’estimation de votre bien",
     submitBuyer: "Trouver le bon logement",
     submitQuestion: "Envoyer la demande",
-    submitOpenDomus: "Découvrir Open Domus",
+    submitOpenDomus: "Découvrez si Open Domus convient à votre bien",
     submitCareer: "Envoyer ma candidature",
     errName: "Veuillez indiquer votre nom.",
     errContact: "Laissez-nous un téléphone ou un e-mail pour vous recontacter.",
@@ -208,6 +213,8 @@ const copy = {
     consentLinkText: "politique de confidentialité",
     consentPost: " et je consens au traitement de mes données pour être recontacté.",
     errConsent: "Veuillez accepter la politique de confidentialité pour continuer.",
+    reassure:
+      "Nous vous recontactons personnellement sous 24 heures ouvrées. Aucun devis automatique, aucune donnée cédée à des tiers. Et si ce n’est finalement pas le bon moment, c’est très bien ainsi.",
     contactPhoneSub: "Lun–Sam",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Écrivez-nous un e-mail",
@@ -254,10 +261,10 @@ const copy = {
     messageLabel: "Nachricht",
     messagePlaceholderSell: "Erzählen Sie uns etwas mehr über die Immobilie…",
     messagePlaceholderQuestion: "Wie können wir Ihnen helfen?",
-    submitSeller: "Bewertung anfordern",
+    submitSeller: "Bewertung Ihrer Immobilie anfordern",
     submitBuyer: "Das passende Zuhause finden",
     submitQuestion: "Anfrage senden",
-    submitOpenDomus: "Open Domus entdecken",
+    submitOpenDomus: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
     submitCareer: "Bewerbung senden",
     errName: "Bitte geben Sie Ihren Namen ein.",
     errContact: "Hinterlassen Sie uns eine Telefonnummer oder E-Mail für den Rückruf.",
@@ -270,6 +277,8 @@ const copy = {
     consentLinkText: "Datenschutzerklärung",
     consentPost: " gelesen und willige in die Verarbeitung meiner Daten zur Kontaktaufnahme ein.",
     errConsent: "Bitte akzeptieren Sie die Datenschutzerklärung, um fortzufahren.",
+    reassure:
+      "Wir melden uns persönlich innerhalb von 24 Werkstunden. Kein automatischer Kostenvoranschlag, keine Weitergabe von Daten an Dritte. Und wenn es doch nicht der richtige Moment ist, ist das völlig in Ordnung.",
     contactPhoneSub: "Mo–Sa",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Schreiben Sie uns eine E-Mail",
@@ -316,10 +325,10 @@ const copy = {
     messageLabel: "Mensaje",
     messagePlaceholderSell: "Cuéntanos algo más sobre el inmueble…",
     messagePlaceholderQuestion: "¿Cómo podemos ayudarte?",
-    submitSeller: "Solicita una valoración",
+    submitSeller: "Solicita la valoración de tu inmueble",
     submitBuyer: "Encuentra la casa ideal",
     submitQuestion: "Enviar la solicitud",
-    submitOpenDomus: "Descubre Open Domus",
+    submitOpenDomus: "Descubre si Open Domus encaja con tu inmueble",
     submitCareer: "Enviar la candidatura",
     errName: "Introduce tu nombre.",
     errContact: "Déjanos un teléfono o un correo para poder responderte.",
@@ -332,6 +341,8 @@ const copy = {
     consentLinkText: "política de privacidad",
     consentPost: " y doy mi consentimiento al tratamiento de mis datos para que me contacten.",
     errConsent: "Para continuar, acepta la política de privacidad.",
+    reassure:
+      "Te contactamos personalmente en 24 horas laborables. Sin presupuesto automático, sin ceder datos a terceros. Y si al final no es el momento adecuado, no pasa nada.",
     contactPhoneSub: "Lun–Sáb",
     contactWhatsappSub: "WhatsApp",
     contactMailSub: "Escríbenos un correo",
@@ -513,6 +524,12 @@ export default function Contact({
     setSubmitting(true);
     void submitLead(lead).finally(() => setSubmitting(false));
 
+    // La conversione. Va registrata QUI, dopo la validazione e prima di aprire WhatsApp:
+    // è il momento in cui la richiesta esiste davvero. Passa solo il tipo di richiesta,
+    // mai il contenuto del lead — quello ha il suo canale (submitLead) ed è l'unico
+    // autorizzato a vederlo. Vedi app/lib/analytics.ts.
+    trackConversion(CONVERSIONS.valutazione, "modulo", { intent });
+
     // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
     window.open(url, "_blank", "noopener,noreferrer");
@@ -522,8 +539,18 @@ export default function Contact({
   return (
     <section id="contatti" data-tone="cream-deep" className="relative bg-cream-deep text-ink">
       <Atmosphere glow />
-      {/* Angolo fiorito (solo desktop): il congedo del filo botanico che
-          attraversa la home.
+      {/* Angolo fiorito: il congedo del filo botanico che attraversa la home.
+          SOTTO lg RESTA SPENTO — ed è l'unica delle Fioriture d'angolo che
+          l'onda «parità mobile 2» (verdetto 6) lascia spenta sul telefono,
+          con la ragione vista, non dedotta (screenshot a 390, 2026-08-18,
+          docs/shots/after-fase2/fiorite-390): a 390 la chiusura della sezione
+          è la scritta corsiva centrata «Vendi casa a Tradate / al prezzo
+          giusto, nei tempi giusti», larga quasi quanto lo schermo, e un
+          tralcio in QUALUNQUE angolo basso ne copre la fine; gli angoli alti
+          sono la card del form. «Mai un fiore sopra un testo» vince sulla
+          parità. E subito sotto c'è il footer, che il suo tralcio ce l'ha
+          (in alto a destra, nell'aria scura): il filo botanico non si
+          interrompe. Da lg in su l'angolo destro basso è vuoto: come sempre.
           LO SCUDO TAGLIA SOLO IN ORIZZONTALE. Serviva a impedire che i tralci
           sbordassero a destra portandosi dietro una barra di scorrimento, ma
           `overflow: hidden` li rifilava anche in basso: il tralcio finiva
@@ -541,7 +568,7 @@ export default function Contact({
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-x-clip">
         <Fioritura
           variant="corner-br"
-          className="absolute -bottom-[12vh] -right-5 hidden h-[42vh] w-[16vw] lg:block"
+          className="absolute hidden lg:block -right-5 lg:-bottom-[12vh] lg:h-[42vh] lg:w-[16vw]"
         />
       </div>
       <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
@@ -709,6 +736,13 @@ export default function Contact({
               <SendCta submitting={submitting} size="lg" className="mt-1 w-full">
                 {submitLabels[intent]}
               </SendCta>
+              {/* §6.6 — sta SOTTO il pulsante, non sopra: si legge nell'istante esatto in
+                  cui si esita a premerlo. Dice quando richiamiamo, che i dati non escono
+                  di qui, e che si può anche non farne nulla — è quest'ultima a togliere la
+                  paura di essere inseguiti, che è la barriera vera. */}
+              <p className="mt-3 text-center text-[0.78rem] leading-relaxed text-stone">
+                {c.reassure}
+              </p>
               {sent ? (
                 <p
                   ref={sentRef}

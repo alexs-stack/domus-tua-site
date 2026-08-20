@@ -43,3 +43,52 @@ export function soldMapSize(): { detected: number; manual: number } {
     manual: Object.keys(manualOverrides).length,
   };
 }
+
+/**
+ * Badge che attestano una trattativa AVVIATA, non una vendita CONCLUSA.
+ *
+ * L'agenzia sovrappone alla copertina badge diversi lungo il percorso: «PROPOSTA
+ * ACCETTATA» quando l'offerta è stata accettata, «PRELIMINARE» a compromesso firmato,
+ * «IN TRATTATIVA», e infine «VENDUTO». I primi tre significano che l'immobile non è più
+ * disponibile — ma non che sia stato venduto: un preliminare può ancora saltare.
+ */
+const PRE_COMPLETION = /PRELIMIN|PROPOST|ACCETT|COMPROM|TRATTATIV|RISERV/i;
+
+/**
+ * L'immobile è stato VENDUTO davvero, non soltanto impegnato?
+ *
+ * DUE DOMANDE DIVERSE, DUE PREDICATI DIVERSI — e confonderle costa caro in direzioni
+ * opposte:
+ *
+ *  • `isListingSold` risponde a «lo posso ancora mostrare fra i disponibili?». Lì conviene
+ *    essere LARGHI: un immobile con il preliminare firmato non deve comparire in vetrina.
+ *    Sbagliare per eccesso nasconde una casa; sbagliare per difetto la vende due volte.
+ *
+ *  • questa risponde a «posso dire che l'abbiamo venduto?». Qui bisogna essere STRETTI,
+ *    perché è un'affermazione pubblica sui risultati dell'agenzia. Al 2026-08-08 il
+ *    catalogo conteneva 9 schede con badge «PRELIMINARE» o «PROPOSTA ACCETTATA» marcate
+ *    come vendute: nella vetrina è giusto che siano fuori, in una pagina intitolata «le
+ *    case che abbiamo venduto» sarebbero nove affermazioni non sostenute.
+ *
+ * Un override manuale dell'agenzia vale come attestazione diretta: se qualcuno in ufficio
+ * ha scritto che quell'immobile è venduto, ne sa più dell'OCR.
+ */
+export function isCompletedSale(codice: string, cover: string): boolean {
+  if (!isListingSold(codice, cover)) return false;
+  if (codice in manualOverrides) return manualOverrides[codice];
+  const text = (detectedItems[codice] as { text?: string } | undefined)?.text ?? "";
+  return !PRE_COMPLETION.test(text);
+}
+
+/**
+ * Quando è stato eseguito il rilevamento (ISO), o null se il file non lo dichiara.
+ *
+ * Serve a /case-vendute: quella pagina pubblica un conteggio di vendite, e un conteggio
+ * senza la data a cui si riferisce è un numero che invecchia in silenzio. Dichiararla è
+ * anche l'unica cosa onesta da fare, visto che lo stato "venduto" NON è un campo del feed
+ * ma il risultato di un OCR fatto in un preciso momento (vedi scripts/detect-sold.ts).
+ */
+export function soldDetectionDate(): string | null {
+  const at = (detected as { generatedAt?: string }).generatedAt;
+  return typeof at === "string" && at.length > 0 ? at : null;
+}

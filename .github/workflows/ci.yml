@@ -15,6 +15,9 @@ jobs:
       # Real values are configured in Vercel (which owns deploy).
       NEXT_PUBLIC_SITE_URL: https://example.com
       NEXT_PUBLIC_USE_REALSMART: "false"
+      # Autorizzazione SERVER-ONLY a servire le fixture demo: necessaria in CI/anteprima
+      # (build deterministica, senza rete). La produzione vera NON la imposta mai → niente mock.
+      REALSMART_ALLOW_MOCK: "true"
 
     steps:
       - name: Checkout
@@ -54,6 +57,41 @@ jobs:
       - name: End-to-end assistente
         run: npm run e2e:assistant
 
+  content-audit:
+    name: Audit contenuti annunci (privacy + qualità)
+    runs-on: ubuntu-latest
+    # Modalità deliberata: i FAIL di contenuto (fuga privacy, segnaposto "____", difetto
+    # strutturale) BLOCCANO; i REVIEW producono solo l'artefatto. Il feed è di terze parti:
+    # se è irraggiungibile l'audit si salta senza bloccare (AUDIT_SOFT_FEED_ERROR), perché
+    # quello è un problema d'infrastruttura, non di contenuto.
+    env:
+      AUDIT_SOFT_FEED_ERROR: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit contenuti (redazione privacy + gate qualità)
+        run: npm run audit:listings-content
+
+      - name: Upload report audit (Markdown + JSON)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: listings-content-audit
+          path: reports/
+          retention-days: 14
+          if-no-files-found: ignore
+
   e2e:
     name: End-to-end (browser)
     runs-on: ubuntu-latest
@@ -62,6 +100,9 @@ jobs:
       # Il server sotto test lo avvia Playwright: qui bastano i valori del sito.
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3177
       NEXT_PUBLIC_USE_REALSMART: "false"
+      # Autorizzazione SERVER-ONLY a servire le fixture demo: necessaria in CI/anteprima
+      # (build deterministica, senza rete). La produzione vera NON la imposta mai → niente mock.
+      REALSMART_ALLOW_MOCK: "true"
 
     steps:
       - name: Checkout
@@ -106,6 +147,9 @@ jobs:
     env:
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3179
       NEXT_PUBLIC_USE_REALSMART: "false"
+      # Autorizzazione SERVER-ONLY a servire le fixture demo: necessaria in CI/anteprima
+      # (build deterministica, senza rete). La produzione vera NON la imposta mai → niente mock.
+      REALSMART_ALLOW_MOCK: "true"
 
     steps:
       - name: Checkout
@@ -114,7 +158,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 come tutti gli altri job (engines: node >=22): i pacchetti AI SDK richiedono
+          # Node 22, e un job su 20 avrebbe potuto passare qui e rompere altrove.
+          node-version: 22
           cache: npm
 
       - name: Install dependencies

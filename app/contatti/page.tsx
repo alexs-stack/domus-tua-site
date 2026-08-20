@@ -4,21 +4,31 @@ import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import Contact from "../components/Contact";
 import ContattiContent from "./ContattiContent";
-import { site } from "../lib/site";
+import { breadcrumbJsonLd, jsonLdScript, site } from "../lib/site";
 
-// Testo identico a prima, ma numeri e indirizzo derivati da app/lib/site.ts: erano l'unica
-// copia dei recapiti fuori dalla fonte unica, quindi si sarebbero disallineati in silenzio.
+/** Voce del briciolo di pane per questa pagina (voce 26 della checklist). */
+const BREADCRUMB_NAME = "Contatti";
+const BREADCRUMB_PATH = "/contatti";
+
+// Recapiti e orari derivati da app/lib/site.ts: erano l'unica copia fuori dalla fonte
+// unica, quindi si sarebbero disallineati in silenzio (ed è esattamente quello che era
+// successo con l'orario pomeridiano, 15:00 qui contro 14:30 ovunque).
+//
+// Il title porta l'indirizzo: per una ricerca locale "dove sono" è l'informazione che
+// decide il clic, e "Contatti" da solo non la dava.
+const title = `Contatti — Domus Tua, ${site.address.street}, ${site.address.locality} (${site.address.region})`;
+
 const description =
-  `Domus Tua Immobiliare, ${site.address.street}, Tradate (VA). ` +
-  `Telefono ${site.phone.label}, WhatsApp ${site.whatsapp.label}. ` +
-  `Scrivici per una valutazione o per cercare casa.`;
+  `Telefono ${site.phone.label}, WhatsApp ${site.whatsapp.label}, ${site.email.label}. ` +
+  `Aperti lunedì–venerdì ${site.hours.weekdays}, sabato ${site.hours.saturday}.`;
 
 export const metadata: Metadata = {
-  title: "Contatti",
+  // §6.8: assoluto — il title porta già «Domus Tua» insieme all'indirizzo.
+  title: { absolute: title },
   description,
   alternates: { canonical: "/contatti" },
   openGraph: {
-    title: "Contatti",
+    title,
     description,
   },
 };
@@ -26,6 +36,12 @@ export const metadata: Metadata = {
 export default function ContattiPage() {
   return (
     <>
+      {/* Briciolo di pane: è ciò che Google mostra al posto dell'URL nudo nei
+          risultati. Costruito da breadcrumbJsonLd (site.ts), non ricopiato. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(BREADCRUMB_NAME, BREADCRUMB_PATH)) }}
+      />
       <Header />
       <main className="flex-1 bg-paper">
         <ContattiContent />

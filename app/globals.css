@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/* La documentazione NON è sorgente: non va scansionata alla ricerca di classi.
+
+   Tailwind v4 rileva le sorgenti da solo e scandisce tutto ciò che git traccia — quindi
+   anche gli 85 file di `docs/`. Ma quei file CITANO le classi in prosa, e una citazione
+   abbreviata diventa una regola CSS vera. È già successo:
+   docs/mobile-parity-2.md:332 scrive `pb-[calc(7rem+env())]` come forma accorciata di
+   `pb-[calc(7rem+env(safe-area-inset-bottom))]` (quella reale, in Footer.tsx:448).
+   Da lì Tailwind generava `padding-bottom: calc(7rem + env())` — `env()` senza argomento
+   non è CSS valido, e Turbopack rifiutava l'INTERO foglio: 500 su ogni pagina in sviluppo,
+   suite e2e compresa. In produzione passava, il che è la parte peggiore: il difetto era
+   invisibile proprio dove si lavora.
+
+   Escludere `docs/` toglie la classe di guasto alla radice, invece di correggere la singola
+   riga di prosa e aspettare la prossima. Le classi vere continuano ad arrivare da app/,
+   che è l'unica cartella che finisce in pagina.
+
+   `_refs/` e `reverse-engineering/` non servono qui: sono gitignorati, e Tailwind li salta già. */
+@source not "../docs";
+
 /* ============================================================
    DOMUS TUA — DESIGN SYSTEM
    Editorial Luxury × fiducia locale. Palette: rosso / grigio / bianco caldo.
@@ -256,21 +275,19 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* I caratteri del preloader sono promossi SOLO mentre il sipario è alzato.
-   Il componente resta montato per tutta la sessione: con `will-change` in
-   classe fissa restavano ventuno livelli compositati in memoria per
-   un'animazione durata cinque secondi e mai più ripetuta (il commento diceva
-   «un centinaio»: sono 21, contati). L'attributo `data-preloader` cade quando
-   l'intro finisce, e con lui la promozione.
-   E SOLO SU DESKTOP: sul telefono le lettere non si animano una per una — sale
-   la RIGA intera, sotto la maschera che ha già (vedi il blocco dell'intro
-   mobile in fondo al file). Ventuno livelli promossi per un testo che a quella
-   velocità nessuno legge lettera per lettera erano il costo più facile da
-   togliere. */
-@media (min-width: 768px) {
-  html[data-preloader] .dt-pre-char {
-    will-change: transform;
-  }
+/* I caratteri del preloader sono promossi SOLO per la finestra dell'atto I,
+   a ogni larghezza (dal 2026-08-17 le lettere si animano una per una anche sul
+   telefono: è lo stesso film). Due cancelli, entrambi «a tempo»:
+   - `data-preloader` cade quando l'intro finisce (o col failsafe), e con lui
+     la promozione — anche senza JS;
+   - `data-pre-act2` lo mette Preloader.tsx a INTRO_T.act1End (2,7 s: l'ultimo
+     char in moto è la 13ª lettera della firma, 0,6 + 1,3 + 12×0,065 ≈ 2,68),
+     così i 21 livelli non restano in memoria per i due secondi di porta e
+     tuffo in cui le lettere sono ferme. Non lo si toglie al mount del JS,
+     che può arrivare a metà atto: demuovere un livello mentre anima è jank.
+     Senza JS resta fino al failsafe: accettato (mezzo secondo oltre il film). */
+html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
+  will-change: transform;
 }
 
 /* ---------- Scroll reveal ---------- */
@@ -348,15 +365,16 @@ body {
 
    Parità mobile, fase 2b (2026-08-11) — l'ultima riga qui sopra va letta con
    una correzione, e la scrivo invece di cancellarla. "Dove serve" adesso
-   include il telefono, ma a dirlo non è più la larghezza: è il punto di
-   chiamata. Sotto i 768 la meccanica si accende SOLO su [data-wr-mobile],
-   che WordReveal stampa quando riceve la prop `mobile`.
-   Perché il gate non è semplicemente sceso: 768px non ha mai voluto dire
-   "schermo grande", voleva dire "sotto questa soglia c'è un hero e non voglio
-   frammentargli l'H1". È una domanda che si fa a un titolo per volta, e la
-   risposta sta accanto al titolo. La prima metà del commento resta valida e
-   non va toccata: è il motivo per cui la base è `inline` e non `inline-block`,
-   e vale a ogni larghezza. */
+   include il telefono. Sotto i 768 la meccanica si accende su
+   [data-wr-mobile], che WordReveal stampa quando `mobile` è vero e
+   `immediate` no — e dall'onda «parità mobile 2» (verdetto 8) `mobile` è
+   vero di DEFAULT: l'attributo manca solo su un titolo `immediate` (il
+   candidato LCP, above-the-fold) o su un `mobile={false}` motivato. Il gate
+   non è sceso in CSS perché 768px non ha mai voluto dire "schermo grande",
+   voleva dire "sotto questa soglia c'è un hero e non voglio frammentargli
+   l'H1": la risposta la dà `immediate` accanto al titolo, non la larghezza.
+   La prima metà del commento resta valida e non va toccata: è il motivo per
+   cui la base è `inline` e non `inline-block`, e vale a ogni larghezza. */
 .word-reveal .w {
   display: inline;
   /* niente margin: lo spazio tra parole è un VERO spazio nel markup
@@ -380,7 +398,8 @@ body {
     opacity: 1;
   }
 }
-/* Il gemello telefono, a opt-in. 767.98 e non 767: alle larghezze frazionarie
+/* Il gemello telefono (acceso di default da «parità mobile 2», tace solo con
+   `immediate` o con un `mobile={false}` motivato). 767.98 e non 767: alle larghezze frazionarie
    (zoom del browser, dpr non interi) un buco di un pixel lascerebbe spenti
    tutti e due i rami. È il confine di MQ.belowDesktop (app/lib/motion/gsap.ts).
    Una differenza voluta rispetto al ramo sopra: qui NON si scrive will-change.
@@ -499,6 +518,36 @@ body {
     transform: translateY(6px);
     opacity: 1;
   }
+}
+/* Lo scroll cue dell'hero (HeroCinematic.tsx), a ogni larghezza dal
+   2026-08-18 (onda «parità mobile 2», scheda 9). Sotto sm (640: la soglia è
+   quella della barra, `sm:hidden` in MobileActionBar.tsx, non i 768 degli
+   effetti di sezione — qui si allinea a un oggetto, non a un ramo) la quota
+   dal fondo è quella della MobileActionBar (`bottom: 0.75rem + env()` + i
+   suoi 52 px di altezza): barra e cue non convivono mai nel tempo (barra da
+   scrollY 520, cue spento a 140), ma sopra la barra il cue resta fuori dal
+   bordo del browser e dalla safe-area, ed è la stessa quota che il pollice
+   impara. Da sm in su la barra non c'è e il cue torna a 1,5 rem dal fondo.
+   Il pulse è qui e non inline così può andare in pausa:
+   `data-cue-off` lo scrive lo scrub di GSAP quando il cue è a autoAlpha 0 —
+   un'animazione infinita su un nodo `visibility:hidden` non dipinge, ma
+   continua a ticchettare (l'alleggerimento nominato del cue). */
+/* Il cue vive solo da 768 in su (HeroCinematic: sotto, l'hero sfonda il
+   viewport e non c'è posto che non sia sopra i CTA — misura del 2026-08-18).
+   Sta in fondo al PRIMO SCHERMO, non al fondo della sezione: sui viewport
+   bassi l'hero sfonda anche sul desktop (1366×768: 38 px, e il cue finiva 14
+   px sotto la piega — un invito a scorrere visibile solo dopo aver scorso).
+   La sezione comincia a y=0, quindi la quota dal suo top è la quota dal top
+   del viewport; `svh` è la misura conservativa. 2rem = altezza del pulse. */
+.dt-hero-cue {
+  top: calc(100svh - 1.5rem - 2rem);
+  bottom: auto;
+}
+.dt-hero-cue-pulse {
+  animation: dt-scrollcue 1.8s var(--ease-soft) infinite;
+}
+.dt-hero-cue[data-cue-off] .dt-hero-cue-pulse {
+  animation-play-state: paused;
 }
 
 /* Entrata morbida del blocco copy dell'hero (sotto l'H1, che resta immediate per l'LCP).
@@ -826,9 +875,12 @@ html[data-surfaceflow] main::before {
    Condizionato alla presenza del launcher: la chat è dietro un flag e oggi in
    produzione è spenta — senza `:has()` si aggiungerebbe spazio morto in fondo a
    ogni pagina per una funzione che nessuno vede. Dove `:has()` non c'è si torna
-   al comportamento di prima: nessun danno. */
+   al comportamento di prima: nessun danno.
+   Il padding sta sulla CODA del footer ([data-footer-tail], dove vive il
+   `pb-28`) e non sul contenitore: sotto lg la coda è la parte fixed
+   dell'uncover parziale e lo spazio deve viaggiare con lei. */
 @media (max-width: 767px) {
-  body:has([data-assistant-launcher]) footer > div {
+  body:has([data-assistant-launcher]) footer [data-footer-tail] {
     padding-bottom: calc(9.5rem + env(safe-area-inset-bottom));
   }
 }
@@ -884,6 +936,20 @@ html[data-surfaceflow] main::before {
    colonna, tutto visibile e statico. [data-on] arriva SOLO via JS (desktop
    ≥1024 + motion ok) e attiva screen sticky + track in riga: senza JS non
    esiste alcuno stato clippato o nascosto. */
+/* Rete contro lo sbordo laterale in COLONNA (onda «parità mobile 2», verdetto
+   15): i gradini del titolo scivolano in x anche qui, e a 390 fra la riga
+   (350px) e il bordo restano 20px per lato. Le ampiezze sono già clampate a
+   ±16px nel ramo mobile di HorizonScroller — questa è la rete, non la cintura.
+   `clip` e non `hidden`: `hidden` farebbe della sezione un contenitore di
+   scorrimento e nessuno se ne accorgerebbe finché un giorno qui dentro non
+   arriva uno sticky. `overflow-clip-margin` lascia respirare il tralcio del
+   manifesto, che sporge di 24px dall'angolo alto a sinistra: ciò che sta nel
+   margine si dipinge, ma non genera scorrimento del documento. Dove browser
+   vecchi non lo conoscono il ripiego è il clip secco, che è lo stato sicuro. */
+.dt-horizon:not([data-on]) {
+  overflow-x: clip;
+  overflow-clip-margin: 2rem;
+}
 .dt-horizon[data-on] {
   overflow: clip;
 }
@@ -987,9 +1053,11 @@ html[data-surfaceflow] main::before {
 
 /* ---------- Cinque stelle (capitolo recensioni home) ----------
    Rif. tecnica: codrops/FullscreenClipEffect — qui il morph è tra poligoni
-   stella a 10 vertici (app/lib/star-shape.ts). Layout scenico e intro SOLO
-   sotto [data-on] (desktop ≥1024 + motion ok, messo da JS): senza JS /
-   reduced-motion / mobile la sezione è in flusso normale, completa e statica. */
+   stella a 10 vertici (app/lib/star-shape.ts). Il film è lo stesso a ogni
+   larghezza (parità mobile 2, 2026-08-18): cambia il palcoscenico — [data-on]
+   = schermo sticky sopra i 1024 px, [data-sr-mob] = box ancorato alla fila
+   sotto — e li mette entrambi JS, con motion ok. Senza JS e con
+   reduced-motion la sezione è in flusso normale, completa e statica. */
 .dt-starrev {
   /* Stella "piena" delle recensioni: ratio interno 0.475, punta in alto.
      Stessa geometria di STAR_CLIP_SQUARE in star-shape.ts. */
@@ -1202,7 +1270,9 @@ html[data-surfaceflow] main::before {
 }
 /* Il pannello è più largo della cornice: è la corsa in cui l'immagine pana
    senza mai scoprire un bordo. 118% = ±9% di gioco per lato, più del massimo
-   `depth` in gioco (9). */
+   `depth` in gioco (9). Chi muove il pannello: da 1024 in su GSAP
+   (Social.tsx), sotto la regola CSS su `--rail-p` accanto a `.dt-rail_pan`
+   (una riga sola per i due nastri — «parità mobile 2», scheda 20). */
 .dt-socialrail_pan {
   position: absolute;
   top: 0;
@@ -1318,6 +1388,28 @@ html[data-surfaceflow] .dt-toneshift {
    Da lì la pillola bianca sul crema e il taglio netto che il cliente vedeva. */
 .dt-toneshift[data-live] .dt-toneshift_in {
   will-change: transform;
+}
+
+/* ---------- ThreadNav: il bersaglio del nodo ----------
+   Il pallino del capitolo resta 8px — è la texture del filo — ma il dito ne
+   deve trovare 44 (onda «parità mobile 2», scheda 14: i nodi sono bottoni a
+   ogni larghezza). `.tap-target` non serve qui: il suo `::before` prende la
+   larghezza dell'elemento (`inset-inline: 0`), che per un pallino sono 8px.
+   Qui il riquadro è quadrato e centrato, e non cambia la geometria della riga
+   di un pixel perché è un pseudo-elemento assoluto.
+   NON è dentro `@media (pointer: coarse)`: il bersaglio grande non fa danno al
+   mouse (sul rail verticale i nodi distano ~100px, sulla riga li tiene a 52px
+   `placeKnots`) e ci sono contesti touch che si dichiarano `pointer: fine`
+   (il progetto e2e `mobile-360` è Desktop Chrome con `hasTouch`) — gatarlo
+   renderebbe la prova impossibile proprio dove serve. */
+.dt-knot::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 /* --- il filo rosso che corre sulla curva della cupola ---
@@ -1496,7 +1588,41 @@ html[data-surfaceflow] .dt-toneshift {
 .dt-starrev[data-on] .dt-starrev_intro {
   display: block;
   z-index: 5;
+}
+/* Il BOX MOBILE del film (parità mobile 2, 2026-08-18 — scheda 16).
+   Sotto lg non c'è schermo sticky (legge 4: sul telefono non si pinna), quindi
+   `inset: 0` non sarebbe il viewport ma l'intera sezione, alta il doppio. Gli
+   stessi atti del desktop suonano allora dentro un riquadro ancorato alla FILA
+   delle stelle — dov'è la tessera in cui la foto deve posarsi: la quota la
+   scrive JS in `--sr-box-top`/`--sr-box-h`, una volta e a ogni refresh, perché
+   solo il layout sa dov'è la fila. Qui c'è il ripiego, e la garanzia che senza
+   JS (nessun attributo) il layer resti display:none. */
+.dt-starrev[data-sr-mob] .dt-starrev_intro {
+  display: block;
+  z-index: 5;
+  inset: auto 0 auto 0;
+  top: var(--sr-box-top, 0px);
+  height: var(--sr-box-h, 62svh);
+}
+/* `will-change` A TEMPO, a ogni larghezza. La clip-path a 10 vertici è paint
+   per frame — ammesso dalla dottrina dell'onda perché l'alleggerimento è
+   nominato (la misura del riquadro, che era un getBoundingClientRect per
+   frame, ora si fa una volta sola) — ma il livello promosso serve solo dentro
+   la finestra del film. Fino al 2026-08-18 la regola [data-on] qui sopra lo
+   teneva promosso per tutta la vita della pagina. */
+.dt-starrev_intro[data-sr-morph] {
   will-change: clip-path;
+}
+/* IL LAMPO, senza `filter` (parità mobile 2 — vale anche per il desktop).
+   Il colpo di luce a cavallo del fullscreen era `filter: brightness() saturate()`
+   tweenato due volte sulla fotografia: pixel ricalcolati per frame su
+   un'immagine a tutto schermo, cioè il primo anti-pattern dell'onda. Stesso
+   effetto con un velo di luce calda sopra la foto e sotto il velo di vino
+   (esattamente dov'era il filtro), animato in sola opacity: composited.
+   Il valore di riposo è 0: senza JS il velo non si vede. */
+.dt-starrev_flash {
+  background: var(--color-gold-spec);
+  opacity: 0;
 }
 /* Titolo-cover gigante sull'intro (esce per carattere durante il morph) */
 .dt-starrev_cover {
@@ -1541,8 +1667,16 @@ html[data-surfaceflow] .dt-toneshift {
   will-change: clip-path;
 }
 /* Le righe del titolo dei pannelli (grammatica data-line del riferimento):
-   wrapper che maschera, riga che sale. Esistono solo sotto [data-on] via JS. */
-.dt-paths_line {
+   wrapper che maschera, riga che sale. Dal 2026-08-18 (onda «parità mobile 2»,
+   verdetto 18) esistono a OGNI larghezza: sotto lg le crea il ramo mobile di
+   Paths.tsx, che porta la stessa tween del desktop senza il corridoio.
+   Il `will-change` resta però appeso al solo [data-on], cioè al desktop, dove
+   le righe vivono dentro uno schermo sticky da 520vh e il suggerimento paga
+   per tutta la corsa. Sotto lg il gesto dura 1,1s una volta per pannello: sei
+   span con un hint permanente sarebbero un layer promosso a vita per niente —
+   è uno degli alleggerimenti che pagano i tre gesti in più (regola Chanel,
+   commento in Paths.tsx). */
+.dt-paths[data-on] .dt-paths_line {
   will-change: transform;
 }
 
@@ -1579,14 +1713,30 @@ html[data-consent] .dt-consent {
   display: block;
 }
 
-/* ---------- Preloader "Segno Domus" ----------
+/* ---------- Preloader "Arco Domus" ----------
    L'inline script nel layout marca <html data-preloader> PRIMA del primo
    paint (prima visita di sessione, motion ok, nessuna ancora nell'URL), e
-   senza JS l'attributo non esiste mai.
-   Qui c'era scritto «niente flash di contenuto prima dell'overlay». Non era
-   vero: l'attributo arriva prima del paint, ma il MARKUP di `.dt-preloader`
-   arriva col chunk dinamico, cioè quando la rete vuole — fino ad allora si
-   vedeva la pagina. A dirlo davvero è `.dt-preloader-boot` qui sotto. */
+   senza JS l'attributo non esiste mai → questo overlay non esiste mai.
+   DAL 2026-08-17 IL MARKUP È RESO DAL SERVER (PreloaderShell.tsx, nel root
+   layout) E IL FILM INTERO È CSS (opzione D, docs/mobile-parity-2.md §8.5):
+   atto I (sagoma, marchio, lettere, firma, caps, payoff), atto II (linea di
+   carica), atto III (porta ad arco), atto IV (tuffo), congedo del lockup,
+   anelli eco e autohide sono @keyframes in questo blocco, deterministici dal
+   primo paint, senza dipendere dall'arrivo del JavaScript. La ragione è
+   misurata: con l'atto I in CSS e gli atti II-IV in GSAP, sotto CPU ×4 e
+   Slow-4G il JS della home atterrava a 8-12 s — porta e tuffo non suonavano
+   mai sul telefono lento (docs/shots/intro-390-fase1-smoke2). Preloader.tsx
+   (client) non muove più la maschera: al mount legge l'orologio CSS, mette i
+   timer di handoff (INTRO_T.dive) e chiusura (INTRO_MS), gestisce lo skip, e
+   guida con GSAP SOLO in ripiego — `html[data-pre-gsap]`, che spegne le
+   keyframe degli atti II-IV qui sotto — dove `@property` manca (Safari <
+   16.4, Firefox < 128: senza registrazione le custom property scatterebbero
+   al 50 % invece di interpolare) o se le keyframe non sono mai partite.
+   È lo stesso film a OGNI larghezza: sotto i 768 cambiano solo le geometrie
+   dell'arco e la taglia della linea (blocco in fondo), mai i tempi.
+   I numeri qui sotto sono quelli di app/lib/motion/intro-constants.ts
+   (INTRO_T): il test app/lib/__tests__/intro-clocks.test.ts li rilegge da
+   questo file e fallisce se uno dei due lati cambia da solo. */
 .dt-preloader {
   position: fixed;
   inset: 0;
@@ -1601,73 +1751,367 @@ html[data-preloader] {
 }
 
 /* Profondità calda, mai nero piatto: il fondo del sipario. Sta qui e non in
-   uno `style` inline perché ha DUE portatori — l'overlay vero (Preloader.tsx)
-   e il primo fotogramma reso dal server (layout.tsx) — e devono essere lo
-   stesso identico colore, o il passaggio dall'uno all'altro si vede. */
+   uno `style` inline: è il primo colore che vede un visitatore nuovo e la
+   sorgente dev'essere una (lo condivide il sipario di PageTransition). */
 .dt-pre-fondo {
   background-image: radial-gradient(95% 130% at 12% -10%, rgba(150, 26, 24, 0.32), transparent 55%),
     radial-gradient(90% 120% at 102% 112%, rgba(24, 12, 12, 0.9), transparent 60%);
 }
 
-/* Il primo fotogramma, reso dal server (vedi il commento in layout.tsx).
-   `:not([data-pre-live])`: appena l'overlay vero è montato questo sparisce —
-   se restasse, durante il tuffo lo si vedrebbe DENTRO il buco dell'arco al
-   posto dell'hero. z-index 95: subito sotto l'overlay, sopra tutto il resto. */
-.dt-preloader-boot {
+/* Il payoff nella lingua salvata. La shell rende TUTTE e cinque le varianti
+   (niente cookies() nel layout: renderebbe dinamiche tutte le rotte); il boot
+   script mette `html[data-locale=xx]` leggendo dt_locale prima del paint, e
+   qui si mostra solo quella che combacia. Senza attributo (o lingua ignota)
+   resta l'italiano, come LocaleProvider fa col suo default. */
+.dt-preloader [data-pre-payoff] {
   display: none;
 }
-html[data-preloader]:not([data-pre-live]) .dt-preloader-boot {
+html:not([data-locale]) .dt-preloader [data-pre-payoff="it"],
+html[data-locale="it"] .dt-preloader [data-pre-payoff="it"],
+html[data-locale="en"] .dt-preloader [data-pre-payoff="en"],
+html[data-locale="fr"] .dt-preloader [data-pre-payoff="fr"],
+html[data-locale="de"] .dt-preloader [data-pre-payoff="de"],
+html[data-locale="es"] .dt-preloader [data-pre-payoff="es"] {
   display: block;
-  position: fixed;
-  inset: 0;
-  z-index: 95;
-  background-color: var(--color-espresso);
 }
-/* Il contenuto interno appare via GSAP: prima dell'idratazione si vede solo
-   il pannello espresso pulito (l'overlay è decorativo e aria-hidden).
-   Sul telefono no: lì il primo atto è CSS e questa regola viene ribaltata
-   (vedi il blocco dell'intro mobile più sotto). */
-.dt-preloader [data-pre-content] {
-  opacity: 0;
+
+/* ── ATTO I, IN CSS, SUI CHARS, A OGNI LARGHEZZA (audit §3.2, strada A) ──
+   Le stesse trasformazioni dei tween GSAP desktop di prima (Preloader.tsx
+   fino al 2026-08-17): chars del titolo `opacity 0→1, yPercent 50→0, rotateY
+   90→0` con `transformPerspective 800` (GSAP antepone `perspective()` alla
+   stringa transform: stesso ordine qui — la prospettiva è per lettera, non
+   sul contenitore, perché è così che il desktop la faceva); firma `rotateX
+   90→0, x 6vw→0` con origine `center bottom`; caps `y 14→0`; payoff
+   `yPercent 110→0` sotto la maschera overflow-hidden. Ease `dtOut` =
+   cubic-bezier(0.25, 1, 0.5, 1) (gsap.ts). Il ritardo per lettera è
+   `calc(base + var(--i) * stagger)`, con `--i` scritto in SSR da
+   PreloaderShell (indice nel proprio gruppo).
+   `both`: prima del proprio ritardo la lettera sta nel `from` (invisibile),
+   dopo resta nel `to` (opacity 1, transform a riposo) — GSAP non tocca MAI
+   questi nodi, solo il loro genitore [data-pre-content] al congedo: nessuna
+   lite fra animazione CSS e stile inline (il motivo per cui la strada B era
+   fragile). Tutto scoped a `html[data-preloader]`: dove l'attributo non c'è
+   l'overlay è display:none e niente parte. −21 tween per lettera (+2 caps,
+   +2 payoff, +1 content, +1 sagoma, +2 del badge) dal chunk di Preloader, su
+   desktop e telefono insieme: è l'alleggerimento nominato di questo atto. */
+html[data-preloader] .dt-preloader [data-pre-content] {
+  opacity: 1;
 }
+html[data-preloader] .dt-preloader [data-pre-figure] {
+  animation: dt-pre-in-fade 1.8s linear 0.3s both;
+}
+html[data-preloader] .dt-preloader [data-pre-badge] {
+  animation: dt-pre-in-fade 0.8s var(--ease-out-expo) 0.1s both;
+}
+html[data-preloader] .dt-preloader [data-pre-char] {
+  animation: dt-pre-char 2.6s cubic-bezier(0.25, 1, 0.5, 1) calc(0.24s + var(--i, 0) * 0.15s) both;
+}
+html[data-preloader] .dt-preloader [data-pre-schar] {
+  transform-origin: center bottom;
+  animation: dt-pre-schar 2.6s cubic-bezier(0.25, 1, 0.5, 1) calc(1.2s + var(--i, 0) * 0.13s) both;
+}
+html[data-preloader] .dt-preloader [data-pre-cap] {
+  animation: dt-pre-cap 1.7s cubic-bezier(0.25, 1, 0.5, 1) calc(0.8s + var(--i, 0) * 0.22s) both;
+}
+html[data-preloader] .dt-preloader [data-pre-word] {
+  animation: dt-pre-word 2.5s cubic-bezier(0.25, 1, 0.5, 1) calc(1.3s + var(--i, 0) * 0.28s) both;
+}
+/* Il badge gira per tutta l'intro, anello e monogramma in versi opposti (lo
+   stesso gesto dell'header, 6 s a giro come faceva `spinMarkBadge(root, 6)`
+   da GSAP): in CSS gira anche prima del JS, e sono due tween in meno. */
+html[data-preloader] .dt-preloader [data-rot-ring] {
+  transform-origin: center;
+  animation: dt-pre-spin 6s linear infinite;
+}
+html[data-preloader] .dt-preloader [data-rot-mark] {
+  transform-origin: center;
+  animation: dt-pre-spin 6s linear infinite reverse;
+}
+@keyframes dt-pre-in-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dt-pre-char {
+  from {
+    opacity: 0;
+    transform: perspective(800px) translateY(50%) rotateY(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(800px) translateY(0) rotateY(0deg);
+  }
+}
+@keyframes dt-pre-schar {
+  from {
+    opacity: 0;
+    transform: perspective(800px) translateX(6vw) rotateX(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(800px) translateX(0) rotateX(0deg);
+  }
+}
+@keyframes dt-pre-cap {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes dt-pre-word {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes dt-pre-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* (Il freeze del ken-burns durante l'intro non serve più: l'effetto è stato
    ritirato — la foto dell'hero è ferma per design, sagoma e foto coincidono
    sempre pixel su pixel sotto l'arco.) */
-/* Safety CSS-only: se il bundle non idrata mai (rete flaky, JS bloccato dopo
-   l'inline script), l'overlay si toglie di mezzo da solo. Il Preloader JS
-   disattiva questa animation al takeover (style.animation = "none"). */
+/* ── ATTI II-IV, IN CSS (opzione D, 2026-08-17) ──────────────────────────
+   Le custom property della maschera sono REGISTRATE con @property: è ciò che
+   le rende interpolabili con continuità dentro una @keyframes (non registrate,
+   il browser le tratterebbe come token e scatterebbero al 50 %: quel caso è
+   il ripiego GSAP di Preloader.tsx, `html[data-pre-gsap]`). `initial-value`
+   dev'essere «computazionalmente indipendente» (css-properties-values-api §
+   registration): per <length> le unità di viewport NON sono ammesse, quindi
+   qui sta `0px` e il valore vero (24vw / 40vw, 104vh) lo scrive la regola
+   normale su `.dt-preloader` più giù — stesso posto di prima. `inherits:
+   true`: gli anelli eco sono figli dell'overlay e leggono --arch-y/--arch-s. */
+@property --arch-w {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --arch-y {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --arch-s {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+/* Le keyframe della porta e del tuffo. Sono DUE animazioni sullo stesso nodo,
+   non una sola in due segmenti, per restare fedeli al film di sempre: in GSAP
+   la porta (2,25 → 3,35, domus.inOut) e il tuffo (3,13 → 4,63, dtDiveIn) si
+   sovrappongono per 0,22 s e il tween del tuffo, che parte dal valore corrente,
+   VINCE da 3,13. Qui uguale: la porta corre intera sotto, il tuffo — dichiarato
+   DOPO nella lista `animation`, quindi vincente sulle stesse proprietà — parte
+   a INTRO_T.dive dal valore che la porta ha in quell'istante: progresso
+   (3,13−2,25)/1,1 = 0,8 di domus.inOut, cioè 0,972 della corsa (calcolato
+   dalla bezier; `--arch-k`). Così INTRO_T resta com'era (dive 3,13, INTRO_MS
+   4 630) invece di slittare a 3,35. Il tuffo è `forwards`, non `both`: con
+   `both` il suo `from` coprirebbe la porta durante tutto il proprio delay. */
+@keyframes dt-pre-door {
+  from {
+    --arch-w: var(--arch-w0);
+    --arch-y: 104vh;
+    --arch-s: 1;
+  }
+  to {
+    --arch-w: var(--arch-w1);
+    --arch-y: var(--arch-y1);
+    --arch-s: var(--arch-s1);
+  }
+}
+@keyframes dt-pre-dive {
+  from {
+    --arch-w: calc(var(--arch-w0) + (var(--arch-w1) - var(--arch-w0)) * var(--arch-k));
+    --arch-y: calc(104vh + (var(--arch-y1) - 104vh) * var(--arch-k));
+    --arch-s: calc(1 + (var(--arch-s1) - 1) * var(--arch-k));
+  }
+  to {
+    --arch-w: var(--arch-w2);
+    --arch-y: -100vh;
+    --arch-s: var(--arch-s2);
+  }
+}
+/* Ripiego senza mask-composite (browser datati): il sipario a salire in
+   clip-path, interpolabile nativamente, stessi tempi di sempre (INTRO_T.curtain
+   2,6 + 0,9 s, domus.inOut). */
+@keyframes dt-pre-curtain {
+  from {
+    clip-path: inset(0% 0% 0% 0%);
+  }
+  to {
+    clip-path: inset(0% 0% 100% 0%);
+  }
+}
+/* Atto II: la linea di carica sale a scatti (era `yPercent -100 → 0`). */
+@keyframes dt-pre-track {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+/* Il congedo del lockup mentre la porta sale (era `y −28/−20, autoAlpha 0`):
+   visibility passa a hidden solo all'ultimo fotogramma, come autoAlpha. */
+@keyframes dt-pre-exit {
+  from {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(var(--pre-exit-y));
+  }
+}
+/* Fine film senza JS: l'overlay si toglie di mezzo da solo — opacity 0 +
+   visibility hidden, che lo sfila anche dall'hit-testing (niente click o
+   tocchi mangiati); l'attributo — e con lui `overflow:hidden` — lo toglie il
+   failsafe del boot script (PRE_FAILSAFE_MS, mezzo secondo dopo). Con il JS
+   al timone `finish()` toglie l'attributo a INTRO_MS e questa rete non si vede. */
 @keyframes dt-pre-autohide {
   to {
     opacity: 0;
     visibility: hidden;
   }
 }
-html[data-preloader] .dt-preloader,
-html[data-preloader]:not([data-pre-live]) .dt-preloader-boot {
-  /* Il failsafe JS del boot script PIÙ mezzo secondo di margine: questa rete
-     serve solo se nemmeno quel timer è scattato (scheda congelata, timer
-     strozzati), quindi deve partire DOPO di lui, mai prima — o taglierebbe
-     un'intro legittima. Desktop 2,5 + 0,5 = 3s; telefono 1,8 + 0,5 = 2,3s
-     (vedi sotto). Il numero era già 3s ma il commento lo dichiarava
-     «allineato a 2,5s», che è un'altra cosa: ora è derivato, non coincidente. */
-  animation: dt-pre-autohide 0.5s ease 3s forwards;
+
+/* La lista `animation` dell'overlay. Due regole in cascata: la prima vale
+   anche in ripiego GSAP (`html[data-pre-gsap]`: solo l'autohide, e Preloader.tsx
+   la spegne con style.animation="none" quando prende lui il timone), la
+   seconda — la CSS che guida — aggiunge porta e tuffo.
+   Delay/durate = INTRO_T (arch 4,5/2,2 · dive 6,26/3); le bezier SONO le
+   ease di gsap.ts: domus.inOut «M0,0 C0.66,0 0.22,1 1,1» = cubic-bezier(0.66,
+   0, 0.22, 1); dtDiveIn = cubic-bezier(0.6, 0, 0, 1). L'autohide parte a
+   PRE_AUTOHIDE_MS = INTRO_MS + 100 ms (9,36 s). */
+html[data-preloader] .dt-preloader {
+  animation: dt-pre-autohide 0.5s ease 9.36s forwards;
+}
+html[data-preloader]:not([data-pre-gsap]) .dt-preloader {
+  animation:
+    dt-pre-door 2.2s cubic-bezier(0.66, 0, 0.22, 1) 4.5s both,
+    dt-pre-dive 3s cubic-bezier(0.6, 0, 0, 1) 6.26s forwards,
+    dt-pre-autohide 0.5s ease 9.36s forwards;
+}
+/* La linea di carica: la scatola si accende a INTRO_T.progress (1,1, 0,5 s
+   lineare, era autoAlpha) e la barra sale a INTRO_T.track (1,2, 3,1 s).
+   L'ease della barra è `dtLoader` di gsap.ts, una CustomEase a più segmenti
+   (i «scatti» di un vero caricamento): non è una cubic-bezier, quindi qui è
+   `linear(...)` campionata dalla curva SVG di gsap.ts ogni 1/16 (script di
+   campionamento a mano; i valori sono la curva, non un'approssimazione a
+   occhio). Dove `linear()` manca (Safari < 17.2, Firefox < 112) resta la
+   bezier dichiarata sopra, cubic-bezier(0.2, 0.45, 0, 0.25): il miglior fit
+   ai minimi quadrati della stessa curva (ricerca a griglia 0,05 su 31
+   campioni) — la forma media, senza gli scatti. */
+html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-progress] {
+  animation: dt-pre-in-fade 0.5s linear 1.1s both;
+}
+html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
+  animation: dt-pre-track 3.1s cubic-bezier(0.2, 0.45, 0, 0.25) 1.2s both;
+  animation-timing-function: linear(
+    0 0%,
+    0.148 6.3%,
+    0.276 12.5%,
+    0.381 18.8%,
+    0.453 25%,
+    0.504 31.3%,
+    0.533 37.5%,
+    0.554 43.8%,
+    0.575 50%,
+    0.621 56.3%,
+    0.715 62.5%,
+    0.797 68.8%,
+    0.858 75%,
+    0.901 81.3%,
+    0.938 87.5%,
+    0.971 93.8%,
+    1 100%
+  );
+}
+/* Il congedo del lockup: INTRO_T.exit 4,7 / 1,1 s, domus.inOut. */
+html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-content] {
+  animation: dt-pre-exit 1.1s cubic-bezier(0.66, 0, 0.22, 1) 4.7s both;
+}
+/* Il sipario di ripiego, dove la porta ad arco non può esistere. */
+@supports not (mask-composite: add) {
+  html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-panel] {
+    animation: dt-pre-curtain 1.8s cubic-bezier(0.66, 0, 0.22, 1) 5.2s both;
+  }
+}
+
+/* LO SKIP in modalità CSS (Preloader.tsx, `html[data-pre-skip]`): «entra
+   ADESSO» = tutto ciò che precede il tuffo è finito, il tuffo parte ora.
+   Cambiare `animation-delay` a un'animazione in corso ne ricalcola la
+   posizione dallo stesso start time (css-animations-1, «changes to
+   animation-* while running»): un delay NEGATIVO pari alla durata la manda
+   alla propria fine qualunque sia l'istante; il tuffo invece deve partire da
+   «ora», che la CSS non conosce — glielo scrive il JS in `--pre-skip`
+   (= secondi già trascorsi sull'orologio CSS, inline sull'overlay), e
+   l'autohide slitta di conseguenza (tuffo 3 s + 0,1). Come `tl.seek("dive")`
+   di sempre: si taglia il preambolo, non la porta. */
+html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader {
+  animation-delay: -2.2s, var(--pre-skip, 0s), calc(var(--pre-skip, 0s) + 3.1s);
+}
+html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-progress] {
+  animation-delay: -0.5s;
+}
+html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
+  animation-delay: -3.1s;
+}
+html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-content] {
+  animation-delay: -1.1s;
+}
+@supports not (mask-composite: add) {
+  html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-panel] {
+    animation-delay: var(--pre-skip, 0s);
+  }
 }
 
 /* ---------- Hero: il "resto" appare solo dopo il primo scroll ----------
    All'ingresso restano solo lockup e motto (rif. era-residence): subcopy,
    founder, CTA e recensioni sono nascosti dall'attributo messo pre-paint
    dall'inline script (solo motion ok → reduced-motion e no-JS vedono tutto).
-   Il reveal è di GSAP (HeroCinematic); failsafe a 6s se il bundle non idrata. */
+   Il reveal è di GSAP (HeroCinematic); la rete CSS se il JS tarda o non
+   arriva: con l'intro (`data-hero-rest="intro"`) HERO_REST_MS
+   (intro-constants.ts) = INTRO_T.dive + 200 ms = 6,46 s, a OGNI larghezza;
+   senza intro HERO_REST_WARM_MS = 6 s (la rete di sempre: a caldo non c'è
+   nessuna porta che si apre, e a 3,33 s scatterebbe prima dell'idratazione
+   lenta, rubando il rito del primo scroll). DENTRO l'intro, non dopo, ed è voluto (opzione D): il
+   film del preloader è tutto CSS, la porta si apre a 3,13 anche senza JS, e
+   le lettere dell'hero devono accendersi quando l'arco le scopre — non tre
+   secondi dopo. Se il JS arriva quando questa rete è già scattata,
+   HeroCinematic lo legge dall'orologio e NON rifà l'ingresso. */
 html[data-hero-rest] .dt-hero-rest {
   opacity: 0;
+  /* Senza intro (visita di ritorno): la rete di sempre, HERO_REST_WARM_MS = 6 s.
+     Il valore "intro" (sotto) lo mette il boot script solo se il sipario suona. */
   animation: dt-rest-failsafe 0.5s ease 6s forwards;
+}
+html[data-hero-rest="intro"] .dt-hero-rest {
+  animation: dt-rest-failsafe 0.5s ease 6.46s forwards;
 }
 /* Lockup, motto e script rientrano a OGNI load (rif. era-residence: refresh
    compreso). 0.02 = dipinti (l'LCP conta il testo) ma invisibili; il reveal
-   vero è di GSAP; failsafe a 6s se il bundle non idrata mai. */
+   vero è di GSAP; rete a HERO_REST_MS se il bundle tarda o non idrata mai. */
 html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
   opacity: 0.02;
   animation: dt-rest-failsafe 0.5s ease 6s forwards;
+}
+html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
+  animation: dt-rest-failsafe 0.5s ease 6.46s forwards;
 }
 @keyframes dt-rest-failsafe {
   to {
@@ -1680,7 +2124,8 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
    colonna centrale sopra l'arco, destra) + una cornice ad arco SVG posizionata
    a --arch-y. L'area DENTRO l'arco non è coperta da nessun layer → buco
    trasparente: una porta ad arco che sale dal fondo e rivela l'hero sotto.
-   GSAP anima solo --arch-w / --arch-y (vedi Preloader.tsx).
+   Le keyframe dt-pre-door/dt-pre-dive (sopra) animano --arch-w / --arch-y /
+   --arch-s; GSAP le tweena solo in ripiego (Preloader.tsx).
    L'SVG (560×2592) è una cornice geometrica con spalla di 16 unità:
    bianco = frame + zona sopra la curva; l'interno dell'arco è vuoto. */
 .dt-preloader,
@@ -1689,8 +2134,12 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   --arch-h: calc(var(--arch-w) * (5600 / 560));
   --arch-y: 104vh;
 }
-/* Classe generica: la usano il preloader E il sipario di PageTransition. */
+/* Classe generica: la usano il preloader E il sipario di PageTransition. Il
+   preloader la porta di suo (senza aspettare che il JS aggiunga la classe:
+   la porta deve esistere anche senza JS); Preloader.tsx aggiunge comunque
+   `is-arch dt-arch-mask` per i chiamanti storici (e2e, sonde). */
 @supports (mask-composite: add) {
+  .dt-preloader,
   .dt-arch-mask {
     mask-image:
       linear-gradient(#fff, #fff),
@@ -1715,158 +2164,259 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
 }
 /* Anelli "eco" attorno alla porta: due archi leggermente più larghi del buco,
    stesso colore del pannello + filo di luce crema. La maschera li taglia dove
-   c'è la porta: restano solo i profili concentrici che la seguono in salita. */
-.dt-preloader:not(.is-arch) [data-pre-arch-echo] {
-  display: none;
+   c'è la porta: restano solo i profili concentrici che la seguono in salita.
+   SU TRANSFORM, A OGNI LARGHEZZA (2026-08-17; prima erano `width/height/top`
+   in calc() di --arch-w/--arch-y — layout per frame — e sul telefono erano
+   display:none per quel motivo). Poiché --arch-h = --arch-w × 10 la forma è
+   omotetica e uno `scale()` uniforme la conserva; ma calc() non sa dividere
+   due lunghezze in un fattore adimensionale, quindi le stesse keyframe
+   dell'arco animano ANCHE una var unitless `--arch-s` (= arch-w / arch-w0),
+   con la stessa ease. Gli anelli hanno misure FISSE al valore iniziale
+   (--arch-w0) e seguono la porta con `translate(-50%, quota) scale(--arch-s)`
+   attorno al proprio bordo superiore centrale: solo transform, nessun layout.
+   Il `box-shadow inset 1px` scala con l'anello (×4,1 a 165 vw, ×5,2 a 125 vw):
+   accettato — è un filo di luce, non un bordo, e compensarlo con
+   `calc(1px / var(--arch-s))` rimetterebbe una ridipintura per frame su un
+   elemento alto dieci larghezze. */
+.dt-preloader {
+  /* LE GEOMETRIE DELL'ARCO, IN UN POSTO SOLO (desktop; il telefono le
+     sovrascrive nel blocco ≤767.98 più giù): larghezza iniziale / a porta
+     aperta / a tuffo finito (24 → 36 → 125 vw), quota di riposo 15vh, e i
+     fattori unitless per gli anelli (s1 = w1/w0 = 1,5; s2 = w2/w0 = 5,2083 —
+     calc() non divide lunghezze, quindi sono scritti). `--arch-k` = 0,972 è il
+     progresso della porta all'istante del tuffo (vedi le keyframe). Le
+     proprietà REGISTRATE partono da qui: --arch-w = w0, --arch-y 104vh (nella
+     regola condivisa sopra), --arch-s 1. Preloader.tsx legge gli stessi
+     numeri dal proprio oggetto G solo per il ripiego GSAP. */
+  --arch-w0: 24vw;
+  --arch-w1: 36vw;
+  --arch-w2: 125vw;
+  --arch-y1: 15vh;
+  --arch-s1: 1.5;
+  --arch-s2: 5.2083;
+  --arch-k: 0.972;
+  --pre-exit-y: -28px;
+  --arch-w: var(--arch-w0);
+  --arch-s: 1;
+}
+/* Gli anelli esistono solo dove esiste la porta (con la maschera): la stessa
+   condizione della maschera, in CSS, non più la classe `is-arch` del JS. */
+@supports not (mask-composite: add) {
+  .dt-preloader [data-pre-arch-echo] {
+    display: none;
+  }
 }
 .dt-preloader [data-pre-arch-echo] {
   position: absolute;
   left: 50%;
+  top: 0;
   background-color: var(--color-espresso);
   /* box-shadow inset, non outline: su Safari 15.4–16.3 l'outline non segue
      il border-radius e gli anelli diventerebbero rettangoli. */
   box-shadow: inset 0 0 0 1px rgba(242, 235, 218, 0.22);
-  border-top-left-radius: var(--arch-w);
-  border-top-right-radius: var(--arch-w);
+  border-top-left-radius: var(--arch-w0);
+  border-top-right-radius: var(--arch-w0);
+  transform-origin: 50% 0;
 }
 .dt-preloader [data-pre-arch-echo="1"] {
-  width: calc(var(--arch-w) * 1.02);
-  height: calc(var(--arch-h) * 1.01);
-  top: calc(var(--arch-y) - var(--arch-h) * 0.005);
-  transform: translateX(-50%);
+  width: calc(var(--arch-w0) * 1.02);
+  height: calc(var(--arch-w0) * 10 * 1.01);
+  /* La quota: --arch-y meno mezzo per cento dell'altezza CORRENTE
+     (h0 × 0,005 × s), come il `top` di prima. */
+  transform: translate(-50%, calc(var(--arch-y) - var(--arch-w0) * 0.05 * var(--arch-s)))
+    scale(var(--arch-s));
 }
 .dt-preloader [data-pre-arch-echo="2"] {
-  width: calc(var(--arch-w) * 1.1);
-  height: calc(var(--arch-h) * 1.03);
-  top: calc(var(--arch-y) - var(--arch-h) * 0.015);
-  transform: translateX(-50%);
+  width: calc(var(--arch-w0) * 1.1);
+  height: calc(var(--arch-w0) * 10 * 1.03);
+  transform: translate(-50%, calc(var(--arch-y) - var(--arch-w0) * 0.15 * var(--arch-s)))
+    scale(var(--arch-s));
 }
 
-/* ---------- L'INTRO SUL TELEFONO ----------------------------------------
-   Fase 3 della parità mobile (2026-08-11). Sul telefono l'intro non è la
-   stessa più veloce: è un altro montaggio. Restano la porta che sale e il
-   tuffo — IL momento — e il primo atto passa da GSAP al CSS.
-
-   PERCHÉ IL PRIMO ATTO STA QUI E NON IN GSAP. Il markup dell'overlay arriva
-   col chunk dinamico, e il chunk arriva quando la rete vuole; un'animazione
-   CSS di sole opacity/transform parte nell'istante esatto in cui i nodi
-   entrano nel documento, sul compositore, mentre il thread principale è
-   ancora occupato a idratare mezza pagina. Le stesse righe fatte con GSAP
-   aspettano il primo tick del ticker — cioè aspettano proprio il thread che
-   in quel momento è il collo di bottiglia. In più spariscono 21 tween per
-   lettera e i 21 `will-change` che li accompagnavano.
-
-   IL BUDGET (Preloader.tsx tiene i numeri della parte GSAP):
-     0,00–0,77  questo blocco: sagoma, marchio, le due righe del lockup sotto
-                la maschera che hanno già, la firma, le due righe di promessa
-     0,25–0,95  la porta sale        (GSAP)
-     0,60–1,00  il lockup si congeda (GSAP)
-     0,95–1,75  il tuffo             (GSAP, ease dtDiveIn, invariata)
-   Totale 1,75s contro i 4,63s del desktop. Il gesto è lo stesso, sono gli
-   ATTI a essere meno. */
+/* ---------- L'INTRO SUL TELEFONO: STESSO FILM, ALTRE GEOMETRIE -----------
+   Onda «parità mobile 2» (2026-08-17), legge 1 e 3: sotto i 768 suonano gli
+   stessi quattro atti del desktop, con le stesse durate (4,63 s) e le stesse
+   ease — tutti nel blocco «Preloader» qui sopra, a ogni larghezza. Qui
+   restano SOLO i parametri che dipendono dalla geometria del telefono. (Fino
+   a oggi questo blocco era «un altro montaggio»: atto I per riga, niente
+   linea di carica, niente anelli, 1,75 s. Non più.) */
 @media (max-width: 767.98px) {
   /* Una porta più larga in proporzione: 40vw su 390px sono 156px, e sotto i
-     ~150 l'arco smette di leggersi come una porta e diventa una feritoia.
-     Solo `.dt-preloader`: il sipario di PageTransition condivide la maschera
-     ma si scrive i propri valori da GSAP, e non è di questa fase. */
+     ~150 l'arco smette di leggersi come una porta e diventa una feritoia
+     (40 → 58 → 165 vw; desktop 24 → 36 → 125; riposo 16vh; congedo −20 px).
+     s1 = 58/40 = 1,45; s2 = 165/40 = 4,125. Solo `.dt-preloader`: il sipario
+     di PageTransition condivide la maschera ma si scrive i propri valori.
+     Le quote restano `vh` PURI, come ERA: sui browser mobili `vh` è il
+     viewport grande, quindi 104vh sta sotto il bordo anche a barra URL
+     nascosta e 16vh è visibile in entrambi gli stati della barra. */
   .dt-preloader {
-    --arch-w: 40vw;
+    --arch-w0: 40vw;
+    --arch-w1: 58vw;
+    --arch-w2: 165vw;
+    --arch-y1: 16vh;
+    --arch-s1: 1.45;
+    --arch-s2: 4.125;
+    --pre-exit-y: -20px;
   }
 
-  /* Failsafe CSS = failsafe JS del boot script (1,8s) + 0,5 di margine. */
-  html[data-preloader] .dt-preloader,
-  html[data-preloader]:not([data-pre-live]) .dt-preloader-boot {
-    animation-delay: 2.3s;
+  /* La linea di carica, presente anche sul telefono (atto II): la si
+     rende LEGGIBILE, non più larga — 2px di spessore invece di 1, alta al
+     massimo 64px o un decimo dello schermo piccolo (`svh`: deve stare sopra
+     la barra URL anche estesa). */
+  .dt-preloader [data-pre-progress] {
+    height: min(64px, 10svh);
+    width: 2px;
   }
 
-  /* ── Atto I, in CSS ── */
-  /* Il contenuto è visibile dal primo fotogramma: a comporlo sono le regole
-     qui sotto, non più il tween di apertura di GSAP. `opacity` statica, non
-     un'animazione con `forwards`: al tuffo GSAP scrive `opacity` inline su
-     questo stesso nodo, e un'animazione CSS vincerebbe sullo stile inline. */
-  html[data-preloader] .dt-preloader [data-pre-content] {
-    opacity: 1;
+  /* ── LA FASCIA DI RAFFAELA ────────────────────────────────────────────
+     Il difetto, misurato prima di toccare niente (docs/foto-mobile.md §1):
+     la foto dell'hero e la sagoma del preloader sono lo stesso scatto
+     orizzontale, 2000×1415 (rapporto 1,413). A `object-cover` dentro una
+     scatola verticale il ritaglio è tutto sulla LARGHEZZA, e resta:
+
+       preloader  390×844   → 32,7 % della sorgente
+       hero       390×1052  → 26,2 %   (la sezione sfonda il viewport)
+
+     Cioè due terzi di stanza buttati, e la striscia che sopravvive è centrata
+     al 50 %: Raffaela sta a sinistra (corpo dal 4,5 % al 28 %, la mano fino al
+     46 %), quindi dentro la striscia non ci finisce lei — ci finisce il suo
+     AVAMBRACCIO, ingrandito tre volte. È l'immagine che ha segnalato il
+     cliente. Sul desktop non succede: a 1440×900 la scatola è più larga della
+     sorgente, `keepW` è il 100 % e si taglia solo l'8 % in alto.
+
+     La geometria dice che le strade sono due sole: o si cambia il RAPPORTO
+     della scatola, o si taglia un altro file. Qui si cambia il rapporto — la
+     foto smette di riempire l'altezza e diventa una FASCIA col rapporto della
+     sorgente, alla scala del desktop, appoggiata al piede della prima
+     schermata. Niente si ingrandisce più: si rimpicciolisce e si posiziona,
+     che è la richiesta.
+
+     Un solo insieme di numeri per DUE nodi — la sagoma del preloader e la foto
+     dell'hero — perché è quello che li fa coincidere quando l'arco si apre: la
+     silhouette diventa la stanza solo se le due immagini hanno la stessa
+     scatola. (Prima non coincidevano nemmeno: 844 contro 1052. Il patto
+     «pixel su pixel» scritto in PreloaderShell.tsx valeva solo da 768 in su.)
+     Entrambi i nodi partono da `top: 0` della propria scatola — il pannello
+     fisso del sipario e la sezione dell'hero cominciano tutti e due a y=0 con
+     la pagina ferma — quindi ancorarli con lo STESSO `top` calcolato li
+     sovrappone senza dipendere da come il browser conta l'altezza. */
+  :root {
+    /* La larghezza della fascia, in vw: è la manopola. 180vw = 702 px su 390,
+       cioè la foto alla scala che avrebbe su uno schermo largo il doppio.
+       Raffaela viene 132 px larga — il 34 % dello schermo, la stessa quota
+       che occupa sul desktop (475 px su 1440) — invece dei 1 190 px di
+       avambraccio di prima. */
+    --dt-fascia-w: 180vw;
+    --dt-fascia-h: calc(var(--dt-fascia-w) / 1.4134);
+    /* Lo scorrimento a sinistra: la figura sta nella metà sinistra dello
+       scatto, e questo la porta al bordo, dove sta anche sul desktop. Il
+       limite è la figura stessa: il suo fianco sinistro comincia al 4,5 %
+       della sorgente, cioè a 31,6 px di 702 — oltre i 7vw (27,3 px) le si
+       taglierebbe il braccio contro il bordo dello schermo, che è esattamente
+       il difetto da cui si parte. */
+    --dt-fascia-x: -7vw;
   }
-  html[data-preloader] .dt-preloader [data-pre-figure] {
-    animation: dt-pre-in-fade 0.5s var(--ease-out-expo) both;
+  .dt-preloader [data-pre-figure],
+  [data-hero-media] [data-hero-photo] {
+    left: var(--dt-fascia-x);
+    right: auto;
+    width: var(--dt-fascia-w);
+    height: var(--dt-fascia-h);
+    top: calc(100svh - var(--dt-fascia-h));
+    bottom: auto;
   }
-  html[data-preloader] .dt-preloader [data-pre-badge] {
-    animation: dt-pre-in-fade 0.4s var(--ease-out-expo) 0.05s both;
-  }
-  /* Le righe del lockup salgono INTERE da sotto la maschera overflow-hidden
-     che PreChars costruisce già per il titolo: è l'idioma di TextLines, e qui
-     costa due elementi animati invece di ventuno. Le lettere restano nel
-     markup (è lo stesso HTML a tutte le larghezze) ma sul telefono sono
-     inerti: nessun tween, nessun `will-change`. */
-  html[data-preloader] .dt-preloader [data-pre-line] {
-    animation: dt-pre-in-line 0.55s var(--ease-out-expo) 0.02s both;
-  }
-  html[data-preloader] .dt-preloader [data-pre-line="1"] {
-    animation-delay: 0.09s;
-  }
-  /* La firma non ha maschera (ruoterebbe fuori dai bordi): entra di lato. */
-  html[data-preloader] .dt-preloader [data-pre-sline] {
-    animation: dt-pre-in-side 0.5s var(--ease-out-expo) 0.16s both;
-  }
-  html[data-preloader] .dt-preloader [data-pre-word] {
-    animation: dt-pre-in-line 0.5s var(--ease-out-expo) 0.2s both;
-  }
-  html[data-preloader] .dt-preloader [data-pre-word="2"] {
-    animation-delay: 0.27s;
+  /* Il bordo alto della fascia è un taglio netto solo sulla FOTO (la sagoma è
+     un ritaglio con canale alpha: lì non c'è nessun rettangolo da nascondere,
+     e una maschera le sfumerebbe la testa). Si spegne in dissolvenza sul
+     fondo espresso della sezione, così la fascia non legge come un'immagine
+     incollata ma come la stanza che emerge dal buio. */
+  [data-hero-media] [data-hero-photo] {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
   }
 
-  /* ── Fuori l'atto II ──
-     Un filo alto 64px e largo 1 su uno schermo da 390: non guadagna niente e
-     soprattutto non misura niente — non è mai stato collegato a un
-     caricamento vero, nonostante il nome. */
-  html[data-preloader] .dt-preloader [data-pre-progress] {
-    display: none;
+  /* Ora che la figura c'è davvero, il testo del sipario deve farle posto — e
+     lo fa nel modo in cui glielo fa GIÀ il desktop: lì i caps stanno in
+     colonna sul bordo destro (`md:absolute md:right-[7vw]`) proprio perché a
+     sinistra c'è Raffaela. Sul telefono la stessa regola, con gli stessi
+     mezzi: caps in colonna a destra, e il piede (linea di carica + payoff)
+     allineato a destra. Prima erano centrati sopra la sua giacca bianca —
+     cream al 60 % su pizzo bianco, cioè illeggibili — e questo era vero solo
+     perché sotto non c'era nessuno. */
+  .dt-preloader [data-pre-caps] {
+    align-self: flex-end;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-top: 8vh;
+    padding-right: 6vw;
+  }
+  .dt-preloader [data-pre-foot] {
+    align-self: flex-end;
+    align-items: flex-end;
+    padding-right: 6vw;
+  }
+  .dt-preloader [data-pre-foot] p {
+    text-align: right;
   }
 
-  /* ── Fuori gli anelli eco ──
-     Non è una questione di gusto: `width`, `height` e `top` degli anelli sono
-     calcolati da --arch-w/--arch-y, cioè rifatti a OGNI fotogramma del tuffo.
-     Sono due elementi che fanno layout per frame proprio sul dispositivo che
-     meno se lo può permettere, e la regola del progetto è transform/opacity/
-     clip-path/mask e basta. Sul desktop restano (debito noto, non aperto qui). */
-  .dt-preloader [data-pre-arch-echo] {
-    display: none;
-  }
+  /* ── LE FOTO A TUTTO SCHERMO DIVENTANO FASCE ──────────────────────────
+     Lo stesso difetto della fascia di Raffaela, moltiplicato per il resto del
+     sito. Misurato a 390 prima di toccare niente (`npm run probe:crop`):
 
-  /* La rete dell'hero senza JS: 6s di testo quasi invisibile stanno in piedi
-     dietro un'intro da 4,63s, non dietro una da 1,75. 4s = l'intro più il
-     margine perché HeroCinematic possa idratare e prendersi il timone (è lui
-     a spegnere questa animation quando ci riesce). */
-  html[data-hero-rest] .dt-hero-rest,
-  html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
-    animation-delay: 4s;
-  }
-}
+       hero-aerial.jpg        HorizonStory     23 % della larghezza
+       hero/premium_*.jpg     PageHero (×8)    27-31 %
+       raffaela-team-sede.jpg Paths, intro     36 %
+       consulenza.jpg         Testimonianza    42-48 %
+       rendering_01           Servizi, lastra  51 %
+       raffaela-founder.jpg   Open Domus       53 %
 
-@keyframes dt-pre-in-fade {
-  from {
-    opacity: 0;
+     Sul desktop gli stessi nodi ne tengono l'80-94 %: non è una fotografia
+     sbagliata, è una scatola verticale che chiede a una fotografia
+     orizzontale di riempirle l'altezza. `object-cover` allora ingrandisce
+     finché l'altezza basta, e la larghezza la butta.
+
+     La geometria non lascia scelta: quanta sorgente sopravvive dipende SOLO
+     dal rapporto della scatola (`keepW = rapportoScatola / rapportoSorgente`).
+     Non c'è object-position che rimedi, non c'è `sizes` che rimedi, non c'è
+     scala che rimedi — spostare o ingrandire cambia QUALE striscia si vede,
+     non quanta. Quindi si cambia il rapporto: sotto i 768 il layer foto
+     smette di riempire l'altezza della sezione e diventa una FASCIA alta
+     78vw, cioè un rapporto di 1,28. Su una sorgente 16:9 tiene il 71 % della
+     larghezza invece del 29 %; su una 4:3 la tiene tutta.
+
+     La fascia si spegne in dissolvenza sul fondo scuro della sezione invece
+     di finire con un taglio netto: sotto continua il colore, non il vuoto, e
+     il testo che ci passa sopra resta leggibile come prima.
+
+     Non è una regola nuova per il telefono: è la regola del desktop —
+     «la fotografia si vede tutta» — resa possibile su uno schermo verticale.
+     Da 768 in su la classe non esiste e `absolute inset-0` resta intatto. */
+  .dt-mob-band {
+    top: 0;
+    bottom: auto;
+    height: var(--dt-band-h, 78vw);
+    -webkit-mask-image: linear-gradient(to bottom, #000 var(--dt-band-solid, 72%), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 var(--dt-band-solid, 72%), transparent 100%);
   }
-  to {
-    opacity: 1;
+  /* La variante ancorata in basso, per le sezioni in cui il testo sta sopra
+     la fotografia e non sotto. */
+  .dt-mob-band--basso {
+    top: auto;
+    bottom: 0;
+    -webkit-mask-image: linear-gradient(to top, #000 var(--dt-band-solid, 72%), transparent 100%);
+    mask-image: linear-gradient(to top, #000 var(--dt-band-solid, 72%), transparent 100%);
   }
-}
-@keyframes dt-pre-in-line {
-  from {
-    transform: translateY(110%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-@keyframes dt-pre-in-side {
-  from {
-    opacity: 0;
-    transform: translate(6vw, 12%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, 0);
+  /* La variante centrata, per le fotografie che vivono in mezzo al crema e non
+     sotto un testo: lì la dissolvenza non serve — un bordo netto su un campo
+     chiaro legge come una fotografia impaginata, una sfumatura come una
+     stampa venuta male. */
+  .dt-mob-band--centro {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }
 
@@ -2463,6 +3013,22 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   background: transparent;
   transform-style: preserve-3d;
 }
+/* IL CORRIDOIO SENZA PIN, SOTTO lg (TeamTrail.tsx, «parità mobile 2», scheda
+   19). Sopra i 1024 la prospettiva sta sullo schermo sticky e la camera
+   attraversa sei piani sovrapposti; sotto non c'è schermo, quindi la stessa
+   prospettiva — stesso numero, 120.71svh, fov 45 del riferimento — sta su OGNI
+   pannello e i suoi quattro blocchi si avvicinano da z = −0.5·GAP.
+   SENZA QUESTA RIGA IL RAMO MOBILE NON SI VEDE: `z` senza un antenato che
+   proietti è una trasformazione che non produce nessuna scala, cioè il tuffo
+   che non c'è. La perspective fa dell'unità un containing block per fixed e
+   absolute e un contesto di impilamento: dentro `.dt-tt_unit` non c'è nulla di
+   `fixed` né di `sticky` (solo la scia in `position: relative`), quindi non
+   sposta niente. `:not([data-on])` e non una media query: la soglia la decide
+   già l'attributo, e con reduced-motion o senza JS qui non si anima nulla —
+   una prospettiva senza transform in z non cambia un pixel. */
+.dt-tt:not([data-on]) .dt-tt_unit {
+  perspective: 120.71svh;
+}
 /* L'atmosfera (canvas: fondale a blob + fiori in profondità) vive solo nel
    corridoio: fuori non esiste, né in flusso né in memoria. */
 .dt-tt_bg {
@@ -2477,10 +3043,51 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
 }
 
 /* ---------- Footer reveal (uncover) ----------
-   Il footer resta fisso dietro al main, che gli scorre sopra e lo "scopre"
-   nell'ultimo tratto di scroll. Niente transform sugli antenati: main riceve
-   solo z-index/margine, quindi header/WhatsApp/action-bar (fixed) sono salvi.
-   Attivo solo desktop + motion ok; la classe è gestita da Footer.tsx. */
+   Lo stesso effetto a ogni larghezza, con due tagli (classe html.dt-footer-reveal
+   e var --dt-footer-h gestite da Footer.tsx, solo con motion ok):
+   · ≥1024: TUTTO il footer resta fisso dietro al main, che gli scorre sopra e
+     lo "scopre" nell'ultimo tratto di scroll (--dt-footer-h = altezza del
+     footer). Niente transform sugli antenati: main riceve solo z-index/margine,
+     quindi header/WhatsApp/action-bar (fixed) sono salvi.
+   · <1024: uncover PARZIALE («parità mobile 2», scheda 11 — a 390 il footer
+     misura ~1 393px contro 844 di viewport: fissarlo tutto renderebbe
+     irraggiungibile ciò che sta sopra). È fissa solo la coda
+     ([data-footer-tail]: wordmark + riga legale, --dt-footer-h = la SUA
+     altezza), dentro una cornice in flusso ([data-footer-tail-frame]) alta
+     quanto lei e con clip-path: inset(0): il clip-path ritaglia anche i
+     discendenti fixed (overflow: hidden non lo farebbe) e NON è un
+     containing block per i fixed (transform/filter/contain lo sarebbero),
+     quindi la coda resta ancorata al viewport e la cornice, salendo con la
+     pagina, la scopre dal basso — come il main scopre il footer sul desktop.
+     Il main e le colonne non cambiano né z-index né fondo: la texture
+     topografica resta visibile sotto le colonne e nessun antenato dei fixed
+     di cromo viene toccato. Il velo in cima alla cornice è l'ombra che sul
+     desktop il main getta sul footer. */
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+  html.dt-footer-reveal [data-footer-tail-frame] {
+    position: relative;
+    height: var(--dt-footer-h, auto);
+    clip-path: inset(0);
+  }
+  html.dt-footer-reveal [data-footer-tail-frame]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+  }
+  html.dt-footer-reveal [data-footer-tail] {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+}
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
   html.dt-footer-reveal main {
     position: relative;
@@ -2610,5 +3217,36 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   bottom: 0;
   left: -9%;
   width: 118%;
+}
+/* ---------- Il secondo piano SOTTO i 1024 («parità mobile 2», scheda 20) ----------
+   Da 1024 in su il pan è di GSAP (`xPercent` da -depth a +depth lungo la
+   corsa del nastro). Sotto, il primo piano ce l'ha il dito — ma il secondo
+   non c'era affatto, e un nastro che scorre senza profondità è una fila che
+   si muove, non il nastro del sito. Qui torna, con la stessa trasformazione
+   (translateX per tessera, in percentuale di sé stessa) e un parametro solo
+   diverso: la corsa è quella del dito, non quella dello scroll verticale.
+
+   `--rail-p` (0→1) la scrive RailProgress sullo scroller a ogni evento di
+   scroll — nessun ScrollTrigger, nessun rAF, nessun `will-change`: è
+   l'alleggerimento nominato di questa riga. `--depth` la porta il sito di
+   chiamata accanto a `data-depth` (che resta la sorgente del ramo GSAP: una
+   quota sola, letta in due modi).
+
+   IL SEGNO È QUELLO DEL DESKTOP, e non è un dettaglio: la foto deve andare
+   verso destra mentre la cornice va verso sinistra, cioè RESTARE INDIETRO
+   rispetto alla cornice — è il ritardo a fare la profondità. A p=0 vale
+   -depth, a p=1 vale +depth, esattamente come il `fromTo` di
+   HorizontalRail/Social. (La scheda 20 dell'audit scriveva il fattore ×−2,
+   che inverte la parallasse facendo correre la foto PIÙ della cornice: qui
+   vince il tween desktop, perché il verdetto è «stesso effetto».)
+
+   Senza JS `--rail-p` non esiste mai: il fallback .5 tiene il pan al centro,
+   cioè esattamente com'era prima. `:not([data-on])` perché sopra la soglia il
+   pan è di GSAP e due padroni sullo stesso transform sono uno di troppo. */
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+  .dt-rail:not([data-on]) .dt-rail_pan,
+  .dt-socialrail:not([data-on]) .dt-socialrail_pan {
+    transform: translateX(calc((var(--rail-p, 0.5) - 0.5) * 2 * var(--depth, 6) * 1%));
+  }
 }
 

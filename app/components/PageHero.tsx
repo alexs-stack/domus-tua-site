@@ -115,11 +115,15 @@ export default function PageHero({
   );
 
   return (
-    <section ref={rootRef} id={id} className="relative flex min-h-[82vh] w-full items-end overflow-hidden">
+    // `bg-ink`: sul desktop non si vede mai — la foto copre `inset-0` per
+    // intero — ma sotto i 768 la foto diventa una fascia (globals.css, «Le
+    // foto a tutto schermo diventano fasce») e sotto di lei ci vuole il fondo
+    // scuro su cui si spegne, lo stesso tono dei due scrim qui sotto.
+    <section ref={rootRef} id={id} className="relative flex min-h-[82vh] w-full items-end overflow-hidden bg-ink">
       {/* Media in un layer parallax: allo scroll l'immagine resta "indietro" (profondità).
           I gradienti di leggibilità restano fissi sopra il layer. */}
       <Parallax
-        className="absolute inset-0"
+        className="dt-mob-band absolute inset-0"
         innerClassName="absolute inset-0"
         speed={0.22}
         scale={1.08}

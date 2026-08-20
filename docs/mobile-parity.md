@@ -1,5 +1,41 @@
 # Parità mobile — audit di partenza (Fase 0)
 
+> **Nota del 2026-08-17 — questo documento è storia, non stato.** L'onda è chiusa e il
+> codice è andato oltre alcuni verdetti scritti qui; l'onda successiva («stessi effetti su
+> mobile», parità di *effetto* e non più di *intento*) è `docs/mobile-parity-2-prompt.md`,
+> che scrive il proprio audit in `docs/mobile-parity-2.md`. Verificato riga per riga contro il codice al
+> `c4bccf8`, quello che sotto NON corrisponde più:
+>
+> - **§3 verdetto 1** (`HorizonScroller`): il reveal per-carattere «righe mascherate con
+>   `TextLines`, non 68 span» non è stato attuato — `TextLines` è ungated in larghezza e
+>   avvolgere l'h2 farebbe due split sullo stesso testo sopra i 1024; l'h2 prende il reveal a
+>   blocco degli altri (`HorizonScroller.tsx:110-116`). E i gradini del titolo stanno fermi
+>   per misura, non solo lo scrub della cupola (`:161-179`).
+> - **§3 verdetto 3** (`ReviewsWall`): non «uno ScrollTrigger sulla griglia» ma
+>   `ScrollTrigger.batch`, un trigger per tessera, con corsa dimezzata (`dist.rise/2`) e rete a
+>   tempo guardata dalla posizione; la rete `focusin` è uscita (`ReviewsWall.tsx:100-186`).
+> - **§3 verdetto 4** (`ThreadNav`): la riga in alto è **solo progresso** — i nodi sono
+>   `aria-hidden` + `tabIndex -1`, non bottoni (`ThreadNav.tsx:299-309`); e `watchSurfaceTone`
+>   resta spento sotto `lg` non perché «l'elemento non è renderizzato», ma perché scrive
+>   `data-tone`, lo stesso attributo che SurfaceFlow legge come tappa (`:266-277`, §6.13).
+> - **§3 verdetto 5** (`Paths`): la foto `scale 1,06 → 1` è stata **tolta** il 2026-08-11
+>   dopo la misura (sei centesimi su un layer a schermo intero non si vedono; il desktop tiene
+>   1,35 → 1,18): sul telefono restano sipario dall'alto e i tre punti (`Paths.tsx:288-294`).
+> - **§3 verdetto 10** (`HeroCinematic`): i marchi d'angolo `SegnoDomusVideoFrame` **non** si
+>   spengono con la deriva d'uscita, per scelta: la cornice avrebbe due padroni (la timeline
+>   d'ingresso non è gated per larghezza) e la lite si vede (`HeroCinematic.tsx:239-248`). La
+>   deriva `yPercent` sotto 768 c'è (`:230-238`).
+> - **§5.2**: il failsafe riarmato negli abort non è più 8 000 ms — è lo stesso numero del boot
+>   script, 1 800 ms sotto 767.98 e 2 500 sopra (`Preloader.tsx:619-625`, `layout.tsx:61`); i
+>   sette orologi sono stati riallineati, ma restano sette numeri (l'onda 2 li deriva da una
+>   costante sola, §6.2 del prompt).
+> - **§5.4** «l'overlay è già montato dallo script inline prima dell'idratazione»: falso.
+>   Lo script mette solo l'**attributo** `data-preloader`; il markup di `.dt-preloader` arriva
+>   col chunk dinamico (`ssr:false`). Il primo fotogramma reso dal server è il solo fondo
+>   `.dt-preloader-boot` (`layout.tsx:191-205`, `globals.css:1582-1598`).
+>
+> Il resto (misure §1 e §11-12, decisioni §9, difetti §6) resta valido come registro.
+
 > Wave "parità mobile", 2026-08-11. Questo documento è la **Fase 0**: l'inventario
 > verificato contro il codice, la misura di partenza, un verdetto per ogni effetto
 > chiuso fuori dal telefono, e la decisione sull'intro con il suo piano di misura.

@@ -51,11 +51,12 @@ export default function SmoothScroll() {
     // può cadere per mano di qualcun altro, e ci sono due strade reali in cui
     // finish() non gira mai:
     //
-    //   1. il failsafe dello script di boot (app/layout.tsx, 2.500 ms) toglie
-    //      l'attributo e basta — non sa che Lenis esiste;
-    //   2. il chunk del Preloader è `ssr: false`. Se atterra DOPO che quel
-    //      failsafe è scattato, il suo useGSAP trova <html> già pulito, esce
-    //      alla prima riga (Preloader.tsx:88) e a finish() non ci arriva mai.
+    //   1. il failsafe dello script di boot (app/layout.tsx) toglie l'attributo
+    //      e basta — non sa che Lenis esiste;
+    //   2. il Preloader idrata DOPO che quel failsafe è scattato (dal
+    //      2026-08-17 non è più un chunk `ssr:false` ma viaggia col layout:
+    //      resta possibile su un thread bloccato): il suo useGSAP trova <html>
+    //      già pulito, esce alla prima riga e a finish() non ci arriva mai.
     //
     // In entrambi i casi Lenis resta fermo. E "fermo" non vuol dire "più lento":
     // `lenis.stop()` scrive `lenis-stopped` su <html>, che globals.css:164-166
@@ -64,10 +65,14 @@ export default function SmoothScroll() {
     // per uscirne — solo il ricaricamento. È il modo peggiore di rompersi,
     // perché sembra che il sito sia arrivato.
     //
-    // Oggi il telefono è salvo per un accidente: sotto i 768px l'attributo non
-    // viene mai stampato. Aprendo l'intro ai telefoni (Fase 3) — rete lenta,
-    // chunk in ritardo o mai arrivato — questa diventa la via PIÙ PROBABILE per
-    // rompere il sito, non un caso di laboratorio.
+    // Quando questa rete è stata scritta il telefono era salvo per un
+    // accidente: sotto i 768px l'attributo non veniva mai stampato. Dal
+    // 2026-08-11 non è più così — lo script di boot (app/layout.tsx) mette
+    // `data-preloader` a OGNI larghezza (dal 2026-08-17 con un solo failsafe,
+    // PRE_FAILSAFE_MS) — quindi sul telefono, dove la rete è lenta e il JS arriva in
+    // ritardo o mai, questa è oggi la via PIÙ PROBABILE per rompere il sito, non
+    // un caso di laboratorio. La rete non è più in anticipo su niente: è in
+    // servizio.
     //
     // Quindi il contratto si chiude da questo lato. Non "qualcuno si ricorderà
     // di richiamarmi", ma: guardo l'attributo e riparto quando cade, chiunque

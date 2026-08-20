@@ -22,11 +22,17 @@ type Dict = {
   nav: { vendi: string; acquista: string; metodo: string; servizi: string; openDomus: string; case: string; recensioni: string; chiSiamo: string; lavora: string; contatti: string; percorso: string };
   header: { valuta: string; whatsapp: string };
   cursor: { scopri: string; trascina: string };
+  // Del vecchio blocco `hero` restano i TRE campi che qualcuno rende davvero:
+  // `title1`/`title2` (il nastro cinetico che chiude la home, KineticStrip) e
+  // `ctaValuta` (CostiChiari e /case-vendute). Gli altri otto — eyebrow, subcopy,
+  // ctaMetodo, ctaCerco, founderRole, watch, ratingSuffix, chips — non li leggeva
+  // nessuno, ed erano la copia FERMA dell'hero prima della riscrittura del §6.1:
+  // il subcopy diceva ancora «Ti accompagniamo passo dopo passo» e il ratingSuffix
+  // «oltre 500 recensioni». Copy morta che contraddice quella viva non è inerte: è
+  // la versione che qualcuno ricollega per sbaglio, riportando dentro il testo che
+  // era stato tolto. L'hero vero ha la sua copy in HeroCinematic.tsx.
   hero: {
-    eyebrow: string; title1: string; title2: string; subcopy: string;
-    ctaValuta: string; ctaMetodo: string; ctaCerco: string;
-    founderRole: string; watch: string; ratingSuffix: string;
-    chips: string[];
+    title1: string; title2: string; ctaValuta: string;
   };
   search: {
     title: string; nlPlaceholder: string; nlTeaser: string; nlHint: string;
@@ -36,24 +42,19 @@ type Dict = {
     emptyTitle: string; emptyCopy: string; emptyCta: string;
   };
   whatsapp: { cta: string };
-  footer: { naviga: string; orari: string; monFri: string; sat: string; sun: string; onAppt: string; valuta: string; privacy: string; cookie: string; contatti: string; lavora: string; faq: string };
+  footer: { naviga: string; orari: string; caseVendute: string; monFri: string; sat: string; sun: string; onAppt: string; valuta: string; privacy: string; cookie: string; cookiePrefs: string; contatti: string; lavora: string; faq: string };
   lang: { label: string };
 };
 
 export const dictionaries: Record<Locale, Dict> = {
   it: {
     nav: { vendi: "Vendi", acquista: "Acquista", metodo: "Metodo Domus", servizi: "Servizi", openDomus: "Open Domus", case: "Case", recensioni: "Recensioni", chiSiamo: "Chi siamo", lavora: "Lavora con noi", contatti: "Contatti", percorso: "Percorso" },
-    header: { valuta: "Valuta la tua casa", whatsapp: "Scrivici su WhatsApp" },
+    header: { valuta: "Richiedi la valutazione", whatsapp: "Parla con noi su WhatsApp" },
     cursor: { scopri: "Scopri", trascina: "Trascina" },
     hero: {
-      eyebrow: "Agenzia immobiliare · Tradate dal 2007",
-      title1: "Vendere casa, senza stress.",
-      title2: "Acquistare casa, con sicurezza.",
-      subcopy: "Dal 2007 mettiamo le persone prima degli immobili. Ti accompagniamo passo dopo passo, dalla valutazione al rogito, unendo calore umano e strumenti innovativi: rendering, video, home staging e Open Domus.",
-      ctaValuta: "Valuta il tuo immobile", ctaMetodo: "Scopri il Metodo", ctaCerco: "Cerco casa",
-      founderRole: "Fondatrice · con te dal 2007", watch: "Guarda i video",
-      ratingSuffix: "su Google · oltre 500 recensioni",
-      chips: ["Video immobiliari", "Open Domus", "Domus D.O.C.", "Tradate · Varese"],
+      title1: "Vendi casa a Tradate",
+      title2: "al prezzo giusto, nei tempi giusti.",
+      ctaValuta: "Richiedi la valutazione del tuo immobile",
     },
     search: {
       title: "Che casa stai cercando?",
@@ -63,28 +64,23 @@ export const dictionaries: Record<Locale, Dict> = {
       contract: "Contratto", type: "Tipologia", zone: "Zona", budget: "Budget", rooms: "Locali", features: "Caratteristiche",
       all: "Tutte", sale: "Vendita", rent: "Affitto", anyBudget: "Nessun limite", anyRooms: "Qualsiasi",
       resultsOne: "immobile trovato", resultsMany: "immobili trovati", cta: "Cerca casa",
-      sellerTitle: "Devi vendere casa?", sellerCta: "Richiedi una valutazione",
+      sellerTitle: "Devi vendere casa?", sellerCta: "Richiedi la valutazione del tuo immobile",
       emptyTitle: "Nessun immobile con questi filtri.",
       emptyCopy: "Non c’è online? Potrebbe arrivare. Raccontaci cosa cerchi: molte case le troviamo noi.",
       emptyCta: "Lasciaci la tua richiesta",
     },
-    whatsapp: { cta: "Scrivici ora" },
-    footer: { naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Valuta la tua casa", privacy: "Privacy", cookie: "Cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti" },
+    whatsapp: { cta: "Parla con noi su WhatsApp" },
+    footer: { naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Richiedi la valutazione", privacy: "Privacy", cookie: "Cookie", cookiePrefs: "Preferenze cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti", caseVendute: "Case vendute" },
     lang: { label: "Lingua" },
   },
   en: {
     nav: { vendi: "Sell", acquista: "Buy", metodo: "The Method", servizi: "Services", openDomus: "Open Domus", case: "Homes", recensioni: "Reviews", chiSiamo: "About us", lavora: "Work with us", contatti: "Contact", percorso: "Journey" },
-    header: { valuta: "Value your home", whatsapp: "Message us on WhatsApp" },
+    header: { valuta: "Request a valuation", whatsapp: "Talk to us on WhatsApp" },
     cursor: { scopri: "View", trascina: "Drag" },
     hero: {
-      eyebrow: "Real estate agency · Tradate since 2007",
-      title1: "Sell your home, stress-free.",
-      title2: "Buy your home, with confidence.",
-      subcopy: "Since 2007 we put people before properties. We guide you step by step, from valuation to the deed, combining human warmth with innovative tools: renderings, video, home staging and Open Domus.",
-      ctaValuta: "Value your home", ctaMetodo: "Discover the Method", ctaCerco: "I’m looking for a home",
-      founderRole: "Founder · with you since 2007", watch: "Watch the videos",
-      ratingSuffix: "on Google · 500+ reviews",
-      chips: ["Property videos", "Open Domus", "Domus D.O.C.", "Tradate · Varese"],
+      title1: "Sell your home in Tradate",
+      title2: "at the right price, in the right time.",
+      ctaValuta: "Request a valuation of your property",
     },
     search: {
       title: "What home are you looking for?",
@@ -94,28 +90,23 @@ export const dictionaries: Record<Locale, Dict> = {
       contract: "Contract", type: "Type", zone: "Area", budget: "Budget", rooms: "Rooms", features: "Features",
       all: "All", sale: "Sale", rent: "Rent", anyBudget: "No limit", anyRooms: "Any",
       resultsOne: "home found", resultsMany: "homes found", cta: "Search homes",
-      sellerTitle: "Need to sell your home?", sellerCta: "Request a valuation",
+      sellerTitle: "Need to sell your home?", sellerCta: "Request a valuation of your property",
       emptyTitle: "No homes match these filters.",
       emptyCopy: "Not online yet? It might be soon. Tell us what you’re after: we find many homes for our clients.",
       emptyCta: "Send us your request",
     },
-    whatsapp: { cta: "Message us" },
-    footer: { naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Value your home", privacy: "Privacy", cookie: "Cookies", contatti: "Contact", lavora: "Work with us", faq: "FAQ" },
+    whatsapp: { cta: "Talk to us on WhatsApp" },
+    footer: { naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Request a valuation", privacy: "Privacy", cookie: "Cookies", cookiePrefs: "Cookie preferences", contatti: "Contact", lavora: "Work with us", faq: "FAQ", caseVendute: "Homes sold" },
     lang: { label: "Language" },
   },
   fr: {
     nav: { vendi: "Vendre", acquista: "Acheter", metodo: "La Méthode", servizi: "Services", openDomus: "Open Domus", case: "Biens", recensioni: "Avis", chiSiamo: "À propos", lavora: "Rejoignez-nous", contatti: "Contact", percorso: "Parcours" },
-    header: { valuta: "Estimez votre bien", whatsapp: "Écrivez-nous sur WhatsApp" },
+    header: { valuta: "Demander l’estimation", whatsapp: "Parlez-nous sur WhatsApp" },
     cursor: { scopri: "Découvrir", trascina: "Glisser" },
     hero: {
-      eyebrow: "Agence immobilière · Tradate depuis 2007",
-      title1: "Vendre sa maison, sans stress.",
-      title2: "Acheter sa maison, en toute sécurité.",
-      subcopy: "Depuis 2007, nous plaçons les personnes avant les biens. Nous vous accompagnons pas à pas, de l’estimation à l’acte, en alliant chaleur humaine et outils innovants : rendus, vidéo, home staging et Open Domus.",
-      ctaValuta: "Estimez votre bien", ctaMetodo: "Découvrir la Méthode", ctaCerco: "Je cherche un bien",
-      founderRole: "Fondatrice · à vos côtés depuis 2007", watch: "Voir les vidéos",
-      ratingSuffix: "sur Google · plus de 500 avis",
-      chips: ["Vidéos immobilières", "Open Domus", "Domus D.O.C.", "Tradate · Varèse"],
+      title1: "Vendez votre bien à Tradate",
+      title2: "au juste prix, dans les bons délais.",
+      ctaValuta: "Demandez l’estimation de votre bien",
     },
     search: {
       title: "Quel bien recherchez-vous ?",
@@ -125,28 +116,23 @@ export const dictionaries: Record<Locale, Dict> = {
       contract: "Contrat", type: "Type", zone: "Zone", budget: "Budget", rooms: "Pièces", features: "Caractéristiques",
       all: "Tous", sale: "Vente", rent: "Location", anyBudget: "Sans limite", anyRooms: "Indifférent",
       resultsOne: "bien trouvé", resultsMany: "biens trouvés", cta: "Rechercher",
-      sellerTitle: "Vous devez vendre ?", sellerCta: "Demander une estimation",
+      sellerTitle: "Vous devez vendre ?", sellerCta: "Demandez l’estimation de votre bien",
       emptyTitle: "Aucun bien avec ces filtres.",
       emptyCopy: "Pas encore en ligne ? Cela peut arriver. Dites-nous ce que vous cherchez : nous trouvons de nombreux biens pour nos clients.",
       emptyCta: "Envoyez-nous votre demande",
     },
-    whatsapp: { cta: "Écrivez-nous" },
-    footer: { naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Estimez votre bien", privacy: "Confidentialité", cookie: "Cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes" },
+    whatsapp: { cta: "Parlez-nous sur WhatsApp" },
+    footer: { naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Demander l’estimation", privacy: "Confidentialité", cookie: "Cookies", cookiePrefs: "Préférences cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes", caseVendute: "Biens vendus" },
     lang: { label: "Langue" },
   },
   de: {
     nav: { vendi: "Verkaufen", acquista: "Kaufen", metodo: "Die Methode", servizi: "Leistungen", openDomus: "Open Domus", case: "Immobilien", recensioni: "Bewertungen", chiSiamo: "Über uns", lavora: "Karriere", contatti: "Kontakt", percorso: "Ablauf" },
-    header: { valuta: "Immobilie bewerten", whatsapp: "Schreib uns auf WhatsApp" },
+    header: { valuta: "Bewertung anfordern", whatsapp: "Sprechen Sie mit uns auf WhatsApp" },
     cursor: { scopri: "Entdecken", trascina: "Ziehen" },
     hero: {
-      eyebrow: "Immobilienagentur · Tradate seit 2007",
-      title1: "Verkaufen ohne Stress.",
-      title2: "Kaufen mit Sicherheit.",
-      subcopy: "Seit 2007 stellen wir Menschen vor Immobilien. Wir begleiten Sie Schritt für Schritt, von der Bewertung bis zum Notartermin, mit menschlicher Wärme und innovativen Werkzeugen: Renderings, Video, Home Staging und Open Domus.",
-      ctaValuta: "Immobilie bewerten", ctaMetodo: "Die Methode entdecken", ctaCerco: "Ich suche eine Immobilie",
-      founderRole: "Gründerin · an Ihrer Seite seit 2007", watch: "Videos ansehen",
-      ratingSuffix: "auf Google · über 500 Bewertungen",
-      chips: ["Immobilienvideos", "Open Domus", "Domus D.O.C.", "Tradate · Varese"],
+      title1: "Verkaufen Sie Ihr Haus in Tradate",
+      title2: "zum richtigen Preis, in der richtigen Zeit.",
+      ctaValuta: "Bewertung Ihrer Immobilie anfordern",
     },
     search: {
       title: "Welche Immobilie suchen Sie?",
@@ -156,28 +142,23 @@ export const dictionaries: Record<Locale, Dict> = {
       contract: "Vertrag", type: "Typ", zone: "Gebiet", budget: "Budget", rooms: "Zimmer", features: "Merkmale",
       all: "Alle", sale: "Verkauf", rent: "Miete", anyBudget: "Kein Limit", anyRooms: "Beliebig",
       resultsOne: "Immobilie gefunden", resultsMany: "Immobilien gefunden", cta: "Immobilien suchen",
-      sellerTitle: "Möchten Sie verkaufen?", sellerCta: "Bewertung anfragen",
+      sellerTitle: "Möchten Sie verkaufen?", sellerCta: "Bewertung Ihrer Immobilie anfordern",
       emptyTitle: "Keine Immobilie mit diesen Filtern.",
       emptyCopy: "Noch nicht online? Vielleicht bald. Sagen Sie uns, was Sie suchen: Vieles finden wir für unsere Kunden.",
       emptyCta: "Senden Sie uns Ihre Anfrage",
     },
-    whatsapp: { cta: "Schreib uns" },
-    footer: { naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Immobilie bewerten", privacy: "Datenschutz", cookie: "Cookies", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen" },
+    whatsapp: { cta: "Sprechen Sie mit uns auf WhatsApp" },
+    footer: { naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Bewertung anfordern", privacy: "Datenschutz", cookie: "Cookies", cookiePrefs: "Cookie-Einstellungen", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen", caseVendute: "Verkaufte Immobilien" },
     lang: { label: "Sprache" },
   },
   es: {
     nav: { vendi: "Vender", acquista: "Comprar", metodo: "El Método", servizi: "Servicios", openDomus: "Open Domus", case: "Inmuebles", recensioni: "Reseñas", chiSiamo: "Quiénes somos", lavora: "Únete al equipo", contatti: "Contacto", percorso: "Recorrido" },
-    header: { valuta: "Valora tu casa", whatsapp: "Escríbenos por WhatsApp" },
+    header: { valuta: "Solicita la valoración", whatsapp: "Habla con nosotras por WhatsApp" },
     cursor: { scopri: "Descubrir", trascina: "Arrastrar" },
     hero: {
-      eyebrow: "Agencia inmobiliaria · Tradate desde 2007",
-      title1: "Vender tu casa, sin estrés.",
-      title2: "Comprar tu casa, con seguridad.",
-      subcopy: "Desde 2007 ponemos a las personas antes que los inmuebles. Te acompañamos paso a paso, de la valoración a la escritura, uniendo calidez humana y herramientas innovadoras: renders, vídeo, home staging y Open Domus.",
-      ctaValuta: "Valora tu casa", ctaMetodo: "Descubre el Método", ctaCerco: "Busco casa",
-      founderRole: "Fundadora · contigo desde 2007", watch: "Ver los vídeos",
-      ratingSuffix: "en Google · más de 500 reseñas",
-      chips: ["Vídeos inmobiliarios", "Open Domus", "Domus D.O.C.", "Tradate · Varese"],
+      title1: "Vende tu casa en Tradate",
+      title2: "al precio justo, en el tiempo justo.",
+      ctaValuta: "Solicita la valoración de tu inmueble",
     },
     search: {
       title: "¿Qué casa estás buscando?",
@@ -187,13 +168,13 @@ export const dictionaries: Record<Locale, Dict> = {
       contract: "Contrato", type: "Tipo", zone: "Zona", budget: "Presupuesto", rooms: "Habitaciones", features: "Características",
       all: "Todos", sale: "Venta", rent: "Alquiler", anyBudget: "Sin límite", anyRooms: "Cualquiera",
       resultsOne: "inmueble encontrado", resultsMany: "inmuebles encontrados", cta: "Buscar casa",
-      sellerTitle: "¿Necesitas vender?", sellerCta: "Solicita una valoración",
+      sellerTitle: "¿Necesitas vender?", sellerCta: "Solicita la valoración de tu inmueble",
       emptyTitle: "Ningún inmueble con estos filtros.",
       emptyCopy: "¿Todavía no está online? Puede que llegue pronto. Cuéntanos qué buscas: muchas casas las encontramos nosotros para nuestros clientes.",
       emptyCta: "Envíanos tu solicitud",
     },
-    whatsapp: { cta: "Escríbenos" },
-    footer: { naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Valora tu casa", privacy: "Privacidad", cookie: "Cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes" },
+    whatsapp: { cta: "Habla con nosotras por WhatsApp" },
+    footer: { naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Solicita la valoración", privacy: "Privacidad", cookie: "Cookies", cookiePrefs: "Preferencias de cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes", caseVendute: "Casas vendidas" },
     lang: { label: "Idioma" },
   },
 };

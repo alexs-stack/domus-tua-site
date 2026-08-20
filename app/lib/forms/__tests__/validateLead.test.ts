@@ -40,7 +40,8 @@ describe("validateLead — recapiti telefono/email distinti", () => {
   });
 
   test("email malformata: invalid-email", () => {
-    for (const bad of ["maria", "maria@", "@example.com", "maria@example", "a b@c.it"]) {
+    // Ultimo caso: TLD di una sola lettera — non esiste, e prima passava.
+    for (const bad of ["maria", "maria@", "@example.com", "maria@example", "a b@c.it", "maria@example.c"]) {
       const r = validateLead({ ...BASE, phone: undefined, email: bad });
       assert.equal(r.ok, false, bad);
       if (!r.ok) assert.equal(r.error, "invalid-email", bad);
@@ -76,10 +77,42 @@ describe("validateLead — campi obbligatori e consenso", () => {
     if (!r.ok) assert.equal(r.error, "missing-name");
   });
 
-  test("consenso presente ma non true: missing-consent", () => {
+  test("consenso presente ma false: missing-consent", () => {
     const r = validateLead({ ...BASE, consent: false });
     assert.equal(r.ok, false);
     if (!r.ok) assert.equal(r.error, "missing-consent");
+  });
+
+  test("consenso ASSENTE (POST diretta che salta il form): missing-consent", () => {
+    // Il buco storico: un campo mancante passava. Il confine è il server, non il form.
+    const { consent: _omit, ...noConsent } = BASE;
+    void _omit;
+    const r = validateLead(noConsent);
+    assert.equal(r.ok, false);
+    if (!r.ok) assert.equal(r.error, "missing-consent");
+  });
+
+  test("consenso non booleano: nessuna coercizione, missing-consent", () => {
+    // Né la stringa "true", né i valori truthy (1, "on"): solo il booleano true.
+    for (const bad of ["true", "on", 1, "1", "yes", {}, [true]]) {
+      const r = validateLead({ ...BASE, consent: bad });
+      assert.equal(r.ok, false, JSON.stringify(bad));
+      if (!r.ok) assert.equal(r.error, "missing-consent", JSON.stringify(bad));
+    }
+  });
+
+  test("consenso true: passa, e il lead validato lo porta con sé", () => {
+    const r = validateLead(BASE);
+    assert.equal(r.ok, true);
+    if (r.ok) assert.equal(r.lead.consent, true);
+  });
+
+  test("ogni intento ammesso passa con consenso e un recapito", () => {
+    for (const intent of ["seller", "buyer", "question", "open-domus", "career"] as const) {
+      const r = validateLead({ intent, name: "Maria Rossi", phone: "333 1234567", consent: true });
+      assert.equal(r.ok, true, intent);
+      if (r.ok) assert.equal(r.lead.intent, intent);
+    }
   });
 
   test("intento fuori lista: invalid-intent", () => {

@@ -17,10 +17,16 @@ type Props = {
 // Facciata leggera per YouTube: mostra solo il poster finché l'utente non clicca.
 // L'iframe (e quindi tutto il peso di YouTube) viene caricato SOLO dopo il click,
 // mai al mount. Questo tiene la sezione veloce anche con più player nella pagina.
+//
+// PRIVACY. Doppia protezione: (1) click-to-load — nessuna richiesta a YouTube prima che
+// l'utente prema play, quindi il video non parte da solo e non traccia chi non lo guarda;
+// (2) dominio "youtube-nocookie.com" (privacy-enhanced di YouTube): niente cookie di
+// tracciamento finché non c'è interazione col player. Comportamento documentato in
+// docs/legal-launch-inventory.md.
 export default function LazyYouTubeEmbed({ id, title, poster }: Props) {
   const [active, setActive] = useState(false);
 
-  const embed = `https://www.youtube.com/embed/${id}?autoplay=1`;
+  const embed = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
   const posterSizes = "(max-width:768px) 100vw, (max-width:1240px) 60vw, 720px";
   const posterClassName =
     "photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105";

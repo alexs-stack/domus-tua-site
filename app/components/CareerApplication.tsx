@@ -9,6 +9,7 @@ import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead } from "../lib/forms/lead";
+import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import WordReveal from "./WordReveal";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
@@ -127,7 +128,7 @@ const copy = {
     whereCopy: "In sede, a Tradate. Il lavoro è sul territorio: Tradate e la provincia di Varese.",
     whatsappTitle: "Preferisci scrivere?",
     whatsappCopy: "Mandaci un messaggio: rispondiamo negli orari di apertura.",
-    whatsappCta: "Scrivici su WhatsApp",
+    whatsappCta: "Parla con noi su WhatsApp",
     imageAlt: "Il team Domus Tua nella sede di Tradate",
   },
   en: {
@@ -178,7 +179,7 @@ const copy = {
     whereCopy: "At our office in Tradate. The work is local: Tradate and the province of Varese.",
     whatsappTitle: "Prefer to write?",
     whatsappCopy: "Send us a message: we reply during opening hours.",
-    whatsappCta: "Message us on WhatsApp",
+    whatsappCta: "Talk to us on WhatsApp",
     imageAlt: "The Domus Tua team at the Tradate office",
   },
   fr: {
@@ -229,7 +230,7 @@ const copy = {
     whereCopy: "Dans nos locaux, à Tradate. Le travail est local : Tradate et la province de Varese.",
     whatsappTitle: "Vous préférez écrire ?",
     whatsappCopy: "Envoyez-nous un message : nous répondons aux heures d’ouverture.",
-    whatsappCta: "Écrivez-nous sur WhatsApp",
+    whatsappCta: "Parlez-nous sur WhatsApp",
     imageAlt: "L’équipe Domus Tua dans les locaux de Tradate",
   },
   de: {
@@ -280,7 +281,7 @@ const copy = {
     whereCopy: "In unserem Büro in Tradate. Die Arbeit findet vor Ort statt: Tradate und die Provinz Varese.",
     whatsappTitle: "Lieber schreiben?",
     whatsappCopy: "Senden Sie uns eine Nachricht: Wir antworten während der Öffnungszeiten.",
-    whatsappCta: "Schreiben Sie uns auf WhatsApp",
+    whatsappCta: "Sprechen Sie mit uns auf WhatsApp",
     imageAlt: "Das Domus-Tua-Team im Büro in Tradate",
   },
   es: {
@@ -331,7 +332,7 @@ const copy = {
     whereCopy: "En la oficina, en Tradate. El trabajo es local: Tradate y la provincia de Varese.",
     whatsappTitle: "¿Prefieres escribir?",
     whatsappCopy: "Mándanos un mensaje: respondemos en horario de apertura.",
-    whatsappCta: "Escríbenos por WhatsApp",
+    whatsappCta: "Habla con nosotras por WhatsApp",
     imageAlt: "El equipo Domus Tua en la sede de Tradate",
   },
 } as const;
@@ -439,6 +440,15 @@ export default function CareerApplication({
     setSubmitting(true);
     void submitLead(lead).finally(() => setSubmitting(false));
 
+    // La conversione, come nel modulo contatti: QUI, dopo la validazione e prima di aprire
+    // WhatsApp — è il momento in cui la candidatura esiste davvero. Passa solo il ruolo per
+    // cui ci si candida, mai il contenuto del lead: quello ha il suo canale (submitLead).
+    // `intent` porta l'ID stabile del ruolo, non l'etichetta italiana: per una candidatura
+    // il "tipo di richiesta" È l'area per cui ci si candida, e gli ID non cambiano quando
+    // cambia il copy. Si riusa la dimensione che c'è invece di allargare la whitelist di
+    // trackConversion, che è una garanzia privacy e non una svista.
+    trackConversion(CONVERSIONS.candidatura, "modulo", { intent: currentRole });
+
     // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
     window.open(url, "_blank", "noopener,noreferrer");
@@ -475,22 +485,23 @@ export default function CareerApplication({
               <SegnoDomusBadge>{c.badge}</SegnoDomusBadge>
             </div>
             <span className="eyebrow mt-4">{c.eyebrow}</span>
-            {/* `mobile`: la meccanica per-parola può accendersi anche sul
-                telefono, e la ragione sta qui invece che nel CSS. Questo è un
-                <h2> nell'ULTIMA sezione di /lavora-con-noi — sopra ci sono
-                l'hero, le cinque aree e le FAQ — quindi non entra mai nel primo
-                viewport e non può essere candidato LCP, che è l'unica cosa che
-                il gate a 768px stava proteggendo. Regge anche il caso scomodo,
-                un link condiviso a /lavora-con-noi#candidatura: il browser
-                atterra qui, ma nel viewport la foto del team (240px per ~320,
-                circa 60.000px² visibili) è più grande del titolo intero
-                (~25.000px²) — spezzarlo in tre parole non toglie un candidato
-                che comunque non vince. Se un giorno questo titolo sale in cima
-                alla pagina, la parola qui sotto si toglie e il telefono torna
-                al titolo intero. */}
+            {/* Meccanica per-parola a ogni larghezza: dall'onda «parità mobile
+                2» è il default di WordReveal (verdetto 8) e l'opt-in `mobile`
+                che stava qui è caduto — non cambia niente per questo titolo,
+                che era già acceso sul telefono. La domanda da farsi resta
+                quella dell'LCP, e la risposta è ancora questa: è un <h2>
+                nell'ULTIMA sezione di /lavora-con-noi — sopra ci sono l'hero,
+                le cinque aree e le FAQ — quindi non entra mai nel primo
+                viewport e non può essere candidato LCP. Regge anche il caso
+                scomodo, un link condiviso a /lavora-con-noi#candidatura: il
+                browser atterra qui, ma nel viewport la foto del team (240px
+                per ~320, circa 60.000px² visibili) è più grande del titolo
+                intero (~25.000px²) — spezzarlo in tre parole non toglie un
+                candidato che comunque non vince. Se un giorno questo titolo
+                sale in cima alla pagina, qui si passa `immediate` (SSR
+                visibile a ogni larghezza), non si tocca la larghezza. */}
             <WordReveal
               as="h2"
-              mobile
               className="mt-5 block font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.2rem]"
               text={c.title}
             />

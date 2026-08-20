@@ -5,6 +5,8 @@ import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyDetail from "./PropertyDetail";
 import { getVisibleListings, getVisibleListing } from "../../lib/listings";
+import { relatedListings } from "../../lib/related";
+import { getPublicListingTerritory, getPublicAreaProfileFor } from "../../lib/territory/publicRead";
 import { site, siteUrl, jsonLdScript } from "../../lib/site";
 
 export async function generateStaticParams() {
@@ -56,11 +58,19 @@ export default async function PropertyPage({
   const p = await getVisibleListing(slug);
   if (!p) notFound();
 
+  // Correlati: SOLO disponibili, mai l'immobile corrente, stessa zona prima. La regola vive in
+  // app/lib/related.ts — qui non si ripete lo stato "venduto". Prima questa lista pescava dal
+  // feed visibile venduti inclusi, e una scheda disponibile poteva suggerire case già vendute.
   const all = await getVisibleListings();
-  const related = [
-    ...all.filter((r) => r.slug !== p.slug && r.zone === p.zone),
-    ...all.filter((r) => r.slug !== p.slug && r.zone !== p.zone),
-  ].slice(0, 3);
+  const related = relatedListings(all, p);
+
+  // Territorio APPROVATO letto SERVER-SIDE dallo store, cacheato con tag mirati e proiettato al
+  // payload minimo (niente coordinate/storico). A feature spenta o senza dato approvato: null →
+  // la sezione non entra nel DOM e non costa nulla al client. Nessuna chiamata a provider al render.
+  const territory = await getPublicListingTerritory(p.slug);
+  // Descrizioni d'area del comune (fatti verificati), lette server-side e cacheate. Null in assenza
+  // di fatti approvati o a feature spenta → la sezione "La zona" non compare.
+  const area = await getPublicAreaProfileFor(p.zone);
 
   // Dati strutturati per l'immobile (schema.org).
   //
@@ -188,7 +198,7 @@ export default async function PropertyPage({
         dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
       <Header />
-      <PropertyDetail p={p} related={related} />
+      <PropertyDetail p={p} related={related} territory={territory} area={area} />
       <Footer />
       <WhatsAppFloat />
     </>

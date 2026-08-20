@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { site } from "../site";
-import { allVideoIds, videoCollection, featuredVideo, testimonialVideo } from "../videos";
+import { allVideoIds, wallVideos } from "../videos";
 import { isAvailable, isSold, onlyAvailable } from "../availability";
 import { CONSENT_COOKIE } from "../consent";
 import { team, teamInitials, teamRoleLabels } from "../team";
@@ -69,7 +69,7 @@ const REL = (f: string) => path.relative(process.cwd(), f).split(path.sep).join(
  * Contenuti VIETATI. Ognuno è stato mostrato come dato reale senza avere una fonte.
  * `why` finisce nel messaggio di errore: chi rompe il test capisce perché senza archeologia.
  */
-const FORBIDDEN: { label: string; pattern: RegExp; why: string }[] = [
+const FORBIDDEN: { label: string; pattern: RegExp; why: string; fix?: string }[] = [
   {
     label: "269.395 m² valutati",
     pattern: /\b269[.\s]?395\b/,
@@ -95,6 +95,72 @@ const FORBIDDEN: { label: string; pattern: RegExp; why: string }[] = [
     pattern: /\b440\s?\+/,
     why: "conteggio video stimato, mai verificato sul canale YouTube",
   },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // PROMESSE DI ESITO (§3.3 del Documento finale di sintesi).
+  //
+  // Non sono numeri senza fonte: sono affermazioni su ciò che NON accadrà, e un
+  // mediatore non lo controlla — dipende dal Comune, dal notaio, dalla banca
+  // dell'acquirente, da difformità non ispezionabili a vista. Una sola di queste
+  // frasi, contraddetta da un rogito andato storto, è una contestazione con il
+  // testo del sito come prova.
+  //
+  // Perché stanno QUI e non in una nota di stile: erano già state tolte una volta,
+  // e sono rientrate — «zero sorprese al rogito» è sparito nella forma letterale ed
+  // è tornato come «senza sorprese», «mauvaises surprises», «böse Überraschungen»,
+  // in quattro lingue su cinque. Una regola che vive solo in un commento viene
+  // riscoperta ogni volta da capo; questa fallisce in CI.
+  //
+  // NON vietati di proposito: «colloqui a sorpresa» su /lavora-con-noi (è il loro
+  // processo di selezione, interamente sotto il loro controllo) e la keyword di
+  // ricerca "sorprese" dell'assistente (aggancia la domanda, non è una risposta).
+  // Per questo i pattern chiedono il plurale o la locuzione intera.
+  // ───────────────────────────────────────────────────────────────────────────
+  {
+    label: "promessa di esito «senza sorprese» (5 lingue)",
+    pattern:
+      /senza sorprese|zero sorprese|nessuna sorpresa|no surprises|without surprises|unpleasant surprises|sans surprises|mauvaises? surprises?|aucune surprise|ohne (?:böse )?Überraschungen|keine Überraschungen|böse Überraschungen|sin sorpresas|sorpresas desagradables|ninguna sorpresa/i,
+    why: "promessa di RISULTATO che l'agenzia non controlla (§3.3)",
+    fix: "Nessuna fonte rende lecita questa frase: va RISCRITTA come promessa di azione — «I problemi emergono all'inizio, non davanti al notaio». Controlla tutte e cinque le lingue: l'ultima volta l'italiano fu corretto e le quattro traduzioni no.",
+  },
+  {
+    label: "«nessun abuso o difformità nascosta»",
+    pattern: /nessun abuso|difformità nascost|abusi? nascost/i,
+    why: "afferma l'assenza di abusi, che nessuna verifica a vista può garantire (§3.3)",
+    fix: "Sostituire con l'azione: «Controlliamo catasto, urbanistica e impianti prima di pubblicare. Se c'è un problema, lo troviamo noi — quando c'è ancora tempo per risolverlo.»",
+  },
+  {
+    label: "«verifiche certificate»",
+    pattern: /verifiche certificate|servizi certificati/i,
+    why: "«certificato» implica un ente terzo: Domus D.O.C. è uno standard interno (§3.3)",
+    fix: "Sostituire con «verifiche documentali e tecnico-urbanistiche svolte prima della messa sul mercato».",
+  },
+  {
+    label: "«certificato» riferito all'immobile",
+    pattern:
+      /(?:immobile|immobili|casa|abitazione|propriet[àa])s+certificat[oaie]|certificaziones+(?:dell'immobile|della casa|inclusa)/i,
+    why: "il protocollo si chiama Domus di Origine Certificata, ma l'IMMOBILE non è certificato da nessuno (§3.3)",
+    fix: "Tenere il nome del protocollo, mai il predicato sull'immobile: «documenti verificati», non «immobile certificato».",
+  },
+  {
+    label: "«cinque fasi, una garanzia»",
+    pattern: /cinque fasi,?s*una garanzia|five (?:phases|steps),?s*one guarantee/i,
+    why: "«garanzia» ha un significato giuridico preciso: il metodo è un metodo (§3.3)",
+    fix: "Scrivere «Cinque fasi, un metodo» — e ricordare che il conteggio canonico è nove passaggi (§4.2).",
+  },
+  {
+    label: "conteggio recensioni arrotondato («oltre 500»)",
+    pattern:
+      /oltre 500|over 500|500+ reviews|plus de 500|über 500|mehr als 500|más de 500/i,
+    why: "due numeri per lo stesso dato: il sito diceva «oltre 500» in quattordici punti e «531» nell'hero (voce 16)",
+    fix: "Interpolare site.reviewsCount. Il §6.3 è esplicito: le prove sono forti perché ESATTE, non perché assolute — nessuno inventa un 531, «oltre 500» suona come una stima anche quando non lo è.",
+  },
+  {
+    label: "«la trattativa non salta per un documento mancante»",
+    pattern: /trattativa non salta|non salta per un documento/i,
+    why: "esito che dipende anche dalle controparti (§3.3)",
+    fix: "Sostituire con: «raccogliamo tutti i documenti prima di partire: è la causa più frequente di trattative che saltano».",
+  },
 ];
 
 describe("content integrity — numeri e claim senza fonte", () => {
@@ -104,7 +170,15 @@ describe("content integrity — numeri e claim senza fonte", () => {
     assert.ok(files.length > 50, `trovati solo ${files.length} file in app/`);
   });
 
-  for (const { label, pattern, why } of FORBIDDEN) {
+  // Il consiglio di rimedio cambia con la natura del divieto: per un NUMERO senza fonte si
+  // annota la fonte in site.ts; per una PROMESSA DI ESITO non esiste fonte che la renda
+  // lecita — va riscritta. Un messaggio unico manderebbe metà dei casi nella direzione
+  // sbagliata, e chi rompe il test in CI legge solo quello.
+  const RIMEDIO_NUMERO =
+    `Se il cliente ha fornito il dato reale, mettilo in app/lib/site.ts con la fonte ` +
+    `annotata e aggiorna questo test.`;
+
+  for (const { label, pattern, why, fix } of FORBIDDEN) {
     test(`"${label}" non compare nei file di produzione`, () => {
       const hits = files.filter((f) =>
         pattern.test(stripTechnicalValues(fs.readFileSync(f, "utf8"))),
@@ -112,9 +186,7 @@ describe("content integrity — numeri e claim senza fonte", () => {
       assert.deepEqual(
         hits.map(REL),
         [],
-        `"${label}" è tornato in pagina — ${why}. ` +
-          `Se il cliente ha fornito il dato reale, mettilo in app/lib/site.ts con la fonte ` +
-          `annotata e aggiorna questo test.`,
+        `"${label}" è tornato in pagina — ${why}. ${fix ?? RIMEDIO_NUMERO}`,
       );
     });
   }
@@ -152,14 +224,19 @@ describe("content integrity — video YouTube", () => {
     );
   });
 
-  test("evidenza e testimonianza non sono ripetute nella griglia", () => {
-    assert.equal(videoCollection.some((v) => v.id === featuredVideo.id), false);
-    assert.equal(videoCollection.some((v) => v.id === testimonialVideo.id), false);
-  });
-
+  // La vecchia collezione filtrabile (videoCollection) è stata rimossa col suo componente
+  // il 2026-08-15: qui si controlla il muro, l'unica griglia montata. Che la testimonianza
+  // non vi rientri lo garantisce già il test di unicità sopra (allVideoIds la include).
   test("ogni card porta il titolo reale del video sul canale", () => {
-    const byId = new Map<string, string>(site.videos.reviews.map((r) => [r.id, r.title]));
-    for (const v of videoCollection) {
+    const byId = new Map<string, string>(
+      [
+        site.videos.featured,
+        site.videos.openDomus,
+        site.videos.team,
+        ...site.videos.reviews,
+      ].map((v) => [v.id, v.title]),
+    );
+    for (const v of wallVideos) {
       assert.ok(v.title.length > 0, `slot ${v.id} senza titolo`);
       assert.equal(
         v.title,
@@ -294,11 +371,17 @@ describe("content integrity — terze parti dietro al consenso", () => {
 });
 
 describe("content integrity — fonti uniche", () => {
-  test("NEXT_PUBLIC_SITE_URL letto in un posto solo (più /api/health, che è diagnostica)", () => {
+  test("NEXT_PUBLIC_SITE_URL letto in un posto solo (più diagnostica: /api/health e launch-check)", () => {
     const readers = productionSources().filter((f) =>
       /NEXT_PUBLIC_SITE_URL/.test(stripComments(fs.readFileSync(f, "utf8"))),
     );
-    assert.deepEqual(readers.map(REL).sort(), ["app/api/health/route.ts", "app/lib/site.ts"]);
+    // launchReadiness legge la env GREZZA di proposito: site.ts la default-a al dominio di
+    // produzione, nascondendo il caso "non impostata" che il launch-check deve invece rilevare.
+    assert.deepEqual(readers.map(REL).sort(), [
+      "app/api/health/route.ts",
+      "app/lib/launchReadiness.ts",
+      "app/lib/site.ts",
+    ]);
   });
 
   test("NEXT_PUBLIC_USE_REALSMART letto in un posto solo", () => {

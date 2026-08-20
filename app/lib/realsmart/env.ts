@@ -66,6 +66,45 @@ export function isRealSmartLive(): boolean {
 }
 
 /**
+ * Produzione VERA (il sito pubblico davanti alle persone), decisa da segnali SERVER-ONLY.
+ *
+ * NON si deduce da `NODE_ENV`: `next build`/`next start` lo mettono a "production" anche in CI e in
+ * locale. E non ci si affida al SOLO `VERCEL_ENV`: un deploy fuori da Vercel non lo imposterebbe.
+ * Perciò: Vercel production OPPURE un'asserzione server-only esplicita `REALSMART_ENV="production"`
+ * (per hosting non-Vercel). Il default è "non produzione", ma la sicurezza anti-mock NON dipende
+ * da questo default (vedi mockAuthorized): richiede comunque un opt-in server-only positivo.
+ */
+export function isProductionRuntime(): boolean {
+  return process.env.VERCEL_ENV === "production" || readEnv("REALSMART_ENV") === "production";
+}
+
+/**
+ * Autorizzazione SERVER-ONLY a servire le fixture demo (mock).
+ *
+ * DIFESA A PIÙ LIVELLI (Prompt 3). Il mock è ammesso SOLO se TUTTE queste condizioni valgono:
+ *   1. opt-in server-only esplicito `REALSMART_ALLOW_MOCK="true"` — una `NEXT_PUBLIC_*` o
+ *      `VERCEL_ENV` mal configurata NON basta ad accenderlo;
+ *   2. NON è produzione vera (isProductionRuntime()).
+ * Così un immobile FINTO è IMPOSSIBILE in produzione reale anche se qualcuno sbaglia un flag
+ * pubblico: manca comunque l'autorizzazione server-only, che la produzione non imposta mai.
+ */
+export function mockAuthorized(): boolean {
+  return readEnv("REALSMART_ALLOW_MOCK") === "true" && !isProductionRuntime();
+}
+
+/** Soglia minima di immobili "plausibile" per promuovere un rilascio (default 5). */
+export function releaseMinListings(): number {
+  const raw = readEnv("REALSMART_MIN_LISTINGS");
+  const n = raw ? Number.parseInt(raw, 10) : NaN;
+  return Number.isFinite(n) && n >= 0 ? n : 5;
+}
+
+/** Override ESPLICITO e auditabile per promuovere un rilascio a catalogo vuoto/degradato. */
+export function releaseAllowEmpty(): boolean {
+  return readEnv("REALSMART_ALLOW_EMPTY_RELEASE") === "true";
+}
+
+/**
  * Costruisce e valida la configurazione RealSmart dalle env var.
  *
  * - In modalità mock (NEXT_PUBLIC_USE_REALSMART !== "true"): non valida nulla, ritorna
