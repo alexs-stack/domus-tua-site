@@ -108,7 +108,7 @@ const copy = {
     soldTitle: "This property has been sold",
     soldText:
       "It’s been sold — but we can help you find a similar one. Tell us what you’re after: we find many homes ourselves.",
-    soldCta: "Find me a similar home",
+    soldCta: "I’m looking for a similar home",
     notRightTitle: "Not the right one?",
     notRightText:
       "Tell us what you’re after: we also handle bespoke requests, before a home even goes online.",
@@ -192,7 +192,7 @@ const copy = {
     soldTitle: "Diese Immobilie wurde verkauft",
     soldText:
       "Sie ist verkauft — aber wir helfen Ihnen, eine ähnliche zu finden. Sagen Sie uns, was Sie suchen.",
-    soldCta: "Ähnliche Immobilie suchen",
+    soldCta: "Ich suche ein ähnliches Zuhause",
     notRightTitle: "Nicht die richtige?",
     notRightText:
       "Sagen Sie uns, was Sie suchen: Wir betreuen auch maßgeschneiderte Anfragen, noch bevor eine Immobilie online geht.",

@@ -99,7 +99,7 @@ const copy = {
     subcopy:
       "Tell us about your property or what you’re looking for. We’ll help you understand its value, your options and the best path forward, with no obligation.",
     leadSeller: "I want to sell",
-    leadBuyer: "Looking for a home",
+    leadBuyer: "I’m looking for a home",
     leadQuestion: "I have a question",
     leadOpenDomus: "Open Domus",
     leadCareer: "Work with us",
@@ -163,7 +163,7 @@ const copy = {
     subcopy:
       "Parlez-nous de votre bien ou de ce que vous recherchez. Nous vous aiderons à en comprendre la valeur, les possibilités et la meilleure voie à suivre, sans engagement.",
     leadSeller: "Je veux vendre",
-    leadBuyer: "Je cherche",
+    leadBuyer: "Je cherche un bien",
     leadQuestion: "J’ai une question",
     leadOpenDomus: "Open Domus",
     leadCareer: "Rejoignez-nous",
@@ -227,7 +227,7 @@ const copy = {
     subcopy:
       "Erzählen Sie uns von Ihrer Immobilie oder wonach Sie suchen. Wir helfen Ihnen, Wert, Möglichkeiten und den besten Weg zu verstehen – unverbindlich.",
     leadSeller: "Ich möchte verkaufen",
-    leadBuyer: "Ich suche",
+    leadBuyer: "Ich suche ein Zuhause",
     leadQuestion: "Ich habe eine Frage",
     leadOpenDomus: "Open Domus",
     leadCareer: "Arbeiten Sie mit uns",

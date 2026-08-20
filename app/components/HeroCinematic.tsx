@@ -65,7 +65,7 @@ const copy = {
       "Professional valuation, paperwork verified before going to market, careful marketing and Open Domus. One method, from the first estimate to the signing at the notary.",
     founder: "With Raffaela Rizza and the Domus Tua team",
     ctaValuta: "Request a valuation of your property",
-    ctaCerco: "I'm looking for a home",
+    ctaCerco: "I’m looking for a home",
     ctaVideo: "Watch the video",
     reviews: `${site.reviewsCount} Google reviews`,
     place: "In Tradate since 2007",

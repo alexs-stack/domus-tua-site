@@ -6,6 +6,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 import { auditListing, buildAuditArtifact } from "../contentAudit";
+import { cleanField } from "../validate";
 import type { RealSmartListingRaw } from "../types";
 
 function mkRaw(over: Partial<RealSmartListingRaw> = {}): RealSmartListingRaw {
@@ -162,24 +163,26 @@ describe("§5.8 — difetti editoriali che vanno segnalati, non riscritti", () =
     assert.ok(!checks(a).includes("frase-troncata"));
   });
 
-  test("spazi doppi nel titolo → titolo-spazi-doppi", () => {
-    const a = auditListing(mkRaw({ titolo: "Trilocale  luminoso in centro" }));
-    assert.ok(checks(a).includes("titolo-spazi-doppi"));
-  });
-
-  test("un titolo pulito NON scatta", () => {
-    const a = auditListing(mkRaw({ titolo: "Trilocale luminoso in centro" }));
-    assert.ok(!checks(a).includes("titolo-spazi-doppi"));
+  // Gli spazi doppi nel titolo non si segnalano più: li COLLASSA cleanField
+  // (validate.ts) prima che l'annuncio arrivi qui. Al posto del controllo, il test
+  // che la correzione avvenga davvero — altrimenti sparirebbero entrambi e nessuno
+  // se ne accorgerebbe.
+  test("gli spazi doppi nel titolo vengono corretti a monte, non segnalati", () => {
+    const a = auditListing(mkRaw({ titolo: "Trilocale  luminoso   in centro" }));
+    assert.ok(!checks(a).includes("titolo-spazi-doppi"), "il controllo è stato ritirato");
+    // La correzione si verifica dove avviene: cleanField è il varco unico dei
+    // campi testuali in ingresso, e collassa gli spazi interni.
+    assert.equal(cleanField("Trilocale  luminoso   in centro"), "Trilocale luminoso in centro");
+    assert.equal(cleanField("  Villa   con giardino  "), "Villa con giardino");
   });
 
   test("nessuno di questi difetti blocca la CI: sono tutti REVIEW", () => {
     const a = auditListing(
       mkRaw({
-        titolo: "Casa  bella",
         descrizione: "Il ns immobile e' su www.esempio.it. Compra e vendi in serenità con",
       }),
     );
-    const nostri = ["link-in-descrizione", "accento-apostrofato", "abbreviazione-da-appunti", "frase-troncata", "titolo-spazi-doppi"];
+    const nostri = ["link-in-descrizione", "accento-apostrofato", "abbreviazione-da-appunti", "frase-troncata"];
     for (const c of nostri) {
       const f = a.findings.find((x) => x.check === c);
       assert.ok(f, `manca il rilievo ${c}`);
