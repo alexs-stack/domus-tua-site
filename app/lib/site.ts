@@ -232,6 +232,27 @@ export function breadcrumbJsonLd(name: string, path: string) {
 export const territoryLabel = "la provincia di Varese e l'alta provincia di Como";
 
 /**
+ * Lo stesso territorio nelle altre quattro lingue.
+ *
+ * La correzione qui sopra aveva sistemato solo l'italiano: inglese, francese, tedesco e
+ * spagnolo continuavano a interpolare `site.address.province`, cioè "Varese" e basta. Il
+ * risultato era che la stessa domanda — «in quali zone lavorate?» — riceveva una risposta
+ * più stretta a seconda della lingua, mentre il JSON-LD della stessa pagina dichiarava
+ * anche l'alta provincia di Como. Chi legge in francese non ha meno diritto al territorio
+ * vero di chi legge in italiano.
+ *
+ * Non è una traduzione letterale: in tedesco e in spagnolo "provincia" si ripete male, e
+ * i nomi propri seguono l'uso della lingua (Côme in francese, Mailand in tedesco altrove).
+ */
+export const territoryLabelBy: Record<"it" | "en" | "fr" | "de" | "es", string> = {
+  it: territoryLabel,
+  en: "the province of Varese and upper Como",
+  fr: "la province de Varese et le haut de la province de Côme",
+  de: "der Provinz Varese und des oberen Comer Gebiets",
+  es: "la provincia de Varese y la alta provincia de Como",
+};
+
+/**
  * Il voto come si SCRIVE nella lingua di chi legge.
  *
  * `site.rating` è il valore macchina ("4.9"), quello che va nei dati strutturati. Ma in

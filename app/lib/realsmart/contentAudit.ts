@@ -340,16 +340,24 @@ export function editorialFindings(p: NormalizedProperty): Finding[] {
     });
   }
 
-  // 5. Titolo con spazi doppi. Il documento lo cita insieme alle maiuscole casuali; le
-  //    maiuscole no, perché in un titolo immobiliare sono spesso legittime (nomi di via,
-  //    sigle) e un controllo approssimativo qui produrrebbe rumore per 196 annunci.
-  if (/\s{2,}/.test(p.title)) {
-    out.push({
-      severity: "REVIEW",
-      check: "titolo-spazi-doppi",
-      detail: `"${p.title.slice(0, 60)}": spazi doppi nel titolo`,
-    });
-  }
+  // 5. Il titolo con spazi doppi NON si segnala più: si CORREGGE, e prima che
+  //    arrivi qui. `cleanField` (validate.ts) collassa gli spazi interni di ogni
+  //    campo testuale in ingresso dal gestionale, quindi a questo punto della
+  //    catena un titolo con due spazi non esiste più.
+  //
+  //    Il controllo c'è stato per un giro e ha trovato cinque annunci veri. Poi è
+  //    diventato una correzione automatica, ed è la scelta giusta: collassare uno
+  //    spazio non tocca una parola — è la «pulizia automatica del testo in ingresso»
+  //    che il §8 chiede accanto alla regola editoriale, e non c'è ragione di far
+  //    fare a mano ciò che si può fare bene da soli.
+  //
+  //    Rimosso invece di lasciato: un controllo che non può più accendersi non è
+  //    inerte, dice che il difetto è ancora possibile. E chi legge il report si
+  //    fida di quello che NON c'è dentro tanto quanto di quello che c'è.
+  //
+  //    Le «maiuscole casuali», che il documento cita nella stessa riga, restano
+  //    fuori da entrambe le strade: in un titolo immobiliare sono spesso legittime
+  //    (nomi di via, sigle) e nessuna regola automatica le distingue.
 
   if (p.contentPreservation < 0.9) {
     out.push({

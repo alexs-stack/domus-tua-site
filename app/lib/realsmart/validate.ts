@@ -42,7 +42,15 @@ const PLACEHOLDER_VALUES: ReadonlySet<string> = new Set([
 export function cleanField(v: string | number | undefined | null): string | undefined {
   if (typeof v === "number") return Number.isFinite(v) ? String(v) : undefined;
   if (typeof v !== "string") return undefined;
-  const t = v.trim();
+  // `\s+` → un solo spazio: il documento cita «doppio spazio nel titolo» fra i
+  // difetti della scheda da 770.000 €, e un titolo con due spazi si vede.
+  //
+  // Attenzione a dove si usa: questo collassa anche gli A CAPO, quindi vale solo
+  // per i campi DI UNA RIGA (titolo, comune, provincia, tipologia, classe, piano,
+  // indirizzo, riferimento — vedi normalize.ts). La DESCRIZIONE non passa di qui e
+  // non deve passarci mai: perderebbe i paragrafi, che sono l'unica punteggiatura
+  // di respiro che il testo dell'agenzia possiede.
+  const t = v.trim().replace(/\s+/g, " ");
   if (t.length === 0) return undefined;
   if (PLACEHOLDER_VALUES.has(t.toLowerCase())) return undefined;
   return t;

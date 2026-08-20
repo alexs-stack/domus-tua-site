@@ -18,7 +18,7 @@
 // format: qui c'è solo la voce di riepilogo, che rimanda a quella pagina.
 
 import type { Locale } from "../lib/i18n/dictionaries";
-import { site, territoryLabel } from "../lib/site";
+import { site, territoryLabel, territoryLabelBy } from "../lib/site";
 
 export type FaqEntryId =
   | "costi"
@@ -237,7 +237,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "zone",
           q: "Which areas do you cover?",
-          a: `Tradate and the towns of the ${site.address.province} province, between the green of the Pineta park and the connections to Milan and Malpensa. We work where we live: we know the value of every street because it is ours too.`,
+          a: `Tradate and the towns of ${territoryLabelBy.en}, between the green of the Pineta park and the connections to Milan and Malpensa. We work where we live: we know the value of every street because it is ours too.`,
         },
         {
           id: "sede-orari",
@@ -343,7 +343,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "zone",
           q: "Dans quels secteurs travaillez-vous ?",
-          a: `Tradate et les communes de la province de ${site.address.province}, entre le vert du parc Pineta et les liaisons vers Milan et Malpensa. Nous travaillons là où nous vivons : nous connaissons la valeur de chaque rue, parce qu'elle est aussi la nôtre.`,
+          a: `Tradate et les communes de ${territoryLabelBy.fr}, entre le vert du parc Pineta et les liaisons vers Milan et Malpensa. Nous travaillons là où nous vivons : nous connaissons la valeur de chaque rue, parce qu'elle est aussi la nôtre.`,
         },
         {
           id: "sede-orari",
@@ -449,7 +449,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "zone",
           q: "In welchen Gebieten arbeiten Sie?",
-          a: `Tradate und die Gemeinden der Provinz ${site.address.province}, zwischen dem Grün des Pineta-Parks und den Verbindungen nach Mailand und Malpensa. Wir arbeiten dort, wo wir leben: Wir kennen den Wert jeder Straße, denn es sind auch unsere.`,
+          a: `Tradate und die Gemeinden ${territoryLabelBy.de}, zwischen dem Grün des Pineta-Parks und den Verbindungen nach Mailand und Malpensa. Wir arbeiten dort, wo wir leben: Wir kennen den Wert jeder Straße, denn es sind auch unsere.`,
         },
         {
           id: "sede-orari",
@@ -555,7 +555,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "zone",
           q: "¿En qué zonas trabajáis?",
-          a: `Tradate y los municipios de la provincia de ${site.address.province}, entre el verde del parque Pineta y las conexiones con Milán y Malpensa. Trabajamos donde vivimos: conocemos el valor de cada calle porque también es la nuestra.`,
+          a: `Tradate y los municipios de ${territoryLabelBy.es}, entre el verde del parque Pineta y las conexiones con Milán y Malpensa. Trabajamos donde vivimos: conocemos el valor de cada calle porque también es la nuestra.`,
         },
         {
           id: "sede-orari",

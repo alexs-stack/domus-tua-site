@@ -223,7 +223,7 @@ const copy = {
       subcopy:
         "Nous ne vous montrons pas seulement des maisons. Nous contrôlons les documents avant la visite, nous vous disons ce que nous avons vérifié, et nous restons à vos côtés jusqu’à l’acte.",
       alt: "Séjour moderne, blanc et lumineux",
-      primaryLabel: "Je cherche une maison",
+      primaryLabel: "Je cherche un bien",
       secondaryLabel: "Voir les biens à vendre",
       trust: ["Les informations avant la visite", "Documents vérifiés", "Accompagnement jusqu’à l’acte"],
     },

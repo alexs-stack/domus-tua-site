@@ -392,7 +392,7 @@ const VERIFIED: KnowledgeEntry[] = [
     category: "vendita",
     title: "Come si vende casa con Domus Tua",
     content:
-      "Si parte da una valutazione gratuita e senza impegno, poi quattro passi: valutazione e analisi di mercato per definire prezzo e strategia; verifica di conformità, titoli e planimetrie prima di mettere in vendita; preparazione della casa e, dove serve, home staging; marketing e Open Domus, con foto, video e campagne. Nessun costo anticipato: si paga solo a vendita conclusa, e foto, video, home staging e verifica dei documenti fanno parte del metodo. Per cominciare basta contattare il team.",
+      "Si parte da un primo confronto senza impegno e senza costi. Il Metodo Domus è in nove passaggi; questi sono i quattro che pesano di più per chi vende: valutazione e analisi di mercato per definire prezzo e strategia; verifica di conformità, titoli e planimetrie prima di mettere in vendita; preparazione della casa e, dove serve, home staging; marketing e Open Domus, con foto, video e campagne. Nessun costo anticipato: si paga solo a vendita conclusa, e foto, video, home staging e verifica dei documenti fanno parte del metodo. Per cominciare basta contattare il team.",
     status: "verified",
     source: "pagina /vendi del sito (app/vendi/VendiContent.tsx)",
     lastVerified: "2026-08-19",
@@ -440,7 +440,7 @@ const VERIFIED: KnowledgeEntry[] = [
     category: "valutazione",
     title: "La valutazione dell'immobile",
     content:
-      "La valutazione è gratuita e senza impegno: una stima professionale su dati reali — caratteristiche, zona e domanda del momento — che serve a definire prezzo e strategia. Un prezzo troppo alto lascia la casa ferma per mesi, uno troppo basso lascia valore sul tavolo. La fa il team di persona: io non posso stimare quanto vale una casa, nemmeno approssimativamente. Per richiederla: modulo del sito, WhatsApp o telefono.",
+      "Il primo incontro è senza impegno e senza costi: da lì si passa a una valutazione professionale su dati reali — caratteristiche, zona e domanda del momento — che serve a definire prezzo e strategia. Un prezzo troppo alto lascia la casa ferma per mesi, uno troppo basso lascia valore sul tavolo. La fa il team di persona: io non posso stimare quanto vale una casa, nemmeno approssimativamente. Per richiederla: modulo del sito, WhatsApp o telefono.",
     status: "verified",
     source: "pagina /vendi del sito e FAQ 'costi'/'prezzo' (app/vendi/VendiContent.tsx, app/domande-frequenti/faq.ts)",
     lastVerified: "2026-08-06",
