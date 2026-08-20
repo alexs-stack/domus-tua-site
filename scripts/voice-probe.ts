@@ -89,7 +89,9 @@ async function main() {
   for (const c of CONVOS) {
     console.log(`\n${"=".repeat(78)}\n## ${c.id}\n_${c.perche}_\n`);
     const storia: ClientMessage[] = [];
-    let slugPrec: string[] = [];
+    // `const`: non viene mai riassegnato. Resta un array perché il turno successivo lo
+    // legge per ricostruire il contesto degli immobili già mostrati (riga sotto).
+    const slugPrec: string[] = [];
     for (const t of c.turni) {
       if (storia.length) {
         storia.push({
