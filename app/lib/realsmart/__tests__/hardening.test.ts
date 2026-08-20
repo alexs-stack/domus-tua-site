@@ -159,9 +159,18 @@ describe("preparazione AI — opzionale, deterministico di default, fallback sic
     assert.deepEqual(out, base);
   });
 
-  test("nel lotto, un provider finto marca ogni record", async () => {
-    const fakeAi: AiNormalizer = { async enhance(b) { return b; } };
-    const { listings } = await normalizeListings([validRaw], fakeAi);
-    assert.equal(listings[0].normalizedBy, "ai");
+  test("nel lotto, un provider che MODIFICA marca 'ai'; uno che non tocca nulla resta deterministico", async () => {
+    // "ai" significa che la copy è stata DAVVERO cambiata, non solo che il normalizzatore è
+    // presente: il normalizzatore che applica copy pubblicata torna `base` quando non c'è nulla da
+    // applicare, e in quel caso deve restare deterministico (nessun falso "ai on").
+    const noopAi: AiNormalizer = { async enhance(b) { return b; } };
+    const changingAi: AiNormalizer = { async enhance(b) { return { ...b, descriptionParagraphs: ["Copy migliorata."] }; } };
+
+    const noop = await normalizeListings([validRaw], noopAi);
+    assert.equal(noop.listings[0].normalizedBy, "deterministic", "un no-op non deve marcare 'ai'");
+
+    const changed = await normalizeListings([validRaw], changingAi);
+    assert.equal(changed.listings[0].normalizedBy, "ai");
+    assert.deepEqual(changed.listings[0].descriptionParagraphs, ["Copy migliorata."]);
   });
 });
