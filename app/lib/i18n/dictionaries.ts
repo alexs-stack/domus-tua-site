@@ -35,11 +35,14 @@ type Dict = {
     title1: string; title2: string; ctaValuta: string;
   };
   search: {
+    // Sei chiavi, non ventitré. Le altre diciassette non le leggeva nessuno: erano
+    // rimaste qui quando la ricerca ha smesso di usare i filtri a tendina, e fra loro
+    // c'era `cta: "Cerca casa"` — copy MORTA che contraddiceva quella viva, in cinque
+    // lingue. È la stessa trappola già disinnescata sul blocco `hero`: un dizionario che
+    // conserva stringhe non rese non è inerte, è una fonte di verità alternativa che
+    // prima o poi qualcuno rimette in pagina credendola quella buona.
     title: string; nlPlaceholder: string; nlTeaser: string; nlHint: string;
-    contract: string; type: string; zone: string; budget: string; rooms: string; features: string;
-    all: string; sale: string; rent: string; anyBudget: string; anyRooms: string;
-    resultsOne: string; resultsMany: string; cta: string; sellerTitle: string; sellerCta: string;
-    emptyTitle: string; emptyCopy: string; emptyCta: string;
+    sellerTitle: string; sellerCta: string;
   };
   whatsapp: { cta: string };
   footer: { naviga: string; orari: string; caseVendute: string; monFri: string; sat: string; sun: string; onAppt: string; valuta: string; privacy: string; cookie: string; cookiePrefs: string; contatti: string; lavora: string; faq: string };
@@ -61,14 +64,8 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "Es. trilocale con giardino a Tradate sotto 300.000 €",
       nlTeaser: "Ricerca intelligente",
       nlHint: "Scrivi come parleresti a noi e trova la casa giusta.",
-      contract: "Contratto", type: "Tipologia", zone: "Zona", budget: "Budget", rooms: "Locali", features: "Caratteristiche",
-      all: "Tutte", sale: "Vendita", rent: "Affitto", anyBudget: "Nessun limite", anyRooms: "Qualsiasi",
-      resultsOne: "immobile trovato", resultsMany: "immobili trovati", cta: "Cerca casa",
       sellerTitle: "Devi vendere casa?", sellerCta: "Richiedi la valutazione del tuo immobile",
-      emptyTitle: "Nessun immobile con questi filtri.",
-      emptyCopy: "Non c’è online? Potrebbe arrivare. Raccontaci cosa cerchi: molte case le troviamo noi.",
-      emptyCta: "Lasciaci la tua richiesta",
-    },
+      },
     whatsapp: { cta: "Parla con noi su WhatsApp" },
     footer: { naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Richiedi la valutazione", privacy: "Privacy", cookie: "Cookie", cookiePrefs: "Preferenze cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti", caseVendute: "Case vendute" },
     lang: { label: "Lingua" },
@@ -87,14 +84,8 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "e.g. three-room with garden in Tradate under €300,000",
       nlTeaser: "Smart search",
       nlHint: "Write it just as you’d talk to us and find the right home.",
-      contract: "Contract", type: "Type", zone: "Area", budget: "Budget", rooms: "Rooms", features: "Features",
-      all: "All", sale: "Sale", rent: "Rent", anyBudget: "No limit", anyRooms: "Any",
-      resultsOne: "home found", resultsMany: "homes found", cta: "Search homes",
       sellerTitle: "Need to sell your home?", sellerCta: "Request a valuation of your property",
-      emptyTitle: "No homes match these filters.",
-      emptyCopy: "Not online yet? It might be soon. Tell us what you’re after: we find many homes for our clients.",
-      emptyCta: "Send us your request",
-    },
+      },
     whatsapp: { cta: "Talk to us on WhatsApp" },
     footer: { naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Request a valuation", privacy: "Privacy", cookie: "Cookies", cookiePrefs: "Cookie preferences", contatti: "Contact", lavora: "Work with us", faq: "FAQ", caseVendute: "Homes sold" },
     lang: { label: "Language" },
@@ -113,14 +104,8 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "Ex. trois-pièces avec jardin à Tradate sous 300 000 €",
       nlTeaser: "Recherche intelligente",
       nlHint: "Écrivez comme vous nous parleriez et trouvez le bon bien.",
-      contract: "Contrat", type: "Type", zone: "Zone", budget: "Budget", rooms: "Pièces", features: "Caractéristiques",
-      all: "Tous", sale: "Vente", rent: "Location", anyBudget: "Sans limite", anyRooms: "Indifférent",
-      resultsOne: "bien trouvé", resultsMany: "biens trouvés", cta: "Rechercher",
       sellerTitle: "Vous devez vendre ?", sellerCta: "Demandez l’estimation de votre bien",
-      emptyTitle: "Aucun bien avec ces filtres.",
-      emptyCopy: "Pas encore en ligne ? Cela peut arriver. Dites-nous ce que vous cherchez : nous trouvons de nombreux biens pour nos clients.",
-      emptyCta: "Envoyez-nous votre demande",
-    },
+      },
     whatsapp: { cta: "Parlez-nous sur WhatsApp" },
     footer: { naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Demander l’estimation", privacy: "Confidentialité", cookie: "Cookies", cookiePrefs: "Préférences cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes", caseVendute: "Biens vendus" },
     lang: { label: "Langue" },
@@ -139,14 +124,8 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "z. B. Dreizimmer mit Garten in Tradate unter 300.000 €",
       nlTeaser: "Intelligente Suche",
       nlHint: "Schreiben Sie, wie Sie mit uns sprechen würden, und finden Sie das passende Zuhause.",
-      contract: "Vertrag", type: "Typ", zone: "Gebiet", budget: "Budget", rooms: "Zimmer", features: "Merkmale",
-      all: "Alle", sale: "Verkauf", rent: "Miete", anyBudget: "Kein Limit", anyRooms: "Beliebig",
-      resultsOne: "Immobilie gefunden", resultsMany: "Immobilien gefunden", cta: "Immobilien suchen",
       sellerTitle: "Möchten Sie verkaufen?", sellerCta: "Bewertung Ihrer Immobilie anfordern",
-      emptyTitle: "Keine Immobilie mit diesen Filtern.",
-      emptyCopy: "Noch nicht online? Vielleicht bald. Sagen Sie uns, was Sie suchen: Vieles finden wir für unsere Kunden.",
-      emptyCta: "Senden Sie uns Ihre Anfrage",
-    },
+      },
     whatsapp: { cta: "Sprechen Sie mit uns auf WhatsApp" },
     footer: { naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Bewertung anfordern", privacy: "Datenschutz", cookie: "Cookies", cookiePrefs: "Cookie-Einstellungen", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen", caseVendute: "Verkaufte Immobilien" },
     lang: { label: "Sprache" },
@@ -165,14 +144,8 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "Ej. piso de tres habitaciones con jardín en Tradate por menos de 300.000 €",
       nlTeaser: "Búsqueda inteligente",
       nlHint: "Escribe como nos hablarías y encuentra la casa adecuada.",
-      contract: "Contrato", type: "Tipo", zone: "Zona", budget: "Presupuesto", rooms: "Habitaciones", features: "Características",
-      all: "Todos", sale: "Venta", rent: "Alquiler", anyBudget: "Sin límite", anyRooms: "Cualquiera",
-      resultsOne: "inmueble encontrado", resultsMany: "inmuebles encontrados", cta: "Buscar casa",
       sellerTitle: "¿Necesitas vender?", sellerCta: "Solicita la valoración de tu inmueble",
-      emptyTitle: "Ningún inmueble con estos filtros.",
-      emptyCopy: "¿Todavía no está online? Puede que llegue pronto. Cuéntanos qué buscas: muchas casas las encontramos nosotros para nuestros clientes.",
-      emptyCta: "Envíanos tu solicitud",
-    },
+      },
     whatsapp: { cta: "Habla con nosotras por WhatsApp" },
     footer: { naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Solicita la valoración", privacy: "Privacidad", cookie: "Cookies", cookiePrefs: "Preferencias de cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes", caseVendute: "Casas vendidas" },
     lang: { label: "Idioma" },

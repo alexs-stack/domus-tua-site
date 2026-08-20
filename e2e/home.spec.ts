@@ -150,3 +150,46 @@ test("niente scorre in orizzontale @layout", async ({ page, goto }) => {
   // Un pixel di tolleranza per gli arrotondamenti sub-pixel.
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+// §6.5 — «Le didascalie dei video (testo già esistente, oggi invisibile)».
+//
+// Il documento le trovava dentro gli attributi. Oggi sono TESTO VISIBILE nelle tessere del
+// muro delle voci, e questo test serve a tenercele. Il presidio che c'era controllava i
+// titoli come DATO (app/lib/__tests__/content-integrity.test.ts): passa verde anche se
+// nessuno li rende. Qui si guarda lo schermo.
+test("le didascalie dei video sono testo visibile, non attributi @layout", async ({ page, goto }) => {
+  await goto("/");
+  // Il muro delle voci sta in fondo alla home: lo si raggiunge con lo scroller del sito.
+  await page.evaluate(() => {
+    const w = window as unknown as { __lenis?: { scrollTo: (t: number, o?: unknown) => void } };
+    const fondo = document.documentElement.scrollHeight;
+    if (w.__lenis) w.__lenis.scrollTo(fondo, { immediate: true });
+    else window.scrollTo(0, fondo);
+  });
+  await page.waitForTimeout(800);
+
+  // Almeno tre delle sei: il muro ne mostra un sottoinsieme a seconda della larghezza, e
+  // pretenderle tutte e sei renderebbe il test una guardia sul layout invece che sul testo.
+  const attese = [
+    "Villa di Roberta, venduta al primo Open Domus",
+    "Teresa, venduta al primo Open Domus",
+    "Recensione — Felicemente venduta",
+    "Recensione — Serenamente venduta",
+    "Recensione — Facile vendere, sicuro acquistare",
+    "Il team Domus Tua si presenta",
+  ];
+  // Si misura la SCATOLA, non la visibilità.
+  //
+  // Prima versione di questo test: `isVisible()` su ogni titolo. Restava VERDE con le
+  // didascalie sostituite da `sr-only` — che è esattamente la regressione da bloccare,
+  // perché `sr-only` è una scatola da 1×1 ritagliata, e per Playwright è visibile.
+  // Un testo leggibile occupa spazio: qui si pretendono almeno 60px di larghezza e 10 di
+  // altezza. Riverificato: con le didascalie messe in sr-only, questo test è rosso.
+  const misura = async (t: string) => {
+    const box = await page.getByText(t, { exact: false }).first().boundingBox().catch(() => null);
+    return !!box && box.width >= 60 && box.height >= 10;
+  };
+  let viste = 0;
+  for (const t of attese) if (await misura(t)) viste += 1;
+  expect(viste, `didascalie LEGGIBILI nel muro delle voci: ${viste}/6`).toBeGreaterThanOrEqual(3);
+});

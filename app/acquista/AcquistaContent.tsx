@@ -639,7 +639,11 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
           context={c.testimonial.context}
           image="/images/reali/consulenza.jpg"
           alt={c.testimonial.alt}
-          videoHref="https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE"
+          /* NIENTE videoHref: il default del componente è il video-testimonianza
+             preciso (FeaturedTestimonial.tsx:195). Qui c’era l’URL del CANALE scritto
+             a mano, sotto un pulsante che dice «Guarda la video recensione»: chi
+             cliccava atterrava su una griglia e doveva scegliere da solo quale.
+             È il difetto che il §6.5 descrive per l’hero, sopravvissuto qui. */
         />
         <DomusDocProtocol tone="cream" />
         <Reviews />

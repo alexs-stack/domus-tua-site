@@ -54,7 +54,7 @@ const copy = {
     specStatus: "Stato",
     specEnergy: "Classe energetica",
     requestVisit: "Richiedi una visita",
-    whatsapp: "Parla con Domus Tua",
+    whatsapp: "Parla con noi su WhatsApp",
     refLabel: "Rif.",
     assistTitle: "Con te in ogni passo",
     assistPoints: [
@@ -96,7 +96,7 @@ const copy = {
     specStatus: "Status",
     specEnergy: "Energy class",
     requestVisit: "Request a viewing",
-    whatsapp: "Talk to Domus Tua",
+    whatsapp: "Talk to us on WhatsApp",
     refLabel: "Ref.",
     assistTitle: "With you every step",
     assistPoints: [
@@ -138,7 +138,7 @@ const copy = {
     specStatus: "Statut",
     specEnergy: "Classe énergétique",
     requestVisit: "Demander une visite",
-    whatsapp: "Parler à Domus Tua",
+    whatsapp: "Parlez-nous sur WhatsApp",
     refLabel: "Réf.",
     assistTitle: "À vos côtés à chaque étape",
     assistPoints: [
@@ -180,7 +180,7 @@ const copy = {
     specStatus: "Status",
     specEnergy: "Energieklasse",
     requestVisit: "Besichtigung anfragen",
-    whatsapp: "Mit Domus Tua sprechen",
+    whatsapp: "Sprechen Sie mit uns auf WhatsApp",
     refLabel: "Ref.",
     assistTitle: "An Ihrer Seite bei jedem Schritt",
     assistPoints: [
@@ -222,7 +222,7 @@ const copy = {
     specStatus: "Estado",
     specEnergy: "Clase energética",
     requestVisit: "Solicita una visita",
-    whatsapp: "Habla con Domus Tua",
+    whatsapp: "Habla con nosotras por WhatsApp",
     refLabel: "Ref.",
     assistTitle: "Contigo en cada paso",
     assistPoints: [

@@ -45,6 +45,7 @@ const copy = {
     placeholder: "Scrivi qui la tua domanda…",
     send: "Invia",
     greeting: "Ciao, sono Assistente Raffaela. Posso aiutarti a cercare casa, a capire come si vende o a togliere qualche dubbio: qui nessuno ha fretta. Da dove partiamo?",
+    whatsappCta: "Parla con noi su WhatsApp",
     suggestions: ["Cerco una villa", "Vorrei vendere casa", "Come funziona Open Domus?", "Voglio parlare con voi"],
     error: "Ops, qualcosa è andato storto. Riprova o scrivici su WhatsApp.",
     rateLimited: "Hai scritto molti messaggi di fila. Riprova tra un minuto, oppure scrivici su WhatsApp.",
@@ -66,6 +67,7 @@ const copy = {
     placeholder: "Type your question here…",
     send: "Send",
     greeting: "Hi, I’m Assistente Raffaela. I can help you look for a home, understand how selling works, or clear up a doubt — nobody is in a hurry here. Where shall we start?",
+    whatsappCta: "Talk to us on WhatsApp",
     suggestions: ["I’m looking for a villa", "I’d like to sell my home", "How does Open Domus work?", "I’d like to talk to someone"],
     error: "Oops, something went wrong. Please try again or message us on WhatsApp.",
     rateLimited: "That’s a lot of messages in a row. Try again in a minute, or message us on WhatsApp.",
@@ -87,6 +89,7 @@ const copy = {
     placeholder: "Écrivez votre question ici…",
     send: "Envoyer",
     greeting: "Bonjour, je suis Assistente Raffaela. Je peux vous aider à chercher un bien, à comprendre comment vendre ou à lever un doute : ici, rien ne presse. Par où commençons-nous ?",
+    whatsappCta: "Parlez-nous sur WhatsApp",
     suggestions: ["Je cherche une villa", "Je voudrais vendre mon bien", "Comment fonctionne Open Domus ?", "Je voudrais vous parler"],
     error: "Oups, une erreur est survenue. Réessayez ou écrivez-nous sur WhatsApp.",
     rateLimited: "Beaucoup de messages d’affilée. Réessayez dans une minute, ou écrivez-nous sur WhatsApp.",
@@ -108,6 +111,7 @@ const copy = {
     placeholder: "Schreiben Sie hier Ihre Frage…",
     send: "Senden",
     greeting: "Hallo, ich bin Assistente Raffaela. Ich helfe Ihnen beim Suchen, beim Verkaufen oder bei einer offenen Frage — hier drängt nichts. Wo fangen wir an?",
+    whatsappCta: "Sprechen Sie mit uns auf WhatsApp",
     suggestions: ["Ich suche eine Villa", "Ich möchte verkaufen", "Wie funktioniert Open Domus?", "Ich möchte mit jemandem sprechen"],
     error: "Ups, etwas ist schiefgelaufen. Bitte erneut versuchen oder auf WhatsApp schreiben.",
     rateLimited: "Das waren viele Nachrichten hintereinander. Bitte in einer Minute erneut versuchen oder auf WhatsApp schreiben.",
@@ -129,6 +133,7 @@ const copy = {
     placeholder: "Escribe aquí tu pregunta…",
     send: "Enviar",
     greeting: "Hola, soy Assistente Raffaela. Puedo ayudarte a buscar casa, a entender cómo se vende o a resolver una duda: aquí nadie tiene prisa. ¿Por dónde empezamos?",
+    whatsappCta: "Habla con nosotras por WhatsApp",
     suggestions: ["Busco una villa", "Quiero vender mi casa", "¿Cómo funciona Open Domus?", "Quiero hablar con vosotros"],
     error: "Vaya, algo salió mal. Inténtalo de nuevo o escríbenos por WhatsApp.",
     rateLimited: "Has enviado muchos mensajes seguidos. Inténtalo en un minuto, o escríbenos por WhatsApp.",
@@ -560,7 +565,15 @@ export default function Assistant() {
                         target={h.kind === "whatsapp" ? "_blank" : undefined}
                         rel={h.kind === "whatsapp" ? "noopener noreferrer" : undefined}
                       >
-                        {h.label}
+                        {/* L'etichetta WhatsApp la decide QUI il client, non il tool.
+                            Il tool server-side la scriveva in italiano fisso («Scrivi su
+                            WhatsApp»), e su un sito in cinque lingue quella riga arrivava
+                            uguale a chiunque — oltre a essere una nona variante di una
+                            famiglia che il §6.7 vuole con UNA formula sola. Il tool non
+                            conosce la lingua della conversazione; il client sì, e il
+                            dizionario ce l'ha già. Le altre etichette di handoff restano
+                            quelle del tool: non sono CTA di famiglia. */}
+                        {h.kind === "whatsapp" ? c.whatsappCta : h.label}
                       </Cta>
                       {/* Su mobile la telefonata è spesso il canale più rapido. */}
                       <Cta

@@ -80,7 +80,7 @@ const copy = {
     subcopy:
       "Estimation professionnelle, documents vérifiés avant la mise sur le marché, marketing soigné et Open Domus. Une seule méthode, de la première estimation à la signature chez le notaire.",
     founder: "Avec Raffaela Rizza et l'équipe Domus Tua",
-    ctaValuta: "Demandez l'estimation de votre bien",
+    ctaValuta: "Demandez l’estimation de votre bien",
     ctaCerco: "Je cherche un bien",
     ctaVideo: "Voir la vidéo",
     reviews: `${site.reviewsCount} avis Google`,

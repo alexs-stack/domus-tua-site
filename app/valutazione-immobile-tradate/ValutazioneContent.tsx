@@ -177,7 +177,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Estimation immobilière · Tradate et sa province",
     title: "Ce que vaut vraiment votre bien.",
     lead: "Pas ce qu'un calculateur décide en trente secondes. Ce que décide quelqu'un qui vient le voir, vérifie les documents et écrit comment il est arrivé à ce chiffre. Le premier rendez-vous est sans engagement et sans frais.",
-    ctaPrimary: "Demandez l'estimation de votre bien",
+    ctaPrimary: "Demandez l’estimation de votre bien",
     ctaSecondary: "Comment ça marche",
     tiersEyebrow: "Comment ça marche",
     tiersTitle: "Deux étapes, pas une.",

@@ -248,9 +248,13 @@ const copy = {
     notFound: "Nicht das richtige Zuhause dabei? Sagen Sie es uns",
     viewList: "Liste",
     viewMap: "Karte",
-    emptyTitle: "Kein Objekt passt zu diesen Filtern.",
-    emptyBody: "Mit diesen Filtern gibt es gerade nichts. Sagen Sie uns, was Sie suchen: Wir betreuen auch maßgeschneiderte Anfragen und diskrete Verhandlungen und melden uns, sobald etwas hereinkommt.",
-    emptyCta: "Zuhause finden mit Domus Tua",
+    // Le altre quattro lingue non dicono «nessun risultato»: dicono che l’immobile
+    // potrebbe ancora arrivare, e invitano a lasciare una richiesta. Il tedesco diceva
+    // un’altra cosa — e il pulsante invitava a NAVIGARE mentre apre WhatsApp precompilato
+    // con la frase cercata. Ora promette quello che fa, come le altre quattro.
+    emptyTitle: "Nicht online? Es kann noch kommen.",
+    emptyBody: "Sagen Sie uns, was Sie suchen: viele Anfragen betreuen wir, noch bevor die Immobilie überhaupt online geht.",
+    emptyCta: "Hinterlassen Sie uns Ihre Anfrage",
     showMore: "Mehr Immobilien anzeigen",
     showingHint: "{n} von {tot} werden angezeigt",
   },
