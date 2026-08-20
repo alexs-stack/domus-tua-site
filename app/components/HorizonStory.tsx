@@ -65,7 +65,7 @@ const copy = {
         People before properties.
       </>
     ),
-    lead: "Since 2007 we have guided families in Tradate and its province through every step: valuation, verified paperwork, thoughtful marketing and assistance all the way to closing.",
+    lead: "Since 2007 alongside the families of Tradate and its province: we value on data, check the paperwork before going to market, tell the home's story and stay through to the deed.",
     cap: "Tradate · Varese",
     stairs: ["Between the", "Pineta park", "and Milan"],
     subtitle: "The land we call home",

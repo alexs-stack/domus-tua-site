@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ratingLabel, site } from "./lib/site";
 import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
 import Posizionamento from "./components/Posizionamento";
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
     absolute: "Agenzia Immobiliare a Tradate (VA) | Domus Tua",
   },
   description:
-    "Vendi casa a Tradate e in provincia di Varese: valutazione professionale, documenti verificati prima del mercato, Open Domus e assistenza fino al rogito. 4,9/5 su 531 recensioni Google. Dal 2007.",
+    `Vendi casa a Tradate e in provincia di Varese: valutazione professionale, documenti verificati prima del mercato, Open Domus e assistenza fino al rogito. ${ratingLabel("it")}/5 su ${site.reviewsCount} recensioni Google. Dal 2007.`,
   alternates: { canonical: "/" },
   openGraph: {
     title: "Agenzia Immobiliare a Tradate (VA) | Domus Tua",

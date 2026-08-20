@@ -121,7 +121,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Il percorso di vendita",
       title: "Dalla prima stima alla firma, un passo alla volta.",
       intro:
-        "Sono i nove passaggi del Metodo Domus, raccolti qui in quattro momenti. Tu resti sempre informato, noi gestiamo la complessità.",
+        "Il Metodo Domus è in nove passaggi: qui i quattro che pesano di più per chi vende. Tu resti sempre informato, noi gestiamo la complessità.",
     },
     sellSteps: [
       {
@@ -270,7 +270,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "The selling journey",
       title: "From the first estimate to the signature, one step at a time.",
       intro:
-        "These are the nine steps of the Domus Method, gathered here into four moments. You stay informed throughout, while we handle the complexity.",
+        "The Domus Method runs in nine steps: here are the four that matter most when you are selling. You stay informed throughout, while we handle the complexity.",
     },
     sellSteps: [
       {
@@ -419,7 +419,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Le parcours de vente",
       title: "De la première estimation à la signature, une étape après l’autre.",
       intro:
-        "Ce sont les neuf étapes de la Méthode Domus, réunies ici en quatre moments. Vous restez toujours informé, nous gérons la complexité.",
+        "La Méthode Domus compte neuf étapes : voici les quatre qui comptent le plus quand on vend. Vous restez toujours informé, nous gérons la complexité.",
     },
     sellSteps: [
       {
@@ -568,7 +568,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Der Verkaufsweg",
       title: "Von der ersten Schätzung bis zur Unterschrift, Schritt für Schritt.",
       intro:
-        "Es sind die neun Schritte der Domus-Methode, hier in vier Momente gefasst. Sie bleiben stets informiert, wir übernehmen die Komplexität.",
+        "Die Domus-Methode umfasst neun Schritte: hier die vier, die beim Verkauf am meisten wiegen. Sie bleiben stets informiert, wir übernehmen die Komplexität.",
     },
     sellSteps: [
       {
@@ -717,7 +717,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "El recorrido de venta",
       title: "De la primera estimación a la firma, paso a paso.",
       intro:
-        "Son los nueve pasos del Método Domus, reunidos aquí en cuatro momentos. Tú siempre estás informado, nosotros gestionamos la complejidad.",
+        "El Método Domus tiene nueve pasos: aquí los cuatro que más pesan cuando se vende. Tú siempre estás informado, nosotros gestionamos la complejidad.",
     },
     sellSteps: [
       {
