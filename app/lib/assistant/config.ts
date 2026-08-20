@@ -117,8 +117,12 @@ export const EMAIL_FROM = process.env.ASSISTANT_EMAIL_FROM || "assistente@domust
 /** true se il canale email è configurato e può davvero inviare. */
 export const emailEnabled = EMAIL_API_KEY.length > 0;
 
-/** Richieste email per IP nella finestra di 10 minuti. Più stretto della chat: qui si scrive a una persona. */
-export const LEAD_LIMIT = { limit: 5, windowMs: TEN_MIN };
+/**
+ * Richieste email dell'ASSISTENTE per IP nella finestra di 10 minuti. Più stretto della chat:
+ * qui si scrive a una persona. Nome distinto da LEAD_LIMIT del form contatti (rateLimit.ts, 8):
+ * sono endpoint diversi con limiti diversi, e due costanti omonime confondevano.
+ */
+export const ASSISTANT_LEAD_LIMIT = { limit: 5, windowMs: TEN_MIN };
 
 /**
  * URL canonico del sito, per i link assoluti nei messaggi di handoff.

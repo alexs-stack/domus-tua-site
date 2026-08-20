@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { rateLimit, clientIp, LEAD_LIMIT } from "../../lib/security/rateLimit";
+import { rateLimitShared, clientKey, LEAD_LIMIT } from "../../lib/security/rateLimit";
 import { validateLead } from "../../lib/forms/validateLead";
 import { notifyLeadByEmail } from "../../lib/forms/leadEmail";
 
@@ -22,8 +22,10 @@ const WEBHOOK = process.env.SHEETS_WEBHOOK_URL;
 const IS_PROD = process.env.NODE_ENV === "production";
 
 export async function POST(req: Request) {
-  // Rate limit per IP (best-effort in-memory): argine contro submit ripetuti/flood.
-  const rl = rateLimit(`lead:${clientIp(req)}`, LEAD_LIMIT);
+  // Rate limit CONDIVISO tra le istanze (Redis se configurato, altrimenti in-memory best-effort):
+  // argine contro submit ripetuti/flood. Chiave con IP hashato (privacy). Fail-open: se lo store
+  // condiviso è giù si ripiega sul locale — un lead in più è meglio di un form che si blocca.
+  const rl = await rateLimitShared(clientKey(req, "lead"), LEAD_LIMIT);
   if (!rl.ok) {
     return NextResponse.json(
       { ok: false, reason: "rate-limited" },
