@@ -3144,6 +3144,37 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   letter-spacing: -0.02em;
 }
 
+/* ---------- .dt-gallery-rail — il nastro delle miniature (PropertyGallery) ----------
+   NON è `.dt-rail`, e la distinzione conta: quella ha il takeover GSAP
+   (`[data-on]` toglie lo scroll nativo) e pretende un figlio `.dt-rail_track`.
+   Qui serve l'opposto — scroll nativo sempre, a ogni larghezza, perché il
+   nastro è anche il controllo di navigazione della galleria e deve rispondere
+   al dito, alla rotella e alle frecce senza che nessun motore lo sequestri.
+
+   Qui c'è SOLO la barra nascosta: flex, gap, snap e overflow li mette Tailwind
+   sul componente, dove si leggono accanto al resto delle classi.
+
+   Perché nasconderla: su Windows la barra di sistema è alta ~15px e, sotto una
+   fila di fotografie, spezza il ritmo con una riga grigia. Che il nastro scorra
+   si vede dalle frecce e dall'ultima miniatura tagliata — due segnali migliori
+   di una barra. */
+.dt-gallery-rail {
+  scrollbar-width: none;
+}
+
+/* Lo scorrimento morbido lo fa il CSS, non il JS: `scrollTo({behavior:"smooth"})`
+   su questo sito è inerte perché Lenis lo intercetta (misurato: 3000 richiesti,
+   nastro fermo a 0). Qui è dichiarativo, il browser lo esegue da sé, e con
+   prefers-reduced-motion sparisce senza che il componente debba saperlo. */
+@media (prefers-reduced-motion: no-preference) {
+  .dt-gallery-rail {
+    scroll-behavior: smooth;
+  }
+}
+.dt-gallery-rail::-webkit-scrollbar {
+  display: none;
+}
+
 /* ---------- .dt-rail — la rotaia orizzontale generica (HorizontalRail.tsx) ----------
    Stessa meccanica già collaudata sul nastro "Seguici" (.dt-socialrail), qui
    estratta perché la chiedono anche altre sezioni: default = scroll

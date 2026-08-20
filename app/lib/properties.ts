@@ -65,11 +65,30 @@ export const properties: Property[] = [
     // Demo: immobile con evidenza D.O.C. → mostra la variante "verificata" del blocco e il badge.
     docVerified: true,
     cover: "/images/hero_02_attico_travi_living.jpg",
+    // DICIOTTO foto, non quattro: è la scala di un annuncio vero (46 sulla scheda
+    // media, 77 sulla villa di Gornate-Olona) ed è la sola su cui il nastro delle
+    // miniature SCORRE. Con quattro i test del carosello si saltavano da soli.
+    // Le immagini si ripetono di proposito: le miniature sono duplicati muti
+    // (alt=""), qui conta il numero.
     gallery: [
       "/images/hero_02_attico_travi_living.jpg",
       "/images/hero_01_attico_travi_salotto.jpg",
       "/images/premium_03_cucina_moderna.jpg",
       "/images/rendering_03_master_bedroom_legno.jpg",
+      "/images/premium_04_living_libreria.jpg",
+      "/images/premium_05_living_accenti_senape.jpg",
+      "/images/hero_03_attico_dining_living.jpg",
+      "/images/home_staging_01_sala_reale_sedie_gialle.jpg",
+      "/images/rendering_01_living_divano_grigio.jpg",
+      "/images/hero_02_attico_travi_living.jpg",
+      "/images/hero_01_attico_travi_salotto.jpg",
+      "/images/premium_03_cucina_moderna.jpg",
+      "/images/rendering_03_master_bedroom_legno.jpg",
+      "/images/premium_04_living_libreria.jpg",
+      "/images/premium_05_living_accenti_senape.jpg",
+      "/images/hero_03_attico_dining_living.jpg",
+      "/images/home_staging_01_sala_reale_sedie_gialle.jpg",
+      "/images/rendering_01_living_divano_grigio.jpg",
     ],
     excerpt:
       "Attico luminoso con travi a vista nel cuore di Tradate, ristrutturato con finiture di pregio.",
