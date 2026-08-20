@@ -86,7 +86,7 @@ const copy = {
       },
       {
         title: "Dalla proposta al rogito",
-        copy: "Accettata la proposta, ti accompagniamo in ogni adempimento fino alla firma dal notaio: documenti, tempi e serenità. Non lasciamo nulla al caso.",
+        copy: "Accettata la proposta, seguiamo gli adempimenti fino alla firma: documenti, scadenze e rapporti con il notaio.",
         alt: "Consegna delle chiavi al rogito",
       },
     ],
@@ -208,7 +208,7 @@ const copy = {
       },
       {
         title: "From offer to deed",
-        copy: "Once the offer is accepted, we guide you through every step up to signing at the notary: documents, timing and peace of mind. We leave nothing to chance.",
+        copy: "Once the offer is accepted, we handle the formalities through to signing: documents, deadlines and dealings with the notary.",
         alt: "Handing over the keys at the deed",
       },
     ],
@@ -346,7 +346,7 @@ const copy = {
       },
       {
         title: "De l’offre à l’acte",
-        copy: "Une fois l’offre acceptée, nous vous accompagnons dans chaque démarche jusqu’à la signature chez le notaire : documents, délais et sérénité. Nous ne laissons rien au hasard.",
+        copy: "Une fois l’offre acceptée, nous suivons les démarches jusqu’à la signature : documents, délais et relations avec le notaire.",
         alt: "Remise des clés à l’acte",
       },
     ],
@@ -484,7 +484,7 @@ const copy = {
       },
       {
         title: "Vom Angebot bis zum Notartermin",
-        copy: "Sobald das Angebot angenommen ist, begleiten wir Sie bei jedem Schritt bis zur Unterschrift beim Notar: Unterlagen, Fristen und Gelassenheit. Wir überlassen nichts dem Zufall.",
+        copy: "Sobald das Angebot angenommen ist, kümmern wir uns um die Formalitäten bis zur Unterschrift: Unterlagen, Fristen und Abstimmung mit dem Notar.",
         alt: "Schlüsselübergabe beim Notartermin",
       },
     ],
@@ -622,7 +622,7 @@ const copy = {
       },
       {
         title: "De la propuesta a la escritura",
-        copy: "Aceptada la propuesta, te acompañamos en cada trámite hasta la firma ante notario: documentos, plazos y tranquilidad. No dejamos nada al azar.",
+        copy: "Aceptada la oferta, nos ocupamos de los trámites hasta la firma: documentos, plazos y trato con el notario.",
         alt: "Entrega de llaves en la escritura",
       },
     ],

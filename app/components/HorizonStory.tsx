@@ -41,7 +41,7 @@ const copy = {
         Persone, prima degli immobili.
       </>
     ),
-    lead: "Dal 2007 accompagniamo le famiglie di Tradate e provincia in ogni passaggio: valutazione, documenti verificati, marketing curato e assistenza fino al rogito.",
+    lead: "Dal 2007 con le famiglie di Tradate e provincia: valutiamo sui dati, verifichiamo i documenti prima del mercato, raccontiamo la casa e restiamo fino al rogito.",
     cap: "Tradate · Varese",
     stairs: ["Tra la", "Pineta", "e Milano"],
     subtitle: "Il territorio che abitiamo",
@@ -89,7 +89,7 @@ const copy = {
         Les personnes avant les biens.
       </>
     ),
-    lead: "Depuis 2007, nous accompagnons les familles de Tradate et de sa province à chaque étape : estimation, documents vérifiés, marketing soigné et assistance jusqu'à l'acte.",
+    lead: "Depuis 2007 aux côtés des familles de Tradate et de sa province : nous estimons sur des données, contrôlons les documents avant la mise en vente, racontons le bien et restons jusqu'à l'acte.",
     cap: "Tradate · Varese",
     stairs: ["Entre la", "Pineta", "et Milan"],
     subtitle: "Le territoire que nous habitons",
@@ -113,7 +113,7 @@ const copy = {
         Menschen vor Immobilien.
       </>
     ),
-    lead: "Seit 2007 begleiten wir Familien in Tradate und Umgebung bei jedem Schritt: Bewertung, geprüfte Unterlagen, sorgfältiges Marketing und Betreuung bis zum Notartermin.",
+    lead: "Seit 2007 an der Seite der Familien in Tradate und Umgebung: Wir bewerten anhand von Daten, prüfen die Unterlagen vor dem Markteintritt, erzählen das Haus und bleiben bis zum Notartermin.",
     cap: "Tradate · Varese",
     stairs: ["Zwischen dem", "Pineta-Park", "und Mailand"],
     subtitle: "Unser Zuhause, unser Gebiet",
@@ -137,7 +137,7 @@ const copy = {
         Personas antes que inmuebles.
       </>
     ),
-    lead: "Desde 2007 acompañamos a las familias de Tradate y su provincia en cada paso: valoración, documentos verificados, marketing cuidado y asistencia hasta la escritura.",
+    lead: "Desde 2007 junto a las familias de Tradate y su provincia: valoramos con datos, comprobamos los documentos antes del mercado, contamos la casa y seguimos hasta la escritura.",
     cap: "Tradate · Varese",
     stairs: ["Entre el", "parque Pineta", "y Milán"],
     subtitle: "El territorio que habitamos",

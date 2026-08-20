@@ -76,7 +76,7 @@ const copy = {
       { title: "Marketing e social preview", copy: "Campagne multicanale e anteprime social per portarla davanti alle persone giuste." },
       { title: "Open Domus e visite qualificate", copy: "Visite ordinate e l'evento Open Domus per acquirenti realmente interessati." },
       { title: "Proposta e trattativa", copy: "Gestiamo proposte e negoziazione con trasparenza, tutelando i tuoi interessi." },
-      { title: "Rogito", copy: "Ti accompagniamo passo dopo passo fino alla firma, con assistenza completa." },
+      { title: "Rogito", copy: "Prepariamo i documenti per il notaio e controlliamo i conteggi prima che tu firmi." },
     ],
   },
   en: {
@@ -100,7 +100,7 @@ const copy = {
       { title: "Marketing and social preview", copy: "Multichannel campaigns and social previews to bring it in front of the right people." },
       { title: "Open Domus and qualified viewings", copy: "Orderly viewings and the Open Domus event for genuinely interested buyers." },
       { title: "Offer and negotiation", copy: "We handle offers and negotiation with transparency, protecting your interests." },
-      { title: "Deed of sale", copy: "We accompany you step by step all the way to signing, with complete assistance." },
+      { title: "Deed of sale", copy: "We prepare the documents for the notary and check the figures before you sign." },
     ],
   },
   fr: {
@@ -124,7 +124,7 @@ const copy = {
       { title: "Marketing et aperçu social", copy: "Campagnes multicanales et aperçus sur les réseaux pour la présenter aux bonnes personnes." },
       { title: "Open Domus et visites qualifiées", copy: "Des visites ordonnées et l'événement Open Domus pour des acheteurs réellement intéressés." },
       { title: "Offre et négociation", copy: "Nous gérons offres et négociation en toute transparence, en protégeant vos intérêts." },
-      { title: "Acte de vente", copy: "Nous vous accompagnons pas à pas jusqu'à la signature, avec une assistance complète." },
+      { title: "Acte de vente", copy: "Nous préparons les documents pour le notaire et vérifions les décomptes avant votre signature." },
     ],
   },
   de: {
@@ -148,7 +148,7 @@ const copy = {
       { title: "Marketing und Social-Vorschau", copy: "Multikanal-Kampagnen und Social-Vorschauen, um sie den richtigen Menschen zu zeigen." },
       { title: "Open Domus und qualifizierte Besichtigungen", copy: "Geordnete Besichtigungen und das Event Open Domus für wirklich interessierte Käufer." },
       { title: "Angebot und Verhandlung", copy: "Wir führen Angebote und Verhandlungen transparent und schützen Ihre Interessen." },
-      { title: "Kaufvertrag", copy: "Wir begleiten Sie Schritt für Schritt bis zur Unterschrift, mit umfassender Betreuung." },
+      { title: "Kaufvertrag", copy: "Wir bereiten die Unterlagen für den Notar vor und prüfen die Abrechnungen, bevor Sie unterschreiben." },
     ],
   },
   es: {
@@ -172,7 +172,7 @@ const copy = {
       { title: "Marketing y anticipo social", copy: "Campañas multicanal y anticipos en redes para presentarla ante las personas adecuadas." },
       { title: "Open Domus y visitas cualificadas", copy: "Visitas ordenadas y el evento Open Domus para compradores realmente interesados." },
       { title: "Propuesta y negociación", copy: "Gestionamos propuestas y negociación con transparencia, protegiendo tus intereses." },
-      { title: "Escritura", copy: "Te acompañamos paso a paso hasta la firma, con asistencia completa." },
+      { title: "Escritura", copy: "Preparamos los documentos para el notario y comprobamos las cuentas antes de que firmes." },
     ],
   },
 } as const;

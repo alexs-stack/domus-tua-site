@@ -33,7 +33,7 @@ const copy = {
         </>
       ),
       subcopy:
-        "Non ti mostriamo solo case. Ti accompagniamo verso una scelta sicura, con informazioni chiare, documenti verificati e assistenza in ogni passaggio.",
+        "Non ti mostriamo solo case. Verifichiamo i documenti prima della visita, ti diciamo cosa abbiamo controllato e restiamo con te fino al rogito.",
       alt: "Living moderno bianco e luminoso",
       primaryLabel: "Cerco casa",
       secondaryLabel: "Vedi le case in vendita",
@@ -46,7 +46,7 @@ const copy = {
         "Acquistare casa non dovrebbe significare dubbi e ansie. Con Domus Tua ogni decisione poggia su informazioni chiare e su un team al tuo fianco.",
       items: [
         {
-          title: "Trasparenza totale",
+          title: "Pregi e vincoli",
           copy: "Ti diciamo come stanno davvero le cose: pregi, vincoli e contesto di ogni immobile.",
         },
         {
@@ -54,8 +54,8 @@ const copy = {
           copy: "Documentazione verificata prima della proposta: sai esattamente cosa stai acquistando.",
         },
         {
-          title: "Sempre accompagnato",
-          copy: "Dalla prima visita al rogito, hai un riferimento che ti guida in ogni passaggio.",
+          title: "La stessa persona",
+          copy: "Dalla prima visita al rogito parli sempre con la stessa persona, non con un centralino.",
         },
       ],
     },
@@ -76,7 +76,7 @@ const copy = {
         },
         {
           title: "Visite guidate e documenti chiari",
-          copy: "Ti accompagniamo in visita e mettiamo nero su bianco la documentazione, con trasparenza totale su ogni aspetto dell'immobile.",
+          copy: "Veniamo in visita con te e mettiamo nero su bianco la documentazione: conformità, titoli e spese. Quello che non sappiamo ancora, te lo diciamo.",
           alt: "Soggiorno arredato con divano",
         },
         {
@@ -127,7 +127,7 @@ const copy = {
         </>
       ),
       subcopy:
-        "We don’t just show you houses. We guide you towards a confident choice, with clear information, verified documents and support at every step.",
+        "We don’t just show you houses. We check the paperwork before the viewing, tell you what we verified, and stay with you through to the deed.",
       alt: "Bright, modern white living room",
       primaryLabel: "I’m looking for a home",
       secondaryLabel: "See the homes for sale",
@@ -140,7 +140,7 @@ const copy = {
         "Buying a home shouldn’t mean doubts and anxiety. With Domus Tua every decision rests on clear information and on a team by your side.",
       items: [
         {
-          title: "Complete transparency",
+          title: "Strengths and limits",
           copy: "We tell you how things really are: the strengths, the constraints and the setting of every property.",
         },
         {
@@ -148,8 +148,8 @@ const copy = {
           copy: "Documentation verified before the offer: you know exactly what you are buying.",
         },
         {
-          title: "Always accompanied",
-          copy: "From the first viewing to closing, you have a point of reference guiding you at every step.",
+          title: "The same person",
+          copy: "From the first viewing to the deed you always speak to the same person, not a switchboard.",
         },
       ],
     },
@@ -170,7 +170,7 @@ const copy = {
         },
         {
           title: "Guided viewings and clear documents",
-          copy: "We accompany you on the viewing and put the documentation in writing, with total transparency on every aspect of the property.",
+          copy: "We come to the viewing with you and put the paperwork in writing: compliance, titles and costs. What we don’t know yet, we tell you.",
           alt: "Living room furnished with a sofa",
         },
         {
@@ -221,7 +221,7 @@ const copy = {
         </>
       ),
       subcopy:
-        "Nous ne vous montrons pas seulement des maisons. Nous vous accompagnons vers un choix serein, avec des informations claires, des documents vérifiés et un soutien à chaque étape.",
+        "Nous ne vous montrons pas seulement des maisons. Nous contrôlons les documents avant la visite, nous vous disons ce que nous avons vérifié, et nous restons à vos côtés jusqu’à l’acte.",
       alt: "Séjour moderne, blanc et lumineux",
       primaryLabel: "Je cherche une maison",
       secondaryLabel: "Voir les biens à vendre",
@@ -234,7 +234,7 @@ const copy = {
         "Acheter une maison ne devrait pas rimer avec doutes et inquiétudes. Avec Domus Tua, chaque décision repose sur des informations claires et sur une équipe à vos côtés.",
       items: [
         {
-          title: "Transparence totale",
+          title: "Atouts et contraintes",
           copy: "Nous vous disons les choses telles qu’elles sont vraiment : atouts, contraintes et contexte de chaque bien.",
         },
         {
@@ -242,8 +242,8 @@ const copy = {
           copy: "Documentation vérifiée avant l’offre : vous savez exactement ce que vous achetez.",
         },
         {
-          title: "Toujours accompagné",
-          copy: "De la première visite à l’acte, vous avez un interlocuteur qui vous guide à chaque étape.",
+          title: "La même personne",
+          copy: "De la première visite à l’acte, vous parlez toujours à la même personne, pas à un standard.",
         },
       ],
     },
@@ -264,7 +264,7 @@ const copy = {
         },
         {
           title: "Visites guidées et documents clairs",
-          copy: "Nous vous accompagnons en visite et mettons la documentation noir sur blanc, avec une transparence totale sur chaque aspect du bien.",
+          copy: "Nous venons à la visite avec vous et mettons la documentation par écrit : conformité, titres et charges. Ce que nous ne savons pas encore, nous vous le disons.",
           alt: "Salon meublé avec un canapé",
         },
         {
@@ -315,7 +315,7 @@ const copy = {
         </>
       ),
       subcopy:
-        "Wir zeigen Ihnen nicht nur Häuser. Wir begleiten Sie zu einer sicheren Entscheidung, mit klaren Informationen, geprüften Unterlagen und Unterstützung bei jedem Schritt.",
+        "Wir zeigen Ihnen nicht nur Häuser. Wir prüfen die Unterlagen vor der Besichtigung, sagen Ihnen, was wir kontrolliert haben, und bleiben bis zum Notartermin an Ihrer Seite.",
       alt: "Helles, modernes weißes Wohnzimmer",
       primaryLabel: "Ich suche ein Zuhause",
       secondaryLabel: "Immobilien zum Verkauf ansehen",
@@ -328,7 +328,7 @@ const copy = {
         "Ein Zuhause zu kaufen sollte nicht Zweifel und Sorgen bedeuten. Mit Domus Tua ruht jede Entscheidung auf klaren Informationen und auf einem Team an Ihrer Seite.",
       items: [
         {
-          title: "Vollständige Transparenz",
+          title: "Vorzüge und Einschränkungen",
           copy: "Wir sagen Ihnen, wie die Dinge wirklich stehen: Vorzüge, Einschränkungen und Umfeld jeder Immobilie.",
         },
         {
@@ -336,8 +336,8 @@ const copy = {
           copy: "Unterlagen werden vor dem Angebot geprüft: Sie wissen genau, was Sie kaufen.",
         },
         {
-          title: "Immer begleitet",
-          copy: "Von der ersten Besichtigung bis zum Notartermin haben Sie einen Ansprechpartner, der Sie bei jedem Schritt führt.",
+          title: "Dieselbe Person",
+          copy: "Von der ersten Besichtigung bis zum Notartermin sprechen Sie immer mit derselben Person, nicht mit einer Zentrale.",
         },
       ],
     },
@@ -358,7 +358,7 @@ const copy = {
         },
         {
           title: "Begleitete Besichtigungen und klare Unterlagen",
-          copy: "Wir begleiten Sie bei der Besichtigung und halten die Unterlagen schriftlich fest, mit völliger Transparenz zu jedem Aspekt der Immobilie.",
+          copy: "Wir kommen mit zur Besichtigung und legen die Unterlagen schriftlich vor: Konformität, Titel und Kosten. Was wir noch nicht wissen, sagen wir Ihnen.",
           alt: "Mit einem Sofa eingerichtetes Wohnzimmer",
         },
         {
@@ -409,7 +409,7 @@ const copy = {
         </>
       ),
       subcopy:
-        "No solo te mostramos casas. Te acompañamos hacia una elección segura, con información clara, documentos verificados y asistencia en cada paso.",
+        "No solo te mostramos casas. Comprobamos los documentos antes de la visita, te decimos qué hemos verificado y seguimos contigo hasta la escritura.",
       alt: "Salón moderno blanco y luminoso",
       primaryLabel: "Busco casa",
       secondaryLabel: "Ver las casas en venta",
@@ -422,7 +422,7 @@ const copy = {
         "Comprar casa no debería significar dudas y ansiedad. Con Domus Tua cada decisión se apoya en información clara y en un equipo a tu lado.",
       items: [
         {
-          title: "Transparencia total",
+          title: "Ventajas y límites",
           copy: "Te contamos cómo están realmente las cosas: virtudes, limitaciones y contexto de cada inmueble.",
         },
         {
@@ -430,8 +430,8 @@ const copy = {
           copy: "Documentación verificada antes de la propuesta: sabes exactamente qué estás comprando.",
         },
         {
-          title: "Siempre acompañado",
-          copy: "Desde la primera visita hasta la escritura, tienes un referente que te guía en cada paso.",
+          title: "La misma persona",
+          copy: "Desde la primera visita hasta la escritura hablas siempre con la misma persona, no con una centralita.",
         },
       ],
     },
@@ -452,7 +452,7 @@ const copy = {
         },
         {
           title: "Visitas guiadas y documentos claros",
-          copy: "Te acompañamos en la visita y ponemos por escrito la documentación, con transparencia total sobre cada aspecto del inmueble.",
+          copy: "Vamos contigo a la visita y ponemos por escrito la documentación: conformidad, títulos y gastos. Lo que aún no sabemos, te lo decimos.",
           alt: "Salón amueblado con sofá",
         },
         {

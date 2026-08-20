@@ -70,7 +70,7 @@ const copy = {
       acquista: {
         tag: "Per chi acquista",
         title: "Acquista casa con più risposte e meno dubbi.",
-        copy: "Ti accompagniamo nelle visite, nella documentazione, nella proposta e in ogni passaggio fino al rogito.",
+        copy: "Organizziamo le visite, controlliamo la documentazione e ti assistiamo sulla proposta, fino al rogito.",
         points: [
           "Informazioni chiare già prima della visita",
           "Documentazione verificata e trasparente",
@@ -101,7 +101,7 @@ const copy = {
       acquista: {
         tag: "For those buying",
         title: "Buy your home with more answers and fewer doubts.",
-        copy: "We guide you through viewings, documentation, the offer and every step up to the closing.",
+        copy: "We organise the viewings, check the paperwork and assist you on the offer, through to the deed.",
         points: [
           "Clear information even before the viewing",
           "Verified and transparent documentation",
@@ -132,7 +132,7 @@ const copy = {
       acquista: {
         tag: "Pour ceux qui achètent",
         title: "Achetez votre bien avec plus de réponses et moins de doutes.",
-        copy: "Nous vous accompagnons lors des visites, dans les démarches, dans l'offre et à chaque étape jusqu'à la signature.",
+        copy: "Nous organisons les visites, contrôlons les documents et vous assistons sur l'offre, jusqu'à la signature.",
         points: [
           "Des informations claires dès avant la visite",
           "Une documentation vérifiée et transparente",
@@ -163,7 +163,7 @@ const copy = {
       acquista: {
         tag: "Für Käufer",
         title: "Kaufen Sie Ihre Immobilie mit mehr Antworten und weniger Zweifeln.",
-        copy: "Wir begleiten Sie bei Besichtigungen, bei den Unterlagen, beim Angebot und bei jedem Schritt bis zum Notartermin.",
+        copy: "Wir organisieren die Besichtigungen, prüfen die Unterlagen und unterstützen Sie beim Angebot, bis zum Notartermin.",
         points: [
           "Klare Informationen schon vor der Besichtigung",
           "Geprüfte und transparente Unterlagen",
@@ -194,7 +194,7 @@ const copy = {
       acquista: {
         tag: "Para quien compra",
         title: "Compra tu casa con más respuestas y menos dudas.",
-        copy: "Te acompañamos en las visitas, en la documentación, en la oferta y en cada paso hasta la firma.",
+        copy: "Organizamos las visitas, comprobamos la documentación y te asistimos en la oferta, hasta la firma.",
         points: [
           "Información clara ya antes de la visita",
           "Documentación verificada y transparente",
