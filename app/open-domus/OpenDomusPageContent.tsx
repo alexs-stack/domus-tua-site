@@ -23,6 +23,7 @@ import {
 } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { youtubeWatch } from "../lib/videos";
+import { faqIt } from "./faq";
 
 const copy = {
   it: {
@@ -139,24 +140,8 @@ const copy = {
 
     faqEyebrow: "Domande frequenti",
     faqTitle: "Quello che i proprietari ci chiedono.",
-    faq: [
-      {
-        q: "Quanto dura un Open Domus?",
-        a: "In genere una giornata dedicata, con visite per appuntamento distribuite in fasce orarie. Concentrare l’interesse in poche ore crea slancio e comparabilità tra le proposte.",
-      },
-      {
-        q: "Devo lasciare libera la casa?",
-        a: "No. Ci occupiamo noi della preparazione, dell’accoglienza e della gestione delle visite. A te chiediamo solo di fidarti del metodo: al resto pensiamo noi.",
-      },
-      {
-        q: "Chi partecipa alle visite?",
-        a: "Solo acquirenti prequalificati e realmente interessati. Filtriamo a monte per proteggere la tua casa e il tuo tempo.",
-      },
-      {
-        q: "È adatto a qualsiasi immobile?",
-        a: "Open Domus dà il meglio quando c’è una storia da raccontare. Ne parliamo insieme e ti diciamo con onestà se è il format giusto per te.",
-      },
-    ],
+    // Stesse voci del JSON-LD FAQPage in page.tsx: fonte unica in ./faq.ts.
+    faq: faqIt,
 
     finalTitle: "La tua casa merita più di una visita qualunque.",
     finalText:
