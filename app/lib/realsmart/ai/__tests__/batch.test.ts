@@ -20,6 +20,11 @@ function mkItem(codice: string): BatchItem {
     town: "Tradate", province: "VA", showAddress: false, sqm: 90, rooms: 3, bedrooms: 2, baths: 2,
     features: [], facts: [], factsReview: [], images: [], status: "published", badges: [],
     publishedAt: "", updatedAt: "", sourceRef: { codice }, normalizedBy: "deterministic",
+    // Due campi diventati obbligatori su NormalizedProperty dopo il 13 agosto
+    // (quarantena segnaposto e prova documentale): la fixture di questo ramo è
+    // anteriore e senza di loro non compila. Valori neutri: la fixture descrive
+    // un annuncio pulito e senza evidenza D.O.C.
+    placeholderQuarantined: false, docVerified: false,
   };
   const raw: RealSmartListingRaw = { codice, titolo: "Trilocale", descrizione: "x" };
   return { base, raw };

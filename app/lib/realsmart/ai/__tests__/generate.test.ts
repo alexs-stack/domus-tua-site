@@ -42,6 +42,11 @@ function mkBase(over: Partial<NormalizedProperty> = {}): NormalizedProperty {
     updatedAt: "",
     sourceRef: { codice: "T1" },
     normalizedBy: "deterministic",
+    // Due campi diventati obbligatori su NormalizedProperty dopo il 13 agosto
+    // (quarantena segnaposto e prova documentale): la fixture di questo ramo è
+    // anteriore e senza di loro non compila. Valori neutri: la fixture descrive
+    // un annuncio pulito e senza evidenza D.O.C.
+    placeholderQuarantined: false, docVerified: false,
     ...over,
   };
 }
