@@ -39,6 +39,15 @@
    bordo destro. Lo dice RailProgress, sotto — e non è motion, è la barra di
    scorrimento che il CSS aveva tolto (2026-08-11, parità mobile).
 
+   E MANCAVA IL SECONDO PIANO («parità mobile 2», scheda 20, 2026-08-18).
+   Sotto la soglia il track lo muoveva il dito, ma i pan restavano fermi: la
+   profondità — che è il punto di questo componente — esisteva solo da 1024
+   in su. Adesso c'è a ogni larghezza, con lo stesso translateX per tessera:
+   RailProgress scrive la frazione 0→1 della corsa nativa anche sullo
+   scroller e una regola CSS (`.dt-rail:not([data-on]) .dt-rail_pan`,
+   globals.css) la trasforma nel pan. Il ramo mobile resta senza GSAP:
+   zero ScrollTrigger e zero will-change in più — è l'alleggerimento nominato.
+
    Le regole di layout stanno in globals.css (blocchi ".dt-rail"/".dt-railway").
    ═══════════════════════════════════════════════════════════════════════════ */
 

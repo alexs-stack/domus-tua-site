@@ -124,8 +124,13 @@ export default function Team() {
           decoro ancorato al fondo della sezione. */}
       <div className="relative">
       <Atmosphere word="Domus Tua" glow drift={1} wordClassName="left-[2%] bottom-[4%] text-[13vw]" />
-      {/* Angolo fiorito (solo desktop): il capitolo umano è un giardino.
-          Lo scudo overflow-hidden lascia sbordare i tralci senza scrollbar. */}
+      {/* Angolo fiorito: il capitolo umano è un giardino.
+          Lo scudo overflow-hidden lascia sbordare i tralci senza scrollbar.
+          Sotto lg resta `hidden` per la regola «una Fioritura per sezione a
+          390» (docs/effetti-reference.md, onda «parità mobile 2» verdetto 6):
+          questa sezione ha già la scritta in fiori qui sotto (`center`,
+          accesa a ogni larghezza), che è la sua. Non è la vecchia dottrina
+          «tradurre»: è un tetto di densità. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <Fioritura
           variant="corner-tr"
@@ -230,12 +235,12 @@ export default function Team() {
               ogni larghezza. La ragione della riga sopra è anche la ragione per
               accenderla — il ritratto regge la colonna stretta, e sotto lg è
               l'unica immagine di questo capitolo prima del corridoio. */}
-          {/* `mobile` tolta dopo la misura: la figura è alta 284px e
-              `speed -0.08` vale ±1,12% di quella, cioè 6,4px di corsa totale.
-              Sotto la soglia di percepibilità con cui la wave ha cancellato
-              altri due effetti. Il ritratto sul telefono ha già il sipario di
-              Reveal: quello si vede. */}
-          <Parallax speed={-0.08}>
+          {/* mob off (misura): la figura è alta 284px e `speed -0.08` vale
+              ±1,12% di quella, cioè 6,4px di corsa totale — ~3px con la corsa
+              dimezzata che Parallax applica sotto 768 (onda «parità mobile 2»),
+              sotto i ~10px del criterio. Il ritratto sul telefono ha già il
+              sipario di Reveal: quello si vede. */}
+          <Parallax speed={-0.08} mobile={false}>
             <Reveal delay={120}>
               <figure className="group overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
                 {/* Sipario da sinistra e in leggero ritardo: il verso è

@@ -41,23 +41,43 @@ export const site = {
   openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 14:30-19:00", "Sa 09:00-12:30"],
   rating: "4.9",
   reviewsCount: "531",
-  /** Conteggio ARROTONDATO per difetto, per le frasi "oltre 500 recensioni".
-      Derivato da reviewsCount (531): stessa fonte, così i due non divergono
-      (il test di content-integrity lo verifica). */
-  reviewsApprox: "500",
+  // NB: qui NON c'è più `reviewsApprox: "500"`. Esisteva per reggere le frasi "oltre 500
+  // recensioni", ed era la metà sbagliata di un'incoerenza che il sito portava in giro:
+  // "oltre 500" in quattordici punti e "531" nell'hero, cioè due numeri per lo stesso dato
+  // (voce 16 della checklist). La decisione del Documento finale è unificare su 531 — e il
+  // motivo è nel §6.3: «le prove devono essere forti perché sono ESATTE, non perché sono
+  // assolute». 531 è più credibile di "oltre 500" proprio perché nessuno inventa un 531.
+  // Il campo è stato tolto invece di essere collegato: era vivo solo per una formula che
+  // non si usa più.
   // NB: nessun conteggio video qui. Il vecchio `videosCountLabel: "440+"` era una stima non
   // verificata mostrata come dato: rimosso. Se il cliente fornisce il numero reale del canale
   // (@DOMUSTUASRLIMMOBILIARE) si potrà reintrodurre, con la fonte annotata come per gli altri
   // campi di questo file. Vedi il test di content integrity.
-  // Claim descrittivo/verificabile (non superlativo assoluto senza fonte, art. 2598 c.c.).
-  // Se il cliente documenta il primato "più recensita", si può ripristinare la versione forte.
-  authority: "Tra le agenzie immobiliari indipendenti più recensite della provincia di Varese.",
+  // Claim di autorevolezza.
+  //
+  // La versione precedente ("Tra le agenzie immobiliari indipendenti più recensite della
+  // provincia di Varese") sbagliava tre cose in una riga: rimpiccioliva il territorio
+  // (una classifica nazionale raccontata come provinciale), sbagliava il criterio
+  // (Wikicasa Top Agency è costruita sul fatturato, non sulle recensioni) e buttava via
+  // la ripetizione (tre anni consecutivi diventavano uno). E soprattutto DUPLICAVA la
+  // prova già data dal 4,9/531 invece di aggiungerne una indipendente.
+  //
+  // L'ultima frase non è un ornamento: il premio da solo dice "siamo grandi", il premio
+  // più "una sola sede, indipendenti, a guida femminile" dice quanto vale arrivarci da
+  // Tradate, senza una rete nazionale dietro.
+  authority:
+    "Tre anni consecutivi tra le migliori 400 agenzie immobiliari d'Italia, in una classifica nazionale costruita sul fatturato. Da un'agenzia indipendente, a guida femminile, con una sola sede: Tradate.",
   // Riconoscimento Wikicasa (mostrato accanto al voto in StarReviews). Le parti
   // stabili stanno qui, una volta sola, invece che ripetute nella copy per ogni
   // lingua; il testo accessibile localizzato resta nel componente.
+  //
+  // `years` è la ripetizione, ed è la parte che conta: un anno è un risultato, tre
+  // consecutivi sono un andamento. `label` resta la dicitura del riconoscimento.
+  // Niente `issuer` separato: l'ente è dentro la denominazione ("Top Agency Wikicasa"),
+  // e tenerlo come campo a parte significava soltanto stamparlo due volte di fila.
   award: {
-    label: "Top Agency 2026",
-    issuer: "Wikicasa",
+    label: "Top Agency Wikicasa",
+    years: [2024, 2025, 2026],
     href: "https://www.wikicasa.it/agenzia-immobiliare/domus-tua-178643",
   },
   // Google Business reale (CID ricavato dal Maps embed del sito ufficiale Domus Tua).
@@ -75,7 +95,7 @@ export const site = {
   },
 
   // Video REALI dal canale YouTube Domus Tua (@DOMUSTUASRLIMMOBILIARE), verificati.
-  // Sorgente unica usata da SocialVideoWall + FeaturedTestimonial. Il cliente può
+  // Sorgente unica usata da ReviewsWall + FeaturedTestimonial. Il cliente può
   // sostituire/aggiungere ID e timestamp; qui usiamo clip già pubbliche del canale.
   videos: {
     // Storia di successo — "Venduta al primo Open Domus" (villa di Roberta).
@@ -139,6 +159,26 @@ export const pendingConfirmation = {
       "NON è una decisione sul valore vero: entrambi restano candidati fino alla " +
       "conferma del cliente.",
   },
+  wikicasaAward: {
+    field: "Premio Wikicasa — denominazione esatta, anni e perimetro",
+    published: {
+      label: site.award.label,
+      years: site.award.years,
+      perimeter: "migliori 400 agenzie d'Italia, classifica nazionale su base fatturato",
+    },
+    candidates: [
+      "Top Agency Wikicasa 2024/2025/2026 — nazionale, su fatturato",
+      "Top Agency 2026 — provinciale, sulle recensioni (versione pubblicata fino al 2026-08-15)",
+    ],
+    note:
+      "Il claim è stato riscritto perché quello precedente era sbagliato per difetto: " +
+      "raccontava come provinciale e basata sulle recensioni una classifica che è " +
+      "nazionale e costruita sul fatturato, e citava un anno solo invece di tre. " +
+      "La fonte verificabile è il profilo pubblico Wikicasa (site.award.href). " +
+      "PRIMA DEL GO-LIVE la direzione deve confermare denominazione esatta, i tre anni " +
+      "e il perimetro: una prova vale perché è esatta, non perché è forte, e questa è " +
+      "l'unica prova indipendente dal voto Google che l'agenzia possiede.",
+  },
   emailRoles: {
     field: "Indirizzi email — pubblico vs operativo",
     published: {
@@ -154,6 +194,57 @@ export const pendingConfirmation = {
       "(pubblico ≠ casella operativa). Nessuno dei due viene scelto o unificato qui.",
   },
 } as const;
+
+/**
+ * BreadcrumbList di una pagina di secondo livello — FONTE UNICA.
+ *
+ * Era ricopiato a mano in cinque file, sempre nella stessa forma home → pagina, e otto
+ * rotte restavano scoperte (voce 26): /vendi, /acquista, /metodo, /open-domus, /servizi,
+ * /recensioni, /contatti, /case-vendute. Il briciolo di pane non è decorazione — è ciò
+ * che Google usa per mostrare il percorso al posto dell'URL nudo nei risultati.
+ *
+ * `path` con lo slash iniziale e senza quello finale ("/vendi"): è la forma delle rotte
+ * di questo sito, ed è quella che il canonical già usa.
+ */
+export function breadcrumbJsonLd(name: string, path: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: site.name, item: siteUrl },
+      { "@type": "ListItem", position: 2, name, item: `${siteUrl}${path}` },
+    ],
+  };
+}
+
+/**
+ * Il territorio come si DICE in pagina — FONTE UNICA.
+ *
+ * Nei dati strutturati `areaServed` era già stato esteso all'alta provincia di Como (§5.5:
+ * a catalogo ci sono immobili a Mozzate, che è provincia di Como). I testi visibili no:
+ * FAQ, HorizonStory e la conoscenza dell'assistente dicevano ancora "la provincia di
+ * Varese", cioè il sito escludeva a parole metà del suo mercato naturale mentre lo
+ * dichiarava a Google.
+ *
+ * Sta qui e non in tre posti perché è già successo che divergessero: il JSON-LD è stato
+ * corretto e le frasi sono rimaste indietro.
+ */
+export const territoryLabel = "la provincia di Varese e l'alta provincia di Como";
+
+/**
+ * Il voto come si SCRIVE nella lingua di chi legge.
+ *
+ * `site.rating` è il valore macchina ("4.9"), quello che va nei dati strutturati. Ma in
+ * italiano, francese, tedesco e spagnolo il separatore decimale è la virgola, e "4.9" letto
+ * da un italiano è un refuso, non un numero. L'inglese resta col punto.
+ *
+ * Stava dentro HeroCinematic come costante locale, e infatti /recensioni scriveva "4.9/5 di
+ * media" in italiano mentre il francese aveva già "4,9/5 de moyenne": la stessa regola
+ * applicata a mano in posti diversi diverge sempre. Qui è una funzione sola.
+ */
+export function ratingLabel(locale: string): string {
+  return locale === "en" ? site.rating : site.rating.replace(".", ",");
+}
 
 /**
  * Origin pubblico del sito — FONTE UNICA.
@@ -221,6 +312,18 @@ export const nav = [
 ] as const;
 
 /**
+ * Anni di attività, derivati da `site.since` — MAI scritti a mano.
+ *
+ * Il sito diceva tre cose diverse sulla stessa età: "oltre quindici anni" nel Metodo e in
+ * Chi siamo, il conteggio esatto nei numeri della home, "dal 2007" nel footer. Quindici era
+ * vero nel 2022. Una funzione (non una costante di modulo) perché un server che resta su per
+ * mesi attraverserebbe un capodanno con il valore congelato all'import.
+ */
+export function yearsActive(): number {
+  return new Date().getFullYear() - site.since;
+}
+
+/**
  * Serializza dati strutturati per un tag `<script type="application/ld+json">`.
  *
  * `JSON.stringify` da solo non basta: non tocca la sequenza `</script>`, e i titoli e le
@@ -233,6 +336,38 @@ export function jsonLdScript(data: unknown): string {
     .replace(/</g, "\\u003c")
     .replace(/\u2028/g, "\\u2028")
     .replace(/\u2029/g, "\\u2029");
+}
+
+/**
+ * Il sito come entit\u00e0, con la sua ricerca interna (punto 26).
+ *
+ * `SearchAction` dichiara a Google che il sito ha una ricerca propria e come interrogarla.
+ * Serve al box di ricerca nei risultati (sitelinks searchbox) e, pi\u00f9 in generale, a far
+ * capire che /acquista non \u00e8 un elenco statico ma uno strumento.
+ *
+ * \u26a0\ufe0f IL PARAMETRO DEV'ESSERE VERO, E LO \u00c8: `?q=` viene letto da PropertySearch, che
+ * pre-imposta i filtri dai query param (\u00e8 lo stesso meccanismo con cui HomeSearchGateway
+ * passa la ricerca dalla home). Dichiarare un endpoint di ricerca che non esiste \u00e8 una
+ * delle poche cose che Google verifica davvero \u2014 e qui non serve mentire, la ricerca c'\u00e8.
+ */
+export function webSiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    url: siteUrl,
+    name: site.name,
+    inLanguage: "it-IT",
+    publisher: { "@id": `${siteUrl}/#organization` },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteUrl}/acquista?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
 }
 
 /**
@@ -264,8 +399,20 @@ export function organizationJsonLd() {
       addressCountry: "IT",
     },
     geo: { "@type": "GeoCoordinates", latitude: 45.7114282, longitude: 8.905019 },
-    areaServed: "Tradate e provincia di Varese",
+    // Il territorio dichiarato era più piccolo di quello reale: "Tradate e provincia di
+    // Varese" mentre a catalogo ci sono immobili a Mozzate, che è provincia di Como.
+    // Dichiarare meno di quello che si copre significa escludersi da soli da metà del
+    // proprio mercato naturale — la fascia fra Varese e Como è continua, non si ferma
+    // al confine amministrativo.
+    areaServed: ["Tradate", "Provincia di Varese", "Alta provincia di Como"],
     openingHours: site.openingHours,
+    // Il premio come dato strutturato, non solo come immagine in pagina: un anno per
+    // voce, che è la forma che schema.org si aspetta e che rende leggibile la
+    // ripetizione (tre anni consecutivi) invece del solo anno corrente.
+    award: site.award.years.map((y) => `${site.award.label} ${y}`),
+    // Fascia di prezzo del SERVIZIO di mediazione, non degli immobili. Google la usa
+    // nella scheda locale; senza, il campo resta vuoto e viene compilato da terzi.
+    priceRange: "€€",
     sameAs: [
       site.social.instagram.href,
       site.social.facebook.href,

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { siteUrl } from "./app/lib/site";
 
 /**
  * Intestazioni di sicurezza applicate a ogni risposta.
@@ -30,6 +31,36 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // ── Sottodominio annunci.domustua.com (catalogo del vecchio gestionale) ────
+      //
+      // Sta PRIMA di tutto il resto di proposito: sull'host degli annunci ogni URL deve
+      // uscire con UN SOLO salto. Se questa regola stesse in fondo, `annunci/vendi-casa`
+      // combacerebbe prima con la riga `/vendi-casa` qui sotto e atterrerebbe su
+      // `annunci.domustua.com/vendi` — host sbagliato, e un secondo salto per rimediare.
+      //
+      // ⚠️ La destinazione è ASSOLUTA, e non è una scelta di stile. Con una destinazione
+      // relativa (`/acquista`) il browser resterebbe sul sottodominio, l'host tornerebbe a
+      // combaciare e il redirect si riapplicherebbe: ciclo infinito. L'origine viene da
+      // `siteUrl` (fonte unica in app/lib/site.ts), così un cambio di dominio non lascia
+      // qui dentro un valore vecchio.
+      //
+      // Destinazione IN BLOCCO su /acquista, non scheda per scheda: lo slug delle schede
+      // nuove è il codice RealSmart, e senza l'inventario reale delle URL del sottodominio
+      // una mappa puntuale sarebbe inventata. Quando il rapporto Pagine di Search Console
+      // darà i percorsi veri, le righe puntuali vanno aggiunte QUI SOPRA (prima del
+      // jolly), non al posto suo: il jolly resta la rete di sicurezza.
+      //
+      // ⚠️ Questa regola vive nel codice, ma da sola non basta: si applica solo se
+      // `annunci.domustua.com` punta a QUESTO deploy. Finché il DNS del sottodominio
+      // risponde dal vecchio hosting, il sito nuovo non lo vede nemmeno passare.
+      // Vedi docs/migration-checklist.md.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "annunci.domustua.com" }],
+        destination: `${siteUrl}/acquista`,
+        permanent: true,
+      },
+
       // L'indice /case non esiste più: il catalogo con la ricerca vive su /acquista.
       // Match esatto (le schede /case/<slug> restano), query param preservati di default
       // così i vecchi link /case?comune=… continuano a pre-impostare i filtri.
@@ -61,6 +92,12 @@ const nextConfig: NextConfig = {
       // Le due pagine di ingresso del vecchio menu.
       { source: "/cerchi-casa", destination: "/acquista", permanent: true },
       { source: "/vendi-casa", destination: "/vendi", permanent: true },
+
+      // Il catalogo immobili sul dominio principale del vecchio sito. La riga con il jolly
+      // copre le eventuali schede figlie (/proprieta/<annuncio>): come per il sottodominio,
+      // vanno in blocco su /acquista finché non esiste l'inventario reale delle URL.
+      { source: "/proprieta/:path*", destination: "/acquista", permanent: true },
+      { source: "/proprieta", destination: "/acquista", permanent: true },
 
       // Servizi. Open Domus ha una pagina propria; gli altri cinque confluiscono nell'hub
       // finché non avranno la loro (docs/retainer-plan.md §7.1: sono le destinazioni

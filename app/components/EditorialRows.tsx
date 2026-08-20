@@ -59,17 +59,19 @@ export default function EditorialRows({
                   className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line"
                   innerClassName="absolute inset-0"
                 >
-                  {/* `mobile` tolta dopo la misura: sotto sm la cornice è
-                      `aspect-[5/4]` in una colonna da 350px, quindi alta 306px,
-                      e `speed 0.1` vale ±1,4% — 7,8px di corsa totale su
-                      quattro righe per pagina, su tre rotte. Sotto la soglia
-                      con cui questa wave ha cancellato la cupola e i gradini:
-                      dodici ScrollTrigger scrubbati per un movimento invisibile
-                      sarebbe il conto peggiore della fase. Se un giorno la
-                      cornice si alza sotto sm, la si riaccende. */}
+                  {/* mob off (misura): sotto sm la cornice è `aspect-[5/4]` in
+                      una colonna da 350px, quindi alta 306px, e `speed 0.1`
+                      vale ±1,4% — 7,8px di corsa totale, che con la corsa
+                      dimezzata del telefono (Parallax, PHONE_SPEED_FACTOR)
+                      diventano ~4px: invisibile, sotto i ~10px del criterio
+                      dell'onda «parità mobile 2». Quattro righe per pagina su
+                      tre rotte: dodici ScrollTrigger scrubbati per un
+                      movimento che non c'è. Se un giorno la cornice si alza
+                      sotto sm, si toglie il `mobile={false}`. */}
                   <Parallax
                     speed={0.1}
                     scale={1.1}
+                    mobile={false}
                     className="absolute inset-0"
                     innerClassName="absolute inset-0"
                   >
@@ -85,13 +87,16 @@ export default function EditorialRows({
                 {/* Il Reveal resta solo sulla colonna testo: l'immagine ha già il suo ingresso. */}
                 <Reveal className={reversed ? "lg:pr-6" : "lg:pl-6"}>
                   {/* Numero-fantasma: deriva più veloce del flusso, effetto collage editoriale.
-                      Niente `mobile`, e sono due ragioni che vanno nella stessa
-                      direzione: il collage esiste perché a due colonne il numero
-                      scorre CONTRO la fotografia accanto, e sotto lg quella
-                      fotografia gli sta sopra invece che a fianco — non c'è più
-                      nulla contro cui derivare. E l'ampiezza qui è in px: 52px
-                      di corsa su un numerale incollato al titolo, in colonna
-                      stretta, si legge come un titolo che non sta fermo. */}
+                      Acceso anche sul telefono (default di Parallax dall'onda
+                      «parità mobile 2», verdetto 7). L'onda precedente lo
+                      teneva fermo sotto 768 per due ragioni; rilette: «sotto lg
+                      la fotografia gli sta sopra, non c'è nulla contro cui
+                      derivare» vale già fra 768 e 1023, dove la deriva c'è
+                      sempre stata — non è una ragione del telefono; e i 52px di
+                      corsa «da titolo che non sta fermo» sul telefono sono 26
+                      (`range` dimezzato dal componente): sopra i ~10px del
+                      criterio, dunque visibile, e su un numerale decorativo al
+                      25% che sta SOPRA il titolo, non dentro. */}
                   <Parallax speed={-1} range={26} className="w-fit">
                     <span className="font-display text-5xl font-medium text-red/25">{r.n}</span>
                   </Parallax>

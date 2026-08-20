@@ -84,4 +84,5 @@ _refs/
 # radice per poter risolvere @playwright/test, e cancellati subito dopo).
 .dt-*.mjs
 
+# Report generati dall'audit contenuti (artefatti CI, non versionati)
 reports/

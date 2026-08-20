@@ -9,6 +9,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import type { ToolContext } from "./context";
 import { toListingPayload, type ListingPayload } from "./payload";
+import type { AssistantTerritory } from "./territory";
 
 const inputSchema = z.object({
   slug: z
@@ -21,7 +22,22 @@ const inputSchema = z.object({
 export type ListingDetailsResult =
   | { esito: "non-disponibile"; nota: string }
   | { esito: "non-trovato"; slug: string; nota: string }
-  | { esito: "ok"; immobile: ListingPayload; descrizione: string; nota: string };
+  | {
+      esito: "ok";
+      immobile: ListingPayload;
+      descrizione: string;
+      /** Territorio APPROVATO+FRESCO attorno all'immobile (POI/distanze), o null se assente/stale. */
+      territorio: AssistantTerritory | null;
+      nota: string;
+    };
+
+/** Nota che ricorda al modello la separazione immobile↔zona e da dove sono misurate le distanze. */
+const NOTA_BASE =
+  "Rispondi solo con questi dati. Un campo null significa che l'informazione non è disponibile: dillo esplicitamente, non dedurre che l'immobile non abbia quella caratteristica.";
+const NOTA_TERRITORIO_OK =
+  " Il campo territorio descrive la ZONA attorno all'immobile, non l'immobile: di' \"nei dintorni\" o \"in zona\", mai \"l'immobile ha\". Riporta le distanze citando SEMPRE la base indicata (territorio.base) e il metodo (in linea d'aria): mai \"a piedi\"/\"in auto\". Cita la fonte e la data. Non dire che un luogo è comodo, sicuro, prestigioso o adatto a un gruppo di persone.";
+const NOTA_TERRITORIO_ASSENTE =
+  " Nessun dato territoriale approvato e fresco per questo immobile: NON inventare POI o distanze. Se te lo chiedono, dillo e rispondi solo con i dati verificati dell'immobile.";
 
 export function createGetListingDetails(ctx: ToolContext) {
   return tool({
@@ -49,11 +65,18 @@ export function createGetListingDetails(ctx: ToolContext) {
         };
       }
 
+      // Territorio: SOLO se la feature è attiva; sempre dato approvato+fresco, mai coordinate.
+      const territorio = ctx.territory ? await ctx.territory.forListing(slug) : null;
+      const nota = ctx.territory
+        ? NOTA_BASE + (territorio ? NOTA_TERRITORIO_OK : NOTA_TERRITORIO_ASSENTE)
+        : NOTA_BASE;
+
       return {
         esito: "ok",
         immobile: toListingPayload(property, normalized),
         descrizione: property.excerpt,
-        nota: "Rispondi solo con questi dati. Un campo null significa che l'informazione non è disponibile: dillo esplicitamente, non dedurre che l'immobile non abbia quella caratteristica.",
+        territorio,
+        nota,
       };
     },
   });

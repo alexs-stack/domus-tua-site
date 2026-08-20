@@ -123,6 +123,8 @@ export default function PageTransition() {
   const coveringRef = useRef(false);
   const navSeqRef = useRef(0);
   const safetyRef = useRef<number | null>(null);
+  /** La scadenza del push (vedi `navigate`): va spenta se il componente muore. */
+  const deadlineRef = useRef<number | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -195,7 +197,10 @@ export default function PageTransition() {
       const navId = ++navSeqRef.current;
       getLenis()?.stop();
 
-      const mobile = !window.matchMedia(MQ.desktop).matches;
+      // Nessun ramo per larghezza: la porta chiude con lo stesso tempo su
+      // telefono e desktop (verdetto PORT, scheda 10). Il vecchio 0,5/0,32 sul
+      // mobile era un «gate fuori da mm.add» che accorciava il gesto proprio
+      // dove la parola per lettere ha meno tempo per comporsi.
       gsap.set(root, { pointerEvents: "auto" });
       gsap.set(panel, arch ? { autoAlpha: 1, ...ARCH_GONE } : { autoAlpha: 1, clipPath: CLOSED });
       gsap.set(markLayerRef.current, { autoAlpha: 0 });
@@ -266,30 +271,52 @@ export default function PageTransition() {
         );
       }
 
-      const tl = gsap.timeline({
-        onComplete() {
-          // Un popstate nel frattempo ha già cambiato pagina: il push
-          // pendente sarebbe una seconda navigazione non richiesta.
-          if (navSeqRef.current !== navId) return;
-          router.push(href);
-          // Se la pagina nuova non arriva (errore, route lentissima),
-          // il sipario si riapre comunque: mai lasciare l'utente al buio.
-          safetyRef.current = window.setTimeout(() => {
-            if (coveringRef.current) reveal();
-          }, 4000);
-        },
-      });
+      // LA NAVIGAZIONE NON È OSTAGGIO DELL'ANIMAZIONE. Il push partiva solo
+      // dall'`onComplete` della timeline: con il thread principale affamato
+      // (telefono lento, idratazione in corso, o quattro worker della suite
+      // e2e sulla stessa macchina) il ticker di GSAP arriva tardi e la
+      // timeline «di 0,65 s» ne mette molti di più — chi ha toccato il link
+      // resta a guardare una porta chiusa senza che la pagina cambi. Da qui
+      // il push ha una SCADENZA: parte alla fine del gesto o alla scadenza,
+      // qualunque venga prima, e una sola volta. Non è un taglio all'effetto:
+      // a quel punto lo schermo è già coperto dalla porta, e ciò che segue —
+      // l'apertura sulla pagina nuova — è un'altra timeline.
+      let partito = false;
+      const vai = () => {
+        if (partito) return;
+        partito = true;
+        window.clearTimeout(scadenza);
+        // Un popstate nel frattempo ha già cambiato pagina: il push
+        // pendente sarebbe una seconda navigazione non richiesta.
+        if (navSeqRef.current !== navId) return;
+        router.push(href);
+        // Se la pagina nuova non arriva (errore, route lentissima),
+        // il sipario si riapre comunque: mai lasciare l'utente al buio.
+        safetyRef.current = window.setTimeout(() => {
+          if (coveringRef.current) reveal();
+        }, 4000);
+      };
+      // Il margine (250 ms) copre il jitter di un ticker sano: su una macchina
+      // libera vince sempre `onComplete`, e questa rete non si vede mai.
+      const scadenza = window.setTimeout(vai, (arch ? 0.65 : 0.45) * 1000 + 250);
+      deadlineRef.current = scadenza;
+
+      const tl = gsap.timeline({ onComplete: vai });
       if (arch) {
         // La porta "si chiude": il buco ad arco scende sotto il viewport.
+        // Stesso effetto, stessi parametri a ogni larghezza (PORT): la
+        // geometria ARCH_* è già in vw/vh, quindi non serve alcun ramo.
+        // Alleggerimento: −1 matchMedia per navigazione (compensa il costo
+        // del gesto sui telefoni: è solo una maschera + variabili CSS).
         tl.fromTo(panel, { ...ARCH_GONE }, {
           ...ARCH_COVERED,
-          duration: mobile ? 0.5 : 0.65,
+          duration: 0.65,
           ease: "domus.inOut",
         });
       } else {
         tl.fromTo(panel, { clipPath: CLOSED }, {
           clipPath: OPEN,
-          duration: mobile ? 0.32 : 0.45,
+          duration: 0.45,
           ease: "domus.inOut",
         });
       }
@@ -343,6 +370,7 @@ export default function PageTransition() {
       document.removeEventListener("click", onClick, true);
       if (navigateImpl === navigate) navigateImpl = null;
       if (safetyRef.current) window.clearTimeout(safetyRef.current);
+      if (deadlineRef.current) window.clearTimeout(deadlineRef.current);
       stopSpin();
     };
   }, [router]);

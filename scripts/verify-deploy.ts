@@ -28,7 +28,27 @@ type Health = {
     previewBadge?: boolean;
   };
   integrations?: {
-    realsmart?: { live?: boolean; feedConfigured?: boolean };
+    realsmart?: {
+      live?: boolean;
+      feedConfigured?: boolean;
+      productionRuntime?: boolean;
+      lastKnownGood?: string;
+      runtime?: {
+        source?: string;
+        ok?: boolean;
+        stale?: boolean;
+        itemCount?: number;
+        lastFetch?: string | null;
+        lastAttempt?: string;
+      } | null;
+      release?: {
+        ready?: boolean;
+        verdict?: string;
+        requireLive?: boolean;
+        minListings?: number;
+        reasons?: string[];
+      };
+    };
     soldMap?: { present?: boolean; detected?: number; manual?: number };
     leadBackend?: string;
     emailLead?: { configured?: boolean };
@@ -147,6 +167,21 @@ async function main() {
       detail: `live: ${i.realsmart?.live}, feed configurato: ${i.realsmart?.feedConfigured}`,
       required: hard(true),
       fix: "NEXT_PUBLIC_USE_REALSMART=true + REALSMART_* nell'ambiente.",
+    },
+    {
+      // Cancello di RILASCIO (Prompt 3): un deploy di PRODUZIONE non deve promuovere un catalogo
+      // vuoto/implausibile con il feed richiesto. `release.ready` viene dal gate server-side
+      // (evaluateRelease). In anteprima è un avviso; in produzione è bloccante.
+      name: "catalogo pronto al rilascio",
+      pass: i.realsmart?.release ? i.realsmart.release.ready === true : null,
+      detail: i.realsmart?.release
+        ? `verdetto ${i.realsmart.release.verdict}` +
+          `, sorgente ${i.realsmart.runtime?.source ?? "?"}` +
+          `, immobili ${i.realsmart.runtime?.itemCount ?? "?"}` +
+          `, soglia ${i.realsmart.release.minListings ?? "?"}`
+        : "campo release assente (endpoint /api/health precedente a Prompt 3)",
+      required: hard(true),
+      fix: "Verifica che il feed live risponda con abbastanza immobili. Override esplicito solo se necessario: REALSMART_ALLOW_EMPTY_RELEASE=true (auditabile).",
     },
     {
       name: "mappa dei venduti presente",

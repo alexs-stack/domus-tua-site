@@ -14,6 +14,7 @@ import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
 import FaqTeaser from "../components/FaqTeaser";
+import CostiChiari from "../components/CostiChiari";
 import ScrubWords from "../components/motion/ScrubWords";
 import { Cta } from "../components/primitives/Cta";
 import { FAQ_SELLER } from "../domande-frequenti/faq";
@@ -67,6 +68,8 @@ type Copy = {
     intro: string;
     items: { n: string; title: string; copy: string }[];
     proof: string;
+    /** Link ai risultati reali: la prova che il metodo ha prodotto vendite. */
+    proofLink: string;
     ctaLabel: string;
   };
   openDomus: { text: string; cta: string };
@@ -86,12 +89,12 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "La tua casa merita di essere venduta bene, non in fretta. Non la mettiamo semplicemente online: la prepariamo, la raccontiamo e la vendiamo con metodo, riducendo errori, tempi morti e incertezze.",
       alt: "Living luminoso con zona pranzo",
-      primaryLabel: "Valuta il tuo immobile",
+      primaryLabel: "Richiedi la valutazione del tuo immobile",
       secondaryLabel: "Come funziona",
       trust: [
-        "Valutazione gratuita e senza impegno",
+        "Il primo incontro è senza impegno e senza costi",
         "Nessun costo anticipato, paghi solo a vendita conclusa",
-        "Foto, video, home staging e certificazione inclusi",
+        "Foto, video, home staging e verifica dei documenti inclusi",
       ],
     },
     highlights: {
@@ -105,8 +108,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "Una valutazione professionale su dati reali: né troppo alto, così l’immobile non resta fermo, né troppo basso, così non lasci valore sul tavolo.",
         },
         {
-          title: "L’immobile certificato",
-          copy: "Con il protocollo Domus D.O.C. verifichiamo la conformità a monte: documenti a posto prima di andare sul mercato, niente sorprese in trattativa.",
+          title: "I documenti verificati",
+          copy: "Con il protocollo Domus D.O.C. verifichiamo la conformità a monte: documenti a posto prima di andare sul mercato, così i problemi emergono prima della trattativa.",
         },
         {
           title: "Il marketing che vende",
@@ -131,7 +134,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Verifica documentale",
-        copy: "Controlliamo conformità, titoli e documenti prima di mettere in vendita. Così arrivi alla trattativa e al rogito senza intoppi né brutte sorprese.",
+        copy: "Controlliamo conformità, titoli e documenti prima di mettere in vendita. Se emerge un problema, emerge adesso: quando c'è ancora tempo per risolverlo.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Living elegante con libreria",
       },
@@ -178,7 +181,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Con Domus D.O.C. vendi senza sorprese: tempi più rapidi, trattative più solide, zero sorprese al rogito. Ecco cosa facciamo, con calma e in anticipo, per proteggere la tua vendita.",
+        "Con Domus D.O.C. i problemi emergono all’inizio, non davanti al notaio: tempi più rapidi e trattative più solide. Ecco cosa facciamo, con calma e in anticipo, per proteggere la tua vendita.",
     },
     prep: {
       eyebrow: "Prima di pubblicare",
@@ -194,7 +197,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         {
           n: "02",
           title: "Verifica documentale",
-          copy: "Controlliamo conformità, titoli e planimetrie in anticipo, per arrivare al rogito senza sorprese.",
+          copy: "Controlliamo conformità, titoli e planimetrie prima di pubblicare: se c’è un problema, c’è ancora tempo per risolverlo.",
         },
         {
           n: "03",
@@ -213,12 +216,13 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "È lo stesso metodo che i venditori raccontano nelle loro recensioni, che dà vita agli eventi Open Domus e che porta alla certificazione Domus D.O.C.",
-      ctaLabel: "Richiedi una valutazione seria",
+        "È lo stesso metodo che i venditori raccontano nelle loro recensioni, che dà vita agli eventi Open Domus e che porta al protocollo Domus D.O.C.",
+      proofLink: "Guarda le case che abbiamo venduto",
+      ctaLabel: "Richiedi la valutazione del tuo immobile",
     },
     openDomus: {
       text: "Il momento clou della vendita è l’Open Domus: un evento che concentra gli acquirenti giusti e accelera le proposte.",
-      cta: "Vorrei vendere con Open Domus",
+      cta: "Scopri se Open Domus è adatto al tuo immobile",
     },
   },
   en: {
@@ -234,12 +238,12 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Your home deserves to be sold well, not in a hurry. We don’t simply list it online: we prepare it, tell its story and sell it with a proven method, cutting out mistakes, wasted time and uncertainty.",
       alt: "Bright living area with dining space",
-      primaryLabel: "Get your valuation",
+      primaryLabel: "Request a valuation of your property",
       secondaryLabel: "How it works",
       trust: [
-        "Free, no-obligation valuation",
+        "The first meeting carries no obligation and no cost",
         "No upfront costs, you pay only once the sale is closed",
-        "Photography, video, home staging and certification included",
+        "Photography, video, home staging and document checks included",
       ],
     },
     highlights: {
@@ -253,8 +257,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "A professional valuation based on real data: not too high, so the property doesn’t sit on the market, and not too low, so you don’t leave value on the table.",
         },
         {
-          title: "The certified property",
-          copy: "With the Domus D.O.C. protocol we verify compliance upfront: paperwork in order before going to market, no surprises during the negotiation.",
+          title: "The paperwork, verified",
+          copy: "With the Domus D.O.C. protocol we verify compliance upfront: paperwork in order before going to market, so issues surface before the negotiation.",
         },
         {
           title: "Marketing that sells",
@@ -279,7 +283,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Document verification",
-        copy: "We check compliance, titles and documents before going to market. That way you reach the negotiation and the final deed with no hitches or unpleasant surprises.",
+        copy: "We check compliance, titles and documents before going to market. If a problem comes up, it comes up now — while there is still time to fix it.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Elegant living room with a bookcase",
       },
@@ -326,7 +330,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "With Domus D.O.C. you sell with no surprises: faster timelines, stronger negotiations, zero surprises at completion. Here’s what we do, calmly and ahead of time, to protect your sale.",
+        "With Domus D.O.C. problems surface at the start, not in front of the notary: faster timelines and stronger negotiations. Here’s what we do, calmly and ahead of time, to protect your sale.",
     },
     prep: {
       eyebrow: "Before we publish",
@@ -342,7 +346,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         {
           n: "02",
           title: "Document verification",
-          copy: "We check compliance, titles and floor plans ahead of time, so you reach the final deed with no surprises.",
+          copy: "We check compliance, titles and floor plans before listing: if there is a problem, there is still time to fix it.",
         },
         {
           n: "03",
@@ -361,12 +365,13 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "It’s the same method sellers describe in their reviews, that brings the Open Domus events to life and that leads to the Domus D.O.C. certification.",
-      ctaLabel: "Request a serious valuation",
+        "It’s the same method sellers describe in their reviews, that brings the Open Domus events to life and that leads to the Domus D.O.C. protocol.",
+      proofLink: "See the homes we have sold",
+      ctaLabel: "Request a valuation of your property",
     },
     openDomus: {
       text: "The high point of the sale is Open Domus: an event that concentrates the right buyers and speeds up offers.",
-      cta: "I’d like to sell with Open Domus",
+      cta: "See if Open Domus suits your property",
     },
   },
   fr: {
@@ -382,12 +387,12 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Votre bien mérite d’être vendu au juste prix, pas à la hâte. Nous ne nous contentons pas de le mettre en ligne : nous le préparons, le mettons en valeur et le vendons avec méthode, en réduisant erreurs, temps morts et incertitudes.",
       alt: "Séjour lumineux avec coin repas",
-      primaryLabel: "Estimez votre bien",
+      primaryLabel: "Demandez l’estimation de votre bien",
       secondaryLabel: "Comment ça marche",
       trust: [
-        "Estimation gratuite et sans engagement",
+        "Le premier rendez-vous est sans engagement et sans frais",
         "Aucuns frais d’avance, vous ne payez qu’à la vente conclue",
-        "Photos, vidéo, home staging et certification inclus",
+        "Photos, vidéo, home staging et vérification des documents inclus",
       ],
     },
     highlights: {
@@ -401,8 +406,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "Une estimation professionnelle fondée sur des données réelles : ni trop élevé, pour que le bien ne stagne pas, ni trop bas, pour ne pas laisser de valeur sur la table.",
         },
         {
-          title: "Le bien certifié",
-          copy: "Avec le protocole Domus D.O.C., nous vérifions la conformité en amont : dossier en règle avant la mise sur le marché, aucune surprise en négociation.",
+          title: "Les documents vérifiés",
+          copy: "Avec le protocole Domus D.O.C., nous vérifions la conformité en amont : dossier en règle avant la mise sur le marché, pour que les problèmes ressortent avant la négociation.",
         },
         {
           title: "Le marketing qui vend",
@@ -427,7 +432,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Vérification documentaire",
-        copy: "Nous contrôlons conformité, titres et documents avant la mise en vente. Vous arrivez ainsi à la négociation et à l’acte sans accroc ni mauvaise surprise.",
+        copy: "Nous contrôlons conformité, titres et documents avant la mise en vente. Si un problème apparaît, il apparaît maintenant : quand il est encore temps de le résoudre.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Séjour élégant avec bibliothèque",
       },
@@ -474,7 +479,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Avec Domus D.O.C., vous vendez sans surprises : des délais plus courts, des négociations plus solides, zéro surprise à l’acte. Voici ce que nous faisons, sereinement et en amont, pour protéger votre vente.",
+        "Avec Domus D.O.C., les problèmes ressortent au début, pas devant le notaire : des délais plus courts et des négociations plus solides. Voici ce que nous faisons, sereinement et en amont, pour protéger votre vente.",
     },
     prep: {
       eyebrow: "Avant la mise en ligne",
@@ -490,7 +495,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         {
           n: "02",
           title: "Vérification documentaire",
-          copy: "Nous contrôlons conformité, titres et plans en amont, pour arriver à l’acte sans mauvaise surprise.",
+          copy: "Nous contrôlons conformité, titres et plans en amont : s’il y a un problème, il est encore temps de le résoudre.",
         },
         {
           n: "03",
@@ -509,12 +514,13 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "C’est la même méthode que les vendeurs racontent dans leurs avis, qui donne vie aux événements Open Domus et qui mène à la certification Domus D.O.C.",
-      ctaLabel: "Demandez une estimation sérieuse",
+        "C’est la même méthode que les vendeurs racontent dans leurs avis, qui donne vie aux événements Open Domus et qui mène au protocole Domus D.O.C.",
+      proofLink: "Voir les biens que nous avons vendus",
+      ctaLabel: "Demandez l’estimation de votre bien",
     },
     openDomus: {
       text: "Le point fort de la vente, c’est l’Open Domus : un événement qui concentre les bons acquéreurs et accélère les offres.",
-      cta: "Je veux vendre avec Open Domus",
+      cta: "Découvrez si Open Domus convient à votre bien",
     },
   },
   de: {
@@ -530,12 +536,12 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Ihr Zuhause verdient es, gut verkauft zu werden, nicht in Eile. Wir stellen es nicht einfach online: Wir bereiten es auf, erzählen seine Geschichte und verkaufen es mit Methode und reduzieren so Fehler, Leerlauf und Unsicherheiten.",
       alt: "Helles Wohnzimmer mit Essbereich",
-      primaryLabel: "Immobilie bewerten lassen",
+      primaryLabel: "Bewertung Ihrer Immobilie anfordern",
       secondaryLabel: "So funktioniert es",
       trust: [
-        "Kostenlose, unverbindliche Bewertung",
+        "Das erste Gespräch ist unverbindlich und kostenfrei",
         "Keine Vorabkosten, Sie zahlen erst nach erfolgtem Verkauf",
-        "Fotos, Video, Home Staging und Zertifizierung inklusive",
+        "Fotos, Video, Home Staging und Unterlagenprüfung inklusive",
       ],
     },
     highlights: {
@@ -549,8 +555,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "Eine professionelle Bewertung auf Basis echter Daten: nicht zu hoch, damit die Immobilie nicht liegen bleibt, und nicht zu niedrig, damit Sie keinen Wert verschenken.",
         },
         {
-          title: "Die zertifizierte Immobilie",
-          copy: "Mit dem Domus-D.O.C.-Protokoll prüfen wir die Konformität vorab: Unterlagen in Ordnung, bevor es an den Markt geht, keine Überraschungen in der Verhandlung.",
+          title: "Die geprüften Unterlagen",
+          copy: "Mit dem Domus-D.O.C.-Protokoll prüfen wir die Konformität vorab: Unterlagen in Ordnung, bevor es an den Markt geht, damit Probleme vor der Verhandlung auftauchen.",
         },
         {
           title: "Marketing, das verkauft",
@@ -575,7 +581,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Prüfung der Unterlagen",
-        copy: "Wir prüfen Konformität, Rechtstitel und Dokumente vor dem Verkaufsstart. So erreichen Sie Verhandlung und Notartermin ohne Hürden und böse Überraschungen.",
+        copy: "Wir prüfen Konformität, Rechtstitel und Dokumente vor dem Verkaufsstart. Taucht ein Problem auf, taucht es jetzt auf — solange noch Zeit bleibt, es zu lösen.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Elegantes Wohnzimmer mit Bücherregal",
       },
@@ -622,7 +628,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Mit Domus D.O.C. verkaufen Sie ohne Überraschungen: schnellere Abläufe, solidere Verhandlungen, keine Überraschungen beim Notartermin. Hier ist, was wir in Ruhe und rechtzeitig tun, um Ihren Verkauf zu schützen.",
+        "Mit Domus D.O.C. tauchen Probleme am Anfang auf, nicht beim Notar: schnellere Abläufe und solidere Verhandlungen. Hier ist, was wir in Ruhe und rechtzeitig tun, um Ihren Verkauf zu schützen.",
     },
     prep: {
       eyebrow: "Vor der Veröffentlichung",
@@ -638,7 +644,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         {
           n: "02",
           title: "Prüfung der Unterlagen",
-          copy: "Wir prüfen Konformität, Rechtstitel und Grundrisse vorab, damit Sie den Notartermin ohne Überraschungen erreichen.",
+          copy: "Wir prüfen Konformität, Rechtstitel und Grundrisse vor der Veröffentlichung: Gibt es ein Problem, bleibt noch Zeit, es zu lösen.",
         },
         {
           n: "03",
@@ -657,12 +663,13 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "Es ist dieselbe Methode, die Verkäufer in ihren Bewertungen beschreiben, die die Open-Domus-Events zum Leben erweckt und die zur Zertifizierung Domus D.O.C. führt.",
-      ctaLabel: "Seriöse Bewertung anfragen",
+        "Es ist dieselbe Methode, die Verkäufer in ihren Bewertungen beschreiben, die die Open-Domus-Events zum Leben erweckt und die zum Protokoll Domus D.O.C. führt.",
+      proofLink: "Die Immobilien ansehen, die wir verkauft haben",
+      ctaLabel: "Bewertung Ihrer Immobilie anfordern",
     },
     openDomus: {
       text: "Der Höhepunkt des Verkaufs ist Open Domus: ein Event, das die richtigen Käufer bündelt und die Angebote beschleunigt.",
-      cta: "Ich möchte mit Open Domus verkaufen",
+      cta: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
     },
   },
   es: {
@@ -678,12 +685,12 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Tu casa merece venderse bien, no con prisas. No nos limitamos a publicarla en internet: la preparamos, la presentamos y la vendemos con método, reduciendo errores, tiempos muertos e incertidumbres.",
       alt: "Salón luminoso con zona de comedor",
-      primaryLabel: "Valora tu inmueble",
+      primaryLabel: "Solicita la valoración de tu inmueble",
       secondaryLabel: "Cómo funciona",
       trust: [
-        "Valoración gratuita y sin compromiso",
+        "El primer encuentro es sin compromiso y sin coste",
         "Sin costes por adelantado, pagas solo con la venta cerrada",
-        "Fotos, vídeo, home staging y certificación incluidos",
+        "Fotos, vídeo, home staging y verificación de los documentos incluidos",
       ],
     },
     highlights: {
@@ -697,8 +704,8 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
           copy: "Una valoración profesional sobre datos reales: ni demasiado alto, para que el inmueble no se quede parado, ni demasiado bajo, para que no dejes valor sobre la mesa.",
         },
         {
-          title: "El inmueble certificado",
-          copy: "Con el protocolo Domus D.O.C. verificamos la conformidad de antemano: documentos en regla antes de salir al mercado, sin sorpresas en la negociación.",
+          title: "Los documentos verificados",
+          copy: "Con el protocolo Domus D.O.C. verificamos la conformidad de antemano: documentos en regla antes de salir al mercado, para que los problemas salgan antes de la negociación.",
         },
         {
           title: "El marketing que vende",
@@ -723,7 +730,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       {
         n: "02",
         title: "Verificación documental",
-        copy: "Comprobamos conformidad, títulos y documentos antes de poner a la venta. Así llegas a la negociación y a la escritura sin contratiempos ni sorpresas desagradables.",
+        copy: "Comprobamos conformidad, títulos y documentos antes de poner a la venta. Si aparece un problema, aparece ahora: cuando todavía hay tiempo para resolverlo.",
         image: "/images/premium_04_living_libreria.jpg",
         alt: "Salón elegante con librería",
       },
@@ -770,7 +777,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       reassure:
-        "Con Domus D.O.C. vendes sin sorpresas: plazos más rápidos, negociaciones más sólidas, cero sorpresas en la escritura. Esto es lo que hacemos, con calma y por adelantado, para proteger tu venta.",
+        "Con Domus D.O.C. los problemas salen al principio, no delante del notario: plazos más rápidos y negociaciones más sólidas. Esto es lo que hacemos, con calma y por adelantado, para proteger tu venta.",
     },
     prep: {
       eyebrow: "Antes de publicar",
@@ -786,7 +793,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         {
           n: "02",
           title: "Verificación documental",
-          copy: "Comprobamos conformidad, títulos y planos por adelantado, para llegar a la escritura sin sorpresas.",
+          copy: "Comprobamos conformidad, títulos y planos antes de publicar: si hay un problema, aún hay tiempo para resolverlo.",
         },
         {
           n: "03",
@@ -805,12 +812,13 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
         },
       ],
       proof:
-        "Es el mismo método que los vendedores cuentan en sus reseñas, que da vida a los eventos Open Domus y que conduce a la certificación Domus D.O.C.",
-      ctaLabel: "Solicita una valoración seria",
+        "Es el mismo método que los vendedores cuentan en sus reseñas, que da vida a los eventos Open Domus y que conduce al protocolo Domus D.O.C.",
+      proofLink: "Mira las casas que hemos vendido",
+      ctaLabel: "Solicita la valoración de tu inmueble",
     },
     openDomus: {
       text: "El momento clave de la venta es el Open Domus: un evento que concentra a los compradores adecuados y acelera las ofertas.",
-      cta: "Quiero vender con Open Domus",
+      cta: "Descubre si Open Domus encaja con tu inmueble",
     },
   },
 };
@@ -897,9 +905,19 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
         <Reveal delay={120} className="mt-14">
           <div className="rounded-[1.75rem] border border-line bg-paper p-8 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
             <p className="max-w-2xl text-[1.02rem] leading-relaxed text-graphite">{prep.proof}</p>
-            <Cta href="#contatti" variant="cta" size="md" className="mt-6 shrink-0 sm:mt-0">
-              {prep.ctaLabel}
-            </Cta>
+            <div className="mt-6 flex shrink-0 flex-col items-start gap-3 sm:mt-0 sm:items-end">
+              <Cta href="#contatti" variant="cta" size="md">
+                {prep.ctaLabel}
+              </Cta>
+              {/* La prova sta a un clic: chi legge "è lo stesso metodo" ha appena maturato
+                  la domanda «e ha funzionato?». /case-vendute risponde con le schede reali. */}
+              <a
+                href="/case-vendute"
+                className="link-underline text-[0.85rem] font-medium text-graphite transition-colors duration-300 hover:text-red"
+              >
+                {prep.proofLink}
+              </a>
+            </div>
           </div>
         </Reveal>
       </div>
@@ -936,6 +954,14 @@ export default function VendiContent() {
           secondary={{ label: c.hero.secondaryLabel, href: "#percorso" }}
           trust={c.hero.trust}
         />
+
+        {/* IN CIMA, subito sotto l'hero (§6.4). Il costo è la prima obiezione di chi
+            deve dare un incarico, e su questa pagina viveva solo come uno dei tre
+            bullet di fiducia dell'hero — una riga di otto parole per l'argomento più
+            forte che l'agenzia possiede. */}
+        {/* Cream, non paper: così l'alternanza della pagina resta quella di prima
+            (cream → paper → cream) invece di affiancare due bande dello stesso tono. */}
+        <CostiChiari surface="cream" />
 
         <Highlights
           tone="paper"

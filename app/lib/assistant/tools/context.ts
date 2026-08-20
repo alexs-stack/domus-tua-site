@@ -5,10 +5,16 @@
 
 import type { AssistantListings } from "../listings";
 import type { AssistantEvent } from "../types";
+import type { AssistantTerritoryReader } from "./territory";
 
 export interface ToolContext {
   /** Fotografia degli immobili per questo turno (già priva di venduti e di mock). */
   listings: AssistantListings;
+  /**
+   * Lettore territoriale (Prompt 13): SOLO se la feature è attiva. Assente = territorio disabilitato,
+   * comportamento invariato (get_area_profile non registrato, get_listing_details senza territorio).
+   */
+  territory?: AssistantTerritoryReader;
   /**
    * Invia un evento alla UI mentre il turno è in corso.
    * È il canale con cui le card immobili e i pulsanti di contatto compaiono in chat

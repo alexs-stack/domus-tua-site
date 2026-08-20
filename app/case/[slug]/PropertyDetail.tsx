@@ -6,8 +6,16 @@ import PropertyGallery from "../../components/PropertyGallery";
 import PropertyFacts from "./PropertyFacts";
 import ListingCopy from "./ListingCopy";
 import { formatListingDescription } from "../../lib/listingCopy/format";
+import { isAvailable } from "../../lib/availability";
+import { domusDocSafety } from "../../lib/domusDoc";
 import PropertyCard from "../../components/PropertyCard";
 import ListingsGrid from "../../components/ListingsGrid";
+import dynamic from "next/dynamic";
+
+// Code-split: "Vivere in zona" entra nel bundle SOLO quando c'è territorio approvato da mostrare.
+// A feature spenta (territory=null) non viene mai renderizzato → costo client effettivamente zero.
+// Nessun ssr:false: le card statiche restano nell'HTML server (constraint 5), solo l'esploratore è lazy.
+const VivereInZona = dynamic(() => import("./VivereInZona"));
 import Badge from "../../components/primitives/Badge";
 import Contact from "../../components/Contact";
 import DrawOnScroll from "../../components/motion/DrawOnScroll";
@@ -18,6 +26,8 @@ import { site } from "../../lib/site";
 import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 import type { Property } from "../../lib/properties";
+import type { PublicListingTerritory } from "../../lib/territory/types";
+import type { PublicAreaProfile } from "../../lib/territory/area/types";
 import { factApplies, type CoreFactKey } from "../../lib/propertyKind";
 import { useLocale } from "../../components/i18n/LocaleProvider";
 
@@ -61,14 +71,8 @@ const copy = {
     notRightText:
       "Raccontaci cosa cerchi: seguiamo anche richieste su misura, prima ancora che l’immobile arrivi online.",
     notRightCta: "Raccontaci cosa cerchi",
-    safetyEyebrow: "Domus D.O.C.",
-    safetyTitle: "Una casa verificata, prima ancora di entrare.",
-    safetyText:
-      "Questo immobile segue il protocollo Domus di Origine Certificata: documenti, conformità e trasparenza controllati prima della vendita. Così visiti e scegli con serenità, senza sorprese.",
-    safetyLink: "Scopri il protocollo Domus D.O.C.",
-    safetyPoints: ["Documenti in ordine", "Conformità controllata", "Trasparenza pre-visita"],
     related: "Altre case da scoprire",
-    viewAll: "Vedi tutte le case",
+    viewAll: "Vedi le case in vendita",
   },
   en: {
     backToAll: "All properties",
@@ -109,14 +113,8 @@ const copy = {
     notRightText:
       "Tell us what you’re after: we also handle bespoke requests, before a home even goes online.",
     notRightCta: "Tell us what you’re looking for",
-    safetyEyebrow: "Domus D.O.C.",
-    safetyTitle: "A verified home, before you even step inside.",
-    safetyText:
-      "This property follows the Domus of Certified Origin protocol: documents, compliance and transparency checked before the sale. So you view and choose with peace of mind, no surprises.",
-    safetyLink: "Discover the Domus D.O.C. protocol",
-    safetyPoints: ["Documents in order", "Compliance checked", "Pre-visit transparency"],
     related: "More homes to discover",
-    viewAll: "View all properties",
+    viewAll: "See the homes for sale",
   },
   fr: {
     backToAll: "Tous les biens",
@@ -157,14 +155,8 @@ const copy = {
     notRightText:
       "Dites-nous ce que vous cherchez : nous suivons aussi les demandes sur mesure, avant même la mise en ligne.",
     notRightCta: "Dites-nous ce que vous cherchez",
-    safetyEyebrow: "Domus D.O.C.",
-    safetyTitle: "Un logement vérifié, avant même d’entrer.",
-    safetyText:
-      "Ce bien suit le protocole Domus d’Origine Certifiée : documents, conformité et transparence contrôlés avant la vente. Vous visitez et choisissez en toute sérénité, sans surprises.",
-    safetyLink: "Découvrir le protocole Domus D.O.C.",
-    safetyPoints: ["Documents en ordre", "Conformité contrôlée", "Transparence avant visite"],
     related: "D’autres biens à découvrir",
-    viewAll: "Voir tous les biens",
+    viewAll: "Voir les biens à vendre",
   },
   de: {
     backToAll: "Alle Immobilien",
@@ -205,14 +197,8 @@ const copy = {
     notRightText:
       "Sagen Sie uns, was Sie suchen: Wir betreuen auch maßgeschneiderte Anfragen, noch bevor eine Immobilie online geht.",
     notRightCta: "Sagen Sie uns, was Sie suchen",
-    safetyEyebrow: "Domus D.O.C.",
-    safetyTitle: "Eine geprüfte Immobilie, noch bevor Sie eintreten.",
-    safetyText:
-      "Diese Immobilie folgt dem Protokoll Domus di Origine Certificata: Unterlagen, Konformität und Transparenz werden vor dem Verkauf geprüft. So besichtigen und entscheiden Sie mit Ruhe, ohne Überraschungen.",
-    safetyLink: "Das Protokoll Domus D.O.C. entdecken",
-    safetyPoints: ["Unterlagen in Ordnung", "Konformität geprüft", "Transparenz vor der Besichtigung"],
     related: "Weitere Immobilien entdecken",
-    viewAll: "Alle Immobilien ansehen",
+    viewAll: "Immobilien zum Verkauf ansehen",
   },
   es: {
     backToAll: "Todas las propiedades",
@@ -253,23 +239,31 @@ const copy = {
     notRightText:
       "Cuéntanos qué buscas: también gestionamos peticiones a medida, antes incluso de que el inmueble esté online.",
     notRightCta: "Cuéntanos qué buscas",
-    safetyEyebrow: "Domus D.O.C.",
-    safetyTitle: "Una casa verificada, antes incluso de entrar.",
-    safetyText:
-      "Esta propiedad sigue el protocolo Domus di Origine Certificata: documentos, conformidad y transparencia comprobados antes de la venta. Así visitas y eliges con tranquilidad, sin sorpresas.",
-    safetyLink: "Descubre el protocolo Domus D.O.C.",
-    safetyPoints: ["Documentos en orden", "Conformidad comprobada", "Transparencia previa a la visita"],
     related: "Más casas por descubrir",
-    viewAll: "Ver todas las casas",
+    viewAll: "Ver las casas en venta",
   },
 };
 
 // ⚠️ DATI DEMO / FIXTURE — `p` e `related` arrivano dalla facciata getVisibleListing/
 // getVisibleListings (oggi fixture demo, domani RealSmart). Qui nessun dato viene
 // inventato: la striscia "related" è opzionale e, se assente, mostra solo il link a /acquista.
-export default function PropertyDetail({ p, related }: { p: Property; related?: Property[] }) {
+export default function PropertyDetail({
+  p,
+  related,
+  territory,
+  area,
+}: {
+  p: Property;
+  related?: Property[];
+  territory?: PublicListingTerritory | null;
+  area?: PublicAreaProfile | null;
+}) {
   const { locale, d } = useLocale();
   const c = copy[locale];
+  // Blocco Domus D.O.C.: copy da FONTE UNICA (app/lib/domusDoc.ts). L'affermazione sul singolo
+  // immobile ("verificato") appare SOLO con evidenza esplicita (p.docVerified); altrimenti la
+  // variante neutra che descrive il metodo, coerente con l'assistente.
+  const doc = domusDocSafety(locale, p.docVerified === true);
 
   // Striscia sotto la gallery: SOLO i quattro numeri che si leggono a colpo d'occhio.
   // Tipologia, piano, contratto e classe energetica vivono nel box "Dati principali" della
@@ -378,7 +372,12 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   );
 
   // Related: solo altre case fornite via props (stessa sorgente). Mai fetch/invenzione.
-  const relatedItems = (related ?? []).filter((r) => r.slug !== p.slug).slice(0, 3);
+  // Difesa in profondità: anche se a monte arrivasse un venduto, qui non viene mai reso —
+  // stesso predicato di disponibilità della selezione (app/lib/related.ts), niente stato
+  // "venduto" duplicato a mano.
+  const relatedItems = (related ?? [])
+    .filter((r) => r.slug !== p.slug && isAvailable(r))
+    .slice(0, 3);
 
   // WhatsApp precompilato con titolo + riferimento immobile → conversazione già in contesto.
   const waTalk = buildWhatsAppUrl(
@@ -392,7 +391,10 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
   );
 
   return (
-    <main className="flex-1 bg-paper">
+    // `data-conv-source`: un contatto che parte da una scheda immobile è la conversione
+    // più preziosa del sito — la persona sa già cosa vuole vedere. Va distinta da tutte
+    // le altre nelle misure. Vedi SiteAnalytics.tsx.
+    <main data-conv-source="scheda-immobile" className="flex-1 bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 pt-32 sm:px-8 sm:pt-36">
         {/* Breadcrumb: orientamento Home › Case › immobile corrente (allineato al JSON-LD). */}
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-stone">
@@ -583,15 +585,15 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
               <DrawOnScroll>
                 <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
               </DrawOnScroll>
-              <SegnoDomusBadge>{c.safetyEyebrow}</SegnoDomusBadge>
+              <SegnoDomusBadge>{doc.eyebrow}</SegnoDomusBadge>
               <h2 className="mt-4 max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-ink balance">
-                {c.safetyTitle}
+                {doc.title}
               </h2>
               <p className="mt-3 max-w-xl text-[0.98rem] leading-relaxed text-graphite">
-                {c.safetyText}
+                {doc.text}
               </p>
               <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2.5">
-                {c.safetyPoints.map((point) => (
+                {doc.points.map((point) => (
                   <li key={point} className="inline-flex items-center gap-2 text-[1rem] text-ink">
                     <span
                       aria-hidden
@@ -607,7 +609,7 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
                 href="/metodo"
                 className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
               >
-                {c.safetyLink}
+                {doc.linkLabel}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
             </div>
@@ -635,9 +637,13 @@ export default function PropertyDetail({ p, related }: { p: Property; related?: 
         </div>
       </div>
 
+      {/* Vivere in zona: territorio + descrizioni d'area APPROVATI, letti server-side (niente
+          coordinate). Renderizzato SOLO se c'è almeno un dato: altrimenti nessun componente/chunk. */}
+      {territory || area ? <VivereInZona territory={territory} area={area} /> : null}
+
       {/* Related properties strip: solo se fornite via props (stessa sorgente). */}
       {relatedItems.length > 0 && (
-        <section className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
+        <section data-testid="related-listings" className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
           <SegnoDomusDivider className="mb-12" />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">

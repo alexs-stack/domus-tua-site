@@ -1,12 +1,12 @@
 // Configurazione dei video del sito — UNICA e PURA.
 //
 // Gli ID YouTube reali vivono in app/lib/site.ts (`site.videos`). Qui si decide soltanto
-// COME sono composti i blocchi video della home: quale video sta nel player in evidenza e
-// quali entrano nella collezione filtrabile.
+// COME sono composti i blocchi video della home: quali card entrano nel muro delle voci e
+// quale video sta nel blocco testimonianza.
 //
-// Perché un modulo a parte: prima la composizione stava dentro SocialVideoWall.tsx ("use
-// client", con import di gsap e next/image), quindi non era verificabile da un test — e la
-// griglia riciclava quattro id su otto slot, presentando lo stesso video con titoli diversi.
+// Perché un modulo a parte: prima la composizione stava dentro il componente client (con
+// import di gsap e next/image), quindi non era verificabile da un test — e la griglia
+// riciclava quattro id su otto slot, presentando lo stesso video con titoli diversi.
 // Essendo un modulo puro, il test di content integrity può controllare l'unicità degli id.
 
 import { site } from "./site";
@@ -32,25 +32,6 @@ export function youtubeWatch(id: string): string {
   return `https://www.youtube.com/watch?v=${id}`;
 }
 
-/** Video del player in evidenza (iframe caricato solo al click). */
-export const featuredVideo = site.videos.featured;
-
-/**
- * Collezione della griglia: le video recensioni reali.
- *
- * Non contiene né il video in evidenza né la testimonianza cliente: quest'ultima ha già il
- * suo blocco dedicato sulla home (FeaturedTestimonial). Prima comparivano entrambi anche
- * qui, con titoli diversi, facendo sembrare il canale più ricco di quanto sia.
- */
-export const videoCollection: VideoSlot[] = site.videos.reviews.map(
-  (r): VideoSlot => ({
-    id: r.id,
-    kind: "recensione",
-    thumb: youtubeThumb(r.id),
-    title: r.title,
-  }),
-);
-
 /** Video del blocco testimonianza (FeaturedTestimonial). */
 export const testimonialVideo = site.videos.testimonial;
 
@@ -71,8 +52,9 @@ export const wallVideos: VideoSlot[] = [
 
 /**
  * Tutti gli id mostrati come card/player sulla home. Usato dal test di unicità.
- * Dal 2026-08-03 il muro (wallVideos) sostituisce la vecchia SocialVideoWall:
- * la collezione filtrabile non è più montata, la testimonianza resta a parte.
+ * Dal 2026-08-03 il muro (wallVideos) ha sostituito la vecchia collezione
+ * filtrabile, rimossa col suo componente il 2026-08-15: qui restano solo le
+ * composizioni montate davvero (muro + testimonianza, che resta a parte).
  */
 export function allVideoIds(): string[] {
   return [testimonialVideo.id, ...wallVideos.map((v) => v.id)];

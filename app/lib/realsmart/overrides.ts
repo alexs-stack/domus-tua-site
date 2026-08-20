@@ -50,6 +50,14 @@ export interface ListingOverride {
   descrizione?: string[];
   /** Pubblicare l'indirizzo civico? Default: no (privacy). */
   mostraIndirizzo?: boolean;
+  /**
+   * EVIDENZA esplicita che il protocollo Domus D.O.C. è stato applicato a QUESTO immobile
+   * (documenti, conformità e trasparenza verificati). Default: no. Solo qui — MAI dedotta dal
+   * testo di marketing o dalle caratteristiche — abilita l'affermazione sul singolo immobile
+   * (blocco D.O.C. "verificato" e badge "Documenti verificati"). `fonte`/`data`/`autore`
+   * dell'override tracciano chi e quando l'ha attestato.
+   */
+  docVerified?: boolean;
 }
 
 /** Campi ammessi in un override: qualunque altra chiave è un errore. */
@@ -63,6 +71,7 @@ const OVERRIDE_KEYS = new Set([
   "rimuovi",
   "descrizione",
   "mostraIndirizzo",
+  "docVerified",
 ]);
 
 const OVERRIDE_FACT_KEYS = new Set(["key", "value", "group", "label"]);
@@ -143,6 +152,9 @@ export function validateOverrides(raw: unknown): string[] {
 
     if (entry.mostraIndirizzo !== undefined && typeof entry.mostraIndirizzo !== "boolean") {
       errors.push(`${at}: "mostraIndirizzo" deve essere true o false`);
+    }
+    if (entry.docVerified !== undefined && typeof entry.docVerified !== "boolean") {
+      errors.push(`${at}: "docVerified" deve essere true o false`);
     }
   });
 

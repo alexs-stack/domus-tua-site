@@ -1,17 +1,27 @@
 "use client";
 
 // ManifestoPin — il momento firma di /metodo: banda espresso a tutto viewport
-// dove il manifesto si "legge" con lo scroll. Su desktop la sezione resta
-// pinnata mentre le parole si accendono in scrub (pattern ScrubWords) e, sul
-// finale, l'ago cuce la parola chiave (sottolineatura stroke-draw). Su
-// mobile/tablet: niente pin, stessa accensione in scrub semplice.
+// dove il manifesto si "legge" con lo scroll. Le parole si accendono in scrub
+// (pattern ScrubWords) e, sul finale, l'ago cuce la parola chiave
+// (sottolineatura stroke-draw).
+//
+// UNA TIMELINE SOLA, A OGNI LARGHEZZA («parità mobile 2», scheda 12). La
+// forma del film non dipende dalla larghezza: parole nei primi 4/5, ago
+// nell'ultimo quinto. Cambia SOLO come la si scorre — da lg in su la banda si
+// pinna e la corsa è un corridoio di +160%, sotto non c'è pin e la corsa è la
+// traversata della sezione (top 85% → top 15%, ~70vh a 844: la sezione è già
+// alta 70svh, il pin non serve e sul telefono ruberebbe scroll, legge 4).
+// Prima il telefono aveva la stessa accensione ma in un'altra FORMA — corsa
+// corta (top 80% → top 35%), stagger fisso .4 e l'ago in un toggle a parte:
+// stesso gesto, film diverso. L'ago è rientrato nella timeline, e questo è
+// l'alleggerimento nominato: −1 ScrollTrigger sul telefono.
 // a11y: frase intera in uno <span> sr-only, parole animate aria-hidden con
 // spazi reali nel DOM. Senza JS o con reduced-motion: testo pieno e
 // sottolineatura intera, statici.
 import { useRef } from "react";
 import { SegnoDomusBadge } from "../BrandMotif";
 import { ArrowUpRight } from "../Icons";
-import { gsap, useGSAP, MQ, dur } from "../../lib/motion/gsap";
+import { gsap, useGSAP, MQ } from "../../lib/motion/gsap";
 
 // Stati del reveal in clip-path della sottolineatura: niente stroke-dash —
 // con preserveAspectRatio="none" + non-scaling-stroke Chrome calcola i dash
@@ -61,7 +71,6 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
       if (!root) return;
       const wordEls = gsap.utils.toArray<HTMLElement>("[data-w]", root);
       if (!wordEls.length) return;
-      const h2 = root.querySelector<HTMLElement>("h2") ?? root;
       const underline = root.querySelector<SVGSVGElement>("[data-underline]");
 
       const mm = gsap.matchMedia();
@@ -79,56 +88,42 @@ export default function ManifestoPin({ eyebrow, text, highlight, link }: Props) 
         // Il link NON si anima: resta sempre visibile e raggiungibile da
         // tastiera anche a metà scrub (la variante animata richiederebbe
         // reti di sicurezza focusin su una timeline scrubbata).
-        if (c.pin) {
-          // Desktop: banda pinnata, il manifesto si legge in scrub; le parole
-          // occupano i primi 4/5 della timeline, l'ago cuce nell'ultimo quinto.
-          const tl = gsap.timeline({
-            scrollTrigger: {
+
+        // L'UNICO parametro che cambia con la larghezza: come si scorre la
+        // timeline. Da lg in su la banda si pinna e la corsa è un corridoio
+        // di +160%. Sotto, nessun pin (legge 4: mai rubare lo scroll) e la
+        // corsa è la traversata della sezione — 70% di viewport, che è
+        // esattamente l'altezza della banda (min-h-[70svh]): il manifesto
+        // finisce di accendersi quando ha finito di entrare.
+        const st = c.pin
+          ? {
               trigger: root,
               start: "top top",
               end: "+=160%",
               pin: true,
               scrub: true,
               anticipatePin: 1,
-            },
-          });
-          tl.fromTo(
-            wordEls,
-            { opacity: 0.15 },
-            {
-              opacity: 1,
-              ease: "none",
-              duration: 0.25,
-              stagger: 0.55 / Math.max(wordEls.length - 1, 1),
-            },
-            0
-          );
-          if (underline) {
-            tl.to(underline, { clipPath: UNDERLINE_SHOWN, ease: "none", duration: 0.2 }, 0.8);
-          }
-        } else {
-          // Mobile/tablet: niente pin, accensione in scrub semplice.
-          gsap.fromTo(
-            wordEls,
-            { opacity: 0.15 },
-            {
-              opacity: 1,
-              ease: "none",
-              duration: 1,
-              stagger: 0.4,
-              scrollTrigger: { trigger: h2, start: "top 80%", end: "top 35%", scrub: true },
             }
-          );
-          if (underline) {
-            // Replay a ogni passaggio: l'ago ricuce a ogni ingresso e si
-            // riavvolge risalendo oltre l'inizio.
-            gsap.to(underline, {
-              clipPath: UNDERLINE_SHOWN,
-              duration: dur.short,
-              ease: "power2.inOut",
-              scrollTrigger: { trigger: h2, start: "top 55%", toggleActions: "restart none none reverse" },
-            });
-          }
+          : { trigger: root, start: "top 85%", end: "top 15%", scrub: true };
+
+        // Le parole occupano i primi 4/5 della timeline, l'ago cuce
+        // nell'ultimo quinto. Lo stagger è ricavato dal numero di parole
+        // (0,55 spalmato su tutte) e non è una costante: cambiando lingua la
+        // frase cambia lunghezza, la coreografia no.
+        const tl = gsap.timeline({ scrollTrigger: st });
+        tl.fromTo(
+          wordEls,
+          { opacity: 0.15 },
+          {
+            opacity: 1,
+            ease: "none",
+            duration: 0.25,
+            stagger: 0.55 / Math.max(wordEls.length - 1, 1),
+          },
+          0
+        );
+        if (underline) {
+          tl.to(underline, { clipPath: UNDERLINE_SHOWN, ease: "none", duration: 0.2 }, 0.8);
         }
 
         return () => {

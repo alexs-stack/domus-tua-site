@@ -33,7 +33,7 @@ const copy = {
       "Documentazione e informazioni disponibili già in visita",
       "Nessuna pressione: capisci con calma se è la casa giusta",
     ],
-    cta: "Scopri Open Domus",
+    cta: "Scopri se Open Domus è adatto al tuo immobile",
     cardTitle: "Venduta al primo Open Domus.",
     cardText: "La storia vera di Teresa, raccontata da lei.",
     videoAria: "Guarda la storia di Teresa, venduta al primo Open Domus",
@@ -56,7 +56,7 @@ const copy = {
       "Documentation and information available during the viewing",
       "No pressure: understand calmly if it's the right home",
     ],
-    cta: "Discover Open Domus",
+    cta: "See if Open Domus suits your property",
     cardTitle: "Sold at the very first Open Domus.",
     cardText: "Teresa's true story, told in her own words.",
     videoAria: "Watch Teresa's story, sold at the first Open Domus",
@@ -79,7 +79,7 @@ const copy = {
       "Documentation et informations disponibles dès la visite",
       "Sans pression : comprenez sereinement si c'est la bonne maison",
     ],
-    cta: "Découvrir Open Domus",
+    cta: "Découvrez si Open Domus convient à votre bien",
     cardTitle: "Vendue dès le premier Open Domus.",
     cardText: "La véritable histoire de Teresa, racontée par elle-même.",
     videoAria: "Regardez l'histoire de Teresa, vendue au premier Open Domus",
@@ -102,7 +102,7 @@ const copy = {
       "Unterlagen und Informationen schon bei der Besichtigung verfügbar",
       "Ohne Druck: in Ruhe verstehen, ob es das richtige Zuhause ist",
     ],
-    cta: "Open Domus entdecken",
+    cta: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
     cardTitle: "Beim ersten Open Domus verkauft.",
     cardText: "Die wahre Geschichte von Teresa, von ihr selbst erzählt.",
     videoAria: "Sehen Sie die Geschichte von Teresa, verkauft beim ersten Open Domus",
@@ -125,7 +125,7 @@ const copy = {
       "Documentación e información disponibles ya en la visita",
       "Sin presión: entiende con calma si es la casa adecuada",
     ],
-    cta: "Descubre Open Domus",
+    cta: "Descubre si Open Domus encaja con tu inmueble",
     cardTitle: "Vendida en el primer Open Domus.",
     cardText: "La historia real de Teresa, contada por ella misma.",
     videoAria: "Mira la historia de Teresa, vendida en el primer Open Domus",
@@ -216,8 +216,13 @@ export default function OpenDomus() {
             corsa è in `yPercent`, cioè una frazione dell'altezza della
             cornice. Sul telefono la banda torna verticale (aspect 4/5) ed è
             più bassa dei 72svh del desktop, quindi la stessa cifra vale ~11px
-            per lato invece di ~16. Il numero si adatta da sé; scriverne un
-            secondo sarebbe una soglia in più da tenere allineata a mano. */}
+            per lato invece di ~16 — e con la corsa dimezzata che Parallax
+            applica da sé sotto 768 (onda «parità mobile 2», PHONE_SPEED_FACTOR)
+            ~5,5px per lato, 11 di corsa totale: sopra i ~10px del criterio,
+            si vede. Il numero si adatta da sé; scriverne un secondo sarebbe
+            una soglia in più da tenere allineata a mano. `mobile` è ormai il
+            default: resta scritto perché questa cornice era una delle tre
+            accese sul telefono già prima, e la ragione sta qui sopra. */}
         <Reveal className="mt-14 lg:mt-20">
           <Parallax speed={0.18} mobile>
             <div className="relative rounded-[2rem] border border-line bg-cream p-2">
@@ -227,7 +232,13 @@ export default function OpenDomus() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={c.videoAria}
-                className="group relative block aspect-[4/5] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[16/10] lg:aspect-auto lg:h-[min(72svh,42rem)]"
+                /* `aspect-[3/2]` sotto i 640 (era 4/5): la sorgente
+                   raffaela-founder.jpg è 1024×682, cioè 3:2 esatto — in una
+                   cornice 4/5 `object-cover` ne buttava il 47 % della
+                   larghezza. Ora il rapporto della cornice è quello dello
+                   scatto e non si taglia più niente. Da 640 in su vale
+                   `sm:aspect-[16/10]`, e da 1024 `lg:aspect-auto`: invariati. */
+                className="group relative block aspect-[3/2] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[16/10] lg:aspect-auto lg:h-[min(72svh,42rem)]"
               >
                 {/* Reveal liquido sul solo media (signature della sezione):
                     link e play restano sopra il velo, mai clippati.
@@ -261,15 +272,18 @@ export default function OpenDomus() {
                 </span>
               </a>
               {/* card flottante — controderiva rispetto alla foto, nessun clip aggiunto.
-                  Niente `mobile`: è testo, e per giunta testo agganciato al
-                  bordo basso della cornice. Una controderiva lo staccherebbe
-                  da quel bordo di una ventina di px per volta, che è l'unica
-                  cosa che si vede quando le due corse sono opposte in colonna
+                  mob off (misura): `speed -0.08` su una card alta ~100px vale
+                  ±1,1px, mezzo pixel con la corsa dimezzata del telefono —
+                  invisibile come deriva propria (criterio ~10px dell'onda
+                  «parità mobile 2»). Quel che invece si vedrebbe è il
+                  distacco dal bordo basso della cornice, perché la card è
+                  agganciata lì e le due corse sono opposte in colonna
                   stretta. Spenta, la card viaggia dentro la deriva della
                   cornice qui sopra: sul telefono l'insieme si muove come un
                   pezzo solo, ed è la lettura giusta. */}
               <Parallax
                 speed={-0.08}
+                mobile={false}
                 className="absolute -bottom-5 left-5 right-5 sm:left-auto sm:right-6 sm:w-64"
               >
                 <div className="rounded-2xl border border-line bg-paper px-5 py-4 shadow-[0_30px_60px_-40px_rgba(26,24,22,0.6)]">

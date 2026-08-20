@@ -10,7 +10,7 @@ import { Cta } from "./primitives/Cta";
 import { Play } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { MARK_D, MARK_RED_D, MARK_VIEWBOX } from "./MarkDomus";
-import { site } from "../lib/site";
+import { site, yearsActive } from "../lib/site";
 import { youtubeWatch } from "../lib/videos";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
@@ -59,8 +59,8 @@ const copy = {
     eyebrow: "Il Metodo Domus Tua",
     title: "Un percorso chiaro, dalla prima stima alla firma.",
     subcopy:
-      "Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in oltre quindici anni di lavoro sul territorio.",
-    cta: "Inizia dal tuo immobile",
+      `Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in ${yearsActive()} anni di lavoro sul territorio.`,
+    cta: "Richiedi la valutazione del tuo immobile",
     actVideo: "Guarda la video recensione",
     acts: [
       { up: "Prima,", down: "le persone", alt: "Raffaela Rizza, fondatrice di Domus Tua, in ascolto" },
@@ -70,7 +70,7 @@ const copy = {
     steps: [
       { title: "Primo ascolto", copy: "Partiamo da te: obiettivi, tempi, aspettative. Prima delle case vengono le persone." },
       { title: "Valutazione", copy: "Analisi del mercato locale e del tuo immobile per definire valore e strategia, senza illusioni." },
-      { title: "Verifica documentale", copy: "Titoli, conformità e documenti controllati prima di partire: si arriva alla firma senza sorprese." },
+      { title: "Verifica documentale", copy: "Titoli, conformità e documenti controllati prima di partire: se c'è un problema emerge adesso, non davanti al notaio." },
       { title: "Preparazione immobile", copy: "Valorizziamo gli spazi con consigli mirati e, dove serve, home staging." },
       { title: "Racconto visivo", copy: "Foto, video emozionali e rendering: la casa raccontata con la cura che merita." },
       { title: "Marketing e social preview", copy: "Campagne multicanale e anteprime social per portarla davanti alle persone giuste." },
@@ -83,8 +83,8 @@ const copy = {
     eyebrow: "The Domus Tua Method",
     title: "A clear journey, from the first estimate to signing.",
     subcopy:
-      "Every sale and every purchase follows nine precise steps: no improvisation, only a method built over more than fifteen years of work in the local area.",
-    cta: "Start with your property",
+      `Every sale and every purchase follows nine precise steps: no improvisation, only a method built over ${yearsActive()} years of work in the local area.`,
+    cta: "Request a valuation of your property",
     actVideo: "Watch the video review",
     acts: [
       { up: "First,", down: "the people", alt: "Raffaela Rizza, founder of Domus Tua, listening" },
@@ -94,7 +94,7 @@ const copy = {
     steps: [
       { title: "First, we listen", copy: "We start with you: goals, timing, expectations. People come before homes." },
       { title: "Valuation", copy: "Analysis of the local market and your property to define value and strategy, without illusions." },
-      { title: "Document check", copy: "Titles, compliance and documents verified before we begin: we reach the signing without surprises." },
+      { title: "Document check", copy: "Titles, compliance and documents verified before we begin: if there is a problem it surfaces now, not in front of the notary." },
       { title: "Property preparation", copy: "We enhance your spaces with targeted advice and, where needed, home staging." },
       { title: "Visual storytelling", copy: "Photos, emotional videos and renderings: the home told with the care it deserves." },
       { title: "Marketing and social preview", copy: "Multichannel campaigns and social previews to bring it in front of the right people." },
@@ -107,8 +107,8 @@ const copy = {
     eyebrow: "La Méthode Domus Tua",
     title: "Un parcours clair, de la première estimation à la signature.",
     subcopy:
-      "Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en plus de quinze ans de travail sur le territoire.",
-    cta: "Commencez par votre bien",
+      `Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en ${yearsActive()} ans de travail sur le territoire.`,
+    cta: "Demandez l’estimation de votre bien",
     actVideo: "Voir l’avis en vidéo",
     acts: [
       { up: "D'abord,", down: "les personnes", alt: "Raffaela Rizza, fondatrice de Domus Tua, à l'écoute" },
@@ -118,7 +118,7 @@ const copy = {
     steps: [
       { title: "Première écoute", copy: "Nous partons de vous : objectifs, délais, attentes. Avant les maisons viennent les personnes." },
       { title: "Estimation", copy: "Analyse du marché local et de votre bien pour définir valeur et stratégie, sans illusions." },
-      { title: "Vérification documentaire", copy: "Titres, conformité et documents contrôlés avant de commencer : on arrive à la signature sans surprises." },
+      { title: "Vérification documentaire", copy: "Titres, conformité et documents contrôlés avant de commencer : s'il y a un problème, il ressort maintenant et non devant le notaire." },
       { title: "Préparation du bien", copy: "Nous valorisons les espaces avec des conseils ciblés et, si nécessaire, du home staging." },
       { title: "Récit visuel", copy: "Photos, vidéos émotionnelles et rendus : la maison racontée avec le soin qu'elle mérite." },
       { title: "Marketing et aperçu social", copy: "Campagnes multicanales et aperçus sur les réseaux pour la présenter aux bonnes personnes." },
@@ -131,8 +131,8 @@ const copy = {
     eyebrow: "Die Domus Tua Methode",
     title: "Ein klarer Weg, von der ersten Schätzung bis zur Unterschrift.",
     subcopy:
-      "Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in über fünfzehn Jahren Arbeit vor Ort gewachsen ist.",
-    cta: "Beginnen Sie mit Ihrer Immobilie",
+      `Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in ${yearsActive()} Jahren Arbeit vor Ort gewachsen ist.`,
+    cta: "Bewertung Ihrer Immobilie anfordern",
     actVideo: "Video-Bewertung ansehen",
     acts: [
       { up: "Zuerst", down: "die Menschen", alt: "Raffaela Rizza, Gründerin von Domus Tua, beim Zuhören" },
@@ -142,7 +142,7 @@ const copy = {
     steps: [
       { title: "Erstes Zuhören", copy: "Wir beginnen bei Ihnen: Ziele, Zeitrahmen, Erwartungen. Vor den Häusern kommen die Menschen." },
       { title: "Bewertung", copy: "Analyse des lokalen Marktes und Ihrer Immobilie, um Wert und Strategie festzulegen, ohne Illusionen." },
-      { title: "Dokumentenprüfung", copy: "Titel, Konformität und Unterlagen werden vorab geprüft: So kommt man ohne Überraschungen zur Unterschrift." },
+      { title: "Dokumentenprüfung", copy: "Titel, Konformität und Unterlagen werden vorab geprüft: Gibt es ein Problem, zeigt es sich jetzt und nicht beim Notar." },
       { title: "Vorbereitung der Immobilie", copy: "Wir werten die Räume mit gezielten Ratschlägen und, wo nötig, Home Staging auf." },
       { title: "Visuelles Storytelling", copy: "Fotos, emotionale Videos und Renderings: das Zuhause erzählt mit der Sorgfalt, die es verdient." },
       { title: "Marketing und Social-Vorschau", copy: "Multikanal-Kampagnen und Social-Vorschauen, um sie den richtigen Menschen zu zeigen." },
@@ -155,8 +155,8 @@ const copy = {
     eyebrow: "El Método Domus Tua",
     title: "Un recorrido claro, desde la primera tasación hasta la firma.",
     subcopy:
-      "Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en más de quince años de trabajo en el territorio.",
-    cta: "Empieza por tu inmueble",
+      `Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en ${yearsActive()} años de trabajo en el territorio.`,
+    cta: "Solicita la valoración de tu inmueble",
     actVideo: "Ver la reseña en vídeo",
     acts: [
       { up: "Primero,", down: "las personas", alt: "Raffaela Rizza, fundadora de Domus Tua, escuchando" },
@@ -166,7 +166,7 @@ const copy = {
     steps: [
       { title: "Primera escucha", copy: "Partimos de ti: objetivos, plazos, expectativas. Antes que las casas están las personas." },
       { title: "Valoración", copy: "Análisis del mercado local y de tu inmueble para definir valor y estrategia, sin ilusiones." },
-      { title: "Verificación documental", copy: "Títulos, conformidad y documentos comprobados antes de empezar: se llega a la firma sin sorpresas." },
+      { title: "Verificación documental", copy: "Títulos, conformidad y documentos comprobados antes de empezar: si hay un problema sale ahora, no delante del notario." },
       { title: "Preparación del inmueble", copy: "Valorizamos los espacios con consejos específicos y, cuando hace falta, home staging." },
       { title: "Relato visual", copy: "Fotos, vídeos emotivos y renders: la casa contada con el cuidado que merece." },
       { title: "Marketing y anticipo social", copy: "Campañas multicanal y anticipos en redes para presentarla ante las personas adecuadas." },
@@ -547,12 +547,17 @@ export default function Method() {
                         titolo vive a sinistra), sopra la foto e sotto il
                         testo: non può essere tagliato e non tocca nessuna
                         parola. Opacità 0.5 perché il fondo è fotografia
-                        velata di scuro — su crema il tetto sarebbe 0.40. */}
+                        velata di scuro — su crema il tetto sarebbe 0.40.
+                        Acceso anche sotto lg (onda «parità mobile 2», verdetto
+                        6): il titolo è centrato in verticale sul pannello e
+                        sta sopra (z-20 contro z-[15]), quindi l'angolo basso a
+                        destra resta il suo posto; box 109px quadrati a 390
+                        (`w-[28vw]`), dpr 1,5 e tetto 900 dentro Fioritura. */}
                     {i === 1 ? (
                       <Fioritura
                         variant="corner-br"
                         palette="dark"
-                        className="absolute bottom-2 right-4 z-[15] hidden h-[26vh] w-[12vw] lg:block"
+                        className="absolute bottom-2 right-4 z-[15] h-[16vh] w-[28vw] lg:h-[26vh] lg:w-[12vw]"
                       />
                     ) : null}
 

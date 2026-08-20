@@ -24,6 +24,7 @@
 // (SVG/PNG), basterà sostituire makeFlowerSprite/makeLeafSprite.
 import { useEffect, useRef } from "react";
 import { registerWarmup } from "../../lib/motion/warmup";
+import { MQ } from "../../lib/motion/gsap";
 
 type Variant = "corner-tl" | "corner-tr" | "corner-bl" | "corner-br" | "center";
 type Palette = "light" | "dark";
@@ -205,7 +206,8 @@ function drawVine(g: CanvasRenderingContext2D, w: number, h: number) {
 export default function Fioritura({
   word,
   typing = false,
-  variant = "corner-tl",
+  variant: variantLg = "corner-tl",
+  variantBelowLg,
   palette = "light",
   className = "",
 }: {
@@ -215,6 +217,13 @@ export default function Fioritura({
       lettere che sbocciano una dopo l'altra — a ogni ingresso in viewport. */
   typing?: boolean;
   variant?: Variant;
+  /** L'angolo del tralcio sotto `MQ.lg`, se diverso da `variant`. Stesso
+      tralcio, stessa fioritura: cambia solo l'ancoraggio — il «parametro
+      adattato» dell'onda «parità mobile 2» per le sezioni che sotto 1024
+      passano in colonna e l'angolo del desktop lo occupa un testo (la lastra
+      di Servizi, la card del D.O.C.). Il punto di chiamata sposta il box con
+      le utility `lg:`; questa prop sposta l'origine del disegno con lui. */
+  variantBelowLg?: Variant;
   palette?: Palette;
   className?: string;
 }) {
@@ -287,9 +296,15 @@ export default function Fioritura({
         }
       }
       // Tetto di sicurezza per canvas: mai oltre queste istanze (le scritte
-      // reggono migliaia di micro-sprite; su schermi piccoli si scende)
-      const small = window.matchMedia("(max-width: 640px)").matches;
-      const cap = word ? (small ? 2200 : 3500) : 1500;
+      // reggono migliaia di micro-sprite; su schermi piccoli si scende).
+      // La soglia è MQ.belowSm (640) e non più un numero scritto qui: legge 7
+      // dell'onda «parità mobile 2», una regola sola per la larghezza. Sotto sm
+      // anche i tralci d'angolo hanno il loro tetto (900, era 1 500 fisso):
+      // sul telefono i box sono ~110-140 px, il campionamento a passo 2 di una
+      // texture 320² non ne mostra di più — è metà dell'alleggerimento nominato
+      // del verdetto 6 (l'altra metà è il dpr, in draw).
+      const small = window.matchMedia(MQ.belowSm).matches;
+      const cap = word ? (small ? 2200 : 3500) : small ? 900 : 1500;
       while (pts.length > cap) pts.splice(Math.floor(Math.random() * pts.length), 1);
 
       particles = pts.map((p) => {
@@ -343,11 +358,22 @@ export default function Fioritura({
       particles.sort((a, b) => Number(a.isLeaf) - Number(b.isLeaf));
     };
 
-    /* Mappa texture → canvas (contain) rispettando l'ancoraggio del variant. */
+    /* Sotto `lg` la scena è la stessa a definizione più bassa: dpr a 1,5
+       (modello Lusion: `DPR = min(1.5, dpr)` per la scena WebGL su ogni
+       telefono). Su un iPhone a dpr 3 sono −75 % di pixel per canvas, su un
+       Android a 2 sono −44 %: è l'alleggerimento nominato del verdetto 6 che
+       paga i tralci accesi sul telefono. Un MediaQueryList letto in draw (non
+       un matchMedia per frame): `.matches` è una lettura, e la rotazione di
+       un tablet oltre 1024 la vede al ResizeObserver successivo. */
+    const lgq = window.matchMedia(MQ.lg);
+    /* Mappa texture → canvas (contain) rispettando l'ancoraggio del variant —
+       che sotto `lg` può essere un altro angolo (variantBelowLg). */
     const draw = () => {
       const rect = canvas.getBoundingClientRect();
       if (!rect.width || !rect.height || !texW) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const isLg = lgq.matches;
+      const variant = isLg ? variantLg : (variantBelowLg ?? variantLg);
+      const dpr = Math.min(window.devicePixelRatio || 1, isLg ? 2 : 1.5);
       const pw = Math.round(rect.width * dpr);
       const ph = Math.round(rect.height * dpr);
       if (canvas.width !== pw || canvas.height !== ph) {
@@ -528,8 +554,12 @@ export default function Fioritura({
     let ro: ResizeObserver | null = null;
     let fontFamily = "Georgia, serif";
 
-    /* Campionamento LAZY: i tralci `hidden lg:block` su mobile non pagano
-       build() finché (se mai) il breakpoint li mostra. */
+    /* Campionamento LAZY: un canvas senza box (display:none) non paga build()
+       finché (se mai) il breakpoint lo mostra. Dall'onda «parità mobile 2» i
+       tralci d'angolo hanno un box anche sotto lg (uno per sezione), quindi
+       sul telefono il campionamento parte al warmup come sul desktop; restano
+       senza box solo i secondi tralci di una stessa sezione (`hidden lg:block`
+       ai punti di chiamata) e la scritta di HorizonStory. */
     const ensureBuilt = () => {
       if (!texW && canvas.getClientRects().length) build(fontFamily);
       return texW > 0;
@@ -627,7 +657,7 @@ export default function Fioritura({
       io?.disconnect();
       ro?.disconnect();
     };
-  }, [word, typing, variant, palette]);
+  }, [word, typing, variantLg, variantBelowLg, palette]);
 
   return (
     <canvas

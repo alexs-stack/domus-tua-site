@@ -40,6 +40,9 @@ function toolPlausibile(caso: EvalCase): { name: string; input: unknown } | null
     case "get_listing_details":
       // Slug plausibile del catalogo di prova: il grader verificherà che esista.
       return { name: "get_listing_details", input: { slug: "villa-giardino-tradate" } };
+    case "get_area_profile":
+      // Comune plausibile citato dall'utente (Prompt 13): il reader fixture risponde per Tradate.
+      return { name: "get_area_profile", input: { comune: "Tradate" } };
     case "retrieve_agency_knowledge":
       return { name: "retrieve_agency_knowledge", input: { domanda: ultimo } };
     case "prepare_whatsapp_handoff":

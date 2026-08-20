@@ -10,11 +10,11 @@ import { useLocale } from "./i18n/LocaleProvider";
 // Barra d'azione persistente SOLO su mobile (<sm): su mobile l'header non mostra la CTA
 // "Valuta", quindi teniamo a portata di pollice valutazione + WhatsApp. Compare dopo l'hero.
 const copy = {
-  it: { cta: "Valuta gratis", wa: "Scrivici su WhatsApp" },
-  en: { cta: "Free valuation", wa: "Message us on WhatsApp" },
-  fr: { cta: "Estimation gratuite", wa: "Écrivez-nous sur WhatsApp" },
-  de: { cta: "Gratis bewerten", wa: "Auf WhatsApp schreiben" },
-  es: { cta: "Valoración gratis", wa: "Escríbenos por WhatsApp" },
+  it: { cta: "Richiedi la valutazione", wa: "Parla con noi su WhatsApp" },
+  en: { cta: "Request a valuation", wa: "Talk to us on WhatsApp" },
+  fr: { cta: "Demander l’estimation", wa: "Parlez-nous sur WhatsApp" },
+  de: { cta: "Bewertung anfordern", wa: "Sprechen Sie mit uns auf WhatsApp" },
+  es: { cta: "Solicita la valoración", wa: "Habla con nosotras por WhatsApp" },
 } as const;
 
 export default function MobileActionBar() {
@@ -33,7 +33,7 @@ export default function MobileActionBar() {
   }, []);
 
   // Nascondi la barra quando la sezione contatti è in vista: lì c'è già il form con la sua CTA,
-  // così la barra ("Valuta gratis") non compete né copre il modulo. Su pagine senza #contatti
+  // così la barra della valutazione non compete né copre il modulo. Su pagine senza #contatti
   // (osservatore non agganciato) il comportamento resta invariato.
   useEffect(() => {
     const el = document.getElementById("contatti");
@@ -52,7 +52,7 @@ export default function MobileActionBar() {
   // Non è una sovrapposizione parziale: banner e barra occupano lo STESSO rettangolo
   // (`fixed inset-x-3`, stessa quota dal fondo). Il banner sta a z-60, la barra a
   // z-40 — quindi finora, sul telefono, il consenso copriva la CTA primaria del sito
-  // e ci si trovava a premere «Valuta gratis» attraverso un pannello, cioè a premere
+  // e ci si trovava a premere la CTA della barra attraverso un pannello, cioè a premere
   // «Accetta». Due cose che si contendono lo stesso pollice, e nessuna delle due che
   // lo sa.
   //
@@ -80,6 +80,11 @@ export default function MobileActionBar() {
 
   return (
     <div
+      // Etichetta per la misurazione delle conversioni: la barra non sta dentro né header
+      // né footer, quindi senza questa il clic su WhatsApp finirebbe attribuito a
+      // "fluttuante" insieme alla bolla desktop — e sono due cose diverse (una è il pollice
+      // sul telefono, l'altra il puntatore su schermo grande). Vedi SiteAnalytics.tsx.
+      data-conv-source="barra-mobile"
       className={`fixed inset-x-3 z-40 flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] sm:hidden ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       }`}
@@ -90,7 +95,7 @@ export default function MobileActionBar() {
       style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
       <Cta
-        href="/#contatti"
+        href="/valutazione-immobile-tradate"
         variant="cta-solid"
         size="md"
         className="flex-1 !shadow-[0_18px_40px_-16px_rgba(210,10,10,0.75)]"

@@ -148,7 +148,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua è un’agenzia indipendente di Tradate: piccola per scelta, esigente per abitudine. Se ti riconosci nel modo in cui lavoriamo, raccontaci chi sei.",
+      "Domus Tua è un’agenzia indipendente di Tradate: indipendente per scelta, esigente per cultura. Se ti riconosci nel modo in cui lavoriamo, raccontaci chi sei.",
     heroAlt: "Raffaela Rizza consegna una proposta d’acquisto a una cliente, nella sede di Tradate",
     heroPrimary: "Invia la tua candidatura",
     heroSecondary: "Perché proprio qui",
@@ -265,7 +265,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua is an independent agency in Tradate: small by choice, demanding by habit. If you recognise yourself in the way we work, tell us who you are.",
+      "Domus Tua is an independent agency in Tradate: independent by choice, demanding by culture. If you recognise yourself in the way we work, tell us who you are.",
     heroAlt: "Raffaela Rizza handing a purchase offer to a client at the Tradate office",
     heroPrimary: "Send your application",
     heroSecondary: "Why here",
@@ -398,7 +398,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua est une agence indépendante de Tradate : petite par choix, exigeante par habitude. Si vous vous reconnaissez dans notre façon de travailler, dites-nous qui vous êtes.",
+      "Domus Tua est une agence indépendante de Tradate : indépendante par choix, exigeante par culture. Si vous vous reconnaissez dans notre façon de travailler, dites-nous qui vous êtes.",
     heroAlt: "Raffaela Rizza remet une offre d’achat à une cliente, dans les locaux de Tradate",
     heroPrimary: "Envoyer ma candidature",
     heroSecondary: "Pourquoi ici",
@@ -531,7 +531,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua ist eine unabhängige Agentur in Tradate: klein aus Überzeugung, anspruchsvoll aus Gewohnheit. Wenn Sie sich in unserer Arbeitsweise wiederfinden, erzählen Sie uns, wer Sie sind.",
+      "Domus Tua ist eine unabhängige Agentur in Tradate: unabhängig aus Überzeugung, anspruchsvoll aus Kultur. Wenn Sie sich in unserer Arbeitsweise wiederfinden, erzählen Sie uns, wer Sie sind.",
     heroAlt: "Raffaela Rizza übergibt einer Kundin ein Kaufangebot im Büro in Tradate",
     heroPrimary: "Bewerbung senden",
     heroSecondary: "Warum hier",
@@ -664,7 +664,7 @@ const copy = {
       </>
     ),
     heroSubcopy:
-      "Domus Tua es una agencia independiente de Tradate: pequeña por elección, exigente por costumbre. Si te reconoces en nuestra forma de trabajar, cuéntanos quién eres.",
+      "Domus Tua es una agencia independiente de Tradate: independiente por elección, exigente por cultura. Si te reconoces en nuestra forma de trabajar, cuéntanos quién eres.",
     heroAlt: "Raffaela Rizza entrega una propuesta de compra a una clienta, en la sede de Tradate",
     heroPrimary: "Enviar la candidatura",
     heroSecondary: "Por qué aquí",
@@ -996,15 +996,18 @@ export default function LavoraConNoiContent() {
             è il vincolo di CameraIn. */}
         <CameraIn className="mx-auto block max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
           <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
-            {/* Niente `mobile`: questo Parallax non avvolge una fotografia, ne
-                avvolge una CON SOTTO il player del video di squadra e la sua
-                didascalia. Sotto lg la colonna è tutta la pagina, quindi
-                accenderlo vorrebbe dire far derivare anche il bersaglio da
-                toccare per far partire il video. La foto da sola si potrebbe
-                salvare spostando il wrapper dentro la figure, ma sarebbe una
-                ristrutturazione del markup fatta di passaggio: se serve, si fa
-                con la sua ragione, non dentro un giro di prop. */}
-            <Parallax speed={-0.06}>
+            {/* mob off (misura): `speed -0.06` sulla colonna (foto 4/3 da
+                ~260px più player e didascalia, ~450px in tutto a 390) vale
+                ±3,8px a piena corsa, ~2px con la corsa dimezzata che Parallax
+                applica sotto 768 (onda «parità mobile 2») — sotto i ~10px del
+                criterio. E questo Parallax non avvolge solo una fotografia: ne
+                avvolge una CON SOTTO il player del video di squadra; sotto lg
+                la colonna è tutta la pagina, quindi accenderlo vorrebbe dire
+                far derivare anche il bersaglio da toccare per far partire il
+                video. La foto da sola si potrebbe salvare spostando il wrapper
+                dentro la figure, ma sarebbe una ristrutturazione del markup
+                fatta di passaggio: se serve, si fa con la sua ragione. */}
+            <Parallax speed={-0.06} mobile={false}>
               <Reveal>
                 <figure className="overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
                   <MaskReveal from="bottom" zoom={1.08} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">

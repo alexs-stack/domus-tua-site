@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
+import Posizionamento from "./components/Posizionamento";
 import HomeSearchGateway from "./components/HomeSearchGateway";
 import HorizonStory from "./components/HorizonStory";
 import StarReviews from "./components/StarReviews";
@@ -9,6 +10,7 @@ import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
 import DomusDocProtocol from "./components/DomusDocProtocol";
 import Services from "./components/Services";
+import CostiChiari from "./components/CostiChiari";
 import FeaturedTestimonial from "./components/FeaturedTestimonial";
 import Social from "./components/Social";
 import Team from "./components/Team";
@@ -20,17 +22,21 @@ import KineticStrip from "./components/motion/KineticStrip";
 import ThreadNav from "./components/motion/ThreadNav";
 import ToneShift from "./components/motion/ToneShift";
 
+// Il title dice COSA e DOVE, non lo slogan: "agenzia immobiliare a Tradate" è la query
+// con cui le persone cercano davvero, e la vecchia versione ("Vendere senza stress,
+// acquistare con sicurezza") non la conteneva. La sigla (VA) disambigua il comune —
+// esiste anche una Tradate omonima nei risultati di altre province.
 export const metadata: Metadata = {
   title: {
-    absolute: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
+    absolute: "Agenzia Immobiliare a Tradate (VA) | Domus Tua",
   },
   description:
-    "Dal 2007 a Tradate, Domus Tua accompagna venditori e acquirenti con un metodo fatto di valutazione, documenti verificati, marketing, Open Domus e assistenza fino al rogito. 4.9/5 da oltre 500 recensioni.",
+    "Vendi casa a Tradate e in provincia di Varese: valutazione professionale, documenti verificati prima del mercato, Open Domus e assistenza fino al rogito. 4,9/5 su 531 recensioni Google. Dal 2007.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza",
+    title: "Agenzia Immobiliare a Tradate (VA) | Domus Tua",
     description:
-      "Un metodo completo per vendere e acquistare casa con cura, trasparenza e assistenza fino al rogito. Tradate (VA), dal 2007.",
+      "Vendi casa a Tradate e in provincia di Varese: valutazione professionale, documenti verificati prima del mercato, Open Domus e assistenza fino al rogito. Dal 2007.",
   },
 };
 
@@ -42,6 +48,13 @@ export default function Home() {
       <ThreadNav />
       <main className="flex-1">
         <HeroCinematic />
+        {/* Fra l'hero e la ricerca, e non è un dettaglio di ordine.
+            Il primo blocco interattivo della home era la ricerca immobili: lo spazio più
+            prezioso della pagina assegnato a chi COMPRA. Ma chi compra arriva comunque dai
+            portali ed è volume; chi deve scegliere a chi affidare un incarico è il
+            fatturato, e trovava un modulo di ricerca al posto di una ragione per
+            fidarsi. Adesso prima si dice cosa distingue l'agenzia, poi si cerca casa. */}
+        <Posizionamento />
         <HomeSearchGateway />
         {/* Il set piece "orizzonte": fondale aereo + cupola + pannelli orizzontali
             (tecnica dal dossier era-residence §11, contenuti e forme nostri).
@@ -89,6 +102,12 @@ export default function Home() {
             dove il salto è reale (ΔRGB 61-72). */}
         <Services />
         <ToneShift from="cream" to="paper" depth="19svh" />
+        {/* Subito dopo l'elenco di tutto ciò che è compreso arriva la domanda che
+            quell'elenco fa nascere — «e quanto mi costa?». La risposta stava solo
+            dentro un accordion delle FAQ. Nessuna cucitura con FeaturedTestimonial:
+            sono entrambe paper, e una transizione fra due toni identici inventerebbe
+            uno stacco invece di nasconderlo (vedi la nota qui sopra). */}
+        <CostiChiari surface="paper" />
         <FeaturedTestimonial />
         <div data-tone="paper" className="bg-paper">
           <SectionDivider tone="paper" />

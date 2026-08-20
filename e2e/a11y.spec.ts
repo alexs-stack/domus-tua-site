@@ -14,7 +14,15 @@ test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
 });
 
-const PAGES = ["/", "/acquista", "/vendi", "/metodo", "/open-domus", "/contatti", "/privacy"];
+// Le rotte scoperte erano sei — /chi-siamo, /recensioni, /servizi, /lavora-con-noi,
+// /domande-frequenti e /cookie — cioè un terzo del sito fuori dalla passata axe. Il §4.5
+// del Documento finale smonta il falso positivo sui «9 link privi di nome accessibile»,
+// e ha ragione: ma un presidio vale solo per le pagine che guarda.
+const PAGES = [
+  "/", "/acquista", "/case-vendute", "/valutazione-immobile-tradate", "/vendi", "/metodo",
+  "/open-domus", "/contatti", "/privacy", "/chi-siamo", "/recensioni", "/servizi",
+  "/lavora-con-noi", "/domande-frequenti", "/cookie",
+];
 
 for (const path of PAGES) {
   test(`${path} non ha violazioni di accessibilità`, async ({ page, goto }) => {

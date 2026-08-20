@@ -4,6 +4,7 @@
 // Il modello non può eseguire nulla che non sia qui dentro, non può passare URL da
 // scaricare né istruzioni arbitrarie.
 
+import { createGetAreaProfile } from "./getAreaProfile";
 import { createGetListingDetails } from "./getListingDetails";
 import { createPrepareEmailEnquiry } from "./prepareEmailEnquiry";
 import { createPrepareWhatsAppHandoff } from "./prepareWhatsAppHandoff";
@@ -20,6 +21,8 @@ export function createAssistantTools(ctx: ToolContext) {
     retrieve_agency_knowledge: createRetrieveAgencyKnowledge(),
     prepare_whatsapp_handoff: createPrepareWhatsAppHandoff(ctx),
     prepare_email_enquiry: createPrepareEmailEnquiry(ctx),
+    // get_area_profile compare SOLO a territorio attivo: a feature spenta il set è identico a prima.
+    ...(ctx.territory ? { get_area_profile: createGetAreaProfile(ctx) } : {}),
   };
 }
 

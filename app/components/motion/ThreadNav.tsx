@@ -6,33 +6,34 @@
 // nel documento.
 // - Parametrico: `chapters` (id sezione + etichetta già tradotta) per le
 //   pagine interne; senza prop restano i capitoli della home.
-// - DUE GEOMETRIE, GLI STESSI DATI, DUE RUOLI DIVERSI (wave "parità mobile",
-//   2026-08-11). Da 1024 in su il filo è la colonna verticale sul bordo
-//   destro ed è una NAV vera: c'è spazio per le etichette, i nodi sono
-//   bottoni che saltano al capitolo, l'attivo si dichiara con aria-current.
-//   Sotto, quella colonna vuota non esiste — ma il bordo ALTO sì: il filo
-//   diventa una riga sottile al bordo alto dello schermo, ed è solo PROGRESSO.
-//   I nodi restano al loro posto sulla riga come TACCHE: non si toccano, non
-//   si tabulano, non esistono per lo screen reader.
-//   Questo CONTRADDICE per iscritto il commento che stava qui in origine
-//   («solo desktop ≥1024 … sotto la soglia il rail è display:none e la nav
-//   vera resta l'header»): il filo esiste anche sotto — la nav vera, però,
-//   resta l'header, ed è esattamente il motivo per cui sotto lg il filo è
-//   aria-hidden e fuori dal tab order.
-// - CORREZIONE DELLA PRIMA STESURA DEL RAMO MOBILE (stessa wave, dopo
-//   revisione). Era una banda alta 44px con nodi cliccabili. Due difetti
-//   veri, non di gusto:
-//   (1) 44px di banda fixed a tutta larghezza, con i nodi pointer-events
-//       auto, si mangiavano i tocchi destinati ai link del contenuto che le
-//       scorreva sotto — metà bersaglio stava sopra la pagina, non sopra il
-//       chrome;
+// - DUE GEOMETRIE, GLI STESSI DATI, LO STESSO RUOLO. Da 1024 in su il filo è
+//   la colonna verticale sul bordo destro; sotto è una riga orizzontale. In
+//   entrambi i casi è una NAV: i nodi sono bottoni che saltano al capitolo e
+//   l'attivo si dichiara con aria-current.
+// - QUI PRIMA C'ERA SCRITTO IL CONTRARIO, e la riga va riscritta non
+//   cancellata (onda «parità mobile 2», scheda 14, verdetto PORT DEI NODI).
+//   La stesura del 2026-08-11 declassava la riga mobile a solo PROGRESSO —
+//   nodi come TACCHE inerti, aria-hidden, fuori dal tab order — per due
+//   difetti veri della stesura ancora precedente:
+//   (1) una banda fixed alta 44px a tutta larghezza con i nodi
+//       pointer-events auto si mangiava i tocchi destinati ai link del
+//       contenuto che le scorreva sotto;
 //   (2) a 390px i centri dei nodi cadono anche a 5px l'uno dall'altro, e la
 //       regola touch del sito (globals.css, blocco `pointer: coarse`) dice
 //       per iscritto che due bersagli da 44px troppo vicini sono PEGGIO di
 //       un bersaglio piccolo, perché il tocco diventa ambiguo.
-//   Togliere la navigazione toglie tutti e due i difetti in un colpo, ed è
-//   la traduzione più onesta: sul rail si può fare una nav perché c'è posto
-//   per le etichette, a 390px non c'è.
+//   Erano difetti di GEOMETRIA, non della navigazione: la conclusione «allora
+//   togliamo la nav» era un atto in meno, non un parametro adattato. Adesso
+//   i due difetti si pagano dove sono nati:
+//   (1) la banda non esiste — il puntatore resta spento sul contenitore, lo
+//       riprendono i soli 5 riquadri da 44×44 dei nodi (il resto della riga
+//       non blocca niente);
+//   (2) i centri non si toccano più: `placeKnots` fa un passaggio di
+//       SPAZIATURA MINIMA (44 + 8 px fra i centri) prima di scrivere le
+//       percentuali. La proporzione resta quella vera del documento, quando
+//       due capitoli sono troppo vicini si scostano del minimo indispensabile.
+//   Le etichette invece restano al rail: a 390px quattro parole in fila su
+//   una riga da 2px si sovrappongono davvero, e nessuna spaziatura le salva.
 // - UN SOLO CANCELLO, ED È JS. Il markup nasce `hidden` (display:none) e
 //   nessuna classe lo riapre: lo riapre il ramo che parte, che gira solo
 //   dentro MQ.motionOk. Senza JS, e con reduced-motion, la pagina è completa
@@ -50,6 +51,15 @@ import { SegnoDomus } from "../BrandMotif";
 import { useDict } from "../i18n/LocaleProvider";
 
 export type ThreadChapter = { id: string; label: string };
+
+/** Lato del bersaglio di tocco del nodo, in px. È lo stesso 44 di `.tap-target`
+    (globals.css, blocco `pointer: coarse`), che disegna il riquadro: qui serve
+    solo a fare i conti della spaziatura. Non è una soglia di larghezza — la
+    regola 7 dell'onda riguarda i breakpoint, non le dimensioni del dito. */
+const TAP_TARGET = 44;
+/** Distanza minima fra due centri: il bersaglio più gli 8px di separazione che
+    il blocco touch di globals.css chiede fra due bersagli da 44. */
+const MIN_KNOT_PITCH = TAP_TARGET + 8;
 
 export default function ThreadNav({
   chapters: chaptersProp,
@@ -115,8 +125,11 @@ export default function ThreadNav({
           });
         };
 
-      /** Nodi in proporzione alla posizione reale della sezione nel documento. */
-      const placeKnots = (edge: "top" | "left", lead: number) => {
+      /** Nodi in proporzione alla posizione reale della sezione nel documento.
+          `minPitch` > 0 accende la spaziatura minima fra i centri (vedi sopra):
+          serve dove i nodi sono bersagli per il dito e la proporzione pura li
+          farebbe cadere a 5px l'uno dall'altro. */
+      const placeKnots = (edge: "top" | "left", lead: number, minPitch = 0) => {
         const max = ScrollTrigger.maxScroll(window);
         // maxScroll vale 0 per un istante durante certi refresh (su /acquista
         // la griglia si rimonta: PropertySearch.tsx:590 e :624). Si salta il
@@ -124,6 +137,10 @@ export default function ThreadNav({
         // di comparsa, non divide per max e prima restava indietro per tutta
         // la sessione perché questo return usciva da place() intero.
         if (max <= 0) return;
+
+        // Solo i capitoli che esistono su questa pagina: gli altri restano
+        // dove li ha messi spreadKnots e non partecipano alla spaziatura.
+        const placed: Array<{ k: HTMLButtonElement; frac: number }> = [];
         knots.forEach((k) => {
           const target = document.getElementById(k.dataset.knot || "");
           if (!target) return;
@@ -133,7 +150,39 @@ export default function ThreadNav({
             1,
             (y - window.innerHeight * lead) / max
           );
-          k.style[edge] = `${(frac * 100).toFixed(2)}%`;
+          placed.push({ k, frac });
+        });
+        if (!placed.length) return;
+
+        if (!minPitch) {
+          placed.forEach(({ k, frac }) => {
+            k.style[edge] = `${(frac * 100).toFixed(2)}%`;
+          });
+          return;
+        }
+
+        // SPAZIATURA MINIMA, in pixel e non in percentuale: il vincolo è il
+        // dito (44px + 8 di separazione), e 8px sono una frazione diversa a
+        // 360 e a 1023. Le frazioni arrivano già in ordine crescente (i
+        // capitoli sono in ordine di documento), quindi bastano due passate:
+        // in avanti si allontanano i troppo vicini, all'indietro si rientra
+        // dentro il bordo. `pitch` non può superare lo spazio disponibile —
+        // con sei capitoli su /metodo a 360px il passo scende da solo invece
+        // di spingere l'ultimo nodo fuori schermo.
+        const len = edge === "left" ? root.clientWidth : root.clientHeight;
+        const half = TAP_TARGET / 2;
+        const room = Math.max(len - TAP_TARGET, 0);
+        const pitch = Math.min(minPitch, room / Math.max(placed.length - 1, 1));
+        const px = placed.map(({ frac }) =>
+          gsap.utils.clamp(half, len - half, frac * len)
+        );
+        for (let i = 1; i < px.length; i++) px[i] = Math.max(px[i], px[i - 1] + pitch);
+        for (let i = px.length - 1; i > 0; i--) {
+          px[i] = Math.min(px[i], len - half);
+          px[i - 1] = Math.min(px[i - 1], px[i] - pitch);
+        }
+        placed.forEach(({ k }, i) => {
+          k.style[edge] = `${((px[i] / len) * 100).toFixed(2)}%`;
         });
       };
 
@@ -150,12 +199,16 @@ export default function ThreadNav({
       };
 
       /**
-       * Capitolo attivo: un trigger leggero per sezione.
-       * `markCurrent` solo dove il filo è davvero una nav — sul progresso
-       * mobile il nodo si illumina e basta, l'attributo non ha nessuno che
-       * lo legga (il ramo è aria-hidden).
+       * Capitolo attivo: un trigger leggero per sezione. Accende il nodo
+       * (`data-active`) e dichiara `aria-current`.
+       * SENZA PARAMETRO, da «parità mobile 2» (scheda 14). Qui c'era un
+       * `markCurrent` che spegneva `aria-current` sul ramo mobile, e aveva
+       * senso finché la riga era solo PROGRESSO (aria-hidden, fuori dal tab
+       * order): adesso è una nav a ogni larghezza, quindi i due rami chiedono
+       * la stessa cosa e un parametro che vale sempre `true` è un ramo morto
+       * travestito da opzione.
        */
-      const watchChapters = (markCurrent: boolean) => {
+      const watchChapters = () => {
         const sts = chapters.map(({ id }) => {
           const el = document.getElementById(id);
           const knot = knots.find((k) => k.dataset.knot === id);
@@ -166,7 +219,6 @@ export default function ThreadNav({
             end: "bottom 55%",
             onToggle(self) {
               knot.dataset.active = self.isActive ? "true" : "false";
-              if (!markCurrent) return;
               // "page" come le voci dell'header (Header.tsx): i due chrome
               // di navigazione dicono la stessa cosa nello stesso modo.
               // (Non è ancora vero per TUTTO il sito: l'indice di
@@ -206,15 +258,28 @@ export default function ThreadNav({
 
       /* ─── RAMO DESKTOP: LA COLONNA, CHE È UNA NAV ────────────────────── */
       mm.add(`${MQ.motionOk} and ${MQ.lg}`, () => {
-        // OPACITY + pointer-events, mai autoAlpha: qui dentro ci sono da
-        // quattro a sei bottoni che saltano al capitolo, e `visibility: hidden`
-        // li toglierebbe dal tab order (la regola sta in lib/motion/gsap.ts).
-        // Il puntatore va spento a mano perché i nodi si riprendono l'evento da
-        // soli con `lg:pointer-events-auto`: senza questa riga, finché il filo
-        // è invisibile resterebbero sei bersagli vivi sul bordo destro.
-        const hidden: gsap.TweenVars = { opacity: 0, x: 8, pointerEvents: "none" };
-        const reveal = fader({ opacity: 1, x: 0, pointerEvents: "auto" }, hidden);
+        // OPACITY, NON autoAlpha: qui dentro ci sono da quattro a sei bottoni
+        // che saltano al capitolo, e `visibility: hidden` li toglierebbe dal
+        // tab order (la regola sta in lib/motion/gsap.ts).
+        //
+        // IL PUNTATORE SI ACCENDE SUI NODI, ESATTAMENTE COME SUL RAMO MOBILE —
+        // e questa riga è una correzione, non una simmetria di gusto. Prima il
+        // bottone si riprendeva l'evento da sé con `lg:pointer-events-auto` e
+        // qui si scriveva `pointerEvents` sul ROOT credendo di poterlo
+        // richiudere: non funziona in nessuno dei due versi. `pointer-events`
+        // è ereditata, ma un figlio che dichiara `auto` resta bersaglio anche
+        // dentro un antenato a `none` — quindi il filo invisibile teneva vivi
+        // sei bersagli sul bordo destro, ed è il difetto che quel commento
+        // diceva di aver chiuso. Da qui il puntatore ce l'ha una sorgente
+        // sola: il JS del ramo, sui nodi.
+        const hidden: gsap.TweenVars = { opacity: 0, x: 8 };
+        const fadeRail = fader({ opacity: 1, x: 0 }, hidden);
+        const reveal = (show: boolean) => {
+          gsap.set(knots, { pointerEvents: show ? "auto" : "none" });
+          fadeRail(show);
+        };
         const closeGate = openGate(hidden);
+        gsap.set(knots, { pointerEvents: "none" });
 
         // ENTRAMBI GLI ASSI, in tutti e due i rami. La quickSetter costruisce
         // la sua cache leggendo la transform attuale e poi scrive un asse
@@ -253,7 +318,7 @@ export default function ThreadNav({
           },
         });
 
-        const unwatchChapters = watchChapters(true);
+        const unwatchChapters = watchChapters();
 
         /* IL FILO SOPRA LE SUPERFICI SCURE.
            Il chrome sovrapposto — la parte di schermo sempre ferma e sempre
@@ -263,18 +328,16 @@ export default function ThreadNav({
            centro elementFromPoint colpirebbe il binario stesso. Vedi
            lib/ui/surface per il motivo per cui un IntersectionObserver qui non
            basta.
-           SOLO SUL RAIL, da questa wave. Prima l'effetto partiva a ogni
-           larghezza da un useEffect al mount: scroll e resize passivi più un
-           rAF per un elemento display:none. Ma il motivo vero per non
-           riaccenderlo sul telefono è un altro: watchSurfaceTone scrive
-           `data-tone="dark"`, lo STESSO attributo che SurfaceFlow legge come
-           tappa del flusso di colore e che globals.css usa per togliere gli
-           sfondi. Su una nav display:none era innocuo; su una riga visibile in
-           cima alla home diventerebbe una tappa fantasma nel flusso. Il prezzo
-           lo paga la traccia, che sopra le superfici scure resta beige invece
-           di scendere a cream/25: si legge lo stesso (è chiara su scuro), è
-           solo un filo più forte. Chi spariva davvero erano le ETICHETTE
-           (text-stone su grafite) — e sul filo orizzontale non ci sono. */
+           DENTRO IL RAMO, non in un useEffect al mount: prima girava a ogni
+           larghezza — scroll e resize passivi più un rAF — anche per un
+           elemento display:none. Il ramo mobile ne ha uno gemello (più sotto,
+           col suo punto di campionamento), acceso da «parità mobile 2» insieme
+           al rename `data-tone` → `data-rail-tone`: finché l'attributo scritto
+           era `data-tone`, cioè la tappa di SurfaceFlow, su una riga VISIBILE
+           in cima alla home sarebbe stato una tappa fantasma nel flusso di
+           colore. Qui sul rail nessuno dei due problemi c'è mai stato (la
+           colonna sotto lg è display:none), ma l'attributo è lo stesso: chi
+           legge il chrome legge `data-rail-tone`, sempre. */
         const stopTone = watchSurfaceTone(root, () => {
           const r = root.getBoundingClientRect();
           if (r.width === 0) return null;
@@ -295,33 +358,33 @@ export default function ThreadNav({
         };
       });
 
-      /* ─── RAMO TELEFONO/TABLET: LA RIGA, CHE È SOLO PROGRESSO ────────── */
+      /* ─── RAMO TELEFONO/TABLET: LA RIGA, CHE È UNA NAV ───────────────── */
       mm.add(`${MQ.motionOk} and ${MQ.belowLg}`, () => {
-        // FUORI DALL'ALBERO ACCESSIBILE E FUORI DAL TAB ORDER. Un indicatore
-        // di progresso che ripete voce per voce la nav dell'header è rumore
-        // per chi legge a schermo letto, e i nodi qui non portano da nessuna
-        // parte: non sono bersagli. Il markup però è uno solo per i due rami
-        // (il breakpoint si conosce solo a runtime: renderizzare `<span>` di
-        // qua e `<button>` di là vorrebbe dire indovinare la larghezza in
-        // SSR), quindi la strada è aria-hidden sul contenitore + tabIndex -1
-        // sui bottoni. Servono ENTRAMBI: un focusable dentro un sottoalbero
-        // aria-hidden è la violazione classica, il Tab ci finirebbe dentro
-        // senza che nulla venga annunciato.
-        root.setAttribute("aria-hidden", "true");
-        knots.forEach((k) => {
-          k.tabIndex = -1;
-        });
+        // DENTRO L'ALBERO ACCESSIBILE, come il rail. L'aria-hidden sul
+        // contenitore e il tabIndex -1 sui bottoni che stavano qui erano la
+        // conseguenza del declassamento a progresso: caduto quello, cadono
+        // anche loro. Il markup resta uno solo per i due rami (il breakpoint
+        // si conosce solo a runtime), e adesso non ha più bisogno di essere
+        // smontato da JS in nessuno dei due.
 
-        // OPACITY, NON autoAlpha. Il motivo di ieri (visibility:hidden toglie
-        // i nodi dal tab order e la rete focusin non scatterebbe) è caduto
-        // insieme alla navigazione: qui dentro il Tab non entra più per
-        // scelta. Resta valido l'altro: la riga non ha mai il puntatore, né
-        // accesa né spenta (`pointer-events-none` nel markup, che da lg in su
-        // si riapre solo sui nodi del rail), quindi non c'è niente da
-        // nascondere davvero e l'opacità basta da sola.
+        // OPACITY, NON autoAlpha: qui dentro ci sono da quattro a sei bottoni
+        // che saltano al capitolo, e `visibility: hidden` li toglierebbe dal
+        // tab order (la regola sta in lib/motion/gsap.ts).
+        //
+        // IL PUNTATORE VIVE SUI NODI, MAI SUL CONTENITORE — ed è la stessa
+        // riga del rail (il ramo qui sopra), perché il difetto che chiude è lo
+        // stesso: un contenitore acceso qui sarebbe la banda a tutta larghezza
+        // che si mangiava i tocchi del contenuto, e là sarebbero sei bersagli
+        // vivi sotto un filo invisibile. Restano vivi i soli riquadri da 44×44
+        // dei nodi, e solo mentre il filo è acceso.
         const hidden: gsap.TweenVars = { opacity: 0, y: -8 };
-        const reveal = fader({ opacity: 1, y: 0 }, hidden);
+        const fadeRow = fader({ opacity: 1, y: 0 }, hidden);
+        const reveal = (show: boolean) => {
+          gsap.set(knots, { pointerEvents: show ? "auto" : "none" });
+          fadeRow(show);
+        };
         const closeGate = openGate(hidden);
+        gsap.set(knots, { pointerEvents: "none" });
 
         gsap.set(fill, { scaleY: 1, scaleX: 0 });
         spreadKnots("left");
@@ -339,7 +402,7 @@ export default function ThreadNav({
         // cinque rotte che montano il filo.
         let revealAt = window.innerHeight * 0.9;
         const place = () => {
-          placeKnots("left", lead);
+          placeKnots("left", lead, MIN_KNOT_PITCH);
           const first = document.getElementById(chapters[0]?.id || "");
           // La riga è fixed: il suo bordo basso in coordinate viewport è una
           // costante, e non va scritta a mano da nessuna parte.
@@ -362,15 +425,33 @@ export default function ThreadNav({
           },
         });
 
-        const unwatchChapters = watchChapters(false);
+        const unwatchChapters = watchChapters();
 
-        // La rete `focusin` che stava qui è sparita con la navigazione:
-        // accendeva il filo quando il Tab entrava in un nodo, e nel filo di
-        // progresso col Tab non ci entra più nessuno. Resta l'altra, che col
-        // focus non c'entra: se la pagina apre già scrollata (ancora
-        // nell'URL, posizione ripristinata dal browser) l'onUpdate può non
-        // arrivare mai e il filo resterebbe spento con mezza pagina alle
-        // spalle.
+        /* IL FILO SOPRA LE SUPERFICI SCURE, ANCHE QUI. Il campionamento era
+           spento sotto lg per una ragione sola, ed era vera: watchSurfaceTone
+           scriveva `data-tone`, cioè lo STESSO attributo con cui le sezioni si
+           dichiarano tappa del flusso di colore — su una nav display:none era
+           innocuo, su una riga visibile in cima alla home sarebbe stato una
+           tappa fantasma. Adesso scrive `data-rail-tone` (lib/ui/surface.ts,
+           trappola 1 dell'onda) e il motivo non c'è più: la riga vira come il
+           rail, con lo stesso rAF coalescente e lo stesso costo (un hit-test
+           per frame DI SCROLL, zero a pagina ferma).
+           IL PUNTO CAMPIONATO STA SOTTO LA BANDA, non sulla riga: da quando i
+           nodi hanno il puntatore, un campione all'altezza della riga
+           colpirebbe il bersaglio da 44px di un nodo invece della pagina
+           (elementFromPoint salta ciò che è pointer-events:none — il
+           contenitore e il binario sì, i nodi no). Sotto il bersaglio più
+           basso c'è di nuovo la pagina, e a mezza schermata di distanza la
+           superficie è la stessa. */
+        const stopTone = watchSurfaceTone(root, () => {
+          const r = root.getBoundingClientRect();
+          if (r.width === 0) return null;
+          return { x: window.innerWidth / 2, y: r.bottom + TAP_TARGET };
+        });
+
+        // Rete di sicurezza: se la pagina apre già scrollata (ancora nell'URL,
+        // posizione ripristinata dal browser) l'onUpdate può non arrivare mai
+        // e il filo resterebbe spento con mezza pagina alle spalle.
         const failsafe = window.setTimeout(() => {
           if (!shownRef.current && window.scrollY > revealAt) reveal(true);
         }, 2500);
@@ -379,9 +460,8 @@ export default function ThreadNav({
           ScrollTrigger.removeEventListener("refresh", place);
           seam.kill();
           unwatchChapters();
+          stopTone();
           clearTimeout(failsafe);
-          root.removeAttribute("aria-hidden");
-          knots.forEach((k) => k.removeAttribute("tabindex"));
           clearAxis();
           closeGate();
           shownRef.current = false;
@@ -443,14 +523,14 @@ export default function ThreadNav({
         aria-hidden
         /* Il binario ha DUE colori perché ha due modi di sapere dov'è. Sul
            rail lo sa: `watchSurfaceTone` campiona la superficie accanto e
-           scrive `data-tone`, quindi `bg-line` può virare al chiaro sui fondi
-           scuri. Sotto lg quel campionamento non gira — di proposito: `data-tone`
-           è anche la tappa di SurfaceFlow, e stamparlo su un elemento visibile
-           della home falserebbe il flusso di colore. Senza campionamento un
-           beige pieno resterebbe beige anche sul fondo sbagliato, quindi qui il
-           binario è un nero trasparente: si stacca su crema come su scuro senza
-           dover sapere niente di ciò che ha sotto. */
-        className="absolute left-0 right-0 top-1/2 -mt-px h-[2px] bg-ink/15 transition-colors duration-500 lg:bottom-0 lg:left-1/2 lg:right-auto lg:top-0 lg:mt-0 lg:h-auto lg:w-px lg:-translate-x-1/2 lg:bg-line lg:group-data-[tone=dark]:bg-cream/25"
+           scrive `data-rail-tone` (rinominato in quest'onda: prima era
+           `data-tone`, cioè la tappa di SurfaceFlow — vedi lib/ui/surface.ts),
+           quindi `bg-line` può virare al chiaro sui fondi scuri. Sotto lg il
+           campionamento ADESSO GIRA (era la trappola che teneva spenta la nav
+           mobile, ed è caduta col rename): la riga resta comunque un nero
+           trasparente, perché a 2px di spessore su una piega di colore un
+           beige pieno si perderebbe — il `data-rail-tone` lì serve ai NODI. */
+        className="absolute left-0 right-0 top-1/2 -mt-px h-[2px] bg-ink/15 transition-colors duration-500 lg:bottom-0 lg:left-1/2 lg:right-auto lg:top-0 lg:mt-0 lg:h-auto lg:w-px lg:-translate-x-1/2 lg:bg-line lg:group-data-[rail-tone=dark]:bg-cream/25"
       />
       <span
         ref={fillRef}
@@ -472,27 +552,39 @@ export default function ThreadNav({
           data-knot={id}
           aria-label={label}
           onClick={() => goTo(id)}
-          // BOTTONE SOLO DA lg IN SU. Sotto è una tacca: `pointer-events-none`
-          // e nessuna area attorno — il riquadro è il pallino da 8px e basta.
-          // Il click resta appeso perché il markup è uno solo, ma senza
-          // puntatore né tab (vedi il ramo mobile) non lo raggiunge nessuno.
-          // Le tacche possono anche toccarsi fra loro: su /metodo, a 390px,
-          // due centri arrivano a 5px. Da bersagli era il difetto peggiore
-          // del ramo; da tacche è la texture del filo.
-          className="group pointer-events-none absolute top-1/2 flex h-2 w-2 -translate-x-1/2 -translate-y-1/2 items-center justify-center lg:left-1/2 lg:h-6 lg:w-6 lg:cursor-pointer lg:pointer-events-auto"
+          // BOTTONE A OGNI LARGHEZZA (onda «parità mobile 2», scheda 14: PORT
+          // dei nodi). Il markup è uno solo per i due rami — il breakpoint si
+          // conosce solo a runtime — e il puntatore lo accende il JS sui NODI,
+          // mai sul contenitore, in ENTRAMBI i rami (`lg` e `belowLg`): niente
+          // banda a tutta larghezza che si mangi i tocchi del contenuto, e
+          // nessun bersaglio vivo sotto un filo ancora invisibile. Qui resta
+          // solo lo stato di riposo (`pointer-events-none`), che è anche ciò
+          // che vale senza JS.
+          // IL BERSAGLIO È `.dt-knot`, cioè un riquadro da 44×44 disegnato da
+          // un `::before` quadrato e centrato (globals.css, blocco «ThreadNav:
+          // il bersaglio del nodo»): il pallino resta 8px, il dito ne trova 44
+          // — e la geometria della riga non cambia di un pixel. `.tap-target`
+          // non andava bene: il suo ::before prende la LARGHEZZA
+          // dell'elemento, che per un pallino sono 8px.
+          // Che due bersagli non si sovrappongano è affare di `placeKnots`,
+          // che tiene i centri a 52px l'uno dall'altro (44 + 8) prima di
+          // scrivere le percentuali: su /metodo, a 390px, due capitoli
+          // arrivavano a 5px.
+          className="group dt-knot pointer-events-none absolute top-1/2 flex h-2 w-2 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center lg:left-1/2 lg:h-6 lg:w-6"
         >
           <span
             aria-hidden
-            className="h-2 w-2 rounded-full border border-stone/60 bg-paper transition-[transform,background-color,border-color] duration-300 group-hover:scale-125 group-hover:border-red group-data-[active=true]:scale-150 group-data-[active=true]:border-red group-data-[active=true]:bg-red group-data-[tone=dark]:border-cream/50 group-data-[tone=dark]:bg-cream/85"
+            className="h-2 w-2 rounded-full border border-stone/60 bg-paper transition-[transform,background-color,border-color] duration-300 group-hover:scale-125 group-hover:border-red group-data-[active=true]:scale-150 group-data-[active=true]:border-red group-data-[active=true]:bg-red group-data-[rail-tone=dark]:border-cream/50 group-data-[rail-tone=dark]:bg-cream/85"
           />
           {/* Etichetta: scivola dal filo verso sinistra su hover/attivo. Sulla
-              riga orizzontale non c'è: a 390px quattro parole in fila su una
-              riga alta 2px si sovrappongono — ed è anche il motivo per cui
-              laggiù il filo non è una nav ma un progresso (la nav vera, sul
-              telefono, è l'header). */}
+              riga orizzontale non c'è, e resta l'unica cosa che il ramo mobile
+              non porta: a 390px quattro parole in fila su una riga alta 2px si
+              sovrappongono davvero, e nessuna spaziatura le salva. Il nome del
+              capitolo lì lo dice l'`aria-label` del bottone — che è come lo
+              legge chi naviga con lo screen reader anche sul rail. */}
           <span
             aria-hidden
-            className="pointer-events-none absolute right-full mr-3 hidden translate-x-1 whitespace-nowrap text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-stone opacity-0 transition-[opacity,transform] duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-data-[active=true]:translate-x-0 group-data-[active=true]:text-red group-data-[active=true]:opacity-100 group-data-[tone=dark]:text-cream/85 lg:block"
+            className="pointer-events-none absolute right-full mr-3 hidden translate-x-1 whitespace-nowrap text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-stone opacity-0 transition-[opacity,transform] duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-data-[active=true]:translate-x-0 group-data-[active=true]:text-red group-data-[active=true]:opacity-100 group-data-[rail-tone=dark]:text-cream/85 lg:block"
           >
             {label}
           </span>
