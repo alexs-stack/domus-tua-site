@@ -1,6 +1,19 @@
 # Piano di implementazione — Documento Finale di Sintesi
 
-> **Stato al 20 agosto 2026 — fino al commit `5950c6a`.**
+> **Stato al 20 agosto 2026 — fino al commit `98bda02`.**
+> **Chiusa anche la Fase 5 per la parte che dipende da noi**: i tre difetti §5.8 che si
+> possono togliere senza riscrivere una parola — doppio spazio nel titolo ([#66](https://github.com/alexs-stack/domus-tua-site/pull/66)),
+> recapito web e frase troncata ([#67](https://github.com/alexs-stack/domus-tua-site/pull/67)) — non arrivano più in pagina. Con loro
+> se n'è andato anche il blocco delle «righe singole»: territorio nelle altre quattro
+> lingue, CTA acquirente su una formula per lingua, i tre slogan del team, due frasi
+> dell'assistente che non combaciavano col sito.
+>
+> Restano di Fase 5 due difetti che si **segnalano** e non si correggono («e'» per «è» e le
+> abbreviazioni da appunti: lì la regex dovrebbe cambiare una parola, non toglierne una), il
+> refuso e il registro — entrambi della Direzione — e i due lavori strutturali in coda alla
+> sezione (campi per categoria, alt di galleria).
+>
+
 > **Fasi 0, 1 e 3 chiuse** — ogni voce che non dipende dalla cliente è in `main`,
 > comprese le tre di copy del §3bis. Restano solo le due voci ESTERNE di Fase 0 (testi
 > legali validati, `NEXT_PUBLIC_SITE_URL`), la Fase 2 ferma sulle recensioni nominative
@@ -307,10 +320,10 @@ registrata».
 | `4.9` → `4,9` in italiano (separatore decimale) | `RecensioniContent.tsx:25`, `layout.tsx:181` |
 | Interpolare `site.rating` / `site.reviewsCount` **anche nei metadata**, invece di scriverli a mano | `layout.tsx`, `page.tsx`, `recensioni/page.tsx` |
 | Le versioni brevi del metodo devono dichiararsi tali: *«I nove passaggi del Metodo Domus, in sintesi»* | `VendiContent.tsx`, `AcquistaContent.tsx`, `OpenDomusPageContent.tsx` (× 5 lingue) |
-| Famiglia acquirente su **una** formula: «Vedi le case in vendita» | `HorizonStory.tsx:49`, `PropertyDetail.tsx:75`, `AcquistaContent.tsx:39` (× 5 lingue) |
-| Territorio nei **testi visibili** esteso all'alta provincia di Como — oggi solo il JSON-LD lo è. Meglio: una chiave sola in `site.ts` da cui derivare | `faq.ts:134`, `HorizonStory.tsx:48`, `entries.ts:198` |
+| ~~Famiglia acquirente su **una** formula~~ — **FATTO**. La CTA «vedi le case» prima; in [#66](https://github.com/alexs-stack/domus-tua-site/pull/66) anche la CTA «cerco casa», che in francese aveva tre varianti («un bien», «une maison», e un «Je cherche» monco) e in tedesco due | `HeroCinematic.tsx`, `Paths.tsx`, `AcquistaContent.tsx`, `Contact.tsx`, `PropertyDetail.tsx` |
+| ~~Territorio nei **testi visibili** esteso all'alta provincia di Como~~ — **FATTO** ([#66](https://github.com/alexs-stack/domus-tua-site/pull/66)). L'italiano era già su `territoryLabel`; le altre quattro lingue interpolavano ancora `site.address.province`, cioè «Varese» e basta, mentre il JSON-LD della stessa pagina dichiarava anche Como. Ora `territoryLabelBy` è fonte unica per tutte e cinque | `site.ts:232`, `faq.ts` |
 | «Ti accompagniamo» → attività verificabili (5 occorrenze). È l'ultima delle tre formule generiche del §2 rimasta in piedi | home, `/acquista`, `/metodo` |
-| «Professionalità · Innovazione · Integrità» ancora in `Team.tsx` (righe 23/42/61/80/99), benché già sostituite su `/chi-siamo` | `Team.tsx` |
+| ~~«Professionalità · Innovazione · Integrità» in `Team.tsx`~~ — **FATTO** ([#66](https://github.com/alexs-stack/domus-tua-site/pull/66)). Al loro posto le tre cose verificabili che il sito già dichiara altrove: non si prende l'incarico se il prezzo non sta in piedi, i documenti si controllano prima di pubblicare, al telefono risponde la stessa persona. Cinque lingue | `Team.tsx` |
 | Template title `"%s | Domus Tua Immobiliare Tradate"` → `"%s | Domus Tua"`; `absolute` sulle 4 pagine che già contengono il nome | `layout.tsx:178` + 4 file |
 | `BreadcrumbList` sulle 8 rotte scoperte — estrarre un `breadcrumbJsonLd()` in `site.ts` invece di copiarlo a mano | 8 `page.tsx` |
 | ~~`Service` su `/servizi`, `FAQPage` su `/open-domus`~~ — fatti | `servizi/page.tsx`, `open-domus/page.tsx` |
@@ -348,15 +361,20 @@ esistono solo sul WordPress che verrà spento.
 Il contenitore è ottimo, e la pulizia automatica esiste già (`app/lib/realsmart/`). Restano i
 difetti che il documento elenca uno per uno:
 
-| Difetto (§5.8) | Chi lo risolve |
+| Difetto (§5.8) | Stato |
 |---|---|
-| URL dentro il racconto | **Noi** — regola in `privacy.ts` + check in `contentAudit.ts` |
-| Frase troncata «compra e vendi in serenità con» | **Noi** — il predicato `endsOpen()` esiste già a `description.ts:257`: basta scartare la riga invece di lasciarne il moncone |
-| «e'» invece di «è» | **Noi** — regex chiusa, ma richiede la prima eccezione esplicita al vincolo «non si riscrive» di `description.ts:14-19` |
-| Doppio spazio nel titolo | **Noi** — una riga in `normalize.ts:165` |
-| «ns», «vs», abbreviazioni | **Decisione** — lessico chiuso, oppure solo segnalazione in `contentAudit` |
+| ~~URL dentro il racconto~~ | **FATTO** ([#67](https://github.com/alexs-stack/domus-tua-site/pull/67)). Nel feed erano due annunci. Se la frase è solo un invito all'azione se ne va intera; se porta anche un dato dell'immobile se ne va il solo recapito, con la preposizione che lo reggeva |
+| ~~Frase troncata «compra e vendi in serenità con»~~ | **FATTO** ([#67](https://github.com/alexs-stack/domus-tua-site/pull/67)). Erano sei, e finivano tutte su una parola-funzione. Si toglie la frase, non il paragrafo; e la potatura gira anche in fondo alla catena, perché la sesta («chiama ora lo e») il moncone ce l'ha lasciato la nostra redazione del telefono |
+| ~~Doppio spazio nel titolo~~ | **FATTO** ([#66](https://github.com/alexs-stack/domus-tua-site/pull/66)). `cleanField` collassa gli spazi interni dei campi di una riga. Erano cinque annunci |
+| «e'» invece di «è» (2 annunci) | **Segnalato, non corretto.** Qui la regex dovrebbe cambiare una PAROLA, e quella è la riga che `description.ts` non attraversa. Le tre voci qui sopra sono rimozioni, non riscritture |
+| «ns», «vs» (2 annunci) | **Segnalato, non corretto.** Stessa ragione |
 | Refuso «valore attuale di marcato» | **Direzione** — nessuna regex ripara un refuso senza riscrivere |
 | Registro `Immaginate → tuo figlio → vostri cari` | **Direzione** — riscrittura al «tu» nel gestionale o via override |
+
+> I quattro controlli §5.8 del report guardano ora la **FONTE** e non il testo pubblicato: da
+> quando due difetti su quattro spariscono in pubblicazione, la domanda utile non è più
+> «l'abbiamo pubblicato?» ma «c'è ancora nel gestionale?». Un report muto verrebbe letto come
+> «non c'è niente da correggere».
 
 In più, due lavori strutturali:
 
