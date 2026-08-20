@@ -31,6 +31,8 @@
 //   8. costruisce i paragrafi, rimuovendo le firme commerciali riga per riga e unendo i
 //      soli frammenti spezzati per errore.
 
+import { endsOnFunctionWord } from "./italian";
+
 /** Risultato della normalizzazione di una descrizione. */
 export interface NormalizedDescription {
   /** Paragrafi puliti, nell'ordine originale. Mai stringhe vuote, mai tag, mai entità. */
@@ -264,6 +266,74 @@ function endsOpen(line: string): boolean {
   return !/[.!?:;»”’…)\]]$/.test(line.trim());
 }
 
+// ── Coda troncata alla fonte ─────────────────────────────────────────────────
+//
+// Nel feed reale sei annunci su 196 finiscono a metà frase. Sono TUTTI così:
+//
+//   1640  «… a scegliere con il cuore, ricordando sempre che»
+//   1665  «… chiamandoci per un appuntamento, ricordando che»
+//   1751  «… E ricorda che»
+//   1768  «… E ricorda che»
+//   1825  «… goditi la tua vita compra e vendi in serenità con»
+//   2044  «… per una valutazione della tua casa chiama ora lo e»
+//
+// Due cose saltano all'occhio. La prima: l'ultima parola è sempre una PAROLA-FUNZIONE — «che»,
+// «con», «e» — cioè una parola che da sola non può chiudere un pensiero. È il segnale, ed è un
+// segnale chiuso (la lista sta in ./italian.ts, condivisa con la redazione dei recapiti):
+// nessuna riga di contenuto immobiliare finisce così. Una riga-elenco come
+// «Classe B · Doppio terrazzo · Due autorimesse» non ha punteggiatura finale ma termina su un
+// sostantivo, e resta dov'è.
+//
+// La seconda: nessuna delle sei porta informazione sull'immobile. Sono congedi commerciali
+// tagliati dal gestionale — e la 2044 è tagliata anche da NOI, perché è la redazione del
+// telefono a lasciare «chiama ora lo e».
+//
+// Si toglie la FRASE incompleta, non il paragrafo: la 1640 ha del contenuto vero prima del
+// congedo. E si toglie solo se il taglio è corto: oltre 200 caratteri non è più una coda, è
+// un pezzo di annuncio, e allora resta in pagina e lo segnala l'audit.
+/** Lunghezza massima della coda che si può togliere: oltre, non è più un congedo. */
+const MAX_DANGLING_TAIL = 200;
+
+/**
+ * Toglie dall'ULTIMO paragrafo la frase rimasta a metà, quando finisce su una parola-funzione.
+ * Ritorna il paragrafo invariato in tutti gli altri casi.
+ */
+function dropDanglingTail(paragraph: string): string {
+  const p = paragraph.trim();
+  if (!endsOpen(p)) return p;
+  if (!endsOnFunctionWord(p)) return p;
+
+  // Inizio della frase incompleta: l'ultimo confine di frase (. ! ?) del paragrafo.
+  let start = 0;
+  for (let i = p.length - 1; i > 0; i -= 1) {
+    if (/[.!?]/.test(p[i]!) && /\s/.test(p[i + 1] ?? " ")) {
+      start = i + 1;
+      break;
+    }
+  }
+  const tail = p.slice(start).trim();
+  if (tail.length > MAX_DANGLING_TAIL) return p;
+  return p.slice(0, start).trim();
+}
+
+/**
+ * La stessa potatura, applicata a un elenco di paragrafi GIÀ redatti.
+ *
+ * Serve perché una coda a metà frase può nascere DOPO questo modulo: la redazione privacy toglie
+ * il telefono e lascia «chiama ora lo e» (annuncio 2044), la quarantena toglie una misura non
+ * compilata e può lasciare un congedo scoperto. Chiamarla di nuovo in fondo alla catena costa
+ * niente ed è idempotente — su un testo già pulito non trova nulla da togliere.
+ */
+export function dropDanglingTailFromParagraphs(paragraphs: readonly string[]): string[] {
+  if (paragraphs.length === 0) return [];
+  const out = paragraphs.slice();
+  const i = out.length - 1;
+  const trimmed = dropDanglingTail(out[i]!);
+  if (trimmed.length === 0) out.pop();
+  else out[i] = trimmed;
+  return out;
+}
+
 /**
  * Costruisce i paragrafi finali.
  *
@@ -288,6 +358,16 @@ function toParagraphs(text: string): string[] {
       continue;
     }
     paragraphs.push(line);
+  }
+
+  // La coda troncata si toglie SOLO dall'ultimo paragrafo, e solo dopo che le giunture sono
+  // state ricostruite: un frammento in mezzo al testo è quasi sempre una riga spezzata dal
+  // gestionale, e quella la ricuce il ciclo qui sopra — non va buttata.
+  const lastIndex = paragraphs.length - 1;
+  if (lastIndex >= 0) {
+    const trimmed = dropDanglingTail(paragraphs[lastIndex]!);
+    if (trimmed.length === 0) paragraphs.pop();
+    else paragraphs[lastIndex] = trimmed;
   }
   return paragraphs;
 }
@@ -330,24 +410,43 @@ export function normalizeDescription(raw: string | null | undefined): Normalized
   if (typeof raw !== "string" || raw.trim().length === 0) {
     return { paragraphs: [], excerpt: "", plainText: "" };
   }
-
-  let text = raw;
-  text = normalizeWhitespace(text); // CRLF prima di tutto: i pattern successivi vedono solo \n
-  text = decodeEntities(text); // "&lt;br/&gt;" → "<br/>", "&amp;" → "&", "&nbsp;" → spazio
-  text = normalizeWhitespace(text); // le entità appena decodificate possono essere nbsp/zero-width
-  text = stripDangerousBlocks(text); // script/style/... spariscono col loro contenuto
-  text = markupToNewlines(text); // break e blocchi → "\n"  (PRIMA di togliere i tag)
-  text = stripRemainingTags(text); // ogni tag residuo sparisce
-  text = normalizeWhitespace(text);
-  text = splitGluedSentences(text); // "…piano.Oggi a Tradate…" → nuovo paragrafo
-
   // toParagraphs applica anche la rimozione delle firme commerciali, riga per riga.
-  const paragraphs = toParagraphs(text);
+  const paragraphs = toParagraphs(cleanMarkup(raw));
   return {
     paragraphs,
     excerpt: buildExcerpt(paragraphs),
     plainText: paragraphs.join("\n"),
   };
+}
+
+/**
+ * Il testo GREZZO ripulito dal solo markup — nessuna potatura, nessuna redazione.
+ *
+ * È la vista che serve all'AUDIT. I controlli editoriali guardano il testo PUBBLICATO, e va
+ * bene finché il difetto arriva fino in pagina; da quando la coda troncata e i recapiti web
+ * vengono tolti, un controllo sul testo pubblicato non troverebbe più niente e il report
+ * direbbe «tutto a posto» mentre nel gestionale il difetto è ancora lì.
+ *
+ * Quindi quei controlli guardano QUI: la domanda non è più «l'abbiamo pubblicato?» ma «c'è
+ * ancora alla fonte?» — che è poi la sola a cui il report debba rispondere, visto che da
+ * sempre conclude «va tolto alla fonte».
+ */
+export function sourcePlainText(raw: string | null | undefined): string {
+  if (typeof raw !== "string" || raw.trim().length === 0) return "";
+  return cleanMarkup(raw);
+}
+
+/** Passi 1-7 della catena: entità, blocchi pericolosi, tag, spazi, giunture. Mai potature. */
+function cleanMarkup(raw: string): string {
+  let text = raw;
+  text = normalizeWhitespace(text); // CRLF prima di tutto: i pattern successivi vedono solo LF
+  text = decodeEntities(text); // "&lt;br/&gt;" → "<br/>", "&amp;" → "&", "&nbsp;" → spazio
+  text = normalizeWhitespace(text); // le entità appena decodificate possono essere nbsp/zero-width
+  text = stripDangerousBlocks(text); // script/style/... spariscono col loro contenuto
+  text = markupToNewlines(text); // break e blocchi → a capo (PRIMA di togliere i tag)
+  text = stripRemainingTags(text); // ogni tag residuo sparisce
+  text = normalizeWhitespace(text);
+  return splitGluedSentences(text); // "…piano.Oggi a Tradate…" → nuovo paragrafo
 }
 
 /** Scorciatoia: solo i paragrafi. */

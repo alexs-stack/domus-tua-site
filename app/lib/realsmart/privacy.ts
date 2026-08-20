@@ -13,11 +13,14 @@
 //   • Si preserva il contesto utile (comune/zona): l'indirizzo redatto è sostituito dal COMUNE
 //     quando lo conosciamo, così la frase resta leggibile e localizzata.
 //   • I telefoni si tolgono SEMPRE (anche con showAddress=true): un recapito diretto nel corpo
-//     della descrizione non è un dato dell'immobile.
+//     della descrizione non è un dato dell'immobile. Dal §5.8 vale lo stesso per gli indirizzi
+//     WEB e le EMAIL: stessa famiglia, stesso trattamento (vedi redactContacts).
 //   • Non si toccano misure ("120 mq", "3 locali", "piano 2") né prezzi ("€ 420.000"): i pattern
 //     sono scelti per non intercettarli.
 //
 // Modulo PURO: nessun accesso a rete/env, stesso input → stesso output.
+
+import { trimDanglingWords } from "./italian";
 
 // ── Indirizzo civico ─────────────────────────────────────────────────────────
 // Parola-chiave stradale + nome PROPRIO (iniziale maiuscola, come nel feed reale) + eventuale
@@ -143,6 +146,105 @@ const PHONE_RE = new RegExp(
   "g",
 );
 
+// ── Recapiti web ed email ────────────────────────────────────────────────────
+//
+// Stessa famiglia del telefono: un canale per raggiungere l'agenzia scritto DENTRO il racconto
+// dell'immobile. Il §5.8 lo elenca fra i difetti delle schede, e nel feed reale sono due annunci
+// su 196 — pochi, e per questo mai corretti alla fonte.
+//
+// L'email è anche un dato personale quando è nominativa (nome.cognome@), quindi sta qui a pieno
+// titolo; il sito web ci sta perché è la stessa cosa vista dall'altro lato — un recapito che
+// porta il lettore FUORI dalla scheda, verso una pagina che nessuno controlla più.
+const EMAIL_RE = /\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/g;
+
+// Tre forme. La terza — dominio nudo, senza "www" né schema — è volutamente CASE-SENSITIVE e
+// senza flag `i`: così "casa.it" viene visto, ma "…in centro.Il giardino…" no, perché dopo il
+// punto c'è una maiuscola. E la lista dei TLD è chiusa a cinque voci che NON sono parole
+// italiane: nessuna frase può finire su "…qualcosa.it" per caso.
+const URL_RE = new RegExp(
+  [
+    "https?:\\/\\/\\S+",
+    "\\bwww\\.[\\w-]+(?:\\.[\\w-]+)+(?:\\/\\S*)?",
+    "\\b[a-z0-9][a-z0-9-]{2,}\\.(?:it|com|net|org|eu)\\b(?:\\/\\S*)?",
+  ].join("|"),
+  "g",
+);
+
+/**
+ * Parole che rendono una frase INFORMATIVA sull'immobile.
+ *
+ * Servono a decidere COSA si toglie. Una frase che contiene un recapito e nient'altro è un
+ * invito all'azione («Trovi tutto su www.esempio.it»): si toglie intera, e la descrizione resta
+ * grammaticale. Una frase che contiene ANCHE un dato dell'immobile («Ampio giardino di 300 mq,
+ * planimetrie su www.esempio.it») no: lì si toglie il solo recapito, perché il dato vale più
+ * della sintassi — e la frase un po' sbilenca che resta viene comunque segnalata alla fonte.
+ *
+ * Non basta «ci sono cifre»: un numero di telefono è fatto di cifre e sta proprio nelle frasi
+ * che vogliamo togliere.
+ */
+/**
+ * Oltre questa lunghezza, la «frase» che contiene il recapito non è più un invito all'azione.
+ *
+ * La misura non è arbitraria, viene dal feed. Nella villa di Villaggio Santa Monica manca il
+ * punto dopo l'indirizzo web, quindi il confine di frase successivo cade tre righe più in
+ * là: togliere «la frase» avrebbe portato via anche «Villa Armonia è più di una casa; è un
+ * ritorno alle radici…», che è copy vero dell'agenzia. Un invito all'azione sta in una riga
+ * («Trovi tutto su … e ti aspettiamo»: 58 caratteri); trecento no.
+ *
+ * Oltre la soglia si torna alla rimozione del solo recapito. È lo stesso patto di
+ * MAX_BOILERPLATE_RATIO in description.ts: si toglie poco e in modo misurabile, e quando la
+ * misura non torna si preferisce una frase sbilenca a un pezzo di annuncio che sparisce.
+ */
+const MAX_CTA_SENTENCE = 200;
+
+const FACT_WORDS_RE =
+  /\b(?:mq|m²|mc|locali?|vani?|camere?|bagni?|piano|piani|classe|giardino|terrazz\w*|box|garage|cantina|balcon\w*|€|euro)\b/i;
+
+/** Confini della frase che contiene la posizione `at` (una frase finisce con . ! ? seguito da spazio o fine). */
+function sentenceBounds(text: string, at: number): [number, number] {
+  let start = 0;
+  for (let i = at - 1; i > 0; i -= 1) {
+    if (/[.!?]/.test(text[i]!) && /\s/.test(text[i + 1] ?? " ")) {
+      start = i + 1;
+      break;
+    }
+  }
+  let end = text.length;
+  for (let i = at; i < text.length; i += 1) {
+    if (/[.!?]/.test(text[i]!) && (i + 1 >= text.length || /\s/.test(text[i + 1]!))) {
+      end = i + 1;
+      break;
+    }
+  }
+  return [start, end];
+}
+
+/** Toglie email e indirizzi web. Vedi FACT_WORDS_RE per la scelta fra togliere la frase o il solo recapito. */
+function redactContacts(text: string): { text: string; count: number } {
+  let out = text;
+  let count = 0;
+  for (const re of [EMAIL_RE, URL_RE]) {
+    // Un giro per recapito trovato, con un tetto: il testo cambia sotto i piedi della regex.
+    for (let guard = 0; guard < 8; guard += 1) {
+      re.lastIndex = 0;
+      const m = re.exec(out);
+      if (!m) break;
+      count += 1;
+      const [s, e] = sentenceBounds(out, m.index);
+      const frase = out.slice(s, e);
+      if (FACT_WORDS_RE.test(frase) || frase.trim().length > MAX_CTA_SENTENCE) {
+        // Si tiene la frase, ma non la preposizione che reggeva il recapito: senza questo,
+        // «planimetrie su www.esempio.it» diventerebbe «planimetrie su.» — lo stesso difetto
+        // che stiamo togliendo, solo creato da noi.
+        out = trimDanglingWords(out.slice(0, m.index)) + out.slice(m.index + m[0].length);
+      } else {
+        out = out.slice(0, s) + out.slice(e);
+      }
+    }
+  }
+  return { text: out, count };
+}
+
 /** true se il testo contiene un indirizzo civico esatto (via/piazza… + numero). */
 export function hasCivicAddress(text: string): boolean {
   CIVIC_ADDRESS_RE.lastIndex = 0;
@@ -176,6 +278,8 @@ export interface RedactionOutcome {
   civicRedactions: number;
   /** Quanti telefoni sono stati rimossi. */
   phoneRedactions: number;
+  /** Quanti recapiti web/email sono stati rimossi. */
+  linkRedactions: number;
 }
 
 /**
@@ -191,6 +295,13 @@ export function redactPrivateText(
   let civicRedactions = 0;
   let phoneRedactions = 0;
   let out = text;
+
+  // Recapiti web/email PRIMA di tutto: quando si toglie la frase intera, si evita di lavorare su
+  // un testo gia' mutilato dalle altre redazioni. L'annuncio 2044 del feed reale mostra il danno
+  // inverso — il telefono tolto lascia «chiama ora lo e» in coda.
+  const contatti = redactContacts(out);
+  const linkRedactions = contatti.count;
+  out = contatti.text;
 
   if (!opts.showAddress) {
     const replacement = opts.comune?.trim() ? opts.comune.trim() : "zona riservata";
@@ -219,26 +330,33 @@ export function redactPrivateText(
 
   // Ricompattamento spazi/punteggiatura SOLO se abbiamo redatto qualcosa: un paragrafo senza
   // fughe non va toccato (la descrizione dell'agenzia resta parola per parola, spazi compresi).
-  if (civicRedactions > 0 || phoneRedactions > 0) {
+  if (civicRedactions > 0 || phoneRedactions > 0 || linkRedactions > 0) {
     out = out.replace(/[ \t]{2,}/g, " ").replace(/\s+([.,;:])/g, "$1").trim();
   }
 
-  return { text: out, civicRedactions, phoneRedactions };
+  return { text: out, civicRedactions, phoneRedactions, linkRedactions };
 }
 
 /** Redige un elenco di paragrafi, scartando quelli rimasti vuoti dopo la redazione. */
 export function redactParagraphs(
   paragraphs: readonly string[],
   opts: { showAddress: boolean; comune?: string; sourceAddress?: string },
-): { paragraphs: string[]; civicRedactions: number; phoneRedactions: number } {
+): {
+  paragraphs: string[];
+  civicRedactions: number;
+  phoneRedactions: number;
+  linkRedactions: number;
+} {
   let civicRedactions = 0;
   let phoneRedactions = 0;
+  let linkRedactions = 0;
   const out: string[] = [];
   for (const par of paragraphs) {
     const r = redactPrivateText(par, opts);
     civicRedactions += r.civicRedactions;
     phoneRedactions += r.phoneRedactions;
+    linkRedactions += r.linkRedactions;
     if (r.text.trim().length > 0) out.push(r.text);
   }
-  return { paragraphs: out, civicRedactions, phoneRedactions };
+  return { paragraphs: out, civicRedactions, phoneRedactions, linkRedactions };
 }

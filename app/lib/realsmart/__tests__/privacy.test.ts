@@ -123,3 +123,62 @@ describe("redazione dei paragrafi", () => {
     assert.ok(r.civicRedactions >= 1 && r.phoneRedactions >= 1);
   });
 });
+
+// ── Recapiti web ed email (§5.8) ─────────────────────────────────────────────
+//
+// Nel feed reale sono DUE annunci su 196. Poco — ed è proprio per questo che alla fonte non
+// li ha mai corretti nessuno. I casi qui sotto sono le tre forme che contano: l'invito
+// all'azione (si toglie la frase), la frase che porta anche un dato dell'immobile (si toglie
+// il solo recapito), e la frase lunghissima della villa di Villaggio Santa Monica, dove manca
+// il punto dopo l'URL e togliere «la frase» porterebbe via copy vero.
+
+describe("recapiti web ed email nel racconto", () => {
+  test("un invito all'azione se ne va intero: la descrizione resta grammaticale", () => {
+    const r = redactPrivateText("Villa immersa nel verde. Trovi tutto su www.esempio.it e ti aspettiamo.", {
+      showAddress: true,
+    });
+    assert.equal(r.text, "Villa immersa nel verde.");
+    assert.equal(r.linkRedactions, 1);
+  });
+
+  test("un'email conta come recapito", () => {
+    const r = redactPrivateText("Per informazioni scrivere a info@esempio.it, rispondiamo subito. Ottima esposizione.", {
+      showAddress: true,
+    });
+    assert.ok(!/@/.test(r.text));
+    assert.equal(r.text, "Ottima esposizione.");
+  });
+
+  test("se la frase porta un DATO dell'immobile, il dato vince: se ne va solo il recapito", () => {
+    const r = redactPrivateText("Ampio giardino di 300 mq, planimetrie su www.esempio.it. Classe A.", {
+      showAddress: true,
+    });
+    assert.equal(r.text, "Ampio giardino di 300 mq, planimetrie. Classe A.");
+  });
+
+  test("la preposizione che reggeva il recapito non resta appesa", () => {
+    const r = redactPrivateText("Terrazzo abitabile, foto su www.esempio.it. Classe B.", { showAddress: true });
+    assert.ok(!/\bsu\.\s/.test(r.text), `preposizione orfana: "${r.text}"`);
+  });
+
+  test("oltre 200 caratteri non è più un invito: si toglie il solo recapito (caso villa)", () => {
+    // Manca il punto dopo l'URL, quindi il confine di frase cade tre righe più in là.
+    const villa =
+      "Prima di entrare in casa se anche tu vuoi conoscere il valore di casa tua, scoprilo attraverso questo link https://esempio.it Ritorno alle Radici: Villa Armonia è più di una casa; è un ritorno alle radici, un luogo dove riscoprire la serenità e la pace interiore.";
+    const r = redactPrivateText(villa, { showAddress: true });
+    assert.ok(!r.text.includes("https://"), "l'indirizzo web deve sparire");
+    assert.ok(r.text.includes("Villa Armonia è più di una casa"), "il copy dell'agenzia NON si tocca");
+  });
+
+  test("una descrizione senza recapiti non viene toccata di un carattere", () => {
+    const pulita = "Trilocale luminoso in centro. Doppi servizi e cantina.";
+    assert.equal(redactPrivateText(pulita, { showAddress: true }).text, pulita);
+  });
+
+  test("un punto seguito da maiuscola NON è un dominio", () => {
+    const t = "Immobile a Tradate.Il giardino è ampio e curato.";
+    const r = redactPrivateText(t, { showAddress: true });
+    assert.equal(r.linkRedactions, 0);
+    assert.equal(r.text, t);
+  });
+});

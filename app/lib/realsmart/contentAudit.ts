@@ -16,7 +16,8 @@
 // c'era e il riferimento dell'annuncio (codice) per correggerlo alla fonte.
 
 import { normalizeRealSmartListing } from "./normalize";
-import { normalizeDescription } from "./description";
+import { normalizeDescription, sourcePlainText } from "./description";
+import { endsOnFunctionWord } from "./italian";
 import { hasCivicAddress, hasPhoneNumber, redactPrivateText } from "./privacy";
 import { verifyRedaction } from "./privacyVerify";
 import { FACT_GROUPS, type FactGroup } from "./facts";
@@ -231,7 +232,7 @@ export function privacyFindings(p: NormalizedProperty, raw: RealSmartListingRaw)
 
 // ── Questioni EDITORIALI (REVIEW) ────────────────────────────────────────────
 
-export function editorialFindings(p: NormalizedProperty): Finding[] {
+export function editorialFindings(p: NormalizedProperty, raw?: RealSmartListingRaw): Finding[] {
   const out: Finding[] = [];
 
   for (const par of p.descriptionParagraphs) {
@@ -294,21 +295,37 @@ export function editorialFindings(p: NormalizedProperty): Finding[] {
   // corsia che il progetto usa già per «da correggere alla fonte» — il §8 chiede
   // entrambe le cose: pulizia automatica del testo in ingresso E regola editoriale
   // scritta. La prima c'è; questa è la seconda.
+  //
+  // DUE DI QUESTI ORA SI CORREGGONO ANCHE. Il recapito web e la coda troncata non sono
+  // riscritture: sono RIMOZIONI chirurgiche, la stessa categoria del boilerplate
+  // commerciale che description.ts toglie da sempre. Nessuna parola dell'agenzia cambia,
+  // ne spariscono alcune — e sparisce roba che non parla dell'immobile.
+  //
+  // Ma il difetto resta ALLA FONTE, quindi i due controlli non si ritirano: cambiano
+  // testimone. Guardano il testo del GESTIONALE invece di quello pubblicato, cioè
+  // rispondono a «c'è ancora nel gestionale?» invece che a «l'abbiamo pubblicato?».
+  // Guardare il pubblicato li avrebbe spenti per sempre, e un report muto viene letto
+  // come «non c'è niente da correggere».
+  const fonte = raw ? sourcePlainText(raw.descrizione) : text;
 
   // 1. Un indirizzo web dentro il racconto della casa. Il documento cita il caso reale:
-  //    un URL per esteso in mezzo alla descrizione di una villa.
-  if (/https?:\/\/|\bwww\.[a-z0-9-]+\.[a-z]{2,}|\b[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(text)) {
+  //    un URL per esteso in mezzo alla descrizione di una villa. In pubblicazione ora
+  //    sparisce (privacy.ts, redactContacts); qui si guarda la FONTE.
+  if (/https?:\/\/|\bwww\.[a-z0-9-]+\.[a-z]{2,}|\b[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(fonte)) {
     out.push({
       severity: "REVIEW",
       check: "link-in-descrizione",
-      detail: "un indirizzo web o email dentro il racconto: va tolto alla fonte (in pubblicazione resta visibile)",
+      detail: "un indirizzo web o email nel testo del gestionale: tolto in pubblicazione, va corretto alla fonte",
     });
   }
 
   // 2. Accenti scritti con l'apostrofo — «e'» invece di «è». Elenco CHIUSO: "po'" e
   //    "de'" sono grafie corrette e non devono comparire qui.
+  //    Anche questo sulla FONTE, come tutti i controlli del blocco: sono difetti che NON
+  //    correggiamo, ma se una frase sparisce per un altro motivo (un recapito che se la
+  //    porta via) il difetto si nasconderebbe invece di essere segnalato.
   const ACCENTO_APOSTROFATO = /\b(e|pero|piu|citta|perche|gia|cosi|puo|liberta|qualita|meta|verita|universita|societa|possibilita)['\u2019](?=\s|$|[,.;:])/i;
-  const mAcc = text.match(ACCENTO_APOSTROFATO);
+  const mAcc = fonte.match(ACCENTO_APOSTROFATO);
   if (mAcc) {
     out.push({
       severity: "REVIEW",
@@ -319,7 +336,7 @@ export function editorialFindings(p: NormalizedProperty): Finding[] {
 
   // 3. Abbreviazioni da appunti interni. Il documento cita «il ns comodo e raffinato
   //    bagno». Elenco stretto: "mq" NON entra, è normale in un annuncio.
-  const mAbbr = text.match(/\b(ns|vs|sig|gent|c\.a)\b\.?/i);
+  const mAbbr = fonte.match(/\b(ns|vs|sig|gent|c\.a)\b\.?/i);
   if (mAbbr) {
     out.push({
       severity: "REVIEW",
@@ -331,12 +348,17 @@ export function editorialFindings(p: NormalizedProperty): Finding[] {
   // 4. Frase troncata. Il documento cita «compra e vendi in serenità con» — una riga che
   //    finisce a metà. Si guarda solo l'ULTIMO paragrafo: nei precedenti una riga aperta
   //    è spesso una didascalia o un elenco, e toParagraphs le ha già ricucite dove poteva.
-  const ultimo = p.descriptionParagraphs[p.descriptionParagraphs.length - 1]?.trim() ?? "";
-  if (ultimo.length > 0 && /\b(con|per|di|da|a|e|che|il|la|le|i|gli|un|una|nel|sul|dal)$/i.test(ultimo)) {
+  //    Anche qui si guarda la FONTE: in pubblicazione la coda viene tolta (description.ts,
+  //    dropDanglingTail), ma nel gestionale la frase è ancora a metà. E la lista delle
+  //    parole-funzione è LA STESSA che decide la potatura (./italian.ts): due liste diverse
+  //    vorrebbero dire segnalare una cosa e correggerne un'altra.
+  const righe = fonte.split(/\n+/).filter((l) => l.trim().length > 0);
+  const ultimo = (righe[righe.length - 1] ?? "").trim();
+  if (ultimo.length > 0 && endsOnFunctionWord(ultimo)) {
     out.push({
       severity: "REVIEW",
       check: "frase-troncata",
-      detail: `la descrizione finisce a metà: "…${ultimo.slice(-48)}"`,
+      detail: `nel gestionale la descrizione finisce a metà: "…${ultimo.slice(-48)}"`,
     });
   }
 
@@ -378,7 +400,7 @@ export function auditListing(raw: RealSmartListingRaw): ListingAudit {
   const findings = [
     ...structuralFindings(p, raw),
     ...privacyFindings(p, raw),
-    ...editorialFindings(p),
+    ...editorialFindings(p, raw),
   ];
   const stato = findings.some((f) => f.severity === "FAIL")
     ? "FAIL"
