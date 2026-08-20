@@ -2,7 +2,7 @@
 // (forma pulita usata dal sito). Funzione PURA e difensiva: nessun side effect, nessuna
 // eccezione su campi mancanti. Se il feed reale userà nomi diversi, si adatta qui la mappatura.
 
-import { normalizeDescription, buildExcerpt } from "./description";
+import { normalizeDescription, buildExcerpt, dropDanglingTailFromParagraphs } from "./description";
 import { redactParagraphs } from "./privacy";
 import { quarantineParagraphs } from "./placeholders";
 import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
@@ -220,7 +220,10 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // finire in pagina: si toglie la frase-misura incompleta (senza inventare la misura). Il segnale
   // viaggia su `placeholderQuarantined` e fa fallire l'audit — la correzione vera è alla fonte/override.
   const quarantine = quarantineParagraphs(redactedParagraphs);
-  const paragraphs = quarantine.paragraphs;
+  // Ultima potatura della coda troncata: qui, e non prima, perché la redazione privacy e la
+  // quarantena possono CREARLE loro. Sull'annuncio 2044 del feed reale il telefono tolto lascia
+  // «per una valutazione della tua casa chiama ora lo e» — un moncone nostro, non del gestionale.
+  const paragraphs = dropDanglingTailFromParagraphs(quarantine.paragraphs);
   const placeholderQuarantined = quarantine.quarantined > 0;
 
   // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
