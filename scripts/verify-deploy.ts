@@ -50,7 +50,9 @@ type Health = {
       };
     };
     soldMap?: { present?: boolean; detected?: number; manual?: number };
-    leadBackend?: string;
+    /** I due canali di consegna VERI del form, più il loro OR. WhatsApp non è qui: apre
+        una chat dal browser, non recapita niente. Vedi app/lib/demoStatus.ts. */
+    leadDelivery?: { email?: boolean; sheet?: boolean; ok?: boolean };
     emailLead?: { configured?: boolean };
     whatsappConfigured?: boolean;
     trustindexLive?: boolean;
@@ -191,14 +193,20 @@ async function main() {
       fix: "Esegui npm run detect-sold e committa sold-detected.json: senza, un venduto può comparire fra i disponibili.",
     },
     {
-      name: "lead del form: destinazione configurata",
-      // Il caso da impedire è "not-configured": il form accetta la richiesta e non la
-      // consegna a nessuno. Con "whatsapp" il canale c'è, ma il lead non viene archiviato:
-      // è una scelta legittima, non un guasto — quindi avviso, non blocco.
-      pass: i.leadBackend !== undefined && i.leadBackend !== "not-configured",
-      detail: `destinazione: ${i.leadBackend ?? "—"}`,
+      name: "lead del form: almeno un canale di consegna",
+      // Il caso da impedire è che il form accetti la richiesta e non la consegni a
+      // nessuno. Prima questo controllo passava anche con la sola "destinazione whatsapp",
+      // che consegna a zero: WhatsApp apre una chat dal BROWSER: se la persona non preme
+      // invio, del lead non resta traccia da nessuna parte. I canali server sono due, la
+      // notifica email e il Google Sheet, e ne basta uno.
+      pass: i.leadDelivery?.ok === true,
+      detail: `canali: ${
+        [i.leadDelivery?.email ? "email" : null, i.leadDelivery?.sheet ? "sheet" : null]
+          .filter(Boolean)
+          .join(" + ") || "nessuno"
+      }`,
       required: hard(true),
-      fix: "SHEETS_WEBHOOK_URL per archiviare i lead, oppure CONTACT_FORM_MODE=whatsapp per il solo canale immediato.",
+      fix: "RESEND_API_KEY + LEAD_EMAIL_TO per la notifica email, oppure SHEETS_WEBHOOK_URL per archiviare i lead. Almeno uno dei due.",
     },
     {
       name: "WhatsApp configurato",

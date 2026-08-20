@@ -39,7 +39,7 @@ describe("/api/health — niente segreti", () => {
       "deploy.environment",
       "deploy.siteUrl",
       "deploy.nodeEnv",
-      "integrations.leadBackend",
+
       "integrations.listingsMode",
       "integrations.assistant.model",
       // Diagnostica RealSmart (Prompt 3): enum e timestamp pubblici, nessun segreto.
@@ -91,7 +91,7 @@ describe("/api/health — cosa deve dichiarare", () => {
       "heroVideoLive",
       "semanticRankingConfigured",
       "assistant",
-      "leadBackend",
+      "leadDelivery",
     ]) {
       assert.ok(key in body.integrations, `manca integrations.${key}`);
     }
@@ -137,14 +137,23 @@ describe("/api/health — cosa deve dichiarare", () => {
     assert.equal(m.present, true);
   });
 
-  test("il backend dei lead è dichiarato, e con un valore previsto", async () => {
-    const body = (await payload()) as { integrations: { leadBackend: string } };
-    // I valori li definisce LeadBackend in app/lib/demoStatus.ts. Il punto del controllo non è
-    // QUALE backend sia configurato — cambia da ambiente ad ambiente — ma che l'endpoint lo
-    // dica con una delle etichette note, invece di inventarne una che nessuno sa leggere.
-    assert.ok(
-      ["sheets", "whatsapp", "not-configured"].includes(body.integrations.leadBackend),
-      `backend lead non previsto: ${body.integrations.leadBackend}`,
+  test("i canali di consegna dei lead sono dichiarati uno per uno", async () => {
+    const body = (await payload()) as {
+      integrations: { leadDelivery: { email: boolean; sheet: boolean; ok: boolean } };
+    };
+    const d = body.integrations.leadDelivery;
+    // Prima era una stringa sola con "whatsapp" fra i valori possibili — e WhatsApp non
+    // recapita niente: apre una chat dal browser. Un health che lo contava come backend
+    // dichiarava consegnati lead che potevano non arrivare a nessuno.
+    //
+    // Il controllo non è QUALI canali siano accesi (cambia da ambiente ad ambiente) ma
+    // che siano dichiarati separatamente e che `ok` sia davvero il loro OR: se un giorno
+    // qualcuno lo mette a `true` fisso, questo test se ne accorge.
+    assert.equal(typeof d.email, "boolean");
+    assert.equal(typeof d.sheet, "boolean");
+    assert.equal(
+      d.ok,
+      d.email || d.sheet,
     );
     // L'endpoint riporta lo stato, non lo decide: nessun nome di variabile d'ambiente né
     // dettaglio del provider deve comparire nel suo sorgente.
