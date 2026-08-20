@@ -5,7 +5,7 @@
 > Fase 0 le due voci esterne (testi legali, `NEXT_PUBLIC_SITE_URL`); in Fase 3 restano tre
 > voci che sono **decisioni di copy**, non correzioni meccaniche, elencate in §4bis.
 >
-> Tre scoperte fatte eseguendo, che il piano non prevedeva:
+> Cinque cose emerse ESEGUENDO, che questo piano non aveva previsto o aveva sottostimato:
 > - `reviewsApprox` — il campo nato per allineare «oltre 500» e «531» **non lo usava
 >   nessuno**: descriveva l'incoerenza invece di risolverla. Tolto; vince il numero esatto.
 > - Il blocco `hero` di `dictionaries.ts` teneva otto campi morti che erano la copia
@@ -13,22 +13,17 @@
 > - Un pixel di scarto in `--dt-footer-h` ha rivelato un bug in `watchHeight`: il
 >   `ResizeObserver` scartava la prima consegna senza aggiornare il riferimento, e una
 >   variazione arrivata in quella finestra spariva per sempre.
+> - Il residuo del §3.3 era di **24 occorrenze, non 14**: le forme aggettivali («mauvaises
+>   surprises», «böse Überraschungen», «sorpresas desagradables») non erano state contate,
+>   e in `VendiContent.tsx` l'italiano era già corretto mentre le quattro traduzioni no.
+> - Il server di sviluppo rispondeva **500 su tutte le pagine** per un errore CSS, e la
+>   causa non era quella che sembrava: non lo scanner di Tailwind che tronca `Footer.tsx`,
+>   ma una classe **citata in forma abbreviata dentro `docs/mobile-parity-2.md`**, che
+>   Tailwind scandisce come sorgente. Corretto a monte con `@source not "../docs"`.
 >
-> **Fase 1 chiusa** e **Fase 0 chiusa per la parte che non dipende dalla cliente.**
-> In esecuzione il residuo del §3.3 si è rivelato più profondo di quanto questo piano
-> stimasse: **24 occorrenze, non 14** — le forme aggettivali («mauvaises surprises»,
-> «böse Überraschungen», «sorpresas desagradables») non erano state contate, e in
-> `VendiContent.tsx` l'italiano era già corretto mentre le quattro traduzioni no.
-> Restano aperte, in Fase 0, solo le due voci esterne: testi legali e
-> `NEXT_PUBLIC_SITE_URL`.
->
-> **Bloccante scoperto durante la verifica e risolto** (commit `9141b0b`): il server di
-> sviluppo rispondeva 500 su tutte le pagine per un errore CSS. La causa non era quella
-> che sembrava — non lo scanner di Tailwind che tronca `Footer.tsx`, ma una classe
-> **citata in forma abbreviata dentro `docs/mobile-parity-2.md`**, che Tailwind scandisce
-> come sorgente. Corretto a monte con `@source not "../docs"`. La suite e2e è di nuovo
-> eseguibile: **313 test verdi**, e lo smoke completo conferma che **tutti e 22 gli URL
-> legacy atterrano su 200** — la voce 01 passa da «configurata» a «verificata».
+> Stato delle verifiche: **1296 unit test**, **325 e2e verdi** (la suite era interamente
+> bloccata prima del fix CSS), e lo smoke conferma **22/22 URL legacy su 200** — la voce
+> 01 passa da «configurata» a «verificata».
 
 > Verifica del *Documento Finale di Sintesi* (Domus Tua, 11 agosto 2026) contro il codice
 > reale, al 19 agosto 2026, e piano di esecuzione di ciò che resta.
@@ -68,6 +63,11 @@ le riapre.
 
 ## 2. Le cinque cose che il documento chiede e che ancora non sono vere
 
+> **Questa sezione è la DIAGNOSI del 19 agosto, tenuta com'era.** Tre delle cinque sono state
+> nel frattempo risolte e sono marcate qui sotto: si tiene il testo originale perché un piano
+> che riscrive la propria diagnosi a cose fatte non permette più di controllare se aveva visto
+> giusto. Le due aperte — la barra prove e le recensioni — non dipendono da noi.
+
 Sono le scoperte che valgono più di tutte le altre messe insieme. Quattro su cinque sono state
 trovate dall'avversario, non dal primo revisore: erano tutte marcate «fatto».
 
@@ -88,7 +88,7 @@ Non è un difetto di implementazione: è un conflitto fra due richieste della cl
 scritte. Il documento chiede «prima dello scroll»; la direzione artistica chiede l'ingresso pulito
 alla era-residence. **Va risolto da lei, non da noi** — e la via che li concilia esiste (§4.2).
 
-### 2.2 🔴 La promessa assoluta è tornata dentro con un sinonimo
+### 2.2 ✅ La promessa assoluta è tornata dentro con un sinonimo — RISOLTO (commit 8dfb7ba)
 
 Il §3.3 è il paragrafo giuridicamente più delicato del documento: *«zero sorprese al rogito»* è
 una promessa di risultato che un mediatore non controlla. La forma letterale è stata eliminata.
@@ -121,7 +121,7 @@ bottiglia numero uno dell'intero progetto, ed è fermo su una richiesta già ino
 (`docs/da-chiedere-alla-cliente.md:275`) che per giunta chiede 6–8 recensioni dove il documento
 ne chiede 12–15.
 
-### 2.4 🟠 Due bloccanti di go-live che il documento non conosce
+### 2.4 🟠 Due bloccanti di go-live che il documento non conosce — APERTI (esterni)
 
 `npm run launch-check` oggi esce con **exit 1**:
 
@@ -136,7 +136,7 @@ Il documento redige una checklist di go-live in sette voci e **nessuna delle due
 Pubblicare con una privacy policy segnaposto è un rischio di natura diversa da tutti gli altri
 elencati nel §8, e non si recupera con una correzione di copy.
 
-### 2.5 🟠 Il metodo ha ancora due conteggi, e uno parla ai clienti
+### 2.5 ✅ Il metodo ha ancora due conteggi, e uno parla ai clienti — RISOLTO (commit 8dfb7ba)
 
 Il §4.2 decide: **nove passaggi è il numero canonico**. In pagina è rispettato. Ma
 `app/lib/assistant/knowledge/entries.ts:311` — la base di conoscenza dell'assistente, cioè la
@@ -178,7 +178,7 @@ essere scritte in cinque lingue.
 
 | Voce | Stato | Perché serve una decisione |
 |---|---|---|
-| `FAQPage` su `/open-domus` | Pronto a farsi | Le sue quattro domande **non** duplicano `/domande-frequenti` (verificate una per una), quindi la policy del repo — «tre FAQPage per lo stesso contenuto sarebbero tre dichiarazioni in conflitto» — non lo vieta. Ma il markup deve leggere le stesse stringhe che la pagina mostra, e quelle vivono dentro un blocco copy a cinque lingue: vanno estratte in un modulo come `app/lavora-con-noi/faq.ts`. È un refactor, non un'aggiunta. |
+| ~~`FAQPage` su `/open-domus`~~ | **FATTO** | Estratto in `app/open-domus/faq.ts` come `lavora-con-noi`: il locale it e il markup leggono la stessa fonte, e una nuova guardia e2e verifica che il markup non dichiari domande assenti dalla pagina — e che non ricompaiano in `/domande-frequenti`, o tornerebbero le due dichiarazioni in conflitto. |
 | «Ti accompagniamo» → attività verificabili | Da approvare | Sei stringhe × cinque lingue. È **voce del brand**, non una correzione meccanica: il §2 dice cosa sostituire, non con quali parole. Alcune di quelle frasi contengono già lo specifico giusto dopo il verbo generico («nelle visite, nella documentazione, nella proposta»): va cambiato il verbo, non buttato il contenuto. |
 | Versioni brevi del metodo che si dichiarano tali | Da approvare | Stessa natura. Il §4.2 detta il senso — «I nove passaggi del Metodo Domus, in sintesi» — ma su `/open-domus` le cinque fasi sono quelle dell'**evento**, non del metodo, e vanno distinte invece che allineate a forza. |
 
@@ -276,7 +276,7 @@ registrata».
 | «Professionalità · Innovazione · Integrità» ancora in `Team.tsx` (righe 23/42/61/80/99), benché già sostituite su `/chi-siamo` | `Team.tsx` |
 | Template title `"%s | Domus Tua Immobiliare Tradate"` → `"%s | Domus Tua"`; `absolute` sulle 4 pagine che già contengono il nome | `layout.tsx:178` + 4 file |
 | `BreadcrumbList` sulle 8 rotte scoperte — estrarre un `breadcrumbJsonLd()` in `site.ts` invece di copiarlo a mano | 8 `page.tsx` |
-| `Service` su `/servizi`, `FAQPage` su `/open-domus` | `servizi/page.tsx`, `open-domus/page.tsx` |
+| ~~`Service` su `/servizi`, `FAQPage` su `/open-domus`~~ — fatti | `servizi/page.tsx`, `open-domus/page.tsx` |
 | Premio nel **footer** e su **`/chi-siamo` con link verificabile** (il sigillo è già in `public/badges/`) | `Footer.tsx:341`, `ChiSiamoContent.tsx:377-392` |
 | Premio nell'immagine di anteprima social | `app/opengraph-image.tsx:76-92` |
 | `/case-vendute` non ha **nessun ingresso**: né menu, né footer, né home. Esiste e nessuno la trova | `site.ts:241` o `Footer.tsx:386` |

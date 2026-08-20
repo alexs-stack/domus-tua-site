@@ -76,11 +76,64 @@ test("lo schema FAQPage dichiara solo domande e risposte visibili in pagina", as
 test("solo /domande-frequenti porta lo schema FAQPage delle domande generali", async ({ page, goto }) => {
   // I blocchi compatti di /vendi e /acquista mostrano le stesse risposte ma NON il markup:
   // tre FAQPage per lo stesso contenuto sarebbero tre dichiarazioni in conflitto.
+  //
+  // /open-domus invece ce l'ha, e non è un'eccezione alla regola: le sue quattro domande
+  // sono contenuto PROPRIO, non un sottoinsieme di quelle generali. La regola vieta i
+  // doppioni, non le FAQ distinte — vedi il test qui sotto.
   for (const path of ["/vendi", "/acquista"]) {
     await goto(path);
     const blocks = await page.locator('script[type="application/ld+json"]').allTextContents();
     const tipi = blocks.map((b) => JSON.parse(b)["@type"]);
     expect(tipi, `${path} dichiara un FAQPage`).not.toContain("FAQPage");
+  }
+});
+
+// Stessa prova del test su /domande-frequenti, sull'altra pagina che dichiara domande.
+// Qui l'accordion non è <details> ma un bottone + pannello: il testo sta nel DOM anche a
+// pannello chiuso — che è ciò che leggono i crawler — quindi si confronta il markup con
+// quello, non con ciò che è visibile a occhio.
+test("lo schema FAQPage di /open-domus dichiara solo domande e risposte presenti in pagina", async ({
+  page,
+  goto,
+}) => {
+  await goto("/open-domus");
+
+  const blocks = await page.locator('script[type="application/ld+json"]').allTextContents();
+  const faq = blocks.map((b) => JSON.parse(b)).find((j) => j["@type"] === "FAQPage");
+  expect(faq, "manca lo schema FAQPage su /open-domus").toBeTruthy();
+  expect(faq.mainEntity.length).toBeGreaterThanOrEqual(4);
+
+  const normalizza = (s: string) => s.replace(/\s+/g, " ").trim();
+  // Ancorati alla STRUTTURA dell'accordion (aria-controls / id del pannello), non a un id
+  // di sezione: così il test non chiede al componente di esistere in un modo particolare.
+  // Il bottone contiene due span — la domanda e la freccia — e il secondo non ha testo:
+  // si scartano i vuoti invece di indovinare la posizione.
+  const domande = (await page.locator('button[aria-controls^="faq-panel-"] span').allTextContents())
+    .map(normalizza)
+    .filter(Boolean);
+  const risposte = (await page.locator('[id^="faq-panel-"] p').allTextContents()).map(normalizza);
+  expect(domande.length, "nessuna domanda trovata: l'accordion è cambiato").toBeGreaterThanOrEqual(4);
+
+  for (const q of faq.mainEntity) {
+    expect(domande, `domanda non in pagina: ${q.name}`).toContain(normalizza(q.name));
+    expect(
+      risposte,
+      `risposta non in pagina: ${q.acceptedAnswer.text.slice(0, 50)}…`,
+    ).toContain(normalizza(q.acceptedAnswer.text));
+  }
+
+  // Le domande di /open-domus NON devono ricomparire nel FAQPage generale: se un giorno
+  // qualcuno le sposta lì senza toglierle da qui, tornano le due dichiarazioni in conflitto
+  // che la regola vuole evitare.
+  await goto("/domande-frequenti");
+  const generali = (await page.locator('script[type="application/ld+json"]').allTextContents())
+    .map((b) => JSON.parse(b))
+    .find((j) => j["@type"] === "FAQPage");
+  const nomiGenerali = generali.mainEntity.map((q: { name: string }) => normalizza(q.name));
+  for (const q of faq.mainEntity) {
+    expect(nomiGenerali, `domanda duplicata fra /open-domus e /domande-frequenti: ${q.name}`).not.toContain(
+      normalizza(q.name),
+    );
   }
 });
 
