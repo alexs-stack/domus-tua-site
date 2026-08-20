@@ -9,7 +9,7 @@ import Image from "next/image";
 import SurfaceVeil from "./motion/SurfaceVeil";
 import { Star, Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
-import { site } from "../lib/site";
+import { site, ratingLabel } from "../lib/site";
 import { heroCinematic } from "../lib/media";
 import { youtubeWatch } from "../lib/videos";
 import Magnetic from "./motion/Magnetic";
@@ -724,10 +724,9 @@ export default function HeroCinematic() {
     return () => mm.revert();
   }, []);
 
-  // `site.rating` è il valore macchina ("4.9"): in italiano, francese, tedesco e
-  // spagnolo il separatore decimale è la virgola, e "4.9" letto da un italiano è un
-  // refuso, non un numero. L'inglese resta col punto.
-  const ratingDisplay = locale === "en" ? site.rating : site.rating.replace(".", ",");
+  // La regola del separatore decimale vive in site.ts (`ratingLabel`): stava qui, e
+  // intanto /recensioni scriveva "4.9/5" in italiano. Una regola sola, un posto solo.
+  const ratingDisplay = ratingLabel(locale);
 
   // Barra prove. Quattro prove DIVERSE fra loro, che è il punto: il voto Google
   // (volume), il premio Wikicasa (giudizio di terzi su base nazionale), l'anzianità

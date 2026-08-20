@@ -36,7 +36,7 @@ const copy = {
         "Non ti mostriamo solo case. Ti accompagniamo verso una scelta sicura, con informazioni chiare, documenti verificati e assistenza in ogni passaggio.",
       alt: "Living moderno bianco e luminoso",
       primaryLabel: "Cerco casa",
-      secondaryLabel: "Vedi le case",
+      secondaryLabel: "Vedi le case in vendita",
       trust: ["Informazioni prima della visita", "Documenti verificati", "Assistenza fino al rogito"],
     },
     highlights: {
@@ -50,7 +50,7 @@ const copy = {
           copy: "Ti diciamo come stanno davvero le cose: pregi, vincoli e contesto di ogni immobile.",
         },
         {
-          title: "Nessuna sorpresa",
+          title: "Documenti verificati",
           copy: "Documentazione verificata prima della proposta: sai esattamente cosa stai acquistando.",
         },
         {
@@ -130,7 +130,7 @@ const copy = {
         "We don’t just show you houses. We guide you towards a confident choice, with clear information, verified documents and support at every step.",
       alt: "Bright, modern white living room",
       primaryLabel: "I’m looking for a home",
-      secondaryLabel: "See the homes",
+      secondaryLabel: "See the homes for sale",
       trust: ["Information before the viewing", "Verified documents", "Support all the way to closing"],
     },
     highlights: {
@@ -144,7 +144,7 @@ const copy = {
           copy: "We tell you how things really are: the strengths, the constraints and the setting of every property.",
         },
         {
-          title: "No surprises",
+          title: "Documents checked",
           copy: "Documentation verified before the offer: you know exactly what you are buying.",
         },
         {
@@ -224,7 +224,7 @@ const copy = {
         "Nous ne vous montrons pas seulement des maisons. Nous vous accompagnons vers un choix serein, avec des informations claires, des documents vérifiés et un soutien à chaque étape.",
       alt: "Séjour moderne, blanc et lumineux",
       primaryLabel: "Je cherche une maison",
-      secondaryLabel: "Voir les biens",
+      secondaryLabel: "Voir les biens à vendre",
       trust: ["Les informations avant la visite", "Documents vérifiés", "Accompagnement jusqu’à l’acte"],
     },
     highlights: {
@@ -238,7 +238,7 @@ const copy = {
           copy: "Nous vous disons les choses telles qu’elles sont vraiment : atouts, contraintes et contexte de chaque bien.",
         },
         {
-          title: "Aucune surprise",
+          title: "Documents vérifiés",
           copy: "Documentation vérifiée avant l’offre : vous savez exactement ce que vous achetez.",
         },
         {
@@ -318,7 +318,7 @@ const copy = {
         "Wir zeigen Ihnen nicht nur Häuser. Wir begleiten Sie zu einer sicheren Entscheidung, mit klaren Informationen, geprüften Unterlagen und Unterstützung bei jedem Schritt.",
       alt: "Helles, modernes weißes Wohnzimmer",
       primaryLabel: "Ich suche ein Zuhause",
-      secondaryLabel: "Immobilien ansehen",
+      secondaryLabel: "Immobilien zum Verkauf ansehen",
       trust: ["Informationen vor der Besichtigung", "Geprüfte Unterlagen", "Begleitung bis zum Notartermin"],
     },
     highlights: {
@@ -332,7 +332,7 @@ const copy = {
           copy: "Wir sagen Ihnen, wie die Dinge wirklich stehen: Vorzüge, Einschränkungen und Umfeld jeder Immobilie.",
         },
         {
-          title: "Keine Überraschungen",
+          title: "Geprüfte Unterlagen",
           copy: "Unterlagen werden vor dem Angebot geprüft: Sie wissen genau, was Sie kaufen.",
         },
         {
@@ -412,7 +412,7 @@ const copy = {
         "No solo te mostramos casas. Te acompañamos hacia una elección segura, con información clara, documentos verificados y asistencia en cada paso.",
       alt: "Salón moderno blanco y luminoso",
       primaryLabel: "Busco casa",
-      secondaryLabel: "Ver las casas",
+      secondaryLabel: "Ver las casas en venta",
       trust: ["Información antes de la visita", "Documentos verificados", "Asistencia hasta la escritura"],
     },
     highlights: {
@@ -426,7 +426,7 @@ const copy = {
           copy: "Te contamos cómo están realmente las cosas: virtudes, limitaciones y contexto de cada inmueble.",
         },
         {
-          title: "Ninguna sorpresa",
+          title: "Documentos verificados",
           copy: "Documentación verificada antes de la propuesta: sabes exactamente qué estás comprando.",
         },
         {

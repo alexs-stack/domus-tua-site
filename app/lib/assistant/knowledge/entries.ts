@@ -17,7 +17,7 @@
 
 import { faqFlat, type FaqEntryId } from "../../../domande-frequenti/faq";
 import { faqIt as careersFaq, type CareersFaqId } from "../../../lavora-con-noi/faq";
-import { site } from "../../site";
+import { site, territoryLabel } from "../../site";
 import { team, teamRoleLabels } from "../../team";
 import { LEAD_EMAIL_TO } from "../config";
 
@@ -195,7 +195,7 @@ const VERIFIED: KnowledgeEntry[] = [
     category: "area",
     title: "Zona in cui operiamo",
     content:
-      "Lavoriamo su Tradate e nei comuni vicini della provincia di Varese. Gli immobili che trovi sul sito sono quelli che seguiamo direttamente.",
+      `Lavoriamo su Tradate e nei comuni di ${territoryLabel}. Gli immobili che trovi sul sito sono quelli che seguiamo direttamente.`,
     status: "verified",
     source: "catalogo immobili RealSmart (comuni effettivamente presenti nel feed)",
     lastVerified: "2026-07-31",
@@ -308,15 +308,19 @@ const VERIFIED: KnowledgeEntry[] = [
     category: "metodo",
     title: "Il Metodo Domus Tua",
     content:
-      "Il Metodo Domus Tua è un percorso in nove passaggi, uguale per ogni incarico: primo ascolto, valutazione dell'immobile e del mercato, verifica documentale, preparazione della casa (con home staging dove serve), racconto visivo con foto e video, marketing e anteprime social, Open Domus e visite qualificate, proposta e trattativa, assistenza fino al rogito. Su /metodo lo stesso percorso è raccontato in cinque fasi, ancorate al protocollo Domus D.O.C.",
+      "Il Metodo Domus Tua è un percorso in nove passaggi, uguale per ogni incarico: primo ascolto, valutazione dell'immobile e del mercato, verifica documentale, preparazione della casa (con home staging dove serve), racconto visivo con foto e video, marketing e anteprime social, Open Domus e visite qualificate, proposta e trattativa, assistenza fino al rogito. I nove passaggi si raccolgono in tre momenti — prima le persone, poi il racconto, infine la firma — e sono ancorati al protocollo Domus D.O.C.",
     status: "verified",
     source: "pagine /metodo e home del sito (app/components/Method.tsx, app/metodo/MetodoContent.tsx)",
-    lastVerified: "2026-08-06",
+    lastVerified: "2026-08-19",
     locale: "it",
     keywords: [
       "metodo",
       "come lavorate",
       "nove passaggi",
+      // Sinonimo di RICERCA, non contenuto: chi ha letto la vecchia pagina chiama così il
+      // metodo e va comunque agganciato. Il conteggio canonico è nove (§4.2 del Documento
+      // finale di sintesi) — se torna dentro `content`, i due conteggi ricominciano a
+      // convivere proprio dove il cliente fa la domanda.
       "cinque fasi",
       "percorso",
       "che metodo",
@@ -334,10 +338,10 @@ const VERIFIED: KnowledgeEntry[] = [
     category: "domus-doc",
     title: "Domus D.O.C., Domus di Origine Certificata",
     content:
-      "Domus D.O.C. — Domus di Origine Certificata — è il protocollo con cui l'agenzia verifica un immobile prima di portarlo sul mercato, non durante la trattativa. Cinque pilastri: Documenti (le carte pronte), Conformità (catasto, urbanistica e impianti), Trasparenza verso chi compra, Preparazione della casa e Tutela fino al rogito. Vale per ogni incarico. Quali verifiche siano già state fatte su un immobile preciso te lo conferma il team: io non posso attestarlo.",
+      "Domus D.O.C. — Domus di Origine Certificata — è il protocollo con cui l'agenzia verifica un immobile prima di portarlo sul mercato, non durante la trattativa. Cinque pilastri: Documenti (le carte pronte), Conformità (catasto, urbanistica e impianti), Trasparenza verso chi compra, Preparazione della casa e Tutela fino al rogito. Vale per ogni incarico. È uno standard interno di Domus Tua, non una certificazione rilasciata da terzi. Quali verifiche siano già state fatte su un immobile preciso te lo conferma il team: io non posso attestarlo.",
     status: "verified",
     source: "sezione Domus D.O.C. delle pagine /metodo e /vendi (app/components/DomusDocProtocol.tsx)",
-    lastVerified: "2026-08-06",
+    lastVerified: "2026-08-19",
     locale: "it",
     keywords: [
       "d.o.c",
@@ -388,10 +392,10 @@ const VERIFIED: KnowledgeEntry[] = [
     category: "vendita",
     title: "Come si vende casa con Domus Tua",
     content:
-      "Si parte da una valutazione gratuita e senza impegno, poi quattro passi: valutazione e analisi di mercato per definire prezzo e strategia; verifica di conformità, titoli e planimetrie prima di mettere in vendita; preparazione della casa e, dove serve, home staging; marketing e Open Domus, con foto, video e campagne. Nessun costo anticipato: si paga solo a vendita conclusa, e foto, video, home staging e certificazione fanno parte del metodo. Per cominciare basta contattare il team.",
+      "Si parte da una valutazione gratuita e senza impegno, poi quattro passi: valutazione e analisi di mercato per definire prezzo e strategia; verifica di conformità, titoli e planimetrie prima di mettere in vendita; preparazione della casa e, dove serve, home staging; marketing e Open Domus, con foto, video e campagne. Nessun costo anticipato: si paga solo a vendita conclusa, e foto, video, home staging e verifica dei documenti fanno parte del metodo. Per cominciare basta contattare il team.",
     status: "verified",
     source: "pagina /vendi del sito (app/vendi/VendiContent.tsx)",
-    lastVerified: "2026-08-06",
+    lastVerified: "2026-08-19",
     locale: "it",
     keywords: [
       "vendere",

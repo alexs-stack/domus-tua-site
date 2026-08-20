@@ -13,6 +13,7 @@ import nextConfig from "../../../next.config";
 import { buildSitemap, SITEMAP_ROUTES, NON_INDEXABLE_ROUTES } from "../../sitemap";
 import { robotsRules, RETRIEVAL_BOTS } from "../../robots";
 import { organizationJsonLd, siteUrl } from "../site";
+import { LEGACY_ALL, LEGACY_REDIRECTS, LEGACY_SAME_PATH, normalizedPath } from "../legacyUrls";
 
 type Has = { type: string; key?: string; value?: string };
 type Redirect = { source: string; destination: string; permanent?: boolean; has?: Has[] };
@@ -96,6 +97,129 @@ describe("redirect legacy — go-live", () => {
     ] as const) {
       assert.equal(map.get(source), dest, `redirect mancante/errato: ${source} → ${dest}`);
     }
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// L'INVENTARIO COMPLETO, non i rappresentanti.
+//
+// Il test qui sopra controlla undici voci scelte a mano: passa anche se una delle
+// altre quattordici è scoperta, ed è esattamente il modo in cui una migrazione
+// "verificata" manda in 404 un URL che nessuno aveva in elenco. Qui si parte
+// dall'inventario (app/lib/legacyUrls.ts) e si risolve OGNI voce contro le regole
+// vere, jolly compresi — che è poi il senso della voce 01 della checklist,
+// «mappa redirect completa, testata».
+// ─────────────────────────────────────────────────────────────────────────────
+describe("redirect legacy — inventario completo", () => {
+  /**
+   * Applica una `source` di Next a un percorso. Copre le tre forme usate qui:
+   * letterale, `:param` (un segmento) e `:param*` (zero o più segmenti).
+   * Non è un clone di path-to-regexp: se un domani servisse una forma diversa
+   * (opzionali, regex inline), questo test deve FALLIRE invece di far finta.
+   */
+  const sourceMatches = (source: string, path: string): boolean => {
+    assert.ok(
+      !/[?()+]/.test(source),
+      `source con sintaxi non supportata da questo matcher: ${source} — estendere sourceMatches`
+    );
+    const rx = new RegExp(
+      "^" +
+        source
+          .split("/")
+          .map((seg) => {
+            if (seg.startsWith(":") && seg.endsWith("*")) return "(?:/.*)?";
+            if (seg.startsWith(":")) return "/[^/]+";
+            return seg ? "/" + seg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : "";
+          })
+          .join("") +
+        "$"
+    );
+    return rx.test(path);
+  };
+
+  /** La PRIMA regola che combacia vince, come in Next. Le host-scoped non valgono qui. */
+  const resolve = (redirects: Redirect[], path: string) =>
+    redirects.filter((r) => !isCrossHost(r)).find((r) => sourceMatches(r.source, path));
+
+  test("ogni URL dell'inventario trova una regola e atterra dove deve", async () => {
+    const redirects = await getRedirects();
+    const scoperti: string[] = [];
+    const sbagliati: string[] = [];
+
+    for (const { from, to, note } of LEGACY_REDIRECTS) {
+      const path = normalizedPath(from);
+      const rule = resolve(redirects, path);
+      if (!rule) {
+        scoperti.push(`${from} (atteso → ${to}${note ? ` — ${note}` : ""})`);
+        continue;
+      }
+      if (rule.destination !== to) {
+        sbagliati.push(`${from} → ${rule.destination} (atteso ${to}, via "${rule.source}")`);
+      }
+    }
+
+    assert.deepEqual(
+      scoperti,
+      [],
+      "URL del vecchio sito senza alcuna regola: al cutover rispondono 404 e l'autorità si perde"
+    );
+    assert.deepEqual(sbagliati, [], "URL del vecchio sito che atterrano sulla destinazione sbagliata");
+  });
+
+  test("nessuna voce dell'inventario atterra su un'altra source (catena)", async () => {
+    const redirects = await getRedirects();
+    const catene: string[] = [];
+    for (const { from } of LEGACY_REDIRECTS) {
+      const rule = resolve(redirects, normalizedPath(from));
+      if (!rule) continue;
+      // La destinazione non deve essere a sua volta redirettata: sarebbe un secondo
+      // salto OLTRE quello della normalizzazione dello slash, e Google smette di
+      // seguire le catene lunghe.
+      const next = resolve(redirects, rule.destination);
+      if (next) catene.push(`${from} → ${rule.destination} → ${next.destination}`);
+    }
+    assert.deepEqual(catene, [], "catena di redirect: la destinazione è a sua volta una source");
+  });
+
+  test("le rotte che NON cambiano indirizzo non vengono redirette", async () => {
+    const redirects = await getRedirects();
+    const redirettePerErrore: string[] = [];
+    for (const { from } of LEGACY_SAME_PATH) {
+      const rule = resolve(redirects, normalizedPath(from));
+      if (rule) redirettePerErrore.push(`${from} → ${rule.destination} (via "${rule.source}")`);
+    }
+    assert.deepEqual(
+      redirettePerErrore,
+      [],
+      "una rotta che esiste con lo stesso percorso non va redirette: sarebbe un salto inutile su una pagina viva"
+    );
+  });
+
+  test("ogni destinazione dell'inventario è una rotta reale del sito", async () => {
+    // Un redirect verso un percorso inesistente è un 404 con un passaggio in più:
+    // peggio del 404 diretto, perché sembra gestito.
+    // SITEMAP_ROUTES scrive la home come stringa vuota (si concatena a siteUrl);
+    // l'inventario la scrive "/", che è la forma in cui esiste un URL. Si normalizza
+    // qui invece di piegare una delle due convenzioni all'altra.
+    const rotte = new Set<string>(
+      [...SITEMAP_ROUTES, ...NON_INDEXABLE_ROUTES, "/sitemap.xml"].map((r) => r || "/")
+    );
+    const fantasma = LEGACY_ALL.map((l) => l.to).filter((to) => !rotte.has(to));
+    assert.deepEqual(
+      [...new Set(fantasma)],
+      [],
+      "destinazione che non corrisponde a nessuna rotta nota (sitemap.ts): il redirect porta in 404"
+    );
+  });
+
+  test("l'inventario copre i 25 URL del sitemap WordPress", async () => {
+    // Il numero è un promemoria, non un dogma: se cresce perché Search Console ha
+    // rivelato URL che il sitemap del nucleo non esponeva, si alza la soglia. Se
+    // CALA, qualcuno ha cancellato una riga e va capito perché.
+    assert.ok(
+      LEGACY_ALL.length >= 22,
+      `inventario sceso a ${LEGACY_ALL.length} voci: il sitemap WordPress ne esponeva 25`
+    );
   });
 });
 

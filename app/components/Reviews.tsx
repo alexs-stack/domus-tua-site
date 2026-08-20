@@ -27,7 +27,7 @@ const copy = {
     eyebrow: "Recensioni",
     title: "Lo raccontano le persone che hanno scelto Domus Tua.",
     subtitle:
-      "Ogni recensione è una storia di fiducia, cura e accompagnamento. Oltre 500 famiglie hanno vissuto un modo diverso di affrontare la vendita e l’acquisto.",
+      `Ogni recensione è una storia di fiducia, cura e accompagnamento. Su Google ne trovi ${site.reviewsCount}, e raccontano un modo diverso di affrontare la vendita e l’acquisto.`,
     averageOver: (count: number | string) => `Media su oltre ${count} recensioni`,
     seeAllGoogle: "Leggi tutte le recensioni su Google",
     verifiedVia: "Recensioni Google verificate tramite Trustindex.",
@@ -53,7 +53,7 @@ const copy = {
     eyebrow: "Reviews",
     title: "Told by the people who chose Domus Tua.",
     subtitle:
-      "Every review is a story of trust, care and guidance. More than 500 families have experienced a different way to approach selling and buying.",
+      `Every review is a story of trust, care and guidance. There are ${site.reviewsCount} of them on Google, describing a different way to approach selling and buying.`,
     averageOver: (count: number | string) => `Average across more than ${count} reviews`,
     seeAllGoogle: "Read all reviews on Google",
     verifiedVia: "Google reviews verified via Trustindex.",
@@ -79,7 +79,7 @@ const copy = {
     eyebrow: "Avis",
     title: "Racontés par ceux qui ont choisi Domus Tua.",
     subtitle:
-      "Chaque avis est une histoire de confiance, d’attention et d’accompagnement. Plus de 500 familles ont vécu une autre façon d’aborder la vente et l’achat.",
+      `Chaque avis est une histoire de confiance, d’attention et d’accompagnement. Il y en a ${site.reviewsCount} sur Google, et ils racontent une autre façon d’aborder la vente et l’achat.`,
     averageOver: (count: number | string) => `Moyenne sur plus de ${count} avis`,
     seeAllGoogle: "Lire tous les avis sur Google",
     verifiedVia: "Avis Google vérifiés via Trustindex.",
@@ -105,7 +105,7 @@ const copy = {
     eyebrow: "Bewertungen",
     title: "Erzählt von den Menschen, die sich für Domus Tua entschieden haben.",
     subtitle:
-      "Jede Bewertung ist eine Geschichte von Vertrauen, Sorgfalt und Begleitung. Mehr als 500 Familien haben eine andere Art erlebt, Verkauf und Kauf anzugehen.",
+      `Jede Bewertung ist eine Geschichte von Vertrauen, Sorgfalt und Begleitung. Auf Google sind es ${site.reviewsCount}, und sie zeigen eine andere Art, Verkauf und Kauf anzugehen.`,
     averageOver: (count: number | string) => `Durchschnitt aus über ${count} Bewertungen`,
     seeAllGoogle: "Alle Bewertungen auf Google lesen",
     verifiedVia: "Google-Bewertungen, verifiziert über Trustindex.",
@@ -131,7 +131,7 @@ const copy = {
     eyebrow: "Reseñas",
     title: "Lo cuentan las personas que han elegido Domus Tua.",
     subtitle:
-      "Cada reseña es una historia de confianza, cuidado y acompañamiento. Más de 500 familias han vivido una forma diferente de afrontar la venta y la compra.",
+      `Cada reseña es una historia de confianza, cuidado y acompañamiento. En Google hay ${site.reviewsCount}, y cuentan una forma diferente de afrontar la venta y la compra.`,
     averageOver: (count: number | string) => `Media sobre más de ${count} reseñas`,
     seeAllGoogle: "Leer todas las reseñas en Google",
     verifiedVia: "Reseñas de Google verificadas mediante Trustindex.",
@@ -190,7 +190,13 @@ export default function Reviews() {
   return (
     <section id="recensioni" className="relative bg-paper">
       {/* Aria: il voto in filigrana (numero, identico in ogni lingua) */}
-      <Atmosphere word="4.9" glow drift={1} wordClassName="left-[2%] top-[5%] text-[19vw]" />
+      {/* Il voto arriva da site.rating, non è più scritto a mano: se un giorno la media
+          cambia, questa parola-fantasma cambia con lei invece di restare indietro.
+          Resta nella forma MACCHINA ("4.9") e non in quella localizzata: la regola di
+          Atmosphere è che la parola sia identica in tutte le lingue (è un segno grafico
+          aria-hidden, non copy). Se si volesse la virgola per chi legge in italiano,
+          è quella regola che va cambiata prima — non questa riga di nascosto. */}
+      <Atmosphere word={site.rating} glow drift={1} wordClassName="left-[2%] top-[5%] text-[19vw]" />
       <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}

@@ -18,7 +18,7 @@
 // format: qui c'è solo la voce di riepilogo, che rimanda a quella pagina.
 
 import type { Locale } from "../lib/i18n/dictionaries";
-import { site } from "../lib/site";
+import { site, territoryLabel } from "../lib/site";
 
 export type FaqEntryId =
   | "costi"
@@ -69,7 +69,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "doc",
           q: "Che cos'è il protocollo Domus D.O.C.?",
-          a: "Domus di Origine Certificata è il nostro protocollo sui documenti: conformità, titoli e trasparenza controllati prima di andare sul mercato, non durante la trattativa. È il modo in cui si arriva al rogito senza sorprese, per chi vende e per chi compra.",
+          a: "Domus di Origine Certificata è il nostro protocollo sui documenti: conformità, titoli e trasparenza controllati prima di andare sul mercato, non durante la trattativa. I problemi emergono all'inizio, non davanti al notaio — per chi vende e per chi compra.",
         },
         {
           id: "tempi",
@@ -131,7 +131,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "zone",
           q: "In quali zone lavorate?",
-          a: `Tradate e i comuni della provincia di ${site.address.province}, fra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Lavoriamo dove viviamo: conosciamo il valore di ogni via perché è anche la nostra.`,
+          a: `Tradate e i comuni di ${territoryLabel}, fra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Lavoriamo dove viviamo: conosciamo il valore di ogni via perché è anche la nostra.`,
         },
         {
           id: "sede-orari",
@@ -175,7 +175,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "doc",
           q: "What is the Domus D.O.C. protocol?",
-          a: "Domus of Certified Origin is our paperwork protocol: compliance, titles and transparency checked before going to market, not during the negotiation. It is how you reach the deed with no surprises — whether you are selling or buying.",
+          a: "Domus of Certified Origin is our paperwork protocol: compliance, titles and transparency checked before going to market, not during the negotiation. Problems surface at the start, not at the closing table — whether you are selling or buying.",
         },
         {
           id: "tempi",
@@ -281,7 +281,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "doc",
           q: "Qu'est-ce que le protocole Domus D.O.C. ?",
-          a: "Domus d'Origine Certifiée est notre protocole documentaire : conformité, titres et transparence contrôlés avant la mise sur le marché, et non pendant la négociation. C'est ainsi qu'on arrive à l'acte sans mauvaises surprises, que l'on vende ou que l'on achète.",
+          a: "Domus d'Origine Certifiée est notre protocole documentaire : conformité, titres et transparence contrôlés avant la mise sur le marché, et non pendant la négociation. Les problèmes apparaissent au début, pas devant le notaire — que l'on vende ou que l'on achète.",
         },
         {
           id: "tempi",
@@ -387,7 +387,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "doc",
           q: "Was ist das Protokoll Domus D.O.C.?",
-          a: "Domus di Origine Certificata ist unser Unterlagen-Protokoll: Konformität, Titel und Transparenz werden vor dem Markteintritt geprüft, nicht während der Verhandlung. So kommt man ohne Überraschungen zum Notartermin — beim Verkauf wie beim Kauf.",
+          a: "Domus di Origine Certificata ist unser Unterlagen-Protokoll: Konformität, Titel und Transparenz werden vor dem Markteintritt geprüft, nicht während der Verhandlung. Probleme zeigen sich am Anfang, nicht beim Notartermin — beim Verkauf wie beim Kauf.",
         },
         {
           id: "tempi",
@@ -493,7 +493,7 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "doc",
           q: "¿Qué es el protocolo Domus D.O.C.?",
-          a: "Domus di Origine Certificata es nuestro protocolo documental: conformidad, títulos y transparencia comprobados antes de salir al mercado, no durante la negociación. Así se llega a la escritura sin sorpresas, tanto si vendes como si compras.",
+          a: "Domus di Origine Certificata es nuestro protocolo documental: conformidad, títulos y transparencia comprobados antes de salir al mercado, no durante la negociación. Los problemas aparecen al principio, no ante el notario — tanto si vendes como si compras.",
         },
         {
           id: "tempi",

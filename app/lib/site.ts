@@ -41,10 +41,14 @@ export const site = {
   openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 14:30-19:00", "Sa 09:00-12:30"],
   rating: "4.9",
   reviewsCount: "531",
-  /** Conteggio ARROTONDATO per difetto, per le frasi "oltre 500 recensioni".
-      Derivato da reviewsCount (531): stessa fonte, così i due non divergono
-      (il test di content-integrity lo verifica). */
-  reviewsApprox: "500",
+  // NB: qui NON c'è più `reviewsApprox: "500"`. Esisteva per reggere le frasi "oltre 500
+  // recensioni", ed era la metà sbagliata di un'incoerenza che il sito portava in giro:
+  // "oltre 500" in quattordici punti e "531" nell'hero, cioè due numeri per lo stesso dato
+  // (voce 16 della checklist). La decisione del Documento finale è unificare su 531 — e il
+  // motivo è nel §6.3: «le prove devono essere forti perché sono ESATTE, non perché sono
+  // assolute». 531 è più credibile di "oltre 500" proprio perché nessuno inventa un 531.
+  // Il campo è stato tolto invece di essere collegato: era vivo solo per una formula che
+  // non si usa più.
   // NB: nessun conteggio video qui. Il vecchio `videosCountLabel: "440+"` era una stima non
   // verificata mostrata come dato: rimosso. Se il cliente fornisce il numero reale del canale
   // (@DOMUSTUASRLIMMOBILIARE) si potrà reintrodurre, con la fonte annotata come per gli altri
@@ -190,6 +194,57 @@ export const pendingConfirmation = {
       "(pubblico ≠ casella operativa). Nessuno dei due viene scelto o unificato qui.",
   },
 } as const;
+
+/**
+ * BreadcrumbList di una pagina di secondo livello — FONTE UNICA.
+ *
+ * Era ricopiato a mano in cinque file, sempre nella stessa forma home → pagina, e otto
+ * rotte restavano scoperte (voce 26): /vendi, /acquista, /metodo, /open-domus, /servizi,
+ * /recensioni, /contatti, /case-vendute. Il briciolo di pane non è decorazione — è ciò
+ * che Google usa per mostrare il percorso al posto dell'URL nudo nei risultati.
+ *
+ * `path` con lo slash iniziale e senza quello finale ("/vendi"): è la forma delle rotte
+ * di questo sito, ed è quella che il canonical già usa.
+ */
+export function breadcrumbJsonLd(name: string, path: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: site.name, item: siteUrl },
+      { "@type": "ListItem", position: 2, name, item: `${siteUrl}${path}` },
+    ],
+  };
+}
+
+/**
+ * Il territorio come si DICE in pagina — FONTE UNICA.
+ *
+ * Nei dati strutturati `areaServed` era già stato esteso all'alta provincia di Como (§5.5:
+ * a catalogo ci sono immobili a Mozzate, che è provincia di Como). I testi visibili no:
+ * FAQ, HorizonStory e la conoscenza dell'assistente dicevano ancora "la provincia di
+ * Varese", cioè il sito escludeva a parole metà del suo mercato naturale mentre lo
+ * dichiarava a Google.
+ *
+ * Sta qui e non in tre posti perché è già successo che divergessero: il JSON-LD è stato
+ * corretto e le frasi sono rimaste indietro.
+ */
+export const territoryLabel = "la provincia di Varese e l'alta provincia di Como";
+
+/**
+ * Il voto come si SCRIVE nella lingua di chi legge.
+ *
+ * `site.rating` è il valore macchina ("4.9"), quello che va nei dati strutturati. Ma in
+ * italiano, francese, tedesco e spagnolo il separatore decimale è la virgola, e "4.9" letto
+ * da un italiano è un refuso, non un numero. L'inglese resta col punto.
+ *
+ * Stava dentro HeroCinematic come costante locale, e infatti /recensioni scriveva "4.9/5 di
+ * media" in italiano mentre il francese aveva già "4,9/5 de moyenne": la stessa regola
+ * applicata a mano in posti diversi diverge sempre. Qui è una funzione sola.
+ */
+export function ratingLabel(locale: string): string {
+  return locale === "en" ? site.rating : site.rating.replace(".", ",");
+}
 
 /**
  * Origin pubblico del sito — FONTE UNICA.

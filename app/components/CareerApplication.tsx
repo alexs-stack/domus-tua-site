@@ -9,6 +9,7 @@ import { SegnoDomusBadge } from "./BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead } from "../lib/forms/lead";
+import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import WordReveal from "./WordReveal";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
@@ -438,6 +439,15 @@ export default function CareerApplication({
 
     setSubmitting(true);
     void submitLead(lead).finally(() => setSubmitting(false));
+
+    // La conversione, come nel modulo contatti: QUI, dopo la validazione e prima di aprire
+    // WhatsApp — è il momento in cui la candidatura esiste davvero. Passa solo il ruolo per
+    // cui ci si candida, mai il contenuto del lead: quello ha il suo canale (submitLead).
+    // `intent` porta l'ID stabile del ruolo, non l'etichetta italiana: per una candidatura
+    // il "tipo di richiesta" È l'area per cui ci si candida, e gli ID non cambiano quando
+    // cambia il copy. Si riusa la dimensione che c'è invece di allargare la whitelist di
+    // trackConversion, che è una garanzia privacy e non una svista.
+    trackConversion(CONVERSIONS.candidatura, "modulo", { intent: currentRole });
 
     // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
