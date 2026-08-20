@@ -34,8 +34,11 @@ export default function NotFound() {
               <Cta href="/" variant="cta" size="lg">
                 Torna alla home
               </Cta>
+              {/* §6.7, famiglia acquirente: il pulsante porta a /acquista, quindi
+                  «Vedi le case in vendita» — che è la formula, e descrive esattamente
+                  ciò che succede al clic. «Cerca una casa» era una nona variante. */}
               <Cta href="/acquista" variant="ghost" size="lg">
-                Cerca una casa
+                Vedi le case in vendita
               </Cta>
             </div>
           </div>
