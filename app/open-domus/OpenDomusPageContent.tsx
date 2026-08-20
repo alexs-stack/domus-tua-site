@@ -1023,7 +1023,7 @@ export default function OpenDomusPageContent() {
         </section>
 
         <Reviews />
-        <Contact />
+        <Contact initialIntent="open-domus" />
       </main>
     </>
   );
