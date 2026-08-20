@@ -109,3 +109,81 @@ describe("artefatto machine-readable", () => {
     assert.ok(!/\bVia\s+\p{Lu}[\p{L}]*\s+\d/u.test(blob));
   });
 });
+
+// ── I difetti del §5.8 ───────────────────────────────────────────────────────
+//
+// Sono REVIEW, non FAIL: non si correggono in pipeline (description.ts non riscrive il
+// copy dell'agenzia), si correggono alla fonte. Il valore del controllo sta tutto nel
+// NON scattare a sproposito: su 196 annunci un check rumoroso viene ignorato, e allora
+// tanto vale non averlo. Metà di questi test verificano proprio i casi leciti.
+
+describe("§5.8 — difetti editoriali che vanno segnalati, non riscritti", () => {
+  test("un indirizzo web dentro il racconto → link-in-descrizione", () => {
+    const a = auditListing(
+      mkRaw({ descrizione: "Villa immersa nel verde. Trovi tutto su www.esempio-immobiliare.it e ti aspettiamo." }),
+    );
+    assert.ok(checks(a).includes("link-in-descrizione"));
+  });
+
+  test("un'email nel testo conta come link", () => {
+    const a = auditListing(mkRaw({ descrizione: "Per informazioni scrivere a info@esempio.it, rispondiamo subito." }));
+    assert.ok(checks(a).includes("link-in-descrizione"));
+  });
+
+  test("«e'» invece di «è» → accento-apostrofato", () => {
+    const a = auditListing(mkRaw({ descrizione: "L'immobile e' luminoso e ben tenuto, con doppia esposizione." }));
+    assert.ok(checks(a).includes("accento-apostrofato"));
+  });
+
+  test("«po'» e «de'» NON scattano: sono grafie corrette", () => {
+    const a = auditListing(
+      mkRaw({ descrizione: "Un po' defilata rispetto alla strada, in via de' Medici, molto tranquilla." }),
+    );
+    assert.ok(!checks(a).includes("accento-apostrofato"), "falso positivo su una grafia corretta");
+  });
+
+  test("«il ns bagno» → abbreviazione-da-appunti", () => {
+    const a = auditListing(mkRaw({ descrizione: "Il ns comodo e raffinato bagno con finestra e doppio lavabo." }));
+    assert.ok(checks(a).includes("abbreviazione-da-appunti"));
+  });
+
+  test("«mq» NON scatta: in un annuncio è normale", () => {
+    const a = auditListing(mkRaw({ descrizione: "Soggiorno di 30 mq con affaccio sul giardino e cucina abitabile." }));
+    assert.ok(!checks(a).includes("abbreviazione-da-appunti"), "falso positivo su un'unità di misura");
+  });
+
+  test("una descrizione che finisce a metà → frase-troncata", () => {
+    const a = auditListing(mkRaw({ descrizione: "Bella casa in zona servita.\nCompra e vendi in serenità con" }));
+    assert.ok(checks(a).includes("frase-troncata"));
+  });
+
+  test("una descrizione che finisce con un punto NON scatta", () => {
+    const a = auditListing(mkRaw({ descrizione: "Bella casa in zona servita, vicina a scuole e negozi." }));
+    assert.ok(!checks(a).includes("frase-troncata"));
+  });
+
+  test("spazi doppi nel titolo → titolo-spazi-doppi", () => {
+    const a = auditListing(mkRaw({ titolo: "Trilocale  luminoso in centro" }));
+    assert.ok(checks(a).includes("titolo-spazi-doppi"));
+  });
+
+  test("un titolo pulito NON scatta", () => {
+    const a = auditListing(mkRaw({ titolo: "Trilocale luminoso in centro" }));
+    assert.ok(!checks(a).includes("titolo-spazi-doppi"));
+  });
+
+  test("nessuno di questi difetti blocca la CI: sono tutti REVIEW", () => {
+    const a = auditListing(
+      mkRaw({
+        titolo: "Casa  bella",
+        descrizione: "Il ns immobile e' su www.esempio.it. Compra e vendi in serenità con",
+      }),
+    );
+    const nostri = ["link-in-descrizione", "accento-apostrofato", "abbreviazione-da-appunti", "frase-troncata", "titolo-spazi-doppi"];
+    for (const c of nostri) {
+      const f = a.findings.find((x) => x.check === c);
+      assert.ok(f, `manca il rilievo ${c}`);
+      assert.equal(f.severity, "REVIEW", `${c} non deve bloccare la CI`);
+    }
+  });
+});

@@ -280,6 +280,77 @@ export function editorialFindings(p: NormalizedProperty): Finding[] {
     }
   }
 
+  // ── I difetti del §5.8, quelli che la pipeline NON può correggere ─────────
+  //
+  // Il Documento finale li elenca uno per uno su una sola scheda (villa a Gornate-Olona,
+  // 770.000 €) e li chiama «il punto più pericoloso di tutto il progetto»: il resto del
+  // sito comunica cura maniacale, e la scheda è il momento in cui il visitatore verifica
+  // se quella cura è vera. È anche la pagina su cui atterra chi arriva da Google.
+  //
+  // PERCHÉ SEGNALARE E NON CORREGGERE. description.ts ha un principio non negoziabile:
+  // «NON riscrive, NON riassume, NON parafrasa — il copy dell'agenzia resta parola per
+  // parola». Un refuso non si ripara senza riscrivere, e una pipeline che comincia a
+  // riscrivere non si ferma più al refuso. Quindi questi vanno nel report, che è la
+  // corsia che il progetto usa già per «da correggere alla fonte» — il §8 chiede
+  // entrambe le cose: pulizia automatica del testo in ingresso E regola editoriale
+  // scritta. La prima c'è; questa è la seconda.
+
+  // 1. Un indirizzo web dentro il racconto della casa. Il documento cita il caso reale:
+  //    un URL per esteso in mezzo alla descrizione di una villa.
+  if (/https?:\/\/|\bwww\.[a-z0-9-]+\.[a-z]{2,}|\b[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(text)) {
+    out.push({
+      severity: "REVIEW",
+      check: "link-in-descrizione",
+      detail: "un indirizzo web o email dentro il racconto: va tolto alla fonte (in pubblicazione resta visibile)",
+    });
+  }
+
+  // 2. Accenti scritti con l'apostrofo — «e'» invece di «è». Elenco CHIUSO: "po'" e
+  //    "de'" sono grafie corrette e non devono comparire qui.
+  const ACCENTO_APOSTROFATO = /\b(e|pero|piu|citta|perche|gia|cosi|puo|liberta|qualita|meta|verita|universita|societa|possibilita)['\u2019](?=\s|$|[,.;:])/i;
+  const mAcc = text.match(ACCENTO_APOSTROFATO);
+  if (mAcc) {
+    out.push({
+      severity: "REVIEW",
+      check: "accento-apostrofato",
+      detail: `"${mAcc[0]}" invece della lettera accentata: da correggere alla fonte`,
+    });
+  }
+
+  // 3. Abbreviazioni da appunti interni. Il documento cita «il ns comodo e raffinato
+  //    bagno». Elenco stretto: "mq" NON entra, è normale in un annuncio.
+  const mAbbr = text.match(/\b(ns|vs|sig|gent|c\.a)\b\.?/i);
+  if (mAbbr) {
+    out.push({
+      severity: "REVIEW",
+      check: "abbreviazione-da-appunti",
+      detail: `"${mAbbr[0]}": abbreviazione da appunti interni, da sciogliere alla fonte`,
+    });
+  }
+
+  // 4. Frase troncata. Il documento cita «compra e vendi in serenità con» — una riga che
+  //    finisce a metà. Si guarda solo l'ULTIMO paragrafo: nei precedenti una riga aperta
+  //    è spesso una didascalia o un elenco, e toParagraphs le ha già ricucite dove poteva.
+  const ultimo = p.descriptionParagraphs[p.descriptionParagraphs.length - 1]?.trim() ?? "";
+  if (ultimo.length > 0 && /\b(con|per|di|da|a|e|che|il|la|le|i|gli|un|una|nel|sul|dal)$/i.test(ultimo)) {
+    out.push({
+      severity: "REVIEW",
+      check: "frase-troncata",
+      detail: `la descrizione finisce a metà: "…${ultimo.slice(-48)}"`,
+    });
+  }
+
+  // 5. Titolo con spazi doppi. Il documento lo cita insieme alle maiuscole casuali; le
+  //    maiuscole no, perché in un titolo immobiliare sono spesso legittime (nomi di via,
+  //    sigle) e un controllo approssimativo qui produrrebbe rumore per 196 annunci.
+  if (/\s{2,}/.test(p.title)) {
+    out.push({
+      severity: "REVIEW",
+      check: "titolo-spazi-doppi",
+      detail: `"${p.title.slice(0, 60)}": spazi doppi nel titolo`,
+    });
+  }
+
   if (p.contentPreservation < 0.9) {
     out.push({
       severity: "REVIEW",
