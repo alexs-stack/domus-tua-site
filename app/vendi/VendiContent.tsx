@@ -121,7 +121,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Il percorso di vendita",
       title: "Dalla prima stima alla firma, un passo alla volta.",
       intro:
-        "Ogni vendita segue lo stesso metodo collaudato. Tu resti sempre informato, noi gestiamo la complessità.",
+        "Sono i nove passaggi del Metodo Domus, raccolti qui in quattro momenti. Tu resti sempre informato, noi gestiamo la complessità.",
     },
     sellSteps: [
       {
@@ -270,7 +270,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "The selling journey",
       title: "From the first estimate to the signature, one step at a time.",
       intro:
-        "Every sale follows the same tried-and-tested method. You stay informed throughout, while we handle the complexity.",
+        "These are the nine steps of the Domus Method, gathered here into four moments. You stay informed throughout, while we handle the complexity.",
     },
     sellSteps: [
       {
@@ -419,7 +419,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Le parcours de vente",
       title: "De la première estimation à la signature, une étape après l’autre.",
       intro:
-        "Chaque vente suit la même méthode éprouvée. Vous restez toujours informé, nous gérons la complexité.",
+        "Ce sont les neuf étapes de la Méthode Domus, réunies ici en quatre moments. Vous restez toujours informé, nous gérons la complexité.",
     },
     sellSteps: [
       {
@@ -568,7 +568,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "Der Verkaufsweg",
       title: "Von der ersten Schätzung bis zur Unterschrift, Schritt für Schritt.",
       intro:
-        "Jeder Verkauf folgt derselben bewährten Methode. Sie bleiben stets informiert, wir übernehmen die Komplexität.",
+        "Es sind die neun Schritte der Domus-Methode, hier in vier Momente gefasst. Sie bleiben stets informiert, wir übernehmen die Komplexität.",
     },
     sellSteps: [
       {
@@ -717,7 +717,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       eyebrow: "El recorrido de venta",
       title: "De la primera estimación a la firma, paso a paso.",
       intro:
-        "Cada venta sigue el mismo método contrastado. Tú siempre estás informado, nosotros gestionamos la complejidad.",
+        "Son los nueve pasos del Método Domus, reunidos aquí en cuatro momentos. Tú siempre estás informado, nosotros gestionamos la complejidad.",
     },
     sellSteps: [
       {

@@ -62,7 +62,7 @@ const copy = {
     ],
 
     rowsEyebrow: "Come si svolge",
-    rowsTitle: "Dietro ogni Open Domus, un metodo.",
+    rowsTitle: "Le cinque fasi di un Open Domus.",
     phases: [
       {
         title: "Preparazione dell’immobile",
@@ -184,7 +184,7 @@ const copy = {
     ],
 
     rowsEyebrow: "How it works",
-    rowsTitle: "Behind every Open Domus, a method.",
+    rowsTitle: "The five phases of an Open Domus.",
     phases: [
       {
         title: "Preparing the property",
@@ -322,7 +322,7 @@ const copy = {
     ],
 
     rowsEyebrow: "Comment ça se passe",
-    rowsTitle: "Derrière chaque Open Domus, une méthode.",
+    rowsTitle: "Les cinq phases d’un Open Domus.",
     phases: [
       {
         title: "Préparation du bien",
@@ -460,7 +460,7 @@ const copy = {
     ],
 
     rowsEyebrow: "So läuft es ab",
-    rowsTitle: "Hinter jedem Open Domus steht eine Methode.",
+    rowsTitle: "Die fünf Phasen eines Open Domus.",
     phases: [
       {
         title: "Vorbereitung der Immobilie",
@@ -598,7 +598,7 @@ const copy = {
     ],
 
     rowsEyebrow: "Cómo se desarrolla",
-    rowsTitle: "Detrás de cada Open Domus, un método.",
+    rowsTitle: "Las cinco fases de un Open Domus.",
     phases: [
       {
         title: "Preparación del inmueble",
