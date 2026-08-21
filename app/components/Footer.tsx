@@ -349,8 +349,26 @@ export default function Footer() {
             {/* Qui sotto c'era il monogramma da solo: due volte lo stesso segno
                 a due righe di distanza, perché la chip qui sopra lo porta già
                 dentro il logo completo (2026-08-09, direttiva cliente). */}
+            {/* §3.3 — PROMESSA DI AZIONE, non di risultato.
+                Qui c'era «Con Domus Tua è facile vendere ed è sicuro acquistare»: due
+                risultati che un mediatore NON controlla, cioè la stessa famiglia di «zero
+                sorprese al rogito» e «una garanzia» che il documento mette in colonna «da
+                eliminare». Il sito quella famiglia l'aveva già ripulita altrove; questa era
+                l'ultima sopravvissuta, e stava su OGNI pagina.
+
+                Due note che la rendevano peggiore di uno slogan qualunque. La prima: era
+                scritta a mano in italiano, quindi la leggeva in italiano anche chi navigava
+                in tedesco. La seconda: è ALLA LETTERA la firma commerciale che
+                description.ts:206 cancella dalle descrizioni importate, perché si ripeteva
+                identica su decine di annunci — il sito la toglieva all'agenzia e se la
+                stampava addosso.
+
+                Al suo posto due cose che l'agenzia fa davvero, prese dai tre comportamenti
+                verificabili del documento (§6.x): si controllano i documenti prima di
+                pubblicare, e al telefono risponde una persona che resta la stessa fino alla
+                firma. Specifiche, quindi verificabili — che è l'argomento del §3.3. */}
             <p className="mt-6 max-w-sm font-display text-2xl font-medium leading-snug text-cream">
-              Con Domus Tua è facile vendere ed è sicuro acquistare.
+              {d.footer.payoff}
             </p>
             {/* §6.3 — il premio va esposto anche nel footer, cioè su OGNI pagina: è l'unica
                 prova indipendente che l'agenzia possiede (il 4,9/531 è pur sempre il voto

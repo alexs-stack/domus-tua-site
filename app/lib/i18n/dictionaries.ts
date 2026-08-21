@@ -45,7 +45,13 @@ type Dict = {
     sellerTitle: string; sellerCta: string;
   };
   whatsapp: { cta: string };
-  footer: { naviga: string; orari: string; caseVendute: string; monFri: string; sat: string; sun: string; onAppt: string; valuta: string; privacy: string; cookie: string; cookiePrefs: string; contatti: string; lavora: string; faq: string };
+  /**
+   * `payoff` e la riga sotto il marchio, su OGNI pagina.
+   *
+   * Prima era scritta a mano dentro Footer.tsx, in italiano, e restava italiana anche in
+   * tedesco e in spagnolo. Sta qui perche e copy, e il copy del sito vive nel dizionario.
+   */
+  footer: { payoff: string; naviga: string; orari: string; caseVendute: string; monFri: string; sat: string; sun: string; onAppt: string; valuta: string; privacy: string; cookie: string; cookiePrefs: string; contatti: string; lavora: string; faq: string };
   lang: { label: string };
 };
 
@@ -67,7 +73,7 @@ export const dictionaries: Record<Locale, Dict> = {
       sellerTitle: "Devi vendere casa?", sellerCta: "Richiedi la valutazione del tuo immobile",
       },
     whatsapp: { cta: "Parla con noi su WhatsApp" },
-    footer: { naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Richiedi la valutazione", privacy: "Privacy", cookie: "Cookie", cookiePrefs: "Preferenze cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti", caseVendute: "Case vendute" },
+    footer: { payoff: "Controlliamo i documenti prima di pubblicare. Rispondiamo noi al telefono, fino al rogito.", naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Richiedi la valutazione", privacy: "Privacy", cookie: "Cookie", cookiePrefs: "Preferenze cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti", caseVendute: "Case vendute" },
     lang: { label: "Lingua" },
   },
   en: {
@@ -87,7 +93,7 @@ export const dictionaries: Record<Locale, Dict> = {
       sellerTitle: "Need to sell your home?", sellerCta: "Request a valuation of your property",
       },
     whatsapp: { cta: "Talk to us on WhatsApp" },
-    footer: { naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Request a valuation", privacy: "Privacy", cookie: "Cookies", cookiePrefs: "Cookie preferences", contatti: "Contact", lavora: "Work with us", faq: "FAQ", caseVendute: "Homes sold" },
+    footer: { payoff: "We check the paperwork before listing. We answer the phone ourselves, all the way to the deed.", naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Request a valuation", privacy: "Privacy", cookie: "Cookies", cookiePrefs: "Cookie preferences", contatti: "Contact", lavora: "Work with us", faq: "FAQ", caseVendute: "Homes sold" },
     lang: { label: "Language" },
   },
   fr: {
@@ -107,7 +113,7 @@ export const dictionaries: Record<Locale, Dict> = {
       sellerTitle: "Vous devez vendre ?", sellerCta: "Demandez l’estimation de votre bien",
       },
     whatsapp: { cta: "Parlez-nous sur WhatsApp" },
-    footer: { naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Demander l’estimation", privacy: "Confidentialité", cookie: "Cookies", cookiePrefs: "Préférences cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes", caseVendute: "Biens vendus" },
+    footer: { payoff: "Nous contrôlons les documents avant la mise en ligne. C’est nous qui répondons au téléphone, jusqu’à l’acte.", naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Demander l’estimation", privacy: "Confidentialité", cookie: "Cookies", cookiePrefs: "Préférences cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes", caseVendute: "Biens vendus" },
     lang: { label: "Langue" },
   },
   de: {
@@ -127,7 +133,7 @@ export const dictionaries: Record<Locale, Dict> = {
       sellerTitle: "Möchten Sie verkaufen?", sellerCta: "Bewertung Ihrer Immobilie anfordern",
       },
     whatsapp: { cta: "Sprechen Sie mit uns auf WhatsApp" },
-    footer: { naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Bewertung anfordern", privacy: "Datenschutz", cookie: "Cookies", cookiePrefs: "Cookie-Einstellungen", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen", caseVendute: "Verkaufte Immobilien" },
+    footer: { payoff: "Wir prüfen die Unterlagen vor der Veröffentlichung. Und wir gehen selbst ans Telefon, bis zum Notartermin.", naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Bewertung anfordern", privacy: "Datenschutz", cookie: "Cookies", cookiePrefs: "Cookie-Einstellungen", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen", caseVendute: "Verkaufte Immobilien" },
     lang: { label: "Sprache" },
   },
   es: {
@@ -147,7 +153,7 @@ export const dictionaries: Record<Locale, Dict> = {
       sellerTitle: "¿Necesitas vender?", sellerCta: "Solicita la valoración de tu inmueble",
       },
     whatsapp: { cta: "Habla con nosotras por WhatsApp" },
-    footer: { naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Solicita la valoración", privacy: "Privacidad", cookie: "Cookies", cookiePrefs: "Preferencias de cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes", caseVendute: "Casas vendidas" },
+    footer: { payoff: "Comprobamos los documentos antes de publicar. Al teléfono respondemos nosotras, hasta la escritura.", naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Solicita la valoración", privacy: "Privacidad", cookie: "Cookies", cookiePrefs: "Preferencias de cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes", caseVendute: "Casas vendidas" },
     lang: { label: "Idioma" },
   },
 };
