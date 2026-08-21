@@ -31,11 +31,12 @@
 // colonna statica completa» — resta vera per reduced-motion e per il no-JS
 // (l'HTML servito è già completo e nessuno stato nascosto vive fuori da
 // matchMedia), non più per il telefono.
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import YoutubeThumb from "./YoutubeThumb";
 import { Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
+import VideoLightbox from "./VideoLightbox";
 import { site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, dist, stagger } from "../lib/motion/gsap";
@@ -78,6 +79,10 @@ const copy = {
 export default function ReviewsWall() {
   const { locale } = useLocale();
   const c = copy[locale];
+  /** Il video aperto in pagina, o null. Vive qui e non in un registro globale: il muro
+      e l hero hanno ciascuno il proprio dialog, e due stati separati non possono
+      contraddirsi. */
+  const [videoAperto, setVideoAperto] = useState<{ id: string; title: string } | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -470,10 +475,22 @@ export default function ReviewsWall() {
                     motivo per cliccare. Il testo era già scritto: bastava tirarlo fuori.
                     Con il titolo nel flusso, l'aria-label non serve più (anzi: duplicherebbe
                     il nome accessibile del link). */}
+                {/* Resta un LINK, con il suo href vero verso YouTube, e il clic viene
+                    INTERCETTATO quando il JavaScript c'e: chi ha JS guarda il video in
+                    pagina, chi non ce l'ha (o apre in una scheda nuova col tasto centrale,
+                    o copia l'indirizzo) trova ancora il video dov'era. Sostituire il link
+                    con un bottone avrebbe tolto quella via d'uscita per far funzionare
+                    quella nuova. I modificatori si rispettano: cmd/ctrl/shift/alt e il
+                    tasto centrale continuano ad aprire YouTube, come da qualunque link. */}
                 <a
                   href={youtubeWatch(v.id)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                    e.preventDefault();
+                    setVideoAperto({ id: v.id, title: v.title });
+                  }}
                   className="group absolute inset-0 block"
                 >
                   <YoutubeThumb
@@ -500,6 +517,7 @@ export default function ReviewsWall() {
           </ul>
         </div>
       </div>
+      <VideoLightbox video={videoAperto} onClose={() => setVideoAperto(null)} />
     </section>
   );
 }

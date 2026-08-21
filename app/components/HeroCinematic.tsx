@@ -15,6 +15,7 @@ import { youtubeWatch } from "../lib/videos";
 import Magnetic from "./motion/Magnetic";
 import { SegnoDomusVideoFrame } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
+import VideoLightbox from "./VideoLightbox";
 import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 import { INTRO_EVENT, HERO_REST_MS, HERO_REST_WARM_MS } from "../lib/motion/intro-constants";
 import { hasIntroFired } from "./motion/Preloader";
@@ -203,6 +204,9 @@ export default function HeroCinematic() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [playVideo, setPlayVideo] = useState(false);
+  /** La storia in evidenza aperta IN PAGINA, o null. Da non confondere con `playVideo`,
+      che e il filmato di sfondo dell hero: quello e ambiente, questo e una scelta. */
+  const [videoAperto, setVideoAperto] = useState<{ id: string; title: string } | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const frameWrapRef = useRef<HTMLDivElement | null>(null);
@@ -889,12 +893,16 @@ export default function HeroCinematic() {
             <Cta href="#cerca" variant="ghost-dark" size="lg">
               {c.ctaCerco}
             </Cta>
-            {/* Un video PRECISO, non il canale.
-                Puntava alla home di @DOMUSTUASRLIMMOBILIARE: chi cliccava "Guarda il
-                video" atterrava su una griglia di decine di clip e doveva scegliere da
-                solo — cioè non guardava niente. Qui va la storia in evidenza (la villa
-                di Roberta, venduta al primo Open Domus), che è anche il video già
-                incorporato più in basso nella pagina. */}
+            {/* Un video PRECISO, e IN PAGINA.
+                Due difetti in fila, corretti in due momenti. Prima puntava alla home di
+                @DOMUSTUASRLIMMOBILIARE: chi cliccava «Guarda il video» atterrava su una
+                griglia di decine di clip e sceglieva da solo — cioè non guardava niente.
+                Poi puntava al video giusto, ma sempre FUORI: la storia in evidenza si
+                apriva dentro YouTube, in mezzo ai consigli che portano altrove.
+                Adesso si apre qui, in un dialog, e nessuna richiesta parte verso YouTube
+                finché non lo si chiede. Il §6.5 chiede esattamente questo.
+                L'href resta quello vero: senza JavaScript, o aprendo in una scheda nuova,
+                il video è ancora dov'era. */}
             <Cta
               href={youtubeWatch(site.videos.featured.id)}
               variant="ghost-dark"
@@ -902,6 +910,11 @@ export default function HeroCinematic() {
               arrow={false}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                setVideoAperto(site.videos.featured);
+              }}
               className="!pl-3"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
@@ -989,6 +1002,7 @@ export default function HeroCinematic() {
           Il velo porta il colore della pagina DENTRO la foto prima della
           giuntura, così i due bordi si incontrano già dello stesso colore. */}
       <SurfaceVeil edge="bottom" tone="cream-deep" height="30svh" />
+      <VideoLightbox video={videoAperto} onClose={() => setVideoAperto(null)} />
     </section>
   );
 }
