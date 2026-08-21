@@ -459,6 +459,11 @@ export function organizationJsonLd() {
  * DA CONFERMARE — due cose, e nessuna delle due la può decidere il codice:
  *   1. `name` — oggi è la persona che il sito già mostra accanto al modulo (la stessa foto,
  *      lo stesso volto). Se al primo contatto risponde una collega, si cambia questa riga.
+ *      Il documento chiede nome e volto (§6.6) ma non dice CHI, e non è ovvio: la mappa dei
+ *      redirect del vecchio sito elenca sei schede persona, non una. La conferma però non
+ *      promette che chiami proprio lei: promette la CONTINUITÀ — «la stessa persona fino al
+ *      rogito» — che è il comportamento verificabile che il documento mette per iscritto.
+ *      Se il nome qui è sbagliato cambia il volto, non la promessa.
  *   2. `phoneLabel` — è il fisso dell'agenzia. Se le chiamate in uscita partono da un
  *      cellulare, il numero scritto qui è SBAGLIATO, e un numero sbagliato in una conferma
  *      è peggio di nessun numero: insegna a non rispondere.

@@ -71,6 +71,16 @@ const REL = (f: string) => path.relative(process.cwd(), f).split(path.sep).join(
  */
 const FORBIDDEN: { label: string; pattern: RegExp; why: string; fix?: string }[] = [
   {
+    label: "«con Domus Tua è facile vendere ed è sicuro acquistare»",
+    // Il pattern chiede «è … ed è», e non a caso: il TITOLO di un video reale del canale
+    // è «Recensione — Facile vendere, sicuro acquistare» (site.ts), e quello è legittimo —
+    // è come si chiama il filmato. A essere vietata è l'affermazione, non le parole.
+    pattern: /è\s+facile\s+vendere\s+ed?\s+è\s+sicuro/i,
+    why:
+      "promessa di RISULTATO che un mediatore non controlla (§3.3 del Documento finale, colonna «da eliminare»): stessa famiglia di «zero sorprese al rogito» e «una garanzia». Ed è ALLA LETTERA la firma commerciale che app/lib/realsmart/description.ts cancella dagli annunci importati — il sito la toglieva all'agenzia e se la stampava addosso su ogni pagina",
+    fix: "una promessa di AZIONE: cosa si fa perché il risultato arrivi (vedi d.footer.payoff)",
+  },
+  {
     label: "269.395 m² valutati",
     pattern: /\b269[.\s]?395\b/,
     why: "metratura valutata mai documentata dall'agenzia",
