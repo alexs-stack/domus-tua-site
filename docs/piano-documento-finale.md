@@ -22,7 +22,29 @@
 >   impilamento, e l'header restava cliccabile sopra una superficie `aria-modal`.
 >   `CaseQuickLook` documentava già quella trappola.
 >
-> **Resta del documento, dentro il perimetro:** la passata §9 sezione per sezione. Su venti
+> **§9 CHIUSO.** Su venti blocchi della home tredici superavano gia la prova con parole
+> proprie e tre sono chrome, a cui il criterio non si applica. Corretti i quattro che non la
+> superavano o la superavano male:
+>
+> - **la ricerca in home** era l’unico blocco che si limitava a mostrare immobili, cioe
+>   proprio il «pubblicare semplicemente» da cui la frase del §9 prende le distanze. La card
+>   venditore faceva la domanda e saltava alla CTA: adesso in mezzo c’e la ragione.
+> - **il pannello territorio** diceva «conosciamo il valore di ogni via», cioe quanto siamo
+>   bravi. Adesso quella conoscenza e agganciata alla valutazione, che e il primo atto del
+>   metodo — un fatto gia dichiarato in `Method.tsx`.
+> - **il muro delle voci** parlava delle case «vendute con Open Domus»: un esito osservato.
+>   Adesso sono «raccontate in video e vendute», che e il lavoro dichiarato.
+> - **il footer** e stato chiuso a parte ([#73](https://github.com/alexs-stack/domus-tua-site/pull/73)).
+>
+> `KineticStrip` non supera la prova letta alla lettera, e resta dov’e: non e copy — il testo
+> vive in `content: var(--kin)` dentro un blocco `aria-hidden`, quindi non entra nell’albero
+> del documento e non costa parole a nessuno. Tagliarlo lascerebbe la home senza congedo.
+>
+> Nella stessa passata e saltato fuori che **il territorio era ancora scritto a mano** in
+> `HorizonStory` (quattro lingue) e nell’annuncio di lavoro (cinque): la stessa correzione
+> gia fatta nelle FAQ, sopravvissuta altrove. Ora tutto passa da `territoryLabelBy`.
+>
+> **Restava del documento, dentro il perimetro:** la passata §9 sezione per sezione. Su venti
 > blocchi della home tredici superano la prova «prepara / protegge / racconta / governa»
 > con parole proprie, due sono deboli (pannello territorio, muro delle voci) e tre non la
 > superano — la ricerca in home, la riga del footer e `KineticStrip`, che però è

@@ -13,7 +13,7 @@
 // «parità mobile 2»).
 // Reduced-motion o senza JS: tutto fermo, tutto visibile.
 import type { ReactNode } from "react";
-import { territoryLabel } from "../lib/site";
+import { territoryLabel, territoryLabelBy } from "../lib/site";
 import Image from "next/image";
 import SurfaceVeil from "./motion/SurfaceVeil";
 import Link from "next/link";
@@ -46,7 +46,7 @@ const copy = {
     stairs: ["Tra la", "Pineta", "e Milano"],
     subtitle: "Il territorio che abitiamo",
     territory:
-      `Lavoriamo dove viviamo: Tradate e i comuni di ${territoryLabel}, tra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Conosciamo il valore di ogni via, perché è anche la nostra.`,
+      `Lavoriamo dove viviamo: Tradate e i comuni di ${territoryLabel}, tra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Conosciamo il valore di ogni via, perché è anche la nostra: è da lì che nasce la valutazione che ti diamo.`,
     cta: "Vedi le case in vendita",
     imageAlt: "Attico con terrazzo a Tradate seguito da Domus Tua",
   },
@@ -70,7 +70,7 @@ const copy = {
     stairs: ["Between the", "Pineta park", "and Milan"],
     subtitle: "The land we call home",
     territory:
-      "We work where we live: Tradate and the towns of the Varese province, between the green of the Pineta park and the connections to Milan and Malpensa. We know the value of every street, because it is ours too.",
+      `We work where we live: Tradate and the towns of ${territoryLabelBy.en}, between the green of the Pineta park and the connections to Milan and Malpensa. We know the value of every street, because it is ours too — and that is where the valuation we give you comes from.`,
     cta: "See the homes for sale",
     imageAlt: "Penthouse with terrace in Tradate listed by Domus Tua",
   },
@@ -94,7 +94,7 @@ const copy = {
     stairs: ["Entre la", "Pineta", "et Milan"],
     subtitle: "Le territoire que nous habitons",
     territory:
-      "Nous travaillons là où nous vivons : Tradate et les communes de la province de Varese, entre le vert du parc Pineta et les liaisons vers Milan et Malpensa. Nous connaissons la valeur de chaque rue, parce qu'elle est aussi la nôtre.",
+      `Nous travaillons là où nous vivons : Tradate et les communes de ${territoryLabelBy.fr}, entre le vert du parc Pineta et les liaisons vers Milan et Malpensa. Nous connaissons la valeur de chaque rue, parce qu’elle est aussi la nôtre : c’est de là que naît l’estimation que nous vous donnons.`,
     cta: "Voir les biens à vendre",
     imageAlt: "Attique avec terrasse à Tradate proposé par Domus Tua",
   },
@@ -118,7 +118,7 @@ const copy = {
     stairs: ["Zwischen dem", "Pineta-Park", "und Mailand"],
     subtitle: "Unser Zuhause, unser Gebiet",
     territory:
-      "Wir arbeiten dort, wo wir leben: Tradate und die Gemeinden der Provinz Varese, zwischen dem Grün des Pineta-Parks und den Verbindungen nach Mailand und Malpensa. Wir kennen den Wert jeder Straße — denn es sind auch unsere.",
+      `Wir arbeiten dort, wo wir leben: Tradate und die Gemeinden ${territoryLabelBy.de}, zwischen dem Grün des Pineta-Parks und den Verbindungen nach Mailand und Malpensa. Wir kennen den Wert jeder Straße — denn es sind auch unsere, und daraus entsteht Ihre Bewertung.`,
     cta: "Immobilien zum Verkauf ansehen",
     imageAlt: "Penthouse mit Terrasse in Tradate im Angebot von Domus Tua",
   },
@@ -142,7 +142,7 @@ const copy = {
     stairs: ["Entre el", "parque Pineta", "y Milán"],
     subtitle: "El territorio que habitamos",
     territory:
-      "Trabajamos donde vivimos: Tradate y los municipios de la provincia de Varese, entre el verde del parque Pineta y las conexiones con Milán y Malpensa. Conocemos el valor de cada calle, porque también es la nuestra.",
+      `Trabajamos donde vivimos: Tradate y los municipios de ${territoryLabelBy.es}, entre el verde del parque Pineta y las conexiones con Milán y Malpensa. Conocemos el valor de cada calle, porque también es la nuestra: de ahí nace la valoración que te damos.`,
     cta: "Ver las casas en venta",
     imageAlt: "Ático con terraza en Tradate ofrecido por Domus Tua",
   },

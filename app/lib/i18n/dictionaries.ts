@@ -42,7 +42,7 @@ type Dict = {
     // conserva stringhe non rese non è inerte, è una fonte di verità alternativa che
     // prima o poi qualcuno rimette in pagina credendola quella buona.
     title: string; nlPlaceholder: string; nlTeaser: string; nlHint: string;
-    sellerTitle: string; sellerCta: string;
+    sellerTitle: string; sellerCopy: string; sellerCta: string;
   };
   whatsapp: { cta: string };
   /**
@@ -70,7 +70,9 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "Es. trilocale con giardino a Tradate sotto 300.000 €",
       nlTeaser: "Ricerca intelligente",
       nlHint: "Scrivi come parleresti a noi e trova la casa giusta.",
-      sellerTitle: "Devi vendere casa?", sellerCta: "Richiedi la valutazione del tuo immobile",
+      sellerTitle: "Devi vendere casa?",
+      sellerCopy: "Prima di pubblicarla la prepariamo, ne verifichiamo i documenti e ti seguiamo fino al rogito.",
+      sellerCta: "Richiedi la valutazione del tuo immobile",
       },
     whatsapp: { cta: "Parla con noi su WhatsApp" },
     footer: { payoff: "Controlliamo i documenti prima di pubblicare. Rispondiamo noi al telefono, fino al rogito.", naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Richiedi la valutazione", privacy: "Privacy", cookie: "Cookie", cookiePrefs: "Preferenze cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti", caseVendute: "Case vendute" },
@@ -90,7 +92,9 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "e.g. three-room with garden in Tradate under €300,000",
       nlTeaser: "Smart search",
       nlHint: "Write it just as you’d talk to us and find the right home.",
-      sellerTitle: "Need to sell your home?", sellerCta: "Request a valuation of your property",
+      sellerTitle: "Need to sell your home?",
+      sellerCopy: "Before it goes online we prepare it, we check its paperwork, and we stay with you to the deed.",
+      sellerCta: "Request a valuation of your property",
       },
     whatsapp: { cta: "Talk to us on WhatsApp" },
     footer: { payoff: "We check the paperwork before listing. We answer the phone ourselves, all the way to the deed.", naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Request a valuation", privacy: "Privacy", cookie: "Cookies", cookiePrefs: "Cookie preferences", contatti: "Contact", lavora: "Work with us", faq: "FAQ", caseVendute: "Homes sold" },
@@ -110,7 +114,9 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "Ex. trois-pièces avec jardin à Tradate sous 300 000 €",
       nlTeaser: "Recherche intelligente",
       nlHint: "Écrivez comme vous nous parleriez et trouvez le bon bien.",
-      sellerTitle: "Vous devez vendre ?", sellerCta: "Demandez l’estimation de votre bien",
+      sellerTitle: "Vous devez vendre ?",
+      sellerCopy: "Avant la mise en ligne, nous le préparons, nous contrôlons ses documents et nous restons avec vous jusqu’à l’acte.",
+      sellerCta: "Demandez l’estimation de votre bien",
       },
     whatsapp: { cta: "Parlez-nous sur WhatsApp" },
     footer: { payoff: "Nous contrôlons les documents avant la mise en ligne. C’est nous qui répondons au téléphone, jusqu’à l’acte.", naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Demander l’estimation", privacy: "Confidentialité", cookie: "Cookies", cookiePrefs: "Préférences cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes", caseVendute: "Biens vendus" },
@@ -130,7 +136,9 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "z. B. Dreizimmer mit Garten in Tradate unter 300.000 €",
       nlTeaser: "Intelligente Suche",
       nlHint: "Schreiben Sie, wie Sie mit uns sprechen würden, und finden Sie das passende Zuhause.",
-      sellerTitle: "Möchten Sie verkaufen?", sellerCta: "Bewertung Ihrer Immobilie anfordern",
+      sellerTitle: "Möchten Sie verkaufen?",
+      sellerCopy: "Vor der Veröffentlichung bereiten wir sie vor, prüfen ihre Unterlagen und bleiben bis zum Notartermin an Ihrer Seite.",
+      sellerCta: "Bewertung Ihrer Immobilie anfordern",
       },
     whatsapp: { cta: "Sprechen Sie mit uns auf WhatsApp" },
     footer: { payoff: "Wir prüfen die Unterlagen vor der Veröffentlichung. Und wir gehen selbst ans Telefon, bis zum Notartermin.", naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Bewertung anfordern", privacy: "Datenschutz", cookie: "Cookies", cookiePrefs: "Cookie-Einstellungen", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen", caseVendute: "Verkaufte Immobilien" },
@@ -150,7 +158,9 @@ export const dictionaries: Record<Locale, Dict> = {
       nlPlaceholder: "Ej. piso de tres habitaciones con jardín en Tradate por menos de 300.000 €",
       nlTeaser: "Búsqueda inteligente",
       nlHint: "Escribe como nos hablarías y encuentra la casa adecuada.",
-      sellerTitle: "¿Necesitas vender?", sellerCta: "Solicita la valoración de tu inmueble",
+      sellerTitle: "¿Necesitas vender?",
+      sellerCopy: "Antes de publicarla la preparamos, comprobamos sus documentos y te acompañamos hasta la escritura.",
+      sellerCta: "Solicita la valoración de tu inmueble",
       },
     whatsapp: { cta: "Habla con nosotras por WhatsApp" },
     footer: { payoff: "Comprobamos los documentos antes de publicar. Al teléfono respondemos nosotras, hasta la escritura.", naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Solicita la valoración", privacy: "Privacidad", cookie: "Cookies", cookiePrefs: "Preferencias de cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes", caseVendute: "Casas vendidas" },
