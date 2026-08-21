@@ -221,6 +221,17 @@ export default function HomeSearchGateway() {
                 <h2 className="mt-5 font-display text-2xl font-medium leading-tight tracking-tight sm:text-[1.8rem]">
                   {d.search.sellerTitle}
                 </h2>
+                {/* §9 — la RAGIONE fra la domanda e il pulsante.
+                    Questa card faceva la domanda e saltava alla CTA: era l'unico blocco
+                    della home che si limitava a mostrare immobili, cioè proprio il
+                    «pubblicare semplicemente» da cui la frase-criterio del §9 prende le
+                    distanze. Nessun fatto nuovo qui: «la prepariamo» sta già in
+                    Posizionamento, la verifica prima della pubblicazione in Method e in
+                    Team, «fino al rogito» in HorizonStory. È la stessa cosa detta dove
+                    serve decidere. */}
+                <p className="mt-3 text-[0.95rem] leading-relaxed text-white/85">
+                  {d.search.sellerCopy}
+                </p>
               </div>
               {/* Doppia faccia: crema a riposo (come la vecchia pill bianca), il
                   gradiente rosso dell'hover si fonde con la card = il bottone

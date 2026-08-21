@@ -6,7 +6,7 @@ import { gsap, MQ } from "../lib/motion/gsap";
 import { ArrowUpRight, Mail, Pin, Whatsapp } from "./Icons";
 import { SendCta } from "./primitives/Cta";
 import { SegnoDomusBadge } from "./BrandMotif";
-import { site } from "../lib/site";
+import { site, territoryLabelBy } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead } from "../lib/forms/lead";
 import { CONVERSIONS, trackConversion } from "../lib/analytics";
@@ -125,7 +125,7 @@ const copy = {
       "Il sito non riceve allegati. Lascia qui un link al tuo profilo, oppure inviaci il CV per email: lo leggiamo con la stessa attenzione.",
     cvCta: "Scrivici a",
     whereTitle: "Dove si lavora",
-    whereCopy: "In sede, a Tradate. Il lavoro è sul territorio: Tradate e la provincia di Varese.",
+    whereCopy: `In sede, a Tradate. Il lavoro è sul territorio: Tradate e ${territoryLabelBy.it}.`,
     whatsappTitle: "Preferisci scrivere?",
     whatsappCopy: "Mandaci un messaggio: rispondiamo negli orari di apertura.",
     whatsappCta: "Parla con noi su WhatsApp",
@@ -176,7 +176,7 @@ const copy = {
       "The website doesn’t accept attachments. Leave a link to your profile here, or email us your CV: we read it just as carefully.",
     cvCta: "Write to",
     whereTitle: "Where you’ll work",
-    whereCopy: "At our office in Tradate. The work is local: Tradate and the province of Varese.",
+    whereCopy: `At our office in Tradate. The work is local: Tradate and ${territoryLabelBy.en}.`,
     whatsappTitle: "Prefer to write?",
     whatsappCopy: "Send us a message: we reply during opening hours.",
     whatsappCta: "Talk to us on WhatsApp",
@@ -227,7 +227,7 @@ const copy = {
       "Le site ne reçoit pas de pièces jointes. Laissez ici un lien vers votre profil, ou envoyez-nous votre CV par e-mail : nous le lisons avec la même attention.",
     cvCta: "Écrivez à",
     whereTitle: "Où l’on travaille",
-    whereCopy: "Dans nos locaux, à Tradate. Le travail est local : Tradate et la province de Varese.",
+    whereCopy: `Dans nos locaux, à Tradate. Le travail est local : Tradate et ${territoryLabelBy.fr}.`,
     whatsappTitle: "Vous préférez écrire ?",
     whatsappCopy: "Envoyez-nous un message : nous répondons aux heures d’ouverture.",
     whatsappCta: "Parlez-nous sur WhatsApp",
@@ -278,7 +278,7 @@ const copy = {
       "Die Website nimmt keine Anhänge entgegen. Hinterlassen Sie hier einen Link zu Ihrem Profil oder senden Sie uns den Lebenslauf per E-Mail: Wir lesen ihn genauso aufmerksam.",
     cvCta: "Schreiben Sie an",
     whereTitle: "Wo gearbeitet wird",
-    whereCopy: "In unserem Büro in Tradate. Die Arbeit findet vor Ort statt: Tradate und die Provinz Varese.",
+    whereCopy: `In unserem Büro in Tradate. Die Arbeit findet vor Ort statt: Tradate und ${territoryLabelBy.de}.`,
     whatsappTitle: "Lieber schreiben?",
     whatsappCopy: "Senden Sie uns eine Nachricht: Wir antworten während der Öffnungszeiten.",
     whatsappCta: "Sprechen Sie mit uns auf WhatsApp",
@@ -329,7 +329,7 @@ const copy = {
       "La web no recibe archivos adjuntos. Deja aquí un enlace a tu perfil, o envíanos el CV por correo: lo leemos con la misma atención.",
     cvCta: "Escríbenos a",
     whereTitle: "Dónde se trabaja",
-    whereCopy: "En la oficina, en Tradate. El trabajo es local: Tradate y la provincia de Varese.",
+    whereCopy: `En la oficina, en Tradate. El trabajo es local: Tradate y ${territoryLabelBy.es}.`,
     whatsappTitle: "¿Prefieres escribir?",
     whatsappCopy: "Mándanos un mensaje: respondemos en horario de apertura.",
     whatsappCta: "Habla con nosotras por WhatsApp",

@@ -47,31 +47,31 @@ const copy = {
   it: {
     title: "Il muro delle voci.",
     description:
-      "Le storie vere del canale: le recensioni dei clienti, le case vendute con Open Domus, il team che conosci prima di incontrarlo.",
+      "Le storie vere del canale: le recensioni dei clienti, le case raccontate in video e vendute con Open Domus, il team che conosci prima di incontrarlo.",
     cta: "Apri il canale YouTube",
   },
   en: {
     title: "The wall of voices.",
     description:
-      "Real stories from the channel: client reviews, homes sold with Open Domus, and the team you get to know before meeting them.",
+      "Real stories from the channel: client reviews, homes told in video and sold with Open Domus, and the team you get to know before meeting them.",
     cta: "Open the YouTube channel",
   },
   fr: {
     title: "Le mur des voix.",
     description:
-      "Les histoires vraies de la chaîne : les avis des clients, les maisons vendues avec Open Domus, l'équipe que l'on connaît avant de la rencontrer.",
+      "Les histoires vraies de la chaîne : les avis des clients, les biens racontés en vidéo et vendus avec Open Domus, l’équipe que l’on connaît avant de la rencontrer.",
     cta: "Ouvrir la chaîne YouTube",
   },
   de: {
     title: "Die Wand der Stimmen.",
     description:
-      "Echte Geschichten vom Kanal: Kundenbewertungen, mit Open Domus verkaufte Häuser und das Team, das man kennt, bevor man es trifft.",
+      "Echte Geschichten vom Kanal: Kundenbewertungen, im Video erzählte und mit Open Domus verkaufte Häuser und das Team, das man kennt, bevor man es trifft.",
     cta: "YouTube-Kanal öffnen",
   },
   es: {
     title: "El muro de las voces.",
     description:
-      "Las historias reales del canal: las reseñas de los clientes, las casas vendidas con Open Domus y el equipo que conoces antes de conocerlo.",
+      "Las historias reales del canal: las reseñas de los clientes, las casas contadas en vídeo y vendidas con Open Domus y el equipo que conoces antes de conocerlo.",
     cta: "Abrir el canal de YouTube",
   },
 } as const;
