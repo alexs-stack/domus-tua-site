@@ -1,5 +1,41 @@
 # Piano di implementazione — Documento Finale di Sintesi
 
+> **Stato al 21 agosto 2026 — fino al commit `d33600c`.**
+>
+> **Chiuso il §6.6 (microcopy del modulo) e il §6.5 (i video).** Tre PR:
+>
+> - [#69](https://github.com/alexs-stack/domus-tua-site/pull/69) — la conferma del modulo LEGGE l'esito della consegna, invece di
+>   buttarlo via con `void`. Prima diceva la stessa cosa a 429, 502, rete caduta e
+>   «nessun canale configurato»: il server era già onesto, era il client a non ascoltarlo.
+>   Ora «Abbiamo ricevuto la tua richiesta» compare solo quando è vero, e la conferma porta
+>   i quattro contenuti che il §6.6 chiede — chi chiama, da quale numero, entro quando,
+>   cosa preparare. Più il testo sopra il modulo indicizzato per intento, «Indirizzo
+>   dell'immobile», «(facoltativo)», e due difetti di flusso: `/open-domus` apriva il
+>   modulo sul tab «Voglio vendere», e il riferimento dell'immobile viaggiava col lead
+>   senza comparire mai.
+> - [#70](https://github.com/alexs-stack/domus-tua-site/pull/70) — §6.7, una formula per famiglia. Sette scarti veri corretti, tre
+>   varianti riconosciute come legittime e lasciate dov'erano. Più diciassette chiavi morte
+>   via dal dizionario, fra cui un `cta: "Cerca casa"` che contraddiceva la formula viva.
+> - [#71](https://github.com/alexs-stack/domus-tua-site/pull/71) — §6.5, il video si guarda IN PAGINA. Zero richieste a YouTube prima
+>   del clic (misurato in build di produzione). Una verifica avversariale sul diff ha
+>   trovato un bloccante mio: il dialog nasceva dentro `<main>`, che è un contesto di
+>   impilamento, e l'header restava cliccabile sopra una superficie `aria-modal`.
+>   `CaseQuickLook` documentava già quella trappola.
+>
+> **Resta del documento, dentro il perimetro:** la passata §9 sezione per sezione. Su venti
+> blocchi della home tredici superano la prova «prepara / protegge / racconta / governa»
+> con parole proprie, due sono deboli (pannello territorio, muro delle voci) e tre non la
+> superano — la ricerca in home, la riga del footer e `KineticStrip`, che però è
+> decorazione senza testo nel DOM. **Il caso peggiore è una DECISIONE della cliente:** il
+> footer ripete «Con Domus Tua è facile vendere ed è sicuro acquistare», che è la stessa
+> frase che `description.ts:206` cancella dagli annunci importati come firma commerciale.
+> È la sua tagline: si segnala, non si toglie di iniziativa.
+>
+> **Una conferma tecnica che serve dalla cliente:** `callback` in `app/lib/site.ts` dice chi
+> richiama e da quale numero. Se al primo contatto risponde una collega, o se le chiamate
+> partono da un cellulare, sono due righe da cambiare — e un numero sbagliato in una
+> conferma è peggio di nessun numero, perché insegna a non rispondere.
+>
 > **Stato al 20 agosto 2026 — fino al commit `98bda02`.**
 > **Chiusa anche la Fase 5 per la parte che dipende da noi**: i tre difetti §5.8 che si
 > possono togliere senza riscrivere una parola — doppio spazio nel titolo ([#66](https://github.com/alexs-stack/domus-tua-site/pull/66)),
