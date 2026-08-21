@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import YoutubeThumb from "./YoutubeThumb";
 import { Play } from "./Icons";
+import { useVideoPlayLabel } from "./VideoLightbox";
 
 type Props = {
   id: string;
@@ -25,6 +26,11 @@ type Props = {
 // docs/legal-launch-inventory.md.
 export default function LazyYouTubeEmbed({ id, title, poster }: Props) {
   const [active, setActive] = useState(false);
+  // L etichetta era italiana fissa («Riproduci il video: …») su un sito in cinque lingue:
+  // chi naviga in tedesco con uno screen reader si sentiva annunciare una frase italiana.
+  // La formula sta accanto al dialog del video, cosi le due superfici che riproducono un
+  // filmato lo annunciano allo stesso modo.
+  const playLabel = useVideoPlayLabel();
 
   const embed = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
   const posterSizes = "(max-width:768px) 100vw, (max-width:1240px) 60vw, 720px";
@@ -46,13 +52,15 @@ export default function LazyYouTubeEmbed({ id, title, poster }: Props) {
         <button
           type="button"
           onClick={() => setActive(true)}
-          aria-label={`Riproduci il video: ${title}`}
+          aria-label={playLabel(title)}
           className="group absolute inset-0 block h-full w-full cursor-pointer"
         >
           {poster ? (
-            <Image src={poster} alt={title} fill sizes={posterSizes} className={posterClassName} />
+            /* Poster MUTO: il bottone che lo contiene ha gia il suo nome accessibile
+               (aria-label), e ripetere il titolo nell alt lo fa annunciare due volte. */
+            <Image src={poster} alt="" fill sizes={posterSizes} className={posterClassName} />
           ) : (
-            <YoutubeThumb id={id} alt={title} sizes={posterSizes} className={posterClassName} />
+            <YoutubeThumb id={id} alt="" sizes={posterSizes} className={posterClassName} />
           )}
           {/* Velo caldo per profondità + leggibilità del play */}
           <span className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/10 to-ink/5" />

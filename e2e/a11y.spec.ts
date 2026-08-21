@@ -96,3 +96,29 @@ test("la gerarchia dei titoli parte da un solo h1", async ({ page, goto }) => {
     expect(h1, `${path} ha ${h1} h1`).toBe(1);
   }
 });
+
+// Il dialog del video in pagina (§6.5). Sta qui e non in home.spec.ts perché la
+// domanda è la stessa delle altre passate axe: una superficie nuova che copre lo
+// schermo è anche una superficie nuova da cui non si deve restare intrappolati.
+test("il dialog del video non ha violazioni di accessibilità", async ({ page, goto }) => {
+  await goto("/");
+  await page
+    .getByRole("link", { name: /guarda il video|watch the video|regarder|video ansehen|ver el v/i })
+    .first()
+    .click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+
+  // Si usa l helper condiviso, che esclude gli iframe: dentro il player c e il markup di
+  // YouTube, che non e nostro e che non possiamo correggere. Fuori dall iframe, invece,
+  // la passata copre TUTTA la pagina con il dialog aperto — cosi si vede anche se il
+  // dialog rompe qualcosa dietro di se.
+  const violazioni = await a11yViolations(page);
+  expect(violazioni, JSON.stringify(violazioni, null, 2)).toEqual([]);
+
+  // Il bersaglio per chiudere è da dito, non da mouse: 44×44 pieni (WCAG 2.5.8).
+  const chiudi = dialog.getByRole("button", { name: /chiud|clos|ferm|schließ|cerrar/i }).last();
+  const box = await chiudi.boundingBox();
+  expect(box?.width ?? 0, "larghezza del comando chiudi").toBeGreaterThanOrEqual(44);
+  expect(box?.height ?? 0, "altezza del comando chiudi").toBeGreaterThanOrEqual(44);
+});

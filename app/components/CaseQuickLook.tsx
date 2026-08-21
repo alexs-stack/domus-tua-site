@@ -13,13 +13,13 @@
 //   di Lenis rispetta l'ownership del sipario (isTransitionCovering).
 // - La CTA è un <a>: la intercetta PageTransition (sipario) come ogni link.
 import { useCallback, useEffect, useRef } from "react";
+import { useModalBehaviour } from "./hooks/useModalBehaviour";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Flip } from "gsap/Flip";
 import { Bed, Ruler, Rooms } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
-import { getLenis } from "./motion/SmoothScroll";
 import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 import type { GridProperty } from "../lib/properties";
@@ -58,7 +58,6 @@ export default function CaseQuickLook({
   const imgRef = useRef<HTMLDivElement | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const closingRef = useRef(false);
-  const restoreRef = useRef<HTMLElement | null>(null);
 
   // Chiusura coreografata: la foto torna alla card, il foglio svanisce.
   // Fuori da useGSAP (evento-driven): check runtime, mai ritardare lo stato
@@ -95,68 +94,19 @@ export default function CaseQuickLook({
     tl.to(backdropRef.current, { autoAlpha: 0, duration: dur.micro, ease: "none" }, 0.18);
   }, [property, onClose]);
 
-  // Lock dello scroll + gestione focus per la durata del dialog.
+  // Scroll bloccato, focus dentro, Esc per uscire, focus restituito a chi ha aperto.
+  // La meccanica sta in ./hooks/useModalBehaviour, condivisa col dialog del video: due
+  // copie di un focus trap divergono al primo ritocco. `closingRef` si azzera qui perche
+  // e specifico di questo dialog (l uscita animata), non del comportamento modale.
   useEffect(() => {
-    if (!property) return;
-    closingRef.current = false;
-    restoreRef.current = document.activeElement as HTMLElement | null;
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtml = html.style.overflow;
-    const prevBody = body.style.overflow;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    getLenis()?.stop();
-    // Focus sul pannello (tabIndex -1), non sul bottone Chiudi: con motion
-    // attivo il bottone parte autoAlpha 0 (visibility:hidden) e focus() su un
-    // nodo hidden è un no-op — il focus resterebbe dietro l'overlay.
-    panelRef.current?.focus();
-    return () => {
-      html.style.overflow = prevHtml;
-      body.style.overflow = prevBody;
-      if (!isTransitionCovering()) getLenis()?.start();
-      const t = restoreRef.current;
-      if (t && document.contains(t)) t.focus();
-    };
+    if (property) closingRef.current = false;
   }, [property]);
-
-  // Esc chiude, Tab resta nel dialog (stesso trap dell'Assistant).
-  useEffect(() => {
-    if (!property) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        requestClose();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const dialog = panelRef.current;
-      if (!dialog) return;
-      const focusable = dialog.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled])'
-      );
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement;
-      // Focus scappato fuori dal pannello (click su zona non interattiva,
-      // backdrop…): il Tab lo riporta dentro invece di scorrere lo sfondo.
-      if (!dialog.contains(active)) {
-        e.preventDefault();
-        first.focus();
-        return;
-      }
-      if (e.shiftKey && active === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [property, requestClose]);
+  useModalBehaviour({
+    open: !!property,
+    panelRef,
+    onClose: requestClose,
+    keepScrollStopped: isTransitionCovering,
+  });
 
   // Volo di apertura: la foto della card diventa il foglio. Stati nascosti
   // impostati SOLO qui (fromTo): senza motion il dialog appare già completo.

@@ -193,3 +193,102 @@ test("le didascalie dei video sono testo visibile, non attributi @layout", async
   for (const t of attese) if (await misura(t)) viste += 1;
   expect(viste, `didascalie LEGGIBILI nel muro delle voci: ${viste}/6`).toBeGreaterThanOrEqual(3);
 });
+
+// §6.5 — il video si guarda IN PAGINA, e non costa niente a chi non lo guarda.
+//
+// Due garanzie in un test solo, perché sono due facce della stessa scelta: il dialog
+// monta l'iframe soltanto quando lo si apre, quindi finché nessuno chiede di vedere un
+// video nessuna richiesta parte verso YouTube — e chi non guarda non viene tracciato.
+test("il video della home si apre in pagina, e prima non chiama YouTube", async ({
+  page,
+  goto,
+}) => {
+  const versoYouTube: string[] = [];
+  page.on("request", (r) => {
+    if (/youtube|ytimg|googlevideo/i.test(r.url())) versoYouTube.push(r.url());
+  });
+
+  await goto("/");
+  // Le miniature del muro passano dal proxy immagini di Next, non da ytimg: qualunque
+  // chiamata a youtube.com prima del clic sarebbe il player montato a vuoto.
+  const player = versoYouTube.filter((u) => /youtube(-nocookie)?\.com/i.test(u));
+  expect(player, `richieste al player prima del clic: ${player.join(", ")}`).toHaveLength(0);
+
+  const cta = page
+    .getByRole("link", { name: /guarda il video|watch the video|regarder|video ansehen|ver el v/i })
+    .first();
+  const dialog = page.getByRole("dialog");
+
+  // NIENTE attesa fissa prima del clic. Ce n'era una da 1200ms, e il verificatore ha
+  // mostrato che e' una moneta lanciata: ritardando i chunk di 1600ms il dialog non si
+  // apriva e il test diventava rosso senza che il sito avesse un difetto. Prima
+  // dell'idratazione l'onClick non e' agganciato e il link fa quel che dice l'href.
+  // Si riprova finche' il comportamento e' attaccato, che e' la condizione vera.
+  await expect(async () => {
+    await cta.click();
+    await expect(dialog).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 25_000 });
+
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+  // Il player e' QUI dentro, non su un'altra pagina.
+  await expect(dialog.locator('iframe[src*="youtube-nocookie.com"]')).toBeVisible();
+  // E la pagina e' ancora la home: non si e' usciti dal sito.
+  await expect(page).toHaveURL(/^https?:\/\/[^/]+\/?$/);
+
+  // MODALE PER DAVVERO. Questa e' l'asserzione che mancava, ed e' quella che avrebbe
+  // preso il difetto: il dialog nasceva dentro <main>, che e' un contesto di
+  // impilamento, quindi l'header (fratello di <main>, z-50) restava dipinto sopra il
+  // velo e cliccabile — si premeva una voce di menu e la pagina se ne andava da sotto
+  // una superficie che si dichiara aria-modal. Qui si chiede al browser CHI riceve
+  // davvero il clic al centro di un link dell'header.
+  // Si guarda la STRUTTURA, non la geometria. Una sonda con elementFromPoint su un link
+  // dell'header trovava il difetto a 390 e non a 1440, perche' li' il pannello centrato
+  // copre per caso il punto campionato: una guardia che dipende dal viewport prende il
+  // difetto solo su meta' dei progetti. L'invariante vero e' che il dialog NON stia
+  // dentro <main> — se ci sta, il suo z-index e' prigioniero di quel contesto di
+  // impilamento e header, banner cookie e grana gli si dipingono sopra, a qualunque
+  // larghezza. Verificato: con il portal tolto questo controllo e' rosso ovunque.
+  const dove = await page.evaluate(() => {
+    const d = document.querySelector('[role="dialog"]');
+    if (!d) return "nessun dialog";
+    return d.closest("main") ? "dentro main" : "fuori da main";
+  });
+  expect(dove, "il dialog deve essere portato su body, non reso dentro <main>").toBe(
+    "fuori da main",
+  );
+
+  // Esc chiude E il focus torna a chi ha aperto. La seconda meta' non era verificata:
+  // il commento la prometteva e il test guardava solo che il dialog sparisse.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(cta).toBeFocused();
+});
+
+// Il comando per uscire deve stare DENTRO lo schermo, non solo essere grande abbastanza.
+// Su un telefono in orizzontale — cioe' la posizione naturale per guardare un video — il
+// bottone «chiudi» finiva 97px sopra il bordo alto, con il documento bloccato e nessuno
+// scroll per raggiungerlo: zero uscite premibili col dito.
+test("su uno schermo basso il comando per chiudere il video resta raggiungibile", async ({
+  page,
+  goto,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await goto("/");
+  const cta = page
+    .getByRole("link", { name: /guarda il video|watch the video|regarder|video ansehen|ver el v/i })
+    .first();
+  const dialog = page.getByRole("dialog");
+  await expect(async () => {
+    await cta.click();
+    await expect(dialog).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 25_000 });
+
+  const chiudi = dialog.getByRole("button", { name: /chiud|clos|ferm|schließ|cerrar/i }).first();
+  const box = await chiudi.boundingBox();
+  expect(box, "il comando chiudi non ha un rettangolo").not.toBeNull();
+  expect(box!.y, "il comando chiudi esce dal bordo alto").toBeGreaterThanOrEqual(0);
+  expect(box!.y + box!.height, "il comando chiudi esce dal bordo basso").toBeLessThanOrEqual(390);
+  // E si puo' davvero premere: se qualcosa lo copre, questo clic fallisce.
+  await chiudi.click();
+  await expect(dialog).toHaveCount(0);
+});
