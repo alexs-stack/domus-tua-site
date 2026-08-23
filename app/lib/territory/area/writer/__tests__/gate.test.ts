@@ -427,3 +427,36 @@ describe("il giudice deterministico", () => {
     assert.equal(MAX_SCORE, 100);
   });
 });
+
+describe("il giudice boccia il testo generico", () => {
+  test("citare correttamente i fatti non basta a essere utili", async () => {
+    // Il testo qui sotto è corretto in ogni frase e agganciato a fatti veri. E non lascia al
+    // lettore niente che possa cercare: è la modalità di fallimento che il punteggio esiste per
+    // prendere, perché il cancello deterministico non ha motivo di bocciarla.
+    const generic = narrative({
+      intro:
+        "La zona offre diversi servizi utili alla vita quotidiana e dispone di varie soluzioni " +
+        "per i residenti. Sono presenti numerose strutture nelle immediate vicinanze del centro " +
+        "abitato, e i collegamenti principali consentono di raggiungere agevolmente le località " +
+        "vicine. L'area mette a disposizione servizi locali disponibili nel territorio comunale, " +
+        "con presenza di strutture diverse.",
+      sections: [
+        { category: "transport", heading: "Mobilità", body: "I collegamenti sono presenti in zona.", factIds: ["af_stazione"] },
+        { category: "municipal-service", heading: "Servizi", body: "I servizi sono disponibili nell'area.", factIds: ["af_biblioteca"] },
+      ],
+      claimMap: [{ claim: "I collegamenti sono presenti.", factIds: ["af_stazione"] }],
+    });
+    const verdict = await deterministicJudge({ narrative: generic, approvedFacts: FACTS, now: NOW });
+    assert.ok(verdict.score < PUBLICATION_THRESHOLD, `punteggio ${verdict.score}`);
+    assert.ok(
+      verdict.weakClaims.some((w) => /non nomina niente|valgono per qualunque comune/.test(w)),
+      verdict.weakClaims.join("; "),
+    );
+    assert.ok(verdict.revisionInstructions.some((i) => /nomi e numeri/.test(i)));
+  });
+
+  test("il testo che nomina le cose non viene penalizzato", async () => {
+    const verdict = await deterministicJudge({ narrative: narrative(), approvedFacts: FACTS, now: NOW });
+    assert.ok(!verdict.weakClaims.some((w) => /non nomina niente/.test(w)), verdict.weakClaims.join("; "));
+  });
+});

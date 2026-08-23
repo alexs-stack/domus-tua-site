@@ -18,6 +18,7 @@
 
 import type { AreaFact, AreaNarrative } from "../types";
 import { validateNarrative, type NarrativeFailure } from "./narrativeGuard";
+import { measureGenericity } from "./genericity";
 
 // ─────────────────────────────────────────────────────────────
 // Punteggio
@@ -204,6 +205,21 @@ export const deterministicJudge: AreaJudge = async ({ narrative, approvedFacts }
     weak.push("il testo non nomina abbastanza elementi specifici dell'area");
     instructions.push(
       "Nominare i servizi e i collegamenti con il loro nome: un testo che vale per qualunque paese non serve a nessuno.",
+    );
+  }
+
+  // GENERICITÀ. Misura complementare alla precedente e più severa: non «usa parole che stanno
+  // nei fatti», ma «lascia al lettore qualcosa che possa cercare». Un testo può citare
+  // correttamente i fatti e restare una sequenza di «servizi», «collegamenti», «nelle
+  // vicinanze» — corretto in ogni frase, e identico a quello di centomila altri comuni.
+  const genericity = measureGenericity(prose);
+  if (genericity.tooGeneric) {
+    scores.usefulness -= 10;
+    scores.localRelevance -= 5;
+    weak.push(...genericity.reasons);
+    instructions.push(
+      "Sostituire le formule generiche con nomi e numeri presi dai fatti: una linea ha un nome, " +
+        "un parco ha un nome, un orario ha un numero.",
     );
   }
 
