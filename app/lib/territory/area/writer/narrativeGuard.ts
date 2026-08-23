@@ -82,6 +82,23 @@ function allProse(n: AreaNarrative): string {
 }
 
 /**
+ * Le frasi di un testo, contando come inizio di frase anche l'inizio di ogni RIGA.
+ *
+ * Serve perché titoli, intestazioni e corpi vengono uniti con "\n" prima dell'analisi, e la
+ * prima parola di ciascuno è a tutti gli effetti un'apertura: la sua maiuscola non dice niente.
+ * Un solo `split` con lookbehind non bastava — pretendeva uno spazio DOPO il ritorno a capo, che
+ * in un testo unito con "\n" non c'è mai. Effetto: «Dalla stazione…» a inizio corpo veniva
+ * classificato come nome proprio.
+ */
+function sentences(text: string): string[] {
+  return text
+    .split(/\n+/)
+    .flatMap((line) => line.split(/(?<=[.!?:])\s+/))
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/**
  * I NOMI PROPRI del testo: parole capitalizzate che non aprono una frase.
  *
  * È l'euristica che prende il toponimo inventato — il modo di fallire più insidioso di tutto il
@@ -92,8 +109,8 @@ function allProse(n: AreaNarrative): string {
 export function properNamesIn(text: string): string[] {
   const out = new Set<string>();
   // Si spezza in frasi per non contare come "nome proprio" la parola iniziale di ciascuna.
-  for (const sentence of text.split(/(?<=[.!?:\n])\s+/)) {
-    const tokens = sentence.trim().split(/\s+/);
+  for (const sentence of sentences(text)) {
+    const tokens = sentence.split(/\s+/);
     tokens.forEach((raw, i) => {
       const token = raw.replace(/^[«"'(]+|[»"'),.;:!?]+$/g, "");
       if (i === 0) return; // apertura di frase: la maiuscola non dice nulla
