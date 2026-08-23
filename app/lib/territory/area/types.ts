@@ -272,12 +272,27 @@ export const AreaNarrativeSchema = z
     /** Modello che l'ha scritta (tracciabilità, non un vanto). */
     modelId: z.string().min(1).optional(),
     generatedAt: z.iso.datetime(),
+    /**
+     * Punteggio del giudice di qualità (0–100). Assente finché il cancello non è stato eseguito.
+     *
+     * Vive sul record e non solo nel verdetto perché è la metrica che dice se il generatore sta
+     * peggiorando: un punteggio medio che scende nel tempo è il segnale che un cambio di prompt
+     * ha rotto qualcosa, e senza storicizzarlo non si vedrebbe.
+     */
+    qualityScore: z.number().int().min(0).max(100).optional(),
     status: AreaNarrativeStatusSchema,
     approvedBy: z.string().min(1).optional(),
     approvedAt: z.iso.datetime().optional(),
     schemaVersion: z.number().int().positive().default(AREA_SCHEMA_VERSION),
   })
-  .strict();
+  .strict()
+  .refine(
+    // Lo stesso vincolo che il database impone con ck_narrative_quality: una narrativa approvata
+    // deve avere un punteggio, e almeno pari alla soglia. In due posti perché uno script che
+    // salta il gate applicativo non deve poter approvare un testo scarso.
+    (n) => n.status !== "approved" || (typeof n.qualityScore === "number" && n.qualityScore >= 95),
+    { message: "una narrativa approvata richiede qualityScore >= 95" },
+  );
 export type AreaNarrative = z.infer<typeof AreaNarrativeSchema>;
 
 // ─────────────────────────────────────────────────────────────
