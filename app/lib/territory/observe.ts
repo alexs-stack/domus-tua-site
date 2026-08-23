@@ -53,13 +53,30 @@ const FORBIDDEN_KEYS = new Set([
  * coordinate/telefoni/chiavi. Ritorna la lista delle violazioni (vuoto = pulito). Usato dai test e,
  * a runtime, come rete finale prima di emettere.
  */
+/**
+ * Un ID di correlazione nella sua forma ESATTA: `run_` o `turn_` più otto cifre esadecimali.
+ *
+ * Serve a una sola cosa, e vale la pena spiegarla perché il difetto era invisibile. Le cifre
+ * esadecimali includono 0-9, quindi un ID su venti esce tutto numerico — `turn_88008439` — e
+ * l'euristica del telefono qui sotto («sette o più cifre di fila») lo scambiava per un recapito.
+ * `guarded()` scarta in SILENZIO ciò che sembra sospetto, quindi il 5% degli eventi con un
+ * `runId`/`turnId` spariva dalle metriche senza un log, e il test di questo modulo falliva una
+ * volta su venti senza che niente fosse cambiato.
+ *
+ * L'esenzione è per VALORE, non per nome del campo, e non indebolisce la guardia: nessun numero
+ * di telefono e nessuna coordinata può corrispondere a questa forma — il prefisso letterale e la
+ * lunghezza fissa la rendono inabitabile da un dato personale. Un campo libero come
+ * `municipality` resta controllato come prima.
+ */
+const CORRELATION_ID = /^(?:run|turn)_[0-9a-f]{8}$/;
+
 export function findPrivacyViolations(event: TerritoryMetricEvent): string[] {
   const v: string[] = [];
   const looksLikeCoord = (s: string) => /-?\d{1,3}\.\d{3,}/.test(s); // 45.7085 ecc.
   const looksLikePhone = (s: string) => /(?:\+?\d[\s.\-]?){7,}/.test(s);
   for (const [key, value] of Object.entries(event)) {
     if (FORBIDDEN_KEYS.has(key)) v.push(`campo proibito: ${key}`);
-    if (typeof value === "string") {
+    if (typeof value === "string" && !CORRELATION_ID.test(value)) {
       if (looksLikeCoord(value)) v.push(`possibile coordinata in ${key}: "${value}"`);
       if (looksLikePhone(value)) v.push(`possibile telefono in ${key}: "${value}"`);
     }
