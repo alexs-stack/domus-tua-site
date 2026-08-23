@@ -112,6 +112,33 @@ export interface AreaJobRecord {
   completedAt?: string;
 }
 
+/** Precisione della collocazione di un immobile: la stessa scala di AreaIdentity. */
+export type PropertyLocationPrecision = "neighbourhood" | "municipality" | "unresolved";
+
+/**
+ * Il legame fra un IMMOBILE e la sua area, più ciò che è stato calcolato per lui.
+ *
+ * `sourceHash` è l'IMPRONTA DI COLLOCAZIONE (vedi ../automation/fingerprint.ts): dice se questo
+ * immobile è cambiato in un modo che riguarda il territorio. Un cambio di prezzo non la muove,
+ * ed è la ragione per cui esiste — senza, ogni ritocco di listino rigenererebbe la descrizione
+ * d'area di tutto il comune.
+ */
+export interface PropertyAreaContextRecord {
+  realSmartCode: string;
+  areaKey: string;
+  sourceHash: string;
+  /** Origine PUBBLICA: tipo, etichetta leggibile, precisione. Mai coordinate. */
+  publicOriginType: string;
+  publicOriginLabel: string;
+  locationPrecision: PropertyLocationPrecision;
+  calculatedAt: string;
+  status: "draft" | "approved" | "stale" | "rejected";
+  approvedBy?: string;
+  approvedAt?: string;
+  /** true se l'immobile non è più nel feed (venduto/ritirato). Il profilo d'area NON si tocca. */
+  retired?: boolean;
+}
+
 export interface AreaAutomationRun {
   runId: string;
   feedVersion?: string;
@@ -191,6 +218,11 @@ export interface AreaRepository {
   /** Chiude un job. `failed` con `attempts` oltre soglia va in `dead-letter`, non in loop. */
   completeJob(idempotencyKey: string, outcome: { state: AreaJobState; error?: string; at: string }): Promise<void>;
   listJobs(filter?: { state?: AreaJobState; targetId?: string }): Promise<AreaJobRecord[]>;
+
+  // ── Contesto d'area per immobile ───────────────────────────
+  getPropertyContext(realSmartCode: string): Promise<PropertyAreaContextRecord | null>;
+  putPropertyContext(record: PropertyAreaContextRecord, options?: WriteOptions): Promise<void>;
+  listPropertyContexts(filter?: { areaKey?: string; retired?: boolean }): Promise<PropertyAreaContextRecord[]>;
 
   // ── Audit ──────────────────────────────────────────────────
   /** Aggiunge un evento. Non esiste un metodo per modificarli o cancellarli: è voluto. */
