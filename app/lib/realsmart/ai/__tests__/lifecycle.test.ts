@@ -12,6 +12,7 @@ import { sourceHash } from "../hash";
 import { validateAreaFacts, areaFactsFor, AREA_FACTS, type AreaFact } from "../areaFacts";
 import type { GeneratedCopyRecord } from "../record";
 import type { NormalizedProperty, RealSmartListingRaw } from "../../types";
+import { resolveAreaIdentity } from "../../../territory/area/identity";
 
 const NOW = "2026-08-13T10:00:00.000Z";
 const RAW: RealSmartListingRaw = { codice: "T1", titolo: "Trilocale", descrizione: "orig", mq: 90 };
@@ -22,7 +23,7 @@ function mkBase(over: Partial<NormalizedProperty> = {}): NormalizedProperty {
     descriptionParagraphs: ["Descrizione deterministica originale."],
     structuredFactLines: [], keptFactLines: [], contentPreservation: 1, excerpt: "x",
     price: 250000, priceLabel: "€ 250.000", contract: "vendita", type: "Appartamento",
-    town: "Tradate", province: "VA", showAddress: false, sqm: 90, rooms: 3, bedrooms: 2, baths: 2,
+    town: "Tradate", province: "VA", area: resolveAreaIdentity({ municipality: "Tradate" }), showAddress: false, sqm: 90, rooms: 3, bedrooms: 2, baths: 2,
     features: [], facts: [], factsReview: [], images: [], status: "published", badges: [],
     publishedAt: "", updatedAt: "", sourceRef: { codice: "T1" }, normalizedBy: "deterministic",
     // Due campi diventati obbligatori su NormalizedProperty dopo il 13 agosto

@@ -8,6 +8,7 @@ import { InMemoryGeneratedCopyStore } from "../store";
 import type { CopyModel } from "../schema";
 import type { NormalizedProperty, RealSmartListingRaw } from "../../types";
 import { GENERATION_LIMITS } from "../record";
+import { resolveAreaIdentity } from "../../../territory/area/identity";
 
 const NOW = "2026-08-13T10:00:00.000Z";
 
@@ -17,7 +18,7 @@ function mkItem(codice: string): BatchItem {
     descriptionParagraphs: ["Luminoso trilocale con doppi servizi."],
     structuredFactLines: [], keptFactLines: [], contentPreservation: 1, excerpt: "x",
     price: 250000, priceLabel: "€ 250.000", contract: "vendita", type: "Appartamento",
-    town: "Tradate", province: "VA", showAddress: false, sqm: 90, rooms: 3, bedrooms: 2, baths: 2,
+    town: "Tradate", province: "VA", area: resolveAreaIdentity({ municipality: "Tradate" }), showAddress: false, sqm: 90, rooms: 3, bedrooms: 2, baths: 2,
     features: [], facts: [], factsReview: [], images: [], status: "published", badges: [],
     publishedAt: "", updatedAt: "", sourceRef: { codice }, normalizedBy: "deterministic",
     // Due campi diventati obbligatori su NormalizedProperty dopo il 13 agosto

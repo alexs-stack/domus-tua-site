@@ -4,6 +4,8 @@
 // SEMPRE in linea d'aria (Haversine): non è né a piedi né in auto, e non va mai etichettata così
 // (constraint: "Never label straight-line distance as walking or driving distance").
 
+import { areaSlug } from "./area/identity";
+
 /** Coordinata geografica. Lato server può descrivere l'origine di calcolo; mai esposta al client. */
 export interface GeoCoord {
   lat: number;
@@ -75,19 +77,14 @@ export function haversineMeters(a: GeoCoord, b: GeoCoord): number {
 /**
  * Chiave/slug normalizzato di un comune, stabile per storage e fingerprint.
  *
+ * DELEGA a `areaSlug` (app/lib/territory/area/identity.ts): la regola di normalizzazione è UNA
+ * sola per tutto il sito. Erano due implementazioni identiche in due file, ed è il modo in cui
+ * due chiavi che dovrebbero coincidere finiscono per divergere alla prima modifica di una delle
+ * due. Il nome resta per i 17 punti di chiamata esistenti.
+ *
  * Il feed scrive "Venegono-Superiore" o "Gornate Olona (VA)"; la stessa località deve produrre
- * SEMPRE la stessa chiave. Regole: togli il suffisso provincia tra parentesi, minuscolo,
- * rimuovi accenti, riduci ogni sequenza non alfanumerica a un singolo trattino.
- * Ritorna "" per input vuoto/non stringa (il chiamante decide come trattare il vuoto).
+ * SEMPRE la stessa chiave. Ritorna "" per input vuoto/non stringa.
  */
 export function normalizeMunicipality(name: string): string {
-  if (typeof name !== "string") return "";
-  return name
-    .trim()
-    .replace(/\s*\([^)]*\)\s*$/, "") // "(VA)" e simili
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // accenti
-    .replace(/[^a-z0-9]+/g, "-") // qualsiasi separatore → trattino
-    .replace(/^-+|-+$/g, ""); // niente trattini ai bordi
+  return areaSlug(name);
 }

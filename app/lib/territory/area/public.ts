@@ -6,6 +6,7 @@
 // canonica italiana (una traduzione non approvata non esce). Nessun campo interno nel risultato.
 
 import { AREA_CATEGORY_ORDER } from "./categories";
+import { areaSlug } from "./identity";
 import { isFactualText } from "./subjective";
 import type {
   AreaFact,
@@ -47,8 +48,15 @@ export function toPublicAreaProfile(
   facts: readonly AreaFact[],
   options: { now: Date; locale: KnowledgeLocale; municipality: string },
 ): PublicAreaProfile | null {
+  // CONFRONTO PER CHIAVE, non per stringa mostrata. Prima qui c'era `f.municipality === options
+  // .municipality`, cioè un'uguaglianza esatta fra due testi liberi: il chiamante passava
+  // "tradate" (già normalizzato) e il fatto conteneva "Tradate", quindi il filtro non poteva
+  // combaciare MAI. Non se n'era accorto nessuno solo perché il dataset dei fatti è ancora vuoto.
+  // `areaSlug` è la stessa regola usata per costruire le chiavi d'area: "Tradate", "tradate" e
+  // "Tradate (VA)" collassano sulla stessa area, come devono.
+  const wanted = areaSlug(options.municipality);
   const usable = facts
-    .filter((f) => f.municipality === options.municipality && isPublishable(f, options.now))
+    .filter((f) => areaSlug(f.municipality) === wanted && isPublishable(f, options.now))
     .sort((a, b) => {
       const ca = AREA_CATEGORY_ORDER.indexOf(a.category);
       const cb = AREA_CATEGORY_ORDER.indexOf(b.category);
@@ -65,7 +73,9 @@ export function toPublicAreaProfile(
     sourceUrl: f.source.url,
     reviewedAt: f.source.retrievedAt,
   }));
-  return { municipality: options.municipality, facts: publicFacts };
+  // L'etichetta mostrata viene dal DATO ("Tradate"), non dalla chiave di ricerca ("tradate"):
+  // il chiamante può cercare con una chiave, ma il pubblico deve leggere un nome scritto bene.
+  return { municipality: usable[0].municipality, facts: publicFacts };
 }
 
 /** Fatti in scadenza di revisione entro `withinDays` (promemoria per l'editor). */

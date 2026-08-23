@@ -99,7 +99,12 @@ export default async function PropertyPage({
   const territory = await getPublicListingTerritory(p.slug);
   // Descrizioni d'area del comune (fatti verificati), lette server-side e cacheate. Null in assenza
   // di fatti approvati o a feature spenta → la sezione "La zona" non compare.
-  const area = await getPublicAreaProfileFor(p.zone);
+  //
+  // Si cerca con la CHIAVE canonica (`municipalityLabel` → "Tradate"), non con l'etichetta
+  // `p.zone` ("Tradate (VA)"): una stringa di visualizzazione non è un identificatore, e usarla
+  // come tale significa che lo stesso comune scritto in due modi diventa due aree. `p.zone`
+  // resta come ripiego per le fixture demo, che non passano dal gestionale e non hanno chiave.
+  const area = await getPublicAreaProfileFor(p.municipalityLabel ?? p.zone);
 
   // Dati strutturati per l'immobile (schema.org).
   //
