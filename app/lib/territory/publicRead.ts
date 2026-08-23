@@ -68,13 +68,20 @@ export async function getPublicListingTerritory(slug: string): Promise<PublicLis
 export async function getPublicAreaProfileFor(
   municipality: string,
   locale: KnowledgeLocale = "it",
+  /**
+   * Etichetta da mostrare: il QUARTIERE quando è verificato, altrimenti il comune. Non entra
+   * nella chiave di cache del comune — entra nella voce, perché due quartieri dello stesso
+   * comune condividono i fatti comunali ma non l'intestazione.
+   */
+  label?: string,
 ): Promise<PublicAreaProfile | null> {
   if (!isPublicSectionEnabled()) return null;
   const slug = normalizeMunicipality(municipality);
+  const areaLabel = label?.trim() || undefined;
   const cached = unstable_cache(
-    async (m: string) => getPublicAreaProfile(m, { now: new Date(), locale }),
-    ["territory-public-area", slug, locale],
+    async (m: string, l?: string) => getPublicAreaProfile(m, { now: new Date(), locale, label: l }),
+    ["territory-public-area", slug, locale, areaLabel ?? ""],
     { tags: ["territory", `territory:profile:${slug}`], revalidate: 3600 },
   );
-  return cached(slug);
+  return cached(slug, areaLabel);
 }

@@ -124,11 +124,49 @@ export const PublicAreaFactSchema = z
   .strict();
 export type PublicAreaFact = z.infer<typeof PublicAreaFactSchema>;
 
-/** Profilo pubblico d'area per un comune: ciò che l'assistente può citare. */
+/** Una sezione della narrativa nella sua forma PUBBLICA: testo e intestazione, nessun factId. */
+export const PublicAreaSectionSchema = z
+  .object({
+    category: AreaFactCategorySchema,
+    heading: z.string().min(1),
+    body: z.string().min(1),
+  })
+  .strict();
+export type PublicAreaSection = z.infer<typeof PublicAreaSectionSchema>;
+
+/**
+ * La narrativa d'area nella sua forma PUBBLICA.
+ *
+ * Escono titolo, introduzione e sezioni. NON escono i `factIds` né la `claimMap`: sono
+ * l'impalcatura di verifica, servono a decidere se il testo può uscire, non a chi lo legge.
+ * Restano interrogabili dalla coda editoriale, che è il posto dove servono davvero.
+ */
+export const PublicAreaNarrativeSchema = z
+  .object({
+    title: z.string().min(1),
+    intro: z.string().min(1),
+    sections: z.array(PublicAreaSectionSchema),
+  })
+  .strict();
+export type PublicAreaNarrative = z.infer<typeof PublicAreaNarrativeSchema>;
+
+/** Profilo pubblico d'area: ciò che pagina e assistente possono citare. */
 export const PublicAreaProfileSchema = z
   .object({
     municipality: z.string().min(1),
+    /**
+     * Etichetta dell'area da mostrare: il QUARTIERE quando è verificato, altrimenti il comune.
+     * È il campo che permette a due immobili dello stesso comune di intestarsi a due aree
+     * diverse. Assente = si ripiega sul comune.
+     */
+    label: z.string().min(1).optional(),
     facts: z.array(PublicAreaFactSchema),
+    /**
+     * Il testo d'area approvato, quando esiste. Assente = la sezione mostra i soli fatti
+     * verificati, che è l'esito corretto finché nessuno ha approvato una narrativa: meglio un
+     * elenco sobrio di fatti con la loro fonte che una prosa non rivista.
+     */
+    narrative: PublicAreaNarrativeSchema.optional(),
   })
   .strict();
 export type PublicAreaProfile = z.infer<typeof PublicAreaProfileSchema>;

@@ -6,7 +6,7 @@
 // nel payload pubblico. Se non c'è nulla da mostrare ritorna null → la sezione si nasconde.
 
 import { TERRITORY_POI_CATEGORIES, type TerritoryPoiCategory } from "./categories";
-import { AREA_CATEGORY_LABEL_IT } from "./area/categories";
+import { AREA_CATEGORY_LABEL_IT, AREA_CATEGORY_ORDER } from "./area/categories";
 import type { PublicListingTerritory, PublicOriginBasis } from "./types";
 import type { PublicAreaProfile } from "./area/types";
 
@@ -44,6 +44,14 @@ export interface TerritoryExplorerStrings {
 
 export interface TerritoryView {
   title: string;
+  /**
+   * Intestazione del BLOCCO DISTANZE quando sopra c'è già la sezione d'area.
+   *
+   * Senza, la pagina mostrava «Vivere in zona» come occhiello e di nuovo «Vivere in zona» come
+   * sottotitolo delle distanze, a due righe di distanza. Sono due cose diverse — dove ci si
+   * trova, e quanto dista da qui — e devono avere due nomi.
+   */
+  distancesTitle: string;
   /** Etichetta esplicita del metodo: mai percorribilità. */
   methodLabel: string;
   /**
@@ -66,6 +74,7 @@ export interface TerritoryView {
 
 interface LocaleStrings {
   title: string;
+  distancesTitle: string;
   method: string;
   updatedPrefix: string;
   /**
@@ -93,6 +102,7 @@ interface LocaleStrings {
 const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
   it: {
     title: "Vivere in zona",
+    distancesTitle: "Distanze utili",
     method: "Distanza indicativa in linea d'aria",
     updatedPrefix: "Dati aggiornati al",
     origin: { property: "Distanze indicative dall'immobile", zone: "Distanze indicative dal centro della zona {label}", municipality: "Distanze indicative dal centro di {label}" },
@@ -117,6 +127,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
   },
   en: {
     title: "Living nearby",
+    distancesTitle: "Useful distances",
     method: "Approximate straight-line distance",
     updatedPrefix: "Data updated on",
     origin: { property: "Approximate distances from the property", zone: "Approximate distances from the centre of the {label} area", municipality: "Approximate distances from the centre of {label}" },
@@ -141,6 +152,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
   },
   fr: {
     title: "Vivre dans le quartier",
+    distancesTitle: "Distances utiles",
     method: "Distance indicative à vol d'oiseau",
     updatedPrefix: "Données mises à jour le",
     origin: { property: "Distances indicatives depuis le bien", zone: "Distances indicatives depuis le centre du quartier {label}", municipality: "Distances indicatives depuis le centre de {label}" },
@@ -165,6 +177,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
   },
   de: {
     title: "Leben in der Umgebung",
+    distancesTitle: "Nützliche Entfernungen",
     method: "Ungefähre Luftliniendistanz",
     updatedPrefix: "Daten aktualisiert am",
     origin: { property: "Ungefähre Entfernungen ab der Immobilie", zone: "Ungefähre Entfernungen ab dem Zentrum des Gebiets {label}", municipality: "Ungefähre Entfernungen ab dem Zentrum von {label}" },
@@ -189,6 +202,7 @@ const STRINGS: Record<TerritoryLocale, LocaleStrings> = {
   },
   es: {
     title: "Vivir en la zona",
+    distancesTitle: "Distancias útiles",
     method: "Distancia aproximada en línea recta",
     updatedPrefix: "Datos actualizados el",
     origin: { property: "Distancias indicativas desde el inmueble", zone: "Distancias indicativas desde el centro de la zona {label}", municipality: "Distancias indicativas desde el centro de {label}" },
@@ -226,6 +240,56 @@ const AREA_STRINGS: Record<TerritoryLocale, { title: string; sourcePrefix: strin
   es: { title: "La zona en breve", sourcePrefix: "Fuente", reviewedPrefix: "verificado el" },
 };
 
+/**
+ * Occhiello e intestazione della sezione.
+ *
+ * Due preposizioni e non una: in italiano si vive **a** un comune e **in** un quartiere, e
+ * sbagliarla è la prima cosa che un lettore locale nota. Le altre lingue non hanno la distinzione
+ * e usano una forma sola — dichiararlo qui evita che qualcuno "corregga" l'italiano per
+ * uniformarlo.
+ */
+const AREA_HEADING_STRINGS: Record<TerritoryLocale, {
+  eyebrow: string;
+  inMunicipality: string;
+  inNeighbourhood: string;
+  sourcesSummary: string;
+}> = {
+  it: {
+    eyebrow: "Vivere in zona",
+    inMunicipality: "Vivere a {label}",
+    inNeighbourhood: "Vivere in {label}",
+    sourcesSummary: "Fonti e date di verifica",
+  },
+  en: {
+    eyebrow: "The area",
+    inMunicipality: "Living in {label}",
+    inNeighbourhood: "Living in {label}",
+    sourcesSummary: "Sources and verification dates",
+  },
+  fr: {
+    eyebrow: "Le quartier",
+    inMunicipality: "Vivre à {label}",
+    inNeighbourhood: "Vivre à {label}",
+    sourcesSummary: "Sources et dates de vérification",
+  },
+  de: {
+    eyebrow: "Die Gegend",
+    inMunicipality: "Leben in {label}",
+    inNeighbourhood: "Leben in {label}",
+    sourcesSummary: "Quellen und Prüfdaten",
+  },
+  es: {
+    eyebrow: "La zona",
+    inMunicipality: "Vivir en {label}",
+    inNeighbourhood: "Vivir en {label}",
+    sourcesSummary: "Fuentes y fechas de verificación",
+  },
+};
+
+export function areaHeadingStrings(locale: TerritoryLocale) {
+  return AREA_HEADING_STRINGS[locale] ?? AREA_HEADING_STRINGS.it;
+}
+
 export function areaSectionStrings(locale: TerritoryLocale) {
   return AREA_STRINGS[locale] ?? AREA_STRINGS.it;
 }
@@ -238,8 +302,22 @@ export interface AreaViewFact {
   reviewedLabel: string;
 }
 
+export interface AreaViewSection {
+  heading: string;
+  body: string;
+}
+
 export interface AreaView {
+  /** Occhiello sopra il titolo ("VIVERE IN ZONA"). */
+  eyebrow: string;
+  /** "Vivere in {Quartiere}" quando il quartiere è verificato, altrimenti "Vivere a {Comune}". */
   title: string;
+  /** Sintesi 60–90 parole dalla narrativa approvata. Stringa vuota se non c'è narrativa. */
+  intro: string;
+  /** Sezioni della narrativa, già nell'ordine canonico. Vuoto se non c'è narrativa. */
+  sections: AreaViewSection[];
+  /** Etichetta del riepilogo fonti (elemento apribile). */
+  sourcesSummary: string;
   facts: AreaViewFact[];
 }
 
@@ -289,9 +367,44 @@ export function originModeOf(basis: PublicOriginBasis): TerritoryOriginMode {
  * pubblico già approvato/fresco/localizzato. Ogni fatto porta la fonte primaria e la data di verifica.
  * Ritorna null se non c'è nulla di pubblicabile → la sezione "La zona" non compare.
  */
+/**
+ * L'etichetta come va MOSTRATA.
+ *
+ * Il campo `municipality` di un fatto è testo libero scritto da chi cura i dati, e nulla
+ * garantisce le maiuscole: un fatto salvato con `municipality: "tradate"` produceva
+ * l'intestazione «Vivere a tradate». L'ha trovato un test già esistente, ed è il genere di
+ * difetto che nessuno segnala perché sembra un refuso.
+ *
+ * La regola è conservativa di proposito: si interviene SOLO se non c'è nemmeno una maiuscola,
+ * cioè quando è evidente che nessuno ha scelto la forma. "Abbiate Guazzone" e "Sant'Ambrogio"
+ * restano intatte, perché lì la forma è una decisione di chi ha scritto il dato.
+ */
+function presentableLabel(label: string): string {
+  if (/[A-ZÀ-Ù]/.test(label)) return label;
+  return label.replace(/(^|[\s'’-])([a-zà-ù])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase());
+}
+
 export function buildAreaView(profile: PublicAreaProfile | null | undefined, locale: TerritoryLocale): AreaView | null {
   if (!profile || profile.facts.length === 0) return null;
   const s = areaSectionStrings(locale);
+  const h = areaHeadingStrings(locale);
+
+  // INTESTAZIONE. Si usa l'etichetta dell'area — il quartiere quando è verificato — e la
+  // preposizione che gli corrisponde. Se il testo approvato ha già un suo titolo, vince quello:
+  // è passato dal cancello e da una revisione umana, e riscriverglielo qui vanificherebbe
+  // entrambi. Senza né titolo né etichetta si ripiega sull'intestazione generica.
+  const label = presentableLabel(profile.label ?? profile.municipality);
+  const isNeighbourhood = Boolean(profile.label && profile.label !== profile.municipality);
+  const fallbackTitle = (isNeighbourhood ? h.inNeighbourhood : h.inMunicipality).replace("{label}", label);
+  const title = profile.narrative?.title ?? (label ? fallbackTitle : s.title);
+
+  // Le sezioni arrivano già ordinate dal generatore (il guard rifiuta l'ordine sbagliato):
+  // qui si ri-ordina comunque, difensivamente, come si fa per i POI.
+  const sections: AreaViewSection[] = (profile.narrative?.sections ?? [])
+    .slice()
+    .sort((a, b) => AREA_CATEGORY_ORDER.indexOf(a.category) - AREA_CATEGORY_ORDER.indexOf(b.category))
+    .map((x) => ({ heading: x.heading, body: x.body }));
+
   const facts: AreaViewFact[] = profile.facts.map((f) => ({
     categoryLabel: AREA_CATEGORY_LABEL_IT[f.category],
     text: f.text,
@@ -302,7 +415,14 @@ export function buildAreaView(profile: PublicAreaProfile | null | undefined, loc
       return d ? `${s.reviewedPrefix} ${d}` : "";
     })(),
   }));
-  return { title: s.title, facts };
+  return {
+    eyebrow: h.eyebrow,
+    title,
+    intro: profile.narrative?.intro ?? "",
+    sections,
+    sourcesSummary: h.sourcesSummary,
+    facts,
+  };
 }
 
 /** Data del dato in forma lunga localizzata (es. "13 agosto 2026"). */
@@ -352,6 +472,7 @@ export function buildTerritoryView(
 
   return {
     title: strings.title,
+    distancesTitle: strings.distancesTitle,
     methodLabel: strings.method,
     originLabel: describeOriginBasis(territory.originBasis, locale),
     originMode: mode,

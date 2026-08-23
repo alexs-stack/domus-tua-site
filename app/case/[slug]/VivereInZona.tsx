@@ -61,29 +61,81 @@ export default function VivereInZona({
   }
 
   const isActive = (category: TerritoryPoiCategory) => selected === null || selected.includes(category);
-  const sectionTitle = view ? view.title : areaView!.title;
+
+  // TITOLO DELLA SEZIONE. Quando c'è un'area verificata è la sua intestazione — "Vivere in
+  // Abbiate Guazzone" per un quartiere, "Vivere a Tradate" per un comune. Senza area si resta
+  // sul titolo delle distanze, che è ciò che la sezione mostra in quel caso.
+  const sectionTitle = areaView ? areaView.title : view!.title;
+  const eyebrow = areaView?.eyebrow;
 
   return (
     <section aria-labelledby="vivere-in-zona-title" className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
       <SegnoDomusDivider className="mb-12" />
       <div className="flex flex-col gap-1">
+        {/* Occhiello: dice di cosa parla la sezione prima che il titolo dica DOVE. Non è un
+            heading (non deve entrare nella struttura del documento): è un'etichetta. */}
+        {eyebrow && (
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-graphite">
+            {eyebrow}
+          </p>
+        )}
         <h2
           id="vivere-in-zona-title"
           className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl"
         >
           {sectionTitle}
         </h2>
-        {/* Base d'origine ESPLICITA (mai "dall'immobile" per un centroide) + metodo (linea d'aria). */}
-        {view && <p className="text-sm text-ink">{view.originLabel}</p>}
-        {view && (
-          <p className="text-sm text-graphite">
-            {view.contextLabel} · {view.methodLabel}
-          </p>
+        {/* Base d'origine ESPLICITA (mai "dall'immobile" per un centroide) + metodo (linea d'aria).
+            Restano QUI solo quando la sezione è fatta di sole distanze: se sopra c'è la sintesi
+            d'area, scendono sotto "Distanze utili" — è lì che dicono qualcosa. Sotto un titolo
+            come «Vivere in Abbiate Guazzone», la riga «Distanze indicative dal centro di Tradate»
+            si legge come una correzione dell'intestazione, non come il metodo di misura. */}
+        {view && !areaView && (
+          <>
+            <p className="text-sm text-ink">{view.originLabel}</p>
+            <p className="text-sm text-graphite">
+              {view.contextLabel} · {view.methodLabel}
+            </p>
+          </>
         )}
       </div>
 
+      {/* SINTESI D'AREA. Sta PRIMA delle distanze di proposito: dice dove ci si trova, e le
+          distanze rispondono a "quanto dista da qui" — una domanda che ha senso solo dopo.
+          È testo reso dal server: sta nell'HTML iniziale, si legge senza JavaScript e non
+          sposta il layout quando il bundle arriva. */}
+      {areaView && areaView.intro && (
+        <div className="mt-6 max-w-[68ch]">
+          <p className="text-[1.0625rem] leading-relaxed text-ink">{areaView.intro}</p>
+          {areaView.sections.length > 0 && (
+            <div className="mt-8 flex flex-col gap-6">
+              {areaView.sections.map((sec, i) => (
+                <div key={i}>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-graphite">
+                    {sec.heading}
+                  </h3>
+                  <p className="mt-2 leading-relaxed text-ink">{sec.body}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {view && (
       <>
+      {/* Distanze utili: specifiche di QUESTO immobile, misurate dall'origine dichiarata sopra. */}
+      {areaView && (
+        <div className="mt-14 flex flex-col gap-1">
+          <h3 className="font-display text-xl font-medium tracking-tight text-ink sm:text-2xl">
+            {view.distancesTitle}
+          </h3>
+          <p className="text-sm text-ink">{view.originLabel}</p>
+          <p className="text-sm text-graphite">
+            {view.contextLabel} · {view.methodLabel}
+          </p>
+        </div>
+      )}
       {/* Filtro per categoria: controlli semantici, aria-pressed, focus visibile, navigabili da tastiera. */}
       <div className="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label={view.explorer.filterLegend}>
         <button
@@ -175,15 +227,20 @@ export default function VivereInZona({
       </>
       )}
 
-      {/* La zona in sintesi: DESCRIZIONI d'area verificate (fatti, non giudizi), ognuna con la fonte
-          primaria e la data di verifica. Nessuna coordinata, nessun superlativo (guard a monte). */}
+      {/* FONTI. I fatti verificati con il loro ente e la data di controllo.
+          
+          `<details>` e non un pannello a stato React, per tre ragioni che valgono più
+          dell'uniformità: funziona senza JavaScript, è già accessibile da tastiera e agli screen
+          reader senza aria-* scritti a mano, e soprattutto tiene il contenuto NELL'HTML — chi
+          cerca la fonte la trova anche con la pagina non idratata.
+          
+          Chiuso di default quando c'è una narrativa: lì il testo è la sostanza e le fonti sono
+          l'apparato. Senza narrativa i fatti SONO la sezione, e restano aperti. */}
       {areaView && (
-        <div className={view ? "mt-14" : ""}>
-          {view && (
-            <h3 className="font-display text-xl font-medium tracking-tight text-ink sm:text-2xl">
-              {areaView.title}
-            </h3>
-          )}
+        <details className={view ? "mt-14" : "mt-6"} open={!areaView.intro}>
+          <summary className="cursor-pointer text-sm font-semibold text-ink marker:text-graphite">
+            {areaView.sourcesSummary}
+          </summary>
           <ul className="mt-6 flex flex-col gap-5">
             {areaView.facts.map((f, i) => (
               <li key={i} className="border-l-2 border-line pl-4">
@@ -207,7 +264,7 @@ export default function VivereInZona({
               </li>
             ))}
           </ul>
-        </div>
+        </details>
       )}
     </section>
   );

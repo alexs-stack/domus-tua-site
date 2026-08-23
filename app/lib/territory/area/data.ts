@@ -40,7 +40,11 @@ export function allAreaFacts(): readonly AreaFact[] {
  */
 export function getPublicAreaProfile(
   municipality: string,
-  options: { now: Date; locale: KnowledgeLocale },
+  options: { now: Date; locale: KnowledgeLocale; label?: string },
 ): ReturnType<typeof toPublicAreaProfile> {
+  // `narrative` non è ancora passata: le narrative approvate vivranno nello store durevole
+  // (supabase/migrations/0002_area_schema.sql, non ancora applicato). Finché non c'è, la sezione
+  // mostra i soli fatti verificati con la loro fonte — che è l'esito corretto, non un ripiego:
+  // meglio un elenco sobrio e tracciabile che una prosa che nessuno ha approvato.
   return toPublicAreaProfile(AREA_FACTS, { ...options, municipality });
 }

@@ -104,7 +104,16 @@ export default async function PropertyPage({
   // `p.zone` ("Tradate (VA)"): una stringa di visualizzazione non è un identificatore, e usarla
   // come tale significa che lo stesso comune scritto in due modi diventa due aree. `p.zone`
   // resta come ripiego per le fixture demo, che non passano dal gestionale e non hanno chiave.
-  const area = await getPublicAreaProfileFor(p.municipalityLabel ?? p.zone);
+  //
+  // L'ETICHETTA è il quartiere quando il gestionale lo espone, il comune altrimenti: è ciò che
+  // permette a due immobili dello stesso comune di intestarsi a due aree diverse ("Vivere in
+  // Abbiate Guazzone" e "Vivere a Tradate"). La CHIAVE di ricerca resta il comune, perché i
+  // fatti a scala comunale valgono per entrambi.
+  const area = await getPublicAreaProfileFor(
+    p.municipalityLabel ?? p.zone,
+    "it",
+    p.neighbourhoodLabel ?? p.municipalityLabel,
+  );
 
   // Dati strutturati per l'immobile (schema.org).
   //
