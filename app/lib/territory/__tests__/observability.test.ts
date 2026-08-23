@@ -61,6 +61,36 @@ describe("privacy degli eventi", () => {
     assert.equal(sink.events.length, 2);
   });
 
+  test("un ID di correlazione tutto numerico NON è un telefono", () => {
+    // La regressione che faceva fallire questo file una volta su venti, resa deterministica.
+    // `turn_88008439` è un ID legittimo — otto cifre esadecimali che sono uscite tutte numeriche —
+    // e l'euristica del telefono («sette cifre di fila») lo scambiava per un recapito. Siccome
+    // `guarded()` scarta in silenzio, l'evento spariva dalle metriche senza lasciare traccia.
+    for (const id of ["turn_88008439", "run_91045250", "turn_84856813", "run_00000000"]) {
+      assert.deepEqual(
+        findPrivacyViolations({ kind: "assistant-tool", tool: "get_area_profile", hadTerritory: true, turnId: id } as TerritoryMetricEvent),
+        [],
+        `${id} non deve risultare un telefono`,
+      );
+    }
+  });
+
+  test("l'esenzione vale per la FORMA dell'ID, non per il nome del campo", () => {
+    // Un vero telefono in `turnId` deve continuare a essere intercettato: l'esenzione non è
+    // «fidati di questo campo», è «questa forma non può contenere un dato personale».
+    const e = { kind: "assistant-tool", tool: "get_area_profile", hadTerritory: true, turnId: "0331 844898" } as TerritoryMetricEvent;
+    assert.ok(findPrivacyViolations(e).length > 0, "un telefono resta un telefono anche in turnId");
+  });
+
+  test("nessun ID generato viene scambiato per un telefono", () => {
+    // Il caso vero: prima della correzione ~5% di questi finiva scartato.
+    for (let i = 0; i < 2000; i++) {
+      for (const id of [makeRunId(), makeTurnId()]) {
+        assert.deepEqual(findPrivacyViolations({ kind: "geocode-call", outcome: "ok", latencyMs: 1, runId: id } as TerritoryMetricEvent), []);
+      }
+    }
+  });
+
   test("findPrivacyViolations intercetta un telefono", () => {
     const e = { kind: "public-impression", municipality: "chiama 0331 844898" } as TerritoryMetricEvent;
     assert.ok(findPrivacyViolations(e).length > 0);

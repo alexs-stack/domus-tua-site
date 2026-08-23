@@ -38,6 +38,34 @@ describe("segnaposto non compilato — blocca (FAIL)", () => {
     assert.equal(a.stato, "FAIL");
     assert.ok(checks(a).includes("segnaposto-non-compilato"));
   });
+
+  test("un codice SENZA approvazione continua a bloccare", () => {
+    // La deroga vale per un `codice` solo: qualunque altro annuncio col segnaposto resta rosso.
+    const a = auditListing(mkRaw({ codice: "9999", descrizione: "Bagno di oltre ____ mq." }));
+    assert.equal(a.stato, "FAIL");
+  });
+});
+
+describe("segnaposto APPROVATO — non blocca, ma resta visibile", () => {
+  // 2055 è T447: c'è un override che approva la pubblicazione senza la misura
+  // (app/lib/realsmart/overrides.data.ts). La differenza fra i due casi è solo quella riga.
+  const a = auditListing(mkRaw({ codice: "2055", descrizione: "Ampio bagno di oltre ____ mq e cucina abitabile." }));
+
+  test("non è più un FAIL", () => {
+    assert.notEqual(a.stato, "FAIL", a.findings.map((f) => `${f.severity} ${f.check}`).join("; "));
+  });
+
+  test("ma resta nel report, a REVIEW: deciso non è sparito", () => {
+    const f = a.findings.find((x) => x.check === "segnaposto-non-compilato");
+    assert.ok(f, "il finding deve restare");
+    assert.equal(f.severity, "REVIEW");
+    assert.match(f.detail, /APPROVAT/i);
+  });
+
+  test("e in pagina il «____» non compare comunque", () => {
+    // L'approvazione non disattiva la quarantena: cambia solo come l'audit la giudica.
+    assert.ok(!JSON.stringify(a).includes("____"), "nessun segnaposto nel testo pubblicato");
+  });
 });
 
 describe("indirizzo in descrizione — redatto in pubblicazione, segnalato alla fonte", () => {
