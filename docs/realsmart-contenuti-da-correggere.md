@@ -7,19 +7,39 @@ quando l'indirizzo non è autorizzato. Ma alcune cose il sito non può ripararle
 corrette nel gestionale RealSmart. Questo elenco è l'esito dell'audit contenuti
 (`npm run audit:listings-content`, artefatto completo in `reports/listings-content-audit.json`).
 
-Ultimo audit di riferimento: **196 annunci → 46 PASS, 149 REVIEW, 1 FAIL**. La redazione più
+Ultimo audit di riferimento: **196 annunci → 46 PASS, 149 REVIEW, 1 FAIL**. Il FAIL (T447) è
+stato da allora approvato e non blocca più: vedi sotto. La redazione più
 estesa (layer sull'indirizzo strutturato noto, più toponimi, nomi con articolo) e il verificatore
 indipendente portano a **zero fughe** in output; il maggior numero di REVIEW rispetto al passato è
 solo miglior RILEVAZIONE degli indirizzi da togliere alla fonte, non più contenuto pubblicato.
 
 ## 1. Bloccante (FAIL) — da correggere prima del lancio
 
-| Rif. | Codice | Problema | Azione |
+| Rif. | Codice | Problema | Stato |
 | --- | --- | --- | --- |
-| **T447** | **2055** | La descrizione contiene un segnaposto non compilato: «un ampio bagno di oltre **____** mq». | Completare o togliere la frase nel gestionale. Finché resta, l'audit in CI è rosso (di proposito). |
+| **T447** | **2055** | La descrizione contiene un segnaposto non compilato: «un ampio bagno di oltre **____** mq». | **Approvata la pubblicazione senza la misura** (2026-08-23). Resta da completare nel gestionale. |
 
-Questo è l'unico FAIL: un segnaposto pubblicato è un buco nel testo che arriva a chi compra
-casa, e nessun livello di presentazione può ripararlo.
+Un segnaposto pubblicato è un buco nel testo che arriva a chi compra casa, e nessun livello di
+presentazione può ripararlo. La pipeline toglie da sé la sola frase-misura incompleta — senza
+inventare la misura — e pubblica «un ampio bagno, un disimpegno con arredo e un sottoscala che
+funge da comodo ripostiglio»: in pagina un «____» non è mai arrivato.
+
+Quello che mancava era la DECISIONE. Finché non era registrata, l'audit trattava la quarantena
+come un difetto ancora da riparare e teneva rossa la CI di ogni PR, difetto o no — col risultato
+che il rosso non distingueva più «questa modifica rompe qualcosa» da «T447 è ancora lì», ed è
+così che un altro guasto vero (l'E2E dell'assistente) è rimasto rosso per giorni senza che
+nessuno se ne accorgesse.
+
+Ora la decisione c'è, in `app/lib/realsmart/overrides.data.ts`:
+
+```ts
+{ codice: "2055", segnapostoApprovato: true, motivo: …, fonte: …, data: …, autore: … }
+```
+
+L'annuncio **resta nel report** (a REVIEW, non più FAIL), quindi non sparisce dai radar. La
+deroga vale per quel `codice` soltanto: qualunque altro annuncio con un segnaposto continua a
+far fallire l'audit, e c'è un test che lo verifica. Chi rientra nel gestionale può completare la
+misura e togliere anche quella riga.
 
 ## 2. Telefoni nella descrizione (4) — rimossi in pubblicazione, da togliere alla fonte
 

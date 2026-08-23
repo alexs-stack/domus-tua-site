@@ -58,6 +58,24 @@ export interface ListingOverride {
    * dell'override tracciano chi e quando l'ha attestato.
    */
   docVerified?: boolean;
+  /**
+   * APPROVAZIONE della quarantena di un segnaposto non compilato.
+   *
+   * Quando la descrizione a gestionale contiene un «____», la pipeline toglie da sola la
+   * frase-misura incompleta (./placeholders.ts) — senza inventare la misura — e alza
+   * `placeholderQuarantined`, che l'audit tratta come FAIL: la rete di sicurezza non è la
+   * riparazione, e il rosso serve a non far dimenticare il buco nel gestionale.
+   *
+   * Questo campo dice una cosa sola, e va messo solo dopo averla davvero decisa: «abbiamo letto
+   * QUESTO annuncio e il testo senza la misura è quello che vogliamo pubblicare». Da lì l'audit
+   * smette di considerarlo un difetto da riparare e lo lascia fra le voci riviste.
+   *
+   * NON è un modo per zittire il controllo: vale per un solo `codice`, richiede come ogni
+   * override motivo, fonte, data e autore, e ogni altro annuncio con un segnaposto continua a
+   * fallire. È lo stesso patto di `mostraIndirizzo` e `docVerified` — una deroga esplicita,
+   * firmata, per un immobile solo.
+   */
+  segnapostoApprovato?: boolean;
 }
 
 /** Campi ammessi in un override: qualunque altra chiave è un errore. */
@@ -72,6 +90,7 @@ const OVERRIDE_KEYS = new Set([
   "descrizione",
   "mostraIndirizzo",
   "docVerified",
+  "segnapostoApprovato",
 ]);
 
 const OVERRIDE_FACT_KEYS = new Set(["key", "value", "group", "label"]);
@@ -155,6 +174,9 @@ export function validateOverrides(raw: unknown): string[] {
     }
     if (entry.docVerified !== undefined && typeof entry.docVerified !== "boolean") {
       errors.push(`${at}: "docVerified" deve essere true o false`);
+    }
+    if (entry.segnapostoApprovato !== undefined && typeof entry.segnapostoApprovato !== "boolean") {
+      errors.push(`${at}: "segnapostoApprovato" deve essere true o false`);
     }
   });
 

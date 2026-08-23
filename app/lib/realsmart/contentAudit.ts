@@ -16,6 +16,7 @@
 // c'era e il riferimento dell'annuncio (codice) per correggerlo alla fonte.
 
 import { normalizeRealSmartListing } from "./normalize";
+import { getListingOverride } from "./overrides.data";
 import { normalizeDescription, sourcePlainText } from "./description";
 import { endsOnFunctionWord } from "./italian";
 import { hasCivicAddress, hasPhoneNumber, redactPrivateText } from "./privacy";
@@ -76,11 +77,17 @@ export function structuralFindings(p: NormalizedProperty, raw: RealSmartListingR
   // e alza `placeholderQuarantined`. Qui quel segnale diventa FAIL: la riparazione VERA sta nel
   // gestionale o in un override approvato, non nella rete di sicurezza. Nessuna PII nel dettaglio.
   if (p.placeholderQuarantined) {
+    // Se un override APPROVATO dichiara che il testo senza la misura è quello voluto, il difetto
+    // è stato deciso, non dimenticato: resta a REVIEW — così continua a comparire nel report e
+    // nessuno se lo scorda — ma smette di bloccare. Senza quell'approvazione resta FAIL: è il
+    // rosso che impedisce alla rete di sicurezza di diventare, in silenzio, la riparazione.
+    const approvato = getListingOverride(raw.codice ?? "")?.segnapostoApprovato === true;
     out.push({
-      severity: "FAIL",
+      severity: approvato ? "REVIEW" : "FAIL",
       check: "segnaposto-non-compilato",
-      detail:
-        "segnaposto non compilato nella descrizione a gestionale (quarantenato in pubblicazione, da correggere alla fonte o via override approvato)",
+      detail: approvato
+        ? "segnaposto non compilato a gestionale: quarantenato in pubblicazione e APPROVATO via override (si pubblica senza la misura). Resta da sistemare alla fonte."
+        : "segnaposto non compilato nella descrizione a gestionale (quarantenato in pubblicazione, da correggere alla fonte o via override approvato)",
     });
   }
 
