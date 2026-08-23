@@ -4,7 +4,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { AreaFactSchema, type AreaFact } from "../types";
+import { AreaFactSchema, AREA_SCHEMA_VERSION, type AreaFact } from "../types";
 import { findSubjectiveViolations, isFactualText } from "../subjective";
 import { toPublicAreaProfile, factsDueForReview, localizeFactText, isPublishable } from "../public";
 import { approvalBlockers, approveAreaFact, rejectAreaFact, AreaApprovalError } from "../validate";
@@ -30,6 +30,7 @@ function fact(over: Partial<AreaFact> = {}): AreaFact {
     reviewBy: over.reviewBy ?? "2027-02-14T00:00:00.000Z",
     status: over.status ?? "approved",
     conflicts: over.conflicts ?? [],
+    schemaVersion: over.schemaVersion ?? AREA_SCHEMA_VERSION,
     ...(over.approvedBy ? { approvedBy: over.approvedBy } : {}),
     ...(over.approvedAt ? { approvedAt: over.approvedAt } : {}),
   };

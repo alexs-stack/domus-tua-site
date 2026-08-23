@@ -1,5 +1,9 @@
 // Ciclo di vita + applicazione: solo la copy PUBLISHED viene applicata dal sito, e solo se
-// corrisponde alla fonte corrente. Più hash, transizioni, idempotenza dell'hash, area facts.
+// corrisponde alla fonte corrente. Più hash, transizioni, idempotenza dell'hash.
+//
+// I fatti d'area NON si testano più da qui. Vivevano in un secondo modello parallelo
+// (realsmart/ai/areaFacts.ts) che è stato rimosso: il dominio canonico è
+// app/lib/territory/area, e i suoi test stanno lì. Vedi docs/adr/015-area-domain-consolidation.md.
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
@@ -9,7 +13,6 @@ import { approveCopy, rejectCopy, submitForReview } from "../batch";
 import { createPublishedCopyNormalizer } from "../../aiNormalizer";
 import { applyAiNormalization } from "../../aiNormalizer";
 import { sourceHash } from "../hash";
-import { validateAreaFacts, areaFactsFor, AREA_FACTS, type AreaFact } from "../areaFacts";
 import type { GeneratedCopyRecord } from "../record";
 import type { NormalizedProperty, RealSmartListingRaw } from "../../types";
 import { resolveAreaIdentity } from "../../../territory/area/identity";
@@ -101,20 +104,5 @@ describe("hash — idempotenza", () => {
   test("stessa fonte → stesso hash; fonte diversa → hash diverso", () => {
     assert.equal(sourceHash(RAW), sourceHash({ ...RAW }));
     assert.notEqual(sourceHash(RAW), sourceHash({ ...RAW, mq: 120 }));
-  });
-});
-
-describe("area facts — dataset curato e vuoto", () => {
-  test("il dataset di default è vuoto (nessun fatto di zona inventato)", () => {
-    assert.equal(AREA_FACTS.length, 0);
-    assert.deepEqual(areaFactsFor("Tradate"), []);
-  });
-
-  test("la validazione pretende fonte, data e approvatore", () => {
-    const bad = [{ comune: "Tradate", scope: "comune", fact: "x", sourceUrl: "non-url", retrievedAt: "ieri", approvedBy: "" }] as AreaFact[];
-    const errs = validateAreaFacts(bad);
-    assert.ok(errs.some((e) => /sourceUrl/.test(e)));
-    assert.ok(errs.some((e) => /retrievedAt/.test(e)));
-    assert.ok(errs.some((e) => /approvedBy/.test(e)));
   });
 });
