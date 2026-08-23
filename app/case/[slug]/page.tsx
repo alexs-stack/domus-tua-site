@@ -1,18 +1,47 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
 import PropertyDetail from "./PropertyDetail";
-import { getVisibleListings, getVisibleListing } from "../../lib/listings";
+import { getVisibleListings } from "../../lib/listings";
 import { relatedListings } from "../../lib/related";
 import { getPublicListingTerritory, getPublicAreaProfileFor } from "../../lib/territory/publicRead";
 import { site, siteUrl, jsonLdScript } from "../../lib/site";
 
-export async function generateStaticParams() {
-  const list = await getVisibleListings();
-  return list.map((p) => ({ slug: p.slug }));
-}
+/**
+ * RESA DINAMICA, DICHIARATA. Questa rotta legge il feed RealSmart, che si scarica con
+ * `cache: "no-store"` (il grezzo è ~2.6MB, oltre il limite della Data Cache — vedi
+ * app/lib/realsmart/client.ts). Un dato dinamico a runtime e una rotta statica sono
+ * inconciliabili, e prima qui convivevano: `generateStaticParams()` prometteva ~186 schede
+ * prerenderizzate mentre il dato sottostante costringeva Next a uscire dal prerender
+ * (DYNAMIC_SERVER_USAGE). Da lì i 500 in produzione su /case/gallarate-92 e /case/malnate-91.
+ *
+ * Si sceglie UNA strategia sola, quella onesta rispetto alla sorgente: la scheda è dinamica.
+ * NON significa una fetch del feed per visitatore — `getLiveListingsSnapshot()` tiene uno
+ * snapshot in-process per ~12 minuti (single-flight), quindi il gestionale continua a essere
+ * interrogato ~5 volte l'ora per istanza, esattamente come prima.
+ *
+ * `generateStaticParams()` è stato RIMOSSO: tornerà solo insieme a uno snapshot degli annunci
+ * materializzato e durevole (oggi non esiste — vedi docs/adr/001-territorial-enrichment.md §5).
+ */
+export const dynamic = "force-dynamic";
+
+/**
+ * UNA lettura del catalogo per richiesta, condivisa da generateMetadata e dal corpo della pagina.
+ *
+ * `React.cache` è memoizzazione con AMBITO LA SINGOLA RICHIESTA (nessuna condivisione tra
+ * richieste diverse): Next esegue generateMetadata e il render nello stesso ambito, quindi le
+ * tre letture di prima (una nei metadati, due nel corpo) diventano una sola normalizzazione di
+ * ~186 annunci invece di tre. Metadati e contenuto vedono così per costruzione LA STESSA
+ * versione dell'immobile, senza il rischio che una rivalidazione tra i due passaggi faccia
+ * descrivere in <title> un prezzo diverso da quello in pagina.
+ */
+const listingsForRequest = cache(getVisibleListings);
+const listingForRequest = cache(async (slug: string) =>
+  (await listingsForRequest()).find((p) => p.slug === slug),
+);
 
 export async function generateMetadata({
   params,
@@ -20,7 +49,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const p = await getVisibleListing(slug);
+  const p = await listingForRequest(slug);
   if (!p) return { title: "Immobile non trovato" };
   const canonical = `/case/${p.slug}`;
   // `absolute` scavalca il template " · Domus Tua Immobiliare" del layout: sommato a
@@ -55,13 +84,13 @@ export default async function PropertyPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const p = await getVisibleListing(slug);
+  const p = await listingForRequest(slug);
   if (!p) notFound();
 
   // Correlati: SOLO disponibili, mai l'immobile corrente, stessa zona prima. La regola vive in
   // app/lib/related.ts — qui non si ripete lo stato "venduto". Prima questa lista pescava dal
   // feed visibile venduti inclusi, e una scheda disponibile poteva suggerire case già vendute.
-  const all = await getVisibleListings();
+  const all = await listingsForRequest();
   const related = relatedListings(all, p);
 
   // Territorio APPROVATO letto SERVER-SIDE dallo store, cacheato con tag mirati e proiettato al

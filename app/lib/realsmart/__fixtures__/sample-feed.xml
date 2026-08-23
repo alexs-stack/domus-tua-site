@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Feed RealSmart di ESEMPIO, nella forma reale <Dati><immobili><immobile>.
+
+  A cosa serve: far girare il percorso LIVE (parse + normalize + resa dinamica) senza rete e
+  senza il feed dell'agenzia. Lo consuma scripts/fake-feed.ts, che lo serve su HTTP e CONTA le
+  richieste — è così che si verifica che una singola richiesta di pagina non scarichi il feed
+  più di una volta.
+
+  I casi sono scelti per coprire l'identità geografica, non per essere belli:
+    2001  comune + Zona (quartiere) + CAP + Indirizzo  → chiave d'area a livello di quartiere
+    2002  stesso comune, Zona DIVERSA                  → due quartieri nello stesso comune
+    2003  comune senza Zona                            → chiave d'area a livello di comune
+    2004  comune con accenti e apostrofo               → normalizzazione deterministica
+    2005  Zona presente ma vuota/segnaposto            → assenza, non un quartiere finto
+
+  NB: il feed reale NON espone latitudine/longitudine (vedi docs/adr/001-territorial-enrichment.md
+  §2). Questa fixture non le inventa.
+-->
+<Dati>
+  <immobili>
+    <immobile>
+      <Codice>2001</Codice>
+      <Riferimento>RIF. 2001</Riferimento>
+      <Titolo>Trilocale ristrutturato in centro</Titolo>
+      <Tipologia>Appartamento</Tipologia>
+      <Contratto>vendita</Contratto>
+      <AnnuncioCompleto>Appartamento di tre locali completamente ristrutturato, posto al secondo piano di una palazzina di sei unità. Doppia esposizione, serramenti nuovi e impianto di riscaldamento autonomo. Cantina di pertinenza inclusa nel prezzo.</AnnuncioCompleto>
+      <Costo>189000</Costo>
+      <Comune>Tradate</Comune>
+      <CAP>21049</CAP>
+      <Zona>Abbiate Guazzone</Zona>
+      <Indirizzo>Via Piave 14</Indirizzo>
+      <Mq>92</Mq>
+      <Locali>3</Locali>
+      <Camere>2</Camere>
+      <Bagni>1</Bagni>
+      <Piano>2</Piano>
+      <ACE>D</ACE>
+      <Riscaldamento>Autonomo</Riscaldamento>
+      <Ascensore>No</Ascensore>
+      <Box>Si</Box>
+      <Tipo_Box>Box singolo</Tipo_Box>
+      <Evidenza>Si</Evidenza>
+      <DataInserimento>12/03/2026</DataInserimento>
+      <UltimaModifica>02/08/2026 09:14:00</UltimaModifica>
+      <ElencoFoto>
+        <Foto>https://cloud2.realsmart.it/foto/2001-1.jpg</Foto>
+        <Foto>https://cloud2.realsmart.it/foto/2001-2.jpg</Foto>
+      </ElencoFoto>
+    </immobile>
+
+    <immobile>
+      <Codice>2002</Codice>
+      <Riferimento>RIF. 2002</Riferimento>
+      <Titolo>Villa bifamiliare con giardino</Titolo>
+      <Tipologia>Villa bifamiliare</Tipologia>
+      <Contratto>vendita</Contratto>
+      <AnnuncioCompleto>Porzione di bifamiliare disposta su due livelli, con giardino privato su tre lati e taverna abitabile. La zona notte ospita tre camere e un secondo servizio. Ampio box doppio con accesso diretto dall'interno.</AnnuncioCompleto>
+      <Costo>395000</Costo>
+      <Comune>Tradate</Comune>
+      <CAP>21049</CAP>
+      <Zona>Ceppine</Zona>
+      <Mq>210</Mq>
+      <Locali>5</Locali>
+      <Camere>3</Camere>
+      <Bagni>2</Bagni>
+      <ACE>C</ACE>
+      <Giardino>Si</Giardino>
+      <Tipo_Giardino>Privato</Tipo_Giardino>
+      <mq_giardino>320</mq_giardino>
+      <DataInserimento>05/05/2026</DataInserimento>
+      <UltimaModifica>18/08/2026 11:02:00</UltimaModifica>
+      <ElencoFoto>
+        <Foto>https://cloud2.realsmart.it/foto/2002-1.jpg</Foto>
+      </ElencoFoto>
+    </immobile>
+
+    <immobile>
+      <Codice>2003</Codice>
+      <Riferimento>RIF. 2003</Riferimento>
+      <Titolo>Bilocale con terrazzo</Titolo>
+      <Tipologia>Appartamento</Tipologia>
+      <Contratto>vendita</Contratto>
+      <AnnuncioCompleto>Bilocale di recente costruzione con terrazzo abitabile esposto a sud. L'immobile è dotato di aria condizionata e posto auto coperto assegnato. Spese condominiali contenute.</AnnuncioCompleto>
+      <Costo>139000</Costo>
+      <Comune>Venegono Superiore</Comune>
+      <CAP>21040</CAP>
+      <Mq>58</Mq>
+      <Locali>2</Locali>
+      <Camere>1</Camere>
+      <Bagni>1</Bagni>
+      <ACE>B</ACE>
+      <Terrazzo>Si</Terrazzo>
+      <mq_terrazzo>18</mq_terrazzo>
+      <AriaCondizionata>Si</AriaCondizionata>
+      <PostoAuto>Si</PostoAuto>
+      <DataInserimento>21/06/2026</DataInserimento>
+      <UltimaModifica>10/08/2026 16:40:00</UltimaModifica>
+      <ElencoFoto>
+        <Foto>https://cloud2.realsmart.it/foto/2003-1.jpg</Foto>
+      </ElencoFoto>
+    </immobile>
+
+    <immobile>
+      <Codice>2004</Codice>
+      <Riferimento>RIF. 2004</Riferimento>
+      <Titolo>Quadrilocale in corte ristrutturata</Titolo>
+      <Tipologia>Appartamento</Tipologia>
+      <Contratto>vendita</Contratto>
+      <AnnuncioCompleto>Quadrilocale ricavato dalla ristrutturazione di una corte storica, con travi a vista e pavimenti in cotto recuperati. Due camere matrimoniali, studio e doppi servizi. Cortile comune di pertinenza.</AnnuncioCompleto>
+      <Costo>245000</Costo>
+      <Comune>Castiglione Olona</Comune>
+      <CAP>21043</CAP>
+      <Zona>Gornate Superiore</Zona>
+      <Mq>128</Mq>
+      <Locali>4</Locali>
+      <Camere>2</Camere>
+      <Bagni>2</Bagni>
+      <ACE>E</ACE>
+      <DataInserimento>03/02/2026</DataInserimento>
+      <UltimaModifica>29/07/2026 08:20:00</UltimaModifica>
+      <ElencoFoto>
+        <Foto>https://cloud2.realsmart.it/foto/2004-1.jpg</Foto>
+      </ElencoFoto>
+    </immobile>
+
+    <immobile>
+      <Codice>2005</Codice>
+      <Riferimento>RIF. 2005</Riferimento>
+      <Titolo>Attico con doppio terrazzo</Titolo>
+      <Tipologia>Attico</Tipologia>
+      <Contratto>vendita</Contratto>
+      <AnnuncioCompleto>Attico all'ultimo piano con doppio terrazzo e vista aperta sul verde. Ascensore, riscaldamento centralizzato a gestione autonoma e cantina. Immobile in buono stato di manutenzione.</AnnuncioCompleto>
+      <Costo>329000</Costo>
+      <Comune>Sant'Ambrogio Olona</Comune>
+      <CAP>21100</CAP>
+      <Zona>N/D</Zona>
+      <Mq>145</Mq>
+      <Locali>4</Locali>
+      <Camere>3</Camere>
+      <Bagni>2</Bagni>
+      <ACE>In fase di rilascio</ACE>
+      <Ascensore>Si</Ascensore>
+      <Terrazzo>Si</Terrazzo>
+      <Riscaldamento>Centralizzato gest. Autonoma</Riscaldamento>
+      <DataInserimento>14/04/2026</DataInserimento>
+      <UltimaModifica>21/08/2026 13:55:00</UltimaModifica>
+      <ElencoFoto>
+        <Foto>https://cloud2.realsmart.it/foto/2005-1.jpg</Foto>
+      </ElencoFoto>
+    </immobile>
+  </immobili>
+</Dati>
