@@ -70,7 +70,7 @@ Legenda: **✓** verificato da test · **◐** implementato, verifica parziale �
 | 11 | Sezione pubblica | `app/case/[slug]/VivereInZona.tsx` | ✓ 13 test + verifica visiva desktop/mobile | — |
 | 12 | Multilingua | `territory/area/writer/translate.ts` | ✓ 19 test | Nessun traduttore AI collegato |
 | 13 | Backfill del catalogo | `scripts/territory/area-plan.ts` | ◐ solo la fase 1 (dry run) | Le fasi 2 e 3 dipendono dallo store durevole |
-| 14 | Suite di test | tutto il dominio | ◐ 366 test nuovi + valutazione di genericità e somiglianza | Mancano le valutazioni "gold content" su 20 aree reali: servono fatti approvati veri |
+| 14 | Suite di test | tutto il dominio | ◐ 366 test nuovi + genericità e somiglianza + 5 E2E (`e2e/area.spec.ts`) | Mancano le valutazioni "gold content" su 20 aree reali: servono fatti approvati veri |
 | 15 | Osservabilità | `territory/area/health.ts` | ✓ 21 test | Nessun sink di produzione collegato |
 | 16 | Audit finale di lancio | questo documento | ◐ | Non completabile finché 5, 10 e lo store non esistono |
 
@@ -118,6 +118,7 @@ In ordine di dipendenza. I primi due sono decisioni, non lavoro di codice.
 2. **Confermare l'elenco delle fonti** per il primo comune (`ALLOWED_SOURCE_HOSTS`): oggi ce ne
    sono tre, e ogni riga è un'autorizzazione a interrogare il sito di un ente.
 3. **Emettere i token** della redazione (`npm run area:token`) e configurare `AREA_REVIEW_SECRET`.
+   Le variabili sono documentate in `.env.example`, sezione «Dominio d'area».
 4. **Approvare a mano i primi fatti** di un comune, e vedere la sezione comparire davvero.
 
 Il punto 4 è il primo momento in cui qualcosa di visibile cambia sul sito. Tutto ciò che sta
@@ -133,6 +134,21 @@ AREA_REVIEW_SECRET=… npm run area:token -- --actor <nome> --role editor
 ```
 
 ---
+
+## Cosa prova la suite E2E
+
+`e2e/area.spec.ts` — cinque prove nel browser, sul build di produzione. Provano il caso che oggi
+è l'unico reale, e cioè **il sistema che non ha niente da dire**:
+
+* la sezione non compare, e non lascia nemmeno un moncone (titolo vuoto, «in aggiornamento»);
+* la scheda intorno resta intera: l'assenza è una scelta, non una pagina rotta;
+* **l'unica coordinata servita al browser è la sede dell'agenzia.** Non «nessuna coordinata»: la
+  sede sta nei dati strutturati schema.org ed è pubblica per costruzione. Il confronto è più
+  stretto — quella e nessun'altra — e cadrebbe al primo immobile che ne facesse uscire una;
+* `/area-review` risponde **404**, non 403: 403 direbbe che dietro c'è qualcosa;
+* la redazione non sta in sitemap, e robots.txt **non** la vieta — è voluto: una pagina vietata
+  al crawl può finire lo stesso nell'indice partendo da un link esterno, e il `noindex` in
+  pagina non verrebbe mai letto. Il divieto giusto è quello che il crawler deve poter leggere.
 
 ## Comandi
 

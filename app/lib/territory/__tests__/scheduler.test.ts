@@ -71,7 +71,7 @@ describe("fairness: nessuna starvation (30 immobili, budget 5)", () => {
     let runs = 0;
     for (let r = 0; r < 8; r++) {
       const s = spy(new FakePlacesProvider());
-      const report = await syncListings(listings, makeDeps({ repository, provider: s.provider, config }), {
+      await syncListings(listings, makeDeps({ repository, provider: s.provider, config }), {
         dryRun: false,
         maxCalls: 5,
         executionId: `run-${r}`,
