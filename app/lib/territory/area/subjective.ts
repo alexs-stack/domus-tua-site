@@ -24,7 +24,10 @@ export interface SubjectiveViolation {
 const RULES: Array<{ category: SubjectiveCategory; re: RegExp }> = [
   { category: "safety", re: /\b(sicur\w*|insicur\w*|pericolos\w*|criminalit\w*|malfamat\w*|degrad\w*|safe|unsafe|crime)\b/i },
   { category: "prestige", re: /\b(prestigios\w*|esclusiv\w*|rinomat\w*|chic|elegante|signorile|blasonat\w*|prestigious|upscale)\b/i },
-  { category: "superlative", re: /\b(miglior\w*|peggior\w*|eccellent\w*|il più bell\w*|imbattibil\w*|top|best|worst)\b/i },
+  // `\w+issim[oaie]` copre il superlativo assoluto italiano con UNA regola invece che con un
+  // elenco: "rapidissimo", "comodissima", "servitissima", "vicinissimo". Sono tutte affermazioni
+  // di grado che nessuna fonte documenta, e in prosa fattuale neutra non compaiono mai.
+  { category: "superlative", re: /\b(miglior\w*|peggior\w*|eccellent\w*|il più bell\w*|imbattibil\w*|\w{3,}issim[oaie]|top|best|worst)\b/i },
   { category: "demographic", re: /\b(ricc\w*|povert\w*|povera|famiglie bene|stranier\w*|immigrat\w*|etnic\w*|religios\w*|ceto\b|classe sociale|wealthy|poor neighborhood)\b/i },
   { category: "investment", re: /\b(investiment\w*|rivalutazion\w*|il valore (cresce|crescer\w*|aumenter\w*)|prezzi in (aumento|crescita)|affar[ei]\b|occasione d'oro|appreciat\w*)\b/i },
   { category: "suitability", re: /\b(ideale per|perfett\w* per|adatt\w* (a|per) (famiglie|anziani|giovani|single|pensionati)|ideal for|perfect for)\b/i },
