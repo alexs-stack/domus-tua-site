@@ -6,11 +6,14 @@
 // canonica italiana (una traduzione non approvata non esce). Nessun campo interno nel risultato.
 
 import { AREA_CATEGORY_ORDER } from "./categories";
+import { areaSlug } from "./identity";
 import { isFactualText } from "./subjective";
 import type {
   AreaFact,
+  AreaNarrative,
   KnowledgeLocale,
   PublicAreaFact,
+  PublicAreaNarrative,
   PublicAreaProfile,
 } from "./types";
 
@@ -43,12 +46,51 @@ export function localizeFactText(fact: AreaFact, locale: KnowledgeLocale): strin
  * Costruisce il profilo pubblico d'area per un comune: solo fatti pubblicabili, ordinati per
  * categoria, localizzati. `null` se non c'è nulla da mostrare (l'assistente lo dice).
  */
+/**
+ * La narrativa nella sua forma pubblica, o `null`.
+ *
+ * Esce SOLO se approvata. Una bozza, per quanto buona, non è un testo che l'agenzia ha detto di
+ * voler pubblicare — ed è esattamente la distinzione che il resto del dominio difende.
+ *
+ * `factIds` e `claimMap` restano fuori: sono l'impalcatura con cui si decide se il testo può
+ * uscire, non qualcosa che serva a chi legge.
+ */
+export function toPublicAreaNarrative(
+  narrative: AreaNarrative | null | undefined,
+): PublicAreaNarrative | null {
+  if (!narrative || narrative.status !== "approved") return null;
+  return {
+    title: narrative.title,
+    intro: narrative.intro,
+    sections: narrative.sections.map((s) => ({
+      category: s.category,
+      heading: s.heading,
+      body: s.body,
+    })),
+  };
+}
+
 export function toPublicAreaProfile(
   facts: readonly AreaFact[],
-  options: { now: Date; locale: KnowledgeLocale; municipality: string },
+  options: {
+    now: Date;
+    locale: KnowledgeLocale;
+    municipality: string;
+    /** Etichetta dell'area (quartiere quando verificato). Assente = si usa il comune. */
+    label?: string;
+    /** La narrativa dell'area: proiettata solo se approvata. */
+    narrative?: AreaNarrative | null;
+  },
 ): PublicAreaProfile | null {
+  // CONFRONTO PER CHIAVE, non per stringa mostrata. Prima qui c'era `f.municipality === options
+  // .municipality`, cioè un'uguaglianza esatta fra due testi liberi: il chiamante passava
+  // "tradate" (già normalizzato) e il fatto conteneva "Tradate", quindi il filtro non poteva
+  // combaciare MAI. Non se n'era accorto nessuno solo perché il dataset dei fatti è ancora vuoto.
+  // `areaSlug` è la stessa regola usata per costruire le chiavi d'area: "Tradate", "tradate" e
+  // "Tradate (VA)" collassano sulla stessa area, come devono.
+  const wanted = areaSlug(options.municipality);
   const usable = facts
-    .filter((f) => f.municipality === options.municipality && isPublishable(f, options.now))
+    .filter((f) => areaSlug(f.municipality) === wanted && isPublishable(f, options.now))
     .sort((a, b) => {
       const ca = AREA_CATEGORY_ORDER.indexOf(a.category);
       const cb = AREA_CATEGORY_ORDER.indexOf(b.category);
@@ -65,7 +107,15 @@ export function toPublicAreaProfile(
     sourceUrl: f.source.url,
     reviewedAt: f.source.retrievedAt,
   }));
-  return { municipality: options.municipality, facts: publicFacts };
+  const narrative = toPublicAreaNarrative(options.narrative);
+  // L'etichetta mostrata viene dal DATO ("Tradate"), non dalla chiave di ricerca ("tradate"):
+  // il chiamante può cercare con una chiave, ma il pubblico deve leggere un nome scritto bene.
+  return {
+    municipality: usable[0].municipality,
+    ...(options.label ? { label: options.label } : {}),
+    facts: publicFacts,
+    ...(narrative ? { narrative } : {}),
+  };
 }
 
 /** Fatti in scadenza di revisione entro `withinDays` (promemoria per l'editor). */

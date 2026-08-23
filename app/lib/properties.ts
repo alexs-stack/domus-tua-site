@@ -14,7 +14,30 @@ import type { PropertyFact } from "./realsmart/facts";
 export type Property = {
   slug: string;
   title: string;
+  /**
+   * ETICHETTA di collocazione, per gli occhi ("Tradate (VA)"). Resta la forma che scheda, card
+   * e filtri mostrano da sempre.
+   *
+   * ⚠️ NON è una chiave. È stata a lungo usata anche per CERCARE i contenuti d'area, e in quel
+   * ruolo è sbagliata: "Tradate (VA)" e "Tradate" sono la stessa area e due stringhe diverse.
+   * Per confrontare, indicizzare o salvare si usa `areaKey`.
+   */
   zone: string;
+  /**
+   * Chiave d'area CANONICA: `paese|regione|provincia|comune|quartiere`
+   * (es. `it|lombardia|va|tradate|abbiate-guazzone`). È l'identificatore con cui si leggono i
+   * contenuti d'area verificati. Assente sulle fixture demo, dove non c'è un gestionale a monte.
+   * Forma e regole: app/lib/territory/area/identity.ts.
+   */
+  areaKey?: string;
+  /** Comune, etichetta pulita e senza provincia ("Tradate"). */
+  municipalityLabel?: string;
+  /**
+   * Frazione/quartiere dal `<Zona>` del gestionale ("Abbiate Guazzone"). Assente quando il feed
+   * non la dà — e allora resta assente, non si deduce dall'indirizzo né dal titolo. È il campo
+   * che permette a due immobili dello stesso comune di ricevere contesto locale diverso.
+   */
+  neighbourhoodLabel?: string;
   type: "Appartamento" | "Attico" | "Villa" | "Commerciale" | "Terreno";
   status: "Vendita" | "Affitto";
   price: string;

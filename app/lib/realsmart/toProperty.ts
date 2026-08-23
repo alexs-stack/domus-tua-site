@@ -64,7 +64,13 @@ export function normalizedToProperty(n: NormalizedProperty): Property {
   return {
     slug: n.slug,
     title: n.title,
+    // `zone` resta l'ETICHETTA storica: la mostrano card, filtri e meta description, e cambiarla
+    // sposterebbe testo visibile senza motivo. Accanto le arrivano ora la CHIAVE canonica e le
+    // etichette separate — vedi il commento su Property.zone per la differenza tra le due cose.
     zone: n.province ? `${n.town} (${n.province})` : n.town,
+    areaKey: n.area.areaKey,
+    municipalityLabel: n.area.municipalityLabel,
+    neighbourhoodLabel: n.area.neighbourhoodLabel,
     type: toType(n.type),
     status: n.contract === "affitto" ? "Affitto" : "Vendita",
     price: n.priceLabel,

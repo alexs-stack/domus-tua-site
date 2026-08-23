@@ -5,6 +5,20 @@ import { siteUrl } from "./lib/site";
 // Origin: fonte unica in app/lib/site.ts (era ricalcolato qui, in robots, nel layout e nella scheda).
 const base = siteUrl;
 
+/**
+ * RESA DINAMICA, DICHIARATA — il sitemap elenca le schede del catalogo LIVE del gestionale.
+ *
+ * Senza questa riga la classificazione statico/dinamico dipendeva dall'ORDINE con cui i worker
+ * di build rendono le pagine. Il motivo: `getLiveListingsSnapshot()` tiene uno snapshot
+ * in-process, quindi solo la PRIMA pagina che legge il catalogo esegue davvero la `fetch`
+ * `no-store` che Next osserva per marcare la rotta dinamica; le successive leggono il memo,
+ * Next non vede alcun accesso dinamico e le PRERENDERIZZA. Esito misurato su questo repo:
+ * /acquista usciva `ƒ` e /case-vendute usciva `○`, con il catalogo congelato al momento della
+ * build. Un sitemap congelato indicizza immobili ritirati e ignora quelli nuovi: qui la resa
+ * dinamica non è un dettaglio di prestazioni, è la correttezza dell'elenco.
+ */
+export const dynamic = "force-dynamic";
+
 // Solo pagine INDICIZZABILI. /privacy e /cookie sono escluse finché restano `noindex`
 // (testo legale placeholder da validare): rimetterle qui quando saranno finalizzate e indicizzabili
 // — includere URL noindex nel sitemap è una segnalazione contraddittoria per i crawler.

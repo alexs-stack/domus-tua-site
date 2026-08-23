@@ -17,10 +17,11 @@
 
 import { buildAssistantListings, type AssistantListings } from "../listings";
 import type { NormalizedProperty } from "../../realsmart/types";
+import { resolveAreaIdentity } from "../../territory/area/identity";
 
 function listing(overrides: Partial<NormalizedProperty> & { id: string }): NormalizedProperty {
   const { id, ...rest } = overrides;
-  return {
+  const base: NormalizedProperty = {
     id,
     slug: id,
     title: "Immobile di prova",
@@ -52,8 +53,12 @@ function listing(overrides: Partial<NormalizedProperty> & { id: string }): Norma
     factsReview: [],
     sourceRef: { codice: id },
     normalizedBy: "deterministic",
+    area: resolveAreaIdentity({ municipality: "Tradate" }),
     ...rest,
   };
+  // L'identità d'area si ricalcola DOPO il merge: un fixture che sovrascrive `town` deve
+  // ottenere la chiave del comune che ha chiesto, non quella del default.
+  return rest.area ? base : { ...base, area: resolveAreaIdentity({ municipality: base.town }) };
 }
 
 export const FIXTURE_LISTINGS: NormalizedProperty[] = [
