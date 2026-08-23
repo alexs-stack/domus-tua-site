@@ -10,24 +10,17 @@
 
 ## Sintesi
 
-Sono coperti i **primi nove prompt più il dodicesimo e il quindicesimo**: il difetto di
-produzione, l'identità geografica, il dominio unico, lo storage, la validazione dei fatti, il
-generatore, il cancello di pubblicazione, l'automazione, la sezione pubblica, il multilingua e
-l'osservabilità.
+Sono coperti **quindici prompt su sedici**. Fuori restano il backfill oltre la fase di dry run
+(Prompt 13) e l'audit finale di lancio (Prompt 16) — entrambi perché richiedono che lo store
+durevole esista davvero, e quello dipende da una decisione che il codice non può prendersi.
 
-Restano fuori tre cose, tutte per la stessa ragione — richiedono una decisione o una credenziale
-che il codice non può prendersi da solo:
-
-| Cosa | Perché non è fatta |
-|---|---|
-| **Applicare le migrazioni** | Tocca un progetto Supabase reale. Le migrazioni sono scritte e testate; applicarle è un atto nominato. |
-| **Ingestione delle fonti** (Prompt 5) | Richiede di decidere quali domini interrogare e con che budget. Il contratto delle fonti esiste (`AreaSourceRecord`), il collettore no. |
-| **Interfaccia editoriale** (Prompt 10) | Richiede autenticazione e ruoli. Le operazioni che dovrà chiamare esistono già come contratto (`AreaRepository`). |
+**L'unica cosa che manca per procedere è nominare il progetto Supabase.** Le migrazioni sono
+scritte e testate; applicarle tocca un database reale, e nell'account ce ne sono sei senza che
+nessuno si chiami come questo sito. Indovinare quale significherebbe eseguire DDL su
+un'infrastruttura di qualcun altro.
 
 Finché lo store durevole non è collegato, **il dataset dei fatti resta vuoto e la sezione d'area
 non compare** — che è il comportamento voluto, non un'attesa: fail-closed.
-
----
 
 ## Il difetto di produzione (Prompt 1)
 
@@ -64,16 +57,16 @@ Legenda: **✓** verificato da test · **◐** implementato, verifica parziale �
 | 2 | Un solo dominio d'area | `territory/area/` | ✓ 26 test, fra cui 3 guardie anti-regressione | — |
 | 3 | Identità geografica preservata | `territory/area/identity.ts`, `realsmart/normalize.ts` | ✓ 28 + 14 test | Registro comuni limitato ai 4 del pilota (scelta dichiarata, vedi sotto) |
 | 4 | Storage durevole | `supabase/migrations/0002_*`, `territory/area/store/` | ✓ 38 test | **Migrazioni non applicate**; adattatore Supabase non implementato |
-| 5 | Ingestione fonti controllata | — | ○ | Il contratto esiste (`AreaSourceRecord`), il collettore no |
+| 5 | Ingestione fonti controllata | `territory/area/sources/` | ✓ 35 test | Elenco host limitato a tre enti (scelta dichiarata); nessuna esecuzione reale ancora fatta |
 | 6 | Validazione dura dei fatti | `territory/area/factGuard.ts` | ✓ 48 test, 15 frasi avversarie | Le regole sono in italiano; una lingua nuova richiede la sua passata |
 | 7 | Generatore d'area separato | `territory/area/writer/` | ✓ 15 test | Nessun provider AI collegato: c'è il generatore deterministico |
 | 8 | Cancello a due strati | `territory/area/writer/judge.ts` | ✓ 26 test | Il giudice AI non è collegato; quello deterministico non valuta la prosa |
 | 9 | Automazione dal feed | `territory/area/automation/` | ✓ 24 test + `npm run area:plan` | Il cron non è ancora cablato su questa orchestrazione |
-| 10 | Interfaccia editoriale | — | ○ | Serve autenticazione e ruoli |
+| 10 | Interfaccia editoriale | `app/area-review/`, `territory/area/review/` | ✓ 34 test + verifica su server reale | Coda vuota finché lo store non persiste |
 | 11 | Sezione pubblica | `app/case/[slug]/VivereInZona.tsx` | ✓ 13 test + verifica visiva desktop/mobile | — |
 | 12 | Multilingua | `territory/area/writer/translate.ts` | ✓ 19 test | Nessun traduttore AI collegato |
 | 13 | Backfill del catalogo | `scripts/territory/area-plan.ts` | ◐ solo la fase 1 (dry run) | Le fasi 2 e 3 dipendono dallo store durevole |
-| 14 | Suite di test | tutto il dominio | ◐ 281 test nuovi, unitari e d'integrazione | Mancano le valutazioni "gold content" su 20 aree reali: servono fatti approvati veri |
+| 14 | Suite di test | tutto il dominio | ◐ 366 test nuovi + valutazione di genericità e somiglianza | Mancano le valutazioni "gold content" su 20 aree reali: servono fatti approvati veri |
 | 15 | Osservabilità | `territory/area/health.ts` | ✓ 21 test | Nessun sink di produzione collegato |
 | 16 | Audit finale di lancio | questo documento | ◐ | Non completabile finché 5, 10 e lo store non esistono |
 
@@ -113,18 +106,27 @@ salta il gate applicativo non deve poter fare ciò che il gate impedisce.
 
 ## Cosa serve per il passo successivo
 
-In ordine di dipendenza:
+In ordine di dipendenza. I primi due sono decisioni, non lavoro di codice.
 
 1. **Nominare il progetto Supabase** e applicare `0002_area_schema.sql`. Da lì si implementa
    `SupabaseAreaRepository`: il contract test esiste già ed è lo stesso che passa la memoria.
-2. **Decidere le fonti** per il primo comune: quali domini ufficiali, con che budget di
-   richieste. Da lì il collettore del Prompt 5.
-3. **Approvare a mano i primi fatti** di un comune, e vedere la sezione comparire davvero.
-4. Solo dopo: interfaccia editoriale, provider AI, pubblicazione automatica per i comuni con tre
-   output già approvati a mano.
+   Senza questo passo tutto il resto resta in memoria e si perde a ogni riavvio.
+2. **Confermare l'elenco delle fonti** per il primo comune (`ALLOWED_SOURCE_HOSTS`): oggi ce ne
+   sono tre, e ogni riga è un'autorizzazione a interrogare il sito di un ente.
+3. **Emettere i token** della redazione (`npm run area:token`) e configurare `AREA_REVIEW_SECRET`.
+4. **Approvare a mano i primi fatti** di un comune, e vedere la sezione comparire davvero.
 
-Il punto 3 è il primo momento in cui qualcosa di visibile cambia sul sito. Tutto ciò che sta
+Il punto 4 è il primo momento in cui qualcosa di visibile cambia sul sito. Tutto ciò che sta
 prima è impalcatura — necessaria, ma invisibile.
+
+### Il primo giro, concretamente
+
+```
+npm run area:plan                       # quante aree servono, quali località sono ambigue
+# → si applica la migrazione, si collega l'adattatore
+AREA_REVIEW_SECRET=… npm run area:token -- --actor <nome> --role editor
+# → /area-review: si approvano i primi fatti, poi la narrativa, poi si pubblica
+```
 
 ---
 
@@ -135,5 +137,19 @@ npm run area:plan                    # dry run: quante aree servono, quali local
 npm run area:plan -- --file f.xml    # su un feed salvato invece che live
 npm run area:plan -- --json          # per un altro strumento
 npm run check                        # lint + typecheck + test + build
+npm run area:token -- --actor anna --role editor   # token della redazione
 npx tsx scripts/fake-feed.ts         # feed finto che conta le richieste (verifica del Prompt 1)
 ```
+
+## I ruoli della redazione
+
+| Ruolo | Può |
+|---|---|
+| `viewer` | guardare |
+| `researcher` | accodare ricerche e registrare fonti — **non** approva ciò che trova |
+| `editor` | approvare fatti e narrative, correggere, rigenerare |
+| `publisher` | tutto quanto sopra, più pubblicare e ritirare |
+
+Le **coordinate** non stanno in nessun ruolo: si concedono per persona con
+`AREA_REVIEW_COORDINATE_ACCESS`. Un permesso che sta in un ruolo finisce per essere dato a
+chiunque abbia quel ruolo, e la stragrande maggioranza del lavoro editoriale non ne ha bisogno.
