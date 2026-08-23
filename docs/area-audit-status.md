@@ -14,10 +14,14 @@ Sono coperti **quindici prompt su sedici**. Fuori restano il backfill oltre la f
 (Prompt 13) e l'audit finale di lancio (Prompt 16) — entrambi perché richiedono che lo store
 durevole esista davvero, e quello dipende da una decisione che il codice non può prendersi.
 
-**L'unica cosa che manca per procedere è nominare il progetto Supabase.** Le migrazioni sono
-scritte e testate; applicarle tocca un database reale, e nell'account ce ne sono sei senza che
-nessuno si chiami come questo sito. Indovinare quale significherebbe eseguire DDL su
-un'infrastruttura di qualcun altro.
+**L'unica cosa che manca per procedere è puntare le migrazioni al progetto Supabase giusto.** Le
+migrazioni sono scritte e testate; applicarle tocca un database reale, quindi il progetto va
+indicato da chi lo conosce — non dedotto. Nessuno dei progetti visibili da questo ambiente è
+riconducibile a questo sito (sono un CRM di outreach, un'accademia di trading e un ERP
+d'officina), e il repository non ha mai avuto una `SUPABASE_URL` in `.env.example`.
+
+Finché non è indicato, le migrazioni restano file rivisti e nient'altro: è la stessa regola del
+resto del dominio — in mancanza di una decisione esplicita non si scrive niente.
 
 Finché lo store durevole non è collegato, **il dataset dei fatti resta vuoto e la sezione d'area
 non compare** — che è il comportamento voluto, non un'attesa: fail-closed.
@@ -108,7 +112,7 @@ salta il gate applicativo non deve poter fare ciò che il gate impedisce.
 
 In ordine di dipendenza. I primi due sono decisioni, non lavoro di codice.
 
-1. **Nominare il progetto Supabase** e applicare `0002_area_schema.sql`. Da lì si implementa
+1. **Indicare il progetto Supabase** e applicare `0002_area_schema.sql`. Da lì si implementa
    `SupabaseAreaRepository`: il contract test esiste già ed è lo stesso che passa la memoria.
    Senza questo passo tutto il resto resta in memoria e si perde a ogni riavvio.
 2. **Confermare l'elenco delle fonti** per il primo comune (`ALLOWED_SOURCE_HOSTS`): oggi ce ne
