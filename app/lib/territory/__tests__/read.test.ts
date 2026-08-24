@@ -93,7 +93,9 @@ describe("getPublicTerritory — flag e fail-safe", () => {
   });
 
   test("flag spento → null anche con dato approvato", async () => {
-    delete process.env[KEY];
+    // La sezione è accesa di default: per provare il freno va spento ESPLICITAMENTE, non
+    // togliendo la variabile.
+    process.env[KEY] = "false";
     const repo = new MemoryTerritoryRepository();
     await repo.putListingEnrichment(record({ status: "approved", pois: [poi("approved")] }));
     assert.equal(await getPublicTerritory("1043", repo), null);

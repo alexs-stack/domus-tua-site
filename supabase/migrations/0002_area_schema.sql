@@ -324,6 +324,19 @@ alter table area_automation_runs    enable row level security;
 -- Nessuna policy per anon/authenticated ⇒ accesso NEGATO a tutti tranne service_role.
 -- La vista pubblica NON è un'eccezione: eredita la RLS delle tabelle sottostanti, e si legge
 -- comunque dal server. Il browser non parla mai col database.
-revoke all on public_property_area from anon, authenticated;
+-- I ruoli `anon` e `authenticated` esistono su Supabase, non in un Postgres qualunque: senza
+-- questa guardia la migrazione fallisce con «role "anon" does not exist» su Neon, su RDS o su
+-- un'istanza locale, e il rollback della transazione lascia lo schema a metà del nulla. Dove non
+-- esistono la revoca è comunque superflua — nessun permesso è mai stato concesso a un ruolo
+-- assente — quindi saltarla non allarga di un millimetro ciò che si può leggere.
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'anon') then
+    execute 'revoke all on public_property_area from anon';
+  end if;
+  if exists (select 1 from pg_roles where rolname = 'authenticated') then
+    execute 'revoke all on public_property_area from authenticated';
+  end if;
+end $$;
 
 commit;

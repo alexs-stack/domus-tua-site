@@ -65,17 +65,22 @@ export function readTerritoryStoreConfig(
     );
   }
 
-  // Default: in produzione NIENTE default silenzioso (fail-safe); in sviluppo → filesystem.
+  // Default: in produzione "json", in sviluppo "filesystem".
+  //
+  // Qui prima si LANCIAVA, per non ripiegare mai su storage effimero. L'intenzione era giusta e
+  // resta intatta; il modo no. `json` è l'adattatore di produzione approvato dall'ADR-001 —
+  // file committati in git, sola lettura a runtime — quindi NON è il ripiego effimero che quel
+  // lancio doveva impedire: quello è `filesystem`, e continua a non essere un default in
+  // produzione. Lanciare significava soltanto che l'unico valore corretto andava indovinato.
+  //
+  // E il prezzo di non indovinarlo era alto: con la sezione «Vivere in zona» accesa e questa
+  // variabile vuota, `getPublicListingTerritory` lanciava e OGNI scheda immobile rispondeva 500.
+  // Un flag di funzionalità che manda giù il catalogo è un flag che nessuno può accendere.
   let adapter: TerritoryStoreAdapter;
   if (requested !== undefined) {
     adapter = requested as TerritoryStoreAdapter;
-  } else if (isProduction) {
-    throw new TerritoryStorageError(
-      "TERRITORY_STORE_ADAPTER non impostato in produzione. Imposta 'json' (store committato) " +
-        "per non ripiegare mai su storage effimero.",
-    );
   } else {
-    adapter = "filesystem";
+    adapter = isProduction ? "json" : "filesystem";
   }
 
   return {

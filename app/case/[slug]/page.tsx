@@ -8,6 +8,7 @@ import PropertyDetail from "./PropertyDetail";
 import { getVisibleListings } from "../../lib/listings";
 import { relatedListings } from "../../lib/related";
 import { getPublicListingTerritory, getPublicAreaProfileFor } from "../../lib/territory/publicRead";
+import { comuneOf } from "../../lib/comune";
 import { site, siteUrl, jsonLdScript } from "../../lib/site";
 
 /**
@@ -101,16 +102,23 @@ export default async function PropertyPage({
   // di fatti approvati o a feature spenta → la sezione "La zona" non compare.
   //
   // Si cerca con la CHIAVE canonica (`municipalityLabel` → "Tradate"), non con l'etichetta
-  // `p.zone` ("Tradate (VA)"): una stringa di visualizzazione non è un identificatore, e usarla
-  // come tale significa che lo stesso comune scritto in due modi diventa due aree. `p.zone`
-  // resta come ripiego per le fixture demo, che non passano dal gestionale e non hanno chiave.
+  // `p.zone`: una stringa di visualizzazione non è un identificatore, e usarla come tale
+  // significa che lo stesso comune scritto in due modi diventa due aree.
+  //
+  // IL RIPIEGO PASSA DA `comuneOf`, e non è un dettaglio. `zone` è testo di visualizzazione e
+  // vale "Tradate, centro" o "Tradate (VA)" quanto "Tradate": passata intera diventava la chiave
+  // "tradate-centro", che non corrisponde a nessuna area e non corrisponderà mai. La sezione
+  // spariva quindi in silenzio — senza un errore, senza un log — proprio sulle schede che
+  // dovevano averla, e il difetto è rimasto invisibile finché il dataset era vuoto. `comuneOf`
+  // (app/lib/comune.ts, con i suoi test) è la funzione che il progetto usa già per questo: toglie
+  // il suffisso di provincia e ciò che segue la virgola.
   //
   // L'ETICHETTA è il quartiere quando il gestionale lo espone, il comune altrimenti: è ciò che
   // permette a due immobili dello stesso comune di intestarsi a due aree diverse ("Vivere in
   // Abbiate Guazzone" e "Vivere a Tradate"). La CHIAVE di ricerca resta il comune, perché i
   // fatti a scala comunale valgono per entrambi.
   const area = await getPublicAreaProfileFor(
-    p.municipalityLabel ?? p.zone,
+    p.municipalityLabel ?? comuneOf(p.zone),
     "it",
     p.neighbourhoodLabel ?? p.municipalityLabel,
   );

@@ -12,13 +12,25 @@ import {
   territoryFlagsSnapshot,
 } from "../flags";
 
-describe("flag spenti di default (env vuoto)", () => {
+describe("default a env vuoto", () => {
   const EMPTY = {} as Record<string, string | undefined>;
-  test("nessun job, nessuna sezione, nessun assistente, nessun log", () => {
+
+  test("ciò che SCRIVE o COSTA resta spento: job, assistente, log", () => {
     assert.equal(isEnrichmentJobsEnabled(EMPTY), false);
-    assert.equal(isPublicSectionEnabled(EMPTY), false);
     assert.equal(isAssistantTerritoryEnabled(EMPTY), false);
     assert.equal(isMetricsLogEnabled(EMPTY), false);
+  });
+
+  test("la sezione pubblica è ACCESA: il fail-closed è il dato, non il flag", () => {
+    // Cambiato di proposito. La sezione era spenta perché non c'era niente da mostrare; adesso
+    // c'è, e senza fatti approvati la proiezione pubblica torna comunque `null` comune per
+    // comune. Tenere anche un interruttore globale significava che approvare un fatto non
+    // bastava a pubblicarlo.
+    assert.equal(isPublicSectionEnabled(EMPTY), true);
+  });
+
+  test("e si spegne con un no esplicito", () => {
+    assert.equal(isPublicSectionEnabled({ NEXT_PUBLIC_TERRITORY_SECTION_ENABLED: "false" }), false);
   });
 });
 
@@ -50,8 +62,12 @@ describe("allowlist comuni del pilota", () => {
 
 describe("territoryFlagsSnapshot", () => {
   test("snapshot booleano, senza segreti", () => {
-    const snap = territoryFlagsSnapshot({ TERRITORY_ENRICHMENT_ENABLED: "true" });
+    const snap = territoryFlagsSnapshot({
+      TERRITORY_ENRICHMENT_ENABLED: "true",
+      NEXT_PUBLIC_TERRITORY_SECTION_ENABLED: "false",
+    });
     assert.equal(snap.enrichmentJobs, true);
+    // La sezione è accesa di default: per vederla `false` nello snapshot va spenta esplicitamente.
     assert.equal(snap.publicSection, false);
     assert.equal(snap.pilotMunicipalities, 4);
     const json = JSON.stringify(snap);

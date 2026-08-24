@@ -25,7 +25,7 @@ import {
   AreaReviewEventSchema,
   parseAreaFact,
 } from "../types";
-import { allAreaFacts } from "../data";
+import { allAreaFacts, getPublicAreaProfile } from "../data";
 import { areaFactId, areaSourceId, areaFactsHash, contentHash, stableStringify } from "../hash";
 
 /**
@@ -74,11 +74,35 @@ describe("un solo modello di fatto d'area in tutto il repository", () => {
   });
 });
 
-describe("il dataset di produzione resta vuoto finché non c'è ricerca approvata", () => {
-  test("nessun fatto d'area inventato", () => {
-    // Era l'unica asserzione utile del test sul modello rimosso: la si conserva qui, sul
-    // dominio che conta davvero.
-    assert.deepEqual([...allAreaFacts()], []);
+describe("niente esce in pagina senza un'approvazione firmata", () => {
+  // Questo blocco pretendeva che il dataset fosse VUOTO. Contare era comodo finché lo era, ma
+  // «vuoto» non è la proprietà che serve: la proprietà è che nessun fatto raggiunga il lettore
+  // senza che qualcuno lo abbia approvato mettendoci il nome. Da quando in `data.ts` ci sono
+  // bozze in attesa di verifica, contare avrebbe solo impedito di parcheggiarle dove si rivedono.
+
+  test("nessun fatto approvato senza chi e quando", () => {
+    for (const f of allAreaFacts()) {
+      if (f.status !== "approved") continue;
+      assert.ok(
+        f.approvedBy?.trim() && f.approvedAt?.trim(),
+        `${f.id}: "approved" senza approvedBy/approvedAt — non esiste auto-approve`,
+      );
+    }
+  });
+
+  test("le bozze NON diventano pubbliche", () => {
+    // La prova vera: si prende ogni comune presente nel dataset e si verifica che la proiezione
+    // pubblica non contenga nulla che non sia approvato.
+    for (const municipality of new Set(allAreaFacts().map((f) => f.municipality))) {
+      const profile = getPublicAreaProfile(municipality, { now: new Date(), locale: "it" });
+      const published = profile?.facts.map((f) => f.text) ?? [];
+      for (const draft of allAreaFacts().filter((f) => f.status !== "approved")) {
+        assert.ok(
+          !published.includes(draft.text),
+          `${draft.id} è in stato "${draft.status}" ma comparirebbe in pagina`,
+        );
+      }
+    }
   });
 });
 

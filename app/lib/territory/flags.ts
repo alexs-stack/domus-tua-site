@@ -17,9 +17,23 @@ export function isEnrichmentJobsEnabled(env: EnvLike = process.env): boolean {
   return env.TERRITORY_ENRICHMENT_ENABLED === "true";
 }
 
-/** Sezione pubblica "Vivere in zona". Spenta di default. */
+/**
+ * Sezione pubblica «Vivere in zona». ACCESA di default, si spegne con `="false"`.
+ *
+ * Era spenta perché la funzionalità non era finita e non c'era niente da mostrare. Entrambe le
+ * condizioni sono cadute: i fatti di Tradate sono approvati e firmati
+ * (`app/lib/territory/area/data.ts`), e per ogni altro comune la proiezione pubblica torna `null`
+ * — quindi la sezione non compare, comune per comune, senza bisogno di un interruttore globale.
+ *
+ * Il fail-closed vero è quello: nessun fatto approvato, nessuna sezione. Tenere ANCHE un flag
+ * spento significava che pubblicare un fatto non bastava a pubblicarlo, e la seconda metà del
+ * lavoro restava invisibile in attesa di una variabile d'ambiente che nessuno ricordava.
+ *
+ * L'interruttore resta, ma come freno: `NEXT_PUBLIC_TERRITORY_SECTION_ENABLED=false` spegne tutto
+ * subito, senza toccare il codice.
+ */
 export function isPublicSectionEnabled(env: EnvLike = process.env): boolean {
-  return env.NEXT_PUBLIC_TERRITORY_SECTION_ENABLED === "true";
+  return env.NEXT_PUBLIC_TERRITORY_SECTION_ENABLED !== "false";
 }
 
 /** Accesso territoriale dell'assistente. Spento di default. */
