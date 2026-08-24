@@ -14,31 +14,35 @@ if (typeof window !== "undefined") {
 }
 
 /**
- * Fatti d'area di produzione.
+ * Fatti d'area di produzione — Tradate, APPROVATI.
  *
- * Le sei voci di Tradate NON sono pubblicate: sono `status: "draft"`, quindi `isPublishable` le
- * scarta e la sezione «Vivere in zona» resta fuori dal DOM. Sono qui perché è qui che devono
- * stare per essere riviste, non perché siano pronte.
+ * DA DOVE VENGONO. Li ha scritti Alessandro Serratt il 2026-08-14 (commit 8c9917a) nella fixture
+ * di `app/territory-preview/page.tsx`, che è dev-only e non è mai stata una fonte di produzione:
+ * conoscenza locale di chi lavora su quel territorio, non un'estrazione automatica. Il testo è
+ * quello originale, con una sola modifica — vedi il parco.
  *
- * DA DOVE VENGONO. Le ha scritte Alessandro Serratt il 2026-08-14 (commit 8c9917a) nella fixture
- * di `app/territory-preview/page.tsx`, che è dev-only e non è mai stata una fonte di produzione.
- * Sono conoscenza locale di chi lavora su quel territorio, non un'estrazione automatica: per
- * questo vale la pena promuoverle qui invece di riscriverle da zero. Il testo è quello originale,
- * parola per parola.
+ * L'APPROVAZIONE è del titolare del sito, data esplicitamente in sessione il 2026-08-23 dopo che
+ * i limiti qui sotto gli erano stati posti. È la stessa forma dell'override di T447: chi approva
+ * ha un nome, e quel nome non è di chi ha scritto il codice.
  *
- * COSA MANCA PER APPROVARLE — due cose, entrambe da fare aprendo la pagina:
+ * LA SUPERFICIE DEL PARCO NON C'È PIÙ, ed è la modifica che vale la pena spiegare. La fixture
+ * diceva «circa 4.800 ettari»; una ricerca del 2026-08-23 ne ha restituiti altri due, per giunta
+ * incompatibili fra loro nella stessa frase (83.433 e 8.343,3 ettari). Tre candidati, nessuno
+ * letto su una pagina: pubblicarne uno significava avere una probabilità concreta di mettere una
+ * cifra falsa su ogni scheda di Tradate, con la citazione di un ente a farle da garanzia. Tolto
+ * il numero, quello che resta è vero, verificabile e comunque utile. Si rimette il giorno in cui
+ * qualcuno lo legge sulla fonte — una superficie non si stima.
  *
- *  1. `source.url` punta alla HOME dell'ente, non alla pagina che afferma il fatto. È la
- *     differenza fra «lo dice Trenord da qualche parte» e «lo dice questa pagina»: la seconda si
- *     può ricontrollare fra un anno, la prima no. Vanno sostituite con gli URL puntuali.
+ * COSA RESTA DA MIGLIORARE. `source.url` punta alla HOME dell'ente e non alla pagina che afferma
+ * il fatto. È la differenza fra «lo dice Trenord da qualche parte» e «lo dice questa pagina»:
+ * solo la seconda si ricontrolla fra un anno. Non sono stati inventati URL profondi perché da
+ * questo ambiente le pagine non sono raggiungibili (policy di egress), e una citazione che porta
+ * a un 404 è peggio di una che porta alla home giusta. Vanno sostituiti alla prima occasione:
+ * l'elenco puntuale è in `docs/area-ricerca-tradate.md`.
  *
- *  2. `af_tradate_parco` dichiara «circa 4.800 ettari». Cercando quel dato il 2026-08-23 sono
- *     usciti due valori diversi da questo e incompatibili fra loro (83.433 e 8.343,3), quindi la
- *     cifra va letta sulla pagina del Parco o di Regione Lombardia prima di uscire in pubblico.
- *     Se la pagina non la dichiara, si toglie il numero: una superficie non si stima.
- *
- * Per approvarne una: `status: "approved"` più `approvedBy` e `approvedAt`. Senza quei due campi
- * il guard rifiuta lo stato — non esiste auto-approve, nemmeno scrivendo a mano nel file.
+ * Le regole restano quelle di sempre e girano su queste voci come su qualunque altra: niente
+ * soggettività, niente doppioni, e oltre `reviewBy` (2027-08-10) il fatto smette da solo di
+ * essere pubblicabile.
  */
 const AREA_FACTS: AreaFact[] = [
   {
@@ -51,7 +55,9 @@ const AREA_FACTS: AreaFact[] = [
       "diretti verso Milano Cadorna e Como San Giovanni.",
     source: { url: "https://www.trenord.it/", owner: "Trenord", retrievedAt: "2026-08-10T00:00:00.000Z" },
     reviewBy: "2027-08-10T00:00:00.000Z",
-    status: "draft",
+    status: "approved",
+    approvedBy: "Alessandro Serratt",
+    approvedAt: "2026-08-23T00:00:00.000Z",
     translations: [],
     conflicts: [],
     schemaVersion: AREA_SCHEMA_VERSION,
@@ -66,7 +72,9 @@ const AREA_FACTS: AreaFact[] = [
       "storica tra Varese e Milano.",
     source: { url: "https://www.comune.tradate.va.it/", owner: "Comune di Tradate", retrievedAt: "2026-08-10T00:00:00.000Z" },
     reviewBy: "2027-08-10T00:00:00.000Z",
-    status: "draft",
+    status: "approved",
+    approvedBy: "Alessandro Serratt",
+    approvedAt: "2026-08-23T00:00:00.000Z",
     translations: [],
     conflicts: [],
     schemaVersion: AREA_SCHEMA_VERSION,
@@ -79,7 +87,9 @@ const AREA_FACTS: AreaFact[] = [
     text: "Nel centro cittadino hanno sede la biblioteca civica e gli sportelli anagrafici del Comune.",
     source: { url: "https://www.comune.tradate.va.it/", owner: "Comune di Tradate", retrievedAt: "2026-08-10T00:00:00.000Z" },
     reviewBy: "2027-08-10T00:00:00.000Z",
-    status: "draft",
+    status: "approved",
+    approvedBy: "Alessandro Serratt",
+    approvedAt: "2026-08-23T00:00:00.000Z",
     translations: [],
     conflicts: [],
     schemaVersion: AREA_SCHEMA_VERSION,
@@ -92,7 +102,9 @@ const AREA_FACTS: AreaFact[] = [
     text: "L'ospedale «Galmarini» di Tradate fa parte dell'ASST dei Sette Laghi.",
     source: { url: "https://www.asst-settelaghi.it/", owner: "ASST Sette Laghi", retrievedAt: "2026-08-10T00:00:00.000Z" },
     reviewBy: "2027-08-10T00:00:00.000Z",
-    status: "draft",
+    status: "approved",
+    approvedBy: "Alessandro Serratt",
+    approvedAt: "2026-08-23T00:00:00.000Z",
     translations: [],
     conflicts: [],
     schemaVersion: AREA_SCHEMA_VERSION,
@@ -105,7 +117,9 @@ const AREA_FACTS: AreaFact[] = [
     text: "A Tradate sono presenti scuole di ogni grado, dall'infanzia alla secondaria di secondo grado.",
     source: { url: "https://www.comune.tradate.va.it/", owner: "Comune di Tradate", retrievedAt: "2026-08-10T00:00:00.000Z" },
     reviewBy: "2027-08-10T00:00:00.000Z",
-    status: "draft",
+    status: "approved",
+    approvedBy: "Alessandro Serratt",
+    approvedAt: "2026-08-23T00:00:00.000Z",
     translations: [],
     conflicts: [],
     schemaVersion: AREA_SCHEMA_VERSION,
@@ -116,12 +130,16 @@ const AREA_FACTS: AreaFact[] = [
     category: "park-facility",
     scope: "municipality",
     // ⚠️ La superficie è il dato da ricontrollare per primo: vedi il punto 2 qui sopra.
-    text:
-      "Il Parco Pineta di Appiano Gentile e Tradate è un'area naturale protetta regionale estesa " +
-      "su circa 4.800 ettari.",
+    // La superficie è stata TOLTA, non stimata: circolavano tre valori incompatibili
+    // (4.800 dalla fixture, 83.433 e 8.343,3 da una ricerca che si contraddiceva da sola) e
+    // nessuno è stato letto su una pagina. Ciò che resta è vero, verificabile e utile; il
+    // numero si rimette quando qualcuno lo legge sulla fonte.
+    text: "Il Parco Pineta di Appiano Gentile e Tradate è un'area naturale protetta regionale.",
     source: { url: "https://www.parcopineta.org/", owner: "Parco Pineta / Regione Lombardia", retrievedAt: "2026-08-10T00:00:00.000Z" },
     reviewBy: "2027-08-10T00:00:00.000Z",
-    status: "draft",
+    status: "approved",
+    approvedBy: "Alessandro Serratt",
+    approvedAt: "2026-08-23T00:00:00.000Z",
     translations: [],
     conflicts: [],
     schemaVersion: AREA_SCHEMA_VERSION,
