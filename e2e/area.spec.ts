@@ -1,12 +1,16 @@
 // La sezione d'area, provata nel browser sul build di produzione (Prompt 14).
 //
-// Oggi il dataset dei fatti è VUOTO, e questa suite prova esattamente quello: che il sistema si
-// comporti bene quando non ha niente da dire. È il caso più importante da tenere sotto test,
-// perché è quello in cui un difetto non si vede — un titolo vuoto, un contenitore senza figli,
-// un «informazioni in aggiornamento» passano inosservati in revisione e restano online per mesi.
+// La suite nasceva quando il dataset era VUOTO e provava soltanto il silenzio. Ora Tradate ha sei
+// fatti approvati, quindi prova le DUE metà, che sono la stessa regola vista dai due lati:
 //
-// I test unitari coprono le regole di proiezione. Qui si verificano le due cose che solo il
-// browser può dire: cosa arriva davvero nei byte serviti, e cosa vede una persona.
+//   • un comune SENZA fatti → nessuna sezione, e soprattutto nessun moncone. Resta il caso più
+//     importante: un titolo vuoto o un «informazioni in aggiornamento» passano inosservati in
+//     revisione e restano online per mesi;
+//   • un comune CON fatti → la sezione c'è, e ogni riga porta la sua fonte. Un fatto senza
+//     attribuzione visibile è esattamente ciò che questo dominio esiste per non produrre.
+//
+// I test unitari coprono le regole di proiezione. Qui si verifica ciò che solo il browser può
+// dire: cosa arriva davvero nei byte serviti, e cosa vede una persona.
 
 import { test, expect } from "./helpers";
 import { organizationJsonLd } from "../app/lib/site";
@@ -17,23 +21,42 @@ const AREA_SECTION = 'section[aria-labelledby="vivere-in-zona-title"]';
 /** La prima scheda immobile dell'elenco pubblico. */
 async function firstListingPath(page: import("@playwright/test").Page): Promise<string> {
   await page.goto("/acquista");
-  const href = await page
-    .locator('a[href^="/case/"]')
-    .first()
-    .getAttribute("href");
+  const href = await page.locator('a[href^="/case/"]').first().getAttribute("href");
   if (!href) throw new Error("nessuna scheda in /acquista: il catalogo di prova è vuoto");
   return href;
 }
 
+/**
+ * Una scheda il cui slug contiene (o NON contiene) `needle`.
+ *
+ * Serve a distinguere un comune curato da uno che non lo è senza inchiodare il test a uno slug
+ * preciso: il catalogo di prova cambia, la distinzione «ha fatti / non ne ha» no.
+ */
+async function listingPathWhere(
+  page: import("@playwright/test").Page,
+  needle: string,
+  present: boolean,
+): Promise<string> {
+  await page.goto("/acquista");
+  const hrefs = await page
+    .locator('a[href^="/case/"]')
+    .evaluateAll((els) => [...new Set(els.map((e) => (e as HTMLAnchorElement).getAttribute("href")!))]);
+  const found = hrefs.find((h) => h.includes(needle) === present);
+  if (!found) {
+    throw new Error(
+      `nessuna scheda con slug che ${present ? "contiene" : "non contiene"} "${needle}" fra ${hrefs.length}`,
+    );
+  }
+  return found;
+}
+
 test.describe("sezione d'area", () => {
-  test("senza fatti approvati la sezione NON compare, e la scheda resta intera", async ({
-    page,
-    goto,
-  }) => {
-    const path = await firstListingPath(page);
+  test("un comune SENZA fatti: nessuna sezione, e nessun moncone", async ({ page, goto }) => {
+    // Non più «la prima scheda»: da quando Tradate è curato, la prima scheda ce l'ha eccome.
+    // Il fail-closed si prova dove il fail-closed vive — su un comune che non ha fatti.
+    const path = await listingPathWhere(page, "tradate", false);
     await goto(path);
 
-    // Il fail-closed: niente fatti approvati → niente sezione.
     await expect(page.locator(AREA_SECTION)).toHaveCount(0);
 
     // E soprattutto: nessun MONCONE. Un titolo senza corpo, o un segnaposto di cortesia, è
@@ -45,6 +68,27 @@ test.describe("sezione d'area", () => {
 
     // L'assenza deve essere una scelta, non una pagina rotta: il resto della scheda c'è.
     await expect(page.locator("h1")).toBeVisible();
+  });
+
+  test("un comune CURATO: la sezione c'è, e ogni fatto porta la sua fonte", async ({ page, goto }) => {
+    await goto(await listingPathWhere(page, "tradate", true));
+
+    const section = page.locator(AREA_SECTION);
+    await expect(section).toHaveCount(1);
+    await expect(section).toContainText(/Vivere a Tradate/i);
+
+    // Ogni riga deve dichiarare da dove viene. È la promessa dell'intero dominio: un fatto senza
+    // attribuzione visibile vale quanto una frase di marketing.
+    const text = await section.innerText();
+    for (const owner of ["Trenord", "Comune di Tradate", "ASST Sette Laghi"]) {
+      expect(text, `manca l'attribuzione a ${owner}`).toContain(owner);
+    }
+    expect(text, "manca la data di verifica").toMatch(/verificato il/i);
+
+    // E nessuna delle formule che l'audit vieta.
+    for (const banned of [/zona tranquilla/i, /servitissim/i, /posizione strategica/i, /ideale per/i]) {
+      expect(text, `formula vietata in pagina: ${banned}`).not.toMatch(banned);
+    }
   });
 
   test("l'unica coordinata servita al browser è la sede dell'agenzia", async ({
