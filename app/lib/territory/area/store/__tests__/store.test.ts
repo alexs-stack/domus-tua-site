@@ -132,7 +132,15 @@ describe("la migrazione dice in SQL ciò che il contratto dice in TypeScript", (
     const view = sql.slice(sql.indexOf("create or replace view public_property_area"));
     const body = view.slice(0, view.indexOf(";"));
     assert.doesNotMatch(body, /private_origin_lat|private_origin_lng/);
-    assert.match(sql, /revoke all on public_property_area from anon, authenticated/);
+    // La revoca c'è per entrambi i ruoli. Si verifica il FATTO, non la forma letterale: la riga
+    // era `revoke ... from anon, authenticated` in un colpo solo, e falliva su qualunque Postgres
+    // che non fosse Supabase — quei due ruoli lì non esistono, e la transazione si annullava a
+    // schema mezzo costruito. Ora è condizionata all'esistenza del ruolo, e il test lo pretende:
+    // senza quella guardia la migrazione torna a non essere applicabile fuori da Supabase.
+    assert.match(sql, /revoke all on public_property_area from anon/);
+    assert.match(sql, /revoke all on public_property_area from authenticated/);
+    assert.match(sql, /from pg_roles where rolname = 'anon'/);
+    assert.match(sql, /from pg_roles where rolname = 'authenticated'/);
   });
 
   test("cancellare una fonte non fa sparire in silenzio i fatti che ne dipendono", () => {
