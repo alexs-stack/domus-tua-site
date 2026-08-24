@@ -14,14 +14,23 @@ Sono coperti **quindici prompt su sedici**. Fuori restano il backfill oltre la f
 (Prompt 13) e l'audit finale di lancio (Prompt 16) — entrambi perché richiedono che lo store
 durevole esista davvero, e quello dipende da una decisione che il codice non può prendersi.
 
-**L'unica cosa che manca per procedere è puntare le migrazioni al progetto Supabase giusto.** Le
-migrazioni sono scritte e testate; applicarle tocca un database reale, quindi il progetto va
-indicato da chi lo conosce — non dedotto. Nessuno dei progetti visibili da questo ambiente è
-riconducibile a questo sito (sono un CRM di outreach, un'accademia di trading e un ERP
-d'officina), e il repository non ha mai avuto una `SUPABASE_URL` in `.env.example`.
+**Per pubblicare la sezione NON serve un database.** È la correzione più utile di questo
+documento, che prima diceva il contrario.
 
-Finché non è indicato, le migrazioni restano file rivisti e nient'altro: è la stessa regola del
-resto del dominio — in mancanza di una decisione esplicita non si scrive niente.
+I fatti d'area vivono già in git, in `app/lib/territory/area/data.ts`: sono validati a
+import-time — un fatto scritto male rompe la build, non la pagina — e la pagina pubblica li
+legge da lì (`page.tsx` → `getPublicAreaProfileFor` → `getPublicAreaProfile` →
+`toPublicAreaProfile(AREA_FACTS, …)`). L'approvazione è la pull request: autore, data, diff,
+revisore. La pubblicazione è il deploy. Costo: zero.
+
+Per la forma di questo dominio è la scelta giusta, non un ripiego. Poche decine di affermazioni
+per comune, che nascono da una lettura umana di una fonte ufficiale e restano valide per mesi:
+una linea ferroviaria non si sposta, un ospedale non cambia indirizzo il martedì.
+
+**Il database serve per due cose, ed entrambe riguardano le persone, non i dati:** quando approva
+chi non usa git (la redazione in `/area-review` scrive a runtime), e quando la ricerca automatica
+gira da sola e ha bisogno di una coda con lease e idempotenza. Fino ad allora le migrazioni in
+`supabase/` restano pronte — scritte, eseguite su Postgres vero e portabili (vedi sotto).
 
 Finché lo store durevole non è collegato, **il dataset dei fatti resta vuoto e la sezione d'area
 non compare** — che è il comportamento voluto, non un'attesa: fail-closed.
@@ -97,10 +106,22 @@ Non è un lavoro in sospeso: è il fail-closed. Senza fatti approvati la sezione
 non entra nel DOM. Una narrativa approvata **da sola non basta** a farla comparire — il testo
 nasce dai fatti, e se i fatti non sono pubblicabili non ha su cosa poggiare.
 
-### Le migrazioni sono scritte ma non applicate
+### Le migrazioni sono scritte, ESEGUITE e non applicate
 
-`supabase/migrations/0002_area_schema.sql` è il **progetto** dello schema, non lo stato del
+`supabase/migrations/0002_area_schema.sql` è il **progetto** dello schema, non lo stato di un
 database. Il file lo dichiara, e un test verifica che continui a dichiararlo.
+
+Dal 2026-08-23 sono anche state **eseguite** su un Postgres 16 vero, giro completo
+(`0001 up → 0002 up → 0002 down → 0001 down → zero tabelle`). Il giro ha trovato un difetto che
+la sola lettura non aveva visto: `revoke ... from anon, authenticated` presuppone i ruoli
+predefiniti di Supabase, e su qualunque altro Postgres la migrazione si annullava a schema mezzo
+costruito. Ora la revoca è condizionata all'esistenza del ruolo, quindi lo schema è portabile
+(Neon, RDS, Postgres locale) oltre che corretto su Supabase.
+
+Verificate una per una anche le regole duplicate in SQL: chiave d'area non canonica, profilo
+`approved` senza firma, evento `publish` senza motivazione, riscrittura o cancellazione di un
+evento di audit, `idempotency_key` ripetuta, tipo di job inventato — tutte respinte dal
+database, non solo dall'applicazione.
 
 Le regole di dominio sono duplicate in SQL — nessun auto-approve, soglia di qualità ≥95, audit
 immutabile per trigger, idempotenza dei job, anti-duplicato dei fatti — perché uno script che
@@ -112,9 +133,11 @@ salta il gate applicativo non deve poter fare ciò che il gate impedisce.
 
 In ordine di dipendenza. I primi due sono decisioni, non lavoro di codice.
 
-1. **Indicare il progetto Supabase** e applicare `0002_area_schema.sql`. Da lì si implementa
-   `SupabaseAreaRepository`: il contract test esiste già ed è lo stesso che passa la memoria.
-   Senza questo passo tutto il resto resta in memoria e si perde a ogni riavvio.
+1. **Aggiungere i primi fatti** in `app/lib/territory/area/data.ts`, con fonte, parafrasi
+   neutra e data di revisione, e accendere `NEXT_PUBLIC_TERRITORY_SECTION_ENABLED`. Nessun
+   database, nessun costo: è il percorso completo per vedere la sezione online.
+   *(Il database — punto 1 della vecchia versione di questo elenco — serve solo per la redazione
+   a runtime e per la coda dell'automazione, e resta disponibile quando servirà.)*
 2. **Confermare l'elenco delle fonti** per il primo comune (`ALLOWED_SOURCE_HOSTS`): oggi ce ne
    sono tre, e ogni riga è un'autorizzazione a interrogare il sito di un ente.
 3. **Emettere i token** della redazione (`npm run area:token`) e configurare `AREA_REVIEW_SECRET`.
