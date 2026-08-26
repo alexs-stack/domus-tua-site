@@ -35,14 +35,7 @@ const TICKS = Array.from({ length: 60 }, (_, i) => {
   };
 });
 
-export function MarkBadge({
-  className = "h-12 w-12",
-  dark = false,
-}: {
-  className?: string;
-  /** true = variante negativa del monogramma (crema + rosso) per fondi scuri */
-  dark?: boolean;
-}) {
+export function MarkBadge({ className = "h-12 w-12" }: { className?: string }) {
   return (
     <span className={`relative inline-block ${className}`}>
       <svg
@@ -73,13 +66,17 @@ export function MarkBadge({
           sull'altezza del badge come prima. */}
       <span className="absolute inset-0 flex items-center justify-center">
         {/* Monogramma ufficiale: ruota su sé stesso nel verso opposto
-            all'anello. Il rosso del logo resta rosso anche nella variante per
-            fondi scuri. Dal 2026-08-06 è VETTORIALE (MarkDomus): il PNG da
-            99×92 si sgranava appena il badge passava i ~50px.
+            all'anello, e NON cambia colore. La prop `dark` che lo ribaltava
+            nella variante crema è sparita insieme alla variante (MarkDomus):
+            sui fondi scuri il badge si posa su una pastiglia chiara — è così
+            che fanno il preloader e il sipario. L'anello di tacche invece usa
+            `currentColor`, quindi lo tinge ancora chi lo ospita.
+            Dal 2026-08-06 è VETTORIALE (MarkDomus): il PNG da 99×92 si
+            sgranava appena il badge passava i ~50px.
             L'aggancio `data-rot-mark` sta sullo SPAN, non sull'svg: è lì che
             GSAP scrive il transform, e il componente non inoltra props. */}
         <span data-rot-mark className="inline-flex h-[52%] w-auto">
-          <MarkDomus variant={dark ? "light" : "color"} className="h-full w-auto" />
+          <MarkDomus className="h-full w-auto" />
         </span>
       </span>
     </span>

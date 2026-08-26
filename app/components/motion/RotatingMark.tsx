@@ -56,13 +56,7 @@ export function spinMarkBadge(
   return tl;
 }
 
-export default function RotatingMark({
-  className = "h-12 w-12",
-  dark = false,
-}: {
-  className?: string;
-  dark?: boolean;
-}) {
+export default function RotatingMark({ className = "h-12 w-12" }: { className?: string }) {
   const rootRef = useRef<HTMLSpanElement | null>(null);
 
   useGSAP(
@@ -141,7 +135,7 @@ export default function RotatingMark({
 
   return (
     <span ref={rootRef} className="contents">
-      <MarkBadge className={className} dark={dark} />
+      <MarkBadge className={className} />
     </span>
   );
 }

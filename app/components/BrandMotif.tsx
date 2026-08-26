@@ -16,11 +16,13 @@ type MotifProps = {
   className?: string;
   /** compat storica (variante col tetto disegnato): oggi ignorata */
   embrace?: boolean;
-  /** "light" = variante negativa (crema + rosso) per superfici scure */
-  variant?: "color" | "light";
 };
 
 // ── Segno base: il MONOGRAMMA UFFICIALE ──────────────────────────────────────
+// Non ha una variante di colore, e non deve averne: la prop `variant="light"`
+// che stava qui era una porta aperta sul logo bianco (nessun call-site la
+// usava, ma bastava un giorno e qualcuno l'avrebbe usata). Su fondo scuro il
+// segno va posato su una pastiglia chiara, non ricolorato.
 // Direttiva cliente: usare il logo reale ovunque. Dal 2026-08-06 è VETTORIALE
 // (vedi MarkDomus.tsx): il PNG da 99×92 si sgranava appena passava i ~50px,
 // e il monogramma serve anche grande. Il viewBox con preserveAspectRatio di
@@ -28,8 +30,8 @@ type MotifProps = {
 // i call-site con box larghi (h-4 w-10) restano validi. Niente stroke-draw:
 // il brand book vieta di animare il logo con morph/draw — le entrance restano
 // fade/scale/maschere del CONTENITORE.
-export function SegnoDomus({ className = "h-4 w-10", variant = "color" }: MotifProps) {
-  return <MarkDomus className={className} variant={variant} />;
+export function SegnoDomus({ className = "h-4 w-10" }: MotifProps) {
+  return <MarkDomus className={className} />;
 }
 
 // Alias semantico: la linea-tetto come elemento a sé.

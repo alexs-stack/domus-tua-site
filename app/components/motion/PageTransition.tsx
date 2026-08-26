@@ -25,6 +25,9 @@ import { gsap, ScrollTrigger, MQ, dur } from "../../lib/motion/gsap";
 import { MarkBadge, spinMarkBadge } from "./RotatingMark";
 import { useDict } from "../i18n/LocaleProvider";
 import { getLenis } from "./SmoothScroll";
+// La mappa pathname → nome di pagina vive in un modulo puro: è l'unico pezzo
+// testabile di questo file, e il test le impone di coprire OGNI rotta pubblica.
+import { labelForPath, wordFontSize } from "./transitionLabel";
 
 const CLOSED = "inset(100% 0% 0% 0%)";
 const OPEN = "inset(0% 0% 0% 0%)";
@@ -38,36 +41,6 @@ const ARCH_GONE = { "--arch-w": "125vw", "--arch-y": "-100vh" } as const;
 const supportsArchMask = () =>
   typeof CSS !== "undefined" && CSS.supports("mask-composite", "add");
 
-type NavDict = ReturnType<typeof useDict>["nav"];
-
-// Il sipario annuncia la destinazione: pathname → etichetta tradotta (d.nav.*).
-// Route non mappate (privacy, cookie, servizi…) → null: resta solo il marchio.
-function labelForPath(rawPath: string, nav: NavDict): string | null {
-  const path =
-    rawPath.length > 1 && rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
-  if (path === "/") return "Domus Tua"; // nome proprio: identico in ogni lingua
-  // Solo le schede /case/<slug>: l'indice /case non esiste più (redirect a /acquista).
-  if (path.startsWith("/case/")) return nav.case;
-  switch (path) {
-    case "/vendi":
-      return nav.vendi;
-    case "/acquista":
-      return nav.acquista;
-    case "/metodo":
-      return nav.metodo;
-    case "/open-domus":
-      return nav.openDomus;
-    case "/recensioni":
-      return nav.recensioni;
-    case "/chi-siamo":
-      return nav.chiSiamo;
-    case "/contatti":
-      return nav.contatti;
-    default:
-      return null;
-  }
-}
-
 /* La parola-destinazione si compone LETTERA PER LETTERA, con lo stesso gesto
    del preloader (rotazione su Y + salita da sotto la maschera). Il testo
    arriva da labelForPath a runtime, quindi lo split va fatto qui e non nel
@@ -78,6 +51,10 @@ const CHAR = "dt-tr-char";
 function writeWord(el: HTMLElement, text: string): HTMLElement[] {
   clearWord(el);
   if (!text) return [];
+  // Il corpo lo decide la parola: «Domande frequenti» e «Lavora con noi» sono
+  // più lunghe di qualunque etichetta storica e su un telefono da 360px, dove
+  // il clamp è già al minimo, toccherebbero il bordo.
+  el.style.fontSize = wordFontSize(text);
   const line = document.createElement("span");
   line.className = "dt-tr-line";
   for (const ch of text) {
@@ -217,7 +194,7 @@ export default function PageTransition() {
         } catch {
           /* href relativo malformato: nessuna parola, il sipario resta com'è */
         }
-        const label = labelForPath(destPath, dictRef.current.nav);
+        const label = labelForPath(destPath, dictRef.current);
         gsap.killTweensOf(word);
         const glyphs = writeWord(word, label ?? "");
         if (glyphs.length) {
@@ -480,7 +457,10 @@ export default function PageTransition() {
           {/* Il marchio dentro la corona: monogramma e anello in
               controrotazione (tween avviato da navigate, fermato a fine
               entrata), la corona di luce in CSS. */}
-          <div ref={markLayerRef} className="dt-loader text-cream/90" style={{ opacity: 0 }}>
+          {/* `text-graphite`: le tacche dell'anello prendono currentColor e
+              ora cadono sul cuore CHIARO del loader (globals.css), non più su
+              un pozzo scuro. */}
+          <div ref={markLayerRef} className="dt-loader text-graphite" style={{ opacity: 0 }}>
             <span aria-hidden className="dt-loader_halo">
               {/* Tre copie via via più sfocate: sono loro l'alone, non un
                   box-shadow — un'ombra non gira col gradiente e resterebbe
@@ -490,7 +470,10 @@ export default function PageTransition() {
               <span />
             </span>
             <span aria-hidden className="dt-loader_core" />
-            <MarkBadge className="dt-loader_mark" dark />
+            {/* Senza `dark`: il monogramma resta quello depositato, grigio
+                e rosso. È il cuore chiaro del loader a renderlo leggibile
+                sull'espresso del sipario, non una seconda versione del logo. */}
+            <MarkBadge className="dt-loader_mark" />
           </div>
           {/* Parola-destinazione: nome tradotto della pagina in arrivo, nella
               didone dei momenti-hero e con lo stesso gesto del lockup del

@@ -2504,20 +2504,25 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   filter: blur(38px);
   opacity: 0.55;
 }
-/* Il cuore scuro: NON un disco pieno, che stamperebbe un bordo netto sul
+/* Il cuore CHIARO: NON un disco pieno, che stamperebbe un bordo netto sul
    fondo del sipario (espresso + due radiali, quindi mai una tinta sola). È
    una sfumatura che si spegne dove comincia la corona: il marchio ha il suo
-   fondo profondo, la corona resta un anello di luce, e in mezzo non c'è
-   nessuna giuntura da notare. */
+   fondo, la corona resta un anello di luce, e in mezzo non c'è nessuna
+   giuntura da notare.
+   Era un pozzo scuro (espresso al 97%), e su quel fondo il monogramma poteva
+   solo essere la variante negativa — cioè il logo del cliente bianco a ogni
+   cambio pagina. Girata la tinta, il marchio depositato (grigio #595a58 +
+   rosso) ci si legge sopra senza cambiare un colore: il disco chiaro fa da
+   targhetta, esattamente come la pastiglia del footer e dell'header. */
 .dt-loader_core {
   height: 100%;
   width: 100%;
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    rgba(28, 21, 18, 0.97) 58%,
-    rgba(28, 21, 18, 0.88) 74%,
-    rgba(28, 21, 18, 0) 100%
+    rgba(255, 253, 248, 0.98) 58%,
+    rgba(255, 253, 248, 0.9) 74%,
+    rgba(255, 253, 248, 0) 100%
   );
 }
 .dt-loader_mark {
@@ -2547,19 +2552,29 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   display: inline-block;
 }
 
-/* ---------- Cursor custom (solo pointer fine + motion ok) ---------- */
+/* ---------- Cursore d'intento (solo pointer fine + motion ok) ----------
+   Qui c'era `html.dt-cursor-active * { cursor: none !important }`: il
+   puntatore di sistema spariva da TUTTO il documento, e al suo posto
+   restava l'anello che seguiva ovunque. Ora il nativo è la regola e
+   sparisce solo sui bersagli dichiarati, quelli con `data-cursor`, dove al
+   suo posto c'è la targhetta (Cursor.tsx). Fuori di lì — testo, form,
+   header, footer — la freccia del sistema non viene mai toccata.
+   Niente `!important`: `html.dt-cursor-active [data-cursor]` (0,2,1) batte
+   già le utility Tailwind di una classe sola (es. `cursor-ew-resize` sul
+   confronto prima/dopo). */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  html.dt-cursor-active,
-  html.dt-cursor-active * {
-    cursor: none !important;
+  html.dt-cursor-active [data-cursor],
+  html.dt-cursor-active [data-cursor] * {
+    cursor: none;
   }
-  /* Il cursore nativo resta su campi e widget di terzi. */
-  html.dt-cursor-active input,
-  html.dt-cursor-active textarea,
-  html.dt-cursor-active select,
-  html.dt-cursor-active [contenteditable="true"],
-  html.dt-cursor-active iframe {
-    cursor: auto !important;
+  /* Il cursore nativo resta su campi e widget di terzi anche quando
+     capitano dentro un bersaglio (una scheda con un input di ricerca). */
+  html.dt-cursor-active [data-cursor] input,
+  html.dt-cursor-active [data-cursor] textarea,
+  html.dt-cursor-active [data-cursor] select,
+  html.dt-cursor-active [data-cursor] [contenteditable="true"],
+  html.dt-cursor-active [data-cursor] iframe {
+    cursor: auto;
   }
 }
 

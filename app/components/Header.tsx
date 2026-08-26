@@ -13,7 +13,6 @@ import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { getLenis } from "./motion/SmoothScroll";
 import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
-import { registerWarmup } from "../lib/motion/warmup";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -71,28 +70,13 @@ export default function Header() {
     { scope: pillRef }
   );
 
-  /* Il wordmark ha due varianti e l'header le SCAMBIA al primo scroll: quella
-     non montata non è nel DOM, quindi nessun precarico generico la trova e
-     arrivava in ritardo proprio nel momento in cui si comincia a scorrere.
-     Qui si chiedono entrambe dietro il sipario. */
-  useEffect(() => {
-    return registerWarmup(
-      () =>
-        new Promise<void>((risolvi) => {
-          const varianti = ["/logo-domustua-wordmark.png", "/logo-domustua-wordmark-dark.png"];
-          let mancanti = varianti.length;
-          const fatta = () => {
-            if (--mancanti === 0) risolvi();
-          };
-          for (const src of varianti) {
-            const img = new window.Image();
-            img.onload = fatta;
-            img.onerror = fatta;
-            img.src = src;
-          }
-        })
-    );
-  }, []);
+  /* Qui c'era il precarico del SECONDO wordmark. L'header ne scambiava due al
+     primo scroll — quella a colori e la negativa — e la variante non montata
+     non stava nel DOM, quindi nessun precarico generico la trovava: arrivava
+     in ritardo proprio mentre si cominciava a scorrere, e serviva chiederla a
+     mano dietro il sipario. Da quando il logo non cambia più colore il file è
+     UNO, sta nel markup dal primo frame, e il precarico normale basta: quel
+     warmup non aveva più niente da scaldare. */
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -316,20 +300,36 @@ export default function Header() {
         <Link href="/" className="shrink-0" aria-label="Domus Tua, vai alla home">
           {/* Badge di marca rif. era-residence: monogramma ufficiale fermo,
               anello ornamentale che ruota con lo scroll (RotatingMark).
-              Sopra l'hero scuro diventa silhouette chiara; da scrollato
-              l'anello passa a grafite e il monogramma torna a colori. */}
+
+              IL LOGO NON CAMBIA COLORE (direttiva cliente, ribadita il
+              2026-08-26). Qui il marchio girava alla variante negativa sopra
+              l'hero — monogramma crema e wordmark preso da
+              `logo-domustua-wordmark-dark.png`, che è la NEGATIVA del file
+              depositato — e tornava grigio+rosso solo da scrollato. Cioè: al
+              primo impatto su ogni pagina il logo del cliente era bianco e
+              rosso. Ora è sempre e solo quello depositato, grigio e rosso.
+
+              Il fondo scuro lo risolve la TARGHETTA, non il colore del
+              marchio: sopra l'hero il lockup si posa su una pastiglia chiara
+              — la stessa soluzione che il footer usa già dal 2026-08-09 —
+              e la pastiglia si dissolve quando la pill dell'header diventa
+              chiara di suo. La geometria non cambia mai (stesso padding in
+              entrambi gli stati): si muove solo il colore, quindi il logo non
+              sobbalza allo scroll. */}
           <span
-            className={`flex items-center gap-2.5 transition-colors duration-500 ${
-              scrolled ? "text-graphite" : "text-cream"
+            className={`flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-3.5 text-graphite transition-[background-color,box-shadow] duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              scrolled
+                ? "bg-transparent shadow-none"
+                : "bg-paper shadow-[0_12px_36px_-20px_rgba(26,24,22,0.75)]"
             }`}
           >
-            <RotatingMark className="block h-12 w-12 shrink-0" dark={!scrolled} />
+            <RotatingMark className="block h-12 w-12 shrink-0" />
             {/* Wordmark ufficiale (crop del PNG depositato: stesso font e
-                stessi colori). Sul velo scuro dell'hero: variante negativa —
-                "Domus" in crema, "Tua" resta ROSSA come nel logo. */}
+                stessi colori). Un file solo: la variante `-dark` non la usa
+                più nessuno. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={scrolled ? "/logo-domustua-wordmark.png" : "/logo-domustua-wordmark-dark.png"}
+              src="/logo-domustua-wordmark.png"
               alt=""
               width={388}
               height={92}
