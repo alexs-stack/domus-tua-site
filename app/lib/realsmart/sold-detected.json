@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-08-26T12:28:23.326Z",
+  "generatedAt": "2026-08-28T17:51:32.562Z",
   "feed": "https://www.gestim2002.it/portali/immobili_724.xml",
   "counts": {
-    "total": 197,
+    "total": 196,
     "sold": 166,
     "reserved": 1
   },
@@ -294,12 +294,6 @@
       "state": "sold",
       "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523220.jpg",
       "text": "VENDUTO"
-    },
-    "1857": {
-      "sold": false,
-      "state": "available",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-1902504.jpg",
-      "text": ""
     },
     "1859": {
       "sold": true,
