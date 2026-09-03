@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-08-28T17:51:32.562Z",
+  "generatedAt": "2026-09-03T20:16:10.251Z",
   "feed": "https://www.gestim2002.it/portali/immobili_724.xml",
   "counts": {
-    "total": 196,
+    "total": 195,
     "sold": 166,
     "reserved": 1
   },
@@ -654,12 +654,6 @@
       "state": "available",
       "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2352337.jpg",
       "text": "AR AY TU I LJ J J HE CRYER G ID"
-    },
-    "1952": {
-      "sold": false,
-      "state": "available",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2361880.jpg",
-      "text": "FR"
     },
     "1954": {
       "sold": true,
