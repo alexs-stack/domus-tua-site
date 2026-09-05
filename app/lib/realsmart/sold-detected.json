@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-03T20:16:10.251Z",
+  "generatedAt": "2026-09-05T14:10:55.173Z",
   "feed": "https://www.gestim2002.it/portali/immobili_724.xml",
   "counts": {
-    "total": 195,
+    "total": 196,
     "sold": 166,
     "reserved": 1
   },
@@ -36,6 +36,12 @@
       "state": "sold",
       "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2523723.jpg",
       "text": "PY RE FI CG VENDUTO EL"
+    },
+    "1703": {
+      "sold": false,
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3055840.jpg",
+      "text": "P NG OR EAR ARS G SABATO SETTEMBRE"
     },
     "1722": {
       "sold": true,
