@@ -46,7 +46,7 @@ export default function PageHero({
   scriptWord?: string;
 }) {
   return (
-    <section id={id} className="relative bg-cream pt-[clamp(7rem,16vh,10rem)]">
+    <section id={id} className="relative bg-cream pt-[clamp(2rem,6vh,4rem)]">
       <div className="dt-row">
         <Reveal>
           <span className="eyebrow">{eyebrow}</span>
@@ -66,7 +66,7 @@ export default function PageHero({
           {scriptWord && (
             <span
               aria-hidden
-              className="script-word -mt-[0.35em] block pl-[10vw] !text-[clamp(2.4rem,6vw,6rem)]"
+              className="script-word -mt-[0.12em] block pl-[24vw] !text-[clamp(2.4rem,6vw,6rem)]"
             >
               {scriptWord}
             </span>

@@ -72,7 +72,7 @@ export function MarkBadge({
           Il contenitore è `inset-0`, quindi `h-[52%]` continua a misurarsi
           sull'altezza del badge come prima. */}
       <span className="absolute inset-0 flex items-center justify-center">
-        {/* Monogramma ufficiale: ruota su sé stesso nel verso opposto
+        {/* Monogramma ufficiale: ruota su sé stesso nello stesso verso (orario)
             all'anello. Il rosso del logo resta rosso anche nella variante per
             fondi scuri. Dal 2026-08-06 è VETTORIALE (MarkDomus): il PNG da
             99×92 si sgranava appena il badge passava i ~50px.

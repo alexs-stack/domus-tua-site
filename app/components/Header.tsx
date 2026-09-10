@@ -192,7 +192,10 @@ export default function Header() {
       // `!border-transparent`: globals.css ha un `* { border-color: var(--color-line) }`
       // fuori da ogni @layer, che vince sulle utility; senza il `!` la hairline
       // resterebbe visibile anche sull'header trasparente.
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${
+      // In flusso: sul telefono resta appiccicato in alto (serve al bottone Menu),
+      // da lg in su SCORRE VIA come nel riferimento — nessuna barra fissa su
+      // ogni schermata, la pagina è tutta contenuto.
+      className={`sticky top-0 z-50 border-b transition-colors duration-300 lg:relative ${
         solid ? "border-line bg-cream-deep" : "!border-transparent bg-transparent"
       }`}
     >
@@ -213,11 +216,10 @@ export default function Header() {
         </Link>
 
         {/* Riga 1, a destra (lg+): lingua e CTA piena. */}
+        {/* Nessuna CTA nell'header (rif.): l'azione sta nell'hero e nelle
+            pagine, una volta sola per schermo. */}
         <div className="hidden items-center gap-6 lg:flex">
           <LanguageSwitcher />
-          <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="sm" arrow={false}>
-            {d.header.valuta}
-          </Cta>
         </div>
 
         {/* Toggle del menu (sotto lg): parola, non icona. L'aria-label conserva

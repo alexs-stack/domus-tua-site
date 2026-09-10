@@ -62,10 +62,12 @@ facade al click).
   niente gradienti viola-blu, niente dark-tech, niente Inter.
 - Font: Playfair Display (didone display unica di tutto il sito, la stessa
   del lockup hero/preloader; Fraunces ritirato, ago 2026) + Plus Jakarta Sans
-  (UI) + Pinyon Script (solo accento calligrafico del lockup).
+  (UI) + Pinyon Script (il corsivo rosso: la firma nel lockup e una
+  parola-ornamento per capitolo).
 - Logo ufficiale PNG: non ridisegnare, non animare con morph/draw.
 - Motion (dal 2026-09-10): tre gesti soli — righe che salgono, fade-in,
-  parallasse leggera — più la rotaia orizzontale del team; niente sezioni
+  parallasse leggera — più la rotaia orizzontale del team e il monogramma
+  che ruota (orario) nel badge dell'header; niente sezioni
   pinnate, niente transizioni fra le pagine, niente cursore custom. Il
   preloader resta (film ad arco, 4,6 s). Il sito deve restare bello ANCHE FERMO.
 - Forma (dal 2026-09-10, direttiva cliente): NIENTE curve (raggi a zero

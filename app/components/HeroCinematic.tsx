@@ -220,7 +220,7 @@ export default function HeroCinematic() {
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
         // Reveal per LETTERE: i chars del lockup e della riga motto salgono
-        // ruotando su Y; lo script arriva con rotateX + slittamento orizzontale.
+        // salendo dalla maschera (niente flip: tre gesti soli, come il riferimento).
         const titleChars = gsap.utils.toArray<HTMLElement>("[data-hero-char]", section);
         const taglineChars = gsap.utils.toArray<HTMLElement>("[data-hero-tchar]", section);
         const scriptChars = gsap.utils.toArray<HTMLElement>("[data-hero-schar]", section);
@@ -258,15 +258,11 @@ export default function HeroCinematic() {
           gsap.set([...titleChars, ...taglineChars], {
             opacity: 0,
             yPercent: 50,
-            rotateY: 90,
-            transformPerspective: 800,
           });
           gsap.set(scriptChars, {
             opacity: 0,
-            rotateX: 90,
             x: "6vw",
             transformOrigin: "center bottom",
-            transformPerspective: 800,
           });
           // Ritmo disteso (richiesta cliente 2026-08-03): durate a dur.hero e
           // stagger larghi — le lettere si posano, non sfrecciano.
@@ -280,7 +276,6 @@ export default function HeroCinematic() {
             {
               opacity: 1,
               yPercent: 0,
-              rotateY: 0,
               duration: dur.hero,
               stagger: 0.08,
               ease: "dtOut",
@@ -292,7 +287,6 @@ export default function HeroCinematic() {
               {
                 opacity: 1,
                 x: "0vw",
-                rotateX: 0,
                 duration: dur.hero,
                 stagger: 0.07,
                 ease: "dtOut",
@@ -304,7 +298,6 @@ export default function HeroCinematic() {
               {
                 opacity: 1,
                 yPercent: 0,
-                rotateY: 0,
                 duration: dur.hero,
                 stagger: 0.032,
                 ease: "dtOut",
@@ -392,7 +385,7 @@ export default function HeroCinematic() {
   const ratingDisplay = ratingLabel(locale);
 
   return (
-    <section ref={sectionRef} id="top" className="relative bg-cream pt-[clamp(7rem,16vh,10rem)]">
+    <section ref={sectionRef} id="top" className="relative bg-cream pt-[clamp(2rem,6vh,4rem)]">
       <div className="dt-row">
         {/* Lockup nel font del logo (`font-brand`, richiesta cliente: «stesso
             font del logo in tutte le scritte Domus Tua») e coi colori del logo.
@@ -405,8 +398,10 @@ export default function HeroCinematic() {
               maiuscolo solo h1-h4, e questo è un div apposta. */}
           <div className="font-brand text-hero font-extrabold tracking-[-0.02em]">
             <span className="sr-only">Domus Tua</span>
-            <Chars text="Domus" className="block text-graphite" />
-            <Chars text="Tua" className="block text-red" />
+            {/* Su UNA riga, come il logo: a 13vw «Domus Tua» sta nella riga
+                (≈1090 px su 1210) e l'hero resta dentro il primo schermo. */}
+            <Chars text="Domus" className="text-graphite" />{" "}
+            <Chars text="Tua" className="text-red" />
           </div>
           {/* Firma PIÙ IN BASSO (richiesta cliente 2026-09-10): staccata sotto
               il lockup e rientrata, non più sovrapposta al piede delle lettere.
@@ -423,20 +418,44 @@ export default function HeroCinematic() {
 
         {/* Sovratitolo: cosa fa l'agenzia e dove, prima ancora della promessa.
             16 px, non di meno: la cliente non vuole scritte piccole. */}
-        <p className="mt-10 text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.badge}</p>
-
-        {/* L'H1: una frase sola, spezzata sul divisore; maiuscolo per regola
-            globale, la seconda metà in rosso. Le lettere animate sono
-            aria-hidden (vedi Chars): il testo leggibile vive nello span
-            sr-only — un aria-label qui sarebbe vietato (axe). */}
-        {/* d3, non d2: sotto un lockup a 13vw l'H1 fa il lavoro del «NEL CUORE
-            DI» del riferimento (38 px), non del titolo. Le due metà su righe
-            proprie: a d2 il rosso spezzava a metà frase. */}
-        <h1 className="mt-4 max-w-[28ch] font-display text-d3">
-          <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
-          <Chars variant="tagline" text={c.title1} className="block" />
-          <Chars variant="tagline" text={c.title2} className="block text-red" />
-        </h1>
+        {/* Sotto il lockup: a sinistra sovratitolo e H1 (in grafite: il rosso
+            resta alla firma e alle CTA), a destra il BOX CTA — «più a destra»
+            (richiesta cliente) e dentro il primo schermo, prima del video. */}
+        <div className="mt-10 grid gap-x-[6vw] gap-y-8 lg:grid-cols-[1.2fr_1fr] lg:items-end">
+          <div>
+            <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.badge}</p>
+            <h1 className="mt-4 max-w-[28ch] font-display text-d3">
+            <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
+            <Chars variant="tagline" text={c.title1} className="block" />
+            <Chars variant="tagline" text={c.title2} className="block" />
+            </h1>
+          </div>
+          <div className="flex w-full max-w-[520px] flex-col items-start gap-4 lg:justify-self-end">
+            <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="lg">
+              {c.ctaValuta}
+            </Cta>
+            <div className="flex flex-wrap gap-x-8 gap-y-2">
+              <Cta href="/vendi" variant="ghost" arrow={false}>
+                {c.ctaVendi}
+              </Cta>
+              <Cta href="#cerca" variant="ghost" arrow={false}>
+                {c.ctaCerco}
+              </Cta>
+            </div>
+            {/* Voto e conteggio in UN elemento solo, 16 px. Oro solo sulle
+                stelle: l'unica eccezione cromatica già sancita. */}
+            <a href="#recensioni" className="mt-2 flex items-center gap-3 text-ui text-ink">
+              <span className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="h-4 w-4 text-gold" />
+                ))}
+              </span>
+              <span className="font-semibold">
+                {ratingDisplay}/5 · {c.reviews}
+              </span>
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Video 16:9 a tutta larghezza sotto il titolo (rif.: il video risale
@@ -445,7 +464,7 @@ export default function HeroCinematic() {
           e quando il cliente lo riaccende (media.ts). Nessun velo sopra. */}
       <div
         data-hero-media
-        className="relative mt-[clamp(2rem,6vh,4rem)] aspect-video w-full overflow-hidden bg-cream-deep"
+        className="relative mt-[clamp(1.5rem,4vh,3rem)] aspect-video w-full overflow-hidden bg-cream-deep"
       >
         <Image
           src={heroCinematic.base}
@@ -480,38 +499,6 @@ export default function HeroCinematic() {
         )}
       </div>
 
-      {/* Box CTA A DESTRA (richiesta cliente). Niente `dt-hero-rest` né
-          `data-hero-seq`: a 1440×900 il box sta sotto la piega (il video da
-          solo è alto 810 px) e il rito «appare al primo scroll» aveva senso
-          solo con l'hero a schermo intero. Tutto visibile da subito, anche
-          per chi naviga col Tab. */}
-      <div className="dt-row mt-[clamp(2rem,6vh,4rem)] flex justify-end">
-        <div className="flex w-full max-w-[520px] flex-col items-start gap-4">
-          <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="lg">
-            {c.ctaValuta}
-          </Cta>
-          <div className="flex flex-wrap gap-x-8 gap-y-2">
-            <Cta href="/vendi" variant="ghost" arrow={false}>
-              {c.ctaVendi}
-            </Cta>
-            <Cta href="#cerca" variant="ghost" arrow={false}>
-              {c.ctaCerco}
-            </Cta>
-          </div>
-          {/* Voto e conteggio in UN elemento solo, 16 px. Oro solo sulle
-              stelle: l'unica eccezione cromatica già sancita. */}
-          <a href="#recensioni" className="mt-2 flex items-center gap-3 text-ui text-ink">
-            <span className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-4 w-4 text-gold" />
-              ))}
-            </span>
-            <span className="font-semibold">
-              {ratingDisplay}/5 · {c.reviews}
-            </span>
-          </a>
-        </div>
-      </div>
     </section>
   );
 }

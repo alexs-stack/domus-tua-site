@@ -362,9 +362,7 @@ html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
 .reveal {
   opacity: 0;
   transform: translateY(2.5rem);
-  filter: blur(6px);
-  transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo),
-    filter 0.9s var(--ease-out-expo);
+  transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo);
 }
 /* will-change SOLO finché l'elemento non è entrato: decine di reveal promossi
    per sempre = memoria GPU sprecata (sensibile su mobile). */
@@ -374,7 +372,6 @@ html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
 .reveal.is-in {
   opacity: 1;
   transform: translateY(0);
-  filter: blur(0);
 }
 
 /* Fallback senza JS: se lo scripting è disattivato (o un crawler non esegue JS),

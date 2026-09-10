@@ -33,7 +33,7 @@ import { MarkBadge } from "./MarkBadge";
 export { MarkBadge };
 
 /**
- * Giro continuo del badge: anello in un verso, monogramma nell'altro.
+ * Giro continuo del badge: anello e monogramma nello stesso verso, orario.
  *
  * Lo usano il preloader e il sipario delle transizioni, che hanno lo stesso gesto
  * dell'header ma a velocità fissa. Restituisce UN oggetto da uccidere (come il
@@ -77,7 +77,6 @@ export default function RotatingMark({
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
         const state = { speed: 30 }; // gradi/secondo a riposo
-        let dir = 1;
         let rotation = 0;
         let armed = false;
         let idleTimer = 0;
@@ -96,7 +95,7 @@ export default function RotatingMark({
           const dt = Math.min(deltaMS, 100);
           rotation += state.speed * (dt / 1000);
           // Un solo angolo, due segni: qualunque cosa faccia lo scroll — accelerare,
-          // rallentare, invertire — i due elementi restano opposti per costruzione.
+          // accelerare con lo scroll — mai invertire: il cuore resta orario (cliente).
           gsap.set(ring, { rotation, transformOrigin: "center center" });
           gsap.set(mark, { rotation, transformOrigin: "center center" });
         };
@@ -104,16 +103,15 @@ export default function RotatingMark({
 
         const onScroll = ({ velocity }: { velocity: number }) => {
           if (!armed) return;
-          if (velocity !== 0) dir = velocity > 0 ? 1 : -1;
           gsap.to(state, {
-            speed: dir * (30 + 10 * Math.abs(velocity)),
+            speed: 30 + 10 * Math.abs(velocity),
             duration: 0.3,
             ease: "domus",
             overwrite: true,
           });
           window.clearTimeout(idleTimer);
           idleTimer = window.setTimeout(() => {
-            gsap.to(state, { speed: 30 * dir, duration: dur.transition, ease: "domus" });
+            gsap.to(state, { speed: 30, duration: dur.transition, ease: "domus" });
           }, 100);
         };
         // Lenis può montare dopo di noi: aggancio pigro al primo tick utile.

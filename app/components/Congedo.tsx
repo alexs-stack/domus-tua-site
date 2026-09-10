@@ -70,11 +70,13 @@ export default function Congedo() {
     >
       {/* 20%: dove la banda non è 16:9 (telefono, tablet verticale) il taglio
           tiene gli alberi a sinistra, sotto il titolo bianco; a 16:9 non taglia. */}
-      <Image src={POSTER} alt="" fill sizes="100vw" className="object-cover object-[20%_50%]" />
+      <Image src={POSTER} alt="" fill sizes="100vw" className="scale-[1.14] object-cover object-[20%_50%] origin-bottom-right" />
       {/* Senza poster: finché non ha un frame è trasparente e sotto resta la foto. */}
       <video
         ref={videoRef}
-        className="absolute inset-0 h-full w-full object-cover object-[20%_50%]"
+        // scale 1.14 dall'angolo in basso a destra: la clip ha il vecchio logo
+        // bruciato in alto a sinistra, e così resta fuori dall'inquadratura.
+        className="absolute inset-0 h-full w-full scale-[1.14] object-cover object-[20%_50%] origin-bottom-right"
         muted
         loop
         playsInline
@@ -88,7 +90,7 @@ export default function Congedo() {
       <div className="dt-row absolute inset-x-0 bottom-[12vh]">
         <h2
           id="congedo-title"
-          className="max-w-[12ch] text-balance font-display text-d1 text-white [text-shadow:0_2px_14px_rgb(0_0_0/0.35)]"
+          className="max-w-[12ch] text-balance font-display text-d1 text-white"
         >
           {c.title}
         </h2>
