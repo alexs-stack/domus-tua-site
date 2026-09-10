@@ -1,6 +1,6 @@
 # La rivista bianca — piano di implementazione
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Portare il sito Domus Tua allo stile del riferimento pinnato dalla cliente (immobiliaregoldengoal.it): un solo fondo avorio, titoli maiuscoli enormi in vw/vh, paragrafi grandi e leggeri, media squadrati, niente card/curve/nero/fiori, tre gesti di movimento — eseguendo punto per punto la lista della chiamata del 2026-09-10.
 
@@ -37,7 +37,7 @@
 **Interfaces:**
 - Produces: utility Tailwind `text-hero`, `text-d1…d4` (ridefinite), `text-lead`, `text-body`, `text-ui`, `text-script`, `font-brand`, `bg-cream` (= fondo del sito), `rounded-card` = 0.
 
-- [ ] **Step 1: Sostituire i valori dei token**
+- [x] **Step 1: Sostituire i valori dei token**
 
 Nel blocco `@theme inline` di `app/globals.css`:
 
@@ -86,16 +86,16 @@ Nel blocco `@theme inline` di `app/globals.css`:
 
 Rimuovere le vecchie righe `--text-d1…d4` e i vecchi valori di line, cream, cream-deep, paper, radius, shadow (sostituiti sopra). In `:root`: `--background: #f9f5ef;`.
 
-- [ ] **Step 2: Layout**
+- [x] **Step 2: Layout**
 
 In `app/layout.tsx`: `themeColor: "#f9f5ef"`; `<body className="flex min-h-dvh flex-col bg-cream text-ink">`.
 
-- [ ] **Step 3: Verificare**
+- [x] **Step 3: Verificare**
 
 Run: `npm run typecheck && npm test`
 Expected: verde. Aprire http://localhost:3000 (dev server) e controllare che il fondo sia avorio e le card senza raggio (i consumatori di `rounded-card`).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/globals.css app/layout.tsx
@@ -111,7 +111,7 @@ git commit -m "feat(token): un solo fondo avorio, scala in vw/vh, raggi e ombre 
 **Interfaces:**
 - Produces: classi `.lead`, `.script-word`, `.dt-row`, `.dt-chapter`, `.eyebrow` (16 px); regola `h1,h2,h3,h4 { text-transform: uppercase }`.
 
-- [ ] **Step 1: Aggiungere le regole dopo `.font-display`**
+- [x] **Step 1: Aggiungere le regole dopo `.font-display`**
 
 ```css
 /* I titoli sono maiuscoli per regola, come nel riferimento (body h1..h6
@@ -160,15 +160,15 @@ blockquote, blockquote * {
 }
 ```
 
-- [ ] **Step 2: Eyebrow a 16 px**
+- [x] **Step 2: Eyebrow a 16 px**
 
 Sostituire `font-size: 0.6875rem; ... letter-spacing: 0.22em;` in `.eyebrow` con `font-size: var(--text-ui); letter-spacing: 0.08em;`. Il trattino `::before` resta.
 
-- [ ] **Step 3: Rimuovere grana, vignetta, arco**
+- [x] **Step 3: Rimuovere grana, vignetta, arco**
 
 Cancellare il blocco `.grain { … }` e il commento "Film grain"; cancellare la regola `.bg-ink { background-color: var(--color-espresso); background-image: radial-gradient(...) }` e il commento sopra (righe 680-688); cancellare `.arch-frame` e le sue regole (`border-bottom-*-radius`, 785-800). In `app/layout.tsx` rimuovere `<div className="grain" aria-hidden />`. `.display-tight`: `line-height: 0.92; letter-spacing: 0;` (il maiuscolo non vuole tracking negativo).
 
-- [ ] **Step 4: Verificare e committare**
+- [x] **Step 4: Verificare e committare**
 
 Run: `npm run typecheck && npm run lint`
 Expected: verde (nessun file .tsx usa la classe `grain` oltre a `PreloaderShell.tsx:106` — lì lasciarla: la regola non esiste più e non fa nulla; si toglie nel Task 4).
@@ -189,7 +189,7 @@ git commit -m "feat(tipografia): titoli maiuscoli, paragrafo editoriale, eyebrow
 - Consumes: varianti `cta | cta-solid | reveal | reveal-cream | ghost | ghost-dark`, taglie `sm | md | lg`, prop `arrow` — **API invariata**.
 - Produces: `.dt-btn` rettangolare; `reveal*` ≡ `cta-solid`; `ghost*` = link testuale sottolineato.
 
-- [ ] **Step 1: Riscrivere il CSS del blocco CTA**
+- [x] **Step 1: Riscrivere il CSS del blocco CTA**
 
 Sostituire tutto il blocco da `/* ==== CTA SYSTEM` fino alla riga prima di `/* ---------- Trail del team` con:
 
@@ -277,16 +277,16 @@ Sostituire tutto il blocco da `/* ==== CTA SYSTEM` fino alla riga prima di `/* -
 
 Conservare intatto il blocco `dt-social` (icone rotonde: ammesse) ma togliere la regola del tooltip elastico se usa `cubic-bezier(0.68,-0.55,0.265,1.55)` → `ease`. Verificare in `Cta.tsx` quali classi usa `SendCta` (spinner/plane) e adattare i nomi sopra a quelli reali.
 
-- [ ] **Step 2: Cta.tsx**
+- [x] **Step 2: Cta.tsx**
 
 In `variantClass`: `reveal: "dt-btn dt-btn--cta dt-btn--cta-solid"`, `"reveal-cream": "dt-btn dt-btn--cta dt-btn--cta-solid"`. In `CtaInner` eliminare il ramo `reveal` (facce a/b): tutte le varianti rendono `dt-btn__label` + freccia. Rimuovere `dt-btn__fill`.
 
-- [ ] **Step 3: Verificare**
+- [x] **Step 3: Verificare**
 
 Run: `npm run typecheck && npm run lint && grep -rn "dt-btn__face\|dt-btn__fill" app --include=*.tsx`
 Expected: verde, nessuna occorrenza (se `CookieConsent`/`ReviewsWall` usano classi dt-btn direttamente sul nodo, le classi restano valide).
 
-- [ ] **Step 4: Commit** — `feat(cta): bottoni rettangolari e link sottolineati, via anelli, facce e aeroplanino`
+- [x] **Step 4: Commit** — `feat(cta): bottoni rettangolari e link sottolineati, via anelli, facce e aeroplanino`
 
 ### Task 4: Preloader a tempo dimezzato (TEMPO 1) e cuore orario
 
@@ -296,11 +296,11 @@ Expected: verde, nessuna occorrenza (se `CookieConsent`/`ReviewsWall` usano clas
 - Modify: `app/components/motion/RotatingMark.tsx` (`spinMarkBadge` e il ticker dell'header)
 - Test: `app/lib/__tests__/intro-clocks.test.ts` (immutato: è il metro)
 
-- [ ] **Step 1: Far fallire il test**
+- [x] **Step 1: Far fallire il test**
 
 `export const TEMPO = 1;` poi `npm test`. Expected: FAIL su "globals.css: i numeri rimasti in CSS combaciano" — la lista dei mismatch guida lo step 2.
 
-- [ ] **Step 2: Dimezzare i numeri del CSS (tutti i numeri sotto sono i valori NUOVI)**
+- [x] **Step 2: Dimezzare i numeri del CSS (tutti i numeri sotto sono i valori NUOVI)**
 
 | Selettore / keyframe | Prima | Dopo |
 |---|---|---|
@@ -323,15 +323,15 @@ Expected: verde, nessuna occorrenza (se `CookieConsent`/`ReviewsWall` usano clas
 
 Le ease (`cubic-bezier`) NON cambiano. Cercare eventuali altri delay del film nel blocco telefono (2236-2422) con `grep -nE "[0-9.]+s" app/globals.css | sed -n '/2236/,/2422/p'` e dimezzarli solo se sono tempi dell'intro (non le geometrie in vw/vh).
 
-- [ ] **Step 3: Cuore orario**
+- [x] **Step 3: Cuore orario**
 
 In `RotatingMark.tsx`: `spinMarkBadge` → `tl.fromTo(mark, { rotation: 0 }, { rotation: 360, ...common }, 0)`. Nel ticker dell'header (dopo `const state = { speed: 30 }`), la scrittura della rotazione del monogramma usa il segno opposto all'anello: renderla dello stesso segno (entrambi orari a riposo; il cambio di direzione con lo scroll resta uguale per entrambi). Aggiornare il commento di testa: "il monogramma gira in senso orario (richiesta cliente 2026-09-10)".
 
-- [ ] **Step 4: Verificare**
+- [x] **Step 4: Verificare**
 
 Run: `npm test` → verde. Poi con dev server: Browser pane → `javascript_tool`: `sessionStorage.clear(); location.reload()` e dopo 6 s `document.documentElement.hasAttribute('data-preloader')` → `false`.
 
-- [ ] **Step 5: Commit** — `feat(preloader): lo stesso film a tempo dimezzato, e il cuore gira in senso orario`
+- [x] **Step 5: Commit** — `feat(preloader): lo stesso film a tempo dimezzato, e il cuore gira in senso orario`
 
 ### Task 5: Layout senza grana, superficie mobile, transizione e cursore
 
@@ -345,7 +345,7 @@ Run: `npm test` → verde. Poi con dev server: Browser pane → `javascript_tool
 **Interfaces:**
 - Produces: `export function transitionTo(href: string): void` (naviga subito, senza sipario) e `export function isTransitionCovering(): boolean` (sempre `false`), stesso modulo `app/components/motion/PageTransition.tsx`.
 
-- [ ] **Step 1: PageTransition minimo**
+- [x] **Step 1: PageTransition minimo**
 
 Leggere come `transitionTo` naviga oggi (righe 107-116) e conservare SOLO quella chiamata:
 
@@ -365,13 +365,13 @@ export default function PageTransition() {
 }
 ```
 
-- [ ] **Step 2: Layout** — rimuovere gli import e i nodi `<SurfaceFlow />` e `<ChromeMount />`; skip-link: `className="sr-only bg-red px-5 py-3 font-semibold uppercase tracking-[0.08em] text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]"`. Rimuovere `data-tone`/`data-surface` dagli usi in `app/page.tsx` solo quando le sezioni vengono riscritte (Fase 2); qui basta che `SurfaceFlow` non esista più.
+- [x] **Step 2: Layout** — rimuovere gli import e i nodi `<SurfaceFlow />` e `<ChromeMount />`; skip-link: `className="sr-only bg-red px-5 py-3 font-semibold uppercase tracking-[0.08em] text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]"`. Rimuovere `data-tone`/`data-surface` dagli usi in `app/page.tsx` solo quando le sezioni vengono riscritte (Fase 2); qui basta che `SurfaceFlow` non esista più.
 
-- [ ] **Step 3: CSS** — cancellare i tre blocchi indicati; se il blocco SURFACEFLOW contiene `.dt-surface` usato da `main`/`body`, sostituire con niente: il fondo è `bg-cream` sul body.
+- [x] **Step 3: CSS** — cancellare i tre blocchi indicati; se il blocco SURFACEFLOW contiene `.dt-surface` usato da `main`/`body`, sostituire con niente: il fondo è `bg-cream` sul body.
 
-- [ ] **Step 4: Verificare** — `npm run typecheck && npm run lint && npm test` verde; `grep -rn "data-cursor" app --include=*.tsx` → attributi innocui, si tolgono in Fase 2.
+- [x] **Step 4: Verificare** — `npm run typecheck && npm run lint && npm test` verde; `grep -rn "data-cursor" app --include=*.tsx` → attributi innocui, si tolgono in Fase 2.
 
-- [ ] **Step 5: Commit** — `feat(layout): via sipario fra le pagine, cursore, grana e superficie mobile`
+- [x] **Step 5: Commit** — `feat(layout): via sipario fra le pagine, cursore, grana e superficie mobile`
 
 ### Task 6: Header chiaro
 
@@ -380,9 +380,9 @@ export default function PageTransition() {
 - Modify: `app/globals.css` se esistono regole `.dt-header*`
 - Test: `e2e/home.spec.ts` (`@layout` header per larghezza) — deve restare verde
 
-- [ ] **Step 1: Leggere `Header.tsx` per intero** e annotare: chiavi del dizionario usate, ref e effetti (GSAP dello scroll, warmup), struttura del menu mobile.
+- [x] **Step 1: Leggere `Header.tsx` per intero** e annotare: chiavi del dizionario usate, ref e effetti (GSAP dello scroll, warmup), struttura del menu mobile.
 
-- [ ] **Step 2: Markup nuovo**
+- [x] **Step 2: Markup nuovo**
 
 ```tsx
 <header className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${scrolled ? "bg-cream-deep border-b border-line" : "bg-transparent"}`}>
@@ -420,9 +420,9 @@ export default function PageTransition() {
 
 Usare i nomi reali delle chiavi trovati allo step 1 (es. se non esiste `d.header.cta`, usare la chiave della CTA già presente). Via il pill (`pillRef`), il gradiente `from-ink/60`, `backdrop-blur`, `text-cream`, `bg-ink/20`. `scrolled` resta calcolato come oggi (scroll > 24 px). Con l'hero chiaro (Task 10) l'hero porta `pt-[clamp(7rem,16vh,10rem)]` per l'header fisso.
 
-- [ ] **Step 3: Verificare** — typecheck/lint; Browser pane a 1440 e 390: nav visibile, menu apre/chiude con tastiera (Tab, Escape), `aria-current` sulla voce attiva.
+- [x] **Step 3: Verificare** — typecheck/lint; Browser pane a 1440 e 390: nav visibile, menu apre/chiude con tastiera (Tab, Escape), `aria-current` sulla voce attiva.
 
-- [ ] **Step 4: Commit** — `feat(header): chiaro e trasparente sul fondo avorio, logo grande, nav maiuscola`
+- [x] **Step 4: Commit** — `feat(header): chiaro e trasparente sul fondo avorio, logo grande, nav maiuscola`
 
 ### Task 7: Footer chiaro, in flusso
 
@@ -432,7 +432,7 @@ Usare i nomi reali delle chiavi trovati allo step 1 (es. se non esiste `d.header
 - Modify: chi imposta `html.dt-footer-reveal` (grep `dt-footer-reveal`)
 - Test: `e2e/a11y.spec.ts` deve restare verde (contrasto su chiaro)
 
-- [ ] **Step 1: Markup**
+- [x] **Step 1: Markup**
 
 ```tsx
 <footer className="dt-row border-t border-line bg-cream pt-[clamp(4rem,10vh,7rem)] pb-[calc(2.5rem+env(safe-area-inset-bottom))] text-ink">
@@ -469,18 +469,18 @@ Usare i nomi reali delle chiavi trovati allo step 1 (es. se non esiste `d.header
 
 Usare i campi reali di `site` e le chiavi reali di `d.footer` (leggere `app/lib/site.ts` e il dizionario). Via: `Fioritura`, `useGSAP`/`ScrollTrigger`, `wordmarkRef` gigante, `bg-graphite`, chip `bg-paper` dietro al logo, `rounded-*`. Il footer torna nel flusso normale: nessun `fixed`, nessuna `--dt-footer-h`.
 
-- [ ] **Step 2: Verificare** — typecheck/lint/test; Browser pane: footer chiaro, tutti i link raggiungibili; nessuna regola residua `dt-footer-reveal` (`grep -rn "footer-reveal\|--dt-footer-h" app`).
+- [x] **Step 2: Verificare** — typecheck/lint/test; Browser pane: footer chiaro, tutti i link raggiungibili; nessuna regola residua `dt-footer-reveal` (`grep -rn "footer-reveal\|--dt-footer-h" app`).
 
-- [ ] **Step 3: Commit** — `feat(footer): chiaro, a tre colonne, in flusso; via fiori, uncover e wordmark gigante`
+- [x] **Step 3: Commit** — `feat(footer): chiaro, a tre colonne, in flusso; via fiori, uncover e wordmark gigante`
 
 ### Task 8: Verifica di fase e screenshot
 
 **Files:**
 - Modify: `reverse-engineering/goldengoal/capture.mjs` (`out` → `path.join(dirname, which === 'ours' ? 'shots-ours' : 'shots')`)
 
-- [ ] **Step 1**: `npm run typecheck && npm run lint && npm test` → verde.
-- [ ] **Step 2**: dev server su :3000 (Browser pane `preview_start domustua-dev`); `node reverse-engineering/goldengoal/capture.mjs ours`; leggere `shots-ours/dt-home-desk-00.png`, `-01`, `dt-home-mob-00.png`: header chiaro, fondo avorio, footer chiaro. Le sezioni della home sono ancora quelle vecchie: è atteso.
-- [ ] **Step 3**: lo script sta in una cartella gitignorata: nessun commit.
+- [x] **Step 1**: `npm run typecheck && npm run lint && npm test` → verde.
+- [x] **Step 2**: dev server su :3000 (Browser pane `preview_start domustua-dev`); `node reverse-engineering/goldengoal/capture.mjs ours`; leggere `shots-ours/dt-home-desk-00.png`, `-01`, `dt-home-mob-00.png`: header chiaro, fondo avorio, footer chiaro. Le sezioni della home sono ancora quelle vecchie: è atteso.
+- [x] **Step 3**: lo script sta in una cartella gitignorata: nessun commit.
 
 ---
 
@@ -493,7 +493,7 @@ Regole comuni a ogni task di questa fase: la sezione è `<section id=… classNa
 **Files:**
 - Modify: `app/page.tsx`
 
-- [ ] **Step 1**: sostituire il corpo di `Home()` con:
+- [x] **Step 1**: sostituire il corpo di `Home()` con:
 
 ```tsx
 /* CONTRATTO DI DIREZIONE (spec §3.0) — THESIS: una rivista immobiliare bianca:
@@ -538,9 +538,9 @@ Gli import di `ComeLavoriamo`, `Voci`, `Congedo` puntano a file creati nei Task 
 - Modify: `app/globals.css` — blocco "Hero rest" resta; cancellare `.dt-hero-cue*`
 - Test: `e2e/mobile-effects.spec.ts` (`[data-hero-media]` clip/scale e `[data-hero-cue]`: quei test si RIMUOVONO nel Task 25); `e2e/a11y.spec.ts` (un solo h1)
 
-- [ ] **Step 1: Copy** — in ogni lingua togliere `subcopy` e `founder`; sostituire `ctaVideo` con `ctaVendi` (it "Vendi casa", en "Sell your home", fr "Vendre", de "Verkaufen", es "Vender casa").
+- [x] **Step 1: Copy** — in ogni lingua togliere `subcopy` e `founder`; sostituire `ctaVideo` con `ctaVendi` (it "Vendi casa", en "Sell your home", fr "Vendre", de "Verkaufen", es "Vender casa").
 
-- [ ] **Step 2: Render**
+- [x] **Step 2: Render**
 
 ```tsx
 <section id="top" className="relative bg-cream pt-[clamp(7rem,16vh,10rem)]">
@@ -588,18 +588,18 @@ Gli import di `ComeLavoriamo`, `Voci`, `Congedo` puntano a file creati nei Task 
 
 Via: velo `from-espresso`, `SegnoDomusVideoFrame`, `Magnetic`, chip premio (il sigillo Wikicasa torna in `Voci`), scroll cue, `mediaRef` parallasse puntatore, `data-hero-photo`/`.dt-mob-band` (la fascia mobile non serve: il video 16:9 è già una fascia), `VideoLightbox`, `youtubeWatch`. Il `<video>` resta montato dopo il primo paint come oggi (LCP = poster). La classe `dt-hero-rest` sul box CTA conserva il rito «appare dopo il primo scroll» — se con l'hero chiaro il box sta sotto la piega a 1440×900, TOGLIERE `dt-hero-rest` e `data-hero-seq` (la ragione del rito era l'hero a schermo intero).
 
-- [ ] **Step 3: Verificare** — typecheck/lint; `npm test` (content-integrity); screenshot desktop+mobile della hero (slice 00): lockup a 13vw, firma staccata, video a tutta larghezza, CTA a destra, nessun testo sotto 16 px. `e2e`: rimandato al Task 25.
+- [x] **Step 3: Verificare** — typecheck/lint; `npm test` (content-integrity); screenshot desktop+mobile della hero (slice 00): lockup a 13vw, firma staccata, video a tutta larghezza, CTA a destra, nessun testo sotto 16 px. `e2e`: rimandato al Task 25.
 
-- [ ] **Step 4: Commit** — `feat(hero): chiara, lockup nel font del logo, firma più in basso, video a tutta larghezza, CTA a destra`
+- [x] **Step 4: Commit** — `feat(hero): chiara, lockup nel font del logo, firma più in basso, video a tutta larghezza, CTA a destra`
 
 ### Task 11: Posizionamento + ricerca a filo
 
 **Files:**
 - Modify: `app/components/Posizionamento.tsx`, `app/components/HomeSearchGateway.tsx`
 
-- [ ] **Step 1: Posizionamento** — griglia `lg:grid-cols-[5fr_7fr] gap-[6vw]`: colonna sinistra foto quadrata reale (una foto di `public/images/reali/` con il team o la sede: verificare i file), colonna destra `eyebrow` + `TextLines as="h2" className="font-display text-d2"` + `p.lead` + i tre `steps` come lista `text-body` con trattino rosso. Via `text-center`, `max-w-3xl`, `data-tone`.
-- [ ] **Step 2: Ricerca** — `section#cerca.dt-chapter` > `div.dt-row`: `h2.font-display.text-d2` (usare la chiave titolo già presente in `d`/`local`), poi `<form className="mt-10 grid gap-x-8 gap-y-10 md:grid-cols-4">` dove ogni campo è `label.text-ui.uppercase.tracking-[0.08em].text-stone` + `input/select` con `className="mt-2 w-full border-0 border-b border-ink bg-transparent py-3 text-body focus:border-red focus:outline-none"`; il bottone `CtaButton variant="cta-solid" size="lg"`. La riga "vendi": `<p className="lead mt-12">{testo} <Cta href="/vendi" variant="ghost" arrow={false}>{cta}</Cta></p>`. Via le due card, `rounded-*`, `shadow`, `segno-ambient`, chips `rounded-full` → chips come link testuali sottolineati (`dt-btn dt-btn--ghost dt-btn--sm`). Conservare `submit()`, `transitionTo`, i `useState`.
-- [ ] **Step 3**: `e2e/search.spec.ts` usa selettori? leggere e mantenere `name`/`aria-label` dei campi identici. Verificare: typecheck/lint, screenshot. Commit: `feat(ricerca): modulo a filo senza card, posizionamento su due colonne`.
+- [x] **Step 1: Posizionamento** — griglia `lg:grid-cols-[5fr_7fr] gap-[6vw]`: colonna sinistra foto quadrata reale (una foto di `public/images/reali/` con il team o la sede: verificare i file), colonna destra `eyebrow` + `TextLines as="h2" className="font-display text-d2"` + `p.lead` + i tre `steps` come lista `text-body` con trattino rosso. Via `text-center`, `max-w-3xl`, `data-tone`.
+- [x] **Step 2: Ricerca** — `section#cerca.dt-chapter` > `div.dt-row`: `h2.font-display.text-d2` (usare la chiave titolo già presente in `d`/`local`), poi `<form className="mt-10 grid gap-x-8 gap-y-10 md:grid-cols-4">` dove ogni campo è `label.text-ui.uppercase.tracking-[0.08em].text-stone` + `input/select` con `className="mt-2 w-full border-0 border-b border-ink bg-transparent py-3 text-body focus:border-red focus:outline-none"`; il bottone `CtaButton variant="cta-solid" size="lg"`. La riga "vendi": `<p className="lead mt-12">{testo} <Cta href="/vendi" variant="ghost" arrow={false}>{cta}</Cta></p>`. Via le due card, `rounded-*`, `shadow`, `segno-ambient`, chips `rounded-full` → chips come link testuali sottolineati (`dt-btn dt-btn--ghost dt-btn--sm`). Conservare `submit()`, `transitionTo`, i `useState`.
+- [x] **Step 3**: `e2e/search.spec.ts` usa selettori? leggere e mantenere `name`/`aria-label` dei campi identici. Verificare: typecheck/lint, screenshot. Commit: `feat(ricerca): modulo a filo senza card, posizionamento su due colonne`.
 
 ### Task 12: "Come lavoriamo" (sostituisce HorizonStory) — punto 6
 
@@ -608,7 +608,7 @@ Via: velo `from-espresso`, `SegnoDomusVideoFrame`, `Magnetic`, chip premio (il s
 - Modify: `app/page.tsx` (import)
 - Reuse: `copy` di `HorizonStory.tsx` (`eyebrow`, `statement`, `lead`, `stairs`, `subtitle`, `territory`, `cta`, `imageAlt`) copiato nel file nuovo; `site.videos.featured`, `LazyYouTubeEmbed`
 
-- [ ] **Step 1: Componente**
+- [x] **Step 1: Componente**
 
 ```tsx
 "use client";
@@ -649,7 +649,7 @@ export default function ComeLavoriamo() {
 
 `LazyYouTubeEmbed` ha `rounded-[1.5rem] bg-ink` (inventario): aggiornargli le classi a `bg-cream-deep` senza raggio (modifica nel componente stesso: la modifica è globale ed è voluta). Il `statement` di HorizonStory è JSX con `<br/>`: se `TextLines` accetta solo stringhe, unire in una stringa.
 
-- [ ] **Step 2**: page.tsx import; typecheck/lint; screenshot. Commit: `feat(come-lavoriamo): titolo, corsivo, video in pagina e territorio al posto della cupola`.
+- [x] **Step 2**: page.tsx import; typecheck/lint; screenshot. Commit: `feat(come-lavoriamo): titolo, corsivo, video in pagina e territorio al posto della cupola`.
 
 ### Task 13: "Le voci" (punto 9)
 
@@ -658,7 +658,7 @@ export default function ComeLavoriamo() {
 - Modify: `app/page.tsx`
 - Reuse: `wallVideos`, `youtubeWatch` da `lib/videos`; `site.reviewsCount`, `ratingLabel`; `TrustindexEmbed`; `YoutubeThumb`; `VideoLightbox` (apre il video in pagina: già usato da ReviewsWall — conservare il contratto overlay `setOverlay`); il sigillo Wikicasa (`public/badges/`, `site.awards`)
 
-- [ ] **Step 1: Componente**
+- [x] **Step 1: Componente**
 
 ```tsx
 <section id="recensioni" className="dt-chapter bg-cream">
@@ -697,45 +697,45 @@ export default function ComeLavoriamo() {
 
 `scrollBy(dir)`: `railRef.current?.scrollBy({ left: dir * railRef.current.clientWidth * 0.6, behavior: "smooth" })`. Frecce con icone reali (`Icons.tsx` ha `ArrowRight`; se manca `ArrowLeft`, aggiungerla lì). Copy in 5 lingue (riusare `ReviewsWall.copy` + chiavi nuove `google`, `listLabel`, `prev`, `next`, `all`).
 
-- [ ] **Step 2**: `e2e/consent-reviews.spec.ts` (Trustindex solo dopo consenso) deve restare verde: `TrustindexEmbed` invariato. typecheck/lint; screenshot. Commit: `feat(voci): il muro delle voci rifatto — numero grande, carosello dei video, recensioni`.
+- [x] **Step 2**: `e2e/consent-reviews.spec.ts` (Trustindex solo dopo consenso) deve restare verde: `TrustindexEmbed` invariato. typecheck/lint; screenshot. Commit: `feat(voci): il muro delle voci rifatto — numero grande, carosello dei video, recensioni`.
 
 ### Task 14: Due percorsi piani
 
 **Files:** Modify `app/components/Paths.tsx` (riscrittura render; conservare copy e i due link /vendi /acquista)
 
-- [ ] **Step 1**: `section.dt-chapter` > `div.dt-row`: `eyebrow` + `h2.text-d1` (max-w 16ch); poi due righe `grid lg:grid-cols-2 gap-[6vw] items-center`, la seconda con la foto a destra (`lg:order-2`): foto `aspect-square` (le stesse immagini reali già usate nei pannelli), `h3.font-display.text-d2`, `p.lead`, `Cta variant="ghost"`. Via: runway, sticky, SplitText, clip-path, scrim, `Fioritura`, `SurfaceVeil`, CSS `.dt-paths*` (cancellare il blocco `:1641-1693`).
-- [ ] **Step 2**: typecheck/lint; screenshot; commit `feat(percorsi): due righe editoriali piane al posto dei pannelli scuri`.
+- [x] **Step 1**: `section.dt-chapter` > `div.dt-row`: `eyebrow` + `h2.text-d1` (max-w 16ch); poi due righe `grid lg:grid-cols-2 gap-[6vw] items-center`, la seconda con la foto a destra (`lg:order-2`): foto `aspect-square` (le stesse immagini reali già usate nei pannelli), `h3.font-display.text-d2`, `p.lead`, `Cta variant="ghost"`. Via: runway, sticky, SplitText, clip-path, scrim, `Fioritura`, `SurfaceVeil`, CSS `.dt-paths*` (cancellare il blocco `:1641-1693`).
+- [x] **Step 2**: typecheck/lint; screenshot; commit `feat(percorsi): due righe editoriali piane al posto dei pannelli scuri`.
 
 ### Task 15: Metodo — atti e passi numerati
 
 **Files:** Modify `app/components/Method.tsx` (conservare `copy`: titolo, 3 atti con titolo/testo/foto, 9 passi)
 
-- [ ] **Step 1**: `section#metodo.dt-chapter` > `div.dt-row`: `eyebrow` allineata a destra + `TextLines as="h2" className="ml-auto max-w-[14ch] text-right font-display text-d1"` (tre righe); poi per ogni atto `div.mt-[10vh].grid.lg:grid-cols-[1fr_1.2fr].gap-[6vw].items-start`: sinistra `span.script-word` (parola dell'atto: it "Ascolto" / "Racconto" / "Firma" — derivare dalle 3 chiavi di copy esistenti) + foto `aspect-square` sotto; destra `h3.text-d2` + `p.lead`; poi la lista dei 9 passi: `ol.mt-[10vh].grid.md:grid-cols-3.gap-x-[4vw].gap-y-16` con `li`: `span.font-display.text-d1.font-light` numero `01.`…`09.`, `h4.mt-4.font-display.text-d3`, `p.mt-3.text-body.text-graphite`. Via: SVG mask/feTurbulence, `Atmosphere`, `CharFlip`, `Fioritura`, monogramma finale, `overflow-hidden`.
-- [ ] **Step 2**: typecheck/lint; screenshot; commit `feat(metodo): tre atti e nove passi numerati, senza maschere né fiori`.
+- [x] **Step 1**: `section#metodo.dt-chapter` > `div.dt-row`: `eyebrow` allineata a destra + `TextLines as="h2" className="ml-auto max-w-[14ch] text-right font-display text-d1"` (tre righe); poi per ogni atto `div.mt-[10vh].grid.lg:grid-cols-[1fr_1.2fr].gap-[6vw].items-start`: sinistra `span.script-word` (parola dell'atto: it "Ascolto" / "Racconto" / "Firma" — derivare dalle 3 chiavi di copy esistenti) + foto `aspect-square` sotto; destra `h3.text-d2` + `p.lead`; poi la lista dei 9 passi: `ol.mt-[10vh].grid.md:grid-cols-3.gap-x-[4vw].gap-y-16` con `li`: `span.font-display.text-d1.font-light` numero `01.`…`09.`, `h4.mt-4.font-display.text-d3`, `p.mt-3.text-body.text-graphite`. Via: SVG mask/feTurbulence, `Atmosphere`, `CharFlip`, `Fioritura`, monogramma finale, `overflow-hidden`.
+- [x] **Step 2**: typecheck/lint; screenshot; commit `feat(metodo): tre atti e nove passi numerati, senza maschere né fiori`.
 
 ### Task 16: Open Domus e D.O.C.
 
 **Files:** Modify `app/components/OpenDomus.tsx`, `app/components/DomusDocProtocol.tsx`; `app/globals.css` cancellare "Open Domus: i coni d'ombra" (`:1077-1129`) e "Sigillo D.O.C." (`:1130-1216`)
 
-- [ ] **Step 1 Open Domus**: `section#open-domus.dt-chapter` > `grid lg:grid-cols-[1.1fr_1fr] gap-[6vw]`: foto `aspect-[4/5]` (la foto reale già usata) a sinistra; destra `eyebrow`, `h2.text-d2`, `p.lead`, poi `div.mt-10.grid.sm:grid-cols-2.gap-8` con le due liste (`h3.text-d4.font-light` + `ul.text-body` con trattino rosso). Via `LiquidReveal`, `CharFlip`, gradienti, card, `dt-godray`.
-- [ ] **Step 2 D.O.C.**: `section.dt-chapter` > `div.dt-row`: `div.flex.items-start.gap-8`: sigillo SVG (già nel componente) 96 px fermo + `div`: `eyebrow`, `h2.text-d2`, `p.lead`; poi checklist `ul.mt-10.grid.md:grid-cols-2.gap-x-[4vw].gap-y-6.text-body`. Via card, `shadow`, lampo, `Fioritura`, `Parallax` sul sigillo. La prop `tone` resta nella firma (la usano le pagine interne) ma non rende più `bg-*`.
-- [ ] **Step 3**: typecheck/lint (`grep -rn "dt-godray\|dt-docseal" app` → 0); screenshot; commit `feat(open-domus, doc): righe piane con foto grande e checklist`.
+- [x] **Step 1 Open Domus**: `section#open-domus.dt-chapter` > `grid lg:grid-cols-[1.1fr_1fr] gap-[6vw]`: foto `aspect-[4/5]` (la foto reale già usata) a sinistra; destra `eyebrow`, `h2.text-d2`, `p.lead`, poi `div.mt-10.grid.sm:grid-cols-2.gap-8` con le due liste (`h3.text-d4.font-light` + `ul.text-body` con trattino rosso). Via `LiquidReveal`, `CharFlip`, gradienti, card, `dt-godray`.
+- [x] **Step 2 D.O.C.**: `section.dt-chapter` > `div.dt-row`: `div.flex.items-start.gap-8`: sigillo SVG (già nel componente) 96 px fermo + `div`: `eyebrow`, `h2.text-d2`, `p.lead`; poi checklist `ul.mt-10.grid.md:grid-cols-2.gap-x-[4vw].gap-y-6.text-body`. Via card, `shadow`, lampo, `Fioritura`, `Parallax` sul sigillo. La prop `tone` resta nella firma (la usano le pagine interne) ma non rende più `bg-*`.
+- [x] **Step 3**: typecheck/lint (`grep -rn "dt-godray\|dt-docseal" app` → 0); screenshot; commit `feat(open-domus, doc): righe piane con foto grande e checklist`.
 
 ### Task 17: Servizi, Costi, Testimonianza
 
 **Files:** Modify `app/components/Services.tsx`, `CostiChiari.tsx`, `FeaturedTestimonial.tsx` (`.dt-railway`/`.dt-rail` in globals restano: li usa `HorizontalRail` per il team)
 
-- [ ] **Step 1 Servizi**: `section#servizi.dt-chapter`: `eyebrow` + `h2.text-d1.max-w-[18ch]`; `ul.mt-[8vh].grid.md:grid-cols-2.lg:grid-cols-3.gap-x-[3vw].gap-y-16`: `li` = foto `aspect-square` + `h3.mt-5.text-d3` + `p.mt-3.text-body`; la feature rendering come riga `grid lg:grid-cols-2` sotto (foto 4:5 + titolo `d2` + lead + `Cta ghost`). Via `HorizontalRail`, `HoverDistort`, `MaskReveal`, `Atmosphere`, `CharFlip`, gradienti, card grafite.
-- [ ] **Step 2 Costi**: `section.dt-chapter` > `div.dt-row.max-w-[900px]`: `eyebrow`, `h2.text-d2`, `span.script-word` ("Nessun anticipo" / "No upfront cost" / "Aucune avance" / "Keine Vorauszahlung" / "Sin anticipos"), `p.lead`. Via card. Prop `surface` resta ma inerte.
-- [ ] **Step 3 Testimonianza**: `section.dt-chapter` > `grid lg:grid-cols-[1fr_1.2fr] gap-[6vw] items-center`: foto quadrata a sinistra (senza gradiente); destra `eyebrow`, `blockquote.font-display.text-d3` (tondo), `p.mt-6.text-body` nome/contesto, `Cta ghost` al video. Via `bg-ink`, `MaskReveal`, `Fioritura`.
-- [ ] **Step 4**: typecheck/lint; screenshot; commit `feat(servizi, costi, testimonianza): griglia piana, statement col corsivo, citazione su chiaro`.
+- [x] **Step 1 Servizi**: `section#servizi.dt-chapter`: `eyebrow` + `h2.text-d1.max-w-[18ch]`; `ul.mt-[8vh].grid.md:grid-cols-2.lg:grid-cols-3.gap-x-[3vw].gap-y-16`: `li` = foto `aspect-square` + `h3.mt-5.text-d3` + `p.mt-3.text-body`; la feature rendering come riga `grid lg:grid-cols-2` sotto (foto 4:5 + titolo `d2` + lead + `Cta ghost`). Via `HorizontalRail`, `HoverDistort`, `MaskReveal`, `Atmosphere`, `CharFlip`, gradienti, card grafite.
+- [x] **Step 2 Costi**: `section.dt-chapter` > `div.dt-row.max-w-[900px]`: `eyebrow`, `h2.text-d2`, `span.script-word` ("Nessun anticipo" / "No upfront cost" / "Aucune avance" / "Keine Vorauszahlung" / "Sin anticipos"), `p.lead`. Via card. Prop `surface` resta ma inerte.
+- [x] **Step 3 Testimonianza**: `section.dt-chapter` > `grid lg:grid-cols-[1fr_1.2fr] gap-[6vw] items-center`: foto quadrata a sinistra (senza gradiente); destra `eyebrow`, `blockquote.font-display.text-d3` (tondo), `p.mt-6.text-body` nome/contesto, `Cta ghost` al video. Via `bg-ink`, `MaskReveal`, `Fioritura`.
+- [x] **Step 4**: typecheck/lint; screenshot; commit `feat(servizi, costi, testimonianza): griglia piana, statement col corsivo, citazione su chiaro`.
 
 ### Task 18: Social e Team con rotaia orizzontale (punto 12)
 
 **Files:** Modify `app/components/Social.tsx`, `app/components/Team.tsx`; Delete `app/components/TeamTrail.tsx`; `app/globals.css`: cancellare "Trail del team" + "TeamTrail corridoio" (`:2967-3043`) e "Social rail" (`:1217-1283`) se non usati da `HorizontalRail`
 
-- [ ] **Step 1 Social**: `section.dt-chapter`: `eyebrow` + `h2.text-d2`; il feed IG (`IframeWidget`, consent-gated) in `div.mt-10.aspect-[4/3].lg:aspect-[21/9]`; `SocialLinks` sotto. Via `RailProgress`, `CharFlip`, chip `rounded-full`.
-- [ ] **Step 2 Team**: `section#chi-siamo.dt-chapter`: intro `grid lg:grid-cols-[1fr_1.1fr] gap-[6vw]`: foto founder `aspect-[4/5]` a sinistra; destra `eyebrow`, `h2.text-d1` ("Persone prima degli immobili."), `p.lead`, `blockquote.mt-8.font-display.text-d3` + nome/ruolo `text-body`, `Cta ghost`. Poi la rotaia:
+- [x] **Step 1 Social**: `section.dt-chapter`: `eyebrow` + `h2.text-d2`; il feed IG (`IframeWidget`, consent-gated) in `div.mt-10.aspect-[4/3].lg:aspect-[21/9]`; `SocialLinks` sotto. Via `RailProgress`, `CharFlip`, chip `rounded-full`.
+- [x] **Step 2 Team**: `section#chi-siamo.dt-chapter`: intro `grid lg:grid-cols-[1fr_1.1fr] gap-[6vw]`: foto founder `aspect-[4/5]` a sinistra; destra `eyebrow`, `h2.text-d1` ("Persone prima degli immobili."), `p.lead`, `blockquote.mt-8.font-display.text-d3` + nome/ruolo `text-body`, `Cta ghost`. Poi la rotaia:
 
 ```tsx
 <div className="mt-[10vh]">
@@ -756,20 +756,20 @@ export default function ComeLavoriamo() {
 
 Leggere `HorizontalRail.tsx` per la firma esatta (children = tessere del track? richiede `data-depth`/`.dt-rail_pan`?) e adeguare. Via `Fioritura`, `Atmosphere`, `CharFlip`, `MaskReveal`, `TeamTrail`, card `rounded`.
 
-- [ ] **Step 3**: typecheck/lint (`grep -rn TeamTrail app` → 0); screenshot desktop (rotaia pinnata: slice dove il team è a schermo) e mobile (scorrimento nativo); commit `feat(team): rotaia orizzontale con ritratti grandi; social piatto`.
+- [x] **Step 3**: typecheck/lint (`grep -rn TeamTrail app` → 0); screenshot desktop (rotaia pinnata: slice dove il team è a schermo) e mobile (scorrimento nativo); commit `feat(team): rotaia orizzontale con ritratti grandi; social piatto`.
 
 ### Task 19: Contatti a filo
 
 **Files:** Modify `app/components/Contact.tsx` (SOLO markup/classi: la logica del form, gli `intent`, `window.open`, la validazione e gli `id`/`name` dei campi restano IDENTICI — `e2e/contact.spec.ts` e `analytics.test.ts` li leggono)
 
-- [ ] **Step 1**: `section#contatti.dt-chapter` > `grid lg:grid-cols-[1fr_1.1fr] gap-[6vw]`: sinistra `eyebrow`, `h2.text-d1` (max-w 12ch), `p.lead`, recapiti come `h3.text-d4.font-light` + `a.text-body`, foto quadrata sotto (via `arch-frame`); destra il `<form>` con i campi come nel Task 11 (bordo inferiore, etichette 16 px uppercase), `SendCta`. Via card, `shadow`, `CameraIn`, `Atmosphere`, `Fioritura`, `CharFlip`, `rounded-*`.
-- [ ] **Step 2**: `npm test` (analytics) e `npx playwright test e2e/contact.spec.ts --config=playwright.site.config.ts` verdi; screenshot; commit `feat(contatti): modulo a filo e recapiti grandi, senza card né arco`.
+- [x] **Step 1**: `section#contatti.dt-chapter` > `grid lg:grid-cols-[1fr_1.1fr] gap-[6vw]`: sinistra `eyebrow`, `h2.text-d1` (max-w 12ch), `p.lead`, recapiti come `h3.text-d4.font-light` + `a.text-body`, foto quadrata sotto (via `arch-frame`); destra il `<form>` con i campi come nel Task 11 (bordo inferiore, etichette 16 px uppercase), `SendCta`. Via card, `shadow`, `CameraIn`, `Atmosphere`, `Fioritura`, `CharFlip`, `rounded-*`.
+- [x] **Step 2**: `npm test` (analytics) e `npx playwright test e2e/contact.spec.ts --config=playwright.site.config.ts` verdi; screenshot; commit `feat(contatti): modulo a filo e recapiti grandi, senza card né arco`.
 
 ### Task 20: Congedo (banda video) e via KineticStrip
 
 **Files:** Create `app/components/Congedo.tsx`; Delete `app/components/motion/KineticStrip.tsx`; `app/globals.css` cancellare `.dt-kinetic_line` (`:3118-3128`)
 
-- [ ] **Step 1**:
+- [x] **Step 1**:
 
 ```tsx
 export default function Congedo() {
@@ -788,11 +788,11 @@ export default function Congedo() {
 
 Sotto 768 e con reduced-motion il `<video>` non parte (`matchMedia` nel client): mostrare il poster. Testo bianco senza velo (rif.); la text-shadow leggerissima è ammessa (non è una vignetta).
 
-- [ ] **Step 2**: typecheck/lint; screenshot; commit `feat(congedo): banda video finale con titolo bianco al posto del nastro cinetico`.
+- [x] **Step 2**: typecheck/lint; screenshot; commit `feat(congedo): banda video finale con titolo bianco al posto del nastro cinetico`.
 
 ### Task 21: Verifica di fase 2
 
-- [ ] `npm run typecheck && npm run lint && npm test` verdi; `capture.mjs ours`; leggere TUTTE le slice desktop e mobile della home; annotare i difetti in una lista; correggerli in un solo giro; ricatturare e confermare. Misura attesa: home ≤ 14.000 px a 1440 (era 44.589). Commit `fix(home): il giro di correzioni dopo gli screenshot di fase 2`.
+- [x] `npm run typecheck && npm run lint && npm test` verdi; `capture.mjs ours`; leggere TUTTE le slice desktop e mobile della home; annotare i difetti in una lista; correggerli in un solo giro; ricatturare e confermare. Misura attesa: home ≤ 14.000 px a 1440 (era 44.589). Commit `fix(home): il giro di correzioni dopo gli screenshot di fase 2`.
 
 ---
 
@@ -802,15 +802,15 @@ Sotto 768 e con reduced-motion il `<video>` non parte (`matchMedia` nel client):
 
 **Files:** Modify `app/components/PageHero.tsx` (prop invariate: leggere la firma; aggiungere `scriptWord?: string`)
 
-- [ ] **Step 1**: `section.bg-cream.pt-[clamp(7rem,16vh,10rem)]` > `div.dt-row`: `eyebrow` (se c'è), `h1.font-display.text-[clamp(3rem,8vw,9rem)].leading-[0.92]`, `span.script-word` sovrapposto (`-mt-[0.4em] pl-[10vw]`), `p.lead` allineato a sinistra `max-w-[50ch]`; foto sotto `div.mt-[6vh].aspect-[16/9].w-full` (`Image fill`). Via `bg-ink`, `min-h-[82vh]`, scrim, badge `backdrop-blur`, `text-cream`.
-- [ ] **Step 2**: ogni chiamante (`VendiContent`, `AcquistaContent`, `ChiSiamoContent`, `MetodoContent`, `OpenDomusPageContent`, `ServiziContent`, `RecensioniContent`, `LavoraConNoiContent`, `FaqContent`) passa `scriptWord` in 5 lingue (es. vendi: "Vendere"/"Selling"/"Vendre"/"Verkaufen"/"Vender"). typecheck; `e2e/pages.spec.ts` (title) verde; screenshot di `/vendi` e `/chi-siamo`; commit `feat(page-hero): l'hero delle pagine interne diventa chiaro, con titolo a 8vw`.
+- [x] **Step 1**: `section.bg-cream.pt-[clamp(7rem,16vh,10rem)]` > `div.dt-row`: `eyebrow` (se c'è), `h1.font-display.text-[clamp(3rem,8vw,9rem)].leading-[0.92]`, `span.script-word` sovrapposto (`-mt-[0.4em] pl-[10vw]`), `p.lead` allineato a sinistra `max-w-[50ch]`; foto sotto `div.mt-[6vh].aspect-[16/9].w-full` (`Image fill`). Via `bg-ink`, `min-h-[82vh]`, scrim, badge `backdrop-blur`, `text-cream`.
+- [x] **Step 2**: ogni chiamante (`VendiContent`, `AcquistaContent`, `ChiSiamoContent`, `MetodoContent`, `OpenDomusPageContent`, `ServiziContent`, `RecensioniContent`, `LavoraConNoiContent`, `FaqContent`) passa `scriptWord` in 5 lingue (es. vendi: "Vendere"/"Selling"/"Vendre"/"Verkaufen"/"Vender"). typecheck; `e2e/pages.spec.ts` (title) verde; screenshot di `/vendi` e `/chi-siamo`; commit `feat(page-hero): l'hero delle pagine interne diventa chiaro, con titolo a 8vw`.
 
 ### Task 23: /metodo senza ManifestoPin; residui scuri e raggi nelle interne
 
 **Files:** Modify `app/metodo/MetodoContent.tsx` (statement in `section.dt-chapter` con `h2.text-d1` e `p.lead`, via `ManifestoPin`); Delete `app/components/motion/ManifestoPin.tsx`; Modify `app/open-domus/OpenDomusPageContent.tsx`, `app/vendi/VendiContent.tsx`, `app/lavora-con-noi/LavoraConNoiContent.tsx`, `app/case-vendute/CaseVenduteContent.tsx`, `app/components/EditorialRows.tsx`, `Highlights.tsx`, `FaqList.tsx`, `FaqTeaser.tsx`, `PropertyCard.tsx`, `PropertyGallery.tsx`, `LazyYouTubeEmbed.tsx`, `CareerApplication.tsx`, `CaseQuickLook.tsx`, `Reviews.tsx`, `Stats.tsx`
 
-- [ ] **Step 1**: `grep -rnE "bg-(ink|espresso|wine|graphite)|from-ink|via-ink|text-cream" app --include=*.tsx` e `grep -rnE "rounded-(\[|2xl|xl|lg|card|t|b)" app --include=*.tsx | grep -v "rounded-full"`: per ogni occorrenza fuori dal preloader: superfici scure → `bg-cream-deep`/testo `text-ink`; raggi → togliere; `shadow-[…]` → togliere; `text-xs|text-sm|text-\[0\.[6-9]` → `text-ui`/`text-body`. `Stats.tsx`: se usato solo da /chi-siamo e /recensioni con `CountUp`, sostituire con una riga `text-d1` del solo 4,9/531 (numeri con fonte) e cancellare `CountUp`.
-- [ ] **Step 2**: typecheck/lint/test; screenshot di `/open-domus`, `/servizi`, `/lavora-con-noi`, `/case/<slug>` (una scheda); commit `feat(interne): niente scuro, niente raggi, niente scritte piccole nelle pagine interne`.
+- [x] **Step 1**: `grep -rnE "bg-(ink|espresso|wine|graphite)|from-ink|via-ink|text-cream" app --include=*.tsx` e `grep -rnE "rounded-(\[|2xl|xl|lg|card|t|b)" app --include=*.tsx | grep -v "rounded-full"`: per ogni occorrenza fuori dal preloader: superfici scure → `bg-cream-deep`/testo `text-ink`; raggi → togliere; `shadow-[…]` → togliere; `text-xs|text-sm|text-\[0\.[6-9]` → `text-ui`/`text-body`. `Stats.tsx`: se usato solo da /chi-siamo e /recensioni con `CountUp`, sostituire con una riga `text-d1` del solo 4,9/531 (numeri con fonte) e cancellare `CountUp`.
+- [x] **Step 2**: typecheck/lint/test; screenshot di `/open-domus`, `/servizi`, `/lavora-con-noi`, `/case/<slug>` (una scheda); commit `feat(interne): niente scuro, niente raggi, niente scritte piccole nelle pagine interne`.
 
 ---
 
@@ -824,9 +824,9 @@ Sotto 768 e con reduced-motion il `<video>` non parte (`matchMedia` nel client):
 - Modify: `app/lib/motion/gsap.ts` (togliere i plugin non più usati: `Flip` se `CaseQuickLook` non lo usa più; `SplitText` resta per `TextLines`), `app/lib/motion/warmup.ts` (se nessuno lo chiama più: cancellare)
 - Modify: `docs/effetti-reference.md`, `docs/wow-layer-plan.md`: aggiungere in testa una riga «superato dal 2026-09-10, vedi spec rivista bianca»
 
-- [ ] **Step 1**: cancellare i file; `npm run typecheck` elenca ogni import rotto: sistemarli uno a uno (mai reintrodurre il primitivo: togliere l'uso).
-- [ ] **Step 2**: pulire `globals.css` blocco per blocco; dopo ogni blocco `npm run lint` (Tailwind rifiuta CSS invalido); `grep -c "" app/globals.css` atteso < 1.800 righe.
-- [ ] **Step 3**: `npm test` verde (content-integrity cammina i .tsx); commit `chore(wow-layer): via i sistemi che il redesign ha sostituito`.
+- [x] **Step 1**: cancellare i file; `npm run typecheck` elenca ogni import rotto: sistemarli uno a uno (mai reintrodurre il primitivo: togliere l'uso).
+- [x] **Step 2**: pulire `globals.css` blocco per blocco; dopo ogni blocco `npm run lint` (Tailwind rifiuta CSS invalido); `grep -c "" app/globals.css` atteso < 1.800 righe.
+- [x] **Step 3**: `npm test` verde (content-integrity cammina i .tsx); commit `chore(wow-layer): via i sistemi che il redesign ha sostituito`.
 
 ### Task 25: Test e2e aggiornati
 
