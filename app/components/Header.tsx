@@ -1,19 +1,36 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import RotatingMark from "./motion/RotatingMark";
+import { Logo } from "./Logo";
 import { Whatsapp } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { getLenis } from "./motion/SmoothScroll";
-import { isTransitionCovering } from "./motion/PageTransition";
-import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
-import { registerWarmup } from "../lib/motion/warmup";
+
+// Header "rivista bianca" (2026-09-10, rif. immobiliaregoldengoal.it):
+// trasparente sul fondo avorio, logo ufficiale grande a sinistra, nav maiuscola
+// a 16 px; da scrollato diventa cream-deep pieno con una hairline sotto. Via il
+// pill scuro, il gradiente, il blur e ogni timeline GSAP: l'unico movimento è
+// la transizione CSS del colore di fondo.
+//
+// Da lg in su la testata ha DUE righe: logo + lingua + CTA sopra, la nav sotto
+// allineata a destra. Nove voci maiuscole a 16 px con tracking 0.08em pesano
+// ~950 px di solo testo: in una riga sola, accanto a logo e CTA, non ci stanno
+// nemmeno a 1440 (il vecchio header ci riusciva solo scendendo a 13 px e a xl).
+// Due righe restano dentro i 7.5rem massimi previsti per l'altezza fissa.
+//
+// L'altezza della riga mobile (`--dt-header-h`, sotto) è la stessa usata come
+// `top` del pannello del menu: il pannello è `fixed` e non può agganciarsi
+// all'altezza dell'header con `top: 100%` (per un elemento fixed il blocco
+// contenitore è il viewport).
+const ROW_H = "h-[clamp(5rem,12vh,7.5rem)]";
+const PANEL_TOP = "top-[clamp(5rem,12vh,7.5rem)]";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -28,71 +45,15 @@ export default function Header() {
     (href === "/acquista" && pathname.startsWith("/case/"));
   const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
-  const pillRef = useRef<HTMLDivElement | null>(null);
-  // Specchio di `open` leggibile dal callback ScrollTrigger senza ri-crearlo
-  // (sincronizzato in un effetto: niente scritture di ref durante il render).
-  const openRef = useRef(open);
-  useEffect(() => {
-    openRef.current = open;
-  }, [open]);
 
-  // Header direzionale: scendendo la pill si ritira (più tela per i contenuti),
-  // al primo scroll verso l'alto — o al focus da tastiera — torna subito.
-  // La traslazione è SULLA PILL, non sull'header: il menu mobile (fixed) resta
-  // figlio dell'header e un transform lì gli romperebbe il posizionamento.
-  useGSAP(
-    () => {
-      const pill = pillRef.current;
-      if (!pill) return;
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        const yTo = gsap.quickTo(pill, "yPercent", { duration: 0.65, ease: "expo.out" });
-        const show = () => yTo(0);
-        const st = ScrollTrigger.create({
-          onUpdate(self) {
-            if (openRef.current) return show();
-            // Mai nascondere la pill se il focus da tastiera è al suo interno:
-            // il focusin la mostra all'ingresso, ma uno scroll successivo (rotella,
-            // frecce, magnifier) la ritirerebbe portando l'elemento focalizzato
-            // fuori viewport (WCAG 2.4.7 / 2.4.11).
-            if (pillRef.current?.contains(document.activeElement)) return show();
-            if (self.scroll() < 160) return show();
-            if (self.direction === 1) yTo(-160);
-            else show();
-          },
-        });
-        pill.addEventListener("focusin", show);
-        return () => {
-          st.kill();
-          pill.removeEventListener("focusin", show);
-        };
-      });
-    },
-    { scope: pillRef }
-  );
-
-  /* Il wordmark ha due varianti e l'header le SCAMBIA al primo scroll: quella
-     non montata non è nel DOM, quindi nessun precarico generico la trova e
-     arrivava in ritardo proprio nel momento in cui si comincia a scorrere.
-     Qui si chiedono entrambe dietro il sipario. */
-  useEffect(() => {
-    return registerWarmup(
-      () =>
-        new Promise<void>((risolvi) => {
-          const varianti = ["/logo-domustua-wordmark.png", "/logo-domustua-wordmark-dark.png"];
-          let mancanti = varianti.length;
-          const fatta = () => {
-            if (--mancanti === 0) risolvi();
-          };
-          for (const src of varianti) {
-            const img = new window.Image();
-            img.onload = fatta;
-            img.onerror = fatta;
-            img.src = src;
-          }
-        })
-    );
-  }, []);
+  // Cambio di rotta con il menu aperto (back/forward del browser, o un link che
+  // non passa dall'onClick): si chiude. Stato aggiustato durante il render, non
+  // in un effetto, così non c'è un frame col pannello vecchio sulla pagina nuova.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setOpen(false);
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -102,21 +63,18 @@ export default function Header() {
   }, []);
 
   // Ownership dello scroll-lock: start() SOLO se è stato questo menu a fare
-  // stop() (mai al mount con open=false) e MAI mentre il sipario di
-  // PageTransition copre (è lui il proprietario dello stop in quel momento).
+  // stop() (mai al mount con open=false).
   //
   // [2026-08-11] Il lock stava su `body` e non bloccava un bel niente
   // (docs/mobile-parity.md §6.16, dubbio ora sciolto leggendo la regola CSS).
   // L'overflow del body governa il viewport SOLO se la radice è `visible` su
-  // entrambi gli assi; `html { overflow-x: clip }` (globals.css:147) glielo
-  // toglie, quindi quella riga era una scrittura a vuoto. A bloccare davvero
-  // era il solo `getLenis()?.stop()`, che mette `lenis-stopped` su <html> e da
-  // lì `overflow: hidden`. Ma con prefers-reduced-motion Lenis viene distrutto
-  // e `getLenis()` torna null (SmoothScroll.tsx:135-150): su quel telefono il
-  // menu si apriva sopra una pagina che continuava a scorrere sotto il dito.
-  // Ora il lock è scritto dove l'overflow conta — su <html> — con la stessa
-  // forma già usata da Assistant e CaseQuickLook, e Lenis resta la seconda
-  // mandata dove esiste (le due serrature dicono la stessa cosa, non litigano).
+  // entrambi gli assi; `html { overflow-x: clip }` glielo toglie, quindi quella
+  // riga era una scrittura a vuoto. A bloccare davvero era il solo
+  // `getLenis()?.stop()`, che mette `lenis-stopped` su <html> e da lì
+  // `overflow: hidden`. Ma con prefers-reduced-motion Lenis viene distrutto e
+  // `getLenis()` torna null: su quel telefono il menu si apriva sopra una pagina
+  // che continuava a scorrere sotto il dito. Ora il lock è scritto dove
+  // l'overflow conta — su <html> — e Lenis resta la seconda mandata dove esiste.
   const menuLockedRef = useRef(false);
   useEffect(() => {
     const root = document.documentElement;
@@ -125,21 +83,19 @@ export default function Header() {
       menuLockedRef.current = false;
       root.style.overflowY = "";
       root.style.scrollbarGutter = "";
-      if (!isTransitionCovering()) getLenis()?.start();
+      getLenis()?.start();
     };
     if (open) {
       // Prima il posto della barra di scorrimento, poi il blocco. Dove le barre
-      // occupano spazio (Windows/Linux, e il menu vive fino a 1279px: succede
+      // occupano spazio (Windows/Linux, e il menu vive fino a 1023px: succede
       // anche su un desktop stretto) farla sparire allarga il viewport e sposta
       // TUTTO di quei ~15px, compresi gli elementi fixed — l'ICB è il viewport.
       // `scrollbar-gutter: stable` glielo tiene occupato. Con le barre a
-      // sovrapposizione (telefoni, macOS) la misura è 0 e non si tocca nulla,
-      // così non si introduce un vuoto dove non c'era.
+      // sovrapposizione (telefoni, macOS) la misura è 0 e non si tocca nulla.
       if (window.innerWidth - root.clientWidth > 0) root.style.scrollbarGutter = "stable";
       // Solo l'asse Y: la scorciatoia `overflow` sovrascriverebbe anche
       // l'`overflow-x: clip` della radice, e `hidden` — a differenza di `clip` —
-      // fa di <html> un contenitore di scorrimento orizzontale (un focus() su un
-      // nodo che sborda lo trascinerebbe di lato, senza tornare indietro).
+      // fa di <html> un contenitore di scorrimento orizzontale.
       root.style.overflowY = "hidden";
       // Con Lenis attivo lo scroll virtuale va fermato insieme a quello nativo,
       // altrimenti la pagina dietro il menu continua a "muoversi" con la rotella.
@@ -149,8 +105,9 @@ export default function Header() {
       release();
     }
     // Un solo punto di rilascio per tutte le vie d'uscita: Escape, il click su
-    // una voce, il passaggio del breakpoint xl (l'effetto matchMedia qui sotto)
-    // e lo smontaggio passano tutti da `open=false` o da questa cleanup.
+    // una voce, il cambio di rotta, il passaggio del breakpoint lg (l'effetto
+    // matchMedia qui sotto) e lo smontaggio passano tutti da `open=false` o da
+    // questa cleanup.
     return release;
   }, [open]);
 
@@ -161,91 +118,17 @@ export default function Header() {
     return () => setOverlay("mobile-menu", false);
   }, [open]);
 
-  // Se il viewport supera il breakpoint xl con il menu aperto, overlay e
-  // hamburger spariscono (xl:hidden) ma il lock resterebbe: chiudiamo il menu.
-  // ⚠️ Il valore deve restare allineato al breakpoint delle classi `xl:` qui sotto.
+  // Se il viewport supera il breakpoint lg con il menu aperto, pannello e
+  // bottone spariscono (lg:hidden) ma il lock resterebbe: chiudiamo il menu.
+  // ⚠️ Il valore deve restare allineato al breakpoint delle classi `lg:` qui sotto.
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1280px)");
+    const mq = window.matchMedia("(min-width: 1024px)");
     const onChange = (e: MediaQueryListEvent) => {
       if (e.matches) setOpen(false);
     };
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
-
-  // Coreografia del menu mobile (solo motion ok): clip-path circolare che
-  // nasce dal bottone hamburger, voci in stagger (y + micro-rotazione),
-  // contatti in coda; chiusura inversa più rapida. Con reduced-motion il
-  // toggle resta il cambio di classi istantaneo (nessuna animazione = giusto).
-  // useLayoutEffect: parte prima del paint, così il flip di classi non mostra
-  // il pannello pieno per un frame prima che il clip iniziale sia applicato.
-  const firstMenuRun = useRef(true);
-  useLayoutEffect(() => {
-    if (firstMenuRun.current) {
-      firstMenuRun.current = false;
-      return;
-    }
-    const menu = menuRef.current;
-    if (!menu) return;
-    const links = Array.from(menu.querySelectorAll<HTMLElement>("nav a"));
-    const bottom = menu.querySelector<HTMLElement>("[data-menu-bottom]");
-    if (!window.matchMedia(MQ.motionOk).matches) {
-      // Reduced-motion attivato DOPO un'apertura animata: gli inline style di
-      // GSAP (opacity/clip) vincerebbero sulle classi. Pulizia idempotente e
-      // via: il toggle resta il cambio di classi istantaneo.
-      gsap.set([menu, ...links, ...(bottom ? [bottom] : [])], { clearProps: "all" });
-      return;
-    }
-    const r = toggleRef.current?.getBoundingClientRect();
-    const cx = r ? r.left + r.width / 2 : window.innerWidth - 44;
-    const cy = r ? r.top + r.height / 2 : 44;
-    const radius =
-      Math.hypot(
-        Math.max(cx, window.innerWidth - cx),
-        Math.max(cy, window.innerHeight - cy)
-      ) + 40;
-
-    let tl: gsap.core.Timeline;
-    if (open) {
-      tl = gsap
-        .timeline()
-        .set(menu, { autoAlpha: 1 })
-        .fromTo(
-          menu,
-          { clipPath: `circle(22px at ${cx}px ${cy}px)` },
-          { clipPath: `circle(${radius}px at ${cx}px ${cy}px)`, duration: 0.65, ease: "domus.inOut" }
-        )
-        // opacity (non autoAlpha): i link restano nel tab order per il focus
-        // trap che parte in parallelo all'apertura.
-        .fromTo(
-          links,
-          { y: 36, rotate: 1.5, opacity: 0 },
-          { y: 0, rotate: 0, opacity: 1, duration: dur.short, ease: "domus", stagger: stagger.words },
-          0.16
-        )
-        .fromTo(
-          bottom,
-          { y: 26, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5, ease: "domus" },
-          0.42
-        );
-    } else {
-      const targets = bottom ? [...links, bottom] : links;
-      tl = gsap
-        .timeline({
-          onComplete() {
-            gsap.set([menu, ...targets], { clearProps: "all" });
-          },
-        })
-        .to(links, { y: -14, opacity: 0, duration: 0.22, ease: "power2.in", stagger: { each: 0.025, from: "end" } }, 0)
-        .to(bottom, { opacity: 0, duration: 0.2, ease: "none" }, 0)
-        .to(menu, { clipPath: `circle(22px at ${cx}px ${cy}px)`, duration: 0.4, ease: "domus.inOut" }, 0.05)
-        .set(menu, { autoAlpha: 0 });
-    }
-    return () => {
-      tl.kill();
-    };
-  }, [open]);
 
   // Accessibilità menu mobile: Escape chiude, focus intrappolato dentro il
   // pannello, focus sul primo elemento all'apertura e ripristino sul toggle
@@ -294,208 +177,133 @@ export default function Header() {
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      // Ripristina il focus sul pulsante hamburger alla chiusura.
+      // Ripristina il focus sul pulsante del menu alla chiusura.
       toggle?.focus();
     };
   }, [open]);
 
+  // Con il menu aperto la barra prende il fondo pieno anche a scroll 0: sotto
+  // c'è il pannello avorio, e una barra trasparente lascerebbe vedere la pagina
+  // in una striscia fra logo e voci.
+  const solid = scrolled || open;
+
   return (
     <header
-      className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 transition-colors duration-500 ${
-        scrolled ? "" : "bg-gradient-to-b from-ink/60 via-ink/20 to-transparent pb-6"
+      // `!border-transparent`: globals.css ha un `* { border-color: var(--color-line) }`
+      // fuori da ogni @layer, che vince sulle utility; senza il `!` la hairline
+      // resterebbe visibile anche sull'header trasparente.
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${
+        solid ? "border-line bg-cream-deep" : "!border-transparent bg-transparent"
       }`}
     >
       <div
-        ref={pillRef}
-        className={`pointer-events-auto mt-3 flex w-full max-w-[1240px] items-center justify-between gap-4 rounded-full px-3 pl-5 transition-[background-color,border-color,box-shadow,padding,backdrop-filter] duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          scrolled
-            ? "border border-line/70 bg-paper/80 py-2 shadow-[0_18px_50px_-28px_rgba(26,24,22,0.45)] backdrop-blur-xl"
-            : "border border-white/15 bg-ink/20 py-3 backdrop-blur-md"
-        }`}
+        className={`dt-row flex ${ROW_H} items-center justify-between gap-x-8 gap-y-2 lg:h-auto lg:flex-wrap lg:py-4`}
       >
-        <Link href="/" className="shrink-0" aria-label="Domus Tua, vai alla home">
-          {/* Badge di marca rif. era-residence: monogramma ufficiale fermo,
-              anello ornamentale che ruota con lo scroll (RotatingMark).
-              Sopra l'hero scuro diventa silhouette chiara; da scrollato
-              l'anello passa a grafite e il monogramma torna a colori. */}
-          <span
-            className={`flex items-center gap-2.5 transition-colors duration-500 ${
-              scrolled ? "text-graphite" : "text-cream"
-            }`}
-          >
-            <RotatingMark className="block h-12 w-12 shrink-0" dark={!scrolled} />
-            {/* Wordmark ufficiale (crop del PNG depositato: stesso font e
-                stessi colori). Sul velo scuro dell'hero: variante negativa —
-                "Domus" in crema, "Tua" resta ROSSA come nel logo. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={scrolled ? "/logo-domustua-wordmark.png" : "/logo-domustua-wordmark-dark.png"}
-              alt=""
-              width={388}
-              height={92}
-              className="h-7 w-auto"
-            />
+        <Link href="/" className="flex shrink-0 items-center gap-4" aria-label="Domus Tua, vai alla home">
+          {/* Monogramma ufficiale in rotazione oraria (RotatingMark), solo da lg:
+              sul telefono la riga è del logo e del bottone Menu. Lo span di
+              contorno serve perché MarkBadge porta un suo `inline-block`, e in
+              Tailwind v4 le utility della stessa proprietà escono in ordine
+              alfabetico: `hidden` passato come className perderebbe. */}
+          <span className="hidden lg:contents">
+            <RotatingMark className="h-11 w-11" />
           </span>
+          {/* Logo ufficiale (PNG depositato, 200×37): ~200 px come nel riferimento. */}
+          <Logo className="h-auto w-[clamp(150px,14vw,220px)]" />
         </Link>
 
-        {/* Desktop nav.
-            Il breakpoint è `xl` (1280), non `lg`: con otto voci la pill a 1024 e a 1152
-            chiedeva 1193px in uno spazio di 992 e le voci si schiacciavano una sull'altra.
-            Il difetto c'era già a sette voci (1069 in 992): l'ottava l'ha solo reso
-            impossibile da non vedere. Fino a 1279 vale il menu a tutto schermo, che è
-            completo e ben animato — meglio di una barra compressa.
-            Il padding cresce con lo spazio: stretto dove serve, arioso da 1536 in su. */}
-        <nav className="hidden items-center gap-0.5 xl:flex 2xl:gap-1">
-          {nav.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={`whitespace-nowrap rounded-full px-2.5 py-2 text-[0.82rem] transition-colors duration-300 2xl:px-3.5 ${
-                  active ? "font-semibold" : "font-medium"
-                } ${
-                  scrolled
-                    ? active
-                      ? "bg-red-soft text-red-dark"
-                      : "text-graphite hover:bg-cream-deep hover:text-ink"
-                    : active
-                      ? "bg-cream/20 text-white"
-                      : "text-cream/90 hover:bg-cream/15 hover:text-white"
-                }`}
-              >
-                {d.nav[item.key]}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          {/* Icona social del sistema CTA: tooltip elastico, variante dark sopra l'hero */}
-          <a
-            href={site.whatsapp.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={d.header.whatsapp}
-            className={`dt-social__link !hidden sm:!flex ${scrolled ? "" : "dt-social__link--dark"}`}
-          >
-            <span className="dt-social__tip" aria-hidden>
-              WhatsApp
-            </span>
-            <Whatsapp className="h-5 w-5" />
-          </a>
-
-          <div className="hidden sm:block">
-            <LanguageSwitcher light={!scrolled} />
-          </div>
-
-          <Cta
-            href="/valutazione-immobile-tradate"
-            variant="cta-solid"
-            size="sm"
-            className="!hidden sm:!inline-flex"
-          >
+        {/* Riga 1, a destra (lg+): lingua e CTA piena. */}
+        <div className="hidden items-center gap-6 lg:flex">
+          <LanguageSwitcher />
+          <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="sm" arrow={false}>
             {d.header.valuta}
           </Cta>
-
-          {/* Hamburger */}
-          <button
-            ref={toggleRef}
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? "Chiudi menu" : "Apri menu"}
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            className={`relative flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 active:scale-95 xl:hidden ${
-              scrolled
-                ? "border-line text-ink hover:border-red hover:text-red"
-                : "border-cream/40 text-cream hover:border-cream"
-            }`}
-          >
-            <span className="relative block h-3 w-5">
-              <span
-                className={`absolute left-0 top-0 h-[1.6px] w-5 bg-current transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                  open ? "translate-y-[5.5px] rotate-45" : ""
-                }`}
-              />
-              <span
-                className={`absolute bottom-0 left-0 h-[1.6px] w-5 bg-current transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                  open ? "-translate-y-[5.5px] -rotate-45" : ""
-                }`}
-              />
-            </span>
-          </button>
         </div>
+
+        {/* Toggle del menu (sotto lg): parola, non icona. L'aria-label conserva
+            la parola "menu" in entrambi gli stati (e2e: getByRole button /menu/i). */}
+        <button
+          ref={toggleRef}
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={open ? "Chiudi menu" : "Apri menu"}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          className="text-ui font-semibold uppercase tracking-[0.08em] text-ink underline-offset-[0.4em] hover:underline focus-visible:underline lg:hidden"
+        >
+          {open ? "Chiudi" : "Menu"}
+        </button>
+
+        {/* Riga 2 (lg+): la nav, a tutta larghezza, allineata a destra.
+            Le nove voci misurano ~937 px: con 16 px di gap stanno in una riga
+            da 1268 px in su (a 1280, 1366 e 1440 la riga è una); fra 1024 e
+            1267 vanno a capo su due righe, e il flex-wrap le tiene leggibili. */}
+        <nav className="hidden basis-full flex-wrap items-center justify-end gap-x-4 gap-y-1 lg:flex 2xl:gap-x-7">
+          {nav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className="whitespace-nowrap text-ui font-medium uppercase tracking-[0.08em] text-ink underline-offset-[0.4em] hover:underline focus-visible:underline aria-[current=page]:underline"
+            >
+              {d.nav[item.key]}
+            </Link>
+          ))}
+        </nav>
       </div>
 
-      {/* Mobile overlay */}
+      {/* Menu mobile: pannello pieno avorio sotto la barra, voci a d2 in Playfair.
+          `hidden` quando è chiuso: fuori dal DOM accessibile e dal tab order
+          senza bisogno di aria-hidden/inert. Nessuna coreografia: si apre e
+          si chiude, come nel riferimento.
+
+          `overflow-y-auto`: nove voci a d2 più il blocco in coda chiedono più
+          di un telefono basso (o di qualunque telefono in orizzontale); un
+          elemento fixed non si raggiunge scorrendo la pagina, quindi scorre
+          per conto suo. `data-lenis-prevent` dice a Lenis di lasciarlo fare;
+          `overscroll-contain` perché la regola gemella in globals.css vale
+          solo con Lenis attivo. */}
       <div
         ref={menuRef}
         id="mobile-menu"
-        aria-hidden={!open}
-        inert={!open ? true : undefined}
+        hidden={!open}
         data-lenis-prevent
-        // bg pieno, niente backdrop-blur: un blur full-viewport ricalcolato a
-        // ogni frame del clip-path sarebbe il costo compositor peggiore
-        // possibile proprio sull'interazione mobile più frequente.
-        //
-        // `overflow-y-auto`: il pannello è `fixed inset-0` e otto voci in
-        // font-display 3xl più il blocco in coda chiedono ~900px — su un
-        // telefono basso, o su qualunque telefono in orizzontale, WhatsApp e la
-        // lingua finivano fuori schermo e IRRAGGIUNGIBILI (un elemento fixed non
-        // si raggiunge scorrendo la pagina). `data-lenis-prevent` qui sopra
-        // dichiarava già l'intenzione — "questo sottoalbero scorre per conto
-        // suo" — ma senza un contenitore di scorrimento non aveva niente da
-        // proteggere. Ora ce l'ha, e con la radice bloccata è l'unico modo per
-        // arrivare in fondo al menu. `overscroll-contain` perché la regola
-        // gemella in globals.css vale solo con Lenis attivo.
-        className={`fixed inset-0 z-40 flex flex-col overflow-y-auto overscroll-contain bg-cream px-6 pb-10 pt-28 xl:hidden ${
-          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-        }`}
+        className={`fixed inset-x-0 bottom-0 ${PANEL_TOP} z-40 overflow-y-auto overscroll-contain bg-cream lg:hidden`}
       >
-        <nav className="flex flex-col">
-          {nav.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                aria-current={active ? "page" : undefined}
-                className={`border-b border-line/70 py-4 font-display text-3xl font-medium transition-colors duration-300 ${
-                  active ? "text-red" : "text-ink"
-                }`}
-              >
-                {d.nav[item.key]}
-              </Link>
-            );
-          })}
+        <nav className="dt-row flex flex-col pt-4">
+          {nav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className="border-b border-line py-4 font-display text-d2 font-medium uppercase text-ink aria-[current=page]:text-red"
+            >
+              {d.nav[item.key]}
+            </Link>
+          ))}
         </nav>
 
-        <div data-menu-bottom className="mt-auto flex flex-col gap-3 pt-8">
+        <div className="dt-row flex flex-col items-start gap-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-8">
           <Cta
             href="/valutazione-immobile-tradate"
             variant="cta-solid"
             size="lg"
+            arrow={false}
             onClick={() => setOpen(false)}
-            className="w-full"
           >
             {d.header.valuta}
           </Cta>
           <Cta
             href={site.whatsapp.href}
             variant="ghost"
-            size="lg"
             arrow={false}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full"
           >
             <Whatsapp className="h-5 w-5 text-red" /> {d.header.whatsapp}
           </Cta>
-          <div className="pt-2">
-            <LanguageSwitcher />
-          </div>
+          <LanguageSwitcher />
         </div>
       </div>
     </header>
