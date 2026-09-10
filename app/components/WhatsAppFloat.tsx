@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Whatsapp } from "./Icons";
-import { Cta } from "./primitives/Cta";
 import { site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
-import Magnetic from "./motion/Magnetic";
 
 export default function WhatsAppFloat() {
   const [show, setShow] = useState(false);
@@ -29,26 +27,19 @@ export default function WhatsAppFloat() {
         show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       }`}
     >
-      <Magnetic strength={0.22}>
-        <Cta
-          href={site.whatsapp.href}
-          variant="cta-solid"
-          size="sm"
-          arrow={false}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={d.header.whatsapp}
-          className="!shadow-[0_20px_45px_-18px_rgba(210,10,10,0.8)] !pl-2 !pr-4"
-        >
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15"
-            style={{ animation: "dt-wa-pulse 8s ease-in-out infinite" }}
-          >
-            <Whatsapp className="h-5 w-5" />
-          </span>
-          {d.whatsapp.cta}
-        </Cta>
-      </Magnetic>
+      {/* Un cerchio rosso con l'icona (le icone tonde sono l'unica curva
+          ammessa): il rettangolo con l'etichetta pesava quanto una CTA di
+          pagina. L'etichetta resta come nome accessibile e tooltip. */}
+      <a
+        href={site.whatsapp.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={d.header.whatsapp}
+        title={d.whatsapp.cta}
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-red text-white transition-colors duration-300 hover:bg-red-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+      >
+        <Whatsapp className="h-6 w-6" />
+      </a>
     </div>
   );
 }

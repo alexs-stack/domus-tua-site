@@ -102,6 +102,7 @@ export default function Team() {
           <div className="relative aspect-[4/5]">
             <Image
               src="/images/reali/raffaela-founder.jpg"
+              style={{ objectPosition: "18% 45%" }}
               alt={c.founderAlt}
               fill
               sizes="(max-width: 1024px) 100vw, 45vw"

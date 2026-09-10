@@ -705,7 +705,7 @@ export default function Contact({
         <Reveal>
           <span className="eyebrow">{c.eyebrow}</span>
         </Reveal>
-        <TextLines as="h2" className="mt-6 max-w-[12ch] font-display text-d1">
+        <TextLines as="h2" className="mt-6 max-w-[22ch] font-display text-d2">
           {c.title}
         </TextLines>
 
