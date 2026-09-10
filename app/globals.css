@@ -2604,318 +2604,144 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
 }
 
 /* ============================================================
-   CTA SYSTEM — i "redirect" del sito.
-   Cinque gesti, un vocabolario (adattamento in-brand dei riferimenti
-   Uiverse scelti dal cliente, 2026-08):
-   • cta        — anello rosso → riempimento circolare dal centro + morph
-                  del raggio (pill → architrave --radius-field)
-   • cta-solid  — variante piena per superfici scure/foto
-   • reveal     — doppia faccia a scorrimento verticale (espresso → rosso)
-   • ghost      — lift su carta con ombra calda (+ variante dark)
-   • send       — submit con aeroplanino che spicca il volo
-   • dt-social  — icone social rotonde con tooltip elastico
-   Tutto CSS puro: niente client JS; hover/focus-visible equivalenti;
-   reduced-motion neutralizzato dalle regole globali (snap allo stato
-   finale) — solo il volo dell'aeroplanino è opt-in dentro (hover:hover)
-   + motion ok, perché "porta via" l'etichetta.
+   CTA — rettangoli e link sottolineati (rivista bianca, 2026-09-10).
+   Due gesti soli, come nel riferimento: il bottone rosso pieno per la
+   conversione e il link maiuscolo sottolineato per tutto il resto.
+   Le varianti storiche restano come classi (API di Cta.tsx invariata):
+   reveal ≡ cta-solid, ghost ≡ link. Niente anelli, facce, aeroplanini.
+   Regola del repo che resta vera: queste regole sono UNLAYERED e battono
+   le utility Tailwind — per sovrascriverle serve `!`.
    ============================================================ */
-
 .dt-btn {
-  --btn-py: 0.9rem;
-  --btn-px: 1.8rem;
+  --btn-py: 1.05rem;
+  --btn-px: 2rem;
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.9rem;
+  gap: 0.6rem;
+  border-radius: 0;
+  font-size: var(--text-ui);
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   line-height: 1.2;
   cursor: pointer;
-  transition: scale 0.2s var(--ease-soft);
-}
-.dt-btn:active {
-  scale: 0.98;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
 }
 .dt-btn--sm {
-  --btn-py: 0.65rem;
-  --btn-px: 1.25rem;
-  font-size: 0.85rem;
+  --btn-py: 0.8rem;
+  --btn-px: 1.4rem;
 }
-/* Su touch il target minimo è 44px: la variante sm si alza senza cambiare
-   il disegno desktop (pointer fine). */
+.dt-btn--lg {
+  --btn-py: 1.2rem;
+  --btn-px: 2.4rem;
+}
 @media (pointer: coarse) {
-  .dt-btn--sm {
+  .dt-btn {
     min-height: 2.75rem;
   }
 }
-.dt-btn--lg {
-  --btn-py: 1.05rem;
-  --btn-px: 2.1rem;
-  font-size: 1rem;
-}
-/* L'etichetta può ospitare icone (WhatsApp, play…): allineamento sicuro */
 .dt-btn__label {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+}
+.dt-btn__arr {
+  display: grid;
+  place-items: center;
+  width: 1.2em;
+  height: 1.2em;
+}
+.dt-btn__arr svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+.dt-btn__arr svg + svg {
+  display: none;
+}
+.dt-btn__fill {
+  display: none;
 }
 
-/* --- cta: anello rosso → riempimento circolare (il gesto-firma) --- */
+/* --- cta: contorno rosso → pieno --- */
 .dt-btn--cta {
-  overflow: hidden;
-  isolation: isolate;
   padding: var(--btn-py) var(--btn-px);
   color: var(--color-red);
   background: transparent;
-  box-shadow: 0 0 0 1.5px var(--color-red);
-  transition:
-    color var(--dur-micro) var(--ease-domus),
-    border-radius 0.55s var(--ease-domus),
-    box-shadow 0.6s var(--ease-domus),
-    scale 0.2s var(--ease-soft);
+  border: 1.5px solid var(--color-red);
 }
 .dt-btn--cta:hover,
 .dt-btn--cta:focus-visible {
   color: #fff;
-  border-radius: var(--radius-field);
-  /* L'anello si espande e svanisce: eco del riempimento (ripple senza JS) */
-  box-shadow: 0 0 0 10px rgb(210 10 10 / 0);
-}
-/* Cerchio che riempie dal centro: solo scale/opacity (compositor-safe) */
-.dt-btn__fill {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: -1;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 50%;
   background: var(--color-red);
-  translate: -50% -50%;
-  scale: 0;
-  opacity: 0;
-  transition: scale 0.7s var(--ease-domus), opacity 0.25s ease;
-}
-.dt-btn--cta:hover .dt-btn__fill,
-.dt-btn--cta:focus-visible .dt-btn__fill {
-  scale: 44;
-  opacity: 1;
 }
 
-/* La card-link (Paths) fa da trigger: hover sull'intera card = hover sul bottone.
-   Stesse dichiarazioni di .dt-btn--cta:hover, con l'ancestor .group/cta. */
-.group\/cta:hover .dt-btn--cta,
-.group\/cta:focus-visible .dt-btn--cta {
-  color: #fff;
-  border-radius: var(--radius-field);
-  box-shadow: 0 0 0 10px rgb(210 10 10 / 0);
-}
-.group\/cta:hover .dt-btn--cta .dt-btn__fill,
-.group\/cta:focus-visible .dt-btn--cta .dt-btn__fill {
-  scale: 44;
-  opacity: 1;
-}
-.group\/cta:hover .dt-btn .dt-btn__arr svg:first-child,
-.group\/cta:focus-visible .dt-btn .dt-btn__arr svg:first-child {
-  translate: 140% -140%;
-  opacity: 0;
-}
-.group\/cta:hover .dt-btn .dt-btn__arr svg:last-child,
-.group\/cta:focus-visible .dt-btn .dt-btn__arr svg:last-child {
-  translate: 0 0;
-  opacity: 1;
-  transition-delay: 0.06s;
-}
-
-/* --- cta-solid: piena, per superfici scure/foto (hero, header) --- */
-.dt-btn--cta-solid {
+/* --- cta-solid / reveal: pieno rosso --- */
+.dt-btn--cta-solid,
+.dt-btn--reveal {
+  padding: var(--btn-py) var(--btn-px);
   color: #fff;
   background: var(--color-red);
-  box-shadow: 0 0 0 0 rgb(210 10 10 / 0);
+  border: 1.5px solid var(--color-red);
 }
 .dt-btn--cta-solid:hover,
-.dt-btn--cta-solid:focus-visible {
-  color: #fff;
-  box-shadow: 0 16px 34px -18px rgb(163 7 7 / 0.55);
-}
-.dt-btn--cta-solid .dt-btn__fill {
-  background: var(--color-red-dark);
-}
-
-/* --- Freccia "fly-through": esce in alto a destra, rientra dal basso ---
-   Slot unico a destra (idioma del sito), due frecce sovrapposte. */
-.dt-btn__arr {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 1.5em;
-  height: 1.5em;
-  overflow: hidden;
-}
-.dt-btn__arr svg {
-  grid-area: 1 / 1;
-  width: 1.15em;
-  height: 1.15em;
-  transition: translate 0.5s var(--ease-domus), opacity 0.35s ease;
-}
-.dt-btn__arr svg:last-child {
-  translate: -140% 140%;
-  opacity: 0;
-}
-.dt-btn:hover .dt-btn__arr svg:first-child,
-.dt-btn:focus-visible .dt-btn__arr svg:first-child {
-  translate: 140% -140%;
-  opacity: 0;
-}
-.dt-btn:hover .dt-btn__arr svg:last-child,
-.dt-btn:focus-visible .dt-btn__arr svg:last-child {
-  translate: 0 0;
-  opacity: 1;
-  transition-delay: 0.06s;
-}
-
-/* --- reveal: doppia faccia a scorrimento verticale --- */
-.dt-btn--reveal {
-  overflow: hidden;
-  padding: 0;
-  background: var(--color-espresso);
-  color: var(--color-cream);
-  box-shadow: var(--shadow-card);
-  transition: box-shadow 0.4s var(--ease-domus), scale 0.2s var(--ease-soft);
-}
+.dt-btn--cta-solid:focus-visible,
 .dt-btn--reveal:hover,
 .dt-btn--reveal:focus-visible {
-  box-shadow: var(--shadow-card-hover);
-}
-.dt-btn__face-a,
-.dt-btn__face-b {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: var(--btn-py) var(--btn-px);
-  white-space: nowrap;
-  transition: translate 0.6s var(--ease-out-expo);
-}
-.dt-btn__face-b {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--color-red-dark), var(--color-red));
   color: #fff;
-  translate: 0 100%;
-}
-.dt-btn--reveal:hover .dt-btn__face-a,
-.dt-btn--reveal:focus-visible .dt-btn__face-a {
-  translate: 0 -100%;
-}
-.dt-btn--reveal:hover .dt-btn__face-b,
-.dt-btn--reveal:focus-visible .dt-btn__face-b {
-  translate: 0 0;
-}
-/* Su bande espresso/ink la faccia a riposo è crema (contrasto), l'arrivo resta rosso */
-.dt-btn--reveal-cream {
-  background: var(--color-cream);
-  color: var(--color-ink);
+  background: var(--color-red-dark);
+  border-color: var(--color-red-dark);
 }
 
-/* --- ghost: lift su carta, ombra calda --- */
+/* --- ghost: link maiuscolo sottolineato, nessuna scatola --- */
 .dt-btn--ghost {
-  padding: var(--btn-py) var(--btn-px);
-  border: 1px solid var(--color-line);
-  background: var(--color-paper);
-  color: var(--color-graphite);
-  transition:
-    translate var(--dur-micro) var(--ease-domus),
-    box-shadow var(--dur-micro) var(--ease-domus),
-    border-color var(--dur-micro) ease,
-    background-color var(--dur-micro) ease,
-    color var(--dur-micro) ease,
-    scale 0.2s var(--ease-soft);
+  padding: 0.4rem 0;
+  color: var(--color-ink);
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.35em;
+  text-decoration-thickness: 1.5px;
 }
 .dt-btn--ghost:hover,
 .dt-btn--ghost:focus-visible {
-  translate: 0 -3px;
-  border-color: rgb(210 10 10 / 0.45);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-card-hover);
+  color: var(--color-red);
 }
-/* Variante per superfici scure/foto (secondary dell'hero) */
 .dt-btn--ghost-dark {
-  border-color: rgb(242 235 218 / 0.35);
-  background: rgb(242 235 218 / 0.05);
-  color: var(--color-cream);
-  backdrop-filter: blur(4px);
+  color: #fff;
 }
 .dt-btn--ghost-dark:hover,
 .dt-btn--ghost-dark:focus-visible {
-  border-color: rgb(242 235 218 / 0.6);
-  background: rgb(242 235 218 / 0.14);
-  color: #fff;
-  box-shadow: 0 18px 40px -20px rgb(12 6 5 / 0.6);
+  color: var(--color-cream);
 }
 
-/* --- send: submit con aeroplanino --- */
+/* --- send: submit dei form lead (SendCta) — pieno rosso, spinner al posto
+   dell'etichetta mentre invia --- */
 .dt-btn--send {
-  overflow: hidden;
-  gap: 0.6rem;
   padding: var(--btn-py) var(--btn-px);
   background: var(--color-red);
   color: #fff;
-  transition:
-    background-color 0.3s ease,
-    box-shadow 0.4s var(--ease-domus),
-    scale 0.2s var(--ease-soft);
+  border: 1.5px solid var(--color-red);
 }
 .dt-btn--send:hover:not(:disabled),
 .dt-btn--send:focus-visible:not(:disabled) {
   background: var(--color-red-dark);
-  box-shadow: 0 16px 34px -18px rgb(163 7 7 / 0.55);
+  border-color: var(--color-red-dark);
 }
 .dt-btn--send:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.6;
+  cursor: wait;
 }
 .dt-btn__plane-wrap {
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
 }
-.dt-btn__plane {
-  width: 1.2em;
-  height: 1.2em;
-}
-.dt-btn--send .dt-btn__label {
-  transition: translate 0.5s var(--ease-domus), opacity 0.4s ease;
-}
-/* Il volo: l'etichetta "parte" col messaggio — solo pointer con hover
-   vero + motion ok (su touch/reduced l'etichetta non deve mai sparire). */
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .dt-btn__plane {
-    transition: translate 0.45s var(--ease-domus), rotate 0.45s var(--ease-domus),
-      scale 0.45s var(--ease-domus);
-  }
-  .dt-btn--send:hover:not(:disabled) .dt-btn__label {
-    translate: calc(100% + 4rem) 0;
-    opacity: 0;
-  }
-  .dt-btn--send:hover:not(:disabled) .dt-btn__plane {
-    translate: 1.5em -0.25em;
-    rotate: 10deg;
-    scale: 1.12;
-  }
-  .dt-btn--send:hover:not(:disabled) .dt-btn__plane-wrap {
-    animation: dt-send-bob 0.6s ease-in-out infinite alternate;
-  }
-}
-@keyframes dt-send-bob {
-  from {
-    translate: 0 0.12em;
-  }
-  to {
-    translate: 0 -0.12em;
-  }
+.dt-btn--send .dt-btn__plane {
+  display: none;
 }
 
 /* --- dt-social: icone rotonde + tooltip elastico --- */
@@ -2942,7 +2768,7 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
     background-color 0.25s ease,
     border-color 0.25s ease,
     color 0.25s ease,
-    translate 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    translate 0.3s ease,
     box-shadow 0.3s var(--ease-domus);
 }
 .dt-social__link:hover,
@@ -2970,7 +2796,7 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   font-weight: 600;
   letter-spacing: 0.06em;
   box-shadow: 0 10px 20px -12px rgb(42 16 14 / 0.5);
-  transition: translate 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.25s ease;
+  transition: translate 0.3s ease, opacity 0.25s ease;
 }
 .dt-social__tip::before {
   content: "";

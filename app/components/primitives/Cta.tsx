@@ -16,8 +16,8 @@ type Size = "sm" | "md" | "lg";
 const variantClass: Record<Variant, string> = {
   cta: "dt-btn dt-btn--cta",
   "cta-solid": "dt-btn dt-btn--cta dt-btn--cta-solid",
-  reveal: "dt-btn dt-btn--reveal",
-  "reveal-cream": "dt-btn dt-btn--reveal dt-btn--reveal-cream",
+  reveal: "dt-btn dt-btn--cta dt-btn--cta-solid",
+  "reveal-cream": "dt-btn dt-btn--cta dt-btn--cta-solid",
   ghost: "dt-btn dt-btn--ghost",
   "ghost-dark": "dt-btn dt-btn--ghost dt-btn--ghost-dark",
 };
@@ -41,17 +41,6 @@ function CtaInner({
   arrow: boolean;
   children: ReactNode;
 }) {
-  if (variant === "reveal" || variant === "reveal-cream") {
-    // Faccia doppia: la copia in arrivo è decorativa per gli screen reader
-    return (
-      <>
-        <span className="dt-btn__face-a">{children}</span>
-        <span className="dt-btn__face-b" aria-hidden>
-          {children}
-        </span>
-      </>
-    );
-  }
   return (
     <>
       <span className="dt-btn__label">{children}</span>
@@ -61,7 +50,6 @@ function CtaInner({
           <ArrowUpRight />
         </span>
       )}
-      {(variant === "cta" || variant === "cta-solid") && <span className="dt-btn__fill" aria-hidden />}
     </>
   );
 }
