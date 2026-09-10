@@ -1,3 +1,5 @@
+> **Superato il 2026-09-10.** Il redesign «rivista bianca» (spec `docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md`) ha smontato quasi tutto ciò che questo documento descrive: niente curve, card, fiori, superfici scure, sezioni pinnate né transizioni fra pagine. Resta come storia, non come guida.
+
 # Direzione brand — Domus Tua
 
 Sintesi operativa della direzione di brand per il sito e i materiali collegati. Non riscrive il

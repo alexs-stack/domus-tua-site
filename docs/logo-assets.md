@@ -67,3 +67,24 @@ Formati, in ordine di preferenza per farci ricavare gli SVG puliti: **SVG** → 
 - [ ] Favicon visibile nel tab del browser
 - [ ] (Opzionale) solo-simbolo per avatar social/OG 512×512
 - [ ] Confermato: **logo NON ridisegnato** — è l'asset ufficiale del cliente
+
+
+---
+
+## 5. Logo nuovo e font delle scritte «Domus Tua» (dal 2026-09-10)
+
+La cliente ha chiesto un **logo nuovo** (non ancora consegnato) e che **tutte le scritte
+"Domus Tua"** — il lockup dell'hero, le occorrenze nel testo — usino **lo stesso font del logo**.
+Il sito è pronto per lo scambio in due punti soli:
+
+1. **Il file del logo**: depositarlo con i nomi della tabella del §1 (`public/logo-domustua-original.svg`
+   o `.png`, più la variante chiara se esiste). `app/lib/brand.ts` continua a puntare lì.
+2. **Il font**: in `app/globals.css` il token `--font-brand` (oggi `var(--font-jakarta)`) è l'unico posto
+   che decide il font delle scritte "Domus Tua" (`font-brand` in `HeroCinematic.tsx`). Quando si sa quale
+   font usa il logo nuovo: caricarlo con `next/font` in `app/layout.tsx` (variabile es. `--font-logo`) e
+   ripuntare `--font-brand: var(--font-logo);`. Se il font è commerciale (Gotham, ecc.), servono i file
+   licenziati in `app/fonts/` e `next/font/local`.
+
+Il logo attuale (`logo-domustua-original.png`) è in un grottesco geometrico molto vicino a **Montserrat**
+(libero su Google Fonts): se il logo nuovo conferma quel carattere, `Montserrat` a peso 800 è lo swap
+più semplice.

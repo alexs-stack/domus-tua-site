@@ -1,3 +1,5 @@
+> **Superato il 2026-09-10.** Il redesign «rivista bianca» (spec `docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md`) ha smontato quasi tutto ciò che questo documento descrive: niente curve, card, fiori, superfici scure, sezioni pinnate né transizioni fra pagine. Resta come storia, non come guida.
+
 # Il Segno Domus
 
 Un motif visivo ricorrente derivato dal logo casa + cuore. Serve a dare al sito
