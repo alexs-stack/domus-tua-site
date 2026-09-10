@@ -266,9 +266,11 @@ export default function FaqContent() {
                             current ? "w-5 opacity-100" : "w-0 opacity-0"
                           }`}
                         />
+                        {/* Rosso pieno, non al 70 %: il numero è testo a 16 px e sul
+                            crema l'alfa lo portava sotto il 4,5:1 (axe, e2e a11y). */}
                         <span
                           className={`tnum text-ui font-semibold tracking-[0.08em] transition-colors duration-300 ${
-                            current ? "text-red/70" : "text-stone"
+                            current ? "text-red" : "text-stone"
                           }`}
                         >
                           {String(i + 1).padStart(2, "0")}

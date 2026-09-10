@@ -1,4 +1,4 @@
-import { test, expect, setConsent, clickUntil } from "./helpers";
+import { test, expect, setConsent, clickUntil, videoTile } from "./helpers";
 
 // Homepage: che carichi, che l'intro non intrappoli nessuno, che l'header funzioni alla
 // larghezza in cui ci si trova.
@@ -110,29 +110,38 @@ test("dalla home si arriva alla ricerca immobili", async ({ page, goto }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
-test("il set piece orizzontale cuce i pannelli allo scroll", async ({ page, goto, isMobile }) => {
-  test.skip(!!isMobile, "lo scroller orizzontale vive solo da desktop");
+// L'unico nastro orizzontale rimasto (rivista bianca): la rotaia del team in
+// #chi-siamo (HorizontalRail con corridoio). Da 1024 in su, con motion ok, il JS
+// mette [data-on] e il track trasla in orizzontale mentre la pagina scende.
+test("la rotaia del team scorre in orizzontale mentre la pagina scende", async ({ page, goto, isMobile }) => {
+  test.skip(!!isMobile, "la rotaia pilotata dallo scroll vive solo da desktop");
   const width = page.viewportSize()?.width ?? 0;
-  test.skip(width < 1024, "sotto i 1024 i pannelli restano in colonna");
+  test.skip(width < 1024, "sotto i 1024 la rotaia è uno scorrimento nativo col dito");
   await goto("/");
 
-  // Attivo solo via JS (desktop + motion ok): l'attributo è la prova del pin.
-  const horizon = page.locator(".dt-horizon");
-  await expect(horizon).toHaveAttribute("data-on", "");
+  // Attivo solo via JS (desktop + motion ok): l'attributo è la prova del takeover.
+  const rail = page.locator("#chi-siamo .dt-rail");
+  await expect(rail).toHaveAttribute("data-on", "");
 
-  // Si scrolla come un utente (wheel → Lenis) fin dentro la sezione pinnata:
-  // il track deve tradursi in orizzontale mentre la pagina scende.
+  // Ci si porta appena sopra il corridoio (la sezione sta in fondo alla home), poi
+  // si scrolla come un utente (wheel → Lenis) dentro il tratto in cui il nastro è
+  // parcheggiato: il track deve tradursi in orizzontale.
+  const top = await page
+    .locator("#chi-siamo .dt-railway")
+    .evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+  await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), Math.max(0, top - 400));
+  await page.waitForTimeout(300);
   const readX = () =>
     page
-      .locator(".dt-horizon_track")
+      .locator("#chi-siamo .dt-rail_track")
       .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41);
   let x = 0;
   for (let i = 0; i < 80 && x > -50; i++) {
-    await page.mouse.wheel(0, 900);
+    await page.mouse.wheel(0, 600);
     await page.waitForTimeout(60);
     x = await readX();
   }
-  expect(x, "il track non si è mosso in orizzontale").toBeLessThan(-50);
+  expect(x, "il track del team non si è mosso in orizzontale").toBeLessThan(-50);
 
   // E il documento non guadagna mai uno scroll orizzontale suo.
   const overflow = await page.evaluate(
@@ -153,23 +162,18 @@ test("niente scorre in orizzontale @layout", async ({ page, goto }) => {
 
 // §6.5 — «Le didascalie dei video (testo già esistente, oggi invisibile)».
 //
-// Il documento le trovava dentro gli attributi. Oggi sono TESTO VISIBILE nelle tessere del
-// muro delle voci, e questo test serve a tenercele. Il presidio che c'era controllava i
-// titoli come DATO (app/lib/__tests__/content-integrity.test.ts): passa verde anche se
-// nessuno li rende. Qui si guarda lo schermo.
+// Il documento le trovava dentro gli attributi. Oggi sono TESTO VISIBILE sotto le tessere
+// del carosello «Le voci» (#recensioni), e questo test serve a tenercele. Il presidio che
+// c'era controllava i titoli come DATO (app/lib/__tests__/content-integrity.test.ts): passa
+// verde anche se nessuno li rende. Qui si guarda lo schermo.
 test("le didascalie dei video sono testo visibile, non attributi @layout", async ({ page, goto }) => {
   await goto("/");
-  // Il muro delle voci sta in fondo alla home: lo si raggiunge con lo scroller del sito.
-  await page.evaluate(() => {
-    const w = window as unknown as { __lenis?: { scrollTo: (t: number, o?: unknown) => void } };
-    const fondo = document.documentElement.scrollHeight;
-    if (w.__lenis) w.__lenis.scrollTo(fondo, { immediate: true });
-    else window.scrollTo(0, fondo);
-  });
+  // Il carosello sta a metà home: ci si porta lì (scroll nativo: Lenis lo segue).
+  await page.locator("#recensioni").scrollIntoViewIfNeeded();
   await page.waitForTimeout(800);
 
-  // Almeno tre delle sei: il muro ne mostra un sottoinsieme a seconda della larghezza, e
-  // pretenderle tutte e sei renderebbe il test una guardia sul layout invece che sul testo.
+  // Almeno tre delle sei: il video in evidenza vive in «Come lavoriamo» e non nel carosello,
+  // e pretenderle tutte renderebbe il test una guardia sul layout invece che sul testo.
   const attese = [
     "Villa di Roberta, venduta al primo Open Domus",
     "Teresa, venduta al primo Open Domus",
@@ -185,13 +189,19 @@ test("le didascalie dei video sono testo visibile, non attributi @layout", async
   // perché `sr-only` è una scatola da 1×1 ritagliata, e per Playwright è visibile.
   // Un testo leggibile occupa spazio: qui si pretendono almeno 60px di larghezza e 10 di
   // altezza. Riverificato: con le didascalie messe in sr-only, questo test è rosso.
+  // Timeout corto: un titolo che NON è nel carosello (il video in evidenza) non deve
+  // far aspettare il test fino al suo tetto — conta zero e si passa al prossimo.
   const misura = async (t: string) => {
-    const box = await page.getByText(t, { exact: false }).first().boundingBox().catch(() => null);
+    const box = await page
+      .getByText(t, { exact: false })
+      .first()
+      .boundingBox({ timeout: 2_000 })
+      .catch(() => null);
     return !!box && box.width >= 60 && box.height >= 10;
   };
   let viste = 0;
   for (const t of attese) if (await misura(t)) viste += 1;
-  expect(viste, `didascalie LEGGIBILI nel muro delle voci: ${viste}/6`).toBeGreaterThanOrEqual(3);
+  expect(viste, `didascalie LEGGIBILI nel carosello delle voci: ${viste}/6`).toBeGreaterThanOrEqual(3);
 });
 
 // §6.5 — il video si guarda IN PAGINA, e non costa niente a chi non lo guarda.
@@ -207,16 +217,18 @@ test("il video della home si apre in pagina, e prima non chiama YouTube", async 
   page.on("request", (r) => {
     if (/youtube|ytimg|googlevideo/i.test(r.url())) versoYouTube.push(r.url());
   });
+  // La tessera è un link vero verso YouTube (target _blank): un clic prima dell'idratazione
+  // aprirebbe una scheda nuova, che si chiude e basta — il toPass qui sotto riprova.
+  page.on("popup", (p) => void p.close().catch(() => {}));
 
   await goto("/");
-  // Le miniature del muro passano dal proxy immagini di Next, non da ytimg: qualunque
+  // Le miniature del carosello passano dal proxy immagini di Next, non da ytimg: qualunque
   // chiamata a youtube.com prima del clic sarebbe il player montato a vuoto.
   const player = versoYouTube.filter((u) => /youtube(-nocookie)?\.com/i.test(u));
   expect(player, `richieste al player prima del clic: ${player.join(", ")}`).toHaveLength(0);
 
-  const cta = page
-    .getByRole("link", { name: /guarda il video|watch the video|regarder|video ansehen|ver el v/i })
-    .first();
+  // La tessera di «Le voci»: il «Guarda il video» dell'hero non c'è più (rivista bianca).
+  const cta = videoTile(page);
   const dialog = page.getByRole("dialog");
 
   // NIENTE attesa fissa prima del clic. Ce n'era una da 1200ms, e il verificatore ha
@@ -272,11 +284,10 @@ test("su uno schermo basso il comando per chiudere il video resta raggiungibile"
   page,
   goto,
 }) => {
+  page.on("popup", (p) => void p.close().catch(() => {}));
   await page.setViewportSize({ width: 844, height: 390 });
   await goto("/");
-  const cta = page
-    .getByRole("link", { name: /guarda il video|watch the video|regarder|video ansehen|ver el v/i })
-    .first();
+  const cta = videoTile(page);
   const dialog = page.getByRole("dialog");
   await expect(async () => {
     await cta.click();

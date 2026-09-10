@@ -1,4 +1,4 @@
-import { test, expect, setConsent, a11yViolations } from "./helpers";
+import { test, expect, setConsent, a11yViolations, videoTile } from "./helpers";
 
 // Accessibilità automatizzata: axe su WCAG 2.1 A/AA, contrasto compreso.
 //
@@ -100,14 +100,20 @@ test("la gerarchia dei titoli parte da un solo h1", async ({ page, goto }) => {
 // Il dialog del video in pagina (§6.5). Sta qui e non in home.spec.ts perché la
 // domanda è la stessa delle altre passate axe: una superficie nuova che copre lo
 // schermo è anche una superficie nuova da cui non si deve restare intrappolati.
+// Il comando che lo apre è una tessera di «Le voci» (helpers: videoTile).
 test("il dialog del video non ha violazioni di accessibilità", async ({ page, goto }) => {
+  // Prima dell'idratazione il link fa quel che dice l'href (YouTube in una scheda nuova):
+  // la si chiude e si riprova finché l'onClick è agganciato. `page.on("popup")` e NON
+  // `context.on("page")`: axe apre una pagina vuota sua per raccogliere i risultati dei
+  // frame, e chiudergliela sotto fa fallire l'analisi con «Target page … closed».
+  page.on("popup", (p) => void p.close().catch(() => {}));
   await goto("/");
-  await page
-    .getByRole("link", { name: /guarda il video|watch the video|regarder|video ansehen|ver el v/i })
-    .first()
-    .click();
+  const tile = videoTile(page);
   const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
+  await expect(async () => {
+    await tile.click();
+    await expect(dialog).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 25_000 });
 
   // Si usa l helper condiviso, che esclude gli iframe: dentro il player c e il markup di
   // YouTube, che non e nostro e che non possiamo correggere. Fuori dall iframe, invece,
