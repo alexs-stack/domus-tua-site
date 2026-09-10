@@ -1,20 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
 import Reveal from "./Reveal";
-import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
-import LiquidReveal from "./motion/LiquidReveal";
 import Parallax from "./motion/Parallax";
-import { Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
-import { SegnoDomusCorner, SegnoTick } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
-import { site } from "../lib/site";
-import { youtubeWatch } from "../lib/videos";
 
+// `cardTitle`, `cardText`, `videoAria` non si rendono più (via la card
+// flottante e il player sulla foto), ma il record per lingua si conserva.
 const copy = {
   it: {
     eyebrow: "Il nostro format esclusivo",
@@ -136,198 +130,71 @@ const copy = {
 export default function OpenDomus() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const lists = [
+    { title: c.sellerLabel, items: c.sellerBenefits },
+    { title: c.buyerLabel, items: c.buyerBenefits },
+  ];
 
-  // Ingresso a cascata delle righe benefici: stato nascosto solo via JS.
-  // Replay a ogni passaggio: niente clearProps (romperebbe restart/reverse).
-  const benefitsRef = useRef<HTMLDivElement | null>(null);
-  useGSAP(
-    () => {
-      const root = benefitsRef.current;
-      if (!root) return;
-      const rows = root.querySelectorAll("li");
-      if (!rows.length) return;
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        gsap.fromTo(
-          rows,
-          { y: 16, autoAlpha: 0 },
-          {
-            y: 0,
-            autoAlpha: 1,
-            duration: 0.9,
-            ease: "expo.out",
-            stagger: 0.06,
-            scrollTrigger: { trigger: root, start: "top 85%", toggleActions: "restart none none reverse" },
-          }
-        );
-      });
-    },
-    { scope: benefitsRef }
-  );
-
+  // RIVISTA BIANCA (2026-09-10): riga piana su un solo avorio — foto grande a
+  // sinistra, capitolo a destra. Via card, coni d'ombra, gradienti, timeline GSAP.
   return (
-    <section id="open-domus" data-tone="paper" className="relative overflow-hidden bg-paper">
-      {/* Coni d'ombra obliqui: bg-paper è la campitura più piatta della home e
-          senza di questi il format esclusivo poggia sul nulla.
-          Rif. _refs/aurelia (MIT) — vedi docs/effetti-reference.md §2.6. */}
-      <div aria-hidden className="dt-godray">
-        <span className="dt-godray_beam" style={{ "--gr-x": "18%", "--gr-w": "17vw", "--gr-a": 1 } as React.CSSProperties} />
-        <span className="dt-godray_beam" style={{ "--gr-x": "44%", "--gr-w": "26vw", "--gr-a": 0.72 } as React.CSSProperties} />
-        <span className="dt-godray_beam" style={{ "--gr-x": "77%", "--gr-w": "13vw", "--gr-a": 0.85 } as React.CSSProperties} />
-      </div>
-      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        {/* TESTA DI CAPITOLO — 2026-08-06. Il titolo stava in mezza griglia a
-            48px fissi: su un 1920 leggeva come un sottotitolo. Ora prende
-            tutta la colonna a `text-d2` (la scala display del sito) e la
-            griglia a due colonne sparisce: sopra il capitolo, sotto la banda.
-            CharFlip al posto di TextLines: qui il titolo è breve e il gesto
-            giusto è il carattere che gira, non la riga che sale (i due non
-            vanno mai sullo stesso elemento).
-            `exit` su titolo e intro: risalendo la pagina il capitolo si
-            smonta invece di restare fermo.
-            Via `balance` dal titolo: il bilanciamento si ricalcola dopo lo
-            split di SplitText e fa saltare una riga. */}
-        <Reveal delay={100}>
-          <span className="eyebrow">{c.eyebrow}</span>
-        </Reveal>
-        <CharFlip as="h2" delay={0.1} className="mt-5 font-display text-d2 display-tight font-medium text-ink" exit>
-          {c.title}
-        </CharFlip>
-        {/* mt-10 e non mt-6: con `.display-tight` (interlinea .92) le
-            discendenti dell'ultima riga del titolo escono dal loro box —
-            «meglio.» andava a toccare la prima riga dell'intro. */}
-        <TextLines as="p" className="mt-10 max-w-2xl text-[1.02rem] leading-relaxed text-stone" exit>
-          {c.intro}
-        </TextLines>
+    <section id="open-domus" className="dt-chapter bg-cream">
+      <div className="dt-row grid gap-[6vw] lg:grid-cols-[1.1fr_1fr] lg:items-center">
+        {/* Lo scatto con Teresa è 1280×510 (2,5:1): in una scatola 4:5 ne
+            resterebbe il 32 % della larghezza, mezza faccia a testa. Quadrata
+            (ammessa dalla spec §3.3) se ne vede il 40 % e, centrata al 47 %,
+            entrano entrambi i volti.
+            `sizes` a 2,5× la colonna, non 1×: con object-cover la foto è resa
+            larga 2,5 volte la scatola (e poi rifilata), quindi a 50vw il
+            loader serviva un 720×286 stirato del doppio. Così arriva
+            l'originale da 1280. */}
+        <Parallax speed={-0.04}>
+          <div className="relative aspect-square">
+            <Image
+              src="/images/reali/open-domus-teresa.jpg"
+              alt={c.imageAlt}
+              fill
+              sizes="(max-width: 1024px) 250vw, 125vw"
+              className="object-cover"
+              style={{ objectPosition: "47% 50%" }}
+            />
+          </div>
+        </Parallax>
 
-        {/* LA BANDA — la foto era `aspect-[4/5]` in mezza griglia, cioè ~560px
-            su un contenitore da 1240. Adesso attraversa tutta la colonna e
-            sale a ~72svh: è l'«immagine grande» chiesta dal cliente.
-            NON è full-bleed, e la ragione è misurata:
-            raffaela-founder.jpg è 1024×682, quindi a piena larghezza di
-            viewport su un 1920 verrebbe stirata 1.9× (poltiglia). A piena
-            COLONNA resta a ~1.15×, che è il limite in cui una foto è ancora
-            una foto. Per andare oltre serve un originale da almeno 2000px —
-            è una richiesta da girare alla cliente.
-            Il LiquidReveal resta esattamente dov'era (è la firma della
-            sezione) e la deriva sale da 0.12 a 0.18: una banda larga ha
-            bisogno di più corsa per non sembrare incollata.
-            `mobile` senza abbassare lo 0.18, e non è una dimenticanza: la
-            corsa è in `yPercent`, cioè una frazione dell'altezza della
-            cornice. Sul telefono la banda torna verticale (aspect 4/5) ed è
-            più bassa dei 72svh del desktop, quindi la stessa cifra vale ~11px
-            per lato invece di ~16 — e con la corsa dimezzata che Parallax
-            applica da sé sotto 768 (onda «parità mobile 2», PHONE_SPEED_FACTOR)
-            ~5,5px per lato, 11 di corsa totale: sopra i ~10px del criterio,
-            si vede. Il numero si adatta da sé; scriverne un secondo sarebbe
-            una soglia in più da tenere allineata a mano. `mobile` è ormai il
-            default: resta scritto perché questa cornice era una delle tre
-            accese sul telefono già prima, e la ragione sta qui sopra. */}
-        <Reveal className="mt-14 lg:mt-20">
-          <Parallax speed={0.18} mobile>
-            <div className="relative rounded-[2rem] border border-line bg-cream p-2">
-              <SegnoDomusCorner className="left-3.5 top-3.5 z-10" rotate={0} />
-              <a
-                href={youtubeWatch(site.videos.openDomus.id)}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={c.videoAria}
-                /* `aspect-[3/2]` sotto i 640 (era 4/5): la sorgente
-                   raffaela-founder.jpg è 1024×682, cioè 3:2 esatto — in una
-                   cornice 4/5 `object-cover` ne buttava il 47 % della
-                   larghezza. Ora il rapporto della cornice è quello dello
-                   scatto e non si taglia più niente. Da 640 in su vale
-                   `sm:aspect-[16/10]`, e da 1024 `lg:aspect-auto`: invariati. */
-                className="group relative block aspect-[3/2] overflow-hidden rounded-[calc(2rem-0.5rem)] sm:aspect-[16/10] lg:aspect-auto lg:h-[min(72svh,42rem)]"
-              >
-                {/* Reveal liquido sul solo media (signature della sezione):
-                    link e play restano sopra il velo, mai clippati.
+        <div>
+          <Reveal>
+            <span className="eyebrow">{c.eyebrow}</span>
+          </Reveal>
+          <TextLines as="h2" className="mt-6 font-display text-d2">
+            {c.title}
+          </TextLines>
+          <Reveal>
+            <p className="lead mt-6">{c.intro}</p>
+          </Reveal>
 
-                    IL RIEMPIMENTO STA SULLO SPAN, NON SUL LiquidReveal, ed è
-                    un bug vero che qui si chiude: LiquidReveal si stampa
-                    addosso `relative ${className}`, quindi passargli
-                    `absolute inset-0` produceva la classe doppia
-                    "relative absolute". Le utility di posizione di Tailwind
-                    NON hanno la specificità dalla loro parte: vince l'ultima
-                    scritta nel foglio, e `.relative` sta DOPO `.absolute`.
-                    Risultato: il contenitore restava relative, `inset-0` non
-                    mordeva, l'altezza collassava a 0 e la foto della sezione
-                    semplicemente non c'era (misurato: 1158×0). Con lo span
-                    che fa il posizionamento e il figlio a `h-full w-full`
-                    non c'è più nessun duello di classi. */}
-                <span className="absolute inset-0">
-                  <LiquidReveal tone="paper" className="h-full w-full">
-                    <Image
-                      src="/images/reali/raffaela-founder.jpg"
-                      alt={c.imageAlt}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 1180px"
-                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                    />
-                  </LiquidReveal>
-                </span>
-                <span className="absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent" />
-                <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
-                  <Play className="h-6 w-6" />
-                </span>
-              </a>
-              {/* card flottante — controderiva rispetto alla foto, nessun clip aggiunto.
-                  mob off (misura): `speed -0.08` su una card alta ~100px vale
-                  ±1,1px, mezzo pixel con la corsa dimezzata del telefono —
-                  invisibile come deriva propria (criterio ~10px dell'onda
-                  «parità mobile 2»). Quel che invece si vedrebbe è il
-                  distacco dal bordo basso della cornice, perché la card è
-                  agganciata lì e le due corse sono opposte in colonna
-                  stretta. Spenta, la card viaggia dentro la deriva della
-                  cornice qui sopra: sul telefono l'insieme si muove come un
-                  pezzo solo, ed è la lettura giusta. */}
-              <Parallax
-                speed={-0.08}
-                mobile={false}
-                className="absolute -bottom-5 left-5 right-5 sm:left-auto sm:right-6 sm:w-64"
-              >
-                <div className="rounded-2xl border border-line bg-paper px-5 py-4 shadow-[0_30px_60px_-40px_rgba(26,24,22,0.6)]">
-                  <p className="font-display text-lg font-medium text-ink">{c.cardTitle}</p>
-                  <p className="mt-1 text-sm text-stone">
-                    {c.cardText}
-                  </p>
-                </div>
-              </Parallax>
-            </div>
-          </Parallax>
-        </Reveal>
+          {/* Doppio valore: chi vende e chi compra, due liste col trattino rosso. */}
+          <div className="mt-10 grid gap-8 sm:grid-cols-2">
+            {lists.map((list) => (
+              <div key={list.title}>
+                <h3 className="font-display text-d4 font-light">{list.title}</h3>
+                <ul className="mt-4 flex flex-col gap-2 text-body text-graphite">
+                  {list.items.map((it) => (
+                    <li key={it} className="flex gap-3">
+                      <span aria-hidden className="mt-3 h-px w-6 shrink-0 bg-red" />
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
 
-        {/* Doppio valore: Open Domus lavora sia per chi vende sia per chi compra.
-            Fuori dal Reveal: le righe entrano in cascata via GSAP (vedi benefitsRef).
-            mt generoso: la card flottante scende 20px sotto la cornice. */}
-        <div ref={benefitsRef} className="mt-16 grid gap-x-12 gap-y-8 sm:grid-cols-2 lg:mt-20">
-          {[
-            { label: c.sellerLabel, items: c.sellerBenefits },
-            { label: c.buyerLabel, items: c.buyerBenefits },
-          ].map((grp) => (
-            <div key={grp.label}>
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-red-dark">
-                {grp.label}
-              </p>
-              <ul className="mt-3 flex flex-col gap-3">
-                {grp.items.map((b) => (
-                  <li key={b} className="group/row flex items-start gap-3 text-[0.92rem] text-graphite transition-colors duration-300 hover:text-ink">
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark transition-colors duration-300 group-hover/row:bg-red group-hover/row:text-cream">
-                      <SegnoTick className="h-3 w-3" />
-                    </span>
-                    {b}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <Reveal delay={100}>
+            <Cta href="/open-domus" variant="ghost" className="mt-8">
+              {c.cta}
+            </Cta>
+          </Reveal>
         </div>
-
-        <Reveal delay={150}>
-          <Cta href="#contatti" variant="reveal-cream" size="md" className="mt-10">
-            {c.cta}
-          </Cta>
-        </Reveal>
       </div>
     </section>
   );
