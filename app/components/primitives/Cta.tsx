@@ -32,15 +32,7 @@ function classesFor(variant: Variant, size: Size, className: string) {
   return [variantClass[variant], sizeClass[size], className].filter(Boolean).join(" ");
 }
 
-function CtaInner({
-  variant,
-  arrow,
-  children,
-}: {
-  variant: Variant;
-  arrow: boolean;
-  children: ReactNode;
-}) {
+function CtaInner({ arrow, children }: { arrow: boolean; children: ReactNode }) {
   return (
     <>
       <span className="dt-btn__label">{children}</span>
@@ -78,7 +70,7 @@ export function Cta({
 }: CtaLinkProps) {
   const cls = classesFor(variant, size, className);
   const content = (
-    <CtaInner variant={variant} arrow={arrow}>
+    <CtaInner arrow={arrow}>
       {children}
     </CtaInner>
   );
@@ -109,7 +101,7 @@ export function CtaButton({
 }: CtaButtonProps) {
   return (
     <button className={classesFor(variant, size, className)} {...rest}>
-      <CtaInner variant={variant} arrow={arrow}>
+      <CtaInner arrow={arrow}>
         {children}
       </CtaInner>
     </button>

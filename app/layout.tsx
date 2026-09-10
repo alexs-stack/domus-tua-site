@@ -10,8 +10,7 @@ import AssistantMount from "./components/AssistantMount";
 import MobileActionBar from "./components/MobileActionBar";
 import SiteAnalytics from "./components/SiteAnalytics";
 import SmoothScroll from "./components/motion/SmoothScroll";
-import SurfaceFlow from "./components/motion/SurfaceFlow";
-import { ChromeMount } from "./components/motion/ChromeMount";
+import PageTransition from "./components/motion/PageTransition";
 import PreloaderShell from "./components/motion/PreloaderShell";
 import Preloader from "./components/motion/Preloader";
 import { INTRO_KEY, PRE_FAILSAFE_MS, INTRO_T } from "./lib/motion/intro-constants";
@@ -254,7 +253,7 @@ export default function RootLayout({
         <PreloaderShell />
         <a
           href="#main"
-          className="sr-only rounded-full bg-ink px-5 py-3 font-medium text-cream shadow-lg focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]"
+          className="sr-only bg-red px-5 py-3 font-semibold uppercase tracking-[0.08em] text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]"
         >
           {skipToContent[defaultLocale]}
         </a>
@@ -267,9 +266,6 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: jsonLdScript(webSite) }}
         />
         <SmoothScroll />
-        {/* La superficie continua: si accende solo dove ci sono almeno due
-            tappe `data-tone` (cioè in home), altrove non fa nulla. */}
-        <SurfaceFlow />
         {/* L'orchestratore dell'intro (timer di handoff e chiusura, skip,
             ripiego GSAP): importato STATICAMENTE, così il suo codice viaggia
             col bundle del layout invece che in un chunk che atterra dopo
@@ -282,7 +278,7 @@ export default function RootLayout({
           {/* Dentro LocaleProvider: sipario e cursore usano stringhe tradotte
               (useDict). Il posizionamento è fixed, quindi la posizione nel
               tree non cambia nulla di visivo. */}
-          <ChromeMount />
+          <PageTransition />
           {/* IL BANNER COOKIE STA PRIMA DI #main, ED È UNA SCELTA DI TASTIERA.
               Era in fondo al body, e ci poteva stare finché rubava il focus
               all'idratazione: chi non vede lo schermo ci finiva dentro comunque.
