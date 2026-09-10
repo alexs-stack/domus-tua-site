@@ -257,6 +257,16 @@ h3,
 h4 {
   text-transform: uppercase;
 }
+/* Pesi del riferimento: titoli a 500, etichette (h4) a 400 — senza questa
+   regola il preflight di Tailwind li fa ereditare 400/700 a caso. */
+h1,
+h2,
+h3 {
+  font-weight: 500;
+}
+h4 {
+  font-weight: 400;
+}
 blockquote,
 blockquote * {
   text-transform: none;
@@ -2509,14 +2519,13 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   opacity: 0;
   pointer-events: none;
   white-space: nowrap;
-  padding: 0.3rem 0.65rem;
-  border-radius: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0;
   background: var(--color-red);
   color: #fff;
-  font-size: 0.7rem;
+  font-size: var(--text-ui);
   font-weight: 600;
   letter-spacing: 0.06em;
-  box-shadow: 0 10px 20px -12px rgb(42 16 14 / 0.5);
   transition: translate 0.3s ease, opacity 0.25s ease;
 }
 .dt-social__tip::before {

@@ -401,7 +401,9 @@ export default function HeroCinematic() {
             span sr-only — un aria-label su un <div> senza ruolo verrebbe
             ignorato dalle AT e segnalato da axe (aria-prohibited-attr). */}
         <div className="relative">
-          <div className="font-brand text-hero font-extrabold uppercase tracking-[-0.02em]">
+          {/* Minuscolo come il logo («DomusTua»): la regola globale mette in
+              maiuscolo solo h1-h4, e questo è un div apposta. */}
+          <div className="font-brand text-hero font-extrabold tracking-[-0.02em]">
             <span className="sr-only">Domus Tua</span>
             <Chars text="Domus" className="block text-graphite" />
             <Chars text="Tua" className="block text-red" />
@@ -427,10 +429,13 @@ export default function HeroCinematic() {
             globale, la seconda metà in rosso. Le lettere animate sono
             aria-hidden (vedi Chars): il testo leggibile vive nello span
             sr-only — un aria-label qui sarebbe vietato (axe). */}
-        <h1 className="mt-3 max-w-[22ch] font-display text-d2">
+        {/* d3, non d2: sotto un lockup a 13vw l'H1 fa il lavoro del «NEL CUORE
+            DI» del riferimento (38 px), non del titolo. Le due metà su righe
+            proprie: a d2 il rosso spezzava a metà frase. */}
+        <h1 className="mt-4 max-w-[28ch] font-display text-d3">
           <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
-          <Chars variant="tagline" text={c.title1} />{" "}
-          <Chars variant="tagline" text={c.title2} className="text-red" />
+          <Chars variant="tagline" text={c.title1} className="block" />
+          <Chars variant="tagline" text={c.title2} className="block text-red" />
         </h1>
       </div>
 

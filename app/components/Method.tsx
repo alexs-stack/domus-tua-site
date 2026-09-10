@@ -170,7 +170,7 @@ export default function Method() {
         <Reveal className="text-right">
           <span className="eyebrow">{c.eyebrow}</span>
         </Reveal>
-        <TextLines as="h2" className="ml-auto mt-6 max-w-[14ch] text-right font-display text-d1">
+        <TextLines as="h2" className="ml-auto mt-6 max-w-[20ch] text-right font-display text-d1">
           {c.title}
         </TextLines>
       </div>

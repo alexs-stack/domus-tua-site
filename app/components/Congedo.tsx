@@ -88,7 +88,7 @@ export default function Congedo() {
       <div className="dt-row absolute inset-x-0 bottom-[12vh]">
         <h2
           id="congedo-title"
-          className="max-w-[12ch] text-balance font-display text-d1 text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.25)]"
+          className="max-w-[12ch] text-balance font-display text-d1 text-white [text-shadow:0_2px_14px_rgb(0_0_0/0.35)]"
         >
           {c.title}
         </h2>
