@@ -169,7 +169,7 @@
 :focus-visible {
   outline: 2px solid var(--color-red);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 0;
 }
 /* Su superfici scure, anello chiaro per contrasto */
 .bg-ink :focus-visible,
@@ -723,7 +723,6 @@ details:not([open]) > summary .dt-disclosure {
    in fondo a OGNI sezione chiara. Presa da sola dava volume; messe in fila,
    quelle ombre disegnavano una riga scura a ogni giunzione e lo scroll
    leggeva come una pila di diapositive invece che come una pagina sola. */
-.bg-cream,
 /* Grading caldo, coerente, sulle foto → look art-directed, non stock. Tenue e reversibile.
    Neutralizzato con prefers-reduced-* no: è puramente cromatico, resta sempre. */
 .photo-warm {
@@ -785,11 +784,10 @@ details:not([open]) > summary .dt-disclosure {
    produzione è spenta — senza `:has()` si aggiungerebbe spazio morto in fondo a
    ogni pagina per una funzione che nessuno vede. Dove `:has()` non c'è si torna
    al comportamento di prima: nessun danno.
-   Il padding sta sulla CODA del footer ([data-footer-tail], dove vive il
-   `pb-28`) e non sul contenitore: sotto lg la coda è la parte fixed
-   dell'uncover parziale e lo spazio deve viaggiare con lei. */
+   Il padding sta sul footer stesso: dal 2026-09-10 è un blocco in flusso e
+   porta già da sé il `pb` che tiene la riga legale sopra la barra azioni. */
 @media (max-width: 767px) {
-  body:has([data-assistant-launcher]) footer [data-footer-tail] {
+  body:has([data-assistant-launcher]) footer {
     padding-bottom: calc(9.5rem + env(safe-area-inset-bottom));
   }
 }
@@ -2629,72 +2627,6 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   inset: 0;
   width: 100%;
   height: 100%;
-}
-
-/* ---------- Footer reveal (uncover) ----------
-   Lo stesso effetto a ogni larghezza, con due tagli (classe html.dt-footer-reveal
-   e var --dt-footer-h gestite da Footer.tsx, solo con motion ok):
-   · ≥1024: TUTTO il footer resta fisso dietro al main, che gli scorre sopra e
-     lo "scopre" nell'ultimo tratto di scroll (--dt-footer-h = altezza del
-     footer). Niente transform sugli antenati: main riceve solo z-index/margine,
-     quindi header/WhatsApp/action-bar (fixed) sono salvi.
-   · <1024: uncover PARZIALE («parità mobile 2», scheda 11 — a 390 il footer
-     misura ~1 393px contro 844 di viewport: fissarlo tutto renderebbe
-     irraggiungibile ciò che sta sopra). È fissa solo la coda
-     ([data-footer-tail]: wordmark + riga legale, --dt-footer-h = la SUA
-     altezza), dentro una cornice in flusso ([data-footer-tail-frame]) alta
-     quanto lei e con clip-path: inset(0): il clip-path ritaglia anche i
-     discendenti fixed (overflow: hidden non lo farebbe) e NON è un
-     containing block per i fixed (transform/filter/contain lo sarebbero),
-     quindi la coda resta ancorata al viewport e la cornice, salendo con la
-     pagina, la scopre dal basso — come il main scopre il footer sul desktop.
-     Il main e le colonne non cambiano né z-index né fondo: la texture
-     topografica resta visibile sotto le colonne e nessun antenato dei fixed
-     di cromo viene toccato. Il velo in cima alla cornice è l'ombra che sul
-     desktop il main getta sul footer. */
-@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
-  html.dt-footer-reveal [data-footer-tail-frame] {
-    position: relative;
-    height: var(--dt-footer-h, auto);
-    clip-path: inset(0);
-  }
-  html.dt-footer-reveal [data-footer-tail-frame]::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 64px;
-    z-index: 2;
-    pointer-events: none;
-    background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
-  }
-  html.dt-footer-reveal [data-footer-tail] {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1;
-  }
-}
-@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
-  html.dt-footer-reveal main {
-    position: relative;
-    z-index: 10;
-    /* Col SurfaceFlow acceso il fondo opaco che scopre il footer è la
-       SUPERFICIE, non il paper fisso: altrimenti main coprirebbe il colore
-       che viaggia e tutta la pagina tornerebbe carta. */
-    background: var(--dt-surface, var(--background));
-    margin-bottom: var(--dt-footer-h, 0px);
-    box-shadow: 0 34px 80px -34px rgba(26, 21, 18, 0.55);
-  }
-  html.dt-footer-reveal .dt-footer-reveal-target {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1;
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
