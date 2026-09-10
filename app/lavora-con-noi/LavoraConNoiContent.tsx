@@ -825,9 +825,7 @@ export default function LavoraConNoiContent() {
         primary={{ label: c.heroPrimary, href: "#candidatura" }}
         secondary={{ label: c.heroSecondary, href: "#perche" }}
         trust={[...c.heroTrust]}
-        // Foto d'ufficio molto luminosa (finestre, pareti bianche): col velo
-        // standard il titolo crema si perdeva sulla metà chiara dell'immagine.
-        scrim="strong"
+        scriptWord={{ it: "Insieme", en: "Together", fr: "Ensemble", de: "Zusammen", es: "Juntos" }[locale]}
       />
 
       <SegnoDomusDivider className="py-14" />

@@ -746,6 +746,7 @@ export default function OpenDomusPageContent() {
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#percorso" }}
+          scriptWord="Open Domus"
         />
 
         {/* Sottotitolo / claim di prodotto */}

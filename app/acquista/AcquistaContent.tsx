@@ -543,6 +543,7 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
           primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "#case" }}
           trust={c.hero.trust}
+          scriptWord={{ it: "Acquistare", en: "Buying", fr: "Acheter", de: "Kaufen", es: "Comprar" }[locale]}
         />
 
         {/* Ricerca in alto: chi compra deve poter cercare subito (#case = target dell'hero). */}

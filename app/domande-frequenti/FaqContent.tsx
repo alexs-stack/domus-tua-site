@@ -225,9 +225,7 @@ export default function FaqContent() {
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: `#${groups[0].id}` }}
-        // Stessa foto d'ufficio molto luminosa di /lavora-con-noi: col velo standard
-        // il titolo crema si perde sulla metà chiara dell'immagine.
-        scrim="strong"
+        scriptWord={{ it: "Domande", en: "Questions", fr: "Questions", de: "Fragen", es: "Preguntas" }[locale]}
       />
 
       <SegnoDomusDivider className="py-14" />

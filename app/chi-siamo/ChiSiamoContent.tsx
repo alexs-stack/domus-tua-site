@@ -263,6 +263,7 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#chi-siamo" }}
+        scriptWord={{ it: "Chi siamo", en: "About us", fr: "Qui sommes-nous", de: "Über uns", es: "Quiénes somos" }[locale]}
       />
 
       {/* Storia */}

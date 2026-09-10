@@ -230,6 +230,7 @@ export default function ServiziContent() {
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#servizi" }}
+        scriptWord={{ it: "Servizi", en: "Services", fr: "Services", de: "Leistungen", es: "Servicios" }[locale]}
       />
 
       <SegnoDomusDivider className="py-14" />

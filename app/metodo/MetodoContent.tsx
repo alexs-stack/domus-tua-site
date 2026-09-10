@@ -212,6 +212,7 @@ export default function MetodoContent() {
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#metodo" }}
+          scriptWord={{ it: "Il metodo", en: "The method", fr: "La méthode", de: "Die Methode", es: "El método" }[locale]}
         />
 
         <Highlights
