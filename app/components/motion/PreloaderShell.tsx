@@ -103,7 +103,6 @@ export default function PreloaderShell() {
             Il gradiente sta in globals.css (`.dt-pre-fondo`): è il primo colore
             che il visitatore vede, e la sorgente dev'essere una. */}
         <div className="dt-pre-fondo absolute inset-0" />
-        <div className="grain !absolute !z-0" aria-hidden />
 
         {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha della stessa
             foto dell'hero (stesso canvas 2000×1415, fornito dal cliente), con

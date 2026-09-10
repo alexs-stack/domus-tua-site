@@ -3,7 +3,10 @@
 // RotatingMark — badge di marca in alto a sinistra, rif. era-residence.com
 // (reverse-engineering/era-residence/README.md §5).
 //
-// CONTROROTAZIONE (richiesta cliente, 2026-08)
+// SENSO ORARIO (richiesta cliente, 2026-09-10 — sostituisce la controrotazione
+// del 2026-08: «il cuore deve ruotare in senso orario»). Anello e monogramma
+// girano nello STESSO verso, orario a riposo.
+// Storia (2026-08):
 // L'anello ornamentale e il monogramma girano in VERSI OPPOSTI: l'anello a
 // 30°/s, il monogramma a −30°/s. È il gesto di un meccanismo — due ingranaggi
 // che si tengono — invece di un blocco unico che ruota. Le due velocità sono le
@@ -52,7 +55,7 @@ export function spinMarkBadge(
   const tl = gsap.timeline();
   const common = { duration, ease: "none", repeat, transformOrigin: "center center" } as const;
   if (ring) tl.fromTo(ring, { rotation: 0 }, { rotation: 360, ...common }, 0);
-  if (mark) tl.fromTo(mark, { rotation: 0 }, { rotation: -360, ...common }, 0);
+  if (mark) tl.fromTo(mark, { rotation: 0 }, { rotation: 360, ...common }, 0);
   return tl;
 }
 
@@ -95,7 +98,7 @@ export default function RotatingMark({
           // Un solo angolo, due segni: qualunque cosa faccia lo scroll — accelerare,
           // rallentare, invertire — i due elementi restano opposti per costruzione.
           gsap.set(ring, { rotation, transformOrigin: "center center" });
-          gsap.set(mark, { rotation: -rotation, transformOrigin: "center center" });
+          gsap.set(mark, { rotation, transformOrigin: "center center" });
         };
         gsap.ticker.add(tick);
 

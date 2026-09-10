@@ -60,7 +60,10 @@ export const INTRO_KEY = "dt-intro-seen";
  * TEMPO = 2 siamo a 9,26, cioè lì. Tutto scala insieme — atti, stagger, reti,
  * failsafe, autohide, keyframe CSS — e `intro-clocks.test.ts` lo pretende.
  */
-export const TEMPO = 2;
+/* 2026-09-10: la cliente chiede un preloader PIÙ VELOCE — stesso film, tempo
+   dimezzato (4,63 s). Il riferimento nuovo (immobiliaregoldengoal.it) non ha
+   nessun preloader: questo è il compromesso scelto con Alberto. */
+export const TEMPO = 1;
 
 export const INTRO_T = {
   figure: 0.15 * TEMPO,
