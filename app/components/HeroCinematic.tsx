@@ -431,7 +431,7 @@ export default function HeroCinematic() {
             </h1>
           </div>
           <div className="flex w-full max-w-[520px] flex-col items-start gap-4 lg:justify-self-end">
-            <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="lg">
+            <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="lg" arrow={false} className="w-full">
               {c.ctaValuta}
             </Cta>
             <div className="flex flex-wrap gap-x-8 gap-y-2">
