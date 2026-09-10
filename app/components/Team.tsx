@@ -4,7 +4,13 @@
    intro con il ritratto della fondatrice e la citazione, poi il team su una
    rotaia orizzontale pilotata dallo scroll verticale (HorizontalRail con
    corridoio); sotto 1024 la rotaia è uno scorrimento nativo con snap.
-   Un fondo solo, niente card, niente raggi, niente fiori. */
+   Un fondo solo, niente card, niente raggi, niente fiori.
+
+   La rotaia, rivista lo stesso giorno: le tessere sono i ritratti che
+   esistono davvero (oggi la fondatrice) più le foto di gruppo reali di
+   app/lib/team.ts, grandi — «carosello o scroll orizzontale con le foto
+   grandi», direttiva cliente. Niente più monogrammi vuoti al posto delle
+   colleghe: i sei nomi con il ruolo stanno in un elenco sotto la rotaia. */
 
 import Image from "next/image";
 import Reveal from "./Reveal";
@@ -13,7 +19,7 @@ import TextLines from "./motion/TextLines";
 import HorizontalRail from "./motion/HorizontalRail";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
-import { team, teamInitials, teamRoleLabels } from "../lib/team";
+import { team, teamPhotos, teamRoleLabels, type TeamPhotoFrame } from "../lib/team";
 
 const copy = {
   it: {
@@ -89,10 +95,71 @@ const copy = {
    `--depth` dalla regola CSS che sotto la soglia fa lo stesso pan sul dito. */
 const DEPTH = 4;
 
-export default function Team() {
+/* Le cornici della rotaia. Da 1024 in su hanno tutte la stessa ALTEZZA
+   (34vw × 5/4 = 42,5vw) e la larghezza viene dal rapporto della foto: un
+   gruppo di sei in 4:5 taglierebbe le facce ai lati. Sotto 1024 le tessere
+   stanno nello schermo e le altezze restano diverse (`items-start`). */
+const FRAME: Record<TeamPhotoFrame, { tile: string; box: string; sizes: string }> = {
+  portrait: {
+    tile: "w-[78vw] sm:w-[52vw] lg:w-[34vw]",
+    box: "aspect-[4/5]",
+    sizes: "(max-width: 640px) 92vw, (max-width: 1024px) 62vw, 40vw",
+  },
+  landscape: {
+    tile: "w-[92vw] sm:w-[78vw] lg:w-[63.75vw]",
+    box: "aspect-[3/2]",
+    sizes: "(max-width: 640px) 110vw, (max-width: 1024px) 92vw, 76vw",
+  },
+  classic: {
+    tile: "w-[92vw] sm:w-[70vw] lg:w-[56.67vw]",
+    box: "aspect-[4/3]",
+    sizes: "(max-width: 640px) 110vw, (max-width: 1024px) 83vw, 67vw",
+  },
+};
+
+type Tile = {
+  src: string;
+  alt: string;
+  pos?: string;
+  frame: TeamPhotoFrame;
+  caption: string;
+  /** Nome in Playfair maiuscolo (ritratti); le didascalie dei gruppi in tondo.
+      Il ruolo non sta qui: lo dice la rosa sotto la rotaia, una volta sola. */
+  display: boolean;
+};
+
+export default function Team({ compact = false }: { compact?: boolean }) {
   const { locale } = useLocale();
   const c = copy[locale];
   const roles = teamRoleLabels[locale];
+
+  // Prima i ritratti (chi ha una foto in app/lib/team.ts), poi i gruppi.
+  const tiles: Tile[] = [
+    ...team.flatMap((m): Tile[] =>
+      m.image
+        ? [
+            {
+              src: m.image,
+              alt: m.name,
+              pos: m.imagePos,
+              frame: "portrait",
+              caption: m.name,
+              display: true,
+            },
+          ]
+        : [],
+    ),
+    ...teamPhotos.map(
+      (p): Tile => ({
+        src: p.src,
+        alt: p.alt[locale],
+        pos: p.pos,
+        frame: p.frame,
+        caption: p.alt[locale],
+        display: false,
+      }),
+    ),
+  ];
 
   return (
     <section id="chi-siamo" className="dt-chapter bg-cream">
@@ -115,9 +182,18 @@ export default function Team() {
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <TextLines as="h2" className="mt-6 font-display text-d1">
-            {c.title}
-          </TextLines>
+          {/* `compact`: sotto un PageHero che dice già «Persone prima degli
+              immobili» (/chi-siamo) il titolo resta un paragrafo display,
+              non un secondo h2 con le stesse parole. */}
+          {compact ? (
+            <TextLines as="p" className="mt-6 font-display text-d2 uppercase">
+              {c.title}
+            </TextLines>
+          ) : (
+            <TextLines as="h2" className="mt-6 font-display text-d1">
+              {c.title}
+            </TextLines>
+          )}
           <Reveal>
             <p className="lead mt-8">{c.lead}</p>
           </Reveal>
@@ -136,7 +212,7 @@ export default function Team() {
         </div>
       </div>
 
-      {/* ── La rotaia del team: ritratti grandi, pilotati dallo scroll ──── */}
+      {/* ── La rotaia del team: foto grandi, pilotate dallo scroll ──────── */}
       <div className="mt-[10vh]">
         <div className="dt-row">
           <p className="eyebrow">{c.rosterTitle}</p>
@@ -144,8 +220,8 @@ export default function Team() {
         </div>
         {/* Le regole di `.dt-rail_track` (globals.css) sono unlayered e battono
             le utility: gap, padding e allineamento passano solo col `!`.
-            `items-start`: i ritratti restano allineati in alto anche quando
-            un nome va a capo nella didascalia. */}
+            `items-start`: le tessere hanno altezze diverse sotto 1024 e le
+            didascalie possono andare a capo; l'allineamento è in alto. */}
         <HorizontalRail
           runway={120}
           snapMobile
@@ -153,49 +229,54 @@ export default function Team() {
           className="mt-10"
           trackClassName="!items-start !gap-[3vw] !px-[5vw] md:!px-[8vw]"
         >
-          {team.map((m) => (
+          {tiles.map((t) => (
             /* tabIndex: sotto 1024 (e con reduced-motion) la rotaia è una
                regione che scorre, e una regione che scorre senza nulla di
                focalizzabile è una violazione WCAG 2.1.1 che axe segnala
                (scrollable-region-focusable). Il contenitore è di HorizontalRail,
                quindi a essere raggiungibili da tastiera sono le tessere: il
-               Tab passa da una persona all'altra e lo scroller le segue.
+               Tab passa da una foto all'altra e lo scroller le segue.
                Lo snap lo detta il CSS (`[data-snap]` → center), non le utility. */
-            <figure key={m.name} tabIndex={0} className="w-[78vw] shrink-0 sm:w-[52vw] lg:w-[34vw]">
-              <div className="relative aspect-[4/5] overflow-hidden bg-cream-deep">
-                {m.image ? (
-                  <div
-                    className="dt-rail_pan"
-                    data-depth={DEPTH}
-                    style={{ "--depth": DEPTH } as React.CSSProperties}
-                  >
-                    <Image
-                      src={m.image}
-                      alt={m.name}
-                      fill
-                      // Il pannello del pan è il 118 % della tessera.
-                      sizes="(max-width: 640px) 92vw, (max-width: 1024px) 62vw, 40vw"
-                      className="object-cover"
-                      style={{ objectPosition: m.imagePos }}
-                    />
-                  </div>
-                ) : (
-                  /* Monogramma finché la foto non arriva (app/lib/team.ts). */
-                  <span
-                    aria-hidden
-                    className="absolute inset-0 flex items-center justify-center font-display text-d1 text-stone"
-                  >
-                    {teamInitials(m.name)}
-                  </span>
-                )}
+            <figure key={t.src} tabIndex={0} className={`shrink-0 ${FRAME[t.frame].tile}`}>
+              <div className={`relative overflow-hidden bg-cream-deep ${FRAME[t.frame].box}`}>
+                <div
+                  className="dt-rail_pan"
+                  data-depth={DEPTH}
+                  style={{ "--depth": DEPTH } as React.CSSProperties}
+                >
+                  <Image
+                    src={t.src}
+                    alt={t.alt}
+                    fill
+                    // Il pannello del pan è il 118 % della tessera.
+                    sizes={FRAME[t.frame].sizes}
+                    className="object-cover"
+                    style={{ objectPosition: t.pos }}
+                  />
+                </div>
               </div>
               <figcaption className="mt-5">
-                <span className="block font-display text-d3 uppercase text-ink">{m.name}</span>
-                <span className="mt-1 block text-body text-stone">{roles[m.role]}</span>
+                {t.display ? (
+                  <span className="block font-display text-d3 uppercase text-ink">{t.caption}</span>
+                ) : (
+                  <span className="block text-body text-ink">{t.caption}</span>
+                )}
               </figcaption>
             </figure>
           ))}
         </HorizontalRail>
+
+        {/* La rosa: i sei nomi con il ruolo, dalla fonte unica. Le foto
+            singole arriveranno dal cliente; fino ad allora nessuna tessera
+            vuota e nessun volto finto. */}
+        <ul className="dt-row mt-10 grid gap-x-[4vw] gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+          {team.map((m) => (
+            <li key={m.name}>
+              <span className="block font-display text-d3 uppercase text-ink">{m.name}</span>
+              <span className="block text-body text-stone">{roles[m.role]}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

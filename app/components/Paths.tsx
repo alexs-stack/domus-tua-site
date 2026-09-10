@@ -14,19 +14,22 @@ import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
 import Parallax from "./motion/Parallax";
 
-// Le stesse fotografie reali che stavano nei pannelli.
-const paths = [
+// Fotografie reali, ognuna una volta sola in home: la consulenza resta a
+// Posizionamento; qui la fondatrice (ritaglio 1:1 spostato a sinistra, dove
+// sta lei) e la villa con piscina.
+const paths: { id: "vendi" | "acquista"; href: string; image: string; pos?: string }[] = [
   {
     id: "vendi",
     href: "/vendi",
-    image: "/images/reali/consulenza.jpg",
+    image: "/images/reali/raffaela-specchio-profilo.jpg",
+    pos: "24% 50%",
   },
   {
     id: "acquista",
     href: "/acquista",
     image: "/images/reali/villa-pool.jpg",
   },
-] as const;
+];
 
 const copy = {
   it: {
@@ -44,7 +47,7 @@ const copy = {
           "Campagne marketing e Open Domus",
         ],
         cta: "Richiedi la valutazione del tuo immobile",
-        alt: "Consulenza Domus Tua: il percorso di vendita spiegato al tavolo",
+        alt: "Raffaela Rizza, fondatrice di Domus Tua, in un soggiorno arredato",
       },
       acquista: {
         tag: "Per chi acquista",
@@ -75,7 +78,7 @@ const copy = {
           "Marketing campaigns and Open Domus",
         ],
         cta: "Request a valuation of your property",
-        alt: "Domus Tua consultation: the selling journey explained at the table",
+        alt: "Raffaela Rizza, founder of Domus Tua, in a furnished living room",
       },
       acquista: {
         tag: "For those buying",
@@ -106,7 +109,7 @@ const copy = {
           "Campagnes marketing et Open Domus",
         ],
         cta: "Demandez l’estimation de votre bien",
-        alt: "Consultation Domus Tua : le parcours de vente expliqué à la table",
+        alt: "Raffaela Rizza, fondatrice de Domus Tua, dans un séjour meublé",
       },
       acquista: {
         tag: "Pour ceux qui achètent",
@@ -137,7 +140,7 @@ const copy = {
           "Marketingkampagnen und Open Domus",
         ],
         cta: "Bewertung Ihrer Immobilie anfordern",
-        alt: "Domus Tua Beratung: der Verkaufsweg, am Tisch erklärt",
+        alt: "Raffaela Rizza, Gründerin von Domus Tua, in einem eingerichteten Wohnzimmer",
       },
       acquista: {
         tag: "Für Käufer",
@@ -168,7 +171,7 @@ const copy = {
           "Campañas de marketing y Open Domus",
         ],
         cta: "Solicita la valoración de tu inmueble",
-        alt: "Consultoría Domus Tua: el recorrido de venta explicado en la mesa",
+        alt: "Raffaela Rizza, fundadora de Domus Tua, en un salón amueblado",
       },
       acquista: {
         tag: "Para quien compra",
@@ -218,6 +221,7 @@ export default function Paths() {
                   fill
                   sizes="(max-width:1024px) 100vw, 45vw"
                   className="object-cover"
+                  style={{ objectPosition: p.pos }}
                 />
               </div>
             </Parallax>

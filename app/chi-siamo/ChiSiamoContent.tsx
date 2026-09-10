@@ -382,7 +382,8 @@ export default function ChiSiamoContent({ since }: { since: number }) {
       </section>
 
       <Stats />
-      <Team />
+      {/* `compact`: il PageHero sopra dice già «Persone prima degli immobili». */}
+      <Team compact />
       <Contact />
     </main>
   );

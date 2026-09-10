@@ -194,12 +194,16 @@ const copy = {
 };
 
 // La foto di ogni servizio 01–05, nell'ordine dell'elenco `services`.
-const SHOTS = [
-  "/images/rendering_03_master_bedroom_legno.jpg",
-  "/images/home_staging_01_sala_reale_sedie_gialle.jpg",
-  "/images/reali/video-villa-mozart.jpg",
-  "/images/premium_02_living_dining_piante.jpg",
-  "/images/reali/open-domus-teresa.jpg",
+// Ognuna una volta sola in home: il drone di Villa Mozart sta in Method, la
+// foto di Teresa in OpenDomus. `trimTop`: il fotogramma porta il titolo del
+// video cotto nella fascia alta; la scatola sale del 25 % oltre la tessera,
+// così la fascia resta fuori dal quadrato.
+const SHOTS: { src: string; trimTop?: boolean }[] = [
+  { src: "/images/rendering_03_master_bedroom_legno.jpg" },
+  { src: "/images/home_staging_01_sala_reale_sedie_gialle.jpg" },
+  { src: "/images/reali/villa-tramonto.jpg" },
+  { src: "/images/premium_02_living_dining_piante.jpg" },
+  { src: "/images/reali/video-villa-domotica.jpg", trimTop: true },
 ];
 
 // Il rendering vive nella sezione creativa di /servizi: il link va lì.
@@ -227,14 +231,20 @@ export default function Services() {
           {c.services.map((s, i) => (
             <li key={s.title}>
               <Reveal delay={(i % 3) * 80}>
-                <div className="relative aspect-square">
-                  <Image
-                    src={SHOTS[i]}
-                    alt={s.title}
-                    fill
-                    sizes="(max-width:768px) 100vw, 30vw"
-                    className="object-cover"
-                  />
+                <div className="relative aspect-square overflow-hidden">
+                  <div
+                    className={
+                      SHOTS[i].trimTop ? "absolute inset-x-0 bottom-0 h-[125%]" : "absolute inset-0"
+                    }
+                  >
+                    <Image
+                      src={SHOTS[i].src}
+                      alt={s.title}
+                      fill
+                      sizes="(max-width:768px) 100vw, 30vw"
+                      className="object-cover"
+                    />
+                  </div>
                 </div>
                 <h3 className="mt-5 font-display text-d3">{s.title}</h3>
                 <p className="mt-3 text-body text-graphite">{s.copy}</p>
