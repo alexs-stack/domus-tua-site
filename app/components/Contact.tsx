@@ -1,21 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { gsap, MQ } from "../lib/motion/gsap";
-import { Phone, Whatsapp, Mail, Pin } from "./Icons";
-import { SendCta } from "./primitives/Cta";
-import { SegnoDomusBadge } from "./BrandMotif";
+import { SendCta, CtaButton } from "./primitives/Cta";
 import { site, callback } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../lib/forms/lead";
 import { isEmailFormat, isPhoneFormat } from "../lib/forms/contactChannel";
 import { CONVERSIONS, trackConversion } from "../lib/analytics";
-import CharFlip from "./motion/CharFlip";
+import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
-import Atmosphere from "./motion/Atmosphere";
-import CameraIn from "./motion/CameraIn";
-import Fioritura from "./motion/Fioritura";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
 
@@ -554,67 +548,15 @@ export default function Contact({
     email?: string;
     consent?: string;
   }>({});
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const sentRef = useRef<HTMLParagraphElement | null>(null);
-  const checkRef = useRef<SVGPathElement | null>(null);
-
-  // Micro-feedback puramente cosmetici (la validazione/focus resta in
-  // handleSubmit): shake sui campi in errore, check che si disegna al successo.
-  useEffect(() => {
-    const keys = Object.keys(errors) as Array<keyof typeof errors>;
-    if (!keys.length || !formRef.current) return;
-    if (!window.matchMedia(MQ.motionOk).matches) return;
-    const targets = keys
-      .map((k) => formRef.current!.querySelector(`[name="${k}"]`))
-      .filter(Boolean);
-    if (targets.length) {
-      gsap.fromTo(
-        targets,
-        { x: 0 },
-        { x: 6, duration: 0.06, repeat: 5, yoyo: true, ease: "none", clearProps: "x", overwrite: "auto" }
-      );
-    }
-  }, [errors]);
-
-  // La conferma CAMBIA L'ALTEZZA DELLA PAGINA, e Lenis va avvisato.
-  //
-  // Il pannello sostituisce tre righe con un blocco che porta volto, numero, tempi e documenti.
-  // Lenis tiene in cache l'altezza del documento: il suo `autoResize` c'è, ma passa da un
-  // ResizeObserver debounced, e nell'istante subito dopo l'invio il limite è ancora quello
-  // di prima. Qualunque scrollTo verso il fondo finisce quindi CLAMPATO al fondo vecchio.
-  //
-  // Non è un dettaglio di animazione. Il footer è `position: fixed` e si scopre sull'ultimo
-  // tratto di scroll; al focus da tastiera dentro la parte fissa chiama scrollToBottom per
-  // portare l'uncover a fine corsa, altrimenti un link a fuoco resta COPERTO dal main
-  // (Footer.tsx:89-98, WCAG 2.4.7). Col limite vecchio quel salto si fermava a 2324 invece
-  // che a 2681 e il link «Vendi» finiva sotto un div: focusabile e non cliccabile.
-  //
-  // Misurato: su albero pulito il test passa, con questo pannello no, e con questa riga
-  // torna verde. `ScrollTrigger.refresh()` NON serve — provato e tolto: `maxScroll` legge
-  // l'altezza dal vivo, era solo Lenis a rispondere con un numero di ieri.
-  //
-  // Fuori dalla guardia reduced-motion di proposito: un link coperto lo è per tutti.
+  // La conferma CAMBIA L'ALTEZZA DELLA PAGINA, e Lenis va avvisato: tiene in cache
+  // l'altezza del documento e il suo autoResize è debounced, quindi nell'istante dopo
+  // l'invio ogni scrollTo verso il fondo resta clampato al limite vecchio (un link del
+  // footer focusabile ma coperto, WCAG 2.4.7). Fuori dalla guardia reduced-motion di
+  // proposito: un link coperto lo è per tutti.
   useEffect(() => {
     if (!sent) return;
     getLenis()?.resize();
   }, [sent, delivery]);
-
-  useEffect(() => {
-    if (!sent) return;
-    if (!window.matchMedia(MQ.motionOk).matches) return;
-    if (sentRef.current) {
-      gsap.from(sentRef.current, { y: 10, opacity: 0, duration: 0.5, ease: "domus" });
-    }
-    const check = checkRef.current;
-    if (check) {
-      const len = check.getTotalLength() + 2;
-      gsap.fromTo(
-        check,
-        { strokeDasharray: len, strokeDashoffset: len },
-        { strokeDashoffset: 0, duration: 0.6, delay: 0.15, ease: "power2.inOut" }
-      );
-    }
-  }, [sent]);
 
   // Deep-link: /contatti?intent=buyer (o seller/question/open-domus) preseleziona il tab giusto,
   // quando non è già forzato via prop (es. dalla scheda immobile). Utile per le CTA "Cerco casa"
@@ -628,14 +570,14 @@ export default function Contact({
     }
   }, [initialIntent]);
 
-  const contacts = [
-    { icon: Phone, label: site.phone.label, sub: c.contactPhoneSub, href: site.phone.href },
-    { icon: Whatsapp, label: site.whatsapp.label, sub: c.contactWhatsappSub, href: site.whatsapp.href },
-    { icon: Mail, label: site.email.label, sub: c.contactMailSub, href: site.email.href },
+  // I recapiti come righe di testo: titolo d4 + link 19 px, niente card né icone.
+  const contacts: { title: string; label: string; href: string; note?: string }[] = [
+    { title: c.phoneLabel, label: site.phone.label, href: site.phone.href, note: c.contactPhoneSub },
+    { title: c.contactWhatsappSub, label: site.whatsapp.label, href: site.whatsapp.href },
+    { title: c.emailLabel, label: site.email.label, href: site.email.href },
     {
-      icon: Pin,
-      label: `${site.address.street}`,
-      sub: `${site.address.city} (${site.address.province})`,
+      title: `${site.address.city} (${site.address.province})`,
+      label: site.address.street,
       href: "https://maps.google.com/?q=Domus+Tua+Immobiliare+Corso+Bernacchi+91+Tradate",
     },
   ];
@@ -754,350 +696,249 @@ export default function Contact({
   }
 
   return (
-    <section id="contatti" data-tone="cream-deep" className="relative bg-cream-deep text-ink">
-      <Atmosphere glow />
-      {/* Angolo fiorito: il congedo del filo botanico che attraversa la home.
-          SOTTO lg RESTA SPENTO — ed è l'unica delle Fioriture d'angolo che
-          l'onda «parità mobile 2» (verdetto 6) lascia spenta sul telefono,
-          con la ragione vista, non dedotta (screenshot a 390, 2026-08-18,
-          docs/shots/after-fase2/fiorite-390): a 390 la chiusura della sezione
-          è la scritta corsiva centrata «Vendi casa a Tradate / al prezzo
-          giusto, nei tempi giusti», larga quasi quanto lo schermo, e un
-          tralcio in QUALUNQUE angolo basso ne copre la fine; gli angoli alti
-          sono la card del form. «Mai un fiore sopra un testo» vince sulla
-          parità. E subito sotto c'è il footer, che il suo tralcio ce l'ha
-          (in alto a destra, nell'aria scura): il filo botanico non si
-          interrompe. Da lg in su l'angolo destro basso è vuoto: come sempre.
-          LO SCUDO TAGLIA SOLO IN ORIZZONTALE. Serviva a impedire che i tralci
-          sbordassero a destra portandosi dietro una barra di scorrimento, ma
-          `overflow: hidden` li rifilava anche in basso: il tralcio finiva
-          tranciato di netto sulla giuntura con la fascia sotto (2026-08-09,
-          segnalazione cliente: «sono tagliati, vorrei che fossero continui
-          anche sotto»). `overflow-x: clip` è l'unica forma che consente di
-          lasciare `visible` sull'altro asse — con `hidden` il CSS degraderebbe
-          il verticale ad `auto`, e la sezione si ritroverebbe una barra di
-          scorrimento propria.
-          Il tralcio scavalca la giuntura e resta VISIBILE sopra la fascia che
-          segue senza bisogno di uno z-index: è un discendente posizionato, e
-          i discendenti posizionati si dipingono dopo gli sfondi in flusso dei
-          fratelli successivi. Niente z-index apposta: alzarlo lo porterebbe
-          anche sopra il form, che sotto i 1300px gli passa accanto. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-x-clip">
-        <Fioritura
-          variant="corner-br"
-          className="absolute hidden lg:block -right-5 lg:-bottom-[12vh] lg:h-[42vh] lg:w-[16vw]"
-        />
-      </div>
-      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <CameraIn className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
-          {/* Left: pitch + contatti */}
+    <section id="contatti" className="dt-chapter bg-cream text-ink">
+      <div className="dt-row">
+        {/* Testa di capitolo a tutta riga. Il d1 maiuscolo non sta in mezza colonna:
+            «VALUTAZIONE» da solo è più largo della colonna sinistra a ogni larghezza
+            desktop, quindi il titolo sta sopra la griglia, come nella pagina contatti
+            del riferimento. */}
+        <Reveal>
+          <span className="eyebrow">{c.eyebrow}</span>
+        </Reveal>
+        <TextLines as="h2" className="mt-6 max-w-[12ch] font-display text-d1">
+          {c.title}
+        </TextLines>
+
+        <div className="mt-[clamp(2.5rem,6vh,4rem)] grid gap-[6vw] lg:grid-cols-[1fr_1.1fr] lg:items-start">
+          {/* Sinistra: paragrafo per intento, recapiti, foto quadrata */}
           <div>
-            <div>
-              <SegnoDomusBadge>{c.badge}</SegnoDomusBadge>
-            </div>
-            <span className="eyebrow mt-4">{c.eyebrow}</span>
-            {/* Testa di capitolo: d2 e i caratteri che girano uno a uno, come
-                le altre teste della home (era WordReveal a 48/51px fissi).
-                `balance` tolta: su un titolo splittato il text-wrap si
-                ricalcola dopo lo split e fa saltare una riga. Interlinea e
-                tracking li detta `display-tight`, che è unlayered.
-                d3 e non d2: questa testa vive in mezza colonna (~534px anche
-                su un 1920) e a 146px diventava una torre di 10 righe alta
-                1289px, più del form che le sta accanto. Vedi la regola sulla
-                colonna accanto ai token in globals.css. */}
-            <CharFlip
-              as="h2"
-              exit
-              className="mt-5 font-display text-d3 display-tight font-medium text-ink"
-            >
-              {c.title}
-            </CharFlip>
-            {/* Paragrafo d'apertura: righe che salgono dalla maschera, con
-                l'uscita dalla parte opposta risalendo la pagina. Qui non c'è
-                nessun Reveal attorno, quindi niente doppio-hide. */}
-            {/* §6.6 «Sopra il modulo» — ma indicizzato per INTENTO.
-                Il documento scrive un testo solo, pensato per il proprietario. Qui lo stesso
-                modulo ha quattro tab, e la frase del §6.6 sopra «Cerco casa» parlerebbe alla
-                persona sbagliata: sul ramo venditore si usa la formula del documento parola
-                per parola, sugli altri tre la stessa promessa tradotta per quel pubblico.
+            {/* §6.6 — un testo sopra il modulo per OGNI intento (sul ramo venditore la
+                frase del documento parola per parola). `key` rimonta il Reveal al cambio
+                tab, così il paragrafo rientra invece di cambiare di scatto. */}
+            <Reveal key={intent}>
+              <p className="lead">{c.subcopyBy[intent]}</p>
+            </Reveal>
 
-                `key` sull'intento è deliberato: fa rimontare TextLines a ogni cambio tab,
-                così le righe rientrano in animazione insieme ai campi che stanno cambiando
-                di fianco. Senza, il paragrafo cambierebbe testo di scatto mentre il resto
-                della card si muove. */}
-            <TextLines
-              key={intent}
-              as="p"
-              exit
-              className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone"
-            >
-              {c.subcopyBy[intent]}
-            </TextLines>
-
-            <figure className="arch-frame mt-8 w-full max-w-[15rem] border border-line">
-              <Image
-                src="/images/reali/raffaela-keys.jpg"
-                alt={c.keysAlt}
-                width={480}
-                height={640}
-                sizes="(min-width: 1024px) 15rem, 60vw"
-                className="photo-warm h-auto w-full object-cover"
-              />
-            </figure>
-            {/* Nessuna firma grafica: il tracciato che stava qui era un calligrafico generico,
-                non la firma reale della fondatrice. L'animazione DrawOnScroll resta pronta:
-                appena arriva l'SVG vero (docs/da-chiedere-alla-cliente.md §2.12) basta rimetterlo qui. */}
-
-            <div className="mt-10 grid gap-3 sm:grid-cols-2">
-              {contacts.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target={item.href.startsWith("http") ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-4 transition-colors duration-300 hover:border-red/40"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                    <item.icon className="h-5 w-5" />
-                  </span>
-                  <span className="leading-tight">
-                    <span className="block text-sm font-semibold text-ink">{item.label}</span>
-                    <span className="block text-[0.78rem] text-stone">{item.sub}</span>
-                  </span>
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Right: form */}
-          <div className="rounded-[2rem] border border-line bg-paper p-6 pb-28 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8 sm:pb-8">
-            <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-              {/* Honeypot anti-spam: fuori schermo, non focusabile, ignorato dagli screen reader. */}
-              <div aria-hidden className="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
-                <label htmlFor="company">Company</label>
-                <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
-              </div>
-              {/* L'immobile da cui si arriva, DETTO.
-                  `propertyRef` viaggiava già col lead da quando esiste il pulsante «Richiedi
-                  una visita» sulla scheda, ma non compariva da nessuna parte: chi cliccava
-                  atterrava su un modulo che non nominava mai la casa che stava guardando, e
-                  finiva per riscriverne il titolo nel messaggio per sicurezza. Il dato c'era,
-                  mancava solo la riga che lo mostra. */}
-              {propertyRef ? (
-                <p className="rounded-2xl border border-line bg-cream px-4 py-2.5 text-[0.82rem] leading-relaxed text-stone">
-                  {c.aboutProperty} <span className="font-semibold text-ink">{propertyRef}</span>
-                </p>
-              ) : null}
-              <div className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-cream p-1.5 sm:grid-cols-4">
-                {leadOptions.map((opt) => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    aria-pressed={intent === opt.key}
-                    onClick={() => setIntent(opt.key)}
-                    // min-h-11 = 44px: erano 40, e questo è il primo comando del form.
-                    className={`inline-flex min-h-11 items-center justify-center rounded-xl px-2 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                      intent === opt.key ? "bg-red text-white" : "text-stone hover:text-ink"
-                    }`}
-                  >
-                    {leadLabels[opt.key]}
-                  </button>
+            <Reveal delay={80}>
+              <div className="mt-10 grid gap-8 sm:grid-cols-2">
+                {contacts.map((item) => (
+                  <div key={item.href}>
+                    <h3 className="font-display text-d4 font-light">{item.title}</h3>
+                    <a
+                      href={item.href}
+                      target={item.href.startsWith("http") ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      className="mt-2 block text-body underline-offset-4 hover:underline"
+                    >
+                      {item.label}
+                    </a>
+                    {item.note ? <p className="text-body text-stone">{item.note}</p> : null}
+                  </div>
                 ))}
               </div>
+            </Reveal>
 
-              {/* Nome sempre presente e obbligatorio. */}
-              <Field
-                name="name"
-                label={c.nameLabel}
-                placeholder={c.namePlaceholder}
-                required
-                autoComplete="name"
-                autoCapitalize="words"
-                error={errors.name}
-              />
-              {/* Telefono ed email in campi DISTINTI (canali separati). Ne serve
-                  almeno uno: l'errore "lascia un recapito" vive sul telefono, il
-                  primo dei due. Tastiere mobili dedicate (tel / email). */}
-              <div className="grid gap-5 sm:grid-cols-2">
-                <Field
-                  name="phone"
-                  type="tel"
-                  label={c.phoneLabel}
-                  placeholder={c.phonePlaceholder}
-                  autoComplete="tel"
-                  inputMode="tel"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  error={errors.phone}
-                />
-                <Field
-                  name="email"
-                  type="email"
-                  label={c.emailLabel}
-                  placeholder={c.emailPlaceholder}
-                  autoComplete="email"
-                  inputMode="email"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  error={errors.email}
+            {/* Foto quadrata, senza arco né filtro (via arch-frame). */}
+            <Reveal delay={120}>
+              <div className="relative mt-10 aspect-square">
+                <Image
+                  src="/images/reali/raffaela-keys.jpg"
+                  alt={c.keysAlt}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  className="object-cover"
                 />
               </div>
+            </Reveal>
+          </div>
 
-              {/* Campi dinamici per intento. `initialPlace` (zona della scheda) precompila
-                  la zona desiderata quando il form parte da un immobile. */}
-              <IntentFields intent={intent} c={c} initialPlace={initialPlace} />
-
-              {/* Consenso privacy: obbligatorio perché il lead viene salvato (GDPR). */}
-              <div>
-                <label className="flex items-start gap-3 text-[0.8rem] leading-relaxed text-stone">
-                  <input
-                    type="checkbox"
-                    name="consent"
-                    aria-invalid={errors.consent ? true : undefined}
-                    aria-describedby={errors.consent ? "consent-error" : undefined}
-                    className="mt-0.5 h-5 w-5 shrink-0 rounded border-line accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
-                  />
-                  <span>
-                    {c.consentPre}
-                    <a href="/privacy" className="underline underline-offset-2 hover:text-ink">
-                      {c.consentLinkText}
-                    </a>
-                    {c.consentPost}
-                  </span>
-                </label>
-                {errors.consent ? (
-                  <span id="consent-error" role="alert" className="mt-2 block text-[0.72rem] text-red-dark">
-                    {errors.consent}
-                  </span>
-                ) : null}
-              </div>
-
-              {/* A invio avvenuto il pulsante sparisce e lascia il posto al comando esplicito
-                  di reinvio. Prima restava attivo e premibile: chi tornava da WhatsApp e non
-                  era sicuro di aver mandato ripremeva, aprendo una seconda scheda e scrivendo
-                  una seconda riga sul foglio. Toglierlo e basta però impedirebbe la correzione
-                  legittima («ho sbagliato il numero»), quindi il modo per rifarlo resta —
-                  solo, va chiesto. */}
-              {sent ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSent(false);
-                    setDelivery("pending");
-                  }}
-                  className="mt-1 w-full rounded-full border border-ink/15 px-5 py-3 text-sm font-semibold text-ink transition-colors hover:border-ink/35"
-                >
-                  {c.resend}
-                </button>
-              ) : (
-                <SendCta submitting={submitting} size="lg" className="mt-1 w-full">
-                  {submitLabels[intent]}
-                </SendCta>
-              )}
-              {/* §6.6 — sta SOTTO il pulsante, non sopra: si legge nell'istante esatto in
-                  cui si esita a premerlo. Dice quando richiamiamo, che i dati non escono
-                  di qui, e che si può anche non farne nulla — è quest'ultima a togliere la
-                  paura di essere inseguiti, che è la barriera vera. */}
-              <p className="mt-3 text-center text-[0.78rem] leading-relaxed text-stone">
-                {c.reassure}
+          {/* Destra: il modulo a filo — campi col solo bordo inferiore, niente card */}
+          <form onSubmit={handleSubmit} noValidate className="relative flex flex-col gap-8">
+            {/* Honeypot anti-spam: fuori schermo, non focusabile, ignorato dagli screen reader. */}
+            <div aria-hidden className="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
+              <label htmlFor="company">Company</label>
+              <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+            </div>
+            {/* L'immobile da cui si arriva, DETTO: chi clicca «Richiedi una visita» sulla
+                scheda deve vedere nominata la casa che stava guardando. */}
+            {propertyRef ? (
+              <p className="text-body text-stone">
+                {c.aboutProperty} <span className="font-semibold text-ink">{propertyRef}</span>
               </p>
-              {sent ? (
-                <div
-                  ref={sentRef}
-                  role="status"
-                  className="rounded-2xl border border-red/25 bg-red-soft/60 px-4 py-4 text-sm text-red-dark"
+            ) : null}
+            {/* Le tab dell'intento: testo maiuscolo 16 px, riga rossa sotto quella scelta
+                (`!` sui colori del bordo: vedi la nota sopra `fieldCls`). */}
+            <div className="flex flex-wrap gap-x-8 gap-y-2">
+              {leadOptions.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  aria-pressed={intent === opt.key}
+                  onClick={() => setIntent(opt.key)}
+                  className="inline-flex min-h-11 items-center border-b-2 border-transparent! text-ui font-semibold uppercase tracking-[0.08em] text-stone transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red aria-pressed:border-red! aria-pressed:text-ink"
                 >
-                  {/* Titolo. È l'unica riga che cambia con l'esito, ed è quella che il §6.6
-                      chiede: «Abbiamo ricevuto la tua richiesta». Si dice SOLO quando è vero
-                      — cioè quando un canale ha davvero preso in carico il lead. */}
-                  <p className="flex items-center gap-2.5 font-semibold">
-                    {/* Check che si disegna (senza JS/reduced-motion: già completo) */}
-                    <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-red">
-                      <path
-                        ref={checkRef}
-                        d="M4.5 12.5l5 5L19.5 7"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span>{delivery === "ok" ? c.sentTitleOk : c.sentTitlePending}</span>
-                  </p>
+                  {leadLabels[opt.key]}
+                </button>
+              ))}
+            </div>
 
-                  {/* Il canale immediato. Resta in tutti e tre gli esiti perché in tutti e tre
-                      è successo davvero: la scheda WhatsApp si è aperta col messaggio dentro. */}
-                  <p className="mt-2 leading-relaxed">
-                    {c.sentPrefix}{" "}
-                    <a href={waUrl} className="font-semibold underline">
-                      {c.sentLink} {site.whatsapp.label}
+            {/* Nome sempre presente e obbligatorio. */}
+            <Field
+              name="name"
+              label={c.nameLabel}
+              placeholder={c.namePlaceholder}
+              required
+              autoComplete="name"
+              autoCapitalize="words"
+              error={errors.name}
+            />
+            {/* Telefono ed email in campi DISTINTI (canali separati). Ne serve
+                almeno uno: l'errore "lascia un recapito" vive sul telefono, il
+                primo dei due. Tastiere mobili dedicate (tel / email). */}
+            <div className="grid gap-8 sm:grid-cols-2">
+              <Field
+                name="phone"
+                type="tel"
+                label={c.phoneLabel}
+                placeholder={c.phonePlaceholder}
+                autoComplete="tel"
+                inputMode="tel"
+                autoCapitalize="none"
+                spellCheck={false}
+                error={errors.phone}
+              />
+              <Field
+                name="email"
+                type="email"
+                label={c.emailLabel}
+                placeholder={c.emailPlaceholder}
+                autoComplete="email"
+                inputMode="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                error={errors.email}
+              />
+            </div>
+
+            {/* Campi dinamici per intento. `initialPlace` (zona della scheda) precompila
+                la zona desiderata quando il form parte da un immobile. */}
+            <IntentFields intent={intent} c={c} initialPlace={initialPlace} />
+
+            {/* Consenso privacy: obbligatorio perché il lead viene salvato (GDPR). */}
+            <div>
+              <label className="flex items-start gap-3 text-ui text-stone">
+                <input
+                  type="checkbox"
+                  name="consent"
+                  aria-invalid={errors.consent ? true : undefined}
+                  aria-describedby={errors.consent ? "consent-error" : undefined}
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                />
+                <span>
+                  {c.consentPre}
+                  <a href="/privacy" className="underline underline-offset-4 hover:text-ink">
+                    {c.consentLinkText}
+                  </a>
+                  {c.consentPost}
+                </span>
+              </label>
+              {errors.consent ? (
+                <span id="consent-error" role="alert" className="mt-2 block text-ui text-red-dark">
+                  {errors.consent}
+                </span>
+              ) : null}
+            </div>
+
+            {/* A invio avvenuto il pulsante sparisce e lascia il posto al comando esplicito
+                di reinvio: chi torna da WhatsApp e non è sicuro non deve poter ripremere a
+                vuoto, ma la correzione legittima («ho sbagliato il numero») resta possibile. */}
+            {sent ? (
+              <CtaButton
+                type="button"
+                variant="ghost"
+                arrow={false}
+                onClick={() => {
+                  setSent(false);
+                  setDelivery("pending");
+                }}
+                className="self-start"
+              >
+                {c.resend}
+              </CtaButton>
+            ) : (
+              <SendCta submitting={submitting} size="lg" className="sm:self-start">
+                {submitLabels[intent]}
+              </SendCta>
+            )}
+            {/* §6.6 — sta SOTTO il pulsante: si legge nell'istante in cui si esita a premerlo. */}
+            <p className="text-body text-stone">{c.reassure}</p>
+            {sent ? (
+              <div role="status" className="border-t border-ink! pt-6 text-body text-ink">
+                {/* L'unica riga che cambia con l'esito: «Abbiamo ricevuto la tua richiesta»
+                    si dice SOLO quando un canale ha davvero preso in carico il lead. */}
+                <p className="font-display text-d4 font-light uppercase">
+                  {delivery === "ok" ? c.sentTitleOk : c.sentTitlePending}
+                </p>
+
+                {/* Il canale immediato: in tutti gli esiti la scheda WhatsApp si è aperta
+                    col messaggio dentro, e il link di scampo porta lo stesso messaggio. */}
+                <p className="mt-3">
+                  {c.sentPrefix}{" "}
+                  <a href={waUrl} className="font-semibold underline underline-offset-4">
+                    {c.sentLink} {site.whatsapp.label}
+                  </a>
+                  .
+                </p>
+
+                {/* Quando il server NON ha preso il lead, lo si dice e si indica la via che funziona. */}
+                {delivery === "failed" ? (
+                  <p className="mt-3">
+                    {c.sentNotDelivered}{" "}
+                    <a href={site.phone.href} className="font-semibold underline underline-offset-4">
+                      {site.phone.label}
                     </a>
                     .
                   </p>
+                ) : null}
 
-                  {/* E quando il server NON ha preso il lead, lo si dice. Il testo regge anche
-                      nel caso in cui nessun canale sia configurato e WhatsApp sia l'unica
-                      consegna vera: non allarma, indica la strada che funziona. */}
-                  {delivery === "failed" ? (
-                    <p className="mt-2 leading-relaxed">
-                      {c.sentNotDelivered}{" "}
-                      <a href={site.phone.href} className="font-semibold underline">
-                        {site.phone.label}
-                      </a>
-                      .
-                    </p>
-                  ) : null}
-
-                  {/* §6.6 — «chi vi chiamerà (nome e volto), da quale numero, entro quando,
-                      cosa preparare». Sta QUI e non prima dell'invio: le stesse informazioni
-                      dette prima servono a far premere il pulsante, dette dopo servono a non
-                      far riscrivere la richiesta a chi non sa più cosa aspettarsi.
-                      Compare in tutti gli esiti: riguarda cosa succede dopo, non il canale. */}
-                  <div className="mt-4 border-t border-red/20 pt-3.5">
-                    {/* Il titolo cambia con l esito, e non e un dettaglio: «cosa succede
-                        adesso» presuppone che la richiesta sia arrivata. Se non e arrivata,
-                        nessuno richiama entro 24 ore — e le righe qui sotto diventerebbero
-                        una promessa che il sito non e in grado di mantenere. Una parola di
-                        differenza le rende condizionate a quello che deve ancora succedere. */}
-                    <p className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-red-dark/70">
-                      {delivery === "failed" ? c.nextTitleIfFailed : c.nextTitle}
-                    </p>
-                    <div className="mt-2.5 flex items-start gap-3">
-                      {/* Il volto. La stessa foto che sta accanto al modulo: chi ha appena
-                          scritto la riconosce, ed è il punto — sa chi si aspetta. */}
-                      <Image
-                        src={callback.photo}
-                        alt=""
-                        width={44}
-                        height={44}
-                        className="h-11 w-11 shrink-0 rounded-full object-cover"
-                      />
-                      <div className="leading-relaxed">
-                        <p>
-                          <span className="font-semibold">{callback.name}</span>
-                          <span className="text-red-dark/70"> · {callback.role}</span>
-                        </p>
-                        <p>{c.nextWhen}</p>
-                        {/* Il numero da cui arriva la chiamata. È la sola informazione che
-                            fa rispondere a un numero sconosciuto. */}
-                        <p>
-                          {c.nextNumberPre}{" "}
-                          <span className="font-semibold">{callback.phoneLabel}</span>
-                          {c.nextNumberPost}
-                        </p>
-                      </div>
+                {/* §6.6 — chi chiama (nome e volto), da quale numero, entro quando, cosa
+                    preparare. Il titolo cambia con l'esito: «cosa succede adesso» presuppone
+                    che la richiesta sia arrivata. */}
+                <div className="mt-6 border-t border-line pt-5">
+                  <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">
+                    {delivery === "failed" ? c.nextTitleIfFailed : c.nextTitle}
+                  </p>
+                  <div className="mt-4 flex items-start gap-4">
+                    {/* Il volto: la stessa foto accanto al modulo, quadrata come tutte. */}
+                    <Image
+                      src={callback.photo}
+                      alt=""
+                      width={64}
+                      height={64}
+                      className="h-16 w-16 shrink-0 object-cover"
+                    />
+                    <div>
+                      <p>
+                        <span className="font-semibold">{callback.name}</span>
+                        <span className="text-stone"> · {callback.role}</span>
+                      </p>
+                      <p>{c.nextWhen}</p>
+                      <p>
+                        {c.nextNumberPre}{" "}
+                        <span className="font-semibold">{callback.phoneLabel}</span>
+                        {c.nextNumberPost}
+                      </p>
                     </div>
-                    <p className="mt-3 leading-relaxed">
-                      <span className="font-semibold">{c.prepareTitle}:</span>{" "}
-                      {c.prepareBy[sentIntent]}
-                    </p>
                   </div>
+                  <p className="mt-4">
+                    <span className="font-semibold">{c.prepareTitle}:</span>{" "}
+                    {c.prepareBy[sentIntent]}
+                  </p>
                 </div>
-              ) : null}
-            </form>
-          </div>
-        </CameraIn>
+              </div>
+            ) : null}
+          </form>
+        </div>
       </div>
     </section>
   );
@@ -1178,6 +1019,29 @@ function IntentFields({
   );
 }
 
+// Etichetta 16 px maiuscola e campo col solo bordo inferiore (stesso canone di
+// HomeSearchGateway): niente scatola, niente raggio, 19 px nel campo.
+// `border-ink!`: il `* { border-color: line }` di globals.css è unlayered e batte le utility.
+const labelCls = "block text-ui font-semibold uppercase tracking-[0.08em] text-stone";
+const fieldCls =
+  "block w-full border-0 border-b bg-transparent py-3 text-body text-ink placeholder:text-stone transition-colors focus:border-red! focus:outline-none";
+
+// La freccia della tendina: `appearance-none` toglie quella del browser.
+function Caret() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-stone"
+    >
+      <path d="M3 6l5 5 5-5" />
+    </svg>
+  );
+}
+
 function Field({
   name,
   label,
@@ -1210,8 +1074,8 @@ function Field({
   spellCheck?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={name} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
+    <div>
+      <label htmlFor={name} className={labelCls}>
         {label}
       </label>
       <input
@@ -1228,12 +1092,10 @@ function Field({
         autoCorrect={spellCheck === false ? "off" : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}
-        className={`rounded-xl border bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-          error ? "border-red" : "border-line"
-        }`}
+        className={`${fieldCls} ${error ? "border-red!" : "border-ink!"}`}
       />
       {error ? (
-        <span id={`${name}-error`} role="alert" className="text-[0.72rem] text-red-dark">
+        <span id={`${name}-error`} role="alert" className="mt-2 block text-ui text-red-dark">
           {error}
         </span>
       ) : null}
@@ -1251,8 +1113,8 @@ function TextArea({
   placeholder?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={name} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
+    <div>
+      <label htmlFor={name} className={labelCls}>
         {label}
       </label>
       <textarea
@@ -1260,7 +1122,7 @@ function TextArea({
         name={name}
         rows={3}
         placeholder={placeholder}
-        className="rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+        className={`${fieldCls} resize-y border-ink!`}
       />
     </div>
   );
@@ -1280,23 +1142,21 @@ function Select({
   options: { value: string }[];
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={name} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
+    <div>
+      <label htmlFor={name} className={labelCls}>
         {label}
       </label>
-      <select
-        id={name}
-        name={name}
-        defaultValue=""
-        className="rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.value}
-          </option>
-        ))}
-      </select>
+      <span className="relative block">
+        <select id={name} name={name} defaultValue="" className={`${fieldCls} appearance-none border-ink! pr-8`}>
+          <option value="">{placeholder}</option>
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.value}
+            </option>
+          ))}
+        </select>
+        <Caret />
+      </span>
     </div>
   );
 }
