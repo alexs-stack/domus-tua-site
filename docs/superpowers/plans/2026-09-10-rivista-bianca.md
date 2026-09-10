@@ -832,13 +832,13 @@ Sotto 768 e con reduced-motion il `<video>` non parte (`matchMedia` nel client):
 
 **Files:** Modify `e2e/mobile-effects.spec.ts`, `e2e/mobile-motion.spec.ts`, `e2e/motion.spec.ts`, `e2e/home.spec.ts`; `app/lib/__tests__/intro-clocks.test.ts` legge `e2e/mobile-motion.spec.ts` (verificare quale asserzione: conservarla)
 
-- [ ] **Step 1**: rimuovere i `test()` che provano cose cancellate: `[data-hero-media]` clip-path/scale/yPercent, `[data-hero-cue]`, il censimento Fioritura, `[data-paths-panel]`, la transizione di pagina (`--arch-w/--arch-y` FUORI dal preloader), TeamTrail, ReviewsWall, StarReviews. Conservare: preloader (`#dt-preloader`, `--arch-*` registrati, handoff/skip/cookie), `[data-hero-char]`, reduced-motion, header per larghezza.
-- [ ] **Step 2**: `npm run test:e2e` (build di produzione su :3177: ~10 min). Ogni fallimento residuo si legge: se prova un comportamento rimosso → si toglie il test; se prova un comportamento che deve restare (a11y, contrasto, un solo h1, title, form, ricerca, consenso) → si corregge il CODICE.
-- [ ] **Step 3**: commit `test(e2e): via le prove dei sistemi rimossi; verdi le prove di ciò che resta`.
+- [x] **Step 1**: rimuovere i `test()` che provano cose cancellate: `[data-hero-media]` clip-path/scale/yPercent, `[data-hero-cue]`, il censimento Fioritura, `[data-paths-panel]`, la transizione di pagina (`--arch-w/--arch-y` FUORI dal preloader), TeamTrail, ReviewsWall, StarReviews. Conservare: preloader (`#dt-preloader`, `--arch-*` registrati, handoff/skip/cookie), `[data-hero-char]`, reduced-motion, header per larghezza.
+- [x] **Step 2**: `npm run test:e2e` (build di produzione su :3177: ~10 min). Ogni fallimento residuo si legge: se prova un comportamento rimosso → si toglie il test; se prova un comportamento che deve restare (a11y, contrasto, un solo h1, title, form, ricerca, consenso) → si corregge il CODICE.
+- [x] **Step 3**: commit `test(e2e): via le prove dei sistemi rimossi; verdi le prove di ciò che resta`.
 
 ### Task 26: `npm run check`
 
-- [ ] `npm run check` (lint + typecheck + test + build) verde. Se `next build` segnala classi/asset mancanti, correggere. Commit se serve.
+- [x] `npm run check` (lint + typecheck + test + build) verde. Se `next build` segnala classi/asset mancanti, correggere. Commit se serve.
 
 ---
 
@@ -846,14 +846,14 @@ Sotto 768 e con reduced-motion il `<video>` non parte (`matchMedia` nel client):
 
 ### Task 27: Screenshot finali e revisione contro il contratto
 
-- [ ] **Step 1**: `capture.mjs ours` su home; aggiungere allo script `/vendi`, `/chi-siamo`, `/contatti` (desktop) e leggere tutte le slice. Confrontare con `shots/gg-*`: fondo unico, titoli a 10vh, lead grandi, media squadrati, un corsivo per capitolo, nessun testo < 16 px (Browser pane `javascript_tool`: `[...document.querySelectorAll('main *')].filter(e=>e.innerText&&parseFloat(getComputedStyle(e).fontSize)<16).length` → 0), nessun `border-radius` > 0 su elementi > 40 px larghi tranne icon-button (stesso metodo delle metriche del dossier: `radii`), nessun colore di fondo scuro fuori dal preloader.
-- [ ] **Step 2**: un giro di correzioni, una ricattura di conferma. Commit `fix(rivista): il giro di correzioni finale`.
-- [ ] **Step 3**: spawn del reviewer di finitura Impeccable (`impeccable-finish-reviewer`) con richiesta originale, risposte, `app/page.tsx`, gli screenshot, il contratto §3.0; applicare le correzioni materiali.
+- [x] **Step 1**: `capture.mjs ours` su home; aggiungere allo script `/vendi`, `/chi-siamo`, `/contatti` (desktop) e leggere tutte le slice. Confrontare con `shots/gg-*`: fondo unico, titoli a 10vh, lead grandi, media squadrati, un corsivo per capitolo, nessun testo < 16 px (Browser pane `javascript_tool`: `[...document.querySelectorAll('main *')].filter(e=>e.innerText&&parseFloat(getComputedStyle(e).fontSize)<16).length` → 0), nessun `border-radius` > 0 su elementi > 40 px larghi tranne icon-button (stesso metodo delle metriche del dossier: `radii`), nessun colore di fondo scuro fuori dal preloader.
+- [x] **Step 2**: un giro di correzioni, una ricattura di conferma. Commit `fix(rivista): il giro di correzioni finale`.
+- [x] **Step 3**: spawn del reviewer di finitura Impeccable (`impeccable-finish-reviewer`) con richiesta originale, risposte, `app/page.tsx`, gli screenshot, il contratto §3.0; applicare le correzioni materiali.
 
 ### Task 28: DESIGN.md, PRODUCT.md, piano del progetto, memoria
 
 **Files:** Create `DESIGN.md` (radice, via documenter Impeccable) e aggiornare `docs/DESIGN.md` con un rimando; Modify `PRODUCT.md` (Brand Commitments: «niente curve, niente card, niente fiori, niente superfici scure, nessun testo sotto 16 px; movimento: Reveal/TextLines/Parallax; riferimento: immobiliaregoldengoal.it»; Operating Context: via «livello awwwards»); Modify `docs/piano-documento-finale.md` (una sezione «2026-09-10: redesign rivista bianca» con lo stato); Modify `docs/logo-assets.md` (§ «logo nuovo: dove cambiare `--font-brand`»)
 
-- [ ] **Step 1**: spawn `impeccable-documenter` con root, `app/page.tsx`, contratto, PRODUCT.md, `document.md` → scrive `DESIGN.md` dal costruito.
-- [ ] **Step 2**: PRODUCT.md e docs come sopra; commit `docs(design): il sistema della rivista bianca, registrato dal costruito`.
-- [ ] **Step 3**: aprire la PR verso `main` con `gh pr create` (titolo: «La rivista bianca: il redesign chiesto dalla cliente il 10 settembre»; corpo: lista della chiamata con ✔ per voce, screenshot prima/dopo, cosa resta aperto: logo nuovo, foto team).
+- [x] **Step 1**: spawn `impeccable-documenter` con root, `app/page.tsx`, contratto, PRODUCT.md, `document.md` → scrive `DESIGN.md` dal costruito.
+- [x] **Step 2**: PRODUCT.md e docs come sopra; commit `docs(design): il sistema della rivista bianca, registrato dal costruito`.
+- [x] **Step 3**: aprire la PR verso `main` con `gh pr create` (titolo: «La rivista bianca: il redesign chiesto dalla cliente il 10 settembre»; corpo: lista della chiamata con ✔ per voce, screenshot prima/dopo, cosa resta aperto: logo nuovo, foto team).
