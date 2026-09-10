@@ -132,7 +132,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#faf7f1",
+  themeColor: "#f9f5ef",
 };
 
 const jakarta = Plus_Jakarta_Sans({
@@ -238,7 +238,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${jakarta.variable} ${playfair.variable} ${pinyon.variable} antialiased`}
     >
-      <body className="flex min-h-dvh flex-col bg-paper text-ink">
+      <body className="flex min-h-dvh flex-col bg-cream text-ink">
         <script dangerouslySetInnerHTML={{ __html: preloaderBootScript }} />
         {/* IL SIPARIO, RESO DAL SERVER — il film intero, non più il solo fondo.
             Fino al 2026-08-17 qui c'era un pannello espresso vuoto
@@ -266,7 +266,6 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdScript(webSite) }}
         />
-        <div className="grain" aria-hidden />
         <SmoothScroll />
         {/* La superficie continua: si accende solo dove ci sono almeno due
             tappe `data-tone` (cioè in home), altrove non fa nulla. */}
