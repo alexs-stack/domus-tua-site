@@ -6,7 +6,6 @@ import Services from "../components/Services";
 import EditorialRows, { type EditorialRow } from "../components/EditorialRows";
 import BeforeAfter from "../components/BeforeAfter";
 import Contact from "../components/Contact";
-import { SegnoDomusDivider } from "../components/BrandMotif";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
 const copy = {
@@ -233,7 +232,6 @@ export default function ServiziContent() {
         scriptWord={{ it: "Servizi", en: "Services", fr: "Services", de: "Leistungen", es: "Servicios" }[locale]}
       />
 
-      <SegnoDomusDivider className="py-14" />
 
       <Services />
 

@@ -3,24 +3,17 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ScrollTrigger } from "../lib/motion/gsap";
-import { useDict, useLocale } from "../components/i18n/LocaleProvider";
+import { useLocale } from "../components/i18n/LocaleProvider";
 import Reveal from "../components/Reveal";
 import PageHero from "../components/PageHero";
-import ThreadNav from "../components/motion/ThreadNav";
 import OpenDomus from "../components/OpenDomus";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
-import ScrubWords from "../components/motion/ScrubWords";
 import { ArrowRight, Check, Play } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
-import {
-  SegnoDomusBadge,
-  SegnoDomusCorner,
-  SegnoDomusDivider,
-  SegnoTick,
-} from "../components/BrandMotif";
+import { SegnoTick } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { youtubeWatch } from "../lib/videos";
 import { faqIt } from "./faq";
@@ -712,7 +705,6 @@ const phaseMeta = [
 
 export default function OpenDomusPageContent() {
   const { locale } = useLocale();
-  const d = useDict();
   const c = copy[locale];
   const [openFaq, setOpenFaq] = useState<number>(0);
 
@@ -726,16 +718,6 @@ export default function OpenDomusPageContent() {
 
   return (
     <>
-      {/* Filo rosso di pagina: fixed, fratello di <main> (mai sotto antenati trasformati). */}
-      <ThreadNav
-        chapters={[
-          { id: "top", label: "Domus Tua" },
-          { id: "open-domus", label: d.nav.openDomus },
-          { id: "percorso", label: d.nav.percorso },
-          { id: "recensioni", label: d.nav.recensioni },
-          { id: "contatti", label: d.nav.contatti },
-        ]}
-      />
       <main className="flex-1">
         <PageHero
           id="top"
@@ -749,16 +731,12 @@ export default function OpenDomusPageContent() {
           scriptWord="Open Domus"
         />
 
-        {/* Sottotitolo / claim di prodotto */}
-        <section className="bg-ink">
-          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-            <Reveal className="flex flex-col items-center text-center">
-              <SegnoDomusBadge light>Open Domus</SegnoDomusBadge>
-              {/* Il claim si "legge" con lo scroll: le parole si accendono in sequenza */}
-              <ScrubWords
-                text={c.heroSubtitle}
-                className="mt-6 max-w-3xl font-display text-2xl font-medium leading-[1.2] tracking-tight text-cream balance sm:text-[2rem]"
-              />
+        {/* Claim di prodotto: una frase grande sul fondo avorio, niente banda scura. */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <Reveal>
+              <span className="eyebrow">Open Domus</span>
+              <h2 className="mt-6 max-w-[24ch] font-display text-d2">{c.heroSubtitle}</h2>
             </Reveal>
           </div>
         </section>
@@ -773,57 +751,45 @@ export default function OpenDomusPageContent() {
           items={c.highlightsItems}
         />
 
-        {/* Perché è diverso da un open house classico */}
-        <section className="bg-paper">
-          <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-            <Reveal className="max-w-2xl">
+        {/* Perché è diverso da un open house classico: due colonne di testo
+            separate da hairline, niente card né lastra scura (2026-09-10). */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <Reveal>
               <span className="eyebrow">{c.compareEyebrow}</span>
-              <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-                {c.compareTitle}
-              </h2>
-              <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">
-                {c.compareIntro}
-              </p>
+              <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.compareTitle}</h2>
+              <p className="lead mt-8">{c.compareIntro}</p>
             </Reveal>
 
-            <div className="mt-14 grid gap-4 lg:grid-cols-2">
+            <div className="mt-16 grid gap-x-16 lg:grid-cols-2">
               {/* Colonna: open house classico */}
               <Reveal>
-                <article className="flex h-full flex-col rounded-[1.75rem] border border-line bg-cream p-8">
-                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone">
-                    {c.compareOldLabel}
-                  </span>
-                  <ul className="mt-6 flex flex-col gap-3.5">
+                <div className="border-t border-line pt-8">
+                  <h3 className="font-display text-d4 text-stone">{c.compareOldLabel}</h3>
+                  <ul className="mt-6 flex flex-col">
                     {c.compareOld.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-[0.95rem] leading-snug text-graphite">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-line text-stone">
-                          <span className="h-2 w-2 rounded-full bg-stone/40" />
-                        </span>
+                      <li key={item} className="flex items-start gap-4 border-t border-line py-4 text-body text-graphite">
+                        <span aria-hidden className="mt-3 h-px w-5 shrink-0 bg-stone" />
                         {item}
                       </li>
                     ))}
                   </ul>
-                </article>
+                </div>
               </Reveal>
 
               {/* Colonna: Open Domus */}
               <Reveal delay={100}>
-                <article className="relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-red/30 bg-ink p-8 text-cream shadow-[0_40px_80px_-50px_rgba(210,10,10,0.5)]">
-                  <SegnoDomusCorner className="right-4 top-4 opacity-70" rotate={90} size={30} />
-                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-red-soft">
-                    {c.compareNewLabel}
-                  </span>
-                  <ul className="mt-6 flex flex-col gap-3.5">
+                <div className="border-t border-red pt-8">
+                  <h3 className="font-display text-d4 text-red">{c.compareNewLabel}</h3>
+                  <ul className="mt-6 flex flex-col">
                     {c.compareNew.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-[0.95rem] leading-snug text-cream/90">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red text-white">
-                          <Check className="h-3 w-3" />
-                        </span>
+                      <li key={item} className="flex items-start gap-4 border-t border-line py-4 text-body text-ink">
+                        <Check className="mt-1.5 h-4 w-4 shrink-0 text-red" />
                         {item}
                       </li>
                     ))}
                   </ul>
-                </article>
+                </div>
               </Reveal>
             </div>
           </div>
@@ -837,9 +803,10 @@ export default function OpenDomusPageContent() {
           rows={phases}
         />
 
-        {/* La prova, in video — Venduta al primo Open Domus */}
-        <section className="bg-ink">
-          <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+        {/* La prova, in video — Venduta al primo Open Domus. Foto squadrata,
+            nessun velo, il badge sta sotto la foto come testo. */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
             <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
               <Reveal>
                 <a
@@ -847,7 +814,7 @@ export default function OpenDomusPageContent() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={c.videoAria}
-                  className="group relative block aspect-video overflow-hidden rounded-[2rem] border border-cream/15"
+                  className="group relative block aspect-video overflow-hidden"
                 >
                   <Image
                     src="/images/reali/raffaela-founder.jpg"
@@ -856,35 +823,24 @@ export default function OpenDomusPageContent() {
                     sizes="(max-width: 1024px) 100vw, 680px"
                     className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
                   />
-                  <span className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
-                  <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-ink/50 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-cream backdrop-blur-md">
-                    <span className="h-1.5 w-1.5 rounded-full bg-red" />
-                    {c.videoBadge}
-                  </span>
-                  <span className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
-                    <Play className="h-8 w-8" />
+                  <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-110">
+                    <Play className="h-7 w-7" />
                   </span>
                 </a>
+                <p className="mt-4 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{c.videoBadge}</p>
               </Reveal>
 
               <Reveal delay={100}>
-                <span className="inline-flex items-center gap-2 rounded-full border border-red/40 bg-red/10 px-3.5 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-red-soft">
-                  <span className="h-1.5 w-1.5 rounded-full bg-red" />
-                  {c.videoEyebrow}
-                </span>
-                <h2 className="mt-6 font-display text-4xl font-medium leading-[1.05] tracking-tight text-cream balance sm:text-[3rem]">
-                  {c.videoTitle}
-                </h2>
-                <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-cream/80">
-                  {c.videoText}
-                </p>
+                <span className="eyebrow">{c.videoEyebrow}</span>
+                <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.videoTitle}</h2>
+                <p className="lead mt-8">{c.videoText}</p>
                 <Cta
                   href={youtubeWatch(site.videos.openDomus.id)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  variant="reveal-cream"
+                  variant="cta"
                   size="md"
-                  className="mt-9"
+                  className="mt-10"
                 >
                   {c.videoCta}
                 </Cta>
@@ -893,85 +849,73 @@ export default function OpenDomusPageContent() {
           </div>
         </section>
 
-        {/* Card doppie: chi vende / chi acquista */}
-        <section className="bg-cream">
-          <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-            <Reveal className="max-w-2xl">
+        {/* Due colonne: chi vende / chi acquista (liste con hairline, niente card). */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <Reveal>
               <span className="eyebrow">{c.splitEyebrow}</span>
-              <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-                {c.splitTitle}
-              </h2>
+              <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.splitTitle}</h2>
             </Reveal>
 
-            <div className="mt-14 grid gap-4 md:grid-cols-2">
+            <div className="mt-16 grid gap-x-16 md:grid-cols-2">
               <Reveal>
-                <article className="flex h-full flex-col rounded-[1.75rem] border border-line bg-paper p-8">
-                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-red">
-                    {c.sellerLabel}
-                  </span>
-                  <ul className="mt-6 grid gap-4">
+                <div className="border-t border-line pt-8">
+                  <h3 className="font-display text-d4 text-red">{c.sellerLabel}</h3>
+                  <ul className="mt-6 flex flex-col">
                     {c.sellerItems.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-[0.95rem] leading-snug text-graphite">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                          <SegnoTick className="h-3 w-3" />
-                        </span>
+                      <li key={item} className="flex items-start gap-4 border-t border-line py-4 text-body text-graphite">
+                        <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
                         {item}
                       </li>
                     ))}
                   </ul>
-                </article>
+                </div>
               </Reveal>
 
               <Reveal delay={100}>
-                <article className="flex h-full flex-col rounded-[1.75rem] border border-line bg-paper p-8">
-                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-red">
-                    {c.buyerLabel}
-                  </span>
-                  <ul className="mt-6 grid gap-4">
+                <div className="border-t border-line pt-8">
+                  <h3 className="font-display text-d4 text-red">{c.buyerLabel}</h3>
+                  <ul className="mt-6 flex flex-col">
                     {c.buyerItems.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-[0.95rem] leading-snug text-graphite">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                          <SegnoTick className="h-3 w-3" />
-                        </span>
+                      <li key={item} className="flex items-start gap-4 border-t border-line py-4 text-body text-graphite">
+                        <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
                         {item}
                       </li>
                     ))}
                   </ul>
-                </article>
+                </div>
               </Reveal>
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="bg-paper">
-          <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-            <Reveal className="max-w-2xl">
+        {/* FAQ: voci separate da hairline, domanda in serif, risposta a 19 px. */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <Reveal>
               <span className="eyebrow">{c.faqEyebrow}</span>
-              <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-                {c.faqTitle}
-              </h2>
+              <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.faqTitle}</h2>
             </Reveal>
 
-            <div className="mt-12 grid gap-3 lg:max-w-3xl">
+            <div className="mt-16 max-w-[800px] border-b border-line">
               {c.faq.map((item, i) => {
                 const isOpen = openFaq === i;
                 return (
-                  <Reveal key={item.q} delay={i * 70}>
-                    <div className="overflow-hidden rounded-2xl border border-line bg-cream">
+                  <Reveal key={item.q} delay={(i % 4) * 70}>
+                    <div className="border-t border-line">
                       <button
                         type="button"
                         onClick={() => setOpenFaq(isOpen ? -1 : i)}
                         aria-expanded={isOpen}
                         aria-controls={`faq-panel-${i}`}
-                        className="group flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors duration-300 hover:bg-cream-deep"
+                        className="group flex w-full items-start justify-between gap-6 py-6 text-left transition-colors duration-300 hover:text-red"
                       >
-                        <span className="font-display text-lg font-medium leading-snug tracking-tight text-ink">
+                        <span className="font-display text-[1.5rem] leading-[1.2] text-ink group-hover:text-red">
                           {item.q}
                         </span>
                         <span
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-red transition-transform duration-300 ${
-                            isOpen ? "rotate-90 bg-red-soft" : "bg-paper group-hover:bg-red-soft"
+                          className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-red transition-transform duration-300 ${
+                            isOpen ? "rotate-90" : ""
                           }`}
                         >
                           <ArrowRight className="h-4 w-4" />
@@ -980,8 +924,8 @@ export default function OpenDomusPageContent() {
                       <div
                         id={`faq-panel-${i}`}
                         aria-hidden={!isOpen}
-                        // L'altezza pagina cambia: il rail ThreadNav mappa nodi
-                        // e fill su maxScroll — ricalibrato a pannello assestato.
+                        // L'altezza pagina cambia: gli ScrollTrigger della pagina
+                        // si ricalibrano a pannello assestato.
                         onTransitionEnd={(e) => {
                           if (e.target === e.currentTarget && e.propertyName === "grid-template-rows") {
                             ScrollTrigger.refresh();
@@ -992,9 +936,7 @@ export default function OpenDomusPageContent() {
                         }`}
                       >
                         <div className="overflow-hidden">
-                          <p className="px-6 pb-6 text-[0.95rem] leading-relaxed text-stone">
-                            {item.a}
-                          </p>
+                          <p className="max-w-[60ch] pb-8 text-body text-graphite">{item.a}</p>
                         </div>
                       </div>
                     </div>
@@ -1005,18 +947,13 @@ export default function OpenDomusPageContent() {
           </div>
         </section>
 
-        {/* CTA finale */}
-        <section className="bg-ink">
-          <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-            <Reveal className="flex flex-col items-center text-center">
-              <SegnoDomusDivider className="mb-8 w-full max-w-sm opacity-80" />
-              <h2 className="max-w-2xl font-display text-3xl font-medium leading-[1.08] tracking-tight text-cream balance sm:text-[2.6rem]">
-                {c.finalTitle}
-              </h2>
-              <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-cream/80">
-                {c.finalText}
-              </p>
-              <Cta href="#contatti" variant="reveal-cream" size="lg" className="mt-9">
+        {/* CTA finale: chiara, sul fondo avorio. */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <Reveal className="border-t border-line pt-10">
+              <h2 className="max-w-[20ch] font-display text-d1">{c.finalTitle}</h2>
+              <p className="lead mt-8">{c.finalText}</p>
+              <Cta href="#contatti" variant="cta-solid" size="lg" className="mt-10">
                 {c.finalCta}
               </Cta>
             </Reveal>

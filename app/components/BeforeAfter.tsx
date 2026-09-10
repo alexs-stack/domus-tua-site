@@ -265,30 +265,25 @@ export default function BeforeAfter() {
   const activeLabel = c[pair.labelKey];
 
   return (
-    <section className="bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+    <section className="dt-chapter bg-cream">
+      <div className="dt-row">
+        <div className="flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-end">
           {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
-          <div className="max-w-2xl">
+          <div>
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            <TextLines
-              as="h2"
-              className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl"
-            >
+            <TextLines as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
               {c.title}
             </TextLines>
             <Reveal delay={100}>
-              <p className="mt-5 max-w-lg text-[1.02rem] leading-relaxed text-stone">
-                {c.subcopy}
-              </p>
+              <p className="lead mt-8">{c.subcopy}</p>
             </Reveal>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs: rettangoli a filo, l'attivo è rosso pieno (niente pill). */}
           <Reveal delay={100}>
-            <div className="flex gap-2 rounded-full border border-line bg-cream p-1.5">
+            <div className="flex flex-wrap gap-3">
               {pairs.map((p, i) => (
                 <button
                   key={p.key}
@@ -309,10 +304,10 @@ export default function BeforeAfter() {
                     }
                   }}
                   // min-h-11 = 44px, la soglia di tocco: erano 40.
-                  className={`inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                  className={`inline-flex min-h-11 items-center justify-center border px-5 text-ui font-semibold uppercase tracking-[0.08em] transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                     active === i
-                      ? "bg-red text-white"
-                      : "text-graphite hover:bg-paper"
+                      ? "border-red bg-red text-white"
+                      : "border-line text-graphite hover:border-red hover:text-ink"
                   }`}
                 >
                   {c[p.labelKey]}
@@ -322,13 +317,13 @@ export default function BeforeAfter() {
           </Reveal>
         </div>
 
-        <Reveal className="mt-12">
-          <div className="rounded-[2rem] border border-line bg-cream p-2">
+        <Reveal className="mt-16">
+          <div>
             <div
               ref={ref}
               data-cursor="trascina"
               data-cursor-label={`‹ ${c.hint} ›`}
-              className="relative aspect-[3/2] w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-[calc(2rem-0.5rem)]"
+              className="relative aspect-[3/2] w-full cursor-ew-resize touch-none select-none overflow-hidden"
               onPointerDown={(e) => {
                 killIntro();
                 killGlide();
@@ -351,13 +346,6 @@ export default function BeforeAfter() {
                 sizes="(max-width: 1024px) 100vw, 1180px"
                 className="object-cover"
               />
-              {/* Contro-movimento sottile dei badge rispetto al divisore */}
-              <span
-                className="absolute right-4 top-4 rounded-full bg-red px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white"
-                style={{ transform: `translateX(${(pos - 52) * -0.12}px)` }}
-              >
-                {c.badgeAfter}
-              </span>
 
               {/* BEFORE (sopra, clippato) */}
               <div
@@ -371,12 +359,6 @@ export default function BeforeAfter() {
                   sizes="(max-width: 1024px) 100vw, 1180px"
                   className="object-cover"
                 />
-                <span
-                  className="absolute left-4 top-4 rounded-full bg-paper/95 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-graphite shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]"
-                  style={{ transform: `translateX(${(pos - 52) * 0.12}px)` }}
-                >
-                  {c.badgeBefore}
-                </span>
               </div>
 
               {/* Handle */}
@@ -392,26 +374,29 @@ export default function BeforeAfter() {
                   aria-valuemax={100}
                   aria-valuenow={Math.round(pos)}
                   onKeyDown={onKeyDown}
-                  className="pointer-events-auto absolute top-1/2 left-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border border-line bg-paper shadow-[0_10px_30px_-12px_rgba(26,24,22,0.6)] outline-none focus-visible:ring-2 focus-visible:ring-red focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  className="pointer-events-auto absolute top-1/2 left-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full bg-red text-white outline-none focus-visible:ring-2 focus-visible:ring-red focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                 >
-                  <svg viewBox="0 0 24 24" className="h-5 w-5 text-graphite" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M9 7 4 12l5 5M15 7l5 5-5 5" />
                   </svg>
                 </div>
               </div>
 
             </div>
+            {/* Le due etichette stanno SOTTO la foto, ai lati, come testo: mai sopra. */}
+            <div className="mt-4 flex items-baseline justify-between text-ui font-semibold uppercase tracking-[0.08em]">
+              <span className="text-graphite">{c.badgeBefore}</span>
+              <span className="text-red">{c.badgeAfter}</span>
+            </div>
           </div>
         </Reveal>
 
-        <Reveal className="mt-8 flex flex-col items-start justify-between gap-6 border-t border-line pt-8 sm:flex-row sm:items-center">
-          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+        <Reveal className="mt-10 flex flex-col items-start justify-between gap-8 border-t border-line pt-8 sm:flex-row sm:items-center">
+          <ul className="flex flex-wrap gap-x-8 gap-y-3">
             {[c.value1, c.value2, c.value3].map(
               (b) => (
-                <li key={b} className="flex items-center gap-2 text-sm text-graphite">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                    <Check className="h-3 w-3" />
-                  </span>
+                <li key={b} className="flex items-center gap-2 text-body text-graphite">
+                  <Check className="h-4 w-4 shrink-0 text-red" />
                   {b}
                 </li>
               )

@@ -415,24 +415,18 @@ export default function PrivacyContent() {
         secondary={{ label: c.hero.secondaryLabel, href: "/cookie" }}
       />
 
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[820px] px-5 py-24 sm:px-8 sm:py-32">
-          <p className="text-[0.82rem] uppercase tracking-[0.16em] text-stone">
-            {c.lastUpdated}
-          </p>
+      <section className="dt-chapter bg-cream">
+        <div className="dt-row max-w-[calc(820px+16vw)]">
+          <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.lastUpdated}</p>
 
           {/* ⚠️ Avviso interno: testo da validare con un legale prima del go-live. */}
-          <div className="mt-6 rounded-2xl border border-line bg-cream-deep px-5 py-4 text-sm leading-relaxed text-graphite">
-            {c.notice}
-          </div>
+          <div className="mt-6 border-t border-b border-line py-5 text-body text-graphite">{c.notice}</div>
 
           <div className="mt-12 flex flex-col gap-12">
             {c.blocks.map((block) => (
               <div key={block.title}>
-                <h2 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink balance sm:text-[1.7rem]">
-                  {block.title}
-                </h2>
-                <div className="mt-4 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
+                <h2 className="font-display text-d3">{block.title}</h2>
+                <div className="mt-5 flex flex-col gap-5 text-body text-graphite">
                   {block.body.map((p, i) => (
                     <p key={i}>{p}</p>
                   ))}

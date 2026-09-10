@@ -16,10 +16,8 @@ import dynamic from "next/dynamic";
 // A feature spenta (territory=null) non viene mai renderizzato → costo client effettivamente zero.
 // Nessun ssr:false: le card statiche restano nell'HTML server (constraint 5), solo l'esploratore è lazy.
 const VivereInZona = dynamic(() => import("./VivereInZona"));
-import Badge from "../../components/primitives/Badge";
 import Contact from "../../components/Contact";
-import DrawOnScroll from "../../components/motion/DrawOnScroll";
-import { SegnoDomusBadge, SegnoDomusCorner, SegnoDomusDivider, SegnoTick } from "../../components/BrandMotif";
+import { SegnoTick } from "../../components/BrandMotif";
 import { ArrowRight, Whatsapp } from "../../components/Icons";
 import { Cta } from "../../components/primitives/Cta";
 import { site } from "../../lib/site";
@@ -394,10 +392,10 @@ export default function PropertyDetail({
     // `data-conv-source`: un contatto che parte da una scheda immobile è la conversione
     // più preziosa del sito — la persona sa già cosa vuole vedere. Va distinta da tutte
     // le altre nelle misure. Vedi SiteAnalytics.tsx.
-    <main data-conv-source="scheda-immobile" className="flex-1 bg-paper">
-      <div className="mx-auto max-w-[1240px] px-5 pt-32 sm:px-8 sm:pt-36">
+    <main data-conv-source="scheda-immobile" className="flex-1 bg-cream">
+      <div className="dt-row pt-32 sm:pt-36">
         {/* Breadcrumb: orientamento Home › Case › immobile corrente (allineato al JSON-LD). */}
-        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-stone">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-ui text-stone">
           <Link href="/" className="transition-colors hover:text-ink">
             Domus Tua
           </Link>
@@ -416,10 +414,10 @@ export default function PropertyDetail({
             Difensivo: oggi gli immobili venduti sono esclusi dalle pagine generate, ma se il
             cliente decidesse di mostrarli come prova sociale la scheda resta convertente. */}
         {p.sold && (
-          <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-red/30 bg-red-soft/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-6 flex flex-col gap-4 border-t border-b border-red py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-display text-lg font-medium text-red-dark">{c.soldTitle}</p>
-              <p className="mt-1 max-w-lg text-sm text-graphite">{c.soldText}</p>
+              <p className="font-display text-d4 uppercase text-red-dark">{c.soldTitle}</p>
+              <p className="mt-2 max-w-lg text-body text-graphite">{c.soldText}</p>
             </div>
             <Cta
               href={waSimilar}
@@ -434,16 +432,12 @@ export default function PropertyDetail({
           </div>
         )}
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-red">
-              {p.zone}
-            </p>
-            <h1 className="mt-2 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-              {p.title}
-            </h1>
+            <p className="text-ui font-semibold uppercase tracking-[0.08em] text-red">{p.zone}</p>
+            <h1 className="mt-3 max-w-[20ch] font-display text-d1 balance">{p.title}</h1>
           </div>
-          <span className="tnum font-display text-4xl font-medium text-ink">{p.price}</span>
+          <span className="tnum font-display text-d2 text-ink">{p.price}</span>
         </div>
 
         {/* Gallery hero */}
@@ -457,15 +451,13 @@ export default function PropertyDetail({
           />
         </div>
 
-        {/* Key facts strip sotto la gallery */}
-        <div className="mt-6 overflow-x-auto">
-          <dl ref={specsRef} className="flex min-w-max gap-8 rounded-[2rem] border border-line bg-cream px-7 py-5 sm:min-w-0 sm:justify-between">
+        {/* Key facts strip sotto la gallery: una riga su hairline, niente box. */}
+        <div className="mt-8 overflow-x-auto">
+          <dl ref={specsRef} className="flex min-w-max gap-10 border-t border-b border-line py-6 sm:min-w-0 sm:justify-between">
             {specs.map((s) => (
               <div key={s.label} className="shrink-0">
-                <dt className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-graphite">
-                  {s.label}
-                </dt>
-                <dd className="tnum mt-1 font-display text-xl font-medium text-ink">{s.value}</dd>
+                <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{s.label}</dt>
+                <dd className="tnum mt-2 font-display text-d3 text-ink">{s.value}</dd>
               </div>
             ))}
           </dl>
@@ -476,32 +468,32 @@ export default function PropertyDetail({
           L'ordine su mobile (aside prima, descrizione poi, blocco fiducia in coda) è dichiarato
           con `order-*`; su desktop la colonna sinistra occupa entrambe le righe della griglia,
           così la card di conversione e il blocco fiducia restano incolonnati a destra. */}
-      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr] lg:items-start lg:gap-16">
+      <div className="dt-row py-16 sm:py-20">
+        <div className="grid gap-12 lg:grid-cols-[1.4fr_0.8fr] lg:items-start lg:gap-16">
           {/* ── Colonna destra: conversione + box dei dati ───────────────────────── */}
-          <aside className="order-1 flex flex-col gap-4 lg:order-none lg:col-start-2 lg:row-start-1">
+          <aside className="order-1 flex flex-col gap-10 lg:order-none lg:col-start-2 lg:row-start-1">
             {/* NIENTE sticky. Un elemento sticky continua a occupare il suo posto nel flusso ma
                 si sposta mentre si scorre: seguito dai box dei dati, finirebbe per COPRIRLI.
                 La conversione resta comunque sempre a portata: la card è in cima alla colonna,
                 il pulsante WhatsApp è fisso in basso e il modulo contatti chiude la pagina. */}
-            <div className="rounded-[2rem] border border-line bg-cream p-7">
+            <div className="border-t border-line pt-6">
               {p.badges.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
                   {p.badges.map((b) => (
-                    <Badge key={b} variant="outline">
+                    <span key={b} className="text-ui font-semibold uppercase tracking-[0.08em] text-graphite">
                       {b}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               )}
 
               {p.ref && (
-                <p className={`text-sm font-medium text-stone ${p.badges.length > 0 ? "mt-5" : ""}`}>
+                <p className={`text-ui font-medium text-stone ${p.badges.length > 0 ? "mt-4" : ""}`}>
                   {c.refLabel} {p.ref}
                 </p>
               )}
 
-              <Cta href="#contatti" variant="cta" size="md" className="mt-5 w-full">
+              <Cta href="#contatti" variant="cta-solid" size="md" className="mt-6 w-full">
                 {c.requestVisit}
               </Cta>
               <Cta
@@ -528,10 +520,8 @@ export default function PropertyDetail({
 
           {/* ── Colonna sinistra: il racconto ─────────────────────────────────────── */}
           <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-1 lg:row-span-2">
-            <h2 className="font-display text-2xl font-medium tracking-tight text-ink">
-              {c.description}
-            </h2>
-            <div className="mt-6">
+            <h2 className="font-display text-d2">{c.description}</h2>
+            <div className="mt-8">
               <ListingCopy blocks={copyBlocks.blocks} />
             </div>
 
@@ -539,8 +529,8 @@ export default function PropertyDetail({
                 sta in cima alla colonna e a fine descrizione è lontanissima: qui l'invito
                 torna sotto il pollice, con le stesse etichette e le stesse primitive. */}
             {copyBlocks.blocks.length > 0 && (
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Cta href="#contatti" variant="cta" size="md">
+              <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center">
+                <Cta href="#contatti" variant="cta-solid" size="md">
                   {c.requestVisit}
                 </Cta>
                 <Cta
@@ -560,18 +550,11 @@ export default function PropertyDetail({
                 queste voci sono già distribuite nei box e la lista non viene renderizzata. */}
             {!hasFacts && p.features.length > 0 && (
               <>
-                <h2 className="mt-12 font-display text-2xl font-medium tracking-tight text-ink">
-                  {c.features}
-                </h2>
-                <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                <h2 className="mt-14 font-display text-d2">{c.features}</h2>
+                <ul className="mt-6 grid gap-x-8 sm:grid-cols-2">
                   {p.features.map((f) => (
-                    <li key={f} className="flex items-start gap-3 text-[0.95rem] text-graphite">
-                      <span
-                        aria-hidden
-                        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
-                      >
-                        <SegnoTick className="h-3 w-3" />
-                      </span>
+                    <li key={f} className="flex items-start gap-3 border-t border-line py-3 text-body text-graphite">
+                      <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
                       {f}
                     </li>
                   ))}
@@ -579,35 +562,22 @@ export default function PropertyDetail({
               </>
             )}
 
-            {/* Blocco sicurezza / documenti — legato a Domus D.O.C. */}
-            <div className="relative mt-12 overflow-hidden rounded-[2rem] border border-line bg-cream p-7 sm:p-9">
-              {/* Wrapper inline statico: il corner resta absolute rispetto al box relative. */}
-              <DrawOnScroll>
-                <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
-              </DrawOnScroll>
-              <SegnoDomusBadge>{doc.eyebrow}</SegnoDomusBadge>
-              <h2 className="mt-4 max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-ink balance">
-                {doc.title}
-              </h2>
-              <p className="mt-3 max-w-xl text-[0.98rem] leading-relaxed text-graphite">
-                {doc.text}
-              </p>
-              <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2.5">
+            {/* Blocco sicurezza / documenti — legato a Domus D.O.C. Testo su hairline, niente box. */}
+            <div className="mt-14 border-t border-line pt-8">
+              <span className="eyebrow">{doc.eyebrow}</span>
+              <h2 className="mt-5 max-w-[24ch] font-display text-d2 balance">{doc.title}</h2>
+              <p className="lead mt-6">{doc.text}</p>
+              <ul className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
                 {doc.points.map((point) => (
-                  <li key={point} className="inline-flex items-center gap-2 text-[1rem] text-ink">
-                    <span
-                      aria-hidden
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
-                    >
-                      <SegnoTick className="h-3 w-3" />
-                    </span>
+                  <li key={point} className="inline-flex items-center gap-2 text-body text-ink">
+                    <SegnoTick className="h-4 w-4 shrink-0 text-red" />
                     {point}
                   </li>
                 ))}
               </ul>
               <Link
                 href="/metodo"
-                className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                className="group mt-8 inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors hover:text-red-dark"
               >
                 {doc.linkLabel}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -616,19 +586,12 @@ export default function PropertyDetail({
           </div>
 
           {/* ── Elemento secondario finale della sidebar ──────────────────────────── */}
-          <div className="order-3 rounded-[2rem] border border-line bg-paper p-6 lg:order-none lg:col-start-2 lg:row-start-2">
-            <h2 className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-graphite">
-              {c.assistTitle}
-            </h2>
-            <ul className="mt-4 flex flex-col gap-2.5">
+          <div className="order-3 border-t border-line pt-6 lg:order-none lg:col-start-2 lg:row-start-2">
+            <h2 className="font-display text-d4">{c.assistTitle}</h2>
+            <ul className="mt-5 flex flex-col gap-3">
               {c.assistPoints.map((point) => (
-                <li key={point} className="flex items-start gap-2.5 text-[1rem] leading-snug text-graphite">
-                  <span
-                    aria-hidden
-                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
-                  >
-                    <SegnoTick className="h-3 w-3" />
-                  </span>
+                <li key={point} className="flex items-start gap-3 text-body leading-snug text-graphite">
+                  <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
                   {point}
                 </li>
               ))}
@@ -643,15 +606,12 @@ export default function PropertyDetail({
 
       {/* Related properties strip: solo se fornite via props (stessa sorgente). */}
       {relatedItems.length > 0 && (
-        <section data-testid="related-listings" className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
-          <SegnoDomusDivider className="mb-12" />
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
-              {c.related}
-            </h2>
+        <section data-testid="related-listings" className="dt-row border-t border-line pb-4 pt-16">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <h2 className="font-display text-d2">{c.related}</h2>
             <Link
               href="/acquista"
-              className="group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+              className="group inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors hover:text-red-dark"
             >
               {c.viewAll}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -660,7 +620,7 @@ export default function PropertyDetail({
 
           {/* Ingresso batch per-card (once + safety focus/timeout in ListingsGrid:
               le card contengono link). Il contenitore non viene mai animato. */}
-          <ListingsGrid className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ListingsGrid className="mt-10 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
             {relatedItems.map((r) => (
               <PropertyCard key={r.slug} p={r} />
             ))}
@@ -669,13 +629,11 @@ export default function PropertyDetail({
       )}
 
       {/* Lead block "Non è quella giusta?" — converte anche chi non ama questa specifica casa. */}
-      <section className="mx-auto max-w-[1240px] px-5 pb-4 pt-16 sm:px-8">
-        <div className="flex flex-col items-start gap-4 rounded-[2rem] border border-line bg-cream p-7 sm:flex-row sm:items-center sm:justify-between sm:p-9">
+      <section className="dt-row pb-4 pt-16">
+        <div className="flex flex-col items-start gap-8 border-t border-line pt-10 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="font-display text-2xl font-medium tracking-tight text-ink">
-              {c.notRightTitle}
-            </h2>
-            <p className="mt-2 max-w-xl text-graphite">{c.notRightText}</p>
+            <h2 className="max-w-[20ch] font-display text-d2">{c.notRightTitle}</h2>
+            <p className="lead mt-6">{c.notRightText}</p>
           </div>
           <Cta href="#contatti" variant="cta" size="md" className="shrink-0">
             {c.notRightCta}

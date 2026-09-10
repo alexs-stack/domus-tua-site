@@ -33,7 +33,7 @@ export default function TerritoryDistanceExplorer({
 
   if (model.points.length === 0) {
     return (
-      <p className="mt-4 text-sm text-graphite" role="status">
+      <p className="mt-4 text-body text-graphite" role="status">
         {strings.empty}
       </p>
     );
@@ -66,7 +66,7 @@ export default function TerritoryDistanceExplorer({
                 x={50}
                 y={50 - ring.radiusPct - 0.8}
                 textAnchor="middle"
-                fontSize={2.6}
+                fontSize={4}
                 fill="var(--color-graphite)"
               >
                 {ring.label}
@@ -86,12 +86,12 @@ export default function TerritoryDistanceExplorer({
 
           {/* Centro (base d'origine) */}
           <circle cx={50} cy={50} r={1.4} fill="var(--color-red)" />
-          <text x={50} y={54.5} textAnchor="middle" fontSize={2.8} fontWeight={600} fill="var(--color-ink)">
+          <text x={50} y={55.5} textAnchor="middle" fontSize={4} fontWeight={600} fill="var(--color-ink)">
             {strings.centerLabel}
           </text>
         </svg>
       </div>
-      <figcaption className="mt-3 text-center text-xs text-graphite">{strings.caption}</figcaption>
+      <figcaption className="mt-4 text-center text-ui text-graphite">{strings.caption}</figcaption>
     </figure>
   );
 }

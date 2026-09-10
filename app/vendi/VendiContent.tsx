@@ -1,9 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useDict, useLocale } from "../components/i18n/LocaleProvider";
+import { useLocale } from "../components/i18n/LocaleProvider";
 import PageHero from "../components/PageHero";
-import ThreadNav from "../components/motion/ThreadNav";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import BeforeAfter from "../components/BeforeAfter";
@@ -11,19 +10,12 @@ import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
-import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
 import FaqTeaser from "../components/FaqTeaser";
 import CostiChiari from "../components/CostiChiari";
-import ScrubWords from "../components/motion/ScrubWords";
 import { Cta } from "../components/primitives/Cta";
 import { FAQ_SELLER } from "../domande-frequenti/faq";
-import {
-  SegnoDomusBadge,
-  SegnoDomusCorner,
-  SegnoDomusDivider,
-  SegnoTick,
-} from "../components/BrandMotif";
+import { SegnoTick } from "../components/BrandMotif";
 
 type SellStep = {
   n: string;
@@ -827,41 +819,35 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
 // Empatica, non allarmista: nomina i rischi reali e chiude rassicurando.
 function SellRisks({ risks }: { risks: Copy["risks"] }) {
   return (
-    <section className="bg-cream">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal className="max-w-2xl">
+    <section className="dt-chapter bg-cream">
+      <div className="dt-row">
+        <Reveal>
           <span className="eyebrow">{risks.eyebrow}</span>
-          <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-            {risks.title}
-          </h2>
-          <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{risks.intro}</p>
+          <h2 className="mt-6 max-w-[20ch] font-display text-d1">{risks.title}</h2>
+          <p className="lead mt-8">{risks.intro}</p>
         </Reveal>
 
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Blocchi numerati separati da hairline: niente card (2026-09-10). */}
+        <ol className="mt-16 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
           {risks.items.map((it, i) => (
-            <Reveal key={it.title} delay={i * 80}>
-              <article className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-line bg-paper p-7 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40">
-                <span className="tnum font-display text-sm font-semibold tracking-[0.1em] text-red/70">
+            <li key={it.title} className="border-t border-line py-8">
+              <Reveal delay={(i % 3) * 80}>
+                <span className="tnum text-ui font-semibold uppercase tracking-[0.08em] text-red">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <h3 className="mt-4 font-display text-xl font-medium leading-snug tracking-tight text-ink">
-                  {it.title}
-                </h3>
-                <p className="mt-2 text-[0.92rem] leading-relaxed text-stone">{it.copy}</p>
-              </article>
-            </Reveal>
+                <h3 className="mt-4 font-display text-d3">{it.title}</h3>
+                <p className="mt-3 text-body text-graphite">{it.copy}</p>
+              </Reveal>
+            </li>
           ))}
+        </ol>
 
-          {/* Card di chiusura rassicurante — accento rosso caldo + firma Segno Domus */}
-          <Reveal delay={risks.items.length * 80}>
-            <article className="relative flex h-full flex-col justify-center overflow-hidden rounded-[1.75rem] border border-red/20 bg-red-soft p-7">
-              <SegnoDomusCorner className="right-3.5 top-3.5 opacity-70" rotate={90} />
-              <p className="font-display text-lg font-medium leading-snug tracking-tight text-red-dark">
-                {risks.reassure}
-              </p>
-            </article>
-          </Reveal>
-        </div>
+        {/* Chiusura rassicurante: una riga grande, non una card rossa. */}
+        <Reveal delay={120}>
+          <p className="mt-12 max-w-[30ch] border-t border-line pt-8 font-display text-d3 text-red-dark">
+            {risks.reassure}
+          </p>
+        </Reveal>
       </div>
     </section>
   );
@@ -871,53 +857,40 @@ function SellRisks({ risks }: { risks: Copy["risks"] }) {
 // Passaggi numerati che rispondono ai rischi, con richiamo alle prove e CTA.
 function SellPrep({ prep }: { prep: Copy["prep"] }) {
   return (
-    <section className="bg-cream">
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal className="max-w-2xl">
-          <SegnoDomusBadge>{prep.eyebrow}</SegnoDomusBadge>
-          <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
-            {prep.title}
-          </h2>
-          <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{prep.intro}</p>
+    <section className="dt-chapter bg-cream">
+      <div className="dt-row">
+        <Reveal>
+          <span className="eyebrow">{prep.eyebrow}</span>
+          <h2 className="mt-6 max-w-[20ch] font-display text-d1">{prep.title}</h2>
+          <p className="lead mt-8">{prep.intro}</p>
         </Reveal>
 
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ol className="mt-16 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
           {prep.items.map((it, i) => (
-            <Reveal key={it.n} delay={i * 80}>
-              <article className="group flex h-full flex-col rounded-[1.75rem] border border-line bg-paper p-7 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40">
-                <div className="flex items-center gap-3">
-                  <span className="tnum flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-soft font-display text-sm font-semibold text-red-dark">
-                    {it.n}
-                  </span>
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-red/20 text-red">
-                    <SegnoTick className="h-4 w-4" />
-                  </span>
-                </div>
-                <h3 className="mt-6 font-display text-xl font-medium leading-snug tracking-tight text-ink">
-                  {it.title}
-                </h3>
-                <p className="mt-2 text-[0.92rem] leading-relaxed text-stone">{it.copy}</p>
-              </article>
-            </Reveal>
+            <li key={it.n} className="border-t border-line py-8">
+              <Reveal delay={(i % 3) * 80}>
+                <span className="flex items-center gap-3 text-ui font-semibold uppercase tracking-[0.08em] text-red">
+                  <span className="tnum">{it.n}</span>
+                  <SegnoTick className="h-4 w-4" />
+                </span>
+                <h3 className="mt-4 font-display text-d3">{it.title}</h3>
+                <p className="mt-3 text-body text-graphite">{it.copy}</p>
+              </Reveal>
+            </li>
           ))}
-        </div>
+        </ol>
 
-        <Reveal delay={120} className="mt-14">
-          <div className="rounded-[1.75rem] border border-line bg-paper p-8 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
-            <p className="max-w-2xl text-[1.02rem] leading-relaxed text-graphite">{prep.proof}</p>
-            <div className="mt-6 flex shrink-0 flex-col items-start gap-3 sm:mt-0 sm:items-end">
-              <Cta href="#contatti" variant="cta" size="md">
-                {prep.ctaLabel}
-              </Cta>
-              {/* La prova sta a un clic: chi legge "è lo stesso metodo" ha appena maturato
-                  la domanda «e ha funzionato?». /case-vendute risponde con le schede reali. */}
-              <a
-                href="/case-vendute"
-                className="link-underline text-[0.85rem] font-medium text-graphite transition-colors duration-300 hover:text-red"
-              >
-                {prep.proofLink}
-              </a>
-            </div>
+        <Reveal delay={120} className="mt-16 border-t border-line pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-16">
+          <p className="lead">{prep.proof}</p>
+          <div className="mt-8 flex flex-col items-start gap-5 lg:mt-0 lg:items-end">
+            <Cta href="#contatti" variant="cta-solid" size="md">
+              {prep.ctaLabel}
+            </Cta>
+            {/* La prova sta a un clic: chi legge "è lo stesso metodo" ha appena maturato
+                la domanda «e ha funzionato?». /case-vendute risponde con le schede reali. */}
+            <Cta href="/case-vendute" variant="ghost" size="md">
+              {prep.proofLink}
+            </Cta>
           </div>
         </Reveal>
       </div>
@@ -927,21 +900,10 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
 
 export default function VendiContent() {
   const { locale } = useLocale();
-  const d = useDict();
   const c = copy[locale];
 
   return (
     <>
-      {/* Filo rosso di pagina: fixed, fratello di <main> (mai sotto antenati trasformati). */}
-      <ThreadNav
-        chapters={[
-          { id: "top", label: "Domus Tua" },
-          { id: "percorso", label: d.nav.percorso },
-          { id: "domus-doc", label: "Domus D.O.C." },
-          { id: "recensioni", label: d.nav.recensioni },
-          { id: "contatti", label: d.nav.contatti },
-        ]}
-      />
       <main className="flex-1">
         <PageHero
           id="top"
@@ -974,10 +936,6 @@ export default function VendiContent() {
 
         <SellRisks risks={c.risks} />
 
-        <div className="bg-cream">
-          <SectionDivider tone="cream" />
-        </div>
-
         <EditorialRows
           id="percorso"
           eyebrow={c.steps.eyebrow}
@@ -987,16 +945,13 @@ export default function VendiContent() {
           tone="cream"
         />
 
-        {/* CTA Open Domus per il venditore — collega l'asset proprietario alla vendita. */}
-        <section className="bg-ink">
-          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-            <Reveal className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
-              {/* Le parole si accendono in sequenza legate allo scroll */}
-              <ScrubWords
-                text={c.openDomus.text}
-                className="max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-cream balance sm:text-[1.9rem]"
-              />
-              <Cta href="/open-domus" variant="reveal-cream" size="md" className="shrink-0">
+        {/* CTA Open Domus per il venditore: una frase grande sul fondo avorio,
+            niente banda scura (2026-09-10). */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <Reveal className="flex flex-col items-start gap-10 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+              <h2 className="max-w-[24ch] font-display text-d2">{c.openDomus.text}</h2>
+              <Cta href="/open-domus" variant="cta" size="md" className="shrink-0">
                 {c.openDomus.cta}
               </Cta>
             </Reveal>
@@ -1008,19 +963,12 @@ export default function VendiContent() {
         <FeaturedTestimonial />
         <Reviews />
 
-        <div className="bg-paper">
-          <SegnoDomusDivider className="py-2" />
-        </div>
         <SellPrep prep={c.prep} />
 
         {/* Le domande di chi vende, qui dove nascono: chi ha appena letto il percorso
             non va a cercare una pagina di FAQ, la domanda ce l'ha adesso. Stesso testo
             di /domande-frequenti, che resta la casa canonica dello schema. */}
         <FaqTeaser ids={FAQ_SELLER} />
-
-        <div className="bg-cream-deep">
-          <SectionDivider tone="cream-deep" />
-        </div>
         <Contact />
       </main>
     </>

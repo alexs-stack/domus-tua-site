@@ -5,14 +5,10 @@ import Image from "next/image";
 import { gsap, MQ } from "../lib/motion/gsap";
 import { ArrowUpRight, Mail, Pin, Whatsapp } from "./Icons";
 import { SendCta } from "./primitives/Cta";
-import { SegnoDomusBadge } from "./BrandMotif";
 import { site, territoryLabelBy } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead } from "../lib/forms/lead";
 import { CONVERSIONS, trackConversion } from "../lib/analytics";
-import WordReveal from "./WordReveal";
-import Atmosphere from "./motion/Atmosphere";
-import CameraIn from "./motion/CameraIn";
 import { useLocale } from "./i18n/LocaleProvider";
 
 // Form candidature di /lavora-con-noi. Stesso patto del form contatti
@@ -475,87 +471,65 @@ export default function CareerApplication({
   ];
 
   return (
-    <section id="candidatura" className="relative bg-cream-deep text-ink">
-      <Atmosphere glow />
-      <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <CameraIn className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
+    <section id="candidatura" className="dt-chapter relative bg-cream text-ink">
+      <div className="dt-row relative">
+        <div className="grid gap-16 lg:grid-cols-[1fr_1fr] lg:gap-20">
           {/* Colonna sinistra: promessa + canali alternativi */}
           <div>
-            <div>
-              <SegnoDomusBadge>{c.badge}</SegnoDomusBadge>
-            </div>
-            <span className="eyebrow mt-4">{c.eyebrow}</span>
-            {/* Meccanica per-parola a ogni larghezza: dall'onda «parità mobile
-                2» è il default di WordReveal (verdetto 8) e l'opt-in `mobile`
-                che stava qui è caduto — non cambia niente per questo titolo,
-                che era già acceso sul telefono. La domanda da farsi resta
-                quella dell'LCP, e la risposta è ancora questa: è un <h2>
-                nell'ULTIMA sezione di /lavora-con-noi — sopra ci sono l'hero,
-                le cinque aree e le FAQ — quindi non entra mai nel primo
-                viewport e non può essere candidato LCP. Regge anche il caso
-                scomodo, un link condiviso a /lavora-con-noi#candidatura: il
-                browser atterra qui, ma nel viewport la foto del team (240px
-                per ~320, circa 60.000px² visibili) è più grande del titolo
-                intero (~25.000px²) — spezzarlo in tre parole non toglie un
-                candidato che comunque non vince. Se un giorno questo titolo
-                sale in cima alla pagina, qui si passa `immediate` (SSR
-                visibile a ogni larghezza), non si tocca la larghezza. */}
-            <WordReveal
-              as="h2"
-              className="mt-5 block font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.2rem]"
-              text={c.title}
-            />
-            <p className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone">{c.subcopy}</p>
+            <span className="eyebrow">{c.eyebrow}</span>
+            {/* Titolo statico: è un <h2> nell'ULTIMA sezione di /lavora-con-noi,
+                mai nel primo viewport, quindi mai candidato LCP. */}
+            <h2 className="mt-6 max-w-[20ch] font-display text-d1 balance">{c.title}</h2>
+            <p className="lead mt-8">{c.subcopy}</p>
+            <p className="mt-6 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{c.badge}</p>
 
-            <figure className="arch-frame mt-8 w-full max-w-[15rem] border border-line">
+            {/* Foto squadrata, senza cornice ad arco (2026-09-10). */}
+            <figure className="mt-10 w-full max-w-[18rem]">
               <Image
                 src="/images/reali/team-trio.jpg"
                 alt={c.imageAlt}
                 width={480}
                 height={640}
-                sizes="(min-width: 1024px) 15rem, 60vw"
-                className="photo-warm h-auto w-full object-cover"
+                sizes="(min-width: 1024px) 18rem, 60vw"
+                className="h-auto w-full object-cover"
               />
             </figure>
 
-            <div className="mt-10 flex flex-col gap-3">
+            {/* Canali alternativi: voci su hairline, non card. */}
+            <div className="mt-12 flex flex-col">
               {sideCards.map((card) => (
                 <a
                   key={card.title}
                   href={card.href}
                   target={card.external ? "_blank" : undefined}
                   rel={card.external ? "noopener noreferrer" : undefined}
-                  className="group flex items-start gap-3.5 rounded-2xl border border-line bg-paper p-4 transition-colors duration-300 hover:border-red/40"
+                  className="group flex items-start gap-4 border-t border-line py-5 transition-colors duration-300 hover:text-red"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                    <card.icon className="h-5 w-5" />
-                  </span>
+                  <card.icon className="mt-1 h-5 w-5 shrink-0 text-red" />
                   <span className="leading-snug">
-                    <span className="block text-sm font-semibold text-ink">{card.title}</span>
-                    <span className="mt-1 block text-[0.72rem] leading-relaxed text-stone">{card.copy}</span>
-                    <span className="mt-2 inline-flex items-center gap-1 text-[0.72rem] font-semibold text-red-dark">
+                    <span className="block font-display text-d4 uppercase text-ink group-hover:text-red">{card.title}</span>
+                    <span className="mt-2 block text-body text-graphite">{card.copy}</span>
+                    <span className="mt-3 inline-flex items-center gap-1 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4">
                       {card.cta}
-                      <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </span>
                   </span>
                 </a>
               ))}
 
-              <div className="flex items-start gap-3.5 rounded-2xl border border-line bg-paper p-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                  <Pin className="h-5 w-5" />
-                </span>
+              <div className="flex items-start gap-4 border-t border-b border-line py-5">
+                <Pin className="mt-1 h-5 w-5 shrink-0 text-red" />
                 <span className="leading-snug">
-                  <span className="block text-sm font-semibold text-ink">{c.whereTitle}</span>
-                  <span className="mt-1 block text-[0.72rem] leading-relaxed text-stone">{c.whereCopy}</span>
+                  <span className="block font-display text-d4 uppercase text-ink">{c.whereTitle}</span>
+                  <span className="mt-2 block text-body text-graphite">{c.whereCopy}</span>
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Colonna destra: form */}
-          <div className="rounded-[2rem] border border-line bg-paper p-6 pb-28 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8 sm:pb-8">
-            <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+          {/* Colonna destra: form, campi a sola sottolineatura come Contact. */}
+          <div className="border-t border-line pb-28 pt-8 sm:pb-8">
+            <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-7">
               {/* Honeypot anti-spam: fuori schermo, non focusabile, ignorato dagli screen reader. */}
               <div
                 aria-hidden
@@ -612,13 +586,13 @@ export default function CareerApplication({
 
               {/* Consenso privacy: obbligatorio perché la candidatura viene salvata (GDPR). */}
               <div>
-                <label className="flex items-start gap-3 text-[0.78rem] leading-relaxed text-stone">
+                <label className="flex items-start gap-3 text-ui leading-relaxed text-graphite">
                   <input
                     type="checkbox"
                     name="consent"
                     aria-invalid={errors.consent ? true : undefined}
                     aria-describedby={errors.consent ? "career-consent-error" : undefined}
-                    className="mt-0.5 h-5 w-5 shrink-0 rounded border-line accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                    className="mt-0.5 h-5 w-5 shrink-0 border-ink! accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                   />
                   <span>
                     {c.consentPre}
@@ -629,7 +603,7 @@ export default function CareerApplication({
                   </span>
                 </label>
                 {errors.consent ? (
-                  <span id="career-consent-error" role="alert" className="mt-2 block text-[0.72rem] text-red-dark">
+                  <span id="career-consent-error" role="alert" className="mt-2 block text-ui text-red-dark">
                     {errors.consent}
                   </span>
                 ) : null}
@@ -643,7 +617,7 @@ export default function CareerApplication({
                 <p
                   ref={sentRef}
                   role="status"
-                  className="flex items-center justify-center gap-2.5 rounded-2xl border border-red/25 bg-red-soft/60 px-4 py-3 text-center text-sm text-red-dark"
+                  className="flex items-center justify-center gap-2.5 border-t border-b border-red py-4 text-center text-body text-red-dark"
                 >
                   {/* Check che si disegna (senza JS/reduced-motion: già completo) */}
                   <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-red">
@@ -668,7 +642,7 @@ export default function CareerApplication({
               ) : null}
             </form>
           </div>
-        </CameraIn>
+        </div>
       </div>
     </section>
   );
@@ -701,7 +675,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={name} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
+      <label htmlFor={name} className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">
         {label}
       </label>
       <input
@@ -718,12 +692,12 @@ function Field({
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}
         // text-base su mobile: sotto i 16px iOS zooma al focus.
-        className={`rounded-xl border bg-cream px-4 py-3 text-base text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red sm:text-sm ${
-          error ? "border-red" : "border-line"
+        className={`block w-full border-0 border-b bg-transparent py-3 text-body text-ink placeholder:text-stone transition-colors focus:border-red! focus:outline-none ${
+          error ? "border-red!" : "border-ink!"
         }`}
       />
       {error ? (
-        <span id={`${name}-error`} role="alert" className="text-[0.72rem] text-red-dark">
+        <span id={`${name}-error`} role="alert" className="text-ui text-red-dark">
           {error}
         </span>
       ) : null}
@@ -748,7 +722,7 @@ function Select({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={name} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
+      <label htmlFor={name} className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">
         {label}
       </label>
       <div className="relative">
@@ -758,7 +732,7 @@ function Select({
           value={value}
           defaultValue={defaultValue}
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          className="w-full appearance-none rounded-xl border border-line bg-cream px-4 py-3 pr-10 text-base text-ink transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red sm:text-sm"
+          className="block w-full appearance-none border-0 border-b border-ink! bg-transparent py-3 pr-8 text-body text-ink transition-colors focus:border-red! focus:outline-none"
         >
           {options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -768,7 +742,7 @@ function Select({
         </select>
         <span
           aria-hidden
-          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-stone"
+          className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-ink"
         >
           <svg viewBox="0 0 12 8" className="h-2.5 w-3 fill-none stroke-current stroke-[1.6]">
             <path d="M1 1.5 6 6.5 11 1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -790,7 +764,7 @@ function TextArea({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={name} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-stone">
+      <label htmlFor={name} className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">
         {label}
       </label>
       <textarea
@@ -798,7 +772,7 @@ function TextArea({
         name={name}
         rows={4}
         placeholder={placeholder}
-        className="rounded-xl border border-line bg-cream px-4 py-3 text-base text-ink placeholder:text-stone/60 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red sm:text-sm"
+        className="block w-full border-0 border-b border-ink! bg-transparent py-3 text-body text-ink placeholder:text-stone transition-colors focus:border-red! focus:outline-none"
       />
     </div>
   );

@@ -10,10 +10,8 @@ import Stats from "../components/Stats";
 import Team from "../components/Team";
 import Reveal from "../components/Reveal";
 import { site, yearsActive } from "../lib/site";
-import MaskReveal from "../components/motion/MaskReveal";
 import TextLines from "../components/motion/TextLines";
 import Contact from "../components/Contact";
-import SectionDivider from "../components/SectionDivider";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
 const copy = {
@@ -266,38 +264,30 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         scriptWord={{ it: "Chi siamo", en: "About us", fr: "Qui sommes-nous", de: "Über uns", es: "Quiénes somos" }[locale]}
       />
 
-      {/* Storia */}
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      {/* Storia: foto squadrata, titolo d1, paragrafi lead (2026-09-10). */}
+      <section className="dt-chapter bg-cream">
+        <div className="dt-row">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* Sipario da sinistra sulla cornice: ingresso dedicato dell'immagine,
-                il Reveal resta solo sulla colonna testo. */}
-            <MaskReveal
-              from="left"
-              zoom={1.1}
-              className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line"
-              innerClassName="absolute inset-0"
-            >
-              <Image
-                src="/images/reali/villa-pool.jpg"
-                alt={c.storiaImageAlt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 560px"
-                className="object-cover object-center"
-              />
-            </MaskReveal>
+            <Reveal>
+              <div className="relative aspect-square overflow-hidden">
+                <Image
+                  src="/images/reali/villa-pool.jpg"
+                  alt={c.storiaImageAlt}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 560px"
+                  className="object-cover object-center"
+                />
+              </div>
+            </Reveal>
             <Reveal delay={100}>
               <span className="eyebrow">{c.storiaEyebrow}</span>
-              <TextLines
-                as="h2"
-                className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]"
-              >
+              <TextLines as="h2" className="mt-6 font-display text-d1">
                 {c.storiaTitle(since)}
               </TextLines>
-              <div className="mt-6 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
+              <div className="mt-8 flex flex-col gap-6">
                 {/* Capolettera editoriale: usato UNA sola volta nel sito, qui sulla storia. */}
-                <p className="dropcap">{c.storiaP1}</p>
-                <p>{c.storiaP2}</p>
+                <p className="lead dropcap">{c.storiaP1}</p>
+                <p className="lead">{c.storiaP2}</p>
               </div>
             </Reveal>
           </div>
@@ -312,104 +302,87 @@ export default function ChiSiamoContent({ since }: { since: number }) {
       />
 
       {/* La nostra squadra */}
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-          <Reveal className="max-w-2xl">
+      <section className="dt-chapter bg-cream">
+        <div className="dt-row">
+          <Reveal>
             <span className="eyebrow">{c.squadraEyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]">
-              {c.squadraTitle}
-            </h2>
-            <p className="mt-6 text-[1.02rem] leading-relaxed text-stone">
-              {c.squadraCopy}
-            </p>
+            <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.squadraTitle}</h2>
+            <p className="lead mt-8">{c.squadraCopy}</p>
             {/* Da "chi siamo" a "come si entra": è qui che nasce la domanda. */}
             <Link
               href="/lavora-con-noi"
-              className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors duration-300 hover:text-red-dark"
+              className="group mt-8 inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors duration-300 hover:text-red-dark"
             >
               {c.squadraLavora}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </Reveal>
 
-          {/* Sipari con direzioni alternate (left/bottom/right) e ritardo crescente:
-              il trio entra come un'unica coreografia. */}
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <MaskReveal
-              from="left"
-              className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line"
-              innerClassName="absolute inset-0"
-            >
-              <Image
-                src="/images/reali/team-trio.jpg"
-                alt={c.squadraTrioAlt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                className="object-cover object-center"
-              />
-            </MaskReveal>
-            <MaskReveal
-              from="bottom"
-              delay={0.15}
-              /* team-red.jpg è l'unica VERTICALE del gruppo (809×936, 0,86):
+          {/* Tre foto squadrate; la didascalia del premio sta SOTTO la foto, mai sopra. */}
+          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Reveal>
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <Image
+                  src="/images/reali/team-trio.jpg"
+                  alt={c.squadraTrioAlt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                  className="object-cover object-center"
+                />
+              </div>
+            </Reveal>
+            <Reveal delay={100}>
+              {/* team-red.jpg è l'unica VERTICALE del gruppo (809×936, 0,86):
                  in una cornice 4/3 `object-cover` le tagliava il 35 %
                  dell'altezza, cioè teste e piedi. Sotto i 640 — dove la
                  griglia è a una colonna — la cornice prende il rapporto dello
                  scatto; da 640 in su resta 4/3 come le sorelle, per non
-                 sfilare la riga della griglia. */
-              className="relative aspect-[7/8] overflow-hidden rounded-[1.5rem] border border-line sm:aspect-[4/3]"
-              innerClassName="absolute inset-0"
-            >
-              <Image
-                src="/images/reali/team-red.jpg"
-                alt={c.squadraRedAlt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                className="object-cover object-center"
-              />
-            </MaskReveal>
-            <MaskReveal
-              as="figure"
-              from="right"
-              delay={0.3}
-              className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line"
-              innerClassName="absolute inset-0"
-            >
-              <Image
-                src="/images/reali/premio-top-agency.jpg"
-                alt={c.squadraPremioAlt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                className="object-cover object-center"
-              />
+                 sfilare la riga della griglia. */}
+              <div className="relative aspect-[7/8] overflow-hidden sm:aspect-[4/3]">
+                <Image
+                  src="/images/reali/team-red.jpg"
+                  alt={c.squadraRedAlt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                  className="object-cover object-center"
+                />
+              </div>
+            </Reveal>
+            <Reveal delay={200} as="figure">
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <Image
+                  src="/images/reali/premio-top-agency.jpg"
+                  alt={c.squadraPremioAlt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                  className="object-cover object-center"
+                />
+              </div>
               {/* §6.3 — la didascalia diceva «Riconoscimento TOP AGENCY»: il nome del premio
                   senza la sua sostanza. Denominazione e ANNI arrivano da site.award, che è la
                   fonte unica, e il link porta al profilo Wikicasa. Il documento è esplicito
                   sul perché serva verificabile proprio qui: «le prove devono essere forti
                   perché sono esatte». Un premio che si può controllare vale più di uno
                   raccontato — e tre anni consecutivi sono un andamento, uno è un episodio. */}
-              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/80 to-transparent px-4 pb-3 pt-10 text-xs font-medium uppercase tracking-[0.14em] text-cream">
+              <figcaption className="mt-4 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">
                 <a
                   href={site.award.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="link-draw tap-target inline-flex flex-wrap items-baseline gap-x-2 text-cream transition-opacity duration-300 hover:opacity-90"
+                  className="tap-target inline-flex flex-wrap items-baseline gap-x-2 underline underline-offset-4 transition-colors duration-300 hover:text-red"
                 >
                   <span>{site.award.label}</span>
                   <span aria-hidden className="opacity-70">·</span>
                   <span>{site.award.years.join(" · ")}</span>
                 </a>
               </figcaption>
-            </MaskReveal>
+            </Reveal>
           </div>
         </div>
       </section>
 
       <Stats />
       <Team />
-      <div className="bg-cream-deep">
-        <SectionDivider tone="cream-deep" />
-      </div>
       <Contact />
     </main>
   );

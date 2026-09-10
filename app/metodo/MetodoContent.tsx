@@ -10,10 +10,10 @@ import DomusDocProtocol from "../components/DomusDocProtocol";
 import OpenDomus from "../components/OpenDomus";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
-import SectionDivider from "../components/SectionDivider";
-import ManifestoPin from "../components/motion/ManifestoPin";
-import ThreadNav from "../components/motion/ThreadNav";
-import { useLocale, useDict } from "../components/i18n/LocaleProvider";
+import Reveal from "../components/Reveal";
+import TextLines from "../components/motion/TextLines";
+import { Cta } from "../components/primitives/Cta";
+import { useLocale } from "../components/i18n/LocaleProvider";
 
 const copy = {
   it: {
@@ -185,23 +185,11 @@ const copy = {
 
 export default function MetodoContent() {
   const { locale } = useLocale();
-  const d = useDict();
   const c = copy[locale];
 
   return (
     <>
       <Header />
-      {/* Il filo rosso cuce anche /metodo: capitoli della pagina sul rail */}
-      <ThreadNav
-        chapters={[
-          { id: "top", label: "Domus Tua" },
-          { id: "metodo", label: d.nav.metodo },
-          { id: "domus-doc", label: "Domus D.O.C." },
-          { id: "open-domus", label: d.nav.openDomus },
-          { id: "recensioni", label: d.nav.recensioni },
-          { id: "contatti", label: d.nav.contatti },
-        ]}
-      />
       <main className="flex-1">
         <PageHero
           id="top"
@@ -238,21 +226,27 @@ export default function MetodoContent() {
 
         <Method />
 
-        {/* Momento firma: il manifesto del metodo, pinnato, si legge con lo
-            scroll e l'ago cuce la parola chiave. */}
-        <ManifestoPin
-          eyebrow={c.docEyebrow}
-          text={c.manifesto}
-          highlight={c.manifestoHighlight}
-          link={{ label: c.docLink, href: "#domus-doc" }}
-        />
+        {/* Il manifesto del metodo: una frase sola, grande, sul fondo avorio.
+            Niente banda scura pinnata (direttiva 2026-09-10). */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <Reveal>
+              <span className="eyebrow">{c.docEyebrow}</span>
+            </Reveal>
+            <TextLines as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+              {c.manifesto}
+            </TextLines>
+            <Reveal delay={120}>
+              <Cta href="#domus-doc" variant="ghost" size="md" className="mt-10">
+                {c.docLink}
+              </Cta>
+            </Reveal>
+          </div>
+        </section>
 
         <DomusDocProtocol tone="cream" id="domus-doc" />
         <OpenDomus />
         <Reviews />
-        <div className="bg-cream-deep">
-          <SectionDivider tone="cream-deep" />
-        </div>
         <Contact />
       </main>
       <Footer />

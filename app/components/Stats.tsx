@@ -1,13 +1,7 @@
 "use client";
 
 import Reveal from "./Reveal";
-import CountUp from "./CountUp";
-import Odometer from "./motion/Odometer";
-import VelocityMarquee from "./motion/VelocityMarquee";
-import Atmosphere from "./motion/Atmosphere";
-import CameraIn from "./motion/CameraIn";
-import { SegnoDomus } from "./BrandMotif";
-import { site, yearsActive } from "../lib/site";
+import { ratingLabel, site, yearsActive } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
 // ⚠️ SOLO NUMERI VERIFICABILI.
@@ -17,30 +11,9 @@ import { useLocale } from "./i18n/LocaleProvider";
 // la fonte è annotata (Google/Trustindex per voto e recensioni, Registro Imprese per l'anno
 // di costituzione). Nessun numero nuovo può entrare qui senza fonte: vedi il test di
 // content integrity in app/lib/__tests__/content-integrity.test.ts.
-
-type Stat = {
-  labelKey: "reviews" | "rating" | "years";
-  count: { value: number; decimals?: number; suffix?: string };
-};
-
-/** La cifra maggiore fa da stat "eroe"; le altre stanno in una riga secondaria. */
-const heroStat: Stat = { count: { value: Number(site.reviewsCount) }, labelKey: "reviews" };
-const secondaryStats: Stat[] = [
-  { count: { value: Number(site.rating), decimals: 1 }, labelKey: "rating" },
-  // `yearsActive()` sta in site.ts: lo stesso numero lo dicono anche il Metodo e Chi
-  // siamo, e finché ognuno se lo calcolava (o peggio, se lo scriveva a parole) il sito
-  // dichiarava età diverse in pagine diverse.
-  { count: { value: yearsActive() }, labelKey: "years" },
-];
-
-/** Locale del sito → BCP-47 per il raggruppamento delle migliaia (269395 → "269.395"). */
-const intlLocale: Record<string, string> = {
-  it: "it-IT",
-  en: "en-GB",
-  fr: "fr-FR",
-  de: "de-DE",
-  es: "es-ES",
-};
+//
+// 2026-09-10: via contatori animati, odometro, marquee e pillole — una riga sola,
+// statica, sul fondo avorio (stile «rivista bianca»).
 
 const copy = {
   it: {
@@ -140,83 +113,20 @@ export default function Stats() {
   const c = copy[locale];
 
   return (
-    <section className="relative border-b border-line bg-cream">
-      {/* Aria negli spazi vuoti: parola-fantasma in deriva + bagliori caldi */}
-      <Atmosphere word="Domus" glow drift={1} wordClassName="right-[2%] top-[4%] text-[17vw]" />
-      <div className="relative mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        <CameraIn className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center lg:gap-x-16">
-          {/* Stat eroe: la cifra maggiore, con eyebrow e Segno Domus come accento minimo */}
-          <Reveal>
-            <div className="flex flex-col">
-              <span className="eyebrow gap-3">
-                <SegnoDomus className="h-3.5 w-9" embrace={false} />
-                {c.eyebrow}
-              </span>
-              <span className="mt-5 font-display text-[3.4rem] font-medium leading-none tracking-tight text-ink sm:text-7xl lg:text-[5.5rem]">
-                {/* Solo il dato eroe usa l'odometro: le cifre rullano invece dello snap di CountUp */}
-                <Odometer
-                  value={heroStat.count.value}
-                  group
-                  locale={intlLocale[locale]}
-                />
-              </span>
-              <span className="mt-3 text-sm leading-snug text-stone">
-                {c.labels[heroStat.labelKey]}
-              </span>
-            </div>
-          </Reveal>
-
-          {/* Divisore tra eroe e riga secondaria (hairline su mobile/tablet, bordo verticale su desktop) */}
-          <div className="hairline my-9 lg:hidden" />
-
-          {/* Riga secondaria: tre cifre inline separate da divisori hairline */}
-          <div className="grid grid-cols-2 lg:border-l lg:border-line lg:pl-16">
-            {secondaryStats.map((s, i) => (
-              <Reveal
-                key={s.labelKey}
-                delay={90 + i * 90}
-                className={
-                  i > 0
-                    ? "border-l border-line pl-4 sm:pl-6"
-                    : "pr-4 sm:pr-6"
-                }
-              >
-                <div className="flex flex-col">
-                  <span className="font-display text-3xl font-medium leading-none tracking-tight text-ink sm:text-4xl lg:text-5xl">
-                    <CountUp
-                      value={s.count.value}
-                      decimals={s.count.decimals}
-                      suffix={s.count.suffix}
-                      group
-                      locale={intlLocale[locale]}
-                    />
-                  </span>
-                  <span className="mt-2.5 text-xs leading-snug text-stone sm:text-sm">
-                    {c.labels[s.labelKey]}
-                  </span>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </CameraIn>
-      </div>
-
-      {/* Marquee di token di valore: reagisce alla velocità (e direzione) dello scroll */}
-      <div className="relative border-t border-line py-5">
-        <VelocityMarquee trackClassName="gap-3 pr-3">
-          {c.tokens.map((t) => (
-            <span
-              key={t}
-              className="flex items-center gap-2.5 whitespace-nowrap rounded-full border border-line bg-paper px-5 py-2 text-sm font-medium text-graphite"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-red" />
-              {t}
-            </span>
-          ))}
-        </VelocityMarquee>
-        {/* fade edges */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-cream to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-cream to-transparent" />
+    <section className="dt-chapter relative bg-cream">
+      <div className="dt-row">
+        <Reveal>
+          <span className="eyebrow">{c.eyebrow}</span>
+          <p className="tnum mt-6 font-display text-d1 uppercase text-ink">
+            {ratingLabel(locale)}/5 · {site.reviewsCount}
+          </p>
+          <p className="lead mt-4">
+            {c.labels.rating} · {c.labels.reviews}
+          </p>
+          <p className="tnum mt-8 border-t border-line pt-6 text-body text-graphite">
+            {yearsActive()} {c.labels.years.toLowerCase()}
+          </p>
+        </Reveal>
       </div>
     </section>
   );
