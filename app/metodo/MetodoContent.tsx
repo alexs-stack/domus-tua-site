@@ -8,12 +8,11 @@ import Highlights from "../components/Highlights";
 import Method from "../components/Method";
 import DomusDocProtocol from "../components/DomusDocProtocol";
 import OpenDomus from "../components/OpenDomus";
-import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
-import SectionDivider from "../components/SectionDivider";
-import ManifestoPin from "../components/motion/ManifestoPin";
-import ThreadNav from "../components/motion/ThreadNav";
-import { useLocale, useDict } from "../components/i18n/LocaleProvider";
+import Reveal from "../components/Reveal";
+import TextLines from "../components/motion/TextLines";
+import { Cta } from "../components/primitives/Cta";
+import { useLocale } from "../components/i18n/LocaleProvider";
 
 const copy = {
   it: {
@@ -28,7 +27,7 @@ const copy = {
     heroSubcopy:
       "Ogni vendita e ogni acquisto seguono un percorso chiaro fatto di cura, documenti, marketing e assistenza fino al rogito. È il modo in cui lavoriamo dal 2007.",
     heroAlt: "Attico con travi a vista e salotto elegante",
-    heroPrimary: "Richiedi la valutazione del tuo immobile",
+    heroPrimary: "Richiedi la valutazione",
     heroSecondary: "Vedi i nove passi",
     highlightsEyebrow: "Nove passaggi, tre momenti",
     highlightsTitle: "Cura, trasparenza, accompagnamento.",
@@ -61,7 +60,7 @@ const copy = {
     heroSubcopy:
       "Every sale and every purchase follows a clear path built on care, paperwork, marketing and support right through to the deed. It’s how we’ve worked since 2007.",
     heroAlt: "Penthouse with exposed beams and an elegant living room",
-    heroPrimary: "Request a valuation of your property",
+    heroPrimary: "Request a valuation",
     heroSecondary: "See the nine steps",
     highlightsEyebrow: "Nine steps, three moments",
     highlightsTitle: "Care, transparency, guidance.",
@@ -94,7 +93,7 @@ const copy = {
     heroSubcopy:
       "Chaque vente et chaque achat suivent un parcours clair fait de soin, de documents, de marketing et d’accompagnement jusqu’à l’acte notarié. C’est notre façon de travailler depuis 2007.",
     heroAlt: "Attique avec poutres apparentes et salon élégant",
-    heroPrimary: "Demandez l’estimation de votre bien",
+    heroPrimary: "Demander l’estimation",
     heroSecondary: "Voir les neuf étapes",
     highlightsEyebrow: "Neuf étapes, trois moments",
     highlightsTitle: "Soin, transparence, accompagnement.",
@@ -127,7 +126,7 @@ const copy = {
     heroSubcopy:
       "Jeder Verkauf und jeder Kauf folgt einem klaren Weg aus Sorgfalt, Unterlagen, Marketing und Begleitung bis zum Notartermin. So arbeiten wir seit 2007.",
     heroAlt: "Penthouse mit sichtbaren Balken und elegantem Wohnzimmer",
-    heroPrimary: "Bewertung Ihrer Immobilie anfordern",
+    heroPrimary: "Bewertung anfordern",
     heroSecondary: "Die neun Schritte ansehen",
     highlightsEyebrow: "Neun Schritte, drei Momente",
     highlightsTitle: "Sorgfalt, Transparenz, Begleitung.",
@@ -160,7 +159,7 @@ const copy = {
     heroSubcopy:
       "Cada venta y cada compra siguen un recorrido claro hecho de cuidado, documentos, marketing y acompañamiento hasta la escritura. Es como trabajamos desde 2007.",
     heroAlt: "Ático con vigas a la vista y salón elegante",
-    heroPrimary: "Solicita la valoración de tu inmueble",
+    heroPrimary: "Solicita la valoración",
     heroSecondary: "Ver los nueve pasos",
     highlightsEyebrow: "Nueve pasos, tres momentos",
     highlightsTitle: "Cuidado, transparencia, acompañamiento.",
@@ -185,23 +184,11 @@ const copy = {
 
 export default function MetodoContent() {
   const { locale } = useLocale();
-  const d = useDict();
   const c = copy[locale];
 
   return (
     <>
       <Header />
-      {/* Il filo rosso cuce anche /metodo: capitoli della pagina sul rail */}
-      <ThreadNav
-        chapters={[
-          { id: "top", label: "Domus Tua" },
-          { id: "metodo", label: d.nav.metodo },
-          { id: "domus-doc", label: "Domus D.O.C." },
-          { id: "open-domus", label: d.nav.openDomus },
-          { id: "recensioni", label: d.nav.recensioni },
-          { id: "contatti", label: d.nav.contatti },
-        ]}
-      />
       <main className="flex-1">
         <PageHero
           id="top"
@@ -212,6 +199,7 @@ export default function MetodoContent() {
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#metodo" }}
+          scriptWord={{ it: "Nove passi", en: "Nine steps", fr: "Neuf étapes", de: "Neun Schritte", es: "Nueve pasos" }[locale]}
         />
 
         <Highlights
@@ -237,21 +225,31 @@ export default function MetodoContent() {
 
         <Method />
 
-        {/* Momento firma: il manifesto del metodo, pinnato, si legge con lo
-            scroll e l'ago cuce la parola chiave. */}
-        <ManifestoPin
-          eyebrow={c.docEyebrow}
-          text={c.manifesto}
-          highlight={c.manifestoHighlight}
-          link={{ label: c.docLink, href: "#domus-doc" }}
-        />
+        {/* Il manifesto del metodo: una frase sola, grande, sul fondo avorio.
+            Niente banda scura pinnata (direttiva 2026-09-10). */}
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <Reveal>
+              <span className="eyebrow">{c.docEyebrow}</span>
+            </Reveal>
+            <TextLines as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+              {c.manifesto}
+            </TextLines>
+            <Reveal delay={120}>
+              <Cta href="#domus-doc" variant="ghost" size="md" className="mt-10">
+                {c.docLink}
+              </Cta>
+            </Reveal>
+          </div>
+        </section>
 
         <DomusDocProtocol tone="cream" id="domus-doc" />
         <OpenDomus />
-        <Reviews />
-        <div className="bg-cream-deep">
-          <SectionDivider tone="cream-deep" />
-        </div>
+        {/* Il capitolo recensioni vive SOLO su /recensioni. Qui erano 1.529px
+            identici al pixel — testa, filtri, widget Trustindex — ripetuti su
+            quattro pagine sotto contenuti diversi: chi aveva gia' letto la
+            home rivedeva la stessa coda a ogni clic. La prova indipendente
+            resta su ogni pagina nel sigillo Wikicasa del footer. */}
         <Contact />
       </main>
       <Footer />

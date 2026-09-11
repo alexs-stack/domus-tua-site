@@ -1,6 +1,13 @@
 "use client";
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* RIPORTATO il 2026-09-11 su richiesta di Alberto («mantenendo quelle
+   animazioni che non erano curve, tipo quella del 5 stelle»), nella grammatica
+   della rivista bianca: via il velo di vino sulla foto, le scritte piccole, il
+   sigillo che fluttua e il widget Trustindex in coda (lo porta «Le voci»).
+   Il film — stella piccola, zoom, lampo, titolo per carattere, la fila che si
+   accende d'oro — è quello di sempre.
+
+   ═══════════════════════════════════════════════════════════════════════════
    CINQUE STELLE — il capitolo recensioni della home (2026-08-04).
 
    THESIS: la valutazione Google non è un contatore ma cinque momenti reali
@@ -54,11 +61,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import TextLines from "./motion/TextLines";
-import { Star, Google } from "./Icons";
-import { Cta } from "./primitives/Cta";
-import TrustindexEmbed from "./TrustindexEmbed";
 import { site } from "../lib/site";
-import { useConsent } from "../lib/consent";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
@@ -216,13 +219,6 @@ const copy = {
 export default function StarReviews() {
   const { locale } = useLocale();
   const c = copy[locale];
-  // "2024 · 2025 · 2026". Composto qui e usato SIA nel testo visibile SIA nella coda
-  // dell'aria-label: se un giorno cambia un anno, i due non possono divergere — che è
-  // esattamente il difetto (label-content-name-mismatch) già corretto una volta qui.
-  const awardYears = site.award.years.join(" · ");
-  const consent = useConsent();
-  const showTrustindex = site.embeds.trustindexLoader.length > 0 && consent === "accepted";
-  const awaitingConsent = site.embeds.trustindexLoader.length > 0 && consent !== "accepted";
 
   const sectionRef = useRef<HTMLElement | null>(null);
   const runwayRef = useRef<HTMLDivElement | null>(null);
@@ -230,7 +226,6 @@ export default function StarReviews() {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const introRef = useRef<HTMLDivElement | null>(null);
   const rowRef = useRef<HTMLUListElement | null>(null);
-  const widgetRef = useRef<HTMLDivElement | null>(null);
 
   useGSAP(
     () => {
@@ -616,55 +611,6 @@ export default function StarReviews() {
           },
         });
 
-        // Widget: rivelato con la stessa lingua (stella → aperto), una volta.
-        // Resta solo sul desktop: sotto lg il blocco è un iframe di terza parte
-        // dietro il cancello del consenso, e ritagliarlo a stella significa
-        // clip-path per frame su un contenuto che non controlliamo.
-        let wst: ScrollTrigger | null = null;
-        const widget = widgetRef.current;
-        if (cond.lg && widget) {
-          // Solo opacity (mai autoAlpha): dentro ci sono link e iframe che
-          // devono restare raggiungibili da tastiera per la rete focusin.
-          gsap.set(widget, { opacity: 0 });
-          // Replay a ogni passaggio: tween persistente (niente clearProps),
-          // restart all'ingresso e reverse risalendo oltre l'inizio.
-          let wtl: gsap.core.Tween | null = null;
-          wst = ScrollTrigger.create({
-            trigger: widget,
-            start: "top 82%",
-            onEnter: () => {
-              if (!wtl) {
-                const r = widget.getBoundingClientRect();
-                // Stessa tecnica a proxy: raggio animato, clip rigenerata.
-                const wgeo = { r: Math.min(r.width, r.height) * 0.18, o: 0 };
-                const wCover = (Math.hypot(r.width, r.height) / 2 / STAR_INNER_RATIO) * 1.08;
-                wtl = gsap.to(wgeo, {
-                  r: wCover,
-                  o: 1,
-                  duration: 1.2,
-                  ease: "domus.inOut",
-                  paused: true,
-                  onUpdate: () => {
-                    widget.style.opacity = String(wgeo.o);
-                    widget.style.clipPath = starClipPath(r.width, r.height, r.width / 2, r.height / 2, wgeo.r);
-                  },
-                });
-              }
-              wtl.restart();
-              const snap = wtl;
-              window.setTimeout(() => {
-                if (snap.progress() === 0) snap.progress(1);
-              }, 1800);
-            },
-            onLeaveBack: () => wtl?.reverse(),
-          });
-          const revealWidget = () => {
-            wst?.kill();
-            gsap.set(widget, { clearProps: "opacity,clipPath" });
-          };
-          widget.addEventListener("focusin", revealWidget, { once: true });
-        }
-
         return () => {
           cleanup.forEach((fn) => fn());
           section.removeAttribute("data-on");
@@ -683,7 +629,6 @@ export default function StarReviews() {
           shimmer?.kill();
           breath?.kill();
           lit.kill();
-          wst?.kill();
         };
       });
     },
@@ -723,7 +668,7 @@ export default function StarReviews() {
               alt=""
               fill
               sizes="(max-width: 1023.98px) 55vw, 100vw"
-              className="photo-warm object-cover"
+              className="object-cover"
             />
             {/* IL LAMPO, e perché è un velo e non un filtro: a cavallo del
                 fullscreen la foto riceve un colpo di luce. Fino al 2026-08-18
@@ -734,11 +679,12 @@ export default function StarReviews() {
                 dov'era il filtro), animato in sola opacity. Sta nel DOM a ogni
                 larghezza perché il miglioramento è di tutte. */}
             <div className="dt-starrev_flash absolute inset-0" />
-            {/* Velo caldo + titolo-cover gigante: i caratteri escono in scaleY
-                con stagger dal centro mentre la stella si chiude (rif. Codrops). */}
-            <div className="absolute inset-0 bg-wine/30" />
+            {/* Titolo-cover gigante: i caratteri escono in scaleY con stagger dal
+                centro mentre la stella si chiude (rif. Codrops). Bianco sulla
+                foto SENZA velo, come sulla banda video finale: la cliente ha
+                bocciato vignettature e nero. */}
             <div className="absolute inset-0 flex items-center justify-center px-6">
-              <span className="dt-starrev_cover text-center font-display font-medium leading-none text-cream">
+              <span className="dt-starrev_cover text-center font-display font-medium leading-none text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.25)]">
                 {c.coverWord.split("").map((ch, i) => (
                   <span key={i} className="dt-starrev_char inline-block">
                     {ch === " " ? " " : ch}
@@ -759,33 +705,27 @@ export default function StarReviews() {
           <div data-sr-el>
             <TextLines
               as="h2"
-              className="mx-auto mt-5 max-w-[20ch] font-display text-d3 display-tight font-medium text-ink"
+              className="mx-auto mt-6 max-w-[16ch] font-display text-d2"
             >
               {c.title}
             </TextLines>
           </div>
-          <p data-sr-el className="mx-auto mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-stone">
-            <span className="flex items-center gap-2">
-              <span className="tnum font-display text-2xl font-medium text-ink">{site.rating.replace(".", ",")}</span>
-              {/* Le stelline del voto seguono il materiale della fila: rosso e
-                  oro nello stesso blocco leggerebbero come due sistemi. */}
-              <span className="flex gap-0.5" aria-hidden>
-                {Array.from({ length: 5 }).map((_, k) => (
-                  <Star key={k} className="h-3.5 w-3.5 text-gold" />
-                ))}
-              </span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Google className="h-3.5 w-3.5" /> {c.ratingLine(String(site.reviewsCount))}
-            </span>
-          </p>
-          <p data-sr-el className="mx-auto mt-4 max-w-xl text-[0.98rem] leading-relaxed text-stone">
+          <p data-sr-el className="lead mx-auto mt-6">
             {c.subtitle}
           </p>
         </div>
 
         {/* La fila delle cinque stelle */}
-        <ul ref={rowRef} className="dt-starrev_row mx-auto mt-10 grid w-full max-w-[1050px] grid-cols-5 gap-2 sm:gap-4 lg:gap-6">
+        {/* `mt-16` sotto lg: il riquadro del film e' ancorato al bordo BASSO
+            della fila e alto 62svh, quindi con dieci unita' di margine la sua
+            cima cadeva dentro l'ultima riga del lead e la stella entrava
+            sopra le parole. Spostando la fila si sposta il riquadro.
+            `gap-1`: cinque colonne in 390px danno stelle da 66px invece di
+            63, che e' la differenza fra un segno e un puntino. */}
+        <ul
+          ref={rowRef}
+          className="dt-starrev_row mx-auto mt-16 grid w-full max-w-[1050px] grid-cols-5 gap-1 sm:gap-4 lg:mt-10 lg:gap-6"
+        >
           {STARS.map((s) => {
             const sc = c.stars[s.key];
             return (
@@ -801,120 +741,37 @@ export default function StarReviews() {
                     <span className="dt-starrev_sweep" />
                   </span>
                 </span>
-                <span data-sr-el className="block text-center">
-                  <span className="block text-[0.6rem] font-semibold leading-tight text-graphite sm:text-[0.8rem]">
+                <span data-sr-el className="hidden text-center sm:block">
+                  <span className="block text-ui font-semibold uppercase leading-tight tracking-[0.08em] text-graphite">
                     {sc.label}
                   </span>
                   {/* Sotto sm la fila è di cinque colonne strettissime: la
                       didascalia diventerebbe una colonna di sillabe. */}
-                  <span className="mt-1 hidden text-[0.72rem] leading-snug text-stone sm:block">{sc.caption}</span>
+                  <span className="mt-2 block text-body leading-snug text-stone">{sc.caption}</span>
                 </span>
               </li>
             );
           })}
         </ul>
+        {/* Sotto sm le cinque colonne sono strette 70px e le etichette non ci
+            stanno: diventano un ELENCO su due colonne, col trattino rosso che
+            il sito usa per le liste. In riga a capo libero, sotto cinque
+            stelle equidistanti, si disponevano 3+2 e nessuna cadeva piu'
+            sotto la sua stella: sembrava un errore di allineamento. */}
+        <ul
+          data-sr-el
+          className="dt-row mt-8 grid grid-cols-2 gap-x-6 gap-y-2 text-body text-graphite sm:hidden"
+        >
+          {STARS.map((s) => (
+            <li key={s.key} className="flex items-baseline gap-2">
+              <span aria-hidden className="h-px w-4 shrink-0 translate-y-[-0.35em] bg-red" />
+              {c.stars[s.key].label}
+            </li>
+          ))}
+        </ul>
 
-        {/* CTA + sigillo Top Agency */}
-        <div data-sr-el className="mt-10 flex flex-col items-center justify-center gap-6 sm:flex-row sm:gap-10">
-          <Cta href={site.googleReviewsUrl} variant="cta" size="md" target="_blank" rel="noopener noreferrer">
-            {c.cta}
-          </Cta>
-          {/* Sigillo Wikicasa: fluttua piano (dt-float), fermo con reduced-motion.
-              Il claim di autorevolezza (ex banda Authority) chiude il cluster prova.
-              Quando il cliente consegna la foto del certificato Top Agency 2026
-              (docs/da-chiedere-alla-cliente.md §2.11) il sigillo diventa il fronte di un
-              flip certificato/badge — lo slot è questo. */}
-          {/* IL NOME ACCESSIBILE NASCE DAL TESTO VISIBILE (parità mobile,
-              Fase 4, 2026-08-11). Lighthouse dava qui
-              `label-content-name-mismatch`: l'etichetta diceva «Top Agency
-              2026 SU Wikicasa — …» e quel «su» in mezzo bastava perché le
-              parole che si leggono non fossero più contenute nel nome che si
-              sente. Non è un cavillo di conformità: chi guida il sito a voce
-              pronuncia ciò che vede, e con quel «su» il comando non aggancia
-              più il link. Ora la testa dell'etichetta è composta con le
-              STESSE due costanti che stanno a schermo, quindi non può più
-              divergere quando il copy cambia — e la coda (dove va, e che si
-              apre altrove) resta, perché è l'informazione che il testo
-              visibile non dà. */}
-          <a
-            href={site.award.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${site.award.label} ${awardYears} — ${c.awardAriaHint}`}
-            className="dt-starrev_award group flex items-center gap-3"
-          >
-            <span className="block" style={{ animation: "dt-float 7s ease-in-out infinite" }}>
-              <Image
-                src="/badges/wikicasa-top-agency.svg"
-                alt=""
-                width={120}
-                height={58}
-                unoptimized
-                className="transition-transform duration-500 ease-[cubic-bezier(0.22,0.9,0.36,1)] group-hover:-rotate-2 group-hover:scale-105"
-              />
-            </span>
-            <span className="leading-tight">
-              {/* Lo spazio esplicito qui sotto non è una svista e non si vede:
-                  fra due span `block` il browser scarta lo spazio bianco, il
-                  disegno non si muove di un pixel. Serve nel DOM, perché il
-                  testo visibile lo si ricava concatenando i nodi di testo
-                  SENZA separatore: senza questo spazio si leggerebbe «Top
-                  Agency 2026Wikicasa» tutto attaccato, e l'etichetta qui sopra
-                  — che lo spazio ce l'ha — non lo conterrebbe più. */}
-              {/* Sotto il nome del premio vanno gli ANNI, non l'ente: l'ente è già
-                  dentro il nome ("Top Agency Wikicasa") e ripeterlo dava «Top Agency
-                  Wikicasa / Wikicasa». Gli anni invece sono l'informazione che il badge
-                  da solo non dà, ed è quella che conta: uno è un risultato, tre
-                  consecutivi sono un andamento. */}
-              <span className="block text-sm font-semibold text-ink">{site.award.label}</span>{" "}
-              <span className="link-draw block text-[0.8rem] text-stone">{awardYears}</span>
-            </span>
-          </a>
-        </div>
-        <p data-sr-el className="mx-auto mt-7 max-w-md text-center text-sm italic leading-snug text-stone">
-          {c.claim}
-        </p>
 
           </div>
-        </div>
-      </div>
-
-      {/* Il widget Trustindex (o la prova reale senza consenso).
-          NON è più una sezione con un titolo suo. Si chiamava «Parola per parola» ed era
-          la quinta intestazione di recensioni della home: cinque titoli diversi per la
-          stessa prova, che così si indebolisce invece di rafforzarsi (§ item 11).
-          Adesso è quello che è sempre stato nei fatti — la verifica di terza parte in coda
-          al blocco del voto, sotto lo stesso titolo — e il ruolo lo dice una riga di
-          servizio, non un'intestazione che promette una sezione nuova. */}
-      <div className="mx-auto max-w-[1240px] px-5 pb-16 sm:px-8 sm:pb-20">
-        {/* `data-reviews-widget` è l'appiglio per i test, e non è zucchero: la suite
-            trovava questo blocco cercando il testo del suo titolo, quindi un cambio di
-            copy — che è lavoro editoriale normale — faceva fallire un test sul
-            CARICAMENTO PIGRO, che col copy non c'entra niente. Un attributo stabile
-            separa le due cose: la copy può cambiare, il cancello resta verificabile. */}
-        <div ref={widgetRef} data-reviews-widget>
-          <p className="eyebrow">{c.widgetTitle}</p>
-          {showTrustindex ? (
-            <div className="mt-6">
-              <TrustindexEmbed title={c.iframeTitle} />
-            </div>
-          ) : (
-            <div className="mt-6 rounded-[1.75rem] border border-line bg-paper p-8 text-center">
-              <p className="mx-auto max-w-md text-[0.98rem] leading-relaxed text-graphite">
-                {awaitingConsent ? c.consentGate : c.widgetNote}
-              </p>
-              <Cta
-                href={site.googleReviewsUrl}
-                variant="cta"
-                size="sm"
-                className="mt-5"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {c.cta}
-              </Cta>
-            </div>
-          )}
         </div>
       </div>
 

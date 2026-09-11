@@ -1,19 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import PageHero from "../components/PageHero";
 import Reveal from "../components/Reveal";
 import CareerApplication, { ROLE_IDS, isRoleId, type RoleId } from "../components/CareerApplication";
 import LazyYouTubeEmbed from "../components/LazyYouTubeEmbed";
-import { SegnoDomus, SegnoDomusDivider } from "../components/BrandMotif";
-import DrawOnScroll from "../components/motion/DrawOnScroll";
-import MaskReveal from "../components/motion/MaskReveal";
 import Parallax from "../components/motion/Parallax";
-import Atmosphere from "../components/motion/Atmosphere";
 import TextLines from "../components/motion/TextLines";
-import CameraIn from "../components/motion/CameraIn";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 import { Cta } from "../components/primitives/Cta";
 import { site } from "../lib/site";
 import { team, teamInitials, teamRoleLabels } from "../lib/team";
@@ -47,8 +41,8 @@ function SectionHead({
   eyebrow,
   title,
   intro,
-  className = "max-w-2xl",
-  titleClassName = "text-4xl sm:text-5xl",
+  className = "",
+  titleClassName = "text-d1",
 }: {
   eyebrow: string;
   title: ReactNode;
@@ -61,78 +55,14 @@ function SectionHead({
       <Reveal>
         <span className="eyebrow">{eyebrow}</span>
       </Reveal>
-      <TextLines
-        as="h2"
-        className={`mt-5 font-display font-medium leading-[1.05] tracking-tight text-ink balance ${titleClassName}`}
-      >
+      <TextLines as="h2" className={`mt-6 max-w-[20ch] font-display ${titleClassName}`}>
         {title}
       </TextLines>
       {intro && (
         <Reveal delay={140}>
-          <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{intro}</p>
+          <p className="lead mt-8">{intro}</p>
         </Reveal>
       )}
-    </div>
-  );
-}
-
-/**
- * Il filo della selezione: una linea che si disegna dall'alto verso il basso mentre si
- * attraversano i quattro passi, ancorata alla colonna dei numeri.
- *
- * È il momento firma della pagina, ed è scrubbato per una ragione narrativa: il processo
- * di selezione È un percorso, e il filo lo percorre alla velocità di chi legge. Stessa
- * tecnica della cupola di HorizonStory — un tween inline legato allo scroll, `ease: "none"`
- * come impone lo scrub — e stesso vocabolario (`gsap.matchMedia(MQ.motionOk)`).
- *
- * Puramente decorativo (`aria-hidden`): senza JS e con reduced-motion la linea semplicemente
- * non c'è, e l'elenco resta l'elenco numerato che era.
- */
-function ProcessThread({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useGSAP(
-    () => {
-      const rail = ref.current?.querySelector<HTMLElement>("[data-thread-rail]");
-      const track = ref.current;
-      if (!rail || !track) return;
-
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        gsap.fromTo(
-          rail,
-          { scaleY: 0 },
-          {
-            scaleY: 1,
-            ease: "none",
-            transformOrigin: "50% 0%",
-            scrollTrigger: {
-              trigger: track,
-              start: "top 72%",
-              end: "bottom 78%",
-              scrub: 0.4,
-            },
-          }
-        );
-      });
-    },
-    { scope: ref }
-  );
-
-  return (
-    <div ref={ref} className="relative">
-      {/* Il filo corre nel CANALE fra la colonna dei numeri e quella del testo — non
-          sopra i numeri, che attraverserebbe. Le due posizioni sono il centro del
-          `gap-x` ai due breakpoint della griglia qui sotto (7rem+10/2, 10rem+16/2):
-          se cambia la griglia, va cambiato anche questo. Su mobile la colonna è
-          `auto` e il canale non esiste: il filo non c'è. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute bottom-8 top-8 hidden w-px overflow-hidden sm:left-[8.25rem] sm:block md:left-[12rem]"
-      >
-        <span data-thread-rail className="block h-full w-full bg-gradient-to-b from-red/70 to-red/15" />
-      </span>
-      {children}
     </div>
   );
 }
@@ -825,44 +755,29 @@ export default function LavoraConNoiContent() {
         primary={{ label: c.heroPrimary, href: "#candidatura" }}
         secondary={{ label: c.heroSecondary, href: "#perche" }}
         trust={[...c.heroTrust]}
-        // Foto d'ufficio molto luminosa (finestre, pareti bianche): col velo
-        // standard il titolo crema si perdeva sulla metà chiara dell'immagine.
-        scrim="strong"
+        scriptWord={{ it: "Insieme", en: "Together", fr: "Ensemble", de: "Zusammen", es: "Juntos" }[locale]}
       />
 
-      <SegnoDomusDivider className="py-14" />
-
       {/* ── Perché Domus Tua ─────────────────────────────────────────────── */}
-      <section id="perche" className="relative bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <section id="perche" className="dt-chapter relative bg-cream">
+        <div className="dt-row">
           <SectionHead eyebrow={c.whyEyebrow} title={c.whyTitle} intro={c.whyIntro} />
 
-          {/* Griglia asimmetrica: la prima voce occupa due colonne su desktop,
-              così le quattro schede non leggono come quattro scatole identiche. */}
-          <ul className="mt-14 grid gap-px overflow-hidden rounded-[2rem] border border-line bg-line sm:mt-16 sm:grid-cols-2">
+          {/* Voci numerate su hairline: la prima occupa due colonne su desktop,
+              così le quattro non leggono come quattro scatole identiche. */}
+          <ul className="mt-16 grid gap-x-12 sm:grid-cols-2">
             {c.why.map((item, i) => (
               <Reveal
                 as="li"
                 key={item.title}
-                delay={i * 60}
-                className={`bg-paper p-7 sm:p-9 ${i === 0 ? "sm:col-span-2" : ""}`}
+                delay={(i % 2) * 60}
+                className={`border-t border-line py-8 ${i === 0 ? "sm:col-span-2" : ""}`}
               >
-                <div className="flex items-center gap-3">
-                  <DrawOnScroll duration={0.8}>
-                    <SegnoDomus className="h-4 w-11 text-red opacity-80" embrace={false} />
-                  </DrawOnScroll>
-                  <span className="tnum text-[0.72rem] font-semibold tracking-[0.2em] text-stone">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                </div>
-                <h3
-                  className={`mt-5 font-display font-medium leading-snug tracking-tight text-ink ${
-                    i === 0 ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
-                  }`}
-                >
-                  {item.title}
-                </h3>
-                <p className="mt-3 max-w-xl text-[0.98rem] leading-relaxed text-stone">{item.copy}</p>
+                <span className="tnum text-ui font-semibold uppercase tracking-[0.08em] text-red">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className={`mt-4 font-display ${i === 0 ? "text-d2" : "text-d3"}`}>{item.title}</h3>
+                <p className="mt-4 max-w-[60ch] text-body text-graphite">{item.copy}</p>
               </Reveal>
             ))}
           </ul>
@@ -870,37 +785,30 @@ export default function LavoraConNoiContent() {
       </section>
 
       {/* ── Le aree ──────────────────────────────────────────────────────── */}
-      <section id="aree" className="relative bg-cream">
-        <Atmosphere word="Domus Tua" glow drift={-1} wordClassName="right-[3%] top-[6%] text-[12vw]" />
-        <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <section id="aree" className="dt-chapter relative bg-cream">
+        <div className="dt-row relative">
           <SectionHead eyebrow={c.rolesEyebrow} title={c.rolesTitle} intro={c.rolesIntro} />
 
-          <ul className="mt-14 grid gap-5 sm:mt-16 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-16 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
             {ROLE_CARDS.map((id, i) => {
               const r = c.roles[id];
               return (
                 <Reveal
                   as="li"
                   key={id}
-                  delay={i * 50}
-                  className="group flex h-full flex-col rounded-[2rem] border border-line bg-paper p-7 transition-[border-color,box-shadow,transform] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:border-red/40 hover:shadow-[var(--shadow-card-hover)]"
+                  delay={(i % 3) * 50}
+                  className="group flex h-full flex-col border-t border-line py-8"
                 >
-                  <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink sm:text-[1.4rem]">
-                    {r.title}
-                  </h3>
+                  <h3 className="font-display text-d3">{r.title}</h3>
 
-                  <dl className="mt-5 flex flex-1 flex-col gap-4">
+                  <dl className="mt-6 flex flex-1 flex-col gap-5">
                     <div>
-                      <dt className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-red-dark">
-                        {c.rolesWhat}
-                      </dt>
-                      <dd className="mt-1.5 text-[0.95rem] leading-relaxed text-stone">{r.what}</dd>
+                      <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-red-dark">{c.rolesWhat}</dt>
+                      <dd className="mt-2 text-body text-graphite">{r.what}</dd>
                     </div>
                     <div>
-                      <dt className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-stone">
-                        {c.rolesLooking}
-                      </dt>
-                      <dd className="mt-1.5 text-[0.95rem] leading-relaxed text-stone">{r.looking}</dd>
+                      <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.rolesLooking}</dt>
+                      <dd className="mt-2 text-body text-graphite">{r.looking}</dd>
                     </div>
                   </dl>
 
@@ -911,10 +819,10 @@ export default function LavoraConNoiContent() {
                   <Cta
                     href="#candidatura"
                     variant="ghost"
-                    size="sm"
+                    size="md"
                     aria-label={c.ctaAria.replace("{area}", r.title)}
                     onClick={() => chooseRole(id, r.title)}
-                    className="mt-7 self-start"
+                    className="mt-8 self-start"
                   >
                     {c.rolesCta}
                   </Cta>
@@ -922,26 +830,23 @@ export default function LavoraConNoiContent() {
               );
             })}
 
-            {/* Candidatura spontanea: stessa griglia, trattamento invertito
-                (fondo scuro) così chiude la sequenza invece di ripeterla. */}
+            {/* Candidatura spontanea: stessa griglia, chiude la sequenza con il
+                titolo in rosso e la CTA piena (niente lastra scura, 2026-09-10). */}
             <Reveal
               as="li"
-              delay={ROLE_CARDS.length * 50}
-              className="flex h-full flex-col justify-between rounded-[2rem] border border-espresso bg-espresso p-7 text-cream"
+              delay={(ROLE_CARDS.length % 3) * 50}
+              className="flex h-full flex-col justify-between border-t border-red py-8"
             >
               <div>
-                <SegnoDomus className="h-4 w-11 text-red-soft" embrace={false} />
-                <h3 className="mt-5 font-display text-xl font-medium leading-snug tracking-tight sm:text-[1.4rem]">
-                  {c.spontaneaTitle}
-                </h3>
-                <p className="mt-3 text-[0.95rem] leading-relaxed text-cream/75">{c.spontaneaCopy}</p>
+                <h3 className="font-display text-d3 text-red">{c.spontaneaTitle}</h3>
+                <p className="mt-4 text-body text-graphite">{c.spontaneaCopy}</p>
               </div>
               <Cta
                 href="#candidatura"
-                variant="reveal-cream"
-                size="sm"
+                variant="cta-solid"
+                size="md"
                 onClick={() => chooseRole("spontanea", c.spontaneaCta)}
-                className="mt-7 self-start"
+                className="mt-8 self-start"
               >
                 {c.spontaneaCta}
               </Cta>
@@ -951,38 +856,26 @@ export default function LavoraConNoiContent() {
       </section>
 
       {/* ── La selezione ─────────────────────────────────────────────────── */}
-      <section id="selezione" className="relative bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-          {/* Respiro fra i capitoli: lo stesso filo rosso verticale che separa gli atti
-              di HorizonStory. Segna il passaggio da "perché noi" a "come si entra". */}
-          <Reveal className="mx-auto mb-16 h-14 w-px bg-red/40" as="div">
-            <span className="sr-only" />
-          </Reveal>
-
+      <section id="selezione" className="dt-chapter relative bg-cream">
+        <div className="dt-row">
           <SectionHead eyebrow={c.processEyebrow} title={c.processTitle} intro={c.processIntro} />
 
-          <ProcessThread>
-            <ol className="mt-14 border-t border-line sm:mt-16">
-              {c.steps.map((step, i) => (
-                <Reveal
-                  as="li"
-                  key={step.title}
-                  delay={i * 45}
-                  className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
-                >
-                  <span className="tnum font-display text-3xl font-medium leading-none text-red sm:text-4xl md:text-5xl">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div className="max-w-xl pt-0.5">
-                    <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink sm:text-2xl">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2.5 text-[0.98rem] leading-relaxed text-stone">{step.copy}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </ol>
-          </ProcessThread>
+          <ol className="mt-16 border-t border-line">
+            {c.steps.map((step, i) => (
+              <Reveal
+                as="li"
+                key={step.title}
+                delay={i * 45}
+                className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
+              >
+                <span className="tnum font-display text-d2 text-red">{String(i + 1).padStart(2, "0")}</span>
+                <div className="max-w-[60ch] pt-1">
+                  <h3 className="font-display text-d3">{step.title}</h3>
+                  <p className="mt-4 text-body text-graphite">{step.copy}</p>
+                </div>
+              </Reveal>
+            ))}
+          </ol>
         </div>
       </section>
 
@@ -990,11 +883,8 @@ export default function LavoraConNoiContent() {
           Le persone con nome e ruolo (fonte unica: app/lib/team.ts) + il video
           reale in cui la squadra si presenta. A un candidato interessa vedere
           in faccia chi lo formerà, non leggere che "il team è affiatato". */}
-      <section className="relative bg-cream">
-        {/* Dolly d'ingresso: la scena delle persone entra con una micro-zoomata legata
-            allo scroll (solo desktop + motion ok). Niente sticky/fixed qui dentro —
-            è il vincolo di CameraIn. */}
-        <CameraIn className="mx-auto block max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
+      <section className="dt-chapter relative bg-cream">
+        <div className="dt-row">
           <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
             {/* mob off (misura): `speed -0.06` sulla colonna (foto 4/3 da
                 ~260px più player e didascalia, ~450px in tutto a 390) vale
@@ -1009,69 +899,48 @@ export default function LavoraConNoiContent() {
                 fatta di passaggio: se serve, si fa con la sua ragione. */}
             <Parallax speed={-0.06} mobile={false}>
               <Reveal>
-                <figure className="overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
-                  <MaskReveal from="bottom" zoom={1.08} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-[calc(2rem-0.5rem)]">
-                      <Image
-                        src="/images/reali/team-group.jpg"
-                        alt={c.teamAlt}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 520px"
-                        className="object-cover"
-                      />
-                    </div>
-                  </MaskReveal>
+                {/* Foto squadrata, senza cornice né raggio (2026-09-10). */}
+                <figure className="relative aspect-[4/3] overflow-hidden">
+                  <Image
+                    src="/images/reali/team-group.jpg"
+                    alt={c.teamAlt}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 520px"
+                    className="object-cover"
+                  />
                 </figure>
 
                 {/* Video vero dal canale dell'agenzia: iframe caricato solo al click. */}
-                <figure className="mt-5">
+                <figure className="mt-8">
                   <LazyYouTubeEmbed id={site.videos.team.id} title={site.videos.team.title} />
-                  <figcaption className="mt-3 flex items-center gap-2 text-[0.8rem] text-stone">
-                    <SegnoDomus className="h-3 w-8 shrink-0 text-red" embrace={false} />
-                    {c.teamVideoCaption}
-                  </figcaption>
+                  <figcaption className="mt-4 text-ui text-graphite">{c.teamVideoCaption}</figcaption>
                 </figure>
               </Reveal>
             </Parallax>
 
             <div>
-              <SectionHead
-                eyebrow={c.teamEyebrow}
-                title={c.teamTitle}
-                intro={c.teamCopy}
-                className=""
-                titleClassName="text-3xl sm:text-[2.6rem] leading-[1.06]"
-              />
+              <SectionHead eyebrow={c.teamEyebrow} title={c.teamTitle} intro={c.teamCopy} titleClassName="text-d2" />
 
               <div className="mt-9">
                 <div className="flex items-center gap-3">
                   <p className="eyebrow">{c.teamRosterLabel}</p>
                   <span className="h-px flex-1 bg-line" aria-hidden="true" />
                 </div>
-                <ul className="mt-5 grid gap-x-7 gap-y-px sm:grid-cols-2">
-                  {team.map((member, i) => (
+                <ul className="mt-5 grid gap-x-8 sm:grid-cols-2">
+                  {team.map((member) => (
                     <li
                       key={member.name}
-                      className="group flex items-center gap-3.5 border-t border-line/70 py-3.5 sm:first:border-t-0 sm:[&:nth-child(2)]:border-t-0"
+                      className="group flex items-baseline gap-4 border-t border-line py-4 sm:first:border-t-0 sm:[&:nth-child(2)]:border-t-0"
                     >
-                      <span
-                        className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] font-display text-[0.95rem] font-semibold text-graphite ring-1 ring-inset ring-line transition-[background-color,color,box-shadow] duration-300 group-hover:bg-red group-hover:text-white group-hover:ring-red ${
-                          i % 2 === 0 ? "bg-paper" : "bg-cream-deep"
-                        }`}
-                      >
+                      <span className="tnum w-10 shrink-0 font-display text-ui font-semibold uppercase text-red">
                         {teamInitials(member.name)}
-                        {member.founder && (
-                          <span
-                            className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red ring-2 ring-cream transition-colors duration-300 group-hover:bg-white"
-                            aria-hidden="true"
-                          />
-                        )}
                       </span>
                       <span className="leading-tight">
-                        <span className="block text-sm font-semibold text-ink">{member.name}</span>
-                        <span className="block text-[0.8rem] text-stone">
-                          {teamRoleLabels[locale][member.role]}
+                        <span className="block text-body font-semibold text-ink">
+                          {member.name}
+                          {member.founder && <span className="text-red"> ·</span>}
                         </span>
+                        <span className="block text-ui text-graphite">{teamRoleLabels[locale][member.role]}</span>
                       </span>
                     </li>
                   ))}
@@ -1085,19 +954,14 @@ export default function LavoraConNoiContent() {
               </Reveal>
             </div>
           </div>
-        </CameraIn>
+        </div>
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────────────── */}
-      <section id="faq" className="relative bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      <section id="faq" className="dt-chapter relative bg-cream">
+        <div className="dt-row">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-            <SectionHead
-              eyebrow={c.faqEyebrow}
-              title={c.faqTitle}
-              className=""
-              titleClassName="text-3xl sm:text-[2.6rem] leading-[1.06]"
-            />
+            <SectionHead eyebrow={c.faqEyebrow} title={c.faqTitle} titleClassName="text-d2" />
 
             {/* <details> nativo: apre senza JS, resta accessibile da tastiera. */}
             <div className="border-t border-line">
@@ -1109,20 +973,18 @@ export default function LavoraConNoiContent() {
                         32 a 44px di area toccabile lasciando intatto il riquadro disegnato;
                         il passo fra due domande resta 73px (il `py-5` qui sopra), quindi
                         niente `tap-list` — le bande non si sfiorano nemmeno. */}
-                    <summary className="tap-target flex cursor-pointer list-none items-start justify-between gap-6 text-left font-display text-lg font-medium leading-snug text-ink transition-colors duration-300 hover:text-red [&::-webkit-details-marker]:hidden">
+                    <summary className="tap-target flex cursor-pointer list-none items-start justify-between gap-6 text-left font-display text-[1.5rem] leading-[1.2] text-ink transition-colors duration-300 hover:text-red [&::-webkit-details-marker]:hidden">
                       {item.q}
                       <span
                         aria-hidden
-                        className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line text-stone transition-transform duration-300 group-open:rotate-45"
+                        className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-red transition-transform duration-300 group-open:rotate-45"
                       >
                         <svg viewBox="0 0 12 12" className="h-3 w-3 fill-none stroke-current stroke-[1.6]">
                           <path d="M6 1v10M1 6h10" strokeLinecap="round" />
                         </svg>
                       </span>
                     </summary>
-                    <p className="mt-3 max-w-2xl pr-12 text-[0.95rem] leading-relaxed text-stone">
-                      {item.a}
-                    </p>
+                    <p className="mt-4 max-w-[60ch] pr-12 text-body text-graphite">{item.a}</p>
                   </details>
                 </Reveal>
               ))}

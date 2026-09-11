@@ -128,8 +128,10 @@ describe("fonte unica — recensioni e riconoscimento", () => {
     assert.doesNotMatch(read("opengraph-image.tsx"), /4,9\s*★/);
   });
 
-  test("il riconoscimento è centralizzato: StarReviews consuma site.award", () => {
-    const src = read("components/StarReviews.tsx");
+  // Dal 2026-09-10 il sigillo sta nel capitolo «Le voci» (Voci.tsx): StarReviews
+  // non esiste più.
+  test("il riconoscimento è centralizzato: Voci consuma site.award", () => {
+    const src = read("components/Voci.tsx");
     assert.match(src, /site\.award\.(label|years|href)/);
     assert.doesNotMatch(src, /wikicasa\.it\/agenzia/, "URL del riconoscimento hardcoded invece di site.award.href");
   });

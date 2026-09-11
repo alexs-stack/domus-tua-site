@@ -103,7 +103,6 @@ export default function PreloaderShell() {
             Il gradiente sta in globals.css (`.dt-pre-fondo`): è il primo colore
             che il visitatore vede, e la sorgente dev'essere una. */}
         <div className="dt-pre-fondo absolute inset-0" />
-        <div className="grain !absolute !z-0" aria-hidden />
 
         {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha della stessa
             foto dell'hero (stesso canvas 2000×1415, fornito dal cliente), con
@@ -145,7 +144,7 @@ export default function PreloaderShell() {
               loading="lazy"
               decoding="async"
               className="h-full w-full object-cover"
-              style={{ objectPosition: "50% 70%" }}
+              style={{ objectPosition: "10% 0%" }}
             />
           </picture>
         </div>
@@ -160,21 +159,20 @@ export default function PreloaderShell() {
           data-pre-content
           className="relative flex h-full flex-col items-center justify-between py-10 sm:py-12"
         >
-          {/* Alto: il marchio ufficiale, con l'anello che gira in CSS
-              (`dt-pre-spin`, 6 s, anello e monogramma in versi opposti — lo
-              stesso gesto dell'header) — gira anche prima del JS.
+          {/* Alto: il marchio ufficiale, con anello e monogramma che girano
+              in CSS nello stesso verso, orario (`dt-pre-spin`, 6 s — lo stesso
+              gesto dell'header, richiesta cliente 2026-09-10) — gira anche
+              prima del JS.
 
               Qui il monogramma era nella variante negativa (crema+rosso):
               sulla PRIMA schermata del sito il logo del cliente si presentava
-              bianco. Ora è quello depositato, grigio e rosso, posato su una
-              pastiglia chiara che gli fa da fondo — come nel footer e
-              nell'header sopra l'hero. La pastiglia sta fuori dal badge (il
-              padding le lascia il bordo libero), così l'anello di tacche non
-              tocca il taglio del disco mentre gira. */}
-          <span
-            data-pre-badge
-            className="inline-flex rounded-full bg-paper p-2 text-graphite shadow-[0_16px_44px_-24px_rgba(0,0,0,0.9)]"
-          >
+              bianco. Ora è quello depositato, grigio e rosso (direttiva
+              2026-08-26), posato su un disco carta che gli fa da fondo. Il
+              disco sta fuori dal badge (il padding gli lascia il bordo
+              libero), così l'anello di tacche non tocca il taglio mentre
+              gira. Senza ombra: la rivista bianca non ne ammette nemmeno qui
+              — il preloader è l'eccezione per lo scuro, non per il rilievo. */}
+          <span data-pre-badge className="inline-flex rounded-full bg-paper p-2 text-graphite">
             <MarkBadge className="h-14 w-14" />
           </span>
 

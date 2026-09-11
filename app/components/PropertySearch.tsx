@@ -9,12 +9,11 @@ import PropertyCard from "./PropertyCard";
 // chi passa alla vista mappa: si caricano al momento del passaggio, non prima.
 const PropertyMap = dynamic(() => import("./PropertyMap"), {
   ssr: false,
-  loading: () => <div className="h-[420px] animate-pulse rounded-[2rem] bg-cream" aria-hidden />,
+  loading: () => <div className="h-[420px] animate-pulse bg-cream-deep" aria-hidden />,
 });
 import CaseQuickLook from "./CaseQuickLook";
 import { ArrowRight } from "./Icons";
 import { Cta, CtaButton } from "./primitives/Cta";
-import { SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
@@ -590,9 +589,8 @@ export default function PropertySearch({ properties }: { properties: GridPropert
     const state = flipStateRef.current;
     flipStateRef.current = null;
     const grid = gridRef.current;
-    // La lista cambia l'altezza della pagina: i ScrollTrigger globali (il rail
-    // ThreadNav su /acquista mappa nodi e fill su maxScroll) vanno ricalibrati
-    // a layout assestato — mai a metà Flip (absolute:true = card fuori flusso).
+    // La lista cambia l'altezza della pagina: gli ScrollTrigger globali (tarati
+    // su maxScroll) vanno ricalibrati a layout assestato — mai a metà Flip (absolute:true = card fuori flusso).
     const refresh = () => requestAnimationFrame(() => ScrollTrigger.refresh());
     if (!state || !grid) {
       refresh();
@@ -625,7 +623,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
   }, [listedKey]);
 
   // Lista ⇄ mappa cambia l'altezza della pagina in un colpo solo: senza refresh i
-  // ScrollTrigger globali (rail ThreadNav su maxScroll) restano tarati sul layout vecchio.
+  // ScrollTrigger globali (tarati su maxScroll) restano tarati sul layout vecchio.
   useEffect(() => {
     const id = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => cancelAnimationFrame(id);
@@ -709,11 +707,12 @@ export default function PropertySearch({ properties }: { properties: GridPropert
     budgetChoices.push({ value: f.maxBudget, label: `${c.budgetUpTo} ${money(f.maxBudget)} €` });
   }
 
+  // Filtri come rettangoli a filo (niente pill, 2026-09-10): l'attivo è rosso pieno.
   const pill = (active: boolean) =>
-    `inline-flex min-h-[44px] items-center rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+    `inline-flex min-h-[44px] items-center border px-4 py-2 text-ui font-semibold uppercase tracking-[0.08em] transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
       active
         ? "border-red bg-red text-white hover:bg-red-dark"
-        : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
+        : "border-line bg-transparent text-graphite hover:border-red hover:text-ink"
     }`;
 
   // Empty-state / "non trovi la casa giusta": WhatsApp buyer precompilato con la frase cercata =
@@ -728,14 +727,12 @@ export default function PropertySearch({ properties }: { properties: GridPropert
 
   return (
     <section className="bg-cream">
-      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        {/* Ricerca in linguaggio naturale (AI) */}
+      <div className="dt-row py-16 sm:py-20">
+        {/* Ricerca in linguaggio naturale (AI): campo a sola sottolineatura, come il modulo. */}
         <Reveal>
-          <div className="rounded-[2rem] border border-line bg-paper p-2 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)]">
-            <div className="flex flex-col gap-3 rounded-[calc(2rem-0.5rem)] bg-cream p-5 sm:flex-row sm:items-center sm:p-4 sm:pl-6">
-              <SegnoDomusBadge className="shrink-0 self-start border-red/25 bg-red-soft text-red-dark sm:self-auto">
-                {c.smartBadge}
-              </SegnoDomusBadge>
+          <div className="border-t border-line pt-6">
+            <span className="eyebrow">{c.smartBadge}</span>
+            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
               <input
                 value={nl}
                 onChange={(e) => setNl(e.target.value)}
@@ -746,7 +743,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                   }
                 }}
                 placeholder={c.nlPlaceholder}
-                className="w-full flex-1 rounded-lg bg-transparent text-base text-ink placeholder:text-stone/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
+                className="block w-full flex-1 border-0 border-b border-ink! bg-transparent py-3 text-lead text-ink placeholder:text-stone focus:border-red! focus:outline-none"
                 aria-label={c.nlAria}
               />
               <button
@@ -754,7 +751,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 onClick={() => void runSearch()}
                 disabled={searching || !nl.trim()}
                 aria-label={c.searchAria}
-                className="grid h-11 w-11 shrink-0 place-items-center self-start rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
+                className="grid h-14 w-14 shrink-0 place-items-center self-start rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
               >
                 {searching ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -767,7 +764,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
           {/* Regione live: annuncia a screen reader il passaggio teaser → risultato/errore. */}
           <div role="status" aria-live="polite">
           {ai ? (
-            <p className="mt-3 flex flex-wrap items-center gap-2 pl-2 text-[0.82rem] text-stone">
+            <p className="mt-4 flex flex-wrap items-center gap-2 text-body text-graphite">
               <span>
                 {c.aiResultPrefix}: <span className="font-semibold text-ink">“{ai.query}”</span>
               </span>
@@ -780,17 +777,17 @@ export default function PropertySearch({ properties }: { properties: GridPropert
               </button>
             </p>
           ) : aiError ? (
-            <p className="mt-3 pl-2 text-[0.82rem] text-red-dark">{c.aiError}</p>
+            <p className="mt-4 text-body text-red-dark">{c.aiError}</p>
           ) : (
-            <p className="mt-3 pl-2 text-[0.82rem] text-stone">{c.teaser}</p>
+            <p className="mt-4 text-body text-graphite">{c.teaser}</p>
           )}
           </div>
         </Reveal>
 
         {/* Filtri */}
-        <Reveal delay={80} className="mt-8 flex flex-col gap-6">
+        <Reveal delay={80} className="mt-12 flex flex-col gap-8">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
+            <span className="mr-2 text-ui font-semibold uppercase tracking-[0.08em] text-stone">
               {c.contract}
             </span>
             {(["Tutte", "Vendita", "Affitto"] as const).map((v) => (
@@ -809,7 +806,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
           {/* Disponibilità: appare solo se c'è almeno un immobile venduto (default: nasconde i venduti). */}
           {properties.some(isSold) && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
+              <span className="mr-2 text-ui font-semibold uppercase tracking-[0.08em] text-stone">
                 {c.availabilityLabel}
               </span>
               {(["available", "sold"] as const).map((v) => (
@@ -827,7 +824,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
           )}
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
+            <span className="mr-2 text-ui font-semibold uppercase tracking-[0.08em] text-stone">
               {c.type}
             </span>
             {types.map((t) => (
@@ -843,14 +840,14 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             ))}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-8 sm:grid-cols-3">
             <label className="flex flex-col gap-1.5">
-              <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.zone}</span>
+              <span className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.zone}</span>
               <select
                 value={f.comune}
                 onChange={(e) => setFilters((s) => ({ ...s, comune: e.target.value }))}
-                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                  f.comune !== "Tutti" ? "border-red/45 font-medium" : ""
+                className={`block w-full appearance-none border-0 border-b border-ink! bg-transparent py-3 text-body text-ink transition-colors focus:border-red! focus:outline-none ${
+                  f.comune !== "Tutti" ? "font-medium" : ""
                 }`}
               >
                 {comuni.map((z) => (
@@ -861,12 +858,12 @@ export default function PropertySearch({ properties }: { properties: GridPropert
               </select>
             </label>
             <label className="flex flex-col gap-1.5">
-              <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.budget}</span>
+              <span className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.budget}</span>
               <select
                 value={f.maxBudget}
                 onChange={(e) => setFilters((s) => ({ ...s, maxBudget: Number(e.target.value) }))}
-                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                  f.maxBudget !== 0 ? "border-red/45 font-medium" : ""
+                className={`block w-full appearance-none border-0 border-b border-ink! bg-transparent py-3 text-body text-ink transition-colors focus:border-red! focus:outline-none ${
+                  f.maxBudget !== 0 ? "font-medium" : ""
                 }`}
               >
                 {budgetChoices.map((b) => (
@@ -877,12 +874,12 @@ export default function PropertySearch({ properties }: { properties: GridPropert
               </select>
             </label>
             <label className="flex flex-col gap-1.5">
-              <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.rooms}</span>
+              <span className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.rooms}</span>
               <select
                 value={f.minRooms}
                 onChange={(e) => setFilters((s) => ({ ...s, minRooms: Number(e.target.value) }))}
-                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                  f.minRooms !== 0 ? "border-red/45 font-medium" : ""
+                className={`block w-full appearance-none border-0 border-b border-ink! bg-transparent py-3 text-body text-ink transition-colors focus:border-red! focus:outline-none ${
+                  f.minRooms !== 0 ? "font-medium" : ""
                 }`}
               >
                 {roomOptions.map((r) => (
@@ -895,7 +892,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
+            <span className="mr-2 text-ui font-semibold uppercase tracking-[0.08em] text-stone">
               {c.features}
             </span>
             {featureOptions.map((o) => (
@@ -913,9 +910,9 @@ export default function PropertySearch({ properties }: { properties: GridPropert
         </Reveal>
 
         {/* Risultati */}
-        <div className="mt-10 flex items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="text-sm text-stone">
+        <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="text-body text-graphite">
               <span className="font-semibold text-ink">{shown.length}</span>{" "}
               {shown.length === 1 ? c.resultsOne : c.resultsMany}
             </p>
@@ -924,7 +921,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 type="button"
                 onClick={() => setFilters((s) => ({ ...s, minBudget: 0 }))}
                 aria-label={c.priceRemove}
-                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+                className="inline-flex min-h-11 items-center gap-1.5 border border-red px-3 py-1 text-ui font-semibold uppercase tracking-[0.08em] text-red-dark transition-colors duration-300 hover:bg-red hover:text-white"
               >
                 {c.priceFrom} {money(f.minBudget)} €<span aria-hidden>×</span>
               </button>
@@ -934,7 +931,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 type="button"
                 onClick={() => setFilters((s) => ({ ...s, minSqm: 0 }))}
                 aria-label={`${c.remove}: ${c.priceFrom} ${f.minSqm} m²`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+                className="inline-flex min-h-11 items-center gap-1.5 border border-red px-3 py-1 text-ui font-semibold uppercase tracking-[0.08em] text-red-dark transition-colors duration-300 hover:bg-red hover:text-white"
               >
                 {c.priceFrom} {f.minSqm} m²<span aria-hidden>×</span>
               </button>
@@ -944,7 +941,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 type="button"
                 onClick={() => setFilters((s) => ({ ...s, maxSqm: 0 }))}
                 aria-label={`${c.remove}: ${c.budgetUpTo} ${f.maxSqm} m²`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+                className="inline-flex min-h-11 items-center gap-1.5 border border-red px-3 py-1 text-ui font-semibold uppercase tracking-[0.08em] text-red-dark transition-colors duration-300 hover:bg-red hover:text-white"
               >
                 {c.budgetUpTo} {f.maxSqm} m²<span aria-hidden>×</span>
               </button>
@@ -953,7 +950,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
               <button
                 type="button"
                 onClick={resetFilters}
-                className="text-sm text-stone underline underline-offset-2 transition-colors duration-300 hover:text-ink"
+                className="text-ui font-semibold uppercase tracking-[0.08em] text-stone underline underline-offset-4 transition-colors duration-300 hover:text-ink"
               >
                 {c.manualReset}
               </button>
@@ -964,7 +961,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             <div
               role="group"
               aria-label={`${c.viewList} / ${c.viewMap}`}
-              className="flex rounded-full border border-line bg-cream p-0.5"
+              className="flex border border-line"
             >
               {(["list", "map"] as const).map((v) => (
                 <button
@@ -974,7 +971,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                   onClick={() => setView(v)}
                   // min-h-11 = 44px: la soglia di tocco. Senza, il toggle era alto 31px —
                   // il comando più piccolo della pagina, e quello che si usa di più.
-                  className={`inline-flex min-h-11 items-center justify-center rounded-full px-4 text-[0.8rem] font-semibold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                  className={`inline-flex min-h-11 items-center justify-center px-4 text-ui font-semibold uppercase tracking-[0.08em] transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                     view === v ? "bg-red text-white" : "text-graphite hover:text-ink"
                   }`}
                 >
@@ -984,7 +981,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             </div>
             <a
               href="#contatti"
-              className="group hidden items-center gap-1.5 text-sm font-semibold text-red hover:text-red-dark sm:inline-flex"
+              className="group hidden items-center gap-1.5 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 hover:text-red-dark sm:inline-flex"
             >
               {c.notFound}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -1011,7 +1008,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             <div
               ref={gridRef}
               aria-busy={searching}
-              className={`mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3 ${
+              className={`mt-10 grid gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-3 ${
                 searching ? "opacity-50 transition-opacity duration-300" : "transition-opacity duration-300"
               }`}
             >
@@ -1035,7 +1032,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 >
                   {c.showMore}
                 </CtaButton>
-                <p className="text-[0.82rem] text-stone">
+                <p className="text-ui text-graphite">
                   {c.showingHint
                     .replace("{n}", String(Math.min(visible, shown.length)))
                     .replace("{tot}", String(shown.length))}
@@ -1044,9 +1041,9 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             )}
           </>
         ) : (
-          <div className="mt-6 rounded-[1.75rem] border border-line bg-paper p-10 text-center">
-            <p className="font-display text-2xl font-medium text-ink">{c.emptyTitle}</p>
-            <p className="mx-auto mt-2 max-w-xl text-stone">{c.emptyBody}</p>
+          <div className="mt-10 border-t border-line pt-10">
+            <p className="max-w-[20ch] font-display text-d2 uppercase text-ink">{c.emptyTitle}</p>
+            <p className="lead mt-6">{c.emptyBody}</p>
             {/* CTA a intento acquirente su WhatsApp, precompilato con la frase cercata. */}
             <Cta
               href={buyerWaUrl}

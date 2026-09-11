@@ -32,9 +32,10 @@ video ("ci vedi prima ancora di conoscerci"). Persone prima degli immobili.
 
 Next.js 16 App Router + React 19 + Tailwind v4, hosting Vercel, pagine
 editoriali statiche + ISR RealSmart (12 min). i18n client-side 5 lingue
-(it default, SEO solo IT). Motion layer GSAP 3.15 + ScrollTrigger + Lenis
-(2026-07, richiesta cliente "livello awwwards") con primitive in
-`app/components/motion/`. Widget terzi isolati (Trustindex, IG, YouTube
+(it default, SEO solo IT). Motion layer GSAP 3.15 + ScrollTrigger + Lenis ridotto a
+quattro primitive (`Reveal`, `TextLines`, `Parallax`, `HorizontalRail`, più i due set piece riportati l'11 settembre 2026 su richiesta del cliente: i pannelli orizzontali di «Perché Domus Tua» e il film delle cinque stelle) dal
+redesign «rivista bianca» del 2026-09-10 (riferimento pinnato dalla cliente:
+immobiliaregoldengoal.it). Widget terzi isolati (Trustindex, IG, YouTube
 facade al click).
 
 ## Capabilities and Constraints
@@ -61,12 +62,26 @@ facade al click).
   niente gradienti viola-blu, niente dark-tech, niente Inter.
 - Font: Playfair Display (didone display unica di tutto il sito, la stessa
   del lockup hero/preloader; Fraunces ritirato, ago 2026) + Plus Jakarta Sans
-  (UI) + Pinyon Script (solo accento calligrafico del lockup).
+  (UI) + Pinyon Script (il corsivo rosso: la firma nel lockup e una
+  parola-ornamento per capitolo).
 - Logo ufficiale PNG: non ridisegnare, non animare con morph/draw.
-- Motion: caldo e cinematografico, mai tech-demo; un solo signature moment
-  per viewport; ease firma "domus"; il sito deve restare bello ANCHE FERMO.
-- Anti-riferimenti: template SaaS, purple-blue gradients, dark-tech,
-  Inter ovunque.
+- Motion (dal 2026-09-10): tre gesti (più i tre nastri pilotati dallo scroll — pannelli di «Perché Domus Tua», cinque stelle, rotaia del team — richiesta cliente 2026-09-11) — righe che salgono, fade-in,
+  parallasse leggera — più la rotaia orizzontale del team e il monogramma
+  che ruota (orario) nel badge dell'header; niente sezioni
+  pinnate, niente transizioni fra le pagine, niente cursore custom. Il
+  preloader resta (film ad arco, 4,6 s). Il sito deve restare bello ANCHE FERMO.
+- Forma (dal 2026-09-10, direttiva cliente): NIENTE curve (raggi a zero
+  tranne le icone tonde), NIENTE card, NIENTE superfici scure fuori dal
+  preloader, NIENTE fiori o ornamenti, NIENTE vignettature o veli sulle foto,
+  NESSUN testo sotto i 16 px. Un solo fondo avorio (#f9f5ef), titoli
+  maiuscoli in vw/vh, paragrafi grandi e leggeri, media squadrati a tutta
+  larghezza, un corsivo rosso per capitolo.
+- Riferimento pinnato dalla cliente: https://www.immobiliaregoldengoal.it/
+  (pulito, professionale, scritte grandi, foto e video grandi, spazi).
+  Anti-riferimenti: template SaaS, purple-blue gradients, dark-tech, Inter
+  ovunque, e il vecchio stile curvo/smussato a card con cupole e fiori.
+- Scritte "Domus Tua": nel font del logo, dietro il token `--font-brand`
+  (da ripuntare quando arriva il logo nuovo, non ancora consegnato).
 
 ## Evidence on Hand
 

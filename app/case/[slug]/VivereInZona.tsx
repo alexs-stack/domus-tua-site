@@ -12,7 +12,6 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { useLocale } from "../../components/i18n/LocaleProvider";
-import { SegnoDomusDivider } from "../../components/BrandMotif";
 import { buildTerritoryView, buildAreaView, type TerritoryLocale } from "../../lib/territory/view";
 import type { TerritoryPoiCategory } from "../../lib/territory/categories";
 import type { PublicListingTerritory } from "../../lib/territory/types";
@@ -23,7 +22,7 @@ import type { PublicAreaProfile } from "../../lib/territory/area/types";
 const TerritoryDistanceExplorer = dynamic(() => import("./TerritoryDistanceExplorer"), {
   ssr: false,
   loading: () => (
-    <p className="mt-4 text-sm text-graphite" role="status" aria-live="polite">
+    <p className="mt-4 text-body text-graphite" role="status" aria-live="polite">
       …
     </p>
   ),
@@ -69,20 +68,13 @@ export default function VivereInZona({
   const eyebrow = areaView?.eyebrow;
 
   return (
-    <section aria-labelledby="vivere-in-zona-title" className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
-      <SegnoDomusDivider className="mb-12" />
-      <div className="flex flex-col gap-1">
+    <section aria-labelledby="vivere-in-zona-title" className="dt-row border-t border-line pb-4 pt-16">
+      <div className="flex flex-col gap-2">
         {/* Occhiello: dice di cosa parla la sezione prima che il titolo dica DOVE. Non è un
-            heading (non deve entrare nella struttura del documento): è un'etichetta. */}
-        {eyebrow && (
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-graphite">
-            {eyebrow}
-          </p>
-        )}
-        <h2
-          id="vivere-in-zona-title"
-          className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl"
-        >
+            heading (non deve entrare nella struttura del documento): è l'eyebrow del sistema
+            (rosso col trattino, 16 px), la stessa cellula che apre ogni capitolo. */}
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+        <h2 id="vivere-in-zona-title" className="font-display text-d2">
           {sectionTitle}
         </h2>
         {/* Base d'origine ESPLICITA (mai "dall'immobile" per un centroide) + metodo (linea d'aria).
@@ -92,8 +84,8 @@ export default function VivereInZona({
             si legge come una correzione dell'intestazione, non come il metodo di misura. */}
         {view && !areaView && (
           <>
-            <p className="text-sm text-ink">{view.originLabel}</p>
-            <p className="text-sm text-graphite">
+            <p className="mt-4 text-body text-ink">{view.originLabel}</p>
+            <p className="text-body text-graphite">
               {view.contextLabel} · {view.methodLabel}
             </p>
           </>
@@ -105,16 +97,16 @@ export default function VivereInZona({
           È testo reso dal server: sta nell'HTML iniziale, si legge senza JavaScript e non
           sposta il layout quando il bundle arriva. */}
       {areaView && areaView.intro && (
-        <div className="mt-6 max-w-[68ch]">
-          <p className="text-[1.0625rem] leading-relaxed text-ink">{areaView.intro}</p>
+        <div className="mt-8 max-w-[60ch]">
+          <p className="lead">{areaView.intro}</p>
           {areaView.sections.length > 0 && (
             <div className="mt-8 flex flex-col gap-6">
               {areaView.sections.map((sec, i) => (
                 <div key={i}>
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-graphite">
-                    {sec.heading}
-                  </h3>
-                  <p className="mt-2 leading-relaxed text-ink">{sec.body}</p>
+                  {/* Sottotitolo vero (resta nell'outline): la taglia di lista d4 in
+                      Playfair, maiuscolo per regola globale — come i titoli di colonna. */}
+                  <h3 className="font-display text-d4">{sec.heading}</h3>
+                  <p className="mt-2 text-body text-ink">{sec.body}</p>
                 </div>
               ))}
             </div>
@@ -127,11 +119,9 @@ export default function VivereInZona({
       {/* Distanze utili: specifiche di QUESTO immobile, misurate dall'origine dichiarata sopra. */}
       {areaView && (
         <div className="mt-14 flex flex-col gap-1">
-          <h3 className="font-display text-xl font-medium tracking-tight text-ink sm:text-2xl">
-            {view.distancesTitle}
-          </h3>
-          <p className="text-sm text-ink">{view.originLabel}</p>
-          <p className="text-sm text-graphite">
+          <h3 className="font-display text-d3">{view.distancesTitle}</h3>
+          <p className="mt-2 text-body text-ink">{view.originLabel}</p>
+          <p className="text-body text-graphite">
             {view.contextLabel} · {view.methodLabel}
           </p>
         </div>
@@ -142,7 +132,7 @@ export default function VivereInZona({
           type="button"
           onClick={() => setSelected(null)}
           aria-pressed={selected === null}
-          className="rounded-full border border-line px-3 py-1 text-xs font-semibold text-graphite transition-colors aria-pressed:border-red aria-pressed:bg-red-soft aria-pressed:text-red"
+          className="min-h-11 border border-line px-4 py-2 text-ui font-semibold uppercase tracking-[0.08em] text-graphite transition-colors aria-pressed:border-red aria-pressed:text-red"
         >
           {view.explorer.filterAll}
         </button>
@@ -152,7 +142,7 @@ export default function VivereInZona({
             type="button"
             onClick={() => toggle(cat.category)}
             aria-pressed={isActive(cat.category)}
-            className="rounded-full border border-line px-3 py-1 text-xs font-semibold text-graphite transition-colors aria-pressed:border-red aria-pressed:bg-red-soft aria-pressed:text-red"
+            className="min-h-11 border border-line px-4 py-2 text-ui font-semibold uppercase tracking-[0.08em] text-graphite transition-colors aria-pressed:border-red aria-pressed:text-red"
           >
             {cat.label}
           </button>
@@ -160,19 +150,19 @@ export default function VivereInZona({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="mt-8 text-sm text-graphite" role="status">
+        <p className="mt-8 text-body text-graphite" role="status">
           {view.explorer.empty}
         </p>
       ) : (
-        <dl className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="mt-10 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((cat) => (
-            <div key={cat.category} className="rounded-2xl border border-line bg-cream p-5">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-graphite">{cat.label}</dt>
-              <dd className="mt-3">
+            <div key={cat.category} className="border-t border-line pt-5">
+              <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{cat.label}</dt>
+              <dd className="mt-4">
                 <ul className="flex flex-col gap-2">
                   {cat.pois.map((poi, i) => (
                     <li key={i} className="flex items-baseline justify-between gap-3">
-                      <span className="text-ink">
+                      <span className="text-body text-ink">
                         {poi.sourceUrl ? (
                           <a
                             href={poi.sourceUrl}
@@ -187,7 +177,7 @@ export default function VivereInZona({
                         )}
                       </span>
                       {/* Distanza come testo leggibile (mai icona da sola). */}
-                      <span className="shrink-0 text-sm tabular-nums text-graphite">{poi.distanceLabel}</span>
+                      <span className="shrink-0 text-body tabular-nums text-graphite">{poi.distanceLabel}</span>
                     </li>
                   ))}
                 </ul>
@@ -205,7 +195,7 @@ export default function VivereInZona({
             onClick={() => setShowExplorer((v) => !v)}
             aria-expanded={showExplorer}
             aria-controls="territory-distance-explorer"
-            className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-red hover:text-red"
+            className="dt-btn dt-btn--ghost"
           >
             {showExplorer ? view.explorer.hide : view.explorer.reveal}
           </button>
@@ -218,7 +208,7 @@ export default function VivereInZona({
       )}
 
       {(view.updatedLabel || view.attribution) && (
-        <p className="mt-6 text-xs text-graphite">
+        <p className="mt-6 text-ui text-graphite">
           {view.updatedLabel}
           {view.updatedLabel && view.attribution ? " · " : ""}
           {view.attribution}
@@ -238,15 +228,15 @@ export default function VivereInZona({
           l'apparato. Senza narrativa i fatti SONO la sezione, e restano aperti. */}
       {areaView && (
         <details className={view ? "mt-14" : "mt-6"} open={!areaView.intro}>
-          <summary className="cursor-pointer text-sm font-semibold text-ink marker:text-graphite">
+          <summary className="cursor-pointer text-ui font-semibold uppercase tracking-[0.08em] text-ink marker:text-graphite">
             {areaView.sourcesSummary}
           </summary>
           <ul className="mt-6 flex flex-col gap-5">
             {areaView.facts.map((f, i) => (
               <li key={i} className="border-l-2 border-line pl-4">
-                <p className="text-[0.7rem] font-semibold uppercase tracking-wide text-graphite">{f.categoryLabel}</p>
-                <p className="mt-1 text-ink">{f.text}</p>
-                <p className="mt-1 text-xs text-graphite">
+                <p className="text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{f.categoryLabel}</p>
+                <p className="mt-2 text-body text-ink">{f.text}</p>
+                <p className="mt-2 text-ui text-graphite">
                   {f.sourceUrl ? (
                     <a
                       href={f.sourceUrl}

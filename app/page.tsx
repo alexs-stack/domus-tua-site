@@ -6,6 +6,7 @@ import Posizionamento from "./components/Posizionamento";
 import HomeSearchGateway from "./components/HomeSearchGateway";
 import HorizonStory from "./components/HorizonStory";
 import StarReviews from "./components/StarReviews";
+import Voci from "./components/Voci";
 import Paths from "./components/Paths";
 import Method from "./components/Method";
 import OpenDomus from "./components/OpenDomus";
@@ -16,12 +17,9 @@ import FeaturedTestimonial from "./components/FeaturedTestimonial";
 import Social from "./components/Social";
 import Team from "./components/Team";
 import Contact from "./components/Contact";
+import Congedo from "./components/Congedo";
 import Footer from "./components/Footer";
 import WhatsAppFloat from "./components/WhatsAppFloat";
-import SectionDivider from "./components/SectionDivider";
-import KineticStrip from "./components/motion/KineticStrip";
-import ThreadNav from "./components/motion/ThreadNav";
-import ToneShift from "./components/motion/ToneShift";
 
 // Il title dice COSA e DOVE, non lo slogan: "agenzia immobiliare a Tradate" è la query
 // con cui le persone cercano davvero, e la vecchia versione ("Vendere senza stress,
@@ -44,84 +42,46 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
+      {/* CONTRATTO DI DIREZIONE — «la rivista bianca» (spec 2026-09-10 §3.0).
+          THESIS: una rivista immobiliare bianca — titoli maiuscoli enormi,
+          paragrafi grandi e leggeri, media squadrati a tutta larghezza, vuoto
+          generoso. Rifiuta la home «a card» e la home «cinematografica scura».
+          OWN-WORLD: un solo fondo avorio; Playfair maiuscolo per i titoli;
+          corsivo Pinyon rosso una volta per capitolo; rosso solo per accento
+          e CTA; nessun raggio, nessuna ombra, nessun velo.
+          STORY: chi deve vendere capisce in un colpo cosa fa l'agenzia, vede
+          persone e case vere, legge le voci dei clienti e trova una sola
+          azione: chiedere la valutazione.
+          FIRST VIEWPORT: header chiaro; la foto della stanza fa da fondo
+          alla banda alta (senza velo) con il lockup «Domus Tua» a 13vw e la
+          firma sotto; poi, sull'avorio, sovratitolo, H1 e CTA centrate.
+          FORM: il canone del riferimento pinnato dalla cliente
+          (immobiliaregoldengoal.it), eseguito nella nostra palette: rosso al
+          posto dell'oro, fondo chiaro al posto della banda nera. Tre nastri
+          pilotati dallo scroll — i pannelli di «Perché Domus Tua», il film
+          delle cinque stelle (entrambi riportati l'11 settembre su richiesta
+          del cliente, rifatti senza curve, veli né scuro) e la rotaia del
+          team — e nessun'altra sezione pinnata; nessun cambio di tono fra i
+          capitoli, perché il fondo è uno. */}
       <Header />
-      {/* Il filo rosso che cuce i capitoli della home (desktop, motion ok) */}
-      <ThreadNav />
       <main className="flex-1">
         <HeroCinematic />
-        {/* Fra l'hero e la ricerca, e non è un dettaglio di ordine.
-            Il primo blocco interattivo della home era la ricerca immobili: lo spazio più
-            prezioso della pagina assegnato a chi COMPRA. Ma chi compra arriva comunque dai
-            portali ed è volume; chi deve scegliere a chi affidare un incarico è il
-            fatturato, e trovava un modulo di ricerca al posto di una ragione per
-            fidarsi. Adesso prima si dice cosa distingue l'agenzia, poi si cerca casa. */}
         <Posizionamento />
         <HomeSearchGateway />
-        {/* Il set piece "orizzonte": fondale aereo + cupola + pannelli orizzontali
-            (tecnica dal dossier era-residence §11, contenuti e forme nostri).
-            Le Cinque stelle (capitolo recensioni unificato) vivono DENTRO la
-            stessa superficie curva: il muro delle voci consegna lo sfondo
-            pulito e la stella appare sulla stessa pagina, senza la linea
-            d'ombra che il cambio di superficie disegnava (fix 2026-08-04). */}
-        <HorizonStory>
-          <StarReviews />
-        </HorizonStory>
-        {/* Il momento video della home vive nel muro delle voci (HorizonStory,
-            atto 4): la vecchia SocialVideoWall è stata ritirata per non
-            mostrare due volte gli stessi video. */}
-        {/* "Due percorsi" apre e chiude su FOTOGRAFIE a tutta pagina, non su
-            un colore piatto: un ToneShift ai suoi confini accosterebbe una
-            campitura a un'immagine (misurato: ΔRGB 263 e 563). Lì la
-            transizione dovrà nascere dentro la sezione stessa. */}
+        <HorizonStory />
+        <StarReviews />
+        <Voci />
         <Paths />
-        <Method />
-        {/* Da qui in giù ogni cambio di tono è un PASSAGGIO, non un bordo, e
-            il gesto è SEMPRE lo STESSO: la cupola. era-residence ripete il
-            suo arco due volte in home ed è così che l'esperienza resta
-            continua — un gesto ripetuto è un linguaggio, cinque gesti
-            diversi sono cinque eccezioni. Qui la cupola è anche la forma del
-            marchio, quindi il confine fra due capitoli disegna il logo.
-            Varia solo la PROFONDITÀ: più bassa dove il capitolo è breve, più
-            alta dove si apre un respiro. */}
-        {/* NIENTE cucitura fra Metodo e Open Domus (2026-08-09, direttiva
-            cliente: «questo stacco non mi piace, c'è una transizione inutile lì
-            in mezzo»). Qui la cupola non copriva un taglio: il monogramma che
-            chiude il Metodo la precede già come congedo, e il blocco vuoto
-            sotto — 19svh di gesto più i respiri delle due sezioni — apriva
-            mezzo schermo di nulla fra un capitolo e l'altro. Il colore continua
-            comunque a virare senza bordi, perché a interpolare cream-deep →
-            paper è la superficie continua (SurfaceFlow), non la cucitura: le
-            due tappe `data-tone` restano dove sono. Le altre cupole della home
-            restano: lì il gesto arriva su un confine che altrimenti si vede. */}
+        <Method compact />
         <OpenDomus />
-        <ToneShift from="paper" to="cream-deep" depth="17svh" />
-        <DomusDocProtocol tone="cream-deep" />
-        {/* NIENTE cucitura fra D.O.C. e Servizi: cream-deep e cream distano
-            ΔRGB 11, cioè sono lo stesso colore per l'occhio. Una transizione
-            fra due toni identici non nasconde uno stacco che non esiste — lo
-            INVENTA, e si nota proprio perché non serve. Le cuciture restano
-            dove il salto è reale (ΔRGB 61-72). */}
+        <DomusDocProtocol />
         <Services />
-        <ToneShift from="cream" to="paper" depth="19svh" />
-        {/* Subito dopo l'elenco di tutto ciò che è compreso arriva la domanda che
-            quell'elenco fa nascere — «e quanto mi costa?». La risposta stava solo
-            dentro un accordion delle FAQ. Nessuna cucitura con FeaturedTestimonial:
-            sono entrambe paper, e una transizione fra due toni identici inventerebbe
-            uno stacco invece di nasconderlo (vedi la nota qui sopra). */}
-        <CostiChiari surface="paper" />
+        <CostiChiari />
         <FeaturedTestimonial />
-        <div data-tone="paper" className="bg-paper">
-          <SectionDivider tone="paper" />
-        </div>
-        <ToneShift from="paper" to="cream" depth="24svh" />
         <Social />
-        <div data-tone="cream" className="bg-cream">
-          <SectionDivider tone="cream" />
-        </div>
         <Team />
         <Contact />
-        {/* Eco di chiusura: la promessa dell'hero torna gigante, in deriva con lo scroll */}
-        <KineticStrip surface="cream-deep" className="bg-cream-deep" />
+        <Congedo />
       </main>
       <Footer />
       <WhatsAppFloat />

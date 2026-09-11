@@ -1,16 +1,10 @@
 "use client";
 
-import { useRef } from "react";
 import Reveal from "./Reveal";
-import Parallax from "./motion/Parallax";
-import CharFlip from "./motion/CharFlip";
 import TextLines from "./motion/TextLines";
-import Fioritura from "./motion/Fioritura";
-import { SegnoDomus, SegnoDomusBadge, SegnoTick } from "./BrandMotif";
-import { ArrowUpRight, ArrowRight, Star } from "./Icons";
+import { SegnoDomus } from "./BrandMotif";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
 
 // Domus D.O.C. — Domus di Origine Certificata.
 // Protocollo proprietario in 5 pilastri: Documenti, Conformità, Trasparenza, Preparazione, Tutela.
@@ -225,218 +219,85 @@ const copy = {
   },
 } as const;
 
-export default function DomusDocProtocol({
-  tone = "cream",
-  id = "domus-doc",
-}: {
+type Props = {
+  /** Resta nella firma per le pagine interne (/metodo, /vendi, /acquista), ma
+      non rende più alcun fondo né tappa `data-tone`: la rivista bianca ha un
+      solo avorio (2026-09-10). */
   tone?: "cream" | "paper" | "cream-deep";
   id?: string;
-}) {
+};
+
+export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
   const { locale } = useLocale();
   const c = copy[locale];
-  const bg = tone === "paper" ? "bg-paper" : tone === "cream-deep" ? "bg-cream-deep" : "bg-cream";
 
-  // Componente MULTI-ISTANZA (home + /metodo): tutto scopato ai ref locali.
-  const rootRef = useRef<HTMLElement | null>(null);
-  const sealRef = useRef<SVGCircleElement | null>(null);
-
-  // Il timbro D.O.C. si "stampa" (cerchio che si disegna + pop del contenuto)
-  // e i 5 pilastri entrano in cascata con i numeri che salgono dalla maschera.
-  useGSAP(
-    () => {
-      const root = rootRef.current;
-      if (!root) return;
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        const seal = sealRef.current;
-        const sealBox = root.querySelector<HTMLElement>("[data-doc-seal]");
-        const pillars = gsap.utils.toArray<HTMLElement>("[data-doc-pillar]", root);
-        const nums = gsap.utils.toArray<HTMLElement>("[data-doc-num]", root);
-
-        // Replay a ogni passaggio: restart all'ingresso, reverse risalendo.
-        const tl = gsap.timeline({
-          defaults: { ease: "domus" },
-          scrollTrigger: { trigger: root, start: "top 72%", toggleActions: "restart none none reverse" },
-        });
-        if (seal && sealBox) {
-          const len = seal.getTotalLength() + 2;
-          gsap.set(seal, { strokeDasharray: len, strokeDashoffset: len });
-          tl.fromTo(
-            sealBox,
-            { scale: 0.85, autoAlpha: 0, rotate: -8 },
-            { scale: 1, autoAlpha: 1, rotate: 0, duration: dur.short },
-            0
-          ).to(seal, { strokeDashoffset: 0, duration: dur.reveal, ease: "power2.inOut" }, 0.1);
-        }
-        if (pillars.length) {
-          // Niente clearProps: romperebbe il restart/reverse della timeline.
-          tl.fromTo(
-            pillars,
-            { y: 22, autoAlpha: 0 },
-            { y: 0, autoAlpha: 1, duration: dur.short, stagger: stagger.cards * 0.8 },
-            0.25
-          );
-        }
-        if (nums.length) {
-          tl.fromTo(
-            nums,
-            { yPercent: 110 },
-            { yPercent: 0, duration: dur.short, ease: "expo.out", stagger: stagger.cards * 0.8 },
-            0.35
-          );
-        }
-      });
-    },
-    { scope: rootRef }
-  );
-
+  // Riga piana, multi-istanza (home + pagine interne): niente card, niente
+  // lampo, niente timeline GSAP — solo Reveal e TextLines.
   return (
-    <section ref={rootRef} id={id} data-tone={tone} className={bg}>
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal>
-          <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
-            {/* watermark motif: lenta deriva parallax dentro la card (profondità).
-                mob off (misura), e la ragione è aritmetica prima che di gusto:
-                speed -0.12 su un segno alto 160px vale ±2,7px a piena corsa,
-                ~1,3px con la corsa dimezzata del telefono — meno di un capello
-                a 390, sotto i ~10px del criterio dell'onda «parità mobile 2».
-                Sarebbe uno ScrollTrigger scrubbato in più sul telefono per un
-                movimento che nessuno può vedere — la filigrana sta al 6% di
-                opacità. (Il tralcio qui sotto invece sul telefono c'è: la sua
-                decisione è la sua.) */}
-            <div className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>
-              <Parallax speed={-0.12} mobile={false}>
-                <SegnoDomus className="h-40 w-72" embrace={false} />
-              </Parallax>
-            </div>
-
-            {/* IL TRALCIO — DENTRO la card, nell'angolo in basso a sinistra
-                (2026-08-09, direttiva cliente). Prima sporgeva sopra il bordo
-                alto, fuori dalla card: un fiore sospeso nel respiro della
-                sezione. Qui l'`overflow: hidden` della card lo rifila sui suoi
-                stessi raggi, quindi il tralcio è dentro la carta e non può mai
-                sbordare né portarsi dietro una barra di scorrimento.
-                Sta PRIMA della griglia nel DOM apposta: entrambi sono
-                posizionati e l'ordine di pittura è quello del documento, così
-                il contenuto gli passa sempre sopra — è la regola «mai un fiore
-                sopra un testo» tenuta dalla struttura e non da una misura che
-                il primo cambio di copy smentirebbe. La colonna di sinistra
-                (intro + CTA) finisce ben più in alto dei cinque pilastri:
-                l'angolo basso è aria, ed è lì che il tralcio fiorisce.
-                SOTTO lg (onda «parità mobile 2», verdetto 6: stesso tralcio,
-                angolo adattato) la card è una colonna sola e l'angolo basso a
-                sinistra è l'ultimo pilastro e la nota di chiusura, cioè testo:
-                lì il tralcio violerebbe la regola qui sopra. L'aria, in
-                colonna, sta in alto a destra: accanto al sigillo (64px alto, a
-                sinistra) e sopra il titolo, che parte a ~116px dal bordo. Il
-                box sotto lg è quindi `top-0 right-0`, alto 11vh (93px a 844,
-                113 a 1024: sempre sotto la prima riga del titolo) e il disegno
-                lo segue con `variantBelowLg="corner-tr"`. Il velo `hidden`
-                sotto lg è caduto: era la vecchia dottrina «tradurre», e qui
-                l'effetto sul telefono è lo stesso, con i suoi parametri. */}
-            <Fioritura
-              variant="corner-bl"
-              variantBelowLg="corner-tr"
-              className="pointer-events-none absolute right-0 top-0 h-[11vh] w-[28vw] lg:bottom-0 lg:left-0 lg:right-auto lg:top-auto lg:h-[26vh] lg:w-[12vw]"
-            />
-
-            <div className="relative grid gap-y-12 lg:grid-cols-[0.95fr_1px_1.05fr] lg:gap-x-14 lg:gap-y-0">
-              {/* Intro */}
-              <div>
-                {/* Sigillo D.O.C. — firma visiva del protocollo: il cerchio è un
-                    tratto SVG che si "stampa" all'ingresso (senza JS: completo).
-                    Poi la luce lo prende: un lampo che gira intorno al sigillo
-                    (rif. _refs/aurelia, vedi docs/effetti-reference.md §2.6). */}
-                <div
-                  data-doc-seal
-                  className="dt-docseal relative mb-6 flex h-16 w-16 flex-col items-center justify-center text-red"
-                >
-                  <span aria-hidden className="dt-docseal_flash" />
-                  <svg aria-hidden viewBox="0 0 64 64" className="absolute inset-0 h-full w-full -rotate-90">
-                    <circle ref={sealRef} cx="32" cy="32" r="30" fill="none" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                  <SegnoDomus className="h-3 w-8" embrace={false} />
-                  <span className="mt-0.5 text-[0.58rem] font-bold tracking-[0.14em]">D.O.C.</span>
-                </div>
-                <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>
-                {/* TESTA DI CAPITOLO alla scala del riferimento: text-d2 +
-                    display-tight, non più 48px fissi. `balance` è via apposta —
-                    text-wrap: balance si ricalcola DOPO lo split di CharFlip e
-                    fa saltare una riga. Con `exit` il titolo, risalendo la
-                    pagina, gira dalla parte opposta invece di spegnersi. */}
-                <CharFlip
-                  as="h2"
-                  className="mt-5 font-display text-d2 display-tight font-medium text-ink"
-                  exit
-                >
-                  Domus D.O.C.
-                </CharFlip>
-                {/* Nome esteso — coerente ovunque: "Domus D.O.C. — Domus di Origine Certificata" */}
-                <TextLines as="p" className="mt-2 font-display text-lg text-red-dark" exit>
-                  {c.subtitle}
-                </TextLines>
-                <TextLines
-                  as="p"
-                  className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone"
-                  exit
-                >
-                  {c.intro}
-                </TextLines>
-
-                <Cta href="#contatti" variant="reveal-cream" size="md" className="mt-8">
-                  {c.cta}
-                </Cta>
-              </div>
-
-              {/* Divisore verticale hairline tra intro e pilastri (solo desktop) */}
-              <div className="hidden lg:block" aria-hidden>
-                <span className="block h-full w-px bg-gradient-to-b from-transparent via-line to-transparent" />
-              </div>
-
-              {/* 5 pilastri — ognuno con beneficio per chi vende E per chi compra. */}
-              <ul className="flex flex-col">
-                {c.pillars.map((p, i) => (
-                  <li
-                    key={p.t}
-                    data-doc-pillar
-                    className="group border-t border-line py-5 first:border-t-0 first:pt-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="tnum flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-red-soft font-display text-sm font-semibold text-red-dark transition-colors duration-300 group-hover:bg-red group-hover:text-white">
-                        <span data-doc-num className="block">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <SegnoTick className="h-4 w-4 text-red-dark" />
-                        <p className="font-display text-lg font-medium text-ink">{p.t}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 grid gap-3 pl-12 sm:grid-cols-2">
-                      <div>
-                        <p className="flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-red-dark">
-                          <ArrowUpRight className="h-3 w-3" />
-                          {c.sellerLabel}
-                        </p>
-                        <p className="mt-1 text-[0.85rem] leading-relaxed text-graphite">{p.seller}</p>
-                      </div>
-                      <div>
-                        <p className="flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-stone">
-                          <ArrowRight className="h-3 w-3 text-red" />
-                          {c.buyerLabel}
-                        </p>
-                        <p className="mt-1 text-[0.85rem] leading-relaxed text-stone">{p.buyer}</p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-                <li className="mt-4 flex items-center gap-2 border-t border-line pt-4 text-[0.8rem] text-stone">
-                  <Star className="h-3.5 w-3.5 shrink-0 text-red" />
-                  {c.footnote}
-                </li>
-              </ul>
-            </div>
+    <section id={id} className="dt-chapter bg-cream">
+      <div className="dt-row">
+        <div className="flex flex-col gap-8 md:flex-row md:items-start">
+          {/* Sigillo D.O.C.: fermo, 96 px. La scritta è a 16 px (text-ui). */}
+          <div
+            aria-hidden
+            className="relative flex h-24 w-24 shrink-0 flex-col items-center justify-center text-red"
+          >
+            <svg viewBox="0 0 96 96" className="absolute inset-0 h-full w-full">
+              <circle cx="48" cy="48" r="46" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
+            <SegnoDomus className="h-4 w-12" />
+            <span className="mt-1 text-ui font-bold tracking-[0.14em]">D.O.C.</span>
           </div>
+
+          <div>
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
+            <TextLines as="h2" className="mt-6 font-display text-d2">
+              Domus D.O.C.
+            </TextLines>
+            {/* Nome esteso — coerente ovunque: "Domus D.O.C. — Domus di Origine Certificata" */}
+            <Reveal>
+              <p className="mt-4 font-display text-d4 font-light text-stone">{c.subtitle}</p>
+            </Reveal>
+            <Reveal>
+              <p className="lead mt-6">{c.intro}</p>
+            </Reveal>
+          </div>
+        </div>
+
+        {/* Checklist: i 5 pilastri in due colonne, trattino rosso; ognuno con il
+            beneficio per chi vende e per chi compra. */}
+        <ul className="mt-12 grid gap-x-[4vw] gap-y-6 text-body text-graphite md:grid-cols-2">
+          {c.pillars.map((p) => (
+            <li key={p.t} className="flex gap-3">
+              <span aria-hidden className="mt-3 h-px w-6 shrink-0 bg-red" />
+              <div>
+                <h3 className="font-display text-d4 font-light">{p.t}</h3>
+                <p className="mt-2">
+                  <span className="block text-ui font-semibold uppercase tracking-[0.08em] text-red">
+                    {c.sellerLabel}
+                  </span>
+                  {p.seller}
+                </p>
+                <p className="mt-2 text-stone">
+                  <span className="block text-ui font-semibold uppercase tracking-[0.08em]">
+                    {c.buyerLabel}
+                  </span>
+                  {p.buyer}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <Reveal>
+          <p className="mt-10 max-w-[800px] text-body text-stone">{c.footnote}</p>
+        </Reveal>
+        <Reveal delay={100}>
+          <Cta href="#contatti" variant="ghost" className="mt-8">
+            {c.cta}
+          </Cta>
         </Reveal>
       </div>
     </section>

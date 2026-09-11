@@ -16,8 +16,8 @@ type Size = "sm" | "md" | "lg";
 const variantClass: Record<Variant, string> = {
   cta: "dt-btn dt-btn--cta",
   "cta-solid": "dt-btn dt-btn--cta dt-btn--cta-solid",
-  reveal: "dt-btn dt-btn--reveal",
-  "reveal-cream": "dt-btn dt-btn--reveal dt-btn--reveal-cream",
+  reveal: "dt-btn dt-btn--cta dt-btn--cta-solid",
+  "reveal-cream": "dt-btn dt-btn--cta dt-btn--cta-solid",
   ghost: "dt-btn dt-btn--ghost",
   "ghost-dark": "dt-btn dt-btn--ghost dt-btn--ghost-dark",
 };
@@ -32,26 +32,7 @@ function classesFor(variant: Variant, size: Size, className: string) {
   return [variantClass[variant], sizeClass[size], className].filter(Boolean).join(" ");
 }
 
-function CtaInner({
-  variant,
-  arrow,
-  children,
-}: {
-  variant: Variant;
-  arrow: boolean;
-  children: ReactNode;
-}) {
-  if (variant === "reveal" || variant === "reveal-cream") {
-    // Faccia doppia: la copia in arrivo è decorativa per gli screen reader
-    return (
-      <>
-        <span className="dt-btn__face-a">{children}</span>
-        <span className="dt-btn__face-b" aria-hidden>
-          {children}
-        </span>
-      </>
-    );
-  }
+function CtaInner({ arrow, children }: { arrow: boolean; children: ReactNode }) {
   return (
     <>
       <span className="dt-btn__label">{children}</span>
@@ -61,7 +42,6 @@ function CtaInner({
           <ArrowUpRight />
         </span>
       )}
-      {(variant === "cta" || variant === "cta-solid") && <span className="dt-btn__fill" aria-hidden />}
     </>
   );
 }
@@ -90,7 +70,7 @@ export function Cta({
 }: CtaLinkProps) {
   const cls = classesFor(variant, size, className);
   const content = (
-    <CtaInner variant={variant} arrow={arrow}>
+    <CtaInner arrow={arrow}>
       {children}
     </CtaInner>
   );
@@ -121,7 +101,7 @@ export function CtaButton({
 }: CtaButtonProps) {
   return (
     <button className={classesFor(variant, size, className)} {...rest}>
-      <CtaInner variant={variant} arrow={arrow}>
+      <CtaInner arrow={arrow}>
         {children}
       </CtaInner>
     </button>

@@ -69,7 +69,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Valutazione immobile · Tradate e provincia",
     title: "Quanto vale davvero la tua casa.",
     lead: "Non lo dice un calcolatore in trenta secondi. Lo dice chi viene a vederla, controlla i documenti e mette per iscritto come è arrivato a quel numero. Il primo incontro è senza impegno e senza costi.",
-    ctaPrimary: "Richiedi la valutazione del tuo immobile",
+    ctaPrimary: "Richiedi la valutazione",
     ctaSecondary: "Come funziona",
     tiersEyebrow: "Come funziona",
     tiersTitle: "Due passaggi, non uno.",
@@ -123,7 +123,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Property valuation · Tradate and province",
     title: "What your home is actually worth.",
     lead: "Not something a calculator decides in thirty seconds. It's decided by someone who comes to see it, checks the paperwork and writes down how they reached that figure. The first meeting carries no obligation and no cost.",
-    ctaPrimary: "Request a valuation of your property",
+    ctaPrimary: "Request a valuation",
     ctaSecondary: "How it works",
     tiersEyebrow: "How it works",
     tiersTitle: "Two steps, not one.",
@@ -177,7 +177,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Estimation immobilière · Tradate et sa province",
     title: "Ce que vaut vraiment votre bien.",
     lead: "Pas ce qu'un calculateur décide en trente secondes. Ce que décide quelqu'un qui vient le voir, vérifie les documents et écrit comment il est arrivé à ce chiffre. Le premier rendez-vous est sans engagement et sans frais.",
-    ctaPrimary: "Demandez l’estimation de votre bien",
+    ctaPrimary: "Demander l’estimation",
     ctaSecondary: "Comment ça marche",
     tiersEyebrow: "Comment ça marche",
     tiersTitle: "Deux étapes, pas une.",
@@ -231,7 +231,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Immobilienbewertung · Tradate und Provinz",
     title: "Was Ihre Immobilie wirklich wert ist.",
     lead: "Das entscheidet kein Rechner in dreißig Sekunden. Das entscheidet jemand, der sie ansieht, die Unterlagen prüft und aufschreibt, wie er auf diese Zahl gekommen ist. Das erste Gespräch ist unverbindlich und kostenfrei.",
-    ctaPrimary: "Bewertung Ihrer Immobilie anfordern",
+    ctaPrimary: "Bewertung anfordern",
     ctaSecondary: "So funktioniert es",
     tiersEyebrow: "So funktioniert es",
     tiersTitle: "Zwei Schritte, nicht einer.",
@@ -285,7 +285,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Valoración de inmuebles · Tradate y provincia",
     title: "Cuánto vale de verdad tu casa.",
     lead: "No lo decide una calculadora en treinta segundos. Lo decide quien viene a verla, comprueba los documentos y escribe cómo ha llegado a esa cifra. El primer encuentro es sin compromiso y sin coste.",
-    ctaPrimary: "Solicita la valoración de tu inmueble",
+    ctaPrimary: "Solicita la valoración",
     ctaSecondary: "Cómo funciona",
     tiersEyebrow: "Cómo funciona",
     tiersTitle: "Dos pasos, no uno.",
@@ -388,33 +388,23 @@ export default function ValutazioneContent() {
             </p>
           </Reveal>
 
-          <ol className="mt-14 grid gap-6 lg:grid-cols-2 lg:gap-8">
+          {/* Due livelli come due colonne di testo su hairline: niente card (2026-09-10). */}
+          <ol className="mt-16 grid gap-x-16 lg:grid-cols-2">
             {c.tiers.map((t, i) => (
-              <li key={t.step}>
-                <Reveal delay={140 + i * 90}>
-                  <div className="flex h-full flex-col rounded-card border border-line bg-cream p-7 sm:p-9">
-                    <span className="tnum font-display text-3xl font-medium leading-none text-red">
-                      {t.step}
-                    </span>
-                    <h3 className="mt-5 font-display text-2xl font-medium leading-snug text-ink">
-                      {t.name}
-                    </h3>
-                    <p className="mt-3 text-[0.98rem] leading-relaxed text-graphite">{t.lead}</p>
-                    <ul className="mt-6 space-y-3 border-t border-line pt-6">
-                      {t.items.map((item) => (
-                        <li
-                          key={item}
-                          className="flex items-start gap-3 text-[0.95rem] leading-snug text-graphite"
-                        >
-                          <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-red" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="mt-auto border-l-2 border-red pl-4 pt-6 text-[0.9rem] italic leading-relaxed text-stone">
-                      {t.note}
-                    </p>
-                  </div>
+              <li key={t.step} className="border-t border-line pt-8">
+                <Reveal delay={140 + i * 90} className="flex h-full flex-col">
+                  <span className="tnum font-display text-d2 text-red">{t.step}</span>
+                  <h3 className="mt-5 font-display text-d3">{t.name}</h3>
+                  <p className="lead mt-6">{t.lead}</p>
+                  <ul className="mt-8 border-t border-line pt-2">
+                    {t.items.map((item) => (
+                      <li key={item} className="flex items-start gap-4 border-b border-line py-4 text-body text-graphite">
+                        <span aria-hidden className="mt-3.5 h-px w-5 shrink-0 bg-red" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-auto border-l-2 border-red pl-5 pt-8 text-body text-graphite">{t.note}</p>
                 </Reveal>
               </li>
             ))}
@@ -459,10 +449,8 @@ export default function ValutazioneContent() {
                     delay={100 + i * 80}
                     className="border-t border-line pt-5"
                   >
-                    <dt className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-red">
-                      {w.t}
-                    </dt>
-                    <dd className="mt-2 text-[0.98rem] leading-relaxed text-graphite">{w.c}</dd>
+                    <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-red">{w.t}</dt>
+                    <dd className="mt-3 text-body text-graphite">{w.c}</dd>
                   </Reveal>
                 ))}
               </dl>

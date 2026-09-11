@@ -157,14 +157,14 @@ export default function CaseQuickLook({
   return createPortal(
     <div ref={rootRef} className="fixed inset-0 z-[70] grid place-items-center p-4 sm:p-8">
       {/* Backdrop: click fuori = chiudi (Esc e bottone restano le vie a11y) */}
-      {/* Bg pieno, niente backdrop-blur: un blur full-viewport la cui opacità
-          è animata mentre sopra vola il Flip è il costo compositor peggiore
-          possibile (stessa regola del menu mobile in Header). */}
+      {/* Velo AVORIO, non scuro (2026-09-10), e niente backdrop-blur: un blur
+          full-viewport la cui opacità è animata mentre sopra vola il Flip è il
+          costo compositor peggiore possibile (stessa regola del menu mobile). */}
       <div
         ref={backdropRef}
         aria-hidden
         onClick={requestClose}
-        className="absolute inset-0 bg-espresso/75"
+        className="absolute inset-0 bg-cream/95"
       />
 
       <div
@@ -180,7 +180,7 @@ export default function CaseQuickLook({
         <div
           data-ql-fade
           aria-hidden
-          className="absolute inset-0 rounded-[2rem] border border-line bg-paper shadow-[var(--shadow-float)]"
+          className="absolute inset-0 border border-line bg-paper"
         />
 
         <div className="relative p-3 sm:p-4">
@@ -190,31 +190,28 @@ export default function CaseQuickLook({
               ref={imgRef}
               data-ql-view
               data-flip-id={p.slug}
-              className="absolute inset-0 overflow-hidden rounded-[1.4rem]"
+              className="absolute inset-0 overflow-hidden"
             >
               <Image
                 src={p.cover}
                 alt={p.title}
                 fill
                 sizes="(max-width: 768px) 100vw, 720px"
-                className="photo-warm object-cover"
+                className="object-cover"
               />
             </div>
           </div>
 
           <div className="relative px-3 pb-3 pt-5 sm:px-4 sm:pb-4 sm:pt-6">
-            <p data-ql-fact className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-red">
+            <p data-ql-fact className="text-ui font-semibold uppercase tracking-[0.08em] text-red">
               {p.zone}
             </p>
-            <h3
-              data-ql-fact
-              className="mt-2 font-display text-2xl font-medium leading-tight tracking-tight text-ink sm:text-3xl"
-            >
+            <h3 data-ql-fact className="mt-2 font-display text-d3">
               {p.title}
             </h3>
             <div
               data-ql-fact
-              className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.85rem] text-stone"
+              className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-body text-graphite"
             >
               {/* Solo i numeri pertinenti alla categoria (vedi lib/propertyKind.ts):
                   camere fuori da un commerciale/terreno, locali fuori da un terreno. */}
@@ -241,13 +238,13 @@ export default function CaseQuickLook({
               <span
                 className={
                   /\d/.test(p.price)
-                    ? "tnum font-display text-2xl font-medium text-ink"
-                    : "text-base font-semibold text-ink"
+                    ? "tnum font-display text-d3 text-ink"
+                    : "text-body font-semibold text-ink"
                 }
               >
                 {p.price}
               </span>
-              <Cta href={`/case/${p.slug}`} variant="cta" size="md">
+              <Cta href={`/case/${p.slug}`} variant="cta-solid" size="md">
                 {c.goTo}
               </Cta>
             </div>
@@ -261,7 +258,7 @@ export default function CaseQuickLook({
           data-ql-fade
           onClick={requestClose}
           aria-label={c.close}
-          className="absolute right-6 top-6 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper/90 text-ink shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)] backdrop-blur-sm transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          className="absolute right-6 top-6 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper text-ink transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
         >
           <svg
             viewBox="0 0 24 24"

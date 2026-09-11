@@ -339,6 +339,26 @@ describe("globals.css: i numeri rimasti in CSS combaciano", () => {
     const mobileBlock = css.slice(css.indexOf("@media (max-width: 767.98px) {\n  /* Una porta"));
     assert.doesNotMatch(mobileBlock.slice(0, mobileBlock.indexOf("\n}\n")), /data-pre-arch-echo/);
   });
+
+  test("il badge gira in senso ORARIO, anello e monogramma nello stesso verso (cliente, 2026-09-10)", () => {
+    // Il difetto che blinda: il monogramma girava `reverse` (antiorario)
+    // mentre l'header era già stato messo in senso orario — la direttiva era
+    // stata applicata a spinMarkBadge, che il preloader non usa più.
+    const spin = (sel: string) => {
+      const m = css.match(
+        new RegExp(String.raw`html\[data-preloader\] \.dt-preloader \[${sel}\]\s*\{[^}]*?animation:\s*([^;]+);`)
+      );
+      assert.ok(m, `nessuna animation per [${sel}] in globals.css`);
+      return m![1].trim();
+    };
+    const ring = spin("data-rot-ring");
+    const mark = spin("data-rot-mark");
+    assert.equal(ring, mark, "anello e monogramma devono girare con la stessa animazione (stesso verso)");
+    assert.match(ring, /^dt-pre-spin\b/);
+    assert.doesNotMatch(ring, /\b(reverse|alternate)\b/, "il badge gira al contrario");
+    // e le keyframe vanno da 0 a +360: orario.
+    assert.match(css, /@keyframes dt-pre-spin \{\s*to \{\s*transform: rotate\(360deg\);/);
+  });
 });
 
 describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
@@ -368,5 +388,50 @@ describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
     // Derivato, non scritto: se cambia TEMPO il budget lo segue da sé.
     assert.match(e2e, /const budget = INTRO_MS \+ \d+;/);
     assert.doesNotMatch(e2e, /width < 768 \? 1900/);
+  });
+});
+
+/* ─────────────────────────────────────────────────────────────────────────
+   IL PATTO SAGOMA/FOTO — «l'animazione di entrata come prima».
+   L'effetto dell'intro e' che la porta ad arco si apra SULLA STANZA: la
+   sagoma dentro il sipario e la foto dell'hero sotto sono lo stesso scatto,
+   nella stessa scatola, col medesimo ritaglio — quando l'arco le attraversa
+   non c'e' un salto, c'e' la continuazione. L'11 settembre 2026 il patto si
+   era rotto in silenzio (l'hero e' diventato una banda alta, la sagoma era
+   rimasta a tutto schermo: per 750 ms due Raffaela, poi un taglio). Questi
+   controlli lo tengono chiuso: se qualcuno sposta una delle due scatole,
+   `npm test` lo dice prima di un cliente.
+   ───────────────────────────────────────────────────────────────────────── */
+describe("la porta si apre sulla stanza: sagoma e foto coincidono", () => {
+  const shell = read("app/components/motion/PreloaderShell.tsx");
+  const hero = read("app/components/HeroCinematic.tsx");
+
+  test("i due numeri della scatola esistono e sono UNO solo", () => {
+    assert.match(css, /--dt-head-h:\s*clamp\([^;]+\);/);
+    assert.match(css, /--dt-band-h:\s*60svh;/);
+  });
+
+  test("la sagoma e' ancorata alla banda (top = testata, altezza = banda)", () => {
+    const rule = css.match(/\.dt-preloader \[data-pre-figure\] \{[^}]*\}/);
+    assert.ok(rule, "manca la regola di posizione della sagoma");
+    assert.match(rule![0], /top:\s*calc\(var\(--dt-head-h\) \+ 1px\)/);
+    assert.match(rule![0], /height:\s*var\(--dt-band-h\)/);
+    // e non e' tornata a tutto schermo
+    assert.doesNotMatch(rule![0], /height:\s*100(svh|vh|%)/);
+  });
+
+  test("la banda dell'hero legge lo stesso token", () => {
+    assert.match(hero, /data-hero-media[\s\S]{0,200}h-\[var\(--dt-band-h\)\]/);
+  });
+
+  test("stesso ritaglio: un solo object-position per i due nodi", () => {
+    const pos = /objectPosition:\s*"10% 0%"/;
+    assert.match(shell, pos, "la sagoma non usa il ritaglio della foto");
+    assert.match(hero, pos, "la foto dell'hero non usa il ritaglio della sagoma");
+    assert.doesNotMatch(shell, /objectPosition:\s*"50% 70%"/);
+  });
+
+  test("la vecchia «fascia» non torna a spostare la sagoma", () => {
+    assert.doesNotMatch(css, /--dt-fascia-w/);
   });
 });

@@ -13,9 +13,8 @@
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
-import { execFileSync } from "node:child_process";
-import { join } from "node:path";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 
 import {
   AREA_SCHEMA_VERSION,
@@ -29,23 +28,25 @@ import { allAreaFacts, getPublicAreaProfile } from "../data";
 import { areaFactId, areaSourceId, areaFactsHash, contentHash, stableStringify } from "../hash";
 
 /**
- * `grep -rl` che ritorna l'elenco dei file, o vuoto quando non trova nulla.
- * Senza questo, "nessuna corrispondenza" (uscita 1 di grep) diventerebbe un'eccezione — cioè
- * il caso DESIDERATO farebbe fallire il test.
+ * Elenco dei file .ts/.tsx (sotto le cartelle date) il cui testo soddisfa la regex, o vuoto
+ * quando nessuno la soddisfa. Scandisce in Node, come content-integrity.test.ts: prima passava
+ * da un `grep` esterno, che su Windows (`npm test` da PowerShell) non esiste — e il test
+ * segnava «nessuna dichiarazione» dove ce n'era una.
  */
 function grepFiles(pattern: string, ...paths: string[]): string[] {
-  try {
-    const out = execFileSync(
-      "grep",
-      ["-rl", "--include=*.ts", "--include=*.tsx", "-E", pattern, ...paths],
-      { encoding: "utf8" },
-    );
-    return out.split("\n").map((l) => l.trim()).filter(Boolean);
-  } catch (err) {
-    // uscita 1 = nessuna corrispondenza; qualunque altro codice è un errore vero.
-    if ((err as { status?: number }).status === 1) return [];
-    throw err;
-  }
+  const re = new RegExp(pattern);
+  const out: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (/\.tsx?$/.test(entry.name) && re.test(readFileSync(full, "utf8"))) {
+        out.push(relative(process.cwd(), full).split(sep).join("/"));
+      }
+    }
+  };
+  for (const p of paths) if (existsSync(p)) walk(p);
+  return out.sort();
 }
 
 describe("un solo modello di fatto d'area in tutto il repository", () => {

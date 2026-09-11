@@ -45,7 +45,7 @@ export default function ContattiPage() {
       <Header />
       <main className="flex-1 bg-paper">
         <ContattiContent />
-        <Contact />
+        <Contact compact />
       </main>
       <Footer />
       <WhatsAppFloat />

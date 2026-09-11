@@ -518,3 +518,26 @@ scorri**.
 
 Le prime due si risolvono con del testo. La terza è una decisione della cliente, ed è l'unica del
 piano che non possiamo prendere noi.
+
+
+---
+
+## 8. 2026-09-10 — il redesign «rivista bianca»
+
+Dopo la chiamata con la cliente (stile curvo/smussato/a card bocciato; riferimento pinnato
+https://www.immobiliaregoldengoal.it/) il sito è stato riportato a una grammatica pulita: un solo
+fondo avorio, titoli maiuscoli in vw/vh, paragrafi grandi e leggeri, media squadrati, tre gesti di
+movimento, niente nero, niente curve, niente fiori, nessun testo sotto i 16 px. Spec:
+`docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md`; piano:
+`docs/superpowers/plans/2026-09-10-rivista-bianca.md`; dossier del riferimento (sorgenti, misure,
+screenshot): `reverse-engineering/goldengoal/README.md`.
+
+Le quattordici voci della chiamata sono risolte nel branch `claude/rivista-bianca` (vedi la
+tabella §1 della spec). Restano aperte, perché dipendono dalla cliente: il **logo nuovo** e il font
+delle scritte «Domus Tua» (`docs/logo-assets.md` §5), le **foto dei cinque membri del team** (la
+rotaia nasce coi monogrammi, `app/lib/team.ts`), la **firma autografa** reale.
+
+Aggiornamento dell'11 settembre: fuso `main` nella branch; la foto dell'hero torna dietro il
+lockup «Domus Tua» (senza velo); nessuna scritta nera (`--color-ink` = grafite); su richiesta del
+cliente tornano, nella grammatica della rivista, i pannelli orizzontali di «Perché Domus Tua» e il
+film delle cinque stelle.

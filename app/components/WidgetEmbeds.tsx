@@ -41,9 +41,9 @@ export function IframeWidget({
 }) {
   const [loaded, setLoaded] = useState(false);
   return (
-    <div className="relative w-full overflow-hidden rounded-[1.5rem]" style={{ aspectRatio: ratio }}>
+    <div className="relative w-full overflow-hidden" style={{ aspectRatio: ratio }}>
       {!loaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-cream-deep text-sm text-stone">
+        <div className="absolute inset-0 flex items-center justify-center bg-cream-deep text-body text-graphite">
           Carico il feed…
         </div>
       )}

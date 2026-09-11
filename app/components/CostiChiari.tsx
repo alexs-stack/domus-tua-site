@@ -16,9 +16,17 @@
 // costi» dice la stessa identica cosa e non abbassa il registro.
 //
 // PERCHÉ NON È UNA PROMESSA DI RISULTATO
-// Le tre righe dicono cosa NON si paga e QUANDO si paga: sono condizioni contrattuali,
-// fatti verificabili sul mandato. Non promettono che la casa si venda (vedi §3.3 e la FAQ
-// che si rifiuta di promettere tempi).
+// Dice cosa NON si paga e QUANDO si paga: condizioni contrattuali, fatti verificabili sul
+// mandato. Non promette che la casa si venda (vedi §3.3 e la FAQ che si rifiuta di
+// promettere tempi).
+//
+// LA FORMA (2026-09-11): una RIGA-DICHIARAZIONE, non un capitolo. Prima era un
+// `dt-chapter` da 806px costruito attorno a una frase sola: dentro c'era più vuoto che
+// parole, e due capitoli di fila senza media facevano sembrare la pagina finita. Ora il
+// titolo sta a sinistra, il lead e il link sulla seconda colonna (la stessa linea
+// verticale delle righe foto+testo) e la sezione non ha il padding di capitolo ma un
+// filo di respiro (1-2rem, che tiene dentro le discendenti del Playfair a interlinea
+// 0.95): l'aria vera gliela danno i capitoli vicini, che ne hanno in abbondanza.
 
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
@@ -26,9 +34,12 @@ import { Cta } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
 
+// `first`, `noSale`, `includedLabel`, `included`: conservati dal blocco
+// precedente; oggi non hanno più una riga propria.
 type Copy = {
   eyebrow: string;
   title: string;
+  scriptWord: string;
   lead: string;
   included: string;
   first: string;
@@ -39,8 +50,9 @@ type Copy = {
 const copy: Record<Locale, Copy> = {
   it: {
     eyebrow: "Quanto costa",
-    title: "Nessun costo anticipato. Si paga solo a vendita conclusa.",
-    lead: "Valutazione, fotografie professionali, video, home staging e verifica dei documenti sono compresi nel metodo.",
+    title: "Nessun costo anticipato.",
+    scriptWord: "Nessun anticipo",
+    lead: "Si paga solo a vendita conclusa. Valutazione, fotografie professionali, video, home staging e verifica dei documenti sono compresi nel metodo.",
     first: "Il primo incontro è senza impegno e senza costi.",
     noSale: "Se non vendiamo, non ci pagate: non c'è un listino nascosto in fondo al mandato.",
     includedLabel: "Compreso nel metodo",
@@ -48,8 +60,9 @@ const copy: Record<Locale, Copy> = {
   },
   en: {
     eyebrow: "What it costs",
-    title: "No upfront costs. You pay only once the sale is closed.",
-    lead: "Valuation, professional photography, video, home staging and document checks are part of the method.",
+    title: "No upfront costs.",
+    scriptWord: "No upfront cost",
+    lead: "You pay only once the sale is closed. Valuation, professional photography, video, home staging and document checks are part of the method.",
     first: "The first meeting carries no obligation and no cost.",
     noSale: "If we don't sell, you don't pay us: there is no hidden price list at the end of the mandate.",
     includedLabel: "Included in the method",
@@ -57,8 +70,9 @@ const copy: Record<Locale, Copy> = {
   },
   fr: {
     eyebrow: "Combien ça coûte",
-    title: "Aucun frais d'avance. Vous payez seulement une fois la vente conclue.",
-    lead: "Estimation, photographies professionnelles, vidéo, home staging et vérification des documents font partie de la méthode.",
+    title: "Aucun frais d'avance.",
+    scriptWord: "Aucune avance",
+    lead: "Vous payez seulement une fois la vente conclue. Estimation, photographies professionnelles, vidéo, home staging et vérification des documents font partie de la méthode.",
     first: "Le premier rendez-vous est sans engagement et sans frais.",
     noSale: "Si nous ne vendons pas, vous ne nous payez pas : il n'y a pas de tarif caché au bas du mandat.",
     includedLabel: "Compris dans la méthode",
@@ -66,8 +80,9 @@ const copy: Record<Locale, Copy> = {
   },
   de: {
     eyebrow: "Was es kostet",
-    title: "Keine Kosten im Voraus. Bezahlt wird erst nach erfolgreichem Verkauf.",
-    lead: "Bewertung, professionelle Fotos, Video, Home Staging und Unterlagenprüfung gehören zur Methode.",
+    title: "Keine Kosten im Voraus.",
+    scriptWord: "Keine Vorauszahlung",
+    lead: "Bezahlt wird erst nach erfolgreichem Verkauf. Bewertung, professionelle Fotos, Video, Home Staging und Unterlagenprüfung gehören zur Methode.",
     first: "Das erste Gespräch ist unverbindlich und kostenfrei.",
     noSale: "Verkaufen wir nicht, zahlen Sie nichts: Am Ende des Auftrags steht keine versteckte Preisliste.",
     includedLabel: "In der Methode enthalten",
@@ -75,8 +90,9 @@ const copy: Record<Locale, Copy> = {
   },
   es: {
     eyebrow: "Cuánto cuesta",
-    title: "Sin costes por adelantado. Se paga solo cuando la venta se cierra.",
-    lead: "Valoración, fotografías profesionales, vídeo, home staging y verificación de los documentos están incluidos en el método.",
+    title: "Sin costes por adelantado.",
+    scriptWord: "Sin anticipos",
+    lead: "Se paga solo cuando la venta se cierra. Valoración, fotografías profesionales, vídeo, home staging y verificación de los documentos están incluidos en el método.",
     first: "El primer encuentro es sin compromiso y sin coste.",
     noSale: "Si no vendemos, no nos pagáis: no hay una lista de precios escondida al final del mandato.",
     includedLabel: "Incluido en el método",
@@ -85,9 +101,12 @@ const copy: Record<Locale, Copy> = {
 };
 
 export default function CostiChiari({
+  // `surface` resta nella firma per i chiamanti (home, /vendi) ma è inerte:
+  // il fondo è uno solo, l'avorio, e le bande non si alternano più.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   surface = "paper",
 }: {
-  /** La banda su cui poggia il blocco, per non affiancare due superfici uguali. */
+  /** Conservata per compatibilità: il fondo è sempre `bg-cream`. */
   surface?: "paper" | "cream";
 }) {
   const { locale } = useLocale();
@@ -95,55 +114,32 @@ export default function CostiChiari({
   const c = copy[locale];
 
   return (
-    <section
-      id="costi"
-      className={`relative ${surface === "cream" ? "bg-cream" : "bg-paper"}`}
-      data-surface="light"
-    >
-      <div className="mx-auto max-w-[1240px] px-5 py-20 sm:px-8 sm:py-24">
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-16">
-          <div>
-            <Reveal>
-              <span className="eyebrow">{c.eyebrow}</span>
-            </Reveal>
-            <TextLines
-              as="h2"
-              className="mt-5 font-display text-3xl font-medium leading-[1.06] tracking-tight text-ink balance sm:text-[2.4rem]"
-            >
-              {c.title}
-            </TextLines>
-            <Reveal delay={120}>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-graphite">{c.lead}</p>
-            </Reveal>
-            <Reveal delay={180}>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-graphite">{c.first}</p>
-            </Reveal>
-            {/* La riga che chiude l'obiezione, in evidenza: è quella che il proprietario
-                sta cercando e non deve doverla pescare dentro un paragrafo. */}
-            <Reveal delay={240}>
-              <p className="mt-6 max-w-xl border-l-2 border-red pl-5 text-base font-medium leading-relaxed text-ink">
-                {c.noSale}
-              </p>
-            </Reveal>
-            <Reveal delay={300}>
-              <Cta href="#contatti" variant="cta" size="md" className="mt-8">
-                {d.hero.ctaValuta}
-              </Cta>
-            </Reveal>
-          </div>
-
-          <Reveal delay={160}>
-            <div className="rounded-card border border-line bg-cream-deep p-7 sm:p-8">
-              <span className="eyebrow">{c.includedLabel}</span>
-              <ul className="mt-5 space-y-3">
-                {c.included.split(" · ").map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-[0.95rem] leading-snug text-graphite">
-                    <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-red" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+    <section id="costi" className="bg-cream py-[clamp(1rem,3vh,2rem)]">
+      <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-end">
+        <div>
+          <Reveal>
+            <span className="eyebrow">{c.eyebrow}</span>
+          </Reveal>
+          <TextLines as="h2" className="mt-6 font-display text-d2">
+            {c.title}
+          </TextLines>
+          {/* Niente parola calligrafica, qui. È l'ornamento del CAPITOLO, e
+              questa non è più un capitolo ma una riga: in mezza colonna la
+              calligrafia attraversava l'ultima riga del titolo partendo dal
+              margine, e «conclusa» spariva sotto la «N» di «Nessun anticipo» —
+              che per giunta ripeteva il titolo parola per parola. Il rosso di
+              questa riga sono l'eyebrow e il link. */}
+        </div>
+        {/* Il seguito sulla seconda colonna, alla stessa linea verticale delle
+            righe foto+testo: è quel che rende questa una riga e non un capitolo. */}
+        <div className="mt-6 lg:mt-0 lg:pl-[6vw]">
+          <Reveal delay={140}>
+            <p className="lead">{c.lead}</p>
+          </Reveal>
+          <Reveal delay={200}>
+            <Cta href="#contatti" variant="ghost" className="mt-8">
+              {d.hero.ctaValuta}
+            </Cta>
           </Reveal>
         </div>
       </div>

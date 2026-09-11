@@ -107,6 +107,7 @@ export default function RecensioniContent() {
         primary={{ label: c.primaryLabel, href: "#contatti" }}
         secondary={{ label: c.secondaryLabel, href: "#recensioni" }}
         trust={c.trust}
+        scriptWord={{ it: "Le voci", en: "The voices", fr: "Les voix", de: "Die Stimmen", es: "Las voces" }[locale]}
       />
 
       <FeaturedTestimonial />

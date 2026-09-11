@@ -1,6 +1,9 @@
 // Dati di contatto e costanti del brand Domus Tua.
 // Dati societari/contatti/orari VERIFICATI dal sito ufficiale domustua.com + Registro Imprese
-// (lug 2026). Recensioni: 4,9/5 su Google, ~531 recensioni (fonte Trustindex, giu 2026).
+// (lug 2026). Recensioni: 4,9/5 su Google, 542 recensioni (fonte Trustindex, letto dal
+// widget vivo l'11 settembre 2026: diceva 542 mentre il sito ne scriveva 531, a settecento
+// pixel di distanza nella stessa pagina. Il numero e' vivo: va riletto dal widget ogni
+// volta che si tocca questa riga).
 // I dati immobili e le recensioni testuali nel sito sono DEMO da sostituire con quelli reali.
 
 export const site = {
@@ -40,13 +43,13 @@ export const site = {
   // Spec orari per i dati strutturati (schema.org openingHours).
   openingHours: ["Mo-Fr 09:00-12:30", "Mo-Fr 14:30-19:00", "Sa 09:00-12:30"],
   rating: "4.9",
-  reviewsCount: "531",
+  reviewsCount: "542",
   // NB: qui NON c'è più `reviewsApprox: "500"`. Esisteva per reggere le frasi "oltre 500
   // recensioni", ed era la metà sbagliata di un'incoerenza che il sito portava in giro:
-  // "oltre 500" in quattordici punti e "531" nell'hero, cioè due numeri per lo stesso dato
-  // (voce 16 della checklist). La decisione del Documento finale è unificare su 531 — e il
+  // "oltre 500" in quattordici punti e il conteggio nell'hero, cioè due numeri per lo stesso dato
+  // (voce 16 della checklist). La decisione del Documento finale è unificare sul conteggio esatto — e il
   // motivo è nel §6.3: «le prove devono essere forti perché sono ESATTE, non perché sono
-  // assolute». 531 è più credibile di "oltre 500" proprio perché nessuno inventa un 531.
+  // assolute». Un numero esatto è più credibile di "oltre 500" proprio perché nessuno lo inventa.
   // Il campo è stato tolto invece di essere collegato: era vivo solo per una formula che
   // non si usa più.
   // NB: nessun conteggio video qui. Il vecchio `videosCountLabel: "440+"` era una stima non
@@ -60,7 +63,7 @@ export const site = {
   // (una classifica nazionale raccontata come provinciale), sbagliava il criterio
   // (Wikicasa Top Agency è costruita sul fatturato, non sulle recensioni) e buttava via
   // la ripetizione (tre anni consecutivi diventavano uno). E soprattutto DUPLICAVA la
-  // prova già data dal 4,9/531 invece di aggiungerne una indipendente.
+  // prova già data dal voto e dal conteggio invece di aggiungerne una indipendente.
   //
   // L'ultima frase non è un ornamento: il premio da solo dice "siamo grandi", il premio
   // più "una sola sede, indipendenti, a guida femminile" dice quanto vale arrivarci da
@@ -314,22 +317,28 @@ export function isIndexableDeployment(env: {
 }
 
 // Href assoluti verso le pagine dedicate.
+/* `primary` marca le SEI voci della testata: nove parole maiuscole in una riga
+   sono un nastro che attraversa lo schermo (il «menu sopra» che il cliente ha
+   segnalato l'11 settembre), e il riferimento ne tiene quattro. Le altre tre
+   (Servizi, Recensioni, Lavora con noi) restano nel menu del telefono, nel
+   footer e nella sitemap: `nav` resta la fonte unica, cambia solo chi la
+   filtra. */
 export const nav = [
-  { key: "vendi", label: "Vendi", href: "/vendi" },
-  { key: "acquista", label: "Acquista", href: "/acquista" },
-  { key: "metodo", label: "Metodo Domus", href: "/metodo" },
+  { key: "vendi", label: "Vendi", href: "/vendi", primary: true },
+  { key: "acquista", label: "Acquista", href: "/acquista", primary: true },
+  { key: "metodo", label: "Metodo Domus", href: "/metodo", primary: true },
   // Il metodo, poi i servizi che lo mettono in pratica, poi Open Domus (uno di
   // quei servizi, messo in evidenza). La pagina /servizi esisteva ma non era
   // raggiungibile dalla navigazione principale.
   { key: "servizi", label: "Servizi", href: "/servizi" },
-  { key: "openDomus", label: "Open Domus", href: "/open-domus" },
+  { key: "openDomus", label: "Open Domus", href: "/open-domus", primary: true },
   { key: "recensioni", label: "Recensioni", href: "/recensioni" },
-  { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo" },
+  { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo", primary: true },
   // Sta accanto a "Chi siamo" perché è la stessa domanda vista dall'altra parte:
   // lì si racconta chi siamo, qui chi vorremmo diventare. Prima di "Contatti",
   // che resta l'ultima voce perché è l'ultimo passo.
   { key: "lavora", label: "Lavora con noi", href: "/lavora-con-noi" },
-  { key: "contatti", label: "Contatti", href: "/contatti" },
+  { key: "contatti", label: "Contatti", href: "/contatti", primary: true },
 ] as const;
 
 /**

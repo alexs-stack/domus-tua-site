@@ -23,11 +23,23 @@ test("i testi rivelati dall'animazione sono comunque leggibili", async ({ page, 
   await goto("/vendi");
   await page.waitForTimeout(400);
 
-  // Ogni parola animata è a piena opacità: senza animazione non resta niente di nascosto.
-  const faded = await page.locator("[data-w]").evaluateAll((els) =>
-    els.filter((e) => Number(getComputedStyle(e).opacity) < 0.9).length,
+  // I blocchi che entrano allo scroll (`.reveal`, Reveal.tsx) e i titoli che TextLines
+  // rivela riga per riga: con reduced motion sono a piena opacità, senza traslazione
+  // né sfocatura — non resta niente di nascosto in attesa di un'animazione.
+  const blocks = page.locator("#main .reveal");
+  expect(await blocks.count(), "nessun blocco .reveal su /vendi").toBeGreaterThan(0);
+  const faded = await page.locator("#main .reveal, #main h1, #main h2, #main .lead").evaluateAll((els) =>
+    els
+      .filter((e) => {
+        const s = getComputedStyle(e);
+        // `.reveal.is-in` computa `blur(0px)`: è identità, non una sfocatura.
+        const fermo = s.transform === "none" || s.transform === "matrix(1, 0, 0, 1, 0, 0)";
+        const nitido = s.filter === "none" || /^blur\(0(px)?\)$/.test(s.filter);
+        return Number(s.opacity) < 0.9 || !fermo || !nitido;
+      })
+      .map((e) => `${e.tagName}.${e.className} «${(e.textContent ?? "").trim().slice(0, 30)}»`),
   );
-  expect(faded, "parole rimaste invisibili con reduced motion").toBe(0);
+  expect(faded, `testi rimasti invisibili o spostati con reduced motion: ${faded.join(" | ")}`).toEqual([]);
 });
 
 test("le sezioni che entrano allo scroll sono già visibili", async ({ page, goto }) => {
@@ -43,6 +55,22 @@ test("le sezioni che entrano allo scroll sono già visibili", async ({ page, got
   expect(invisible, "sezioni rimaste trasparenti con reduced motion").toBe(0);
 });
 
+test("la rotaia del team con reduced motion resta uno scorrimento nativo completo", async ({ page, goto }) => {
+  await goto("/");
+  const rail = page.locator("#chi-siamo .dt-rail");
+  await expect(rail).toBeAttached();
+  // Senza motion l'attributo che spegne lo scroll nativo e passa il nastro a GSAP non
+  // deve esserci: il nastro si trascina, e il corridoio sticky non esiste.
+  expect(await rail.getAttribute("data-on")).toBeNull();
+  expect(await page.locator("#chi-siamo .dt-railway").getAttribute("data-on")).toBeNull();
+  await expect(rail).toHaveCSS("overflow-x", "auto");
+  // Le tessere restano tutte nel nastro, visibili e complete.
+  const tiles = rail.locator("figure");
+  await tiles.first().scrollIntoViewIfNeeded();
+  await expect(tiles.first()).toBeVisible();
+  await expect(tiles.last()).toBeAttached();
+});
+
 test("lo scroller orizzontale con reduced motion resta una colonna completa", async ({ page, goto }) => {
   await goto("/");
   const horizon = page.locator(".dt-horizon");
@@ -55,6 +83,20 @@ test("lo scroller orizzontale con reduced motion resta una colonna completa", as
   await expect(page.locator(".dt-horizon_panel").last()).toBeAttached();
 });
 
+test("le cinque stelle con reduced motion sono già d'oro, senza palcoscenico", async ({ page, goto }) => {
+  await goto("/");
+  const stars = page.locator(".dt-starrev");
+  await expect(stars).toBeAttached();
+  // Né lo schermo sticky del desktop né il box del telefono: li mette solo JS con motion ok.
+  expect(await stars.getAttribute("data-on")).toBeNull();
+  expect(await stars.getAttribute("data-sr-mob")).toBeNull();
+  await stars.scrollIntoViewIfNeeded();
+  await expect(page.locator(".dt-starrev_star")).toHaveCount(5);
+  await expect(page.locator(".dt-starrev_star").first()).toBeVisible();
+  // Il layer del film resta fuori scena.
+  await expect(page.locator(".dt-starrev_intro")).toBeHidden();
+});
+
 test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ page, goto }) => {
   await goto("/");
   await page.mouse.wheel(0, 800);
@@ -63,36 +105,70 @@ test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ 
   expect(y).toBeGreaterThan(200);
 });
 
-// ── Precarico ─────────────────────────────────────────────────────────────
-// Fuori dal regime reduced-motion del resto del file: qui serve il preloader
-// vero, perché è lui che deve aver già fatto il lavoro pesante.
-//
-// Fioritura campiona la scritta pixel per pixel e ne ricava migliaia di
-// particelle. Se quel campionamento cade nel callback dell'IntersectionObserver,
-// la pagina singhiozza proprio mentre le arrivi addosso — è il difetto segnalato
-// dal cliente. Il preloader lo anticipa; questo test lo tiene anticipato.
-test.describe("il lavoro pesante sta dietro il sipario", () => {
+// ── Parallasse ────────────────────────────────────────────────────────────
+// Fuori dal regime reduced-motion del resto del file: qui il movimento deve
+// esserci. La rivista bianca ammette una sola deriva allo scroll, `Parallax`
+// (±4 %), e la foto di PageHero su /vendi la porta con `mobile={false}`: da 768
+// in su la sua translateY cambia fra due quote di scroll (una matrix, non un
+// fade), sotto resta ferma — la corsa a 390 starebbe sotto i 10 px. Con
+// reduced motion è ferma ovunque (il resto del file).
+test.describe("la parallasse della foto di pagina", () => {
   test.use({ contextOptions: { reducedMotion: "no-preference" } });
 
-  test("i fiori sono già campionati prima che li si raggiunga @layout", async ({ page }) => {
+  test("su /vendi la foto deriva da 768 in su e resta ferma sotto @layout", async ({ page, goto }, testInfo) => {
+    const w = testInfo.project.use.viewport?.width ?? 0;
     await setConsent(page, "accepted");
-    await page.goto("/", { waitUntil: "load" });
+    await goto("/vendi");
+    // L'inner di Parallax: il figlio diretto del wrapper che contiene la foto 16:9.
+    const SEL = "#main section img[sizes='100vw']";
+    await expect(page.locator(SEL).first()).toBeAttached();
+    const leggi = () =>
+      page.evaluate((sel) => {
+        const img = document.querySelector<HTMLElement>(sel)!;
+        // L'inner di Parallax è l'antenato che porta la matrice. Si CERCA invece
+        // di contarlo: la cornice intermedia è sparita quando la banda è passata
+        // al modulo `.dt-media-full` (11 settembre), e il test leggeva il
+        // wrapper esterno, che non si muove mai.
+        let inner: HTMLElement = img;
+        for (let i = 0; i < 4 && inner.parentElement; i += 1) {
+          inner = inner.parentElement;
+          if (/^matrix\(/.test(getComputedStyle(inner).transform)) break;
+        }
+        const m = /^matrix\(([^)]+)\)$/.exec(getComputedStyle(inner).transform);
+        return {
+          f: m ? Number(m[1].split(",")[5]) : 0,
+          top: inner.getBoundingClientRect().top + window.scrollY,
+          h: inner.getBoundingClientRect().height,
+          vh: window.innerHeight,
+        };
+      }, SEL);
+    const scrollTo = (y: number) =>
+      page.evaluate(async (t) => {
+        window.scrollTo({ top: Math.max(0, t), behavior: "instant" });
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      }, y);
 
-    // Nessuno scroll: si guarda soltanto se il lavoro è già stato fatto.
-    await page.waitForFunction(
-      () => document.querySelectorAll("canvas[data-fiorita]").length > 0,
-      undefined,
-      { timeout: 15_000 },
-    );
-
-    const pronte = await page
-      .locator("canvas[data-fiorita]")
-      .evaluateAll((els) => els.map((e) => Number((e as HTMLElement).dataset.fiorita)));
-
-    expect(pronte.length, "nessun canvas fiorito prima dello scroll").toBeGreaterThan(0);
-    expect(
-      pronte.every((n) => n > 0),
-      `canvas campionati a vuoto: ${pronte.join(", ")}`,
-    ).toBe(true);
+    const p0 = await leggi();
+    // DUE QUOTE CHE ESISTONO DAVVERO. Le vecchie erano «foto appena entrata dal
+    // basso» (top − vh + 40) e «a metà viewport» (top − vh/2): da quando la
+    // banda di PageHero risale sotto il titolo — 11 settembre — la foto comincia
+    // a y≈400, quindi a 768 ENTRAMBE le quote diventavano negative, il browser
+    // le bloccava a 0 e il test misurava due volte lo stesso fotogramma
+    // (Δy 0) concludendo che la parallasse non c'era. Ora la seconda quota è
+    // presa OLTRE la foto, che esiste a qualunque larghezza.
+    await scrollTo(Math.max(0, p0.top - p0.vh + 40));
+    await page.waitForTimeout(250);
+    const bordo = await leggi();
+    await scrollTo(p0.top + p0.h / 2);
+    await page.waitForTimeout(250);
+    const meta = await leggi();
+    // La corsa intera è ±4 % dell'altezza della foto (≈ 5-9 px a 768-1440): fra
+    // le due quote si pretende una deriva misurabile, non un numero grande.
+    const df = Math.abs(meta.f - bordo.f);
+    if (w >= 768) {
+      expect(df, `a ${w}px la foto di /vendi non deriva (Δy ${df}px)`).toBeGreaterThan(0.5);
+    } else {
+      expect(df, `a ${w}px la foto deriva di ${df}px: mobile={false} non rispettato`).toBeLessThan(0.2);
+    }
   });
 });

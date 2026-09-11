@@ -10,10 +10,8 @@ import Stats from "../components/Stats";
 import Team from "../components/Team";
 import Reveal from "../components/Reveal";
 import { site, yearsActive } from "../lib/site";
-import MaskReveal from "../components/motion/MaskReveal";
 import TextLines from "../components/motion/TextLines";
 import Contact from "../components/Contact";
-import SectionDivider from "../components/SectionDivider";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
 const copy = {
@@ -59,8 +57,6 @@ const copy = {
     squadraCopy:
       "Siamo un gruppo affiatato che ascolta, consiglia e accompagna ogni famiglia con la stessa cura. Un impegno riconosciuto anche a livello nazionale.",
     squadraLavora: "Vuoi lavorare con noi?",
-    squadraTrioAlt: "Il team Domus Tua in studio",
-    squadraRedAlt: "Gli agenti Domus Tua in blazer rosso nella sede",
     squadraPremioAlt: "Raffaela Rizza con il riconoscimento TOP AGENCY",
   },
   en: {
@@ -105,8 +101,6 @@ const copy = {
     squadraCopy:
       "We are a close-knit group that listens, advises and accompanies every family with the same care. A commitment recognised at national level too.",
     squadraLavora: "Would you like to work with us?",
-    squadraTrioAlt: "The Domus Tua team in the studio",
-    squadraRedAlt: "The Domus Tua agents in red blazers at the office",
     squadraPremioAlt: "Raffaela Rizza with the TOP AGENCY recognition",
   },
   fr: {
@@ -151,8 +145,6 @@ const copy = {
     squadraCopy:
       "Nous sommes une équipe soudée qui écoute, conseille et accompagne chaque famille avec le même soin. Un engagement reconnu aussi au niveau national.",
     squadraLavora: "Vous voulez travailler avec nous ?",
-    squadraTrioAlt: "L’équipe Domus Tua en studio",
-    squadraRedAlt: "Les agents Domus Tua en blazer rouge à l’agence",
     squadraPremioAlt: "Raffaela Rizza avec la distinction TOP AGENCY",
   },
   de: {
@@ -197,8 +189,6 @@ const copy = {
     squadraCopy:
       "Wir sind ein eingespieltes Team, das jeder Familie mit derselben Sorgfalt zuhört, sie berät und begleitet. Ein Engagement, das auch auf nationaler Ebene anerkannt wird.",
     squadraLavora: "Möchten Sie mit uns arbeiten?",
-    squadraTrioAlt: "Das Domus Tua Team im Studio",
-    squadraRedAlt: "Die Domus Tua Berater in roten Blazern im Büro",
     squadraPremioAlt: "Raffaela Rizza mit der Auszeichnung TOP AGENCY",
   },
   es: {
@@ -243,8 +233,6 @@ const copy = {
     squadraCopy:
       "Somos un grupo unido que escucha, aconseja y acompaña a cada familia con el mismo cuidado. Un compromiso reconocido también a nivel nacional.",
     squadraLavora: "¿Quieres trabajar con nosotras?",
-    squadraTrioAlt: "El equipo de Domus Tua en el estudio",
-    squadraRedAlt: "Los agentes de Domus Tua con blazer rojo en la oficina",
     squadraPremioAlt: "Raffaela Rizza con el reconocimiento TOP AGENCY",
   },
 };
@@ -263,40 +251,36 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#chi-siamo" }}
+        scriptWord={{ it: "Dal 2007", en: "Since 2007", fr: "Depuis 2007", de: "Seit 2007", es: "Desde 2007" }[locale]}
       />
 
-      {/* Storia */}
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      {/* Storia: foto squadrata, titolo d1, paragrafi lead (2026-09-10). */}
+      <section className="dt-chapter bg-cream">
+        <div className="dt-row">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* Sipario da sinistra sulla cornice: ingresso dedicato dell'immagine,
-                il Reveal resta solo sulla colonna testo. */}
-            <MaskReveal
-              from="left"
-              zoom={1.1}
-              className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line"
-              innerClassName="absolute inset-0"
-            >
-              <Image
-                src="/images/reali/villa-pool.jpg"
-                alt={c.storiaImageAlt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 560px"
-                className="object-cover object-center"
-              />
-            </MaskReveal>
+            <Reveal>
+              {/* Il modulo. Era un quadrato su misura da 573 px servito con
+                  la variante da 640 per una scatola che ne chiede 860: la
+                  villa era visibilmente molle (1,54x). */}
+              <div className="dt-media-half">
+                <Image
+                  src="/images/reali/villa-pool.jpg"
+                  alt={c.storiaImageAlt}
+                  fill
+                  sizes="(max-width: 1024px) 150vw, 63vw"
+                  className="object-cover object-center"
+                />
+              </div>
+            </Reveal>
             <Reveal delay={100}>
               <span className="eyebrow">{c.storiaEyebrow}</span>
-              <TextLines
-                as="h2"
-                className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]"
-              >
+              <TextLines as="h2" className="mt-6 font-display text-d1">
                 {c.storiaTitle(since)}
               </TextLines>
-              <div className="mt-6 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
+              <div className="mt-8 flex flex-col gap-6">
                 {/* Capolettera editoriale: usato UNA sola volta nel sito, qui sulla storia. */}
-                <p className="dropcap">{c.storiaP1}</p>
-                <p>{c.storiaP2}</p>
+                <p className="lead dropcap">{c.storiaP1}</p>
+                <p className="lead">{c.storiaP2}</p>
               </div>
             </Reveal>
           </div>
@@ -311,104 +295,68 @@ export default function ChiSiamoContent({ since }: { since: number }) {
       />
 
       {/* La nostra squadra */}
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-          <Reveal className="max-w-2xl">
+      <section className="dt-chapter bg-cream">
+        <div className="dt-row">
+          <Reveal>
             <span className="eyebrow">{c.squadraEyebrow}</span>
-            <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-[3rem]">
-              {c.squadraTitle}
-            </h2>
-            <p className="mt-6 text-[1.02rem] leading-relaxed text-stone">
-              {c.squadraCopy}
-            </p>
+            <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.squadraTitle}</h2>
+            <p className="lead mt-8">{c.squadraCopy}</p>
             {/* Da "chi siamo" a "come si entra": è qui che nasce la domanda. */}
             <Link
               href="/lavora-con-noi"
-              className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors duration-300 hover:text-red-dark"
+              className="group mt-8 inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors duration-300 hover:text-red-dark"
             >
               {c.squadraLavora}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </Reveal>
 
-          {/* Sipari con direzioni alternate (left/bottom/right) e ritardo crescente:
-              il trio entra come un'unica coreografia. */}
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <MaskReveal
-              from="left"
-              className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line"
-              innerClassName="absolute inset-0"
-            >
-              <Image
-                src="/images/reali/team-trio.jpg"
-                alt={c.squadraTrioAlt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                className="object-cover object-center"
-              />
-            </MaskReveal>
-            <MaskReveal
-              from="bottom"
-              delay={0.15}
-              /* team-red.jpg è l'unica VERTICALE del gruppo (809×936, 0,86):
-                 in una cornice 4/3 `object-cover` le tagliava il 35 %
-                 dell'altezza, cioè teste e piedi. Sotto i 640 — dove la
-                 griglia è a una colonna — la cornice prende il rapporto dello
-                 scatto; da 640 in su resta 4/3 come le sorelle, per non
-                 sfilare la riga della griglia. */
-              className="relative aspect-[7/8] overflow-hidden rounded-[1.5rem] border border-line sm:aspect-[4/3]"
-              innerClassName="absolute inset-0"
-            >
-              <Image
-                src="/images/reali/team-red.jpg"
-                alt={c.squadraRedAlt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                className="object-cover object-center"
-              />
-            </MaskReveal>
-            <MaskReveal
-              as="figure"
-              from="right"
-              delay={0.3}
-              className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-line"
-              innerClassName="absolute inset-0"
-            >
-              <Image
-                src="/images/reali/premio-top-agency.jpg"
-                alt={c.squadraPremioAlt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                className="object-cover object-center"
-              />
+          {/* UNA foto sola. Erano tre — il trio in studio, gli agenti in
+              blazer rosso, il premio — e trecento pixel piu' sotto la rotaia
+              del team ripresentava le stesse due: la stessa pagina mostrava
+              gli stessi volti due volte, in due cornici diverse. I volti li
+              porta la rotaia; qui resta la prova, che e' l'unica cosa che la
+              rotaia non sa dire. */}
+          <div className="mt-16 lg:flex lg:justify-end">
+            <Reveal delay={200} as="figure" className="w-full lg:w-[42vw] lg:max-w-[640px]">
+              {/* 3:2, il rapporto dello scatto (1920x1280): la cornice 4/3
+                  ne buttava via un ottavo per una ragione di griglia che non
+                  c'e' piu'. */}
+              <div className="relative aspect-[3/2] overflow-hidden bg-cream-deep">
+                <Image
+                  src="/images/reali/premio-top-agency.jpg"
+                  alt={c.squadraPremioAlt}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 42vw"
+                  className="object-cover object-center"
+                />
+              </div>
               {/* §6.3 — la didascalia diceva «Riconoscimento TOP AGENCY»: il nome del premio
                   senza la sua sostanza. Denominazione e ANNI arrivano da site.award, che è la
                   fonte unica, e il link porta al profilo Wikicasa. Il documento è esplicito
                   sul perché serva verificabile proprio qui: «le prove devono essere forti
                   perché sono esatte». Un premio che si può controllare vale più di uno
                   raccontato — e tre anni consecutivi sono un andamento, uno è un episodio. */}
-              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/80 to-transparent px-4 pb-3 pt-10 text-xs font-medium uppercase tracking-[0.14em] text-cream">
+              <figcaption className="mt-4 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">
                 <a
                   href={site.award.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="link-draw tap-target inline-flex flex-wrap items-baseline gap-x-2 text-cream transition-opacity duration-300 hover:opacity-90"
+                  className="tap-target inline-flex flex-wrap items-baseline gap-x-2 underline underline-offset-4 transition-colors duration-300 hover:text-red"
                 >
                   <span>{site.award.label}</span>
                   <span aria-hidden className="opacity-70">·</span>
                   <span>{site.award.years.join(" · ")}</span>
                 </a>
               </figcaption>
-            </MaskReveal>
+            </Reveal>
           </div>
         </div>
       </section>
 
       <Stats />
-      <Team />
-      <div className="bg-cream-deep">
-        <SectionDivider tone="cream-deep" />
-      </div>
+      {/* `compact`: il PageHero sopra dice già «Persone prima degli immobili». */}
+      <Team compact />
       <Contact />
     </main>
   );
