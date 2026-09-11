@@ -29,8 +29,17 @@ import { getLenis } from "./motion/SmoothScroll";
 // `top` del pannello del menu: il pannello è `fixed` e non può agganciarsi
 // all'altezza dell'header con `top: 100%` (per un elemento fixed il blocco
 // contenitore è il viewport).
-const ROW_H = "h-[clamp(5rem,12vh,7.5rem)]";
-const PANEL_TOP = "top-[clamp(5rem,12vh,7.5rem)]";
+// Una riga sola, alta `--dt-head-h` (globals.css): lo stesso numero che la
+// sagoma del preloader usa come `top` per coincidere con la banda dell'hero.
+// Prima erano due piani — logo sopra, nastro di nove parole sotto — ed e' il
+// «menu sopra» che il cliente ha bocciato l'11 settembre.
+const ROW_H = "h-[var(--dt-head-h)]";
+const PANEL_TOP = "top-[var(--dt-head-h)]";
+
+/* Le sei della testata e le tre che restano al menu del telefono: `nav` in
+   lib/site.ts e' la fonte unica, qui si filtra soltanto. */
+const navPrimary = nav.filter((item) => "primary" in item && item.primary);
+const navSecondary = nav.filter((item) => !("primary" in item && item.primary));
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -196,31 +205,51 @@ export default function Header() {
       // da lg in su SCORRE VIA come nel riferimento — nessuna barra fissa su
       // ogni schermata, la pagina è tutta contenuto.
       className={`sticky top-0 z-50 border-b transition-colors duration-300 lg:relative ${
-        solid ? "border-line bg-cream-deep" : "!border-transparent bg-transparent"
+        solid
+          ? "border-line bg-cream-deep lg:!border-transparent lg:!bg-transparent"
+          : "!border-transparent bg-transparent"
       }`}
     >
-      <div
-        className={`dt-row flex ${ROW_H} items-center justify-between gap-x-8 gap-y-2 lg:h-auto lg:flex-wrap lg:py-4`}
-      >
+      <div className={`dt-row flex ${ROW_H} items-center justify-between gap-x-8`}>
         <Link href="/" className="flex shrink-0 items-center gap-4" aria-label="Domus Tua, vai alla home">
           {/* Monogramma ufficiale in rotazione oraria (RotatingMark), solo da lg:
               sul telefono la riga è del logo e del bottone Menu. Lo span di
               contorno serve perché MarkBadge porta un suo `inline-block`, e in
               Tailwind v4 le utility della stessa proprietà escono in ordine
               alfabetico: `hidden` passato come className perderebbe. */}
-          <span className="hidden lg:contents">
-            <RotatingMark className="h-11 w-11" />
+          {/* UN cuore solo. Prima il badge rotante mostrava il monogramma e
+              sedici pixel piu' a destra il logo ricominciava con lo stesso
+              cuore piu' grande e fermo: un lockup che sembrava un errore di
+              montaggio. Ora il badge — il cuore che gira in senso orario,
+              richiesta del cliente — sta accanto al logo solo da xl, dove
+              c'e' spazio perche' si legga; sotto, il logo da solo. */}
+          <span className="hidden xl:contents">
+            <RotatingMark className="h-14 w-14" />
           </span>
-          {/* Logo ufficiale (PNG depositato, 200×37): ~200 px come nel riferimento. */}
-          <Logo className="h-auto w-[clamp(150px,14vw,220px)]" />
+          <Logo className="h-auto w-[clamp(150px,13vw,210px)]" />
         </Link>
 
         {/* Riga 1, a destra (lg+): lingua e CTA piena. */}
         {/* Nessuna CTA nell'header (rif.): l'azione sta nell'hero e nelle
             pagine, una volta sola per schermo. */}
-        <div className="hidden items-center gap-6 lg:flex">
+        {/* Le sei voci primarie e la lingua, sulla STESSA riga del logo e
+            allineate al suo asse: 32 px di gap (il doppio del corpo) perche'
+            si leggano come voci e non come una frase sola; peso 400 e
+            tracking 0.1em come il riferimento. Le altre tre voci vivono nel
+            menu del telefono e nel footer. */}
+        <nav aria-label="Principale" className="hidden items-center gap-x-8 lg:flex">
+          {navPrimary.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className="whitespace-nowrap text-ui uppercase tracking-[0.1em] text-ink decoration-1 underline-offset-[0.45em] transition-[text-decoration-color] duration-200 hover:underline focus-visible:underline aria-[current=page]:underline"
+            >
+              {d.nav[item.key]}
+            </Link>
+          ))}
           <LanguageSwitcher />
-        </div>
+        </nav>
 
         {/* Toggle del menu (sotto lg): parola, non icona. L'aria-label conserva
             la parola "menu" in entrambi gli stati (e2e: getByRole button /menu/i). */}
@@ -231,27 +260,11 @@ export default function Header() {
           aria-label={open ? "Chiudi menu" : "Apri menu"}
           aria-expanded={open}
           aria-controls="mobile-menu"
-          className="text-ui font-semibold uppercase tracking-[0.08em] text-ink underline-offset-[0.4em] hover:underline focus-visible:underline lg:hidden"
+          className="-mr-3 inline-flex min-h-11 items-center px-3 text-ui font-semibold uppercase tracking-[0.1em] text-ink underline-offset-[0.45em] hover:underline focus-visible:underline lg:hidden"
         >
           {open ? "Chiudi" : "Menu"}
         </button>
 
-        {/* Riga 2 (lg+): la nav, a tutta larghezza, allineata a destra.
-            Le nove voci misurano ~937 px: con 16 px di gap stanno in una riga
-            da 1268 px in su (a 1280, 1366 e 1440 la riga è una); fra 1024 e
-            1267 vanno a capo su due righe, e il flex-wrap le tiene leggibili. */}
-        <nav className="hidden basis-full flex-wrap items-center justify-end gap-x-4 gap-y-1 lg:flex 2xl:gap-x-7">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive(item.href) ? "page" : undefined}
-              className="whitespace-nowrap text-ui font-medium uppercase tracking-[0.08em] text-ink underline-offset-[0.4em] hover:underline focus-visible:underline aria-[current=page]:underline"
-            >
-              {d.nav[item.key]}
-            </Link>
-          ))}
-        </nav>
       </div>
 
       {/* Menu mobile: pannello pieno avorio sotto la barra, voci a d2 in Playfair.
@@ -272,25 +285,40 @@ export default function Header() {
         data-lenis-prevent
         className={`fixed inset-x-0 bottom-0 ${PANEL_TOP} z-40 overflow-y-auto overscroll-contain bg-cream lg:hidden`}
       >
-        <nav className="dt-row flex flex-col pt-4">
-          {nav.map((item) => (
+        {/* Stessa gerarchia del desktop: sei voci grandi, e le tre secondarie
+            su una riga sola in coda. Nove voci a d2 non stavano in uno
+            schermo: la CTA e WhatsApp cadevano sotto la piega. */}
+        <nav className="dt-row flex flex-col pt-2">
+          {navPrimary.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
               aria-current={isActive(item.href) ? "page" : undefined}
-              className="border-b border-line py-4 font-display text-d2 font-medium uppercase text-ink aria-[current=page]:text-red"
+              className="border-b border-line py-3 font-display text-[clamp(1.75rem,7.5vw,2.3rem)] font-medium uppercase leading-tight text-ink aria-[current=page]:text-red"
             >
               {d.nav[item.key]}
             </Link>
           ))}
+          <span className="flex flex-wrap gap-x-6 gap-y-2 py-4">
+            {navSecondary.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                aria-current={isActive(item.href) ? "page" : undefined}
+                className="text-ui uppercase tracking-[0.1em] text-stone underline-offset-[0.4em] aria-[current=page]:text-red aria-[current=page]:underline"
+              >
+                {d.nav[item.key]}
+              </Link>
+            ))}
+          </span>
         </nav>
 
-        <div className="dt-row flex flex-col items-start gap-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-8">
+        <div className="dt-row flex flex-col items-start gap-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-4">
           <Cta
             href="/valutazione-immobile-tradate"
             variant="cta-solid"
-            size="lg"
             arrow={false}
             onClick={() => setOpen(false)}
           >

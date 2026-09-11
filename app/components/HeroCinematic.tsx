@@ -405,7 +405,7 @@ export default function HeroCinematic() {
           precede la foto, come per ogni media del sito. */}
       <div
         data-hero-media
-        className="relative flex min-h-[60svh] w-full flex-col overflow-hidden bg-cream-deep"
+        className="relative flex h-[var(--dt-band-h)] w-full flex-col overflow-hidden bg-cream-deep"
       >
         <Image
           src={heroCinematic.base}

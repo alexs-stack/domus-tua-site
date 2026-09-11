@@ -144,7 +144,7 @@ export default function PreloaderShell() {
               loading="lazy"
               decoding="async"
               className="h-full w-full object-cover"
-              style={{ objectPosition: "50% 70%" }}
+              style={{ objectPosition: "10% 0%" }}
             />
           </picture>
         </div>

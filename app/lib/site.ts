@@ -314,22 +314,28 @@ export function isIndexableDeployment(env: {
 }
 
 // Href assoluti verso le pagine dedicate.
+/* `primary` marca le SEI voci della testata: nove parole maiuscole in una riga
+   sono un nastro che attraversa lo schermo (il «menu sopra» che il cliente ha
+   segnalato l'11 settembre), e il riferimento ne tiene quattro. Le altre tre
+   (Servizi, Recensioni, Lavora con noi) restano nel menu del telefono, nel
+   footer e nella sitemap: `nav` resta la fonte unica, cambia solo chi la
+   filtra. */
 export const nav = [
-  { key: "vendi", label: "Vendi", href: "/vendi" },
-  { key: "acquista", label: "Acquista", href: "/acquista" },
-  { key: "metodo", label: "Metodo Domus", href: "/metodo" },
+  { key: "vendi", label: "Vendi", href: "/vendi", primary: true },
+  { key: "acquista", label: "Acquista", href: "/acquista", primary: true },
+  { key: "metodo", label: "Metodo Domus", href: "/metodo", primary: true },
   // Il metodo, poi i servizi che lo mettono in pratica, poi Open Domus (uno di
   // quei servizi, messo in evidenza). La pagina /servizi esisteva ma non era
   // raggiungibile dalla navigazione principale.
   { key: "servizi", label: "Servizi", href: "/servizi" },
-  { key: "openDomus", label: "Open Domus", href: "/open-domus" },
+  { key: "openDomus", label: "Open Domus", href: "/open-domus", primary: true },
   { key: "recensioni", label: "Recensioni", href: "/recensioni" },
-  { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo" },
+  { key: "chiSiamo", label: "Chi siamo", href: "/chi-siamo", primary: true },
   // Sta accanto a "Chi siamo" perché è la stessa domanda vista dall'altra parte:
   // lì si racconta chi siamo, qui chi vorremmo diventare. Prima di "Contatti",
   // che resta l'ultima voce perché è l'ultimo passo.
   { key: "lavora", label: "Lavora con noi", href: "/lavora-con-noi" },
-  { key: "contatti", label: "Contatti", href: "/contatti" },
+  { key: "contatti", label: "Contatti", href: "/contatti", primary: true },
 ] as const;
 
 /**
