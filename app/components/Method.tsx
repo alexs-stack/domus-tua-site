@@ -2,10 +2,20 @@
 
 // IL METODO — rivista bianca (2026-09-10, rif. immobiliaregoldengoal.it
 // «I nostri valori»): titolo d1 su tre righe allineato a destra, poi i tre
-// atti come righe piane — corsivo rosso e foto quadrata a sinistra, titolo
-// d2 e lead a destra — e i nove passi numerati 01.–09. Via le maschere
+// atti come righe piane e i nove passi numerati 01.–09. Via le maschere
 // feTurbulence, gli atti in scrub, Atmosphere, CharFlip, Fioritura e il
 // monogramma di chiusura. I testi sono gli stessi (copy conservato).
+//
+// 2026-09-11 — due correzioni di impaginazione:
+// 1. La griglia era `lg:grid-cols-[1fr_1.2fr]`, cioè una frazione che non
+//    esisteva in nessun'altra sezione: il capitolo apriva il testo a una x
+//    sua. Ora è il template condiviso (`lg:grid-cols-2`, gutter 6vw, rientro
+//    6vw sul testo), le stesse due linee verticali di Percorsi.
+// 2. Gli atti sono SPECCHIATI (foto a destra, `lg:order-2`) perché la testa
+//    di capitolo è l'unico titolo allineato a destra della home — come il
+//    riferimento ne ha uno per pagina — e il margine destro va usato quattro
+//    volte, non una: testa, atto, atto, atto. Togliere il `text-right`
+//    avrebbe reso il Metodo identico a ogni altro capitolo.
 import Image from "next/image";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
@@ -24,7 +34,7 @@ const copy = {
     title: "Un percorso chiaro, dalla prima stima alla firma.",
     subcopy:
       `Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in ${yearsActive()} anni di lavoro sul territorio.`,
-    cta: "Richiedi la valutazione del tuo immobile",
+    cta: "Richiedi la valutazione",
     actVideo: "Guarda la video recensione",
     acts: [
       { up: "Prima,", down: "le persone", word: "Ascolto", alt: "Raffaela Rizza, fondatrice di Domus Tua, in ascolto" },
@@ -48,7 +58,7 @@ const copy = {
     title: "A clear journey, from the first estimate to signing.",
     subcopy:
       `Every sale and every purchase follows nine precise steps: no improvisation, only a method built over ${yearsActive()} years of work in the local area.`,
-    cta: "Request a valuation of your property",
+    cta: "Request a valuation",
     actVideo: "Watch the video review",
     acts: [
       { up: "First,", down: "the people", word: "Listening", alt: "Raffaela Rizza, founder of Domus Tua, listening" },
@@ -72,7 +82,7 @@ const copy = {
     title: "Un parcours clair, de la première estimation à la signature.",
     subcopy:
       `Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en ${yearsActive()} ans de travail sur le territoire.`,
-    cta: "Demandez l’estimation de votre bien",
+    cta: "Demander l’estimation",
     actVideo: "Voir l’avis en vidéo",
     acts: [
       { up: "D'abord,", down: "les personnes", word: "Écoute", alt: "Raffaela Rizza, fondatrice de Domus Tua, à l'écoute" },
@@ -96,7 +106,7 @@ const copy = {
     title: "Ein klarer Weg, von der ersten Schätzung bis zur Unterschrift.",
     subcopy:
       `Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in ${yearsActive()} Jahren Arbeit vor Ort gewachsen ist.`,
-    cta: "Bewertung Ihrer Immobilie anfordern",
+    cta: "Bewertung anfordern",
     actVideo: "Video-Bewertung ansehen",
     acts: [
       { up: "Zuerst", down: "die Menschen", word: "Zuhören", alt: "Raffaela Rizza, Gründerin von Domus Tua, beim Zuhören" },
@@ -120,7 +130,7 @@ const copy = {
     title: "Un recorrido claro, desde la primera tasación hasta la firma.",
     subcopy:
       `Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en ${yearsActive()} años de trabajo en el territorio.`,
-    cta: "Solicita la valoración de tu inmueble",
+    cta: "Solicita la valoración",
     actVideo: "Ver la reseña en vídeo",
     acts: [
       { up: "Primero,", down: "las personas", word: "Escucha", alt: "Raffaela Rizza, fundadora de Domus Tua, escuchando" },
@@ -141,23 +151,34 @@ const copy = {
   },
 } as const;
 
-/* Le foto degli atti: le stesse tre di prima. Nel quadrato (~510 px a 1440)
-   il ritaglio centrale tiene il soggetto — il volto, la villa, le mani — e i
-   due sorgenti bassi (442 e 505 px) restano vicini all'1:1.
+/* Le foto degli atti, con la misura VERA del sorgente: tutte e tre sono
+   riprese larghe (1.73, 2.54, 1.77), quindi tutte e tre stanno in `dt-media-full`
+   (16:9) e nessuna viene ingrandita. Nel quadrato di prima il ritratto —
+   763×442, il file più piccolo del sito — teneva il 58% dell'inquadratura e
+   saliva di 1,37×: il volto usciva tagliato e molle. In 16:9 la scatola è
+   larga 39vw (~562 px a 1440): il ritratto scende a 0,74×, la villa a 0,63×,
+   la stretta di mano a 0,29×.
+   `pos`: il ritratto non ha aria sopra la testa nel sorgente, quindi il taglio
+   si prende i 9 px di troppo dal basso (`50% 0%`), non dai capelli.
    `video`: handshake.jpg è la copertina della video recensione e porta il
    pulsante play COTTO nei pixel; senza un link leggerebbe come un player
    rotto, quindi l'atto porta al video vero (scelta del 2026-08-06). */
 const ACT_IMAGES = [
-  { src: "/images/reali/raffaela-ritratto.jpg", ratio: 763 / 442, video: null },
-  { src: "/images/reali/video-villa-mozart.jpg", ratio: 1280 / 505, video: null },
-  { src: "/images/reali/handshake.jpg", ratio: 1920 / 1087, video: site.videos.reviews[0].id },
+  { src: "/images/reali/raffaela-ritratto.jpg", ratio: 763 / 442, pos: "50% 0%", video: null },
+  { src: "/images/reali/video-villa-mozart.jpg", ratio: 1280 / 505, pos: undefined, video: null },
+  { src: "/images/reali/handshake.jpg", ratio: 1920 / 1087, pos: undefined, video: site.videos.reviews[0].id },
 ] as const;
 
 /* `sizes` descrive la larghezza dell'IMMAGINE dopo il cover, non della
-   scatola: in un quadrato una foto orizzontale è larga scatola × rapporto.
-   Con un piatto 40vw il ritratto arrivava a 576 px e saliva di 1,5×. */
-const coverSizes = (ratio: number) =>
-  `(max-width:1024px) ${Math.ceil(100 * ratio)}vw, ${Math.ceil(40 * ratio)}vw`;
+   scatola: in una 16:9 un sorgente più largo di 16:9 sborda e va chiesto più
+   grande (villa-mozart, 2.54, è larga 1,43 volte la scatola). Le tre misure
+   sono quelle vere della colonna: 90vw sotto 768 (dt-row a 5vw), 84vw fino a
+   1024 (dt-row a 8vw, ancora impilata), poi metà della riga meno il gutter. */
+const FULL_ASPECT = 16 / 9;
+const coverSizes = (ratio: number) => {
+  const k = Math.max(1, ratio / FULL_ASPECT);
+  return `(max-width:767px) ${Math.ceil(90 * k)}vw, (max-width:1023px) ${Math.ceil(84 * k)}vw, ${Math.ceil(39 * k)}vw`;
+};
 
 export default function Method() {
   const { locale } = useLocale();
@@ -184,22 +205,32 @@ export default function Method() {
         return (
           <div
             key={a.word}
-            className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-[6vw] lg:grid-cols-[1fr_1.2fr] lg:items-start"
+            className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
           >
-            <div>
-              {/* Decorativa (aria-hidden): il senso è nel titolo dell'atto. */}
+            {/* Colonna media: prima nel DOM — sul telefono l'atto si apre con la
+                sua parola — ma a destra da lg, sull'asse della testa di capitolo. */}
+            <div className="lg:order-2 lg:text-right">
+              {/* Decorativa (aria-hidden): il senso è nel titolo dell'atto.
+                  Niente tuck: qui non c'è un titolo da attraversare. */}
               <Reveal>
                 <span aria-hidden className="script-word" style={{ "--script-tuck": "0" } as React.CSSProperties}>
                   {a.word}
                 </span>
               </Reveal>
               <Parallax speed={-0.04}>
-                <div className="relative mt-8 aspect-square">
-                  <Image src={img.src} alt={a.alt} fill sizes={coverSizes(img.ratio)} className="object-cover" />
+                <div className="dt-media-full mt-8">
+                  <Image
+                    src={img.src}
+                    alt={a.alt}
+                    fill
+                    sizes={coverSizes(img.ratio)}
+                    className="object-cover"
+                    style={{ objectPosition: img.pos }}
+                  />
                 </div>
               </Parallax>
             </div>
-            <div>
+            <div className="lg:pr-[6vw]">
               <TextLines as="h3" className="font-display text-d2">
                 {`${a.up} ${a.down}`}
               </TextLines>

@@ -7,6 +7,12 @@
 // dall'altro. Via i pannelli scuri pinnati, i sipari in clip-path, gli
 // scrim, i veli e i fiori. Movimento: solo Reveal, TextLines e la parallasse
 // leggera sulla foto; con reduced-motion tutto fermo e visibile.
+//
+// 2026-09-11 — la riga era `lg:grid-cols-2` ma la foto era un `aspect-square`
+// grande quanto la colonna: cambiava larghezza a ogni breakpoint e non
+// tornava mai su una linea nota. Ora è il modulo condiviso `dt-media-half`
+// (42vw, max 640 px, 1:1) dentro il template a due colonne: due linee
+// verticali in tutto il capitolo, la stessa x del Metodo.
 import Image from "next/image";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -17,19 +23,30 @@ import Parallax from "./motion/Parallax";
 // Fotografie reali, ognuna una volta sola in home: la consulenza resta a
 // Posizionamento; qui la fondatrice (ritaglio 1:1 spostato a sinistra, dove
 // sta lei) e la villa con piscina.
-const paths: { id: "vendi" | "acquista"; href: string; image: string; pos?: string }[] = [
+// `ratio` è la misura VERA del sorgente, e serve a due cose: dice che il
+// quadrato è il taglio giusto (2560×1920 e 1920×1280 sono riprese piene, la
+// scatola le riduce a 0,32× e 0,47× — nessun ingrandimento, e la persona in
+// piedi resta intera in altezza) e alimenta `coverSizes`.
+const paths: { id: "vendi" | "acquista"; href: string; image: string; ratio: number; pos?: string }[] = [
   {
     id: "vendi",
     href: "/vendi",
     image: "/images/reali/raffaela-specchio-profilo.jpg",
+    ratio: 2560 / 1920,
     pos: "24% 50%",
   },
   {
     id: "acquista",
     href: "/acquista",
     image: "/images/reali/villa-pool.jpg",
+    ratio: 1920 / 1280,
   },
 ];
+
+/* In un quadrato una foto orizzontale è larga scatola × rapporto: un piatto
+   45vw serviva alla villa i due terzi dei pixel che il cover le chiede. */
+const coverSizes = (ratio: number) =>
+  `(max-width:767px) ${Math.ceil(90 * ratio)}vw, (max-width:1023px) ${Math.ceil(84 * ratio)}vw, ${Math.ceil(42 * ratio)}vw`;
 
 const copy = {
   it: {
@@ -46,7 +63,7 @@ const copy = {
           "Foto, video, rendering e home staging",
           "Campagne marketing e Open Domus",
         ],
-        cta: "Richiedi la valutazione del tuo immobile",
+        cta: "Richiedi la valutazione",
         alt: "Raffaela Rizza, fondatrice di Domus Tua, in un soggiorno arredato",
       },
       acquista: {
@@ -77,7 +94,7 @@ const copy = {
           "Photography, video, rendering and home staging",
           "Marketing campaigns and Open Domus",
         ],
-        cta: "Request a valuation of your property",
+        cta: "Request a valuation",
         alt: "Raffaela Rizza, founder of Domus Tua, in a furnished living room",
       },
       acquista: {
@@ -108,7 +125,7 @@ const copy = {
           "Photos, vidéos, rendus et home staging",
           "Campagnes marketing et Open Domus",
         ],
-        cta: "Demandez l’estimation de votre bien",
+        cta: "Demander l’estimation",
         alt: "Raffaela Rizza, fondatrice de Domus Tua, dans un séjour meublé",
       },
       acquista: {
@@ -139,7 +156,7 @@ const copy = {
           "Fotos, Videos, Renderings und Home Staging",
           "Marketingkampagnen und Open Domus",
         ],
-        cta: "Bewertung Ihrer Immobilie anfordern",
+        cta: "Bewertung anfordern",
         alt: "Raffaela Rizza, Gründerin von Domus Tua, in einem eingerichteten Wohnzimmer",
       },
       acquista: {
@@ -170,7 +187,7 @@ const copy = {
           "Fotos, vídeos, renders y home staging",
           "Campañas de marketing y Open Domus",
         ],
-        cta: "Solicita la valoración de tu inmueble",
+        cta: "Solicita la valoración",
         alt: "Raffaela Rizza, fundadora de Domus Tua, en un salón amueblado",
       },
       acquista: {
@@ -213,20 +230,23 @@ export default function Paths() {
             id={p.id}
             className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
           >
-            <Parallax speed={-0.04} className={i % 2 ? "lg:order-2" : ""}>
-              <div className="relative aspect-square">
+            {/* La riga pari specchia: foto a destra e `justify-self-end`, perché
+                il modulo (42vw) è più largo della colonna (39vw) e senza
+                l'ancoraggio sborderebbe oltre il margine destro della pagina. */}
+            <Parallax speed={-0.04} className={i % 2 ? "lg:order-2 lg:justify-self-end" : ""}>
+              <div className="dt-media-half">
                 <Image
                   src={p.image}
                   alt={t.alt}
                   fill
-                  sizes="(max-width:1024px) 100vw, 45vw"
+                  sizes={coverSizes(p.ratio)}
                   className="object-cover"
                   style={{ objectPosition: p.pos }}
                 />
               </div>
             </Parallax>
-            <div>
-              <TextLines as="h3" className="font-display text-d2">
+            <div className={i % 2 ? "lg:pr-[6vw]" : "lg:pl-[6vw]"}>
+              <TextLines as="h3" className="font-display text-d3">
                 {t.title}
               </TextLines>
               <Reveal>
