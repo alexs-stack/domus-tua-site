@@ -355,6 +355,31 @@ blockquote * {
   pointer-events: none;
 }
 
+/* -- LA COPERTINA YOUTUBE, RIFILATA -------------------------------------
+   Ogni fotogramma video del sito e' una copertina YouTube con la grafica
+   cotta dentro: titolo bianco a tutta larghezza in alto, ritratto in cerchio
+   con le stelline in basso a sinistra, logo. E sopra ci mettevamo un secondo
+   play rosso da 96 px. Due titoli, due loghi, due play sulla stessa
+   immagine.
+   Finche' non arrivano i fotogrammi puliti (si esportano con
+   `ffmpeg -ss <secondo> -i <video> -frames:v 1`, 1920x1080, senza banda ne'
+   logo), la grafica si toglie col RITAGLIO: la parte utile della copertina e'
+   il 70% in basso a destra, e ingrandirla di 1,43 la porta a riempire la
+   scatola. A 460 px di tessera servono 658 px di sorgente su 1280: nessun
+   ingrandimento vero, solo un taglio.
+     - `dt-still-trim`      toglie la banda in alto E il badge in basso a sinistra
+     - `dt-still-trim--top` toglie la sola banda in alto (copertine centrate)
+   Non e' un effetto: e' una correzione dichiarata, e sparisce il giorno in
+   cui i fotogrammi arrivano puliti. */
+.dt-still-trim {
+  transform: scale(1.43);
+  transform-origin: 100% 100%;
+}
+.dt-still-trim--top {
+  transform: scale(1.32);
+  transform-origin: 50% 100%;
+}
+
 /* -- I TRE MODULI MEDIA ---------------------------------------------------
    Il riferimento usa DUE misure in tutta la home: la piena (16:9 a tutta
    larghezza) e la meta' (605 px, quadrata o verticale). Qui erano dodici, una
