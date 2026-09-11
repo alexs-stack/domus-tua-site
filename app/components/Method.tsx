@@ -39,8 +39,8 @@ const copy = {
     allSteps: "Vedi i nove passi",
     acts: [
       { up: "Prima,", down: "le persone", word: "Ascolto", alt: "Raffaela Rizza, fondatrice di Domus Tua, in ascolto" },
-      { up: "Poi,", down: "il racconto", word: "Racconto", alt: "Il racconto video di una villa seguita da Domus Tua" },
-      { up: "Infine,", down: "la firma", word: "Firma", alt: "La stretta di mano che chiude una compravendita seguita da Domus Tua" },
+      { up: "Poi,", down: "le immagini", word: "Racconto", alt: "Il racconto video di una villa seguita da Domus Tua" },
+      { up: "Infine,", down: "il rogito", word: "Firma", alt: "La stretta di mano che chiude una compravendita seguita da Domus Tua" },
     ],
     steps: [
       { title: "Primo ascolto", copy: "Partiamo da te: obiettivi, tempi, aspettative. Prima delle case vengono le persone." },
@@ -64,8 +64,8 @@ const copy = {
     allSteps: "See the nine steps",
     acts: [
       { up: "First,", down: "the people", word: "Listening", alt: "Raffaela Rizza, founder of Domus Tua, listening" },
-      { up: "Then,", down: "the story", word: "Story", alt: "The video story of a villa listed by Domus Tua" },
-      { up: "Finally,", down: "the signing", word: "Signing", alt: "The handshake closing a sale assisted by Domus Tua" },
+      { up: "Then,", down: "the images", word: "Story", alt: "The video story of a villa listed by Domus Tua" },
+      { up: "Finally,", down: "the deed", word: "Signing", alt: "The handshake closing a sale assisted by Domus Tua" },
     ],
     steps: [
       { title: "First, we listen", copy: "We start with you: goals, timing, expectations. People come before homes." },
@@ -89,8 +89,8 @@ const copy = {
     allSteps: "Voir les neuf étapes",
     acts: [
       { up: "D'abord,", down: "les personnes", word: "Écoute", alt: "Raffaela Rizza, fondatrice de Domus Tua, à l'écoute" },
-      { up: "Puis,", down: "le récit", word: "Récit", alt: "Le récit vidéo d'une villa proposée par Domus Tua" },
-      { up: "Enfin,", down: "la signature", word: "Signature", alt: "La poignée de main qui conclut une vente accompagnée par Domus Tua" },
+      { up: "Puis,", down: "les images", word: "Récit", alt: "Le récit vidéo d'une villa proposée par Domus Tua" },
+      { up: "Enfin,", down: "l’acte", word: "Signature", alt: "La poignée de main qui conclut une vente accompagnée par Domus Tua" },
     ],
     steps: [
       { title: "Première écoute", copy: "Nous partons de vous : objectifs, délais, attentes. Avant les maisons viennent les personnes." },
@@ -114,8 +114,8 @@ const copy = {
     allSteps: "Die neun Schritte ansehen",
     acts: [
       { up: "Zuerst", down: "die Menschen", word: "Zuhören", alt: "Raffaela Rizza, Gründerin von Domus Tua, beim Zuhören" },
-      { up: "Dann", down: "die Geschichte", word: "Erzählen", alt: "Die Video-Geschichte einer Villa im Angebot von Domus Tua" },
-      { up: "Zuletzt", down: "die Unterschrift", word: "Unterschrift", alt: "Der Handschlag zum Abschluss eines von Domus Tua begleiteten Verkaufs" },
+      { up: "Dann", down: "die Bilder", word: "Erzählen", alt: "Die Video-Geschichte einer Villa im Angebot von Domus Tua" },
+      { up: "Zuletzt", down: "der Notartermin", word: "Unterschrift", alt: "Der Handschlag zum Abschluss eines von Domus Tua begleiteten Verkaufs" },
     ],
     steps: [
       { title: "Erstes Zuhören", copy: "Wir beginnen bei Ihnen: Ziele, Zeitrahmen, Erwartungen. Vor den Häusern kommen die Menschen." },
@@ -139,8 +139,8 @@ const copy = {
     allSteps: "Ver los nueve pasos",
     acts: [
       { up: "Primero,", down: "las personas", word: "Escucha", alt: "Raffaela Rizza, fundadora de Domus Tua, escuchando" },
-      { up: "Luego,", down: "el relato", word: "Relato", alt: "El relato en vídeo de una villa ofrecida por Domus Tua" },
-      { up: "Al final,", down: "la firma", word: "Firma", alt: "El apretón de manos que cierra una compraventa acompañada por Domus Tua" },
+      { up: "Luego,", down: "las imágenes", word: "Relato", alt: "El relato en vídeo de una villa ofrecida por Domus Tua" },
+      { up: "Al final,", down: "la escritura", word: "Firma", alt: "El apretón de manos que cierra una compraventa acompañada por Domus Tua" },
     ],
     steps: [
       { title: "Primera escucha", copy: "Partimos de ti: objetivos, plazos, expectativas. Antes que las casas están las personas." },
@@ -182,7 +182,7 @@ const ACT_IMAGES = [
 const FULL_ASPECT = 16 / 9;
 const coverSizes = (ratio: number) => {
   const k = Math.max(1, ratio / FULL_ASPECT);
-  return `(max-width:767px) ${Math.ceil(90 * k)}vw, (max-width:1023px) ${Math.ceil(84 * k)}vw, ${Math.ceil(39 * k)}vw`;
+  return `(max-width:767px) ${Math.ceil(90 * k)}vw, (max-width:1023px) ${Math.ceil(84 * k)}vw, ${Math.ceil(42 * k)}vw`;
 };
 
 export default function Method({ compact = false }: { compact?: boolean } = {}) {
@@ -212,18 +212,17 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
             key={a.word}
             className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
           >
-            {/* Colonna media: prima nel DOM — sul telefono l'atto si apre con la
-                sua parola — ma a destra da lg, sull'asse della testa di capitolo. */}
-            <div className="lg:order-2 lg:text-right">
-              {/* Decorativa (aria-hidden): il senso è nel titolo dell'atto.
-                  Niente tuck: qui non c'è un titolo da attraversare. */}
-              <Reveal>
-                <span aria-hidden className="script-word" style={{ "--script-tuck": "0" } as React.CSSProperties}>
-                  {a.word}
-                </span>
-              </Reveal>
+            {/* Colonna media: a destra da lg, sull'asse della testa di
+                capitolo. La scatola e' la META' (605 px) e non la larghezza
+                della traccia (562): cosi' il suo bordo sinistro cade sulla
+                mezzeria della pagina, dove cade quello di ogni altra riga del
+                sito — con la traccia il Metodo apriva una quarta linea
+                verticale tutta sua. Il rapporto resta quello della banda:
+                le tre riprese sono larghe (1,73 · 2,54 · 1,77) e in un
+                quadrato andrebbero ingrandite. */}
+            <div className="lg:order-2 lg:justify-self-end">
               <Parallax speed={-0.04}>
-                <div className="dt-media-full mt-8">
+                <div className="dt-media-half !aspect-video">
                   <Image
                     src={img.src}
                     alt={a.alt}
@@ -239,6 +238,20 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
               <TextLines as="h3" className="font-display text-d2">
                 {`${a.up} ${a.down}`}
               </TextLines>
+              {/* La parola d'atto sta DOPO il titolo, come ogni altra
+                  calligrafia del sito: la grammatica e' una sola, e attraversa
+                  l'ultima riga del titolo. Sopra la foto, da sola in mezzo
+                  all'avorio, era un'etichetta rossa lasciata nel corridoio —
+                  la sola calligrafia del sito che non attraversasse niente.
+                  E il titolo dell'atto non ripete piu' la parola: «Racconto»
+                  sopra «IL RACCONTO» era la stessa parola stampata due volte,
+                  una in rosso sull'altra. Ora i titoli dicono la cosa (le
+                  immagini, il rogito) e la calligrafia dice l'atto. */}
+              <Reveal>
+                <span aria-hidden className="script-word">
+                  {a.word}
+                </span>
+              </Reveal>
               <Reveal>
                 <p className="lead mt-6">{steps.map((s) => s.title).join(" · ")}</p>
               </Reveal>

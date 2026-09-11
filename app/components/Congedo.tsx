@@ -10,10 +10,14 @@ import { heroCinematic } from "../lib/media";
    il clip drone a tutta larghezza, titolo bianco d1 in basso a sinistra e il
    link "Contattaci" sottolineato. Nessun velo: il video è il fondo. Niente GSAP. */
 
-// Still del clip drone: è il poster (lazy e ridimensionato da next/image) e
-// l'unica immagine dove il video non parte. Non `heroCinematic.poster`: quel
-// ritratto è chiaro e il bianco senza velo non ci si legge.
-const POSTER = "/media/hero-aerial.jpg";
+// Poster della banda: si vede solo dove il video NON parte (telefono,
+// reduced-motion). Non piu' `hero-aerial.jpg`: quella ripresa drone e' il
+// pannello del territorio, quattromila pixel piu' su, e la stessa villa con
+// la stessa piscina apriva e chiudeva la stessa scorsa. Questa e' un'altra
+// piscina, scura nell'angolo dove cade il titolo bianco. E non
+// `heroCinematic.poster`: quel ritratto e' chiaro e il bianco senza velo non
+// ci si legge.
+const POSTER = "/images/reali/piscina-lusso.jpg";
 
 /* L'unico trattamento ammesso sul bianco che sta sopra un'immagine: un'ombra
    di testo, la stessa grammatica della copertina delle cinque stelle. NON è un

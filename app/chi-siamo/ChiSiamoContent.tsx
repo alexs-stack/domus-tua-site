@@ -259,12 +259,15 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         <div className="dt-row">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <Reveal>
-              <div className="relative aspect-square overflow-hidden">
+              {/* Il modulo. Era un quadrato su misura da 573 px servito con
+                  la variante da 640 per una scatola che ne chiede 860: la
+                  villa era visibilmente molle (1,54x). */}
+              <div className="dt-media-half">
                 <Image
                   src="/images/reali/villa-pool.jpg"
                   alt={c.storiaImageAlt}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 560px"
+                  sizes="(max-width: 1024px) 150vw, 63vw"
                   className="object-cover object-center"
                 />
               </div>

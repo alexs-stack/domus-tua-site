@@ -30,7 +30,7 @@ const copy = {
     heroSubcopy:
       "Un format evoluto che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la visita in un momento consapevole, ordinato e professionale.",
     heroAlt: "Living moderno con accenti senape",
-    heroPrimary: "Scopri se Open Domus è adatto al tuo immobile",
+    heroPrimary: "Scopri Open Domus",
     heroSecondary: "Come si svolge",
     heroSubtitle: "Non una semplice visita. Un’esperienza preparata per vendere meglio.",
 
@@ -138,7 +138,7 @@ const copy = {
     finalTitle: "La tua casa merita più di una visita qualunque.",
     finalText:
       "Raccontaci il tuo immobile: valutiamo insieme se Open Domus è la strada giusta per venderlo meglio.",
-    finalCta: "Scopri se Open Domus è adatto al tuo immobile",
+    finalCta: "Parlane con noi",
   },
   en: {
     heroEyebrow: "Proprietary asset",
@@ -152,7 +152,7 @@ const copy = {
     heroSubcopy:
       "A refined format that brings together preparation, hospitality, documentation and pre-qualification. It turns a viewing into a considered, orderly and professional moment.",
     heroAlt: "Modern living room with mustard accents",
-    heroPrimary: "See if Open Domus suits your property",
+    heroPrimary: "Discover Open Domus",
     heroSecondary: "How it works",
     heroSubtitle: "Not just a viewing. An experience prepared to sell better.",
 
@@ -276,7 +276,7 @@ const copy = {
     finalTitle: "Your home deserves more than an ordinary viewing.",
     finalText:
       "Tell us about your property: together we’ll assess whether Open Domus is the right way to sell it better.",
-    finalCta: "See if Open Domus suits your property",
+    finalCta: "Talk to us about it",
   },
   fr: {
     heroEyebrow: "Atout propriétaire",
@@ -290,7 +290,7 @@ const copy = {
     heroSubcopy:
       "Un format évolué qui réunit préparation, accueil, documentation et préqualification. Il transforme la visite en un moment réfléchi, ordonné et professionnel.",
     heroAlt: "Séjour moderne aux accents moutarde",
-    heroPrimary: "Découvrez si Open Domus convient à votre bien",
+    heroPrimary: "Découvrir Open Domus",
     heroSecondary: "Comment ça se passe",
     heroSubtitle: "Pas une simple visite. Une expérience préparée pour mieux vendre.",
 
@@ -414,7 +414,7 @@ const copy = {
     finalTitle: "Votre maison mérite mieux qu’une visite ordinaire.",
     finalText:
       "Parlez-nous de votre bien : ensemble, nous évaluons si Open Domus est la bonne voie pour mieux le vendre.",
-    finalCta: "Découvrez si Open Domus convient à votre bien",
+    finalCta: "Parlons-en ensemble",
   },
   de: {
     heroEyebrow: "Eigenes Format",
@@ -428,7 +428,7 @@ const copy = {
     heroSubcopy:
       "Ein durchdachtes Format, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die Besichtigung in einen bewussten, geordneten und professionellen Moment.",
     heroAlt: "Modernes Wohnzimmer mit senffarbenen Akzenten",
-    heroPrimary: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
+    heroPrimary: "Open Domus entdecken",
     heroSecondary: "So läuft es ab",
     heroSubtitle: "Keine gewöhnliche Besichtigung. Ein Erlebnis, vorbereitet für den besseren Verkauf.",
 
@@ -552,7 +552,7 @@ const copy = {
     finalTitle: "Ihr Zuhause verdient mehr als eine gewöhnliche Besichtigung.",
     finalText:
       "Erzählen Sie uns von Ihrer Immobilie: Gemeinsam prüfen wir, ob Open Domus der richtige Weg ist, sie besser zu verkaufen.",
-    finalCta: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
+    finalCta: "Sprechen wir darüber",
   },
   es: {
     heroEyebrow: "Formato propio",
@@ -566,7 +566,7 @@ const copy = {
     heroSubcopy:
       "Un formato evolucionado que reúne preparación, acogida, documentación y precalificación. Convierte la visita en un momento consciente, ordenado y profesional.",
     heroAlt: "Salón moderno con acentos mostaza",
-    heroPrimary: "Descubre si Open Domus encaja con tu inmueble",
+    heroPrimary: "Descubre Open Domus",
     heroSecondary: "Cómo se desarrolla",
     heroSubtitle: "No una simple visita. Una experiencia preparada para vender mejor.",
 
@@ -690,7 +690,7 @@ const copy = {
     finalTitle: "Tu casa merece más que una visita cualquiera.",
     finalText:
       "Cuéntanos tu inmueble: valoramos juntos si Open Domus es el camino adecuado para venderlo mejor.",
-    finalCta: "Descubre si Open Domus encaja con tu inmueble",
+    finalCta: "Hablémoslo",
   },
 };
 
@@ -727,7 +727,10 @@ export default function OpenDomusPageContent() {
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#percorso" }}
-          scriptWord={{ it: "Una visita", en: "One visit", fr: "Une visite", de: "Ein Besuch", es: "Una visita" }[locale]}
+          /* Il titolo finisce con «non una visita»: una calligrafia che dicesse
+             «Una visita» stamperebbe le stesse due parole, in rosso, sopra se
+             stesse. Qui la parola aggiunge il tempo, che il titolo non dice. */
+          scriptWord={{ it: "Tre ore", en: "Three hours", fr: "Trois heures", de: "Drei Stunden", es: "Tres horas" }[locale]}
         />
 
         {/* Claim di prodotto: una frase grande sul fondo avorio, niente banda scura. */}

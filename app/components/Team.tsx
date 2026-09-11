@@ -133,7 +133,11 @@ export default function Team({ compact = false }: { compact?: boolean }) {
   // Prima i ritratti (chi ha una foto in app/lib/team.ts), poi i gruppi.
   const tiles: Tile[] = [
     ...team.flatMap((m): Tile[] =>
-      m.image ? [{ src: m.image, alt: m.name, pos: m.imagePos, caption: m.name }] : [],
+      /* La didascalia porta il RUOLO, non il nome: il nome sta nell'elenco
+         quaranta pixel piu' sotto, e leggerlo due volte di fila faceva
+         sembrare la rotaia un indice della lista invece che le sue
+         fotografie. L'`alt` continua a dire chi e'. */
+      m.image ? [{ src: m.image, alt: m.name, pos: m.imagePos, caption: roles[m.role] }] : [],
     ),
     ...teamPhotos.map(
       (p): Tile => ({

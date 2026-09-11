@@ -756,12 +756,15 @@ export default function Contact({
 
             {/* Foto quadrata, senza arco né filtro (via arch-frame). */}
             <Reveal delay={120}>
-              <div className="relative mt-10 aspect-square">
+              {/* Il modulo, non una scatola su misura: 605 px come ogni
+                  altra meta' del sito, cosi' anche qui il bordo cade sulla
+                  mezzeria invece che 43 px prima. */}
+              <div className="dt-media-half mt-10">
                 <Image
                   src="/images/reali/raffaela-keys.jpg"
                   alt={c.keysAlt}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  sizes="(max-width: 1024px) 100vw, 42vw"
                   className="object-cover"
                 />
               </div>

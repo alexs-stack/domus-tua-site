@@ -753,18 +753,22 @@ export default function StarReviews() {
             );
           })}
         </ul>
-        {/* Sotto sm le cinque colonne sono strette 70px: le etichette (16 px,
-            mai meno) stanno sotto la fila. Non piu' unite da «·»: la riga
-            andava a capo dove capitava e il punto mediano restava appeso a
-            fine riga. Ognuna e' un elemento, e il vuoto le separa. */}
-        <p
+        {/* Sotto sm le cinque colonne sono strette 70px e le etichette non ci
+            stanno: diventano un ELENCO su due colonne, col trattino rosso che
+            il sito usa per le liste. In riga a capo libero, sotto cinque
+            stelle equidistanti, si disponevano 3+2 e nessuna cadeva piu'
+            sotto la sua stella: sembrava un errore di allineamento. */}
+        <ul
           data-sr-el
-          className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-1 text-ui font-semibold uppercase tracking-[0.08em] text-graphite sm:hidden"
+          className="dt-row mt-8 grid grid-cols-2 gap-x-6 gap-y-2 text-body text-graphite sm:hidden"
         >
           {STARS.map((s) => (
-            <span key={s.key}>{c.stars[s.key].label}</span>
+            <li key={s.key} className="flex items-baseline gap-2">
+              <span aria-hidden className="h-px w-4 shrink-0 translate-y-[-0.35em] bg-red" />
+              {c.stars[s.key].label}
+            </li>
           ))}
-        </p>
+        </ul>
 
 
           </div>
