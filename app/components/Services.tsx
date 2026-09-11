@@ -1,11 +1,21 @@
 "use client";
 
-// Servizi — il capitolo piano della rivista bianca (2026-09-10, rif.
-// immobiliaregoldengoal.it): titolo d1, griglia di foto quadrate a tre
-// colonne con titolo d3 e testo 19 px, e sotto la riga del rendering
-// (foto 4:5, titolo d2, lead, link sottolineato). Via il nastro
-// orizzontale, la distorsione WebGL, i sipari, i bagliori, i gradienti
-// sulle foto e la fascia grafite del D.O.C. I testi sono gli stessi.
+// Servizi — l'elenco numerato della rivista (2026-09-11).
+//
+// PERCHE' RIFATTO. La sezione aveva TRE impaginazioni in una: cinque quadrati
+// da 374 px in griglia a tre colonne (con la sesta cella vuota), poi il
+// rendering che ripartiva come riga foto|testo con una TERZA misura (4:5).
+// Tre attacchi verticali diversi in un capitolo solo: l'occhio non ritrovava
+// mai la stessa linea. Ora e' l'elenco 01–06 del riferimento
+// (immobiliaregoldengoal.it/vendere-casa, numeri serif giganti + titolo +
+// paragrafo) impaginato nel template a due colonne: UNA foto `.dt-media-half`
+// per riga, lato alternato, e due sole linee verticali in tutta la sezione.
+//
+// Scelta (a) e non (b) — sei tessere quadrate: sei quadrati da 605 px sono sei
+// fotografie (ne avevamo cinque buone piu' un fotogramma video con la fascia
+// del titolo cotta dentro, rifilata a mano col 125 % di altezza) e ~3600 px di
+// capitolo per sei righe di testo. Il numero costa zero, e' il gesto
+// editoriale del riferimento e lascia alla foto il ruolo di respiro.
 import Image from "next/image";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
@@ -13,8 +23,9 @@ import Parallax from "./motion/Parallax";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 
-// `featureBadge`, `docEyebrow`, `docCopy`: conservati dal capitolo
-// precedente; oggi non hanno più una riga propria (via badge e fascia D.O.C.).
+// `featureBadge` e `docEyebrow`/`docCopy` restano nel record per lingua ma non
+// si rendono piu' (via il badge e la fascia D.O.C. col redesign). `featureTitle`
+// e `featureCopy` sono ora la voce 06 dell'elenco.
 const copy = {
   it: {
     eyebrow: "Servizi Domus",
@@ -25,6 +36,10 @@ const copy = {
       "Vedere il potenziale dell’immobile prima ancora dei lavori.",
     featureAlt: "Rendering fotorealistico di un living moderno",
     featureCta: "Scopri i servizi creativi",
+    shotAlts: [
+      "Salone valorizzato dall’home staging, con il tavolo e le sedie gialle",
+      "Villa con piscina fotografata dal drone al tramonto",
+    ],
     services: [
       {
         title: "Servizi tecnico-legali",
@@ -60,6 +75,10 @@ const copy = {
       "Seeing a property’s potential before the work even begins.",
     featureAlt: "Photorealistic rendering of a modern living room",
     featureCta: "Discover the creative services",
+    shotAlts: [
+      "Living and dining room enhanced by home staging, with the yellow chairs",
+      "Villa with swimming pool shot from a drone at sunset",
+    ],
     services: [
       {
         title: "Technical and legal services",
@@ -95,6 +114,10 @@ const copy = {
       "Voir le potentiel du bien avant même les travaux.",
     featureAlt: "Rendu photoréaliste d’un salon moderne",
     featureCta: "Découvrir les services créatifs",
+    shotAlts: [
+      "Salon valorisé par le home staging, avec la table et les chaises jaunes",
+      "Villa avec piscine photographiée par drone au coucher du soleil",
+    ],
     services: [
       {
         title: "Services techniques et juridiques",
@@ -130,6 +153,10 @@ const copy = {
       "Das Potenzial der Immobilie sehen, noch bevor die Arbeiten beginnen.",
     featureAlt: "Fotorealistisches Rendering eines modernen Wohnzimmers",
     featureCta: "Die kreativen Leistungen entdecken",
+    shotAlts: [
+      "Durch Home Staging aufgewerteter Wohn- und Essbereich mit den gelben Stühlen",
+      "Villa mit Pool, bei Sonnenuntergang mit der Drohne aufgenommen",
+    ],
     services: [
       {
         title: "Technische und rechtliche Dienstleistungen",
@@ -165,6 +192,10 @@ const copy = {
       "Ver el potencial del inmueble antes incluso de las obras.",
     featureAlt: "Renderizado fotorrealista de un salón moderno",
     featureCta: "Descubre los servicios creativos",
+    shotAlts: [
+      "Salón revalorizado con home staging, con la mesa y las sillas amarillas",
+      "Villa con piscina fotografiada con dron al atardecer",
+    ],
     services: [
       {
         title: "Servicios técnicos y legales",
@@ -193,18 +224,27 @@ const copy = {
   },
 };
 
-// La foto di ogni servizio 01–05, nell'ordine dell'elenco `services`.
-// Ognuna una volta sola in home: il drone di Villa Mozart sta in Method, la
-// foto di Teresa in OpenDomus. `trimTop`: il fotogramma porta il titolo del
-// video cotto nella fascia alta; la scatola sale del 25 % oltre la tessera,
-// così la fascia resta fuori dal quadrato.
-const SHOTS: { src: string; trimTop?: boolean }[] = [
-  { src: "/images/rendering_03_master_bedroom_legno.jpg" },
+// Tre fotografie, una per riga: due voci per riga. Il taglio e' scelto guardando
+// il file, non la griglia — sono tutte 16:9 o 3:2, nel quadrato si perde solo
+// larghezza (l'altezza resta intera) e nessuna sale oltre 1x.
+//   home_staging  1024×683  il tavolo e le sedie stanno al centro → 50 %
+//   villa-tramonto 1600×900 casa e piscina stanno al centro → 50 %
+//   rendering_01  1920×1080 il divano e il tavolino stanno al centro → 50 %
+// Fuori dalla home restano `rendering_03_master_bedroom_legno` e
+// `premium_02_living_dining_piante` (doppioni di interni chiari) e
+// `reali/video-villa-domotica` (fotogramma col titolo del video cotto nella
+// fascia alta, che stava nel quadrato solo con un ritaglio del 125 %).
+const ROWS = [
   { src: "/images/home_staging_01_sala_reale_sedie_gialle.jpg" },
   { src: "/images/reali/villa-tramonto.jpg" },
-  { src: "/images/premium_02_living_dining_piante.jpg" },
-  { src: "/images/reali/video-villa-domotica.jpg", trimTop: true },
+  { src: "/images/rendering_01_living_divano_grigio.jpg" },
 ];
+
+// `sizes` segue la SCATOLA, non la colonna: con `object-cover` una foto 16:9 in
+// un quadrato viene resa larga 1,78 volte il lato (poi rifilata). A 42vw
+// servono ~75vw di sorgente, altrimenti il loader manda il ritaglio da 640 e lo
+// stira. Stessa aritmetica sotto i 1024, dove la scatola e' larga 100 %.
+const SHOT_SIZES = "(max-width: 1024px) 180vw, 75vw";
 
 // Il rendering vive nella sezione creativa di /servizi: il link va lì.
 const FEATURE_HREF = "/servizi#servizi-creativi";
@@ -213,75 +253,87 @@ export default function Services() {
   const { locale } = useLocale();
   const c = copy[locale];
 
+  // Sei voci: le cinque dell'elenco piu' il rendering, che era una riga a sé
+  // con una misura propria e ora e' la 06.
+  const items = [...c.services, { title: c.featureTitle, copy: c.featureCopy }];
+  const alts = [...c.shotAlts, c.featureAlt];
+
   return (
     <section id="servizi" className="dt-chapter bg-cream">
       <div className="dt-row">
-        {/* Testa di capitolo: eyebrow e titolo d1 in colonna stretta. */}
+        {/* Testa di capitolo: eyebrow e titolo d2 in colonna stretta. */}
         <Reveal>
           <span className="eyebrow">{c.eyebrow}</span>
         </Reveal>
         <TextLines as="h2" className="mt-6 max-w-[24ch] font-display text-d2">
           {c.title}
         </TextLines>
+      </div>
 
-        {/* La griglia dei servizi: foto quadrata, titolo d3, testo 19 px.
-            Il ritardo del reveal segue la colonna, non l'indice: la riga
-            entra insieme, da sinistra a destra. */}
-        <ul className="mt-[8vh] grid gap-x-[3vw] gap-y-16 md:grid-cols-2 lg:grid-cols-3">
-          {c.services.map((s, i) => (
-            <li key={s.title}>
-              <Reveal delay={(i % 3) * 80}>
-                <div className="relative aspect-square overflow-hidden">
-                  <div
-                    className={
-                      SHOTS[i].trimTop ? "absolute inset-x-0 bottom-0 h-[125%]" : "absolute inset-0"
-                    }
-                  >
-                    <Image
-                      src={SHOTS[i].src}
-                      alt={s.title}
-                      fill
-                      sizes="(max-width:768px) 100vw, 30vw"
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-                <h3 className="mt-5 font-display text-d3">{s.title}</h3>
-                <p className="mt-3 text-body text-graphite">{s.copy}</p>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
-
-        {/* Il servizio di punta come riga 6/6: foto 4:5 a sinistra (deriva
-            ±4 %), titolo d2, lead e link sottolineato a destra. */}
-        <div className="mt-[10vh] grid gap-[6vw] lg:grid-cols-2 lg:items-center">
-          <Parallax speed={-0.04}>
-            <div className="relative aspect-[4/5]">
+      {ROWS.map((row, r) => {
+        // La foto passa a destra nelle righe dispari: e' l'unica asimmetria
+        // della sezione, dichiarata e ripetuta. A destra serve
+        // `justify-self-end` perche' la scatola (42vw) e' piu' larga della
+        // colonna della griglia e altrimenti sborderebbe oltre il margine.
+        const right = r % 2 === 1;
+        const last = r === ROWS.length - 1;
+        return (
+          <div
+            key={row.src}
+            className="dt-row mt-[10vh] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
+          >
+            <Parallax
+              speed={-0.04}
+              scale={1.03}
+              className={`dt-media-half ${right ? "lg:order-2 lg:justify-self-end" : ""}`}
+              innerClassName="absolute inset-0"
+            >
               <Image
-                src="/images/rendering_01_living_divano_grigio.jpg"
-                alt={c.featureAlt}
+                src={row.src}
+                alt={alts[r]}
                 fill
-                sizes="(max-width:1024px) 100vw, 45vw"
+                sizes={SHOT_SIZES}
                 className="object-cover"
               />
+            </Parallax>
+
+            {/* Due voci per riga. Da sm stanno affiancate (mai una pila di sei
+                sul telefono); da lg tornano in colonna, perche' accanto alla
+                foto la colonna di testo e' larga ~450 px e due titoli d3
+                affiancati diventerebbero due strisce di 220 px. */}
+            <div className={right ? "lg:pr-[6vw]" : "lg:pl-[6vw]"}>
+              <ol className="grid gap-x-[3vw] gap-y-12 sm:grid-cols-2 lg:grid-cols-1">
+                {items.slice(r * 2, r * 2 + 2).map((s, j) => {
+                  const n = r * 2 + j;
+                  return (
+                    <li key={s.title}>
+                      <Reveal delay={j * 80}>
+                        {/* Il numero e' ornamento: l'ordine lo porta gia' <ol>. */}
+                        <span
+                          aria-hidden
+                          className="block font-display text-d1 font-light leading-[0.85] text-stone"
+                        >
+                          {String(n + 1).padStart(2, "0")}
+                        </span>
+                        <h3 className="mt-4 font-display text-d3">{s.title}</h3>
+                        <p className="mt-3 text-body text-graphite">{s.copy}</p>
+                      </Reveal>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              {last && (
+                <Reveal delay={160}>
+                  <Cta href={FEATURE_HREF} variant="ghost" className="mt-10">
+                    {c.featureCta}
+                  </Cta>
+                </Reveal>
+              )}
             </div>
-          </Parallax>
-          <div>
-            <TextLines as="h3" className="font-display text-d2">
-              {c.featureTitle}
-            </TextLines>
-            <Reveal>
-              <p className="lead mt-6">{c.featureCopy}</p>
-            </Reveal>
-            <Reveal delay={100}>
-              <Cta href={FEATURE_HREF} variant="ghost" className="mt-8">
-                {c.featureCta}
-              </Cta>
-            </Reveal>
           </div>
-        </div>
-      </div>
+        );
+      })}
     </section>
   );
 }

@@ -15,6 +15,12 @@ type Props = {
    *  Consigliato SEMPRE per i video verticali/Short: la thumb YouTube in 16:9 esce
    *  con bande nere ai lati (aspetto "cheap"); un poster pulito lo evita. */
   poster?: string;
+  /** Quanto e' larga la scatola, nel formato di `sizes`. Il valore di partenza
+   *  («100vw») vale solo per la banda a tutta larghezza: da quando il video
+   *  puo' stare in mezza colonna (`.dt-media-half`), chi lo mette dichiara la
+   *  propria misura, e ricordando che con `object-cover` un fotogramma piu'
+   *  largo della scatola viene reso piu' largo della scatola. */
+  posterSizes?: string;
 };
 
 // Facciata leggera per YouTube: mostra solo il poster finché l'utente non clicca.
@@ -26,7 +32,13 @@ type Props = {
 // (2) dominio "youtube-nocookie.com" (privacy-enhanced di YouTube): niente cookie di
 // tracciamento finché non c'è interazione col player. Comportamento documentato in
 // docs/legal-launch-inventory.md.
-export default function LazyYouTubeEmbed({ id, title, poster, aspect = "video" }: Props) {
+export default function LazyYouTubeEmbed({
+  id,
+  title,
+  poster,
+  aspect = "video",
+  posterSizes: posterSizesProp,
+}: Props) {
   const [active, setActive] = useState(false);
   // L etichetta era italiana fissa («Riproduci il video: …») su un sito in cinque lingue:
   // chi naviga in tedesco con uno screen reader si sentiva annunciare una frase italiana.
@@ -35,7 +47,8 @@ export default function LazyYouTubeEmbed({ id, title, poster, aspect = "video" }
   const playLabel = useVideoPlayLabel();
 
   const embed = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
-  const posterSizes = aspect === "portrait" ? "(max-width:1024px) 100vw, 420px" : "100vw";
+  const posterSizes =
+    posterSizesProp ?? (aspect === "portrait" ? "(max-width:1024px) 100vw, 420px" : "100vw");
   const posterClassName =
     "photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105";
 
@@ -65,9 +78,11 @@ export default function LazyYouTubeEmbed({ id, title, poster, aspect = "video" }
             <YoutubeThumb id={id} alt="" sizes={posterSizes} className={posterClassName} />
           )}
           {/* Play: cerchio rosso 96 px, l'unica curva ammessa (rivista bianca,
-              2026-09-10). Niente velo sopra la foto, niente ombra né anello. */}
-          <span className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105">
-            <Play className="h-8 w-8 translate-x-0.5" />
+              2026-09-10). Niente velo sopra la foto, niente ombra né anello.
+              Sul telefono 56: su una miniatura alta 189 px il cerchio da 96
+              ne copriva il 51% — cioe' i volti — e il riferimento ne usa 55. */}
+          <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 md:h-24 md:w-24">
+            <Play className="h-5 w-5 translate-x-0.5 md:h-8 md:w-8" />
           </span>
         </button>
       )}
