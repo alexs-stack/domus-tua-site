@@ -71,11 +71,9 @@ export default function VivereInZona({
     <section aria-labelledby="vivere-in-zona-title" className="dt-row border-t border-line pb-4 pt-16">
       <div className="flex flex-col gap-2">
         {/* Occhiello: dice di cosa parla la sezione prima che il titolo dica DOVE. Non è un
-            heading (non deve entrare nella struttura del documento): è un'etichetta. 16 px,
-            come ogni UI del sito: la cliente non vuole scritte piccole. */}
-        {eyebrow && (
-          <p className="text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{eyebrow}</p>
-        )}
+            heading (non deve entrare nella struttura del documento): è l'eyebrow del sistema
+            (rosso col trattino, 16 px), la stessa cellula che apre ogni capitolo. */}
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h2 id="vivere-in-zona-title" className="font-display text-d2">
           {sectionTitle}
         </h2>
@@ -100,14 +98,14 @@ export default function VivereInZona({
           sposta il layout quando il bundle arriva. */}
       {areaView && areaView.intro && (
         <div className="mt-8 max-w-[60ch]">
-          <p className="lead text-ink">{areaView.intro}</p>
+          <p className="lead">{areaView.intro}</p>
           {areaView.sections.length > 0 && (
             <div className="mt-8 flex flex-col gap-6">
               {areaView.sections.map((sec, i) => (
                 <div key={i}>
-                  <h3 className="text-ui font-semibold uppercase tracking-[0.08em] text-graphite">
-                    {sec.heading}
-                  </h3>
+                  {/* Sottotitolo vero (resta nell'outline): la taglia di lista d4 in
+                      Playfair, maiuscolo per regola globale — come i titoli di colonna. */}
+                  <h3 className="font-display text-d4">{sec.heading}</h3>
                   <p className="mt-2 text-body text-ink">{sec.body}</p>
                 </div>
               ))}
