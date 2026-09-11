@@ -110,7 +110,60 @@ test("dalla home si arriva alla ricerca immobili", async ({ page, goto }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
-// L'unico nastro orizzontale rimasto (rivista bianca): la rotaia del team in
+test("il set piece orizzontale cuce i pannelli allo scroll", async ({ page, goto, isMobile }) => {
+  test.skip(!!isMobile, "lo scroller orizzontale vive solo da desktop");
+  const width = page.viewportSize()?.width ?? 0;
+  test.skip(width < 1024, "sotto i 1024 i pannelli restano in colonna");
+  await goto("/");
+
+  // Attivo solo via JS (desktop + motion ok): l'attributo è la prova del pin.
+  const horizon = page.locator(".dt-horizon");
+  await expect(horizon).toHaveAttribute("data-on", "");
+
+  // Si scrolla come un utente (wheel → Lenis) fin dentro la sezione pinnata:
+  // il track deve tradursi in orizzontale mentre la pagina scende.
+  await horizon.scrollIntoViewIfNeeded();
+  const readX = () =>
+    page
+      .locator(".dt-horizon_track")
+      .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41);
+  let x = 0;
+  for (let i = 0; i < 80 && x > -50; i++) {
+    await page.mouse.wheel(0, 900);
+    await page.waitForTimeout(60);
+    x = await readX();
+  }
+  expect(x, "il track non si è mosso in orizzontale").toBeLessThan(-50);
+
+  // E il documento non guadagna mai uno scroll orizzontale suo.
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test("le cinque stelle si accendono quando la fila è in scena", async ({ page, goto, isMobile }) => {
+  test.skip(!!isMobile, "sul telefono il film suona a tempo dentro un box: qui si prova il palcoscenico del desktop");
+  const width = page.viewportSize()?.width ?? 0;
+  test.skip(width < 1024, "sotto i 1024 non c'è lo schermo sticky");
+  await goto("/");
+  const stars = page.locator(".dt-starrev");
+  // Il palcoscenico lo dichiara JS con motion ok.
+  await expect(stars).toHaveAttribute("data-on", "");
+  // `scrollIntoViewIfNeeded` porta al CENTRO della corsa (360svh): si è già
+  // dentro la sezione. Pochi colpi di rotella, non tanti: oltre il fondo della
+  // corsa il riflesso si spegne di proposito ([data-lit] cade a «bottom top»).
+  await stars.scrollIntoViewIfNeeded();
+  for (let i = 0; i < 4; i++) {
+    await page.mouse.wheel(0, 300);
+    await page.waitForTimeout(80);
+  }
+  // In scena il riflesso è acceso ([data-lit]) e la fila conta cinque stelle d'oro.
+  await expect(stars).toHaveAttribute("data-lit", "");
+  await expect(page.locator(".dt-starrev_star")).toHaveCount(5);
+});
+
+// La rotaia del team in
 // #chi-siamo (HorizontalRail con corridoio). Da 1024 in su, con motion ok, il JS
 // mette [data-on] e il track trasla in orizzontale mentre la pagina scende.
 test("la rotaia del team scorre in orizzontale mentre la pagina scende", async ({ page, goto, isMobile }) => {
@@ -163,13 +216,13 @@ test("niente scorre in orizzontale @layout", async ({ page, goto }) => {
 // §6.5 — «Le didascalie dei video (testo già esistente, oggi invisibile)».
 //
 // Il documento le trovava dentro gli attributi. Oggi sono TESTO VISIBILE sotto le tessere
-// del carosello «Le voci» (#recensioni), e questo test serve a tenercele. Il presidio che
+// del carosello «Le voci» (#voci), e questo test serve a tenercele. Il presidio che
 // c'era controllava i titoli come DATO (app/lib/__tests__/content-integrity.test.ts): passa
 // verde anche se nessuno li rende. Qui si guarda lo schermo.
 test("le didascalie dei video sono testo visibile, non attributi @layout", async ({ page, goto }) => {
   await goto("/");
   // Il carosello sta a metà home: ci si porta lì (scroll nativo: Lenis lo segue).
-  await page.locator("#recensioni").scrollIntoViewIfNeeded();
+  await page.locator("#voci").scrollIntoViewIfNeeded();
   await page.waitForTimeout(800);
 
   // Almeno tre delle sei: il video in evidenza vive in «Come lavoriamo» e non nel carosello,

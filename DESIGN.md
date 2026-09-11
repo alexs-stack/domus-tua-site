@@ -201,7 +201,7 @@ Domus Tua è impaginata come una rivista immobiliare stampata su un'unica carta 
 
 Il rosso Domus è un accento contato: l'eyebrow, una parola in corsivo Pinyon per capitolo, il «Tua» del lockup, i bottoni di conversione e i pulsanti tondi. Tutto il resto è grafite e inchiostro caldo su avorio. Nessun raggio, nessuna ombra, nessun velo sulle foto, nessuna card, nessuna superficie scura fuori dal sipario d'ingresso. Il sito rifiuta esplicitamente la home «a card» e la home «cinematografica scura» che l'hanno preceduto.
 
-Il movimento è disciplina: tre gesti (righe che salgono da una maschera, fade-up, una deriva di parallasse quasi impercettibile) più due firme — la rotaia orizzontale del team e il monogramma che ruota in senso orario nella testata — e il film d'apertura di 4,63 s. Tutto è progressive enhancement: con reduced-motion o senza JavaScript la pagina è completa, ferma, e bella lo stesso.
+Il movimento è disciplina: tre gesti (righe che salgono da una maschera, fade-up, una deriva di parallasse quasi impercettibile) più quattro firme — i pannelli orizzontali di «Perché Domus Tua», il film delle cinque stelle, la rotaia orizzontale del team e il monogramma che ruota in senso orario nella testata — e il film d'apertura di 4,63 s. Tutto è progressive enhancement: con reduced-motion o senza JavaScript la pagina è completa, ferma, e bella lo stesso.
 
 **Key Characteristics:**
 - Un solo fondo avorio (#f9f5ef) su tutto il sito; l'unica superficie scura è il pannello espresso del preloader.
@@ -210,7 +210,7 @@ Il movimento è disciplina: tre gesti (righe che salgono da una maschera, fade-u
 - Raggi a zero e nessuna ombra: gli unici cerchi sono i bottoni-icona (play, frecce, WhatsApp, social).
 - Media squadrati a tutta larghezza, `object-cover`, senza velo né vignettatura; il testo non sta mai sopra una foto, tranne nella banda video finale.
 - Nessun testo sotto i 16 px: l'UI sta a 1rem, il corpo a 19 px.
-- Tre gesti di motion + rotaia del team + monogramma rotante + preloader; niente sezioni pinnate, niente transizioni di pagina, niente cursore custom.
+- Tre gesti di motion + rotaia del team + monogramma rotante + preloader, più i due set piece riportati l'11 settembre su richiesta del cliente (i pannelli orizzontali di «Perché Domus Tua» e il film delle cinque stelle); niente transizioni di pagina, niente cursore custom.
 
 ## Colors
 
@@ -345,6 +345,9 @@ Foto o video 16:9 / 1:1 / 4:5 senza cornice, `object-cover`, sopra avorio profon
 ### Monogramma rotante
 `RotatingMark`: anello di 60 tacche + monogramma ufficiale vettoriale che girano insieme in senso orario a 30°/s (un giro ogni 12 s); con lo scroll la velocità sale a 30 + 10·|v| in 0.3 s (ease domus) e torna a riposo in 1.1 s. Sta nella testata da lg (44 px) e nel preloader.
 
+### I due set piece riportati (2026-09-11)
+Il cliente ha chiesto di tenere «le animazioni che non erano curve»: tornano quindi, nella grammatica della rivista, i due gesti pilotati dallo scroll che il redesign aveva tolto. **«Perché Domus Tua»** (`HorizonStory` + `HorizonScroller`): da lg in su con motion ok lo schermo è sticky e due pannelli — il manifesto, che entra per carattere, e il territorio, coi gradini del titolo in parallasse contraria e la foto che si apre a sipario — scorrono in orizzontale mentre la pagina scende; sotto lg, senza JS o con reduced-motion sono due blocchi in colonna. Niente cupola, niente fondale aereo, niente fiori. **Le cinque stelle** (`StarReviews`, `#recensioni`): su una corsa di 360svh la foto del premio Top Agency compare piccola ritagliata a stella, si apre a tutto schermo con un lampo e il titolo per carattere, poi si richiude nella stella centrale di una fila di cinque che si accende d'oro dal centro, percorsa da un riflesso; sul telefono lo stesso film suona a tempo in un box ancorato alla fila. Sulla foto nessun velo: il titolo-cover è bianco con un'ombra di testo leggerissima, come sulla banda video di congedo. Le stelle sono l'unica forma non rettangolare del sito oltre ai bottoni-icona: poligoni a dieci vertici, nessuna curva.
+
 ### Preloader «Arco Domus»
 L'unico pannello scuro: espresso con due gradienti radiali caldi, lockup Playfair a 11vh in avorio con la firma Pinyon a 5.2vh in rosso, una linea di carica avorio, poi una porta ad arco (maschera, 24vw → 36vw → 125vw) che si apre sulla pagina. Film di 4,63 s tutto in CSS (`TEMPO = 1`): sagoma da 0.15 s, lettere da 0.12 s (stagger 0.075), firma da 0.60 s, linea 0.60 → 2.15 s, arco 2.25 → 3.35 s, congedo 2.35 s, tuffo 3.13 → 4.63 s; autohide a 4.73 s, failsafe a 5.23 s. Suona una volta per sessione, mai con reduced-motion, mai con un'ancora nell'URL; si salta con un tocco o un tasto. In alto il badge di marca (anello di tacche + monogramma) gira in CSS in senso orario, 6 s a giro, anello e monogramma nello stesso verso come nella testata; sull'espresso posa su un disco carta (`bg-paper`, padding 0.5rem, nessuna ombra) perché il monogramma resti grigio e rosso — insieme ai bottoni-icona, l'unico cerchio del sito che contiene qualcosa. Non è un pattern da riusare: è il solo caso in cui il sito è scuro.
 
@@ -360,7 +363,7 @@ L'ultima sezione: video 16:9 a tutta larghezza (min 70svh, scala 1.14 per il tag
 - **Do** usare il rosso solo per accento e conversione: una CTA piena per schermata, il resto sono link maiuscoli sottolineati.
 - **Do** mettere i media a tutta larghezza, squadrati, `object-cover`, su avorio profondo, senza velo; il play è un cerchio rosso di 96 px.
 - **Do** tenere tutto il testo a 16 px o più: UI a 1rem, corpo a 19 px, campi forzati a 16 px sul telefono.
-- **Do** limitare il movimento ai tre gesti (righe che salgono, fade-up di 2.5rem, deriva di parallasse) più rotaia del team e monogramma; ogni animazione dentro `prefers-reduced-motion: no-preference`, stati nascosti solo via JS.
+- **Do** limitare il movimento ai tre gesti (righe che salgono, fade-up di 2.5rem, deriva di parallasse) più i tre nastri pilotati dallo scroll (pannelli di «Perché Domus Tua», cinque stelle, rotaia del team) e il monogramma; ogni animazione dentro `prefers-reduced-motion: no-preference`, stati nascosti solo via JS.
 - **Do** separare con hairline di 1 px in filo (#e4dccf) e con vuoto; il focus è sempre `outline: 2px` rosso offset 3 px.
 
 ### Don't:
@@ -371,5 +374,5 @@ L'ultima sezione: video 16:9 a tutta larghezza (min 70svh, scala 1.14 per il tag
 - **Don't** usare l'oro fuori dalle stelle della valutazione; niente blu, niente nero pieno, niente Inter, niente gradienti viola-blu.
 - **Don't** scendere sotto i 16 px, nemmeno per didascalie, eyebrow o riga legale.
 - **Don't** mettere più di una parola Pinyon per capitolo, né sopra una foto; il corsivo è ornamento `aria-hidden`, mai un heading.
-- **Don't** aggiungere sezioni pinnate, transizioni di pagina, cursori custom, fiori o ornamenti disegnati: il sito deve restare bello anche fermo.
+- **Don't** aggiungere altre sezioni pinnate oltre le tre registrate, né transizioni di pagina, cursori custom, fiori o ornamenti disegnati: il sito deve restare bello anche fermo.
 - **Don't** mettere titoli d1 o d2 in mezza colonna: accanto a una foto la testa è d2 o d3 e il paragrafo ≤ 50ch.

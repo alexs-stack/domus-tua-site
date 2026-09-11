@@ -17,7 +17,7 @@
 - **Nessuna ombra**, nessun gradiente sopra le foto, nessuna grana, nessuna vignettatura.
 - **Nessun testo sotto 16 px** nel contenuto: vietati `text-xs`, `text-sm`, `text-[0.6…0.9rem]`. Corpo 19 px (`text-body`), paragrafo editoriale `lead`, UI 16 px (`text-ui`).
 - Titoli `h1-h4` maiuscoli (regola globale), in `font-display`; il corsivo Pinyon (`script-word`) è rosso e compare **una volta per capitolo**.
-- Movimento ammesso: `Reveal`, `TextLines`, `Parallax` (±4 %), `HorizontalRail` (solo team). Vietati tutti gli altri primitivi di `app/components/motion/`. Reduced-motion: tutto fermo e visibile.
+- Movimento ammesso: `Reveal`, `TextLines`, `Parallax` (±4 %), `HorizontalRail` (solo team). Vietati tutti gli altri primitivi di `app/components/motion/`. Reduced-motion: tutto fermo e visibile. *(Dal 2026-09-11 anche `HorizonScroller` e il film di `StarReviews`, riportati su richiesta del cliente e rifatti nel design nuovo.)*
 - Non toccare: `app/api/*`, `app/lib/realsmart/*`, la logica dei form lead (`window.open` sincrono), i18n (`LocaleProvider`, dizionari), `BeforeAfter`/`PropertyCard`/`Reviews`/`TrustindexEmbed` (logica), metadata/JSON-LD/canonical.
 - Ogni `copy` record per lingua (it/en/fr/de/es) esistente nei componenti si CONSERVA: si cambia il markup, non i testi, salvo le rimozioni chieste dalla cliente (hero).
 - Conservare ogni `id=` di sezione (`top`, `cerca`, `chi-siamo`, `metodo`, `open-domus`, `servizi`, `contatti`, `recensioni`): li usano nav, hero e link interni.

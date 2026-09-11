@@ -71,6 +71,32 @@ test("la rotaia del team con reduced motion resta uno scorrimento nativo complet
   await expect(tiles.last()).toBeAttached();
 });
 
+test("lo scroller orizzontale con reduced motion resta una colonna completa", async ({ page, goto }) => {
+  await goto("/");
+  const horizon = page.locator(".dt-horizon");
+  await expect(horizon).toBeAttached();
+  // Senza motion l'attributo che attiva pin e track orizzontale non deve esserci.
+  expect(await horizon.getAttribute("data-on")).toBeNull();
+  // I pannelli restano in flusso normale, visibili e completi.
+  await page.locator(".dt-horizon_panel").first().scrollIntoViewIfNeeded();
+  await expect(page.locator(".dt-horizon_panel").first()).toBeVisible();
+  await expect(page.locator(".dt-horizon_panel").last()).toBeAttached();
+});
+
+test("le cinque stelle con reduced motion sono già d'oro, senza palcoscenico", async ({ page, goto }) => {
+  await goto("/");
+  const stars = page.locator(".dt-starrev");
+  await expect(stars).toBeAttached();
+  // Né lo schermo sticky del desktop né il box del telefono: li mette solo JS con motion ok.
+  expect(await stars.getAttribute("data-on")).toBeNull();
+  expect(await stars.getAttribute("data-sr-mob")).toBeNull();
+  await stars.scrollIntoViewIfNeeded();
+  await expect(page.locator(".dt-starrev_star")).toHaveCount(5);
+  await expect(page.locator(".dt-starrev_star").first()).toBeVisible();
+  // Il layer del film resta fuori scena.
+  await expect(page.locator(".dt-starrev_intro")).toBeHidden();
+});
+
 test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ page, goto }) => {
   await goto("/");
   await page.mouse.wheel(0, 800);

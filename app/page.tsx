@@ -4,7 +4,8 @@ import Header from "./components/Header";
 import HeroCinematic from "./components/HeroCinematic";
 import Posizionamento from "./components/Posizionamento";
 import HomeSearchGateway from "./components/HomeSearchGateway";
-import ComeLavoriamo from "./components/ComeLavoriamo";
+import HorizonStory from "./components/HorizonStory";
+import StarReviews from "./components/StarReviews";
 import Voci from "./components/Voci";
 import Paths from "./components/Paths";
 import Method from "./components/Method";
@@ -51,20 +52,24 @@ export default function Home() {
           STORY: chi deve vendere capisce in un colpo cosa fa l'agenzia, vede
           persone e case vere, legge le voci dei clienti e trova una sola
           azione: chiedere la valutazione.
-          FIRST VIEWPORT: header chiaro; lockup «Domus Tua» a 13vw con la
-          firma staccata sotto; H1; video a tutta larghezza; blocco CTA a
-          destra sotto il video.
+          FIRST VIEWPORT: header chiaro; la foto della stanza fa da fondo
+          alla banda alta (senza velo) con il lockup «Domus Tua» a 13vw e la
+          firma sotto; poi, sull'avorio, sovratitolo, H1 e CTA centrate.
           FORM: il canone del riferimento pinnato dalla cliente
           (immobiliaregoldengoal.it), eseguito nella nostra palette: rosso al
-          posto dell'oro, fondo chiaro al posto della banda nera. Nessuna
-          sezione pinnata tranne la rotaia del team; nessun cambio di tono fra
-          i capitoli, perché il fondo è uno. */}
+          posto dell'oro, fondo chiaro al posto della banda nera. Tre nastri
+          pilotati dallo scroll — i pannelli di «Perché Domus Tua», il film
+          delle cinque stelle (entrambi riportati l'11 settembre su richiesta
+          del cliente, rifatti senza curve, veli né scuro) e la rotaia del
+          team — e nessun'altra sezione pinnata; nessun cambio di tono fra i
+          capitoli, perché il fondo è uno. */}
       <Header />
       <main className="flex-1">
         <HeroCinematic />
         <Posizionamento />
         <HomeSearchGateway />
-        <ComeLavoriamo />
+        <HorizonStory />
+        <StarReviews />
         <Voci />
         <Paths />
         <Method />

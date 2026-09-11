@@ -191,13 +191,13 @@ export function firstListingLink(page: Page) {
 }
 
 /**
- * La prima tessera video di «Le voci» (#recensioni): è il comando che apre il video in
+ * La prima tessera video di «Le voci» (#voci): è il comando che apre il video in
  * pagina (VideoLightbox). Il link porta l'etichetta «Guarda: <titolo>» nella lingua di chi
  * legge; il vecchio «Guarda il video» dell'hero non esiste più (rivista bianca).
  */
 export function videoTile(page: Page) {
   return page
-    .locator("#recensioni")
+    .locator("#voci")
     .getByRole("link", { name: /^(guarda|watch|regarder|ansehen|ver): /i })
     .first();
 }

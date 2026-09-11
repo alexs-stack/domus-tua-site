@@ -1599,6 +1599,302 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   display: none;
 }
 
+/* ---------- HorizonStory: i pannelli orizzontali di «Perché scegliere Domus Tua» ----------
+   Riportati il 2026-09-11 su richiesta di Alberto («mantenendo quelle
+   animazioni che non erano curve … lo scroll orizzontale nella sezione
+   perché domus tua»). La cupola (`.dt-dome`, un bordo curvo) non torna:
+   niente curve nella rivista bianca. Resta la meccanica: screen sticky +
+   track in riga, accesa SOLO da JS da lg in su con motion ok. */
+/* Scroller orizzontale. Default (mobile / reduced-motion / no-JS): pannelli in
+   colonna, tutto visibile e statico. [data-on] arriva SOLO via JS (desktop
+   ≥1024 + motion ok) e attiva screen sticky + track in riga: senza JS non
+   esiste alcuno stato clippato o nascosto. */
+/* Rete contro lo sbordo laterale in COLONNA (onda «parità mobile 2», verdetto
+   15): i gradini del titolo scivolano in x anche qui, e a 390 fra la riga
+   (350px) e il bordo restano 20px per lato. Le ampiezze sono già clampate a
+   ±16px nel ramo mobile di HorizonScroller — questa è la rete, non la cintura.
+   `clip` e non `hidden`: `hidden` farebbe della sezione un contenitore di
+   scorrimento e nessuno se ne accorgerebbe finché un giorno qui dentro non
+   arriva uno sticky. `overflow-clip-margin` lascia respirare il tralcio del
+   manifesto, che sporge di 24px dall'angolo alto a sinistra: ciò che sta nel
+   margine si dipinge, ma non genera scorrimento del documento. Dove browser
+   vecchi non lo conoscono il ripiego è il clip secco, che è lo stato sicuro. */
+.dt-horizon:not([data-on]) {
+  overflow-x: clip;
+  overflow-clip-margin: 2rem;
+}
+.dt-horizon[data-on] {
+  overflow: clip;
+}
+.dt-horizon[data-on] .dt-horizon_screen {
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100svh;
+  overflow: hidden;
+}
+.dt-horizon[data-on] .dt-horizon_track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  will-change: transform;
+}
+.dt-horizon[data-on] .dt-horizon_panel {
+  flex: none;
+  height: 100%;
+  width: 100vw;
+}
+.dt-horizon[data-on] .dt-horizon_panel--territory {
+  /* L'extra larghezza sta TUTTA nel rientro sinistro: il fotogramma finale
+     (gli ultimi 100vw del track) inquadra il pannello completo, e i 26vw in
+     testa sono la pista su cui il titolo a gradini cavalca in parallasse. */
+  width: 126vw;
+  padding-left: 26vw;
+}
+/* Split per-carattere del reveal "chars" (HorizonScroller): inline-block per
+   i transform, parola intera non spezzabile (smartWrap fa il resto). */
+.dt-hword {
+  display: inline-block;
+  white-space: nowrap;
+}
+/* ⚠️ NIENTE `will-change` PERMANENTE su questi selettori.
+   Vale la stessa lezione già scritta su .reveal: un elemento promosso è un
+   livello che il compositore tiene in memoria GPU finché esiste. Qui i
+   selettori colpiscono UN CARATTERE, UNA CELLA o UN PANNELLO A TUTTO SCHERMO
+   alla volta — misurato: 252 elementi promossi e 432 MB di memoria livelli
+   sulla home. Sotto pressione il compositore sfratta i livelli usciti di scena
+   e li ricostruisce al ritorno: era il singhiozzo dello scroll all'indietro.
+   GSAP promuove da sé ciò che sta animando, per il tempo in cui lo anima. */
+.dt-hchar {
+  display: inline-block;
+}
+
+/* Il titolo a gradini cavalca l'immagine solo nel layout orizzontale. */
+.dt-horizon[data-on] .dt-horizon_stairs {
+  position: relative;
+  z-index: 2;
+  margin-right: -11vw;
+}
+
+/* ---------- Cinque stelle (capitolo recensioni home) ----------
+   Rif. tecnica: codrops/FullscreenClipEffect — qui il morph è tra poligoni
+   stella a 10 vertici (app/lib/star-shape.ts). Il film è lo stesso a ogni
+   larghezza (parità mobile 2, 2026-08-18): cambia il palcoscenico — [data-on]
+   = schermo sticky sopra i 1024 px, [data-sr-mob] = box ancorato alla fila
+   sotto — e li mette entrambi JS, con motion ok. Senza JS e con
+   reduced-motion la sezione è in flusso normale, completa e statica. */
+.dt-starrev {
+  /* Stella "piena" delle recensioni: ratio interno 0.475, punta in alto.
+     Stessa geometria di STAR_CLIP_SQUARE in star-shape.ts. */
+  --dt-star: polygon(
+    50% 0%,
+    63.96% 30.79%,
+    97.55% 34.55%,
+    72.59% 57.34%,
+    79.39% 90.45%,
+    50% 73.75%,
+    20.61% 90.45%,
+    27.41% 57.34%,
+    2.45% 34.55%,
+    36.04% 30.79%
+  );
+}
+
+/* ---------- Le cinque stelle: ORO, non fotografie (2026-08-06; riportate il 2026-09-11) ----------
+   Le tessere non portano più foto ritagliate: la stella a 5 punte tagliava i
+   volti sulle punte e lasciava le foto in letterbox. Ora le cinque stelle
+   sono il segno pieno della valutazione — oro metallico, accese una alla
+   volta DAL CENTRO nel momento in cui la stella fotografica dell'intro si
+   posa nella tessera centrale, e percorse da un riflesso che viaggia lungo
+   la fila come luce su metallo.
+   Compositing: nessun `box-shadow` (la clip-path lo taglierebbe) e nessun
+   `filter` animato. L'alone è una stella gemella sfocata dietro il corpo:
+   si anima in opacity/scale, cioè solo su GPU. */
+.dt-starrev_star {
+  position: relative;
+  display: block;
+  /* 82%, non 100%: la stella a 5 punte tocca i bordi del suo riquadro (i
+     vertici orizzontali stanno a 2.45% e 97.55%), quindi a piena larghezza
+     le punte di due stelle adiacenti si sfiorano e la fila legge come una
+     banda continua. L'aria la deve fare la forma, non solo il gap. */
+  width: 82%;
+  aspect-ratio: 1 / 1;
+}
+/* Alone caldo dietro la stella: sborda quel tanto che basta a disegnare un
+   filo di luce sul bordo — la stella legge come medaglia coniata, non come
+   campitura piatta. Senza `filter: blur` (rivista bianca, 2026-09-11: la
+   regola del piatto non ammette sfocature): è una stella gemella a bordo
+   netto, e il film la anima solo in opacity/scale. */
+.dt-starrev_halo {
+  position: absolute;
+  inset: -5%;
+  clip-path: var(--dt-star);
+  background: radial-gradient(
+    circle at 50% 44%,
+    var(--color-gold-spec) 0%,
+    var(--color-gold-light) 38%,
+    var(--color-gold) 62%,
+    rgba(201, 162, 39, 0) 80%
+  );
+  opacity: 0.5;
+}
+/* Corpo metallico: bande alternate chiaro/scuro = lettura "metallo", non
+   "giallo piatto". L'inclinazione a 158° tiene la luce in alto a sinistra,
+   coerente con l'illuminazione delle fotografie del sito. */
+.dt-starrev_gold {
+  position: absolute;
+  inset: 0;
+  clip-path: var(--dt-star);
+  background: linear-gradient(
+    158deg,
+    var(--color-gold-deep) 0%,
+    var(--color-gold-light) 12%,
+    var(--color-gold) 26%,
+    var(--color-gold-spec) 44%,
+    var(--color-gold) 56%,
+    /* Una sola banda scura, e tenuta alta: due bande d'ombra facevano virare
+       la metà inferiore della stella al marrone sulla carta calda. */ var(--color-gold-deep) 70%,
+    var(--color-gold-light) 86%,
+    #bb9430 100%
+  );
+}
+/* Riflesso speculare: banda inclinata che attraversa il corpo. Vive DENTRO
+   la clip del corpo, quindi non serve mascherarla a parte. */
+.dt-starrev_sweep {
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: 0;
+  width: 42%;
+  /* Ordine translate→rotate: lo stesso che compone GSAP sotto [data-on].
+     Invertirlo farebbe viaggiare la banda lungo l'asse inclinato invece che
+     per orizzontale, e il fallback CSS non combacerebbe più con la timeline. */
+  transform: translate3d(-160%, 0, 0) rotate(16deg);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 246, 212, 0) 0%,
+    rgba(255, 246, 212, 0.42) 38%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(255, 246, 212, 0.42) 62%,
+    rgba(255, 246, 212, 0) 100%
+  );
+  pointer-events: none;
+}
+/* Il riflesso è l'unica cosa che gira di continuo: la promuoviamo solo dove
+   serve, e solo quando la sezione è in scena (JS mette/toglie [data-lit]). */
+.dt-starrev[data-lit] .dt-starrev_sweep,
+.dt-starrev[data-lit] .dt-starrev_halo {
+  will-change: transform, opacity;
+}
+/* Senza [data-on] (mobile, reduced-motion, no-JS) il riflesso è CSS puro:
+   la fila resta viva anche dove la timeline scrubbata non esiste. */
+@media (prefers-reduced-motion: no-preference) {
+  .dt-starrev:not([data-on]) .dt-starrev_sweep {
+    animation: dt-star-sweep 5.4s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(1) .dt-starrev_sweep {
+    animation-delay: 0s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(2) .dt-starrev_sweep {
+    animation-delay: 0.14s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(3) .dt-starrev_sweep {
+    animation-delay: 0.28s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(4) .dt-starrev_sweep {
+    animation-delay: 0.42s;
+  }
+  .dt-starrev:not([data-on]) li:nth-child(5) .dt-starrev_sweep {
+    animation-delay: 0.56s;
+  }
+  /* …ma "viva" non vuol dire "in moto per sempre" (parità mobile, 2026-08-11).
+     Il ramo sotto lg di StarReviews marca la sezione con [data-sr-gate] e
+     accende [data-lit] solo mentre la fila è davvero in scena: fuori campo i
+     cinque loop di transform si fermano dove sono, ed è batteria che il
+     telefono smette di spendere per qualcosa che nessuno sta guardando.
+     Il patto del commento qui sopra resta intatto dove conta davvero: senza JS
+     [data-sr-gate] non compare, questa regola non si applica, e il riflesso
+     continua a girare come prima. */
+  .dt-starrev[data-sr-gate]:not([data-lit]) .dt-starrev_sweep {
+    animation-play-state: paused;
+  }
+}
+@keyframes dt-star-sweep {
+  0% {
+    transform: translate3d(-160%, 0, 0) rotate(16deg);
+  }
+  /* La corsa occupa il primo 40% del ciclo: il resto è la pausa fra un
+     passaggio di luce e il successivo (il metallo deve respirare). */
+  40%,
+  100% {
+    transform: translate3d(420%, 0, 0) rotate(16deg);
+  }
+}
+/* Il continuo di scroll (grammatica dell'orizzonte): runway + schermo sticky.
+   Lo scrub del morph vive su questa geometria; senza [data-on] i wrapper
+   sono div normali in flusso. */
+.dt-starrev[data-on] .dt-starrev_runway {
+  /* Arco in tre atti (appare piccola → zoom a tutto schermo → si posa nella
+     fila): serve corsa — 360svh di runway per ~260svh di scrub effettivo. */
+  height: 360svh;
+}
+.dt-starrev[data-on] .dt-starrev_screen {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+.dt-starrev[data-on] .dt-starrev_stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100svh;
+}
+.dt-starrev[data-on] .dt-starrev_intro {
+  display: block;
+  z-index: 5;
+}
+/* Il BOX MOBILE del film (parità mobile 2, 2026-08-18 — scheda 16).
+   Sotto lg non c'è schermo sticky (legge 4: sul telefono non si pinna), quindi
+   `inset: 0` non sarebbe il viewport ma l'intera sezione, alta il doppio. Gli
+   stessi atti del desktop suonano allora dentro un riquadro ancorato alla FILA
+   delle stelle — dov'è la tessera in cui la foto deve posarsi: la quota la
+   scrive JS in `--sr-box-top`/`--sr-box-h`, una volta e a ogni refresh, perché
+   solo il layout sa dov'è la fila. Qui c'è il ripiego, e la garanzia che senza
+   JS (nessun attributo) il layer resti display:none. */
+.dt-starrev[data-sr-mob] .dt-starrev_intro {
+  display: block;
+  z-index: 5;
+  inset: auto 0 auto 0;
+  top: var(--sr-box-top, 0px);
+  height: var(--sr-box-h, 62svh);
+}
+/* `will-change` A TEMPO, a ogni larghezza. La clip-path a 10 vertici è paint
+   per frame — ammesso dalla dottrina dell'onda perché l'alleggerimento è
+   nominato (la misura del riquadro, che era un getBoundingClientRect per
+   frame, ora si fa una volta sola) — ma il livello promosso serve solo dentro
+   la finestra del film. Fino al 2026-08-18 la regola [data-on] qui sopra lo
+   teneva promosso per tutta la vita della pagina. */
+.dt-starrev_intro[data-sr-morph] {
+  will-change: clip-path;
+}
+/* IL LAMPO, senza `filter` (parità mobile 2 — vale anche per il desktop).
+   Il colpo di luce a cavallo del fullscreen era `filter: brightness() saturate()`
+   tweenato due volte sulla fotografia: pixel ricalcolati per frame su
+   un'immagine a tutto schermo, cioè il primo anti-pattern dell'onda. Stesso
+   effetto con un velo di luce calda sopra la foto e sotto il velo di vino
+   (esattamente dov'era il filtro), animato in sola opacity: composited.
+   Il valore di riposo è 0: senza JS il velo non si vede. */
+.dt-starrev_flash {
+  background: var(--color-gold-spec);
+  opacity: 0;
+}
+/* Titolo-cover gigante sull'intro (esce per carattere durante il morph) */
+.dt-starrev_cover {
+  font-size: clamp(3rem, 8.5vw, 8rem);
+  letter-spacing: -0.02em;
+}
+
 /* ---------- .dt-rail — la rotaia orizzontale generica (HorizontalRail.tsx) ----------
    Stessa meccanica già collaudata sul nastro "Seguici" (.dt-socialrail), qui
    estratta perché la chiedono anche altre sezioni: default = scroll

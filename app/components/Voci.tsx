@@ -144,7 +144,7 @@ export default function Voci() {
   };
 
   return (
-    <section id="recensioni" className="dt-chapter bg-cream">
+    <section id="voci" className="dt-chapter bg-cream">
       <div className="dt-row">
         <Reveal>
           <span className="eyebrow">{c.eyebrow}</span>

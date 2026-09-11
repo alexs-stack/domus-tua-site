@@ -113,9 +113,10 @@ export const dist = {
 // ─── DUE SOGLIE, E VANNO SAPUTE ENTRAMBE ───────────────────────────────
 // `desktop` è 768 ed è la soglia degli effetti di sezione (Parallax, la
 // deriva d'uscita dell'hero, il ramo mobile del preloader). `lg` è 1024 ed è
-// la soglia dei SET PIECE: oggi la sola rotaia del team (HorizontalRail).
-// Non sono la stessa cosa e non vanno confuse — a 768 la rotaia toccherebbe
-// il contenuto.
+// la soglia dei SET PIECE: la rotaia del team (HorizontalRail), i pannelli
+// orizzontali di «Perché Domus Tua» (HorizonScroller) e il film delle cinque
+// stelle (StarReviews). Non sono la stessa cosa e non vanno confuse — a 768
+// un set piece toccherebbe il contenuto.
 //
 // Le forme "below" esistono per scrivere il RAMO MOBILE come cittadino di
 // prima classe invece che come negazione. Il confine è 1023.98 / 767.98, non

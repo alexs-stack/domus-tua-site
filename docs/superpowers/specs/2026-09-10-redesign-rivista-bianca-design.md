@@ -122,7 +122,7 @@ attuali ereditano la scala nuova.
 
 Restano: `Reveal` (fade-up 0.9 s), `TextLines` (righe che salgono da una maschera, stagger 80 ms),
 `Parallax` (±4 % sulle foto), Lenis. Tutto riproduce lo stesso ease lento del riferimento
-(`cubic-bezier(.2,.65,.3,1)`). Nessuna sezione pinnata tranne la rotaia del team.
+(`cubic-bezier(.2,.65,.3,1)`). Nessuna sezione pinnata tranne la rotaia del team. *(Aggiornamento 2026-09-11: su richiesta del cliente tornano, rifatti senza curve, veli, scuro né testo sotto 16 px, i pannelli orizzontali di «Perché Domus Tua» — `HorizonStory` + `HorizonScroller` — e il film delle cinque stelle — `StarReviews`; via cupola, fondale aereo, fiori, velo di vino, widget duplicato.)*
 Reduced-motion: tutto fermo e visibile (regola già in vigore).
 
 ## 4. Home, sezione per sezione
@@ -184,6 +184,8 @@ hairline. Menu mobile: pannello pieno avorio, voci a `d2`. Via il pill scuro e i
   hero-rest, display-tight, `dt-railway`.
 
 ## 7. Cosa viene cancellato (file)
+
+*Aggiornamento 2026-09-11: `HorizonScroller`, `HorizonStory`, `StarReviews` e `lib/star-shape.ts` sono stati ripristinati e spogliati (vedi §3.5); `ComeLavoriamo.tsx` è confluito in `HorizonStory`.*
 
 `motion/`: Fioritura, HorizonScroller, ThreadNav, ToneShift, SurfaceVeil, SurfaceFlow, Cursor,
 PageTransition (sostituito da un modulo di 20 righe con `transitionTo`), KineticStrip, CharFlip,

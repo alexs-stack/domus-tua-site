@@ -33,7 +33,7 @@ video ("ci vedi prima ancora di conoscerci"). Persone prima degli immobili.
 Next.js 16 App Router + React 19 + Tailwind v4, hosting Vercel, pagine
 editoriali statiche + ISR RealSmart (12 min). i18n client-side 5 lingue
 (it default, SEO solo IT). Motion layer GSAP 3.15 + ScrollTrigger + Lenis ridotto a
-quattro primitive (`Reveal`, `TextLines`, `Parallax`, `HorizontalRail`) dal
+quattro primitive (`Reveal`, `TextLines`, `Parallax`, `HorizontalRail`, più i due set piece riportati l'11 settembre 2026 su richiesta del cliente: i pannelli orizzontali di «Perché Domus Tua» e il film delle cinque stelle) dal
 redesign «rivista bianca» del 2026-09-10 (riferimento pinnato dalla cliente:
 immobiliaregoldengoal.it). Widget terzi isolati (Trustindex, IG, YouTube
 facade al click).
@@ -65,7 +65,7 @@ facade al click).
   (UI) + Pinyon Script (il corsivo rosso: la firma nel lockup e una
   parola-ornamento per capitolo).
 - Logo ufficiale PNG: non ridisegnare, non animare con morph/draw.
-- Motion (dal 2026-09-10): tre gesti soli — righe che salgono, fade-in,
+- Motion (dal 2026-09-10): tre gesti (più i tre nastri pilotati dallo scroll — pannelli di «Perché Domus Tua», cinque stelle, rotaia del team — richiesta cliente 2026-09-11) — righe che salgono, fade-in,
   parallasse leggera — più la rotaia orizzontale del team e il monogramma
   che ruota (orario) nel badge dell'header; niente sezioni
   pinnate, niente transizioni fra le pagine, niente cursore custom. Il
