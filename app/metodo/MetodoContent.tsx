@@ -8,7 +8,6 @@ import Highlights from "../components/Highlights";
 import Method from "../components/Method";
 import DomusDocProtocol from "../components/DomusDocProtocol";
 import OpenDomus from "../components/OpenDomus";
-import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
 import TextLines from "../components/motion/TextLines";
@@ -246,7 +245,11 @@ export default function MetodoContent() {
 
         <DomusDocProtocol tone="cream" id="domus-doc" />
         <OpenDomus />
-        <Reviews />
+        {/* Il capitolo recensioni vive SOLO su /recensioni. Qui erano 1.529px
+            identici al pixel — testa, filtri, widget Trustindex — ripetuti su
+            quattro pagine sotto contenuti diversi: chi aveva gia' letto la
+            home rivedeva la stessa coda a ogni clic. La prova indipendente
+            resta su ogni pagina nel sigillo Wikicasa del footer. */}
         <Contact />
       </main>
       <Footer />

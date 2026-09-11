@@ -9,7 +9,6 @@ import PageHero from "../components/PageHero";
 import OpenDomus from "../components/OpenDomus";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
-import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import { ArrowRight, Check, Play } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
@@ -960,7 +959,11 @@ export default function OpenDomusPageContent() {
           </div>
         </section>
 
-        <Reviews />
+        {/* Il capitolo recensioni vive SOLO su /recensioni. Qui erano 1.529px
+            identici al pixel — testa, filtri, widget Trustindex — ripetuti su
+            quattro pagine sotto contenuti diversi: chi aveva gia' letto la
+            home rivedeva la stessa coda a ogni clic. La prova indipendente
+            resta su ogni pagina nel sigillo Wikicasa del footer. */}
         <Contact initialIntent="open-domus" />
       </main>
     </>

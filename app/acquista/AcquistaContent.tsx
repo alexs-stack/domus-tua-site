@@ -7,7 +7,6 @@ import EditorialRows from "../components/EditorialRows";
 import PropertySearch from "../components/PropertySearch";
 import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
-import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
 import FaqTeaser from "../components/FaqTeaser";
@@ -621,7 +620,11 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
              È il difetto che il §6.5 descrive per l’hero, sopravvissuto qui. */
         />
         <DomusDocProtocol tone="cream" />
-        <Reviews />
+        {/* Il capitolo recensioni vive SOLO su /recensioni. Qui erano 1.529px
+            identici al pixel — testa, filtri, widget Trustindex — ripetuti su
+            quattro pagine sotto contenuti diversi: chi aveva gia' letto la
+            home rivedeva la stessa coda a ogni clic. La prova indipendente
+            resta su ogni pagina nel sigillo Wikicasa del footer. */}
 
         {/* Le domande di chi compra, prima del modulo: chi sta per scrivere ha ancora
             un dubbio in testa, e spesso e' uno di questi quattro. */}

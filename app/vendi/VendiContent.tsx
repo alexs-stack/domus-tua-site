@@ -8,7 +8,6 @@ import EditorialRows from "../components/EditorialRows";
 import BeforeAfter from "../components/BeforeAfter";
 import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
-import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
 import FaqTeaser from "../components/FaqTeaser";
@@ -961,7 +960,11 @@ export default function VendiContent() {
         <BeforeAfter />
         <DomusDocProtocol tone="cream" id="domus-doc" />
         <FeaturedTestimonial />
-        <Reviews />
+        {/* Il capitolo recensioni vive SOLO su /recensioni. Qui erano 1.529px
+            identici al pixel — testa, filtri, widget Trustindex — ripetuti su
+            quattro pagine sotto contenuti diversi: chi aveva gia' letto la
+            home rivedeva la stessa coda a ogni clic. La prova indipendente
+            resta su ogni pagina nel sigillo Wikicasa del footer. */}
 
         <SellPrep prep={c.prep} />
 
