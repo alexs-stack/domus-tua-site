@@ -339,6 +339,26 @@ describe("globals.css: i numeri rimasti in CSS combaciano", () => {
     const mobileBlock = css.slice(css.indexOf("@media (max-width: 767.98px) {\n  /* Una porta"));
     assert.doesNotMatch(mobileBlock.slice(0, mobileBlock.indexOf("\n}\n")), /data-pre-arch-echo/);
   });
+
+  test("il badge gira in senso ORARIO, anello e monogramma nello stesso verso (cliente, 2026-09-10)", () => {
+    // Il difetto che blinda: il monogramma girava `reverse` (antiorario)
+    // mentre l'header era già stato messo in senso orario — la direttiva era
+    // stata applicata a spinMarkBadge, che il preloader non usa più.
+    const spin = (sel: string) => {
+      const m = css.match(
+        new RegExp(String.raw`html\[data-preloader\] \.dt-preloader \[${sel}\]\s*\{[^}]*?animation:\s*([^;]+);`)
+      );
+      assert.ok(m, `nessuna animation per [${sel}] in globals.css`);
+      return m![1].trim();
+    };
+    const ring = spin("data-rot-ring");
+    const mark = spin("data-rot-mark");
+    assert.equal(ring, mark, "anello e monogramma devono girare con la stessa animazione (stesso verso)");
+    assert.match(ring, /^dt-pre-spin\b/);
+    assert.doesNotMatch(ring, /\b(reverse|alternate)\b/, "il badge gira al contrario");
+    // e le keyframe vanno da 0 a +360: orario.
+    assert.match(css, /@keyframes dt-pre-spin \{\s*to \{\s*transform: rotate\(360deg\);/);
+  });
 });
 
 describe("Preloader.tsx ed e2e: nessun numero sparso", () => {

@@ -822,16 +822,18 @@ html[data-preloader] .dt-preloader [data-pre-cap] {
 html[data-preloader] .dt-preloader [data-pre-word] {
   animation: dt-pre-word 1.25s cubic-bezier(0.25, 1, 0.5, 1) calc(0.65s + var(--i, 0) * 0.14s) both;
 }
-/* Il badge gira per tutta l'intro, anello e monogramma in versi opposti (lo
-   stesso gesto dell'header, 6 s a giro come faceva `spinMarkBadge(root, 6)`
-   da GSAP): in CSS gira anche prima del JS, e sono due tween in meno. */
+/* Il badge gira per tutta l'intro: anello e monogramma nello STESSO verso,
+   ORARIO (richiesta cliente 2026-09-10: «il cuore deve ruotare in senso
+   orario» — vale qui come nell'header, RotatingMark.tsx). Fino a quel giorno
+   il monogramma girava `reverse`, cioè antiorario. 6 s a giro, in CSS: gira
+   anche prima del JS. Il test intro-clocks presidia il verso. */
 html[data-preloader] .dt-preloader [data-rot-ring] {
   transform-origin: center;
   animation: dt-pre-spin 6s linear infinite;
 }
 html[data-preloader] .dt-preloader [data-rot-mark] {
   transform-origin: center;
-  animation: dt-pre-spin 6s linear infinite reverse;
+  animation: dt-pre-spin 6s linear infinite;
 }
 @keyframes dt-pre-in-fade {
   from {
