@@ -1430,6 +1430,20 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
     min-height: 2.75rem;
   }
 }
+/* Sul telefono la scatola si stringe sui fianchi e apre le lettere di meno:
+   32px di padding per lato piu' 0.08em di tracking costavano ~90px a
+   un'etichetta che ne aveva 302 a disposizione, ed e' la ragione per cui
+   TUTTE le CTA lunghe andavano a capo. */
+@media (max-width: 39.99rem) {
+  .dt-btn {
+    --btn-px: 1.25rem;
+    letter-spacing: 0.05em;
+  }
+  .dt-btn__label {
+    text-align: center;
+    text-wrap: balance;
+  }
+}
 .dt-btn__label {
   display: inline-flex;
   align-items: center;

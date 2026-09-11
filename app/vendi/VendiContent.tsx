@@ -81,7 +81,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "La tua casa merita di essere venduta bene, non in fretta. Non la mettiamo semplicemente online: la prepariamo, la raccontiamo e la vendiamo con metodo, riducendo errori, tempi morti e incertezze.",
       alt: "Living luminoso con zona pranzo",
-      primaryLabel: "Richiedi la valutazione del tuo immobile",
+      primaryLabel: "Richiedi la valutazione",
       secondaryLabel: "Come funziona",
       trust: [
         "Il primo incontro è senza impegno e senza costi",
@@ -210,7 +210,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       proof:
         "È lo stesso metodo che i venditori raccontano nelle loro recensioni, che dà vita agli eventi Open Domus e che porta al protocollo Domus D.O.C.",
       proofLink: "Guarda le case che abbiamo venduto",
-      ctaLabel: "Richiedi la valutazione del tuo immobile",
+      ctaLabel: "Richiedi la valutazione",
     },
     openDomus: {
       text: "Il momento clou della vendita è l’Open Domus: un evento che concentra gli acquirenti giusti e accelera le proposte.",
@@ -230,7 +230,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Your home deserves to be sold well, not in a hurry. We don’t simply list it online: we prepare it, tell its story and sell it with a proven method, cutting out mistakes, wasted time and uncertainty.",
       alt: "Bright living area with dining space",
-      primaryLabel: "Request a valuation of your property",
+      primaryLabel: "Request a valuation",
       secondaryLabel: "How it works",
       trust: [
         "The first meeting carries no obligation and no cost",
@@ -359,7 +359,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       proof:
         "It’s the same method sellers describe in their reviews, that brings the Open Domus events to life and that leads to the Domus D.O.C. protocol.",
       proofLink: "See the homes we have sold",
-      ctaLabel: "Request a valuation of your property",
+      ctaLabel: "Request a valuation",
     },
     openDomus: {
       text: "The high point of the sale is Open Domus: an event that concentrates the right buyers and speeds up offers.",
@@ -379,7 +379,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Votre bien mérite d’être vendu au juste prix, pas à la hâte. Nous ne nous contentons pas de le mettre en ligne : nous le préparons, le mettons en valeur et le vendons avec méthode, en réduisant erreurs, temps morts et incertitudes.",
       alt: "Séjour lumineux avec coin repas",
-      primaryLabel: "Demandez l’estimation de votre bien",
+      primaryLabel: "Demander l’estimation",
       secondaryLabel: "Comment ça marche",
       trust: [
         "Le premier rendez-vous est sans engagement et sans frais",
@@ -508,7 +508,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       proof:
         "C’est la même méthode que les vendeurs racontent dans leurs avis, qui donne vie aux événements Open Domus et qui mène au protocole Domus D.O.C.",
       proofLink: "Voir les biens que nous avons vendus",
-      ctaLabel: "Demandez l’estimation de votre bien",
+      ctaLabel: "Demander l’estimation",
     },
     openDomus: {
       text: "Le point fort de la vente, c’est l’Open Domus : un événement qui concentre les bons acquéreurs et accélère les offres.",
@@ -528,7 +528,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Ihr Zuhause verdient es, gut verkauft zu werden, nicht in Eile. Wir stellen es nicht einfach online: Wir bereiten es auf, erzählen seine Geschichte und verkaufen es mit Methode und reduzieren so Fehler, Leerlauf und Unsicherheiten.",
       alt: "Helles Wohnzimmer mit Essbereich",
-      primaryLabel: "Bewertung Ihrer Immobilie anfordern",
+      primaryLabel: "Bewertung anfordern",
       secondaryLabel: "So funktioniert es",
       trust: [
         "Das erste Gespräch ist unverbindlich und kostenfrei",
@@ -657,7 +657,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       proof:
         "Es ist dieselbe Methode, die Verkäufer in ihren Bewertungen beschreiben, die die Open-Domus-Events zum Leben erweckt und die zum Protokoll Domus D.O.C. führt.",
       proofLink: "Die Immobilien ansehen, die wir verkauft haben",
-      ctaLabel: "Bewertung Ihrer Immobilie anfordern",
+      ctaLabel: "Bewertung anfordern",
     },
     openDomus: {
       text: "Der Höhepunkt des Verkaufs ist Open Domus: ein Event, das die richtigen Käufer bündelt und die Angebote beschleunigt.",
@@ -677,7 +677,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       subcopy:
         "Tu casa merece venderse bien, no con prisas. No nos limitamos a publicarla en internet: la preparamos, la presentamos y la vendemos con método, reduciendo errores, tiempos muertos e incertidumbres.",
       alt: "Salón luminoso con zona de comedor",
-      primaryLabel: "Solicita la valoración de tu inmueble",
+      primaryLabel: "Solicita la valoración",
       secondaryLabel: "Cómo funciona",
       trust: [
         "El primer encuentro es sin compromiso y sin coste",
@@ -806,7 +806,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       proof:
         "Es el mismo método que los vendedores cuentan en sus reseñas, que da vida a los eventos Open Domus y que conduce al protocolo Domus D.O.C.",
       proofLink: "Mira las casas que hemos vendido",
-      ctaLabel: "Solicita la valoración de tu inmueble",
+      ctaLabel: "Solicita la valoración",
     },
     openDomus: {
       text: "El momento clave de la venta es el Open Domus: un evento que concentra a los compradores adecuados y acelera las ofertas.",

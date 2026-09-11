@@ -125,7 +125,10 @@ export default function ContattiContent() {
     <>
       {/* Intro */}
       <section className="bg-cream">
-        <div className="dt-row pt-36 pb-16 sm:pt-40 sm:pb-20">
+        {/* 144px di aria sotto una testata che ne occupa gia' 84: il primo
+            schermo di /contatti era vuoto per il 60% e l'occhiello cominciava a
+            y=300. L'attacco ora e' proporzionale all'altezza dello schermo. */}
+        <div className="dt-row pt-[clamp(4.5rem,12vh,7.5rem)] pb-12 sm:pb-20">
           <div>
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
@@ -148,12 +151,18 @@ export default function ContattiContent() {
           <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
             <Reveal>
               <div className="overflow-hidden bg-cream-deep">
+                {/* Da md in su. Sul telefono la mappa incorporata portava
+                    dentro la rivista le pizzerie del vicinato, il bottone blu
+                    «Open in Maps» e la riga «Keyboard shortcuts · Map data ·
+                    Terms»: un oggetto di un altro sito, alto 320px, per dire
+                    un indirizzo che sta in due righe. Chi e' al telefono apre
+                    comunque la sua app dal link qui sotto. */}
                 <iframe
                   title={c.mapTitle}
                   src="https://www.google.com/maps?q=Corso+Bernacchi+91,+21049+Tradate+VA&output=embed"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  className="block h-[320px] w-full sm:h-[400px]"
+                  className="hidden h-[320px] w-full md:block lg:h-[400px]"
                 />
               </div>
               <a

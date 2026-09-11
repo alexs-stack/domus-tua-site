@@ -57,8 +57,6 @@ const copy = {
     squadraCopy:
       "Siamo un gruppo affiatato che ascolta, consiglia e accompagna ogni famiglia con la stessa cura. Un impegno riconosciuto anche a livello nazionale.",
     squadraLavora: "Vuoi lavorare con noi?",
-    squadraTrioAlt: "Il team Domus Tua in studio",
-    squadraRedAlt: "Gli agenti Domus Tua in blazer rosso nella sede",
     squadraPremioAlt: "Raffaela Rizza con il riconoscimento TOP AGENCY",
   },
   en: {
@@ -103,8 +101,6 @@ const copy = {
     squadraCopy:
       "We are a close-knit group that listens, advises and accompanies every family with the same care. A commitment recognised at national level too.",
     squadraLavora: "Would you like to work with us?",
-    squadraTrioAlt: "The Domus Tua team in the studio",
-    squadraRedAlt: "The Domus Tua agents in red blazers at the office",
     squadraPremioAlt: "Raffaela Rizza with the TOP AGENCY recognition",
   },
   fr: {
@@ -149,8 +145,6 @@ const copy = {
     squadraCopy:
       "Nous sommes une équipe soudée qui écoute, conseille et accompagne chaque famille avec le même soin. Un engagement reconnu aussi au niveau national.",
     squadraLavora: "Vous voulez travailler avec nous ?",
-    squadraTrioAlt: "L’équipe Domus Tua en studio",
-    squadraRedAlt: "Les agents Domus Tua en blazer rouge à l’agence",
     squadraPremioAlt: "Raffaela Rizza avec la distinction TOP AGENCY",
   },
   de: {
@@ -195,8 +189,6 @@ const copy = {
     squadraCopy:
       "Wir sind ein eingespieltes Team, das jeder Familie mit derselben Sorgfalt zuhört, sie berät und begleitet. Ein Engagement, das auch auf nationaler Ebene anerkannt wird.",
     squadraLavora: "Möchten Sie mit uns arbeiten?",
-    squadraTrioAlt: "Das Domus Tua Team im Studio",
-    squadraRedAlt: "Die Domus Tua Berater in roten Blazern im Büro",
     squadraPremioAlt: "Raffaela Rizza mit der Auszeichnung TOP AGENCY",
   },
   es: {
@@ -241,8 +233,6 @@ const copy = {
     squadraCopy:
       "Somos un grupo unido que escucha, aconseja y acompaña a cada familia con el mismo cuidado. Un compromiso reconocido también a nivel nacional.",
     squadraLavora: "¿Quieres trabajar con nosotras?",
-    squadraTrioAlt: "El equipo de Domus Tua en el estudio",
-    squadraRedAlt: "Los agentes de Domus Tua con blazer rojo en la oficina",
     squadraPremioAlt: "Raffaela Rizza con el reconocimiento TOP AGENCY",
   },
 };
@@ -318,43 +308,23 @@ export default function ChiSiamoContent({ since }: { since: number }) {
             </Link>
           </Reveal>
 
-          {/* Tre foto squadrate; la didascalia del premio sta SOTTO la foto, mai sopra. */}
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <Reveal>
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src="/images/reali/team-trio.jpg"
-                  alt={c.squadraTrioAlt}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                  className="object-cover object-center"
-                />
-              </div>
-            </Reveal>
-            <Reveal delay={100}>
-              {/* team-red.jpg è l'unica VERTICALE del gruppo (809×936, 0,86):
-                 in una cornice 4/3 `object-cover` le tagliava il 35 %
-                 dell'altezza, cioè teste e piedi. Sotto i 640 — dove la
-                 griglia è a una colonna — la cornice prende il rapporto dello
-                 scatto; da 640 in su resta 4/3 come le sorelle, per non
-                 sfilare la riga della griglia. */}
-              <div className="relative aspect-[7/8] overflow-hidden sm:aspect-[4/3]">
-                <Image
-                  src="/images/reali/team-red.jpg"
-                  alt={c.squadraRedAlt}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                  className="object-cover object-center"
-                />
-              </div>
-            </Reveal>
-            <Reveal delay={200} as="figure">
-              <div className="relative aspect-[4/3] overflow-hidden">
+          {/* UNA foto sola. Erano tre — il trio in studio, gli agenti in
+              blazer rosso, il premio — e trecento pixel piu' sotto la rotaia
+              del team ripresentava le stesse due: la stessa pagina mostrava
+              gli stessi volti due volte, in due cornici diverse. I volti li
+              porta la rotaia; qui resta la prova, che e' l'unica cosa che la
+              rotaia non sa dire. */}
+          <div className="mt-16 lg:flex lg:justify-end">
+            <Reveal delay={200} as="figure" className="w-full lg:w-[42vw] lg:max-w-[640px]">
+              {/* 3:2, il rapporto dello scatto (1920x1280): la cornice 4/3
+                  ne buttava via un ottavo per una ragione di griglia che non
+                  c'e' piu'. */}
+              <div className="relative aspect-[3/2] overflow-hidden bg-cream-deep">
                 <Image
                   src="/images/reali/premio-top-agency.jpg"
                   alt={c.squadraPremioAlt}
                   fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                  sizes="(max-width: 1024px) 100vw, 42vw"
                   className="object-cover object-center"
                 />
               </div>

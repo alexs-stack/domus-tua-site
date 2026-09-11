@@ -63,7 +63,7 @@ export const dictionaries: Record<Locale, Dict> = {
     hero: {
       title1: "Vendi casa a Tradate",
       title2: "al prezzo giusto, nei tempi giusti.",
-      ctaValuta: "Richiedi la valutazione del tuo immobile",
+      ctaValuta: "Richiedi la valutazione",
     },
     search: {
       title: "Che casa stai cercando?",
@@ -72,7 +72,7 @@ export const dictionaries: Record<Locale, Dict> = {
       nlHint: "Scrivi come parleresti a noi e trova la casa giusta.",
       sellerTitle: "Devi vendere casa?",
       sellerCopy: "Prima di pubblicarla la prepariamo, ne verifichiamo i documenti e ti seguiamo fino al rogito.",
-      sellerCta: "Richiedi la valutazione del tuo immobile",
+      sellerCta: "Richiedi la valutazione",
       },
     whatsapp: { cta: "Parla con noi su WhatsApp" },
     footer: { payoff: "Controlliamo i documenti prima di pubblicare. Rispondiamo noi al telefono, fino al rogito.", naviga: "Naviga", orari: "Orari", monFri: "Lun – Ven", sat: "Sabato", sun: "Domenica", onAppt: "Su appuntamento", valuta: "Richiedi la valutazione", privacy: "Privacy", cookie: "Cookie", cookiePrefs: "Preferenze cookie", contatti: "Contatti", lavora: "Lavora con noi", faq: "Domande frequenti", caseVendute: "Case vendute" },
@@ -85,7 +85,7 @@ export const dictionaries: Record<Locale, Dict> = {
     hero: {
       title1: "Sell your home in Tradate",
       title2: "at the right price, in the right time.",
-      ctaValuta: "Request a valuation of your property",
+      ctaValuta: "Request a valuation",
     },
     search: {
       title: "What home are you looking for?",
@@ -94,7 +94,7 @@ export const dictionaries: Record<Locale, Dict> = {
       nlHint: "Write it just as you’d talk to us and find the right home.",
       sellerTitle: "Need to sell your home?",
       sellerCopy: "Before it goes online we prepare it, we check its paperwork, and we stay with you to the deed.",
-      sellerCta: "Request a valuation of your property",
+      sellerCta: "Request a valuation",
       },
     whatsapp: { cta: "Talk to us on WhatsApp" },
     footer: { payoff: "We check the paperwork before listing. We answer the phone ourselves, all the way to the deed.", naviga: "Navigate", orari: "Opening hours", monFri: "Mon – Fri", sat: "Saturday", sun: "Sunday", onAppt: "By appointment", valuta: "Request a valuation", privacy: "Privacy", cookie: "Cookies", cookiePrefs: "Cookie preferences", contatti: "Contact", lavora: "Work with us", faq: "FAQ", caseVendute: "Homes sold" },
@@ -107,7 +107,7 @@ export const dictionaries: Record<Locale, Dict> = {
     hero: {
       title1: "Vendez votre bien à Tradate",
       title2: "au juste prix, dans les bons délais.",
-      ctaValuta: "Demandez l’estimation de votre bien",
+      ctaValuta: "Demander l’estimation",
     },
     search: {
       title: "Quel bien recherchez-vous ?",
@@ -116,7 +116,7 @@ export const dictionaries: Record<Locale, Dict> = {
       nlHint: "Écrivez comme vous nous parleriez et trouvez le bon bien.",
       sellerTitle: "Vous devez vendre ?",
       sellerCopy: "Avant la mise en ligne, nous le préparons, nous contrôlons ses documents et nous restons avec vous jusqu’à l’acte.",
-      sellerCta: "Demandez l’estimation de votre bien",
+      sellerCta: "Demander l’estimation",
       },
     whatsapp: { cta: "Parlez-nous sur WhatsApp" },
     footer: { payoff: "Nous contrôlons les documents avant la mise en ligne. C’est nous qui répondons au téléphone, jusqu’à l’acte.", naviga: "Navigation", orari: "Horaires", monFri: "Lun – Ven", sat: "Samedi", sun: "Dimanche", onAppt: "Sur rendez-vous", valuta: "Demander l’estimation", privacy: "Confidentialité", cookie: "Cookies", cookiePrefs: "Préférences cookies", contatti: "Contact", lavora: "Rejoignez-nous", faq: "Questions fréquentes", caseVendute: "Biens vendus" },
@@ -129,7 +129,7 @@ export const dictionaries: Record<Locale, Dict> = {
     hero: {
       title1: "Verkaufen Sie Ihr Haus in Tradate",
       title2: "zum richtigen Preis, in der richtigen Zeit.",
-      ctaValuta: "Bewertung Ihrer Immobilie anfordern",
+      ctaValuta: "Bewertung anfordern",
     },
     search: {
       title: "Welche Immobilie suchen Sie?",
@@ -138,7 +138,7 @@ export const dictionaries: Record<Locale, Dict> = {
       nlHint: "Schreiben Sie, wie Sie mit uns sprechen würden, und finden Sie das passende Zuhause.",
       sellerTitle: "Möchten Sie verkaufen?",
       sellerCopy: "Vor der Veröffentlichung bereiten wir sie vor, prüfen ihre Unterlagen und bleiben bis zum Notartermin an Ihrer Seite.",
-      sellerCta: "Bewertung Ihrer Immobilie anfordern",
+      sellerCta: "Bewertung anfordern",
       },
     whatsapp: { cta: "Sprechen Sie mit uns auf WhatsApp" },
     footer: { payoff: "Wir prüfen die Unterlagen vor der Veröffentlichung. Und wir gehen selbst ans Telefon, bis zum Notartermin.", naviga: "Navigation", orari: "Öffnungszeiten", monFri: "Mo – Fr", sat: "Samstag", sun: "Sonntag", onAppt: "Nach Vereinbarung", valuta: "Bewertung anfordern", privacy: "Datenschutz", cookie: "Cookies", cookiePrefs: "Cookie-Einstellungen", contatti: "Kontakt", lavora: "Arbeiten Sie mit uns", faq: "Häufige Fragen", caseVendute: "Verkaufte Immobilien" },
@@ -151,7 +151,7 @@ export const dictionaries: Record<Locale, Dict> = {
     hero: {
       title1: "Vende tu casa en Tradate",
       title2: "al precio justo, en el tiempo justo.",
-      ctaValuta: "Solicita la valoración de tu inmueble",
+      ctaValuta: "Solicita la valoración",
     },
     search: {
       title: "¿Qué casa estás buscando?",
@@ -160,7 +160,7 @@ export const dictionaries: Record<Locale, Dict> = {
       nlHint: "Escribe como nos hablarías y encuentra la casa adecuada.",
       sellerTitle: "¿Necesitas vender?",
       sellerCopy: "Antes de publicarla la preparamos, comprobamos sus documentos y te acompañamos hasta la escritura.",
-      sellerCta: "Solicita la valoración de tu inmueble",
+      sellerCta: "Solicita la valoración",
       },
     whatsapp: { cta: "Habla con nosotras por WhatsApp" },
     footer: { payoff: "Comprobamos los documentos antes de publicar. Al teléfono respondemos nosotras, hasta la escritura.", naviga: "Navegar", orari: "Horario", monFri: "Lun – Vie", sat: "Sábado", sun: "Domingo", onAppt: "Con cita previa", valuta: "Solicita la valoración", privacy: "Privacidad", cookie: "Cookies", cookiePrefs: "Preferencias de cookies", contatti: "Contacto", lavora: "Trabaja con nosotras", faq: "Preguntas frecuentes", caseVendute: "Casas vendidas" },

@@ -21,7 +21,7 @@ const copy = {
     heroSubcopy:
       "Dietro ogni vendita c'è un insieme di servizi che fanno la differenza: tecnici e legali, creativi e di marketing. Tutti parte di un unico metodo.",
     heroAlt: "Cucina moderna luminosa",
-    heroPrimary: "Richiedi la valutazione del tuo immobile",
+    heroPrimary: "Richiedi la valutazione",
     heroSecondary: "Esplora i servizi",
     editorialEyebrow: "I servizi creativi",
     editorialTitle: "Far percepire il valore prima ancora della visita.",
@@ -57,7 +57,7 @@ const copy = {
     heroSubcopy:
       "Behind every sale there is a set of services that make the difference: technical and legal, creative and marketing. All part of one single method.",
     heroAlt: "Bright modern kitchen",
-    heroPrimary: "Request a valuation of your property",
+    heroPrimary: "Request a valuation",
     heroSecondary: "Explore the services",
     editorialEyebrow: "The creative services",
     editorialTitle: "Making the value felt before the viewing even begins.",
@@ -93,7 +93,7 @@ const copy = {
     heroSubcopy:
       "Derrière chaque vente se cache un ensemble de services qui font la différence : techniques et juridiques, créatifs et marketing. Tous réunis dans une seule et même méthode.",
     heroAlt: "Cuisine moderne et lumineuse",
-    heroPrimary: "Demandez l’estimation de votre bien",
+    heroPrimary: "Demander l’estimation",
     heroSecondary: "Explorer les services",
     editorialEyebrow: "Les services créatifs",
     editorialTitle: "Faire ressentir la valeur avant même la visite.",
@@ -165,7 +165,7 @@ const copy = {
     heroSubcopy:
       "Detrás de cada venta hay un conjunto de servicios que marcan la diferencia: técnicos y legales, creativos y de marketing. Todos parte de un único método.",
     heroAlt: "Cocina moderna y luminosa",
-    heroPrimary: "Solicita la valoración de tu inmueble",
+    heroPrimary: "Solicita la valoración",
     heroSecondary: "Explora los servicios",
     editorialEyebrow: "Los servicios creativos",
     editorialTitle: "Hacer percibir el valor incluso antes de la visita.",

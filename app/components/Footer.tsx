@@ -44,8 +44,15 @@ export default function Footer() {
             /cookie l'ancora locale non esiste. */}
         <div>
           <Logo className="h-auto w-[200px]" />
-          <p className="lead mt-6">{d.footer.payoff}</p>
-          <Cta href="/valutazione-immobile-tradate" variant="ghost" className="mt-6">
+          {/* Payoff e CTA solo da md: sul telefono questa era la SESTA
+              comparsa di «Richiedi la valutazione» nella stessa pagina, con
+              la settima — la barra fissa — visibile due centimetri sotto. */}
+          <p className="lead mt-6 hidden md:block">{d.footer.payoff}</p>
+          <Cta
+            href="/valutazione-immobile-tradate"
+            variant="ghost"
+            className="mt-6 hidden md:inline-flex"
+          >
             {d.footer.valuta}
           </Cta>
           {/* Il sigillo è pensato per fondi chiari: ora sta direttamente sul
@@ -132,7 +139,9 @@ export default function Footer() {
             lingue; FAQ e case vendute non sono destinazioni primarie). */}
         <div>
           <h2 className="font-display text-d4 font-light">{d.footer.naviga}</h2>
-          <ul className="tap-list mt-5 space-y-3 text-body">
+          {/* Due colonne sotto md: tredici voci a passo 44px facevano da sole
+              572px di footer in colonna. */}
+          <ul className="tap-list mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-body md:block md:space-y-3">
             {nav.map((n) => (
               <li key={n.href}>
                 <Link href={n.href} className={`tap-target ${link}`}>
