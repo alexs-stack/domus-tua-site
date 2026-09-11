@@ -40,7 +40,12 @@
 
   /* Neutrals — warm limestone/sand (base più calda: via il look "bianco clinico").
      `paper` resta quasi-bianco: le card risaltano sulle sezioni sabbia = profondità naturale. */
-  --color-ink: #1a1816;
+  /* NIENTE SCRITTE NERE (Alberto, 2026-09-11, dopo il «niente nero» della
+     cliente): l'inchiostro di base non è più il quasi-nero #1a1816 ma la
+     stessa grafite del «Domus» del lockup. `ink` e `graphite` valgono lo
+     stesso colore: il primo è «il testo di base», il secondo «il
+     paragrafo editoriale» — la gerarchia la fanno peso e misura. */
+  --color-ink: #46423d;
   --color-graphite: #46423d;
   --color-stone: #6b665f;
   --color-line: #e4dccf;
@@ -158,7 +163,7 @@
 
 :root {
   --background: #f9f5ef;
-  --foreground: #1a1816;
+  --foreground: #46423d;
 }
 
 * {
@@ -1202,15 +1207,13 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
      schermata. Niente si ingrandisce più: si rimpicciolisce e si posiziona,
      che è la richiesta.
 
-     Un solo insieme di numeri per DUE nodi — la sagoma del preloader e la foto
-     dell'hero — perché è quello che li fa coincidere quando l'arco si apre: la
-     silhouette diventa la stanza solo se le due immagini hanno la stessa
-     scatola. (Prima non coincidevano nemmeno: 844 contro 1052. Il patto
-     «pixel su pixel» scritto in PreloaderShell.tsx valeva solo da 768 in su.)
-     Entrambi i nodi partono da `top: 0` della propria scatola — il pannello
-     fisso del sipario e la sezione dell'hero cominciano tutti e due a y=0 con
-     la pagina ferma — quindi ancorarli con lo STESSO `top` calcolato li
-     sovrappone senza dipendere da come il browser conta l'altezza. */
+     Dal 2026-09-11 questi numeri li usa SOLO la sagoma del preloader: l'hero
+     della rivista bianca mostra la foto come banda alta del primo schermo
+     (HeroCinematic.tsx, `objectPosition` 20 % 0 %), non più come fascia al
+     piede — quindi il patto «sagoma e foto coincidono quando l'arco si apre»
+     non vale più sul telefono, e già sul desktop la testata in flusso lo
+     rendeva approssimato. La sagoma resta a fascia perché è lei a dover stare
+     in campo intera dentro il sipario. */
   :root {
     /* La larghezza della fascia, in vw: è la manopola. 180vw = 702 px su 390,
        cioè la foto alla scala che avrebbe su uno schermo largo il doppio.
@@ -1227,23 +1230,13 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
        il difetto da cui si parte. */
     --dt-fascia-x: -7vw;
   }
-  .dt-preloader [data-pre-figure],
-  [data-hero-media] [data-hero-photo] {
+  .dt-preloader [data-pre-figure] {
     left: var(--dt-fascia-x);
     right: auto;
     width: var(--dt-fascia-w);
     height: var(--dt-fascia-h);
     top: calc(100svh - var(--dt-fascia-h));
     bottom: auto;
-  }
-  /* Il bordo alto della fascia è un taglio netto solo sulla FOTO (la sagoma è
-     un ritaglio con canale alpha: lì non c'è nessun rettangolo da nascondere,
-     e una maschera le sfumerebbe la testa). Si spegne in dissolvenza sul
-     fondo espresso della sezione, così la fascia non legge come un'immagine
-     incollata ma come la stanza che emerge dal buio. */
-  [data-hero-media] [data-hero-photo] {
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
   }
 
   /* Ora che la figura c'è davvero, il testo del sipario deve farle posto — e

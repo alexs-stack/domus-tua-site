@@ -4,7 +4,7 @@ description: Una rivista immobiliare stampata su un'unica carta avorio; titoli P
 colors:
   red: "#d20a0a"
   red-dark: "#a30707"
-  ink: "#1a1816"
+  ink: "#46423d"
   graphite: "#46423d"
   stone: "#6b665f"
   line: "#e4dccf"
@@ -228,7 +228,7 @@ Una tavolozza di carta e inchiostro caldo con un solo accento rosso, e due eccez
 - **Avorio** (#f9f5ef): il fondo di tutto — `--background`, `themeColor`, body, testata, footer, menu mobile, barra azioni mobile. Non cambia mai fra le sezioni.
 - **Avorio profondo** (#f4ece2): la testata quando scorre (con hairline sotto) e il rettangolo sotto ogni foto e video mentre carica. Non è un secondo fondo di sezione.
 - **Carta** (#fffdf8): il fondo a riposo delle icone social, del banner cookie e dei controlli tondi appoggiati sulle foto (chiudi, frecce di galleria).
-- **Inchiostro** (#1a1816): il testo di base (`--foreground`), i titoli, le voci della nav, la riga sotto i campi, il bordo del banner cookie. Mai #000.
+- **Inchiostro** (#46423d): il testo di base (`--foreground`), i titoli, le voci della nav, la riga sotto i campi, il bordo del banner cookie. Dal 2026-09-11 è la stessa grafite del lockup: «niente scritte nere» (Alberto, dopo il «niente nero» della cliente) — il quasi-nero #1a1816 non esiste più nel sito. Mai #000.
 - **Grafite** (#46423d): i paragrafi editoriali (`.lead`), il corpo di testo dei capitoli, il «Domus» del lockup, le icone social a riposo.
 - **Pietra** (#6b665f): il testo secondario — etichette dei campi, chip non selezionati, sovratitolo dell'hero, riga legale, orari, placeholder.
 - **Filo** (#e4dccf): il colore di bordo di default (`* { border-color }`): hairline della testata scorsa, del footer, delle voci del menu mobile, dei separatori; bordo delle icone social a riposo.

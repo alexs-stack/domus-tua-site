@@ -1,13 +1,18 @@
 "use client";
 
-// HeroCinematic — l'hero CHIARO della rivista bianca (direttiva cliente
-// 2026-09-10, rif. immobiliaregoldengoal.it): un solo fondo avorio, lockup
-// «Domus Tua» nel font del logo a 13vw, firma calligrafica staccata sotto,
-// H1 a d2, video 16:9 a tutta larghezza (poster = foto reale, LCP), blocco
-// CTA a destra. Niente nero, niente curve, niente velo, niente scritte
-// piccole. Del vecchio hero cinematografico restano solo il rito d'ingresso
-// delle lettere dopo il preloader (`data-hero-char/tchar/schar`) e il mount
-// del <video> dopo il primo paint. Vedi docs/hero-video.md.
+// HeroCinematic — l'hero della rivista bianca (direttiva cliente 2026-09-10,
+// rif. immobiliaregoldengoal.it) con la FOTO DIETRO LA SCRITTA (richiesta di
+// Alberto, 2026-09-11: «come era prima del cambiamento», cioè la foto che fa
+// da fondo al lockup, non un media dopo il testo). La foto reale è la banda
+// alta del primo schermo e sopra ci stanno SOLO il lockup «Domus Tua» nel
+// font del logo a 13vw e la firma calligrafica: a quella misura le lettere
+// si leggono su qualunque stanza. Sovratitolo, H1 a d3, CTA e voto seguono
+// sull'avorio, nello stesso primo schermo — a 38 px un titolo sopra un
+// divano non si legge, e il velo scuro che prima lo salvava è ciò che la
+// cliente ha bocciato (punti 10 e 13: vignettatura no, niente nero). Niente
+// curve, niente scritte piccole. Del vecchio hero cinematografico restano il
+// rito d'ingresso delle lettere dopo il preloader (`data-hero-char/tchar/
+// schar`) e il mount del <video> dopo il primo paint. Vedi docs/hero-video.md.
 import { Fragment, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Star } from "./Icons";
@@ -385,15 +390,65 @@ export default function HeroCinematic() {
   const ratingDisplay = ratingLabel(locale);
 
   return (
-    <section ref={sectionRef} id="top" className="relative bg-cream pt-[clamp(2rem,6vh,4rem)]">
-      <div className="dt-row flex flex-col items-center text-center">
+    <section ref={sectionRef} id="top" className="relative bg-cream">
+      {/* LA BANDA CON LA FOTO DIETRO LA SCRITTA. `data-hero-media` resta per
+          sonde ed e2e; il poster è la foto reale, candidato LCP della home;
+          il <video> arriva dopo il primo paint, se e quando il cliente lo
+          riaccende (media.ts). NESSUN VELO sopra la foto: la cliente ha
+          bocciato vignettature e nero. L'inquadratura parte dall'alto
+          (`objectPosition` 0 % in verticale): il lockup sta in ALTO nella
+          banda, sul soffitto chiaro della stanza, e sotto resta in campo
+          Raffaela; il 10 % orizzontale conta solo sul telefono, dove
+          la foto è più larga della scatola e il taglio la terrebbe altrimenti
+          fuori campo (l'avambraccio ingrandito che il cliente aveva
+          segnalato, docs/foto-mobile.md). Il rettangolo avorio profondo
+          precede la foto, come per ogni media del sito. */}
+      <div
+        data-hero-media
+        className="relative flex min-h-[60svh] w-full flex-col overflow-hidden bg-cream-deep"
+      >
+        <Image
+          src={heroCinematic.base}
+          alt={c.heroAlt}
+          fill
+          // `preload`, non `priority` (deprecata in Next 16, come in PageHero):
+          // è l'unica immagine prioritaria del sito, la LCP della home.
+          preload
+          // Qualità 78 (non 60): la sorgente è una foto WhatsApp già molto
+          // compressa e ricampionata — una seconda compressione aggressiva
+          // la sgranerebbe visibilmente a tutta larghezza.
+          quality={78}
+          sizes="100vw"
+          className="object-cover"
+          style={{ objectPosition: "10% 0%" }}
+        />
+        {playVideo && (
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: "10% 0%" }}
+            poster={heroCinematic.poster}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            onError={() => setPlayVideo(false)}
+          >
+            {heroCinematic.webm && <source src={heroCinematic.webm} type="video/webm" />}
+            <source src={heroCinematic.mp4} type="video/mp4" />
+          </video>
+        )}
+
         {/* Lockup nel font del logo (`font-brand`, richiesta cliente: «stesso
-            font del logo in tutte le scritte Domus Tua») e coi colori del logo.
-            NON è l'h1 (vedi la nota sopra `copy`). Le lettere animate sono
-            aria-hidden per costruzione (Chars): il nome leggibile vive nello
-            span sr-only — un aria-label su un <div> senza ruolo verrebbe
-            ignorato dalle AT e segnalato da axe (aria-prohibited-attr). */}
-        <div className="relative">
+            font del logo in tutte le scritte Domus Tua») e coi colori del
+            logo, in alto SULLA foto (sul soffitto chiaro: a 13vw le lettere
+            si leggono anche dove la stanza è piena, ma il soffitto è meglio).
+            NON è l'h1 (vedi la nota sopra `copy`).
+            Le lettere animate sono aria-hidden per costruzione (Chars): il
+            nome leggibile vive nello span sr-only — un aria-label su un <div>
+            senza ruolo verrebbe ignorato dalle AT e segnalato da axe
+            (aria-prohibited-attr). */}
+        <div className="dt-row relative z-10 flex flex-1 flex-col items-center pb-[clamp(2rem,6vh,4rem)] pt-[clamp(1.5rem,4vh,3rem)] text-center">
           {/* Minuscolo come il logo («DomusTua»): la regola globale mette in
               maiuscolo solo h1-h4, e questo è un div apposta. */}
           <div className="font-brand text-hero font-extrabold tracking-[-0.02em]">
@@ -404,7 +459,7 @@ export default function HeroCinematic() {
             <Chars text="Tua" className="block text-red" />
           </div>
           {/* Firma PIÙ IN BASSO (richiesta cliente 2026-09-10): staccata sotto
-              il lockup e rientrata, non più sovrapposta al piede delle lettere.
+              il lockup, non più sovrapposta al piede delle lettere.
               `!text-…` perché `.script-word` è fuori dai layer e vincerebbe
               sull'utility (regola unlayered-beats-utilities). */}
           <span
@@ -415,18 +470,20 @@ export default function HeroCinematic() {
             <Chars text="Raffaela Rizza" variant="script" />
           </span>
         </div>
+      </div>
 
+      {/* Sotto la foto, sull'avorio e ancora nel primo schermo: sovratitolo,
+          H1, CTA e voto, centrati come il lockup. */}
+      <div className="dt-row flex flex-col items-center pb-[clamp(2.5rem,7vh,5rem)] pt-[clamp(1.5rem,4vh,3rem)] text-center">
         {/* Sovratitolo: cosa fa l'agenzia e dove, prima ancora della promessa.
             16 px, non di meno: la cliente non vuole scritte piccole. */}
-        {/* Tutto centrato, nell'ordine di sempre: sovratitolo, H1, poi le CTA;
-            la foto viene DOPO la scritta. Il font resta quello nuovo. */}
-        <p className="mt-10 text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.badge}</p>
-        <h1 className="mx-auto mt-4 max-w-[28ch] font-display text-d3">
+        <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.badge}</p>
+        <h1 className="mx-auto mt-3 max-w-[28ch] font-display text-d3">
           <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
           <Chars variant="tagline" text={c.title1} className="block" />
           <Chars variant="tagline" text={c.title2} className="block" />
         </h1>
-        <div className="mt-8 flex w-full max-w-[640px] flex-col items-center gap-4">
+        <div className="mt-6 flex w-full max-w-[640px] flex-col items-center gap-4">
           <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="lg" arrow={false}>
             {c.ctaValuta}
           </Cta>
@@ -452,48 +509,6 @@ export default function HeroCinematic() {
           </a>
         </div>
       </div>
-
-      {/* Video 16:9 a tutta larghezza sotto il titolo (rif.: il video risale
-          sotto il titolo). `data-hero-media` resta per sonde ed e2e. Poster =
-          foto reale, candidato LCP; il <video> arriva dopo il primo paint, se
-          e quando il cliente lo riaccende (media.ts). Nessun velo sopra. */}
-      <div
-        data-hero-media
-        className="relative mt-[clamp(2rem,6vh,4rem)] aspect-video w-full overflow-hidden bg-cream-deep"
-      >
-        <Image
-          src={heroCinematic.base}
-          alt={c.heroAlt}
-          fill
-          // `preload`, non `priority` (deprecata in Next 16, come in PageHero):
-          // è l'unica immagine prioritaria del sito, la LCP della home.
-          preload
-          // Qualità 78 (non 60): la sorgente è una foto WhatsApp già molto
-          // compressa e ricampionata — una seconda compressione aggressiva
-          // la sgranerebbe visibilmente a tutta larghezza.
-          quality={78}
-          sizes="100vw"
-          className="object-cover"
-          style={{ objectPosition: "50% 70%" }}
-        />
-        {playVideo && (
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: "50% 70%" }}
-            poster={heroCinematic.poster}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            onError={() => setPlayVideo(false)}
-          >
-            {heroCinematic.webm && <source src={heroCinematic.webm} type="video/webm" />}
-            <source src={heroCinematic.mp4} type="video/mp4" />
-          </video>
-        )}
-      </div>
-
     </section>
   );
 }
