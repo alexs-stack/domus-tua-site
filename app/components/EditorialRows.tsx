@@ -6,8 +6,9 @@ export type EditorialRow = {
   n: string;
   title: string;
   copy: string;
-  image: string;
-  alt: string;
+  /** Facoltativa: una riga senza scatto vero si racconta col suo numero. */
+  image?: string;
+  alt?: string;
 };
 
 export default function EditorialRows({
@@ -16,15 +17,60 @@ export default function EditorialRows({
   title,
   intro,
   rows,
+  media,
 }: {
   id?: string;
   eyebrow: string;
   title: string;
   intro?: string;
   rows: EditorialRow[];
+  /** Forza la variante. Senza, decide la regola qui sotto. */
+  media?: boolean;
   /** Conservata per i chiamanti: il fondo è uno solo (avorio) dal 2026-09-10. */
   tone?: "paper" | "cream";
 }) {
+  /* UNA FOTO VERA O NIENTE.
+     Questo modulo si ripeteva dodici volte su quattro pagine e le sue foto
+     erano sempre le stesse quattro stanze in 3D: le «cinque fasi di un Open
+     Domus» — preparazione, accoglienza, visite, feedback — illustrate da
+     soggiorni renderizzati vuoti, e `home_staging_01` in fila su /vendi,
+     /servizi e /open-domus. Un render non dice nulla del passo che
+     accompagna: e' riempimento, e si vede.
+     La regola e' automatica perche' sia difficile da violare: il modulo
+     mostra le fotografie solo se OGNI riga ne ha una vera (`reali/`).
+     Altrimenti diventa quello che il riferimento fa con i suoi valori — un
+     elenco numerato, col numerale grande al posto dell'immagine. */
+  const withMedia = media ?? rows.every((r) => r.image?.includes("/reali/"));
+
+  if (!withMedia) {
+    return (
+      <section id={id} className="dt-chapter bg-cream">
+        <div className="dt-row">
+          <Reveal>
+            <span className="eyebrow">{eyebrow}</span>
+            <h2 className="mt-6 max-w-[20ch] font-display text-d1">{title}</h2>
+            {intro && <p className="lead mt-8">{intro}</p>}
+          </Reveal>
+          <ol className="mt-16 flex flex-col">
+            {rows.map((r) => (
+              <li key={r.n} className="border-t border-line py-10 lg:py-12">
+                <Reveal className="grid gap-4 lg:grid-cols-[1fr_3fr] lg:gap-16">
+                  <span className="tnum block font-display text-d1 font-light leading-[0.8] text-red">
+                    {r.n}
+                  </span>
+                  <div>
+                    <h3 className="max-w-[20ch] font-display text-d2 balance">{r.title}</h3>
+                    <p className="lead mt-5">{r.copy}</p>
+                  </div>
+                </Reveal>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id={id} className="dt-chapter bg-cream">
       <div className="dt-row">
@@ -64,10 +110,10 @@ export default function EditorialRows({
                     innerClassName="absolute inset-0"
                   >
                     <Image
-                      src={r.image}
-                      alt={r.alt}
+                      src={r.image ?? ""}
+                      alt={r.alt ?? ""}
                       fill
-                      sizes="(max-width: 1024px) 100vw, 560px"
+                      sizes="(max-width: 1024px) 100vw, 42vw"
                       className="object-cover"
                     />
                   </Parallax>

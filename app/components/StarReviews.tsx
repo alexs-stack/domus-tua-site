@@ -716,7 +716,16 @@ export default function StarReviews() {
         </div>
 
         {/* La fila delle cinque stelle */}
-        <ul ref={rowRef} className="dt-starrev_row mx-auto mt-10 grid w-full max-w-[1050px] grid-cols-5 gap-2 sm:gap-4 lg:gap-6">
+        {/* `mt-16` sotto lg: il riquadro del film e' ancorato al bordo BASSO
+            della fila e alto 62svh, quindi con dieci unita' di margine la sua
+            cima cadeva dentro l'ultima riga del lead e la stella entrava
+            sopra le parole. Spostando la fila si sposta il riquadro.
+            `gap-1`: cinque colonne in 390px danno stelle da 66px invece di
+            63, che e' la differenza fra un segno e un puntino. */}
+        <ul
+          ref={rowRef}
+          className="dt-starrev_row mx-auto mt-16 grid w-full max-w-[1050px] grid-cols-5 gap-1 sm:gap-4 lg:mt-10 lg:gap-6"
+        >
           {STARS.map((s) => {
             const sc = c.stars[s.key];
             return (
@@ -745,9 +754,16 @@ export default function StarReviews() {
           })}
         </ul>
         {/* Sotto sm le cinque colonne sono strette 70px: le etichette (16 px,
-            mai meno) stanno in una riga sola sotto la fila. */}
-        <p data-sr-el className="mt-6 text-center text-ui font-semibold uppercase tracking-[0.08em] text-graphite sm:hidden">
-          {STARS.map((s) => c.stars[s.key].label).join(" · ")}
+            mai meno) stanno sotto la fila. Non piu' unite da «·»: la riga
+            andava a capo dove capitava e il punto mediano restava appeso a
+            fine riga. Ognuna e' un elemento, e il vuoto le separa. */}
+        <p
+          data-sr-el
+          className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-1 text-ui font-semibold uppercase tracking-[0.08em] text-graphite sm:hidden"
+        >
+          {STARS.map((s) => (
+            <span key={s.key}>{c.stars[s.key].label}</span>
+          ))}
         </p>
 
 
