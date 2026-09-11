@@ -15,6 +15,18 @@ import { heroCinematic } from "../lib/media";
 // ritratto è chiaro e il bianco senza velo non ci si legge.
 const POSTER = "/media/hero-aerial.jpg";
 
+/* L'unico trattamento ammesso sul bianco che sta sopra un'immagine: un'ombra
+   di testo, la stessa grammatica della copertina delle cinque stelle. NON è un
+   velo — niente rettangolo, niente vignettatura sul video (vietati dalla
+   cliente): l'ombra sta attaccata alle lettere. Serve perché il volo del drone
+   porta sotto il titolo, per qualche fotogramma, le tende bianche e la
+   pavimentazione chiara: nessun taglio può evitarle e il bianco su bianco
+   sparisce. Due raggi: 2px per staccare il bordo, 28px per reggere il caso
+   peggiore. */
+const INK_ON_VIDEO = {
+  textShadow: "0 1px 2px rgb(0 0 0 / 0.35), 0 0 28px rgb(0 0 0 / 0.45)",
+} as const;
+
 const copy = {
   it: { title: "Vendere casa, senza stress.", cta: "Contattaci" },
   en: { title: "Selling your home, without stress.", cta: "Contact us" },
@@ -68,15 +80,35 @@ export default function Congedo() {
       aria-labelledby="congedo-title"
       className="relative aspect-video min-h-[70svh] w-full overflow-hidden bg-cream-deep"
     >
-      {/* 20%: dove la banda non è 16:9 (telefono, tablet verticale) il taglio
-          tiene gli alberi a sinistra, sotto il titolo bianco; a 16:9 non taglia. */}
-      <Image src={POSTER} alt="" fill sizes="100vw" className="scale-[1.14] object-cover object-[20%_50%] origin-bottom-right" />
+      {/* IL TAGLIO, misurato (11 settembre) e non più a occhio: dove la banda
+          non è 16:9 — telefono e tablet verticale — il fotogramma 2:1 perde due
+          terzi della larghezza, e con `20% 50%` sotto il titolo bianco finiva
+          la parete chiara della villa: «VENDERE» spariva. A 16% ci finisce la
+          chioma scura degli alberi (31% di pixel chiari contro il 37%, e con
+          l'ombra qui sotto basta). Zoom 1.14 come il video: è il suo fermo
+          immagine e i due non devono saltare quando parte.
+          `sizes` sovradimensionato apposta: sul telefono di questa foto se ne
+          vede meno di un terzo della larghezza, quindi «100vw» faceva scegliere
+          al browser un file da 420 px di cui 122 ingranditi a 390 — la banda
+          finale del sito era una poltiglia. Con 200vw il pezzo visibile arriva
+          già grande abbastanza; `quality` scende a 60 per non pagarla due volte. */}
+      <Image
+        src={POSTER}
+        alt=""
+        fill
+        sizes="(max-width: 767px) 200vw, 100vw"
+        quality={60}
+        className="scale-[1.14] object-cover object-[16%_50%] origin-bottom-right"
+      />
       {/* Senza poster: finché non ha un frame è trasparente e sotto resta la foto. */}
       <video
         ref={videoRef}
-        // scale 1.14 dall'angolo in basso a destra: la clip ha il vecchio logo
-        // bruciato in alto a sinistra, e così resta fuori dall'inquadratura.
-        className="absolute inset-0 h-full w-full scale-[1.14] object-cover object-[20%_50%] origin-bottom-right"
+        // scale 1.14 dall'angolo in basso a destra: la clip ha il logo Domus Tua
+        // bruciato in alto a sinistra (verificato l'11 settembre a video in
+        // corsa: a 1.0 si legge, da 1.14 in su il taglio superiore lo mangia).
+        // Resta quindi com'è: è il motivo per cui sotto il titolo non si può
+        // scegliere l'inquadratura, e per cui il bianco ha bisogno dell'ombra.
+        className="absolute inset-0 h-full w-full scale-[1.14] object-cover object-[16%_50%] origin-bottom-right"
         muted
         loop
         playsInline
@@ -91,11 +123,18 @@ export default function Congedo() {
         <h2
           id="congedo-title"
           className="max-w-[12ch] text-balance font-display text-d1 text-white"
+          style={INK_ON_VIDEO}
         >
           {c.title}
         </h2>
         {/* Le regole .dt-btn sono unlayered: per la taglia d4 leggera serve `!`. */}
-        <Cta href="#contatti" variant="ghost-dark" arrow={false} className="mt-8 !text-d4 !font-light">
+        <Cta
+          href="#contatti"
+          variant="ghost-dark"
+          arrow={false}
+          className="mt-8 !text-d4 !font-light"
+          style={INK_ON_VIDEO}
+        >
           {c.cta}
         </Cta>
       </div>

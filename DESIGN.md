@@ -336,6 +336,9 @@ Non esistono card: nessuna superficie rialzata, nessuna cornice attorno a foto o
 ### Testa di capitolo
 La cellula che apre ogni sezione: eyebrow rosso con trattino → titolo Playfair d1/d2 maiuscolo → eventuale parola Pinyon rossa rientrata → lead in grafite ≤ 38ch → link ghost. Il Metodo la allinea a destra, tutte le altre a sinistra. Motion: l'eyebrow, il lead e il link entrano con `Reveal` (opacità 0 → 1 e salita di 2.5rem, 0.9 s, ease-out-expo, ritardi a scalare 80–200 ms; reversibile all'uscita); il titolo con `TextLines` (SplitText per righe con maschera, da 112 % a 0, 1.05 s expo.out, stagger 0.09 s, trigger all'86 % del viewport, reversibile).
 
+### La regola dei `sizes`
+`sizes` descrive i **pixel chiesti**, non la larghezza della scatola. Con `object-cover` una fotografia più larga della cornice viene RESA più larga della cornice, e la parte in più esce dal taglio: in una scatola 4:5 una sorgente 3:2 è resa larga una volta e mezza l'ALTEZZA, cioè quasi il doppio della larghezza. Il conto è `larghezzaResa = altezzaScatola × rapportoSorgente` quando la sorgente è più larga della scatola, `larghezzaScatola` altrimenti. Scritto con la larghezza della scatola, il loader manda 719 px dove ne servono 1.134 e la foto è molle. Il caso estremo è la copertina di uno Short (16:9) dentro una scatola 9:16: resa larga 3,16 volte la scatola, quindi il modulo verticale ha un tetto dichiarato finché non arriva un fotogramma 1080×1920.
+
 ### Media a tutta larghezza
 Foto o video 16:9 / 1:1 / 4:5 senza cornice, `object-cover`, sopra avorio profondo. I video sono facciate: poster reale + cerchio rosso 96 px con triangolo bianco che scala a 1.05 all'hover (0.3 s); l'iframe arriva al click. Le foto di capitolo derivano con `Parallax speed={-0.04}`: la primitiva moltiplica per 14, quindi ±0,56 % dell'altezza propria (pochi pixel), scrub lineare lungo tutta la traversata, corsa dimezzata sotto i 768 px; l'hero delle pagine interne la spegne sul telefono.
 
