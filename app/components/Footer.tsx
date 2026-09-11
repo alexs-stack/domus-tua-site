@@ -51,7 +51,7 @@ export default function Footer() {
           <Cta
             href="/valutazione-immobile-tradate"
             variant="ghost"
-            className="mt-6 hidden md:inline-flex"
+            className="mt-6 !hidden md:!inline-flex"
           >
             {d.footer.valuta}
           </Cta>
