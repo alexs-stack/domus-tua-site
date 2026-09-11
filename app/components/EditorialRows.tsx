@@ -55,7 +55,12 @@ export default function EditorialRows({
             {rows.map((r) => (
               <li key={r.n} className="border-t border-line py-10 lg:py-12">
                 <Reveal className="grid gap-4 lg:grid-cols-[1fr_3fr] lg:gap-16">
-                  <span className="tnum block font-display text-d1 font-light leading-[0.8] text-red">
+                  {/* Pietra, non rosso: nel riferimento il numerale grande e'
+                      grigio e l'accento sta sul TITOLO. Sei numerali rossi in
+                      colonna sarebbero sei richieste d'attenzione dove ce n'e'
+                      una sola, la CTA. Stesso trattamento dell'elenco dei
+                      Servizi, perche' l'elenco del sito sia uno. */}
+                  <span className="tnum block font-display text-d1 font-light leading-[0.85] text-stone">
                     {r.n}
                   </span>
                   <div>
