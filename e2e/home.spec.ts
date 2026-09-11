@@ -70,19 +70,32 @@ test("l'header porta alle sezioni del sito @layout", async ({ page, goto, isMobi
     await page.keyboard.press("Escape");
     await expect(menu).toBeFocused();
   } else {
-    // Da desktop la barra è piatta: tutte le voci sono raggiungibili senza aprire nulla.
+    // Da desktop la testata è UNA riga con le SEI voci primarie: nove parole
+    // maiuscole in fila erano un nastro che attraversava lo schermo — il «menu
+    // sopra» che il cliente ha bocciato l'11 settembre — e il riferimento ne
+    // tiene quattro. Le tre che avanzano (Servizi, Recensioni, Lavora con noi)
+    // restano raggiungibili dal piè di pagina e dal menu del telefono; la
+    // sorgente unica è `nav` in app/lib/site.ts, col flag `primary`.
     const nav = page.locator("header").first();
     for (const label of [
       "Vendi",
       "Acquista",
       "Metodo Domus",
-      "Servizi",
       "Open Domus",
-      "Recensioni",
       "Chi siamo",
       "Contatti",
     ]) {
       await expect(nav.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
+    }
+    // E le secondarie NON stanno nella testata: se ci tornano, la riga si
+    // riallunga e il difetto rientra senza che nessuno se ne accorga.
+    for (const label of ["Servizi", "Recensioni", "Lavora con noi"]) {
+      await expect(nav.getByRole("link", { name: label, exact: true })).toHaveCount(0);
+    }
+    // Restano raggiungibili: stanno nel piè di pagina, su ogni pagina.
+    const footer = page.locator("footer").first();
+    for (const label of ["Servizi", "Recensioni", "Lavora con noi"]) {
+      await expect(footer.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
     }
   }
 

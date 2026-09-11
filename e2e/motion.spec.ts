@@ -125,12 +125,20 @@ test.describe("la parallasse della foto di pagina", () => {
     const leggi = () =>
       page.evaluate((sel) => {
         const img = document.querySelector<HTMLElement>(sel)!;
-        // img → div.relative (cornice) → inner di Parallax
-        const inner = img.parentElement!.parentElement!;
+        // L'inner di Parallax è l'antenato che porta la matrice. Si CERCA invece
+        // di contarlo: la cornice intermedia è sparita quando la banda è passata
+        // al modulo `.dt-media-full` (11 settembre), e il test leggeva il
+        // wrapper esterno, che non si muove mai.
+        let inner: HTMLElement = img;
+        for (let i = 0; i < 4 && inner.parentElement; i += 1) {
+          inner = inner.parentElement;
+          if (/^matrix\(/.test(getComputedStyle(inner).transform)) break;
+        }
         const m = /^matrix\(([^)]+)\)$/.exec(getComputedStyle(inner).transform);
         return {
           f: m ? Number(m[1].split(",")[5]) : 0,
           top: inner.getBoundingClientRect().top + window.scrollY,
+          h: inner.getBoundingClientRect().height,
           vh: window.innerHeight,
         };
       }, SEL);
@@ -141,11 +149,17 @@ test.describe("la parallasse della foto di pagina", () => {
       }, y);
 
     const p0 = await leggi();
-    // Foto appena entrata dal basso, poi a metà viewport.
-    await scrollTo(p0.top - p0.vh + 40);
+    // DUE QUOTE CHE ESISTONO DAVVERO. Le vecchie erano «foto appena entrata dal
+    // basso» (top − vh + 40) e «a metà viewport» (top − vh/2): da quando la
+    // banda di PageHero risale sotto il titolo — 11 settembre — la foto comincia
+    // a y≈400, quindi a 768 ENTRAMBE le quote diventavano negative, il browser
+    // le bloccava a 0 e il test misurava due volte lo stesso fotogramma
+    // (Δy 0) concludendo che la parallasse non c'era. Ora la seconda quota è
+    // presa OLTRE la foto, che esiste a qualunque larghezza.
+    await scrollTo(Math.max(0, p0.top - p0.vh + 40));
     await page.waitForTimeout(250);
     const bordo = await leggi();
-    await scrollTo(p0.top - p0.vh / 2);
+    await scrollTo(p0.top + p0.h / 2);
     await page.waitForTimeout(250);
     const meta = await leggi();
     // La corsa intera è ±4 % dell'altezza della foto (≈ 5-9 px a 768-1440): fra
