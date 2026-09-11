@@ -67,7 +67,8 @@
      Rampa a quattro tappe: ombra, corpo, luce, speculare. Tirata verso il
      caldo della carta (niente ottone verdastro, niente giallo acido). */
   --color-gold-deep: #a9812a;
-  --color-gold: #c9a227;
+  /* Piu' caldo e piu' chiaro: sull'avorio il #c9a227 leggeva mostarda. */
+  --color-gold: #d9a441;
   --color-gold-light: #eed07a;
   --color-gold-spec: #fff6d4;
 
@@ -126,9 +127,9 @@
   --text-hero: clamp(3.1rem, 13vw, 13rem);
   --text-hero--line-height: 0.9;
   --text-d1: clamp(2.4rem, min(10vh, 6.5vw), 7.5rem);
-  --text-d1--line-height: 0.92;
+  --text-d1--line-height: 0.98;
   --text-d2: clamp(2.3rem, min(6.4vh, 4.2vw), 4.5rem);
-  --text-d2--line-height: 0.95;
+  --text-d2--line-height: 1;
   --text-d3: clamp(1.5rem, min(4.5vh, 2.8vw), 2.6rem);
   --text-d3--line-height: 1.05;
   --text-d4: clamp(1.45rem, 1.8vw, 1.75rem);
@@ -273,6 +274,23 @@ body {
   }
 }
 
+/* -- LA SCALA SOTTO I 1024 ------------------------------------------------
+   I clamp della scala usano `min(vh, vw)`: fra 390 e ~876 px il termine in vw
+   resta sotto il minimo e i titoli si inchiodano al pavimento — su un tablet
+   da 768 la testa di capitolo e il suo sottotitolo differivano di 1,6 px, e i
+   gradini decorativi superavano l'h2 che dovevano accompagnare. Qui la scala
+   torna a crescere con la larghezza, con salti veri fra un gradino e l'altro
+   (il riferimento sul telefono sta a 50,7 / 38,4 / 23,4). */
+@media (max-width: 63.99rem) {
+  :root {
+    --text-d1: clamp(2.55rem, 9.5vw, 7.5rem);
+    --text-d2: clamp(2.15rem, 7.4vw, 4.5rem);
+    --text-d3: clamp(1.5rem, 4.8vw, 2.6rem);
+    --text-script: clamp(3rem, 11vw, 7rem);
+    --text-lead: clamp(1.3rem, 3.1vw, 1.55rem);
+  }
+}
+
 /* ---------- Typography helpers ---------- */
 .font-display {
   font-family: var(--font-display), Georgia, serif;
@@ -309,18 +327,70 @@ blockquote * {
   line-height: var(--text-lead--line-height);
   font-weight: 300;
   color: var(--color-graphite);
-  max-width: 50ch;
+  /* 38ch, non 50: con Jakarta 300 a 25 px il `ch` e' largo e 50 risolvevano a
+     895 px, cioe' 82 caratteri per riga — il doppio di quel che si legge senza
+     perdere la riga. Il riferimento tiene le sue colonne fra 403 e 807 px. */
+  max-width: 38ch;
 }
 
 /* La parola-ornamento di capitolo: il corsivo rosso al posto dell'SVG oro
-   del riferimento. Una per capitolo, mai sopra una foto. */
+   del riferimento. Una per capitolo, mai sopra una foto.
+   UNA grammatica sola: la calligrafia ATTRAVERSA l'ultima riga del titolo,
+   come nel riferimento (dove e' alta una volta e mezza le maiuscole e la
+   sovrapposizione e' dichiarata). Prima era a meta' strada — ne' sopra con
+   intenzione ne' sotto con aria — e in piu' era piu' piccola del titolo che
+   doveva ornare. Chi la usa la mette dopo il titolo, senza margini propri:
+   ci pensa `--script-tuck`. */
 .script-word {
   font-family: var(--font-script), cursive;
   font-size: var(--text-script);
-  line-height: 1;
+  line-height: 0.8;
   color: var(--color-red);
   text-transform: none;
   font-weight: 400;
+  display: block;
+  position: relative;
+  z-index: 10;
+  margin-top: var(--script-tuck, -0.42em);
+  pointer-events: none;
+}
+
+/* -- I TRE MODULI MEDIA ---------------------------------------------------
+   Il riferimento usa DUE misure in tutta la home: la piena (16:9 a tutta
+   larghezza) e la meta' (605 px, quadrata o verticale). Qui erano dodici, una
+   per sezione, e scorrendo l'occhio non ritrovava mai la stessa linea. Da qui
+   in avanti una foto sta in uno di questi tre, e basta.
+     - `dt-media-full`   la banda: tutta larghezza, 16:9
+     - `dt-media-half`   la meta': 42vw (~605 px a 1440), quadrata
+     - `dt-media-column` la colonna: 42vw, verticale 4:5 o 9:16 col modificatore
+   Sono scatole: dentro ci va `<Image fill className="object-cover">`. */
+.dt-media-full {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--color-cream-deep);
+}
+.dt-media-half,
+.dt-media-column {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--color-cream-deep);
+  aspect-ratio: 1 / 1;
+}
+.dt-media-column {
+  aspect-ratio: 4 / 5;
+}
+.dt-media-column--tall {
+  aspect-ratio: 9 / 16;
+}
+@media (min-width: 64rem) {
+  .dt-media-half,
+  .dt-media-column {
+    width: 42vw;
+    max-width: 640px;
+  }
 }
 
 /* Riga e capitolo: il vuoto del riferimento (padding laterale 8vw, capitoli
@@ -336,7 +406,7 @@ blockquote * {
     padding-inline: 5vw;
   }
   .dt-chapter {
-    padding-block: clamp(4rem, 10vh, 6rem);
+    padding-block: clamp(3rem, 8vh, 5rem);
   }
 }
 
@@ -346,8 +416,11 @@ blockquote * {
   align-items: center;
   gap: 0.5rem;
   font-size: var(--text-ui);
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  /* 500 e tracking piu' aperto: l'occhiello, il bottone e l'etichetta di un
+     campo erano la stessa identica riga maiuscola: la gerarchia la faceva
+     solo il rettangolo rosso. */
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-red);
 }

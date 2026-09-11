@@ -405,8 +405,12 @@ export default function HeroCinematic() {
           precede la foto, come per ogni media del sito. */}
       <div
         data-hero-media
-        className="relative flex h-[var(--dt-band-h)] w-full flex-col overflow-hidden bg-cream-deep"
+        className="relative flex h-[var(--dt-band-h)] w-full flex-col bg-cream-deep"
       >
+        {/* Il ritaglio sta QUI, non sulla banda: la banda deve lasciar sbordare
+            la firma sul bordo basso, come la calligrafia del riferimento che
+            scavalca il bordo del video. */}
+        <div className="absolute inset-0 overflow-hidden">
         <Image
           src={heroCinematic.base}
           alt={c.heroAlt}
@@ -438,6 +442,7 @@ export default function HeroCinematic() {
             <source src={heroCinematic.mp4} type="video/mp4" />
           </video>
         )}
+        </div>
 
         {/* Lockup nel font del logo (`font-brand`, richiesta cliente: «stesso
             font del logo in tutte le scritte Domus Tua») e coi colori del
@@ -448,7 +453,7 @@ export default function HeroCinematic() {
             nome leggibile vive nello span sr-only — un aria-label su un <div>
             senza ruolo verrebbe ignorato dalle AT e segnalato da axe
             (aria-prohibited-attr). */}
-        <div className="dt-row relative z-10 flex flex-1 flex-col items-center pb-[clamp(2rem,6vh,4rem)] pt-[clamp(1.5rem,4vh,3rem)] text-center">
+        <div className="dt-row relative z-10 flex flex-1 flex-col items-center justify-center pb-[clamp(2rem,6vh,4rem)] pt-[clamp(1.5rem,4vh,3rem)] text-center">
           {/* Minuscolo come il logo («DomusTua»): la regola globale mette in
               maiuscolo solo h1-h4, e questo è un div apposta. */}
           <div className="font-brand text-hero font-extrabold tracking-[-0.02em]">
@@ -458,18 +463,24 @@ export default function HeroCinematic() {
             <Chars text="Domus" className="block text-graphite" />
             <Chars text="Tua" className="block text-red" />
           </div>
-          {/* Firma PIÙ IN BASSO (richiesta cliente 2026-09-10): staccata sotto
-              il lockup, non più sovrapposta al piede delle lettere.
-              `!text-…` perché `.script-word` è fuori dai layer e vincerebbe
-              sull'utility (regola unlayered-beats-utilities). */}
-          <span
-            data-hero-script
-            aria-hidden
-            className="script-word mt-[0.25em] block !text-[clamp(2.2rem,6vw,5.5rem)]"
-          >
-            <Chars text="Raffaela Rizza" variant="script" />
-          </span>
         </div>
+
+        {/* Firma PIÙ IN BASSO (richiesta cliente 2026-09-10), e sul BORDO della
+            banda: prima cadeva sulla parte affollata della stanza — finestre,
+            divano, la sua stessa mano — dove il rosso sottile spariva. Qui
+            scavalca il confine foto/avorio, che è il gesto del riferimento
+            (la calligrafia a cavallo del bordo del video). Metà lettera sta
+            sulla foto, metà sull'avorio: si legge su entrambi.
+            `!text-…` perché `.script-word` è fuori dai layer e vincerebbe
+            sull'utility (regola unlayered-beats-utilities). */}
+        <span
+          data-hero-script
+          aria-hidden
+          className="script-word dt-row absolute inset-x-0 bottom-0 z-20 translate-y-[38%] text-center !text-[clamp(2.2rem,6vw,5.5rem)]"
+          style={{ "--script-tuck": "0" } as React.CSSProperties}
+        >
+          <Chars text="Raffaela Rizza" variant="script" />
+        </span>
       </div>
 
       {/* Sotto la foto, sull'avorio e ancora nel primo schermo: sovratitolo,

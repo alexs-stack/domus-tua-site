@@ -189,7 +189,7 @@ export default function Method() {
             <div>
               {/* Decorativa (aria-hidden): il senso è nel titolo dell'atto. */}
               <Reveal>
-                <span aria-hidden className="script-word block">
+                <span aria-hidden className="script-word" style={{ "--script-tuck": "0" } as React.CSSProperties}>
                   {a.word}
                 </span>
               </Reveal>

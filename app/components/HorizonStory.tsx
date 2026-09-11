@@ -163,7 +163,7 @@ export default function HorizonStory() {
           {c.domeTitle}
         </TextLines>
         <Reveal delay={120}>
-          <span aria-hidden className="script-word -mt-[0.1em] block pl-[14vw]">
+          <span aria-hidden className="script-word pl-[14vw]">
             {c.scriptWord}
           </span>
         </Reveal>

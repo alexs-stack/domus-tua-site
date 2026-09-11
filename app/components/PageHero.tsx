@@ -62,11 +62,13 @@ export default function PageHero({
           ) : (
             <h1 className={TITLE}>{title}</h1>
           )}
-          {/* `.script-word` è fuori layer: la misura si forza con `!`. */}
+          {/* Misura e incastro vengono da `.script-word` (globals.css): la
+              calligrafia attraversa l'ultima riga del titolo, come nel
+              riferimento. Qui resta solo il rientro. */}
           {scriptWord && (
             <span
               aria-hidden
-              className="script-word -mt-[0.12em] block pl-[24vw] !text-[clamp(2.4rem,6vw,6rem)]"
+              className="script-word pl-[24vw]"
             >
               {scriptWord}
             </span>

@@ -119,7 +119,7 @@ export default function CostiChiari({
         </TextLines>
         {/* Decorativa (aria-hidden): il senso è già nel titolo. */}
         <Reveal delay={80}>
-          <span aria-hidden className="script-word mt-4 block">
+          <span aria-hidden className="script-word">
             {c.scriptWord}
           </span>
         </Reveal>
