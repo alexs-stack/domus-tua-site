@@ -108,7 +108,13 @@ const DEPTH = 4;
    viewport stretti, uguale per tutte. */
 const TILE = "w-[78vw] sm:w-[52vw] lg:w-auto";
 /* Il pannello del pan è il 118 % della tessera: la `sizes` misura quello. */
-const TILE_SIZES = "(max-width: 640px) 92vw, (max-width: 1024px) 62vw, 50vw";
+/* `sizes` descrive i PIXEL CHIESTI, non la larghezza della scatola: con
+   `object-cover` una foto piu' larga della cornice viene resa piu' larga
+   della cornice, e la parte in piu' esce dal taglio. In una scatola 4:5 una
+   sorgente 3:2 e' resa larga 1,5 volte l'ALTEZZA della scatola, cioe' 1,9
+   volte la sua larghezza. Con i vecchi numeri il loader mandava 719 px per
+   1.134 che ne servivano, e le tessere erano molli. */
+const TILE_SIZES = "(max-width: 640px) 146vw, (max-width: 1024px) 98vw, 79vw";
 
 type Tile = {
   src: string;
@@ -153,7 +159,8 @@ export default function Team({ compact = false }: { compact?: boolean }) {
               style={{ objectPosition: "18% 50%" }}
               alt={c.founderAlt}
               fill
-              sizes="(max-width: 1024px) 100vw, 42vw"
+              /* Scatola quadrata, sorgente 3:2: resa larga 1,5 volte il lato. */
+              sizes="(max-width: 1024px) 150vw, 63vw"
               className="object-cover"
             />
           </div>

@@ -90,7 +90,7 @@ export default function Posizionamento() {
               // `sizes` esatto next/image sceglie il taglio subito sotto e in un
               // quadrato da 605 lo deve risalire del 12%. Sopra i 1600 px la
               // scatola smette di crescere, quindi anche `sizes` si ferma.
-              sizes="(max-width: 1023px) 100vw, (max-width: 1599px) 46vw, 700px"
+              sizes="(max-width: 1023px) 118vw, (max-width: 1599px) 50vw, 760px"
               className="object-cover"
               style={{ objectPosition: "45% 50%" }}
             />

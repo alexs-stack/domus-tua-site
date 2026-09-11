@@ -190,12 +190,24 @@ export default function HorizonStory() {
           video non resta mezzo schermo vuoto. Il margine della riga (16vw)
           tiene i 10vw di risalita lontani dalla calligrafia della testa. */}
       <div className="dt-row mt-[clamp(3rem,8vh,6rem)] grid gap-[6vw] lg:mt-[16vw] lg:grid-cols-2">
-        {/* La colonna e' piena: il `sizes` del ramo verticale ora e' relativo
-            al viewport (45vw in LazyYouTubeEmbed), quindi next/image serve una
-            copertina grande quanto la scatola e il tetto a 420px — che era la
-            risoluzione del poster travestita da larghezza — non serve piu'. */}
-        <div className="dt-media-column dt-media-column--tall lg:-mt-[10vw]">
-          <LazyYouTubeEmbed id={site.videos.featured.id} title={site.videos.featured.title} aspect="portrait" />
+        {/* IL TETTO A 420px E' UN CONTO, NON UN CAPRICCIO. La copertina di uno
+            Short arriva da YouTube in 16:9: dentro una scatola 9:16 viene resa
+            larga 3,16 volte la scatola perche' deve coprirne l'altezza. A 605
+            px di colonna servirebbero 1.911 px di sorgente e ce ne sono 1.280:
+            i visi diventano impasto (2,95x misurato). A 420 ne servono 1.328 e
+            il conto torna (1,04x). Il giorno in cui arriva un fotogramma vero
+            1080x1920 questo tetto si toglie.
+            E `posterSizes` dichiara quei pixel, non la larghezza della
+            scatola: e' la stessa regola dei `sizes` delle foto.
+            Il `!` perche' il `max-width` del modulo sta in globals.css, fuori dai
+            layer, e batterebbe l'utility (regola del repo). */}
+        <div className="dt-media-column dt-media-column--tall lg:-mt-[10vw] lg:!max-w-[420px]">
+          <LazyYouTubeEmbed
+            id={site.videos.featured.id}
+            title={site.videos.featured.title}
+            aspect="portrait"
+            posterSizes="(max-width: 1024px) 284vw, 1328px"
+          />
         </div>
         {/* Il rientro delle altre righe torna insieme al modulo pieno. */}
         <div className="lg:mt-[14vw] lg:pl-[6vw]">
