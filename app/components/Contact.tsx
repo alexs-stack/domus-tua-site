@@ -514,10 +514,15 @@ export default function Contact({
   initialIntent,
   propertyRef,
   initialPlace,
+  compact = false,
 }: {
   initialIntent?: LeadIntent;
   propertyRef?: string;
   initialPlace?: string;
+  /** Su /contatti la pagina ha gia' la sua testa: occhiello, h1 e paragrafo.
+   *  Senza questo, il capitolo ne apriva una seconda cinquecento pixel sotto
+   *  la prima — due teste di pagina identiche, una sotto l'altra. */
+  compact?: boolean;
 } = {}) {
   const { locale } = useLocale();
   const c = copy[locale];
@@ -702,14 +707,25 @@ export default function Contact({
             «VALUTAZIONE» da solo è più largo della colonna sinistra a ogni larghezza
             desktop, quindi il titolo sta sopra la griglia, come nella pagina contatti
             del riferimento. */}
-        <Reveal>
-          <span className="eyebrow">{c.eyebrow}</span>
-        </Reveal>
-        <TextLines as="h2" className="mt-6 max-w-[22ch] font-display text-d2">
-          {c.title}
-        </TextLines>
+        {!compact && (
+          <>
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
+            <TextLines as="h2" className="mt-6 max-w-[22ch] font-display text-d2">
+              {c.title}
+            </TextLines>
+          </>
+        )}
 
-        <div className="mt-[clamp(2.5rem,6vh,4rem)] grid gap-[6vw] lg:grid-cols-[1fr_1.1fr] lg:items-start">
+        {/* Le due colonne del template condiviso: `1fr 1.1fr` era l'ennesima
+            proporzione su misura, e faceva partire il modulo 34 px piu' a
+            sinistra della colonna di ogni altro capitolo. */}
+        <div
+          className={`grid gap-[6vw] lg:grid-cols-2 lg:items-start ${
+            compact ? "" : "mt-[clamp(2.5rem,6vh,4rem)]"
+          }`}
+        >
           {/* Sinistra: paragrafo per intento, recapiti, foto quadrata */}
           <div>
             {/* §6.6 — un testo sopra il modulo per OGNI intento (sul ramo venditore la
