@@ -492,7 +492,9 @@ export default function HeroCinematic() {
       <div className="dt-row flex flex-col items-center pb-[clamp(2.5rem,7vh,4.5rem)] pt-[clamp(2.5rem,5vh,4rem)] text-center">
         {/* Sovratitolo: cosa fa l'agenzia e dove, prima ancora della promessa.
             16 px, non di meno: la cliente non vuole scritte piccole. */}
-        <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.badge}</p>
+        <p className="text-balance text-ui font-semibold uppercase tracking-[0.08em] text-stone">
+          {c.badge}
+        </p>
         <h1 className="mx-auto mt-3 max-w-[28ch] font-display text-d3">
           <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
           <Chars variant="tagline" text={c.title1} className="block" />
