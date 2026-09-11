@@ -351,7 +351,12 @@ blockquote * {
   display: block;
   position: relative;
   z-index: 10;
-  margin-top: var(--script-tuck, -0.42em);
+  /* -0.2em, non -0.42: a meta' altezza il corsivo rosso e la maiuscola
+     grafite si intrecciavano e nessuno dei due si leggeva — nel riferimento
+     l'oro sul quasi-nero sono due strati che si distinguono da soli, il
+     rosso sulla grafite no. Cosi' la calligrafia attraversa la linea di base
+     del titolo con le sole aste alte e il corpo resta sull'avorio. */
+  margin-top: var(--script-tuck, -0.2em);
   pointer-events: none;
 }
 
