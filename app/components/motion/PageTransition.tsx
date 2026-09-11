@@ -5,8 +5,8 @@
 // immobiliaregoldengoal.it, che cambia pagina e basta). Restano le due
 // funzioni che il resto del sito importa, ridotte all'osso: navigare subito
 // col router dell'App Router, e rispondere «no» a chi chiede se un sipario
-// sta coprendo lo schermo (Header, VideoLightbox, CaseQuickLook decidono
-// così se possono riavviare Lenis).
+// sta coprendo lo schermo (VideoLightbox e CaseQuickLook decidono così se
+// possono riavviare Lenis).
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 

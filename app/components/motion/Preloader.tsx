@@ -116,7 +116,7 @@ type BootFlags = { __dtPreArmed?: number; __dtPreFailsafe?: number; __dtPreT0?: 
 const boot = () => window as unknown as BootFlags;
 
 // Le ease dell'arco ("dtLoader", "dtDiveIn") vivono nel vocabolario condiviso
-// (lib/motion/gsap.ts): le usa anche il sipario ad arco di PageTransition.
+// (lib/motion/gsap.ts): la CSS le ricopia campionate (intro-clocks le confronta).
 
 /**
  * Quanto è già passato dell'intro, in secondi, letto dall'OROLOGIO CSS.
@@ -344,12 +344,13 @@ export default function Preloader() {
     }
 
     // La porta ad arco vive su una maschera additiva con mask-composite: la
-    // CSS la applica da sé (`@supports`), qui si aggiunge la classe storica
-    // per e2e e sonde; dove non è supportata (browser datati) si ripiega sul
-    // sipario clip-path — anche lui in CSS, e in GSAP nel ramo di ripiego.
+    // CSS la applica da sé (`@supports`), qui si aggiunge la classe generica
+    // (ridondante per il preloader, ma esplicita per chi ispeziona il DOM);
+    // dove non è supportata (browser datati) si ripiega sul sipario
+    // clip-path — anche lui in CSS, e in GSAP nel ramo di ripiego.
     const supportsArch =
       typeof CSS !== "undefined" && CSS.supports("mask-composite", "add");
-    if (supportsArch) root.classList.add("is-arch", "dt-arch-mask");
+    if (supportsArch) root.classList.add("dt-arch-mask");
 
     // L'orologio: quanto è già passato del film in CSS. Tutto ciò che segue
     // — timer, timeline di ripiego, skip — si posiziona qui, così i suoi
@@ -380,8 +381,9 @@ export default function Preloader() {
     // sulla connessione in cui quella gara si perde. Qui si aspetta solo il
     // primo schermo, senza svegliare niente, con scadenza WARM_FIRST_FOLD_MS
     // (3 s ≤ intro − tuffo: sta dentro il sipario per costruzione); il
-    // registro (Header, CharFlip, Fioritura, TeamTrail) passa da
-    // `scheduleIdleWarmup()` in `finish()`, cioè DOPO l'handoff. Il «caricare
+    // registro dei warmup (oggi ne resta uno, le immagini: `warmAllImages`
+    // qui sotto) passa da `scheduleIdleWarmup()` in `finish()`, cioè DOPO
+    // l'handoff. Il «caricare
     // tutto prima di entrare» del cliente resta com'è dove è stato misurato —
     // su desktop. Su un telefono significherebbe spendere il piano dati del
     // visitatore per immagini sette schermate più in basso.

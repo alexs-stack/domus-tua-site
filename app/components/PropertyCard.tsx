@@ -117,7 +117,7 @@ export default function PropertyCard({
   // sopra (z-10) come vero <button>, senza annidare interattivi dentro un <a>.
   // 2026-09-10: niente card, foto 4:3 squadrata, badge come righe di testo sotto la foto.
   return (
-    <div data-cursor="scopri" className="group relative flex h-full flex-col">
+    <div className="group relative flex h-full flex-col">
       {/* Niente parallax qui: in griglie da 24+ schede il costo (uno ScrollTrigger
           scrub + upscale permanente per scheda) non vale un movimento di ~2px; lo zoom
           hover resta l'accento motion.

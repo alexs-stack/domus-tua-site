@@ -198,9 +198,6 @@ export default function BeforeAfter() {
           if (pending) setPos(52);
         };
       });
-
-      // (Il vecchio hint "Trascina" che seguiva il puntatore è stato assorbito
-      // dal cursor custom globale: data-cursor="trascina" sulla cornice.)
     },
     { scope: ref }
   );
@@ -321,8 +318,6 @@ export default function BeforeAfter() {
           <div>
             <div
               ref={ref}
-              data-cursor="trascina"
-              data-cursor-label={`‹ ${c.hint} ›`}
               className="relative aspect-[3/2] w-full cursor-ew-resize touch-none select-none overflow-hidden"
               onPointerDown={(e) => {
                 killIntro();

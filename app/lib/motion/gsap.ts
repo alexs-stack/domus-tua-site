@@ -111,40 +111,23 @@ export const dist = {
 // `motionOk` è la condizione base: nessuna animazione GSAP parte senza.
 //
 // ─── DUE SOGLIE, E VANNO SAPUTE ENTRAMBE ───────────────────────────────
-// `desktop` è 768 ed è la soglia degli effetti di sezione (camera, derive,
-// parallasse). `lg` è 1024 ed è la soglia dei SET PIECE: rotaia orizzontale,
-// corridoio, muro, filo. Non sono la stessa cosa e non vanno confuse — a 768
-// un set piece toccherebbe il contenuto.
-//
-// Prima della wave "parità mobile" `lg` non esisteva e TREDICI componenti se
-// lo riscrivevano a mano: nove in linea (FeaturedTestimonial, Footer, Paths,
-// Social, StarReviews, TeamTrail, HorizontalRail, HoverDistort, LiquidReveal)
-// e quattro dietro costanti private con commenti quasi identici (RAIL_MQ,
-// HORIZON_MQ, WALL_MQ, PIN_MQ). Adesso c'è un posto solo.
+// `desktop` è 768 ed è la soglia degli effetti di sezione (Parallax, la
+// deriva d'uscita dell'hero, il ramo mobile del preloader). `lg` è 1024 ed è
+// la soglia dei SET PIECE: oggi la sola rotaia del team (HorizontalRail).
+// Non sono la stessa cosa e non vanno confuse — a 768 la rotaia toccherebbe
+// il contenuto.
 //
 // Le forme "below" esistono per scrivere il RAMO MOBILE come cittadino di
 // prima classe invece che come negazione. Il confine è 1023.98 / 767.98, non
 // 1023 / 767: alle larghezze frazionarie (zoom del browser, dpr non interi)
-// un buco di un pixel lascia entrambi i rami spenti. È l'idioma che
-// LiquidReveal e Footer usavano già, promosso qui.
+// un buco di un pixel lascia entrambi i rami spenti.
 //
-// `belowDesktop` ha tre chiamanti (HeroCinematic per la deriva d'uscita
-// dell'hero, CameraIn per la salita piana, Preloader per il ramo mobile
-// dell'intro): il decimale vive qui e in nessuno dei tre. `coarse` invece non
-// ha ancora nessun chiamante — i quattro effetti del puntatore si spengono con
-// `finePointer` e la regola touch del CSS usa la sua `@media (pointer: coarse)`.
-// Resta perché è il nome giusto per ciò che riguarda SOLO il dito (skip al
-// tocco, chunk del cursore da non scaricare — onda «parità mobile 2», legge 5),
-// e quando quel lavoro arriva deve trovarlo qui, non reinventarlo in linea.
+// Solo le chiavi che qualcuno legge: `sm`, `belowSm`, `finePointer` e
+// `coarse` servivano a Fioritura e agli effetti del puntatore, tolti il
+// 2026-09-10 con la rivista bianca; la regola touch del CSS usa la sua
+// `@media (pointer: coarse)`.
 export const MQ = {
   motionOk: "(prefers-reduced-motion: no-preference)",
-  /** Il telefono stretto (gemello del `sm` di Tailwind): oggi decide solo la
-      TAGLIA degli effetti che ci sono comunque (il tetto di particelle di
-      Fioritura), mai se ci sono. Era una soglia locale in Fioritura.tsx:
-      promossa qui per la legge 7 dell'onda «parità mobile 2». */
-  sm: "(min-width: 640px)",
-  /** Il gemello di `sm`: sotto 640, stesso idioma decimale delle altre. */
-  belowSm: "(max-width: 639.98px)",
   /** Effetti di sezione: da tablet in su. */
   desktop: "(min-width: 768px)",
   /** Il gemello di `desktop`: telefono. */
@@ -153,9 +136,6 @@ export const MQ = {
   lg: "(min-width: 1024px)",
   /** Il gemello di `lg`: telefono e tablet. */
   belowLg: "(max-width: 1023.98px)",
-  finePointer: "(pointer: fine)",
-  /** Puntatore grosso: il dito. Mai usare `belowLg` per dire "touch". */
-  coarse: "(pointer: coarse)",
 } as const;
 
 export { gsap, ScrollTrigger, CustomEase, useGSAP };

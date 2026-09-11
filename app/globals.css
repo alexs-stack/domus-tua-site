@@ -446,104 +446,6 @@ html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
   animation: dt-typing 1.3s ease-in-out infinite;
 }
 
-/* ---------- Subtle float ---------- */
-@keyframes dt-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-/* Il Ken Burns dell'hero è stato ritirato su richiesta del cliente (2026-08-03):
-   la foto d'ingresso resta ferma, il movimento vive solo nello scrub di uscita. */
-
-/* Indicatore di scroll */
-/* Lo scroll cue dell'hero (HeroCinematic.tsx), a ogni larghezza dal
-   2026-08-18 (onda «parità mobile 2», scheda 9). Sotto sm (640: la soglia è
-   quella della barra, `sm:hidden` in MobileActionBar.tsx, non i 768 degli
-   effetti di sezione — qui si allinea a un oggetto, non a un ramo) la quota
-   dal fondo è quella della MobileActionBar (`bottom: 0.75rem + env()` + i
-   suoi 52 px di altezza): barra e cue non convivono mai nel tempo (barra da
-   scrollY 520, cue spento a 140), ma sopra la barra il cue resta fuori dal
-   bordo del browser e dalla safe-area, ed è la stessa quota che il pollice
-   impara. Da sm in su la barra non c'è e il cue torna a 1,5 rem dal fondo.
-   Il pulse è qui e non inline così può andare in pausa:
-   `data-cue-off` lo scrive lo scrub di GSAP quando il cue è a autoAlpha 0 —
-   un'animazione infinita su un nodo `visibility:hidden` non dipinge, ma
-   continua a ticchettare (l'alleggerimento nominato del cue). */
-/* Il cue vive solo da 768 in su (HeroCinematic: sotto, l'hero sfonda il
-   viewport e non c'è posto che non sia sopra i CTA — misura del 2026-08-18).
-   Sta in fondo al PRIMO SCHERMO, non al fondo della sezione: sui viewport
-   bassi l'hero sfonda anche sul desktop (1366×768: 38 px, e il cue finiva 14
-   px sotto la piega — un invito a scorrere visibile solo dopo aver scorso).
-   La sezione comincia a y=0, quindi la quota dal suo top è la quota dal top
-   del viewport; `svh` è la misura conservativa. 2rem = altezza del pulse. */
-
-/* Entrata morbida del blocco copy dell'hero (sotto l'H1, che resta immediate per l'LCP).
-   Sotto prefers-reduced-motion la regola globale la neutralizza (snap allo stato finale). */
-@keyframes dt-fade-rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ---------- Segno Domus: pattern & disegno ---------- */
-/* Texture di sfondo tenue con la linea-tetto (usare con parsimonia su bande piene) */
-/* Pattern di marca: il MONOGRAMMA ufficiale ripetuto (non più la linea-tetto
-   placeholder). Da usare a bassissima opacità via SegnoDomusBackground. */
-.motif-pattern {
-  /* SVG e non PNG (2026-08-06): a 72px il raster era già al limite, e su
-     schermi a densità alta la filigrana portava un bordo sgranato — visibile
-     proprio perché la texture è ripetuta decine di volte. */
-  background-image: url("/logo-domustua-mark.svg");
-  background-size: 72px auto;
-  background-repeat: space;
-}
-
-/* Animazione "disegno" della linea-tetto (solo Hero) */
-@keyframes dt-segno-draw {
-  from {
-    stroke-dashoffset: 120;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-.segno-draw path {
-  stroke-dasharray: 120;
-  stroke-dashoffset: 120;
-  animation: dt-segno-draw 1.5s var(--ease-out-expo) 0.3s forwards;
-}
-@media (prefers-reduced-motion: reduce) {
-  .segno-draw path {
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-    animation: none;
-  }
-}
-
-/* Disegno "al passaggio": la linea-tetto si ridisegna in hover (divisori, badge) */
-@media (prefers-reduced-motion: no-preference) {
-  .segno-hover-draw path:first-child {
-    stroke-dasharray: 120;
-    stroke-dashoffset: 0;
-    transition: stroke-dashoffset 0.7s var(--ease-out-expo);
-  }
-  .group:hover .segno-hover-draw path:first-child,
-  .segno-hover-draw:hover path:first-child {
-    stroke-dashoffset: 120;
-    animation: dt-segno-draw 0.9s var(--ease-out-expo) forwards;
-  }
-}
-
 /* ---------- Segno di apertura di un <details> ----------
    Il segno Domus usato come indicatore di espansione: punta in GIÙ quando il pannello è
    chiuso, torna in SU quando è aperto. Regola scritta a mano e non con la variante
@@ -1142,10 +1044,11 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   --arch-h: calc(var(--arch-w) * (5600 / 560));
   --arch-y: 104vh;
 }
-/* Classe generica: la usano il preloader E il sipario di PageTransition. Il
+/* Classe generica, oggi portata dal solo preloader (il sipario di
+   PageTransition che la condivideva è stato tolto il 2026-09-10). Il
    preloader la porta di suo (senza aspettare che il JS aggiunga la classe:
-   la porta deve esistere anche senza JS); Preloader.tsx aggiunge comunque
-   `is-arch dt-arch-mask` per i chiamanti storici (e2e, sonde). */
+   la porta deve esistere anche senza JS); Preloader.tsx la aggiunge comunque
+   a runtime dove la maschera è supportata, per chi ispeziona il DOM. */
 @supports (mask-composite: add) {
   .dt-preloader,
   .dt-arch-mask {
@@ -1752,9 +1655,10 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
    Il nastro si PARCHEGGIA al centro dello schermo e la corsa orizzontale si
    prende tutta la sua strada davanti agli occhi prima che la pagina riprenda a
    scendere (2026-08-09, direttiva cliente sul carosello dei Servizi).
-   Runway + sticky, mai il pin di GSAP: stessa grammatica di dt-horizon,
-   dt-wall, dt-paths e dt-tt — la ragione sta nel commento di dt-paths (il pin
-   litiga con lo stacking di main/footer-uncover).
+   Runway + sticky, mai il pin di GSAP: il pin scrive `position: fixed` e uno
+   spacer sul contenitore, e litiga con lo stacking di main e footer (era il
+   male dei vecchi corridoi dt-horizon/dt-wall/dt-paths/dt-tt, tolti il
+   2026-09-10: questa è l'unica rotaia rimasta).
    [data-on] e le due misure arrivano SOLO da JS (desktop ≥1024 + motion ok, e
    solo se `runway` è dichiarata): senza, questo blocco è un div qualunque e il
    nastro resta esattamente dov'era. --rail-len è l'altezza vera del nastro,

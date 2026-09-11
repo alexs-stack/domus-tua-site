@@ -225,7 +225,6 @@ export default function Team({ compact = false }: { compact?: boolean }) {
         <HorizontalRail
           runway={120}
           snapMobile
-          cursor=""
           className="mt-10"
           trackClassName="!items-start !gap-[3vw] !px-[5vw] md:!px-[8vw]"
         >

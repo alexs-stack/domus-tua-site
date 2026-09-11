@@ -19,9 +19,10 @@
    centro dello schermo e la corsa si prende tutta la sua strada davanti agli
    occhi prima che la pagina riprenda a scendere (2026-08-09, direttiva
    cliente: «l'effetto del carosello vorrei durasse un po' di più»).
-   Sticky su un corridoio alto, MAI il pin di GSAP: è la grammatica già
-   collaudata da dt-horizon / dt-wall / dt-paths / dt-tt, e la ragione è
-   scritta lì — il pin litiga con lo stacking di main/footer-uncover.
+   Sticky su un corridoio alto, MAI il pin di GSAP: il pin scrive
+   `position: fixed` e uno spacer sul contenitore, e litiga con lo stacking
+   di main e footer (era il male dei vecchi corridoi, tolti il 2026-09-10:
+   questa rotaia è l'unica rimasta).
 
    PROGRESSIVE ENHANCEMENT. Il default è uno scroll orizzontale NATIVO — sul
    touch trascinare è il gesto che la gente si aspetta, e pilotarlo dallo
@@ -64,8 +65,6 @@ export default function HorizontalRail({
   /** aggancio allo snap nella versione touch (opt-in: su tessere di larghezza
       disuguale l'aggancio obbligatorio a volte ruba l'inerzia) */
   snapMobile = false,
-  /** etichetta del cursore custom mentre il nastro è sotto il puntatore */
-  cursor = "trascina",
   /** corridoio in svh: quanto scroll il nastro si tiene, parcheggiato al
       centro dello schermo, per compiere la sua corsa. 0 = nessun corridoio. */
   runway = 0,
@@ -75,7 +74,6 @@ export default function HorizontalRail({
   trackClassName?: string;
   speed?: number;
   snapMobile?: boolean;
-  cursor?: string;
   runway?: number;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -174,7 +172,6 @@ export default function HorizontalRail({
         ref={railRef}
         className={`dt-rail ${className}`}
         data-snap={snapMobile ? "" : undefined}
-        data-cursor={cursor}
       >
         <div className={`dt-rail_track ${trackClassName}`}>{children}</div>
       </div>

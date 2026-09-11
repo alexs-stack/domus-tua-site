@@ -275,9 +275,9 @@ export default function RootLayout({
             LocaleProvider (deve esserci prima di tutto) e prima di #main. */}
         <Preloader />
         <LocaleProvider>
-          {/* Dentro LocaleProvider: sipario e cursore usano stringhe tradotte
-              (useDict). Il posizionamento è fixed, quindi la posizione nel
-              tree non cambia nulla di visivo. */}
+          {/* Non rende nulla: registra il router per `transitionTo`
+              (HomeSearchGateway). Sta qui, dentro LocaleProvider, dove stava
+              il sipario che il redesign del 2026-09-10 ha tolto. */}
           <PageTransition />
           {/* IL BANNER COOKIE STA PRIMA DI #main, ED È UNA SCELTA DI TASTIERA.
               Era in fondo al body, e ci poteva stare finché rubava il focus

@@ -26,38 +26,10 @@ import { getLenis } from "./SmoothScroll";
 // Il badge statico (anello + monogramma) vive in MarkBadge.tsx, SENZA
 // "use client": dal 2026-08-17 lo rende anche la shell del preloader dal server
 // (PreloaderShell.tsx), e un client component lì sarebbe un confine di
-// idratazione per del puro markup. Ri-esportato da qui perché i chiamanti
-// storici — questo file, il sipario di PageTransition — lo importano da questo
-// modulo insieme a `spinMarkBadge`.
+// idratazione per del puro markup. Qui si aggiunge solo il moto da GSAP.
+// (Il sipario di PageTransition, che condivideva il gesto via `spinMarkBadge`,
+// è stato tolto il 2026-09-10: il preloader gira in CSS, l'header qui.)
 import { MarkBadge } from "./MarkBadge";
-export { MarkBadge };
-
-/**
- * Giro continuo del badge: anello e monogramma nello stesso verso, orario.
- *
- * Lo usano il preloader e il sipario delle transizioni, che hanno lo stesso gesto
- * dell'header ma a velocità fissa. Restituisce UN oggetto da uccidere (come il
- * singolo tween di prima), così i chiamanti non devono ricordarsi di ucciderne due.
- *
- * @param root      contenitore che ospita il badge
- * @param duration  secondi per un giro completo
- * @param repeat    -1 per il loop infinito (default), come i due chiamanti
- */
-export function spinMarkBadge(
-  root: Element | null | undefined,
-  duration: number,
-  repeat = -1
-): gsap.core.Timeline | null {
-  const ring = root?.querySelector("[data-rot-ring]");
-  const mark = root?.querySelector("[data-rot-mark]");
-  if (!ring && !mark) return null;
-
-  const tl = gsap.timeline();
-  const common = { duration, ease: "none", repeat, transformOrigin: "center center" } as const;
-  if (ring) tl.fromTo(ring, { rotation: 0 }, { rotation: 360, ...common }, 0);
-  if (mark) tl.fromTo(mark, { rotation: 0 }, { rotation: 360, ...common }, 0);
-  return tl;
-}
 
 export default function RotatingMark({ className = "h-12 w-12" }: { className?: string }) {
   const rootRef = useRef<HTMLSpanElement | null>(null);
