@@ -476,7 +476,7 @@ export default function HeroCinematic() {
         <span
           data-hero-script
           aria-hidden
-          className="script-word dt-row absolute inset-x-0 bottom-0 z-20 translate-y-[38%] text-center !text-[clamp(2.2rem,6vw,5.5rem)]"
+          className="script-word dt-row absolute inset-x-0 bottom-0 z-20 translate-y-[26%] text-center !text-[clamp(2.2rem,6vw,5.5rem)]"
           style={{ "--script-tuck": "0" } as React.CSSProperties}
         >
           <Chars text="Raffaela Rizza" variant="script" />
@@ -485,7 +485,11 @@ export default function HeroCinematic() {
 
       {/* Sotto la foto, sull'avorio e ancora nel primo schermo: sovratitolo,
           H1, CTA e voto, centrati come il lockup. */}
-      <div className="dt-row flex flex-col items-center pb-[clamp(2.5rem,7vh,5rem)] pt-[clamp(1.5rem,4vh,3rem)] text-center">
+      {/* L'attacco tiene conto della firma: il Pinyon ha aste discendenti
+          lunghe e, centrata com'e', cadeva esattamente sull'occhiello — «AGENZIA
+          IMMOBILIARE A TRADATE» con dentro la coda della «ff» di Raffaela.
+          Sotto lg la firma e' piu' piccola e serve meno aria. */}
+      <div className="dt-row flex flex-col items-center pb-[clamp(2.5rem,7vh,4.5rem)] pt-[clamp(2.5rem,5vh,4rem)] text-center">
         {/* Sovratitolo: cosa fa l'agenzia e dove, prima ancora della promessa.
             16 px, non di meno: la cliente non vuole scritte piccole. */}
         <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.badge}</p>

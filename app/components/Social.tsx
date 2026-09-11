@@ -1,9 +1,14 @@
 "use client";
 
-/* Seguici — la rivista bianca (2026-09-10): eyebrow, titolo grande, il
-   paragrafo editoriale, il feed Instagram (solo se configurato in
-   site.embeds.instagramIframe) e le icone social. Niente nastro di foto,
-   niente chip: il racconto per immagini lo fanno i capitoli. */
+/* Seguici — eyebrow, titolo grande, il paragrafo editoriale, il feed Instagram
+   (solo se configurato in site.embeds.instagramIframe) e le icone social.
+   Niente nastro di foto, niente chip: il racconto per immagini lo fanno i
+   capitoli.
+   FORMA (2026-09-11): una RIGA, non un capitolo. Con `instagramIframe` vuoto qui
+   non c'è nessun media, e un `dt-chapter` da 702px attorno a un titolo e quattro
+   icone leggeva come una pagina rimasta indietro. Titolo a sinistra, paragrafo +
+   feed + icone sulla seconda colonna, alla stessa linea verticale delle righe
+   foto+testo; il vuoto verticale lo danno i capitoli vicini. */
 
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
@@ -59,42 +64,48 @@ export default function Social() {
   const c = copy[locale];
 
   return (
-    <section className="dt-chapter bg-cream">
-      <div className="dt-row">
-        <Reveal>
-          <span className="eyebrow">{c.eyebrow}</span>
-        </Reveal>
-        <TextLines as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
-          {c.title}
-        </TextLines>
-        <Reveal delay={80}>
-          <p className="lead mt-8">{c.subcopy}</p>
-        </Reveal>
+    <section className="bg-cream py-[clamp(1rem,3vh,2rem)]">
+      <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-end">
+        <div>
+          <Reveal>
+            <span className="eyebrow">{c.eyebrow}</span>
+          </Reveal>
+          <TextLines as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
+            {c.title}
+          </TextLines>
+        </div>
 
-        {/* Il feed: la scatola è responsiva (4:3, poi 21:9) e l'iframe la
-            riempie. Non passa da IframeWidget perché quello fissa il proprio
-            aspect-ratio in linea e arrotonda gli angoli. Senza URL non c'è
-            scatola: un vuoto di 21:9 non è un feed. */}
-        {site.embeds.instagramIframe ? (
-          <Reveal delay={120}>
-            <div className="relative mt-10 aspect-[4/3] w-full overflow-hidden bg-cream-deep lg:aspect-[21/9]">
-              <iframe
-                src={site.embeds.instagramIframe}
-                title={c.feedTitle}
-                loading="lazy"
-                className="absolute inset-0 h-full w-full"
-                style={{ border: 0 }}
-                scrolling="no"
-              />
+        <div className="mt-6 lg:mt-0 lg:pl-[6vw]">
+          <Reveal delay={80}>
+            <p className="lead">{c.subcopy}</p>
+          </Reveal>
+
+          {/* Il feed, quando c'è, sta nella METÀ (dt-media-half, quadrata come
+              la griglia di Instagram): è la stessa scatola delle foto, non una
+              banda su misura. Non passa da IframeWidget perché quello fissa il
+              proprio aspect-ratio in linea e arrotonda gli angoli. Senza URL
+              non c'è scatola: un vuoto quadrato non è un feed. */}
+          {site.embeds.instagramIframe ? (
+            <Reveal delay={120}>
+              <div className="dt-media-half mt-10">
+                <iframe
+                  src={site.embeds.instagramIframe}
+                  title={c.feedTitle}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full"
+                  style={{ border: 0 }}
+                  scrolling="no"
+                />
+              </div>
+            </Reveal>
+          ) : null}
+
+          <Reveal delay={160}>
+            <div className="mt-8">
+              <SocialLinks ariaLabel={c.channelAria} />
             </div>
           </Reveal>
-        ) : null}
-
-        <Reveal delay={160}>
-          <div className="mt-8">
-            <SocialLinks ariaLabel={c.channelAria} />
-          </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

@@ -8,9 +8,17 @@
 // Il titolo era una candidata per l'H1: qui, con i verbi che seguono, «bene» smette
 // di essere ambiguo. Cinque azioni, non cinque aggettivi (§3.3).
 //
-// FORMA (rivista bianca, 2026-09-10): due colonne 5/7 — a sinistra la foto quadrata
-// reale della sede, a destra eyebrow, titolo d2 maiuscolo, lead e i tre appigli con
-// il trattino rosso. Niente centrature, niente card.
+// FORMA (2026-09-11): UNA riga del modello condiviso a due colonne — a sinistra la
+// foto quadrata reale della sede in `dt-media-half`, a destra eyebrow, titolo d2
+// maiuscolo, lead e i tre appigli col trattino rosso. Niente centrature, niente card.
+// PERCHÉ RESTA UNA SEZIONE, E NON TRE PUNTI DENTRO L'HERO: la promessa dell'hero è
+// una frase di posizionamento («vendi al prezzo giusto»), questa dice il COME in
+// cinque azioni e porta la prima foto di persone vere della pagina. Ripiegata come
+// elenco sotto la CTA dell'hero, sarebbe l'unica cosa da leggere nel primo schermo
+// oltre alla CTA — e il primo schermo non è di nostra competenza (HeroCinematic e
+// page.tsx hanno altri proprietari: la sezione non si può nemmeno togliere da qui).
+// Quel che si poteva togliere era la larghezza inventata: la griglia 5/7 con la foto
+// a 468px era la terza misura media della home nei primi tre schermi.
 
 import Image from "next/image";
 import Reveal from "./Reveal";
@@ -65,23 +73,31 @@ export default function Posizionamento() {
 
   return (
     <section className="dt-chapter bg-cream">
-      <div className="dt-row grid gap-[6vw] lg:grid-cols-[5fr_7fr] lg:items-center">
-        {/* La sede, in quadrato: consulenza.jpg è quasi 1:1, la foto di gruppo 3:2
-            perderebbe i volti ai bordi e la "sede" è una miniatura YouTube con testo. */}
+      <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
+        {/* La sede, nella METÀ (dt-media-half, 42vw quadrata): è la stessa
+            scatola delle altre righe foto+testo, così scorrendo l'occhio
+            ritrova la stessa linea verticale invece di una larghezza nuova.
+            consulenza.jpg è 1920×1625, quasi 1:1: nel quadrato si taglia il 15%
+            e non si ingrandisce (la foto di gruppo 3:2 perderebbe i volti ai
+            bordi, e la "sede" è una miniatura YouTube con del testo sopra). */}
         <Parallax speed={-0.04}>
-          <div className="relative aspect-square">
+          <div className="dt-media-half">
             <Image
               src="/images/reali/consulenza.jpg"
               alt={c.imageAlt}
               fill
-              sizes="(max-width: 1023px) 90vw, 35vw"
+              // Dichiarato appena più largo della scatola (42vw, tetto 640): con
+              // `sizes` esatto next/image sceglie il taglio subito sotto e in un
+              // quadrato da 605 lo deve risalire del 12%. Sopra i 1600 px la
+              // scatola smette di crescere, quindi anche `sizes` si ferma.
+              sizes="(max-width: 1023px) 100vw, (max-width: 1599px) 46vw, 700px"
               className="object-cover"
               style={{ objectPosition: "45% 50%" }}
             />
           </div>
         </Parallax>
 
-        <div>
+        <div className="lg:pl-[6vw]">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>

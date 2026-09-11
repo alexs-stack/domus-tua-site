@@ -48,7 +48,13 @@ export default function LazyYouTubeEmbed({
 
   const embed = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
   const posterSizes =
-    posterSizesProp ?? (aspect === "portrait" ? "(max-width:1024px) 100vw, 420px" : "100vw");
+    posterSizesProp ??
+    /* 45vw, non 420px: il ramo verticale chiedeva una copertina larga 420 e
+       la thumb YouTube e' 16:9, quindi ne restava una striscia utile di
+       133x236 che nel modulo pieno (605x1075) veniva ingrandita 4,5 volte —
+       i visi diventavano impasto. Con la misura vera della colonna la
+       scatola puo' tornare piena. */
+    (aspect === "portrait" ? "(max-width:1024px) 100vw, 45vw" : "100vw");
   const posterClassName =
     "photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105";
 

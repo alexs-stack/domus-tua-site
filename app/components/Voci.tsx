@@ -5,8 +5,12 @@
 // «COSA DICONO DI NOI» di immobiliaregoldengoal.it — titolo enorme e uno
 // slider orizzontale con due frecce.
 //
-// Il titolo È il numero (4,9/5 · 531 recensioni Google), letto da site.ts e
-// mai scritto a mano. Sotto, i sei video reali del canale in un carosello a
+// Il voto e il conteggio si leggono da site.ts e non si scrivono mai a mano —
+// ma dal 2026-09-11 non sono più il titolo d1 del capitolo: lo stesso numero
+// stava già nell'hero e nelle cinque stelle qui sopra, due volte enorme. Qui
+// è una riga a 16px sotto l'eyebrow.
+//
+// Sotto, i video reali del canale in un carosello a
 // scorrimento NATIVO (overflow + scroll-snap, le frecce fanno scrollBy):
 // nessun pin, nessun ScrollTrigger, nessuna sezione sticky. In coda il widget
 // Trustindex, invariato e dietro lo stesso cancello del consenso di prima.
@@ -16,11 +20,11 @@ import YoutubeThumb from "./YoutubeThumb";
 import VideoLightbox from "./VideoLightbox";
 import TrustindexEmbed from "./TrustindexEmbed";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
 import { ArrowLeft, ArrowRight, Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { useConsent } from "../lib/consent";
+import TextLines from "./motion/TextLines";
 import { ratingLabel, site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
 
@@ -149,21 +153,37 @@ export default function Voci() {
         <Reveal>
           <span className="eyebrow">{c.eyebrow}</span>
         </Reveal>
-        <TextLines as="h2" className="tnum mt-6 font-display text-d1 font-medium text-ink">
-          {`${ratingLabel(locale)}/5 · ${site.reviewsCount} ${c.google}`}
+        {/* Il voto NON è più il titolo d1 di questo capitolo: lo dicono già
+            l'hero e le cinque stelle (#recensioni), che sta qui sopra — tre
+            volte lo stesso numero, due delle quali enormi. Qui resta la riga
+            del conteggio a 16px, sempre da site.ts (mai scritta a mano). */}
+        {/* Un titolo ci vuole: senza, questo era l'unico capitolo della home
+            senza testa in Playfair, e il salto dall'occhiello al carosello
+            leggeva come un buco. Ma NON e' il voto: quello lo dicono gia'
+            l'hero e le cinque stelle qui sopra. E' il nome della cosa che si
+            guarda, e il conteggio gli sta sotto a 16px. */}
+        <TextLines as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
+          {c.listLabel}
         </TextLines>
-        <Reveal>
-          <p className="lead mt-8">{c.description}</p>
+        <Reveal delay={80}>
+          <p className="tnum mt-4 text-ui text-graphite">
+            {`${ratingLabel(locale)}/5 · ${site.reviewsCount} ${c.google}`}
+          </p>
+        </Reveal>
+        <Reveal delay={140}>
+          <p className="lead mt-6">{c.description}</p>
         </Reveal>
       </div>
 
-      {/* Carosello nativo: la rotaia sfora i margini (px-[8vw] sulla lista,
-          non sulla sezione) così la tessera successiva si vede spuntare. */}
+      {/* Carosello nativo. Da desktop TRE tessere per schermata (32vw): a 58vw
+          se ne vedeva una e un terzo, e il carosello sembrava rotto. Sul
+          telefono la tessera è a tutta larghezza (niente margini, snap al
+          centro): una foto per volta, senza spicchi della successiva. */}
       <div className="relative mt-[clamp(3rem,8vh,6rem)]">
         <ul
           ref={railRef}
           aria-label={c.listLabel}
-          className="flex snap-x snap-mandatory gap-[3vw] overflow-x-auto px-[5vw] pb-4 [scrollbar-width:none] scroll-px-[5vw] md:px-[8vw] md:scroll-px-[8vw] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto pb-4 [scrollbar-width:none] md:gap-[3vw] md:px-[8vw] md:scroll-px-[8vw] [&::-webkit-scrollbar]:hidden"
         >
           {wallVideos
               /* Il video in evidenza vive già nel capitolo «Come lavoriamo»
@@ -171,7 +191,10 @@ export default function Voci() {
                  clienti, non lo stesso film due volte. */
               .filter((v) => v.id !== site.videos.featured.id)
               .map((v) => (
-            <li key={v.id} className="w-[86vw] shrink-0 snap-start lg:w-[58vw]">
+            <li
+              key={v.id}
+              className="w-full shrink-0 snap-center md:w-[46vw] md:snap-start lg:w-[32vw]"
+            >
               {/* Resta un LINK con l'href vero: chi ha JS guarda in pagina,
                   chi non ce l'ha (o usa cmd/ctrl/tasto centrale) trova YouTube. */}
               <a
@@ -186,18 +209,23 @@ export default function Voci() {
                 }}
                 className="group block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
               >
-                <span className="relative block aspect-video overflow-hidden bg-cream-deep">
+                {/* La copertina è 16:9 come il video: il modulo «banda». */}
+                <span className="dt-media-full block">
                   <YoutubeThumb
                     id={v.id}
                     alt=""
-                    sizes="(max-width: 1024px) 86vw, 58vw"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 46vw, 32vw"
                     className="object-cover"
                   />
-                  <span className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105">
-                    <Play className="ml-1 h-7 w-7" />
+                  {/* 56px sul telefono: il cerchio da 96 copriva le facce su
+                      una tessera larga uno schermo. 96 resta da desktop. */}
+                  <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 lg:h-24 lg:w-24">
+                    <Play className="ml-1 h-5 w-5 lg:h-7 lg:w-7" />
                   </span>
                 </span>
-                <span className="mt-4 block text-body text-ink">{v.title}</span>
+                {/* Sul telefono la foto è a filo dello schermo: il margine del
+                    testo se lo prende la didascalia, non la tessera. */}
+                <span className="mt-4 block px-[5vw] text-body text-ink md:px-0">{v.title}</span>
               </a>
             </li>
           ))}

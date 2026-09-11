@@ -20,8 +20,13 @@
 // mandato. Non promette che la casa si venda (vedi §3.3 e la FAQ che si rifiuta di
 // promettere tempi).
 //
-// LA FORMA (rivista bianca, 2026-09-10): uno statement in colonna stretta — eyebrow,
-// titolo d2, la parola corsiva rossa, il lead, il link. Via la card «compreso nel metodo».
+// LA FORMA (2026-09-11): una RIGA-DICHIARAZIONE, non un capitolo. Prima era un
+// `dt-chapter` da 806px costruito attorno a una frase sola: dentro c'era più vuoto che
+// parole, e due capitoli di fila senza media facevano sembrare la pagina finita. Ora il
+// titolo sta a sinistra, il lead e il link sulla seconda colonna (la stessa linea
+// verticale delle righe foto+testo) e la sezione non ha il padding di capitolo ma un
+// filo di respiro (1-2rem, che tiene dentro le discendenti del Playfair a interlinea
+// 0.95): l'aria vera gliela danno i capitoli vicini, che ne hanno in abbondanza.
 
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
@@ -109,28 +114,34 @@ export default function CostiChiari({
   const c = copy[locale];
 
   return (
-    <section id="costi" className="dt-chapter bg-cream">
-      <div className="dt-row max-w-[960px]">
-        <Reveal>
-          <span className="eyebrow">{c.eyebrow}</span>
-        </Reveal>
-        <TextLines as="h2" className="mt-6 font-display text-d2">
-          {c.title}
-        </TextLines>
-        {/* Decorativa (aria-hidden): il senso è già nel titolo. */}
-        <Reveal delay={80}>
-          <span aria-hidden className="script-word">
-            {c.scriptWord}
-          </span>
-        </Reveal>
-        <Reveal delay={140}>
-          <p className="lead mt-8">{c.lead}</p>
-        </Reveal>
-        <Reveal delay={200}>
-          <Cta href="#contatti" variant="ghost" className="mt-8">
-            {d.hero.ctaValuta}
-          </Cta>
-        </Reveal>
+    <section id="costi" className="bg-cream py-[clamp(1rem,3vh,2rem)]">
+      <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-end">
+        <div>
+          <Reveal>
+            <span className="eyebrow">{c.eyebrow}</span>
+          </Reveal>
+          <TextLines as="h2" className="mt-6 font-display text-d2">
+            {c.title}
+          </TextLines>
+          {/* Niente parola calligrafica, qui. È l'ornamento del CAPITOLO, e
+              questa non è più un capitolo ma una riga: in mezza colonna la
+              calligrafia attraversava l'ultima riga del titolo partendo dal
+              margine, e «conclusa» spariva sotto la «N» di «Nessun anticipo» —
+              che per giunta ripeteva il titolo parola per parola. Il rosso di
+              questa riga sono l'eyebrow e il link. */}
+        </div>
+        {/* Il seguito sulla seconda colonna, alla stessa linea verticale delle
+            righe foto+testo: è quel che rende questa una riga e non un capitolo. */}
+        <div className="mt-6 lg:mt-0 lg:pl-[6vw]">
+          <Reveal delay={140}>
+            <p className="lead">{c.lead}</p>
+          </Reveal>
+          <Reveal delay={200}>
+            <Cta href="#contatti" variant="ghost" className="mt-8">
+              {d.hero.ctaValuta}
+            </Cta>
+          </Reveal>
+        </div>
       </div>
     </section>
   );

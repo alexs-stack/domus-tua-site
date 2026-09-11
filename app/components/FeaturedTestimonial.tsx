@@ -112,9 +112,10 @@ export default function FeaturedTestimonial(props: Props) {
 
   return (
     <section className="dt-chapter bg-cream">
-      <div className="dt-row grid gap-[6vw] lg:grid-cols-[1.25fr_1fr] lg:items-center">
-        {/* Il fotogramma è 16:9, non quadrato: il file porta il titolo del
-            video cotto nella fascia alta, e un taglio 1:1 lo mozzerebbe.
+      <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
+        {/* Il fotogramma è 1280×720: sta nel modulo «banda» (16:9), non in un
+            quadrato — il file porta il titolo del video cotto nella fascia
+            alta e un taglio 1:1 lo mozzerebbe.
             Deriva ±4 % allo scroll; il cerchio rosso è l'unica curva. */}
         <Parallax speed={-0.04}>
           <a
@@ -123,24 +124,26 @@ export default function FeaturedTestimonial(props: Props) {
             rel="noopener noreferrer"
             aria-label={`${c.play}: ${title}`}
             onClick={onClick}
-            className="group relative block aspect-video overflow-hidden bg-cream-deep focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
+            className="dt-media-half !aspect-video group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
           >
             <Image
               src={image}
               alt={alt}
               fill
-              sizes="(max-width:1024px) 100vw, 55vw"
+              sizes="(max-width:1024px) 100vw, 42vw"
               // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
               quality={75}
               className="object-cover"
             />
-            <span className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105">
-              <Play className="ml-1 h-7 w-7" />
+            {/* 56px sul telefono, 96 da desktop: la stessa regola del carosello
+                delle voci — il cerchio grande copriva i volti sulla tessera. */}
+            <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 lg:h-24 lg:w-24">
+              <Play className="ml-1 h-5 w-5 lg:h-7 lg:w-7" />
             </span>
           </a>
         </Parallax>
 
-        <div>
+        <div className="lg:pl-[6vw]">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>

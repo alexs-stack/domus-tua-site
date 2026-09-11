@@ -10,7 +10,13 @@
    esistono davvero (oggi la fondatrice) più le foto di gruppo reali di
    app/lib/team.ts, grandi — «carosello o scroll orizzontale con le foto
    grandi», direttiva cliente. Niente più monogrammi vuoti al posto delle
-   colleghe: i sei nomi con il ruolo stanno in un elenco sotto la rotaia. */
+   colleghe: i sei nomi con il ruolo stanno in un elenco sotto la rotaia.
+
+   2026-09-11 — UNA CORNICE SOLA. Le tessere avevano tre rapporti e tre
+   larghezze: bordo basso frastagliato, e la più alta dettava l'altezza di
+   tutte. Ora ogni foto sta in `.dt-media-column` (4:5) e ogni didascalia è
+   un'etichetta di una riga. Anche l'intro passa a un modulo (`.dt-media-half`,
+   1:1): in tutto il capitolo le foto si fermano su due sole linee verticali. */
 
 import Image from "next/image";
 import Reveal from "./Reveal";
@@ -19,7 +25,7 @@ import TextLines from "./motion/TextLines";
 import HorizontalRail from "./motion/HorizontalRail";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
-import { team, teamPhotos, teamRoleLabels, type TeamPhotoFrame } from "../lib/team";
+import { team, teamPhotos, teamRoleLabels } from "../lib/team";
 
 const copy = {
   it: {
@@ -95,37 +101,22 @@ const copy = {
    `--depth` dalla regola CSS che sotto la soglia fa lo stesso pan sul dito. */
 const DEPTH = 4;
 
-/* Le cornici della rotaia. Da 1024 in su hanno tutte la stessa ALTEZZA
-   (34vw × 5/4 = 42,5vw) e la larghezza viene dal rapporto della foto: un
-   gruppo di sei in 4:5 taglierebbe le facce ai lati. Sotto 1024 le tessere
-   stanno nello schermo e le altezze restano diverse (`items-start`). */
-const FRAME: Record<TeamPhotoFrame, { tile: string; box: string; sizes: string }> = {
-  portrait: {
-    tile: "w-[78vw] sm:w-[52vw] lg:w-[34vw]",
-    box: "aspect-[4/5]",
-    sizes: "(max-width: 640px) 92vw, (max-width: 1024px) 62vw, 40vw",
-  },
-  landscape: {
-    tile: "w-[92vw] sm:w-[78vw] lg:w-[63.75vw]",
-    box: "aspect-[3/2]",
-    sizes: "(max-width: 640px) 110vw, (max-width: 1024px) 92vw, 76vw",
-  },
-  classic: {
-    tile: "w-[92vw] sm:w-[70vw] lg:w-[56.67vw]",
-    box: "aspect-[4/3]",
-    sizes: "(max-width: 640px) 110vw, (max-width: 1024px) 83vw, 67vw",
-  },
-};
+/* UNA cornice sola per tutte le tessere: `.dt-media-column` (4:5). Prima erano
+   tre (4:5, 3:2, 4:3) con tre larghezze diverse: il bordo basso della rotaia
+   era frastagliato e la tessera più alta dettava l'altezza. La larghezza a
+   desktop la porta il modulo (42vw, max 640): qui si dichiara solo quella dei
+   viewport stretti, uguale per tutte. */
+const TILE = "w-[78vw] sm:w-[52vw] lg:w-auto";
+/* Il pannello del pan è il 118 % della tessera: la `sizes` misura quello. */
+const TILE_SIZES = "(max-width: 640px) 92vw, (max-width: 1024px) 62vw, 50vw";
 
 type Tile = {
   src: string;
   alt: string;
   pos?: string;
-  frame: TeamPhotoFrame;
-  caption: string;
-  /** Nome in Playfair maiuscolo (ritratti); le didascalie dei gruppi in tondo.
+  /** Etichetta di UNA riga (16px maiuscolo): un nome o un luogo, non una frase.
       Il ruolo non sta qui: lo dice la rosa sotto la rotaia, una volta sola. */
-  display: boolean;
+  caption: string;
 };
 
 export default function Team({ compact = false }: { compact?: boolean }) {
@@ -136,61 +127,53 @@ export default function Team({ compact = false }: { compact?: boolean }) {
   // Prima i ritratti (chi ha una foto in app/lib/team.ts), poi i gruppi.
   const tiles: Tile[] = [
     ...team.flatMap((m): Tile[] =>
-      m.image
-        ? [
-            {
-              src: m.image,
-              alt: m.name,
-              pos: m.imagePos,
-              frame: "portrait",
-              caption: m.name,
-              display: true,
-            },
-          ]
-        : [],
+      m.image ? [{ src: m.image, alt: m.name, pos: m.imagePos, caption: m.name }] : [],
     ),
     ...teamPhotos.map(
       (p): Tile => ({
         src: p.src,
         alt: p.alt[locale],
         pos: p.pos,
-        frame: p.frame,
-        caption: p.alt[locale],
-        display: false,
+        caption: p.label[locale],
       }),
     ),
   ];
 
   return (
     <section id="chi-siamo" className="dt-chapter bg-cream">
-      {/* ── L'intro: ritratto della fondatrice e citazione ─────────────── */}
-      <div className="dt-row grid gap-[6vw] lg:grid-cols-[1fr_1.1fr] lg:items-center">
+      {/* ── L'intro: ritratto della fondatrice e citazione ───────────────
+          Due colonne uguali e il modulo mezzo (1:1): la foto è 1024×682, e la
+          cornice 4:5 di prima ne teneva il 53 % ingrandendola: cornice che
+          segue la sorgente, non la griglia. */}
+      <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
         <Parallax speed={-0.04}>
-          <div className="relative aspect-[4/5]">
+          <div className="dt-media-half">
             <Image
               src="/images/reali/raffaela-founder.jpg"
-              style={{ objectPosition: "18% 45%" }}
+              style={{ objectPosition: "18% 50%" }}
               alt={c.founderAlt}
               fill
-              sizes="(max-width: 1024px) 100vw, 45vw"
+              sizes="(max-width: 1024px) 100vw, 42vw"
               className="object-cover"
             />
           </div>
         </Parallax>
 
-        <div>
+        <div className="lg:pl-[6vw]">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
           {/* `compact`: sotto un PageHero che dice già «Persone prima degli
               immobili» (/chi-siamo) il titolo resta un paragrafo display,
-              non un secondo h2 con le stesse parole. */}
+              non un secondo h2 con le stesse parole.
+              d2 e non d1 in entrambi i casi: accanto a una foto il titolo sta
+              in mezza colonna, e lì un d1 legge come un errore di stampa. */}
           {compact ? (
             <TextLines as="p" className="mt-6 font-display text-d2 uppercase">
               {c.title}
             </TextLines>
           ) : (
-            <TextLines as="h2" className="mt-6 font-display text-d1">
+            <TextLines as="h2" className="mt-6 font-display text-d2">
               {c.title}
             </TextLines>
           )}
@@ -220,8 +203,8 @@ export default function Team({ compact = false }: { compact?: boolean }) {
         </div>
         {/* Le regole di `.dt-rail_track` (globals.css) sono unlayered e battono
             le utility: gap, padding e allineamento passano solo col `!`.
-            `items-start`: le tessere hanno altezze diverse sotto 1024 e le
-            didascalie possono andare a capo; l'allineamento è in alto. */}
+            `items-start`: le foto ora hanno tutte la stessa altezza, ma una
+            didascalia che andasse a capo non deve alzare la tessera accanto. */}
         <HorizontalRail
           runway={120}
           snapMobile
@@ -236,8 +219,8 @@ export default function Team({ compact = false }: { compact?: boolean }) {
                quindi a essere raggiungibili da tastiera sono le tessere: il
                Tab passa da una foto all'altra e lo scroller le segue.
                Lo snap lo detta il CSS (`[data-snap]` → center), non le utility. */
-            <figure key={t.src} tabIndex={0} className={`shrink-0 ${FRAME[t.frame].tile}`}>
-              <div className={`relative overflow-hidden bg-cream-deep ${FRAME[t.frame].box}`}>
+            <figure key={t.src} tabIndex={0} className={`shrink-0 ${TILE}`}>
+              <div className="dt-media-column">
                 <div
                   className="dt-rail_pan"
                   data-depth={DEPTH}
@@ -247,19 +230,15 @@ export default function Team({ compact = false }: { compact?: boolean }) {
                     src={t.src}
                     alt={t.alt}
                     fill
-                    // Il pannello del pan è il 118 % della tessera.
-                    sizes={FRAME[t.frame].sizes}
+                    sizes={TILE_SIZES}
                     className="object-cover"
                     style={{ objectPosition: t.pos }}
                   />
                 </div>
               </div>
-              <figcaption className="mt-5">
-                {t.display ? (
-                  <span className="block font-display text-d3 uppercase text-ink">{t.caption}</span>
-                ) : (
-                  <span className="block text-body text-ink">{t.caption}</span>
-                )}
+              {/* Un'etichetta, non una frase: 16px maiuscolo, una riga sola. */}
+              <figcaption className="mt-4 text-ui font-semibold uppercase tracking-[0.08em] text-ink">
+                {t.caption}
               </figcaption>
             </figure>
           ))}
