@@ -372,6 +372,11 @@ blockquote * {
    il 70% in basso a destra, e ingrandirla di 1,43 la porta a riempire la
    scatola. A 460 px di tessera servono 658 px di sorgente su 1280: nessun
    ingrandimento vero, solo un taglio.
+   1,43 e non di piu': la banda col nome del canale arriva al 44% della
+   larghezza (misurato a schermo) e toglierla tutta vorrebbe dire 1,79, cioe'
+   tenere solo la meta' destra del fotogramma — e li' i volti si tagliano. Ne
+   resta un cuneo nell'angolo in basso a sinistra: e' il prezzo di non avere
+   i fotogrammi puliti.
      - `dt-still-trim`      toglie la banda in alto E il badge in basso a sinistra
      - `dt-still-trim--top` toglie la sola banda in alto (copertine centrate)
    Non e' un effetto: e' una correzione dichiarata, e sparisce il giorno in

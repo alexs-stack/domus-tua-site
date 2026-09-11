@@ -126,14 +126,19 @@ export default function FeaturedTestimonial(props: Props) {
             onClick={onClick}
             className="dt-media-half !aspect-video group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
           >
+            {/* `dt-still-trim--top` toglie la banda col titolo cotta in cima
+                alla copertina («VIDEO RECENSIONE / APPARTAMENTO VENDUTO AL
+                PRIMO OPEN DOMUS»): sopra un titolo gia' stampato nei pixel non
+                se ne mette un secondo. Il cuore Domus in basso a destra resta:
+                e' il loro marchio, non la grafica di YouTube. */}
             <Image
               src={image}
               alt={alt}
               fill
-              sizes="(max-width:1024px) 100vw, 42vw"
+              sizes="(max-width:1024px) 132vw, 56vw"
               // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
               quality={75}
-              className="object-cover"
+              className="dt-still-trim--top object-cover"
             />
             {/* 56px sul telefono, 96 da desktop: la stessa regola del carosello
                 delle voci — il cerchio grande copriva i volti sulla tessera. */}

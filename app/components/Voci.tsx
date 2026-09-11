@@ -209,13 +209,20 @@ export default function Voci() {
                 }}
                 className="group block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
               >
-                {/* La copertina è 16:9 come il video: il modulo «banda». */}
+                {/* La copertina è 16:9 come il video: il modulo «banda».
+                    `dt-still-trim` rifila la grafica cotta dentro la copertina
+                    YouTube — la banda col titolo in alto, il ritratto in cerchio
+                    con le stelline e il logo «VIDEO RECENSIONE» in basso a
+                    sinistra — tenendo il 70% in basso a destra, dove c'e' solo
+                    il filmato. Altrimenti sopra un titolo e un play gia'
+                    stampati nei pixel ce ne mettevamo altri due. Sparisce il
+                    giorno in cui arrivano i fotogrammi puliti. */}
                 <span className="dt-media-full block">
                   <YoutubeThumb
                     id={v.id}
                     alt=""
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 46vw, 32vw"
-                    className="object-cover"
+                    sizes="(max-width: 768px) 143vw, (max-width: 1024px) 66vw, 46vw"
+                    className="dt-still-trim object-cover"
                   />
                   {/* 56px sul telefono: il cerchio da 96 copriva le facce su
                       una tessera larga uno schermo. 96 resta da desktop. */}
