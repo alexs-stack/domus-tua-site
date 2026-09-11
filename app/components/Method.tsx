@@ -36,6 +36,7 @@ const copy = {
       `Ogni vendita e ogni acquisto seguono nove passaggi precisi: niente improvvisazione, solo un metodo costruito in ${yearsActive()} anni di lavoro sul territorio.`,
     cta: "Richiedi la valutazione",
     actVideo: "Guarda la video recensione",
+    allSteps: "Vedi i nove passi",
     acts: [
       { up: "Prima,", down: "le persone", word: "Ascolto", alt: "Raffaela Rizza, fondatrice di Domus Tua, in ascolto" },
       { up: "Poi,", down: "il racconto", word: "Racconto", alt: "Il racconto video di una villa seguita da Domus Tua" },
@@ -60,6 +61,7 @@ const copy = {
       `Every sale and every purchase follows nine precise steps: no improvisation, only a method built over ${yearsActive()} years of work in the local area.`,
     cta: "Request a valuation",
     actVideo: "Watch the video review",
+    allSteps: "See the nine steps",
     acts: [
       { up: "First,", down: "the people", word: "Listening", alt: "Raffaela Rizza, founder of Domus Tua, listening" },
       { up: "Then,", down: "the story", word: "Story", alt: "The video story of a villa listed by Domus Tua" },
@@ -84,6 +86,7 @@ const copy = {
       `Chaque vente et chaque achat suivent neuf étapes précises : aucune improvisation, seulement une méthode construite en ${yearsActive()} ans de travail sur le territoire.`,
     cta: "Demander l’estimation",
     actVideo: "Voir l’avis en vidéo",
+    allSteps: "Voir les neuf étapes",
     acts: [
       { up: "D'abord,", down: "les personnes", word: "Écoute", alt: "Raffaela Rizza, fondatrice de Domus Tua, à l'écoute" },
       { up: "Puis,", down: "le récit", word: "Récit", alt: "Le récit vidéo d'une villa proposée par Domus Tua" },
@@ -108,6 +111,7 @@ const copy = {
       `Jeder Verkauf und jeder Kauf folgt neun präzisen Schritten: keine Improvisation, nur eine Methode, die in ${yearsActive()} Jahren Arbeit vor Ort gewachsen ist.`,
     cta: "Bewertung anfordern",
     actVideo: "Video-Bewertung ansehen",
+    allSteps: "Die neun Schritte ansehen",
     acts: [
       { up: "Zuerst", down: "die Menschen", word: "Zuhören", alt: "Raffaela Rizza, Gründerin von Domus Tua, beim Zuhören" },
       { up: "Dann", down: "die Geschichte", word: "Erzählen", alt: "Die Video-Geschichte einer Villa im Angebot von Domus Tua" },
@@ -132,6 +136,7 @@ const copy = {
       `Cada venta y cada compra siguen nueve pasos precisos: nada de improvisación, solo un método construido en ${yearsActive()} años de trabajo en el territorio.`,
     cta: "Solicita la valoración",
     actVideo: "Ver la reseña en vídeo",
+    allSteps: "Ver los nueve pasos",
     acts: [
       { up: "Primero,", down: "las personas", word: "Escucha", alt: "Raffaela Rizza, fundadora de Domus Tua, escuchando" },
       { up: "Luego,", down: "el relato", word: "Relato", alt: "El relato en vídeo de una villa ofrecida por Domus Tua" },
@@ -180,7 +185,7 @@ const coverSizes = (ratio: number) => {
   return `(max-width:767px) ${Math.ceil(90 * k)}vw, (max-width:1023px) ${Math.ceil(84 * k)}vw, ${Math.ceil(39 * k)}vw`;
 };
 
-export default function Method() {
+export default function Method({ compact = false }: { compact?: boolean } = {}) {
   const { locale } = useLocale();
   const c = copy[locale];
 
@@ -255,8 +260,20 @@ export default function Method() {
         );
       })}
 
-      {/* I nove passi, tre per riga: numero a d1 leggero, titolo d3, testo 19 px.
+      {/* I NOVE PASSI STANNO SU /metodo, NON IN HOME.
+          In home questo capitolo faceva 4.100 px sul telefono — quasi cinque
+          schermate — ed era identico al pixel al #metodo della pagina
+          dedicata: stessa testa, stessi tre atti, stessa griglia 01-09. Chi
+          scorre la home non deve leggere due volte la stessa cosa; chi vuole
+          i nove passi ha un link che ce lo porta.
           Il numero è decorativo: l'ordine lo dà già l'<ol>. */}
+      {compact ? (
+        <div className="dt-row mt-[clamp(2.5rem,7vh,5rem)]">
+          <Cta href="/metodo" variant="ghost">
+            {c.allSteps}
+          </Cta>
+        </div>
+      ) : (
       <ol className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-x-[4vw] gap-y-16 md:grid-cols-3">
         {c.steps.map((s, i) => (
           <li key={s.title}>
@@ -270,6 +287,7 @@ export default function Method() {
           </li>
         ))}
       </ol>
+      )}
     </section>
   );
 }

@@ -72,7 +72,7 @@ export default function Home() {
         <StarReviews />
         <Voci />
         <Paths />
-        <Method />
+        <Method compact />
         <OpenDomus />
         <DomusDocProtocol />
         <Services />
