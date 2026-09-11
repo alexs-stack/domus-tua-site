@@ -10,6 +10,7 @@ import { splitDescription } from "./descriptionSplit";
 import { getListingOverride } from "./overrides.data";
 import { applyRemovals, overrideFacts } from "./overrides";
 import { cleanField, validateListing } from "./validate";
+import { resolveAreaIdentity } from "../territory/area/identity";
 import { applyAiNormalization, type AiNormalizer } from "./aiNormalizer";
 import type {
   ContractType,
@@ -165,6 +166,17 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   const title = cleanField(raw.titolo) ?? "";
   const town = cleanField(raw.localita?.comune) ?? "";
   const province = cleanField(raw.localita?.provincia) ?? "";
+
+  // IDENTITÀ GEOGRAFICA. `cleanField` toglie prima i segnaposto, così una <Zona> scritta "N/D"
+  // diventa assenza e non una frazione di nome "N/D". Il feed reale non espone coordinate
+  // (docs/adr/001-territorial-enrichment.md §2) e qui non se ne inventano: l'identità è
+  // amministrativa — comune, frazione, e provincia/regione SOLO se il comune è nel registro.
+  const area = resolveAreaIdentity({
+    municipality: town || undefined,
+    neighbourhood: cleanField(raw.localita?.zona),
+    province: province || undefined,
+    postalCode: cleanField(raw.localita?.cap),
+  });
   const typology = cleanField(raw.tipologia);
   const energyClass = cleanField(raw.classeEnergetica);
   const floorValue = cleanField(typeof raw.piano === "number" ? String(raw.piano) : raw.piano);
@@ -285,6 +297,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     type: typology ?? "Immobile",
     town,
     province,
+    area,
     address: addressRaw,
     // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
     // `showAddress` è la const decisa una volta sopra (riusata dalla redazione dei paragrafi/estratto).

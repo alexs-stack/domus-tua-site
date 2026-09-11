@@ -35,6 +35,59 @@ const FIXTURE: PublicListingTerritory = {
 // fonte primaria e la data di verifica. È l'esempio di qualità "10/10" della sezione "La zona".
 const AREA_FIXTURE: PublicAreaProfile = {
   municipality: "tradate",
+  // Etichetta di QUARTIERE: l'anteprima esercita il caso più stretto, "Vivere in {Quartiere}".
+  // Con la sola etichetta di comune l'intestazione sarebbe "Vivere a Tradate".
+  label: "Abbiate Guazzone",
+  // La NARRATIVA approvata: sintesi 60–90 parole + sezioni nell'ordine canonico. Ogni frase qui
+  // deriva dai fatti sotto — è la condizione che il cancello di pubblicazione impone, e questa
+  // fixture serve anche a verificare che una narrativa conforme si veda come deve.
+  narrative: {
+    title: "Vivere in Abbiate Guazzone",
+    intro:
+      "Abbiate Guazzone è una frazione di Tradate, e la vita quotidiana si appoggia ai servizi " +
+      "del comune. La stazione è servita dalla linea suburbana S40, che collega direttamente " +
+      "Milano Cadorna e Como San Giovanni; la direttrice storica verso Varese e Milano è la ex " +
+      "statale 233 Varesina. In centro hanno sede la biblioteca civica e gli sportelli " +
+      "anagrafici. L'assistenza ospedaliera fa capo al Galmarini, parte dell'ASST dei Sette " +
+      "Laghi, e il verde è quello del Parco Pineta.",
+    sections: [
+      {
+        category: "transport",
+        heading: "Mobilità",
+        body:
+          "Il collegamento ferroviario passa dalla stazione di Tradate, sulla linea suburbana " +
+          "S40 di Trenord: da lì partono i treni diretti verso Milano Cadorna e Como San Giovanni.",
+      },
+      {
+        category: "regional-connection",
+        heading: "Collegamenti territoriali",
+        body:
+          "Su gomma il riferimento è la ex strada statale 233 Varesina, che attraversa il " +
+          "territorio comunale ed è la direttrice storica fra Varese e Milano.",
+      },
+      {
+        category: "municipal-service",
+        heading: "Servizi quotidiani",
+        body:
+          "Gli sportelli anagrafici e la biblioteca civica hanno sede nel centro di Tradate, " +
+          "a poca distanza dalla frazione.",
+      },
+      {
+        category: "healthcare",
+        heading: "Salute",
+        body:
+          "L'ospedale Galmarini di Tradate fa parte dell'ASST dei Sette Laghi ed è il " +
+          "riferimento ospedaliero dell'area.",
+      },
+      {
+        category: "park-facility",
+        heading: "Verde e tempo libero",
+        body:
+          "Il Parco Pineta di Appiano Gentile e Tradate è un'area naturale protetta regionale " +
+          "estesa su circa 4.800 ettari.",
+      },
+    ],
+  },
   facts: [
     { category: "transport", scope: "municipality", text: "La stazione di Tradate è servita dalla linea suburbana S40 di Trenord, con collegamenti diretti verso Milano Cadorna e Como San Giovanni.", sourceOwner: "Trenord", sourceUrl: "https://www.trenord.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },
     { category: "regional-connection", scope: "municipality", text: "Il territorio comunale è attraversato dalla ex strada statale 233 Varesina, direttrice storica tra Varese e Milano.", sourceOwner: "Comune di Tradate", sourceUrl: "https://www.comune.tradate.va.it/", reviewedAt: "2026-08-10T00:00:00.000Z" },

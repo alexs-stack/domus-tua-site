@@ -159,12 +159,22 @@ export default function PreloaderShell() {
           data-pre-content
           className="relative flex h-full flex-col items-center justify-between py-10 sm:py-12"
         >
-          {/* Alto: il marchio ufficiale (variante per fondo scuro: la "Tua"
-              del monogramma resta rossa), con l'anello che gira in CSS
+          {/* Alto: il marchio ufficiale, con l'anello che gira in CSS
               (`dt-pre-spin`, 6 s, anello e monogramma in versi opposti — lo
-              stesso gesto dell'header) — gira anche prima del JS. */}
-          <span data-pre-badge className="text-cream/85">
-            <MarkBadge className="h-14 w-14" dark />
+              stesso gesto dell'header) — gira anche prima del JS.
+
+              Qui il monogramma era nella variante negativa (crema+rosso):
+              sulla PRIMA schermata del sito il logo del cliente si presentava
+              bianco. Ora è quello depositato, grigio e rosso, posato su una
+              pastiglia chiara che gli fa da fondo — come nel footer e
+              nell'header sopra l'hero. La pastiglia sta fuori dal badge (il
+              padding le lascia il bordo libero), così l'anello di tacche non
+              tocca il taglio del disco mentre gira. */}
+          <span
+            data-pre-badge
+            className="inline-flex rounded-full bg-paper p-2 text-graphite shadow-[0_16px_44px_-24px_rgba(0,0,0,0.9)]"
+          >
+            <MarkBadge className="h-14 w-14" />
           </span>
 
           {/* Centro: lockup al centro; caps in colonna a destra da 768 in su

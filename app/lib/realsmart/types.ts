@@ -12,6 +12,7 @@ import type { FactLineOutcome } from "./descriptionSplit";
 // Type-only (erasi a runtime): nessun ciclo di import a runtime.
 import type { NormalizationSource } from "./aiNormalizer";
 import type { ListingWarning } from "./validate";
+import type { AreaIdentity } from "../territory/area/identity";
 
 // ─────────────────────────────────────────────────────────────
 // Stato di pubblicazione di un annuncio (union chiusa).
@@ -173,6 +174,20 @@ export interface NormalizedProperty {
   type: string;
   town: string;
   province: string;
+  /**
+   * IDENTITÀ GEOGRAFICA CANONICA (chiave d'area, frazione, provincia/regione se note).
+   *
+   * Perché è un campo a sé e non tre stringhe sparse: `town`/`province` sono ETICHETTE, e come
+   * tali finivano usate anche da chiave di lettura dei contenuti d'area — con l'effetto che
+   * "Tradate (VA)" e "Tradate" erano due aree diverse. Qui dentro etichetta e chiave sono
+   * separate, e il `<Zona>` del gestionale (la frazione) smette di essere buttato via dal
+   * normalizzatore: senza, due immobili in due frazioni dello stesso comune sono indistinguibili
+   * e non possono ricevere contesto locale diverso.
+   *
+   * Vedi app/lib/territory/area/identity.ts per la forma della chiave e per la regola —
+   * provincia e regione vengono SOLO dal registro controllato, mai dedotte dal nome o dal CAP.
+   */
+  area: AreaIdentity;
   address?: string;
   /** True solo se un override manuale autorizza la pubblicazione dell'indirizzo civico. */
   showAddress: boolean;

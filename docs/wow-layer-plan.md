@@ -60,10 +60,18 @@ un effetto (regola Chanel).
    fratello di body-children (nessun wrapper attorno alla pagina). Back/forward
    popstate: nessuna transizione. Mobile: 0.6s. Reduced-motion: nav diretta.
    Swap dei `Link` interni a `TransitionLink` in Header/Footer/card.
-3. **Cursor custom** (`motion/Cursor.tsx`, gate finePointer+motionOk): dot 8px
-   rosso + ring follower (quickTo), morph contestuali via `data-cursor`
-   (scopri/play/trascina), fusione coi Magnetic, `mix-blend-difference` sulle
-   foto, cursor nativo su input/form. Mount nel layout, zero SSR.
+3. **Cursore d'intento** (`motion/Cursor.tsx`, gate finePointer+motionOk): una
+   TARGHETTA crema (tetto rosso + etichetta) che compare SOLO sui bersagli con
+   `data-cursor` (scopri/play/trascina); fuori di lì resta il cursore nativo.
+   `cursor: none` è scoped ai soli bersagli. Mount nel layout, zero SSR.
+   *(2026-08-26 — prima era un dot rosso da 8px + un ring follower da 40px in
+   `mix-blend-difference` che seguiva il puntatore ovunque con mezzo secondo di
+   ritardo, ingrassando a 60px su ogni link e a 96px sulle card. Il cliente
+   l'ha bocciato: era addosso al puntatore anche dove non c'era nessun gesto
+   da annunciare, e il `cursor: none !important` globale che lo accompagnava
+   schiacciava tutte le affordance native — `cursor-ew-resize` sul confronto
+   prima/dopo, `cursor-pointer` sui summary, `not-allowed` sui bottoni
+   disabilitati.)*
 4. **Footer reveal** senza transform: wrapper con `footer` sticky bottom dietro
    al main (che ha già sfondi opachi) + ombra di contatto; dentro il footer il
    wordmark gigante "Domus Tua" entra a righe mascherate; `KineticStrip` resta

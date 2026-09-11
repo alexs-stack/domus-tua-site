@@ -35,7 +35,9 @@
     "territory:sync": "tsx scripts/territory/sync.ts",
     "territory:report": "tsx scripts/territory/report.ts",
     "territory:export": "tsx scripts/territory/export.ts",
-    "territory:import": "tsx scripts/territory/import.ts"
+    "territory:import": "tsx scripts/territory/import.ts",
+    "area:plan": "tsx scripts/territory/area-plan.ts",
+    "area:token": "tsx scripts/territory/area-token.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.25",

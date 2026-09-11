@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import { generateDraft, sourceFactsOf } from "../generate";
 import type { CopyModel } from "../schema";
 import type { NormalizedProperty, RealSmartListingRaw } from "../../types";
+import { resolveAreaIdentity } from "../../../territory/area/identity";
 
 const NOW = "2026-08-13T10:00:00.000Z";
 
@@ -27,6 +28,7 @@ function mkBase(over: Partial<NormalizedProperty> = {}): NormalizedProperty {
     type: "Appartamento",
     town: "Tradate",
     province: "VA",
+    area: resolveAreaIdentity({ municipality: "Tradate" }),
     showAddress: false,
     sqm: 90,
     rooms: 3,

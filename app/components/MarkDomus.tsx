@@ -24,17 +24,24 @@ export const MARK_RED_D =
 export const MARK_VIEWBOX = "0 0 99 92";
 export const MARK_RATIO = 99 / 92;
 
-const GREY = { color: "#595a58", light: "#f2ebda" } as const;
+// I DUE COLORI DEPOSITATI, e nessun terzo. Qui c'era una seconda variante,
+// `light: "#f2ebda"`, che rendeva il grigio in crema per i fondi scuri: era
+// da lì che passava il logo «bianco e rosso» — header sopra l'hero,
+// preloader, sipario delle transizioni. Il cliente ha ribadito il
+// 2026-08-26 che il marchio non cambia colore, quindi la variante non è
+// stata solo smessa: è stata TOLTA. Un fondo scuro si risolve con una
+// pastiglia chiara sotto il marchio (footer, header, preloader, loader del
+// sipario), mai ricolorandolo — e ora il tipo lo impone, invece di
+// affidarlo alla memoria di chi tocca il prossimo componente.
+const GREY = "#595a58";
+const RED = "#e30716";
 
 export default function MarkDomus({
   className = "h-8 w-8",
-  /** "light" = variante negativa (crema) per superfici scure */
-  variant = "color",
   /** se presente, il marchio è esposto come immagine con questo nome */
   title,
 }: {
   className?: string;
-  variant?: keyof typeof GREY;
   title?: string;
 }) {
   return (
@@ -46,8 +53,8 @@ export default function MarkDomus({
       aria-label={title}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path fill={GREY[variant]} fillRule="evenodd" d={MARK_D} />
-      <path fill="#e30716" fillRule="evenodd" d={MARK_RED_D} />
+      <path fill={GREY} fillRule="evenodd" d={MARK_D} />
+      <path fill={RED} fillRule="evenodd" d={MARK_RED_D} />
     </svg>
   );
 }

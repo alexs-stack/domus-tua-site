@@ -11,6 +11,19 @@ import { breadcrumbJsonLd, jsonLdScript } from "../lib/site";
 const BREADCRUMB_NAME = "Case in vendita";
 const BREADCRUMB_PATH = "/acquista";
 
+/**
+ * RESA DINAMICA, DICHIARATA — questa pagina legge il catalogo LIVE del gestionale.
+ *
+ * Senza questa riga la classificazione statico/dinamico dipendeva dall'ORDINE con cui i worker
+ * di build rendono le pagine. Il motivo: `getLiveListingsSnapshot()` tiene uno snapshot
+ * in-process, quindi solo la PRIMA pagina che legge il catalogo esegue davvero la `fetch`
+ * `no-store` che Next osserva per marcare la rotta dinamica; le successive leggono il memo,
+ * Next non vede alcun accesso dinamico e le PRERENDERIZZA. Esito misurato su questo repo:
+ * /acquista usciva `ƒ` e /case-vendute usciva `○`, con il catalogo congelato al momento della
+ * build. Dichiararlo qui rende il risultato deterministico e indipendente dallo scheduling.
+ */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Case in vendita a Tradate e provincia di Varese",
   description:

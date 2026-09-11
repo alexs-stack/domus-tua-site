@@ -31,6 +31,7 @@ import type { EnrichmentDeps } from "../../app/lib/territory/engine";
 import type { NormalizedProperty } from "../../app/lib/realsmart/types";
 import type { ReviewItem } from "../../app/lib/territory/review/service";
 import type { PublicAreaProfile } from "../../app/lib/territory/area/types";
+import { resolveAreaIdentity } from "../../app/lib/territory/area/identity";
 
 const argv = process.argv.slice(2);
 const flags = new Map<string, string>();
@@ -66,6 +67,7 @@ function syntheticListings(pilotSlugs: string[]): NormalizedProperty[] {
         type: "Appartamento",
         town,
         province: "VA",
+        area: resolveAreaIdentity({ municipality: town }),
         showAddress: false,
         docVerified: false,
         sqm: 90,

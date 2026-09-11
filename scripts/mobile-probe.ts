@@ -144,7 +144,10 @@ async function main() {
   // ── 5. Peso morto ───────────────────────────────────────────────────────
   const dead = await page.evaluate(() => {
     const pre = document.querySelector<HTMLElement>(".dt-preloader");
-    const cur = document.querySelector<HTMLElement>("[data-cursor-root], .dt-cursor");
+    // La targhetta del cursore d'intento (Cursor.tsx). I due selettori di
+    // prima — [data-cursor-root] e .dt-cursor — non sono MAI esistiti nel
+    // markup: la sonda rispondeva "assente" anche quando il cursore c'era.
+    const cur = document.querySelector<HTMLElement>("[data-cur-plate]");
     return {
       preloaderNodi: pre ? pre.querySelectorAll("*").length : 0,
       preloaderDisplay: pre ? getComputedStyle(pre).display : "assente",

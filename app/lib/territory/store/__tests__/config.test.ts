@@ -30,11 +30,15 @@ describe("readTerritoryStoreConfig", () => {
     assert.equal(cfg.adapter, "filesystem");
   });
 
-  test("PRODUZIONE senza adapter → errore fail-safe (niente default silenzioso)", () => {
-    assert.throws(
-      () => readTerritoryStoreConfig({ NODE_ENV: "production" }),
-      TerritoryStorageError,
-    );
+  test("PRODUZIONE senza adapter → json, mai filesystem", () => {
+    // Qui prima si pretendeva un ERRORE, per non ripiegare su storage effimero. L'intenzione
+    // resta e il test la verifica ancora — ma sull'esito che conta: il default di produzione è
+    // `json`, cioè i file committati in git, non `filesystem` che è effimero. Lanciare non
+    // proteggeva da niente in più, e costava caro: con la sezione pubblica accesa e la variabile
+    // vuota, ogni scheda immobile rispondeva 500.
+    const cfg = readTerritoryStoreConfig({ NODE_ENV: "production" });
+    assert.equal(cfg.adapter, "json");
+    assert.notEqual(cfg.adapter, "filesystem");
   });
 
   test("adapter sconosciuto → errore", () => {

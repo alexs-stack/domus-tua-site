@@ -21,6 +21,7 @@
 // Dettagli, domande aperte e note: docs/realsmart-integration-notes.md.
 
 import { XMLParser } from "fast-xml-parser";
+import { unstable_rethrow } from "next/navigation";
 import { getRealSmartConfig, mockAuthorized } from "./env";
 import { getMockRealSmartListings } from "./mocks";
 import { selectLastKnownGoodStore, type LastKnownGoodStore } from "./lastKnownGood";
@@ -253,6 +254,20 @@ export async function loadListings(
     await lkgStore.write(snapshot); // memorizza l'ultimo buono (SOLO su successo)
     return snapshot;
   } catch (err) {
+    // ⚠️ PRIMA DI TUTTO: i "non-errori" di Next vanno RILANCIATI, non trattati come un feed caduto.
+    //
+    // `fetchLiveRaw` usa `cache: "no-store"`, e Next SEGNALA "questa rotta non è statica, esci dal
+    // prerender" LANCIANDO una DynamicServerError. Senza questa riga il catch la ingoiava e la
+    // scambiava per un guasto del gestionale: in build si leggeva
+    //   [realsmart] feed non disponibile: Dynamic server usage: Route /acquista … revalidate: 0
+    // e — molto peggio — si restituiva uno snapshot fail-closed VUOTO che getLiveListingsSnapshot
+    // memorizzava per NEGATIVE_REVALIDATE_SECONDS: per un minuto ogni pagina vedeva zero immobili,
+    // e generateStaticParams poteva produrre zero schede. Lo stesso vale per notFound()/redirect()
+    // chiamate da un chiamante a monte. `unstable_rethrow` riconosce SOLO i segnali interni di
+    // Next e lascia passare gli errori veri (rete, HTTP, XML) alla gestione qui sotto.
+    // Vedi node_modules/next/dist/docs/01-app/03-api-reference/04-functions/unstable_rethrow.md.
+    unstable_rethrow(err);
+
     // Motivo server-only, MAI esposto al client e SENZA URL/credenziali del feed. Un errore
     // ripetuto qui = il gestionale è instabile e va indagato prima/dopo il lancio.
     console.error(

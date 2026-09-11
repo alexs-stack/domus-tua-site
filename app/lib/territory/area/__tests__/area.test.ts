@@ -4,7 +4,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { AreaFactSchema, type AreaFact } from "../types";
+import { AreaFactSchema, AREA_SCHEMA_VERSION, type AreaFact } from "../types";
 import { findSubjectiveViolations, isFactualText } from "../subjective";
 import { toPublicAreaProfile, factsDueForReview, localizeFactText, isPublishable } from "../public";
 import { approvalBlockers, approveAreaFact, rejectAreaFact, AreaApprovalError } from "../validate";
@@ -30,6 +30,7 @@ function fact(over: Partial<AreaFact> = {}): AreaFact {
     reviewBy: over.reviewBy ?? "2027-02-14T00:00:00.000Z",
     status: over.status ?? "approved",
     conflicts: over.conflicts ?? [],
+    schemaVersion: over.schemaVersion ?? AREA_SCHEMA_VERSION,
     ...(over.approvedBy ? { approvedBy: over.approvedBy } : {}),
     ...(over.approvedAt ? { approvedAt: over.approvedAt } : {}),
   };
@@ -195,7 +196,10 @@ describe("descrizioni d'area sulla pagina (buildAreaView) + qualità 10/10", () 
     );
     const view = buildAreaView(profile, "it");
     assert.ok(view);
-    assert.equal(view.title, "La zona in sintesi");
+    // L'intestazione ora NOMINA l'area invece di essere generica: due frazioni dello stesso
+    // comune leggevano prima la stessa identica riga. La maiuscola arriva da presentableLabel,
+    // perché il comune qui è salvato minuscolo ("tradate") e «Vivere a tradate» sarebbe un refuso.
+    assert.equal(view.title, "Vivere a Tradate");
     assert.equal(view.facts.length, 2);
     assert.equal(view.facts[0].categoryLabel, "Trasporti");
     assert.match(view.facts[0].reviewedLabel, /verificato il .*2026/);
@@ -211,8 +215,23 @@ describe("descrizioni d'area sulla pagina (buildAreaView) + qualità 10/10", () 
 });
 
 describe("separazione + nessuna invenzione", () => {
-  test("dati vuoti di default → getPublicAreaProfile null (l'assistente non inventa)", () => {
-    assert.equal(getPublicAreaProfile("tradate", { now: NOW, locale: "it" }), null);
+  test("un comune senza fatti approvati → null (l'assistente non inventa)", () => {
+    // Prima questo test chiedeva "tradate", quando il dataset di produzione era vuoto: verificava
+    // quindi che fosse vuoto, non che il sistema tacesse quando non sa. Da quando Tradate ha sei
+    // fatti approvati la domanda giusta si fa su un comune che non ne ha — che è poi il caso vero
+    // e permanente, perché i comuni curati saranno sempre una minoranza di quelli a catalogo.
+    assert.equal(getPublicAreaProfile("gallarate", { now: NOW, locale: "it" }), null);
+    assert.equal(getPublicAreaProfile("comune-inesistente", { now: NOW, locale: "it" }), null);
+  });
+
+  test("un comune curato risponde, e ogni fatto porta la sua fonte", () => {
+    const profile = getPublicAreaProfile("tradate", { now: NOW, locale: "it" });
+    assert.ok(profile, "Tradate ha fatti approvati in app/lib/territory/area/data.ts");
+    assert.ok(profile.facts.length > 0);
+    assert.ok(
+      profile.facts.every((f) => f.sourceUrl.startsWith("http") && f.sourceOwner.length > 0),
+      "nessun fatto pubblicato senza fonte e proprietario",
+    );
   });
   test("con fatti approvati, 'com'è vivere a Tradate?' ha di che rispondere (solo fatti d'area)", () => {
     const profile = toPublicAreaProfile(
