@@ -251,7 +251,7 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#chi-siamo" }}
-        scriptWord={{ it: "Chi siamo", en: "About us", fr: "Qui sommes-nous", de: "Über uns", es: "Quiénes somos" }[locale]}
+        scriptWord={{ it: "Dal 2007", en: "Since 2007", fr: "Depuis 2007", de: "Seit 2007", es: "Desde 2007" }[locale]}
       />
 
       {/* Storia: foto squadrata, titolo d1, paragrafi lead (2026-09-10). */}

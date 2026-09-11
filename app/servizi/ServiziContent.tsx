@@ -229,7 +229,7 @@ export default function ServiziContent() {
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#servizi" }}
-        scriptWord={{ it: "Servizi", en: "Services", fr: "Services", de: "Leistungen", es: "Servicios" }[locale]}
+        scriptWord={{ it: "Su misura", en: "Tailored", fr: "Sur mesure", de: "Nach Maß", es: "A medida" }[locale]}
       />
 
 

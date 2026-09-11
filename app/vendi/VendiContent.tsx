@@ -914,7 +914,7 @@ export default function VendiContent() {
           primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "#percorso" }}
           trust={c.hero.trust}
-          scriptWord={{ it: "Vendere", en: "Selling", fr: "Vendre", de: "Verkaufen", es: "Vender" }[locale]}
+          scriptWord={{ it: "Con metodo", en: "With method", fr: "Avec méthode", de: "Mit Methode", es: "Con método" }[locale]}
         />
 
         {/* IN CIMA, subito sotto l'hero (§6.4). Il costo è la prima obiezione di chi

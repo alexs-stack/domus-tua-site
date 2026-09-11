@@ -727,7 +727,7 @@ export default function OpenDomusPageContent() {
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#percorso" }}
-          scriptWord="Open Domus"
+          scriptWord={{ it: "Una visita", en: "One visit", fr: "Une visite", de: "Ein Besuch", es: "Una visita" }[locale]}
         />
 
         {/* Claim di prodotto: una frase grande sul fondo avorio, niente banda scura. */}
