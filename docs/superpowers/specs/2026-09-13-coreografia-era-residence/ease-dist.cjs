@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- script di misura archiviato con la spec del 13 settembre, si lancia a mano con node (CommonJS) */
 const path = "C:/Users/alber/domus-tua-site/node_modules/gsap/dist/";
 const { gsap } = require(path + "gsap.js");
 const { CustomEase } = require(path + "CustomEase.js");
