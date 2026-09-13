@@ -23,7 +23,7 @@ import { site, territoryLabel, territoryLabelBy } from "../lib/site";
 
 const copy = {
   it: {
-    backdropAlt: "Vista aerea dei tetti e del verde attorno a Tradate",
+    backdropAlt: "Ripresa col drone di una villa con giardino e piscina",
     domeTitle: "Perché scegliere Domus Tua",
     domeLeft: "Tradate",
     domeRight: "dal 2007",
@@ -50,7 +50,7 @@ const copy = {
     cta: "Vedi le case in vendita",
   },
   en: {
-    backdropAlt: "Aerial view of the rooftops and greenery around Tradate",
+    backdropAlt: "Drone shot of a villa with garden and pool",
     domeTitle: "Why choose Domus Tua",
     domeLeft: "Tradate",
     domeRight: "since 2007",
@@ -77,7 +77,7 @@ const copy = {
     cta: "See the homes for sale",
   },
   fr: {
-    backdropAlt: "Vue aérienne des toits et de la verdure autour de Tradate",
+    backdropAlt: "Prise de vue par drone d’une villa avec jardin et piscine",
     domeTitle: "Pourquoi choisir Domus Tua",
     domeLeft: "Tradate",
     domeRight: "depuis 2007",
@@ -104,7 +104,7 @@ const copy = {
     cta: "Voir les biens à vendre",
   },
   de: {
-    backdropAlt: "Luftaufnahme der Dächer und des Grüns rund um Tradate",
+    backdropAlt: "Drohnenaufnahme einer Villa mit Garten und Pool",
     domeTitle: "Warum Domus Tua",
     domeLeft: "Tradate",
     domeRight: "seit 2007",
@@ -131,7 +131,7 @@ const copy = {
     cta: "Immobilien zum Verkauf ansehen",
   },
   es: {
-    backdropAlt: "Vista aérea de los tejados y el verde alrededor de Tradate",
+    backdropAlt: "Toma con dron de una villa con jardín y piscina",
     domeTitle: "Por qué elegir Domus Tua",
     domeLeft: "Tradate",
     domeRight: "desde 2007",
@@ -288,8 +288,14 @@ export default function HorizonStory() {
                   </Cta>
                 </div>
               </div>
-              {/* Il territorio si illustra col territorio: la ripresa col
-                  drone sopra Tradate, non il render 3D di un attico (era
+              {/* L'ALT DICE COSA SI VEDE, NON COSA VORREMMO: e' una ripresa quasi
+                  a picco su UNA villa privata con piscina, non «i tetti e il
+                  verde attorno a Tradate». docs/da-chiedere-alla-cliente.md
+                  §2.2 lo segna come bloccante — immobile, autorizzazione del
+                  proprietario e diritti sono ancora da chiarire — e fino ad
+                  allora la descrizione non puo' promettere un luogo.
+                  Il territorio si illustra col territorio: la ripresa col
+                  drone, non il render 3D di un attico (era
                   ingrandito 1,7× dentro una scatola alta 72vh). La sorgente è
                   2560×1280, cioè PANORAMICA: sta in una banda 16:9, dove si
                   taglia l'11% e non si ingrandisce nulla; in un ritratto ne
