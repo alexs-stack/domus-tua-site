@@ -36,7 +36,7 @@
    estesa delle card); la foto Top Agency appare PICCOLA, croppata a stella,
    centrata, e lo scroll la ZOOMA a tutto schermo (demo 3 del riferimento,
    flash + titolo-cover a caratteri stirati) per poi richiuderla nella stella
-   centrale della fila: 5 stelle, voto 4,9/531, CTA Google + sigillo Wikicasa.
+   centrale della fila: 5 stelle, voto e conteggio (site.ts), CTA Google + sigillo Wikicasa.
    FORM: codrops/FullscreenClipEffect (demo 1) — morph di clip-path a
    topologia costante (10 vertici), maschere a stella al posto delle pillole;
    pinned dal cliente in chat, con continuum scrubbato richiesto in chat
@@ -450,8 +450,9 @@ export default function StarReviews() {
              sulla foto: un filtro per frame su un'immagine a tutto schermo è
              ricalcolo di pixel, ed è nell'elenco anti-pattern dell'onda. Stesso
              effetto — la luce che sale e ricade lasciando la foto un filo più
-             chiara — con un velo caldo in sola `opacity` sopra la fotografia e
-             sotto il velo di vino: composited, e senza il salto di layer che
+             chiara — con uno strato caldo in sola `opacity` direttamente sopra
+             la fotografia (il velo di vino che lo copriva è tolto): composited,
+             e senza il salto di layer che
              `filter` provoca. Il guadagno è di TUTTE le larghezze, non solo del
              telefono: il desktop lo suona da qui in poi allo stesso modo. */
           .to(flash, { opacity: 0.5, duration: 0.14, ease: "power2.in" }, 0.4)
@@ -670,13 +671,13 @@ export default function StarReviews() {
               sizes="(max-width: 1023.98px) 55vw, 100vw"
               className="object-cover"
             />
-            {/* IL LAMPO, e perché è un velo e non un filtro: a cavallo del
+            {/* IL LAMPO, e perché è uno strato e non un filtro: a cavallo del
                 fullscreen la foto riceve un colpo di luce. Fino al 2026-08-18
                 era `filter: brightness() saturate()` tweenato due volte, cioè
                 pixel ricalcolati per frame su un'immagine a tutto schermo — il
                 primo anti-pattern dell'onda «parità mobile 2». Ora è questo
-                velo: sopra la fotografia, sotto il velo di vino (esattamente
-                dov'era il filtro), animato in sola opacity. Sta nel DOM a ogni
+                strato: direttamente sopra la fotografia e sotto il titolo-cover,
+                animato in sola opacity, a riposo 0. Sta nel DOM a ogni
                 larghezza perché il miglioramento è di tutte. */}
             <div className="dt-starrev_flash absolute inset-0" />
             {/* Titolo-cover gigante: i caratteri escono in scaleY con stagger dal

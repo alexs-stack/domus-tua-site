@@ -2,12 +2,15 @@ import Link from "next/link";
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { ArrowUpRight, Send } from "../Icons";
 
-/* I "redirect" di marca (globals.css §CTA SYSTEM):
-   - cta        anello rosso → riempimento circolare + morph del raggio
-   - cta-solid  variante piena per superfici scure/foto
-   - reveal     doppia faccia a scorrimento (espresso → rosso)
-   - reveal-cream  faccia a riposo crema, per bande espresso/ink
-   - ghost      lift su carta con ombra calda (+ ghost-dark)
+/* Le varianti di marca (globals.css, blocco «CTA — rettangoli e link
+   sottolineati»). Squadrate, senza ombre e senza movimento: all'hover cambia
+   solo il colore.
+   - cta           contorno rosso, all'hover pieno rosso
+   - cta-solid     pieno rosso, all'hover rosso scuro
+   - reveal, reveal-cream  alias di cta-solid: i nomi restano per non cambiare
+                   l'API, le facce a scorrimento non esistono più
+   - ghost         link maiuscolo sottolineato, nessuna scatola; all'hover rosso
+   - ghost-dark    il ghost in bianco, per le scritte sopra una foto (Congedo)
    Tutto CSS puro: nessun hook, usabile da server e client component. */
 
 type Variant = "cta" | "cta-solid" | "reveal" | "reveal-cream" | "ghost" | "ghost-dark";
@@ -108,9 +111,10 @@ export function CtaButton({
   );
 }
 
-/* Submit dei form: l'aeroplanino spicca il volo e "porta via" l'etichetta
-   (solo hover vero + motion ok, vedi CSS). Durante l'invio lo spinner
-   sostituisce l'aereo e il volo è disattivato da :disabled. */
+/* Submit dei form: pieno rosso come cta-solid. L'aeroplanino resta nel markup
+   ma il CSS lo nasconde (niente aeroplanini nella rivista bianca); durante
+   l'invio lo spinner prende il suo posto accanto all'etichetta e :disabled
+   abbassa l'opacità. */
 type SendCtaProps = {
   submitting?: boolean;
   size?: Size;

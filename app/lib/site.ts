@@ -318,7 +318,7 @@ export function isIndexableDeployment(env: {
 
 // Href assoluti verso le pagine dedicate.
 /* `primary` marca le SEI voci della testata: nove parole maiuscole in una riga
-   sono un nastro che attraversa lo schermo (il «menu sopra» che il cliente ha
+   sono un nastro che attraversa lo schermo (il «menu sopra» che Alberto ha
    segnalato l'11 settembre), e il riferimento ne tiene quattro. Le altre tre
    (Servizi, Recensioni, Lavora con noi) restano nel menu del telefono, nel
    footer e nella sitemap: `nav` resta la fonte unica, cambia solo chi la

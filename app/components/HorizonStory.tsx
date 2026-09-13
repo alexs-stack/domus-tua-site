@@ -5,8 +5,11 @@
 // redesign aveva tolto e che Alberto ha chiesto di riavere (2026-09-11:
 // «mantenendo quelle animazioni che non erano curve … lo scroll orizzontale
 // nella sezione perché domus tua»). Nella grammatica della rivista bianca:
-// via il fondale aereo (punto 6 della cliente), la cupola (una curva), i fiori
-// e i veli; resta il gesto — manifesto e territorio cuciti in orizzontale
+// via il fondale aereo (punto 6 della cliente, «togliere foto dopo ricerca»),
+// la cupola (una curva), i fiori e i veli. La stessa ripresa aerea è poi
+// tornata come foto del pannello territorio (360c76b, qui sotto): se il punto
+// 6 escluda anche quella è una domanda aperta. Resta il gesto — manifesto e
+// territorio cuciti in orizzontale
 // mentre la pagina scende, da lg in su con motion ok, in colonna altrove
 // (HorizonScroller: [data-on] lo mette solo JS). Sopra i pannelli, il video in
 // evidenza del capitolo «Come lavoriamo» (che questo sostituisce): stava in

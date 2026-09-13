@@ -396,8 +396,9 @@ export default function HeroCinematic() {
           il <video> arriva dopo il primo paint, se e quando il cliente lo
           riaccende (media.ts). NESSUN VELO sopra la foto: la cliente ha
           bocciato vignettature e nero. L'inquadratura parte dall'alto
-          (`objectPosition` 0 % in verticale): il lockup sta in ALTO nella
-          banda, sul soffitto chiaro della stanza, e sotto resta in campo
+          (`objectPosition` 0 % in verticale), la stessa della sagoma del
+          preloader che deve coincidere con questa foto (intro-clocks.test.ts):
+          il lockup sta al CENTRO della banda e sotto resta in campo
           Raffaela; il 10 % orizzontale conta solo sul telefono, dove
           la foto è più larga della scatola e il taglio la terrebbe altrimenti
           fuori campo (l'avambraccio ingrandito che il cliente aveva
@@ -446,8 +447,8 @@ export default function HeroCinematic() {
 
         {/* Lockup nel font del logo (`font-brand`, richiesta cliente: «stesso
             font del logo in tutte le scritte Domus Tua») e coi colori del
-            logo, in alto SULLA foto (sul soffitto chiaro: a 13vw le lettere
-            si leggono anche dove la stanza è piena, ma il soffitto è meglio).
+            logo, al centro della banda, SULLA foto: a 13vw le lettere si
+            leggono anche dove la stanza è piena.
             NON è l'h1 (vedi la nota sopra `copy`).
             Le lettere animate sono aria-hidden per costruzione (Chars): il
             nome leggibile vive nello span sr-only — un aria-label su un <div>

@@ -140,7 +140,8 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// Didone di marca (richiesta cliente, rif. era-residence.com): nata per il
+// Didone di marca (rif. era-residence.com, dossier §2: Playfair è l'alternativa
+// libera alla sua Ambroise François): nata per il
 // lockup di preloader/hero, oggi è IL serif display di tutto il sito
 // (--font-display e --font-hero puntano entrambi qui; Fraunces è stato ritirato).
 // Lo script calligrafico resta l'accento. Dietro variabili: se il cliente

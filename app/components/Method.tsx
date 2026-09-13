@@ -157,12 +157,13 @@ const copy = {
 } as const;
 
 /* Le foto degli atti, con la misura VERA del sorgente: tutte e tre sono
-   riprese larghe (1.73, 2.54, 1.77), quindi tutte e tre stanno in `dt-media-full`
-   (16:9) e nessuna viene ingrandita. Nel quadrato di prima il ritratto —
-   763×442, il file più piccolo del sito — teneva il 58% dell'inquadratura e
-   saliva di 1,37×: il volto usciva tagliato e molle. In 16:9 la scatola è
-   larga 39vw (~562 px a 1440): il ritratto scende a 0,74×, la villa a 0,63×,
-   la stretta di mano a 0,29×.
+   riprese larghe (1.73, 2.54, 1.77), quindi tutte e tre stanno in 16:9 — il
+   modulo `dt-media-half` forzato a `!aspect-video` — e nessuna viene
+   ingrandita. Nel quadrato di prima il ritratto — 763×442, il file più
+   piccolo del sito — teneva il 58% dell'inquadratura e saliva di 1,37×: il
+   volto usciva tagliato e molle. In 16:9 la scatola è la metà da 42vw (~605 px
+   a 1440, al massimo 640): il ritratto scende a 0,79×, la villa a 0,67×, la
+   stretta di mano a 0,32×.
    `pos`: il ritratto non ha aria sopra la testa nel sorgente, quindi il taglio
    si prende i 9 px di troppo dal basso (`50% 0%`), non dai capelli.
    `video`: handshake.jpg è la copertina della video recensione e porta il
@@ -177,8 +178,8 @@ const ACT_IMAGES = [
 /* `sizes` descrive la larghezza dell'IMMAGINE dopo il cover, non della
    scatola: in una 16:9 un sorgente più largo di 16:9 sborda e va chiesto più
    grande (villa-mozart, 2.54, è larga 1,43 volte la scatola). Le tre misure
-   sono quelle vere della colonna: 90vw sotto 768 (dt-row a 5vw), 84vw fino a
-   1024 (dt-row a 8vw, ancora impilata), poi metà della riga meno il gutter. */
+   sono quelle vere della scatola: 90vw sotto 768 (dt-row a 5vw), 84vw fino a
+   1024 (dt-row a 8vw, ancora impilata), poi i 42vw della metà. */
 const FULL_ASPECT = 16 / 9;
 const coverSizes = (ratio: number) => {
   const k = Math.max(1, ratio / FULL_ASPECT);

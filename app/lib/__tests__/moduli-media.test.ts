@@ -1,8 +1,9 @@
 // I TRE MODULI MEDIA, E LE DUE ABITUDINI CHE LI FACEVANO SALTARE.
 //
-// L'11 settembre il cliente ha detto che «sono emerse un sacco di cose brutte
-// e formattate male, a livello layout, e di scelta: come il menu sopra, la
-// posizione delle foto e dei video». La misura del difetto: a 1440 la home
+// L'11 settembre Alberto ha scritto che col redesign «sono emersi un sacco di
+// cose brutte e formattate male, a livello layout, e di scelta. come il menu
+// sopra», e nello stesso messaggio «la posizione delle foto e dei video etc.».
+// La misura del difetto: a 1440 la home
 // mostrava DODICI larghezze di media diverse — 374, 420, 468, 490, 511, 535,
 // 562, 589, 624, 816, 835, 1440 — e tredici righe «foto | testo» di fila,
 // ognuna con la propria proporzione di griglia. Scorrendo, l'occhio non

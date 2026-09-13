@@ -15,24 +15,19 @@ import { getLenis } from "./motion/SmoothScroll";
 
 // Header "rivista bianca" (2026-09-10, rif. immobiliaregoldengoal.it):
 // trasparente sul fondo avorio, logo ufficiale grande a sinistra, nav maiuscola
-// a 16 px; da scrollato diventa cream-deep pieno con una hairline sotto. Via il
+// a 16 px. Sotto lg resta appiccicato in alto e, da scrollato, diventa
+// cream-deep pieno con una hairline sotto; da lg scorre via, trasparente. Via il
 // pill scuro, il gradiente, il blur e ogni timeline GSAP: l'unico movimento è
 // la transizione CSS del colore di fondo.
 //
-// Da lg in su la testata ha DUE righe: logo + lingua + CTA sopra, la nav sotto
-// allineata a destra. Nove voci maiuscole a 16 px con tracking 0.08em pesano
-// ~950 px di solo testo: in una riga sola, accanto a logo e CTA, non ci stanno
-// nemmeno a 1440 (il vecchio header ci riusciva solo scendendo a 13 px e a xl).
-// Due righe restano dentro i 7.5rem massimi previsti per l'altezza fissa.
-//
-// L'altezza della riga mobile (`--dt-header-h`, sotto) è la stessa usata come
-// `top` del pannello del menu: il pannello è `fixed` e non può agganciarsi
-// all'altezza dell'header con `top: 100%` (per un elemento fixed il blocco
-// contenitore è il viewport).
 // Una riga sola, alta `--dt-head-h` (globals.css): lo stesso numero che la
-// sagoma del preloader usa come `top` per coincidere con la banda dell'hero.
-// Prima erano due piani — logo sopra, nastro di nove parole sotto — ed e' il
-// «menu sopra» che il cliente ha bocciato l'11 settembre.
+// sagoma del preloader usa come `top` per coincidere con la banda dell'hero, e
+// il `top` del pannello del menu mobile (il pannello è `fixed` e non può
+// agganciarsi all'altezza dell'header con `top: 100%`: per un elemento fixed il
+// blocco contenitore è il viewport). Da lg ci stanno il logo, le sei voci
+// primarie e la lingua; nessuna CTA. Prima erano due piani — logo, lingua e CTA
+// sopra, nastro di nove parole sotto — ed e' il «menu sopra» che Alberto ha
+// segnalato l'11 settembre (6e6559b).
 const ROW_H = "h-[var(--dt-head-h)]";
 const PANEL_TOP = "top-[var(--dt-head-h)]";
 
@@ -212,8 +207,8 @@ export default function Header() {
     >
       <div className={`dt-row flex ${ROW_H} items-center justify-between gap-x-8`}>
         <Link href="/" className="flex shrink-0 items-center gap-4" aria-label="Domus Tua, vai alla home">
-          {/* Monogramma ufficiale in rotazione oraria (RotatingMark), solo da lg:
-              sul telefono la riga è del logo e del bottone Menu. Lo span di
+          {/* Monogramma ufficiale in rotazione oraria (RotatingMark), solo da xl
+              (vedi la nota qui sotto). Lo span di
               contorno serve perché MarkBadge porta un suo `inline-block`, e in
               Tailwind v4 le utility della stessa proprietà escono in ordine
               alfabetico: `hidden` passato come className perderebbe. */}
@@ -229,7 +224,6 @@ export default function Header() {
           <Logo className="h-auto w-[clamp(150px,13vw,210px)]" />
         </Link>
 
-        {/* Riga 1, a destra (lg+): lingua e CTA piena. */}
         {/* Nessuna CTA nell'header (rif.): l'azione sta nell'hero e nelle
             pagine, una volta sola per schermo. */}
         {/* Le sei voci primarie e la lingua, sulla STESSA riga del logo e
@@ -267,13 +261,15 @@ export default function Header() {
 
       </div>
 
-      {/* Menu mobile: pannello pieno avorio sotto la barra, voci a d2 in Playfair.
+      {/* Menu mobile: pannello pieno avorio sotto la barra, voci grandi in
+          Playfair (una misura loro, fino a 2.3rem: non è il token d2).
           `hidden` quando è chiuso: fuori dal DOM accessibile e dal tab order
           senza bisogno di aria-hidden/inert. Nessuna coreografia: si apre e
           si chiude, come nel riferimento.
 
-          `overflow-y-auto`: nove voci a d2 più il blocco in coda chiedono più
-          di un telefono basso (o di qualunque telefono in orizzontale); un
+          `overflow-y-auto`: sei voci grandi, la riga delle secondarie e il
+          blocco in coda chiedono più di un telefono basso (o di qualunque
+          telefono in orizzontale); un
           elemento fixed non si raggiunge scorrendo la pagina, quindi scorre
           per conto suo. `data-lenis-prevent` dice a Lenis di lasciarlo fare;
           `overscroll-contain` perché la regola gemella in globals.css vale

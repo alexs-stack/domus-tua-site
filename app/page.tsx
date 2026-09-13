@@ -52,17 +52,25 @@ export default function Home() {
           STORY: chi deve vendere capisce in un colpo cosa fa l'agenzia, vede
           persone e case vere, legge le voci dei clienti e trova una sola
           azione: chiedere la valutazione.
-          FIRST VIEWPORT: header chiaro; la foto della stanza fa da fondo
-          alla banda alta (senza velo) con il lockup «Domus Tua» a 13vw e la
-          firma sotto; poi, sull'avorio, sovratitolo, H1 e CTA centrate.
-          FORM: il canone del riferimento pinnato dalla cliente
-          (immobiliaregoldengoal.it), eseguito nella nostra palette: rosso al
-          posto dell'oro, fondo chiaro al posto della banda nera. Tre nastri
-          pilotati dallo scroll — i pannelli di «Perché Domus Tua», il film
-          delle cinque stelle (entrambi riportati l'11 settembre su richiesta
-          del cliente, rifatti senza curve, veli né scuro) e la rotaia del
-          team — e nessun'altra sezione pinnata; nessun cambio di tono fra i
-          capitoli, perché il fondo è uno. */}
+          FIRST VIEWPORT: header chiaro su una riga; la foto della stanza fa
+          da fondo alla banda alta (60svh, senza velo) con il lockup «Domus
+          Tua» a 13vw al centro e la firma a cavallo del bordo basso; poi,
+          sull'avorio, sovratitolo, H1, la CTA della valutazione, sotto
+          «Vendi casa» e «Cerco casa», e il voto, tutto centrato.
+          FORM: il canone visivo del riferimento che la cliente ha mostrato
+          più volte (immobiliaregoldengoal.it), eseguito nella nostra palette:
+          rosso al posto dell'oro, che resta solo sulle stelle, e fondo chiaro
+          al posto della banda nera. La tecnica dei movimenti che restano
+          (film d'ingresso ad arco, logo rotante, testi per righe, pannelli
+          orizzontali) viene dall'altro riferimento, era-residence.com
+          (dossier reverse-engineering/era-residence), senza le sue cupole, i
+          suoi fiori e le sue transizioni di pagina. Tre nastri pilotati dallo
+          scroll, da 1024 px con motion ok, tutti a sticky e nessuno con un pin
+          GSAP — i pannelli di «Perché Domus Tua», il film delle cinque stelle
+          (entrambi riportati l'11 settembre, 024d354, rifatti senza curve,
+          veli né scuro) e la rotaia del team — e nessun'altra sezione
+          pinnata; nessun cambio di tono fra i capitoli, perché il fondo è
+          uno. */}
       <Header />
       <main className="flex-1">
         <HeroCinematic />

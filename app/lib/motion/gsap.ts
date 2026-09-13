@@ -65,7 +65,8 @@ if (typeof window !== "undefined") {
 // Creata una sola volta a livello modulo (idempotente tra HMR/remount).
 CustomEase.create("domus", "M0,0 C0.22,0.9 0.36,1 1,1");
 CustomEase.create("domus.inOut", "M0,0 C0.66,0 0.22,1 1,1");
-// Ease dell'Arco Domus (preloader + transizioni, rif. era-residence):
+// Ease dell'Arco Domus (preloader e reveal di testo, rif. era-residence §4 e §7;
+// le transizioni di pagina non esistono più):
 // "dtDiveIn" = il tuffo dentro la porta; "dtLoader" = progress a scatti;
 // "dtOut" = la curva dei reveal di testo del riferimento (out deciso).
 CustomEase.create("dtDiveIn", "0.6,0,0,1");

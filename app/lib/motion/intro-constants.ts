@@ -44,25 +44,33 @@ export const INTRO_KEY = "dt-intro-seen";
  */
 /**
  * IL TEMPO DEL FILM, in un numero solo. 1 = la timeline com'era nata (4,63 s
- * totali, il montaggio del desktop di sempre). 2 = quella di oggi.
+ * totali, il montaggio del desktop di sempre), ed è quella di oggi. 2 = la
+ * versione lenta (9,26 s), in uso dal 2026-08-19 (31f4231) al 2026-09-10
+ * (456026a).
  *
- * È una scelta di PRODOTTO, presa dal cliente il 2026-08-18 e misurata prima
- * di prenderla: «il preloader dev'essere lento come prima, sia da mobile che
- * da desktop — è bello da vedere con le animazioni lente». La lettura è
+ * TEMPO = 2 fu una scelta di PRODOTTO: la cliente l'aveva chiesta il
+ * 2026-08-18, e fu misurata prima di prenderla: «il preloader dev'essere lento
+ * come prima, sia da mobile che da desktop — è bello da vedere con le
+ * animazioni lente». La lettura era
  * giusta e la causa non era una timeline accorciata: fino alla Fase 1 il film
- * cominciava solo quando atterrava il chunk JS (misurato su HEAD: 2,4-4,7 s di
+ * cominciava solo quando atterrava il chunk JS (misurato allora: 2,4-4,7 s di
  * fondo scuro immobile), quindi l'insieme occupava 7-9 s. Da quando è CSS,
  * parte al primo fotogramma e finisce 2-4 s prima: stessi atti, meno intro da
- * guardare. Allungare il film restituisce il tempo — con la differenza che
- * adesso è animazione, non attesa.
+ * guardare. Raddoppiare il film restituiva il tempo, come animazione e non
+ * come attesa.
  *
- * Il riferimento (era-residence.com) tiene 10,15 s a ogni larghezza: con
- * TEMPO = 2 siamo a 9,26, cioè lì. Tutto scala insieme — atti, stagger, reti,
- * failsafe, autohide, keyframe CSS — e `intro-clocks.test.ts` lo pretende.
+ * Il riferimento della tecnica (era-residence.com, dossier §4) tiene 10,15 s
+ * a ogni larghezza: TEMPO = 2 dava 9,26 s, cioè lì; TEMPO = 1 ne dà la metà.
+ * Tutto scala insieme — atti, stagger, reti, failsafe, autohide, keyframe
+ * CSS — e `intro-clocks.test.ts` lo pretende.
  */
-/* 2026-09-10: la cliente chiede un preloader PIÙ VELOCE — stesso film, tempo
-   dimezzato (4,63 s). Il riferimento nuovo (immobiliaregoldengoal.it) non ha
-   nessun preloader: questo è il compromesso scelto con Alberto. */
+/* 2026-09-10: la cliente chiede un «preloader piu veloce» (riferito da
+   Alberto) e Alberto sceglie «Stesso film di oggi ma dimezzato»: TEMPO torna
+   a 1. Il riferimento visivo (immobiliaregoldengoal.it) non ha nessun
+   preloader. Il 2026-09-11 Alberto ha chiesto l'animazione di entrata «come
+   prima»: è tornato l'ingresso (la sagoma sulla banda dell'hero), la durata è
+   rimasta 4,63 s. Se «come prima» comprendesse anche i 9,26 s è una domanda
+   aperta: non cambiare questo numero senza chiederlo. */
 export const TEMPO = 1;
 
 export const INTRO_T = {
