@@ -1,3 +1,5 @@
+> **Storia: non eseguire — superato dalla rivista bianca del 2026-09-10.** Questo prompt continua il WOW layer, che il redesign ha smontato: il cursore custom e le transizioni di pagina non ci sono più (`PageTransition` è uno stub), e la lettura obbligatoria `docs/wow-layer-plan.md` è superata anche lei. Una sessione che lo eseguisse prenderebbe per attuale una direzione che non lo è più. Il sistema vivo è `DESIGN.md` alla radice del repo.
+
 # Prompt — Onda creativa 4 (da incollare in una nuova sessione)
 
 > Uso: apri una nuova sessione di Claude Code nella root del repo e incolla tutto ciò

@@ -538,6 +538,8 @@ delle scritte «Domus Tua» (`docs/logo-assets.md` §5), le **foto dei cinque me
 rotaia nasce coi monogrammi, `app/lib/team.ts`), la **firma autografa** reale.
 
 Aggiornamento dell'11 settembre: fuso `main` nella branch; la foto dell'hero torna dietro il
-lockup «Domus Tua» (senza velo); nessuna scritta nera (`--color-ink` = grafite); su richiesta del
-cliente tornano, nella grammatica della rivista, i pannelli orizzontali di «Perché Domus Tua» e il
-film delle cinque stelle.
+lockup «Domus Tua» (senza velo); nessuna scritta nera (`--color-ink` = grafite); tornano, nella
+grammatica della rivista, i pannelli orizzontali di «Perché Domus Tua» e il film delle cinque
+stelle. Il commit che li riporta (`024d354`) cita Alberto: «mantenendo quelle animazioni che non
+erano curve». Le eccezioni ancora aperte alla grammatica, fra cui il pannello scuro del preloader e
+le sue didascalie sotto i 16 px, sono nella spec `docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md`, §11.3 (domande 6 e 7).

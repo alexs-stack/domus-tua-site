@@ -2,7 +2,7 @@
 
 > **Nota del 2026-08-17 — questo documento è storia, non stato.** L'onda è chiusa e il
 > codice è andato oltre alcuni verdetti scritti qui; l'onda successiva («stessi effetti su
-> mobile», parità di *effetto* e non più di *intento*) è `docs/mobile-parity-2-prompt.md`,
+> mobile», parità di *effetto* e non più di *intento*) è `docs/mobile-parity-2-prompt.md` (a sua volta superato dalla rivista bianca il 2026-09-10: non eseguire),
 > che scrive il proprio audit in `docs/mobile-parity-2.md`. Verificato riga per riga contro il codice al
 > `c4bccf8`, quello che sotto NON corrisponde più:
 >

@@ -23,33 +23,32 @@ Variabili d'ambiente: copia `.env.example` in `.env.local` e compila. Chiavi pri
 
 ## Design system
 
-Dal 2026-09-10 il sito è **«la rivista bianca»**. La cliente, tramite Alberto, ha bocciato lo stile curvo e smussato, con le card e le transizioni di pagina curve («nessuna scritta piccola, niente colore nero, e niente curvo»). La direzione in quattro righe:
+Dal 2026-09-10 il sito è **«la rivista bianca»**: la cliente, tramite Alberto, ha bocciato lo stile curvo e smussato, con le card e le transizioni di pagina curve. La direzione in breve (valori ed eccezioni sono in DESIGN.md):
 
-- **Forma.** Un solo fondo avorio `#f9f5ef`, raggi e ombre a zero nei token (`--radius-*` 0px, `--shadow-*` none), niente card, fiori o vignettature, nessuna transizione fra le pagine. Restano tondi i bottoni-icona (play, frecce, WhatsApp, i link social a `9999px`, i comandi a icona di schede, galleria e assistente) e il disco carta sotto il badge del preloader. Restano anche quattro ombre, tutte aggiunte costruendo: `INK_ON_VIDEO` sul titolo del Congedo, un'ombra leggera sulla parola della copertina delle cinque stelle, un alone dietro il nome in corsivo del preloader e il `box-shadow` all'hover dei link social. A riposo non si vede nessun velo, ma sopra la foto delle cinque stelle c'è ancora uno strato a tutta superficie, `.dt-starrev_flash`: sta a opacity 0 e si accende solo nel lampo.
-- **Tipografia e colore.** Titoli in Playfair Display maiuscolo, con una scala in vw/vh. Paragrafi in Plus Jakarta Sans, grandi e leggeri, in colonna da 38ch. Il corsivo è Pinyon Script rosso. Il testo è grafite `#46423d` e mai nero («NIENTE SCRITTE BLACK», Alberto, 2026-09-11). Il rosso `#d20a0a` serve per accento e conversione, l'oro `#d9a441` solo sulle stelle (decisione di lavoro, aff9b0e), e il blu non c'è. Nessun testo sotto i 16 px, tranne due didascalie del preloader (vedi «Aperto»).
-- **Movimento.** Righe che salgono, fade-up e una parallasse leggera. In più tre nastri pilotati dallo scroll, attivi da 1024 px e solo con motion ok: «Perché Domus Tua», le cinque stelle e la rotaia del team. I primi due sono tornati l'11 settembre, e l'unica fonte primaria, 024d354, cita Alberto («dovevamo fare un redesign, ma mantenendo quelle animazioni che non erano curve»). Il commento in testa ad `app/page.tsx` li dà invece al cliente, come facevano i documenti scritti prima del 13 settembre: se Alberto riferisse la cliente nessuna fonte lo dice, ed è una domanda aperta. Il preloader ad arco dura 4,63 s: la cliente l'ha chiesto «più veloce», Alberto ha scelto «stesso film di oggi ma dimezzato» (2026-09-10). Niente cursore custom.
-- **Aperto.** Il logo nuovo non è stato consegnato, e `--font-brand` punta a Jakarta come segnaposto. Il preloader ha quattro eccezioni ancora da decidere, e ognuna va contro una direttiva della cliente: il pannello espresso contro «eliminare nero ovunque» (2026-09-10); le didascalie a 0.68rem e 0.82rem contro «nessuna scritta piccola»; il disco carta sotto il badge contro «metti il logo senza sfondo bianco» (2026-08-06); il lockup «Domus Tua» in Playfair, mentre quello dell'hero è in `--font-brand`, contro «stesso font del logo in tutte le scritte Domus Tua». Le altre domande aperte, fra cui la foto aerea tornata subito dopo la ricerca contro il punto 6 della cliente, sono nella spec, §11.3.
+- **Forma.** Un solo fondo avorio `#f9f5ef`, raggi e ombre a zero, niente card, fiori, veli o transizioni fra le pagine. Le poche curve rimaste sono inventariate in DESIGN.md, sezione Shapes.
+- **Tipografia e colore.** Titoli Playfair Display maiuscoli in vw/vh, paragrafi Plus Jakarta Sans grandi e leggeri, corsivo Pinyon Script rosso. Testo grafite `#46423d`, mai nero; rosso `#d20a0a` per accento e conversione; oro solo sulle stelle. Nessun testo delle pagine sotto i 16 px, tranne il preloader (domanda aperta) e la mappa della ricerca: l'inventario è in DESIGN.md, «La regola dei 16 px».
+- **Movimento.** Righe che salgono, fade-up, parallasse leggera, il monogramma orario, un preloader ad arco di 4,63 s e tre nastri pilotati dallo scroll da 1024 px: «Perché Domus Tua», le cinque stelle e la rotaia del team. Niente cursore custom.
+- **Aperto.** Il logo nuovo non è arrivato (`--font-brand` punta a Jakarta come segnaposto). Le quattro eccezioni del preloader (pannello espresso, didascalie sotto i 16 px, disco carta, lockup in Playfair) e le altre domande aperte sono nella spec, §11.3.
 
-**Documenti vivi.** Chi deve cambiare qualcosa li legge in quest'ordine:
+**Documenti vivi**, in ordine di lettura:
 
-- [DESIGN.md](DESIGN.md) (radice): il sistema scritto dal costruito, con token, scala, moduli media, componenti, do e don't.
-- [PRODUCT.md](PRODUCT.md): per chi è il sito e gli impegni di marca (Brand Commitments).
-- [docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md](docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md): la spec del redesign. §1 è la lista della chiamata del 2026-09-10 punto per punto, §2 le risposte di Alberto alle quattro domande dello stesso giorno. §11, «Direttive arrivate dopo la costruzione», registra chi ha detto cosa e quando dopo quella sera, tenendo separate la cliente, Alberto e le decisioni di lavoro; §11.3 elenca le domande aperte.
-- [.impeccable/design.json](.impeccable/design.json): lo stesso sistema in forma leggibile dagli strumenti Impeccable. Va tenuto allineato a DESIGN.md e confrontato con `app/globals.css` prima di fidarsi di un valore. *Storia:* la versione del 2026-09-10 (0890f89) portava ancora i valori di prima delle correzioni dell'11 settembre: inchiostro `#1a1816`, oro `#c9a227`, lead a 50ch, titolo di capitolo a interlinea 0.95, etichette a tracking 0.08em. Nel codice sono `#46423d`, `#d9a441`, 38ch, 1 per d2 (0.98 per d1) e 0.12em per l'occhiello.
+1. [DESIGN.md](DESIGN.md): il sistema scritto dal costruito, con token, scala, moduli media, componenti, do e don't.
+2. [PRODUCT.md](PRODUCT.md): per chi è il sito e gli impegni di marca.
+3. [La spec della rivista bianca](docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md): §1 la chiamata del 2026-09-10; §11 il registro delle direttive (chi ha chiesto cosa e quando, con le domande aperte in §11.3 e i materiali attesi dalla cliente in §11.4).
+4. [.impeccable/design.json](.impeccable/design.json): lo stesso sistema per gli strumenti Impeccable, rigenerato da DESIGN.md.
 
-I valori nascono in `app/globals.css` (`@theme inline`) e i font in `app/layout.tsx` (next/font). Quando un documento e il codice non coincidono vale il codice, e il documento va corretto. Per sapere chi ha chiesto una cosa vale la §11 della spec, che parte dalle fonti primarie: i transcript e i messaggi di commit. Serve perché alcuni commit dell'11 settembre e alcuni commenti nel codice attribuiscono al cliente frasi di Alberto, e i documenti scritti prima del 13 le avevano riprese. Restano nel codice e nella storia git: il ritorno dei set piece (il commento di `app/page.tsx`), il «menu sopra» (6e6559b, il commento di `nav` in `app/lib/site.ts`) e la «posizione delle foto» (5304dfd). La differenza conta: a una direttiva della cliente si risponde alla cliente, a una decisione di lavoro no.
+I valori nascono in `app/globals.css` (`@theme inline`) e i font in `app/layout.tsx`: se un documento e il codice non coincidono vale il codice. Per sapere chi ha chiesto una cosa vale la §11 della spec.
 
-**Riferimenti e dossier.**
+**Riferimenti e dossier** (cartelle gitignorate: non arrivano con un clone):
 
-- **[immobiliaregoldengoal.it](https://www.immobiliaregoldengoal.it/)** è il riferimento visivo. Lo ha indicato la cliente, riferita da Alberto il 2026-09-10: gliel'ha mostrato più volte perché è pulito, professionale, con scritte grandi, niente card, foto e video grandi e spazi gestiti bene. È un riferimento, non una regola che si possa leggere nel codice. Si misurano le conseguenze: un fondo solo, nessuna card, raggi a zero, media a tutta larghezza o a 42vw. Il giudizio d'insieme («pulito, professionale») non si ricava dal codice.
-- **`reverse-engineering/goldengoal/`** è il dossier del riferimento. L'ha chiesto Alberto il 2026-09-10 («fai un reverse engineering del sito in questione»). Contiene misure, scala tipografica, colori e griglia nel `README.md`, più `capture.mjs` per gli screenshot (`node reverse-engineering/goldengoal/capture.mjs ours` fotografa il nostro sito). La cartella è gitignorata perché contiene asset di terzi, quindi non arriva con un clone. Una differenza è voluta ma ancora in discussione: il riferimento scrive titoli e corpo in `#1f1f1f`, noi in `#46423d`. Se accettare un inchiostro più scuro per i soli titoli è una domanda aperta per Alberto, non ancora decisa.
-- **`reverse-engineering/era-residence/`** è il riferimento secondario: il dossier sulla tecnica di animazione (codice, tempi, struttura) di era-residence.com. Alberto l'ha rimesso in gioco il 2026-09-11 («utilizza anche come riferimento il sito vecchio al quale avevamo preso spunto»). È servito a ripristinare l'ingresso del preloader, e i commenti di `Preloader.tsx`, `RotatingMark.tsx`, `HorizonScroller.tsx` e `TextLines.tsx` ne citano i paragrafi. Anche questa cartella è gitignorata.
+- [immobiliaregoldengoal.it](https://www.immobiliaregoldengoal.it/) è il **riferimento visivo**, indicato dalla cliente il 2026-09-10. Dossier `reverse-engineering/goldengoal/`: misure, scala, colori e griglia nel `README.md`; `node reverse-engineering/goldengoal/capture.mjs ours` fotografa il nostro sito.
+- era-residence.com è il **riferimento di tecnica** (Alberto, 11 e 13 settembre). Dossier `reverse-engineering/era-residence/README.md`, da cui vengono la tipografia dei titoli, Playfair e la scala in vw (§2), il preloader ad arco con la sua timeline e le sue ease (§4), il logo rotante (§5), i testi che salgono per righe (§7) e lo scroller orizzontale con le parallasse interne (§11.1-11.2). Ne restano fuori le cupole, i fiori e le transizioni di pagina.
 
-**Storia.** I documenti seguenti sono stati superati il 2026-09-10. Restano come storia, non come guida: [docs/DESIGN.md](docs/DESIGN.md) (il sistema precedente, con card, raggi, ombre e Fraunces) · [docs/brand-direction.md](docs/brand-direction.md) · [docs/brand-motif.md](docs/brand-motif.md) · [docs/effetti-reference.md](docs/effetti-reference.md) · [docs/wow-layer-plan.md](docs/wow-layer-plan.md). Il piano con cui la rivista bianca è stata costruita, [docs/superpowers/plans/2026-09-10-rivista-bianca.md](docs/superpowers/plans/2026-09-10-rivista-bianca.md), è stato eseguito per intero il 2026-09-10. Diversi suoi task sono stati ribaltati nei giorni seguenti, e il riquadro in testa al piano dice quali.
+**Storia** (superati, non guida): [docs/DESIGN.md](docs/DESIGN.md) · [docs/brand-direction.md](docs/brand-direction.md) · [docs/brand-motif.md](docs/brand-motif.md) · [docs/effetti-reference.md](docs/effetti-reference.md) · [docs/wow-layer-plan.md](docs/wow-layer-plan.md) · [docs/segno-domus.md](docs/segno-domus.md) · [docs/client-review-script.md](docs/client-review-script.md) · [docs/plan-sprint.md](docs/plan-sprint.md) · i prompt [docs/mobile-parity-prompt.md](docs/mobile-parity-prompt.md), [docs/mobile-parity-2-prompt.md](docs/mobile-parity-2-prompt.md) e [docs/onda-4-prompt.md](docs/onda-4-prompt.md), da non eseguire. Il [piano della rivista bianca](docs/superpowers/plans/2026-09-10-rivista-bianca.md) è stato eseguito il 2026-09-10; il riquadro in testa dice quali task sono cambiati dopo.
 
 ## Struttura
 
-La homepage è composta in `app/page.tsx`. Il commento in testa è il contratto di direzione, con una riga da correggere: dà al cliente il ritorno dei due set piece, che 024d354 attribuisce ad Alberto (domanda aperta, spec §11.3). I capitoli stanno in `app/components/`, in quest'ordine:
+La homepage è composta in `app/page.tsx`. Il commento in testa è il contratto di direzione. I capitoli stanno in `app/components/`, in quest'ordine:
 
 | Componente | Capitolo |
 |---|---|
@@ -102,7 +101,7 @@ Gli immobili arrivano dal gestionale RealSmart; `app/lib/properties.ts` tiene 6 
 
 ## ⚠️ Dati DEMO da sostituire con quelli reali del cliente
 
-L'elenco completo, verificato contro il codice e con i bloccanti marcati, è [docs/da-chiedere-alla-cliente.md](docs/da-chiedere-alla-cliente.md). In breve, al 2026-09-13:
+L'elenco completo, con i bloccanti marcati, è [docs/da-chiedere-alla-cliente.md](docs/da-chiedere-alla-cliente.md). In breve, al 2026-09-13:
 
 - **Immobili**: il catalogo è quello vivo del gestionale, e le 6 fixture fittizie di `app/lib/properties.ts` compaiono solo se il feed cade. Quali immobili siano ancora davvero in vendita va confermato (§4.1).
 - **Recensioni** (`Reviews.tsx`): in produzione mostra solo le recensioni approvate, oggi nessuna; le card demo compaiono solo in anteprima, col banner «Esempi dimostrativi». Servono sei-otto recensioni vere da mostrare come testo (§4.6).
@@ -116,13 +115,12 @@ L'elenco completo, verificato contro il codice e con i bloccanti marcati, è [do
 ## Documentazione
 
 **Brand & identità**
-- [docs/logo-assets.md](docs/logo-assets.md) — **Logo ufficiale** (original-first): file richiesti, dimensioni, sfondo trasparente, varianti, favicon. *Non ridisegnare il logo in MVP.* Il §5 tratta il logo nuovo e il font delle scritte «Domus Tua», che la cliente ha chiesto il 2026-09-10 e che non sono ancora arrivati. La seconda metà della richiesta, lo stesso font in tutte le scritte «Domus Tua», oggi non è rispettata: `--font-brand` (Jakarta, segnaposto) lo usa solo il lockup dell'hero, mentre quello del preloader è in Playfair.
-- [docs/segno-domus.md](docs/segno-domus.md) — sistema visivo differenziante Segno Domus (componenti, uso web/brochure/video, overuse)
-- Design system vivo: [DESIGN.md](DESIGN.md) · [PRODUCT.md](PRODUCT.md) · [spec della rivista bianca](docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md) · [.impeccable/design.json](.impeccable/design.json) (vedi «Design system» sopra). Solo storia, superati il 2026-09-10: [docs/DESIGN.md](docs/DESIGN.md) · [docs/brand-direction.md](docs/brand-direction.md) · [docs/brand-motif.md](docs/brand-motif.md)
+- [docs/logo-assets.md](docs/logo-assets.md) — **Logo ufficiale** (original-first): file richiesti, dimensioni, sfondo trasparente, varianti, favicon. *Non ridisegnare il logo in MVP.* Il §5 tratta il logo nuovo e il font delle scritte «Domus Tua», non ancora consegnati.
+- Design system vivo, riferimenti e documenti superati: vedi «Design system» sopra.
 
 **Media**
-- [docs/hero-video.md](docs/hero-video.md) — hero cinematico: file video/poster, compressione, mobile. *In parte storia:* descrive l'hero full-bleed di prima, con `HeroClassic` e `Hero.tsx` come ripiego, e nessuno dei due file esiste più. Dal 2026-09-11 l'hero è una banda fotografica di 60svh (09aff4b), e il video è spento (`heroCinematic.enabled = false` in `app/lib/media.ts`, che lo dà per scelta della cliente del 2026-08-03). Se si riaccende, restano valide le note su file e compressione.
-- [docs/media-optimization.md](docs/media-optimization.md) — immagini, video, YouTube lazy, naming
+- [docs/hero-video.md](docs/hero-video.md) — hero cinematico: file video/poster, compressione, mobile. *In parte storia:* descrive l'hero full-bleed di prima, con `HeroClassic` e `Hero.tsx` come ripiego, che non esistono più. Oggi l'hero è una banda fotografica di 60svh e il video è spento (`heroCinematic.enabled = false` in `app/lib/media.ts`); se si riaccende, restano valide le note su file e compressione.
+- [docs/media-optimization.md](docs/media-optimization.md) — immagini, video, YouTube lazy, naming. *In parte storia:* alcuni esempi di codice usano raggi, fondi scuri e ombre che la rivista bianca ha tolto; per la forma vale DESIGN.md.
 
 **Contenuti & integrazioni**
 - [docs/realsmart-integration-notes.md](docs/realsmart-integration-notes.md) · [docs/realsmart-client-questions.md](docs/realsmart-client-questions.md) · [docs/realsmart-security.md](docs/realsmart-security.md) — feed immobili RealSmart
@@ -132,7 +130,7 @@ L'elenco completo, verificato contro il codice e con i bloccanti marcati, è [do
 - [docs/i18n.md](docs/i18n.md) — multilingua IT/EN/FR/DE/ES (flag `NEXT_PUBLIC_ENABLE_I18N`)
 
 **Qualità**
-- [docs/audit-finale.md](docs/audit-finale.md) — **audit indipendente**: checklist PASS/FAIL, problemi P0–P3, decisioni rimaste al cliente
+- [docs/audit-finale.md](docs/audit-finale.md) — **audit indipendente**: checklist PASS/FAIL, problemi P0–P3, decisioni rimaste al cliente. *In parte storia:* precede la rivista bianca, e la testata e i font che descrive non sono più quelli di oggi.
 - [docs/performance.md](docs/performance.md) — misure Lighthouse, budget, cosa è stato ottimizzato e il divario che resta
 - [docs/e2e.md](docs/e2e.md) — suite end-to-end: cosa copre, viewport, accessibilità, smoke sul feed live
 - [docs/assistant-ui-e-eval.md](docs/assistant-ui-e-eval.md) — interfaccia, sicurezza e cento eval del chatbot
@@ -141,8 +139,7 @@ L'elenco completo, verificato contro il codice e con i bloccanti marcati, è [do
 - [docs/env-and-deploy.md](docs/env-and-deploy.md) — variabili d'ambiente, Vercel, preview vs produzione
 - [docs/vercel-live-checklist.md](docs/vercel-live-checklist.md) — **verifica del deploy** e azioni manuali rimaste in Vercel
 - [docs/production-readiness.md](docs/production-readiness.md) — checklist di lancio
-- [docs/da-chiedere-alla-cliente.md](docs/da-chiedere-alla-cliente.md) — **cosa deve ancora fornire la cliente**: contenuti, foto, video, dati, accessi, con i bloccanti marcati. Documento unico, verificato contro il codice
-- [docs/client-review-script.md](docs/client-review-script.md) — talk-track per la call di presentazione
+- [docs/da-chiedere-alla-cliente.md](docs/da-chiedere-alla-cliente.md) — **cosa deve ancora fornire la cliente**: contenuti, foto, video, dati, accessi, con i bloccanti marcati. Documento unico
 - [docs/phase-plan.md](docs/phase-plan.md) — Fase 1 (sito) vs Fase 2 (AI/CRM)
 
 ## Prossimi passi (dal brief iniziale: storia)
