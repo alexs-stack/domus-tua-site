@@ -166,7 +166,9 @@ writeFileSync(
   "utf8",
 );
 
-const widths = Object.keys(FLAT);
+// Ordine esplicito delle colonne: Object.keys(FLAT) darebbe le chiavi intere in ordine numerico (390, 1440) e le
+// intestazioni, che seguono `widths`, direbbero il contrario (giro di correzione 1 del commit 2).
+const widths = ["1440", "390"];
 const names = Object.keys(PROJECTS);
 const at = (w, route) => flat[`${w} ${route}`];
 const rows = ROUTES.map((route) => {
@@ -202,12 +204,10 @@ appendResults(
     mdTable(
       [
         "rotta",
-        "1440×900 (§2.5)",
-        "390×664 (§2.5)",
-        "desktop-1440 (test 6)",
-        "mobile-390 (test 6)",
-        "CLS 1440 / 390 (massimo)",
-        "§2.5 1440 · 390",
+        ...widths.map((w) => `${w}×${FLAT[w].viewport.height} (§2.5)`),
+        ...names.map((p) => `${p} (test 6)`),
+        `CLS ${widths.join(" / ")} (massimo)`,
+        `§2.5 ${widths.join(" · ")}`,
         `scarti > ${DRIFT_MS} ms o tag diverso`,
       ],
       rows,

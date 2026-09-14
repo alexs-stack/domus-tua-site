@@ -14,7 +14,10 @@
 // misura l'uscita senza la sonda dell'inchiostro dei test: yPercent calcolato di
 // ogni riga (m42 della matrice / altezza della riga), dal primo fotogramma col
 // bordo alto sotto la linea dell'85 % al primo con tutte le righe a yPercent ≥ 90,
-// dopo una rotellata da 0,5 a 0,93. Tre giri per progetto, in
+// dopo una rotellata da 0,5 a 0,93, a ScrollTrigger rinfrescati dopo lo split
+// (freshTriggers di lib.mjs, decisione di lavoro D38: oggi il sito non rinfresca
+// dopo l'idratazione e senza la scossa l'uscita non arriva; la condizione è
+// scritta nella sezione). Tre giri per progetto, in
 // test-results/02-testo-oggi-sonda.json e in risultati.md.
 // Uscita: 0 titolo confermato ed entro 1230 ms; 2 titolo da cambiare (comando
 // applica); 1 nessun titolo idoneo (scarto della spec) o uscita oltre 1230 ms.
@@ -141,7 +144,7 @@ async function openHome(browser, base, descriptor) {
   await page.locator("header").first().waitFor({ state: "visible", timeout: 30_000 });
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await page.waitForFunction(() => document.querySelectorAll(".tl-line").length > 0, null, { timeout: 15_000 });
-  // Trigger rinfrescati dopo l'idratazione, come `ready` di e2e/coreografia.ts: altrimenti «top 86%» è stantio.
+  // Trigger rinfrescati dopo lo split, come `refreshTriggers` nei test 1-2 (D38): altrimenti «top 86%» è stantio.
   await freshTriggers(page);
   return { ctx, page };
 }
@@ -292,7 +295,7 @@ async function sonda() {
     [
       "## 02 · Sonda dell'uscita di oggi (02-testo-oggi.mjs sonda)",
       "",
-      `${today()} · commit ${gitCommit()} · desktop-1440 (Desktop Chrome, 1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · next start sulla 3178 col build della suite, un contesto alla volta, motion attivo, consenso accettato, sipario saltato · uscita: ms dal primo fotogramma col bordo alto sotto 0,85 × innerHeight al primo con tutte le righe a yPercent ≥ 90 (m42 della matrice / altezza della riga), dopo una rotellata da 0,5 a 0,93`,
+      `${today()} · commit ${gitCommit()} · desktop-1440 (Desktop Chrome, 1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · next start sulla 3178 col build della suite, un contesto alla volta, motion attivo, consenso accettato, sipario saltato · ScrollTrigger rinfrescati dall'attrezzatura dopo lo split (D38: cambio di larghezza di 1 px e ritorno; oggi il sito non rinfresca dopo l'idratazione) · uscita: ms dal primo fotogramma col bordo alto sotto 0,85 × innerHeight al primo con tutte le righe a yPercent ≥ 90 (m42 della matrice / altezza della riga), dopo una rotellata da 0,5 a 0,93`,
       "",
       mdTable(
         ["titolo", "testo", "righe 1440", "righe 390", "uscita prevista ms (righe massime)", "idoneo"],
@@ -428,7 +431,7 @@ function report(file) {
     [
       "## 02 · Tempi del testo di oggi (e2e/text-motion.spec.ts su TextLines e Reveal, confronto con la sonda)",
       "",
-      `${today()} · commit ${gitCommit()} · desktop-1440 (1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · build della suite sulla 3177, --workers=1, --repeat-each=3, motion attivo, consenso accettato, sipario saltato · ingresso: ms dal fotogramma in cui il bordo alto entra dal basso all'inizio dell'ultimo tratto pieno, peggiore fra titoli e blocchi in vista; uscita: ms dal passaggio della linea dell'85 % all'inchiostro massimo sotto 0,1`,
+      `${today()} · commit ${gitCommit()} · desktop-1440 (1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · build della suite sulla 3177, --workers=1, --repeat-each=3, motion attivo, consenso accettato, sipario saltato · test 1 e 2 a ScrollTrigger rinfrescati dall'attrezzatura dopo lo split (refreshTriggers, D38: cambio di larghezza di 1 px e ritorno; oggi il sito non rinfresca dopo l'idratazione) · ingresso: ms dal fotogramma in cui il bordo alto entra dal basso all'inizio dell'ultimo tratto pieno, peggiore fra titoli e blocchi in vista; uscita: ms dal passaggio della linea dell'85 % all'inchiostro massimo sotto 0,1`,
       "",
       mdTable(["gesto", "titolo o capitolo", "progetto", "giri", "mediana ms", "peggiore ms", "dettaglio"], table),
       "",

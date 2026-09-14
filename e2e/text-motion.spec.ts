@@ -1,5 +1,5 @@
 import { test, expect, setConsent } from "./helpers";
-import { budget, entryTimes, inkOf, timeToHidden, watchMinInk, wheelToTop } from "./coreografia";
+import { budget, entryTimes, inkOf, refreshTriggers, timeToHidden, watchMinInk, wheelToTop } from "./coreografia";
 
 // Il testo in movimento (spec 2026-09-13 §9.2, test 1-3).
 //
@@ -18,6 +18,15 @@ import { budget, entryTimes, inkOf, timeToHidden, watchMinInk, wheelToTop } from
 // contenderebbero la CPU, e le misure del piano li lanciano con --workers=1.
 // `guards` monta il mock delle terze parti (helpers.ts:59-118): la rotella
 // attraversa #voci col consenso accettato, e Trustindex non arriva dalla rete.
+// I test 1 e 2 misurano a ScrollTrigger rinfrescati dopo lo split
+// (`refreshTriggers`, decisione di lavoro D38): oggi TextLines crea i trigger
+// prima che il layout finisca di crescere e nessuno li rinfresca, e senza il
+// refresh l'uscita del test 2 non arriva finché il titolo non è fuori dallo
+// schermo. Il commit 2 non tocca il sito (difetto riferito al coordinatore): la
+// scossa è dichiarata qui e nelle condizioni di misure/risultati.md, così un
+// motore che non rinfresca da sé non passa per sbaglio. Il test 3 non la
+// chiede: fra 0,5 × innerHeight e sopra il bordo alto nessun trigger cambia
+// stato, con lo start stantio o rinfrescato.
 
 test.use({ contextOptions: { reducedMotion: "no-preference" } });
 test.describe.configure({ mode: "default" });
@@ -33,6 +42,7 @@ test.beforeEach(async ({ page }) => {
 
 test("1 · in fondo alla home titoli e blocchi in vista entrano entro 3,5 s dal bordo", async ({ page, goto, guards }, testInfo) => {
   await goto("/");
+  await refreshTriggers(page);
   for (const stop of ["#servizi", "#contatti"]) {
     // L'osservatore è armato prima della rotella: t0 è il fotogramma in cui il bordo alto entra dal basso.
     const watch = await entryTimes(page, stop, { timeoutMs: 6000 });
@@ -51,6 +61,7 @@ test("1 · in fondo alla home titoli e blocchi in vista entrano entro 3,5 s dal 
 
 test("2 · risalendo, un titolo sotto la linea dell'85 % esce entro 1,3 s", async ({ page, goto, guards }, testInfo) => {
   await goto("/");
+  await refreshTriggers(page);
   const title = page.locator(EXIT_TARGET).first();
   await wheelToTop(page, title, 0.5);
   await expect.poll(async () => (await inkOf(title)).min, { timeout: 3500 }).toBeGreaterThanOrEqual(0.99);

@@ -24,8 +24,10 @@ import { expect } from "./helpers";
 // chi vuole la sonda dal primo script del documento.
 // Lo scroll passa dalla rotella, quindi da Lenis (SmoothScroll.tsx), come per un
 // utente; `scrollToProgress` scrive `window.scrollTo` per le misure puntuali.
-// Prima del primo scroll di ogni documento `ready` aspetta i titoli e rinfresca
-// le posizioni dei ScrollTrigger (window.__dtReady, vedi la funzione).
+// Prima del primo scroll di ogni documento `ready` aspetta l'idratazione e tara
+// la rotella (window.__dtReady); `entryTimes` aspetta anche i titoli definitivi.
+// Il refresh dei ScrollTrigger non è mai automatico: lo chiede il test con
+// `refreshTriggers` (decisione di lavoro D38, vedi la funzione).
 
 export const TITLE_SEL = '[data-reveal="title"], :is(h1, h2, h3, h4, p, div, blockquote):has(> .tl-line-mask)';
 export const INK_LEAF_SEL = "[data-c], .tl-line";
@@ -78,6 +80,8 @@ declare global {
     __dtReady?: boolean;
     /** Colpo di rotella da mandare per muovere 1 px: sotto l'emulazione a DPR > 1 la pagina riceve deltaY / DPR. */
     __dtWheelScale?: number;
+    /** Numero dei ScrollTrigger vivi, hook di prova di app/lib/motion/gsap.ts: c'è appena il chunk del layout è eseguito. */
+    __dtST?: () => number;
     /** Conteggio dei refresh di ScrollTrigger, hook di prova di app/lib/motion/gsap.ts. */
     __dtSTRefresh?: number;
   }
@@ -178,26 +182,36 @@ async function stopWatch(page: Page, id: string): Promise<void> {
   }, id);
 }
 
+/** Aspetta `pred` nella pagina entro `timeoutMs`; allo scadere lancia un errore che dice cosa mancava, mai un timeout muto. */
+async function waitFor(page: Page, pred: () => boolean, why: string, timeoutMs: number): Promise<void> {
+  await page.waitForFunction(pred, undefined, { timeout: timeoutMs }).catch(() => {
+    throw new Error(`${why} dopo ${timeoutMs} ms`);
+  });
+}
+
 /**
- * Prepara il documento una volta sola (window.__dtReady) prima del primo scroll: aspetta i titoli (TITLE_SEL: oggi
- * lo split di TextLines, che arriva dopo l'idratazione; col piano il markup del server), poi rinfresca le posizioni
- * dei ScrollTrigger con un cambio di larghezza del viewport di 1 px e ritorno, aspettando il contatore
- * window.__dtSTRefresh di gsap.ts.
- * Perché: oggi TextLines crea i trigger dentro il passo di idratazione, prima che il layout finisca di crescere
- * (misurato sul build: +375 px a 1440×900 e +306 px a 390×664 fra la creazione e il fotogramma dopo), e nessuno
- * chiama ScrollTrigger.refresh() dopo: in headless 19 caricamenti su 20 hanno `start` stantio e il leaveBack di
- * «top 86%» scatta col titolo ancora sotto il viewport, così l'uscita del test 2 non arriva mai. Il cambio di
- * larghezza è l'unico evento che rinfresca anche su touch (ScrollTrigger.config ignoreMobileResize, gsap.ts:46),
- * dove conta solo il resize visto a larghezza diversa da quella di partenza; il ritorno rinfresca solo col mouse.
- * Decisione di lavoro del commit 2 sull'attrezzatura, non sul sito: il difetto è riferito al coordinatore.
- * Tara anche la rotella (window.__dtWheelScale): sotto l'emulazione di un dispositivo a DPR > 1 la pagina riceve
- * deltaY / DPR (iPhone 13: 120 → 40), e senza la taratura la risalita andrebbe a gradini di un terzo, con pause
- * fra un colpo e l'altro che entrano nei tempi misurati. La misura è un colpo di 120 px intercettato in cattura con
- * preventDefault, quindi senza scroll.
+ * Prepara il documento una volta sola (window.__dtReady) prima del primo scroll.
+ * - Aspetta l'idratazione con due segnali economici, presenti su ogni rotta del layout e non legati ai titoli:
+ *   `window.__dtST` di gsap.ts:57 (il chunk del layout è stato eseguito) e, a motion attivo, la classe `lenis` che
+ *   Lenis scrive su <html> quando SmoothScroll lo monta nel suo useEffect (SmoothScroll.tsx:108-115, dopo il commit
+ *   dell'idratazione); con reduced-motion Lenis non nasce e basta il primo. Al massimo 15 s, poi un errore che dice
+ *   cosa manca: un documento senza titoli (per esempio /case/[slug]) non paga nessuna attesa muta.
+ * - Tara la rotella (window.__dtWheelScale): sotto l'emulazione di un dispositivo a DPR > 1 la pagina riceve
+ *   deltaY / DPR (iPhone 13: 120 → 40), e senza la taratura la risalita andrebbe a gradini di un terzo, con pause
+ *   fra un colpo e l'altro che entrano nei tempi misurati. La misura è un colpo di 120 px intercettato in cattura
+ *   con preventDefault, quindi senza scroll.
+ * Non aspetta i titoli e non rinfresca i ScrollTrigger: i titoli li aspetta `settledTitles` per chi li censisce
+ * (`entryTimes`), il refresh lo chiede il test con `refreshTriggers` (D38).
  */
 async function ready(page: Page): Promise<void> {
   if (await page.evaluate(() => window.__dtReady === true)) return;
-  await page.waitForFunction((sel) => !!document.querySelector(sel), TITLE_SEL, { timeout: 15_000 }).catch(() => undefined);
+  await waitFor(page, () => typeof window.__dtST === "function", "ready: gsap.ts non è arrivato, il chunk del layout non è stato eseguito", 15_000);
+  await waitFor(
+    page,
+    () => !matchMedia("(prefers-reduced-motion: no-preference)").matches || document.documentElement.classList.contains("lenis"),
+    "ready: Lenis non è montato su <html>, l'idratazione non è finita (SmoothScroll.tsx)",
+    15_000,
+  );
   const vp = page.viewportSize();
   if (vp) {
     await page.mouse.move(12, Math.round(vp.height / 2));
@@ -222,26 +236,78 @@ async function ready(page: Page): Promise<void> {
     await page.evaluate((s) => {
       window.__dtWheelScale = s;
     }, dy > 0 ? 120 / dy : 1);
-    const counted = await page.evaluate(() => typeof window.__dtSTRefresh === "number");
-    const refreshed = (n: number) =>
-      counted
-        ? page.waitForFunction((k) => (window.__dtSTRefresh ?? 0) > k, n, { timeout: 3000 }).catch(() => undefined)
-        : page.waitForTimeout(500);
-    const touch = await page.evaluate(() => matchMedia("(hover: none), (pointer: coarse)").matches);
-    const n0 = await page.evaluate(() => window.__dtSTRefresh ?? 0);
-    await page.setViewportSize({ width: vp.width + 1, height: vp.height });
-    await page.waitForFunction((w) => window.innerWidth === w, vp.width + 1);
-    await refreshed(n0);
-    const n1 = await page.evaluate(() => window.__dtSTRefresh ?? 0);
-    await page.setViewportSize(vp);
-    await page.waitForFunction((w) => window.innerWidth === w, vp.width);
-    if (!touch) await refreshed(n1);
-    // Il re-split di autoSplit arriva 200 ms dopo il cambio di larghezza, col suo trigger nuovo.
-    await page.waitForTimeout(300);
   }
   await page.evaluate(() => {
     window.__dtReady = true;
   });
+}
+
+/**
+ * Aspetta i titoli definitivi del documento senza cercarne uno: oggi TextLines spezza le righe dentro
+ * `document.fonts.ready.then` registrato al commit dell'idratazione (TextLines.tsx:76-78), col piano i titoli
+ * `[data-reveal="title"]` arrivano dal server. Quindi, dopo `ready` e a font caricati (`document.fonts.status`), il
+ * numero degli elementi TITLE_SEL deve restare fermo per 12 fotogrammi: un documento senza titoli passa in 0,2 s, uno
+ * coi titoli aspetta lo split e il suo eventuale ri-split; se il numero non si ferma entro 5 s l'errore lo dice.
+ */
+async function settledTitles(page: Page): Promise<void> {
+  await ready(page);
+  await waitFor(page, () => document.fonts.status === "loaded", "settledTitles: i font non sono arrivati", 15_000);
+  const stable = await page.evaluate(
+    ([sel, frames, tmo]) =>
+      new Promise<number | null>((resolve) => {
+        const t0 = performance.now();
+        let last = document.querySelectorAll(sel).length;
+        let still = 0;
+        const tick = (now: number) => {
+          const n = document.querySelectorAll(sel).length;
+          still = n === last ? still + 1 : 0;
+          last = n;
+          if (still >= frames) resolve(n);
+          else if (now - t0 > tmo) resolve(null);
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
+    [TITLE_SEL, 12, 5000] as const,
+  );
+  if (stable === null) throw new Error("settledTitles: il numero dei titoli non si è fermato in 5 s (ri-split continuo?)");
+}
+
+/**
+ * Rinfresca le posizioni dei ScrollTrigger con un cambio di larghezza del viewport di 1 px e ritorno, aspettando il
+ * contatore window.__dtSTRefresh di gsap.ts; prima aspetta i titoli definitivi (`settledTitles`), perché i trigger
+ * di TextLines nascono con lo split. La chiama il test che vuole misurare a trigger rinfrescati, mai gli attrezzi
+ * di scroll (D38, giro di correzione 1 del commit 2).
+ * Perché serve: oggi TextLines crea i trigger dentro il passo di idratazione, prima che il layout finisca di
+ * crescere (misurato sul build: +375 px a 1440×900 e +306 px a 390×664 fra la creazione e il fotogramma dopo), e
+ * nessuno chiama ScrollTrigger.refresh() dopo: in headless 19 caricamenti su 20 hanno `start` stantio e il
+ * leaveBack di «top 86%» scatta col titolo ancora sotto il viewport, così l'uscita del test 2 non arriva mai. Il
+ * commit 2 non tocca il sito (il difetto è riferito al coordinatore): la scossa resta nell'attrezzatura, ma
+ * esplicita e dichiarata nelle condizioni della misura, così un motore che non rinfresca da sé non passa per sbaglio.
+ * Il cambio di larghezza è l'unico evento che rinfresca anche su touch (ScrollTrigger.config ignoreMobileResize,
+ * gsap.ts:46), dove conta solo il resize visto a larghezza diversa da quella di partenza; il ritorno rinfresca solo
+ * col mouse.
+ */
+export async function refreshTriggers(page: Page): Promise<void> {
+  await settledTitles(page);
+  const vp = page.viewportSize();
+  if (!vp) throw new Error("refreshTriggers: viewport non fisso, il cambio di larghezza non si può fare");
+  const counted = await page.evaluate(() => typeof window.__dtSTRefresh === "number");
+  const refreshed = (n: number) =>
+    counted
+      ? page.waitForFunction((k) => (window.__dtSTRefresh ?? 0) > k, n, { timeout: 3000 }).catch(() => undefined)
+      : page.waitForTimeout(500);
+  const touch = await page.evaluate(() => matchMedia("(hover: none), (pointer: coarse)").matches);
+  const n0 = await page.evaluate(() => window.__dtSTRefresh ?? 0);
+  await page.setViewportSize({ width: vp.width + 1, height: vp.height });
+  await page.waitForFunction((w) => window.innerWidth === w, vp.width + 1);
+  await refreshed(n0);
+  const n1 = await page.evaluate(() => window.__dtSTRefresh ?? 0);
+  await page.setViewportSize(vp);
+  await page.waitForFunction((w) => window.innerWidth === w, vp.width);
+  if (!touch) await refreshed(n1);
+  // Il re-split di autoSplit arriva 200 ms dopo il cambio di larghezza, col suo trigger nuovo.
+  await page.waitForTimeout(300);
 }
 
 /** Aspetta che scrollY resti fermo (meno di 0,5 px) per `quiet` fotogrammi di fila; restituisce scrollY. */
@@ -380,14 +446,15 @@ export async function noOverflowX(page: Page): Promise<void> {
  * e identità). `stop()` sceglie gli elementi in vista in quel fotogramma (titoli col bordo alto in
  * [0, titleBand × innerHeight]; blocchi "today" dentro [0, 0,8] o a coprire [0,1, 0,8], "engine" qualunque blocco che
  * interseca il viewport) e aspetta che siano pieni da 100 ms, o timeoutMs. Installa la sonda se manca; prima chiama
- * `ready`, perché censisce titoli e blocchi all'armamento e i titoli di oggi nascono con lo split dopo l'idratazione.
+ * `settledTitles`, perché censisce titoli e blocchi all'armamento e i titoli di oggi nascono con lo split dopo
+ * l'idratazione (un documento senza titoli non aspetta).
  */
 export async function entryTimes(
   page: Page,
   scope: string,
   o: { titleBand?: number; blockRule?: "today" | "engine"; timeoutMs?: number } = {},
 ): Promise<{ stop: () => Promise<EntryTiming> }> {
-  await ready(page);
+  await settledTitles(page);
   await ensureProbe(page);
   const id = `entry-${++watchSeq}`;
   const args = [id, scope, TITLE_SEL, INK_LEAF_SEL, BLOCK_SEL, o.titleBand ?? 0.8, o.blockRule ?? "today", o.timeoutMs ?? 6000] as const;

@@ -10,7 +10,7 @@ Script:
 
 ## 02 · Sonda dell'uscita di oggi (02-testo-oggi.mjs sonda)
 
-2026-09-14 · commit ffe4295 · desktop-1440 (Desktop Chrome, 1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · next start sulla 3178 col build della suite, un contesto alla volta, motion attivo, consenso accettato, sipario saltato · uscita: ms dal primo fotogramma col bordo alto sotto 0,85 × innerHeight al primo con tutte le righe a yPercent ≥ 90 (m42 della matrice / altezza della riga), dopo una rotellata da 0,5 a 0,93
+2026-09-14 · commit ffe4295 · desktop-1440 (Desktop Chrome, 1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · next start sulla 3178 col build della suite, un contesto alla volta, motion attivo, consenso accettato, sipario saltato · ScrollTrigger rinfrescati dall'attrezzatura dopo lo split (D38: cambio di larghezza di 1 px e ritorno; oggi il sito non rinfresca dopo l'idratazione; condizione aggiunta nel giro di correzione 1: la misura era già presa così) · uscita: ms dal primo fotogramma col bordo alto sotto 0,85 × innerHeight al primo con tutte le righe a yPercent ≥ 90 (m42 della matrice / altezza della riga), dopo una rotellata da 0,5 a 0,93
 
 | titolo | testo | righe 1440 | righe 390 | uscita prevista ms (righe massime) | idoneo |
 | --- | --- | --- | --- | --- | --- |
@@ -36,7 +36,7 @@ Decisione: EXIT_TARGET resta #costi h2: al più due righe sui due progetti, giro
 
 ## 02 · Tempi del testo di oggi (e2e/text-motion.spec.ts su TextLines e Reveal, confronto con la sonda)
 
-2026-09-14 · commit ffe4295 · desktop-1440 (1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · build della suite sulla 3177, --workers=1, --repeat-each=3, motion attivo, consenso accettato, sipario saltato · ingresso: ms dal fotogramma in cui il bordo alto entra dal basso all'inizio dell'ultimo tratto pieno, peggiore fra titoli e blocchi in vista; uscita: ms dal passaggio della linea dell'85 % all'inchiostro massimo sotto 0,1
+2026-09-14 · commit ffe4295 · desktop-1440 (1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · build della suite sulla 3177, --workers=1, --repeat-each=3, motion attivo, consenso accettato, sipario saltato · test 1 e 2 a ScrollTrigger rinfrescati dall'attrezzatura dopo lo split (D38: cambio di larghezza di 1 px e ritorno; oggi il sito non rinfresca dopo l'idratazione; condizione aggiunta nel giro di correzione 1: la misura era già presa così, la scossa stava dentro `ready` al primo scroll) · ingresso: ms dal fotogramma in cui il bordo alto entra dal basso all'inizio dell'ultimo tratto pieno, peggiore fra titoli e blocchi in vista; uscita: ms dal passaggio della linea dell'85 % all'inchiostro massimo sotto 0,1
 
 | gesto | titolo o capitolo | progetto | giri | mediana ms | peggiore ms | dettaglio |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -64,15 +64,17 @@ Decisione: Il test 2 e la sonda misurano la stessa uscita di #costi h2 (scarto d
 
 | rotta | 1440×900 (§2.5) | 390×664 (§2.5) | desktop-1440 (test 6) | mobile-390 (test 6) | CLS 1440 / 390 (massimo) | §2.5 1440 · 390 | scarti > 60 ms o tag diverso |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| / | IMG 116 ms | IMG 124 ms | IMG 180 ms | IMG 132 ms | 0.0002 / 0 | IMG 124 · IMG 104 | — |
-| /vendi | IMG 140 ms | IMG 112 ms | IMG 104 ms | IMG 128 ms | 0.0002 / 0 | IMG 72 · IMG 76 | 390: IMG 72 → IMG 140 |
-| /contatti | H1 116 ms | H1 124 ms | H1 128 ms | H1 128 ms | 0.0002 / 0 | H1 104 · H1 80 | — |
-| /case-vendute | H1 88 ms | H1 100 ms | H1 112 ms | H1 84 ms | 0.0002 / 0 | H1 116 · H1 112 | — |
-| /valutazione-immobile-tradate | H1 64 ms | H1 128 ms | H1 136 ms | H1 120 ms | 0.0002 / 0 | H1 116 · H1 116 | — |
+| / | IMG 124 ms | IMG 116 ms | IMG 180 ms | IMG 132 ms | 0 / 0.0002 | IMG 104 · IMG 124 | — |
+| /vendi | IMG 112 ms | IMG 140 ms | IMG 104 ms | IMG 128 ms | 0 / 0.0002 | IMG 76 · IMG 72 | 390: IMG 72 → IMG 140 |
+| /contatti | H1 124 ms | H1 116 ms | H1 128 ms | H1 128 ms | 0 / 0.0002 | H1 80 · H1 104 | — |
+| /case-vendute | H1 100 ms | H1 88 ms | H1 112 ms | H1 84 ms | 0 / 0.0002 | H1 112 · H1 116 | — |
+| /valutazione-immobile-tradate | H1 128 ms | H1 64 ms | H1 136 ms | H1 120 ms | 0 / 0.0002 | H1 116 · H1 116 | — |
 
 Decisione: Sulle tre pagine senza foto l'elemento LCP è l'H1 nelle due forme, come in spec §2.5: la regola del lead intero vale. Questa è la base del test 6 su questa macchina; la tabella di §2.5 resta la misura della spec.
 
 Scarti fra i giri oltre 100 ms: desktop-1440 /: scarto fra i giri 104 ms.
+
+Nota del giro di correzione 1 (2026-09-14): le colonne «1440×900», «390×664», «CLS 1440 / 390» e «§2.5 1440 · 390» di questa tabella erano scritte scambiate (lo script enumerava le chiavi intere con `Object.keys`, che le ordina 390, 1440, contro intestazioni scritte 1440, 390) e sono state rimesse al loro posto a mano; la colonna «scarti», che nomina la larghezza in ogni voce, era giusta. Prima misura, non committata in `lcp-base.json`.
 
 ## 02 · Base dell'LCP e del CLS (scripts/probe-lcp-base.mjs)
 
@@ -80,12 +82,64 @@ Scarti fra i giri oltre 100 ms: desktop-1440 /: scarto fra i giri 104 ms.
 
 | rotta | 1440×900 (§2.5) | 390×664 (§2.5) | desktop-1440 (test 6) | mobile-390 (test 6) | CLS 1440 / 390 (massimo) | §2.5 1440 · 390 | scarti > 60 ms o tag diverso |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| / | IMG 124 ms | IMG 140 ms | IMG 152 ms | IMG 116 ms | 0.0002 / 0 | IMG 124 · IMG 104 | — |
-| /vendi | IMG 112 ms | IMG 108 ms | IMG 104 ms | IMG 108 ms | 0.0002 / 0 | IMG 72 · IMG 76 | — |
-| /contatti | H1 120 ms | H1 120 ms | H1 140 ms | H1 112 ms | 0.0002 / 0 | H1 104 · H1 80 | — |
-| /case-vendute | H1 80 ms | H1 104 ms | H1 108 ms | H1 80 ms | 0.0002 / 0 | H1 116 · H1 112 | — |
-| /valutazione-immobile-tradate | H1 132 ms | H1 108 ms | H1 128 ms | H1 120 ms | 0.0002 / 0 | H1 116 · H1 116 | — |
+| / | IMG 140 ms | IMG 124 ms | IMG 152 ms | IMG 116 ms | 0 / 0.0002 | IMG 104 · IMG 124 | — |
+| /vendi | IMG 108 ms | IMG 112 ms | IMG 104 ms | IMG 108 ms | 0 / 0.0002 | IMG 76 · IMG 72 | — |
+| /contatti | H1 120 ms | H1 120 ms | H1 140 ms | H1 112 ms | 0 / 0.0002 | H1 80 · H1 104 | — |
+| /case-vendute | H1 104 ms | H1 80 ms | H1 108 ms | H1 80 ms | 0 / 0.0002 | H1 112 · H1 116 | — |
+| /valutazione-immobile-tradate | H1 108 ms | H1 132 ms | H1 128 ms | H1 120 ms | 0 / 0.0002 | H1 116 · H1 116 | — |
 
 Decisione: Sulle tre pagine senza foto l'elemento LCP è l'H1 nelle due forme, come in spec §2.5: la regola del lead intero vale. Questa è la base del test 6 su questa macchina; la tabella di §2.5 resta la misura della spec.
 
 Scarti fra i giri oltre 100 ms: desktop-1440 /: scarto fra i giri 104 ms.
+
+Nota del giro di correzione 1 (2026-09-14): le colonne «1440×900», «390×664», «CLS 1440 / 390» e «§2.5 1440 · 390» di questa tabella erano scritte scambiate (stessa causa della sezione sopra) e sono state rimesse al loro posto dai valori di `e2e/baseline/lcp-base.json` («1440 /» = 140, «390 /» = 124, CLS 0 a 1440 e 0,0002 a 390) e da `SPEC` dello script; il JSON, che il test 6 legge, era e resta giusto. Da qui in poi lo script fissa l'ordine 1440, 390 e deriva le intestazioni dallo stesso elenco.
+
+## 02 · Sonda dell'uscita di oggi (02-testo-oggi.mjs sonda)
+
+2026-09-14 · commit 1a77744+ · desktop-1440 (Desktop Chrome, 1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · next start sulla 3178 col build della suite, un contesto alla volta, motion attivo, consenso accettato, sipario saltato · ScrollTrigger rinfrescati dall'attrezzatura dopo lo split (D38: cambio di larghezza di 1 px e ritorno; oggi il sito non rinfresca dopo l'idratazione) · uscita: ms dal primo fotogramma col bordo alto sotto 0,85 × innerHeight al primo con tutte le righe a yPercent ≥ 90 (m42 della matrice / altezza della riga), dopo una rotellata da 0,5 a 0,93
+
+| titolo | testo | righe 1440 | righe 390 | uscita prevista ms (righe massime) | idoneo |
+| --- | --- | --- | --- | --- | --- |
+| #cerca h2 | Che casa stai cercando? | 2 | 2 | 1107 | sì |
+| #perche-domus-tua h2 | Perché scegliere Domus Tua | 2 | 3 | 1197 | no |
+| #voci h2 | Le storie in video | 1 | 2 | 1107 | sì |
+| #metodo h2 | Un percorso chiaro, dalla prima stima al | 3 | 4 | 1287 | no |
+| #metodo h3 | Prima, le persone | 2 | 2 | 1107 | sì |
+| #open-domus h2 | Open Domus. | 1 | 1 | 1017 | sì |
+| #domus-doc h2 | Domus D.O.C. | 1 | 1 | 1017 | sì |
+| #servizi h2 | Tutto ciò che serve per valorizzare, pro | 3 | 6 | 1467 | no |
+| #costi h2 | Nessun costo anticipato. | 2 | 2 | 1107 | sì |
+| #chi-siamo h2 | Persone prima degli immobili. | 3 | 2 | 1197 | no |
+| #contatti h2 | Inizia dal primo passo: una valutazione  | 3 | 5 | 1377 | no |
+| #recensioni h2 | Cinque stelle, una alla volta. | — | 2 | — | no |
+
+| progetto | titolo | giri ms | mediana ms | peggiore ms | righe |
+| --- | --- | --- | --- | --- | --- |
+| desktop-1440 | #costi h2 | 1150 / 1150 / 1150 | 1150 | 1150 | 2 |
+| mobile-390 | #costi h2 | 1216 / 1217 / 1217 | 1217 | 1217 | 2 |
+
+Decisione: EXIT_TARGET resta #costi h2: al più due righe sui due progetti, giro peggiore 1217 ms ≤ 1230 ms.
+
+## 02 · Tempi del testo di oggi (e2e/text-motion.spec.ts su TextLines e Reveal, confronto con la sonda)
+
+2026-09-14 · commit 1a77744+ · desktop-1440 (1440×900) e mobile-390 (iPhone 13 su chromium, 390×664) · build della suite sulla 3177, --workers=1, --repeat-each=3, motion attivo, consenso accettato, sipario saltato · test 1 e 2 a ScrollTrigger rinfrescati dall'attrezzatura dopo lo split (refreshTriggers, D38: cambio di larghezza di 1 px e ritorno; oggi il sito non rinfresca dopo l'idratazione) · ingresso: ms dal fotogramma in cui il bordo alto entra dal basso all'inizio dell'ultimo tratto pieno, peggiore fra titoli e blocchi in vista; uscita: ms dal passaggio della linea dell'85 % all'inchiostro massimo sotto 0,1
+
+| gesto | titolo o capitolo | progetto | giri | mediana ms | peggiore ms | dettaglio |
+| --- | --- | --- | --- | --- | --- | --- |
+| dall-alto | #servizi h2 | desktop-1440 | 3 | — | — | inchiostro minimo 1.00 |
+| dall-alto | #servizi h2 | mobile-390 | 3 | — | — | inchiostro minimo 1.00 |
+| ingresso | #contatti | desktop-1440 | 3 | 1700 | 1700 | titoli 1, blocchi 2 |
+| ingresso | #contatti | mobile-390 | 3 | 1767 | 1767 | titoli 1, blocchi 2 |
+| ingresso | #servizi | desktop-1440 | 3 | 1533 | 1533 | titoli 1, blocchi 1 |
+| ingresso | #servizi | mobile-390 | 3 | 1733 | 1750 | titoli 1, blocchi 1 |
+| rientro-dall-alto | #servizi h2 | desktop-1440 | 3 | — | — | inchiostro minimo 1.00 |
+| rientro-dall-alto | #servizi h2 | mobile-390 | 3 | — | — | inchiostro minimo 1.00 |
+| uscita | #costi h2 | desktop-1440 | 3 | 1150 | 1150 | foglie 2 |
+| uscita | #costi h2 | mobile-390 | 3 | 1217 | 1217 | foglie 2 |
+
+| progetto | uscita del test, mediana ms | uscita della sonda, mediana ms | scarto ms |
+| --- | --- | --- | --- |
+| desktop-1440 | 1150 | 1150 | 0 |
+| mobile-390 | 1217 | 1217 | 0 |
+
+Decisione: Il test 2 e la sonda misurano la stessa uscita di #costi h2 (scarto delle mediane ≤ 50 ms, giro peggiore ≤ 1230 ms) e i test 1-3 sono verdi in tutti i giri.

@@ -147,11 +147,12 @@ export async function motionContext(browser, descriptor, { consent = null, local
 
 /**
  * Rinfresca le posizioni dei ScrollTrigger con un cambio di larghezza del viewport di 1 px e ritorno, aspettando il
- * contatore window.__dtSTRefresh di gsap.ts (la stessa scossa di `ready` in e2e/coreografia.ts). Da chiamare a
- * pagina idratata e prima del primo scroll: oggi TextLines crea i trigger dentro il passo di idratazione, prima che
- * il layout finisca di crescere, e nessuno chiama ScrollTrigger.refresh() dopo (commit 2: difetto riferito al
- * coordinatore, il sito non si tocca). Su touch (ScrollTrigger.config ignoreMobileResize, gsap.ts:46) conta solo il
- * resize visto a larghezza diversa da quella di partenza; il ritorno rinfresca solo col mouse.
+ * contatore window.__dtSTRefresh di gsap.ts (la stessa scossa di `refreshTriggers` in e2e/coreografia.ts). La chiama
+ * chi misura, a pagina idratata e a titoli spezzati, prima del primo scroll, e la scrive nelle condizioni della
+ * sezione di risultati.md (decisione di lavoro D38): oggi TextLines crea i trigger dentro il passo di idratazione,
+ * prima che il layout finisca di crescere, e nessuno chiama ScrollTrigger.refresh() dopo; il commit 2 non tocca il
+ * sito e il difetto è riferito al coordinatore. Su touch (ScrollTrigger.config ignoreMobileResize, gsap.ts:46)
+ * conta solo il resize visto a larghezza diversa da quella di partenza; il ritorno rinfresca solo col mouse.
  */
 export async function freshTriggers(page) {
   const vp = page.viewportSize();
@@ -178,6 +179,7 @@ export async function freshTriggers(page) {
  * Colpo di rotella da mandare per muovere 1 px di pagina, misurato una volta per documento (window.__dtWheelScale):
  * sotto l'emulazione di un dispositivo a DPR > 1 la pagina riceve deltaY / DPR (iPhone 13: 120 → 40). Il colpo di
  * misura è intercettato in cattura con preventDefault, quindi non scrolla. Come `ready` di e2e/coreografia.ts.
+ * Non rinfresca i trigger: quello è `freshTriggers`, e lo chiede chi misura.
  */
 export async function wheelScale(page) {
   const known = await page.evaluate(() => window.__dtWheelScale ?? null);
