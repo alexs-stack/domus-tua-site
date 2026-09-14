@@ -9,6 +9,7 @@ import { useState, useRef } from "react";
 import Reveal from "./Reveal";
 import RevealGroup from "./motion/RevealGroup";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import { Cta, CtaButton } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import { transitionTo } from "./motion/PageTransition";
@@ -212,9 +213,7 @@ export default function HomeSearchGateway() {
           <SplitTitle as="h3" className="font-display text-d3">
             {d.search.sellerTitle}
           </SplitTitle>
-          <Reveal>
-            <p className="lead mt-4">{d.search.sellerCopy}</p>
-          </Reveal>
+          <Lead className="mt-4">{d.search.sellerCopy}</Lead>
           <Reveal role="still">
             <Cta href="/vendi" variant="ghost" className="mt-6">
               {d.search.sellerCta}

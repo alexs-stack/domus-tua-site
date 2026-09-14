@@ -12,6 +12,7 @@ import Reveal from "../components/Reveal";
 import { site, yearsActive } from "../lib/site";
 import RevealGroup from "../components/motion/RevealGroup";
 import SplitTitle from "../components/motion/SplitTitle";
+import Lead from "../components/motion/Lead";
 import Contact from "../components/Contact";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
@@ -309,9 +310,7 @@ export default function ChiSiamoContent({ since }: { since: number }) {
             <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
               {c.squadraTitle}
             </SplitTitle>
-            <Reveal>
-              <p className="lead mt-8">{c.squadraCopy}</p>
-            </Reveal>
+            <Lead className="mt-8">{c.squadraCopy}</Lead>
             <Reveal role="still">
               {/* Da "chi siamo" a "come si entra": è qui che nasce la domanda. */}
               <Link

@@ -148,6 +148,11 @@ export const HERO_REST_MS = Math.round((INTRO_T.dive + 0.2) * 1000);
  * HeroCinematic leggono i due casi.
  */
 export const HERO_REST_WARM_MS = 6000;
+/**
+ * La stessa rete con la porta corta di spec §6.2 (A18 di Alberto, D31): 1,08 s. La leggono la
+ * regola dello 0,02 di globals.css e fold.ts (A20, spec §2.5).
+ */
+export const HERO_REST_SHORT_MS = 1080;
 
 /**
  * Warmup del telefono: `warmFirstFold` deve scadere PRIMA del tuffo, così

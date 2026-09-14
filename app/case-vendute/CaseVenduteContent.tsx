@@ -32,6 +32,8 @@
 
 import Image from "next/image";
 import Reveal from "./../components/Reveal";
+import Lead from "./../components/motion/Lead";
+import RevealGroup from "./../components/motion/RevealGroup";
 import SplitTitle from "./../components/motion/SplitTitle";
 import { Cta } from "./../components/primitives/Cta";
 import { useDict, useLocale } from "./../components/i18n/LocaleProvider";
@@ -202,8 +204,9 @@ export default function CaseVenduteContent({
 
   return (
     <main className="flex-1 bg-cream">
-      <section className="relative bg-cream">
-        <div className="dt-row pb-16 pt-32 sm:pb-20 sm:pt-36">
+      {/* Testa senza foto: la piega aspetta la prima voce LCP (spec §2.5, A20 di Alberto). */}
+      <section className="relative bg-cream" data-fold-lcp="">
+        <RevealGroup className="dt-row pb-16 pt-32 sm:pb-20 sm:pt-36">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
@@ -214,13 +217,11 @@ export default function CaseVenduteContent({
           >
             {c.title}
           </SplitTitle>
-          <Reveal delay={120}>
-            <p className="lead mt-8">{c.lead(stats)}</p>
-          </Reveal>
+          <Lead className="mt-8">{c.lead(stats)}</Lead>
 
           {/* I numeri, con il campione accanto: senza il denominatore un conteggio
               di vendite non si può leggere. */}
-          <Reveal delay={180}>
+          <Reveal>
             <dl className="mt-12 grid grid-cols-2 gap-x-8 gap-y-8 border-t border-line pt-8 sm:grid-cols-3">
               {[
                 { n: stats.sold, label: c.statSold },
@@ -239,7 +240,7 @@ export default function CaseVenduteContent({
           </Reveal>
 
           {stats.shown < stats.sold && (
-            <Reveal delay={200}>
+            <Reveal>
               <p className="mt-6 text-body text-graphite">
                 {c.shownNote(stats.shown, stats.sold)}
               </p>
@@ -247,13 +248,13 @@ export default function CaseVenduteContent({
           )}
 
           {stats.detectedOn && (
-            <Reveal delay={220}>
+            <Reveal>
               <p className="mt-6 text-body text-graphite">
                 {c.source(stats.detectedOn)}
               </p>
             </Reveal>
           )}
-        </div>
+        </RevealGroup>
       </section>
 
       {/* La nota sui prezzi sta PRIMA della griglia, non in fondo in piccolo: è la
@@ -261,14 +262,14 @@ export default function CaseVenduteContent({
           non si è scorso tutto è il modo migliore per farla diventare un sospetto. */}
       <section className="bg-cream">
         <div className="dt-row py-12">
-          <p className="lead border-l-2 border-red pl-6">{c.noPrice}</p>
+          <Lead className="border-l-2 border-red pl-6">{c.noPrice}</Lead>
         </div>
       </section>
 
       <section className="bg-cream">
         <div className="dt-row pb-24">
           {listings.length === 0 ? (
-            <p className="lead">{c.empty}</p>
+            <Lead>{c.empty}</Lead>
           ) : (
             <ul className="grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
               {listings.map((p) => (
@@ -325,9 +326,7 @@ export default function CaseVenduteContent({
           <SplitTitle as="h2" className="max-w-[20ch] font-display text-d1">
             {c.ctaTitle}
           </SplitTitle>
-          <Reveal delay={120}>
-            <p className="lead mt-8">{c.ctaBody}</p>
-          </Reveal>
+          <Lead className="mt-8">{c.ctaBody}</Lead>
           <Reveal delay={180}>
             <Cta href="/#contatti" variant="cta-solid" size="md" className="mt-10">
               {d.hero.ctaValuta}

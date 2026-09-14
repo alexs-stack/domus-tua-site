@@ -13,6 +13,7 @@ import { useState, type MouseEvent } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import Parallax from "./motion/Parallax";
 import VideoLightbox from "./VideoLightbox";
 import { Play } from "./Icons";
@@ -156,9 +157,7 @@ export default function FeaturedTestimonial(props: Props) {
           <SplitTitle as="h2" className="mt-6 font-display text-d2">
             {title}
           </SplitTitle>
-          <Reveal delay={80}>
-            <p className="lead mt-6">{c.lead}</p>
-          </Reveal>
+          <Lead className="mt-6">{c.lead}</Lead>
           <Reveal delay={140}>
             <Cta
               href={href}

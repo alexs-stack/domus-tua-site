@@ -335,6 +335,14 @@ blockquote * {
      perdere la riga. Il riferimento tiene le sue colonne fra 403 e 807 px. */
   max-width: 38ch;
 }
+/* Le righe di Lead (A20 di Alberto; spec §2.2: il lead sale a righe da una
+   maschera). SplitText le fa <span>, che stanno dentro il <p>, e con tag span
+   non scrive display: su un inline né il transform della riga né
+   l'overflow: clip della maschera hanno effetto. Riga e maschera sono blocchi
+   (D47). */
+[data-reveal="lead"] :is(.dt-line-mask, .dt-line) {
+  display: block;
+}
 
 /* La parola-ornamento di capitolo: il corsivo rosso al posto dell'SVG oro
    del riferimento. Una per capitolo, mai sopra una foto.
@@ -1253,6 +1261,29 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   animation: dt-rest-failsafe 0.5s ease 3.33s forwards;
 }
 @keyframes dt-rest-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+/* Lo stato dipinto (spec §2.5; A20 di Alberto, D21). Prima del JS ogni ruolo del
+   testo non ancora armato sta a 0,02 e non a 0 (a opacità zero Chromium lo toglie
+   dai candidati LCP), con una rete che lo porta a 1. È l'unico stato nascosto
+   scritto in CSS: solo sotto l'attributo del boot script (motion ok), mai sotto
+   /case/[slug] (D32). Rete a HERO_REST_WARM_MS senza film, HERO_REST_MS col film;
+   "short" è la porta corta di spec §6.2, che oggi nessuno scrive. Le tre regole
+   hanno la stessa specificità: il ritardo delle ultime due vince sull'`animation`
+   della prima per ordine. */
+:root[data-hero-intro] [data-reveal]:not([data-reveal-armed]):not([data-motion-freeze] *) {
+  opacity: var(--dt-painted);
+  animation: dt-reveal-failsafe 0.5s ease 6s forwards;
+}
+:root[data-hero-intro="intro"] [data-reveal]:not([data-reveal-armed]):not([data-motion-freeze] *) {
+  animation-delay: 3.33s;
+}
+:root[data-hero-intro="short"] [data-reveal]:not([data-reveal-armed]):not([data-motion-freeze] *) {
+  animation-delay: 1.08s;
+}
+@keyframes dt-reveal-failsafe {
   to {
     opacity: 1;
   }

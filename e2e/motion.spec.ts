@@ -26,9 +26,9 @@ test("i testi rivelati dall'animazione sono comunque leggibili", async ({ page, 
   // la pagina è completa e ferma, nessuno stato nascosto nemmeno scritto da JS.
   await expect(page.locator("[data-reveal-armed]")).toHaveCount(0);
 
-  // I blocchi che entrano allo scroll (`.reveal`, Reveal.tsx) e i titoli che TextLines
-  // rivela riga per riga: con reduced motion sono a piena opacità, senza traslazione
-  // né sfocatura — non resta niente di nascosto in attesa di un'animazione.
+  // I blocchi che entrano allo scroll (`.reveal`, Reveal.tsx), i titoli per lettera
+  // (`[data-c]`, SplitTitle) e i lead a righe (Lead), A20 di Alberto: con reduced motion
+  // sono a piena opacità, senza traslazione né sfocatura, e il lead resta un paragrafo intero.
   const blocks = page.locator("#main .reveal");
   expect(await blocks.count(), "nessun blocco .reveal su /vendi").toBeGreaterThan(0);
   const faded = await page.locator("#main .reveal, #main h1, #main h2, #main .lead, #main [data-c]").evaluateAll((els) =>
@@ -43,6 +43,7 @@ test("i testi rivelati dall'animazione sono comunque leggibili", async ({ page, 
       .map((e) => `${e.tagName}.${e.className} «${(e.textContent ?? "").trim().slice(0, 30)}»`),
   );
   expect(faded, `testi rimasti invisibili o spostati con reduced motion: ${faded.join(" | ")}`).toEqual([]);
+  expect(await page.locator("#main .dt-line").count(), "con reduced motion Lead non spezza in righe").toBe(0);
 });
 
 test("le sezioni che entrano allo scroll sono già visibili", async ({ page, goto }) => {

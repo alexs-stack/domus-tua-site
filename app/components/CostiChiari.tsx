@@ -30,6 +30,7 @@
 
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import { Cta } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
@@ -133,9 +134,7 @@ export default function CostiChiari({
         {/* Il seguito sulla seconda colonna, alla stessa linea verticale delle
             righe foto+testo: è quel che rende questa una riga e non un capitolo. */}
         <div className="mt-6 lg:mt-0 lg:pl-[6vw]">
-          <Reveal delay={140}>
-            <p className="lead">{c.lead}</p>
-          </Reveal>
+          <Lead>{c.lead}</Lead>
           <Reveal delay={200}>
             <Cta href="#contatti" variant="ghost" className="mt-8">
               {d.hero.ctaValuta}

@@ -22,6 +22,7 @@ import Image from "next/image";
 import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import HorizontalRail from "./motion/HorizontalRail";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -188,9 +189,7 @@ export default function Team({ compact = false }: { compact?: boolean }) {
               {c.title}
             </SplitTitle>
           )}
-          <Reveal>
-            <p className="lead mt-8">{c.lead}</p>
-          </Reveal>
+          <Lead className="mt-8">{c.lead}</Lead>
           <Reveal delay={80}>
             <p className="mt-4 max-w-[60ch] text-body text-graphite">{c.body}</p>
           </Reveal>
@@ -210,7 +209,7 @@ export default function Team({ compact = false }: { compact?: boolean }) {
       <div className="mt-[10vh]">
         <div className="dt-row">
           <p className="eyebrow">{c.rosterTitle}</p>
-          <p className="lead mt-4">{c.rosterIntro}</p>
+          <Lead className="mt-4">{c.rosterIntro}</Lead>
         </div>
         {/* Le regole di `.dt-rail_track` (globals.css) sono unlayered e battono
             le utility: gap, padding e allineamento passano solo col `!`.

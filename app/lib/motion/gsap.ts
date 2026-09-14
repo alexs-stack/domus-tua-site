@@ -36,8 +36,10 @@ import { CustomEase } from "gsap/CustomEase";
 import { useGSAP } from "@gsap/react";
 import { MQ } from "./mq";
 
-// SplitText NON è registrato qui: lo importa e registra solo TextLines,
-// così non entra nel chunk del layout (SmoothScroll importa questo modulo).
+// SplitText NON è registrato qui: lo importano e registrano Lead (le righe del
+// lead, A20 di Alberto), HorizonScroller (il manifesto, spec §3.5) e FrozenLines
+// (i titoli di /case/[slug], D32), così non entra nel chunk del layout
+// (SmoothScroll importa questo modulo).
 // Stessa regola per Flip/Draggable/Inertia/DrawSVG: registrazione locale
 // nel componente che li usa. CustomEase è ~2kb e definisce la firma: sta qui.
 gsap.registerPlugin(ScrollTrigger, CustomEase, useGSAP);

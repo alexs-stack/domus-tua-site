@@ -25,6 +25,7 @@ import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { useConsent } from "../lib/consent";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import { ratingLabel, site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
 
@@ -170,9 +171,7 @@ export default function Voci() {
             {`${ratingLabel(locale)}/5 · ${site.reviewsCount} ${c.google}`}
           </p>
         </Reveal>
-        <Reveal delay={140}>
-          <p className="lead mt-6">{c.description}</p>
-        </Reveal>
+        <Lead className="mt-6">{c.description}</Lead>
       </div>
 
       {/* Carosello nativo. Da desktop TRE tessere per schermata (32vw): a 58vw

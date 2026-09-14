@@ -438,7 +438,7 @@ test("un blocco con un link entra solo in opacità: declassato a still, fermo e 
 }) => {
   await goto("/vendi");
   await armed(page);
-  await expect(page.locator("#main [data-reveal-group]:has(a[href])").first()).toHaveAttribute("data-reveal", "still");
+  await expect(page.locator("#main [data-reveal-group][data-reveal]:has(a[href])").first()).toHaveAttribute("data-reveal", "still");
   const el = await pick(page, "still", "declassato");
   expect(await productOpacity(el)).toBeLessThan(0.01);
   expect((await matrixOf(el)).m42).toBe(0);
@@ -459,9 +459,22 @@ test("il fuoco dentro un blocco nascosto lo mostra subito", async ({ page, goto 
   await goto("/vendi");
   await armed(page);
   const el = await pick(page, "still", "fuoco");
-  await el.evaluate((e) => (e.querySelector("a[href]") as HTMLElement).focus({ preventScroll: true }));
-  await expect(el).toHaveAttribute("data-reveal-state", "shown", { timeout: 300 });
-  expect(await productOpacity(el)).toBeGreaterThan(0.99);
+  // D49: stato e opacità si leggono nello stesso task del fuoco, dove focusin scrive lo stato
+  // istantaneo (spec §2.4). Il blocco resta sotto la piega (preventScroll): un refresh che arriva
+  // dopo, col body che a server freddo cresce ancora (D39), lo rimanda fuori con sweep() (D40,
+  // «fuori sotto · shown → out»). Letto a un await di distanza, il test misurava quel refresh.
+  const subito = await el.evaluate((e) => {
+    (e.querySelector("a[href]") as HTMLElement).focus({ preventScroll: true });
+    const stop = document.getElementById("main");
+    let p = 1;
+    for (let n: Element | null = e; n; n = n.parentElement) {
+      p *= Number(getComputedStyle(n).opacity);
+      if (n === stop) break;
+    }
+    return { stato: e.getAttribute("data-reveal-state"), opacita: p };
+  });
+  expect(subito.stato).toBe("shown");
+  expect(subito.opacita).toBeGreaterThan(0.99);
 });
 
 test("reduced-motion a pagina aperta: via gli stati, testo pieno e fermo", async ({ page, goto }) => {

@@ -23,6 +23,7 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import Parallax from "./motion/Parallax";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
@@ -104,9 +105,7 @@ export default function Posizionamento() {
           <SplitTitle as="h2" className="mt-6 font-display text-d2">
             {c.title}
           </SplitTitle>
-          <Reveal delay={120}>
-            <p className="lead mt-8">{c.body}</p>
-          </Reveal>
+          <Lead className="mt-8">{c.body}</Lead>
 
           {/* I tre appigli: la stessa promessa in forma scandita, per chi scorre. */}
           <Reveal delay={200}>

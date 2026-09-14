@@ -20,22 +20,27 @@
 //   - Ogni ruolo si muove con GSAP sui suoi bersagli (spec §2.2): i [data-c]
 //     per title e accent, le .dt-line per lead, il membro stesso per ctn e
 //     still. Tween nuovo a ogni passaggio, fromTo con overwrite: true in
-//     ingresso, to in uscita; lo stato istantaneo è un gsap.set. Nessuno stato
-//     nascosto in CSS: prima del JS, senza JS e con reduced-motion il testo è
-//     pieno. Il puntatore lo scrive il motore inline sul membro: none da
-//     nascosto, di nuovo attivo all'inizio dell'ingresso.
+//     ingresso, to in uscita; lo stato istantaneo è un gsap.set. L'unico stato
+//     nascosto in CSS è lo 0,02 dipinto dei membri non armati sotto
+//     data-hero-intro, con la rete dt-reveal-failsafe (spec §2.5); senza JS e
+//     con reduced-motion il testo è pieno. Il puntatore lo scrive il motore
+//     inline sul membro: none da nascosto, di nuovo attivo all'inizio
+//     dell'ingresso.
 //   - Letture prima delle scritture (spec §9.3): register() accoda il gruppo e
 //     un microtask, dopo il commit di React, legge rettangoli e antenati di
 //     tutti i gruppi e poi scrive. gsap.set su un bersaglio nuovo legge una
 //     volta lo stile calcolato: è la sola lettura dentro la passata di
 //     scritture, misurata da 04-reveal-engine.mjs (dt-reveal-arm-write).
-//   - Armamento: gruppo passato → shown; in vista (ramo della piega) → shown,
-//     perché il server l'ha già dipinto e nasconderlo lo farebbe sparire sotto
-//     gli occhi; sotto o a destra → hidden. Dopo ogni passata, e a ogni
-//     cambio d'altezza del body, un refresh di ScrollTrigger (D39): i
-//     ScrollTrigger di oggi (TextLines) nascono nell'idratazione, prima che
-//     split e altezze misurate dal JS finiscano di crescere il documento, e
-//     nessuno li rinfrescava (D38 sugli attrezzi e2e; D39: lo fa il motore).
+//   - Armamento: gruppo passato → shown; in vista → la piega di fold.ts (spec
+//     §2.5, A20 di Alberto): il testo resta dipinto a 0,02 finché fold.ts non
+//     arma i membri e scrive lo stato nascosto nello stesso task, poi parte
+//     all'handoff del sipario o dopo 150 ms; sotto o a destra → hidden. Un
+//     gruppo con data-fold-pending non lo toccano IO, reti, sweep() né resync().
+//     Dopo ogni passata, e a ogni cambio d'altezza del body, un refresh di
+//     ScrollTrigger (D39): i ScrollTrigger dei componenti (HorizonScroller,
+//     HorizontalRail, Parallax) nascono nell'idratazione, prima che split e
+//     altezze misurate dal JS finiscano di crescere il documento, e nessuno li
+//     rinfrescava (D38 sugli attrezzi e2e; D39: lo fa il motore).
 //     Il refresh parte solo a scroll fermo (refreshWhenStill): un
 //     ScrollTrigger.refresh() scrolla a 0 e torna alla posizione registrata,
 //     e cancellerebbe lo scroll nativo al frammento di un caricamento con
@@ -47,8 +52,9 @@
 //   - Notifiche (noticeAction): la prima notifica di un osservatore non fa
 //     uscire, ma fa entrare; un nascosto già passato o che rientra dal bordo
 //     alto diventa shown senza animare; decide() riceve la radice dell'asse.
-//   - Declassamento: un gruppo con link, bottoni, summary o campi porta ctn a
-//     still (regola del 2026-08-04 sui bersagli nei replay).
+//   - Declassamento: un membro con link, bottoni, summary o campi passa da ctn a
+//     still (regola del 2026-08-04 sui bersagli nei replay; spec §2.2, la riga
+//     CTA di PageHero).
 //   - Reti: 2.500 ms dall'armamento, per i gruppi che nessuna notifica, sweep o
 //     chiamata ha mosso da allora; sweep() su refresh di ScrollTrigger, resize
 //     (150 ms), ritorno della scheda e salto di almeno un viewport in un solo
@@ -71,6 +77,7 @@
 //   - Sotto [data-motion-freeze] (/case/[slug], A26 e D32) non arma nulla.
 import { gsap, ScrollTrigger, MQ, requestRefresh } from "./gsap";
 import { ROLES, demote, restVars, tweenVars, type Role } from "./text-roles";
+import { FOLD_PENDING, foldArm, foldHooks } from "./fold";
 
 export type GroupState = "hidden" | "revealing" | "shown" | "hiding";
 export type Box = { top: number; left: number; bottom: number; right: number };
@@ -234,6 +241,7 @@ const axisOf = (el: Element): Axis => (el.closest(RIBBON) ? "x" : "y");
 const modeOf = (g: Group) => effectiveTrigger(g.requested, g.el.closest(CUE_ANCESTOR) !== null);
 const held = (g: Group) => g.el.hasAttribute(HOLD);
 const noop = () => {};
+const folding = (g: Group) => g.el.hasAttribute(FOLD_PENDING);
 
 function setState(g: Group, s: GroupState): void {
   g.state = s;
@@ -250,7 +258,7 @@ function collect(el: HTMLElement): Member[] {
   for (const m of candidates) {
     const declared = m.getAttribute("data-reveal");
     if (!isRole(declared)) continue;
-    const role = demote(declared, el);
+    const role = demote(declared, m);
     found.push({ el: m, declared, role });
   }
   const index = indexByRole(found.map((f) => f.role));
@@ -262,7 +270,7 @@ function writeRoles(g: Group): void {
     if (m.declared === m.role) continue;
     m.el.setAttribute("data-reveal", m.role);
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[reveal] ctn → still: il gruppo contiene un elemento interattivo (spec §2.2)", m.el);
+      console.warn("[reveal] ctn → still: il membro contiene un elemento interattivo (spec §2.2)", m.el);
     }
   }
 }
@@ -477,7 +485,7 @@ function onHits(entries: IntersectionObserverEntry[], kind: "entry" | "exit"): v
       first = !g.primedX;
       g.primedX = true;
     }
-    if (held(g) || g.mode === "manual") continue;
+    if (held(g) || g.mode === "manual" || folding(g)) continue;
     const n = noticeAction(first, g.state, { ...g.rect, hit: g.eHit }, { ...g.rect, hit: g.xHit }, vp, g.axis);
     // Durante l'arrivo al frammento tutto è istantaneo: i gruppi attraversati nascono shown.
     if (n) apply(g, n.dir, n.instant || arriving);
@@ -487,7 +495,7 @@ function onHits(entries: IntersectionObserverEntry[], kind: "entry" | "exit"): v
 /** Rete dei 2.500 ms per i gruppi di una passata d'armamento: prima tutte le letture, poi le scritture. */
 function netPass(batch: Group[]): void {
   const vp = viewport();
-  const due = batch.filter((g) => g.armed && g.untouched && g.state === "hidden" && g.mode !== "manual" && !held(g));
+  const due = batch.filter((g) => g.armed && g.untouched && g.state === "hidden" && g.mode !== "manual" && !held(g) && !folding(g));
   const rects = due.map((g) => boxOf(g.el.getBoundingClientRect()));
   pass(() => {
     due.forEach((g, k) => {
@@ -546,17 +554,27 @@ function flush(): void {
 /** Scrive e non legge il layout: g.rect, g.axis e g.mode li ha letti flush(). */
 function arm(g: Group, vp: Box): void {
   writeRoles(g);
-  for (const m of g.members) m.el.setAttribute("data-reveal-armed", "");
   g.el.setAttribute("data-reveal-mode", g.mode);
   g.armed = true;
   const group = g.el;
   const where = held(g) ? "below" : armState(g.rect, vp);
   if (where === "fold") {
-    // Piega: in vista all'armamento il gruppo nasce shown. Il testo è già
-    // dipinto dal server e nasconderlo lo farebbe sparire sotto gli occhi (D21).
-    play(group, "in", { instant: true });
-    g.stopFold = noop;
+    if (arriving) {
+      // Arrivo al frammento (D39; spec §2.4, «già passato → shown senza animare (ancore,
+      // scroll ripristinato)»): lo scroll nativo porta la testa sopra il viewport, quindi
+      // nasce piena senza l'attesa della piega, come ogni gruppo che l'arrivo attraversa.
+      foldHooks(group, play).shown();
+      g.stopFold = noop;
+    } else {
+      // Piega (spec §2.5; A20 di Alberto, D21): `data-reveal-armed` lo scrive fold.ts nello
+      // stesso task dello stato nascosto, così fino ad allora vale lo 0,02 di globals.css.
+      // Partenza all'handoff del sipario o dopo 150 ms; con la rete già scattata il gruppo
+      // nasce pieno; sulle tre teste senza foto aspetta la prima voce LCP e i lead spezzati.
+      // Nessuna lettura del layout: la passata di scritture resta tale.
+      g.stopFold = foldArm(group, foldHooks(group, play));
+    }
   } else {
+    for (const m of g.members) m.el.setAttribute("data-reveal-armed", "");
     apply(g, where === "below" ? "out" : "in", true);
   }
   g.untouched = true;
@@ -580,6 +598,10 @@ function disarm(g: Group): void {
     gsap.set(targets, { clearProps: "opacity,transform,transformOrigin" });
     m.el.style.removeProperty("pointer-events");
     m.el.removeAttribute("data-reveal-armed");
+    // Via anche opacity e animation inline della piega (fold.ts, spec §2.5, D21): al riarmo
+    // dopo un cambio lingua torna lo 0,02 di globals.css e fold.ts lo rispegne nello stesso task.
+    m.el.style.removeProperty("opacity");
+    m.el.style.removeProperty("animation");
   }
   g.live = false;
   g.el.removeAttribute("data-reveal-state");
@@ -590,7 +612,14 @@ function onFocusIn(ev: FocusEvent): void {
   let node = ev.target instanceof Element ? ev.target.closest("[data-reveal-group]") : null;
   while (node) {
     const g = groups.get(node);
-    if (g?.armed && g.state !== "shown") apply(g, "in", true);
+    if (g?.armed && folding(g)) {
+      // Spec §2.4, focusin → shown: una testa in attesa della piega è ancora dipinta a 0,02.
+      g.stopFold();
+      g.stopFold = noop;
+      foldHooks(g.el, play).shown();
+    } else if (g?.armed && g.state !== "shown") {
+      apply(g, "in", true);
+    }
     node = node.parentElement?.closest("[data-reveal-group]") ?? null;
   }
 }
@@ -637,8 +666,9 @@ function install(): void {
   });
   document.addEventListener("focusin", onFocusIn);
   window.matchMedia(MQ.motionOk).addEventListener("change", onMotionChange);
-  // D39: i ScrollTrigger di oggi (TextLines) nascono nell'idratazione, e dopo
-  // crescono il documento gli split dei titoli e le altezze misurate dal JS
+  // D39: i ScrollTrigger dei componenti (HorizonScroller, HorizontalRail,
+  // Parallax) nascono nell'idratazione, e dopo crescono il documento gli split
+  // dei titoli e le altezze misurate dal JS
   // (nastro, rotaia: +5.872 px a 1440 negli effetti passivi, un task dopo);
   // nessuno li rinfrescava (D38 sugli attrezzi e2e). A ogni cambio d'altezza
   // del body un refresh, uno per fotogramma e a scroll fermo (refreshWhenStill);
@@ -673,7 +703,7 @@ export function sweep(): void {
         g.since = null;
       }
       g.rect = rect;
-      if (held(g) || mode === "manual") continue;
+      if (held(g) || mode === "manual" || folding(g)) continue;
       const a = sweepAction(g.state, rect, vp, g.axis);
       if (a) applySweep(g, a, arriving);
     }
@@ -697,7 +727,7 @@ export function play(el: Element, dir: Dir, o?: { instant?: boolean }): void {
  */
 export function resync(group: HTMLElement): void {
   const g = groups.get(group);
-  if (!g || !g.armed) return;
+  if (!g || !g.armed || folding(g)) return;
   const before = new Set(g.members.map((m) => m.el));
   const members = collect(g.el);
   const dir: Dir = g.state === "shown" || g.state === "revealing" ? "in" : "out";

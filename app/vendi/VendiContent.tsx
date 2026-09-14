@@ -11,6 +11,7 @@ import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
 import RevealGroup from "../components/motion/RevealGroup";
+import Lead from "../components/motion/Lead";
 import SplitTitle from "../components/motion/SplitTitle";
 import FaqTeaser from "../components/FaqTeaser";
 import CostiChiari from "../components/CostiChiari";
@@ -829,9 +830,7 @@ function SellRisks({ risks }: { risks: Copy["risks"] }) {
           <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
             {risks.title}
           </SplitTitle>
-          <Reveal>
-            <p className="lead mt-8">{risks.intro}</p>
-          </Reveal>
+          <Lead className="mt-8">{risks.intro}</Lead>
         </RevealGroup>
 
         {/* Blocchi numerati separati da hairline: niente card (2026-09-10). */}
@@ -879,9 +878,7 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
           <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
             {prep.title}
           </SplitTitle>
-          <Reveal>
-            <p className="lead mt-8">{prep.intro}</p>
-          </Reveal>
+          <Lead className="mt-8">{prep.intro}</Lead>
         </RevealGroup>
 
         <ol className="mt-16 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
@@ -905,9 +902,9 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
           ))}
         </ol>
 
-        <Reveal delay={120} className="mt-16 border-t border-line pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-16">
-          <p className="lead">{prep.proof}</p>
-          <div className="mt-8 flex flex-col items-start gap-5 lg:mt-0 lg:items-end">
+        <RevealGroup className="mt-16 border-t border-line pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-16">
+          <Lead>{prep.proof}</Lead>
+          <Reveal role="still" className="mt-8 flex flex-col items-start gap-5 lg:mt-0 lg:items-end">
             <Cta href="#contatti" variant="cta-solid" size="md">
               {prep.ctaLabel}
             </Cta>
@@ -916,8 +913,8 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
             <Cta href="/case-vendute" variant="ghost" size="md">
               {prep.proofLink}
             </Cta>
-          </div>
-        </Reveal>
+          </Reveal>
+        </RevealGroup>
       </div>
     </section>
   );

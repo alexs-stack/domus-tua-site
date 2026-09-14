@@ -33,6 +33,7 @@ import {
   type Dir,
   type GroupState,
 } from "../motion/reveal-engine";
+import { HERO_REST_MS, HERO_REST_SHORT_MS, HERO_REST_WARM_MS } from "../motion/intro-constants";
 
 const ROOT_DIR = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT_DIR, rel), "utf8");
@@ -358,6 +359,30 @@ describe("globals.css: nessuno stato nascosto per i membri del motore (stati sol
 
   test("lo stato dipinto non usa html[data-hero-intro] sui gruppi (intro-clocks.test.ts:264 legge quel prefisso)", () => {
     assert.doesNotMatch(css, /html\[data-hero-intro(?:="intro")?\] \[data-reveal\]/);
+  });
+
+  // Spec §9.1: le reti dello stato dipinto (spec §2.5; A20 di Alberto; D31 per la porta corta).
+  // Gli orologi sono quelli dell'intro: 6 s senza film, 3,33 s col film, 1,08 s con la porta corta.
+  test("dt-reveal-failsafe a 6 s, 3,33 s col film e 1,08 s con la porta corta", () => {
+    const NON_ARMATO = "[data-reveal]:not([data-reveal-armed]):not([data-motion-freeze] *)";
+    const regola = (sel: string) => {
+      const i = css.indexOf(`${sel} {`);
+      assert.ok(i > -1, `manca la regola ${sel}`);
+      return css.slice(i, css.indexOf("}", i) + 1);
+    };
+    assert.equal(HERO_REST_WARM_MS / 1000, 6);
+    assert.equal(HERO_REST_MS / 1000, 3.33);
+    assert.equal(HERO_REST_SHORT_MS / 1000, 1.08);
+    assert.match(regola(`:root[data-hero-intro] ${NON_ARMATO}`), /animation: dt-reveal-failsafe 0\.5s ease 6s forwards;/);
+    assert.match(regola(`:root[data-hero-intro="intro"] ${NON_ARMATO}`), /animation-delay: 3\.33s;/);
+    assert.match(regola(`:root[data-hero-intro="short"] ${NON_ARMATO}`), /animation-delay: 1\.08s;/);
+    // A specificità pari vince l'ultima regola (spec §2.5): 3,33 s e 1,08 s valgono sullo
+    // shorthand dei 6 s solo se le due varianti seguono la base nel foglio.
+    const iBase = css.indexOf(`:root[data-hero-intro] ${NON_ARMATO} {`);
+    const iIntro = css.indexOf(`:root[data-hero-intro="intro"] ${NON_ARMATO} {`);
+    const iShort = css.indexOf(`:root[data-hero-intro="short"] ${NON_ARMATO} {`);
+    assert.ok(iBase > -1 && iBase < iIntro && iBase < iShort, "le varianti del ritardo devono seguire la base");
+    assert.match(css, /@keyframes dt-reveal-failsafe \{\s*to \{\s*opacity: 1;\s*\}\s*\}/);
   });
 });
 

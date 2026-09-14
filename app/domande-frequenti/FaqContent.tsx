@@ -19,6 +19,7 @@ import RevealGroup from "../components/motion/RevealGroup";
 import FaqList from "../components/FaqList";
 import Contact from "../components/Contact";
 import SplitTitle from "../components/motion/SplitTitle";
+import Lead from "../components/motion/Lead";
 import { ArrowRight } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
@@ -330,9 +331,7 @@ export default function FaqContent() {
                   <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d2">
                     {c.restTitle}
                   </SplitTitle>
-                  <Reveal>
-                    <p className="lead mt-8">{c.restCopy}</p>
-                  </Reveal>
+                  <Lead className="mt-8">{c.restCopy}</Lead>
                   <Reveal role="still">
                     <Cta href="#contatti" variant="cta-solid" size="md" className="mt-10">
                       {c.restCta}

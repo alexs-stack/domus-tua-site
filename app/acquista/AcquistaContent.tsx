@@ -10,6 +10,7 @@ import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
 import RevealGroup from "../components/motion/RevealGroup";
+import Lead from "../components/motion/Lead";
 import SplitTitle from "../components/motion/SplitTitle";
 import FaqTeaser from "../components/FaqTeaser";
 import { Whatsapp } from "../components/Icons";
@@ -565,9 +566,7 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
                 <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
                   {c.reassure.title}
                 </SplitTitle>
-                <Reveal>
-                  <p className="lead mt-8">{c.reassure.intro}</p>
-                </Reveal>
+                <Lead className="mt-8">{c.reassure.intro}</Lead>
                 <Reveal>
                   <ul className="mt-10">
                     {c.reassure.list.map((item) => (
@@ -586,9 +585,7 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
                   <SplitTitle as="h3" className="font-display text-d3">
                     {c.reassure.ctaTitle}
                   </SplitTitle>
-                  <Reveal>
-                    <p className="lead mt-6">{c.reassure.ctaCopy}</p>
-                  </Reveal>
+                  <Lead className="mt-6">{c.reassure.ctaCopy}</Lead>
                   <Reveal role="still">
                     <div className="mt-8 flex flex-wrap items-center gap-6">
                       <Cta href="#contatti" variant="cta-solid" size="md">

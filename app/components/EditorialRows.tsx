@@ -3,6 +3,7 @@ import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
 import RevealGroup from "./motion/RevealGroup";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 
 export type EditorialRow = {
   n: string;
@@ -55,11 +56,7 @@ export default function EditorialRows({
             <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
               {title}
             </SplitTitle>
-            {intro && (
-              <Reveal>
-                <p className="lead mt-8">{intro}</p>
-              </Reveal>
-            )}
+            {intro && <Lead className="mt-8">{intro}</Lead>}
           </RevealGroup>
           <ol className="mt-16 flex flex-col">
             {rows.map((r) => (
@@ -79,9 +76,7 @@ export default function EditorialRows({
                     <SplitTitle as="h3" className="max-w-[20ch] font-display text-d2 balance">
                       {r.title}
                     </SplitTitle>
-                    <Reveal>
-                      <p className="lead mt-5">{r.copy}</p>
-                    </Reveal>
+                    <Lead className="mt-5">{r.copy}</Lead>
                   </div>
                 </RevealGroup>
               </li>
@@ -102,11 +97,7 @@ export default function EditorialRows({
           <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
             {title}
           </SplitTitle>
-          {intro && (
-            <Reveal>
-              <p className="lead mt-8">{intro}</p>
-            </Reveal>
-          )}
+          {intro && <Lead className="mt-8">{intro}</Lead>}
         </RevealGroup>
 
         <div className="mt-20 flex flex-col gap-20 sm:gap-28">
@@ -166,9 +157,7 @@ export default function EditorialRows({
                   <SplitTitle as="h3" className="mt-4 max-w-[20ch] font-display text-d2 balance">
                     {r.title}
                   </SplitTitle>
-                  <Reveal>
-                    <p className="lead mt-6">{r.copy}</p>
-                  </Reveal>
+                  <Lead className="mt-6">{r.copy}</Lead>
                 </RevealGroup>
               </div>
             );

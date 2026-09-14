@@ -9,6 +9,7 @@ import CareerApplication, { ROLE_IDS, isRoleId, type RoleId } from "../component
 import LazyYouTubeEmbed from "../components/LazyYouTubeEmbed";
 import Parallax from "../components/motion/Parallax";
 import SplitTitle from "../components/motion/SplitTitle";
+import Lead from "../components/motion/Lead";
 import { Cta } from "../components/primitives/Cta";
 import { site } from "../lib/site";
 import { team, teamInitials, teamRoleLabels } from "../lib/team";
@@ -59,11 +60,7 @@ function SectionHead({
       <SplitTitle as="h2" className={`mt-6 max-w-[20ch] font-display ${titleClassName}`}>
         {title}
       </SplitTitle>
-      {intro && (
-        <Reveal delay={140}>
-          <p className="lead mt-8">{intro}</p>
-        </Reveal>
-      )}
+      {intro && <Lead className="mt-8">{intro}</Lead>}
     </div>
   );
 }

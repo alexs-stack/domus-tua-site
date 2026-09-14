@@ -6,9 +6,10 @@ import { gsap, MQ } from "../lib/motion/gsap";
 import { ArrowUpRight, Mail, Pin, Whatsapp } from "./Icons";
 import { SendCta } from "./primitives/Cta";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import { site, territoryLabelBy } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
-import { formatLeadMessage, submitLead, type Lead } from "../lib/forms/lead";
+import { formatLeadMessage, submitLead, type Lead as LeadPayload } from "../lib/forms/lead";
 import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -421,7 +422,7 @@ export default function CareerApplication({
     setErrors({});
 
     const experienceId = (val("experience") || "none") as ExperienceId;
-    const lead: Lead = {
+    const lead: LeadPayload = {
       intent: "career",
       name,
       contact,
@@ -483,7 +484,7 @@ export default function CareerApplication({
             <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1 balance">
               {c.title}
             </SplitTitle>
-            <p className="lead mt-8">{c.subcopy}</p>
+            <Lead className="mt-8">{c.subcopy}</Lead>
             <p className="mt-6 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{c.badge}</p>
 
             {/* Foto squadrata, senza cornice ad arco (2026-09-10). */}

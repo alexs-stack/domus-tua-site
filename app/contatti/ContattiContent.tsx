@@ -2,6 +2,8 @@
 
 import { useRef } from "react";
 import Reveal from "../components/Reveal";
+import Lead from "../components/motion/Lead";
+import RevealGroup from "../components/motion/RevealGroup";
 import SplitTitle from "../components/motion/SplitTitle";
 import { Pin, ArrowUpRight } from "../components/Icons";
 import { site } from "../lib/site";
@@ -123,13 +125,13 @@ export default function ContattiContent() {
 
   return (
     <>
-      {/* Intro */}
-      <section className="bg-cream">
+      {/* Intro. Testa senza foto: la piega aspetta la prima voce LCP (spec §2.5, A20 di Alberto). */}
+      <section className="bg-cream" data-fold-lcp="">
         {/* 144px di aria sotto una testata che ne occupa gia' 84: il primo
             schermo di /contatti era vuoto per il 60% e l'occhiello cominciava a
             y=300. L'attacco ora e' proporzionale all'altezza dello schermo. */}
         <div className="dt-row pt-[clamp(4.5rem,12vh,7.5rem)] pb-12 sm:pb-20">
-          <div>
+          <RevealGroup>
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
@@ -138,10 +140,8 @@ export default function ContattiContent() {
             <SplitTitle as="h1" className="mt-6 max-w-[16ch] font-display text-[clamp(3rem,8vw,9rem)] leading-[0.92]">
               {c.title}
             </SplitTitle>
-            <Reveal delay={100}>
-              <p className="lead mt-8">{c.subcopy}</p>
-            </Reveal>
-          </div>
+            <Lead className="mt-8">{c.subcopy}</Lead>
+          </RevealGroup>
         </div>
       </section>
 

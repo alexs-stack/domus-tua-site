@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import { Check } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -273,9 +274,7 @@ export default function BeforeAfter() {
             <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
               {c.title}
             </SplitTitle>
-            <Reveal delay={100}>
-              <p className="lead mt-8">{c.subcopy}</p>
-            </Reveal>
+            <Lead className="mt-8">{c.subcopy}</Lead>
           </div>
 
           {/* Tabs: rettangoli a filo, l'attivo è rosso pieno (niente pill). */}

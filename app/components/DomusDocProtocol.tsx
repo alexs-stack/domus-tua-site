@@ -2,6 +2,7 @@
 
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import { SegnoDomus } from "./BrandMotif";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -260,9 +261,7 @@ export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
             <Reveal>
               <p className="mt-4 font-display text-d4 font-light text-stone">{c.subtitle}</p>
             </Reveal>
-            <Reveal>
-              <p className="lead mt-6">{c.intro}</p>
-            </Reveal>
+            <Lead className="mt-6">{c.intro}</Lead>
           </div>
         </div>
 

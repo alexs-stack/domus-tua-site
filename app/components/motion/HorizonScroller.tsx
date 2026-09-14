@@ -38,8 +38,9 @@ import { useRef, type ReactNode } from "react";
 import { SplitText } from "gsap/SplitText";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 
-// SplitText serve solo qui e in TextLines: registrazione locale, mai nel
-// chunk del layout (gsap.ts è importato da SmoothScroll).
+// SplitText serve qui (il manifesto, spec §3.5), in Lead (A20 di Alberto) e in
+// FrozenLines (/case/[slug], D32): registrazione locale, mai nel chunk del
+// layout (gsap.ts è importato da SmoothScroll).
 gsap.registerPlugin(SplitText);
 
 // Le due misure di questo set piece che il vocabolario di gsap.ts non ha.
@@ -172,17 +173,10 @@ export default function HorizonScroller({
           // suo posto è esattamente il fade che questa onda rifiuta di
           // chiamare parità.
           //
-          // Qui c'era scritto «niente SplitText: sarebbero ~68 span, e l'idioma
-          // di casa per le righe (TextLines) è ungated in larghezza, quindi
-          // avvolgere l'h2 significherebbe due split sullo stesso testo appena
-          // si torna sopra i 1024». Verificato: TextLines è davvero ungated
-          // (`TextLines.tsx:66`, solo MQ.motionOk) — ma l'h2 del manifesto NON
-          // è avvolto in TextLines (`HorizonStory.tsx:264-270`), quindi quel
-          // rischio non è mai esistito su questo nodo. Lo split lo fa questo
-          // componente, dentro `matchMedia`, che di rami ne tiene vivo uno solo
-          // alla volta: uno split, non due. E i ~68 span sono l'alleggerimento
-          // di questo verdetto, non il suo costo — un h2 solo, `will-change`
-          // mai (`globals.css`, blocco .dt-hchar), split revertito nel cleanup.
+          // Lo split lo fa questo componente dentro `matchMedia`, che tiene vivo
+          // un ramo solo alla volta (spec §3.5): uno split, non due. Sono ~68 span
+          // su un h2 solo, `will-change` mai (`globals.css`, blocco .dt-hchar;
+          // spec §2.2), split revertito nel cleanup.
           //
           // Cambia solo il punto da cui si guarda, come per tutto il ramo: il
           // desktop innesca sul pin della sezione ("top 55%" della radice,

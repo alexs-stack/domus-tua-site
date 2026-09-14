@@ -41,6 +41,7 @@
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
 import RevealGroup from "../components/motion/RevealGroup";
+import Lead from "../components/motion/Lead";
 import SplitTitle from "../components/motion/SplitTitle";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
@@ -344,8 +345,9 @@ export default function ValutazioneContent() {
 
   return (
     <main className="flex-1 bg-paper">
-      <section className="relative bg-cream-deep">
-        <div className="mx-auto max-w-[1240px] px-5 pb-16 pt-32 sm:px-8 sm:pb-20 sm:pt-36">
+      {/* Testa senza foto: la piega aspetta la prima voce LCP (spec §2.5, A20 di Alberto). */}
+      <section className="relative bg-cream-deep" data-fold-lcp="">
+        <RevealGroup className="mx-auto max-w-[1240px] px-5 pb-16 pt-32 sm:px-8 sm:pb-20 sm:pt-36">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
@@ -355,10 +357,10 @@ export default function ValutazioneContent() {
           >
             {c.title}
           </SplitTitle>
-          <Reveal delay={120}>
+          <Reveal>
             <p className="mt-7 max-w-2xl text-[1.05rem] leading-relaxed text-graphite">{c.lead}</p>
           </Reveal>
-          <Reveal delay={180}>
+          <Reveal role="still">
             <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
               <Cta href="#richiesta" variant="cta" size="md">
                 {c.ctaPrimary}
@@ -368,7 +370,7 @@ export default function ValutazioneContent() {
               </Cta>
             </div>
           </Reveal>
-        </div>
+        </RevealGroup>
       </section>
 
       {/* I DUE LIVELLI — il contenuto vero della pagina (§3.2). */}
@@ -400,9 +402,7 @@ export default function ValutazioneContent() {
                   <SplitTitle as="h3" className="mt-5 font-display text-d3">
                     {t.name}
                   </SplitTitle>
-                  <Reveal>
-                    <p className="lead mt-6">{t.lead}</p>
-                  </Reveal>
+                  <Lead className="mt-6">{t.lead}</Lead>
                   <Reveal>
                     <ul className="mt-8 border-t border-line pt-2">
                       {t.items.map((item) => (

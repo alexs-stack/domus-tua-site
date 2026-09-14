@@ -2,6 +2,7 @@
 
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -178,9 +179,7 @@ export default function OpenDomus() {
           <SplitTitle as="h2" className="mt-6 font-display text-d2">
             {c.head}
           </SplitTitle>
-          <Reveal>
-            <p className="lead mt-6">{c.claim}</p>
-          </Reveal>
+          <Lead className="mt-6">{c.claim}</Lead>
           <Reveal delay={80}>
             <p className="mt-6 max-w-[60ch] text-body text-graphite">{c.intro}</p>
           </Reveal>

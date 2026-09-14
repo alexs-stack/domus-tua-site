@@ -18,6 +18,7 @@ import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import Parallax from "./motion/Parallax";
 
 // Fotografie reali, ognuna una volta sola in home: la consulenza resta a
@@ -249,9 +250,7 @@ export default function Paths() {
               <SplitTitle as="h3" className="font-display text-d3">
                 {t.title}
               </SplitTitle>
-              <Reveal>
-                <p className="lead mt-6">{t.copy}</p>
-              </Reveal>
+              <Lead className="mt-6">{t.copy}</Lead>
               <ul className="mt-6 flex flex-col gap-2 text-body">
                 {t.points.map((pt) => (
                   <li key={pt} className="flex gap-3">

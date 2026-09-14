@@ -12,6 +12,7 @@
 
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import SocialLinks from "./primitives/SocialLinks";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -76,9 +77,7 @@ export default function Social() {
         </div>
 
         <div className="mt-6 lg:mt-0 lg:pl-[6vw]">
-          <Reveal delay={80}>
-            <p className="lead">{c.subcopy}</p>
-          </Reveal>
+          <Lead>{c.subcopy}</Lead>
 
           {/* Il feed, quando c'è, sta nella METÀ (dt-media-half, quadrata come
               la griglia di Instagram): è la stessa scatola delle foto, non una

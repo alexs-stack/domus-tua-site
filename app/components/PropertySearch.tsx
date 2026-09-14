@@ -24,9 +24,9 @@ import { isAvailable, isSold } from "../lib/availability";
 import type { GridProperty } from "../lib/properties";
 import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
 
-// Flip serve solo al riordino dei risultati al cambio filtri: registrato
-// localmente (stesso pattern di TextLines con SplitText) per non finire nel
-// chunk del layout via gsap.ts.
+// Flip serve solo al riordino dei risultati al cambio filtri (PropertySearch
+// invariato, spec §5.3): registrato localmente, come SplitText in Lead (A20 di
+// Alberto), per non finire nel chunk del layout via gsap.ts.
 gsap.registerPlugin(Flip);
 
 // Dizionario UI inline. Le VALUE dei filtri (contract/type/feature) restano in italiano

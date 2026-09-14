@@ -1,6 +1,8 @@
 "use client";
 
 import Reveal from "./Reveal";
+import Lead from "./motion/Lead";
+import RevealGroup from "./motion/RevealGroup";
 import { ratingLabel, site, yearsActive } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -115,18 +117,20 @@ export default function Stats() {
   return (
     <section className="dt-chapter relative bg-cream">
       <div className="dt-row">
-        <Reveal>
-          <span className="eyebrow">{c.eyebrow}</span>
-          <p className="tnum mt-6 font-display text-d1 uppercase text-ink">
-            {ratingLabel(locale)}/5 · {site.reviewsCount}
-          </p>
-          <p className="lead mt-4">
-            {c.labels.rating} · {c.labels.reviews}
-          </p>
-          <p className="tnum mt-8 border-t border-line pt-6 text-body text-graphite">
-            {yearsActive()} {c.labels.years.toLowerCase()}
-          </p>
-        </Reveal>
+        <RevealGroup>
+          <Reveal>
+            <span className="eyebrow">{c.eyebrow}</span>
+            <p className="tnum mt-6 font-display text-d1 uppercase text-ink">
+              {ratingLabel(locale)}/5 · {site.reviewsCount}
+            </p>
+          </Reveal>
+          <Lead className="mt-4">{`${c.labels.rating} · ${c.labels.reviews}`}</Lead>
+          <Reveal>
+            <p className="tnum mt-8 border-t border-line pt-6 text-body text-graphite">
+              {yearsActive()} {c.labels.years.toLowerCase()}
+            </p>
+          </Reveal>
+        </RevealGroup>
       </div>
     </section>
   );

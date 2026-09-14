@@ -2,7 +2,9 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { Cta } from "./primitives/Cta";
 import Reveal from "./Reveal";
+import Lead from "./motion/Lead";
 import Parallax from "./motion/Parallax";
+import RevealGroup from "./motion/RevealGroup";
 import ScriptWord from "./motion/ScriptWord";
 import SplitTitle from "./motion/SplitTitle";
 
@@ -59,7 +61,18 @@ export default function PageHero({
        contesto di impilamento qui finirebbe sotto anche all'avorio della
        sezione — cioè invisibile. */
     <section id={id} className="relative isolate bg-cream pt-[clamp(2rem,6vh,4rem)]">
-      <div className="dt-row lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-x-[5vw]">
+      {/* La testa è un gruppo (spec §2.5, §5.2; A20 di Alberto): occhiello, H1 e
+          calligrafia si armano insieme sopra la piega. La banda sta nel gruppo
+          ma non ha un ruolo: il motore non la tocca. La colonna del lead è un
+          gruppo annidato (D50): da lg sta accanto al titolo, interseca il
+          viewport e parte con la testa, allo stesso handoff o dopo 150 ms, con
+          gli stessi indici di ruolo (un lead, una riga CTA); sotto lg sta sotto
+          la banda 4/5, fuori dal viewport, e da gruppo di sé nasce nascosto ed
+          entra allo scroll con le righe dalla maschera e la dissolvenza della
+          CTA, con replay (C22) — in un gruppo solo partiva fuori vista e chi
+          scorreva lo trovava già pieno e fermo. Il declassamento guarda il
+          membro: `still` è la sola riga CTA (spec §2.2). */}
+      <RevealGroup className="dt-row lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-x-[5vw]">
         {/* Colonna del titolo. Da lg il margine negativo IN BASSO (non un `-mt`
             sulla banda) è quello che fa risalire la fotografia: così la risalita
             si misura sulla colonna del titolo e non sul fondo della riga —
@@ -115,15 +128,14 @@ export default function PageHero({
           <Image src={image} alt={alt} fill preload sizes="100vw" quality={60} className="object-cover" />
         </Parallax>
 
-        {/* Colonna del lead: da lg in basso a destra, con un `pb` che le tiene
-            l'ultima riga sopra il bordo della banda — il testo sopra le
-            immagini è vietato, tranne la calligrafia e il congedo. */}
-        <div className="mt-[clamp(2rem,5vh,3rem)] lg:col-start-2 lg:row-start-1 lg:mt-0 lg:self-end lg:pb-[2vw]">
-          <Reveal delay={120}>
-            <p className="lead">{subcopy}</p>
-          </Reveal>
+        {/* Colonna del lead, gruppo annidato (D50): da lg in basso a destra,
+            con un `pb` che le tiene l'ultima riga sopra il bordo della banda —
+            il testo sopra le immagini è vietato, tranne la calligrafia e il
+            congedo. */}
+        <RevealGroup className="mt-[clamp(2rem,5vh,3rem)] lg:col-start-2 lg:row-start-1 lg:mt-0 lg:self-end lg:pb-[2vw]">
+          <Lead>{subcopy}</Lead>
 
-          <Reveal delay={200}>
+          <Reveal role="still">
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
               <Cta href={primary.href} variant="cta-solid" size="lg">
                 {primary.label}
@@ -152,8 +164,8 @@ export default function PageHero({
               ))}
             </ul>
           ) : null}
-        </div>
-      </div>
+        </RevealGroup>
+      </RevealGroup>
     </section>
   );
 }

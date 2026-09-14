@@ -1,6 +1,7 @@
 import Reveal from "./Reveal";
 import RevealGroup from "./motion/RevealGroup";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 
 export default function Highlights({
   eyebrow,
@@ -25,11 +26,7 @@ export default function Highlights({
           <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
             {title}
           </SplitTitle>
-          {intro && (
-            <Reveal>
-              <p className="lead mt-8">{intro}</p>
-            </Reveal>
-          )}
+          {intro && <Lead className="mt-8">{intro}</Lead>}
         </RevealGroup>
 
         {/* Lista editoriale numerata: righe asimmetriche separate da hairline,

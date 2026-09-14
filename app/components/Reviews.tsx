@@ -4,6 +4,7 @@ import { useState } from "react";
 import Reveal from "./Reveal";
 import RevealGroup from "./motion/RevealGroup";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import { Star, Google, Check } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import TrustindexEmbed from "./TrustindexEmbed";
@@ -197,9 +198,7 @@ export default function Reviews() {
             <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
               {c.title}
             </SplitTitle>
-            <Reveal delay={100}>
-              <p className="lead mt-8">{c.subtitle}</p>
-            </Reveal>
+            <Lead className="mt-8">{c.subtitle}</Lead>
           </div>
 
           {/* Riepilogo del voto: testo su hairline, niente card né contatore (2026-09-10).

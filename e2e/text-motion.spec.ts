@@ -1,15 +1,22 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Page } from "@playwright/test";
+import { devices, type BrowserContextOptions, type Page } from "@playwright/test";
+import { INTRO_KEY } from "../app/lib/motion/intro-constants";
 import { test, expect, setConsent } from "./helpers";
 import {
   budget,
   entryTimes,
   inkOf,
+  lampo,
+  letturaLampi,
   matrixOf,
   noOverflowX,
+  primoPieno,
   productOpacity,
+  readLcpBase,
   refreshTriggers,
+  registraLampi,
+  routeExternal,
   timeToHidden,
   waitArmed,
   watchMinInk,
@@ -497,3 +504,252 @@ test("nomi · gli H1 delle 11 PageHero hanno nelle cinque lingue il nome che si 
   }
   expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
 });
+
+// ── Commit 6: H1 dipinti e lead a righe (spec §2.5, §5.2, §9.2 test 5-7; A20 di Alberto) ──
+
+const ROTTE_H1 = ["/vendi", "/contatti", "/case-vendute", "/valutazione-immobile-tradate", "/"] as const;
+/** Spec §2.5: partenza 150 ms dopo l'armamento, ritardo 0,3 s, durata 1,2 s, tetto dello stagger 1,2 s. */
+const TETTO_PIENO_MS = 150 + 300 + 1200 + 1200;
+
+// Spec §9.2 test 5 e §2.5. Il titolo sopra la piega non passa mai da ≥ 0,9 a ≤ 0,1 e alla fine si
+// legge. Sulle rotte interne, in più: al primo campione è dipinto (≤ 0,1, la regola dello 0,02),
+// l'H1 l'ha armato il motore e non la rete CSS dei 6 s, e il primo carattere è pieno entro
+// TETTO_PIENO_MS dall'armamento o, col sipario, dall'handoff.
+async function controllaLampi(page: Page, rotta: string, sipario: boolean) {
+  const r = await letturaLampi(page);
+  const traccia = r.serie.map((v, i) => `${r.tempi[i]}:${v.toFixed(2)}`).join(" ");
+  expect(r.serie.length, "nessun campione: manca il primo carattere in #main").toBeGreaterThan(30);
+  expect(lampo(r.serie), traccia).toBe(false);
+  expect(r.serie.at(-1) ?? 0, `il titolo non è mai diventato leggibile: ${traccia}`).toBeGreaterThanOrEqual(0.9);
+  if (rotta === "/") return;
+  expect(r.serie[0], `al primo campione l'H1 non è dipinto a 0,02: ${traccia}`).toBeLessThanOrEqual(0.1);
+  expect(r.armato, "l'h1 non è mai stato armato dal motore").not.toBeNull();
+  const primo = primoPieno(r.serie, r.tempi);
+  expect(primo, traccia).not.toBeNull();
+  const da = sipario && r.intro !== null ? Math.max(r.armato!, r.intro) : r.armato!;
+  expect(primo! - da, `primo carattere pieno a ${primo} ms, armato a ${r.armato} ms, handoff a ${r.intro} ms`).toBeLessThanOrEqual(
+    budget(TETTO_PIENO_MS),
+  );
+}
+
+for (const rotta of ROTTE_H1) {
+  test(`5 · nessun lampo su ${rotta}, senza sipario`, { tag: "@lampo" }, async ({ page, goto }) => {
+    await registraLampi(page);
+    await goto(rotta);
+    await page.waitForTimeout(4_500);
+    await controllaLampi(page, rotta, false);
+  });
+
+  test(`5 · nessun lampo su ${rotta}, col sipario`, { tag: "@lampo" }, async ({ page }) => {
+    await registraLampi(page);
+    await page.goto(rotta, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(8_000);
+    await controllaLampi(page, rotta, true);
+  });
+
+  for (const lingua of ["de", "fr"] as const) {
+    test(`5 · nessun lampo su ${rotta}, dt_locale=${lingua} al primo caricamento`, { tag: "@lampo" }, async ({ page, goto }) => {
+      await page.context().addCookies([{ name: "dt_locale", value: lingua, domain: "127.0.0.1", path: "/" }]);
+      await registraLampi(page);
+      await goto(rotta);
+      await expect(page.locator("html")).toHaveAttribute("lang", lingua);
+      await page.waitForTimeout(4_500);
+      await controllaLampi(page, rotta, false);
+    });
+  }
+}
+
+// Il declassamento guarda il membro (spec §2.2: «vale per la riga CTA di PageHero.tsx:131-142»):
+// in una testa-gruppo con le CTA l'occhiello resta `ctn` e all'armamento sta a --dt-ctn-y (48 px a
+// 1440), la riga CTA è `still` e ferma. Lo stato si legge nel microtask dopo l'armamento.
+test("5b · teste di /vendi e /valutazione: occhiello ctn con la corsa, riga CTA still e ferma", { tag: "@lampo" }, async ({ page, goto }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "la corsa --dt-ctn-y vale 48 px a 1440");
+  type Voce = { ruolo: string | null; m42: number };
+  await page.addInitScript(() => {
+    const w = window as unknown as { __dtTesta: Record<string, { ruolo: string | null; m42: number }> };
+    w.__dtTesta = {};
+    const leggi = (k: string, el: Element | null | undefined) => {
+      if (!el || w.__dtTesta[k]) return;
+      const tr = getComputedStyle(el).transform;
+      w.__dtTesta[k] = { ruolo: el.getAttribute("data-reveal"), m42: new DOMMatrixReadOnly(tr === "none" ? undefined : tr).m42 };
+    };
+    new MutationObserver(() => {
+      const testa = document.querySelector("#main section");
+      leggi("occhiello", testa?.querySelector("[data-reveal][data-reveal-armed]:has(> .eyebrow)"));
+      leggi("cta", testa?.querySelector("[data-reveal][data-reveal-armed]:has(a[href])"));
+    }).observe(document, { subtree: true, attributes: true, attributeFilter: ["data-reveal-armed"] });
+  });
+  for (const rotta of ["/vendi", "/valutazione-immobile-tradate"]) {
+    await goto(rotta);
+    await expect
+      .poll(() => page.evaluate(() => Object.keys((window as unknown as { __dtTesta: object }).__dtTesta).length), { timeout: 8_000 })
+      .toBe(2);
+    const t = await page.evaluate(() => (window as unknown as { __dtTesta: Record<string, { ruolo: string | null; m42: number }> }).__dtTesta);
+    const occhiello: Voce = t.occhiello;
+    const cta: Voce = t.cta;
+    const corsa = await page.evaluate(
+      () => (Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dt-ctn-y")) * window.innerWidth) / 100,
+    );
+    expect(occhiello.ruolo, `${rotta}: occhiello`).toBe("ctn");
+    expect(Math.abs(occhiello.m42 - corsa), `${rotta}: corsa dell'occhiello ${occhiello.m42} px contro ${corsa} px`).toBeLessThanOrEqual(1);
+    expect(cta.ruolo, `${rotta}: riga CTA`).toBe("still");
+    expect(cta.m42, `${rotta}: riga CTA spostata`).toBe(0);
+  }
+});
+
+test.describe("6 · LCP contro la base di spec §2.5", () => {
+  test.describe.configure({ mode: "serial" });
+  for (const rotta of ROTTE_H1) {
+    test(`6 · LCP di ${rotta} entro la base + 100 ms, senza consenso`, { tag: "@lcp" }, async ({ browser, baseURL }, info) => {
+      const rif = readLcpBase().projects[info.project.name]?.[rotta]?.lcpMs ?? 0;
+      expect(rif, `manca ${info.project.name} ${rotta} in e2e/baseline/lcp-base.json`).toBeGreaterThan(0);
+      // Le condizioni della base (scripts/probe-lcp-base.mjs, block-01-02.md:2036-2083): descrittore
+      // del progetto, contesto nuovo senza consenso, motion ok, sipario saltato, terze parti
+      // bloccate, ultima voce LCP 4 s dopo load, mediana di tre giri.
+      const descrittore: BrowserContextOptions & { defaultBrowserType?: string } =
+        info.project.name === "mobile-390"
+          ? { ...devices["iPhone 13"] }
+          : { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } };
+      delete descrittore.defaultBrowserType;
+      const giri: number[] = [];
+      for (let i = 0; i < 3; i += 1) {
+        const ctx = await browser.newContext({ ...descrittore, reducedMotion: "no-preference" });
+        await routeExternal(ctx);
+        await ctx.addInitScript((k) => {
+          try {
+            sessionStorage.setItem(k, "1");
+          } catch {
+            /* storage negato */
+          }
+          const w = window as unknown as { __lcp: number[] };
+          w.__lcp = [];
+          new PerformanceObserver((l) => {
+            for (const e of l.getEntries()) w.__lcp.push(Math.round(e.startTime));
+          }).observe({ type: "largest-contentful-paint", buffered: true });
+        }, INTRO_KEY);
+        const p = await ctx.newPage();
+        await p.goto(`${baseURL}${rotta}`, { waitUntil: "load", timeout: 60_000 });
+        await p.waitForTimeout(4_000);
+        giri.push(await p.evaluate(() => (window as unknown as { __lcp: number[] }).__lcp.at(-1) ?? 0));
+        await ctx.close();
+      }
+      giri.sort((a, b) => a - b);
+      expect(giri[1], `LCP ${rotta} su ${info.project.name}: giri ${giri.join(", ")} ms, base ${rif} ms`).toBeLessThanOrEqual(rif + 100);
+    });
+  }
+});
+
+test("7b · cambio lingua su /metodo: le righe del lead si rifanno senza il testo di prima", { tag: "@lead" }, async ({ page, goto }) => {
+  const DE = "Jeder Verkauf und jeder Kauf folgt einem klaren Weg aus Sorgfalt, Unterlagen, Marketing und Begleitung bis zum Notartermin. So arbeiten wir seit 2007.";
+  const senzaSpazi = (s: string) => s.replace(/\s+/g, "");
+  await page.context().addCookies([{ name: "dt_locale", value: "de", domain: "127.0.0.1", path: "/" }]);
+  await goto("/metodo");
+  await expect(page.locator("html")).toHaveAttribute("lang", "de");
+  const lead = page.locator('#main [data-reveal="lead"]').first();
+  await expect(lead).toHaveAttribute("data-lead", "split", { timeout: 8_000 });
+  const righe = await lead.locator(".dt-line").allTextContents();
+  expect(righe.length).toBeGreaterThan(0);
+  expect(senzaSpazi(righe.join(""))).toBe(senzaSpazi(DE));
+  expect(senzaSpazi((await lead.textContent()) ?? "")).toBe(senzaSpazi(DE));
+});
+
+// Il gesto `lead` (spec §2.2, riga lead: yPercent 110 → 0 in 1,2 s, stagger 0,1; uscita −110 in
+// 0,4 s, stagger 0,05; A20 di Alberto): le righe del lead di Posizionamento, il primo Lead della
+// home, nascono a yPercent 110, arrivano a 0 entro 0,3 + 0,1·(righe − 1) + 1,2 s più 250 ms e, col
+// bordo alto al 92 %, escono sopra la maschera entro 1,3 s.
+test("7c · lead: le righe salgono dalla maschera ed escono verso l'alto", { tag: "@lead" }, async ({ page, goto }) => {
+  await goto("/");
+  await waitArmed(page);
+  const sel = '#main [data-reveal="lead"]';
+  const t = await topDi(page, sel);
+  await wheelTo(page, Math.max(0, t.top - t.vh * 1.5));
+  await expect(page.locator(sel).first()).toHaveAttribute("data-lead", "split", { timeout: 8_000 });
+  const righe = () =>
+    page.evaluate(
+      (s) =>
+        Array.from(document.querySelector(s)!.querySelectorAll<HTMLElement>(".dt-line"), (r) => {
+          const tr = getComputedStyle(r).transform;
+          return { m42: new DOMMatrixReadOnly(tr === "none" ? undefined : tr).m42, h: r.offsetHeight };
+        }),
+      sel,
+    );
+  const armate = await righe();
+  expect(armate.length, "nessuna riga nel lead").toBeGreaterThan(0);
+  for (const r of armate) expect(Math.abs(r.m42 - 1.1 * r.h), `riga armata a ${r.m42} px, attesi ${1.1 * r.h}`).toBeLessThanOrEqual(2);
+  const tetto = Math.round((0.3 + Math.min(0.1, 1.2 / Math.max(1, armate.length - 1)) * (armate.length - 1) + 1.2) * 1000) + 250;
+  const ms = await page.evaluate(
+    async ([s, limite]) => {
+      const el = document.querySelector(s)!;
+      const linee = Array.from(el.querySelectorAll<HTMLElement>(".dt-line"));
+      const y = (l: HTMLElement) => {
+        const tr = getComputedStyle(l).transform;
+        return new DOMMatrixReadOnly(tr === "none" ? undefined : tr).m42;
+      };
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.5, behavior: "instant" });
+      const t0 = performance.now();
+      while (performance.now() - t0 < limite + 1500) {
+        await new Promise((r) => requestAnimationFrame(r));
+        if (linee.every((l) => Math.abs(y(l)) < 0.5)) return Math.round(performance.now() - t0);
+      }
+      return -1;
+    },
+    [sel, tetto] as const,
+  );
+  expect(ms, `ingresso delle righe mai completo (tetto ${tetto} ms)`).toBeGreaterThanOrEqual(0);
+  expect(ms, `ingresso delle righe ${ms} ms, tetto ${tetto} ms`).toBeLessThanOrEqual(budget(tetto));
+  await wheelTo(page, t.top - t.vh * 0.92);
+  await expect
+    .poll(async () => (await righe()).every((r) => r.m42 <= -r.h), { timeout: budget(1_300), intervals: [50] })
+    .toBe(true);
+});
+
+// D51 (giro di correzione 1 della verifica del commit 6): le righe di SplitText sono le righe del
+// testo intero anche con le parole col trattino («multi-proposta» su /metodo it, «Open-Domus-Event»
+// e «Mehrkanal-Kampagnen» su /vendi de, «pre-qualification» su /open-domus en): Lead taglia le parole
+// dopo il trattino come SplitChars (spec §2.3). Prima, la parola intera finiva nella riga in cui
+// comincia, la .dt-line a blocco (D47) era alta due righe e il paragrafo cresceva di una riga.
+// Per ogni lead spezzato della pagina: tante .dt-line quante le righe del testo intero, nessuna
+// più alta di una riga, paragrafo alto quanto il testo intero. Il testo intero si misura su una
+// copia del paragrafo nello stesso genitore (stessi stili ereditati), fuori flusso e larga quanto
+// il paragrafo, poi tolta.
+const LEAD_TRATTINI = [
+  ["/metodo", "it"],
+  ["/vendi", "de"],
+  ["/open-domus", "en"],
+  ["/domande-frequenti", "fr"],
+] as const;
+for (const [rotta, lingua] of LEAD_TRATTINI) {
+  test(`7d · righe naturali dei lead su ${rotta} in ${lingua}, parole col trattino comprese`, { tag: "@lead" }, async ({ page, goto }) => {
+    if (lingua !== "it") await page.context().addCookies([{ name: "dt_locale", value: lingua, domain: "127.0.0.1", path: "/" }]);
+    await goto(rotta);
+    await expect(page.locator("html")).toHaveAttribute("lang", lingua);
+    await waitArmed(page);
+    await expect.poll(() => page.locator('#main [data-reveal="lead"][data-lead="pending"]').count(), { timeout: 10_000 }).toBe(0);
+    expect(await page.locator('#main [data-reveal="lead"][data-lead="split"]').count(), "nessun lead spezzato").toBeGreaterThan(0);
+    const fuori = await page.evaluate(() => {
+      type Esito = { testo: string; righe: number; naturali: number; h: number; hIntero: number; rigaMax: number; riga: number };
+      const out: Esito[] = [];
+      for (const p of Array.from(document.querySelectorAll<HTMLElement>('#main [data-reveal="lead"][data-lead="split"]'))) {
+        const box = p.getBoundingClientRect();
+        if (!box.width || !box.height) continue;
+        const riga = Number.parseFloat(getComputedStyle(p).lineHeight);
+        const righe = Array.from(p.querySelectorAll<HTMLElement>(".dt-line"));
+        const copia = document.createElement("p");
+        copia.className = p.className;
+        copia.textContent = p.textContent ?? "";
+        copia.style.cssText = `position:absolute;left:0;top:0;width:${box.width}px;max-width:none;margin:0;visibility:hidden;pointer-events:none`;
+        p.parentElement!.insertBefore(copia, p);
+        const hIntero = copia.getBoundingClientRect().height;
+        const rg = document.createRange();
+        rg.selectNodeContents(copia);
+        const naturali = new Set(Array.from(rg.getClientRects()).filter((r) => r.width > 0).map((r) => Math.round(r.top))).size;
+        copia.remove();
+        const rigaMax = Math.max(0, ...righe.map((r) => r.getBoundingClientRect().height));
+        const male = righe.length !== naturali || Math.abs(box.height - hIntero) > 0.5 || (Number.isFinite(riga) && rigaMax > riga + 0.5);
+        if (male) out.push({ testo: (p.textContent ?? "").slice(0, 40), righe: righe.length, naturali, h: +box.height.toFixed(1), hIntero: +hIntero.toFixed(1), rigaMax: +rigaMax.toFixed(1), riga: +riga.toFixed(1) });
+      }
+      return out;
+    });
+    expect(fuori, JSON.stringify(fuori)).toEqual([]);
+  });
+}

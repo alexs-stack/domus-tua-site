@@ -6,6 +6,7 @@ import { ScrollTrigger } from "../lib/motion/gsap";
 import { useLocale } from "../components/i18n/LocaleProvider";
 import Reveal from "../components/Reveal";
 import RevealGroup from "../components/motion/RevealGroup";
+import Lead from "../components/motion/Lead";
 import SplitTitle from "../components/motion/SplitTitle";
 import PageHero from "../components/PageHero";
 import OpenDomus from "../components/OpenDomus";
@@ -770,9 +771,7 @@ export default function OpenDomusPageContent() {
               <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
                 {c.compareTitle}
               </SplitTitle>
-              <Reveal>
-                <p className="lead mt-8">{c.compareIntro}</p>
-              </Reveal>
+              <Lead className="mt-8">{c.compareIntro}</Lead>
             </RevealGroup>
 
             <div className="mt-16 grid gap-x-16 lg:grid-cols-2">
@@ -855,9 +854,7 @@ export default function OpenDomusPageContent() {
                 <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
                   {c.videoTitle}
                 </SplitTitle>
-                <Reveal>
-                  <p className="lead mt-8">{c.videoText}</p>
-                </Reveal>
+                <Lead className="mt-8">{c.videoText}</Lead>
                 <Reveal role="still">
                   <Cta
                     href={youtubeWatch(site.videos.openDomus.id)}
@@ -992,9 +989,7 @@ export default function OpenDomusPageContent() {
               <SplitTitle as="h2" className="max-w-[20ch] font-display text-d1">
                 {c.finalTitle}
               </SplitTitle>
-              <Reveal>
-                <p className="lead mt-8">{c.finalText}</p>
-              </Reveal>
+              <Lead className="mt-8">{c.finalText}</Lead>
               <Reveal role="still">
                 <Cta href="#contatti" variant="cta-solid" size="lg" className="mt-10">
                   {c.finalCta}

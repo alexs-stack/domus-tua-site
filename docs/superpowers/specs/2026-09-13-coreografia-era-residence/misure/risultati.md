@@ -248,3 +248,79 @@ kern-table.json: 43.170 byte (tetto 65.536, D36). Estremi per chiave (D42):
 | script-400 | 307 | -0.244 | 0.195 | ±0.25 |
 
 Decisione: misura rifatta nel giro di correzione 1 della verifica del commit 5, sul build in cui SplitChars divide le parole col trattino dopo il trattino (una `span.dt-w` per pezzo, unite da `<wbr/>`, spec §2.3). `e4bf40d` nell'intestazione è il commit 5 prima della correzione, poi riscritto con amend. I numeri restano nel criterio, i `[data-c]` restano 847 (`e2e/baseline/data-c.json` non cambia) e la sezione porta il peso di `kern-table.json` che la riga di D36 in spec §1.3 cita.
+
+## 06-h1-dipinti · 2026-09-14 · 03d6d06+
+
+| progetto | rotta | LCP ms (mediana) | elemento LCP | area LCP px² | area lead px² | area paragrafo banner px² | base ms | tetto ms | lampi su 3 | pieno − armato ms (≤ 2850) | registrazione → armo ms (/vendi, ≤ 17) | armo dopo la prima LCP (senza foto) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| desktop-1440 | /vendi | 172 | IMG.object-cover | 419040 | 93915 | 28941 | 104 | 204 | 0 | 954 | 0 | — |
+| desktop-1440 | /contatti | 124 | H1.mt-6.max-w-[16ch].font-display | 100492 | 70757 | 28941 | 140 | 240 | 0 | 1004 | — | sì |
+| desktop-1440 | /case-vendute | 116 | P.lead.mt-8 | 85725 | 94342 | 28941 | 108 | 208 | 0 | 1009 | — | sì |
+| desktop-1440 | /valutazione-immobile-tradate | 128 | P.mt-7.max-w-2xl.text-[1.05rem] | 48488 | 54999 | 28941 | 128 | 228 | 0 | 1007 | — | sì |
+| desktop-1440 | / | 144 | IMG.object-cover | 777600 | 8370 | 28941 | 152 | 252 | 0 | — | — | — |
+| mobile-390 | /vendi | 116 | IMG.object-cover | 120845 | 61304 | 25896 | 108 | 208 | 0 | 969 | 0 | — |
+| mobile-390 | /contatti | 124 | P.lead.mt-8 | 49907 | 51087 | 25896 | 112 | 212 | 0 | 1010 | — | sì |
+| mobile-390 | /case-vendute | 104 | P.lead.mt-8 | 60723 | 61304 | 25896 | 80 | 180 | 0 | 1003 | — | sì |
+| mobile-390 | /valutazione-immobile-tradate | 128 | P.mt-7.max-w-2xl.text-[1.05rem] | 44850 | 47742 | 25896 | 120 | 220 | 0 | 1013 | — | sì |
+| mobile-390 | / | 132 | IMG.object-cover | 155220 | 14599 | 25896 | 116 | 216 | 0 | — | — | — |
+
+Decisione: misura rifatta nel giro di correzione 2 di 6-6, sullo stesso build dello Step 34. Lo script riconosce il pannello dei cookie risalendo a `.dt-consent` dall'elemento LCP, ne misura il paragrafo `#cookie-consent-desc` e fa scattare l'uscita 3 sulla sola ultima voce LCP nel pannello, senza confronto col rettangolo del lead (D48). Il cancello è provato con lo script vero e tutto il body nascosto tranne il pannello: uscita 3. Qui nessuna ultima voce LCP sul pannello, uscita 0.
+
+## 06b-lead · 2026-09-14 · 03d6d06+
+
+| progetto | righe | scarto dalla posa 110 % px (≤ 2) | ingresso ms | tetto ms | uscita ms (≤ 1300) |
+| --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 5 | 0.4 | 1536 | 2150 | 606 |
+| mobile-390 | 6 | 0.1 | 1629 | 2250 | 662 |
+
+## 06-h1-dipinti · 2026-09-14 · 03d6d06+
+
+| progetto | rotta | LCP ms (mediana) | elemento LCP | area LCP px² | area lead px² | area paragrafo banner px² | base ms | tetto ms | lampi su 3 | pieno − armato ms (≤ 2850) | registrazione → armo ms (/vendi, ≤ 17) | armo dopo la prima LCP (senza foto) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| desktop-1440 | /vendi | 160 | IMG.object-cover | 419040 | 93915 | 28941 | 104 | 204 | 0 | 971 | 0 | — |
+| desktop-1440 | /contatti | 120 | H1.mt-6.max-w-[16ch].font-display | 100492 | 70757 | 28941 | 140 | 240 | 0 | 1005 | — | sì |
+| desktop-1440 | /case-vendute | 112 | P.lead.mt-8 | 85725 | 94342 | 28941 | 108 | 208 | 0 | 1006 | — | sì |
+| desktop-1440 | /valutazione-immobile-tradate | 124 | P.mt-7.max-w-2xl.text-[1.05rem] | 48488 | 54999 | 28941 | 128 | 228 | 0 | 1004 | — | sì |
+| desktop-1440 | / | 176 | IMG.object-cover | 777600 | 8370 | 28941 | 152 | 252 | 0 | — | — | — |
+| mobile-390 | /vendi | 100 | IMG.object-cover | 120845 | 61304 | 25896 | 108 | 208 | 0 | 957 | 0 | — |
+| mobile-390 | /contatti | 120 | P.lead.mt-8 | 49907 | 51087 | 25896 | 112 | 212 | 0 | 1003 | — | sì |
+| mobile-390 | /case-vendute | 88 | P.lead.mt-8 | 60723 | 61304 | 25896 | 80 | 180 | 0 | 990 | — | sì |
+| mobile-390 | /valutazione-immobile-tradate | 124 | P.mt-7.max-w-2xl.text-[1.05rem] | 44850 | 47742 | 25896 | 120 | 220 | 0 | 999 | — | sì |
+| mobile-390 | / | 140 | IMG.object-cover | 155220 | 14599 | 25896 | 116 | 216 | 0 | — | — | — |
+
+Decisione: misura della verifica completa del commit 6, sul build del suo albero con le variabili della suite (`03d6d06+` è il commit 5 con l'albero del 6, prima del commit), dopo text-motion e gli e2e di controllo verdi. Uscita 0: LCP mediano entro base + 100 ms in tutte e dieci le righe (margine più stretto desktop /vendi, 160 su 204), 0 lampi su 3, pieno − armato 957-1006 ms, /vendi registrazione → armo 0 ms, armamento dopo la prima voce LCP sulle tre teste senza foto, nessuna ultima voce LCP sul pannello dei cookie (D48). I numeri restano nel campo della sezione sopra.
+
+## 06b-lead · 2026-09-14 · 03d6d06+
+
+| progetto | righe | scarto dalla posa 110 % px (≤ 2) | ingresso ms | tetto ms | uscita ms (≤ 1300) |
+| --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 5 | 0.4 | 1539 | 2150 | 623 |
+| mobile-390 | 6 | 0.1 | 1620 | 2250 | 662 |
+
+Decisione: misura della verifica completa del commit 6, sullo stesso build di 06-h1-dipinti qui sopra. Uscita 0: righe spezzate nei due progetti, posa armata a yPercent 110 entro 0,4 px, ingresso entro il tetto stampato, uscita ≤ 1.300 ms; i numeri restano nel campo della sezione sopra.
+
+## 06-h1-dipinti · 2026-09-16 · f13fbce+
+
+| progetto | rotta | LCP ms (mediana) | elemento LCP | area LCP px² | area lead px² | area paragrafo banner px² | base ms | tetto ms | lampi su 3 | pieno − armato ms (≤ 2850) | registrazione → armo ms (/vendi, ≤ 17) | armo dopo la prima LCP (senza foto) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| desktop-1440 | /vendi | 108 | IMG.object-cover | 419040 | 93915 | 28941 | 104 | 204 | 0 | 960 | 0 | — |
+| desktop-1440 | /contatti | 124 | H1.mt-6.max-w-[16ch].font-display | 100492 | 70757 | 28941 | 140 | 240 | 0 | 998 | — | sì |
+| desktop-1440 | /case-vendute | 92 | P.lead.mt-8 | 85725 | 94342 | 28941 | 108 | 208 | 0 | 1001 | — | sì |
+| desktop-1440 | /valutazione-immobile-tradate | 120 | P.mt-7.max-w-2xl.text-[1.05rem] | 48488 | 54999 | 28941 | 128 | 228 | 0 | 998 | — | sì |
+| desktop-1440 | / | 140 | IMG.object-cover | 777600 | 8370 | 28941 | 152 | 252 | 0 | — | — | — |
+| mobile-390 | /vendi | 112 | IMG.object-cover | 120845 | 61304 | 25896 | 108 | 208 | 0 | 960 | 0 | — |
+| mobile-390 | /contatti | 120 | P.lead.mt-8 | 49907 | 51087 | 25896 | 112 | 212 | 0 | 1010 | — | sì |
+| mobile-390 | /case-vendute | 80 | P.lead.mt-8 | 60723 | 61304 | 25896 | 80 | 180 | 0 | 1013 | — | sì |
+| mobile-390 | /valutazione-immobile-tradate | 128 | P.mt-7.max-w-2xl.text-[1.05rem] | 44850 | 47742 | 25896 | 120 | 220 | 0 | 1008 | — | sì |
+| mobile-390 | / | 124 | IMG.object-cover | 155220 | 14599 | 25896 | 116 | 216 | 0 | — | — | — |
+
+Decisione: misura del giro di correzione 1 della verifica del commit 6, sul build del giro di controllo (albero di f13fbce con D50, colonna del lead di PageHero gruppo annidato, e D51, delimitatore delle parole in Lead), con le variabili della suite, dopo text-motion e gli e2e di controllo verdi. Uscita 0: LCP mediano entro base + 100 ms in tutte e dieci le righe (margine più stretto 92 ms: mobile /contatti, /valutazione-immobile-tradate e /), 0 lampi su 3, pieno − armato 960-1013 ms, /vendi registrazione → armo 0 ms, armamento dopo la prima voce LCP sulle tre teste senza foto, nessuna ultima voce LCP sul pannello dei cookie (D48). Le aree restano quelle delle sezioni sopra. `f13fbce+` è il commit 6 con l'albero corretto, prima dell'amend che lo riscrive.
+
+## 06b-lead · 2026-09-16 · f13fbce+
+
+| progetto | righe | scarto dalla posa 110 % px (≤ 2) | ingresso ms | tetto ms | uscita ms (≤ 1300) |
+| --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 5 | 0.4 | 1539 | 2150 | 607 |
+| mobile-390 | 6 | 0.1 | 1624 | 2250 | 662 |
+
+Decisione: misura del giro di correzione 1 della verifica del commit 6, sullo stesso build di 06-h1-dipinti qui sopra, col delimitatore delle parole di Lead (D51). Uscita 0: righe spezzate nei due progetti (5 e 6, come prima: il lead di Posizionamento non ha parole col trattino), posa armata a yPercent 110 entro 0,4 px, ingresso entro il tetto stampato, uscita ≤ 1.300 ms. Le righe naturali dei lead con le parole col trattino le prova il test 7d di text-motion.spec.ts (D51).

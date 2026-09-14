@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Locator, Page } from "@playwright/test";
+import type { BrowserContext, Locator, Page } from "@playwright/test";
+import { INTRO_EVENT } from "../app/lib/motion/intro-constants";
 import { expect } from "./helpers";
 
 // Attrezzi e2e della coreografia di era-residence (spec 2026-09-13 §9.2).
@@ -687,4 +688,97 @@ export const TITLE_UNIT = '[data-reveal="title"] [data-c]';
 /** Il motore ha armato almeno un gruppo (reveal-engine.ts, spec §2.4). */
 export async function waitArmed(page: Page): Promise<void> {
   await page.waitForFunction(() => !!document.querySelector("[data-reveal-armed]"), null, { timeout: 15_000 });
+}
+
+/**
+ * Serie del «nessun lampo» (spec §9.2 test 5; A20 di Alberto, spec §2.5). Da DOMContentLoaded, a
+ * ogni frame: prodotto delle opacità del primo carattere di titolo in #main (o della prima
+ * lettera dell'hero) fino a #main, coi millisecondi; il primo frame con l'H1 armato dal motore;
+ * l'istante dell'handoff del sipario (INTRO_EVENT). Tutto in `window.__dtLampi`.
+ */
+export type Lampi = { serie: number[]; tempi: number[]; armato: number | null; intro: number | null };
+
+export async function registraLampi(page: Page): Promise<void> {
+  await page.addInitScript((evento) => {
+    const l: Lampi = { serie: [], tempi: [], armato: null, intro: null };
+    (window as unknown as { __dtLampi: Lampi }).__dtLampi = l;
+    let t0 = 0;
+    let frame = 0;
+    const prodotto = (el: Element) => {
+      let p = 1;
+      for (let n: Element | null = el; n; n = n.parentElement) {
+        p *= Number(getComputedStyle(n).opacity);
+        if (n.id === "main") break;
+      }
+      return p;
+    };
+    window.addEventListener(
+      evento,
+      () => {
+        l.intro = Math.round(performance.now() - t0);
+      },
+      { once: true },
+    );
+    const giro = () => {
+      const t = Math.round(performance.now() - t0);
+      const el = document.querySelector("#main [data-c], #main [data-hero-char]");
+      if (el) {
+        l.serie.push(prodotto(el));
+        l.tempi.push(t);
+      }
+      if (l.armato === null && document.querySelector("#main h1[data-reveal-armed]")) l.armato = t;
+      frame += 1;
+      if (frame < 1200) requestAnimationFrame(giro);
+    };
+    document.addEventListener(
+      "DOMContentLoaded",
+      () => {
+        t0 = performance.now();
+        requestAnimationFrame(giro);
+      },
+      { once: true },
+    );
+  }, INTRO_EVENT);
+}
+
+export async function letturaLampi(page: Page): Promise<Lampi> {
+  return page.evaluate(() => (window as unknown as { __dtLampi: Lampi }).__dtLampi);
+}
+
+/** Vero se la serie, dopo aver toccato ≥ 0,9, torna a ≤ 0,1. */
+export function lampo(serie: number[]): boolean {
+  let alto = false;
+  for (const v of serie) {
+    if (v >= 0.9) alto = true;
+    else if (alto && v <= 0.1) return true;
+  }
+  return false;
+}
+
+/** Il tempo del primo campione ≥ soglia, o null. */
+export function primoPieno(serie: number[], tempi: number[], soglia = 0.9): number | null {
+  const i = serie.findIndex((v) => v >= soglia);
+  return i < 0 ? null : tempi[i];
+}
+
+/** Terze parti bloccate come la fixture `guards` (e2e/helpers.ts:21-32, :101-115), su un contesto creato a mano (test 6). */
+export async function routeExternal(ctx: BrowserContext): Promise<void> {
+  const blocco = /const EXTERNAL_HOSTS = \[([\s\S]*?)\];/.exec(readFileSync(join(__dirname, "helpers.ts"), "utf8"));
+  if (!blocco) throw new Error("EXTERNAL_HOSTS non trovato in e2e/helpers.ts");
+  const hosts = [...blocco[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  await ctx.route(
+    (url) => hosts.some((h) => url.hostname.endsWith(h)),
+    (route) => {
+      const type = route.request().resourceType();
+      if (type === "image") {
+        return route.fulfill({
+          status: 200,
+          contentType: "image/gif",
+          body: Buffer.from("R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==", "base64"),
+        });
+      }
+      if (type === "script") return route.fulfill({ status: 200, contentType: "application/javascript", body: "" });
+      return route.fulfill({ status: 204, body: "" });
+    },
+  );
 }

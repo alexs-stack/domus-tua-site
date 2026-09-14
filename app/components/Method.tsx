@@ -21,6 +21,7 @@ import Reveal from "./Reveal";
 import RevealGroup from "./motion/RevealGroup";
 import ScriptWord from "./motion/ScriptWord";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import Parallax from "./motion/Parallax";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -251,9 +252,7 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
                   una in rosso sull'altra. Ora i titoli dicono la cosa (le
                   immagini, il rogito) e la calligrafia dice l'atto. */}
               <ScriptWord>{a.word}</ScriptWord>
-              <Reveal>
-                <p className="lead mt-6">{steps.map((s) => s.title).join(" · ")}</p>
-              </Reveal>
+              <Lead className="mt-6">{steps.map((s) => s.title).join(" · ")}</Lead>
               {img.video ? (
                 <Reveal delay={100}>
                   <Cta
