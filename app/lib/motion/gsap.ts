@@ -12,6 +12,7 @@
 //   Dipinto   painted 0.02                          ↔ --dt-painted
 //   Corsa     ctnY() 3.333vw da 1024, 11.54vw sotto ↔ --dt-ctn-y
 //   Ease      "dtOut" 0.25,1,0.5,1                  ↔ --ease-dt-out
+//             "dtIn"  0.5,0,0.75,0                  ↔ --ease-dt-in
 // app/lib/__tests__/motion-tokens.test.ts pretende gli stessi numeri in CSS e
 // qui. Ogni CustomEase entra con il suo primo consumatore, una per riga: è la
 // forma che leggono intro-clocks.test.ts e motion-tokens.test.ts.
@@ -77,6 +78,9 @@ CustomEase.create("domus.inOut", "M0,0 C0.66,0 0.22,1 1,1");
 // "dtOut" = la curva dei reveal di testo del riferimento (out deciso).
 CustomEase.create("dtDiveIn", "0.6,0,0,1");
 CustomEase.create("dtOut", "0.25,1,0.5,1");
+// "dtIn" = l'uscita dei testi del riferimento (In di Era, main.pretty.js:2863):
+// la leggono le uscite di reveal-engine.ts (A18, entrate e uscite speculari).
+CustomEase.create("dtIn", "0.5,0,0.75,0");
 // "dtHorScroll" = la curva del track orizzontale del riferimento (§11 del
 // dossier): parte lenta, accelera al centro, frena in coda. Consapevolmente
 // NON lineare anche se usata come containerAnimation: i reveal once:true

@@ -61,6 +61,7 @@ A18-A20 superano C03 della cliente («eliminare tante animazioni e transizioni»
 - **Licenze e autorizzazioni.** Serve la licenza delle foto di Davide Salerno (punto 2.13 nuovo). Resta da avere l'autorizzazione del proprietario della villa (punti 2.2 e 6.2). Il video è di Domus Tua.
 - **Altezza.** A 1440 la home passa da 29.692 a circa 34.845 px, cioè 5,7 schermi in più (spec §4): va detto alla cliente.
 - **Direttive di agosto.** Tre direttive della cliente vivono nel codice ma mancano dal registro: C21 (3 agosto, niente video nell'hero), C22 (4 agosto, replay nei due versi), C23 (26 agosto, logo grigio e rosso). La spec le registra.
+- **Tooltip dei social su /case/[slug].** Dal commit 4 la regola `:root:has([data-motion-freeze]) :is(.t-panel-slide, .t-dropdown, .dt-social__tip) { transition: none !important; }` di spec §5.4 (A26 «Nessun sipario», D32) toglie la dissolvenza del tooltip dei social nel footer della scheda immobile; altrove il tooltip tiene `translate 0.3s ease, opacity 0.25s ease` (`globals.css`, `.dt-social__tip`). È l'unico movimento che il commit 4 cambia su quella pagina e lo vuole la spec («chrome dell'interfaccia fermo di default»). Da dire ad Alberto: se il tooltip deve sfumare anche lì, si toglie `.dt-social__tip` dalla lista e si allineano `case-guard.test.ts` («globals.css tiene il blocco congelato») e `pages.spec.ts` («la scheda immobile resta ferma sotto MotionFreeze»).
 
 ## Prossimi passi
 

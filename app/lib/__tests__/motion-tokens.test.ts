@@ -18,6 +18,7 @@ import { join, sep } from "node:path";
 
 import { durDt, staggerDt, delayDt, painted } from "../motion/gsap";
 import { MQ } from "../motion/mq";
+import { ROLES } from "../motion/text-roles";
 
 const ROOT = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
@@ -39,7 +40,7 @@ const ERA_EASES: Record<string, string> = {
   ease: "0.25,0.1,0.25,1",
 };
 /** Le ease di Era che a questo punto della costruzione devono esistere. */
-const REQUIRED_EASES = ["out"];
+const REQUIRED_EASES = ["out", "in"];
 
 const nums = (s: string) =>
   s
@@ -94,6 +95,14 @@ describe("le ease del lessico: CSS e GSAP dicono le stesse cifre", () => {
 
   test("le ease di Era arrivate fin qui ci sono", () => {
     for (const k of REQUIRED_EASES) assert.ok(cssEases.has(k), `manca --ease-dt-${k}`);
+  });
+
+  test("ogni ease nominata dai ruoli del testo è creata in gsap.ts", () => {
+    for (const [role, r] of Object.entries(ROLES)) {
+      for (const ease of [r.enter.ease, r.exit.ease]) {
+        assert.match(gsapTs, new RegExp(String.raw`CustomEase\.create\("${ease}", `), `${role}: ${ease} non è registrata`);
+      }
+    }
   });
 
   test("le ease stanno in un @theme static (Tailwind emette solo le variabili usate)", () => {

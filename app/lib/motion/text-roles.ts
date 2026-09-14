@@ -11,7 +11,11 @@
 // (SplitText nel client), `ctn` e `still` il membro stesso (`targets: null`).
 // La corsa di `ctn` sta nella tabella come `var(--dt-ctn-y)`, la parola di spec
 // §2.2; GSAP non risolve `var()` dentro `y`, quindi tweenVars() e restVars() la
-// traducono in ctnY() (gsap.ts), che dice lo stesso numero del token.
+// traducono in ctnY() (gsap.ts), che dice lo stesso numero del token. L'arrivo
+// è `"0vw"`, come lo `x: "0vw"` di `accent`: da un valore in vw a uno in px
+// GSAP misura il layout per ogni bersaglio (CSSPlugin _convertToUnit appende un
+// div e legge offsetHeight); stessa unità, nessuna misura (spec §9.3: 40 gruppi
+// in un sweep costavano 58 ms a 390 con CPU ×4, ora 1 ms).
 //
 // Tetti (D19): stagger per carattere al massimo 1,2 s in ingresso e 0,4 s in
 // uscita; indice nel gruppo fermo a 5. I numeri passano da un arrotondamento a
@@ -61,7 +65,7 @@ export const ROLES: Record<Role, RoleSpec> = {
     targets: null,
     enter: {
       from: { opacity: 0, y: "var(--dt-ctn-y)" },
-      to: { opacity: 1, y: 0 },
+      to: { opacity: 1, y: "0vw" },
       duration: durDt.l,
       stagger: 0,
       ease: "dtOut",

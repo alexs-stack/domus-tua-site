@@ -22,6 +22,9 @@ test("con reduced motion l'intro non parte e il contenuto è subito lì @layout"
 test("i testi rivelati dall'animazione sono comunque leggibili", async ({ page, goto }) => {
   await goto("/vendi");
   await page.waitForTimeout(400);
+  // Con reduced-motion il motore dei reveal non arma nessun gruppo (D21, spec §2.4):
+  // la pagina è completa e ferma, nessuno stato nascosto nemmeno scritto da JS.
+  await expect(page.locator("[data-reveal-armed]")).toHaveCount(0);
 
   // I blocchi che entrano allo scroll (`.reveal`, Reveal.tsx) e i titoli che TextLines
   // rivela riga per riga: con reduced motion sono a piena opacità, senza traslazione

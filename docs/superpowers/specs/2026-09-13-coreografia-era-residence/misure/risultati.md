@@ -143,3 +143,61 @@ Decisione: EXIT_TARGET resta #costi h2: al più due righe sui due progetti, giro
 | mobile-390 | 1217 | 1217 | 0 |
 
 Decisione: Il test 2 e la sonda misurano la stessa uscita di #costi h2 (scarto delle mediane ≤ 50 ms, giro peggiore ≤ 1230 ms) e i test 1-3 sono verdi in tutti i giri.
+
+## 04 · Motore dei reveal (commit 4)
+
+2026-09-14 · base ded54b4+ più le modifiche del commit 4 · build di produzione sulla 3178, chromium headless, motion attivo, consenso accettato, sipario saltato, scroll istantaneo
+
+| rotta | viewport | blocco | ingresso ms (ctn e still 1.050-1.450; delay 120: 1.170-1.570) | salita ms (280-420; delay 120: 400-540) | uscita ms (≤ 600) | uscita in vista | min rientrando dall'alto (≥ 0,99) | identità nell'ingresso (still: sì) | pointer-events da nascosto (none) | CLS (≤ 0,001) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| /vendi | 1440×900 | ctn | 1166 | 316 | 400 | sì | 1 | no | none | 0 |
+| / | 1440×900 | ctn | 1166 | 316 | 398 | sì | 1 | no | none | 0 |
+| /vendi | 1440×900 | ctn delay 120 | 1282 | 432 | 400 | sì | 1 | no | none | 0 |
+| /vendi | 1440×900 | still | 1166 | 316 | 400 | sì | 1 | sì | none | 0 |
+| /vendi | 390×664 | ctn | 1166 | 316 | 400 | sì | 1 | no | none | 0 |
+| / | 390×664 | ctn | 1166 | 316 | 400 | sì | 1 | no | none | 0 |
+| /vendi | 390×664 | ctn delay 120 | 1282 | 435 | 400 | sì | 1 | no | none | 0 |
+| /vendi | 390×664 | still | 1166 | 317 | 399 | sì | 1 | sì | none | 0 |
+
+| scheda | viewport | gruppi (0) | membri armati (0) | tooltip social (0s) | .reveal congelati (> 0) | durata .reveal (0.9s, 0.9s) |
+| --- | --- | --- | --- | --- | --- | --- |
+| /case/2082 | 1440×900 | 0 | 0 | 0s | 7 | 0.9s, 0.9s |
+| /case/2082 | 390×664 | 0 | 0 | 0s | 7 | 0.9s, 0.9s |
+
+| rotta a 390 CPU×4 | gruppi | passate d'armamento | letture ms | scritture ms | sweep ms (≤ 16) | long task fino a 3 s | long task più lungo ms | long task attorno all'armamento ms |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| /vendi | 54 | 1 | 3.5 | 21.1 | 3.6 | 2 | 113 | 113 |
+| / | 64 | 1 | 2.7 | 21.3 | 3.2 | 2 | 254 | 254 |
+
+Criteri: letture + scritture della passata più lunga ≤ 50 ms, cioè il motore da solo non fa un long task.
+Tutti i numeri nel campo atteso.
+
+## 04 · Motore dei reveal (commit 4)
+
+2026-09-14 · base 7d53011+ più le modifiche del commit 4 · build di produzione sulla 3178, chromium headless, motion attivo, consenso accettato, sipario saltato, scroll istantaneo
+
+| rotta | viewport | blocco | ingresso ms (ctn e still 1.050-1.450; delay 120: 1.170-1.570) | salita ms (280-420; delay 120: 400-540) | uscita ms (≤ 600) | uscita in vista | min rientrando dall'alto (≥ 0,99) | identità nell'ingresso (still: sì) | pointer-events da nascosto (none) | CLS (≤ 0,001) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| /vendi | 1440×900 | ctn | 1167 | 317 | 400 | sì | 1 | no | none | 0 |
+| / | 1440×900 | ctn | 1165 | 315 | 400 | sì | 1 | no | none | 0 |
+| /vendi | 1440×900 | ctn delay 120 | 1282 | 433 | 400 | sì | 1 | no | none | 0 |
+| /vendi | 1440×900 | still | 1166 | 316 | 400 | sì | 1 | sì | none | 0 |
+| /vendi | 390×664 | ctn | 1167 | 317 | 402 | sì | 1 | no | none | 0 |
+| / | 390×664 | ctn | 1167 | 317 | 399 | sì | 1 | no | none | 0 |
+| /vendi | 390×664 | ctn delay 120 | 1283 | 433 | 400 | sì | 1 | no | none | 0 |
+| /vendi | 390×664 | still | 1166 | 317 | 399 | sì | 1 | sì | none | 0 |
+
+| scheda | viewport | gruppi (0) | membri armati (0) | tooltip social (0s) | .reveal congelati (> 0) | durata .reveal (0.9s, 0.9s) |
+| --- | --- | --- | --- | --- | --- | --- |
+| /case/attico-travi-tradate-centro | 1440×900 | 0 | 0 | 0s | 4 | 0.9s, 0.9s |
+| /case/attico-travi-tradate-centro | 390×664 | 0 | 0 | 0s | 4 | 0.9s, 0.9s |
+
+| rotta a 390 CPU×4 | gruppi | passate d'armamento | letture ms | scritture ms | sweep ms (≤ 16) | long task fino a 3 s | long task più lungo ms | long task attorno all'armamento ms |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| /vendi | 54 | 1 | 3.6 | 21.4 | 4.3 | 2 | 118 | 118 |
+| / | 64 | 1 | 2.7 | 23 | 4.6 | 3 | 259 | 259 |
+
+Criteri: letture + scritture della passata più lunga ≤ 50 ms, cioè il motore da solo non fa un long task.
+Tutti i numeri nel campo atteso.
+
+Decisione: misura rifatta nel giro di correzione 1 del commit 4, sul build con il refresh di D39 a scroll fermo (rimandato durante l'arrivo al frammento e a scroll in corso) e con D40 (sweep() nasconde senza animare i gruppi shown finiti interamente sotto il viewport): i numeri restano nel campo, come nella sezione sopra; il salto verso l'alto lo presidia e2e/reveal-engine.spec.ts.

@@ -1,5 +1,5 @@
 import { test, expect, setConsent } from "./helpers";
-import { budget, entryTimes, inkOf, refreshTriggers, timeToHidden, watchMinInk, wheelToTop } from "./coreografia";
+import { budget, entryTimes, inkOf, productOpacity, refreshTriggers, timeToHidden, watchMinInk, wheelToTop } from "./coreografia";
 
 // Il testo in movimento (spec 2026-09-13 §9.2, test 1-3).
 //
@@ -45,7 +45,7 @@ test("1 · in fondo alla home titoli e blocchi in vista entrano entro 3,5 s dal 
   await refreshTriggers(page);
   for (const stop of ["#servizi", "#contatti"]) {
     // L'osservatore è armato prima della rotella: t0 è il fotogramma in cui il bordo alto entra dal basso.
-    const watch = await entryTimes(page, stop, { timeoutMs: 6000 });
+    const watch = await entryTimes(page, stop, { blockRule: "engine", timeoutMs: 6000 });
     await wheelToTop(page, page.locator(stop), 0);
     const r = await watch.stop();
     await testInfo.attach("tempi", {
@@ -93,6 +93,21 @@ test("3 · un titolo passato sopra il bordo alto resta pieno, e rientrando dall'
   await wheelToTop(page, title, 0.3);
   await page.waitForTimeout(1500);
   const worstBack = await back.stop();
+  const FROM_TOP_BLOCK = '#servizi :is(.reveal, [data-reveal="ctn"], [data-reveal="still"])';
+  const block = page.locator(FROM_TOP_BLOCK).first();
+  await wheelToTop(page, block, 0.5);
+  await expect.poll(() => productOpacity(block), { timeout: 3500 }).toBeGreaterThanOrEqual(0.99);
+  const hb = await block.evaluate((el) => el.getBoundingClientRect().height / window.innerHeight);
+  const outBlock = await watchMinInk(page, FROM_TOP_BLOCK, "[data-dt-nessuna-foglia]");
+  await wheelToTop(page, block, -hb - 0.25, 0.05);
+  await page.waitForTimeout(1500);
+  const worstOutBlock = await outBlock.stop();
+  const backBlock = await watchMinInk(page, FROM_TOP_BLOCK, "[data-dt-nessuna-foglia]");
+  await wheelToTop(page, block, 0.3);
+  await page.waitForTimeout(1500);
+  const worstBackBlock = await backBlock.stop();
+  expect(worstOutBlock, `${FROM_TOP_BLOCK} sopra il bordo scende a ${worstOutBlock.toFixed(2)}`).toBeGreaterThanOrEqual(0.99);
+  expect(worstBackBlock, `${FROM_TOP_BLOCK} rientrando dall'alto scende a ${worstBackBlock.toFixed(2)}`).toBeGreaterThanOrEqual(0.99);
   await testInfo.attach("tempi", {
     contentType: "application/json",
     body: JSON.stringify({ kind: "dall-alto", key: FROM_TOP_TARGET, minInk: worstOut }),
@@ -126,6 +141,7 @@ test("9 · i token del lessico arrivano al CSS del build", async ({ page, goto }
       painted: g("--dt-painted"),
       ctn: g("--dt-ctn-y"),
       out: g("--ease-dt-out"),
+      in: g("--ease-dt-in"),
       tdFast: g("--td-duration-fast"),
       tdSmooth: g("--td-ease-smooth-out"),
       width: window.innerWidth,
@@ -142,6 +158,7 @@ test("9 · i token del lessico arrivano al CSS del build", async ({ page, goto }
   expect(v.ctn.endsWith("vw")).toBe(true);
   expect(Number.parseFloat(v.ctn)).toBe(v.width >= 1024 ? 3.333 : 11.54);
   expect(bezier(v.out)).toBe("cubic-bezier(.25,1,.5,1)");
+  expect(bezier(v.in)).toBe("cubic-bezier(.5,0,.75,0)");
   expect(ms(v.tdFast)).toBe(250);
   expect(bezier(v.tdSmooth)).toBe("cubic-bezier(.22,1,.36,1)");
 });

@@ -64,7 +64,8 @@ describe("ROLES: i valori di spec §2.2", () => {
     assert.equal(ROLES.ctn.targets, null);
     assert.equal(ROLES.still.targets, null);
     assert.deepEqual(ROLES.ctn.enter.from, { opacity: 0, y: "var(--dt-ctn-y)" });
-    assert.deepEqual(ROLES.ctn.enter.to, { opacity: 1, y: 0 });
+    // "0vw", non 0: con la stessa unità della corsa GSAP non misura il layout per bersaglio (spec §9.3).
+    assert.deepEqual(ROLES.ctn.enter.to, { opacity: 1, y: "0vw" });
     assert.deepEqual(ROLES.ctn.exit.to, { opacity: 0 });
     assert.deepEqual(ROLES.still.enter.from, { opacity: 0 });
     assert.deepEqual(ROLES.still.exit.to, { opacity: 0 });
@@ -81,7 +82,7 @@ describe("ROLES: i valori di spec §2.2", () => {
   test("la corsa di ctn arriva a GSAP come ctnY(), non come var(): senza window vale 11.54vw", () => {
     assert.deepEqual(tweenVars("ctn", "in", 1, 0).from, { opacity: 0, y: "11.54vw" });
     assert.deepEqual(restVars("ctn", "out"), { opacity: 0, y: "11.54vw" });
-    assert.deepEqual(restVars("ctn", "in"), { opacity: 1, y: 0 });
+    assert.deepEqual(restVars("ctn", "in"), { opacity: 1, y: "0vw" });
     assert.deepEqual(restVars("still", "out"), { opacity: 0 });
     assert.deepEqual(restVars("still", "in"), { opacity: 1 });
     assert.deepEqual(restVars("accent", "out"), { opacity: 0, rotateX: 90, x: "10vw", transformOrigin: "50% 100%" });
@@ -132,7 +133,7 @@ describe("tetti e ritardi (D19)", () => {
     });
     assert.deepEqual(tweenVars("ctn", "in", 1, 3), {
       from: { opacity: 0, y: "11.54vw" },
-      to: { opacity: 1, y: 0, duration: 1.2, delay: 0.6, stagger: 0, ease: "dtOut", overwrite: true },
+      to: { opacity: 1, y: "0vw", duration: 1.2, delay: 0.6, stagger: 0, ease: "dtOut", overwrite: true },
       origin: null,
     });
   });

@@ -441,6 +441,7 @@ blockquote * {
    (spec §9.1): le fette di moduli-media.test.ts restano quelle. */
 @theme static {
   --ease-dt-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-dt-in: cubic-bezier(0.5, 0, 0.75, 0);
 }
 
 /* Durate, stagger, ritardo, stato dipinto e corsa `ctn` non sono un namespace
@@ -544,27 +545,35 @@ html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
   will-change: transform;
 }
 
-/* ---------- Scroll reveal ---------- */
-.reveal {
+/* ---------- Scroll reveal ----------
+   Dal motore dei reveal (A18 e A20 di Alberto, D21; spec §2.2 e §2.4) i
+   blocchi `ctn` e `still` non hanno nessuno stato in CSS: le pose (opacity,
+   transform) e il puntatore le scrive app/lib/motion/reveal-engine.ts inline,
+   con GSAP, solo dopo l'armamento. `data-reveal-armed` sui membri e
+   `data-reveal-state` sul gruppo servono ai test e, dal commit 6, alla regola
+   dello stato dipinto a 0,02 (spec §2.5), l'unica regola CSS ammessa sui
+   membri. Prima del JS, senza JS e con reduced-motion il blocco è pieno.
+   Nessun will-change: il compositore promuove da sé ciò che anima. Qui sotto
+   resta solo il blocco congelato di /case/[slug]. */
+
+/* /case/[slug] resta ferma (A26 «Nessun sipario» di Alberto, D32; spec §5.4).
+   Sotto MotionFreeze Reveal è quello di prima: blocco nascosto qui, che entra
+   in 0,9 s out-expo da 2,5rem quando l'IntersectionObserver aggiunge .is-in.
+   case-guard.test.ts presidia questi valori. */
+[data-motion-freeze] .reveal {
   opacity: 0;
   transform: translateY(2.5rem);
   transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo);
 }
-/* will-change SOLO finché l'elemento non è entrato: decine di reveal promossi
-   per sempre = memoria GPU sprecata (sensibile su mobile). */
-.reveal:not(.is-in) {
-  will-change: transform, opacity;
-}
-.reveal.is-in {
+[data-motion-freeze] .reveal.is-in {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Fallback senza JS: se lo scripting è disattivato (o un crawler non esegue JS),
-   l'IntersectionObserver non aggiunge mai `.is-in` → il contenuto resterebbe
-   invisibile. Qui lo forziamo allo stato finale. */
+/* Senza JS l'IntersectionObserver non aggiunge mai `.is-in`: il blocco congelato
+   va allo stato finale. */
 @media (scripting: none) {
-  .reveal {
+  [data-motion-freeze] .reveal {
     opacity: 1;
     transform: none;
     filter: none;
@@ -572,7 +581,8 @@ html[data-preloader]:not([data-pre-act2]) .dt-pre-char {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
+  .reveal,
+  [data-motion-freeze] .reveal {
     opacity: 1;
     transform: none;
     filter: none;
@@ -1694,6 +1704,13 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   opacity: 1;
   translate: -50% 0;
 }
+/* Su /case/[slug] il chrome dell'interfaccia resta fermo (A26 «Nessun sipario» di
+   Alberto, D32; spec §5.4): pannello del menu, lista delle lingue e tooltip dei
+   social cambiano stato senza transizione sotto MotionFreeze. Dei tre, oggi nel
+   sito c'è il tooltip (translate 0,3 s e opacity 0,25 s altrove). */
+:root:has([data-motion-freeze]) :is(.t-panel-slide, .t-dropdown, .dt-social__tip) {
+  transition: none !important;
+}
 /* Variante per footer/superfici scure — anche standalone (icona header) */
 .dt-social--dark .dt-social__link,
 .dt-social__link--dark {
@@ -1820,7 +1837,7 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   white-space: nowrap;
 }
 /* ⚠️ NIENTE `will-change` PERMANENTE su questi selettori.
-   Vale la stessa lezione già scritta su .reveal: un elemento promosso è un
+   Vale anche per i membri dei reveal (D17, ruoli di spec §2.2 senza will-change): un elemento promosso è un
    livello che il compositore tiene in memoria GPU finché esiste. Qui i
    selettori colpiscono UN CARATTERE, UNA CELLA o UN PANNELLO A TUTTO SCHERMO
    alla volta — misurato: 252 elementi promossi e 432 MB di memoria livelli

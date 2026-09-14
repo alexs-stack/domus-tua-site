@@ -1,5 +1,6 @@
 "use client";
 
+// Pagina di conversione: fuori dalla coreografia A18-A20 (spec §11; A26 e D32). Guardia: app/lib/__tests__/case-guard.test.ts.
 import { useMemo, useRef } from "react";
 import Link from "next/link";
 import PropertyGallery from "../../components/PropertyGallery";

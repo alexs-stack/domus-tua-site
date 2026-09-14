@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import WhatsAppFloat from "../../components/WhatsAppFloat";
+import MotionFreeze from "../../components/motion/MotionFreeze";
 import PropertyDetail from "./PropertyDetail";
 import { getVisibleListings } from "../../lib/listings";
 import { relatedListings } from "../../lib/related";
@@ -248,10 +249,13 @@ export default async function PropertyPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
-      <Header />
-      <PropertyDetail p={p} related={related} territory={territory} area={area} />
-      <Footer />
-      <WhatsAppFloat />
+      {/* /case/[slug] resta ferma: A26 «Nessun sipario» di Alberto e D32 (spec §5.4). */}
+      <MotionFreeze>
+        <Header />
+        <PropertyDetail p={p} related={related} territory={territory} area={area} />
+        <Footer />
+        <WhatsAppFloat />
+      </MotionFreeze>
     </>
   );
 }
