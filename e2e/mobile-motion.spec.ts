@@ -8,223 +8,15 @@ import { INTRO_EVENT, INTRO_KEY, INTRO_MS, INTRO_T } from "../app/lib/motion/int
 // l'audit ha trovato nella suite (docs/mobile-parity.md §6.2): a 390px non c'era
 // una sola asserzione che provasse che un tween fosse partito. Un `toBeVisible()`
 // ignora l'opacità, quindi passava identico che l'animazione ci fosse o no.
+//
+// Rivista bianca (2026-09-10): restano qui la rete anti-traboccamento e il
+// sipario Arco Domus. Il fermo-immagine del primo gesto (`.dt-hero-rest`) e i
+// set piece mobili (Paths, muro delle voci, orizzonte) non esistono più, e i
+// loro test sono stati tolti con loro.
 
 test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
 });
-
-// ── Il fermo-immagine del primo gesto ─────────────────────────────────────
-// Decisione 2026-08-11 (docs/mobile-parity.md §9.2): resta sulla rotella, sparisce
-// sul dito. Col mouse è una finezza; col dito era una pagina che non rispondeva
-// per quasi un secondo — misurato 991ms, ed è un blocco vero perché
-// `lenis.stop()` mette `lenis-stopped` su <html>, che in CSS è `overflow: hidden`.
-// L'hero è «pronto al gesto» quando HeroCinematic ha idratato e ha armato il
-// rito del primo scroll: lo si legge dallo stile inline `animation: none` che
-// scrive sul blocco `.dt-hero-rest` (spegne la rete CSS: da lì comanda GSAP).
-// Prima si aspettava un timer fisso (600 ms dopo domcontentloaded): sotto il
-// carico dei quattro worker l'idratazione arriva dopo, il listener non esiste
-// ancora e il gesto cade nel vuoto — un rosso che non dice niente sul sito.
-// Se invece è già scattata la rete CSS (idratazione oltre HERO_REST_WARM_MS,
-// 6 s: il blocco è visibile e il rito è ceduto alla CSS per scelta), lo si
-// dichiara: il test del fermo-immagine si salta col numero in chiaro.
-async function heroReady(page: Page) {
-  await page.waitForFunction(
-    () => {
-      const el = document.querySelector<HTMLElement>(".dt-hero-rest");
-      if (!el) return false;
-      // Chromium serializza lo shorthand inline come «none 0s ease 0s …»: si legge il longhand.
-      return el.style.animationName === "none" || Number(getComputedStyle(el).opacity) > 0.9;
-    },
-    null,
-    { timeout: 20_000, polling: 50 },
-  );
-}
-async function heroNetAlreadyFired(page: Page) {
-  return page.evaluate(() => {
-    const el = document.querySelector<HTMLElement>(".dt-hero-rest");
-    return !!el && el.style.animationName !== "none";
-  });
-}
-
-test.describe("il primo gesto sull'hero", () => {
-  test("con la rotella la pagina si ferma un istante, ed è voluto", async ({ page, goto }) => {
-    // `goto` e non `page.goto`: da 768 in su il sipario parte, e finché copre
-    // tiene Lenis fermo per conto suo. Senza saltarlo, questi due test
-    // leggerebbero `lenis-stopped` e crederebbero di aver misurato il gesto.
-    await goto("/");
-    await heroReady(page);
-    if (await heroNetAlreadyFired(page)) {
-      test.skip(true, "idratazione oltre HERO_REST_WARM_MS: il rito del primo gesto è ceduto alla rete CSS (voluto)");
-    }
-
-    await page.mouse.wheel(0, 200);
-    // Il blocco deve comparire: è la firma del gesto sul puntatore.
-    await expect
-      .poll(() => page.evaluate(() => document.documentElement.classList.contains("lenis-stopped")), {
-        timeout: 2_000,
-        message: "il fermo-immagine della rotella non è scattato",
-      })
-      .toBe(true);
-
-    // …e deve rilasciare da solo, senza che l'utente faccia altro.
-    await expect
-      .poll(() => page.evaluate(() => document.documentElement.classList.contains("lenis-stopped")), {
-        timeout: 4_000,
-        message: "il fermo-immagine non si è mai sciolto: la pagina resta bloccata",
-      })
-      .toBe(false);
-  });
-
-  test("col dito la pagina non si blocca mai @layout", async ({ page, goto }, testInfo) => {
-    test.skip(
-      !testInfo.project.use.hasTouch,
-      "serve un contesto touch: qui il gesto del dito non esiste",
-    );
-    await goto("/");
-    await heroReady(page);
-
-    // Il gesto vero del dito, come lo sente il listener della hero.
-    await page.evaluate(() => window.dispatchEvent(new Event("touchmove", { bubbles: true })));
-    await page.waitForTimeout(300);
-
-    expect(
-      await page.evaluate(() => document.documentElement.classList.contains("lenis-stopped")),
-      "il dito ha bloccato il viewport: è esattamente ciò che la decisione §9.2 toglie",
-    ).toBe(false);
-
-    // E il blocco sotto si rivela lo stesso: si perde il fermo, non il gesto.
-    await expect
-      .poll(
-        () =>
-          page.evaluate(() => {
-            const el = document.querySelector(".dt-hero-rest");
-            return el ? Number(getComputedStyle(el).opacity) : 0;
-          }),
-        { timeout: 4_000, message: "il blocco sotto l'hero non si è rivelato al tocco" },
-      )
-      .toBeGreaterThan(0.9);
-  });
-});
-
-// ── I set piece entrano MENTRE li si guarda ───────────────────────────────
-// Il test che mancava, e da cui è passato un difetto vero: il sipario di Paths
-// scattava con il pannello 170px SOTTO il bordo basso dello schermo, su tutti e
-// due i pannelli, per l'intera sessione — perché il documento cresce di ~238px
-// dopo l'idratazione e la riga di partenza era stata calcolata prima. Nessuna
-// asserzione se ne accorgeva: il nodo c'era, l'animazione partiva, il contenuto
-// finiva composto. Semplicemente non lo vedeva nessuno.
-//
-// Quindi qui non si chiede «è partita?» ma «dov'era quando è partita?».
-const SET_PIECE = [
-  { nome: "il sipario di Paths", sel: ".dt-paths [data-paths-panel], .dt-paths article", prop: "clipPath" },
-  { nome: "le tessere del muro", sel: "[data-wall-tile]", prop: "opacity" },
-  { nome: "il sipario dell'orizzonte", sel: "[data-horizon-slide]", prop: "clipPath" },
-] as const;
-
-for (const { nome, sel, prop } of SET_PIECE) {
-  test(`${nome} entra mentre è in campo @layout`, async ({ page, goto }, testInfo) => {
-    test.skip(
-      (testInfo.project.use.viewport?.width ?? 0) >= 1024,
-      "questo è il contratto del ramo mobile: da lg in su comanda il set piece desktop",
-    );
-    // IL `fixme` DI PATHS È CADUTO (onda «parità mobile 2», verdetto 18,
-    // 2026-08-18). Il sipario scattava col pannello sotto il bordo basso a ogni
-    // larghezza (717px su 640, 769 su 664, 1123 su 1024) perché il documento
-    // cresce SOPRA il pannello dopo l'ultima rimisura e la riga di partenza in
-    // cache resta quella vecchia. La cura non è un'altra rimisura — erano già
-    // state provate — ma separare l'armamento dalla decisione: ScrollTrigger
-    // arma a `top bottom`, e a decidere è `getBoundingClientRect()` nel frame in
-    // cui si guarda (Paths.tsx, ramo sotto lg). Una cache invecchiata può solo
-    // far armare tardi, mai far partire fuori campo. Questo test è la prova.
-    await goto("/");
-
-    // Si scende a passi piccoli e a ogni passo si guarda se QUALCUNO ha appena
-    // cominciato a muoversi. Al primo che parte si legge dov'era.
-    //
-    // DUE TRAPPOLE, ed entrambe hanno prodotto un rosso finto prima di essere
-    // capite. Valgono per chiunque scriva il prossimo test di movimento.
-    //
-    // (1) L'assestamento prima della fotografia. Gli stati nascosti li scrive il
-    //     ramo GSAP dopo l'idratazione: fotografando subito, il primo "cambio"
-    //     che si vede è il NASCONDERSI, non il rivelarsi, e il test dichiarava
-    //     che l'animazione parte a scrollY 0 — vero e privo di significato.
-    // (2) Lo scroll va guidato dalla ROTELLA, non da `window.scrollTo`. Lenis
-    //     alimenta ScrollTrigger con i propri eventi (`lenis.on("scroll",
-    //     ScrollTrigger.update)`): uno scroll programmatico sposta la pagina
-    //     senza passare di lì, e i trigger non si aggiornano mai. Il muro e i
-    //     due pannelli restavano nascosti per tutta la corsa e il test
-    //     concludeva «nessun ingresso da misurare» su un ingresso che c'è.
-    //     È lo stesso motivo per cui home.spec.ts pilota con page.mouse.wheel.
-    const vh = page.viewportSize()!.height;
-    const settle = async () =>
-      page.evaluate(async () => {
-        window.scrollTo(0, 0);
-        await new Promise((r) => setTimeout(r, 1200));
-      });
-    await settle();
-
-    // (3) LA MISURA VA PRESA DENTRO LA PAGINA, A FRAME. Campionare da Playwright
-    //     fra un colpo di rotella e l'altro misura anche il ritardo di Lenis,
-    //     che è smorzato: si legge il rettangolo mentre lo scroll insegue
-    //     ancora il bersaglio, e l'elemento sembra 80-90px più in basso di
-    //     dov'era davvero quando il trigger è scattato. Una sentinella in rAF
-    //     registra la posizione nel fotogramma esatto in cui lo stile cambia.
-    const sentinella = await page.evaluateHandle(
-      ([selector, property]) => {
-        const els = Array.from(document.querySelectorAll<HTMLElement>(selector));
-        const base = els.map((el) => getComputedStyle(el)[property as "opacity"]);
-        const nascosti = els
-          .map((el, i) => ({ el, i }))
-          .filter(({ i }) =>
-            property === "opacity"
-              ? Number(base[i]) < 0.05
-              : base[i] !== "none" && !/inset\(0%\s+0%\s+0%\s+0%/.test(base[i]),
-          );
-        const out: { trovato: boolean; top: number; nascosti: number; n: number } = {
-          trovato: false,
-          top: 0,
-          nascosti: nascosti.length,
-          n: els.length,
-        };
-        const tick = () => {
-          if (!out.trovato) {
-            for (const { el, i } of nascosti) {
-              if (getComputedStyle(el)[property as "opacity"] === base[i]) continue;
-              out.trovato = true;
-              out.top = el.getBoundingClientRect().top;
-              break;
-            }
-            requestAnimationFrame(tick);
-          }
-        };
-        requestAnimationFrame(tick);
-        return out;
-      },
-      [sel, prop] as const,
-    );
-
-    for (let step = 0; step < 320; step++) {
-      await page.mouse.wheel(0, 120);
-      await page.waitForTimeout(50);
-      if (await page.evaluate((o) => o.trovato, sentinella)) break;
-      if (await page.evaluate(() => window.scrollY + window.innerHeight >= document.body.scrollHeight - 4)) break;
-    }
-    const atStart = { ...(await sentinella.jsonValue()), vh };
-
-    test.skip(
-      !atStart.trovato,
-      `${nome}: nessun ingresso da misurare (${atStart.n} nodi, ${atStart.nascosti} nascosti a riposo)`,
-    );
-    // Non "dentro il viewport" ma "abbastanza dentro da vedersi": un elemento
-    // che parte col bordo alto sull'ultima riga di pixel ha già finito quando
-    // arriva davvero in campo.
-    expect(
-      atStart.top,
-      `${nome}: l'animazione è partita con il bordo alto a ${Math.round(atStart.top)}px, ` +
-        `su un viewport di ${atStart.vh}px — comincia fuori campo`,
-    ).toBeLessThan(atStart.vh * 0.95);
-  });
-}
 
 // ── Nessun traboccamento orizzontale ──────────────────────────────────────
 // Passava già prima della wave, e resta scritto come rete: è il difetto che si
@@ -535,10 +327,9 @@ const overlay = (page: Page) =>
 /**
  * La pagina SCORRE davvero: `scrollBy` e poi si legge `scrollY`. Programmatico
  * e non rotella, di proposito: qui si prova la SERRATURA (`overflow:hidden` su
- * <html>, che ferma anche `scrollBy`), non ScrollTrigger; e la rotella
- * innescherebbe il fermo-immagine voluto del primo gesto (§9.2), che è un
- * altro test. Si insiste per qualche secondo perché Lenis, appena rilasciato,
- * può avere un fotogramma di assestamento.
+ * <html>, che ferma anche `scrollBy`), non ScrollTrigger. Si insiste per
+ * qualche secondo perché Lenis, appena rilasciato, può avere un fotogramma di
+ * assestamento.
  */
 async function scorreDavvero(page: Page) {
   const scadenza = Date.now() + 5_000;
@@ -1217,10 +1008,9 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     // alimenta ScrollTrigger coi propri eventi, e uno scroll programmatico
     // scavalcherebbe esattamente il pezzo che stiamo provando.
     //
-    // Si insiste per qualche secondo di proposito: il PRIMO colpo di rotella
-    // sull'hero è il fermo-immagine voluto (§9.2) e tiene la pagina ferma
-    // ~950ms. Un solo colpo misurerebbe quel fermo e lo scambierebbe per una
-    // pagina morta.
+    // Si insiste per qualche secondo di proposito: Lenis appena rilasciato può
+    // avere un fotogramma di assestamento, e un solo colpo lo scambierebbe per
+    // una pagina morta.
     let y = 0;
     const scadenza = Date.now() + 10_000;
     while (Date.now() < scadenza && y === 0) {
@@ -1388,11 +1178,12 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
 
       // "Completa" non vuol dire "presente": senza intro non c'è nessun tween
       // che rivelerà l'hero, quindi tutto ciò che l'intro avrebbe rivelato
-      // deve essere già a piena opacità — lettere del lockup e blocco sotto.
+      // deve essere già a piena opacità — le lettere del lockup, della firma e
+      // dell'H1 (il blocco CTA non è più di quella timeline: è sempre visibile).
       const spente = await page.evaluate(() =>
-        Array.from(document.querySelectorAll("[data-hero-char], .dt-hero-rest")).filter(
-          (el) => Number(getComputedStyle(el).opacity) < 0.9,
-        ).length,
+        Array.from(
+          document.querySelectorAll("[data-hero-char], [data-hero-tchar], [data-hero-schar]"),
+        ).filter((el) => Number(getComputedStyle(el).opacity) < 0.9).length,
       );
       expect(spente, "pezzi dell'hero rimasti trasparenti in attesa di un'animazione che non parte").toBe(0);
       // E l'hero è a schermo: il primo h1 della pagina, dentro il viewport.

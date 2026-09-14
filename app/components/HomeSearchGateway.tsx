@@ -1,16 +1,16 @@
 "use client";
 
-// Ricerca "sopra la piega": mini-ricerca funzionale per chi compra + scorciatoia per chi vende.
-// Al submit naviga a /acquista con query params (q, comune, budget, type, rooms) che PropertySearch
-// legge e pre-imposta. La ricerca in linguaggio naturale resta un teaser (nessuna finta AI).
+// Ricerca a filo (rivista bianca, 2026-09-10): titolo grande, campi con il solo
+// bordo inferiore, bottone rosso pieno, la scorciatoia "vendi" come riga di testo.
+// Niente card. Al submit naviga a /acquista con query params (q, comune, budget,
+// type, rooms) che PropertySearch legge e pre-imposta. La ricerca in linguaggio
+// naturale resta un teaser (nessuna finta AI).
 import { useState, useRef } from "react";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
-import { Search } from "./Icons";
 import { Cta, CtaButton } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import { transitionTo } from "./motion/PageTransition";
-import { gsap, MQ } from "../lib/motion/gsap";
 
 const local = {
   it: {
@@ -57,6 +57,28 @@ const budgetValues = [
 ];
 const roomValues = [0, 2, 3, 4];
 
+// Etichetta 16 px maiuscola e campo con il solo bordo inferiore (canone del riferimento).
+// `border-ink!`: il `* { border-color: line }` di globals.css è unlayered e batte le utility.
+const labelCls = "block text-ui font-semibold uppercase tracking-[0.08em] text-stone";
+const fieldCls =
+  "block w-full border-0 border-b border-ink! bg-transparent py-3 text-body text-ink placeholder:text-stone focus:border-red! focus:outline-none";
+
+// La freccia della tendina: `appearance-none` toglie quella del browser.
+function Caret() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-stone"
+    >
+      <path d="M3 6l5 5 5-5" />
+    </svg>
+  );
+}
+
 export default function HomeSearchGateway() {
   const d = useDict();
   const { locale } = useLocale();
@@ -64,9 +86,6 @@ export default function HomeSearchGateway() {
 
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const chipsRef = useRef<HTMLDivElement>(null);
-  const [focused, setFocused] = useState(false);
-  const chipsPopped = useRef(false);
   const [comune, setComune] = useState("");
   const [type, setType] = useState("");
   const [budget, setBudget] = useState("0");
@@ -87,74 +106,36 @@ export default function HomeSearchGateway() {
     transitionTo(qs ? `/acquista?${qs}` : "/acquista");
   }
 
-  // Teatro del focus: al primo ingresso nel campo, le chip suggerimento
-  // "respirano" in cascata (mai nascoste prima: parte da uno stato visibile).
-  function onSearchFocus() {
-    setFocused(true);
-    if (chipsPopped.current || !chipsRef.current) return;
-    chipsPopped.current = true;
-    if (!window.matchMedia(MQ.motionOk).matches) return;
-    gsap.fromTo(
-      chipsRef.current.querySelectorAll("button"),
-      { y: 7, opacity: 0.35 },
-      { y: 0, opacity: 1, duration: 0.5, ease: "domus", stagger: 0.05, clearProps: "all" }
-    );
-  }
-
-  const fieldCls =
-    "rounded-xl border border-line bg-cream px-3.5 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red";
-
   return (
-    <section id="cerca" data-tone="cream-deep" className="bg-cream-deep segno-ambient">
-      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-          {/* Buyer search — il Reveal vive DENTRO la card (sul corpo del form),
-              così il titolo TextLines non è doppio-nascosto dal fade esterno. */}
-          <form
-            onSubmit={submit}
-            className="flex h-full flex-col rounded-[2rem] border border-line bg-paper p-6 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)] sm:p-8"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <TextLines
-                as="h2"
-                className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl"
-              >
-                {d.search.title}
-              </TextLines>
-              <span className="shrink-0 rounded-full bg-red-soft px-3.5 py-2 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
-                {d.search.nlTeaser}
-              </span>
-            </div>
+    <section id="cerca" className="dt-chapter bg-cream">
+      <div className="dt-row">
+        <Reveal>
+          <span className="eyebrow">{d.search.nlTeaser}</span>
+        </Reveal>
+        <TextLines as="h2" className="mt-6 max-w-[18ch] font-display text-d2">
+          {d.search.title}
+        </TextLines>
 
-            {/* flex flex-col: preserva self-start del bottone e i margini interni */}
-            <Reveal className="flex flex-col">
-              {/* input linguaggio naturale (teaser: alimenta q) — al focus il
-                  campo si "accende": glow crema caldo + micro espansione. */}
-              <div
-                className={`mt-5 flex items-center gap-2 rounded-2xl border bg-cream p-3 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                  focused
-                    ? "scale-[1.01] border-red/45 shadow-[0_0_0_5px_rgba(210,10,10,0.06),0_18px_40px_-28px_rgba(210,10,10,0.35)]"
-                    : "border-line"
-                }`}
-              >
-                <Search className="ml-1 h-5 w-5 shrink-0 text-stone" />
+        <Reveal delay={120}>
+          <form onSubmit={submit} className="mt-12 grid gap-x-8 gap-y-10 md:grid-cols-4">
+            {/* Linguaggio naturale: primo campo, a tutta larghezza (alimenta q). */}
+            <div className="md:col-span-4">
+              <label className={labelCls}>
+                {d.search.nlHint}
                 <input
                   ref={inputRef}
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  onFocus={onSearchFocus}
-                  onBlur={() => setFocused(false)}
                   placeholder={d.search.nlPlaceholder}
                   aria-label={d.search.title}
-                  className="w-full flex-1 rounded-lg bg-transparent px-1 text-[0.98rem] text-ink placeholder:text-stone/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                  className={`mt-3 ${fieldCls}`}
                 />
-              </div>
-              <p className="mt-2 pl-1 text-[0.8rem] text-stone">{d.search.nlHint}</p>
+              </label>
 
-              {/* Chip di esempio: cliccando si compila l'input in linguaggio naturale (nessun
-                  auto-invio: l'utente può ritoccare la frase prima di cercare). */}
-              <div ref={chipsRef} className="mt-3 flex flex-wrap items-center gap-2 pl-1">
-                <span className="text-[0.72rem] font-medium text-stone">{c.chipsLabel}</span>
+              {/* Esempi: cliccando si compila il campo (nessun auto-invio: l'utente
+                  può ritoccare la frase prima di cercare). */}
+              <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1">
+                <span className="text-body text-stone">{c.chipsLabel}</span>
                 {c.chips.map((chip) => (
                   <button
                     key={chip}
@@ -163,85 +144,78 @@ export default function HomeSearchGateway() {
                       setQ(chip);
                       inputRef.current?.focus();
                     }}
-                    // 44px, non 40: la soglia di tocco è quella, e questi chip sono il
-                    // primo gesto che si fa sulla home da telefono.
-                    className="inline-flex min-h-11 items-center rounded-full border border-line bg-cream px-3.5 py-2 text-[0.8rem] text-graphite transition-colors duration-300 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                    className="dt-btn dt-btn--ghost dt-btn--sm"
                   >
                     {chip}
                   </button>
                 ))}
               </div>
+            </div>
 
-              {/* filtri classici */}
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <label className="flex flex-col gap-1.5">
-                  <span className="pl-1 text-[0.72rem] font-semibold uppercase tracking-wide text-stone">{c.zona}</span>
-                  <input value={comune} onChange={(e) => setComune(e.target.value)} placeholder={c.zonaPh} className={fieldCls} />
-                </label>
-                <label className="flex flex-col gap-1.5">
-                  <span className="pl-1 text-[0.72rem] font-semibold uppercase tracking-wide text-stone">{c.tipologia}</span>
-                  <select value={type} onChange={(e) => setType(e.target.value)} className={fieldCls}>
-                    <option value="">{c.anyType}</option>
-                    {typeValues.map((v, i) => (
-                      <option key={v} value={v}>{c.types[i]}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1.5">
-                  <span className="pl-1 text-[0.72rem] font-semibold uppercase tracking-wide text-stone">{c.budget}</span>
-                  <select value={budget} onChange={(e) => setBudget(e.target.value)} className={fieldCls}>
-                    {budgetValues.map((b) => (
-                      <option key={b.v} value={b.v}>{b.v === 0 ? c.anyBudget : `${(b.v / 1000).toLocaleString()}k €`}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1.5">
-                  <span className="pl-1 text-[0.72rem] font-semibold uppercase tracking-wide text-stone">{c.locali}</span>
-                  <select value={rooms} onChange={(e) => setRooms(e.target.value)} className={fieldCls}>
-                    {roomValues.map((r) => (
-                      <option key={r} value={r}>{r === 0 ? c.anyRooms : `${r}+`}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+            {/* Filtri classici */}
+            <label className={labelCls}>
+              {c.zona}
+              <input
+                value={comune}
+                onChange={(e) => setComune(e.target.value)}
+                placeholder={c.zonaPh}
+                className={`mt-3 ${fieldCls}`}
+              />
+            </label>
+            <label className={labelCls}>
+              {c.tipologia}
+              <span className="relative mt-3 block">
+                <select value={type} onChange={(e) => setType(e.target.value)} className={`${fieldCls} appearance-none pr-8`}>
+                  <option value="">{c.anyType}</option>
+                  {typeValues.map((v, i) => (
+                    <option key={v} value={v}>{c.types[i]}</option>
+                  ))}
+                </select>
+                <Caret />
+              </span>
+            </label>
+            <label className={labelCls}>
+              {c.budget}
+              <span className="relative mt-3 block">
+                <select value={budget} onChange={(e) => setBudget(e.target.value)} className={`${fieldCls} appearance-none pr-8`}>
+                  {budgetValues.map((b) => (
+                    <option key={b.v} value={b.v}>{b.v === 0 ? c.anyBudget : `${(b.v / 1000).toLocaleString()}k €`}</option>
+                  ))}
+                </select>
+                <Caret />
+              </span>
+            </label>
+            <label className={labelCls}>
+              {c.locali}
+              <span className="relative mt-3 block">
+                <select value={rooms} onChange={(e) => setRooms(e.target.value)} className={`${fieldCls} appearance-none pr-8`}>
+                  {roomValues.map((r) => (
+                    <option key={r} value={r}>{r === 0 ? c.anyRooms : `${r}+`}</option>
+                  ))}
+                </select>
+                <Caret />
+              </span>
+            </label>
 
-              <CtaButton type="submit" variant="cta" size="md" className="mt-6 self-start">
+            <div className="flex justify-end md:col-span-4">
+              <CtaButton type="submit" variant="cta-solid" size="lg">
                 {c.search}
               </CtaButton>
-            </Reveal>
-          </form>
-
-          {/* Seller shortcut */}
-          <Reveal delay={100}>
-            <div className="flex h-full flex-col justify-between overflow-hidden rounded-[2rem] border border-red bg-red p-6 text-white sm:p-8">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em]">
-                  {d.nav.vendi}
-                </span>
-                <h2 className="mt-5 font-display text-2xl font-medium leading-tight tracking-tight sm:text-[1.8rem]">
-                  {d.search.sellerTitle}
-                </h2>
-                {/* §9 — la RAGIONE fra la domanda e il pulsante.
-                    Questa card faceva la domanda e saltava alla CTA: era l'unico blocco
-                    della home che si limitava a mostrare immobili, cioè proprio il
-                    «pubblicare semplicemente» da cui la frase-criterio del §9 prende le
-                    distanze. Nessun fatto nuovo qui: «la prepariamo» sta già in
-                    Posizionamento, la verifica prima della pubblicazione in Method e in
-                    Team, «fino al rogito» in HorizonStory. È la stessa cosa detta dove
-                    serve decidere. */}
-                <p className="mt-3 text-[0.95rem] leading-relaxed text-white/85">
-                  {d.search.sellerCopy}
-                </p>
-              </div>
-              {/* Doppia faccia: crema a riposo (come la vecchia pill bianca), il
-                  gradiente rosso dell'hover si fonde con la card = il bottone
-                  "si apre" verso la sezione contatti. */}
-              <Cta href="/#contatti" variant="reveal-cream" size="md" className="mt-8">
-                {d.search.sellerCta}
-              </Cta>
             </div>
-          </Reveal>
-        </div>
+          </form>
+        </Reveal>
+
+        {/* Scorciatoia per chi vende: una riga di testo, non una card. §9 — la
+            RAGIONE fra la domanda e il pulsante (prepariamo, verifichiamo, fino al rogito). */}
+        <Reveal delay={100}>
+          <div className="mt-[10vh] max-w-[60ch]">
+            <h3 className="font-display text-d3">{d.search.sellerTitle}</h3>
+            <p className="lead mt-4">{d.search.sellerCopy}</p>
+            <Cta href="/vendi" variant="ghost" className="mt-6">
+              {d.search.sellerCta}
+            </Cta>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

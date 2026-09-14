@@ -18,7 +18,6 @@ import Reveal from "../components/Reveal";
 import FaqList from "../components/FaqList";
 import Contact from "../components/Contact";
 import TextLines from "../components/motion/TextLines";
-import { SegnoDomusDivider } from "../components/BrandMotif";
 import { ArrowRight } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
@@ -225,19 +224,15 @@ export default function FaqContent() {
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: `#${groups[0].id}` }}
-        // Stessa foto d'ufficio molto luminosa di /lavora-con-noi: col velo standard
-        // il titolo crema si perde sulla metà chiara dell'immagine.
-        scrim="strong"
+        scriptWord={{ it: "Domande", en: "Questions", fr: "Questions", de: "Fragen", es: "Preguntas" }[locale]}
       />
 
-      <SegnoDomusDivider className="py-14" />
-
-      <section className="relative bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 pb-24 sm:px-8 sm:pb-32">
+      <section className="dt-chapter relative bg-cream">
+        <div className="dt-row">
           <div className="grid gap-12 lg:grid-cols-[0.62fr_1.38fr] lg:gap-16">
             {/* Indice: appiccicato su desktop, accompagna la lettura senza rincorrerla.
                 NIENTE transform sugli antenati di un elemento sticky (regola del layer
-                motion): questa colonna resta fuori da CameraIn e da Parallax. */}
+                motion): questa colonna resta fuori da Parallax. */}
             <nav aria-label={c.indexLabel} className="lg:sticky lg:top-32 lg:self-start">
               <Reveal>
                 <p className="eyebrow">{c.indexLabel}</p>
@@ -258,7 +253,7 @@ export default function FaqContent() {
                       <a
                         href={`#${group.id}`}
                         aria-current={current ? "true" : undefined}
-                        className={`tap-target group inline-flex items-baseline gap-3 font-display text-lg font-medium transition-colors duration-300 hover:text-red ${
+                        className={`tap-target group inline-flex items-baseline gap-3 font-display text-d4 uppercase transition-colors duration-300 hover:text-red ${
                           current ? "text-red" : "text-ink"
                         }`}
                       >
@@ -271,9 +266,11 @@ export default function FaqContent() {
                             current ? "w-5 opacity-100" : "w-0 opacity-0"
                           }`}
                         />
+                        {/* Rosso pieno, non al 70 %: il numero è testo a 16 px e sul
+                            crema l'alfa lo portava sotto il 4,5:1 (axe, e2e a11y). */}
                         <span
-                          className={`tnum text-[0.72rem] font-semibold tracking-[0.2em] transition-colors duration-300 ${
-                            current ? "text-red/70" : "text-stone"
+                          className={`tnum text-ui font-semibold tracking-[0.08em] transition-colors duration-300 ${
+                            current ? "text-red" : "text-stone"
                           }`}
                         >
                           {String(i + 1).padStart(2, "0")}
@@ -286,7 +283,7 @@ export default function FaqContent() {
               </ul>
 
               <Reveal delay={280}>
-                <span aria-hidden className="hairline my-8 block" />
+                <span aria-hidden className="my-8 block border-t border-line" />
                 {/* Stessa coppia di classi delle voci qui sopra, e per la stessa ragione:
                     sono due link di navigazione impilati, alti quanto la loro riga. Il
                     passo passa da 12 a 24 di gap: con righe da 20px fa esattamente 44,
@@ -294,14 +291,14 @@ export default function FaqContent() {
                 <div className="tap-list flex flex-col gap-3">
                   <Link
                     href="/open-domus"
-                    className="tap-target group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                    className="tap-target group inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors hover:text-red-dark"
                   >
                     {c.linkOpenDomus}
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                   <Link
                     href="/metodo"
-                    className="tap-target group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                    className="tap-target group inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors hover:text-red-dark"
                   >
                     {c.linkMetodo}
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -313,10 +310,7 @@ export default function FaqContent() {
             <div ref={bodyRef} className="flex flex-col gap-16 sm:gap-20">
               {groups.map((group) => (
                 <div key={group.id} id={group.id} data-faq-group={group.id} className="scroll-mt-32">
-                  <TextLines
-                    as="h2"
-                    className="font-display text-3xl font-medium leading-[1.06] tracking-tight text-ink balance sm:text-[2.4rem]"
-                  >
+                  <TextLines as="h2" className="font-display text-d2">
                     {group.title}
                   </TextLines>
                   <div className="mt-8">
@@ -327,16 +321,12 @@ export default function FaqContent() {
 
               {/* La via d'uscita: nessuna FAQ copre tutto, e fingere di sì è il modo
                   più rapido per far sentire solo chi ha una domanda vera. */}
-              <div className="rounded-[2rem] border border-line bg-cream p-8 sm:p-10">
+              <div className="border-t border-line pt-10">
                 <Reveal>
                   <span className="eyebrow">{c.restEyebrow}</span>
-                  <h2 className="mt-5 font-display text-2xl font-medium leading-snug tracking-tight text-ink balance sm:text-3xl">
-                    {c.restTitle}
-                  </h2>
-                  <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-stone">
-                    {c.restCopy}
-                  </p>
-                  <Cta href="#contatti" variant="cta" size="md" className="mt-7">
+                  <h2 className="mt-6 max-w-[20ch] font-display text-d2">{c.restTitle}</h2>
+                  <p className="lead mt-8">{c.restCopy}</p>
+                  <Cta href="#contatti" variant="cta-solid" size="md" className="mt-10">
                     {c.restCta}
                   </Cta>
                 </Reveal>

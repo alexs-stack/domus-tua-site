@@ -2,12 +2,15 @@ import Link from "next/link";
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { ArrowUpRight, Send } from "../Icons";
 
-/* I "redirect" di marca (globals.css §CTA SYSTEM):
-   - cta        anello rosso → riempimento circolare + morph del raggio
-   - cta-solid  variante piena per superfici scure/foto
-   - reveal     doppia faccia a scorrimento (espresso → rosso)
-   - reveal-cream  faccia a riposo crema, per bande espresso/ink
-   - ghost      lift su carta con ombra calda (+ ghost-dark)
+/* Le varianti di marca (globals.css, blocco «CTA — rettangoli e link
+   sottolineati»). Squadrate, senza ombre e senza movimento: all'hover cambia
+   solo il colore.
+   - cta           contorno rosso, all'hover pieno rosso
+   - cta-solid     pieno rosso, all'hover rosso scuro
+   - reveal, reveal-cream  alias di cta-solid: i nomi restano per non cambiare
+                   l'API, le facce a scorrimento non esistono più
+   - ghost         link maiuscolo sottolineato, nessuna scatola; all'hover rosso
+   - ghost-dark    il ghost in bianco, per le scritte sopra una foto (Congedo)
    Tutto CSS puro: nessun hook, usabile da server e client component. */
 
 type Variant = "cta" | "cta-solid" | "reveal" | "reveal-cream" | "ghost" | "ghost-dark";
@@ -16,8 +19,8 @@ type Size = "sm" | "md" | "lg";
 const variantClass: Record<Variant, string> = {
   cta: "dt-btn dt-btn--cta",
   "cta-solid": "dt-btn dt-btn--cta dt-btn--cta-solid",
-  reveal: "dt-btn dt-btn--reveal",
-  "reveal-cream": "dt-btn dt-btn--reveal dt-btn--reveal-cream",
+  reveal: "dt-btn dt-btn--cta dt-btn--cta-solid",
+  "reveal-cream": "dt-btn dt-btn--cta dt-btn--cta-solid",
   ghost: "dt-btn dt-btn--ghost",
   "ghost-dark": "dt-btn dt-btn--ghost dt-btn--ghost-dark",
 };
@@ -32,26 +35,7 @@ function classesFor(variant: Variant, size: Size, className: string) {
   return [variantClass[variant], sizeClass[size], className].filter(Boolean).join(" ");
 }
 
-function CtaInner({
-  variant,
-  arrow,
-  children,
-}: {
-  variant: Variant;
-  arrow: boolean;
-  children: ReactNode;
-}) {
-  if (variant === "reveal" || variant === "reveal-cream") {
-    // Faccia doppia: la copia in arrivo è decorativa per gli screen reader
-    return (
-      <>
-        <span className="dt-btn__face-a">{children}</span>
-        <span className="dt-btn__face-b" aria-hidden>
-          {children}
-        </span>
-      </>
-    );
-  }
+function CtaInner({ arrow, children }: { arrow: boolean; children: ReactNode }) {
   return (
     <>
       <span className="dt-btn__label">{children}</span>
@@ -61,7 +45,6 @@ function CtaInner({
           <ArrowUpRight />
         </span>
       )}
-      {(variant === "cta" || variant === "cta-solid") && <span className="dt-btn__fill" aria-hidden />}
     </>
   );
 }
@@ -90,7 +73,7 @@ export function Cta({
 }: CtaLinkProps) {
   const cls = classesFor(variant, size, className);
   const content = (
-    <CtaInner variant={variant} arrow={arrow}>
+    <CtaInner arrow={arrow}>
       {children}
     </CtaInner>
   );
@@ -121,16 +104,17 @@ export function CtaButton({
 }: CtaButtonProps) {
   return (
     <button className={classesFor(variant, size, className)} {...rest}>
-      <CtaInner variant={variant} arrow={arrow}>
+      <CtaInner arrow={arrow}>
         {children}
       </CtaInner>
     </button>
   );
 }
 
-/* Submit dei form: l'aeroplanino spicca il volo e "porta via" l'etichetta
-   (solo hover vero + motion ok, vedi CSS). Durante l'invio lo spinner
-   sostituisce l'aereo e il volo è disattivato da :disabled. */
+/* Submit dei form: pieno rosso come cta-solid. L'aeroplanino resta nel markup
+   ma il CSS lo nasconde (niente aeroplanini nella rivista bianca); durante
+   l'invio lo spinner prende il suo posto accanto all'etichetta e :disabled
+   abbassa l'opacità. */
 type SendCtaProps = {
   submitting?: boolean;
   size?: Size;

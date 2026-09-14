@@ -1,5 +1,12 @@
 # Media — checklist finale (performance / LCP)
 
+> **In parte storia (2026-09-13).** Checklist del 2026-07-31. Non valgono più: `villa-pool.jpg`
+> come poster e base dell'hero, perché oggi sono `/media/hero-raffaela.jpg` (`app/lib/media.ts`);
+> `priority`, deprecata in Next 16, perché l'hero e `PageHero` usano `preload`; il video che monta
+> «solo desktop», perché se si riaccende si monta col movimento consentito e da 768 px; le «altre
+> card» video come thumbnail che linkano al canale, perché le video-recensioni stanno nel carosello
+> di `Voci.tsx` e con JavaScript si aprono in pagina. La regola YouTube resta.
+
 > Documento **interno sersan**. Target e regole per mantenere il sito **dinamico ma veloce**.
 > Le immagini passano da `next/image` (ottimizzazione on-the-fly in WebP/AVIF + resize per
 > breakpoint), quindi ciò che conta di più è: **una sola immagine priority per pagina** (LCP),

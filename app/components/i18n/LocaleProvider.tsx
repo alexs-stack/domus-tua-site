@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { dictionaries, defaultLocale, locales, type Locale } from "../../lib/i18n/dictionaries";
+import { requestRefresh } from "../../lib/motion/gsap";
 
 type Ctx = {
   locale: Locale;
@@ -34,6 +35,19 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       document.documentElement.lang = saved;
     }
   }, []);
+
+  // Una lingua nuova cambia le altezze dei testi sopra i trigger scrubbati:
+  // i titoli spezzati per lettera (A20 di Alberto) e i corridoi (A19, D22).
+  // Un refresh riallinea ScrollTrigger (spec §2.3). Il primo render, in `it`,
+  // non ne chiede.
+  const primo = useRef(true);
+  useEffect(() => {
+    if (primo.current) {
+      primo.current = false;
+      return;
+    }
+    requestRefresh();
+  }, [locale]);
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);

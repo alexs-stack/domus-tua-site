@@ -18,6 +18,10 @@ nella meccanica della migrazione e nel processo editoriale. Quelle correzioni so
 Ogni numero qui dentro ha una fonte o è marcato come tale. Dove la fonte non regge, sta
 scritto **[non disponibile]** invece di un numero comodo.
 
+Un'eccezione, di data: le 531 recensioni citate più avanti sono il numero che il sito mostrava ad
+agosto. Il conteggio è vivo e sta in `app/lib/site.ts` (`reviewsCount`); l'11 settembre 2026 il
+widget Trustindex ne contava 542.
+
 ---
 
 ## 1. Il punto di partenza, verificato

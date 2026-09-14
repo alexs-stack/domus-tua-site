@@ -3,7 +3,10 @@
 // RotatingMark — badge di marca in alto a sinistra, rif. era-residence.com
 // (reverse-engineering/era-residence/README.md §5).
 //
-// CONTROROTAZIONE (richiesta cliente, 2026-08)
+// SENSO ORARIO (richiesta cliente, 2026-09-10 — sostituisce la controrotazione
+// del 2026-08: «il cuore deve ruotare in senso orario»). Anello e monogramma
+// girano nello STESSO verso, orario a riposo.
+// Storia (2026-08):
 // L'anello ornamentale e il monogramma girano in VERSI OPPOSTI: l'anello a
 // 30°/s, il monogramma a −30°/s. È il gesto di un meccanismo — due ingranaggi
 // che si tengono — invece di un blocco unico che ruota. Le due velocità sono le
@@ -23,38 +26,10 @@ import { getLenis } from "./SmoothScroll";
 // Il badge statico (anello + monogramma) vive in MarkBadge.tsx, SENZA
 // "use client": dal 2026-08-17 lo rende anche la shell del preloader dal server
 // (PreloaderShell.tsx), e un client component lì sarebbe un confine di
-// idratazione per del puro markup. Ri-esportato da qui perché i chiamanti
-// storici — questo file, il sipario di PageTransition — lo importano da questo
-// modulo insieme a `spinMarkBadge`.
+// idratazione per del puro markup. Qui si aggiunge solo il moto da GSAP.
+// (Il sipario di PageTransition, che condivideva il gesto via `spinMarkBadge`,
+// è stato tolto il 2026-09-10: il preloader gira in CSS, l'header qui.)
 import { MarkBadge } from "./MarkBadge";
-export { MarkBadge };
-
-/**
- * Giro continuo del badge: anello in un verso, monogramma nell'altro.
- *
- * Lo usano il preloader e il sipario delle transizioni, che hanno lo stesso gesto
- * dell'header ma a velocità fissa. Restituisce UN oggetto da uccidere (come il
- * singolo tween di prima), così i chiamanti non devono ricordarsi di ucciderne due.
- *
- * @param root      contenitore che ospita il badge
- * @param duration  secondi per un giro completo
- * @param repeat    -1 per il loop infinito (default), come i due chiamanti
- */
-export function spinMarkBadge(
-  root: Element | null | undefined,
-  duration: number,
-  repeat = -1
-): gsap.core.Timeline | null {
-  const ring = root?.querySelector("[data-rot-ring]");
-  const mark = root?.querySelector("[data-rot-mark]");
-  if (!ring && !mark) return null;
-
-  const tl = gsap.timeline();
-  const common = { duration, ease: "none", repeat, transformOrigin: "center center" } as const;
-  if (ring) tl.fromTo(ring, { rotation: 0 }, { rotation: 360, ...common }, 0);
-  if (mark) tl.fromTo(mark, { rotation: 0 }, { rotation: -360, ...common }, 0);
-  return tl;
-}
 
 export default function RotatingMark({ className = "h-12 w-12" }: { className?: string }) {
   const rootRef = useRef<HTMLSpanElement | null>(null);
@@ -68,7 +43,6 @@ export default function RotatingMark({ className = "h-12 w-12" }: { className?: 
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
         const state = { speed: 30 }; // gradi/secondo a riposo
-        let dir = 1;
         let rotation = 0;
         let armed = false;
         let idleTimer = 0;
@@ -87,24 +61,23 @@ export default function RotatingMark({ className = "h-12 w-12" }: { className?: 
           const dt = Math.min(deltaMS, 100);
           rotation += state.speed * (dt / 1000);
           // Un solo angolo, due segni: qualunque cosa faccia lo scroll — accelerare,
-          // rallentare, invertire — i due elementi restano opposti per costruzione.
+          // accelerare con lo scroll — mai invertire: il cuore resta orario (cliente).
           gsap.set(ring, { rotation, transformOrigin: "center center" });
-          gsap.set(mark, { rotation: -rotation, transformOrigin: "center center" });
+          gsap.set(mark, { rotation, transformOrigin: "center center" });
         };
         gsap.ticker.add(tick);
 
         const onScroll = ({ velocity }: { velocity: number }) => {
           if (!armed) return;
-          if (velocity !== 0) dir = velocity > 0 ? 1 : -1;
           gsap.to(state, {
-            speed: dir * (30 + 10 * Math.abs(velocity)),
+            speed: 30 + 10 * Math.abs(velocity),
             duration: 0.3,
             ease: "domus",
             overwrite: true,
           });
           window.clearTimeout(idleTimer);
           idleTimer = window.setTimeout(() => {
-            gsap.to(state, { speed: 30 * dir, duration: dur.transition, ease: "domus" });
+            gsap.to(state, { speed: 30, duration: dur.transition, ease: "domus" });
           }, 100);
         };
         // Lenis può montare dopo di noi: aggancio pigro al primo tick utile.

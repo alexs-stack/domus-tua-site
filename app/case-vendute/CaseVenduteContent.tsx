@@ -201,23 +201,21 @@ export default function CaseVenduteContent({
   const c = copy[locale];
 
   return (
-    <main className="flex-1 bg-paper">
-      <section className="relative bg-cream-deep">
-        <div className="mx-auto max-w-[1240px] px-5 pb-16 pt-32 sm:px-8 sm:pb-20 sm:pt-36">
+    <main className="flex-1 bg-cream">
+      <section className="relative bg-cream">
+        <div className="dt-row pb-16 pt-32 sm:pb-20 sm:pt-36">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
           <TextLines
             as="h1"
             // 18ch a questa scala tipografica spezzava il titolo una parola per riga.
-            className="mt-5 max-w-[26ch] font-display text-d2 display-tight font-medium text-ink balance"
+            className="mt-6 max-w-[16ch] font-display text-d1 balance"
           >
             {c.title}
           </TextLines>
           <Reveal delay={120}>
-            <p className="mt-7 max-w-2xl text-[1.05rem] leading-relaxed text-graphite">
-              {c.lead(stats)}
-            </p>
+            <p className="lead mt-8">{c.lead(stats)}</p>
           </Reveal>
 
           {/* I numeri, con il campione accanto: senza il denominatore un conteggio
@@ -232,10 +230,8 @@ export default function CaseVenduteContent({
                 <div key={s.label}>
                   <dt className="sr-only">{s.label}</dt>
                   <dd>
-                    <span className="tnum block font-display text-4xl font-medium leading-none text-ink sm:text-5xl">
-                      {s.n}
-                    </span>
-                    <span className="mt-2 block text-sm leading-snug text-stone">{s.label}</span>
+                    <span className="tnum block font-display text-d1 text-ink">{s.n}</span>
+                    <span className="mt-3 block text-body leading-snug text-graphite">{s.label}</span>
                   </dd>
                 </div>
               ))}
@@ -244,7 +240,7 @@ export default function CaseVenduteContent({
 
           {stats.shown < stats.sold && (
             <Reveal delay={200}>
-              <p className="mt-6 text-[0.8rem] leading-relaxed text-stone">
+              <p className="mt-6 text-body text-graphite">
                 {c.shownNote(stats.shown, stats.sold)}
               </p>
             </Reveal>
@@ -252,7 +248,7 @@ export default function CaseVenduteContent({
 
           {stats.detectedOn && (
             <Reveal delay={220}>
-              <p className="mt-6 text-[0.8rem] leading-relaxed text-stone">
+              <p className="mt-6 text-body text-graphite">
                 {c.source(stats.detectedOn)}
               </p>
             </Reveal>
@@ -263,29 +259,27 @@ export default function CaseVenduteContent({
       {/* La nota sui prezzi sta PRIMA della griglia, non in fondo in piccolo: è la
           prima domanda che si fa chi arriva qui, e lasciarla senza risposta finché
           non si è scorso tutto è il modo migliore per farla diventare un sospetto. */}
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-12 sm:px-8">
-          <p className="max-w-3xl border-l-2 border-red pl-5 text-[0.95rem] leading-relaxed text-graphite">
-            {c.noPrice}
-          </p>
+      <section className="bg-cream">
+        <div className="dt-row py-12">
+          <p className="lead border-l-2 border-red pl-6">{c.noPrice}</p>
         </div>
       </section>
 
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 pb-24 sm:px-8">
+      <section className="bg-cream">
+        <div className="dt-row pb-24">
           {listings.length === 0 ? (
-            <p className="max-w-xl text-[0.98rem] leading-relaxed text-graphite">{c.empty}</p>
+            <p className="lead">{c.empty}</p>
           ) : (
-            <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
               {listings.map((p) => (
                 <li key={p.slug}>
-                  {/* Card volutamente scarna: niente prezzo, niente CTA commerciale.
-                      Il badge "VENDUTO" è già impresso nella copertina dall'agenzia —
-                      quello a schermo qui è il testo leggibile della stessa cosa, per
-                      chi non vede l'immagine. */}
+                  {/* Scheda volutamente scarna: niente prezzo, niente CTA commerciale,
+                      niente card: foto squadrata e testo sotto. Il badge "VENDUTO" è già
+                      impresso nella copertina dall'agenzia — la riga qui sotto è il testo
+                      leggibile della stessa cosa, per chi non vede l'immagine. */}
                   <a
                     href={`/case/${p.slug}`}
-                    className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-cream transition-colors duration-300 hover:border-red/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                    className="group flex h-full flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                   >
                     <span className="relative block aspect-[4/3] overflow-hidden bg-cream-deep">
                       <Image
@@ -296,27 +290,25 @@ export default function CaseVenduteContent({
                         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover transition-transform duration-700 ease-soft group-hover:scale-[1.04]"
                       />
-                      <span className="absolute left-3 top-3 rounded-full bg-ink/85 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-cream">
+                    </span>
+                    <span className="flex flex-1 flex-col pt-5">
+                      <span className="text-ui font-semibold uppercase tracking-[0.08em] text-red">
                         {c.cardSold}
                       </span>
-                    </span>
-                    <span className="flex flex-1 flex-col p-5">
-                      <span className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-stone">
+                      <span className="mt-2 text-ui font-semibold uppercase tracking-[0.08em] text-stone">
                         {p.zone}
                       </span>
-                      <span className="mt-2 font-display text-lg font-medium leading-snug text-ink">
-                        {p.title}
-                      </span>
-                      <span className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.85rem] text-graphite">
+                      <span className="mt-3 font-display text-d4 uppercase text-ink">{p.title}</span>
+                      <span className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-body text-graphite">
                         <span>{p.type}</span>
                         {/\d/.test(p.sqm) && (
                           <>
-                            <span aria-hidden className="h-1 w-1 rounded-full bg-graphite/50" />
+                            <span aria-hidden>·</span>
                             <span className="tnum">{p.sqm}</span>
                           </>
                         )}
                       </span>
-                      <span className="mt-4 inline-flex items-center gap-2 text-[0.8rem] font-semibold text-graphite transition-colors duration-300 group-hover:text-red">
+                      <span className="mt-4 inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-graphite underline underline-offset-4 transition-colors duration-300 group-hover:text-red">
                         {c.cardCta}
                       </span>
                     </span>
@@ -328,21 +320,16 @@ export default function CaseVenduteContent({
         </div>
       </section>
 
-      <section className="bg-cream-deep">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 text-center sm:px-8 sm:py-24">
-          <TextLines
-            as="h2"
-            className="mx-auto max-w-[22ch] font-display text-d3 display-tight font-medium text-ink"
-          >
+      <section className="dt-chapter bg-cream">
+        <div className="dt-row">
+          <TextLines as="h2" className="max-w-[20ch] font-display text-d1">
             {c.ctaTitle}
           </TextLines>
           <Reveal delay={120}>
-            <p className="mx-auto mt-6 max-w-xl text-[1.02rem] leading-relaxed text-graphite">
-              {c.ctaBody}
-            </p>
+            <p className="lead mt-8">{c.ctaBody}</p>
           </Reveal>
           <Reveal delay={180}>
-            <Cta href="/#contatti" variant="cta" size="md" className="mt-8">
+            <Cta href="/#contatti" variant="cta-solid" size="md" className="mt-10">
               {d.hero.ctaValuta}
             </Cta>
           </Reveal>

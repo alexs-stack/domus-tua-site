@@ -1,16 +1,32 @@
-"use client";
-
 import Image from "next/image";
-import { useRef, type ReactNode } from "react";
-import { SegnoDomusBadge } from "./BrandMotif";
+import type { ReactNode } from "react";
 import { Cta } from "./primitives/Cta";
+import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
-import { isTransitionCovering } from "./motion/PageTransition";
-import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
 type CTA = { label: string; href: string };
 
+/* La taglia segue la COLONNA, non la gerarchia (DESIGN.md, «regola della
+   colonna»): finché il titolo possiede tutta la riga resta la misura del
+   riferimento (8vw ≈ 115 px a 1440), ma da lg vive nella colonna di sinistra e
+   scende a 4.8vw — a 115 px una parola sola come «VALORIZZARE,» (12 segni)
+   sfonderebbe la colonna. `16ch` tiene corte le righe sugli schermi larghi.
+   Gli span dei chiamanti (`text-red-soft`, nato per l'hero scuro) sull'avorio
+   non si leggono: il titolo è di un colore solo, il rosso è l'ornamento. */
+const TITLE =
+  "max-w-[16ch] font-display text-[clamp(3rem,8vw,9rem)] leading-[0.92] [&_span]:text-inherit lg:text-[clamp(2.75rem,4.8vw,5.25rem)]";
+
+/* Hero delle pagine interne, «rivista bianca» (2026-09-10, rif.
+   immobiliaregoldengoal.it): fondo avorio, titolo enorme con la
+   parola-ornamento rossa sovrapposta, lead, CTA, foto squadrata.
+   Impaginazione rifatta l'11 settembre: il blocco di testo sopra la foto era
+   alto 942 px e su /servizi (viewport 900) della fotografia non si vedeva un
+   pixel. Da qui la testa sta su DUE colonne da lg — titolo a sinistra, lead e
+   CTA in basso a destra — e la banda risale sotto il titolo (6vw, il
+   gesto del riferimento: media col `top_margin: -26%`), così la calligrafia
+   ne attraversa il bordo alto come sull'hero della home.
+   Niente scuro, niente velo, niente raggi. Nessun hook: niente "use client". */
 export default function PageHero({
   id,
   eyebrow,
@@ -21,9 +37,9 @@ export default function PageHero({
   primary,
   secondary,
   trust,
-  scrim = "default",
+  scriptWord,
 }: {
-  /** Ancora della sezione (es. "top" per il nodo di risalita di ThreadNav). */
+  /** Ancora della sezione (es. "top" per i link di risalita). */
   id?: string;
   eyebrow: string;
   title: ReactNode;
@@ -33,167 +49,114 @@ export default function PageHero({
   primary: CTA;
   secondary?: CTA;
   trust?: string[];
-  /**
-   * Intensità dei gradienti di leggibilità.
-   *
-   * `default` va bene sulle foto scure o comunque scure dietro al testo. Su una
-   * foto CHIARA e affollata (interni luminosi, finestre) il titolo crema perde
-   * contrasto: lì serve `strong`, la stessa scelta già fatta sull'hero della home
-   * quando è passato a una foto luminosa. Non è un vezzo grafico: sotto il titolo
-   * deve restare leggibile, non "suggestivo".
-   */
-  scrim?: "default" | "strong";
+  /** Parola-ornamento in corsivo rosso, una per pagina (es. "Vendere").
+      Le pagine legali non la passano. */
+  scriptWord?: string;
 }) {
-  const rootRef = useRef<HTMLElement | null>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
-
-  // Entrata standard delle pagine interne (atterraggio delle page transition):
-  // badge → subcopy → CTA → trust in coda alle righe del titolo (TextLines si
-  // coreografa da sé). Il blocco contiene link: opacity + reti di sicurezza.
-  // Uscita: leggera deriva verso l'alto in scrub, a ogni larghezza.
-  useGSAP(
-    () => {
-      const root = rootRef.current;
-      if (!root) return;
-      const mm = gsap.matchMedia();
-
-      mm.add(MQ.motionOk, () => {
-        const els = gsap.utils.toArray<HTMLElement>("[data-ph-el]", root);
-        if (!els.length) return;
-        // NIENTE LAMPO (verdetto 11 di docs/mobile-parity.md). Un fromTo rende
-        // il proprio stato di partenza nell'istante stesso in cui nasce: se la
-        // pagina è già dipinta sotto gli occhi di chi legge, badge, subcopy,
-        // CTA e riga trust SPARISCONO all'idratazione e rientrano un quarto di
-        // secondo dopo. Non era un difetto del telefono e il gate non c'entrava
-        // — succedeva a ogni larghezza, su ogni pagina interna aperta da un
-        // link esterno, da una ricarica o dal tasto Indietro.
-        //
-        // Quindi lo stato nascosto si scrive solo su ciò che nessuno ha ancora
-        // visto: sotto il sipario di PageTransition, dove la porta ad arco
-        // copre l'intero viewport e dove questa entrata è esattamente la
-        // coreografia d'atterraggio per cui è nata — si compone al buio e
-        // arriva a porta aperta. A freddo il primo paint è già avvenuto: la
-        // pagina si lascia com'è, che è poi ciò che si vede anche senza JS.
-        if (!isTransitionCovering()) return;
-        const tween = gsap.fromTo(
-          els,
-          { y: 22, opacity: 0 },
-          { y: 0, opacity: 1, duration: dur.short, ease: "domus", stagger: 0.09, delay: 0.25, clearProps: "all" }
-        );
-        const reveal = () => tween.progress(1);
-        root.addEventListener("focusin", reveal, { once: true });
-        const safety = window.setTimeout(reveal, 2500);
-        return () => {
-          root.removeEventListener("focusin", reveal);
-          window.clearTimeout(safety);
-        };
-      });
-
-      // La deriva d'uscita si apre a TUTTE le larghezze (verdetto 11): è una
-      // `gsap.to` scrubbata, solo transform + opacità, e non scrive nessuno
-      // stato al caricamento — l'immagine LCP non la vede passare. Il gate
-      // desktop non la stava proteggendo da niente.
-      //
-      // Qui era registrata un'ASIMMETRIA vista in ricognizione (2026-08-11):
-      // «l'entrata qui sopra NON è gated, quindi sul telefono scrive
-      // `opacity: 0` su [data-ph-el] già all'idratazione — badge, subcopy e CTA
-      // spariscono e rientrano, e si vede», con la chiusa «non la tocchiamo
-      // adesso: è coreografia». Adesso è la Fase 2 e la si è toccata, quindi lo
-      // metto per iscritto: il difetto non era del telefono né del gate, era il
-      // fromTo che rende il from-state a pagina già dipinta — a ogni larghezza.
-      // La correzione sta nel blocco qui sopra.
-      mm.add(MQ.motionOk, () => {
-        gsap.to(contentRef.current, {
-          yPercent: -8,
-          opacity: 0.3,
-          ease: "none",
-          scrollTrigger: { trigger: root, start: "top top", end: "bottom top", scrub: true },
-        });
-      });
-    },
-    { scope: rootRef }
-  );
-
   return (
-    // `bg-ink`: sul desktop non si vede mai — la foto copre `inset-0` per
-    // intero — ma sotto i 768 la foto diventa una fascia (globals.css, «Le
-    // foto a tutto schermo diventano fasce») e sotto di lei ci vuole il fondo
-    // scuro su cui si spegne, lo stesso tono dei due scrim qui sotto.
-    <section ref={rootRef} id={id} className="relative flex min-h-[82vh] w-full items-end overflow-hidden bg-ink">
-      {/* Media in un layer parallax: allo scroll l'immagine resta "indietro" (profondità).
-          I gradienti di leggibilità restano fissi sopra il layer. */}
-      <Parallax
-        className="dt-mob-band absolute inset-0"
-        innerClassName="absolute inset-0"
-        speed={0.22}
-        scale={1.08}
-        mobile
-      >
-        {/* preload (non priority, deprecata in Next 16): è la LCP della pagina. */}
-        <Image
-          src={image}
-          alt={alt}
-          fill
-          preload
-          sizes="100vw"
-          // Foto di sfondo sotto due velature scure e in movimento (ken-burns): è l'LCP della
-          // pagina e su rete lenta il download è il collo di bottiglia. A qualità 60 il file
-          // dimezza e la differenza, sotto quelle velature, non si vede — la foto non è il
-          // soggetto, è l'atmosfera.
-          quality={60}
-          className="ken-burns object-cover"
-        />
-      </Parallax>
-      <div
-        className={`absolute inset-0 bg-gradient-to-t ${
-          scrim === "strong" ? "from-ink/90 via-ink/55" : "from-ink/78 via-ink/28"
-        } to-transparent`}
-      />
-      <div
-        className={`absolute inset-0 bg-gradient-to-r ${
-          scrim === "strong" ? "from-ink/70 via-ink/25" : "from-ink/45"
-        } to-transparent`}
-      />
+    /* `isolate`: la banda sale col `-z-10` per finire SOTTO il titolo, e senza
+       contesto di impilamento qui finirebbe sotto anche all'avorio della
+       sezione — cioè invisibile. */
+    <section id={id} className="relative isolate bg-cream pt-[clamp(2rem,6vh,4rem)]">
+      <div className="dt-row lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-x-[5vw]">
+        {/* Colonna del titolo. Da lg il margine negativo IN BASSO (non un `-mt`
+            sulla banda) è quello che fa risalire la fotografia: così la risalita
+            si misura sulla colonna del titolo e non sul fondo della riga —
+            quando il lead è più alto del titolo (/vendi, /domande-frequenti) la
+            banda si ferma sotto il testo invece di tagliare l'ultima riga del
+            titolo. `pb` meno profondo di `-mb`: la differenza (1.5vw) è quanta
+            calligrafia finisce sulla foto, un terzo scarso come nel riferimento.
+            Senza calligrafia (privacy, cookie) la risalita non c'è: non avendo
+            niente da far attraversare, taglierebbe e basta l'ultima riga. */}
+        <div
+          className={`lg:col-start-1 lg:row-start-1 ${
+            scriptWord ? "lg:-mb-[6vw] lg:pb-[4.5vw]" : "lg:pb-[2vw]"
+          }`}
+        >
+          <Reveal>
+            <span className="eyebrow">{eyebrow}</span>
+          </Reveal>
 
-      <div ref={contentRef} className="relative mx-auto w-full max-w-[1240px] px-5 pb-14 pt-36 sm:px-8 sm:pb-20">
-        <div className="max-w-3xl">
-          <span data-ph-el className="inline-flex">
-            <SegnoDomusBadge light className="bg-ink/40 backdrop-blur-md">
-              {eyebrow}
-            </SegnoDomusBadge>
-          </span>
-
-          <TextLines
-            as="h1"
-            className="mt-6 font-display text-[2.6rem] font-medium leading-[1.03] tracking-[-0.02em] text-cream balance sm:text-6xl lg:text-[4.4rem]"
-          >
-            {title}
-          </TextLines>
-
-          <p data-ph-el className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg">
-            {subcopy}
-          </p>
-
-          <div data-ph-el className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Cta href={primary.href} variant="cta-solid" size="lg">
-              {primary.label}
-            </Cta>
-            {secondary && (
-              <Cta href={secondary.href} variant="ghost-dark" size="lg">
-                {secondary.label}
-              </Cta>
+          <div className="relative mt-6">
+            {/* TextLines vuole una stringa pura (SplitText); il JSX dei
+                chiamanti (<br/>, span rossa) si rende nell'h1 così com'è. */}
+            {typeof title === "string" ? (
+              <TextLines as="h1" className={TITLE}>
+                {title}
+              </TextLines>
+            ) : (
+              <h1 className={TITLE}>{title}</h1>
+            )}
+            {/* Misura e incastro vengono da `.script-word` (globals.css): la
+                calligrafia attraversa l'ultima riga del titolo. Da lg rientro e
+                corpo rimpiccioliscono con la colonna, se no una firma lunga
+                («Domande frequenti») uscirebbe dalla colonna e finirebbe
+                addosso al lead. */}
+            {scriptWord && (
+              <span
+                aria-hidden
+                className="script-word pl-[24vw] lg:pl-[6vw] lg:!text-[clamp(2.6rem,5.6vw,6rem)]"
+              >
+                {scriptWord}
+              </span>
             )}
           </div>
+        </div>
 
-          {trust && trust.length > 0 && (
-            <div data-ph-el className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-cream/15 pt-6">
-              {trust.map((t) => (
-                <span key={t} className="text-[0.8rem] font-medium text-cream/75">
-                  {t}
-                </span>
-              ))}
+        {/* LA BANDA. `dt-media-full`, uno dei tre moduli media, con i margini
+            negativi che annullano esatti il padding di `.dt-row` (5vw sotto md,
+            8vw sopra): resta a tutta pagina come nel riferimento. Sotto md
+            prende il rapporto della colonna (4:5) ma non la sua larghezza da
+            42vw — un 16:9 a 390 era una feritoia di 219 px, un 42vw in un
+            telefono non esiste. E sta QUI, subito dopo la calligrafia: la
+            fotografia arriva prima del lead, non dopo la CTA. */}
+        <Parallax
+          speed={-0.04}
+          mobile={false}
+          className="relative -z-10 -mx-[5vw] mt-[clamp(1.5rem,4vh,3rem)] md:-mx-[8vw] lg:col-start-1 lg:col-end-3 lg:row-start-2 lg:mt-0"
+          innerClassName="dt-media-full !aspect-[4/5] md:!aspect-video"
+        >
+          {/* preload (non priority, deprecata in Next 16): è l'LCP della pagina. */}
+          <Image src={image} alt={alt} fill preload sizes="100vw" quality={60} className="object-cover" />
+        </Parallax>
+
+        {/* Colonna del lead: da lg in basso a destra, con un `pb` che le tiene
+            l'ultima riga sopra il bordo della banda — il testo sopra le
+            immagini è vietato, tranne la calligrafia e il congedo. */}
+        <div className="mt-[clamp(2rem,5vh,3rem)] lg:col-start-2 lg:row-start-1 lg:mt-0 lg:self-end lg:pb-[2vw]">
+          <Reveal delay={120}>
+            <p className="lead">{subcopy}</p>
+          </Reveal>
+
+          <Reveal delay={200}>
+            <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <Cta href={primary.href} variant="cta-solid" size="lg">
+                {primary.label}
+              </Cta>
+              {secondary && (
+                <Cta href={secondary.href} variant="ghost" arrow={false}>
+                  {secondary.label}
+                </Cta>
+              )}
             </div>
-          )}
+          </Reveal>
+
+          {/* Le tre prove erano etichette maiuscole spaziate a 16 px: la stessa
+              riga dell'occhiello e dei bottoni, quindi lette come stampatello
+              minuto. Qui sono corpo di testo (19 px) col trattino rosso
+              dell'eyebrow davanti: si leggono come una riga di garanzie. */}
+          {trust?.length ? (
+            <ul className="mt-8 flex flex-col gap-y-3 text-body text-stone sm:flex-row sm:flex-wrap sm:gap-x-8">
+              {trust.map((t) => (
+                <li key={t} className="flex gap-2">
+                  {/* `mt` e non `items-center`: sulle righe che vanno a capo il
+                      trattino deve stare sulla PRIMA riga, non a mezza altezza. */}
+                  <span aria-hidden className="mt-[0.72em] h-px w-[1.75rem] shrink-0 bg-red opacity-60" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </div>
     </section>

@@ -1,5 +1,10 @@
 # Prestazioni e accessibilità — misure, budget, divario
 
+> **Nota del 2026-09-13.** La prima delle due strade del §4, «Tipografia», non esiste più nella
+> forma descritta: Fraunces, col suo asse `SOFT` e il corsivo, è stato ritirato il 2026-08-03
+> (`eb3f1a8`), e oggi i font sono Playfair Display, Plus Jakarta Sans e Pinyon Script
+> (`app/layout.tsx`). I 291 kB e l'1,5 s di LCP attribuiti ai font sono misure di prima.
+
 > **Nota del 2026-08-17 — i numeri di questo documento sono superati.** La tabella di §1
 > (home 80 / LCP 5,4 s / TBT 80 ms) e il divario di §4 fotografano un momento precedente
 > all'onda «parità mobile» e alla misura di riverifica; le misure vere stanno in

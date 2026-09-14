@@ -2,10 +2,8 @@
 
 import { useRef } from "react";
 import Reveal from "../components/Reveal";
-import MaskReveal from "../components/motion/MaskReveal";
 import TextLines from "../components/motion/TextLines";
 import { Pin, ArrowUpRight } from "../components/Icons";
-import { SegnoDomusDivider } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { useLocale } from "../components/i18n/LocaleProvider";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
@@ -127,73 +125,68 @@ export default function ContattiContent() {
     <>
       {/* Intro */}
       <section className="bg-cream">
-        <div className="mx-auto max-w-[1240px] px-5 pt-36 pb-16 sm:px-8 sm:pt-40 sm:pb-20">
-          <div className="max-w-3xl">
+        {/* 144px di aria sotto una testata che ne occupa gia' 84: il primo
+            schermo di /contatti era vuoto per il 60% e l'occhiello cominciava a
+            y=300. L'attacco ora e' proporzionale all'altezza dello schermo. */}
+        <div className="dt-row pt-[clamp(4.5rem,12vh,7.5rem)] pb-12 sm:pb-20">
+          <div>
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
             {/* H1 fuori dal Reveal: il titolo non va mai nascosto via CSS pre-JS
                 (SEO/no-JS). TextLines nasconde le righe solo post-idratazione. */}
-            <TextLines
-              as="h1"
-              className="mt-5 font-display text-[2.6rem] font-medium leading-[1.03] tracking-tight text-ink balance sm:text-6xl"
-            >
+            <TextLines as="h1" className="mt-6 max-w-[16ch] font-display text-[clamp(3rem,8vw,9rem)] leading-[0.92]">
               {c.title}
             </TextLines>
             <Reveal delay={100}>
-              <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-stone">
-                {c.subcopy}
-              </p>
+              <p className="lead mt-8">{c.subcopy}</p>
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* Mappa + orari */}
-      <section className="bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-          <SegnoDomusDivider className="mb-12 sm:mb-14" />
-          <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:gap-12">
-            {/* Sipario dal basso SOLO sulla cornice. zoom={1}: l'inner di MaskReveal
-                non deve applicare scale a un antenato dell'iframe (che resta intatto). */}
-            <MaskReveal from="bottom" zoom={1}>
-              <div className="overflow-hidden rounded-[2rem] border border-line bg-cream-deep">
+      {/* Mappa + orari: mappa squadrata, indirizzo e orari come testo su hairline. */}
+      <section className="bg-cream">
+        <div className="dt-row py-16 sm:py-20">
+          <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
+            <Reveal>
+              <div className="overflow-hidden bg-cream-deep">
+                {/* Da md in su. Sul telefono la mappa incorporata portava
+                    dentro la rivista le pizzerie del vicinato, il bottone blu
+                    «Open in Maps» e la riga «Keyboard shortcuts · Map data ·
+                    Terms»: un oggetto di un altro sito, alto 320px, per dire
+                    un indirizzo che sta in due righe. Chi e' al telefono apre
+                    comunque la sua app dal link qui sotto. */}
                 <iframe
                   title={c.mapTitle}
                   src="https://www.google.com/maps?q=Corso+Bernacchi+91,+21049+Tradate+VA&output=embed"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  className="block h-[320px] w-full sm:h-[400px]"
+                  className="hidden h-[320px] w-full md:block lg:h-[400px]"
                 />
-                <a
-                  href="https://maps.google.com/?q=Domus+Tua+Immobiliare+Corso+Bernacchi+91+Tradate"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center justify-between gap-2 border-t border-line bg-paper px-5 py-4 text-sm font-semibold text-ink transition-colors hover:text-red"
-                >
-                  {c.openMaps}
-                  <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </a>
               </div>
-            </MaskReveal>
+              <a
+                href="https://maps.google.com/?q=Domus+Tua+Immobiliare+Corso+Bernacchi+91+Tradate"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mt-5 inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-ink underline underline-offset-4 transition-colors hover:text-red"
+              >
+                {c.openMaps}
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
+            </Reveal>
             <Reveal delay={100}>
-              <div className="flex h-full flex-col justify-between rounded-[2rem] border border-line bg-cream p-7">
+              <div className="flex h-full flex-col justify-between border-t border-line pt-8">
                 <div>
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-soft text-red">
-                    <Pin className="h-5 w-5" />
-                  </span>
-                  <p className="mt-5 font-display text-xl font-medium text-ink">
-                    {site.address.street}
-                  </p>
-                  <p className="text-stone">
+                  <Pin className="h-6 w-6 text-red" />
+                  <p className="mt-5 font-display text-d3 uppercase text-ink">{site.address.street}</p>
+                  <p className="mt-2 text-body text-graphite">
                     {site.address.city} ({site.address.province})
                   </p>
                 </div>
-                <div className="mt-8 border-t border-line pt-6">
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-stone">
-                    {c.hoursLabel}
-                  </p>
-                  <ul ref={hoursRef} className="mt-4 flex flex-col gap-2.5 text-sm">
+                <div className="mt-10 border-t border-line pt-6">
+                  <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.hoursLabel}</p>
+                  <ul ref={hoursRef} className="mt-5 flex flex-col gap-3 text-body">
                     {c.hours.map((o) => (
                       <li key={o.d} className="flex justify-between gap-4">
                         <span className="text-graphite">{o.d}</span>

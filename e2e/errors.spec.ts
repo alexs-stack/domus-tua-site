@@ -62,9 +62,8 @@ test("l'endpoint dei lead rifiutato non blocca la navigazione", async ({ page, g
 
   // Si può comunque continuare a navigare: il piè di pagina è sempre raggiungibile, a ogni
   // larghezza, e non dipende da un pannello aperto.
-  // Il piè di pagina è fisso e resta coperto dal contenuto finché non si arriva in fondo: il
-  // sito stesso lo scopre quando il focus ci entra (lo fa per il focus ring, WCAG 2.4.7). Il
-  // test usa quella stessa strada, invece di inventarsi uno scroll.
+  // Il piè di pagina è un blocco in flusso (rivista bianca: niente più uncover fisso): il
+  // focus lo porta in vista da sé, e da lì si clicca.
   const link = page.locator("footer").getByRole("link", { name: "Vendi", exact: true }).first();
   await link.focus();
   await page.waitForTimeout(700);

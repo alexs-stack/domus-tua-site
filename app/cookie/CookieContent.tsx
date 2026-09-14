@@ -421,26 +421,19 @@ export default function CookieContent() {
           secondary={{ label: c.hero.secondaryLabel, href: "/privacy" }}
         />
 
-        <section className="bg-paper">
-          <div className="mx-auto max-w-[820px] px-5 py-24 sm:px-8 sm:py-32">
-            <p className="text-[0.82rem] uppercase tracking-[0.16em] text-stone">
-              {c.lastUpdate}
-            </p>
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row max-w-[calc(820px+16vw)]">
+            <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.lastUpdate}</p>
 
             {/* ⚠️ Avviso interno: testo da validare con un legale prima del go-live. */}
-            <div className="mt-6 rounded-2xl border border-line bg-cream-deep px-5 py-4 text-sm leading-relaxed text-graphite">
-              {c.notice}
-            </div>
+            <div className="mt-6 border-t border-b border-line py-5 text-body text-graphite">{c.notice}</div>
 
-            {/* Tipologie di cookie */}
-            <div className="mt-12 grid gap-4 sm:grid-cols-3">
+            {/* Tipologie di cookie: tre colonne di testo su hairline, niente card. */}
+            <div className="mt-12 grid gap-x-8 sm:grid-cols-3">
               {c.cookieTypes.map((ct) => (
-                <div
-                  key={ct.label}
-                  className="rounded-2xl border border-line bg-cream p-5"
-                >
+                <div key={ct.label} className="border-t border-line pt-5">
                   <span className="eyebrow">{ct.label}</span>
-                  <p className="mt-3 text-sm leading-relaxed text-stone">{ct.copy}</p>
+                  <p className="mt-3 text-body text-graphite">{ct.copy}</p>
                 </div>
               ))}
             </div>
@@ -448,10 +441,8 @@ export default function CookieContent() {
             <div className="mt-12 flex flex-col gap-12">
               {c.blocks.map((block) => (
                 <div key={block.title}>
-                  <h2 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink balance sm:text-[1.7rem]">
-                    {block.title}
-                  </h2>
-                  <div className="mt-4 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
+                  <h2 className="font-display text-d3">{block.title}</h2>
+                  <div className="mt-5 flex flex-col gap-5 text-body text-graphite">
                     {block.body.map((p, i) => (
                       <p key={i}>{p}</p>
                     ))}

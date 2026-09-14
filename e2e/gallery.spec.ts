@@ -1,9 +1,19 @@
-import { test, expect, clickUntil } from "./helpers";
+import { test, expect, clickUntil, setConsent } from "./helpers";
 import AxeBuilder from "@axe-core/playwright";
 
 // Accessibilità e interazione della galleria della scheda immobile
 // (app/components/PropertyGallery.tsx): alt della foto principale, miniature
 // mute dentro controlli con nome, navigazione da tastiera, semantica tab/tabpanel.
+
+// Consenso già dato, come in ogni altra specifica: il banner cookie è il
+// soggetto di consent-reviews.spec.ts, non di questa. Lasciarlo a schermo lo
+// mette (fisso, in basso) sopra la freccia della foto sul telefono: Playwright
+// allora scorre la pagina da sé per raggiungerla, e Lenis la riporta indietro —
+// misurato con l'header in flusso (2026-09-10): il test «senza muovere la
+// pagina» leggeva quello scroll del driver, non uno della galleria.
+test.beforeEach(async ({ page }) => {
+  await setConsent(page, "accepted");
+});
 
 async function gotoFirstListing(
   page: import("@playwright/test").Page,

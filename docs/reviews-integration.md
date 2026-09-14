@@ -27,9 +27,9 @@ Google/Trustindex**, non testimonianze decorative.
 
 **A) Widget Trustindex (consigliato, il cliente lo usa già sul sito attuale)**
 1. Dal pannello Trustindex copia lo script del widget (formato `https://cdn.trustindex.io/loader.js?<HASH>`).
-2. Incollalo in `app/lib/site.ts` → `embeds.trustindexSrc`.
-3. `Reviews.tsx` mostra automaticamente il **widget reale** al posto della griglia demo (branch
-   `site.embeds.trustindexSrc`).
+2. Incollalo in `app/lib/site.ts` → `embeds.trustindexLoader` (oggi è già valorizzato, vedi «Stato attuale»).
+3. `Reviews.tsx` mostra automaticamente il **widget reale** al posto della griglia demo (ramo
+   `site.embeds.trustindexLoader`).
 
 **B) Recensioni native reali (card sul sito)**
 1. Aggiungi le recensioni reali all'array **`approvedNativeReviews`** in `app/lib/reviews.ts`,
@@ -70,8 +70,10 @@ Da spuntare sul **dominio di produzione finale** prima del go-live:
       il sito attuale/preview).
 - [ ] **Google Maps CID** — `googleReviewsUrl` (`?cid=…` in `site.ts`) apre il **profilo Google
       Business reale** di Domus Tua Tradate, non una ricerca generica.
-- [ ] **Rating e numero** (`app/lib/reviews.ts` → `reviewSummary`) allineati al valore reale mostrato
-      da Google/Trustindex (oggi 4,9/5 · ~531).
+- [ ] **Rating e numero** (`app/lib/site.ts` → `rating` e `reviewsCount`; `reviewSummary` in
+      `app/lib/reviews.ts` li legge da lì) allineati al valore reale mostrato da Google/Trustindex
+      (4,9/5 · 542, letti dal widget l'11 settembre 2026). Il numero è vivo: si rilegge dal widget
+      ogni volta che si tocca quella riga, e fa fede `site.ts`, non questo documento.
 - [ ] **Nessuna recensione demo visibile** in produzione: con `NEXT_PUBLIC_PREVIEW_BADGE=false` e
       widget attivo, la griglia demo non deve comparire.
 - [ ] La riga "Recensioni Google verificate tramite Trustindex." è presente e corretta.

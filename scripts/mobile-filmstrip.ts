@@ -2,9 +2,9 @@
  * Pellicola di una rotta a 390px: una schermata alla volta, come la vede il pollice.
  *
  * Perché non basta `fullPage: true`. Uno screenshot a pagina intera rende gli
- * elementi `sticky` UNA sola volta, alla loro posizione naturale: tutti i
- * corridoi del sito (`dt-horizon`, `dt-wall`, `dt-paths`, `dt-tt`, `dt-railway`)
- * riservano altezza e mostrerebbero quell'altezza VUOTA. Fotografare a passi di
+ * elementi `sticky` UNA sola volta, alla loro posizione naturale: il
+ * corridoio della rotaia del team (`dt-railway`) riserva altezza e
+ * mostrerebbe quell'altezza VUOTA. Fotografare a passi di
  * un viewport è l'unico modo di vedere quello che vede una persona — ed è anche
  * l'unico modo di accorgersi se una schermata è davvero vuota.
  *

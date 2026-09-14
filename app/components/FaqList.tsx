@@ -23,10 +23,10 @@ export default function FaqList({
   startDelay?: number;
 }) {
   return (
-    <div>
+    <div className="border-t border-line">
       {entries.map((item, i) => (
         <Reveal as="div" key={item.id} delay={startDelay + i * 45}>
-          <details className="group border-b border-line py-5">
+          <details className="group border-b border-line py-6">
             {/* `tap-target`: col dito la riga della domanda misurava 32px (350×32 a 390,
                 704×32 a 768) — dodici sotto la soglia, su ogni accordion del sito. Il
                 ::before invisibile porta l'area a 44px SENZA toccare il riquadro
@@ -36,20 +36,18 @@ export default function FaqList({
                 distano 29px l'una dall'altra. La banda non esce nemmeno dal proprio
                 <details> (sborda 6px nei 20 di padding): un tocco fra due domande non
                 può finire su quella sbagliata. */}
-            <summary className="tap-target flex cursor-pointer list-none items-start justify-between gap-6 text-left font-display text-lg font-medium leading-snug text-ink transition-colors duration-300 hover:text-red [&::-webkit-details-marker]:hidden">
+            <summary className="tap-target flex cursor-pointer list-none items-start justify-between gap-6 text-left font-display text-[1.5rem] leading-[1.2] text-ink transition-colors duration-300 hover:text-red [&::-webkit-details-marker]:hidden">
               {item.q}
               <span
                 aria-hidden
-                className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line text-stone transition-transform duration-300 group-open:rotate-45"
+                className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-red transition-transform duration-300 group-open:rotate-45"
               >
                 <svg viewBox="0 0 12 12" className="h-3 w-3 fill-none stroke-current stroke-[1.6]">
                   <path d="M6 1v10M1 6h10" strokeLinecap="round" />
                 </svg>
               </span>
             </summary>
-            <p className="mt-3 max-w-2xl pr-12 text-[0.95rem] leading-relaxed text-stone">
-              {item.a}
-            </p>
+            <p className="mt-4 max-w-[60ch] pr-12 text-body text-graphite">{item.a}</p>
           </details>
         </Reveal>
       ))}
