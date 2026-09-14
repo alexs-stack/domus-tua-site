@@ -73,6 +73,8 @@ Il paragrafo di apertura di §11 (spec:337) dice «le due di agosto ancora vive�
 | D33 | «tuffo delle PageHero: base `100vw` per l'LCP, strato `200vw` dopo l'LCP e solo a DPR 1; `sizes` sotto 768 a 200vw» | da applicare; misura di §9.3 |
 | D34 | «monogramma: il cuore si stacca dalla testata da 1024 px (M1); le tacche virano sopra `data-bg="foto"` (T1)» | confermata da Alberto: A21 |
 | D35 | «foto della villa nelle teste di otto pagine interne; file senza metadati e con nomi neutri» | condizionata a §2.2 e §2.13 del documento per la cliente |
+| D36 | «`app/lib/motion/kern-table.json` al massimo 64 KB, perché entra nel bundle client con SplitTitle; `script-400` misura solo i glifi delle parole calligrafiche, `brand-800` perde le minuscole accentate se la tabella sfora» | applicata nel commit 5 e verificata da `kern-table.test.ts` (peso misurato in `misure/risultati.md`); da far vedere ad Alberto; nel registro del 10 settembre (§11) la scrive e la chiude la chiusura 22d |
+| D42 | «tetto dei valori di `kern-table.json`: ±0,25 em per `script-400`, perché il Pinyon Script ha nel GPOS la coppia A-W a −500/2048 = −0,244 em (letta con fontTools sul woff2 del build); ±0,2 em per `display-400`, `display-500` e `brand-800`» | applicata nel commit 5 e verificata da `kern-table.test.ts`; da far vedere ad Alberto; nel registro del 10 settembre (§11) la scrive e la chiude la chiusura 22d |
 
 Note alle voci esistenti:
 - D05 (spec:419): «dal 13 settembre l'espresso resta solo nel film intero della home; la porta corta usa l'avorio profondo (D31)».
@@ -121,7 +123,7 @@ Valori di Era (ERA:401-618, costanti :2858-2863, CAT §C5). In Era `html{font-si
 
 ### 2.3 Chi spezza il testo
 
-**Titoli e accenti: `SplitChars`, nel server.** Ogni parola è `span.dt-w` `inline-block; white-space: nowrap`, ogni carattere `span.dt-c`, spazi veri fra le parole. Lo split esiste al primo paint, identico con JS, senza JS e con reduced-motion. SplitText esce da titoli e manifesto e resta solo in `Lead`.
+**Titoli e accenti: `SplitChars`, nel server.** Ogni parola è `span.dt-w` `inline-block; white-space: nowrap`, ogni carattere `span.dt-c`, spazi veri fra le parole. Una parola col trattino è una `span.dt-w` per pezzo, unite da `<wbr/>` senza spazio: va a capo dopo il trattino come il testo semplice, e non dopo il trattino che apre la parola né prima di una cifra (revisione del commit 5; test in `split-chars.test.ts`). Lo split esiste al primo paint, identico con JS, senza JS e con reduced-motion. SplitText esce da titoli e manifesto e resta solo in `Lead`.
 
 - **Crenatura (D20).** `scripts/kern-table.ts` apre il build e misura le coppie **nel DOM**: due span con la stessa `font` calcolata del titolo, `font-feature-settings: "ss01", "cv01"` compresi (`globals.css:253`), `kern = w("ab") − w("a") − w("b")` con `Range.getBoundingClientRect`. Output `app/lib/motion/kern-table.json`, chiavi `display-400`, `display-500`, `brand-800`, `script-400`, valori |k| ≥ 0,002 em. `SplitChars` scrive `--k` sul carattere di sinistra; `.dt-c { margin-inline-end: var(--k, 0em) }`. La canvas della corsia sistema ignorava le feature del body e misurava glifi diversi.
 - **Accessibilità.** Heading: `aria-label` calcolato dai figli React (stringhe unite, `<br/>` → spazio, spazi compressi) e split in uno span `aria-hidden`. Tag non heading: `sr-only` più split `aria-hidden` (axe vieta `aria-label` su `p`, `TextLines.tsx:82-85`). Nessun elemento interattivo dentro un title: errore in sviluppo. Test: sugli 11 H1 di PageHero × 5 lingue il nome accessibile coincide con `innerText` normalizzato. Oggi tutti gli 11 chiamanti passano JSX con `<br/>` (verdetto globali; per esempio `RecensioniContent.tsx:15-21`), e `aria: "auto"` di SplitText li avrebbe fusi in «Lo raccontanole persone.».
@@ -916,7 +918,7 @@ Testi completi in `lane-homeC.md` §8.10, con due aggiunte:
 | `reveal-engine.test.ts` | matrice di `decide()` con le due linee; manuali senza antenato → IO; rete dei manuali; `dt-reveal-failsafe` a 6 s, 3,33 s, 1,08 s; nessun `html[data-hero-intro="intro"] [data-reveal]`; esclusione di `[data-motion-freeze]`; nessun `will-change` su `.reveal` |
 | `chapters.test.ts` | regole di §3.1 sulle 17 voci, distanze calcolate con `gsap.parseEase`; `<ClipMedia` solo in `Method.tsx`, `<Hairline` solo in `DomusDocProtocol.tsx` |
 | `clip.test.ts`, `no-pin.test.ts` | forme dritte; nessun pin (con `soloCodice`) |
-| `kern-table.test.ts` | quattro chiavi; valori entro ±0,2 em |
+| `kern-table.test.ts` | quattro chiavi; valori entro ±0,2 em (±0,25 per script-400, D42); ≤ 64 KB (D36) |
 | `case-guard.test.ts` | §5.4 |
 | `hero-dive.test.ts`, `still-trim.test.ts`, `congedo-cartolina.test.ts`, `media-file.test.ts`, `data-bg.test.ts`, `mark-orario.test.ts`, `horizon-flowers.test.ts` | §3.2, §3.14, §3.18, §7.4, §6.1, §3.5 |
 | `intro-clocks.test.ts` | aggiornato solo dal commit del preloader (§6.2); il patto della porta invariato |

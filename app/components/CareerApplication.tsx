@@ -5,6 +5,7 @@ import Image from "next/image";
 import { gsap, MQ } from "../lib/motion/gsap";
 import { ArrowUpRight, Mail, Pin, Whatsapp } from "./Icons";
 import { SendCta } from "./primitives/Cta";
+import SplitTitle from "./motion/SplitTitle";
 import { site, territoryLabelBy } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead } from "../lib/forms/lead";
@@ -477,9 +478,11 @@ export default function CareerApplication({
           {/* Colonna sinistra: promessa + canali alternativi */}
           <div>
             <span className="eyebrow">{c.eyebrow}</span>
-            {/* Titolo statico: è un <h2> nell'ULTIMA sezione di /lavora-con-noi,
-                mai nel primo viewport, quindi mai candidato LCP. */}
-            <h2 className="mt-6 max-w-[20ch] font-display text-d1 balance">{c.title}</h2>
+            {/* Titolo per lettera (A20 di Alberto): è l'h2 dell'ultima sezione di
+                /lavora-con-noi, mai nel primo viewport, quindi mai candidato LCP. */}
+            <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1 balance">
+              {c.title}
+            </SplitTitle>
             <p className="lead mt-8">{c.subcopy}</p>
             <p className="mt-6 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{c.badge}</p>
 

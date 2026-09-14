@@ -10,7 +10,7 @@ import DomusDocProtocol from "../components/DomusDocProtocol";
 import OpenDomus from "../components/OpenDomus";
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
-import TextLines from "../components/motion/TextLines";
+import SplitTitle from "../components/motion/SplitTitle";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
@@ -232,9 +232,9 @@ export default function MetodoContent() {
             <Reveal>
               <span className="eyebrow">{c.docEyebrow}</span>
             </Reveal>
-            <TextLines as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+            <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
               {c.manifesto}
-            </TextLines>
+            </SplitTitle>
             <Reveal delay={120}>
               <Cta href="#domus-doc" variant="ghost" size="md" className="mt-10">
                 {c.docLink}

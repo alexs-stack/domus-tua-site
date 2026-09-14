@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { Cta } from "./primitives/Cta";
 import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
-import TextLines from "./motion/TextLines";
+import ScriptWord from "./motion/ScriptWord";
+import SplitTitle from "./motion/SplitTitle";
 
 type CTA = { label: string; href: string };
 
@@ -78,27 +79,21 @@ export default function PageHero({
           </Reveal>
 
           <div className="relative mt-6">
-            {/* TextLines vuole una stringa pura (SplitText); il JSX dei
-                chiamanti (<br/>, span rossa) si rende nell'h1 così com'è. */}
-            {typeof title === "string" ? (
-              <TextLines as="h1" className={TITLE}>
-                {title}
-              </TextLines>
-            ) : (
-              <h1 className={TITLE}>{title}</h1>
-            )}
+            {/* H1 per lettera (A20 di Alberto): SplitTitle spezza nel server le
+                stringhe, il <br/> e la span rossa dei chiamanti, e dà all'h1 il
+                nome accessibile intero. */}
+            <SplitTitle as="h1" className={TITLE}>
+              {title}
+            </SplitTitle>
             {/* Misura e incastro vengono da `.script-word` (globals.css): la
                 calligrafia attraversa l'ultima riga del titolo. Da lg rientro e
                 corpo rimpiccioliscono con la colonna, se no una firma lunga
                 («Domande frequenti») uscirebbe dalla colonna e finirebbe
                 addosso al lead. */}
             {scriptWord && (
-              <span
-                aria-hidden
-                className="script-word pl-[24vw] lg:pl-[6vw] lg:!text-[clamp(2.6rem,5.6vw,6rem)]"
-              >
+              <ScriptWord className="pl-[24vw] lg:pl-[6vw] lg:!text-[clamp(2.6rem,5.6vw,6rem)]">
                 {scriptWord}
-              </span>
+              </ScriptWord>
             )}
           </div>
         </div>

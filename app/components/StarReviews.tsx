@@ -60,7 +60,7 @@
 
 import { useRef } from "react";
 import Image from "next/image";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
@@ -704,12 +704,9 @@ export default function StarReviews() {
           {/* Il titolo arriva col beat finale dello scrub (wrapper data-sr-el):
               durante l'arco stella-piccola → fullscreen la scena resta pulita. */}
           <div data-sr-el>
-            <TextLines
-              as="h2"
-              className="mx-auto mt-6 max-w-[16ch] font-display text-d2"
-            >
+            <SplitTitle as="h2" className="mx-auto mt-6 max-w-[16ch] font-display text-d2">
               {c.title}
-            </TextLines>
+            </SplitTitle>
           </div>
           <p data-sr-el className="lead mx-auto mt-6">
             {c.subtitle}

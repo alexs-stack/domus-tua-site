@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Reveal from "../components/Reveal";
-import TextLines from "../components/motion/TextLines";
+import SplitTitle from "../components/motion/SplitTitle";
 import { Pin, ArrowUpRight } from "../components/Icons";
 import { site } from "../lib/site";
 import { useLocale } from "../components/i18n/LocaleProvider";
@@ -133,11 +133,11 @@ export default function ContattiContent() {
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            {/* H1 fuori dal Reveal: il titolo non va mai nascosto via CSS pre-JS
-                (SEO/no-JS). TextLines nasconde le righe solo post-idratazione. */}
-            <TextLines as="h1" className="mt-6 max-w-[16ch] font-display text-[clamp(3rem,8vw,9rem)] leading-[0.92]">
+            {/* H1 fuori dal Reveal: le lettere (SplitTitle, A20 di Alberto) sono
+                rese nel server e il testo resta intero senza JS (SEO). */}
+            <SplitTitle as="h1" className="mt-6 max-w-[16ch] font-display text-[clamp(3rem,8vw,9rem)] leading-[0.92]">
               {c.title}
-            </TextLines>
+            </SplitTitle>
             <Reveal delay={100}>
               <p className="lead mt-8">{c.subcopy}</p>
             </Reveal>

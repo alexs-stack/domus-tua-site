@@ -24,7 +24,7 @@ import { ArrowLeft, ArrowRight, Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { useConsent } from "../lib/consent";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import { ratingLabel, site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
 
@@ -162,9 +162,9 @@ export default function Voci() {
             leggeva come un buco. Ma NON e' il voto: quello lo dicono gia'
             l'hero e le cinque stelle qui sopra. E' il nome della cosa che si
             guarda, e il conteggio gli sta sotto a 16px. */}
-        <TextLines as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
+        <SplitTitle as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
           {c.listLabel}
-        </TextLines>
+        </SplitTitle>
         <Reveal delay={80}>
           <p className="tnum mt-4 text-ui text-graphite">
             {`${ratingLabel(locale)}/5 · ${site.reviewsCount} ${c.google}`}

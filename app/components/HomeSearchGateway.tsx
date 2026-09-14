@@ -7,7 +7,8 @@
 // naturale resta un teaser (nessuna finta AI).
 import { useState, useRef } from "react";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import RevealGroup from "./motion/RevealGroup";
+import SplitTitle from "./motion/SplitTitle";
 import { Cta, CtaButton } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import { transitionTo } from "./motion/PageTransition";
@@ -112,9 +113,9 @@ export default function HomeSearchGateway() {
         <Reveal>
           <span className="eyebrow">{d.search.nlTeaser}</span>
         </Reveal>
-        <TextLines as="h2" className="mt-6 max-w-[18ch] font-display text-d2">
+        <SplitTitle as="h2" className="mt-6 max-w-[18ch] font-display text-d2">
           {d.search.title}
-        </TextLines>
+        </SplitTitle>
 
         <Reveal delay={120}>
           <form onSubmit={submit} className="mt-12 grid gap-x-8 gap-y-10 md:grid-cols-4">
@@ -207,15 +208,19 @@ export default function HomeSearchGateway() {
 
         {/* Scorciatoia per chi vende: una riga di testo, non una card. §9 — la
             RAGIONE fra la domanda e il pulsante (prepariamo, verifichiamo, fino al rogito). */}
-        <Reveal delay={100}>
-          <div className="mt-[10vh] max-w-[60ch]">
-            <h3 className="font-display text-d3">{d.search.sellerTitle}</h3>
+        <RevealGroup className="mt-[10vh] max-w-[60ch]">
+          <SplitTitle as="h3" className="font-display text-d3">
+            {d.search.sellerTitle}
+          </SplitTitle>
+          <Reveal>
             <p className="lead mt-4">{d.search.sellerCopy}</p>
+          </Reveal>
+          <Reveal role="still">
             <Cta href="/vendi" variant="ghost" className="mt-6">
               {d.search.sellerCta}
             </Cta>
-          </div>
-        </Reveal>
+          </Reveal>
+        </RevealGroup>
       </div>
     </section>
   );

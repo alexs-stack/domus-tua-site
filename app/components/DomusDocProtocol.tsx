@@ -1,7 +1,7 @@
 "use client";
 
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import { SegnoDomus } from "./BrandMotif";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -232,7 +232,7 @@ export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
   const c = copy[locale];
 
   // Riga piana, multi-istanza (home + pagine interne): niente card, niente
-  // lampo, niente timeline GSAP — solo Reveal e TextLines.
+  // lampo, niente timeline GSAP — Reveal e titoli per lettera (SplitTitle, A20 di Alberto).
   return (
     <section id={id} className="dt-chapter bg-cream">
       <div className="dt-row">
@@ -253,9 +253,9 @@ export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            <TextLines as="h2" className="mt-6 font-display text-d2">
+            <SplitTitle as="h2" className="mt-6 font-display text-d2">
               Domus D.O.C.
-            </TextLines>
+            </SplitTitle>
             {/* Nome esteso — coerente ovunque: "Domus D.O.C. — Domus di Origine Certificata" */}
             <Reveal>
               <p className="mt-4 font-display text-d4 font-light text-stone">{c.subtitle}</p>
@@ -273,7 +273,9 @@ export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
             <li key={p.t} className="flex gap-3">
               <span aria-hidden className="mt-3 h-px w-6 shrink-0 bg-red" />
               <div>
-                <h3 className="font-display text-d4 font-light">{p.t}</h3>
+                <SplitTitle as="h3" font="display-400" className="font-display text-d4 font-light">
+                  {p.t}
+                </SplitTitle>
                 <p className="mt-2">
                   <span className="block text-ui font-semibold uppercase tracking-[0.08em] text-red">
                     {c.sellerLabel}

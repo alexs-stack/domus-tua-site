@@ -10,6 +10,8 @@ import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
+import RevealGroup from "../components/motion/RevealGroup";
+import SplitTitle from "../components/motion/SplitTitle";
 import FaqTeaser from "../components/FaqTeaser";
 import CostiChiari from "../components/CostiChiari";
 import { Cta } from "../components/primitives/Cta";
@@ -820,23 +822,35 @@ function SellRisks({ risks }: { risks: Copy["risks"] }) {
   return (
     <section className="dt-chapter bg-cream">
       <div className="dt-row">
-        <Reveal>
-          <span className="eyebrow">{risks.eyebrow}</span>
-          <h2 className="mt-6 max-w-[20ch] font-display text-d1">{risks.title}</h2>
-          <p className="lead mt-8">{risks.intro}</p>
-        </Reveal>
+        <RevealGroup>
+          <Reveal>
+            <span className="eyebrow">{risks.eyebrow}</span>
+          </Reveal>
+          <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+            {risks.title}
+          </SplitTitle>
+          <Reveal>
+            <p className="lead mt-8">{risks.intro}</p>
+          </Reveal>
+        </RevealGroup>
 
         {/* Blocchi numerati separati da hairline: niente card (2026-09-10). */}
         <ol className="mt-16 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
           {risks.items.map((it, i) => (
             <li key={it.title} className="border-t border-line py-8">
-              <Reveal delay={(i % 3) * 80}>
-                <span className="tnum text-ui font-semibold uppercase tracking-[0.08em] text-red">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-4 font-display text-d3">{it.title}</h3>
-                <p className="mt-3 text-body text-graphite">{it.copy}</p>
-              </Reveal>
+              <RevealGroup>
+                <Reveal>
+                  <span className="tnum text-ui font-semibold uppercase tracking-[0.08em] text-red">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                </Reveal>
+                <SplitTitle as="h3" className="mt-4 font-display text-d3">
+                  {it.title}
+                </SplitTitle>
+                <Reveal>
+                  <p className="mt-3 text-body text-graphite">{it.copy}</p>
+                </Reveal>
+              </RevealGroup>
             </li>
           ))}
         </ol>
@@ -858,23 +872,35 @@ function SellPrep({ prep }: { prep: Copy["prep"] }) {
   return (
     <section className="dt-chapter bg-cream">
       <div className="dt-row">
-        <Reveal>
-          <span className="eyebrow">{prep.eyebrow}</span>
-          <h2 className="mt-6 max-w-[20ch] font-display text-d1">{prep.title}</h2>
-          <p className="lead mt-8">{prep.intro}</p>
-        </Reveal>
+        <RevealGroup>
+          <Reveal>
+            <span className="eyebrow">{prep.eyebrow}</span>
+          </Reveal>
+          <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+            {prep.title}
+          </SplitTitle>
+          <Reveal>
+            <p className="lead mt-8">{prep.intro}</p>
+          </Reveal>
+        </RevealGroup>
 
         <ol className="mt-16 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
-          {prep.items.map((it, i) => (
+          {prep.items.map((it) => (
             <li key={it.n} className="border-t border-line py-8">
-              <Reveal delay={(i % 3) * 80}>
-                <span className="flex items-center gap-3 text-ui font-semibold uppercase tracking-[0.08em] text-red">
-                  <span className="tnum">{it.n}</span>
-                  <SegnoTick className="h-4 w-4" />
-                </span>
-                <h3 className="mt-4 font-display text-d3">{it.title}</h3>
-                <p className="mt-3 text-body text-graphite">{it.copy}</p>
-              </Reveal>
+              <RevealGroup>
+                <Reveal>
+                  <span className="flex items-center gap-3 text-ui font-semibold uppercase tracking-[0.08em] text-red">
+                    <span className="tnum">{it.n}</span>
+                    <SegnoTick className="h-4 w-4" />
+                  </span>
+                </Reveal>
+                <SplitTitle as="h3" className="mt-4 font-display text-d3">
+                  {it.title}
+                </SplitTitle>
+                <Reveal>
+                  <p className="mt-3 text-body text-graphite">{it.copy}</p>
+                </Reveal>
+              </RevealGroup>
             </li>
           ))}
         </ol>
@@ -948,12 +974,16 @@ export default function VendiContent() {
             niente banda scura (2026-09-10). */}
         <section className="dt-chapter bg-cream">
           <div className="dt-row">
-            <Reveal className="flex flex-col items-start gap-10 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
-              <h2 className="max-w-[24ch] font-display text-d2">{c.openDomus.text}</h2>
-              <Cta href="/open-domus" variant="cta" size="md" className="shrink-0">
-                {c.openDomus.cta}
-              </Cta>
-            </Reveal>
+            <RevealGroup className="flex flex-col items-start gap-10 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+              <SplitTitle as="h2" className="max-w-[24ch] font-display text-d2">
+                {c.openDomus.text}
+              </SplitTitle>
+              <Reveal role="still" className="shrink-0">
+                <Cta href="/open-domus" variant="cta" size="md" className="shrink-0">
+                  {c.openDomus.cta}
+                </Cta>
+              </Reveal>
+            </RevealGroup>
           </div>
         </section>
 

@@ -12,7 +12,7 @@
 import { useState, type MouseEvent } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import Parallax from "./motion/Parallax";
 import VideoLightbox from "./VideoLightbox";
 import { Play } from "./Icons";
@@ -153,9 +153,9 @@ export default function FeaturedTestimonial(props: Props) {
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
           {/* Il titolo È quello del video sul canale: non si traduce, non si riscrive. */}
-          <TextLines as="h2" className="mt-6 font-display text-d2">
+          <SplitTitle as="h2" className="mt-6 font-display text-d2">
             {title}
-          </TextLines>
+          </SplitTitle>
           <Reveal delay={80}>
             <p className="lead mt-6">{c.lead}</p>
           </Reveal>

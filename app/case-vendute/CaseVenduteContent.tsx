@@ -32,7 +32,7 @@
 
 import Image from "next/image";
 import Reveal from "./../components/Reveal";
-import TextLines from "./../components/motion/TextLines";
+import SplitTitle from "./../components/motion/SplitTitle";
 import { Cta } from "./../components/primitives/Cta";
 import { useDict, useLocale } from "./../components/i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
@@ -207,13 +207,13 @@ export default function CaseVenduteContent({
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <TextLines
+          <SplitTitle
             as="h1"
             // 18ch a questa scala tipografica spezzava il titolo una parola per riga.
             className="mt-6 max-w-[16ch] font-display text-d1 balance"
           >
             {c.title}
-          </TextLines>
+          </SplitTitle>
           <Reveal delay={120}>
             <p className="lead mt-8">{c.lead(stats)}</p>
           </Reveal>
@@ -322,9 +322,9 @@ export default function CaseVenduteContent({
 
       <section className="dt-chapter bg-cream">
         <div className="dt-row">
-          <TextLines as="h2" className="max-w-[20ch] font-display text-d1">
+          <SplitTitle as="h2" className="max-w-[20ch] font-display text-d1">
             {c.ctaTitle}
-          </TextLines>
+          </SplitTitle>
           <Reveal delay={120}>
             <p className="lead mt-8">{c.ctaBody}</p>
           </Reveal>

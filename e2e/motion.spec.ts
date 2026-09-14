@@ -31,7 +31,7 @@ test("i testi rivelati dall'animazione sono comunque leggibili", async ({ page, 
   // né sfocatura — non resta niente di nascosto in attesa di un'animazione.
   const blocks = page.locator("#main .reveal");
   expect(await blocks.count(), "nessun blocco .reveal su /vendi").toBeGreaterThan(0);
-  const faded = await page.locator("#main .reveal, #main h1, #main h2, #main .lead").evaluateAll((els) =>
+  const faded = await page.locator("#main .reveal, #main h1, #main h2, #main .lead, #main [data-c]").evaluateAll((els) =>
     els
       .filter((e) => {
         const s = getComputedStyle(e);

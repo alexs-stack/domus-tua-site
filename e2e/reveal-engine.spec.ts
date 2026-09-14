@@ -26,6 +26,54 @@ async function armed(page: Page) {
   await expect.poll(() => page.locator("#main [data-reveal-state]").count(), { timeout: 10_000 }).toBeGreaterThan(0);
 }
 
+type Esame = { gruppi: number; bersagli: number; fuori: string[] };
+
+/**
+ * D44: la posa di un gruppo si legge sui suoi membri e sui loro bersagli GSAP, come li trovano
+ * collect() e targetsOf() di reveal-engine.ts, e non sul nodo del gruppo: un RevealGroup non
+ * porta data-reveal, il motore non lo anima e la sua opacità resta 1 in ogni stato. Membri: i
+ * [data-reveal] il cui gruppo più vicino è `g`, compreso `g` quando porta data-reveal. Bersagli
+ * (ROLES di text-roles.ts): i [data-c] per title e accent, le .dt-line per lead, il membro stesso
+ * per ctn e still. «nascosti»: i gruppi hidden, bersagli a opacità ≤ 0,01 (lead, che non anima
+ * l'opacità: riga spostata di almeno metà altezza). «sopra»: i gruppi interamente sopra il
+ * viewport, shown e con bersagli a opacità ≥ 0,99 (lead: riga ferma entro 1 px).
+ * Gira nella pagina (evaluateAll): niente riferimenti fuori dal corpo.
+ */
+function membriFuoriPosa(tutti: Element[], quali: "nascosti" | "sopra"): Esame {
+  const gruppi = (tutti as HTMLElement[]).filter((g) =>
+    quali === "nascosti" ? g.getAttribute("data-reveal-state") === "hidden" : g.getBoundingClientRect().bottom <= 0,
+  );
+  const fuori: string[] = [];
+  let bersagli = 0;
+  for (const g of gruppi) {
+    const stato = g.getAttribute("data-reveal-state");
+    if (quali === "sopra" && stato !== "shown") fuori.push(`gruppo ${stato}: «${(g.textContent ?? "").trim().slice(0, 40)}»`);
+    const membri = [g, ...Array.from(g.querySelectorAll<HTMLElement>("[data-reveal]"))].filter(
+      (m) => m.hasAttribute("data-reveal") && m.closest("[data-reveal-group]") === g,
+    );
+    for (const m of membri) {
+      const ruolo = m.getAttribute("data-reveal");
+      const sel = ruolo === "title" || ruolo === "accent" ? "[data-c]" : ruolo === "lead" ? ".dt-line" : null;
+      for (const t of sel === null ? [m] : Array.from(m.querySelectorAll<HTMLElement>(sel))) {
+        bersagli++;
+        const cs = getComputedStyle(t);
+        let ok: boolean;
+        if (ruolo === "lead") {
+          const dy = Math.abs(new DOMMatrixReadOnly(cs.transform === "none" ? undefined : cs.transform).m42);
+          ok = quali === "nascosti" ? dy >= t.offsetHeight * 0.5 : dy < 1;
+        } else {
+          const o = Number(cs.opacity);
+          ok = quali === "nascosti" ? o <= 0.01 : o >= 0.99;
+        }
+        if (!ok) {
+          fuori.push(`${ruolo} «${(m.textContent ?? "").trim().slice(0, 40)}»: opacity ${cs.opacity}, transform ${cs.transform}`);
+        }
+      }
+    }
+  }
+  return { gruppi: gruppi.length, bersagli, fuori };
+}
+
 /** Un gruppo-di-sé nascosto almeno 300 px sotto la piega, senza `delay`; `still` con un link dentro. */
 async function pick(page: Page, role: "ctn" | "still", mark: string): Promise<Locator> {
   const ok = await page.evaluate(
@@ -192,20 +240,13 @@ test("con l'ancora i gruppi sopra l'arrivo sono pieni subito e, risalendo, nessu
   await expect
     .poll(mancante, { message: "/vendi#contatti non arriva all'ancora", timeout: 6_000, intervals: [100] })
     .toBeLessThanOrEqual(0);
-  const conta = () =>
-    page.evaluate(() => {
-      const sopra = Array.from(document.querySelectorAll<HTMLElement>("#main [data-reveal-group]")).filter(
-        (g) => g.getBoundingClientRect().bottom <= 0,
-      );
-      return {
-        n: sopra.length,
-        storti: sopra.filter((g) => g.getAttribute("data-reveal-state") !== "shown" || Number(getComputedStyle(g).opacity) < 0.99)
-          .length,
-      };
-    });
+  // I gruppi interamente sopra il viewport: shown, e pieni nei bersagli dei membri (D44).
+  const conta = () => page.locator("#main [data-reveal-group]").evaluateAll(membriFuoriPosa, "sopra" as const);
   // Pieni all'armamento o alla prima notifica: niente attesa della rete dei 2.500 ms.
-  await expect.poll(async () => (await conta()).storti, { timeout: 400, intervals: [50] }).toBe(0);
-  expect((await conta()).n).toBeGreaterThan(0);
+  await expect.poll(async () => (await conta()).fuori, { timeout: 400, intervals: [50] }).toEqual([]);
+  const sopra = await conta();
+  expect(sopra.gruppi).toBeGreaterThan(0);
+  expect(sopra.bersagli).toBeGreaterThan(0);
 
   const h = await vh(page);
   for (let k = 0; k < 4; k++) {
@@ -384,10 +425,11 @@ test("al cambio lingua dopo l'idratazione i gruppi restano armati: nessuno stato
   await armed(page);
   await page.waitForTimeout(1_000);
   expect(await page.evaluate(() => (window as unknown as Sonde).__tolti)).toEqual([]);
-  const lampi = await page
-    .locator('#main [data-reveal-group][data-reveal-state="hidden"]')
-    .evaluateAll((els) => els.filter((e) => Number(getComputedStyle(e).opacity) > 0.01).length);
-  expect(lampi).toBe(0);
+  // Un lampo è un bersaglio di un membro di un gruppo hidden che si vede (D44).
+  const nascosti = await page.locator("#main [data-reveal-group]").evaluateAll(membriFuoriPosa, "nascosti" as const);
+  expect(nascosti.gruppi).toBeGreaterThan(0);
+  expect(nascosti.bersagli).toBeGreaterThan(0);
+  expect(nascosti.fuori).toEqual([]);
 });
 
 test("un blocco con un link entra solo in opacità: declassato a still, fermo e non cliccabile finché è fuori", async ({

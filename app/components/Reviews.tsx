@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import RevealGroup from "./motion/RevealGroup";
+import SplitTitle from "./motion/SplitTitle";
 import { Star, Google, Check } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import TrustindexEmbed from "./TrustindexEmbed";
@@ -188,14 +189,14 @@ export default function Reviews() {
     <section id="recensioni" className="dt-chapter relative bg-cream">
       <div className="dt-row relative">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-16">
-          {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+          {/* Reveal spezzato in due: il titolo per lettera (SplitTitle, A20 di Alberto) fa gruppo da sé, un elemento un ruolo (spec §2.2) */}
           <div>
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            <TextLines as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+            <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
               {c.title}
-            </TextLines>
+            </SplitTitle>
             <Reveal delay={100}>
               <p className="lead mt-8">{c.subtitle}</p>
             </Reveal>
@@ -233,14 +234,16 @@ export default function Reviews() {
         </div>
 
         {showTrustindex ? (
-          <Reveal className="mt-16 border-t border-line pt-10">
-            <h3 className="font-display text-d2">{c.realReviews}</h3>
+          <RevealGroup className="mt-16 border-t border-line pt-10">
+            <SplitTitle as="h3" className="font-display text-d2">
+              {c.realReviews}
+            </SplitTitle>
             {/* Nessun box: il widget vive direttamente sulla sezione (iframe
                 estratto in TrustindexEmbed, condiviso col capitolo stelle). */}
-            <div className="mt-8">
+            <Reveal className="mt-8">
               <TrustindexEmbed title={c.iframeTitle} />
-            </div>
-          </Reveal>
+            </Reveal>
+          </RevealGroup>
         ) : showNativeCards ? (
           <>
             {/* Nota onestà: quando le card sono DEMO (nessuna recensione nativa

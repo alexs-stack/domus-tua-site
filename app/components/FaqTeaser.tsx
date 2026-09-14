@@ -14,7 +14,7 @@
 import Link from "next/link";
 import FaqList from "./FaqList";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import { ArrowRight } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
 import { faqPick, type FaqEntryId } from "../domande-frequenti/faq";
@@ -68,9 +68,9 @@ export default function FaqTeaser({
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            <TextLines as="h2" className="mt-6 max-w-[16ch] font-display text-d1">
+            <SplitTitle as="h2" className="mt-6 max-w-[16ch] font-display text-d1">
               {c.title}
-            </TextLines>
+            </SplitTitle>
             <Reveal delay={140}>
               <Link
                 href="/domande-frequenti"

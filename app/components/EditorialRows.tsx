@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
+import RevealGroup from "./motion/RevealGroup";
+import SplitTitle from "./motion/SplitTitle";
 
 export type EditorialRow = {
   n: string;
@@ -46,28 +48,42 @@ export default function EditorialRows({
     return (
       <section id={id} className="dt-chapter bg-cream">
         <div className="dt-row">
-          <Reveal>
-            <span className="eyebrow">{eyebrow}</span>
-            <h2 className="mt-6 max-w-[20ch] font-display text-d1">{title}</h2>
-            {intro && <p className="lead mt-8">{intro}</p>}
-          </Reveal>
+          <RevealGroup>
+            <Reveal>
+              <span className="eyebrow">{eyebrow}</span>
+            </Reveal>
+            <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+              {title}
+            </SplitTitle>
+            {intro && (
+              <Reveal>
+                <p className="lead mt-8">{intro}</p>
+              </Reveal>
+            )}
+          </RevealGroup>
           <ol className="mt-16 flex flex-col">
             {rows.map((r) => (
               <li key={r.n} className="border-t border-line py-10 lg:py-12">
-                <Reveal className="grid gap-4 lg:grid-cols-[1fr_3fr] lg:gap-16">
+                <RevealGroup className="grid gap-4 lg:grid-cols-[1fr_3fr] lg:gap-16">
                   {/* Pietra, non rosso: nel riferimento il numerale grande e'
                       grigio e l'accento sta sul TITOLO. Sei numerali rossi in
                       colonna sarebbero sei richieste d'attenzione dove ce n'e'
                       una sola, la CTA. Stesso trattamento dell'elenco dei
                       Servizi, perche' l'elenco del sito sia uno. */}
-                  <span className="tnum block font-display text-d1 font-light leading-[0.85] text-stone">
-                    {r.n}
-                  </span>
+                  <Reveal>
+                    <span className="tnum block font-display text-d1 font-light leading-[0.85] text-stone">
+                      {r.n}
+                    </span>
+                  </Reveal>
                   <div>
-                    <h3 className="max-w-[20ch] font-display text-d2 balance">{r.title}</h3>
-                    <p className="lead mt-5">{r.copy}</p>
+                    <SplitTitle as="h3" className="max-w-[20ch] font-display text-d2 balance">
+                      {r.title}
+                    </SplitTitle>
+                    <Reveal>
+                      <p className="lead mt-5">{r.copy}</p>
+                    </Reveal>
                   </div>
-                </Reveal>
+                </RevealGroup>
               </li>
             ))}
           </ol>
@@ -79,11 +95,19 @@ export default function EditorialRows({
   return (
     <section id={id} className="dt-chapter bg-cream">
       <div className="dt-row">
-        <Reveal>
-          <span className="eyebrow">{eyebrow}</span>
-          <h2 className="mt-6 max-w-[20ch] font-display text-d1">{title}</h2>
-          {intro && <p className="lead mt-8">{intro}</p>}
-        </Reveal>
+        <RevealGroup>
+          <Reveal>
+            <span className="eyebrow">{eyebrow}</span>
+          </Reveal>
+          <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+            {title}
+          </SplitTitle>
+          {intro && (
+            <Reveal>
+              <p className="lead mt-8">{intro}</p>
+            </Reveal>
+          )}
+        </RevealGroup>
 
         <div className="mt-20 flex flex-col gap-20 sm:gap-28">
           {rows.map((r, i) => {
@@ -123,8 +147,8 @@ export default function EditorialRows({
                     />
                   </Parallax>
                 </div>
-                {/* Il Reveal resta solo sulla colonna testo: l'immagine ha già il suo ingresso. */}
-                <Reveal className={reversed ? "lg:pr-6" : "lg:pl-6"}>
+                {/* Il gruppo sta solo sulla colonna testo: l'immagine ha già il suo ingresso. */}
+                <RevealGroup className={reversed ? "lg:pr-6" : "lg:pl-6"}>
                   {/* Numero-fantasma: deriva più veloce del flusso, effetto collage editoriale.
                       Acceso anche sul telefono (default di Parallax dall'onda
                       «parità mobile 2», verdetto 7). L'onda precedente lo
@@ -136,10 +160,16 @@ export default function EditorialRows({
                       (`range` dimezzato dal componente): sopra i ~10px del
                       criterio, dunque visibile, e su un numerale decorativo al
                       25% che sta SOPRA il titolo, non dentro. */}
-                  <span className="tnum block text-ui font-semibold uppercase tracking-[0.08em] text-red">{r.n}</span>
-                  <h3 className="mt-4 max-w-[20ch] font-display text-d2 balance">{r.title}</h3>
-                  <p className="lead mt-6">{r.copy}</p>
-                </Reveal>
+                  <Reveal>
+                    <span className="tnum block text-ui font-semibold uppercase tracking-[0.08em] text-red">{r.n}</span>
+                  </Reveal>
+                  <SplitTitle as="h3" className="mt-4 max-w-[20ch] font-display text-d2 balance">
+                    {r.title}
+                  </SplitTitle>
+                  <Reveal>
+                    <p className="lead mt-6">{r.copy}</p>
+                  </Reveal>
+                </RevealGroup>
               </div>
             );
           })}

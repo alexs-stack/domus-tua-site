@@ -201,3 +201,50 @@ Criteri: letture + scritture della passata più lunga ≤ 50 ms, cioè il motore
 Tutti i numeri nel campo atteso.
 
 Decisione: misura rifatta nel giro di correzione 1 del commit 4, sul build con il refresh di D39 a scroll fermo (rimandato durante l'arrivo al frammento e a scroll in corso) e con D40 (sweep() nasconde senza animare i gruppi shown finiti interamente sotto il viewport): i numeri restano nel campo, come nella sezione sopra; il salto verso l'alto lo presidia e2e/reveal-engine.spec.ts.
+
+## 05-titoli · 2026-09-14 · 17a2003+
+
+Titolo di #servizi sulla home:
+
+| progetto | caratteri | ingresso ms | tetto ms | uscita ms (≤ 1300) | dall'alto (≥ 0,99) |
+| --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 62 | 2370 | 2950 | 815 | 1 |
+| mobile-390 | 62 | 2369 | 2950 | 815 | 1 |
+
+Accento di Method su /metodo:
+
+| progetto | caratteri | m41 armato px | atteso px (±2) | d armato (< 0,05) | ingresso ms | tetto ms | uscita ms (≤ 1300) | traboccamento px (≤ 0) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 7 | 144 | 144 | 0 | 1858 | 2350 | 712 | 0 |
+| mobile-390 | 7 | 39 | 39 | 0 | 1775 | 2350 | 711 | 0 |
+
+[data-c] sulla home a 1440 dopo una passata: 847 (base del test 8, e2e/baseline/data-c.json).
+
+## 05-titoli · 2026-09-14 · e4bf40d+
+
+Titolo di #servizi sulla home:
+
+| progetto | caratteri | ingresso ms | tetto ms | uscita ms (≤ 1300) | dall'alto (≥ 0,99) |
+| --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 62 | 2376 | 2950 | 808 | 1 |
+| mobile-390 | 62 | 2378 | 2950 | 814 | 1 |
+
+Accento di Method su /metodo:
+
+| progetto | caratteri | m41 armato px | atteso px (±2) | d armato (< 0,05) | ingresso ms | tetto ms | uscita ms (≤ 1300) | traboccamento px (≤ 0) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 7 | 144 | 144 | 0 | 1857 | 2350 | 710 | 0 |
+| mobile-390 | 7 | 39 | 39 | 0 | 1776 | 2350 | 711 | 0 |
+
+[data-c] sulla home a 1440 dopo una passata: 847 (base del test 8, e2e/baseline/data-c.json).
+
+kern-table.json: 43.170 byte (tetto 65.536, D36). Estremi per chiave (D42):
+
+| chiave | coppie | min em | max em | tetto em |
+| --- | --- | --- | --- | --- |
+| display-400 | 929 | -0.133 | 0.087 | ±0.2 |
+| display-500 | 1112 | -0.132 | 0.094 | ±0.2 |
+| brand-800 | 1169 | -0.1 | 0.19 | ±0.2 |
+| script-400 | 307 | -0.244 | 0.195 | ±0.25 |
+
+Decisione: misura rifatta nel giro di correzione 1 della verifica del commit 5, sul build in cui SplitChars divide le parole col trattino dopo il trattino (una `span.dt-w` per pezzo, unite da `<wbr/>`, spec §2.3). `e4bf40d` nell'intestazione è il commit 5 prima della correzione, poi riscritto con amend. I numeri restano nel criterio, i `[data-c]` restano 847 (`e2e/baseline/data-c.json` non cambia) e la sezione porta il peso di `kern-table.json` che la riga di D36 in spec §1.3 cita.

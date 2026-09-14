@@ -476,6 +476,26 @@ blockquote * {
   }
 }
 
+/* Titoli e accenti spezzati nel server (SplitChars): flip per lettera su tutti i
+   titoli, piatto come Era (A20, A22 di Alberto). La parola non si spezza e fra
+   due parole resta uno spazio vero; `--k` rimette la crenatura persa
+   nell'inline-block, letta da app/lib/motion/kern-table.json (D20). Nessun
+   will-change: lo promuove GSAP solo durante il tween (spec §2.2). */
+.dt-w {
+  display: inline-block;
+  white-space: nowrap;
+}
+.dt-c {
+  display: inline-block;
+  margin-inline-end: var(--k, 0em);
+}
+/* L'accento: le aste del Pinyon escono dalla scatola del carattere; il padding le
+   tiene dentro il livello composto durante la rotazione, il margine lo annulla. */
+[data-reveal="accent"] .dt-c {
+  padding-inline: 0.2em;
+  margin-inline: -0.2em calc(-0.2em + var(--k, 0em));
+}
+
 /* Riga e capitolo: il vuoto del riferimento (padding laterale 8vw, capitoli
    distanziati da 14vh). */
 .dt-row {

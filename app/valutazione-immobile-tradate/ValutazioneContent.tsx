@@ -40,7 +40,8 @@
 
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
-import TextLines from "../components/motion/TextLines";
+import RevealGroup from "../components/motion/RevealGroup";
+import SplitTitle from "../components/motion/SplitTitle";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
@@ -348,12 +349,12 @@ export default function ValutazioneContent() {
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <TextLines
+          <SplitTitle
             as="h1"
             className="mt-5 max-w-[24ch] font-display text-d2 display-tight font-medium text-ink balance"
           >
             {c.title}
-          </TextLines>
+          </SplitTitle>
           <Reveal delay={120}>
             <p className="mt-7 max-w-2xl text-[1.05rem] leading-relaxed text-graphite">{c.lead}</p>
           </Reveal>
@@ -376,12 +377,12 @@ export default function ValutazioneContent() {
           <Reveal>
             <span className="eyebrow">{c.tiersEyebrow}</span>
           </Reveal>
-          <TextLines
+          <SplitTitle
             as="h2"
             className="mt-5 max-w-[20ch] font-display text-d3 display-tight font-medium text-ink"
           >
             {c.tiersTitle}
-          </TextLines>
+          </SplitTitle>
           <Reveal delay={120}>
             <p className="mt-6 max-w-2xl text-[1.02rem] leading-relaxed text-graphite">
               {c.tiersIntro}
@@ -390,22 +391,32 @@ export default function ValutazioneContent() {
 
           {/* Due livelli come due colonne di testo su hairline: niente card (2026-09-10). */}
           <ol className="mt-16 grid gap-x-16 lg:grid-cols-2">
-            {c.tiers.map((t, i) => (
+            {c.tiers.map((t) => (
               <li key={t.step} className="border-t border-line pt-8">
-                <Reveal delay={140 + i * 90} className="flex h-full flex-col">
-                  <span className="tnum font-display text-d2 text-red">{t.step}</span>
-                  <h3 className="mt-5 font-display text-d3">{t.name}</h3>
-                  <p className="lead mt-6">{t.lead}</p>
-                  <ul className="mt-8 border-t border-line pt-2">
-                    {t.items.map((item) => (
-                      <li key={item} className="flex items-start gap-4 border-b border-line py-4 text-body text-graphite">
-                        <span aria-hidden className="mt-3.5 h-px w-5 shrink-0 bg-red" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-auto border-l-2 border-red pl-5 pt-8 text-body text-graphite">{t.note}</p>
-                </Reveal>
+                <RevealGroup className="flex h-full flex-col">
+                  <Reveal as="span" className="tnum font-display text-d2 text-red">
+                    {t.step}
+                  </Reveal>
+                  <SplitTitle as="h3" className="mt-5 font-display text-d3">
+                    {t.name}
+                  </SplitTitle>
+                  <Reveal>
+                    <p className="lead mt-6">{t.lead}</p>
+                  </Reveal>
+                  <Reveal>
+                    <ul className="mt-8 border-t border-line pt-2">
+                      {t.items.map((item) => (
+                        <li key={item} className="flex items-start gap-4 border-b border-line py-4 text-body text-graphite">
+                          <span aria-hidden className="mt-3.5 h-px w-5 shrink-0 bg-red" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </Reveal>
+                  <Reveal className="mt-auto">
+                    <p className="border-l-2 border-red pl-5 pt-8 text-body text-graphite">{t.note}</p>
+                  </Reveal>
+                </RevealGroup>
               </li>
             ))}
           </ol>
@@ -416,12 +427,12 @@ export default function ValutazioneContent() {
         <div className="mx-auto max-w-[1240px] px-5 py-20 sm:px-8 sm:py-24">
           <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <div>
-              <TextLines
+              <SplitTitle
                 as="h2"
                 className="max-w-[18ch] font-display text-d3 display-tight font-medium text-ink"
               >
                 {c.costTitle}
-              </TextLines>
+              </SplitTitle>
               <Reveal delay={120}>
                 <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-graphite">
                   {c.costBody}

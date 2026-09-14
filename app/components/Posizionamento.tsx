@@ -22,7 +22,7 @@
 
 import Image from "next/image";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import Parallax from "./motion/Parallax";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
@@ -101,9 +101,9 @@ export default function Posizionamento() {
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <TextLines as="h2" className="mt-6 font-display text-d2">
+          <SplitTitle as="h2" className="mt-6 font-display text-d2">
             {c.title}
-          </TextLines>
+          </SplitTitle>
           <Reveal delay={120}>
             <p className="lead mt-8">{c.body}</p>
           </Reveal>

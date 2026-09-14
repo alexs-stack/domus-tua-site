@@ -10,7 +10,8 @@ import Stats from "../components/Stats";
 import Team from "../components/Team";
 import Reveal from "../components/Reveal";
 import { site, yearsActive } from "../lib/site";
-import TextLines from "../components/motion/TextLines";
+import RevealGroup from "../components/motion/RevealGroup";
+import SplitTitle from "../components/motion/SplitTitle";
 import Contact from "../components/Contact";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
@@ -272,17 +273,21 @@ export default function ChiSiamoContent({ since }: { since: number }) {
                 />
               </div>
             </Reveal>
-            <Reveal delay={100}>
-              <span className="eyebrow">{c.storiaEyebrow}</span>
-              <TextLines as="h2" className="mt-6 font-display text-d1">
+            <RevealGroup>
+              <Reveal>
+                <span className="eyebrow">{c.storiaEyebrow}</span>
+              </Reveal>
+              <SplitTitle as="h2" className="mt-6 font-display text-d1">
                 {c.storiaTitle(since)}
-              </TextLines>
-              <div className="mt-8 flex flex-col gap-6">
-                {/* Capolettera editoriale: usato UNA sola volta nel sito, qui sulla storia. */}
-                <p className="lead dropcap">{c.storiaP1}</p>
-                <p className="lead">{c.storiaP2}</p>
-              </div>
-            </Reveal>
+              </SplitTitle>
+              <Reveal>
+                <div className="mt-8 flex flex-col gap-6">
+                  {/* Capolettera editoriale: usato UNA sola volta nel sito, qui sulla storia. */}
+                  <p className="lead dropcap">{c.storiaP1}</p>
+                  <p className="lead">{c.storiaP2}</p>
+                </div>
+              </Reveal>
+            </RevealGroup>
           </div>
         </div>
       </section>
@@ -297,19 +302,27 @@ export default function ChiSiamoContent({ since }: { since: number }) {
       {/* La nostra squadra */}
       <section className="dt-chapter bg-cream">
         <div className="dt-row">
-          <Reveal>
-            <span className="eyebrow">{c.squadraEyebrow}</span>
-            <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.squadraTitle}</h2>
-            <p className="lead mt-8">{c.squadraCopy}</p>
-            {/* Da "chi siamo" a "come si entra": è qui che nasce la domanda. */}
-            <Link
-              href="/lavora-con-noi"
-              className="group mt-8 inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors duration-300 hover:text-red-dark"
-            >
-              {c.squadraLavora}
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-          </Reveal>
+          <RevealGroup>
+            <Reveal>
+              <span className="eyebrow">{c.squadraEyebrow}</span>
+            </Reveal>
+            <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+              {c.squadraTitle}
+            </SplitTitle>
+            <Reveal>
+              <p className="lead mt-8">{c.squadraCopy}</p>
+            </Reveal>
+            <Reveal role="still">
+              {/* Da "chi siamo" a "come si entra": è qui che nasce la domanda. */}
+              <Link
+                href="/lavora-con-noi"
+                className="group mt-8 inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors duration-300 hover:text-red-dark"
+              >
+                {c.squadraLavora}
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </Reveal>
+          </RevealGroup>
 
           {/* UNA foto sola. Erano tre — il trio in studio, gli agenti in
               blazer rosso, il premio — e trecento pixel piu' sotto la rotaia

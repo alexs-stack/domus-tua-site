@@ -11,7 +11,7 @@
    foto+testo; il vuoto verticale lo danno i capitoli vicini. */
 
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import SocialLinks from "./primitives/SocialLinks";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -70,9 +70,9 @@ export default function Social() {
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <TextLines as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
+          <SplitTitle as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
             {c.title}
-          </TextLines>
+          </SplitTitle>
         </div>
 
         <div className="mt-6 lg:mt-0 lg:pl-[6vw]">

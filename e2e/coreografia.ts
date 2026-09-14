@@ -680,3 +680,11 @@ export async function minInkOver(page: Page, selector: string, ms: number, leafS
 export function readLcpBase(): LcpBase {
   return JSON.parse(readFileSync(join(__dirname, "baseline", "lcp-base.json"), "utf8")) as LcpBase;
 }
+
+/** L'unità animata dei titoli per lettera (SplitTitle, spec §2.3; A20 di Alberto). */
+export const TITLE_UNIT = '[data-reveal="title"] [data-c]';
+
+/** Il motore ha armato almeno un gruppo (reveal-engine.ts, spec §2.4). */
+export async function waitArmed(page: Page): Promise<void> {
+  await page.waitForFunction(() => !!document.querySelector("[data-reveal-armed]"), null, { timeout: 15_000 });
+}

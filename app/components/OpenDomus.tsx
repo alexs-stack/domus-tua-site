@@ -1,7 +1,7 @@
 "use client";
 
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -175,9 +175,9 @@ export default function OpenDomus() {
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <TextLines as="h2" className="mt-6 font-display text-d2">
+          <SplitTitle as="h2" className="mt-6 font-display text-d2">
             {c.head}
-          </TextLines>
+          </SplitTitle>
           <Reveal>
             <p className="lead mt-6">{c.claim}</p>
           </Reveal>
@@ -195,7 +195,9 @@ export default function OpenDomus() {
       <div className="dt-row mt-[8vh] grid gap-[6vw] sm:grid-cols-2 lg:grid-cols-[1fr_min(42vw,640px)]">
         {lists.map((list) => (
           <div key={list.title}>
-            <h3 className="font-display text-d4 font-light">{list.title}</h3>
+            <SplitTitle as="h3" font="display-400" className="font-display text-d4 font-light">
+              {list.title}
+            </SplitTitle>
             <ul className="mt-4 flex flex-col gap-2 text-body text-graphite">
               {list.items.map((it) => (
                 <li key={it} className="flex gap-3">

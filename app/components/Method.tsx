@@ -18,7 +18,9 @@
 //    avrebbe reso il Metodo identico a ogni altro capitolo.
 import Image from "next/image";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import RevealGroup from "./motion/RevealGroup";
+import ScriptWord from "./motion/ScriptWord";
+import SplitTitle from "./motion/SplitTitle";
 import Parallax from "./motion/Parallax";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -197,9 +199,9 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
         <Reveal className="text-right">
           <span className="eyebrow">{c.eyebrow}</span>
         </Reveal>
-        <TextLines as="h2" className="ml-auto mt-6 max-w-[20ch] text-right font-display text-d1">
+        <SplitTitle as="h2" className="ml-auto mt-6 max-w-[20ch] text-right font-display text-d1">
           {c.title}
-        </TextLines>
+        </SplitTitle>
       </div>
 
       {/* I tre atti, una riga ciascuno. Il lead dell'atto è l'indice dei suoi
@@ -236,9 +238,9 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
               </Parallax>
             </div>
             <div className="lg:pr-[6vw]">
-              <TextLines as="h3" className="font-display text-d2">
+              <SplitTitle as="h3" className="font-display text-d2">
                 {`${a.up} ${a.down}`}
-              </TextLines>
+              </SplitTitle>
               {/* La parola d'atto sta DOPO il titolo, come ogni altra
                   calligrafia del sito: la grammatica e' una sola, e attraversa
                   l'ultima riga del titolo. Sopra la foto, da sola in mezzo
@@ -248,11 +250,7 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
                   sopra «IL RACCONTO» era la stessa parola stampata due volte,
                   una in rosso sull'altra. Ora i titoli dicono la cosa (le
                   immagini, il rogito) e la calligrafia dice l'atto. */}
-              <Reveal>
-                <span aria-hidden className="script-word">
-                  {a.word}
-                </span>
-              </Reveal>
+              <ScriptWord>{a.word}</ScriptWord>
               <Reveal>
                 <p className="lead mt-6">{steps.map((s) => s.title).join(" · ")}</p>
               </Reveal>
@@ -291,13 +289,19 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
       <ol className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-x-[4vw] gap-y-16 md:grid-cols-3">
         {c.steps.map((s, i) => (
           <li key={s.title}>
-            <Reveal delay={(i % 3) * 80}>
-              <span aria-hidden className="tnum block font-display text-d1 font-light text-graphite">
-                {String(i + 1).padStart(2, "0")}.
-              </span>
-              <h4 className="mt-4 font-display text-d3">{s.title}</h4>
-              <p className="mt-3 text-body text-graphite">{s.copy}</p>
-            </Reveal>
+            <RevealGroup>
+              <Reveal>
+                <span aria-hidden className="tnum block font-display text-d1 font-light text-graphite">
+                  {String(i + 1).padStart(2, "0")}.
+                </span>
+              </Reveal>
+              <SplitTitle as="h4" className="mt-4 font-display text-d3">
+                {s.title}
+              </SplitTitle>
+              <Reveal>
+                <p className="mt-3 text-body text-graphite">{s.copy}</p>
+              </Reveal>
+            </RevealGroup>
           </li>
         ))}
       </ol>

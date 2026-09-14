@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import { Check } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -265,14 +265,14 @@ export default function BeforeAfter() {
     <section className="dt-chapter bg-cream">
       <div className="dt-row">
         <div className="flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-end">
-          {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+          {/* Reveal spezzato in due: il titolo per lettera (SplitTitle, A20 di Alberto) fa gruppo da sé, un elemento un ruolo (spec §2.2) */}
           <div>
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            <TextLines as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+            <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
               {c.title}
-            </TextLines>
+            </SplitTitle>
             <Reveal delay={100}>
               <p className="lead mt-8">{c.subcopy}</p>
             </Reveal>

@@ -8,16 +8,17 @@
 // intercettano invece chi la domanda ce l'ha già, mentre legge — e rimandano qui.
 //
 // Il contenuto vive tutto in ./faq.ts: qui c'è solo la composizione.
-// Motion di casa: occhiello in Reveal, titolo in TextLines, colonna d'indice appiccicata
+// Motion di casa: occhiello in Reveal, titolo per lettera in SplitTitle (A20 di Alberto), colonna d'indice appiccicata
 // che accompagna la lettura, elenchi in stagger.
 
 import { useRef, useState } from "react";
 import Link from "next/link";
 import PageHero from "../components/PageHero";
 import Reveal from "../components/Reveal";
+import RevealGroup from "../components/motion/RevealGroup";
 import FaqList from "../components/FaqList";
 import Contact from "../components/Contact";
-import TextLines from "../components/motion/TextLines";
+import SplitTitle from "../components/motion/SplitTitle";
 import { ArrowRight } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
@@ -310,9 +311,9 @@ export default function FaqContent() {
             <div ref={bodyRef} className="flex flex-col gap-16 sm:gap-20">
               {groups.map((group) => (
                 <div key={group.id} id={group.id} data-faq-group={group.id} className="scroll-mt-32">
-                  <TextLines as="h2" className="font-display text-d2">
+                  <SplitTitle as="h2" className="font-display text-d2">
                     {group.title}
-                  </TextLines>
+                  </SplitTitle>
                   <div className="mt-8">
                     <FaqList entries={group.entries} />
                   </div>
@@ -322,14 +323,22 @@ export default function FaqContent() {
               {/* La via d'uscita: nessuna FAQ copre tutto, e fingere di sì è il modo
                   più rapido per far sentire solo chi ha una domanda vera. */}
               <div className="border-t border-line pt-10">
-                <Reveal>
-                  <span className="eyebrow">{c.restEyebrow}</span>
-                  <h2 className="mt-6 max-w-[20ch] font-display text-d2">{c.restTitle}</h2>
-                  <p className="lead mt-8">{c.restCopy}</p>
-                  <Cta href="#contatti" variant="cta-solid" size="md" className="mt-10">
-                    {c.restCta}
-                  </Cta>
-                </Reveal>
+                <RevealGroup>
+                  <Reveal>
+                    <span className="eyebrow">{c.restEyebrow}</span>
+                  </Reveal>
+                  <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d2">
+                    {c.restTitle}
+                  </SplitTitle>
+                  <Reveal>
+                    <p className="lead mt-8">{c.restCopy}</p>
+                  </Reveal>
+                  <Reveal role="still">
+                    <Cta href="#contatti" variant="cta-solid" size="md" className="mt-10">
+                      {c.restCta}
+                    </Cta>
+                  </Reveal>
+                </RevealGroup>
               </div>
             </div>
           </div>

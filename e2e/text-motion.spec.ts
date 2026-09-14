@@ -1,5 +1,21 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import type { Page } from "@playwright/test";
 import { test, expect, setConsent } from "./helpers";
-import { budget, entryTimes, inkOf, productOpacity, refreshTriggers, timeToHidden, watchMinInk, wheelToTop } from "./coreografia";
+import {
+  budget,
+  entryTimes,
+  inkOf,
+  matrixOf,
+  noOverflowX,
+  productOpacity,
+  refreshTriggers,
+  timeToHidden,
+  waitArmed,
+  watchMinInk,
+  wheelTo,
+  wheelToTop,
+} from "./coreografia";
 
 // Il testo in movimento (spec 2026-09-13 §9.2, test 1-3).
 //
@@ -161,4 +177,323 @@ test("9 · i token del lessico arrivano al CSS del build", async ({ page, goto }
   expect(bezier(v.in)).toBe("cubic-bezier(.5,0,.75,0)");
   expect(ms(v.tdFast)).toBe(250);
   expect(bezier(v.tdSmooth)).toBe("cubic-bezier(.22,1,.36,1)");
+});
+
+// ── Commit 5: titoli per lettera (spec §2.3, §9.2 test 1-4, 7-9; A20 e A22 di Alberto) ──
+
+type Stato = { n: number; min: number; maxY: number; maxRot: number };
+
+// Caratteri dei titoli dentro `scope` (o del titolo `scope` stesso): minimo del prodotto delle
+// opacità fino a #main e scarto massimo dalla matrice identità, |m42| in px e max(|a − 1|, |b|).
+// Con `inVista` solo i titoli che intersecano il viewport. Spec §9.2 test 1; corsia sistema §7.2.1.
+async function statoCaratteri(page: Page, scope: string, inVista: boolean): Promise<Stato> {
+  return page.evaluate(
+    ([s, vista]) => {
+      const prod = (el: Element) => {
+        let p = 1;
+        for (let n: Element | null = el; n; n = n.parentElement) {
+          p *= Number(getComputedStyle(n).opacity);
+          if (n.id === "main") break;
+        }
+        return p;
+      };
+      const radice = document.querySelector(s);
+      if (!radice) throw new Error(`manca ${s}`);
+      const titoli = [
+        ...(radice.matches('[data-reveal="title"]') ? [radice] : []),
+        ...Array.from(radice.querySelectorAll('[data-reveal="title"]')),
+      ].filter((t) => {
+        if (!vista) return true;
+        const r = t.getBoundingClientRect();
+        return r.bottom > 0 && r.top < window.innerHeight;
+      });
+      const out = { n: 0, min: 1, maxY: 0, maxRot: 0 };
+      for (const t of titoli) {
+        for (const c of Array.from(t.querySelectorAll("[data-c]"))) {
+          const tr = getComputedStyle(c).transform;
+          const m = new DOMMatrixReadOnly(tr === "none" ? undefined : tr);
+          out.n += 1;
+          out.min = Math.min(out.min, prod(c));
+          out.maxY = Math.max(out.maxY, Math.abs(m.m42));
+          out.maxRot = Math.max(out.maxRot, Math.abs(m.a - 1), Math.abs(m.b));
+        }
+      }
+      return out;
+    },
+    [scope, inVista] as const,
+  );
+}
+
+const pieno = (v: Stato) => v.n > 0 && v.min > 0.99 && v.maxY < 0.5 && v.maxRot < 0.01;
+
+async function topDi(page: Page, sel: string) {
+  return page.evaluate((s) => {
+    const el = document.querySelector(s);
+    if (!el) throw new Error(`manca ${s}`);
+    const r = el.getBoundingClientRect();
+    return { top: r.top + window.scrollY, h: r.height, vh: window.innerHeight };
+  }, sel);
+}
+
+test("1b · in fondo alla home ogni carattere in vista arriva pieno e a matrice identità entro 3,5 s", { tag: "@titoli" }, async ({ page, goto, guards }) => {
+  await goto("/");
+  await waitArmed(page);
+  // Oltre #recensioni con la rotella, senza misurarla: il suo titolo arriva col film delle
+  // stelle a 0,94 (spec §2.4) e dentro il wrapper [data-sr-el] resta a 0 fino ad allora.
+  const stelle = await topDi(page, "#recensioni");
+  await wheelTo(page, stelle.top + stelle.h);
+  for (const id of ["#servizi", "#chi-siamo", "#contatti"] as const) {
+    // D45: la rotella porta a 0,3 × innerHeight il primo titolo della sezione, non il suo bordo,
+    // e wheelToTop ne rilegge la posizione a ogni colpo: a 390 il ritratto di Team sta sopra il
+    // titolo di #chi-siamo, che col bordo della sezione a 0,3 resta sotto il viewport.
+    await wheelToTop(page, page.locator(`${id} [data-reveal="title"]`).first(), 0.3);
+    expect((await statoCaratteri(page, id, true)).n, `${id}: nessun carattere di titolo in vista`).toBeGreaterThan(0);
+    await expect
+      .poll(async () => pieno(await statoCaratteri(page, id, true)), { timeout: budget(3_500), intervals: [100] })
+      .toBe(true);
+  }
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
+});
+
+test("2b · uscita del titolo più lungo: col bordo alto fra 85 % e 100 % i caratteri di #servizi scendono sotto 0,1 entro 1,3 s", { tag: "@titoli" }, async ({ page, goto, guards }) => {
+  await goto("/");
+  await waitArmed(page);
+  const sel = '#servizi [data-reveal="title"]';
+  // D45: la posizione del titolo si rilegge prima di ogni colpo di rotella (wheelToTop, come nei
+  // test 2 e 3): una lettura sola, fatta all'armamento, non segue l'altezza che la pagina sopra
+  // #servizi prende dopo, e il bordo può finire fuori dalla fascia 85-100 %.
+  const title = page.locator(sel).first();
+  await wheelToTop(page, title, 0.4);
+  await expect.poll(async () => pieno(await statoCaratteri(page, sel, false)), { timeout: budget(3_500) }).toBe(true);
+  await wheelToTop(page, title, 0.92);
+  const bordo = await page.evaluate((s) => document.querySelector(s)!.getBoundingClientRect().top / window.innerHeight, sel);
+  expect(bordo).toBeGreaterThan(0.85);
+  expect(bordo).toBeLessThan(1);
+  await expect
+    .poll(
+      () =>
+        page.evaluate((s) => {
+          let max = 0;
+          for (const c of Array.from(document.querySelectorAll(`${s} [data-c]`))) {
+            let p = 1;
+            for (let n: Element | null = c; n; n = n.parentElement) {
+              p *= Number(getComputedStyle(n).opacity);
+              if (n.id === "main") break;
+            }
+            max = Math.max(max, p);
+          }
+          return max;
+        }, sel),
+      { timeout: budget(1_300), intervals: [50] },
+    )
+    .toBeLessThan(0.1);
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
+});
+
+test("4 · ancora /#contatti: i titoli sopra l'ancora sono già pieni al primo campione", { tag: "@titoli" }, async ({ page, goto, guards }) => {
+  await goto("/#contatti");
+  await waitArmed(page);
+  // D45: l'arrivo all'ancora è lo scroll nativo al frammento (html { scroll-behavior: smooth }),
+  // e il motore fa nascere shown i gruppi che attraversa (D39). Il salto a #servizi parte a
+  // scroll fermo, con l'h2 di #servizi già passato sopra il viewport. A 1440 lo scroll nativo si
+  // ferma prima di #contatti, perché la pagina cresce dopo load (difetto del sito riferito al
+  // coordinatore): qui si misura l'attraversamento, e l'arrivo lo presidia reveal-engine.spec.ts
+  // su /vendi. Il campione legge l'h2, in vista dopo il salto: gli h3 dei servizi finiscono
+  // sotto il viewport e il motore li nasconde (D40).
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => {
+          const y = window.scrollY;
+          await new Promise((r) => setTimeout(r, 250));
+          const h = document.querySelector('#servizi [data-reveal="title"]');
+          return !!h && y > 0 && window.scrollY === y && h.getBoundingClientRect().bottom < 0;
+        }),
+      { message: "l'arrivo a /#contatti non attraversa il titolo di #servizi", timeout: 10_000, intervals: [100] },
+    )
+    .toBe(true);
+  await page.evaluate(() => {
+    const h = document.querySelector('#servizi [data-reveal="title"]');
+    if (!h) throw new Error("manca il titolo di #servizi");
+    window.scrollTo({ top: h.getBoundingClientRect().top + window.scrollY - 120, behavior: "instant" });
+  });
+  const unita = page.locator('#servizi [data-reveal="title"]').first().locator("[data-c]");
+  expect(await unita.count()).toBeGreaterThan(0);
+  expect(await productOpacity(unita.first())).toBeGreaterThan(0.99);
+  expect(await productOpacity(unita.last())).toBeGreaterThan(0.99);
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
+});
+
+// Cambio lingua su /metodo col cookie al primo caricamento (spec §2.3 «Cambio lingua», §9.2
+// test 7; corsia sistema §7.2.7). Lo switcher è spento nel build degli e2e
+// (LanguageSwitcher.tsx:12, :38): LocaleProvider applica il cookie dopo l'idratazione
+// (LocaleProvider.tsx:30-37), SplitChars riusa gli span per indice e RevealGroup si registra
+// di nuovo. I caratteri riusati e quelli nuovi (il tedesco ne ha di più) devono arrivare pieni.
+test("7 · cambio lingua su /metodo: nomi, lettere e stato dei caratteri in de e fr", { tag: "@lingua" }, async ({ page, goto, guards }) => {
+  test.setTimeout(90_000);
+  await page.context().addCookies([{ name: "dt_locale", value: "it", domain: "127.0.0.1", path: "/" }]);
+  await goto("/metodo");
+  const nomeIt = (await page.locator("#main h1").getAttribute("aria-label")) ?? "";
+  expect(nomeIt, "aria-label italiano vuoto").not.toBe("");
+  for (const lingua of ["de", "fr"] as const) {
+    await page.context().addCookies([{ name: "dt_locale", value: lingua, domain: "127.0.0.1", path: "/" }]);
+    await goto("/metodo");
+    await expect(page.locator("html")).toHaveAttribute("lang", lingua);
+    await waitArmed(page);
+    const h1 = page.locator("#main h1");
+    await expect(h1).not.toHaveAttribute("aria-label", nomeIt);
+    if (lingua === "de") await expect(h1).toHaveAttribute("aria-label", "Kein Inserat. Eine Methode.");
+    const incoerenti = await page.locator('#main [data-reveal="title"]').evaluateAll((els) =>
+      els
+        .map((el) => ({
+          nome: el.getAttribute("aria-label") ?? el.querySelector(".sr-only")?.textContent ?? "",
+          lettere: Array.from(el.querySelectorAll("[data-c]"), (c) => c.textContent ?? "").join(""),
+        }))
+        .filter((x) => x.nome.replace(/\s+/g, "") !== x.lettere),
+    );
+    expect(incoerenti, lingua).toEqual([]);
+    await expect
+      .poll(async () => pieno(await statoCaratteri(page, "#main h1", false)), { timeout: budget(3_500), intervals: [100] })
+      .toBe(true);
+    const passi = '#main h4[data-reveal="title"]';
+    const t = await topDi(page, passi);
+    await wheelTo(page, t.top - t.vh * 0.5);
+    await expect
+      .poll(async () => pieno(await statoCaratteri(page, passi, false)), { timeout: budget(3_500), intervals: [100] })
+      .toBe(true);
+  }
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
+});
+
+// L'accento (spec §2.2, riga `accent`; A20 e A22 di Alberto): la calligrafia di Method su /metodo
+// nasce armata a x 10vw e rotateX 90; entra entro 0,3 + min(0,1; 1,2/(n−1))·(n−1) + 1,2 s più
+// 250 ms; col bordo alto al 92 % esce sotto 0,1 entro 1,3 s; a 390 la corsa di 10vw non allarga
+// la pagina (spec §9.2, traboccamento).
+test("7a · accento: la calligrafia di Method entra da x 10vw, esce e non trabocca", { tag: "@accento" }, async ({ page, goto, guards }) => {
+  await goto("/metodo");
+  await waitArmed(page);
+  const sel = '#metodo [data-reveal="accent"]';
+  const t = await topDi(page, sel);
+  await wheelTo(page, Math.max(0, t.top - t.vh * 1.5));
+  const primo = page.locator(`${sel} [data-c]`).first();
+  const vw = await page.evaluate(() => window.innerWidth);
+  await expect.poll(async () => (await matrixOf(primo)).m41, { timeout: 2_000 }).toBeGreaterThan(0.1 * vw - 2);
+  const armato = await matrixOf(primo);
+  expect(armato.m41, "x all'armamento").toBeLessThan(0.1 * vw + 2);
+  expect(Math.abs(armato.d), "rotateX 90 all'armamento").toBeLessThan(0.05);
+  // Method rende tre calligrafie, una per atto: il tetto di spec §2.2 e D19 conta gli n caratteri
+  // della prima (quella di `t`), la stessa che ingresso e uscita misurano.
+  const n = await page.locator(sel).first().locator("[data-c]").count();
+  const tetto = Math.round((0.3 + Math.min(0.1, 1.2 / Math.max(1, n - 1)) * (n - 1) + 1.2) * 1000) + 250;
+  const ingresso = await page.evaluate(
+    async ([s, limite]) => {
+      const el = document.querySelector(s)!;
+      const chars = Array.from(el.querySelectorAll("[data-c]"));
+      const prod = (c: Element) => {
+        let p = 1;
+        for (let k: Element | null = c; k; k = k.parentElement) {
+          p *= Number(getComputedStyle(k).opacity);
+          if (k.id === "main") break;
+        }
+        return p;
+      };
+      const fermo = (c: Element) => {
+        const tr = getComputedStyle(c).transform;
+        const m = new DOMMatrixReadOnly(tr === "none" ? undefined : tr);
+        return Math.abs(m.m41) < 0.5 && Math.abs(m.d - 1) < 0.01;
+      };
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.5, behavior: "instant" });
+      const t0 = performance.now();
+      let largo = 0;
+      while (performance.now() - t0 < limite + 1500) {
+        await new Promise((r) => requestAnimationFrame(r));
+        largo = Math.max(largo, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        if (chars.every((c) => fermo(c) && prod(c) > 0.99)) return { ms: Math.round(performance.now() - t0), largo };
+      }
+      return { ms: -1, largo };
+    },
+    [sel, tetto] as const,
+  );
+  expect(ingresso.ms, `ingresso mai completo (tetto ${tetto} ms)`).toBeGreaterThanOrEqual(0);
+  expect(ingresso.ms, `ingresso ${ingresso.ms} ms, tetto ${tetto} ms`).toBeLessThanOrEqual(budget(tetto));
+  expect(ingresso.largo, "la corsa di 10vw ha allargato la pagina").toBeLessThanOrEqual(0);
+  await noOverflowX(page);
+  await wheelTo(page, t.top - t.vh * 0.92);
+  await expect
+    .poll(
+      () =>
+        page.evaluate((s) => {
+          let max = 0;
+          for (const c of Array.from(document.querySelector(s)!.querySelectorAll("[data-c]"))) {
+            let p = 1;
+            for (let k: Element | null = c; k; k = k.parentElement) {
+              p *= Number(getComputedStyle(k).opacity);
+              if (k.id === "main") break;
+            }
+            max = Math.max(max, p);
+          }
+          return max;
+        }, sel),
+      { timeout: budget(1_300), intervals: [50] },
+    )
+    .toBeLessThan(0.1);
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
+});
+
+test("8 · budget dei nodi: i [data-c] della home a 1440 non superano la base di più del 20 %", { tag: "@titoli" }, async ({ page, goto, guards }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "la base è fissata a 1440 (spec §2.3)");
+  await goto("/");
+  await waitArmed(page);
+  const altezza = await page.evaluate(() => document.documentElement.scrollHeight);
+  for (let y = 0; y < altezza; y += 900) await wheelTo(page, y);
+  const n = await page.locator("[data-c]").count();
+  const base = JSON.parse(readFileSync(join(process.cwd(), "e2e/baseline/data-c.json"), "utf8")) as { "/": { "1440": number } };
+  expect(n).toBeGreaterThan(0);
+  expect(n, `[data-c] ${n} contro la base ${base["/"]["1440"]}`).toBeLessThanOrEqual(Math.ceil(base["/"]["1440"] * 1.2));
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
+});
+
+const PAGE_HERO = ["/acquista", "/chi-siamo", "/cookie", "/domande-frequenti", "/lavora-con-noi", "/metodo", "/open-domus", "/privacy", "/recensioni", "/servizi", "/vendi"];
+const LINGUE = ["it", "en", "fr", "de", "es"] as const;
+
+// Spec §2.3 «Accessibilità»: sugli 11 H1 di PageHero × 5 lingue il nome accessibile coincide
+// con innerText normalizzato. LocaleProvider scrive `lang` prima che React renda la lingua
+// nuova (LocaleProvider.tsx:34-35): nome e testo si leggono nello stesso evaluate, e fuori
+// dall'italiano il testo dell'hero deve essere cambiato rispetto a quello italiano della stessa
+// rotta. D43: la lingua nuova si riconosce dal testo della sezione di PageHero e non dal nome
+// dell'H1, perché /cookie e /privacy hanno lo stesso titolo in it e en («Cookie Policy.»,
+// «Privacy Policy.»).
+test("nomi · gli H1 delle 11 PageHero hanno nelle cinque lingue il nome che si legge", { tag: "@lingua" }, async ({ page, goto, guards }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "undici rotte per cinque lingue: basta una larghezza");
+  test.setTimeout(300_000);
+  const norm = (s: string, l: string) => s.replace(/ß/g, "ss").toLocaleLowerCase(l).replace(/\s+/g, " ").trim();
+  const heroIt = new Map<string, string>();
+  for (const l of LINGUE) {
+    await page.context().addCookies([{ name: "dt_locale", value: l, domain: "127.0.0.1", path: "/" }]);
+    for (const r of PAGE_HERO) {
+      await goto(r);
+      await expect(page.locator("html")).toHaveAttribute("lang", l);
+      const h1 = page.locator("#main h1");
+      const leggi = () =>
+        h1.evaluate((el) => ({
+          nome: el.getAttribute("aria-label") ?? "",
+          testo: (el as HTMLElement).innerText,
+          hero: el.closest("section")?.innerText ?? "",
+        }));
+      await expect
+        .poll(
+          async () => {
+            const v = await leggi();
+            const cambiato = l === "it" || (v.hero !== "" && v.hero !== heroIt.get(r));
+            return v.nome !== "" && cambiato && norm(v.testo, l) === norm(v.nome, l);
+          },
+          { timeout: 5_000, intervals: [100] },
+        )
+        .toBe(true);
+      const { nome, hero } = await leggi();
+      if (l === "it") heroIt.set(r, hero);
+      await expect(page.getByRole("heading", { level: 1, name: nome, exact: true })).toHaveCount(1);
+    }
+  }
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
 });

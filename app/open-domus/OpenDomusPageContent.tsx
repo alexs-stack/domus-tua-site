@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ScrollTrigger } from "../lib/motion/gsap";
 import { useLocale } from "../components/i18n/LocaleProvider";
 import Reveal from "../components/Reveal";
+import RevealGroup from "../components/motion/RevealGroup";
+import SplitTitle from "../components/motion/SplitTitle";
 import PageHero from "../components/PageHero";
 import OpenDomus from "../components/OpenDomus";
 import Highlights from "../components/Highlights";
@@ -736,10 +738,14 @@ export default function OpenDomusPageContent() {
         {/* Claim di prodotto: una frase grande sul fondo avorio, niente banda scura. */}
         <section className="dt-chapter bg-cream">
           <div className="dt-row">
-            <Reveal>
-              <span className="eyebrow">Open Domus</span>
-              <h2 className="mt-6 max-w-[24ch] font-display text-d2">{c.heroSubtitle}</h2>
-            </Reveal>
+            <RevealGroup>
+              <Reveal>
+                <span className="eyebrow">Open Domus</span>
+              </Reveal>
+              <SplitTitle as="h2" className="mt-6 max-w-[24ch] font-display text-d2">
+                {c.heroSubtitle}
+              </SplitTitle>
+            </RevealGroup>
           </div>
         </section>
 
@@ -757,17 +763,25 @@ export default function OpenDomusPageContent() {
             separate da hairline, niente card né lastra scura (2026-09-10). */}
         <section className="dt-chapter bg-cream">
           <div className="dt-row">
-            <Reveal>
-              <span className="eyebrow">{c.compareEyebrow}</span>
-              <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.compareTitle}</h2>
-              <p className="lead mt-8">{c.compareIntro}</p>
-            </Reveal>
+            <RevealGroup>
+              <Reveal>
+                <span className="eyebrow">{c.compareEyebrow}</span>
+              </Reveal>
+              <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+                {c.compareTitle}
+              </SplitTitle>
+              <Reveal>
+                <p className="lead mt-8">{c.compareIntro}</p>
+              </Reveal>
+            </RevealGroup>
 
             <div className="mt-16 grid gap-x-16 lg:grid-cols-2">
               {/* Colonna: open house classico */}
-              <Reveal>
-                <div className="border-t border-line pt-8">
-                  <h3 className="font-display text-d4 text-stone">{c.compareOldLabel}</h3>
+              <RevealGroup className="border-t border-line pt-8">
+                <SplitTitle as="h3" className="font-display text-d4 text-stone">
+                  {c.compareOldLabel}
+                </SplitTitle>
+                <Reveal>
                   <ul className="mt-6 flex flex-col">
                     {c.compareOld.map((item) => (
                       <li key={item} className="flex items-start gap-4 border-t border-line py-4 text-body text-graphite">
@@ -776,13 +790,15 @@ export default function OpenDomusPageContent() {
                       </li>
                     ))}
                   </ul>
-                </div>
-              </Reveal>
+                </Reveal>
+              </RevealGroup>
 
               {/* Colonna: Open Domus */}
-              <Reveal delay={100}>
-                <div className="border-t border-red pt-8">
-                  <h3 className="font-display text-d4 text-red">{c.compareNewLabel}</h3>
+              <RevealGroup className="border-t border-red pt-8">
+                <SplitTitle as="h3" className="font-display text-d4 text-red">
+                  {c.compareNewLabel}
+                </SplitTitle>
+                <Reveal>
                   <ul className="mt-6 flex flex-col">
                     {c.compareNew.map((item) => (
                       <li key={item} className="flex items-start gap-4 border-t border-line py-4 text-body text-ink">
@@ -791,8 +807,8 @@ export default function OpenDomusPageContent() {
                       </li>
                     ))}
                   </ul>
-                </div>
-              </Reveal>
+                </Reveal>
+              </RevealGroup>
             </div>
           </div>
         </section>
@@ -832,21 +848,29 @@ export default function OpenDomusPageContent() {
                 <p className="mt-4 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{c.videoBadge}</p>
               </Reveal>
 
-              <Reveal delay={100}>
-                <span className="eyebrow">{c.videoEyebrow}</span>
-                <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.videoTitle}</h2>
-                <p className="lead mt-8">{c.videoText}</p>
-                <Cta
-                  href={youtubeWatch(site.videos.openDomus.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="cta"
-                  size="md"
-                  className="mt-10"
-                >
-                  {c.videoCta}
-                </Cta>
-              </Reveal>
+              <RevealGroup>
+                <Reveal>
+                  <span className="eyebrow">{c.videoEyebrow}</span>
+                </Reveal>
+                <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+                  {c.videoTitle}
+                </SplitTitle>
+                <Reveal>
+                  <p className="lead mt-8">{c.videoText}</p>
+                </Reveal>
+                <Reveal role="still">
+                  <Cta
+                    href={youtubeWatch(site.videos.openDomus.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="cta"
+                    size="md"
+                    className="mt-10"
+                  >
+                    {c.videoCta}
+                  </Cta>
+                </Reveal>
+              </RevealGroup>
             </div>
           </div>
         </section>
@@ -854,15 +878,21 @@ export default function OpenDomusPageContent() {
         {/* Due colonne: chi vende / chi acquista (liste con hairline, niente card). */}
         <section className="dt-chapter bg-cream">
           <div className="dt-row">
-            <Reveal>
-              <span className="eyebrow">{c.splitEyebrow}</span>
-              <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.splitTitle}</h2>
-            </Reveal>
+            <RevealGroup>
+              <Reveal>
+                <span className="eyebrow">{c.splitEyebrow}</span>
+              </Reveal>
+              <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+                {c.splitTitle}
+              </SplitTitle>
+            </RevealGroup>
 
             <div className="mt-16 grid gap-x-16 md:grid-cols-2">
-              <Reveal>
-                <div className="border-t border-line pt-8">
-                  <h3 className="font-display text-d4 text-red">{c.sellerLabel}</h3>
+              <RevealGroup className="border-t border-line pt-8">
+                <SplitTitle as="h3" className="font-display text-d4 text-red">
+                  {c.sellerLabel}
+                </SplitTitle>
+                <Reveal>
                   <ul className="mt-6 flex flex-col">
                     {c.sellerItems.map((item) => (
                       <li key={item} className="flex items-start gap-4 border-t border-line py-4 text-body text-graphite">
@@ -871,12 +901,14 @@ export default function OpenDomusPageContent() {
                       </li>
                     ))}
                   </ul>
-                </div>
-              </Reveal>
+                </Reveal>
+              </RevealGroup>
 
-              <Reveal delay={100}>
-                <div className="border-t border-line pt-8">
-                  <h3 className="font-display text-d4 text-red">{c.buyerLabel}</h3>
+              <RevealGroup className="border-t border-line pt-8">
+                <SplitTitle as="h3" className="font-display text-d4 text-red">
+                  {c.buyerLabel}
+                </SplitTitle>
+                <Reveal>
                   <ul className="mt-6 flex flex-col">
                     {c.buyerItems.map((item) => (
                       <li key={item} className="flex items-start gap-4 border-t border-line py-4 text-body text-graphite">
@@ -885,8 +917,8 @@ export default function OpenDomusPageContent() {
                       </li>
                     ))}
                   </ul>
-                </div>
-              </Reveal>
+                </Reveal>
+              </RevealGroup>
             </div>
           </div>
         </section>
@@ -894,10 +926,14 @@ export default function OpenDomusPageContent() {
         {/* FAQ: voci separate da hairline, domanda in serif, risposta a 19 px. */}
         <section className="dt-chapter bg-cream">
           <div className="dt-row">
-            <Reveal>
-              <span className="eyebrow">{c.faqEyebrow}</span>
-              <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.faqTitle}</h2>
-            </Reveal>
+            <RevealGroup>
+              <Reveal>
+                <span className="eyebrow">{c.faqEyebrow}</span>
+              </Reveal>
+              <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+                {c.faqTitle}
+              </SplitTitle>
+            </RevealGroup>
 
             <div className="mt-16 max-w-[800px] border-b border-line">
               {c.faq.map((item, i) => {
@@ -952,13 +988,19 @@ export default function OpenDomusPageContent() {
         {/* CTA finale: chiara, sul fondo avorio. */}
         <section className="dt-chapter bg-cream">
           <div className="dt-row">
-            <Reveal className="border-t border-line pt-10">
-              <h2 className="max-w-[20ch] font-display text-d1">{c.finalTitle}</h2>
-              <p className="lead mt-8">{c.finalText}</p>
-              <Cta href="#contatti" variant="cta-solid" size="lg" className="mt-10">
-                {c.finalCta}
-              </Cta>
-            </Reveal>
+            <RevealGroup className="border-t border-line pt-10">
+              <SplitTitle as="h2" className="max-w-[20ch] font-display text-d1">
+                {c.finalTitle}
+              </SplitTitle>
+              <Reveal>
+                <p className="lead mt-8">{c.finalText}</p>
+              </Reveal>
+              <Reveal role="still">
+                <Cta href="#contatti" variant="cta-solid" size="lg" className="mt-10">
+                  {c.finalCta}
+                </Cta>
+              </Reveal>
+            </RevealGroup>
           </div>
         </section>
 

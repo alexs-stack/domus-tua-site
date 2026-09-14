@@ -29,7 +29,7 @@
 // 0.95): l'aria vera gliela danno i capitoli vicini, che ne hanno in abbondanza.
 
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import { Cta } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
@@ -120,9 +120,9 @@ export default function CostiChiari({
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <TextLines as="h2" className="mt-6 font-display text-d2">
+          <SplitTitle as="h2" className="mt-6 font-display text-d2">
             {c.title}
-          </TextLines>
+          </SplitTitle>
           {/* Niente parola calligrafica, qui. È l'ornamento del CAPITOLO, e
               questa non è più un capitolo ma una riga: in mezza colonna la
               calligrafia attraversava l'ultima riga del titolo partendo dal

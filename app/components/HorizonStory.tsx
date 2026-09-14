@@ -17,7 +17,8 @@
 // verticale della riga a due colonne, subito sotto la testa di capitolo.
 import Image from "next/image";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import ScriptWord from "./motion/ScriptWord";
+import SplitTitle from "./motion/SplitTitle";
 import HorizonScroller from "./motion/HorizonScroller";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { Cta } from "./primitives/Cta";
@@ -174,14 +175,10 @@ export default function HorizonStory() {
         <Reveal>
           <span className="eyebrow">{c.eyebrow}</span>
         </Reveal>
-        <TextLines as="h2" className="mt-6 max-w-[16ch] font-display text-d1">
+        <SplitTitle as="h2" className="mt-6 max-w-[16ch] font-display text-d1">
           {c.domeTitle}
-        </TextLines>
-        <Reveal delay={120}>
-          <span aria-hidden className="script-word pl-[14vw]">
-            {c.scriptWord}
-          </span>
-        </Reveal>
+        </SplitTitle>
+        <ScriptWord className="pl-[14vw]">{c.scriptWord}</ScriptWord>
       </div>
 
       {/* Il video in evidenza è VERTICALE (girato col telefono, come le storie

@@ -18,7 +18,8 @@
 // editoriale del riferimento e lascia alla foto il ruolo di respiro.
 import Image from "next/image";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import RevealGroup from "./motion/RevealGroup";
+import SplitTitle from "./motion/SplitTitle";
 import Parallax from "./motion/Parallax";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -265,9 +266,9 @@ export default function Services() {
         <Reveal>
           <span className="eyebrow">{c.eyebrow}</span>
         </Reveal>
-        <TextLines as="h2" className="mt-6 max-w-[24ch] font-display text-d2">
+        <SplitTitle as="h2" className="mt-6 max-w-[24ch] font-display text-d2">
           {c.title}
-        </TextLines>
+        </SplitTitle>
       </div>
 
       {ROWS.map((row, r) => {
@@ -307,17 +308,23 @@ export default function Services() {
                   const n = r * 2 + j;
                   return (
                     <li key={s.title}>
-                      <Reveal delay={j * 80}>
+                      <RevealGroup>
                         {/* Il numero e' ornamento: l'ordine lo porta gia' <ol>. */}
-                        <span
-                          aria-hidden
-                          className="block font-display text-d1 font-light leading-[0.85] text-stone"
-                        >
-                          {String(n + 1).padStart(2, "0")}
-                        </span>
-                        <h3 className="mt-4 font-display text-d3">{s.title}</h3>
-                        <p className="mt-3 text-body text-graphite">{s.copy}</p>
-                      </Reveal>
+                        <Reveal>
+                          <span
+                            aria-hidden
+                            className="block font-display text-d1 font-light leading-[0.85] text-stone"
+                          >
+                            {String(n + 1).padStart(2, "0")}
+                          </span>
+                        </Reveal>
+                        <SplitTitle as="h3" className="mt-4 font-display text-d3">
+                          {s.title}
+                        </SplitTitle>
+                        <Reveal>
+                          <p className="mt-3 text-body text-graphite">{s.copy}</p>
+                        </Reveal>
+                      </RevealGroup>
                     </li>
                   );
                 })}

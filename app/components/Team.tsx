@@ -21,7 +21,7 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
 import Parallax from "./motion/Parallax";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import HorizontalRail from "./motion/HorizontalRail";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -180,13 +180,13 @@ export default function Team({ compact = false }: { compact?: boolean }) {
               d2 e non d1 in entrambi i casi: accanto a una foto il titolo sta
               in mezza colonna, e lì un d1 legge come un errore di stampa. */}
           {compact ? (
-            <TextLines as="p" className="mt-6 font-display text-d2 uppercase">
+            <SplitTitle as="p" className="mt-6 font-display text-d2 uppercase">
               {c.title}
-            </TextLines>
+            </SplitTitle>
           ) : (
-            <TextLines as="h2" className="mt-6 font-display text-d2">
+            <SplitTitle as="h2" className="mt-6 font-display text-d2">
               {c.title}
-            </TextLines>
+            </SplitTitle>
           )}
           <Reveal>
             <p className="lead mt-8">{c.lead}</p>

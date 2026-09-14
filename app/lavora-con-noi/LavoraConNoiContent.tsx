@@ -4,10 +4,11 @@ import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
 import PageHero from "../components/PageHero";
 import Reveal from "../components/Reveal";
+import RevealGroup from "../components/motion/RevealGroup";
 import CareerApplication, { ROLE_IDS, isRoleId, type RoleId } from "../components/CareerApplication";
 import LazyYouTubeEmbed from "../components/LazyYouTubeEmbed";
 import Parallax from "../components/motion/Parallax";
-import TextLines from "../components/motion/TextLines";
+import SplitTitle from "../components/motion/SplitTitle";
 import { Cta } from "../components/primitives/Cta";
 import { site } from "../lib/site";
 import { team, teamInitials, teamRoleLabels } from "../lib/team";
@@ -31,8 +32,8 @@ const ROLE_CARDS = ROLE_IDS.filter(
 
 /**
  * Testata di sezione — la stessa grammatica del capitolo "Perché scegliere Domus Tua"
- * (HorizonStory): occhiello che sale, titolo display che si scopre RIGA PER RIGA da una
- * maschera (TextLines, la firma tipografica del sito), sommario in coda con un ritardo.
+ * (HorizonStory): occhiello che sale, titolo display che entra lettera per lettera
+ * (SplitTitle, A20 di Alberto), sommario in coda.
  *
  * Prima ogni testata era un unico blocco in fade-up: leggibile, ma muta. Il titolo è il
  * punto in cui la pagina prende voce, e sul resto del sito lo fa così.
@@ -55,9 +56,9 @@ function SectionHead({
       <Reveal>
         <span className="eyebrow">{eyebrow}</span>
       </Reveal>
-      <TextLines as="h2" className={`mt-6 max-w-[20ch] font-display ${titleClassName}`}>
+      <SplitTitle as="h2" className={`mt-6 max-w-[20ch] font-display ${titleClassName}`}>
         {title}
-      </TextLines>
+      </SplitTitle>
       {intro && (
         <Reveal delay={140}>
           <p className="lead mt-8">{intro}</p>
@@ -767,18 +768,23 @@ export default function LavoraConNoiContent() {
               così le quattro non leggono come quattro scatole identiche. */}
           <ul className="mt-16 grid gap-x-12 sm:grid-cols-2">
             {c.why.map((item, i) => (
-              <Reveal
+              <RevealGroup
                 as="li"
                 key={item.title}
-                delay={(i % 2) * 60}
                 className={`border-t border-line py-8 ${i === 0 ? "sm:col-span-2" : ""}`}
               >
-                <span className="tnum text-ui font-semibold uppercase tracking-[0.08em] text-red">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3 className={`mt-4 font-display ${i === 0 ? "text-d2" : "text-d3"}`}>{item.title}</h3>
-                <p className="mt-4 max-w-[60ch] text-body text-graphite">{item.copy}</p>
-              </Reveal>
+                <Reveal>
+                  <span className="tnum text-ui font-semibold uppercase tracking-[0.08em] text-red">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                </Reveal>
+                <SplitTitle as="h3" className={`mt-4 font-display ${i === 0 ? "text-d2" : "text-d3"}`}>
+                  {item.title}
+                </SplitTitle>
+                <Reveal>
+                  <p className="mt-4 max-w-[60ch] text-body text-graphite">{item.copy}</p>
+                </Reveal>
+              </RevealGroup>
             ))}
           </ul>
         </div>
@@ -790,67 +796,75 @@ export default function LavoraConNoiContent() {
           <SectionHead eyebrow={c.rolesEyebrow} title={c.rolesTitle} intro={c.rolesIntro} />
 
           <ul className="mt-16 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
-            {ROLE_CARDS.map((id, i) => {
+            {ROLE_CARDS.map((id) => {
               const r = c.roles[id];
               return (
-                <Reveal
+                <RevealGroup
                   as="li"
                   key={id}
-                  delay={(i % 3) * 50}
                   className="group flex h-full flex-col border-t border-line py-8"
                 >
-                  <h3 className="font-display text-d3">{r.title}</h3>
+                  <SplitTitle as="h3" className="font-display text-d3">
+                    {r.title}
+                  </SplitTitle>
 
-                  <dl className="mt-6 flex flex-1 flex-col gap-5">
-                    <div>
-                      <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-red-dark">{c.rolesWhat}</dt>
-                      <dd className="mt-2 text-body text-graphite">{r.what}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.rolesLooking}</dt>
-                      <dd className="mt-2 text-body text-graphite">{r.looking}</dd>
-                    </div>
-                  </dl>
+                  <Reveal className="mt-6 flex flex-1 flex-col">
+                    <dl className="flex flex-1 flex-col gap-5">
+                      <div>
+                        <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-red-dark">{c.rolesWhat}</dt>
+                        <dd className="mt-2 text-body text-graphite">{r.what}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.rolesLooking}</dt>
+                        <dd className="mt-2 text-body text-graphite">{r.looking}</dd>
+                      </div>
+                    </dl>
+                  </Reveal>
 
                   {/* Sceglie l'area e porta al form (l'ancora fa lo scroll, Lenis
                       rispetta lo scroll-margin dell'header). aria-label esplicita:
                       cinque link con lo stesso testo, letti fuori contesto, sono
                       indistinguibili in un elenco di link dello screen reader. */}
-                  <Cta
-                    href="#candidatura"
-                    variant="ghost"
-                    size="md"
-                    aria-label={c.ctaAria.replace("{area}", r.title)}
-                    onClick={() => chooseRole(id, r.title)}
-                    className="mt-8 self-start"
-                  >
-                    {c.rolesCta}
-                  </Cta>
-                </Reveal>
+                  <Reveal role="still" className="mt-8 self-start">
+                    <Cta
+                      href="#candidatura"
+                      variant="ghost"
+                      size="md"
+                      aria-label={c.ctaAria.replace("{area}", r.title)}
+                      onClick={() => chooseRole(id, r.title)}
+                    >
+                      {c.rolesCta}
+                    </Cta>
+                  </Reveal>
+                </RevealGroup>
               );
             })}
 
             {/* Candidatura spontanea: stessa griglia, chiude la sequenza con il
                 titolo in rosso e la CTA piena (niente lastra scura, 2026-09-10). */}
-            <Reveal
+            <RevealGroup
               as="li"
-              delay={(ROLE_CARDS.length % 3) * 50}
               className="flex h-full flex-col justify-between border-t border-red py-8"
             >
               <div>
-                <h3 className="font-display text-d3 text-red">{c.spontaneaTitle}</h3>
-                <p className="mt-4 text-body text-graphite">{c.spontaneaCopy}</p>
+                <SplitTitle as="h3" className="font-display text-d3 text-red">
+                  {c.spontaneaTitle}
+                </SplitTitle>
+                <Reveal>
+                  <p className="mt-4 text-body text-graphite">{c.spontaneaCopy}</p>
+                </Reveal>
               </div>
-              <Cta
-                href="#candidatura"
-                variant="cta-solid"
-                size="md"
-                onClick={() => chooseRole("spontanea", c.spontaneaCta)}
-                className="mt-8 self-start"
-              >
-                {c.spontaneaCta}
-              </Cta>
-            </Reveal>
+              <Reveal role="still" className="mt-8 self-start">
+                <Cta
+                  href="#candidatura"
+                  variant="cta-solid"
+                  size="md"
+                  onClick={() => chooseRole("spontanea", c.spontaneaCta)}
+                >
+                  {c.spontaneaCta}
+                </Cta>
+              </Reveal>
+            </RevealGroup>
           </ul>
         </div>
       </section>
@@ -862,18 +876,23 @@ export default function LavoraConNoiContent() {
 
           <ol className="mt-16 border-t border-line">
             {c.steps.map((step, i) => (
-              <Reveal
+              <RevealGroup
                 as="li"
                 key={step.title}
-                delay={i * 45}
                 className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
               >
-                <span className="tnum font-display text-d2 text-red">{String(i + 1).padStart(2, "0")}</span>
+                <Reveal as="span" className="tnum font-display text-d2 text-red">
+                  {String(i + 1).padStart(2, "0")}
+                </Reveal>
                 <div className="max-w-[60ch] pt-1">
-                  <h3 className="font-display text-d3">{step.title}</h3>
-                  <p className="mt-4 text-body text-graphite">{step.copy}</p>
+                  <SplitTitle as="h3" className="font-display text-d3">
+                    {step.title}
+                  </SplitTitle>
+                  <Reveal>
+                    <p className="mt-4 text-body text-graphite">{step.copy}</p>
+                  </Reveal>
                 </div>
-              </Reveal>
+              </RevealGroup>
             ))}
           </ol>
         </div>

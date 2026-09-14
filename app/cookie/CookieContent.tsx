@@ -8,6 +8,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
+import SplitTitle from "../components/motion/SplitTitle";
 import { site } from "../lib/site";
 
 type CookieType = { label: string; copy: string };
@@ -441,7 +442,9 @@ export default function CookieContent() {
             <div className="mt-12 flex flex-col gap-12">
               {c.blocks.map((block) => (
                 <div key={block.title}>
-                  <h2 className="font-display text-d3">{block.title}</h2>
+                  <SplitTitle as="h2" className="font-display text-d3">
+                    {block.title}
+                  </SplitTitle>
                   <div className="mt-5 flex flex-col gap-5 text-body text-graphite">
                     {block.body.map((p, i) => (
                       <p key={i}>{p}</p>

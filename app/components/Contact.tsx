@@ -9,7 +9,7 @@ import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../li
 import { isEmailFormat, isPhoneFormat } from "../lib/forms/contactChannel";
 import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
 
@@ -712,9 +712,9 @@ export default function Contact({
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            <TextLines as="h2" className="mt-6 max-w-[22ch] font-display text-d2">
+            <SplitTitle as="h2" className="mt-6 max-w-[22ch] font-display text-d2">
               {c.title}
-            </TextLines>
+            </SplitTitle>
           </>
         )}
 

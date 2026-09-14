@@ -6365,11 +6365,11 @@ Il primo passo del blocco è `git fetch origin` con il confronto `git rev-list -
 
 ### Commit 5: Titoli per lettera: SplitChars, crenatura misurata, SplitTitle, ScriptWord e migrazione di TextLines
 
-**Decisioni:** A20, A22, A26 (Alberto); C22 (cliente, replay nei due versi, dal motore); D19, D20, D21, D32; **D36 (nuova, proposta da questo blocco)**: «`app/lib/motion/kern-table.json` pesa al massimo 64 KB, perché entra nel bundle client di ogni pagina con un titolo; `script-400` misura solo i glifi delle parole calligrafiche, `brand-800` perde le minuscole accentate se la tabella sfora». La spec §2.3 e §9.1 non danno un tetto: la riga di D36 entra in spec §1.3 (spec del 13 settembre) con lo Step 13 e va fatta vedere ad Alberto. **Nel registro §11 della spec del 10 settembre D36 non la scrive questo commit**: per il contratto del commit 1 (block-01-02.md:18, «Nessun commit fra il 3 e il 21 è tenuto a toccare il registro») la riga la aggiunge la chiusura 22d, che la chiude con l'hash di questo commit e porta `registro-check.cjs` a 88 righe (block-21-22.md:2225, :2238, :2283); dopo questo commit il controllo stampa ancora `registro ok: 86 righe` (D36 è fuori da `ids("D", 16, 35)`, block-01-02.md:83).
+**Decisioni:** A20, A22, A26 (Alberto); C22 (cliente, replay nei due versi, dal motore); D19, D20, D21, D32; **D36 (nuova, proposta da questo blocco)**: «`app/lib/motion/kern-table.json` pesa al massimo 64 KB, perché entra nel bundle client di ogni pagina con un titolo; `script-400` misura solo i glifi delle parole calligrafiche, `brand-800` perde le minuscole accentate se la tabella sfora». La spec §2.3 e §9.1 non danno un tetto: la riga di D36 entra in spec §1.3 (spec del 13 settembre) con lo Step 13 e va fatta vedere ad Alberto. **Nel registro §11 della spec del 10 settembre D36 non la scrive questo commit**: per il contratto del commit 1 (block-01-02.md:18, «Nessun commit fra il 3 e il 21 è tenuto a toccare il registro») la riga la aggiunge la chiusura 22d, che la chiude con l'hash di questo commit e porta `registro-check.cjs` a 88 righe (block-21-22.md:2225, :2238, :2283); dopo questo commit il controllo stampa ancora `registro ok: 86 righe` (D36 è fuori da `ids("D", 16, 35)`, block-01-02.md:83). **D44 (nuova, giro di correzione 1 della 5-6)**: «in `e2e/reveal-engine.spec.ts` i test «con l'ancora i gruppi sopra l'arrivo sono pieni subito…» e «al cambio lingua dopo l'idratazione i gruppi restano armati…» leggono la posa sui membri dei gruppi e sui loro bersagli GSAP (`[data-c]` per `title` e `accent`, `.dt-line` per `lead`, il membro stesso per `ctn` e `still`, come `collect()` e `targetsOf()` del motore) e non sul nodo del gruppo: un `RevealGroup` non porta `data-reveal`, il motore non lo anima e la sua opacità resta 1, e su /vendi la misura sul nodo contava 33 lampi che non ci sono, tutti nodi di `RevealGroup` di G2-G6». È una decisione degli attrezzi e2e, come D38 e D43: sta nel commento del test (`membriFuoriPosa`) e in questo piano, non in spec §1.3 né nel registro del 10 settembre. **D45 (nuova, 5-7)**: «in `e2e/text-motion.spec.ts` il test 1b porta a 0,3 × innerHeight il primo titolo di ogni sezione e non il bordo della sezione (a 390 il ritratto di Team sta sopra il titolo di #chi-siamo, che resterebbe sotto il viewport); il 2b rilegge la posizione del titolo prima di ogni colpo di rotella con `wheelToTop`; il 4 salta a #servizi a scroll fermo, dopo che l'arrivo nativo a `/#contatti` ha attraversato l'h2 di #servizi, e campiona solo quell'h2: a 1440 lo scroll nativo al frammento della home si ferma a 20.586 px con #contatti a 26.475, anche sul build di 17a2003 (difetto del sito riferito al coordinatore), e dopo il salto gli h3 dei servizi stanno sotto il viewport e il motore li nasconde (D40)». È una decisione degli attrezzi e2e, come D38, D43 e D44: sta nei commenti dei test e in questo piano, non in spec §1.3 né nel registro del 10 settembre.
 
 **Files:**
 - Create: `scripts/kern-table.ts`; `app/lib/motion/kern.ts`; `app/lib/motion/kern-table.json`; `app/components/motion/SplitChars.tsx`; `app/components/motion/SplitTitle.tsx`; `app/components/motion/ScriptWord.tsx`; `app/components/motion/FrozenLines.tsx` (con `git mv app/components/motion/TextLines.tsx app/components/motion/FrozenLines.tsx`, poi righe 3-9, 10, 15-16, 19-22, 46-53, 194-197 modificate); `app/lib/__tests__/split-chars.test.ts`; `app/lib/__tests__/kern-table.test.ts`; `app/lib/__tests__/split-title-migrazione.test.ts`; `docs/superpowers/specs/2026-09-13-coreografia-era-residence/misure/05-titoli.mjs`; `e2e/baseline/data-c.json`.
-- Modify: `app/components/motion/TextLines.tsx` (dopo il `git mv` rinasce come file nuovo di 21 righe: l'alias); `app/globals.css` (blocco nuovo prima di `/* Riga e capitolo: il vuoto del riferimento`, oggi riga 438); `e2e/coreografia.ts` (due export in coda); `e2e/text-motion.spec.ts` (riga degli import del commit 2 e, in coda dopo il test 9 del commit 3, test 1b, 2b, 4, 7, 7a, 8 e nomi degli H1; i test `1 ·`, `2 ·`, `3 ·` del commit 2 e il test 9 del commit 3 restano); `e2e/motion.spec.ts:34` (riga di oggi :31, spostata di tre dallo Step 2 del commit 4, block-03-04.md:1567-1586); `docs/superpowers/specs/2026-09-13-coreografia-era-residence-design.md:75` (riga di D36 dopo quella di D35, §1.3; il registro §11 della spec del 10 settembre non si tocca: 22d); `docs/superpowers/specs/2026-09-13-coreografia-era-residence/misure/risultati.md` (tabella in coda, la scrive lo script).
+- Modify: `app/components/motion/TextLines.tsx` (dopo il `git mv` rinasce come file nuovo di 21 righe: l'alias); `app/globals.css` (blocco nuovo prima di `/* Riga e capitolo: il vuoto del riferimento`, oggi riga 438); `e2e/coreografia.ts` (due export in coda); `e2e/text-motion.spec.ts` (riga degli import del commit 2 e, in coda dopo il test 9 del commit 3, test 1b, 2b, 4, 7, 7a, 8 e nomi degli H1; i test `1 ·`, `2 ·`, `3 ·` del commit 2 e il test 9 del commit 3 restano); `e2e/motion.spec.ts:34` (riga di oggi :31, spostata di tre dallo Step 2 del commit 4, block-03-04.md:1567-1586); `e2e/reveal-engine.spec.ts` (D44: la funzione `membriFuoriPosa` dopo `armed()` e le misure dei test «con l'ancora…» e «al cambio lingua…»); `docs/superpowers/specs/2026-09-13-coreografia-era-residence-design.md:75` (riga di D36 dopo quella di D35, §1.3; il registro §11 della spec del 10 settembre non si tocca: 22d) e §2.3 (la parola col trattino è una `span.dt-w` per pezzo, unite da `<wbr/>`; revisione del commit 5); `docs/superpowers/specs/2026-09-13-coreografia-era-residence/misure/risultati.md` (tabelle in coda e peso di `kern-table.json`, le scrive lo script).
 - Modify (migrazione, gruppi disgiunti):
   - G1: `app/components/Posizionamento.tsx:25`, `:104-106`; `app/components/HomeSearchGateway.tsx:10`, `:115-117`; `app/components/HorizonStory.tsx:20`, `:177-184`; `app/components/StarReviews.tsx:63`, `:707-712`; `app/components/Voci.tsx:27`, `:165-167`.
   - G2: `app/components/Paths.tsx:8`, `:20`, `:219-221`, `:249-251`; `app/components/Method.tsx:21`, `:200-202`, `:239-241`, `:251-255`, `:294-300`; `app/components/OpenDomus.tsx:4`, `:178-180`, `:198`; `app/components/DomusDocProtocol.tsx:4`, `:234-235`, `:256-258`, `:276`; `app/components/Services.tsx:21`, `:268-270`, `:310-320`; `app/components/CostiChiari.tsx:32`, `:123-125`.
@@ -6377,7 +6377,7 @@ Il primo passo del blocco è `git fetch origin` con il confronto `git rev-list -
   - G4: `app/components/PageHero.tsx:6`, `:80-103`; `app/components/Reviews.tsx:5`, `:191`, `:196-198`; `app/components/BeforeAfter.tsx:6`, `:268`, `:273-275`.
   - G5: `app/contatti/ContattiContent.tsx:5`, `:136-140`; `app/case-vendute/CaseVenduteContent.tsx:35`, `:210-216`, `:325-327`; `app/valutazione-immobile-tradate/ValutazioneContent.tsx:43`, `:351-356`, `:379-384`, `:419-424`; `app/chi-siamo/ChiSiamoContent.tsx:13`, `:275-285`; `app/lavora-con-noi/LavoraConNoiContent.tsx:10`, `:33-36`, `:58-60`; `app/metodo/MetodoContent.tsx:13`, `:235-237`; `app/domande-frequenti/FaqContent.tsx:11`, `:20`, `:313-315`.
   - G6, titoli display nudi delle pagine interne e dei moduli condivisi (A20 «flip per lettera su tutti i titoli»; spec §5.3 «cambiano i titoli (per lettera)»): `app/vendi/VendiContent.tsx:12`, `:823-827`, `:833-839`, `:861-865`, `:868-877`, `:951-956`; `app/acquista/AcquistaContent.tsx:11`, `:559-571`, `:574-605`; `app/open-domus/OpenDomusPageContent.tsx:7`, `:739-742`, `:760-764`, `:768-780`, `:783-795`, `:835-849`, `:857-860`, `:863-875`, `:877-889`, `:897-900`, `:955-961`; `app/chi-siamo/ChiSiamoContent.tsx:300-312`; `app/domande-frequenti/FaqContent.tsx:17`, `:325-332`; `app/components/EditorialRows.tsx:2`, `:49-53`, `:57`, `:63-70`, `:82-86`, `:126-127`, `:139-142`; `app/components/Highlights.tsx:1`, `:19-23`, `:29-40`; `app/components/CareerApplication.tsx:7`, `:480-482`; `app/lavora-con-noi/LavoraConNoiContent.tsx:6`, `:770-781`, `:793-829`, `:835-853`, `:865-876`; `app/valutazione-immobile-tradate/ValutazioneContent.tsx:42`, `:393-408`; `app/components/Reviews.tsx:4`, `:236-243`; `app/cookie/CookieContent.tsx:10`, `:444`; `app/privacy/PrivacyContent.tsx:7`, `:428`; `app/components/HomeSearchGateway.tsx:9`, `:210-218`.
-- Test: `app/lib/__tests__/split-chars.test.ts`, `kern-table.test.ts`, `split-title-migrazione.test.ts`; `e2e/text-motion.spec.ts`; `e2e/motion.spec.ts`; e2e di controllo invariati: `e2e/pages.spec.ts` (guardia di /case/[slug] del commit 4), `e2e/reveal-engine.spec.ts`, il test 9 di `e2e/text-motion.spec.ts` (token del commit 3 e 4; gira con il file intero allo Step 54), `e2e/home.spec.ts`, `e2e/a11y.spec.ts`, `e2e/mobile-motion.spec.ts`, `e2e/contact.spec.ts`, `e2e/consent-reviews.spec.ts`.
+- Test: `app/lib/__tests__/split-chars.test.ts`, `kern-table.test.ts`, `split-title-migrazione.test.ts`; `e2e/text-motion.spec.ts`; `e2e/motion.spec.ts`; `e2e/reveal-engine.spec.ts` (i due test di D44 leggono i membri, gli altri nove invariati); e2e di controllo invariati: `e2e/pages.spec.ts` (guardia di /case/[slug] del commit 4), il test 9 di `e2e/text-motion.spec.ts` (token del commit 3 e 4; gira con il file intero allo Step 54), `e2e/home.spec.ts`, `e2e/a11y.spec.ts`, `e2e/mobile-motion.spec.ts`, `e2e/contact.spec.ts`, `e2e/consent-reviews.spec.ts`.
 
 **Esclusioni dichiarate (titoli display che il commit 5 non tocca, presidiate da `NUDI_AMMESSI` nello Step 5):** `app/case/[slug]/PropertyDetail.tsx`, `PropertyFacts.tsx`, `VivereInZona.tsx` (D32); `Footer.tsx:84`, `:112`, `:141` (reso anche in /case/[slug], spec §5.4; commit 17); `Congedo.tsx:127` (commit 17); `HorizonStory.tsx:251`, `:269`, `:287` (commit 10, spec §2.4 e §3.5); `HeroCinematic.tsx:499` (commit 8, spec §2.5 strada «a»); `Contact.tsx:742` (dentro il blocco con `key={intent}` del modulo, spec §8; commit 16); `PropertyMap.tsx:153` (reso solo da `PropertySearch.tsx:994`, che spec §5.3 lascia invariato); `PropertyCard.tsx:197` e `CaseQuickLook.tsx:209` (tessere cliccabili e scheda rapida col suo GSAP, rese anche in /case/[slug]); `ValutazioneContent.tsx:435` (testa del modulo di richiesta, spec §8); `app/error.tsx:30` e `app/not-found.tsx:22` (fuori dalle 14 pagine di spec §5.2 e dalla base LCP: domanda per Alberto, riportata in newInterfaces).
 
@@ -6545,6 +6545,28 @@ describe("SplitChars", () => {
     const [coppia, v] = voce;
     const html = render(coppia);
     assert.match(html, new RegExp(`style="--k:${v}em">${coppia[0]}</span>`));
+  });
+
+  test("la parola col trattino va a capo dopo il trattino: una span.dt-w per pezzo, unite da <wbr/>", () => {
+    // Spec §2.3, chiesto dalla revisione del commit 5: senza il taglio la parola intera non va a capo e in de a 1440 esce dalla colonna dei servizi di /vendi.
+    const html = render("Social-Storytelling", true, "de");
+    assert.equal(conta(html, /class="dt-w"/g), 2);
+    assert.equal(conta(html, /<wbr\/>/g), 1);
+    assert.equal(conta(html, /data-c=""/g), 19);
+    assert.match(html, /-<\/span><\/span><wbr\/><span class="dt-w" data-w=""><span class="dt-c" data-c=""[^>]*>S<\/span>/, "fra i pezzi nessuno spazio");
+    const trattino = String.fromCharCode(0x2010);
+    assert.equal(conta(render(`Open${trattino}Domus`), /class="dt-w"/g), 2);
+    // Dove il testo semplice non va a capo non si taglia: trattino in testa, trattino prima di una cifra.
+    assert.equal(conta(render("-uno"), /class="dt-w"/g), 1);
+    assert.equal(conta(render("Covid-19"), /class="dt-w"/g), 1);
+  });
+
+  test("a cavallo del trattino la crenatura resta sul carattere di sinistra", () => {
+    const voce = Object.entries(T["display-500"]).find(([p]) => /^[A-Z]-$/.test(p));
+    assert.ok(voce, "display-500 senza coppie lettera-trattino: rigenerare con npx tsx scripts/kern-table.ts");
+    const [coppia, v] = voce;
+    const html = render(`${coppia[0]}-Casa`);
+    assert.match(html, new RegExp(`style="--k:${v}em">${coppia[0]}</span><span class="dt-c" data-c="">-</span></span><wbr/><span class="dt-w"`));
   });
 
   test("i grafemi composti restano un carattere solo; «ß» non rompe il maiuscolo tedesco", () => {
@@ -6822,8 +6844,10 @@ test("1b · in fondo alla home ogni carattere in vista arriva pieno e a matrice 
   const stelle = await topDi(page, "#recensioni");
   await wheelTo(page, stelle.top + stelle.h);
   for (const id of ["#servizi", "#chi-siamo", "#contatti"] as const) {
-    const t = await topDi(page, id);
-    await wheelTo(page, t.top - t.vh * 0.3);
+    // D45: la rotella porta a 0,3 × innerHeight il primo titolo della sezione, non il suo bordo,
+    // e wheelToTop ne rilegge la posizione a ogni colpo: a 390 il ritratto di Team sta sopra il
+    // titolo di #chi-siamo, che col bordo della sezione a 0,3 resta sotto il viewport.
+    await wheelToTop(page, page.locator(`${id} [data-reveal="title"]`).first(), 0.3);
     expect((await statoCaratteri(page, id, true)).n, `${id}: nessun carattere di titolo in vista`).toBeGreaterThan(0);
     await expect
       .poll(async () => pieno(await statoCaratteri(page, id, true)), { timeout: budget(3_500), intervals: [100] })
@@ -6835,10 +6859,13 @@ test("2b · uscita del titolo più lungo: col bordo alto fra 85 % e 100 % i cara
   await goto("/");
   await waitArmed(page);
   const sel = '#servizi [data-reveal="title"]';
-  const t = await topDi(page, sel);
-  await wheelTo(page, t.top - t.vh * 0.4);
+  // D45: la posizione del titolo si rilegge prima di ogni colpo di rotella (wheelToTop, come nei
+  // test 2 e 3): una lettura sola, fatta all'armamento, non segue l'altezza che la pagina sopra
+  // #servizi prende dopo, e il bordo può finire fuori dalla fascia 85-100 %.
+  const title = page.locator(sel).first();
+  await wheelToTop(page, title, 0.4);
   await expect.poll(async () => pieno(await statoCaratteri(page, sel, false)), { timeout: budget(3_500) }).toBe(true);
-  await wheelTo(page, t.top - t.vh * 0.92);
+  await wheelToTop(page, title, 0.92);
   const bordo = await page.evaluate((s) => document.querySelector(s)!.getBoundingClientRect().top / window.innerHeight, sel);
   expect(bordo).toBeGreaterThan(0.85);
   expect(bordo).toBeLessThan(1);
@@ -6869,12 +6896,31 @@ Poi, sempre in coda:
 test("4 · ancora /#contatti: i titoli sopra l'ancora sono già pieni al primo campione", { tag: "@titoli" }, async ({ page, goto }) => {
   await goto("/#contatti");
   await waitArmed(page);
+  // D45: l'arrivo all'ancora è lo scroll nativo al frammento (html { scroll-behavior: smooth }),
+  // e il motore fa nascere shown i gruppi che attraversa (D39). Il salto a #servizi parte a
+  // scroll fermo, con l'h2 di #servizi già passato sopra il viewport. A 1440 lo scroll nativo si
+  // ferma prima di #contatti, perché la pagina cresce dopo load (difetto del sito riferito al
+  // coordinatore): qui si misura l'attraversamento, e l'arrivo lo presidia reveal-engine.spec.ts
+  // su /vendi. Il campione legge l'h2, in vista dopo il salto: gli h3 dei servizi finiscono
+  // sotto il viewport e il motore li nasconde (D40).
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => {
+          const y = window.scrollY;
+          await new Promise((r) => setTimeout(r, 250));
+          const h = document.querySelector('#servizi [data-reveal="title"]');
+          return !!h && y > 0 && window.scrollY === y && h.getBoundingClientRect().bottom < 0;
+        }),
+      { message: "l'arrivo a /#contatti non attraversa il titolo di #servizi", timeout: 10_000, intervals: [100] },
+    )
+    .toBe(true);
   await page.evaluate(() => {
     const h = document.querySelector('#servizi [data-reveal="title"]');
     if (!h) throw new Error("manca il titolo di #servizi");
     window.scrollTo({ top: h.getBoundingClientRect().top + window.scrollY - 120, behavior: "instant" });
   });
-  const unita = page.locator('#servizi [data-reveal="title"] [data-c]');
+  const unita = page.locator('#servizi [data-reveal="title"]').first().locator("[data-c]");
   expect(await unita.count()).toBeGreaterThan(0);
   expect(await productOpacity(unita.first())).toBeGreaterThan(0.99);
   expect(await productOpacity(unita.last())).toBeGreaterThan(0.99);
@@ -7340,9 +7386,12 @@ Atteso: `registro ok: 86 righe` e `uscita 0` (le 86 del commit 1: D36 è fuori d
 // SplitChars — parole e caratteri dei titoli e degli accenti, resi nel server (spec §2.3;
 // A20 di Alberto: flip per lettera su tutti i titoli; A22: piatto come Era). Ogni parola è
 // span.dt-w (inline-block, nowrap) e ogni carattere span.dt-c; fra due parole resta uno
-// spazio vero, così l'a capo cade solo fra parole e il testo si copia intero. Lo split è lo
+// spazio vero, così l'a capo cade solo fra parole e il testo si copia intero. Una parola col
+// trattino («Social-Storytelling») è una span.dt-w per pezzo, unite da <wbr/> senza spazio:
+// va a capo dopo il trattino come il testo semplice e non esce dalla colonna. Lo split è lo
 // stesso con JS, senza JS e con reduced-motion. La crenatura persa nell'inline-block torna
-// da kern-table.json (D20): `--k` sul carattere di sinistra della coppia.
+// da kern-table.json (D20): `--k` sul carattere di sinistra della coppia, anche a cavallo
+// del trattino.
 // Accetta stringhe, <br/> e <span className> (la parola rossa dei chiamanti di PageHero):
 // un link o un bottone dentro un titolo finirebbe sotto aria-hidden, quindi in sviluppo è
 // un errore (spec §2.3).
@@ -7403,6 +7452,14 @@ function graphemes(word: string, locale: string): string[] {
   return Array.from(word);
 }
 
+// Spec §2.3, chiesto dalla revisione del commit 5: il titolo spezzato va a capo dopo il
+// trattino (U+002D, U+2010) come il testo semplice nel browser (UAX #14: LB20a, niente a
+// capo dopo il trattino che apre la parola; LB25, niente a capo fra trattino e cifra).
+// Oggi si taglia dove il trattino non è il primo carattere e lo segue una lettera.
+const TRATTINO = /^[-\u2010]$/;
+const LETTERA = /^\p{L}/u;
+const tagliaDopo = (gs: string[], i: number) => i > 0 && i < gs.length - 1 && TRATTINO.test(gs[i]) && LETTERA.test(gs[i + 1]);
+
 export type SplitCharsProps = { children: ReactNode; font: KernFont; locale: string; upper: boolean };
 
 export default function SplitChars({ children, font, locale, upper }: SplitCharsProps) {
@@ -7428,18 +7485,26 @@ export default function SplitChars({ children, font, locale, upper }: SplitChars
       pendingSpace = false;
       lineStart = false;
       const gs = graphemes(token, locale);
-      nodes.push(
-        <span key={key++} className={run.className ? `dt-w ${run.className}` : "dt-w"} data-w="">
-          {gs.map((g, i) => {
-            const k = i < gs.length - 1 ? kernBetween(font, g, gs[i + 1], upper, locale) : 0;
-            return (
-              <span key={i} className="dt-c" data-c="" style={k ? ({ "--k": `${k}em` } as CSSProperties) : undefined}>
-                {g}
-              </span>
-            );
-          })}
-        </span>,
-      );
+      const chars = gs.map((g, i) => {
+        const k = i < gs.length - 1 ? kernBetween(font, g, gs[i + 1], upper, locale) : 0;
+        return (
+          <span key={i} className="dt-c" data-c="" style={k ? ({ "--k": `${k}em` } as CSSProperties) : undefined}>
+            {g}
+          </span>
+        );
+      });
+      const className = run.className ? `dt-w ${run.className}` : "dt-w";
+      let from = 0;
+      for (let i = 0; i < gs.length; i++) {
+        if (i < gs.length - 1 && !tagliaDopo(gs, i)) continue;
+        if (from > 0) nodes.push(<wbr key={key++} />);
+        nodes.push(
+          <span key={key++} className={className} data-w="">
+            {chars.slice(from, i + 1)}
+          </span>,
+        );
+        from = i + 1;
+      }
     }
   }
   return <>{nodes}</>;
@@ -10088,9 +10153,10 @@ Atteso: `split-title-migrazione.test.ts` interamente verde (test per file, test 
 // uscita e «nulla dall'alto» del titolo di #servizi sulla home; posa armata, ingresso, uscita e
 // traboccamento dell'accento di Method su /metodo; nei due progetti Playwright (desktop-1440 e
 // mobile-390). Scrive il numero di [data-c] della home a 1440 dopo una passata intera in
-// e2e/baseline/data-c.json (base del test 8). Server di produzione, contesto con motion attivo,
-// sipario saltato e terze parti bloccate: lib.mjs del commit 2.
-import { writeFileSync } from "node:fs";
+// e2e/baseline/data-c.json (base del test 8). Scrive in risultati.md anche il peso di
+// app/lib/motion/kern-table.json (D36, tetto 64 KB) e gli estremi per chiave (D42). Server di
+// produzione, contesto con motion attivo, sipario saltato e terze parti bloccate: lib.mjs del commit 2.
+import { readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { devices } from "@playwright/test";
 import { ROOT, appendResults, gitCommit, launch, mdTable, motionContext, scrollInstant, startServer, today } from "./lib.mjs";
@@ -10177,6 +10243,9 @@ try {
       window.scrollTo({ top: r.bottom + window.scrollY + innerHeight * 0.5, behavior: "instant" });
     }, TITOLO);
     await page.waitForTimeout(1000);
+    // «Nulla dall'alto» (A18 di Alberto, spec §9.2 test 3) si legge sui soli caratteri del titolo
+    // cronometrato, come in `cronometra`: `${TITOLO} [data-c]` prende anche gli h3 dei servizi,
+    // che a questo scroll stanno ancora sotto il viewport o stanno entrando.
     const alto = await page.evaluate((s) => {
       const prod = (el) => {
         let p = 1;
@@ -10186,7 +10255,7 @@ try {
         }
         return p;
       };
-      return Math.min(...Array.from(document.querySelectorAll(`${s} [data-c]`)).map(prod));
+      return Math.min(...Array.from(document.querySelector(s).querySelectorAll("[data-c]")).map(prod));
     }, TITOLO);
     if (nome === "desktop-1440") {
       await scrollInstant(page, 0);
@@ -10229,6 +10298,19 @@ try {
   await server.stop();
 }
 
+// D36: kern-table.json entra nel bundle client con SplitTitle e pesa al massimo 64 KB; D42: valori
+// entro ±0,2 em, ±0,25 per script-400. Gli stessi tetti li pretende kern-table.test.ts; qui il peso
+// e gli estremi si scrivono accanto alle misure del commit.
+const KERN = join(ROOT, "app/lib/motion/kern-table.json");
+const KERN_TETTO_BYTE = 64 * 1024;
+const KERN_TETTO_EM = { "brand-800": 0.2, "display-400": 0.2, "display-500": 0.2, "script-400": 0.25 };
+const kernByte = statSync(KERN).size;
+const kern = Object.entries(JSON.parse(readFileSync(KERN, "utf8"))).map(([chiave, coppie]) => {
+  const v = Object.values(coppie);
+  return { chiave, coppie: v.length, min: Math.min(...v), max: Math.max(...v), tetto: KERN_TETTO_EM[chiave] };
+});
+const migliaia = (n) => n.toLocaleString("it-IT");
+
 writeFileSync(join(ROOT, "e2e/baseline/data-c.json"), `${JSON.stringify({ "/": { "1440": nodi1440 }, date: today(), commit: gitCommit() }, null, 2)}\n`);
 const md = [
   `## 05-titoli · ${today()} · ${gitCommit()}`,
@@ -10248,6 +10330,13 @@ const md = [
   ),
   "",
   `[data-c] sulla home a 1440 dopo una passata: ${nodi1440} (base del test 8, e2e/baseline/data-c.json).`,
+  "",
+  `kern-table.json: ${migliaia(kernByte)} byte (tetto ${migliaia(KERN_TETTO_BYTE)}, D36). Estremi per chiave (D42):`,
+  "",
+  mdTable(
+    ["chiave", "coppie", "min em", "max em", "tetto em"],
+    kern.map((r) => [r.chiave, r.coppie, r.min, r.max, `±${r.tetto}`]),
+  ),
 ].join("\n");
 appendResults(md);
 console.log(md);
@@ -10256,6 +10345,8 @@ const fuori = [
   ...accenti.filter(
     (r) => Math.abs(r.m41 - r.atteso) > 2 || Math.abs(r.d) >= 0.05 || r.ingresso < 0 || r.ingresso > r.tetto || r.uscita < 0 || r.uscita > 1300 || r.largo > 0,
   ),
+  ...(kernByte > KERN_TETTO_BYTE ? [{ kernByte }] : []),
+  ...kern.filter((r) => r.tetto === undefined || Math.max(-r.min, r.max) > r.tetto),
 ];
 if (fuori.length) {
   console.error("FUORI CRITERIO", fuori);
@@ -10281,7 +10372,7 @@ Regole:
 - `m41 armato` ≈ 0: la posa istantanea del motore non applica `ROLES.accent.enter.from` (`x: "10vw"`) ai `[data-c]` dell'accento. Si corregge `apply()` del commit 4.
 - Traboccamento > 0 a 390: fermarsi. Non si aggiunge `overflow` a `#main` (spec §2.2 lo esclude) e non si accorcia la corsa; si porta la misura ad Alberto.
 
-Lo script scrive `e2e/baseline/data-c.json` e le due tabelle in `risultati.md`.
+Lo script scrive `e2e/baseline/data-c.json` e, in `risultati.md`, le due tabelle, il peso di `kern-table.json` col tetto di D36 e gli estremi per chiave (D42): è la misura che cita la riga di D36 in spec §1.3. Esce con 1 anche se la tabella supera 65.536 byte o un tetto in em.
 
 #### 5i. Verifica completa e commit
 
@@ -10295,7 +10386,7 @@ npx playwright test --config=playwright.site.config.ts e2e/text-motion.spec.ts -
 npx playwright test --config=playwright.site.config.ts e2e/home.spec.ts e2e/pages.spec.ts e2e/a11y.spec.ts e2e/motion.spec.ts e2e/mobile-motion.spec.ts e2e/contact.spec.ts e2e/consent-reviews.spec.ts e2e/search.spec.ts e2e/property-detail.spec.ts e2e/reveal-engine.spec.ts --project=desktop-1440 --project=mobile-390
 ```
 
-Atteso: tutto verde. `intro-clocks.test.ts`, `moduli-media.test.ts`, `logo-colore.test.ts`, `case-guard.test.ts` invariati e verdi. In `text-motion.spec.ts`: `1 ·`, `2 ·`, `3 ·` (commit 2), il 9 del commit 3 (token del commit 3 e 4 intatti), 1b, 2b, 4, 7, 7a verdi sui due progetti; 8 e «nomi» verdi su desktop-1440 e saltati su mobile-390. `reveal-engine.spec.ts` del commit 4 resta verde: in questo commit la testa di PageHero non è ancora un gruppo, e il primo `[data-reveal-group]:has(a[href])` di /vendi è il `Reveal` della riga CTA (`still`). `pages.spec.ts` e `property-detail.spec.ts` verdi: la scheda immobile non cambia (FrozenLines sotto MotionFreeze).
+Atteso: tutto verde. `intro-clocks.test.ts`, `moduli-media.test.ts`, `logo-colore.test.ts`, `case-guard.test.ts` invariati e verdi. In `text-motion.spec.ts`: `1 ·`, `2 ·`, `3 ·` (commit 2), il 9 del commit 3 (token del commit 3 e 4 intatti), 1b, 2b, 4, 7, 7a verdi sui due progetti; 8 e «nomi» verdi su desktop-1440 e saltati su mobile-390. `reveal-engine.spec.ts` verde, coi due test di D44 che leggono la posa sui membri (`fuori` vuoto, `gruppi` e `bersagli` sopra zero): in questo commit la testa di PageHero non è ancora un gruppo, e il primo `[data-reveal-group]:has(a[href])` di /vendi è il `Reveal` della riga CTA (`still`). `pages.spec.ts` e `property-detail.spec.ts` verdi: la scheda immobile non cambia (FrozenLines sotto MotionFreeze).
 
 - [ ] **Step 55: Commit**
 
@@ -10304,7 +10395,7 @@ git add scripts/kern-table.ts app/lib/motion/kern.ts app/lib/motion/kern-table.j
 git add app/components/motion/SplitChars.tsx app/components/motion/SplitTitle.tsx app/components/motion/ScriptWord.tsx app/components/motion/FrozenLines.tsx app/components/motion/TextLines.tsx
 git add app/globals.css
 git add app/lib/__tests__/split-chars.test.ts app/lib/__tests__/kern-table.test.ts app/lib/__tests__/split-title-migrazione.test.ts
-git add e2e/coreografia.ts e2e/text-motion.spec.ts e2e/motion.spec.ts e2e/baseline/data-c.json
+git add e2e/coreografia.ts e2e/text-motion.spec.ts e2e/motion.spec.ts e2e/reveal-engine.spec.ts e2e/baseline/data-c.json
 git add app/components/Posizionamento.tsx app/components/HomeSearchGateway.tsx app/components/HorizonStory.tsx app/components/StarReviews.tsx app/components/Voci.tsx
 git add app/components/Paths.tsx app/components/Method.tsx app/components/OpenDomus.tsx app/components/DomusDocProtocol.tsx app/components/Services.tsx app/components/CostiChiari.tsx
 git add app/components/FeaturedTestimonial.tsx app/components/Social.tsx app/components/Team.tsx app/components/Contact.tsx app/components/FaqTeaser.tsx
@@ -10312,6 +10403,7 @@ git add app/components/PageHero.tsx app/components/Reviews.tsx app/components/Be
 git add app/contatti/ContattiContent.tsx app/case-vendute/CaseVenduteContent.tsx app/valutazione-immobile-tradate/ValutazioneContent.tsx app/chi-siamo/ChiSiamoContent.tsx app/lavora-con-noi/LavoraConNoiContent.tsx app/metodo/MetodoContent.tsx app/domande-frequenti/FaqContent.tsx
 git add app/vendi/VendiContent.tsx app/acquista/AcquistaContent.tsx app/open-domus/OpenDomusPageContent.tsx app/components/EditorialRows.tsx app/components/Highlights.tsx app/components/CareerApplication.tsx app/cookie/CookieContent.tsx app/privacy/PrivacyContent.tsx
 git add docs/superpowers/specs/2026-09-13-coreografia-era-residence-design.md
+git add docs/superpowers/plans/2026-09-13-coreografia-era-residence.md
 git add docs/superpowers/specs/2026-09-13-coreografia-era-residence/misure/05-titoli.mjs docs/superpowers/specs/2026-09-13-coreografia-era-residence/misure/risultati.md
 git status --short
 ```
@@ -10326,15 +10418,25 @@ A20 di Alberto («Fedeltà letterale»): i 32 punti di chiamata di TextLines, i
 quattro titoli semplici di spec §2.3 e i 35 titoli display nudi delle pagine
 interne passano a SplitTitle, reso nel server da SplitChars e animato dal
 motore coi valori di Era, senza prospettiva (A22). Le calligrafie di PageHero,
-HorizonStory e Method passano a ScriptWord.
+HorizonStory e Method passano a ScriptWord. Una parola col trattino è una
+span.dt-w per pezzo, unite da <wbr/>: va a capo dopo il trattino come il
+testo semplice (spec §2.3).
 La crenatura persa negli inline-block torna da kern-table.json, misurata nel
-DOM del build da scripts/kern-table.ts (D20), entro 64 KB (D36, nuova).
+DOM del build da scripts/kern-table.ts (D20), entro 64 KB (D36, nuova; il
+peso lo scrive 05-titoli.mjs in misure/risultati.md).
+Valori entro ±0,2 em, ±0,25 per script-400: il Pinyon ha nel GPOS la coppia
+A-W a -0,244 em (D42, nuova).
+In reveal-engine.spec.ts il «nessun lampo» e l'ancora leggono la posa sui
+membri dei gruppi e sui loro bersagli, non sul nodo (D44, nuova).
 /case/[slug] non cambia movimento (D32, A26): sotto MotionFreeze SplitTitle
 rende FrozenLines, le righe in maschera di TextLines. TextLines resta un alias
 di SplitTitle senza importatori. Test: text-motion 1b, 2b, 4, 7, 7a, 8 e i
-nomi degli H1 delle 11 PageHero in cinque lingue; base dei [data-c] in
-e2e/baseline/data-c.json. D36 sta in spec 13 set. §1.3; nel registro del
-10 settembre la scrive la chiusura 22.
+nomi degli H1 delle 11 PageHero in cinque lingue, con la lingua nuova
+riconosciuta dal testo della sezione (D43, nuova); 1b, 2b e 4 portano in
+vista i titoli che misurano, e il 4 aspetta che l'arrivo nativo all'ancora
+attraversi #servizi (D45, nuova); base dei [data-c] in
+e2e/baseline/data-c.json. D36 e D42 stanno in spec 13 set. §1.3; nel
+registro del 10 settembre le scrive la chiusura 22.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 EOF
@@ -10342,10 +10444,10 @@ EOF
 
 **Criterio di fine:**
 - `split-title-migrazione.test.ts` verde: almeno 71 `<SplitTitle` in 34 file (36 da G1-G5, 35 da G6), 3 `<ScriptWord`, nessun import di `TextLines`, `className="script-word` solo in `HeroCinematic.tsx`, titoli display nudi solo entro `NUDI_AMMESSI`, `FrozenLines` importato solo da `SplitTitle` e senza `data-reveal`.
-- `kern-table.json`: quattro chiavi non vuote, valori entro ±0,2 em, ≤ 64 KB (D36); la riga di D36 sta in spec 13 set. §1.3 e **non** nel registro §11 della spec del 10 settembre (`registro-check.cjs` stampa ancora `registro ok: 86 righe`; la riga la scrive 22d).
+- `kern-table.json`: quattro chiavi non vuote, valori entro ±0,2 em (±0,25 per `script-400`, D42), ≤ 64 KB (D36); le righe di D36 e D42 stanno in spec 13 set. §1.3 e **non** nel registro §11 della spec del 10 settembre (`registro-check.cjs` stampa ancora `registro ok: 86 righe`; le righe le scrive 22d).
 - `text-motion.spec.ts`: `1 ·`, `2 ·`, `3 ·` del commit 2 e il 9 del commit 3 invariati e verdi (un solo `test("9 · …` nel file); 1b, 2b, 4, 7 (de e fr), 7a verdi a 1440 e 390; 8 e «nomi» (11 rotte × 5 lingue) verdi a 1440.
-- `05-titoli.mjs`: uscita 0; titolo: uscita ≤ 1.300 ms, ingresso entro il tetto, «dall'alto» ≥ 0,99; accento: m41 armato = 0,1·innerWidth ± 2 px, |d| < 0,05, ingresso entro il tetto, uscita ≤ 1.300 ms, traboccamento 0 px; tabelle in `risultati.md`.
-- `pages.spec.ts` (guardia di /case/[slug] del commit 4), `property-detail.spec.ts`, `reveal-engine.spec.ts` verdi.
+- `05-titoli.mjs`: uscita 0; titolo: uscita ≤ 1.300 ms, ingresso entro il tetto, «dall'alto» ≥ 0,99; accento: m41 armato = 0,1·innerWidth ± 2 px, |d| < 0,05, ingresso entro il tetto, uscita ≤ 1.300 ms, traboccamento 0 px; tabelle e peso di `kern-table.json` (≤ 65.536 byte, D36) in `risultati.md`.
+- `pages.spec.ts` (guardia di /case/[slug] del commit 4), `property-detail.spec.ts`, `reveal-engine.spec.ts` verdi (i due test di D44 sui membri dei gruppi).
 - Invariati: `HeroCinematic.tsx`, `app/case/[slug]/**`, `PropertyDetail.tsx`, `PropertyGallery.tsx`, `LocaleProvider.tsx` (il refresh al cambio lingua è del commit 3), `docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md` (registro), `intro-clocks.test.ts` verde (patto della porta), nessun `will-change` nuovo in CSS, nessun `pin` di GSAP.
 - `motion.spec.ts` (reduce): `[data-c]` a opacità ≥ 0,9 e transform identità.
 

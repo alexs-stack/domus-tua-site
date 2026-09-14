@@ -9,6 +9,8 @@ import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
+import RevealGroup from "../components/motion/RevealGroup";
+import SplitTitle from "../components/motion/SplitTitle";
 import FaqTeaser from "../components/FaqTeaser";
 import { Whatsapp } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
@@ -556,53 +558,69 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
           <div className="dt-row">
             <div className="grid gap-16 lg:grid-cols-[1fr_0.92fr] lg:items-start lg:gap-20">
               {/* Rassicurazione: cosa facciamo per te */}
-              <Reveal>
-                <span className="eyebrow">{c.reassure.eyebrow}</span>
-                <h2 className="mt-6 max-w-[20ch] font-display text-d1">{c.reassure.title}</h2>
-                <p className="lead mt-8">{c.reassure.intro}</p>
-                <ul className="mt-10">
-                  {c.reassure.list.map((item) => (
-                    <li key={item} className="flex items-start gap-4 border-t border-line py-4">
-                      <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
-                      <span className="text-body text-graphite">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
+              <RevealGroup>
+                <Reveal>
+                  <span className="eyebrow">{c.reassure.eyebrow}</span>
+                </Reveal>
+                <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+                  {c.reassure.title}
+                </SplitTitle>
+                <Reveal>
+                  <p className="lead mt-8">{c.reassure.intro}</p>
+                </Reveal>
+                <Reveal>
+                  <ul className="mt-10">
+                    {c.reassure.list.map((item) => (
+                      <li key={item} className="flex items-start gap-4 border-t border-line py-4">
+                        <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
+                        <span className="text-body text-graphite">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
+              </RevealGroup>
 
               {/* Blocco lead acquirente + teaser AI: testo e vuoto, niente card (2026-09-10). */}
-              <Reveal delay={120} className="lg:pt-2">
+              <RevealGroup className="lg:pt-2">
                 <div className="border-t border-line pt-8">
-                  <h3 className="font-display text-d3">{c.reassure.ctaTitle}</h3>
-                  <p className="lead mt-6">{c.reassure.ctaCopy}</p>
-                  <div className="mt-8 flex flex-wrap items-center gap-6">
-                    <Cta href="#contatti" variant="cta-solid" size="md">
-                      {c.reassure.ctaLabel}
-                    </Cta>
-                    {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
-                    <Cta
-                      href={buyerWa}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      variant="ghost"
-                      size="md"
-                      arrow={false}
-                    >
-                      <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
-                    </Cta>
-                  </div>
+                  <SplitTitle as="h3" className="font-display text-d3">
+                    {c.reassure.ctaTitle}
+                  </SplitTitle>
+                  <Reveal>
+                    <p className="lead mt-6">{c.reassure.ctaCopy}</p>
+                  </Reveal>
+                  <Reveal role="still">
+                    <div className="mt-8 flex flex-wrap items-center gap-6">
+                      <Cta href="#contatti" variant="cta-solid" size="md">
+                        {c.reassure.ctaLabel}
+                      </Cta>
+                      {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
+                      <Cta
+                        href={buyerWa}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="ghost"
+                        size="md"
+                        arrow={false}
+                      >
+                        <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
+                      </Cta>
+                    </div>
+                  </Reveal>
 
-                  <p className="mt-10 border-t border-line pt-6 text-body text-graphite">
-                    {c.reassure.offlineNote}
-                  </p>
+                  <Reveal>
+                    <p className="mt-10 border-t border-line pt-6 text-body text-graphite">
+                      {c.reassure.offlineNote}
+                    </p>
 
-                  {/* Richiamo alla ricerca intelligente (attiva) resa più in alto da <PropertySearch> */}
-                  <div className="mt-10 border-t border-line pt-6">
-                    <span className="eyebrow">{c.reassure.aiBadge}</span>
-                    <p className="mt-4 text-body text-graphite">{c.reassure.aiText}</p>
-                  </div>
+                    {/* Richiamo alla ricerca intelligente (attiva) resa più in alto da <PropertySearch> */}
+                    <div className="mt-10 border-t border-line pt-6">
+                      <span className="eyebrow">{c.reassure.aiBadge}</span>
+                      <p className="mt-4 text-body text-graphite">{c.reassure.aiText}</p>
+                    </div>
+                  </Reveal>
                 </div>
-              </Reveal>
+              </RevealGroup>
             </div>
           </div>
         </section>

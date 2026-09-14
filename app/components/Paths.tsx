@@ -5,7 +5,7 @@
 // avorio, titolo grande, poi due righe editoriali — Vendere / Acquistare —
 // con la foto quadrata da un lato e titolo, lead, punti e link sottolineato
 // dall'altro. Via i pannelli scuri pinnati, i sipari in clip-path, gli
-// scrim, i veli e i fiori. Movimento: solo Reveal, TextLines e la parallasse
+// scrim, i veli e i fiori. Movimento: Reveal, titoli per lettera (SplitTitle, A20 di Alberto) e la parallasse
 // leggera sulla foto; con reduced-motion tutto fermo e visibile.
 //
 // 2026-09-11 — la riga era `lg:grid-cols-2` ma la foto era un `aspect-square`
@@ -17,7 +17,7 @@ import Image from "next/image";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import Reveal from "./Reveal";
-import TextLines from "./motion/TextLines";
+import SplitTitle from "./motion/SplitTitle";
 import Parallax from "./motion/Parallax";
 
 // Fotografie reali, ognuna una volta sola in home: la consulenza resta a
@@ -216,9 +216,9 @@ export default function Paths() {
         <Reveal>
           <span className="eyebrow">{c.eyebrow}</span>
         </Reveal>
-        <TextLines as="h2" className="mt-6 max-w-[26ch] font-display text-d2">
+        <SplitTitle as="h2" className="mt-6 max-w-[26ch] font-display text-d2">
           {c.heading}
-        </TextLines>
+        </SplitTitle>
       </div>
 
       {/* Le due righe: foto a sinistra per Vendere, a destra per Acquistare. */}
@@ -246,9 +246,9 @@ export default function Paths() {
               </div>
             </Parallax>
             <div className={i % 2 ? "lg:pr-[6vw]" : "lg:pl-[6vw]"}>
-              <TextLines as="h3" className="font-display text-d3">
+              <SplitTitle as="h3" className="font-display text-d3">
                 {t.title}
-              </TextLines>
+              </SplitTitle>
               <Reveal>
                 <p className="lead mt-6">{t.copy}</p>
               </Reveal>
