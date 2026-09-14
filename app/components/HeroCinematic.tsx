@@ -20,7 +20,7 @@ import { Cta } from "./primitives/Cta";
 import { site, ratingLabel } from "../lib/site";
 import { heroCinematic } from "../lib/media";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
+import { gsap, useGSAP, MQ, dur, painted } from "../lib/motion/gsap";
 import { INTRO_EVENT, HERO_REST_MS, HERO_REST_WARM_MS } from "../lib/motion/intro-constants";
 import { hasIntroFired } from "./motion/Preloader";
 
@@ -250,7 +250,7 @@ export default function HeroCinematic() {
         // non c'è nessun lampo di testo composto. (L'H1 non è candidato LCP:
         // `Chars` lo spezza in span inline-block e la frammentazione lo toglie
         // di mezzo da sola; il candidato è il poster del video qui sotto.)
-        gsap.set(allChars, { opacity: 0.02 });
+        gsap.set(allChars, { opacity: painted });
 
         let played = false;
         const play = () => {

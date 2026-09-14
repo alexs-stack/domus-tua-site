@@ -105,3 +105,43 @@ test("3 · un titolo passato sopra il bordo alto resta pieno, e rientrando dall'
   expect(worstBack, `${FROM_TOP_TARGET} rientrando dall'alto scende a ${worstBack.toFixed(2)}`).toBeGreaterThanOrEqual(0.99);
   expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
 });
+
+// 9 · I token del lessico arrivano al CSS del build (D17; spec §2.6 e §9.2).
+// Tailwind emette solo le variabili di tema usate, salvo `@theme static`: qui
+// si leggono dal documento vero, perché le leggono anche JS e i test di
+// movimento. I numeri passano da parseFloat e le curve da `bezier()`: il
+// minificatore può scrivere `.4s` per `0.4s` e `.25` per `0.25`. I tempi in
+// millisecondi passano da `ms()`: il minificatore scrive `.25s` per `250ms`.
+test("9 · i token del lessico arrivano al CSS del build", async ({ page, goto }) => {
+  await goto("/");
+  const v = await page.evaluate(() => {
+    const s = getComputedStyle(document.documentElement);
+    const g = (n: string) => s.getPropertyValue(n).trim();
+    return {
+      s: g("--dur-dt-s"),
+      m: g("--dur-dt-m"),
+      l: g("--dur-dt-l"),
+      stagger: g("--stagger-dt"),
+      delay: g("--delay-dt-reveal"),
+      painted: g("--dt-painted"),
+      ctn: g("--dt-ctn-y"),
+      out: g("--ease-dt-out"),
+      tdFast: g("--td-duration-fast"),
+      tdSmooth: g("--td-ease-smooth-out"),
+      width: window.innerWidth,
+    };
+  });
+  const bezier = (x: string) => x.replace(/\s/g, "").replace(/(^|[(,])0\./g, "$1.");
+  const ms = (x: string) => (x.endsWith("ms") ? Number.parseFloat(x) : Number.parseFloat(x) * 1000);
+  expect(Number.parseFloat(v.s)).toBe(0.4);
+  expect(Number.parseFloat(v.m)).toBe(0.8);
+  expect(Number.parseFloat(v.l)).toBe(1.2);
+  expect(Number.parseFloat(v.stagger)).toBe(0.1);
+  expect(Number.parseFloat(v.delay)).toBe(0.3);
+  expect(Number.parseFloat(v.painted)).toBe(0.02);
+  expect(v.ctn.endsWith("vw")).toBe(true);
+  expect(Number.parseFloat(v.ctn)).toBe(v.width >= 1024 ? 3.333 : 11.54);
+  expect(bezier(v.out)).toBe("cubic-bezier(.25,1,.5,1)");
+  expect(ms(v.tdFast)).toBe(250);
+  expect(bezier(v.tdSmooth)).toBe("cubic-bezier(.22,1,.36,1)");
+});

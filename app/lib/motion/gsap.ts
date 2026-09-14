@@ -1,33 +1,39 @@
 "use client";
 
-// Punto unico di registrazione GSAP. Ogni componente motion importa da qui:
-// plugin registrati una sola volta, ease brand condivise coi token CSS
-// (--ease-out-expo ≈ "expo.out", --ease-soft ≈ CustomEase equivalente).
+// Punto unico di registrazione GSAP e lessico dei tempi del sito. Ogni
+// componente motion importa da qui: plugin registrati una sola volta, ease e
+// durate uguali ai token CSS di globals.css.
 //
-// ─── FIRMA MOTION DEL SITO ─────────────────────────────────────────────
-// Tutta la coreografia usa SOLO questo vocabolario (niente valori sparsi):
+// ─── IL LESSICO (D17; A20 «Fedeltà letterale» di Alberto, spec §2.6) ────
+// I valori di era-residence, con un nome per parte uguale in CSS e qui:
+//   Durate    durDt.s/m/l 0.4 / 0.8 / 1.2 s        ↔ --dur-dt-s/m/l
+//   Stagger   staggerDt 0.1 s                       ↔ --stagger-dt
+//   Ritardo   delayDt.reveal 0.3 s                  ↔ --delay-dt-reveal
+//   Dipinto   painted 0.02                          ↔ --dt-painted
+//   Corsa     ctnY() 3.333vw da 1024, 11.54vw sotto ↔ --dt-ctn-y
+//   Ease      "dtOut" 0.25,1,0.5,1                  ↔ --ease-dt-out
+// app/lib/__tests__/motion-tokens.test.ts pretende gli stessi numeri in CSS e
+// qui. Ogni CustomEase entra con il suo primo consumatore, una per riga: è la
+// forma che leggono intro-clocks.test.ts e motion-tokens.test.ts.
 //
-//   Durate    dur.micro 0.3s (hover/UI) · dur.short 0.6s · dur.reveal 0.9s
-//             dur.hero 1.4s · dur.transition 1.1s (page transition)
-//   Ease      "domus"       → out morbido con coda lunga (coreografia principale)
-//             "domus.inOut" → transizioni pagina/overlay
-//             "expo.out"    ≈ --ease-out-expo (reveal secchi, hover)
-//   Stagger   stagger.chars 0.06 · stagger.words 0.10 · stagger.lines 0.11
-//             stagger.cards 0.12
-//   Distanze  dist.rise 48px (reveal verticali, mai 100+) · dist.parallax 13%
-//             dist.skew 5° (velocity skew massimo)
+// Il vocabolario di prima resta a chi lo legge: `dur` (micro, short, reveal,
+// hero, transition), `stagger.chars` (anche PropertyDetail.tsx, che su
+// /case/[slug] resta ferma per D32) e `stagger.cards`; le ease "domus" e
+// "domus.inOut" alle sezioni e alla UI che le usano.
 //
 // Regole: animazioni solo dentro gsap.matchMedia(MQ.motionOk); stati nascosti
-// solo via JS (mai SSR/CSS); mai transform su antenati sticky/fixed; uno stato
-// nascosto che contiene un link o un bottone usa opacity, mai autoAlpha —
-// autoAlpha scrive visibility:hidden, che sfila il link dalla tab order e
-// impedisce persino alla rete di sicurezza focusin di scattare (il focus in un
-// sottoalbero invisibile non ci arriva, quindi l'evento non nasce mai).
+// solo via JS (mai SSR/CSS, salvo lo stato dipinto a 0.02 di spec §2.5); mai
+// transform su antenati sticky/fixed; uno stato nascosto che contiene un link o
+// un bottone usa opacity, mai autoAlpha — autoAlpha scrive visibility:hidden,
+// che sfila il link dalla tab order e impedisce persino alla rete di sicurezza
+// focusin di scattare (il focus in un sottoalbero invisibile non ci arriva,
+// quindi l'evento non nasce mai).
 // ───────────────────────────────────────────────────────────────────────
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CustomEase } from "gsap/CustomEase";
 import { useGSAP } from "@gsap/react";
+import { MQ } from "./mq";
 
 // SplitText NON è registrato qui: lo importa e registra solo TextLines,
 // così non entra nel chunk del layout (SmoothScroll importa questo modulo).
@@ -81,7 +87,7 @@ CustomEase.create(
   "M0,0,C0,0,0.13,0.34,0.238,0.442,0.305,0.506,0.322,0.514,0.396,0.54,0.478,0.568,0.468,0.56,0.522,0.584,0.572,0.606,0.61,0.719,0.714,0.826,0.798,0.912,1,1,1,1"
 );
 
-/** Durate condivise (secondi). */
+/** Durate condivise (secondi) del vocabolario di prima: le leggono sezioni, UI e /case/[slug]. */
 export const dur = {
   micro: 0.3,
   short: 0.6,
@@ -90,54 +96,41 @@ export const dur = {
   transition: 1.1,
 } as const;
 
-/** Stagger condivisi (secondi per elemento). */
+/** Stagger condivisi (secondi per elemento): `chars` per il manifesto e /case/[slug], `cards` per le griglie. */
 export const stagger = {
   chars: 0.06,
-  words: 0.1,
-  lines: 0.11,
   cards: 0.12,
 } as const;
 
-/** Distanze/intensità condivise. */
-export const dist = {
-  /** Reveal verticali in px (40–60, mai oltre). */
-  rise: 48,
-  /** Parallax immagini: frazione massima (12–15%). */
-  parallax: 0.13,
-  /** Velocity skew massimo in gradi. */
-  skew: 5,
-} as const;
+/** Lessico di era-residence (A20, D17): durate in secondi, ↔ --dur-dt-s/m/l. */
+export const durDt = { s: 0.4, m: 0.8, l: 1.2 } as const;
+/** Stagger fra due membri dello stesso ruolo in un gruppo (secondi), ↔ --stagger-dt. */
+export const staggerDt = 0.1;
+/** Ritardo del primo membro di un gruppo (secondi), ↔ --delay-dt-reveal. */
+export const delayDt = { reveal: 0.3 } as const;
+/** Stato dipinto (A20 di Alberto, D17): a opacity 0 Chromium toglie il testo dai candidati LCP (spec §2.5), ↔ --dt-painted. */
+export const painted = 0.02;
+/**
+ * Corsa del ruolo ctn (A20 di Alberto, D17): Era scrive 3.333rem da 992 e 11.54rem sotto con html a 1vw; qui la
+ * soglia è MQ.lg. La legge text-roles.ts per il `y` del tween (GSAP non risolve `var(--dt-ctn-y)`); senza `window`
+ * (test di node) vale il ramo sotto soglia.
+ */
+export const ctnY = (): string =>
+  typeof window !== "undefined" && window.matchMedia(MQ.lg).matches ? "3.333vw" : "11.54vw";
 
-// Le media query usate da gsap.matchMedia in tutto il sito.
-// `motionOk` è la condizione base: nessuna animazione GSAP parte senza.
-//
-// ─── DUE SOGLIE, E VANNO SAPUTE ENTRAMBE ───────────────────────────────
-// `desktop` è 768 ed è la soglia degli effetti di sezione (Parallax, la
-// deriva d'uscita dell'hero, il ramo mobile del preloader). `lg` è 1024 ed è
-// la soglia dei SET PIECE: la rotaia del team (HorizontalRail), i pannelli
-// orizzontali di «Perché Domus Tua» (HorizonScroller) e il film delle cinque
-// stelle (StarReviews). Non sono la stessa cosa e non vanno confuse — a 768
-// un set piece toccherebbe il contenuto.
-//
-// Le forme "below" esistono per scrivere il RAMO MOBILE come cittadino di
-// prima classe invece che come negazione. Il confine è 1023.98 / 767.98, non
-// 1023 / 767: alle larghezze frazionarie (zoom del browser, dpr non interi)
-// un buco di un pixel lascia entrambi i rami spenti.
-//
-// Solo le chiavi che qualcuno legge: `sm`, `belowSm`, `finePointer` e
-// `coarse` servivano a Fioritura e agli effetti del puntatore, tolti il
-// 2026-09-10 con la rivista bianca; la regola touch del CSS usa la sua
-// `@media (pointer: coarse)`.
-export const MQ = {
-  motionOk: "(prefers-reduced-motion: no-preference)",
-  /** Effetti di sezione: da tablet in su. */
-  desktop: "(min-width: 768px)",
-  /** Il gemello di `desktop`: telefono. */
-  belowDesktop: "(max-width: 767.98px)",
-  /** Set piece: solo desktop vero. */
-  lg: "(min-width: 1024px)",
-  /** Il gemello di `lg`: telefono e tablet. */
-  belowLg: "(max-width: 1023.98px)",
-} as const;
+/**
+ * Un `ScrollTrigger.refresh()` al fotogramma dopo; più richieste nello stesso
+ * fotogramma diventano una. Lo chiede chi cambia le altezze sopra i trigger:
+ * il cambio lingua in LocaleProvider, perché i titoli spezzati per lettera
+ * (A20 di Alberto) e i corridoi (A19, D22) cambiano altezza con la lingua
+ * (spec §2.3).
+ */
+export const requestRefresh = (() => {
+  let raf = 0;
+  return () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+  };
+})();
 
-export { gsap, ScrollTrigger, CustomEase, useGSAP };
+export { gsap, ScrollTrigger, CustomEase, useGSAP, MQ };

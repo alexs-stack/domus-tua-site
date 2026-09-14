@@ -46,9 +46,9 @@ gsap.registerPlugin(SplitText);
 // Stanno qui, a livello di modulo, perché i due rami (nastro orizzontale e
 // colonna) devono leggere lo stesso simbolo: erano numeri scritti a mano in
 // tre punti e nulla teneva insieme il ramo che li ha copiati.
-/** La corsa d'ingresso dei blocchi di testo. Volutamente più corta di
- *  dist.rise (48): questi blocchi sono paragrafo + CTA, e da 48px non
- *  "entrano", cadono. */
+/** La corsa d'ingresso dei blocchi di testo. Volutamente più corta della
+ *  corsa del ruolo ctn del lessico (D17: --dt-ctn-y, 48 px a 1440): questi
+ *  blocchi sono paragrafo + CTA, e da 48px non "entrano", cadono. */
 const REVEAL_Y = 28;
 /** Il sipario del media: dura più di un reveal perché il clip-path deve
  *  attraversare tutta la larghezza dell'immagine con la scala interna che

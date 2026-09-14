@@ -168,10 +168,6 @@
   /* "domus": out morbido con coda lunga (≈ CustomEase "domus" lato GSAP) */
   --ease-domus: cubic-bezier(0.22, 0.9, 0.36, 1);
   --dur-micro: 0.3s;
-  --dur-short: 0.6s;
-  --dur-reveal: 0.9s;
-  --dur-hero: 1.4s;
-  --dur-transition: 1.1s;
 
   /* Radius scale (card surfaces / form fields) */
   /* Niente curve (direttiva cliente 2026-09-10): i tre raggi valgono zero. */
@@ -432,6 +428,50 @@ blockquote * {
   .dt-media-column {
     width: 42vw;
     max-width: 640px;
+  }
+}
+
+/* IL LESSICO DEI TEMPI (D17; A20 «Fedeltà letterale» di Alberto, spec §2.6).
+   Un nome per parte, gemello di app/lib/motion/gsap.ts:
+   --ease-dt-<kebab> ↔ CustomEase "dt<Pascal>", --dur-dt-<k> ↔ durDt.<k>.
+   Le ease stanno in @theme (Tailwind genera `ease-dt-out`) e `static`: Tailwind
+   emette solo le variabili di tema usate, e queste le leggono anche i test sul
+   build. Ogni ease entra col suo primo consumatore; motion-tokens.test.ts
+   pretende le stesse cifre qui e in GSAP. Il lessico sta dopo i moduli media
+   (spec §9.1): le fette di moduli-media.test.ts restano quelle. */
+@theme static {
+  --ease-dt-out: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Durate, stagger, ritardo, stato dipinto e corsa `ctn` non sono un namespace
+   di Tailwind: stanno in :root e li legge anche JS. Valori di era-residence:
+   0,4 / 0,8 / 1,2 s, stagger 0,1 s, ritardo 0,3 s, dipinto 0,02; --dt-ctn-y vale
+   3,333vw da 1024 px e 11,54vw sotto (48 px a 1440, 45 px a 390).
+   I token di transitions.dev (D17) portano il prefisso td: senza, ease-out ed
+   ease-in-out ridefinirebbero quelli di serie di Tailwind 4.
+   Niente blur e niente bounce. */
+:root {
+  --dur-dt-s: 0.4s;
+  --dur-dt-m: 0.8s;
+  --dur-dt-l: 1.2s;
+  --stagger-dt: 0.1s;
+  --delay-dt-reveal: 0.3s;
+  --dt-painted: 0.02;
+  --dt-ctn-y: 11.54vw;
+  --td-duration-micro: 80ms;
+  --td-duration-quick: 150ms;
+  --td-duration-fast: 250ms;
+  --td-duration-medium: 350ms;
+  --td-duration-slow: 400ms;
+  --td-ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --td-distance-medium: 12px;
+  --td-scale-small: 0.98;
+  --td-scale-medium: 0.97;
+  --td-scale-tiny: 0.99;
+}
+@media (min-width: 64rem) {
+  :root {
+    --dt-ctn-y: 3.333vw;
   }
 }
 
@@ -1176,7 +1216,7 @@ html[data-hero-rest="intro"] .dt-hero-rest {
    compreso). 0.02 = dipinti (l'LCP conta il testo) ma invisibili; il reveal
    vero è di GSAP; rete a HERO_REST_MS se il bundle tarda o non idrata mai. */
 html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
-  opacity: 0.02;
+  opacity: var(--dt-painted);
   animation: dt-rest-failsafe 0.5s ease 6s forwards;
 }
 html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
