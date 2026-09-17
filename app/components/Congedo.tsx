@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
-import { heroCinematic } from "../lib/media";
+import { ambient } from "../lib/media";
+import { useAmbientVideo } from "./motion/useAmbientVideo";
 
 /* Congedo — la banda video finale (spec 4.15, rif. immobiliaregoldengoal.it):
    il clip drone a tutta larghezza, titolo bianco d1 in basso a sinistra e il
@@ -45,38 +46,13 @@ export default function Congedo() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Il video parte solo con motion ok, da 768 in su (le soglie di MQ in
-  // lib/motion/gsap.ts, non importate per non tirarsi dietro GSAP) e quando la
-  // banda è vicina allo schermo. Niente autoPlay e preload="none": sotto 768 e
-  // con reduced-motion il mp4 (5,4 MB) non viene mai richiesto, resta la foto.
-  useEffect(() => {
-    const v = videoRef.current;
-    const host = sectionRef.current;
-    if (!v || !host) return;
-    const mqs = [
-      matchMedia("(prefers-reduced-motion: no-preference)"),
-      matchMedia("(min-width: 768px)"),
-    ];
-    let near = false;
-    const sync = () => {
-      if (near && mqs.every((m) => m.matches)) v.play().catch(() => {});
-      else v.pause();
-    };
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        near = entry.isIntersecting;
-        sync();
-      },
-      { rootMargin: "40% 0px" }
-    );
-    io.observe(host);
-    mqs.forEach((m) => m.addEventListener("change", sync));
-    return () => {
-      io.disconnect();
-      mqs.forEach((m) => m.removeEventListener("change", sync));
-      v.pause();
-    };
-  }, []);
+  // Gate unico dei video d'ambiente (A18-A20 di Alberto, spec §2.7); soglia dei
+  // 768 px di DESIGN.md:401. Il drone parte in vista con motion ok e senza
+  // risparmio dati, si ferma fuori e riprende dal punto. La sorgente la sceglie il
+  // hook al primo avvicinamento: 720p fino a 1.408 px resi, 1080p oltre. Sotto
+  // 768 px, con reduced-motion e senza JS resta il poster e il video non si
+  // scarica. useAmbientVideo non importa GSAP, e il Congedo nemmeno (spec §2.6).
+  useAmbientVideo(videoRef, sectionRef, { sources: { hd: ambient.congedo.hd, sd: ambient.congedo.sd } });
 
   return (
     <section
@@ -107,21 +83,20 @@ export default function Congedo() {
       {/* Senza poster: finché non ha un frame è trasparente e sotto resta la foto. */}
       <video
         ref={videoRef}
-        // scale 1.14 dall'angolo in basso a destra: la clip ha il logo Domus Tua
-        // bruciato in alto a sinistra (verificato l'11 settembre a video in
-        // corsa: a 1.0 si legge, da 1.14 in su il taglio superiore lo mangia).
-        // Resta quindi com'è: è il motivo per cui sotto il titolo non si può
-        // scegliere l'inquadratura, e per cui il bianco ha bisogno dell'ombra.
+        // La scala 1.14 dall'angolo in basso a destra, la stessa del poster qui sopra,
+        // resta finché la cartolina del commit 17 non la toglie (A19 di Alberto, spec
+        // §3.18): quando il video parte i due non saltano. Le sorgenti le scrive
+        // useAmbientVideo (congedo-drone 720p o 1080p).
         className="absolute inset-0 h-full w-full scale-[1.14] object-cover object-[16%_50%] origin-bottom-right"
         muted
         loop
         playsInline
         preload="none"
+        disablePictureInPicture
+        disableRemotePlayback
         aria-hidden
-      >
-        {heroCinematic.webm && <source src={heroCinematic.webm} type="video/webm" />}
-        <source src={heroCinematic.mp4} type="video/mp4" />
-      </video>
+        tabIndex={-1}
+      />
 
       <div className="dt-row absolute inset-x-0 bottom-[12vh]">
         <h2

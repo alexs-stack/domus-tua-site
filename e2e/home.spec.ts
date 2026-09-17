@@ -1263,3 +1263,55 @@ for (const path of ["/", "/servizi"]) {
     await noOverflowX(page);
   });
 }
+
+// Capitolo 12, Costi chiari (spec §3.13; A20 di Alberto, D25, D28). La banda
+// dell'acqua si apre dal basso a tempo quando passa la linea dell'80 % dello
+// schermo (rootMargin −20 %) e si richiude verso il basso quando ci torna sotto
+// (C22). La linea si prova dai due lati: bordo alto a 0,79 dentro, a 0,81 fuori.
+// Il video lo prova e2e/ambient-video.spec.ts.
+const BANDA = "#costi [data-acqua-band]";
+
+test("Costi chiari: l'acqua sale quando la banda passa l'80 % e scende tornando sotto", async ({ page, goto, isMobile }) => {
+  await goto("/");
+  await expect(page.locator(BANDA)).toHaveCount(1);
+  // A scroll 0 la banda è sotto lo schermo: chiusa dal basso, scritto dal JS.
+  await expect.poll(async () => insetValues(await clipOf(page.locator(BANDA))), { timeout: 10_000 }).toEqual([100, 0, 0, 0]);
+
+  // Da desktop la rotella attraversa i corridoi che stanno sopra (spec §3.13).
+  if (!isMobile) {
+    const y = await page.locator(BANDA).evaluate((el) => el.getBoundingClientRect().top + window.scrollY - window.innerHeight);
+    await wheelTo(page, Math.max(0, y));
+  }
+  // 0,79: sopra la linea dell'80 % (placeEdge tiene lo scarto entro 0,005). Dopo 2 s,
+  // come dice la spec, inset(0%): 1,8 s expo.out.
+  await placeEdge(page, BANDA, "top", 0.79);
+  await page.waitForTimeout(2_000);
+  expect(insetValues(await clipOf(page.locator(BANDA)))).toEqual([0, 0, 0, 0]);
+
+  // 0,81: sotto la linea. Uscita 0,7 s sine.in.
+  await placeEdge(page, BANDA, "top", 0.81);
+  await page.waitForTimeout(1_000);
+  expect(insetValues(await clipOf(page.locator(BANDA)))).toEqual([100, 0, 0, 0]);
+});
+
+// La rete dei 2.500 ms dell'acqua (spec §3.13; D25, C22) salva una banda chiusa in vista
+// solo se l'IntersectionObserver non ha deciso: richiusa sotto la linea con la banda in
+// vista, resta chiusa anche quando le reti trattenute scattano.
+test("Costi chiari: richiusa sotto la linea, la rete dei 2.500 ms non la riapre", async ({ page, goto }) => {
+  await holdTimeouts(page, 2_500);
+  await goto("/");
+  await expect(page.locator(BANDA)).toHaveCount(1);
+  await expect.poll(async () => insetValues(await clipOf(page.locator(BANDA))), { timeout: 10_000 }).toEqual([100, 0, 0, 0]);
+
+  await placeEdge(page, BANDA, "top", 0.79);
+  await page.waitForTimeout(2_000);
+  expect(insetValues(await clipOf(page.locator(BANDA)))).toEqual([0, 0, 0, 0]);
+  await placeEdge(page, BANDA, "top", 0.81);
+  await page.waitForTimeout(1_000);
+  expect(insetValues(await clipOf(page.locator(BANDA)))).toEqual([100, 0, 0, 0]);
+
+  // Scattano le reti trattenute: quella della banda l'ha già tolta l'IntersectionObserver.
+  await releaseTimeouts(page);
+  await page.waitForTimeout(1_000); // una rete scattata avrebbe già aperto più del 90 % (expo.out)
+  expect(insetValues(await clipOf(page.locator(BANDA))), "la rete ha riaperto una banda richiusa in vista").toEqual([100, 0, 0, 0]);
+});

@@ -1344,3 +1344,20 @@ Senza corridoio:
 | /vendi | 390×664 | 0.0000 | nessuno | 0.500 / 0.800 / 0.500 |
 | /metodo | 390×664 | 0.0000 | nessuno | 0.500 / 0.799 / 0.500 |
 | /acquista | 390×664 | 0.0000 | nessuno | 0.500 / 0.800 / 0.500 |
+
+## Commit 15 · acqua di Costi chiari e video d'ambiente (2026-09-17, 7a8fdb6+)
+
+| viewport | misura | valore |
+| --- | --- | --- |
+| file | acqua-1080.webm | 2.17 MB |
+| file | acqua-1080.mp4 | 2.99 MB |
+| 1440×900 | banda / margine / crescita / #costi (px) | 680.4 / 63.0 / 743.4 / 1000.1 |
+| 1440×900 | salita: inizio / durata (ms), bordo a 150 / 300 ms (%) | 21 / 1775, 56.4 / 31.8 |
+| 1440×900 | discesa: inizio / durata (ms), bordo a 350 / 560 ms (%) | 23 / 692, 29.4 / 70.8 |
+| 1440×900 | acqua: sorgente, avanzamento in 300 ms, vp9 | /media/acqua-1080.webm, 0.312 s, probably |
+| 1440×900 | Congedo: sorgente | /media/congedo-drone-1080.webm |
+| 1440×900 | richieste video | 2 |
+| 1366×768 | Congedo: sorgente | /media/congedo-drone-720.webm |
+| 390×664 no-preference | banda / margine / crescita / #costi (px) | 197.4 / 46.5 / 243.9 / 667.7 |
+| 390×664 no-preference | richieste video / data-ambient | 0 / off, off |
+| 1440×900 reduce | richieste video / data-ambient | 0 / off, off |

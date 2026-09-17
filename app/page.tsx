@@ -84,7 +84,7 @@ export default function Home() {
         <OpenDomus finestra />
         <DomusDocProtocol />
         <Services />
-        <CostiChiari />
+        <CostiChiari acqua />
         <FeaturedTestimonial />
         <Social />
         <Team />

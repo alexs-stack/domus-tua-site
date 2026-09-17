@@ -5,7 +5,7 @@
 //
 // Hero CINEMATICO full-bleed (HeroCinematic.tsx), vedi docs/hero-video.md. C21, la cliente il
 // 3 agosto: niente video nell'hero, resta la foto; `enabled` resta false. `mp4` e `webm`
-// puntano al loop del drone di oggi, che la banda del Congedo legge da qui (Congedo.tsx).
+// puntano al loop del drone; il Congedo usa `ambient.congedo` con useAmbientVideo (spec §2.7).
 export const heroCinematic = {
   enabled: false,
   mp4: "/media/congedo-drone-1080.mp4",
@@ -23,8 +23,9 @@ export type AmbientSource = { webm: string; mp4: string };
 // I video d'ambiente (spec 2026-09-13 §7.3): due loop muti dal video tour di Domus Tua, senza
 // logo (ritaglio del 10 % in alto e a sinistra) e raccordati con una dissolvenza. Il drone
 // sulla villa è la cartolina del Congedo (A19 di Alberto), la superficie dell'acqua è Costi
-// chiari (A18). `hd` 1920×1080, `sd` 1280×720: la sorgente la sceglie useAmbientVideo al
-// primo play. La produzione aspetta i punti 2.2, 2.13 e 6.2 del documento per la cliente
+// chiari (A18). `hd` 1920×1080, `sd` 1280×720: la sorgente la scrive useAmbientVideo la
+// prima volta che l'host si avvicina (warm 50 %): 720p fino a 1.408 px resi, 1080p oltre.
+// La produzione aspetta i punti 2.2, 2.13 e 6.2 del documento per la cliente
 // (assertVillaMediaCleared in launchReadiness.ts, chiamata da next.config.ts al build).
 export const ambient: {
   congedo: { hd: AmbientSource; sd: AmbientSource; poster: string };

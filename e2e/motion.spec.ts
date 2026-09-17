@@ -134,6 +134,20 @@ test("D.O.C. e Services con reduced motion: righe disegnate e foto ferme", async
   expect(zoom).toEqual(["none", "none", "none"]);
 });
 
+// L'acqua di Costi chiari con reduced motion (spec §3.13): poster intero, nessun
+// clip, nessun video.
+test("l'acqua di Costi chiari con reduced motion: poster intero e nessun clip", async ({ page, goto }) => {
+  await goto("/");
+  const banda = page.locator("#costi [data-acqua-band]");
+  // Prima il conteggio: senza banda lo scroll qui sotto aspetterebbe fino al timeout del test.
+  await expect(banda).toHaveCount(1);
+  await banda.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  await expect(banda).toHaveCSS("clip-path", "none");
+  await expect(banda).toHaveAttribute("data-ambient", "off");
+  await expect(banda.locator("img")).toBeVisible();
+});
+
 test("con reduced motion le colonne di Percorsi e le tendine del Metodo restano ferme", async ({ page, goto }) => {
   await goto("/");
   await page.waitForTimeout(400);
