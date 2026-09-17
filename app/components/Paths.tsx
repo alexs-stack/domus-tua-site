@@ -5,21 +5,26 @@
 // avorio, titolo grande, poi due righe editoriali — Vendere / Acquistare —
 // con la foto quadrata da un lato e titolo, lead, punti e link sottolineato
 // dall'altro. Via i pannelli scuri pinnati, i sipari in clip-path, gli
-// scrim, i veli e i fiori. Movimento: Reveal, titoli per lettera (SplitTitle, A20 di Alberto) e la parallasse
-// leggera sulla foto; con reduced-motion tutto fermo e visibile.
+// scrim, i veli e i fiori. Movimento dal 13 settembre (A20 di Alberto, spec
+// §3.8): le due colonne di ogni riga vanno in controfase, ±10 % da 1024 px e
+// pochi pixel sotto, con la sosta di dtSosta quando la riga passa al centro;
+// i testi coi ruoli del motore; con reduced-motion tutto fermo e visibile.
 //
 // 2026-09-11 — la riga era `lg:grid-cols-2` ma la foto era un `aspect-square`
 // grande quanto la colonna: cambiava larghezza a ogni breakpoint e non
 // tornava mai su una linea nota. Ora è il modulo condiviso `dt-media-half`
 // (42vw, max 640 px, 1:1) dentro il template a due colonne: due linee
 // verticali in tutto il capitolo, la stessa x del Metodo.
+import { useRef } from "react";
 import Image from "next/image";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
-import Parallax from "./motion/Parallax";
+import { gsap, useGSAP } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
+import { chapters } from "../lib/motion/chapters";
 
 // Fotografie reali, ognuna una volta sola in home: la consulenza resta a
 // Posizionamento; qui la fondatrice (ritaglio 1:1 spostato a sinistra, dove
@@ -210,9 +215,51 @@ const copy = {
 export default function Paths() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  // Il gesto del capitolo 7 (A20 di Alberto, spec §3.8): trigger la RIGA, che
+  // non si muove mai, così ScrollTrigger non misura una colonna già spostata.
+  // Da 1024 px la colonna che sta a sinistra (letta da offsetLeft: in #acquista
+  // la foto ha lg:order-2) va da −10 a +10 %, quella a destra al contrario.
+  // Sotto, colonne impilate: corsa in px A = floor(gap/2) − 1, così foto e testo
+  // non si toccano (22 px a 768, 10 a 390). Ease, scrub e range da chapters.ts.
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      if (!section) return;
+      const { signature } = chapters.paths;
+      const { time, trigger } = signature;
+      if (!("scrub" in time) || !("st" in trigger)) {
+        throw new Error("chapters.paths: attesa una firma a scrub con start ed end");
+      }
+      const scrub = time.scrub;
+      const [start, end] = trigger.st;
+      const ease = signature.ease;
+      const mm = gsap.matchMedia();
+      mm.add({ motionOk: MQ.motionOk, lg: MQ.lg }, (ctx) => {
+        const { motionOk, lg } = ctx.conditions as { motionOk: boolean; lg: boolean };
+        if (!motionOk) return;
+        gsap.utils.toArray<HTMLElement>("[data-paths-row]", section).forEach((row) => {
+          const cols = gsap.utils.toArray<HTMLElement>("[data-paths-col]", row);
+          if (cols.length !== 2) return;
+          const st = () => ({ trigger: row, start, end, scrub, invalidateOnRefresh: true });
+          if (lg) {
+            const [left, right] = cols[0].offsetLeft <= cols[1].offsetLeft ? [cols[0], cols[1]] : [cols[1], cols[0]];
+            gsap.fromTo(left, { yPercent: -10 }, { yPercent: 10, ease, scrollTrigger: st() });
+            gsap.fromTo(right, { yPercent: 10 }, { yPercent: -10, ease, scrollTrigger: st() });
+            return;
+          }
+          const amp = () => Math.max(0, Math.floor(Number.parseFloat(getComputedStyle(row).rowGap) / 2) - 1);
+          gsap.fromTo(cols[0], { y: () => -amp() }, { y: () => amp(), ease, scrollTrigger: st() });
+          gsap.fromTo(cols[1], { y: () => amp() }, { y: () => -amp(), ease, scrollTrigger: st() });
+        });
+      });
+    },
+    { scope: sectionRef, dependencies: [locale], revertOnUpdate: true }
+  );
 
   return (
-    <section className="dt-chapter bg-cream">
+    <section ref={sectionRef} className="dt-chapter bg-cream">
       <div className="dt-row">
         <Reveal>
           <span className="eyebrow">{c.eyebrow}</span>
@@ -229,12 +276,13 @@ export default function Paths() {
           <div
             key={p.href}
             id={p.id}
+            data-paths-row
             className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
           >
             {/* La riga pari specchia: foto a destra e `justify-self-end`, perché
                 il modulo (42vw) è più largo della colonna (39vw) e senza
                 l'ancoraggio sborderebbe oltre il margine destro della pagina. */}
-            <Parallax speed={-0.04} className={i % 2 ? "lg:order-2 lg:justify-self-end" : ""}>
+            <div data-paths-col className={i % 2 ? "lg:order-2 lg:justify-self-end" : ""}>
               <div className="dt-media-half">
                 <Image
                   src={p.image}
@@ -245,8 +293,8 @@ export default function Paths() {
                   style={{ objectPosition: p.pos }}
                 />
               </div>
-            </Parallax>
-            <div className={i % 2 ? "lg:pr-[6vw]" : "lg:pl-[6vw]"}>
+            </div>
+            <div data-paths-col className={i % 2 ? "lg:pr-[6vw]" : "lg:pl-[6vw]"}>
               <SplitTitle as="h3" className="font-display text-d3">
                 {t.title}
               </SplitTitle>

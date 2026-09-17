@@ -108,6 +108,10 @@ CustomEase.create("dtEase", "0.25,0.1,0.25,1");
 // NON lineare anche se usata come containerAnimation: i reveal once:true
 // tollerano lo scarto e il gesto guadagna testa/coda.
 CustomEase.create("dtHorScroll", "0.25,0,0.75,1");
+// "dtSosta" = la firma di Paths, capitolo 7 (A20 di Alberto, spec 2026-09-13
+// §3.1 e §3.8): le colonne in controfase si fermano allineate mentre la riga
+// passa al centro, tratto quasi piatto fra 0,4 e 0,6 (colonne di Era, CAT §11).
+CustomEase.create("dtSosta", "M0,0 C0.25,0.45 0.3,0.5 0.5,0.5 C0.7,0.5 0.75,0.55 1,1");
 CustomEase.create(
   "dtLoader",
   "M0,0,C0,0,0.13,0.34,0.238,0.442,0.305,0.506,0.322,0.514,0.396,0.54,0.478,0.568,0.468,0.56,0.522,0.584,0.572,0.606,0.61,0.719,0.714,0.826,0.798,0.912,1,1,1,1"

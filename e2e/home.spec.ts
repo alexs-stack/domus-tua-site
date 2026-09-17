@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, setConsent, clickUntil, videoTile } from "./helpers";
-import { installProbe, matrixOf, productOpacity } from "./coreografia";
+import { clipOf, insetValues, installProbe, matrixOf, productOpacity } from "./coreografia";
 
 // Homepage: che carichi, che l'intro non intrappoli nessuno, che l'header funzioni alla
 // larghezza in cui ci si trova.
@@ -375,6 +375,160 @@ test("il titolo delle cinque stelle arriva col beat 0,94 e riesce sotto", async 
   await expect.poll(() => productOpacity(lettere.first()), { timeout: 2_000 }).toBeGreaterThanOrEqual(0.99);
   await expect(intro).not.toHaveAttribute("data-bg", /.*/);
 });
+
+// ── Capitolo 7: Percorsi in controfase (spec §3.8) ────────────────────────
+// Quota di scroll al progresso p del range «top 125%» → «bottom -25%» della
+// riga. dtSosta: f(0,1) = 0,176, f(0,5) = 0,500, f(0,9) = 0,824, quindi da
+// 1024 px yPercent vale −6,5 %, 0 %, +6,5 % sulla colonna di sinistra: a 1440
+// la colonna della foto (605 px) passa da −39 a +39 px, e al centro sosta.
+// Sotto 768 la corsa è in px, A = floor(gap/2) − 1 = 10 a 390.
+// LETTURA DEL TEST DI SPEC §3.8 («m42 delle due colonne cambia di ≥ 40 px fra
+// riga al 90 % e al 10 %»): la riga al 90 % e al 10 % del SUO range, «top
+// 125%» → «bottom -25%», cioè p 0,9 e p 0,1 (Δ atteso 78 px a 1440). L'altra
+// lettura, col bordo alto della riga al 90 % e al 10 % del viewport, a 1440x900
+// e con la riga alta 607 px cade a p 0,161 e 0,529: gsap.parseEase("dtSosta")
+// vi vale 0,2765 e 0,5005, Δ = 20 % × 0,224 × 605 px = 27,1 px, e coi valori
+// della stessa spec non arriva a 40. misure/11-paths-method.mjs registra tutte
+// e due le letture in risultati.md; la frase di §3.8 si precisa al commit 22
+// (spec §10).
+test("Percorsi: le colonne vanno in controfase e sostano al centro", async ({ page, goto }) => {
+  const w = page.viewportSize()?.width ?? 0;
+  await goto("/");
+  const riga = (id: "vendi" | "acquista") => page.locator(`[data-paths-row]#${id}`);
+  const al = async (id: "vendi" | "acquista", p: number) => {
+    const y = await riga(id).evaluate((el, p) => {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      const vh = window.innerHeight;
+      const start = top - 1.25 * vh;
+      const end = top + (el as HTMLElement).offsetHeight + 0.25 * vh;
+      return start + p * (end - start);
+    }, p);
+    await page.evaluate((y) => window.scrollTo({ top: Math.max(0, y), behavior: "instant" }), y);
+    await page.waitForTimeout(1_200); // scrub 0,5 e Lenis
+    const cols = riga(id).locator("[data-paths-col]");
+    return [(await matrixOf(cols.nth(0))).m42, (await matrixOf(cols.nth(1))).m42];
+  };
+
+  if (w >= 1024) {
+    const [a1, b1] = await al("vendi", 0.1);
+    const [a5, b5] = await al("vendi", 0.5);
+    const [a9, b9] = await al("vendi", 0.9);
+    // #vendi: la foto (prima nel DOM) sta a sinistra e scende.
+    expect(a1).toBeLessThan(0);
+    expect(b1).toBeGreaterThan(0);
+    expect(a9).toBeGreaterThan(0);
+    expect(b9).toBeLessThan(0);
+    expect(a9 - a1).toBeGreaterThanOrEqual(40);
+    expect(b1 - b9).toBeGreaterThanOrEqual(40);
+    expect(Math.abs(a5)).toBeLessThanOrEqual(2);
+    expect(Math.abs(b5)).toBeLessThanOrEqual(2);
+    // #acquista: la foto ha lg:order-2 ed è a destra, quindi sale.
+    const [fotoA, testoA] = await al("acquista", 0.1);
+    expect(fotoA).toBeGreaterThan(0);
+    expect(testoA).toBeLessThan(0);
+  } else {
+    for (const p of [0.1, 0.5, 0.9]) {
+      const [a, b] = await al("vendi", p);
+      expect(Math.abs(a), `foto a p ${p}`).toBeLessThanOrEqual(11);
+      expect(Math.abs(b), `testo a p ${p}`).toBeLessThanOrEqual(11);
+    }
+    const [a, b] = await al("vendi", 0.1);
+    expect(a).toBeLessThan(0);
+    expect(b).toBeGreaterThan(0);
+  }
+});
+
+// ── Capitolo 8: la tendina del Metodo, in home e su /metodo (spec §3.9) ────
+// Ingresso: ritardo 0,8 s e 2,4 s power4.out dal callback dell'IO, quindi a
+// 0,4 s dallo scroll è ancora chiusa. Uscita: scatola sotto il 90 %, 0,4 s
+// power4.in, la tendina prosegue nel suo verso.
+// I tempi si contano dal primo campione che lascia lo stato di partenza, non
+// dallo scroll (D58): il callback dell'IO sotto carico (quattro worker, DPR 3,
+// salto dall'alto della home) arriva anche 0,6-0,7 s dopo lo scroll, e una
+// scadenza fissa dallo scroll scade su codice giusto. La latenza ha il suo
+// bilancio (1,5 s), poi la cifra della spec ha 0,4 s di tolleranza (durDt.s);
+// campioni ogni 100 ms (50 ms per l'avvio): la cadenza di default di
+// expect.poll, 100/250/500/1000 ms senza ultimo tentativo se la scadenza cade
+// dentro l'intervallo, lascia buchi di un secondo. La frase «dopo 3,4 s» di
+// §3.9 si precisa al commit 22 (spec §10).
+for (const rotta of ["/", "/metodo"] as const) {
+  test(`Metodo su ${rotta}: la tendina si apre a verso alternato e si richiude risalendo`, async ({ page, goto }) => {
+    await goto(rotta);
+    const scatole = page.locator('#metodo [data-clip="method"]');
+    await expect(scatole).toHaveCount(3);
+    await expect(scatole.nth(0)).toHaveAttribute("data-from", "left");
+    await expect(scatole.nth(1)).toHaveAttribute("data-from", "right");
+    await expect(scatole.nth(2)).toHaveAttribute("data-from", "left");
+    type Inset = [number, number, number, number];
+    const clip = async (i: number) => insetValues(await clipOf(scatole.nth(i)));
+    const centra = (i: number) =>
+      scatole.nth(i).evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        window.scrollTo({ top: r.top + window.scrollY + r.height / 2 - window.innerHeight / 2, behavior: "instant" });
+      });
+    // ClipMedia chiude sempre un lato intero (100 %): un campione con un 100 è
+    // chiuso (o è l'arrivo dell'uscita), [0,0,0,0] è aperto.
+    const chiusa = (v: Inset | null) => v !== null && (v[1] === 100 || v[3] === 100);
+    const aperta = (v: Inset | null) => v !== null && v.every((n) => n === 0);
+    // Apertura contata dal suo avvio: primo campione che lascia il chiuso entro
+    // 1,5 s (ritardo 0,8 s più la latenza scroll → IO), poi [0,0,0,0] entro
+    // 2,4 + 0,4 s da quel campione.
+    const siApre = async (i: number) => {
+      await expect
+        .poll(async () => chiusa(await clip(i)), {
+          timeout: 1_500,
+          intervals: [50],
+          message: `scatola ${i}: la tendina non parte`,
+        })
+        .toBe(false);
+      await expect
+        .poll(() => clip(i), { timeout: 2_800, intervals: [100], message: `scatola ${i}: la tendina non si apre in 2,4 + 0,4 s` })
+        .toEqual([0, 0, 0, 0]);
+    };
+    // Uscita contata dal suo avvio: primo campione che lascia l'aperto entro
+    // 1,5 s, poi il lato d'uscita chiuso entro 0,4 + 0,4 s da quel campione.
+    const siChiude = async (i: number, verso: Inset) => {
+      await expect
+        .poll(async () => aperta(await clip(i)), {
+          timeout: 1_500,
+          intervals: [50],
+          message: `scatola ${i}: la tendina non riparte in uscita`,
+        })
+        .toBe(false);
+      await expect
+        .poll(() => clip(i), { timeout: 800, intervals: [100], message: `scatola ${i}: la tendina non si chiude in 0,4 + 0,4 s` })
+        .toEqual(verso);
+    };
+
+    // A scroll 0 le scatole sono sotto il viewport: chiuse dal loro lato.
+    await expect.poll(() => clip(0)).toEqual([0, 100, 0, 0]);
+    await expect.poll(() => clip(1)).toEqual([0, 0, 0, 100]);
+
+    await centra(0);
+    await page.waitForTimeout(400);
+    expect(await clip(0)).toEqual([0, 100, 0, 0]);
+    await siApre(0);
+
+    // Risalita: la scatola scende sotto il 90 % e la tendina prosegue verso destra.
+    await scatole.nth(0).evaluate((el) => {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: top - 0.95 * window.innerHeight, behavior: "instant" });
+    });
+    await siChiude(0, [0, 0, 0, 100]);
+
+    // Ridiscesa: si riapre dal suo lato (C22, replay a ogni passaggio). La
+    // stessa attesa di 0,4 s della prima apertura, così il bilancio per la
+    // latenza scroll → IO è lo stesso; a 0,4 s non si afferma nulla perché la
+    // scatola può stare ancora sul lato d'uscita o già su quello d'ingresso.
+    await centra(0);
+    await page.waitForTimeout(400);
+    await siApre(0);
+
+    await centra(1);
+    await page.waitForTimeout(400);
+    await siApre(1);
+  });
+}
 
 // La rotaia del team in
 // #chi-siamo (HorizontalRail con corridoio). Da 1024 in su, con motion ok, il JS

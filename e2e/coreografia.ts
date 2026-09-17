@@ -782,3 +782,22 @@ export async function routeExternal(ctx: BrowserContext): Promise<void> {
     },
   );
 }
+
+/**
+ * I quattro valori di un `inset()` calcolato, espansi come fa il CSS
+ * (1-4 valori → alto, destra, basso, sinistra), arrotondati al centesimo.
+ * `null` se il clip non è un inset (per esempio `none`) o se un valore non è un numero.
+ * Chromium serializza `inset(0% 0% 0% 0%)` come `inset(0%)` e
+ * `inset(100% 0% 0% 0%)` come `inset(100% 0% 0%)`: qui tornano quattro numeri.
+ * Serve ai gesti a clip della home, tutti a spigolo vivo (C01 della cliente): la
+ * tendina di Method (A20 di Alberto, spec §3.9), le righe del D.O.C. (spec §3.11,
+ * D26) e l'acqua di Costi chiari (spec §3.13, D25).
+ */
+export function insetValues(clip: string): [number, number, number, number] | null {
+  const m = /^inset\(([^)]*)\)$/.exec(clip.trim());
+  if (!m) return null;
+  const v = m[1].split(/\s+/).filter(Boolean).map((s) => parseFloat(s));
+  if (v.length === 0 || v.length > 4 || v.some((n) => Number.isNaN(n))) return null;
+  const [t, r = t, b = t, l = r] = v;
+  return [t, r, b, l].map((n) => Math.round(n * 100) / 100 + 0) as [number, number, number, number];
+}

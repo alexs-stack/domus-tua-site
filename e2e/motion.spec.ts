@@ -101,6 +101,26 @@ test("le cinque stelle con reduced motion sono già d'oro, senza palcoscenico", 
   await expect(page.locator(".dt-starrev_intro")).toBeHidden();
 });
 
+test("con reduced motion le colonne di Percorsi e le tendine del Metodo restano ferme", async ({ page, goto }) => {
+  await goto("/");
+  await page.waitForTimeout(400);
+  const colonne = await page
+    .locator("[data-paths-col]")
+    .evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
+  expect(colonne).toEqual(["none", "none", "none", "none"]);
+  const tendineHome = await page
+    .locator('[data-clip="method"]')
+    .evaluateAll((els) => els.map((e) => getComputedStyle(e).clipPath));
+  expect(tendineHome).toEqual(["none", "none", "none"]);
+
+  await goto("/metodo");
+  await page.waitForTimeout(400);
+  const tendineMetodo = await page
+    .locator('#metodo [data-clip="method"]')
+    .evaluateAll((els) => els.map((e) => getComputedStyle(e).clipPath));
+  expect(tendineMetodo).toEqual(["none", "none", "none"]);
+});
+
 test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ page, goto }) => {
   await goto("/");
   await page.mouse.wheel(0, 800);

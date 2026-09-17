@@ -5,6 +5,10 @@
 // atti come righe piane e i nove passi numerati 01.–09. Via le maschere
 // feTurbulence, gli atti in scrub, Atmosphere, CharFlip, Fioritura e il
 // monogramma di chiusura. I testi sono gli stessi (copy conservato).
+// Movimento dal 13 settembre (A20 di Alberto, spec §3.9): le foto degli atti
+// si aprono con la tendina di ClipMedia a verso alternato, atti 1 e 3 da
+// sinistra e atto 2 da destra, in home e su /metodo (MetodoContent rende lo
+// stesso componente); la parallasse sulle foto è tolta (D23).
 //
 // 2026-09-11 — due correzioni di impaginazione:
 // 1. La griglia era `lg:grid-cols-[1fr_1.2fr]`, cioè una frazione che non
@@ -22,7 +26,7 @@ import RevealGroup from "./motion/RevealGroup";
 import ScriptWord from "./motion/ScriptWord";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
-import Parallax from "./motion/Parallax";
+import ClipMedia from "./motion/ClipMedia";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site, yearsActive } from "../lib/site";
@@ -225,18 +229,20 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
                 le tre riprese sono larghe (1,73 · 2,54 · 1,77) e in un
                 quadrato andrebbero ingrandite. */}
             <div className="lg:order-2 lg:justify-self-end">
-              <Parallax speed={-0.04}>
-                <div className="dt-media-half !aspect-video">
-                  <Image
-                    src={img.src}
-                    alt={a.alt}
-                    fill
-                    sizes={coverSizes(img.ratio)}
-                    className="object-cover"
-                    style={{ objectPosition: img.pos }}
-                  />
-                </div>
-              </Parallax>
+              <ClipMedia
+                chapter="method"
+                from={i % 2 ? "right" : "left"}
+                className="dt-media-half !aspect-video"
+              >
+                <Image
+                  src={img.src}
+                  alt={a.alt}
+                  fill
+                  sizes={coverSizes(img.ratio)}
+                  className="object-cover"
+                  style={{ objectPosition: img.pos }}
+                />
+              </ClipMedia>
             </div>
             <div className="lg:pr-[6vw]">
               <SplitTitle as="h3" className="font-display text-d2">
