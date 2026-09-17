@@ -13,6 +13,9 @@
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
+import { useRef } from "react";
+import { gsap, useGSAP } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
 import SocialLinks from "./primitives/SocialLinks";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -63,17 +66,55 @@ const copy = {
 export default function Social() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const triggerRef = useRef<HTMLDivElement | null>(null);
+  const blockRef = useRef<HTMLDivElement | null>(null);
+
+  // Il titolo si congeda (A25 di Alberto, 13 set.: «Esce crescendo e
+  // sfumando»; spec 2026-09-13 §3.15): uscendo dall'alto il blocco eyebrow +
+  // titolo cresce da 1 a 1,12 e sfuma da 1 a 0, con l'origine in basso a
+  // sinistra. Rientrando torna pieno: speculare per scrub (C22). Il trigger è
+  // il wrapper fermo, non il blocco che scala: ScrollTrigger misura un
+  // rettangolo che non cambia. Opacità finale 0 e non 0,02: dentro non c'è
+  // niente di focalizzabile e axe salta lo 0.
+  useGSAP(() => {
+    const trigger = triggerRef.current;
+    const block = blockRef.current;
+    if (!trigger || !block) return;
+    const mm = gsap.matchMedia();
+    mm.add(MQ.motionOk, () => {
+      gsap.fromTo(
+        block,
+        { scale: 1, opacity: 1, transformOrigin: "0% 100%" },
+        {
+          scale: 1.12,
+          opacity: 0,
+          ease: "expo.in",
+          scrollTrigger: {
+            trigger,
+            start: "center center",
+            end: "bottom top",
+            scrub: 1.3,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+    });
+  });
 
   return (
-    <section className="bg-cream py-[clamp(1rem,3vh,2rem)]">
+    /* `overflow-x-clip`: a 390 il blocco largo 90vw scalato a 1,12 uscirebbe
+       dal bordo destro; nessuno sticky vive qui dentro (spec §3.15). */
+    <section className="overflow-x-clip bg-cream py-[clamp(1rem,3vh,2rem)]">
       <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-end">
-        <div>
-          <Reveal>
-            <span className="eyebrow">{c.eyebrow}</span>
-          </Reveal>
-          <SplitTitle as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
-            {c.title}
-          </SplitTitle>
+        <div ref={triggerRef}>
+          <div ref={blockRef} data-seguici-congedo>
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
+            <SplitTitle as="h2" className="mt-6 max-w-[16ch] font-display text-d2">
+              {c.title}
+            </SplitTitle>
+          </div>
         </div>
 
         <div className="mt-6 lg:mt-0 lg:pl-[6vw]">

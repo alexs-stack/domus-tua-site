@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type ReactNode, type RefObject } from "react";
 import Image from "next/image";
 import { SendCta, CtaButton } from "./primitives/Cta";
 import { site, callback } from "../lib/site";
@@ -12,6 +12,8 @@ import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
+import { gsap, useGSAP, requestRefresh, whenStill } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
 
 // Percorsi lead. `key` è il tipo lead (LeadIntent) — utile per una futura integrazione
 // CRM: lead type + source page + immobile selezionato (vedi docs/form-backend-next-step.md).
@@ -506,6 +508,28 @@ const copy = {
 
 type Copy = (typeof copy)[keyof typeof copy];
 
+/* La colonna del modulo che resta indietro (D30, spec 2026-09-13 §3.17): solo in
+   home (`gesture`, D28) il <form> sta dentro un wrapper che GSAP trasla. Sulle
+   altre undici rotte, /case/[slug] compresa, il <form> resta figlio diretto
+   della griglia come prima (D32). Il form e `handleSubmit` non cambiano. */
+function LagCol({
+  on,
+  colRef,
+  children,
+}: {
+  on: boolean;
+  colRef: RefObject<HTMLDivElement | null>;
+  children: ReactNode;
+}) {
+  return on ? (
+    <div ref={colRef} data-lag-col>
+      {children}
+    </div>
+  ) : (
+    <>{children}</>
+  );
+}
+
 // Props opzionali per il prefill da scheda immobile. Quando il form parte da una
 // listing (`/case/<slug>`) la CTA "Richiedi una visita" apre già l'intento giusto
 // (di norma "buyer" / cerca casa), collega il riferimento immobile al lead e può
@@ -515,6 +539,7 @@ export default function Contact({
   propertyRef,
   initialPlace,
   compact = false,
+  gesture = false,
 }: {
   initialIntent?: LeadIntent;
   propertyRef?: string;
@@ -523,6 +548,9 @@ export default function Contact({
    *  Senza questo, il capitolo ne apriva una seconda cinquecento pixel sotto
    *  la prima — due teste di pagina identiche, una sotto l'altra. */
   compact?: boolean;
+  /** Solo la home lo passa (D28): da 1024 la colonna del modulo resta indietro
+   *  e la foto accanto sta ferma (spec 2026-09-13 §3.17). */
+  gesture?: boolean;
 } = {}) {
   const { locale } = useLocale();
   const c = copy[locale];
@@ -562,6 +590,83 @@ export default function Contact({
     if (!sent) return;
     getLenis()?.resize();
   }, [sent, delivery]);
+
+  // La conferma, l'esito e i campi dell'intento cambiano l'altezza del modulo e
+  // spostano le quote dei trigger che vengono dopo: in home la cartolina del
+  // Congedo, sulle pagine interne la rete di fine documento dei corridoi, quindi
+  // si rifà il conto di ScrollTrigger su ogni rotta (spec 2026-09-13 §3.17). Un
+  // refresh non è un cambio di movimento: /case/[slug] resta ferma (D32).
+  // Il refresh aspetta lo scroll fermo (`whenStill` di gsap.ts, come il cambio
+  // lingua di D54 e i corridoi di D53): forzarlo mentre un arrivo nativo a un
+  // frammento è in volo lo cancella (D39, D56), e su /#cerca rimette a 0,02 il
+  // pannello della ricerca, che risale col suo scrub — la guardia del primo
+  // refresh di HomeSearchGateway vale una volta sola (D57). L'attesa si annulla
+  // nel cleanup dell'effetto. Al montaggio niente: lì non è ancora cambiata
+  // nessuna altezza, e il deep-link `?intent=` cambia l'intento il tick dopo,
+  // dentro la stessa finestra di caricamento.
+  const montato = useRef(false);
+  useEffect(() => {
+    if (!montato.current) {
+      montato.current = true;
+      return;
+    }
+    return whenStill(() => requestRefresh());
+  }, [sent, delivery, intent]);
+
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const lagRef = useRef<HTMLDivElement | null>(null);
+
+  // Il modulo resta indietro (D30): da 1024 con motion ok la colonna va da
+  // yPercent −3,5 a +3,5 mentre la griglia attraversa il viewport, ±36 px su
+  // circa 1.040 px di modulo, e tiene il bottone più a lungo sotto gli occhi.
+  // Sotto 1024 le colonne sono impilate e il ritardo porterebbe il modulo
+  // sopra la foto: nessun gesto.
+  useGSAP(
+    () => {
+      const grid = gridRef.current;
+      const col = lagRef.current;
+      if (!gesture || !grid || !col) return;
+      const mm = gsap.matchMedia();
+      mm.add(`${MQ.motionOk} and ${MQ.lg}`, () => {
+        gsap.fromTo(
+          col,
+          { yPercent: -3.5 },
+          {
+            yPercent: 3.5,
+            ease: "power1.in",
+            scrollTrigger: {
+              trigger: grid,
+              start: "top 70%",
+              end: "bottom 30%",
+              scrub: 1.1,
+              invalidateOnRefresh: true,
+              onToggle: (self) => {
+                col.style.willChange = self.isActive ? "transform" : "";
+              },
+            },
+          },
+        );
+        return () => {
+          col.style.willChange = "";
+        };
+      });
+    },
+    { dependencies: [gesture], revertOnUpdate: true },
+  );
+
+  // Il modulo, non una scatola su misura: 605 px come ogni altra meta' del
+  // sito, cosi' anche qui il bordo cade sulla mezzeria invece che 43 px prima.
+  const keysPhoto = (
+    <div className="dt-media-half mt-10">
+      <Image
+        src="/images/reali/raffaela-keys.jpg"
+        alt={c.keysAlt}
+        fill
+        sizes="(max-width: 1024px) 100vw, 42vw"
+        className="object-cover"
+      />
+    </div>
+  );
 
   // Deep-link: /contatti?intent=buyer (o seller/question/open-domus) preseleziona il tab giusto,
   // quando non è già forzato via prop (es. dalla scheda immobile). Utile per le CTA "Cerco casa"
@@ -722,6 +827,8 @@ export default function Contact({
             proporzione su misura, e faceva partire il modulo 34 px piu' a
             sinistra della colonna di ogni altro capitolo. */}
         <div
+          ref={gridRef}
+          data-lag-grid
           className={`grid gap-[6vw] lg:grid-cols-2 lg:items-start ${
             compact ? "" : "mt-[clamp(2.5rem,6vh,4rem)]"
           }`}
@@ -754,24 +861,15 @@ export default function Contact({
               </div>
             </Reveal>
 
-            {/* Foto quadrata, senza arco né filtro (via arch-frame). */}
-            <Reveal delay={120}>
-              {/* Il modulo, non una scatola su misura: 605 px come ogni
-                  altra meta' del sito, cosi' anche qui il bordo cade sulla
-                  mezzeria invece che 43 px prima. */}
-              <div className="dt-media-half mt-10">
-                <Image
-                  src="/images/reali/raffaela-keys.jpg"
-                  alt={c.keysAlt}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 42vw"
-                  className="object-cover"
-                />
-              </div>
-            </Reveal>
+            {/* Foto quadrata, senza arco né filtro. In home (`gesture`, D28)
+                sta ferma accanto al modulo che resta indietro (D30); sulle
+                altre undici rotte, /case/[slug] compresa (D32), entra col
+                Reveal (correzione bloccante 4 di homeC, spec 2026-09-13 §3.17). */}
+            {gesture ? keysPhoto : <Reveal delay={120}>{keysPhoto}</Reveal>}
           </div>
 
           {/* Destra: il modulo a filo — campi col solo bordo inferiore, niente card */}
+          <LagCol on={gesture} colRef={lagRef}>
           <form onSubmit={handleSubmit} noValidate className="relative flex flex-col gap-8">
             {/* Honeypot anti-spam: fuori schermo, non focusabile, ignorato dagli screen reader. */}
             <div aria-hidden className="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
@@ -957,6 +1055,7 @@ export default function Contact({
               </div>
             ) : null}
           </form>
+          </LagCol>
         </div>
       </div>
     </section>

@@ -1315,3 +1315,209 @@ test("Costi chiari: richiusa sotto la linea, la rete dei 2.500 ms non la riapre"
   await page.waitForTimeout(1_000); // una rete scattata avrebbe già aperto più del 90 % (expo.out)
   expect(insetValues(await clipOf(page.locator(BANDA))), "la rete ha riaperto una banda richiusa in vista").toEqual([100, 0, 0, 0]);
 });
+
+// ── Capitoli 13-16: i gesti in coda alla home (spec 2026-09-13 §3.14-3.17) ──
+// A20 di Alberto: un gesto per capitolo, scrubbato e quindi speculare (C22).
+// Si scorre con `scrollTo` istantaneo e si aspetta che lo scrub si assesti
+// (1,2 s il più lento di questi quattro, 1,3 s Seguici).
+
+async function vai(page: Page, y: number, attesa: number) {
+  await page.evaluate((t) => window.scrollTo({ top: Math.max(0, t), behavior: "instant" }), y);
+  await page.waitForTimeout(attesa);
+}
+
+/** Quota di layout (offsetTop, che i transform non toccano), altezza e viewport. */
+function layout(page: Page, sel: string) {
+  return page.locator(sel).first().evaluate((el) => {
+    let y = 0;
+    for (let n: HTMLElement | null = el as HTMLElement; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
+    return { top: y, h: (el as HTMLElement).offsetHeight, vh: window.innerHeight, vw: window.innerWidth };
+  });
+}
+
+test.describe("capitoli 13-16: i gesti in coda alla home", () => {
+  test("la foto della testimonianza affonda dentro la cornice ferma", async ({ page, goto }) => {
+    await goto("/");
+    const frame = page.locator("main a[data-sink-frame]").first();
+    const sink = frame.locator("[data-sink]");
+    await expect(sink).toHaveCount(1);
+    await frame.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    const g = await layout(page, "main a[data-sink-frame]");
+
+    // Bordo basso della cornice a metà viewport: progresso 0,5, dtAffonda 0,185.
+    await vai(page, g.top + g.h - g.vh * 0.5, 1600);
+    const meta = await matrixOf(sink);
+    expect(meta.m42, "a metà corsa la foto non affonda").toBeGreaterThan(1);
+    expect(meta.m42).toBeLessThanOrEqual(0.1 * g.h + 1);
+
+    // Bordo basso al 5 % del viewport: progresso 0,95, dtAffonda 0,87.
+    await vai(page, g.top + g.h - g.vh * 0.05, 1600);
+    const fine = await matrixOf(sink);
+    expect(fine.m42).toBeGreaterThan(0.08 * g.h - 1);
+    expect(fine.m42).toBeLessThanOrEqual(0.1 * g.h + 1);
+
+    // Il link non si muove: nessun transform su di lui né sugli antenati fino alla section.
+    const mosso = await frame.evaluate((el) => {
+      const out: string[] = [];
+      for (let n: Element | null = el; n && n.tagName !== "SECTION"; n = n.parentElement) {
+        if (getComputedStyle(n).transform !== "none") out.push(`${n.tagName}.${n.className}`);
+      }
+      return out;
+    });
+    expect(mosso).toEqual([]);
+  });
+
+  test("il titolo di Seguici si congeda crescendo e sfumando (A25)", async ({ page, goto }) => {
+    await goto("/");
+    const block = page.locator("[data-seguici-congedo]");
+    await expect(block).toHaveCount(1);
+    await block.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const g = await layout(page, "[data-seguici-congedo]");
+    const start = g.top + g.h / 2 - g.vh / 2; // center center
+    const end = g.top + g.h; // bottom top
+    // Numeri, non la matrice: un DOMMatrixReadOnly non attraversa `evaluate`.
+    const leggi = () =>
+      block.evaluate((el) => {
+        const t = getComputedStyle(el).transform;
+        return {
+          a: new DOMMatrixReadOnly(t === "none" ? undefined : t).a,
+          o: Number(getComputedStyle(el).opacity),
+        };
+      });
+
+    // Al centro del viewport: pieno.
+    await vai(page, start - 2, 1800);
+    const pieno = await leggi();
+    expect(pieno.a).toBeCloseTo(1, 3);
+    expect(pieno.o).toBeGreaterThan(0.99);
+
+    // Progresso 0,9 dell'uscita: expo.in vale 0,503 → scala 1,060, opacità 0,497.
+    // (A progresso 0,5 expo.in vale 0,023: la «metà uscita» di §3.15 si misura qui.)
+    await vai(page, start + 0.9 * (end - start), 1800);
+    const uscita = await leggi();
+    expect(uscita.a).toBeGreaterThan(1.05);
+    expect(uscita.o).toBeLessThan(0.7);
+    const trabocca = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(trabocca).toBeLessThanOrEqual(1);
+
+    // Rientrando dall'alto torna pieno: speculare per scrub.
+    await vai(page, start - 2, 1800);
+    const ritorno = await leggi();
+    expect(ritorno.a).toBeCloseTo(1, 3);
+    expect(ritorno.o).toBeGreaterThan(0.99);
+  });
+
+  test("il modulo dei contatti resta indietro da 1024 (D30)", async ({ page, goto, isMobile }) => {
+    await goto("/");
+    const col = page.locator("#contatti [data-lag-col]");
+    await expect(col).toHaveCount(1);
+    await col.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const g = await layout(page, "#contatti [data-lag-grid]");
+    const centro = g.top + g.h / 2 - g.vh / 2;
+
+    // In home la foto sta ferma accanto al modulo: nessun Reveal intorno (spec §3.17,
+    // correzione bloccante 4 di homeC; D28). Vale a ogni larghezza.
+    const foto = page.locator('#contatti img[src*="raffaela-keys"]').first();
+    await expect(foto).toHaveCount(1);
+    expect(await foto.evaluate((el) => !!el.closest(".reveal, [data-reveal]"))).toBe(false);
+
+    await vai(page, centro, 1500);
+    if (isMobile || g.vw < 1024) {
+      expect(await col.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+      return;
+    }
+    const a = await matrixOf(col);
+    expect(a.m42).toBeGreaterThanOrEqual(-40);
+    expect(a.m42).toBeLessThanOrEqual(40);
+    await vai(page, centro + 400, 1500);
+    const b = await matrixOf(col);
+    expect(b.m42).toBeGreaterThan(a.m42);
+    await vai(page, centro + 800, 1500);
+    const c = await matrixOf(col);
+    expect(c.m42).toBeGreaterThan(b.m42);
+    expect(c.m42).toBeLessThanOrEqual(40);
+  });
+
+  test("Tab su una tessera del team la porta in vista senza scrollLeft (§3.16)", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "la rotaia pilotata dallo scroll vive solo da 1024");
+    const width = page.viewportSize()?.width ?? 0;
+    test.skip(width < 1024, "sotto i 1024 la rotaia è uno scorrimento nativo col dito");
+    await goto("/");
+    const rail = page.locator("#chi-siamo .dt-rail");
+    await expect(rail).toHaveAttribute("data-on", "");
+    const tiles = rail.locator(".dt-rail_track > figure");
+    expect(await tiles.count()).toBeGreaterThanOrEqual(3);
+
+    await tiles.nth(1).focus();
+    await page.waitForTimeout(600);
+    await page.keyboard.press("Tab");
+    await expect(tiles.nth(2)).toBeFocused();
+    await page.waitForTimeout(900);
+
+    const r = await tiles.nth(2).evaluate((el) => {
+      const b = el.getBoundingClientRect();
+      return { l: b.left, r: b.right, t: b.top, b: b.bottom, vw: window.innerWidth, vh: window.innerHeight };
+    });
+    expect(r.l, "la terza tessera esce a sinistra").toBeGreaterThanOrEqual(-1);
+    expect(r.r, "la terza tessera esce a destra").toBeLessThanOrEqual(r.vw + 1);
+    expect(r.t).toBeLessThan(r.vh);
+    expect(r.b).toBeGreaterThan(0);
+    expect(await rail.evaluate((el) => el.scrollLeft)).toBe(0);
+  });
+
+  test("un clic del mouse su una tessera del team non fa saltare la pagina (§3.16, :focus-visible)", async ({
+    page,
+    goto,
+    isMobile,
+  }) => {
+    test.skip(!!isMobile, "la rotaia pilotata dallo scroll vive solo da 1024");
+    const width = page.viewportSize()?.width ?? 0;
+    test.skip(width < 1024, "sotto i 1024 la rotaia è uno scorrimento nativo col dito");
+    await goto("/");
+    const rail = page.locator("#chi-siamo .dt-rail");
+    await expect(rail).toHaveAttribute("data-on", "");
+
+    // Il nastro a metà corsa: le stesse quote di layout di HorizontalRail parcheggiata.
+    const q = await page.locator("#chi-siamo .dt-railway").evaluate((wrap) => {
+      let y = 0;
+      for (let n: HTMLElement | null = wrap as HTMLElement; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
+      const r = wrap.querySelector<HTMLElement>(".dt-rail")!;
+      const top = Math.max(0, Math.round((window.innerHeight - r.offsetHeight) / 2));
+      return { start: y - top, end: y + (wrap as HTMLElement).offsetHeight - (top + r.offsetHeight) };
+    });
+    await vai(page, (q.start + q.end) / 2, 1200);
+
+    // La tessera intera in orizzontale più vicina al centro: il clic non chiede al
+    // browser nessuno scroll-into-view.
+    const tiles = rail.locator(".dt-rail_track > figure");
+    const i = await tiles.evaluateAll((els) => {
+      const vw = window.innerWidth;
+      let best = -1;
+      let dist = Number.POSITIVE_INFINITY;
+      els.forEach((el, k) => {
+        const b = el.getBoundingClientRect();
+        const cy = b.top + b.height / 2;
+        if (b.left < 0 || b.right > vw || cy < 0 || cy > window.innerHeight) return;
+        const d = Math.abs(b.left + b.width / 2 - vw / 2);
+        if (d < dist) {
+          dist = d;
+          best = k;
+        }
+      });
+      return best;
+    });
+    expect(i, "a metà corsa nessuna tessera intera a schermo").toBeGreaterThanOrEqual(0);
+    const tile = tiles.nth(i);
+    const prima = await page.evaluate(() => window.scrollY);
+    const box = (await tile.boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(tile).toBeFocused();
+    await page.waitForTimeout(400);
+    expect(await page.evaluate(() => window.scrollY)).toBe(prima);
+  });
+});

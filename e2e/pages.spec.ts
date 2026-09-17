@@ -203,3 +203,16 @@ test("la scheda immobile resta ferma sotto MotionFreeze", async ({ page, goto })
   expect(tip, "nessun tooltip dei social nella scheda").not.toBeNull();
   expect(tip!.split(",").every((d) => Number.parseFloat(d) === 0), `tooltip in transizione: ${tip}`).toBe(true);
 });
+
+// /case/[slug] è una pagina di conversione: la foto accanto al modulo resta nel
+// Reveal di oggi (D28, D32, spec 2026-09-13 §3.17). L'assenza del gesto la
+// presidia già «la scheda immobile resta ferma sotto MotionFreeze».
+test("su una scheda /case la foto del modulo resta nel Reveal", async ({ page, goto }) => {
+  await goto("/acquista");
+  const href = await firstListingLink(page).getAttribute("href");
+  expect(href).toMatch(/^\/case\//);
+  await goto(href!);
+  const foto = page.locator('#contatti img[src*="raffaela-keys"]').first();
+  await expect(foto).toHaveCount(1);
+  expect(await foto.evaluate((el) => !!el.closest(".reveal"))).toBe(true);
+});

@@ -76,15 +76,15 @@ const CHAPTER_FILES: Partial<Record<ChapterId, string[]>> = {
 
 /* Il codice dei nastri che esistono già (A12, A03), confrontato con le
    stringhe del registro (A20, D18). PENDING: il capitolo il cui codice diverge
-   ancora dal registro, col commit che lo allinea e toglie la voce. Oggi la
-   rotaia gira `ease: "none"` e scrub 0,6 (HorizontalRail.tsx:118, :132): il
-   commit 16 la porta a dtRail e 0,7. */
+   ancora dal registro, col commit che lo allinea e toglie la voce. La rotaia
+   non sta qui: HorizontalRail riceve scrub ed ease per prop e calcola il suo
+   innesco, e gesti-coda.test.ts confronta con la voce `team` quello che
+   Team.tsx le passa (scrub 0,7, dtRail; spec 2026-09-13 §3.16). */
 const CODE: Partial<Record<ChapterId, string>> = {
   storia: "app/components/motion/HorizonScroller.tsx",
   recensioni: "app/components/StarReviews.tsx",
-  team: "app/components/motion/HorizontalRail.tsx",
 };
-const PENDING: Partial<Record<ChapterId, number>> = { team: 16 };
+const PENDING: Partial<Record<ChapterId, number>> = {};
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
 const quotedIn = (code: string, name: string) => [`"${name}"`, `'${name}'`, "`" + name + "`"].some((q) => code.includes(q));

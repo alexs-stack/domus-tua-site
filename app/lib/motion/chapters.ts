@@ -11,7 +11,8 @@
 // - useCorridor legge qui lo scrub dei corridoi (`scrubOf`).
 // - `el` e le stringhe di `st` descrivono l'innesco scritto nel componente.
 //   chapters.test.ts le confronta col codice dei nastri di oggi (nastro e
-//   stelle); la rotaia diverge fino al commit 16 (PENDING nel test).
+//   stelle); la rotaia riceve scrub ed ease da Team.tsx, e gesti-coda.test.ts
+//   li confronta con la voce `team`.
 // - Gli id sono chiavi del registro, non id del DOM: la ricerca è `ricerca`
 //   (la section è #cerca), come la legge il commit 9.
 // Nessun import: lo leggono i test in Node e i componenti client.

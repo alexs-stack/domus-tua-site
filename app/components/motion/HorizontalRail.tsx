@@ -58,6 +58,7 @@ import { useRef } from "react";
 import type { ChapterId } from "../../lib/motion/chapters";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
 import RailProgress from "./RailProgress";
+import { getLenis } from "./SmoothScroll";
 
 export default function HorizontalRail({
   children,
@@ -72,6 +73,13 @@ export default function HorizontalRail({
   /** corridoio in svh: quanto scroll il nastro si tiene, parcheggiato al
       centro dello schermo, per compiere la sua corsa. 0 = nessun corridoio. */
   runway = 0,
+  /** Scrub del track e dei pan. Il Team passa 0,7: due capitoli della home non
+      condividono lo scrub e 0,6 è del film delle stelle (A20 di Alberto, spec
+      2026-09-13 §3.1 e §3.16). */
+  scrub = 0.6,
+  /** Ease del track e dei pan, la stessa per i due piani così le velocità
+      restano proporzionali. Il Team passa "dtRail" (spec §3.16). */
+  ease = "none",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -81,6 +89,8 @@ export default function HorizontalRail({
   runway?: number;
   /** Nome del corridoio in chapters.ts (A19): data-corridor sul wrapper, solo con `runway`. */
   corridor?: ChapterId;
+  scrub?: number;
+  ease?: string;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const railRef = useRef<HTMLDivElement | null>(null);
@@ -123,21 +133,21 @@ export default function HorizontalRail({
               trigger: wrap,
               start: () => `top ${top}px`,
               end: () => `bottom ${top + rail.offsetHeight}px`,
-              scrub: 0.6,
+              scrub,
               invalidateOnRefresh: true,
             }
           : {
               trigger: rail,
               start: "top 96%",
               end: "bottom 4%",
-              scrub: 0.6,
+              scrub,
               invalidateOnRefresh: true,
             };
 
         // Eccedenza ricalcolata a ogni refresh: le larghezze sono in vw, e una
         // misura congelata al primo layout diventa un bug al primo resize.
         const overflow = () => Math.max(0, track.scrollWidth - rail.clientWidth) * speed;
-        const move = gsap.fromTo(track, { x: 0 }, { x: () => -overflow(), ease: "none", scrollTrigger: st });
+        const move = gsap.fromTo(track, { x: 0 }, { x: () => -overflow(), ease, scrollTrigger: st });
 
         const pans = gsap.utils.toArray<HTMLElement>(rail.querySelectorAll(".dt-rail_pan"));
         const pan = pans.length
@@ -146,13 +156,57 @@ export default function HorizontalRail({
               { xPercent: (i, el) => -Number((el as HTMLElement).dataset.depth ?? 6) },
               {
                 xPercent: (i, el) => Number((el as HTMLElement).dataset.depth ?? 6),
-                ease: "none",
+                ease,
                 scrollTrigger: st,
               }
             )
           : null;
 
+        // LA RETE DI TASTIERA (spec 2026-09-13 §3.16, A20 di Alberto). Con
+        // [data-on] lo scroll nativo della rotaia resta a 0: GSAP scrive `x` e
+        // il fuoco da tastiera su una tessera porta la pagina alla quota in cui
+        // il track la mostra, progresso p con ease(p) = scarto / eccedenza
+        // trovato per bisezione, poi lo scrub chiuso subito. Scatta solo col
+        // fuoco visibile, come la rete dei corridoi (correzione bloccante 3 di
+        // homeC, spec §3.18): un clic del mouse su una tessera, che ha
+        // tabIndex 0, la mette a fuoco senza spostare la pagina. Il rAF lascia
+        // passare prima lo scroll-into-view che il browser fa dopo `focusin`.
+        const zeroLeft = () => {
+          if (rail.scrollLeft !== 0) rail.scrollLeft = 0;
+        };
+        const onFocus = (e: FocusEvent) => {
+          const t = e.target instanceof Element ? e.target : null;
+          const tile = t?.closest<HTMLElement>(".dt-rail_track > *");
+          if (!parked || !tile || !t?.matches(":focus-visible")) return;
+          requestAnimationFrame(() => {
+            const trig = move.scrollTrigger;
+            if (!trig) return;
+            zeroLeft();
+            const over = overflow();
+            const shift = tile.getBoundingClientRect().left - track.getBoundingClientRect().left;
+            const target = over > 0 ? Math.min(1, Math.max(0, shift / over)) : 0;
+            const curve = gsap.parseEase(ease);
+            let lo = 0;
+            let hi = 1;
+            for (let i = 0; i < 24; i++) {
+              const mid = (lo + hi) / 2;
+              if (curve(mid) < target) lo = mid;
+              else hi = mid;
+            }
+            const y = trig.start + hi * (trig.end - trig.start);
+            const lenis = getLenis();
+            if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+            else window.scrollTo({ top: y, behavior: "instant" });
+            ScrollTrigger.update();
+            trig.getTween()?.progress(1);
+          });
+        };
+        rail.addEventListener("scroll", zeroLeft);
+        rail.addEventListener("focusin", onFocus);
+
         return () => {
+          rail.removeEventListener("scroll", zeroLeft);
+          rail.removeEventListener("focusin", onFocus);
           rail.removeAttribute("data-on");
           if (parked) {
             ScrollTrigger.removeEventListener("refreshInit", size);
@@ -167,7 +221,7 @@ export default function HorizontalRail({
         };
       });
     },
-    { scope: wrapRef, dependencies: [speed, runway], revertOnUpdate: true }
+    { scope: wrapRef, dependencies: [speed, runway, scrub, ease], revertOnUpdate: true }
   );
 
   return (

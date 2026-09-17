@@ -1361,3 +1361,97 @@ Senza corridoio:
 | 390×664 no-preference | banda / margine / crescita / #costi (px) | 197.4 / 46.5 / 243.9 / 667.7 |
 | 390×664 no-preference | richieste video / data-ambient | 0 / off, off |
 | 1440×900 reduce | richieste video / data-ambient | 0 / off, off |
+
+### Commit 16 · capitoli 13-16 della home (2026-09-17, 8cbbdd5+, 1440×900 · 1024×768 · 390×664)
+
+| viewport | misura | valore | atteso | esito |
+| --- | --- | --- | --- | --- |
+| 1440×900 | 13 m42 a metà corsa | 6.288 | (1, 35.0] | ok |
+| 1440×900 | 13 m42 a p 0,95 | 29.608 | [26.2, 35.0] | ok |
+| 1440×900 | 13 transform del link | none | none | ok |
+| 1440×900 | 14 scala al centro | 1 | [0,995, 1,005] | ok |
+| 1440×900 | 14 opacità al centro | 1 | ≥ 0,99 | ok |
+| 1440×900 | 14 scala a p 0,9 | 1.06 | [1,05, 1,07] (atteso 1,060) | ok |
+| 1440×900 | 14 opacità a p 0,9 | 0.496 | [0,45, 0,55] (atteso 0,497) | ok |
+| 1440×900 | 14 traboccamento orizzontale | 0 | ≤ 1 | ok |
+| 1440×900 | 15 x del track a p 0.25 | -73.203 | -73.2 ± 13.8 | ok |
+| 1440×900 | 15 x del track a p 0.5 | -345.5 | -345.5 ± 13.8 | ok |
+| 1440×900 | 15 x del track a p 0.75 | -617.797 | -617.8 ± 13.8 | ok |
+| 1440×900 | 15 Tab alla terza tessera | left 720, right 1325, scrollLeft 0 | dentro [0, vw], scrollLeft 0 | ok |
+| 1440×900 | 16 m42 griglia al centro | -18.759 | [−40, 40] | ok |
+| 1440×900 | 16 m42 a +400 e +800 | 8.00355 · 37.5703 | crescente, ≤ 40 | ok |
+| 1024×768 | 13 m42 a metà corsa | 4.472 | (1, 25.2] | ok |
+| 1024×768 | 13 m42 a p 0,95 | 21.085 | [18.4, 25.2] | ok |
+| 1024×768 | 13 transform del link | none | none | ok |
+| 1024×768 | 14 scala al centro | 1 | [0,995, 1,005] | ok |
+| 1024×768 | 14 opacità al centro | 1 | ≥ 0,99 | ok |
+| 1024×768 | 14 scala a p 0,9 | 1.061 | [1,05, 1,07] (atteso 1,060) | ok |
+| 1024×768 | 14 opacità a p 0,9 | 0.492 | [0,45, 0,55] (atteso 0,497) | ok |
+| 1024×768 | 14 traboccamento orizzontale | 0 | ≤ 1 | ok |
+| 1024×768 | 15 x del track a p 0.25 | -52.279 | -52.0 ± 9.8 | ok |
+| 1024×768 | 15 x del track a p 0.5 | -245.5 | -245.5 ± 9.8 | ok |
+| 1024×768 | 15 x del track a p 0.75 | -439.229 | -439.0 ± 9.8 | ok |
+| 1024×768 | 15 Tab alla terza tessera | left 513, right 943, scrollLeft 0 | dentro [0, vw], scrollLeft 0 | ok |
+| 1024×768 | 16 m42 griglia al centro | -19.256 | [−40, 40] | ok |
+| 1024×768 | 16 m42 a +400 e +800 | 8.78795 · 38.5678 | crescente, ≤ 40 | ok |
+| 390×664 | 13 m42 a metà corsa | 3.625 | (1, 20.7] | ok |
+| 390×664 | 13 m42 a p 0,95 | 17.125 | [14.8, 20.7] | ok |
+| 390×664 | 13 transform del link | none | none | ok |
+| 390×664 | 14 scala al centro | 1 | [0,995, 1,005] | ok |
+| 390×664 | 14 opacità al centro | 1 | ≥ 0,99 | ok |
+| 390×664 | 14 scala a p 0,9 | 1.061 | [1,05, 1,07] (atteso 1,060) | ok |
+| 390×664 | 14 opacità a p 0,9 | 0.495 | [0,45, 0,55] (atteso 0,497) | ok |
+| 390×664 | 14 traboccamento orizzontale | 0 | ≤ 1 | ok |
+| 390×664 | 15 rotaia | scorrimento nativo | sotto 1024 nessun [data-on] | ok |
+| 390×664 | 16 transform della colonna |  ·  ·  | none a ogni quota | ok |
+
+### Commit 16 · capitoli 13-16 della home (2026-09-17, 140f76a+, 1440×900 · 1024×768 · 390×664)
+
+| viewport | misura | valore | atteso | esito |
+| --- | --- | --- | --- | --- |
+| 1440×900 | 13 m42 a metà corsa | 6.288 | (1, 35.0] | ok |
+| 1440×900 | 13 m42 a p 0,95 | 29.608 | [26.2, 35.0] | ok |
+| 1440×900 | 13 transform del link | none | none | ok |
+| 1440×900 | 14 scala al centro | 1 | [0,995, 1,005] | ok |
+| 1440×900 | 14 opacità al centro | 1 | ≥ 0,99 | ok |
+| 1440×900 | 14 scala a p 0,9 | 1.06 | [1,05, 1,07] (atteso 1,060) | ok |
+| 1440×900 | 14 opacità a p 0,9 | 0.496 | [0,45, 0,55] (atteso 0,497) | ok |
+| 1440×900 | 14 traboccamento orizzontale | 0 | ≤ 1 | ok |
+| 1440×900 | 15 x del track a p 0.25 | -73.203 | -73.2 ± 13.8 | ok |
+| 1440×900 | 15 x del track a p 0.5 | -345.5 | -345.5 ± 13.8 | ok |
+| 1440×900 | 15 x del track a p 0.75 | -617.797 | -617.8 ± 13.8 | ok |
+| 1440×900 | 15 Tab alla terza tessera | left 720, right 1325, scrollLeft 0 | dentro [0, vw], scrollLeft 0 | ok |
+| 1440×900 | 16 m42 griglia al centro | -18.759 | [−40, 40] | ok |
+| 1440×900 | 16 m42 a +400 e +800 | 8.00355 · 37.5703 | crescente, ≤ 40 | ok |
+| 1024×768 | 13 m42 a metà corsa | 4.472 | (1, 25.2] | ok |
+| 1024×768 | 13 m42 a p 0,95 | 21.085 | [18.4, 25.2] | ok |
+| 1024×768 | 13 transform del link | none | none | ok |
+| 1024×768 | 14 scala al centro | 1 | [0,995, 1,005] | ok |
+| 1024×768 | 14 opacità al centro | 1 | ≥ 0,99 | ok |
+| 1024×768 | 14 scala a p 0,9 | 1.061 | [1,05, 1,07] (atteso 1,060) | ok |
+| 1024×768 | 14 opacità a p 0,9 | 0.492 | [0,45, 0,55] (atteso 0,497) | ok |
+| 1024×768 | 14 traboccamento orizzontale | 0 | ≤ 1 | ok |
+| 1024×768 | 15 x del track a p 0.25 | -52.279 | -52.0 ± 9.8 | ok |
+| 1024×768 | 15 x del track a p 0.5 | -245.5 | -245.5 ± 9.8 | ok |
+| 1024×768 | 15 x del track a p 0.75 | -439.229 | -439.0 ± 9.8 | ok |
+| 1024×768 | 15 Tab alla terza tessera | left 513, right 943, scrollLeft 0 | dentro [0, vw], scrollLeft 0 | ok |
+| 1024×768 | 16 m42 griglia al centro | -19.256 | [−40, 40] | ok |
+| 1024×768 | 16 m42 a +400 e +800 | 8.78795 · 38.5678 | crescente, ≤ 40 | ok |
+| 390×664 | 13 m42 a metà corsa | 3.625 | (1, 20.7] | ok |
+| 390×664 | 13 m42 a p 0,95 | 17.125 | [14.8, 20.7] | ok |
+| 390×664 | 13 transform del link | none | none | ok |
+| 390×664 | 14 scala al centro | 1 | [0,995, 1,005] | ok |
+| 390×664 | 14 opacità al centro | 1 | ≥ 0,99 | ok |
+| 390×664 | 14 scala a p 0,9 | 1.061 | [1,05, 1,07] (atteso 1,060) | ok |
+| 390×664 | 14 opacità a p 0,9 | 0.495 | [0,45, 0,55] (atteso 0,497) | ok |
+| 390×664 | 14 traboccamento orizzontale | 0 | ≤ 1 | ok |
+| 390×664 | 15 rotaia | scorrimento nativo | sotto 1024 nessun [data-on] | ok |
+| 390×664 | 16 transform della colonna |  ·  ·  | none a ogni quota | ok |
+
+Questa sezione è la rimisura del giro di correzione 1 del commit 16, dopo il passaggio del refresh di
+`Contact` a `whenStill` (D39, D53, D54, D56, D57): i gesti dei capitoli 13-16 non cambiano, 39 righe
+su 39 «ok» e i valori coincidono con la sezione «8cbbdd5+» entro il rumore dello scrub. Sulla rotta
+del cambio, `/?intent=buyer#cerca` e `/?intent=question#cerca` a 1440×900 e 390×664, il pannello
+della ricerca resta a opacità 1,000 su ~230 fotogrammi in 4 s, e l'intento cambia a +277…+295 ms con
+ancora 1.334-2.514 px di arrivo nativo da percorrere: è la finestra in cui un refresh forzato
+cancellerebbe l'arrivo (sonda nello scratchpad, non committata).

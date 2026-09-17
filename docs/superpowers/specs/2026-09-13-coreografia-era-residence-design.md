@@ -574,7 +574,7 @@ Valori invariati, scrub 0,6 compreso (la rotaia cambia al suo posto). Cambi: tit
 - Bersaglio: il blocco eyebrow + titolo (nessun focusabile). `fromTo({ scale: 1, opacity: 1 }, { scale: 1.12, opacity: 0 })`, origine `0% 100%`, `expo.in`, scrub 1,3, `center center` → `bottom top`. Rientrando dall'alto torna pieno: speculare per scrub. Opacità finale 0, non 0,02: axe salta lo 0 e misurerebbe lo 0,02.
 - Da CAT §10 (zoom e dissolvenza delle amenities), senza sticky. Nessun asse già usato dai capitoli 2 e 4.
 - Section `overflow-x-clip` (nessuno sticky dentro).
-- **Test:** @1440 e @390 al centro del viewport scala 1 e opacity 1; a metà uscita scala > 1,05 e opacity < 0,7; `scrollWidth − clientWidth ≤ 1`; reduce `none`.
+- **Test:** @1440 e @390 al centro del viewport scala 1 e opacity 1; a metà uscita scala > 1,05 e opacity < 0,7; `scrollWidth − clientWidth ≤ 1`; reduce `none`. «Metà uscita» è la metà dell'effetto: progresso 0,9 del range `center center` → `bottom top`, dove `expo.in` vale 0,5 (a progresso 0,5 vale 0,031). Lì a 1440 del blocco resta in vista un decimo del range, circa 57 px.
 
 ### 3.16 Team: la rotaia
 

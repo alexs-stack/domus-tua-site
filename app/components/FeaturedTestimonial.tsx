@@ -9,12 +9,14 @@
 // le avevamo scritte noi e firmate «Cliente Domus Tua»
 // (docs/da-chiedere-alla-cliente.md §1.2), e PRODUCT.md vieta le recensioni
 // inventate. La sola cosa vera è il video: parole del cliente, non nostre.
-import { useState, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
 import Parallax from "./motion/Parallax";
+import { gsap, useGSAP } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
 import VideoLightbox from "./VideoLightbox";
 import { Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
@@ -29,6 +31,10 @@ type Props = {
   image?: string;
   alt?: string;
   videoHref?: string;
+  /** Solo la home lo passa (D28): la cornice sta ferma e dentro la foto
+      affonda del 10 % mentre il capitolo esce (A20 di Alberto, spec
+      2026-09-13 §3.14). Senza, resta la deriva di Parallax di oggi. */
+  gesture?: boolean;
 };
 
 // `quote`, `author`, `context` restano nel record ma non vengono più resi:
@@ -111,43 +117,104 @@ export default function FeaturedTestimonial(props: Props) {
     setOpen({ id: testimonialVideo.id, title });
   };
 
+  const gesture = props.gesture ?? false;
+  const frameRef = useRef<HTMLAnchorElement | null>(null);
+  const sinkRef = useRef<HTMLDivElement | null>(null);
+
+  // La foto affonda dentro la cornice ferma (A20 di Alberto, spec 2026-09-13
+  // §3.14): il contenitore alto il 110 % scende di 9,0909 % di sé, cioè del
+  // 10 % della cornice, mentre il bordo basso della cornice va dal fondo alla
+  // cima del viewport. Solo con motion ok e solo in home (D28). Nessuno stato
+  // iniziale scritto: yPercent 0 è lo stato del CSS.
+  useGSAP(
+    () => {
+      const frame = frameRef.current;
+      const sink = sinkRef.current;
+      if (!gesture || !frame || !sink) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        gsap.fromTo(
+          sink,
+          { yPercent: 0 },
+          {
+            yPercent: 9.0909,
+            ease: "dtAffonda",
+            scrollTrigger: {
+              trigger: frame,
+              start: "bottom bottom",
+              end: "bottom top",
+              scrub: 1.2,
+              invalidateOnRefresh: true,
+              onToggle: (self) => {
+                sink.style.willChange = self.isActive ? "transform" : "";
+              },
+            },
+          },
+        );
+        return () => {
+          sink.style.willChange = "";
+        };
+      });
+    },
+    { dependencies: [gesture], revertOnUpdate: true },
+  );
+
+  // Il link è la cornice: non si muove mai, il bersaglio del dito resta fermo e
+  // l'outline di focus sta fuori dal suo overflow. `data-bg="foto"` dice al
+  // monogramma che qui sotto c'è una foto (A21, spec §6.1).
+  const link = (
+    <a
+      ref={frameRef}
+      data-sink-frame
+      data-bg="foto"
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${c.play}: ${title}`}
+      onClick={onClick}
+      className="dt-media-half !aspect-video group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
+    >
+      {/* Con `gesture` il contenitore è alto il 110 % (overscan del 10 %) e la
+          sizes sale a 61vw: cornice 605×340 a 1440, cover 665 px × 1,30 =
+          865 px (spec §3.14). */}
+      <div
+        ref={sinkRef}
+        data-sink={gesture ? "" : undefined}
+        className={gesture ? "absolute inset-x-0 bottom-0 top-[-10%]" : "absolute inset-0"}
+      >
+        {/* `dt-still-trim--top` toglie la banda col titolo cotta in cima
+            alla copertina («VIDEO RECENSIONE / APPARTAMENTO VENDUTO AL
+            PRIMO OPEN DOMUS»): sopra un titolo gia' stampato nei pixel non
+            se ne mette un secondo. Il cuore Domus in basso a destra resta:
+            e' il loro marchio, non la grafica di YouTube. */}
+        <Image
+          src={image}
+          alt={alt}
+          fill
+          sizes={gesture ? "(max-width:1024px) 132vw, 61vw" : "(max-width:1024px) 132vw, 56vw"}
+          // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
+          quality={75}
+          className="dt-still-trim--top object-cover"
+        />
+      </div>
+      {/* 56px sul telefono, 96 da desktop: la stessa regola del carosello
+          delle voci — il cerchio grande copriva i volti sulla tessera. */}
+      <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 lg:h-24 lg:w-24">
+        <Play className="ml-1 h-5 w-5 lg:h-7 lg:w-7" />
+      </span>
+    </a>
+  );
+
   return (
     <section className="dt-chapter bg-cream">
       <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
         {/* Il fotogramma è 1280×720: sta nel modulo «banda» (16:9), non in un
             quadrato — il file porta il titolo del video cotto nella fascia
-            alta e un taglio 1:1 lo mozzerebbe.
-            Deriva ±4 % allo scroll; il cerchio rosso è l'unica curva. */}
-        <Parallax speed={-0.04}>
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${c.play}: ${title}`}
-            onClick={onClick}
-            className="dt-media-half !aspect-video group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
-          >
-            {/* `dt-still-trim--top` toglie la banda col titolo cotta in cima
-                alla copertina («VIDEO RECENSIONE / APPARTAMENTO VENDUTO AL
-                PRIMO OPEN DOMUS»): sopra un titolo gia' stampato nei pixel non
-                se ne mette un secondo. Il cuore Domus in basso a destra resta:
-                e' il loro marchio, non la grafica di YouTube. */}
-            <Image
-              src={image}
-              alt={alt}
-              fill
-              sizes="(max-width:1024px) 132vw, 56vw"
-              // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
-              quality={75}
-              className="dt-still-trim--top object-cover"
-            />
-            {/* 56px sul telefono, 96 da desktop: la stessa regola del carosello
-                delle voci — il cerchio grande copriva i volti sulla tessera. */}
-            <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 lg:h-24 lg:w-24">
-              <Play className="ml-1 h-5 w-5 lg:h-7 lg:w-7" />
-            </span>
-          </a>
-        </Parallax>
+            alta e un taglio 1:1 lo mozzerebbe. In home la cornice sta ferma
+            e la foto affonda dentro (A20, D28); su /vendi, /acquista e
+            /recensioni resta la deriva ±4 % di Parallax. Il cerchio rosso è
+            l'unica curva. */}
+        {gesture ? link : <Parallax speed={-0.04}>{link}</Parallax>}
 
         <div className="lg:pl-[6vw]">
           <Reveal>

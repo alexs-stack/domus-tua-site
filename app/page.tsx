@@ -85,10 +85,10 @@ export default function Home() {
         <DomusDocProtocol />
         <Services />
         <CostiChiari acqua />
-        <FeaturedTestimonial />
+        <FeaturedTestimonial gesture />
         <Social />
         <Team />
-        <Contact />
+        <Contact gesture />
         <Congedo />
       </main>
       <Footer />

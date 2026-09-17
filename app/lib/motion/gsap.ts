@@ -109,6 +109,12 @@ CustomEase.create("dtEase", "0.25,0.1,0.25,1");
 // NON lineare anche se usata come containerAnimation: i reveal once:true
 // tollerano lo scarto e il gesto guadagna testa/coda.
 CustomEase.create("dtHorScroll", "0.25,0,0.75,1");
+// "dtAffonda" (0.5,0,0.8,0.45): la foto della testimonianza che affonda nella
+// cornice ferma, capitolo 13 della home (A20 di Alberto, spec 2026-09-13 §3.14).
+CustomEase.create("dtAffonda", "0.5,0,0.8,0.45");
+// "dtRail" (0.5,0,0.5,1): la rotaia del team e il pan delle tessere, capitolo 15
+// (A20, spec §3.16); vale anche su /chi-siamo.
+CustomEase.create("dtRail", "0.5,0,0.5,1");
 // "dtInOut" = l'InOut di era-residence (0.75,0,0.25,1): firma della finestra di Open Domus,
 // scala 1,84 delle tende e .75 → 1 dello stage (A20 di Alberto, spec §3.1 riga 9).
 CustomEase.create("dtInOut", "0.75,0,0.25,1");

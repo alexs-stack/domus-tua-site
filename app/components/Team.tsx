@@ -20,7 +20,6 @@
 
 import Image from "next/image";
 import Reveal from "./Reveal";
-import Parallax from "./motion/Parallax";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
 import HorizontalRail from "./motion/HorizontalRail";
@@ -157,19 +156,20 @@ export default function Team({ compact = false }: { compact?: boolean }) {
           cornice 4:5 di prima ne teneva il 53 % ingrandendola: cornice che
           segue la sorgente, non la griglia. */}
       <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
-        <Parallax speed={-0.04}>
-          <div className="dt-media-half">
-            <Image
-              src="/images/reali/raffaela-founder.jpg"
-              style={{ objectPosition: "18% 50%" }}
-              alt={c.founderAlt}
-              fill
-              /* Scatola quadrata, sorgente 3:2: resa larga 1,5 volte il lato. */
-              sizes="(max-width: 1024px) 150vw, 63vw"
-              className="object-cover"
-            />
-          </div>
-        </Parallax>
+        {/* Il ritratto sta fermo, qui e su /chi-siamo: il capitolo ha un gesto
+            solo, la rotaia (D23, spec 2026-09-13 §3.16). `data-bg="foto"` dice
+            al monogramma che qui sotto c'è una foto (A21, §6.1). */}
+        <div className="dt-media-half" data-bg="foto">
+          <Image
+            src="/images/reali/raffaela-founder.jpg"
+            style={{ objectPosition: "18% 50%" }}
+            alt={c.founderAlt}
+            fill
+            /* Scatola quadrata, sorgente 3:2: resa larga 1,5 volte il lato. */
+            sizes="(max-width: 1024px) 150vw, 63vw"
+            className="object-cover"
+          />
+        </div>
 
         <div className="lg:pl-[6vw]">
           <Reveal>
@@ -215,10 +215,16 @@ export default function Team({ compact = false }: { compact?: boolean }) {
             le utility: gap, padding e allineamento passano solo col `!`.
             `items-start`: le foto ora hanno tutte la stessa altezza, ma una
             didascalia che andasse a capo non deve alzare la tessera accanto. */}
+        {/* Scrub 0,7 ed ease dtRail: la rotaia è il gesto del capitolo 15 e non
+            condivide scrub ed ease con nessun altro capitolo (A20 di Alberto,
+            spec 2026-09-13 §3.1); vale anche su /chi-siamo. `corridor="team"`
+            è il corridoio di A19 che corridors.spec.ts conta. */}
         <HorizontalRail
           corridor="team"
           runway={120}
           snapMobile
+          scrub={0.7}
+          ease="dtRail"
           className="mt-10"
           trackClassName="!items-start !gap-[3vw] !px-[5vw] md:!px-[8vw]"
         >
@@ -231,7 +237,7 @@ export default function Team({ compact = false }: { compact?: boolean }) {
                Tab passa da una foto all'altra e lo scroller le segue.
                Lo snap lo detta il CSS (`[data-snap]` → center), non le utility. */
             <figure key={t.src} tabIndex={0} className={`shrink-0 ${TILE}`}>
-              <div className="dt-media-column">
+              <div className="dt-media-column" data-bg="foto">
                 <div
                   className="dt-rail_pan"
                   data-depth={DEPTH}

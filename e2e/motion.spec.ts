@@ -295,3 +295,22 @@ test.describe("la parallasse della foto di pagina", () => {
     }
   });
 });
+
+// Capitoli 13-16 (spec 2026-09-13 §3.14-3.17): con reduced motion nessun gesto
+// scrive transform o opacità. La pagina è completa e ferma.
+test("i gesti dei capitoli 13-16 con reduced motion non muovono nulla", async ({ page, goto }) => {
+  await goto("/");
+  for (const sel of ["main a[data-sink-frame] [data-sink]", "[data-seguici-congedo]", "#contatti [data-lag-col]"]) {
+    const el = page.locator(sel).first();
+    await el.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const s = await el.evaluate((n) => ({
+      t: getComputedStyle(n).transform,
+      o: getComputedStyle(n).opacity,
+      inline: (n as HTMLElement).getAttribute("style") ?? "",
+    }));
+    expect(s.t, sel).toBe("none");
+    expect(s.o, sel).toBe("1");
+    expect(s.inline, sel).not.toMatch(/transform|translate|scale|opacity/);
+  }
+});
