@@ -1,4 +1,6 @@
+import type { Page } from "@playwright/test";
 import { test, expect, setConsent, clickUntil, videoTile } from "./helpers";
+import { matrixOf } from "./coreografia";
 
 // Homepage: che carichi, che l'intro non intrappoli nessuno, che l'header funzioni alla
 // larghezza in cui ci si trova.
@@ -430,5 +432,207 @@ test.describe("Posizionamento: il foglio e le parole", () => {
     test.skip(vp.width >= 1024 && vp.height >= 640, "qui il gate è acceso");
     await goto("/");
     await expect(page.locator("[data-hero-cover]")).toHaveCSS("margin-top", "0px");
+  });
+});
+
+// ── HomeSearchGateway: l'aggancio del pannello ────────────────────────────
+// Alberto, 13 settembre 2026 (A18-A20): il pannello del form si aggancia allo
+// scroll, opacità 0,02 → 1 e scala 0,75 → 1 dal centro (spec coreografia §3.4, CAT §6a).
+test.describe("HomeSearchGateway: l'aggancio del pannello", () => {
+  /**
+   * Porta il bordo alto dell'innesco `[data-dock]` alla frazione f del viewport. L'innesco non scala
+   * (la scala sta su `[data-dock-panel]`): il suo bordo è quello che ScrollTrigger misura per `top 95%` e `top 55%`.
+   */
+  async function portaDock(page: Page, f: number) {
+    await page.evaluate(async (fr) => {
+      const d = document.querySelector<HTMLElement>("[data-dock]")!;
+      let y = 0;
+      for (let el: HTMLElement | null = d; el; el = el.offsetParent as HTMLElement | null) y += el.offsetTop;
+      window.scrollTo({ top: y - fr * window.innerHeight, behavior: "instant" as ScrollBehavior });
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    }, f);
+    await page.waitForTimeout(900); // scrub 0,35 più margine
+  }
+
+  test("al 40 % è pieno e fermo; al 95 % quasi spento; il fuoco lo porta a 1 e resta 1", async ({ page, goto }) => {
+    await goto("/");
+    const panel = page.locator("[data-dock-panel]");
+    await expect(panel).toBeAttached();
+    const opacita = () => panel.evaluate((el) => Number(getComputedStyle(el).opacity));
+    await portaDock(page, 0.4);
+    await expect.poll(opacita, { timeout: 3000 }).toBeGreaterThanOrEqual(0.99);
+    const m = await matrixOf(panel);
+    expect(Math.abs(m.a - 1)).toBeLessThanOrEqual(0.01);
+    expect(Math.abs(m.d - 1)).toBeLessThanOrEqual(0.01);
+
+    await portaDock(page, 0.95);
+    await expect.poll(opacita, { timeout: 3000 }).toBeLessThan(0.5);
+    const innesco = await matrixOf(page.locator("[data-dock]"));
+    expect([innesco.a, innesco.d], "la scala è finita sull'innesco [data-dock]").toEqual([1, 1]);
+    const campo = panel.locator("input").first();
+    await campo.focus();
+    await page.waitForTimeout(100);
+    expect(await opacita()).toBeGreaterThanOrEqual(0.999);
+    await campo.fill("Villa a Tradate");
+    await expect(campo).toHaveValue("Villa a Tradate");
+    await campo.blur();
+    await page.evaluate(() => window.scrollBy({ top: 200, behavior: "instant" as ScrollBehavior }));
+    await page.waitForTimeout(700);
+    expect(await opacita()).toBeGreaterThanOrEqual(0.999);
+  });
+
+  test("con l'ancora #cerca il pannello non passa mai sotto 0,99", async ({ page, goto }) => {
+    await page.addInitScript(() => {
+      const rec = { min: 1, fotogrammi: 0 };
+      (window as unknown as { __dock: typeof rec }).__dock = rec;
+      const t0 = performance.now();
+      const giro = () => {
+        const d = document.querySelector<HTMLElement>("[data-dock-panel]");
+        if (d) {
+          rec.fotogrammi += 1;
+          rec.min = Math.min(rec.min, Number(getComputedStyle(d).opacity));
+        }
+        if (performance.now() - t0 < 4000) requestAnimationFrame(giro);
+      };
+      requestAnimationFrame(giro);
+    });
+    await goto("/#cerca");
+    await page.waitForTimeout(4200);
+    const rec = await page.evaluate(() => (window as unknown as { __dock: { min: number; fotogrammi: number } }).__dock);
+    expect(rec.fotogrammi).toBeGreaterThan(0);
+    expect(rec.min, `il pannello è sceso a ${rec.min}`).toBeGreaterThanOrEqual(0.99);
+  });
+
+  // Spec §3.4 (A20): l'ancora si legge dall'hash per non spegnere il pannello con `/#cerca`. Un
+  // frammento malformato (`/#%`, `/#a%E2`, link troncati) fa lanciare decodeURIComponent dentro il
+  // layout effect: senza guardia la home cade su app/error.tsx (React 19 lo riporta in console,
+  // non come pageerror). Qui la home resta montata e l'aggancio nasce lo stesso.
+  for (const frammento of ["#%", "#a%E2"]) {
+    test(`con un frammento malformato (/${frammento}) la home non cade e il pannello si aggancia`, async ({ page, goto }) => {
+      const errori: string[] = [];
+      page.on("pageerror", (e) => errori.push(e.message));
+      page.on("console", (m) => {
+        if (m.type() === "error") errori.push(m.text());
+      });
+      await goto(`/${frammento}`);
+      const panel = page.locator("[data-dock-panel]");
+      // Senza ancora e con l'innesco sotto la linea di start lo stato spento nasce via JS dopo
+      // l'idratazione: opacità 0,02. Se la home si smonta, il pannello sparisce. Conteggio e
+      // opacità nello stesso task: un handle a un nodo staccato darebbe opacità "" (0).
+      await expect
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const p = document.querySelector<HTMLElement>("[data-dock-panel]");
+              return { pannelli: document.querySelectorAll("[data-dock-panel]").length, spento: !!p && Number(getComputedStyle(p).opacity) < 0.5 };
+            }),
+          { timeout: 8000 },
+        )
+        .toEqual({ pannelli: 1, spento: true });
+      // Lo stato deve reggere: con la home smontata il pannello sparisce entro pochi fotogrammi.
+      await page.waitForTimeout(1000);
+      expect(await panel.count(), "il pannello è sparito: la home si è smontata").toBe(1);
+      expect(errori.filter((m) => /URIError|malformed/i.test(m)), "errori di pagina").toEqual([]);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    });
+  }
+});
+
+// ── Voci: il carosello arriva da destra ───────────────────────────────────
+// Alberto, 13 settembre 2026 (A18-A20): parallelogramma e scorrimento da destra
+// di Era a ogni ingresso dal basso, chiusura verso sinistra risalendo (C22,
+// replay nei due versi). Spec coreografia §3.7.
+test.describe("Voci: il carosello arriva da destra", () => {
+  const stili = (page: Page) =>
+    page.evaluate(() => {
+      const ul = document.querySelector<HTMLElement>("#voci ul")!;
+      return {
+        clip: Array.from(document.querySelectorAll<HTMLElement>("#voci [data-voci-slide]")).filter((s) => s.style.clipPath !== "").length,
+        inner: Array.from(document.querySelectorAll<HTMLElement>("#voci [data-voci-slide-inner]")).filter((s) => s.style.transform !== "").length,
+        ul: ul.style.transform,
+      };
+    });
+  const portaRotaia = (page: Page, f: number) =>
+    page.evaluate(async (fr) => {
+      const ul = document.querySelector<HTMLElement>("#voci ul")!;
+      window.scrollTo({ top: ul.getBoundingClientRect().top + window.scrollY - fr * window.innerHeight, behavior: "instant" as ScrollBehavior });
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    }, f);
+
+  test("entra senza traboccare, a 1,6 s non lascia stili, risalendo si richiude e poi rientra", async ({ page, goto }) => {
+    await goto("/");
+    // Lo stato chiuso nasce via JS, perché al montaggio la rotaia è sotto la piega.
+    await expect.poll(async () => (await stili(page)).clip, { timeout: 15_000 }).toBeGreaterThan(0);
+    await page.evaluate(() => {
+      const rec = { max: -1 };
+      (window as unknown as { __trabocco: typeof rec }).__trabocco = rec;
+      const t0 = performance.now();
+      const giro = () => {
+        rec.max = Math.max(rec.max, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        if (performance.now() - t0 < 2200) requestAnimationFrame(giro);
+      };
+      requestAnimationFrame(giro);
+    });
+    await portaRotaia(page, 0.5);
+    await page.waitForTimeout(1600);
+    expect(await stili(page)).toEqual({ clip: 0, inner: 0, ul: "" });
+    await page.waitForTimeout(700);
+    const trabocco = await page.evaluate(() => (window as unknown as { __trabocco: { max: number } }).__trabocco.max);
+    expect(trabocco, `il documento ha traboccato di ${trabocco}px durante l'ingresso`).toBeLessThanOrEqual(0);
+
+    await portaRotaia(page, 0.9);
+    await expect.poll(async () => (await stili(page)).clip, { timeout: 2000 }).toBeGreaterThan(0);
+    await portaRotaia(page, 0.5);
+    await page.waitForTimeout(1600);
+    expect((await stili(page)).clip).toBe(0);
+    expect((await stili(page)).inner).toBe(0);
+  });
+
+  // Spec §2.4 («Armamento»: in viewport nessuna uscita) e D22 (ricarica a metà pagina).
+  test("ricaricando con la rotaia fra il 70 % e il 100 % del viewport le tessere in vista non si chiudono", async ({ page, goto }) => {
+    // Registra l'armamento: dove sta la rotaia all'observe e se una tessera prende una clip a scroll fermo.
+    await page.addInitScript(() => {
+      const rec = { rapporto: null as number | null, fotogrammi: 0, chiusure: 0 };
+      (window as unknown as { __voci: typeof rec }).__voci = rec;
+      const observe = IntersectionObserver.prototype.observe;
+      IntersectionObserver.prototype.observe = function (this: IntersectionObserver, target: Element) {
+        if (rec.rapporto === null && target instanceof HTMLElement && target.matches("#voci ul")) {
+          rec.rapporto = target.getBoundingClientRect().top / window.innerHeight;
+          const y0 = window.scrollY;
+          const t0 = performance.now();
+          const giro = () => {
+            if (Math.abs(window.scrollY - y0) <= 2) {
+              rec.fotogrammi += 1;
+              const slides = Array.from(document.querySelectorAll<HTMLElement>("#voci [data-voci-slide]"));
+              if (slides.some((s) => s.style.clipPath !== "")) rec.chiusure += 1;
+            }
+            if (performance.now() - t0 < 1500) requestAnimationFrame(giro);
+          };
+          requestAnimationFrame(giro);
+        }
+        return observe.call(this, target);
+      };
+    });
+    await goto("/");
+    await expect(page.locator("#voci ul")).toBeAttached();
+    await portaRotaia(page, 0.8);
+    await page.waitForTimeout(1200);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __voci: { rapporto: number | null } }).__voci.rapporto), {
+        timeout: 15_000,
+      })
+      .not.toBeNull();
+    await page.waitForTimeout(1700);
+    const rec = await page.evaluate(
+      () => (window as unknown as { __voci: { rapporto: number; fotogrammi: number; chiusure: number } }).__voci,
+    );
+    expect(
+      rec.rapporto,
+      "all'armamento la rotaia non stava fra il 70 % e il 100 % del viewport: scenario non esercitato, controllare il ripristino dello scroll (D22)",
+    ).toBeGreaterThan(0.7);
+    expect(rec.rapporto).toBeLessThan(1);
+    expect(rec.fotogrammi).toBeGreaterThan(10);
+    expect(rec.chiusure, "le tessere in vista si sono chiuse all'armamento, senza scroll").toBe(0);
   });
 });

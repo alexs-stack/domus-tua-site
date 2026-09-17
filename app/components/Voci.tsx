@@ -14,6 +14,19 @@
 // scorrimento NATIVO (overflow + scroll-snap, le frecce fanno scrollBy):
 // nessun pin, nessun ScrollTrigger, nessuna sezione sticky. In coda il widget
 // Trustindex, invariato e dietro lo stesso cancello del consenso di prima.
+//
+// COREOGRAFIA (Alberto, 13 settembre 2026: A18-A20; spec coreografia §3.7, CAT §4):
+// il carosello arriva da destra. A ogni ingresso dal basso le tessere in vista si
+// aprono col parallelogramma di Era e l'immagine scorre da xPercent 25 a 0; al primo
+// ingresso per montaggio scorre anche la rotaia. Risalendo, sotto la linea del 70 %,
+// si richiudono verso sinistra: replay nei due versi, come chiede C22 dal 4 agosto.
+// Innesco a IntersectionObserver (firma `voci` in chapters.ts), perché subito dopo i
+// 360svh delle stelle ScrollTrigger sfasava. Niente scala 1,5 di Era: sopra
+// `dt-still-trim` (1,43) non c'è margine di pixel. ECCEZIONE MOTIVATA alla regola del
+// 4 agosto «nei replay nessun bersaglio che si sposta sotto il puntatore»: il link non
+// riceve mai clip né transform, la rotaia trasla solo al primo ingresso sul bordo
+// basso del viewport, nei replay si muovono solo clip e immagine dentro il link, il cui
+// box resta cliccabile. Il play resta fuori dall'immagine che scorre.
 import { useRef, useState } from "react";
 import Image from "next/image";
 import YoutubeThumb from "./YoutubeThumb";
@@ -28,6 +41,10 @@ import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
 import { ratingLabel, site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
+import { gsap, useGSAP } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
+import { chapters } from "../lib/motion/chapters";
+import { clipSlant } from "../lib/motion/clip";
 
 const copy = {
   it: {
@@ -126,6 +143,13 @@ const copy = {
 const arrowClass =
   "flex h-14 w-14 items-center justify-center rounded-full border border-ink text-ink transition-colors duration-300 hover:border-red hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red";
 
+// L'uscita del parallelogramma di Era, per A20 di Alberto (fedeltà letterale: animateSlide,
+// CAT §4; spec coreografia §3.7): da un quadrilatero più largo della tessera a una linea
+// sul bordo sinistro, in 0,6 s.
+const SLIDE_OUT_FROM = "polygon(0% 0%, 100% 0%, 125% 100%, 0% 100%)";
+const SLIDE_OUT_TO = "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)";
+const SLIDE_OUT_DUR = 0.6;
+
 export default function Voci() {
   const { locale } = useLocale();
   const c = copy[locale];
@@ -147,6 +171,132 @@ export default function Voci() {
     if (!rail) return;
     rail.scrollBy({ left: dir * rail.clientWidth * 0.6, behavior: "smooth" });
   };
+
+  useGSAP(
+    (_context, contextSafe) => {
+      const rail = railRef.current;
+      if (!rail || !contextSafe) return;
+      const sig = chapters.voci.signature;
+      if (!("io" in sig.trigger) || !("dur" in sig.time)) return;
+      const { rootMargin, threshold } = sig.trigger.io;
+      const { dur, delay, stagger } = sig.time;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const slides = gsap.utils.toArray<HTMLElement>("[data-voci-slide]", rail);
+        const inners = (list: HTMLElement[]) =>
+          list.map((s) => s.querySelector<HTMLElement>("[data-voci-slide-inner]")).filter((n): n is HTMLElement => !!n);
+        // Tessere in vista nella rotaia (A20, spec §3.7): offsetLeft − scrollLeft, che la traslazione della rotaia non tocca.
+        const inVista = () =>
+          slides.filter((s) => {
+            const li = s.closest("li");
+            if (!li) return false;
+            const left = li.offsetLeft - rail.offsetLeft - rail.scrollLeft;
+            return left < rail.clientWidth && left + li.offsetWidth > 0;
+          });
+        const tutti = [rail, ...slides, ...inners(slides)];
+
+        let state: "shown" | "hidden" = "shown";
+        let primoIngresso = false;
+        // A20, spec §3.7 e §2.4 («Armamento»): stato chiuso scritto solo se al montaggio la rotaia è sotto la piega.
+        if (rail.getBoundingClientRect().top > window.innerHeight) {
+          const v = inVista();
+          gsap.set(v, { clipPath: clipSlant(0) });
+          gsap.set(inners(v), { xPercent: 25 });
+          gsap.set(rail, { xPercent: 25 });
+          state = "hidden";
+          primoIngresso = true;
+        }
+
+        const enter = contextSafe(() => {
+          state = "shown";
+          const v = inVista();
+          const resto = slides.filter((s) => !v.includes(s));
+          gsap.set([...resto, ...inners(resto)], { clearProps: "clipPath,transform" });
+          if (primoIngresso) {
+            primoIngresso = false;
+            gsap.fromTo(
+              rail,
+              { xPercent: 25 },
+              { xPercent: 0, duration: dur, ease: sig.ease, overwrite: true, onComplete: () => gsap.set(rail, { clearProps: "transform" }) },
+            );
+          }
+          gsap.fromTo(
+            v,
+            { clipPath: clipSlant(0) },
+            {
+              clipPath: clipSlant(1),
+              duration: dur,
+              delay,
+              stagger,
+              ease: sig.ease,
+              overwrite: true,
+              onComplete: () => gsap.set(v, { clearProps: "clipPath" }),
+            },
+          );
+          gsap.fromTo(
+            inners(v),
+            { xPercent: 25 },
+            {
+              xPercent: 0,
+              duration: dur,
+              delay,
+              stagger,
+              ease: sig.ease,
+              overwrite: true,
+              onComplete: () => gsap.set(inners(v), { clearProps: "transform" }),
+            },
+          );
+        });
+
+        const exit = contextSafe(() => {
+          state = "hidden";
+          const v = inVista();
+          gsap.fromTo(v, { clipPath: SLIDE_OUT_FROM }, { clipPath: SLIDE_OUT_TO, duration: SLIDE_OUT_DUR, ease: sig.ease, overwrite: true });
+          gsap.fromTo(inners(v), { xPercent: 0 }, { xPercent: -25, duration: SLIDE_OUT_DUR, ease: sig.ease, overwrite: true });
+        });
+
+        let primoCallback = true;
+        const io = new IntersectionObserver(
+          ([e]) => {
+            if (!e) return;
+            // Il primo callback arriva all'observe e descrive la posizione dell'armamento, non un
+            // passaggio: con la rotaia fra il 70 % e il 100 % del viewport (ricarica a metà pagina, D22)
+            // le tessere restano aperte (spec §2.4, «Armamento»: in viewport nessuna uscita).
+            if (primoCallback) {
+              primoCallback = false;
+              if (!e.isIntersecting) return;
+            }
+            if (e.isIntersecting) {
+              if (state === "hidden") enter();
+            } else if (state === "shown" && e.rootBounds && e.boundingClientRect.top > e.rootBounds.bottom) {
+              exit();
+            }
+          },
+          { rootMargin, threshold },
+        );
+        io.observe(rail);
+
+        // Tastiera (spec §2.4, «Reti»: focusin in un gruppo non shown → shown, applicata alla rotaia
+        // per A18-A20): una tessera che prende il fuoco a rotaia chiusa si apre subito.
+        const onFocus = contextSafe(() => {
+          if (state === "shown") return;
+          state = "shown";
+          primoIngresso = false;
+          gsap.killTweensOf(tutti);
+          gsap.set(tutti, { clearProps: "clipPath,transform" });
+        });
+        rail.addEventListener("focusin", onFocus);
+
+        return () => {
+          io.disconnect();
+          rail.removeEventListener("focusin", onFocus);
+          gsap.killTweensOf(tutti);
+          gsap.set(tutti, { clearProps: "clipPath,transform" });
+        };
+      });
+    },
+    { scope: railRef },
+  );
 
   return (
     <section id="voci" className="dt-chapter bg-cream">
@@ -178,7 +328,7 @@ export default function Voci() {
           se ne vedeva una e un terzo, e il carosello sembrava rotto. Sul
           telefono la tessera è a tutta larghezza (niente margini, snap al
           centro): una foto per volta, senza spicchi della successiva. */}
-      <div className="relative mt-[clamp(3rem,8vh,6rem)]">
+      <div className="relative mt-[clamp(3rem,8vh,6rem)] overflow-x-clip">
         <ul
           ref={railRef}
           aria-label={c.listLabel}
@@ -216,13 +366,18 @@ export default function Voci() {
                     il filmato. Altrimenti sopra un titolo e un play gia'
                     stampati nei pixel ce ne mettevamo altri due. Sparisce il
                     giorno in cui arrivano i fotogrammi puliti. */}
-                <span className="dt-media-full block">
-                  <YoutubeThumb
-                    id={v.id}
-                    alt=""
-                    sizes="(max-width: 768px) 143vw, (max-width: 1024px) 66vw, 46vw"
-                    className="dt-still-trim object-cover"
-                  />
+                <span data-voci-slide className="dt-media-full block">
+                  {/* L'immagine che scorre da destra (A20 di Alberto, spec coreografia §3.7): absolute
+                      a filo della tessera, così `fill` di next/image ha il suo
+                      contenitore e `dt-still-trim` resta sull'img. */}
+                  <span data-voci-slide-inner className="absolute inset-0 block">
+                    <YoutubeThumb
+                      id={v.id}
+                      alt=""
+                      sizes="(max-width: 768px) 143vw, (max-width: 1024px) 66vw, 46vw"
+                      className="dt-still-trim object-cover"
+                    />
+                  </span>
                   {/* 56px sul telefono: il cerchio da 96 copriva le facce su
                       una tessera larga uno schermo. 96 resta da desktop. */}
                   <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 lg:h-24 lg:w-24">

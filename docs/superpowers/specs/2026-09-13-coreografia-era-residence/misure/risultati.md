@@ -487,3 +487,81 @@ Decisione: misura della verifica completa del commit 7, sul build lasciato dagli
 | 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 21379) | ok |
 
 Decisione: misure del giro di correzione 1 del commit 8, sul build lasciato dagli e2e del giro (sette spec verdi sui tre progetti: 238 passati, 41 saltati), albero con D54 (`whenStill` in `gsap.ts`, cambio lingua a scroll fermo), D55 (bordo del lockup 0,35 s nell'e2e) e D56 (`load` fuori da `autoRefreshEvents`, refresh dopo load a scroll fermo); `058fe26+` è il commit 8 nella prima versione, con l'albero corretto, prima dell'amend che lo riscrive. Uscita 0 per `08-hero-dive.mjs` e `07-corridoi.mjs`, coi numeri della prima versione: tuffo a 1440×900 H 984, stickTop −84, aggancio 175 e sgancio 1975 (spec §3.2: 174/1974, +1 px), tImg 1019, t′ 815, corsa 1800, margine del foglio −900, foto −275 e testo −479 a p 0,6, scala 1,117 a p 0,75 e 2 a p 1 col foglio a 0 e al centro, segno a quattro punte sempre sotto il bordo (minimo +63 a 1440, +45 a 1024×768); 1023×768 scala 1,12, foto −59,1, lift −92,2 (−12svh); 390×664 foto ferma, lift −53,1 (−8svh); parole di Posizionamento sull'atteso entro 0,1 px e mai fuori dall'h2, in it e de. Corridoi `hero recensioni storia team` a 1440×900, 1024×768 e 1920×1080; altezza della home 30.672 px a 1440×900 (+900 sul commit 7, spec §4), 26.588 a 1024×768, 34.454 a 1920×1080; sotto il gate invariata (21.622 a 1440×600, 27.710 a 390×664); ricarica a metà di `#servizi` a 0,6 px. Deep link `/#contatti` a 1440×900 (sonda del report del giro, `next start` avviato dalla sonda e prima navigazione a server appena acceso): a freddo e a caldo l'arrivo si ferma a scrollY 23.960, cioè 3.415 px prima dell'ancora in `it` (difetto preesistente del commit 7: la pagina cresce dopo load) e 3.972 con cookie `de` (stessa quota, ancora tedesca 557 px più in basso), contro i 25.146-25.922 a freddo e i 19.856 in `de` prima di D54 e D56; le danze dei misuratori di ScrollTrigger partono a 1,9-2,3 s, ad arrivo finito.
+
+### 09 · aggancio della ricerca e carosello di Voci (2026-09-17, commit 926e7f0+, 1440×900)
+
+| gesto | bordoAlto | opacita | scala | innescoFermo | chiuseAlMontaggio | t | clip | rotaia | trabocco |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ricerca | 95 % | 0.02 | 0.75 | 1 |  |  |  |  |  |
+| ricerca | 85 % | 0.668 | 0.915 | 1 |  |  |  |  |  |
+| ricerca | 75 % | 0.869 | 0.967 | 1 |  |  |  |  |  |
+| ricerca | 65 % | 0.969 | 0.992 | 1 |  |  |  |  |  |
+| ricerca | 55 % | 1 | 1 | 1 |  |  |  |  |  |
+| ricerca | 40 % | 1 | 1 | 1 |  |  |  |  |  |
+| voci |  |  |  |  | 3 |  |  |  |  |
+| voci |  |  |  |  |  | 3 | polygon(100% 0%, 100% 0%, 101% 100%, 125% 100%) | translate(25%, 0%) | 0 |
+| voci |  |  |  |  |  | 252 | polygon(92.5026% 0%, 100% 0%, 100.925% 100%, 115.628% 100%) | translate(23.1256%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 500 | polygon(35.807% 0%, 100% 0%, 100.358% 100%, 44.7588% 100%) | translate(8.9518%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 751 | polygon(4.8139% 0%, 100% 0%, 100.048% 100%, 6.0174% 100%) | translate(1.2035%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 1001 | polygon(0.002% 0%, 100% 0%, 100% 100%, 0.0025% 100%) | translate(0.0005%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 1350 | vuoto | vuoto | 0 |
+| voci |  |  |  |  |  | 1601 | vuoto | vuoto | 0 |
+
+### 09 · aggancio della ricerca e carosello di Voci (2026-09-17, commit 926e7f0+, 390×664)
+
+| gesto | bordoAlto | opacita | scala | innescoFermo | chiuseAlMontaggio | t | clip | rotaia | trabocco |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ricerca | 95 % | 0.02 | 0.75 | 1 |  |  |  |  |  |
+| ricerca | 85 % | 0.67 | 0.916 | 1 |  |  |  |  |  |
+| ricerca | 75 % | 0.869 | 0.967 | 1 |  |  |  |  |  |
+| ricerca | 65 % | 0.969 | 0.992 | 1 |  |  |  |  |  |
+| ricerca | 55 % | 1 | 1 | 1 |  |  |  |  |  |
+| ricerca | 40 % | 1 | 1 | 1 |  |  |  |  |  |
+| voci |  |  |  |  | 1 |  |  |  |  |
+| voci |  |  |  |  |  | 4 | polygon(100% 0%, 100% 0%, 101% 100%, 125% 100%) | translate(25%, 0%) | 0 |
+| voci |  |  |  |  |  | 252 | polygon(92.6543% 0%, 100% 0%, 100.927% 100%, 115.818% 100%) | translate(23.1636%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 502 | polygon(36.0917% 0%, 100% 0%, 100.361% 100%, 45.1146% 100%) | translate(9.0229%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 752 | polygon(4.8603% 0%, 100% 0%, 100.049% 100%, 6.0754% 100%) | translate(1.2151%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 1004 | polygon(0.002% 0%, 100% 0%, 100% 100%, 0.0025% 100%) | translate(0.0005%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 1353 | vuoto | vuoto | 0 |
+| voci |  |  |  |  |  | 1602 | vuoto | vuoto | 0 |
+
+Decisione: misure del commit 9 sul build lasciato dagli e2e del giro (sei spec verdi sui due progetti: 226 passati, 22 saltati), albero con D57 (con l'ancora su `#cerca` o più giù l'aggancio nasce a scroll fermo, `whenStill` di gsap.ts, aspettando il primo scroll se l'arrivo non è ancora partito, tetto 4 s) e senza `invalidateOnRefresh` sul tween del pannello; `926e7f0+` è l'albero del commit 9 prima del commit. Uscita 0 per `09-ricerca-voci.mjs`: pannello a 0,02/0,75 col bordo dell'innesco al 95 %, 0,668/0,915 all'85 %, 0,869/0,967 al 75 %, 0,969/0,992 al 65 %, 1/1 al 55 % e al 40 %, innesco `[data-dock]` senza transform a ogni quota, uguale a 1440×900 e 390×664; Voci: tessere chiuse al montaggio 3 a 1440 e 1 a 390, traboccamento 0 px in ogni fotogramma, clip in corsa a 252/500/751 ms (parallelogramma da 100 %/125 % verso 0 %, rotaia da translate 25 % a 0), nessuno stile inline da 1,35 s (limite 1,6 s). Sonde del giro (non committate): con `/#cerca`, prima di D57, lo ScrollTrigger nasceva a 265 ms con l'arrivo smooth in corso (y 42 → 2.850 a 1440 fino a ~1,0 s; y 79 → 1.796 a 390 fino a ~0,8 s) e dipingeva 0,02, poi 0,39 a 526 ms e 1 a ~0,7 s; a 1440, con lo scroll al 40 % prima dell'idratazione, il refresh rimandato a scroll fermo (t≈1,44 s) con `invalidateOnRefresh` riportava il pannello a 1 col bordo al 95 % (revert del refresh e nessun ridisegno a progresso 0 con `immediateRender: false`), da cui la rimozione; dopo le due cure il pannello con `/#cerca` non ha fotogrammi sotto 1 e al 95 % scende a 0,02 in 0,35 s.
+
+### 09 · aggancio della ricerca e carosello di Voci (2026-09-17, commit 92fe6a2+, 1440×900)
+
+| gesto | bordoAlto | opacita | scala | innescoFermo | chiuseAlMontaggio | t | clip | rotaia | trabocco |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ricerca | 95 % | 0.02 | 0.75 | 1 |  |  |  |  |  |
+| ricerca | 85 % | 0.668 | 0.915 | 1 |  |  |  |  |  |
+| ricerca | 75 % | 0.869 | 0.967 | 1 |  |  |  |  |  |
+| ricerca | 65 % | 0.969 | 0.992 | 1 |  |  |  |  |  |
+| ricerca | 55 % | 1 | 1 | 1 |  |  |  |  |  |
+| ricerca | 40 % | 1 | 1 | 1 |  |  |  |  |  |
+| voci |  |  |  |  | 3 |  |  |  |  |
+| voci |  |  |  |  |  | 4 | polygon(100% 0%, 100% 0%, 101% 100%, 125% 100%) | translate(25%, 0%) | 0 |
+| voci |  |  |  |  |  | 252 | polygon(92.5784% 0%, 100% 0%, 100.926% 100%, 115.723% 100%) | translate(23.1446%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 502 | polygon(35.807% 0%, 100% 0%, 100.358% 100%, 44.7588% 100%) | translate(8.9518%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 752 | polygon(4.8139% 0%, 100% 0%, 100.048% 100%, 6.0174% 100%) | translate(1.2035%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 1002 | polygon(0.002% 0%, 100% 0%, 100% 100%, 0.0025% 100%) | translate(0.0005%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 1351 | vuoto | vuoto | 0 |
+| voci |  |  |  |  |  | 1602 | vuoto | vuoto | 0 |
+
+### 09 · aggancio della ricerca e carosello di Voci (2026-09-17, commit 92fe6a2+, 390×664)
+
+| gesto | bordoAlto | opacita | scala | innescoFermo | chiuseAlMontaggio | t | clip | rotaia | trabocco |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ricerca | 95 % | 0.02 | 0.75 | 1 |  |  |  |  |  |
+| ricerca | 85 % | 0.67 | 0.916 | 1 |  |  |  |  |  |
+| ricerca | 75 % | 0.869 | 0.967 | 1 |  |  |  |  |  |
+| ricerca | 65 % | 0.969 | 0.992 | 1 |  |  |  |  |  |
+| ricerca | 55 % | 1 | 1 | 1 |  |  |  |  |  |
+| ricerca | 40 % | 1 | 1 | 1 |  |  |  |  |  |
+| voci |  |  |  |  | 1 |  |  |  |  |
+| voci |  |  |  |  |  | 13 | polygon(100% 0%, 100% 0%, 101% 100%, 125% 100%) | translate(25%, 0%) | 0 |
+| voci |  |  |  |  |  | 261 | polygon(93.7423% 0%, 100% 0%, 100.937% 100%, 117.178% 100%) | translate(23.4356%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 511 | polygon(40.5565% 0%, 100% 0%, 100.406% 100%, 50.6957% 100%) | translate(10.1391%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 761 | polygon(5.5879% 0%, 100% 0%, 100.056% 100%, 6.9849% 100%) | translate(1.397%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 1011 | polygon(0.0366% 0%, 100% 0%, 100% 100%, 0.0457% 100%) | translate(0.0091%, 0%) translate3d(0px, 0px, 0px) | 0 |
+| voci |  |  |  |  |  | 1361 | vuoto | vuoto | 0 |
+| voci |  |  |  |  |  | 1610 | vuoto | vuoto | 0 |

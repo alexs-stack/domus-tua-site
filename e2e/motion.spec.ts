@@ -126,6 +126,21 @@ test("con reduced motion l'hero non è un corridoio e Posizionamento non copre",
   expect(Math.abs(alt.bg - alt.band), "con reduced motion il marcatore data-bg non è alto quanto la banda").toBeLessThanOrEqual(1);
 });
 
+// Ricerca e Voci con reduced motion (A18-A20 di Alberto, spec coreografia §3.4
+// e §3.7): nessun gesto, nessuno stile inline, pannello e tessere pieni.
+test("con reduced motion il pannello della ricerca e le tessere di Voci restano senza stile", async ({ page, goto }) => {
+  await goto("/");
+  await page.locator("#voci").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(600);
+  expect(await page.locator("[data-dock]").getAttribute("style")).toBeNull();
+  expect(await page.locator("[data-dock-panel]").getAttribute("style")).toBeNull();
+  const conStile = await page
+    .locator("#voci [data-voci-slide], #voci [data-voci-slide-inner]")
+    .evaluateAll((els) => els.filter((e) => e.hasAttribute("style")).length);
+  expect(conStile).toBe(0);
+  expect(await page.locator("#voci [data-voci-slide]").count()).toBeGreaterThan(0);
+});
+
 // ── Parallasse ────────────────────────────────────────────────────────────
 // Fuori dal regime reduced-motion del resto del file: qui il movimento deve
 // esserci. La rivista bianca ammette una sola deriva allo scroll, `Parallax`

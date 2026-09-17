@@ -5,6 +5,17 @@
 // Niente card. Al submit naviga a /acquista con query params (q, comune, budget,
 // type, rooms) che PropertySearch legge e pre-imposta. La ricerca in linguaggio
 // naturale resta un teaser (nessuna finta AI).
+//
+// COREOGRAFIA (Alberto, 13 settembre 2026: A18-A20; spec coreografia §3.4, CAT §6a):
+// il pannello del form si aggancia allo scroll, opacità 0,02 → 1 e scala 0,75 → 1
+// dal centro, in scrub fra `top 95%` e `top 55%` (firma `ricerca` in chapters.ts: la chiave
+// del registro, non l'id `#cerca` della section). L'innesco
+// `[data-dock]` resta fermo e scala e opacità stanno sul figlio `[data-dock-panel]`: così
+// ScrollTrigger misura start ed end sul bordo che si vede a riposo.
+// Il range di Era (`top 30%` → `bottom bottom`) lascerebbe il form a 0,69 al centro
+// del viewport. Mai sotto 0,02 e mai `visibility`: i campi restano nel Tab e
+// cliccabili. Al primo fuoco dentro il pannello il gesto si ferma a 1 per il resto
+// del montaggio. Eyebrow, titolo e blocco venditore restano ai ruoli del testo.
 import { useState, useRef } from "react";
 import Reveal from "./Reveal";
 import RevealGroup from "./motion/RevealGroup";
@@ -13,6 +24,9 @@ import Lead from "./motion/Lead";
 import { Cta, CtaButton } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import { transitionTo } from "./motion/PageTransition";
+import { gsap, ScrollTrigger, useGSAP, whenStill } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
+import { chapters } from "../lib/motion/chapters";
 
 const local = {
   it: {
@@ -59,6 +73,10 @@ const budgetValues = [
 ];
 const roomValues = [0, 2, 3, 4];
 
+// Tetto dell'attesa dell'arrivo al frammento prima di armare l'aggancio (D57): lo stesso di
+// whenStill in gsap.ts (D39).
+const ARRIVO_CAP_MS = 4000;
+
 // Etichetta 16 px maiuscola e campo con il solo bordo inferiore (canone del riferimento).
 // `border-ink!`: il `* { border-color: line }` di globals.css è unlayered e batte le utility.
 const labelCls = "block text-ui font-semibold uppercase tracking-[0.08em] text-stone";
@@ -92,6 +110,124 @@ export default function HomeSearchGateway() {
   const [type, setType] = useState("");
   const [budget, setBudget] = useState("0");
   const [rooms, setRooms] = useState("0");
+  const dockRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dockFocused = useRef(false);
+
+  useGSAP(
+    (_context, contextSafe) => {
+      const dock = dockRef.current;
+      const panel = panelRef.current;
+      if (!dock || !panel || !contextSafe) return;
+      const sig = chapters.ricerca.signature;
+      if (!("st" in sig.trigger) || !("scrub" in sig.time)) return;
+      const [start, end] = sig.trigger.st;
+      const scrub = sig.time.scrub;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        if (dockFocused.current) return;
+        // Spec §3.4 (A20): lo stato spento nasce via JS, e solo col bordo alto dell'innesco sotto la
+        // linea di start (95 %). Con un'ancora su #cerca o più giù (`/#cerca`, `/#voci`…) non nasce:
+        // il browser porta lì lo scroll e il pannello resta pieno.
+        const docTop = (el: Element) => el.getBoundingClientRect().top + window.scrollY;
+        const sezione = dock.closest("section");
+        // Un frammento malformato (`/#%`, `/#a%E2`, link troncati) fa lanciare decodeURIComponent, e qui
+        // siamo nel layout effect: la home cadrebbe su app/error.tsx. Stessa guardia di fragmentPending
+        // (reveal-engine.ts): ripiego sull'id grezzo, che basta agli id ASCII del sito.
+        const ancoraDelFrammento = (): HTMLElement | null => {
+          const id = location.hash.slice(1);
+          if (!id) return null;
+          try {
+            return document.getElementById(decodeURIComponent(id));
+          } catch {
+            return document.getElementById(id);
+          }
+        };
+        const ancora = ancoraDelFrammento();
+        const ancoraQuiOPiuGiu = !!ancora && !!sezione && docTop(ancora) >= docTop(sezione) - 1;
+        const sottoLaLinea = () => dock.getBoundingClientRect().top > 0.95 * window.innerHeight;
+        let tween: gsap.core.Tween | undefined;
+        const arma = contextSafe(() => {
+          if (dockFocused.current) return;
+          if (!ancoraQuiOPiuGiu && sottoLaLinea()) {
+            gsap.set(panel, { opacity: 0.02, scale: 0.75 });
+          }
+          let primoRefresh = true;
+          // Senza invalidateOnRefresh: i valori sono costanti e, con immediateRender false, il revert
+          // del refresh (ScrollTrigger.js:1958-1962) lascerebbe il pannello pieno a progresso 0 finché
+          // il progresso non cambia (misurato: refresh a scroll fermo col bordo al 95 %, da 0,25 a 1).
+          tween = gsap.fromTo(
+            panel,
+            { opacity: 0.02, scale: 0.75, transformOrigin: "50% 50%" },
+            {
+              opacity: 1,
+              scale: 1,
+              ease: sig.ease,
+              immediateRender: false,
+              scrollTrigger: {
+                trigger: dock,
+                start,
+                end,
+                scrub,
+                // Spec §3.4: `/#cerca` senza fotogrammi sotto 0,99. Il primo aggiornamento dopo il refresh
+                // passa dallo scrub levigato (ScrollTrigger.js:2198-2222; nel refresh di tutti :1244-1248,
+                // prima degli onRefresh): qui lo scrub si chiude subito, una volta sola.
+                onRefresh: (self) => {
+                  if (!primoRefresh) return;
+                  primoRefresh = false;
+                  self.getTween()?.progress(1);
+                },
+              },
+            },
+          );
+          tween.scrollTrigger?.getTween()?.progress(1);
+        });
+        const onFocus = contextSafe(() => {
+          dockFocused.current = true;
+          tween?.scrollTrigger?.kill();
+          tween?.kill();
+          gsap.set(panel, { opacity: 1, scale: 1 });
+        });
+        dock.addEventListener("focusin", onFocus, { once: true });
+        // D57 (spec §3.4; D39, D56): con l'ancora qui o più giù e l'innesco ancora sotto la linea di
+        // start, l'arrivo nativo al frammento è in corso o sta per partire (Chrome lo ripete a ogni
+        // layout fino a load, smooth per circa 1 s): l'aggancio nasce a scroll fermo (whenStill di
+        // gsap.ts), aspettando il primo scroll se non è ancora partito, col tetto ARRIVO_CAP_MS. Creato
+        // durante l'arrivo, lo ScrollTrigger renderebbe il pannello a 0,02 e lo scrub lo farebbe salire
+        // mentre l'innesco attraversa il viewport (misurato: 0,02 a 265 ms, 0,39 a 526 ms, 1 a 1 s).
+        let annulla = () => {};
+        if (ancoraQuiOPiuGiu && sottoLaLinea()) {
+          let fermo = () => {};
+          let cap = 0;
+          const parti = () => {
+            window.clearTimeout(cap);
+            window.removeEventListener("scroll", parti);
+            fermo = whenStill(arma);
+          };
+          if (ScrollTrigger.isScrolling()) parti();
+          else {
+            window.addEventListener("scroll", parti, { once: true, passive: true });
+            cap = window.setTimeout(parti, ARRIVO_CAP_MS);
+          }
+          annulla = () => {
+            window.clearTimeout(cap);
+            window.removeEventListener("scroll", parti);
+            fermo();
+          };
+        } else {
+          arma();
+        }
+        return () => {
+          annulla();
+          dock.removeEventListener("focusin", onFocus);
+          tween?.scrollTrigger?.kill();
+          tween?.kill();
+          gsap.set(panel, { clearProps: "opacity,transform,transformOrigin" });
+        };
+      });
+    },
+    { scope: dockRef },
+  );
 
   function submit(e?: React.FormEvent, presetType?: string) {
     e?.preventDefault();
@@ -118,7 +254,8 @@ export default function HomeSearchGateway() {
           {d.search.title}
         </SplitTitle>
 
-        <Reveal delay={120}>
+        <div ref={dockRef} data-dock>
+          <div ref={panelRef} data-dock-panel>
           <form onSubmit={submit} className="mt-12 grid gap-x-8 gap-y-10 md:grid-cols-4">
             {/* Linguaggio naturale: primo campo, a tutta larghezza (alimenta q). */}
             <div className="md:col-span-4">
@@ -205,7 +342,8 @@ export default function HomeSearchGateway() {
               </CtaButton>
             </div>
           </form>
-        </Reveal>
+          </div>
+        </div>
 
         {/* Scorciatoia per chi vende: una riga di testo, non una card. §9 — la
             RAGIONE fra la domanda e il pulsante (prepariamo, verifichiamo, fino al rogito). */}
