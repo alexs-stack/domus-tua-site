@@ -17,12 +17,14 @@
 //   data-horizon-slide-img       il media dentro lo slide (scale 1.15 → 1)
 //   data-horizon-flower="drift-x" | "drift-y"  decorazioni in deriva lenta
 //
-// Il set piece ORIZZONTALE vive SOLO da lg in su + motion ok: l'attributo
+// Il set piece ORIZZONTALE vive SOLO con MQ.corridor (D22: 1024 px di
+// larghezza, 640 di altezza, motion ok): l'attributo
 // [data-on] che accende il layout a track viene messo esclusivamente via JS,
 // quindi con reduced-motion o senza JS i pannelli restano in colonna, statici
-// e completi — nessuno stato nascosto o clippato.
+// e completi — nessuno stato nascosto o clippato. La <section> porta
+// data-corridor (A19): corridors.spec.ts conta gli host accesi.
 //
-// Sotto lg la stessa storia si racconta in VERTICALE. Non è una versione
+// Sotto quella soglia la stessa storia si racconta in VERTICALE. Non è una versione
 // ridotta: è lo stesso film senza il pin (verdetto 15 dell'onda «parità mobile
 // 2», PORT-SENZA-PIN). Gli attributi del contratto qui sopra non nominano un
 // asse, quindi il ramo mobile li riusa TUTTI — chars, sipario, gradini, fiori —
@@ -35,6 +37,7 @@
 // track in globals.css gli pende sotto), scrivere un'altezza sulla radice,
 // pinnare o chiedere un refresh. La colonna resta la colonna.
 import { useRef, type ReactNode } from "react";
+import type { ChapterId } from "../../lib/motion/chapters";
 import { SplitText } from "gsap/SplitText";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 
@@ -66,11 +69,14 @@ export default function HorizonScroller({
   children,
   className = "",
   id,
+  corridor,
   refreshKey,
 }: {
   children: ReactNode;
   className?: string;
   id?: string;
+  /** Nome del corridoio in chapters.ts (A19), scritto come data-corridor sulla <section>. */
+  corridor?: ChapterId;
   /** Cambia (es. locale) → l'intero context viene revertito e ricreato:
       gli split per-carattere vanno rifatti sul testo nuovo. */
   refreshKey?: string;
@@ -83,9 +89,10 @@ export default function HorizonScroller({
       if (!root) return;
 
       const mm = gsap.matchMedia();
-      // Il track vuole la larghezza piena: MQ.lg, stessa ragione del rail di
-      // ThreadNav.
-      mm.add({ desktop: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
+      // Il nastro è un corridoio sticky: gate MQ.corridor (D22), cioè 1024 px
+      // di larghezza, 640 di altezza e motion ok. Sotto la soglia, a qualunque
+      // larghezza, gira il ramo in colonna qui sotto.
+      mm.add({ desktop: MQ.corridor, motionOk: MQ.motionOk }, (ctx) => {
         const c = ctx.conditions as { desktop: boolean; motionOk: boolean };
         if (!c.motionOk) return;
 
@@ -636,7 +643,7 @@ export default function HorizonScroller({
   );
 
   return (
-    <section ref={rootRef} id={id} className={`dt-horizon ${className}`}>
+    <section ref={rootRef} id={id} data-corridor={corridor} className={`dt-horizon ${className}`}>
       <div className="dt-horizon_screen">
         <div className="dt-horizon_track">{children}</div>
       </div>

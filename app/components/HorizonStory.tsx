@@ -224,14 +224,15 @@ export default function HorizonStory() {
         </div>
       </div>
 
-      {/* I pannelli orizzontali: manifesto e territorio. Da lg in su con
-          motion ok lo screen è sticky e il track scorre in orizzontale mentre
-          la pagina scende (l'altezza della sezione È la larghezza del track);
-          senza JS, con reduced-motion o sotto lg restano due blocchi in
+      {/* I pannelli orizzontali: manifesto e territorio. Con MQ.corridor
+          (D22: 1024 px di larghezza, 640 di altezza, motion ok) lo screen è
+          sticky e il track scorre in orizzontale mentre la pagina scende
+          (l'altezza della sezione È la larghezza del track); senza JS, con
+          reduced-motion o sotto quella soglia restano due blocchi in
           colonna, completi e statici. Sopra i pannelli non c'è più nessuna
           foto aerea né velo: solo l'avorio della pagina. */}
       <div className="mt-[clamp(4rem,10vh,8rem)]">
-        <HorizonScroller id="storia" refreshKey={locale}>
+        <HorizonScroller id="storia" corridor="storia" refreshKey={locale}>
           {/* Pannello manifesto: il titolo entra per carattere (animatore «h»
               del riferimento), orchestrato da HorizonScroller al pin.
               La variante `[.dt-horizon:not([data-on])_&]` vale SOLO quando il

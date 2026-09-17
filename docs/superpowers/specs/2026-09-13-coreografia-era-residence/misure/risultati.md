@@ -324,3 +324,18 @@ Decisione: misura del giro di correzione 1 della verifica del commit 6, sul buil
 | mobile-390 | 6 | 0.1 | 1624 | 2250 | 662 |
 
 Decisione: misura del giro di correzione 1 della verifica del commit 6, sullo stesso build di 06-h1-dipinti qui sopra, col delimitatore delle parole di Lead (D51). Uscita 0: righe spezzate nei due progetti (5 e 6, come prima: il lead di Posizionamento non ha parole col trattino), posa armata a yPercent 110 entro 0,4 px, ingresso entro il tetto stampato, uscita ≤ 1.300 ms. Le righe naturali dei lead con le parole col trattino le prova il test 7d di text-motion.spec.ts (D51).
+
+### Commit 7: corridoi accesi e ripristino al capitolo (2026-09-17, ee0f0be+)
+
+| viewport | rotta | accesi | attesi | sticky | altezza | overflowX | scarto ricarica (px) | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | / | recensioni storia team | recensioni storia team | 3 | 29772 | 0 |  | ok |
+| 1024×768 | / | recensioni storia team | recensioni storia team | 3 | 25820 | 0 |  | ok |
+| 1920×1080 | / | recensioni storia team | recensioni storia team | 3 | 33374 | 0 |  | ok |
+| 1280×600 | / | nessuno | nessuno | 0 | 20933 | 0 |  | ok |
+| 1440×600 | / | nessuno | nessuno | 0 | 21622 | 0 |  | ok |
+| 390×664 | / | nessuno | nessuno | 1 | 27710 | 0 |  | ok |
+| 1440×900 | /vendi | nessuno | nessuno | 0 | 16310 | 0 |  | ok |
+| 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 20479) | ok |
+
+Decisione: misura della verifica completa del commit 7, sul build lasciato dagli e2e di 7f (Step 30b: codice del commit a meno dei commenti di `mq.ts`), prima degli e2e di Step 33. Uscita 0: sopra la soglia (1440×900, 1024×768, 1920×1080) accesi `recensioni storia team` e 3 sticky in #main, cioè i tre schermi; sotto (1280×600, 1440×600, 390×664) nessun corridoio e nessuno sticky nuovo (l'unico a 390 è la testata mobile di Header.tsx, `sticky top-0 lg:relative`, preesistente); /vendi nessuno fino al commit 18; overflowX 0 ovunque; ricarica a metà di #servizi a 0,6 px dal bordo atteso (bordo di prima − 120) con scrollY 20.479. Regola 2 di Step 32: nessuna riga precedente porta l'altezza della home, quindi il confronto è con spec §4 «Oggi»: 29.772 px a 1440×900 (29.692, +80 px, 0,27 %) e 25.820 px a 1024×768 (25.740, +80 px, 0,31 %), entro l'1 %. Regola 3: a 600 px d'altezza i nastri tornano in colonna, 20.933 px (1280×600) e 21.622 px (1440×600), registrati e basta.

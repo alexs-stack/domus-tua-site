@@ -216,6 +216,7 @@ export default function Team({ compact = false }: { compact?: boolean }) {
             `items-start`: le foto ora hanno tutte la stessa altezza, ma una
             didascalia che andasse a capo non deve alzare la tessera accanto. */}
         <HorizontalRail
+          corridor="team"
           runway={120}
           snapMobile
           className="mt-10"

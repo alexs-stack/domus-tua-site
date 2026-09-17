@@ -1834,11 +1834,12 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
    animazioni che non erano curve … lo scroll orizzontale nella sezione
    perché domus tua»). La cupola (`.dt-dome`, un bordo curvo) non torna:
    niente curve nella rivista bianca. Resta la meccanica: screen sticky +
-   track in riga, accesa SOLO da JS da lg in su con motion ok. */
-/* Scroller orizzontale. Default (mobile / reduced-motion / no-JS): pannelli in
-   colonna, tutto visibile e statico. [data-on] arriva SOLO via JS (desktop
-   ≥1024 + motion ok) e attiva screen sticky + track in riga: senza JS non
-   esiste alcuno stato clippato o nascosto. */
+   track in riga, accesa SOLO da JS con MQ.corridor (D22: 1024 px di
+   larghezza, 640 di altezza, motion ok). */
+/* Scroller orizzontale. Default (sotto la soglia dei corridoi / reduced-motion
+   / no-JS): pannelli in colonna, tutto visibile e statico. [data-on] arriva
+   SOLO via JS (MQ.corridor, D22) e attiva screen sticky + track in riga:
+   senza JS non esiste alcuno stato clippato o nascosto. */
 /* Rete contro lo sbordo laterale in COLONNA (onda «parità mobile 2», verdetto
    15): i gradini del titolo scivolano in x anche qui, e a 390 fra la riga
    (350px) e il bordo restano 20px per lato. Le ampiezze sono già clampate a
@@ -1910,8 +1911,10 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
    Rif. tecnica: codrops/FullscreenClipEffect — qui il morph è tra poligoni
    stella a 10 vertici (app/lib/star-shape.ts). Il film è lo stesso a ogni
    larghezza (parità mobile 2, 2026-08-18): cambia il palcoscenico — [data-on]
-   = schermo sticky sopra i 1024 px, [data-sr-mob] = box ancorato alla fila
-   sotto — e li mette entrambi JS, con motion ok. Senza JS e con
+   = schermo sticky con MQ.corridor (D22: 1024 px di larghezza, 640 di
+   altezza), [data-sr-mob] = box ancorato alla fila sotto quella soglia — e
+   li mette entrambi JS, con motion ok. Runway e schermo hanno anche il
+   layout prima del paint, nel blocco dei corridoi. Senza JS e con
    reduced-motion la sezione è in flusso normale, completa e statica. */
 .dt-starrev {
   /* Stella "piena" delle recensioni: ratio interno 0.475, punta in alto.
@@ -2085,7 +2088,7 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   z-index: 5;
 }
 /* Il BOX MOBILE del film (parità mobile 2, 2026-08-18 — scheda 16).
-   Sotto lg non c'è schermo sticky (legge 4: sul telefono non si pinna), quindi
+   Sotto MQ.corridor (D22) non c'è schermo sticky (legge 4: sul telefono non si pinna), quindi
    `inset: 0` non sarebbe il viewport ma l'intera sezione, alta il doppio. Gli
    stessi atti del desktop suonano allora dentro un riquadro ancorato alla FILA
    delle stelle — dov'è la tessera in cui la foto deve posarsi: la quota la
@@ -2129,9 +2132,9 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
 /* ---------- .dt-rail — la rotaia orizzontale generica (HorizontalRail.tsx) ----------
    Stessa meccanica già collaudata sul nastro "Seguici" (.dt-socialrail), qui
    estratta perché la chiedono anche altre sezioni: default = scroll
-   orizzontale NATIVO (sul touch trascinare è il gesto atteso), e solo da
-   1024 in su con motion ok il JS mette [data-on], toglie lo scroll nativo e
-   passa il nastro a GSAP.
+   orizzontale NATIVO (sul touch trascinare è il gesto atteso), e solo con
+   MQ.corridor (D22: 1024 px di larghezza, 640 di altezza, motion ok) il JS
+   mette [data-on], toglie lo scroll nativo e passa il nastro a GSAP.
    Nessun fondale qui dentro: la superficie continua (SurfaceFlow) deve
    passare sotto la rotaia senza incontrare un rettangolo opaco. */
 .dt-rail {
@@ -2179,8 +2182,8 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
    spacer sul contenitore, e litiga con lo stacking di main e footer (era il
    male dei vecchi corridoi dt-horizon/dt-wall/dt-paths/dt-tt, tolti il
    2026-09-10: questa è l'unica rotaia rimasta).
-   [data-on] e le due misure arrivano SOLO da JS (desktop ≥1024 + motion ok, e
-   solo se `runway` è dichiarata): senza, questo blocco è un div qualunque e il
+   [data-on] e le due misure arrivano SOLO da JS (MQ.corridor, D22, e solo se
+   `runway` è dichiarata): senza, questo blocco è un div qualunque e il
    nastro resta esattamente dov'era. --rail-len è l'altezza vera del nastro,
    --rail-top la quota a cui si aggancia. */
 .dt-railway[data-on] {
@@ -2225,11 +2228,64 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
 
    Senza JS `--rail-p` non esiste mai: il fallback .5 tiene il pan al centro,
    cioè esattamente com'era prima. `:not([data-on])` perché sopra la soglia il
-   pan è di GSAP e due padroni sullo stesso transform sono uno di troppo. */
-@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+   pan è di GSAP e due padroni sullo stesso transform sono uno di troppo. La
+   soglia è quella dei corridoi (MQ.belowCorridor, D22): sotto 1024 px di
+   larghezza o sotto 640 di altezza la rotaia resta nativa e il pan la segue. */
+@media (prefers-reduced-motion: no-preference) and (max-width: 1023.98px), (prefers-reduced-motion: no-preference) and (max-height: 639.98px) {
   .dt-rail:not([data-on]) .dt-rail_pan,
   .dt-socialrail:not([data-on]) .dt-socialrail_pan {
     transform: translateX(calc((var(--rail-p, 0.5) - 0.5) * 2 * var(--depth, 6) * 1%));
   }
 }
 
+/* ---------- Corridoi sticky dei capitoli (useCorridor.ts) ----------
+   A19 di Alberto (13 set., «Sticky dove serve»), soglia D22: 1024 px di
+   larghezza, 640 di altezza, motion ok. Il layout sta qui, prima del paint:
+   - lo schermo è sticky;
+   - con lo stick top è alto 100svh;
+   - lo spaziatore [data-corridor-run] ha in SSR la classe `hidden` e si
+     accende da solo: regola unlayered, batte l'utility.
+   `:root[data-hero-intro]` lo scrive il boot script solo con motion ok:
+   senza JS e con reduced-motion nessun corridoio.
+   `overflow: clip` e non `hidden`: `hidden` farebbe dello schermo un
+   contenitore di scroll, e un focus() ne sposterebbe lo scrollTop.
+   Il JS scrive solo --corridor-stick e [data-on]. Nastro e rotaia hanno i
+   loro blocchi qui sopra; delle stelle qui c'è il layout prima del paint. */
+@media (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
+  :root[data-hero-intro] [data-corridor] > [data-corridor-screen] {
+    position: sticky;
+    top: var(--corridor-stick, 0px);
+  }
+  :root[data-hero-intro] [data-corridor][data-stick="top"] > [data-corridor-screen] {
+    height: 100svh;
+    overflow: clip;
+  }
+  :root[data-hero-intro] [data-corridor] > [data-corridor-run] {
+    display: block;
+    height: var(--corridor-run);
+  }
+  /* Le stelle (A12 invariato; spec §4, D22): runway e schermo sticky prima
+     del paint, così una ricarica o un'ancora sotto il film non vede saltare il
+     layout all'idratazione. [data-on] resta per stage e intro. `clip` batte
+     l'`overflow: hidden` di `.dt-starrev[data-on] .dt-starrev_screen`
+     (specificità 0,4,0 contro 0,3,0). */
+  :root[data-hero-intro] .dt-starrev .dt-starrev_runway {
+    height: 360svh;
+  }
+  :root[data-hero-intro] .dt-starrev .dt-starrev_screen {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: clip;
+  }
+}
+/* La corsa di ogni corridoio del hook (spec §2.7 e §4, D22). */
+[data-corridor="hero"] {
+  --corridor-run: 200svh;
+}
+[data-corridor="cartolina"] {
+  --corridor-run: 80svh;
+}
+[data-corridor="page-dive"] {
+  --corridor-run: 120svh;
+}

@@ -26,12 +26,14 @@
 
    PROGRESSIVE ENHANCEMENT. Il default è uno scroll orizzontale NATIVO — sul
    touch trascinare è il gesto che la gente si aspetta, e pilotarlo dallo
-   scroll verticale glielo toglierebbe. Solo da 1024px in su e con motion ok
-   il JS mette [data-on], spegne lo scroll nativo e passa il nastro a GSAP.
+   scroll verticale glielo toglierebbe. Solo con MQ.corridor (D22: 1024 px di
+   larghezza, 640 di altezza, motion ok) il JS mette [data-on], spegne lo
+   scroll nativo e passa il nastro a GSAP. Col corridoio (`runway`) il
+   wrapper porta data-corridor (A19), che corridors.spec.ts conta.
    Senza JS resta tutto visibile e trascinabile, e il corridoio non esiste.
    Il ramo mobile quindi ESISTE GIÀ ed è in CSS: sotto la soglia comanda il
    dito, con l'aggancio opt-in di `snapMobile` (".dt-rail[data-snap]", che
-   Services usa). Chi aggiunge coreografia non porti [data-on] sotto 1024:
+   Services usa). Chi aggiunge coreografia non porti [data-on] sotto MQ.corridor (D22):
    ".dt-rail[data-on]" mette `overflow: hidden; scroll-snap-type: none` e
    spegnerebbe insieme il trascinamento e lo snap.
 
@@ -53,6 +55,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { useRef } from "react";
+import type { ChapterId } from "../../lib/motion/chapters";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
 import RailProgress from "./RailProgress";
 
@@ -60,6 +63,7 @@ export default function HorizontalRail({
   children,
   className = "",
   trackClassName = "",
+  corridor,
   /** quanto della corsa consumare: 1 = tutta l'eccedenza */
   speed = 1,
   /** aggancio allo snap nella versione touch (opt-in: su tessere di larghezza
@@ -75,6 +79,8 @@ export default function HorizontalRail({
   speed?: number;
   snapMobile?: boolean;
   runway?: number;
+  /** Nome del corridoio in chapters.ts (A19): data-corridor sul wrapper, solo con `runway`. */
+  corridor?: ChapterId;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const railRef = useRef<HTMLDivElement | null>(null);
@@ -87,7 +93,9 @@ export default function HorizontalRail({
       if (!wrap || !rail || !track) return;
 
       const mm = gsap.matchMedia();
-      mm.add(`${MQ.motionOk} and ${MQ.lg}`, () => {
+      // Gate MQ.corridor (D22): 1024 px di larghezza, 640 di altezza, motion
+      // ok, con o senza corridoio; sotto, scroll nativo con snap.
+      mm.add(MQ.corridor, () => {
         rail.setAttribute("data-on", "");
 
         // Le due misure del corridoio, rifatte a ogni refresh: l'altezza vera
@@ -166,6 +174,7 @@ export default function HorizontalRail({
     <div
       ref={wrapRef}
       className="dt-railway"
+      data-corridor={runway > 0 ? corridor : undefined}
       style={runway > 0 ? ({ "--rail-run": runway } as React.CSSProperties) : undefined}
     >
       <div
@@ -177,9 +186,10 @@ export default function HorizontalRail({
       </div>
       {/* In flusso, non in sovrimpressione: il corridoio non tiene aria di
           riserva sotto il nastro (la tiene sopra e sotto la sezione), quindi
-          l'indicatore la sua riga se la prende. Esiste solo sotto i 1024,
-          dove ".dt-railway" è un div qualunque: a [data-on] la sua altezza è
-          dichiarata in CSS e nessun figlio in più la sposta. */}
+          l'indicatore la sua riga se la prende. Si vede solo sotto la soglia
+          dei corridoi (MQ.belowCorridor, D22), dove ".dt-railway" è un div
+          qualunque: a [data-on] la sua altezza è dichiarata in CSS e nessun
+          figlio in più la sposta. */}
       <RailProgress scroller={railRef} className="mt-6" />
     </div>
   );

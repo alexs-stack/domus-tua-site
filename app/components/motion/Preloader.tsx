@@ -56,7 +56,7 @@
 //   • Ripiego senza mask-composite: sipario a salire (clip-path), stesso
 //     ritmo — in CSS, e in GSAP nel ramo di ripiego.
 import { useEffect } from "react";
-import { gsap, useGSAP, MQ } from "../../lib/motion/gsap";
+import { gsap, useGSAP, MQ, ScrollTrigger, requestRefresh } from "../../lib/motion/gsap";
 import {
   registerWarmup,
   runWarmup,
@@ -70,9 +70,17 @@ import {
   INTRO_KEY,
   INTRO_MS,
   INTRO_T,
+  LAST_Y_KEY,
   PRE_FAILSAFE_MS,
   WARM_FIRST_FOLD_MS,
 } from "../../lib/motion/intro-constants";
+import {
+  parseLastY,
+  restoreTarget,
+  snapshot,
+  type ChapterTop,
+  type LastY,
+} from "../../lib/motion/chapter-scroll";
 
 // Ri-esportati per i chiamanti storici (HeroCinematic, CookieConsent, e2e):
 // la sorgente è lib/motion/intro-constants.ts, che non è "use client" e la
@@ -225,6 +233,94 @@ export default function Preloader() {
     scheduleIdleWarmup();
   }, []);
 
+  /* Lo scroll torna al capitolo alla ricarica (D22, spec §2.7).
+     - Al pagehide si salva { p, y, id, dy } in LAST_Y_KEY, su ogni rotta.
+     - Alla ricarica, coi corridoi accesi (MQ.corridor), lo scroll va a
+       top(id) + dy a ogni refresh di ScrollTrigger, fino a quello dopo il load
+       compreso. Il primo arriva subito dopo il montaggio: i useGSAP dei nastri
+       sono effetti di layout e hanno già scritto le loro misure. L'ultimo
+       arriva dopo il load, quando è passato anche il ripristino nativo del
+       browser.
+     - Il primo gesto (rotella, tocco, tasto, puntatore) ferma tutto: chi
+       scorre non viene riportato indietro.
+     - Non si arma su /case/* né sotto [data-motion-freeze]: /case/[slug]
+       resta ferma (A26, D32).
+     - Col sipario in scena ([data-preloader]) si ferma: il film porta la
+       pagina in cima.
+     Fuori dal film: data-preloader si legge e non si scrive. */
+  useEffect(() => {
+    const tops = (): ChapterTop[] =>
+      Array.from(document.querySelectorAll<HTMLElement>("#main section[id]"), (el) => ({
+        id: el.id,
+        top: Math.round(el.getBoundingClientRect().top + window.scrollY),
+      }));
+    const save = () => {
+      try {
+        const state = snapshot(location.pathname, Math.round(window.scrollY), tops());
+        sessionStorage.setItem(LAST_Y_KEY, JSON.stringify(state));
+      } catch {
+        /* storage negato (D22): alla ricarica decide il browser */
+      }
+    };
+    window.addEventListener("pagehide", save);
+
+    let saved: LastY | null = null;
+    try {
+      saved = parseLastY(sessionStorage.getItem(LAST_Y_KEY));
+    } catch {
+      saved = null;
+    }
+    const entry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+    const navigation = entry?.type;
+
+    const frozen = location.pathname.startsWith("/case/") || document.querySelector("[data-motion-freeze]") !== null;
+    const armed = saved !== null && navigation === "reload" && !frozen && window.matchMedia(MQ.corridor).matches;
+    const INPUTS = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+    let loaded = document.readyState === "complete";
+
+    function stop() {
+      ScrollTrigger.removeEventListener("refresh", onRefresh);
+      window.removeEventListener("load", onLoad);
+      for (const type of INPUTS) window.removeEventListener(type, stop, true);
+    }
+    function onLoad() {
+      loaded = true;
+      requestRefresh();
+    }
+    function onRefresh() {
+      if (document.documentElement.hasAttribute("data-preloader")) {
+        stop();
+        return;
+      }
+      const y = restoreTarget(saved, {
+        pathname: location.pathname,
+        hash: location.hash,
+        navigation,
+        tops: tops(),
+        maxY: document.documentElement.scrollHeight - window.innerHeight,
+      });
+      if (y !== null && Math.abs(window.scrollY - y) > 1) {
+        // Senza `force` (D22): se qualcuno ha fermato Lenis, non si scrolla sotto di lui.
+        const lenis = getLenis();
+        if (lenis) lenis.scrollTo(y, { immediate: true });
+        else window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
+        ScrollTrigger.update();
+      }
+      if (loaded) stop();
+    }
+
+    if (armed) {
+      ScrollTrigger.addEventListener("refresh", onRefresh);
+      for (const type of INPUTS) window.addEventListener(type, stop, { capture: true, passive: true });
+      if (!loaded) window.addEventListener("load", onLoad, { once: true });
+      requestRefresh();
+    }
+
+    return () => {
+      window.removeEventListener("pagehide", save);
+      stop();
+    };
+  }, []);
 
   useGSAP(() => {
     const html = document.documentElement;

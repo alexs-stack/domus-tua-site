@@ -155,6 +155,18 @@ export const HERO_REST_WARM_MS = 6000;
 export const HERO_REST_SHORT_MS = 1080;
 
 /**
+ * Chiave sessionStorage dello scroll alla ricarica (D22). Preloader.tsx ci
+ * scrive `{ p, y, id, dy }` al pagehide:
+ * - `p`: percorso;
+ * - `y`: scrollY;
+ * - `id`: section in vista;
+ * - `dy`: scarto dentro la section.
+ * Alla ricarica la rilegge per tornare al capitolo. La legge anche
+ * e2e/corridors.spec.ts.
+ */
+export const LAST_Y_KEY = "dt-last-y";
+
+/**
  * Warmup del telefono: `warmFirstFold` deve scadere PRIMA del tuffo, così
  * l'attesa è coperta dal sipario per costruzione (≤ INTRO_MS − tuffo).
  */

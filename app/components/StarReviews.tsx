@@ -49,10 +49,11 @@
    PARITÀ MOBILE 2 (2026-08-18, scheda 16): il film è lo STESSO a ogni
    larghezza — stella che si forma, zoom, lampo, caratteri stirati,
    accensione della fila — e cambiano tre parametri: il palcoscenico
-   ([data-on] = schermo sticky sul desktop, [data-sr-mob] = un box ancorato
-   alla fila sul telefono, perché la legge 4 vieta di pinnare), l'orologio
-   (scrub sul desktop, timeline `once` a tempo sul telefono) e il contorno
-   (sotto lg il testo della sezione non si spegne: il box non lo copre).
+   ([data-on] = schermo sticky con MQ.corridor, [data-sr-mob] = un box
+   ancorato alla fila sotto quella soglia, perché la legge 4 vieta di
+   pinnare), l'orologio (scrub nel corridoio, timeline `once` a tempo sotto)
+   e il contorno (sotto la soglia il testo della sezione non si spegne: il
+   box non lo copre). Soglia D22: 1024 px di larghezza, 640 di altezza.
    Progressive enhancement invariato: entrambi gli attributi li mette JS —
    senza JS e con reduced-motion la sezione è completa e statica, con le
    stelle già d'oro e il riflesso affidato a un'animazione CSS.
@@ -238,7 +239,10 @@ export default function StarReviews() {
       if (!section || !stage || !intro || !row || !runway || !screen) return;
 
       const mm = gsap.matchMedia();
-      mm.add({ lg: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
+      // Gate del palcoscenico sticky: MQ.corridor (D22), cioè 1024 px di
+      // larghezza, 640 di altezza e motion ok. Sotto la soglia, anche a
+      // 1440×600, il film suona a tempo nel box di [data-sr-mob].
+      mm.add({ lg: MQ.corridor, motionOk: MQ.motionOk }, (ctx) => {
         const cond = ctx.conditions as { lg: boolean; motionOk: boolean };
         if (!cond.motionOk) return;
 
@@ -640,11 +644,11 @@ export default function StarReviews() {
     // Niente bg-cream proprio: la sezione vive dentro la superficie curva di
     // HorizonStory — un secondo bloom qui riaccenderebbe la linea d'ombra al
     // confine col muro delle voci (il "taglio" segnalato il 2026-08-04).
-    <section ref={sectionRef} id="recensioni" className="dt-starrev relative">
+    <section ref={sectionRef} id="recensioni" data-corridor="recensioni" className="dt-starrev relative">
       {/* Runway + schermo sticky ([data-on]): lo scroll scolpisce il morph —
           la foto Top Agency arriva a TUTTA PAGINA come prosecuzione della
           sezione precedente e, scendendo, entra dentro la stella centrale.
-          Sotto lg ([data-sr-mob]) gli stessi atti suonano dentro un box
+          Sotto MQ.corridor (D22) ([data-sr-mob]) gli stessi atti suonano dentro un box
           ancorato alla fila, a tempo invece che in scrub. Senza JS e con
           reduced-motion nessuno dei due attributi compare: flusso normale,
           statico, il layer intro resta display:none. */}
