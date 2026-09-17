@@ -101,6 +101,39 @@ test("le cinque stelle con reduced motion sono già d'oro, senza palcoscenico", 
   await expect(page.locator(".dt-starrev_intro")).toBeHidden();
 });
 
+// D26 e D27 con reduced motion (spec §3.11, §3.12): righe e spina del D.O.C.
+// disegnate e senza clip, le foto di Services ferme a scala 1.
+test("D.O.C. e Services con reduced motion: righe disegnate e foto ferme", async ({ page, goto }) => {
+  await goto("/");
+  const righe = page.locator('#domus-doc [data-hairline="doc"]');
+  // Prima il conteggio: senza foglio lo scroll qui sotto aspetterebbe fino al timeout del test.
+  await expect(page.locator("#domus-doc [data-doc-sheet]")).toHaveCount(1);
+  // Il foglio e non la prima linea: la prima in ordine DOM è la spina, `display: none`
+  // sotto md, e scrollIntoViewIfNeeded su un nodo senza layout ritenta fino al timeout.
+  await page.locator("#domus-doc [data-doc-sheet]").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  const misure = await righe.evaluateAll((els) =>
+    els.map((e) => {
+      const s = getComputedStyle(e);
+      const r = e.getBoundingClientRect();
+      return { axis: e.getAttribute("data-axis"), display: s.display, clip: s.clipPath, bg: s.backgroundColor, h: r.height, w: r.width };
+    }),
+  );
+  const orizzontali = misure.filter((m) => m.axis === "x");
+  expect(orizzontali).toHaveLength(5);
+  for (const m of misure.filter((m) => m.display !== "none")) {
+    expect(m.clip).toBe("none");
+    expect(m.bg).toBe("rgb(228, 220, 207)");
+  }
+  for (const m of orizzontali) expect(m.h).toBe(1);
+
+  await expect(page.locator("#servizi [data-zoom-box]")).toHaveCount(3);
+  await page.locator("#servizi [data-zoom-box]").first().scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  const zoom = await page.locator("#servizi [data-zoom]").evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
+  expect(zoom).toEqual(["none", "none", "none"]);
+});
+
 test("con reduced motion le colonne di Percorsi e le tendine del Metodo restano ferme", async ({ page, goto }) => {
   await goto("/");
   await page.waitForTimeout(400);

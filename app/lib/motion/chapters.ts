@@ -181,7 +181,7 @@ export const chapters: Record<ChapterId, Chapter> = {
     signature: {
       ease: "sine.out",
       time: { scrub: 1.0 },
-      trigger: { el: "#servizi [data-zoom]", st: ["top bottom", "bottom bottom"] },
+      trigger: { el: "#servizi [data-zoom-box]", st: ["top bottom", "bottom bottom"] },
     },
   },
   costi: {

@@ -1,6 +1,20 @@
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, setConsent, clickUntil, videoTile } from "./helpers";
-import { clipOf, insetValues, installProbe, matrixOf, productOpacity, wheelTo } from "./coreografia";
+import {
+  clipOf,
+  heldTimeouts,
+  holdTimeouts,
+  insetValues,
+  installProbe,
+  matrixOf,
+  muteIntersectionObserver,
+  noOverflowX,
+  observedAt,
+  placeEdge,
+  productOpacity,
+  releaseTimeouts,
+  wheelTo,
+} from "./coreografia";
 import { PHONE_CLIP, ordinateOf } from "../app/lib/motion/finestra";
 
 // Homepage: che carichi, che l'intro non intrappoli nessuno, che l'header funzioni alla
@@ -1093,3 +1107,159 @@ test.describe("la finestra di Open Domus", () => {
     expect(r.bottom).toBeLessThanOrEqual(r.vh);
   });
 });
+
+const LISTA_DOC = "#domus-doc [data-doc-sheet] ul";
+const RIGHE_DOC = '#domus-doc [data-hairline="doc"][data-axis="x"]';
+const SPINA_DOC = '#domus-doc [data-hairline="doc"][data-axis="y"]';
+const APERTE = Array.from({ length: 5 }, () => [0, 0, 0, 0]);
+const USCITE = Array.from({ length: 5 }, () => [0, 0, 0, 100]);
+
+/** I clip calcolati di tutti gli elementi del locator, come quattro numeri (insetValues del commit 11). */
+async function insetsOf(l: Locator) {
+  return (await l.evaluateAll((els) => els.map((e) => getComputedStyle(e).clipPath))).map(insetValues);
+}
+
+// Capitolo 10, Domus D.O.C. (spec §3.11; A20 di Alberto, D26). Le righe sopra i
+// pilastri si tirano da sinistra e la spina (da md) scende dall'alto quando la
+// lista passa la linea del 60 % (rootMargin −40 %); quando la lista torna sotto
+// la linea proseguono ed escono (C22 della cliente: il gesto rigioca nei due
+// versi). Prima la quota della spec (lista al 50 %, tutto disegnato a 1,8 s),
+// poi la linea dai due lati: bordo alto a 0,61 fuori, a 0,59 dentro.
+async function righeNeiDueVersi(page: Page) {
+  const width = page.viewportSize()?.width ?? 0;
+  const righe = page.locator(RIGHE_DOC);
+  const spina = page.locator(SPINA_DOC);
+  await expect(righe).toHaveCount(5);
+  await expect(spina).toHaveCount(1);
+
+  // A scroll 0 la lista è sotto lo schermo: lo stato chiuso lo scrive il JS.
+  await expect.poll(async () => (await insetsOf(righe))[0], { timeout: 10_000 }).toEqual([0, 100, 0, 0]);
+  if (width >= 768) await expect.poll(async () => insetValues(await clipOf(spina))).toEqual([0, 0, 100, 0]);
+
+  // Lista al 50 % (spec §3.11). Riga i da 0,2 + i × 0,08 s per 0,8 s: l'ultima
+  // corre fra 0,52 e 1,32 s, la spina (0,2 + 1,12 s) finisce con lei. placeEdge
+  // torna circa 0,17 s dopo lo scroll, quindi la prima lettura cade verso 0,9 s:
+  // l'ultima riga ha ancora circa il 20 % da tirare. Tempi più corti della firma
+  // (per esempio 0,5 s senza ritardo) la troverebbero già chiusa.
+  await placeEdge(page, LISTA_DOC, "top", 0.5);
+  await page.waitForTimeout(700);
+  expect((await insetsOf(righe))[4], "a 0,7 s dalla quota l'ultima riga è già tutta tirata").not.toEqual([0, 0, 0, 0]);
+  // 1,8 s dalla quota, senza poll: la firma superata di lane-homeB (1,2 s, stagger 0,1, ritardo 0,3) finirebbe a 1,9 s.
+  await page.waitForTimeout(1_100);
+  expect(await insetsOf(righe)).toEqual(APERTE);
+  if (width >= 768) expect(insetValues(await clipOf(spina))).toEqual([0, 0, 0, 0]);
+
+  // Bordo alto a 0,61, sotto la linea: uscita 0,5 s dall'ultima riga, stagger 0,05 → 0,7 s.
+  await placeEdge(page, LISTA_DOC, "top", 0.61);
+  await page.waitForTimeout(900);
+  expect(await insetsOf(righe)).toEqual(USCITE);
+  if (width >= 768) expect(insetValues(await clipOf(spina))).toEqual([100, 0, 0, 0]);
+
+  // Bordo alto a 0,59, sopra la linea: le righe rientrano (C22).
+  await placeEdge(page, LISTA_DOC, "top", 0.59);
+  await page.waitForTimeout(1_800);
+  expect(await insetsOf(righe)).toEqual(APERTE);
+  if (width >= 768) expect(insetValues(await clipOf(spina))).toEqual([0, 0, 0, 0]);
+}
+
+test("D.O.C.: le righe si tirano quando la lista passa il 60 % e proseguono tornando sotto", async ({ page, goto }) => {
+  await goto("/");
+  await righeNeiDueVersi(page);
+});
+
+// Il LocaleProvider rende `it` sul server e passa alla lingua del cookie dopo il
+// montaggio (LocaleProvider.tsx:24-36; spec §2.3, test al primo caricamento con
+// `dt_locale=de`): i `li` hanno per chiave il titolo del pilastro e React li
+// rimonta. Il foglio si riarma sui nodi nuovi (useHairlineSheet con [locale]).
+test("D.O.C.: con dt_locale=de al primo caricamento le righe nuove hanno lo stesso gesto", async ({ page, goto }) => {
+  await page.context().addCookies([{ name: "dt_locale", value: "de", domain: "127.0.0.1", path: "/" }]);
+  await goto("/");
+  await expect(page.locator("#domus-doc [data-doc-sheet] li").first()).toContainText("Unterlagen");
+  await righeNeiDueVersi(page);
+});
+
+// La rete dei 2.500 ms (spec §3.11 e §2.4; D26): se l'IntersectionObserver non
+// avvisa, righe chiuse in vista si tirano quando scatta la rete, e non prima. La
+// rete è trattenuta da holdTimeouts: il test la fa scattare quando la lista è in
+// vista, senza dipendere dal tempo d'idratazione.
+test("D.O.C.: senza avvisi dell'IntersectionObserver la rete dei 2.500 ms tira le righe", async ({ page, goto }) => {
+  await muteIntersectionObserver(page);
+  await holdTimeouts(page, 2_500);
+  await goto("/");
+  const righe = page.locator(RIGHE_DOC);
+  await expect.poll(async () => (await insetsOf(righe))[0], { timeout: 10_000 }).toEqual([0, 100, 0, 0]);
+  const armata = await observedAt(page, LISTA_DOC);
+  expect(armata, "useHairlineSheet non ha osservato la lista").not.toBeNull();
+  // La rete nasce nello stesso giro dell'observe: un timeout da 2.500 ms registrato con lui.
+  expect(
+    (await heldTimeouts(page)).some((t) => Math.abs(t - armata!) < 50),
+    "nessuna rete da 2.500 ms armata insieme all'IntersectionObserver del foglio",
+  ).toBe(true);
+
+  await placeEdge(page, LISTA_DOC, "top", 0.5);
+  await page.waitForTimeout(600);
+  expect((await insetsOf(righe))[0], "senza avvisi e prima della rete le righe restano chiuse").toEqual([0, 100, 0, 0]);
+  expect(await releaseTimeouts(page)).toBeGreaterThan(0);
+  // Rete scattata adesso: ultima riga a 0,2 + 4 × 0,08 + 0,8 = 1,32 s.
+  await expect.poll(() => insetsOf(righe), { timeout: 2_000 }).toEqual(APERTE);
+});
+
+// La rete vale solo finché l'IntersectionObserver non ha deciso (spec §3.11; D26,
+// C22): righe uscite sotto la linea con la lista ancora in vista restano uscite
+// anche quando le reti rimaste scattano.
+test("D.O.C.: uscite sotto la linea, la rete dei 2.500 ms non le ridisegna", async ({ page, goto }) => {
+  await holdTimeouts(page, 2_500);
+  await goto("/");
+  const righe = page.locator(RIGHE_DOC);
+  await expect(righe).toHaveCount(5);
+  await expect.poll(async () => (await insetsOf(righe))[0], { timeout: 10_000 }).toEqual([0, 100, 0, 0]);
+
+  await placeEdge(page, LISTA_DOC, "top", 0.59);
+  await page.waitForTimeout(1_800);
+  expect(await insetsOf(righe)).toEqual(APERTE);
+  await placeEdge(page, LISTA_DOC, "top", 0.61);
+  await page.waitForTimeout(900);
+  expect(await insetsOf(righe)).toEqual(USCITE);
+
+  // Scattano le reti trattenute: quella del foglio l'ha già tolta l'IntersectionObserver.
+  await releaseTimeouts(page);
+  await page.waitForTimeout(1_600);
+  expect(await insetsOf(righe), "la rete ha ridisegnato righe uscite con la lista in vista").toEqual(USCITE);
+});
+
+// Capitolo 11, Services (spec §3.12; A20 di Alberto, D27). L'interno della foto
+// scende da 1,15 a 1 ancorato al bordo basso mentre la scatola entra, e si posa
+// quando il bordo basso della scatola tocca il fondo dello schermo. Services vive
+// anche su /servizi (spec §5.3): lo stesso gesto, subito dopo la testa della pagina.
+for (const path of ["/", "/servizi"]) {
+  test(`Services su ${path}: la foto si posa da 1,15 a 1 mentre la scatola entra`, async ({ page, goto, isMobile }) => {
+    await goto(path);
+    const width = page.viewportSize()?.width ?? 0;
+    const scatola = "#servizi [data-zoom-box]";
+    await expect(page.locator(scatola)).toHaveCount(3);
+    const zoom = page.locator(`${scatola} > [data-zoom]`).first();
+
+    // Da desktop la rotella attraversa i corridoi sopra Services, come un utente:
+    // lo scrub vive nella zona in fondo alla home dove ScrollTrigger sfasava (spec §2.4).
+    if (!isMobile) {
+      const y = await page
+        .locator(scatola)
+        .first()
+        .evaluate((el) => el.getBoundingClientRect().top + window.scrollY - window.innerHeight);
+      await wheelTo(page, Math.max(0, y));
+    }
+    await placeEdge(page, scatola, "top", 0.95);
+    await page.waitForTimeout(1_500); // scrub 1,0: il valore raggiunge lo scroll in circa un secondo
+    const entrata = await matrixOf(zoom);
+    expect(entrata.a).toBeGreaterThan(width >= 1024 ? 1.1 : 1.08);
+    expect(entrata.d).toBeCloseTo(entrata.a, 4);
+    expect(Math.abs(entrata.b)).toBeLessThan(0.001);
+
+    await placeEdge(page, scatola, "bottom", 1);
+    await page.waitForTimeout(1_500);
+    const posata = await matrixOf(zoom);
+    expect(Math.abs(posata.a - 1)).toBeLessThanOrEqual(0.01);
+
+    await noOverflowX(page);
+  });
+}

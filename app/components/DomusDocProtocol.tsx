@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+import Hairline, { useHairlineSheet } from "./motion/Hairline";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
@@ -231,9 +233,17 @@ type Props = {
 export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
   const { locale } = useLocale();
   const c = copy[locale];
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  // I `li` hanno per chiave il titolo del pilastro e cambiano nodo con la lingua:
+  // il foglio si riarma a ogni cambio (A20 di Alberto: flip per lettera anche nei
+  // pilastri, spec §2.3; righe del foglio D26).
+  useHairlineSheet(sheetRef, "doc", [locale]);
 
-  // Riga piana, multi-istanza (home + pagine interne): niente card, niente
-  // lampo, niente timeline GSAP — Reveal e titoli per lettera (SplitTitle, A20 di Alberto).
+  // Riga piana, multi-istanza (home, /vendi, /metodo, /acquista): niente card.
+  // Il gesto del capitolo 10 (A20 di Alberto, spec §3.11) vale su tutte e quattro:
+  // le righe sopra i pilastri si tirano da sinistra e la spina fra le colonne
+  // scende dall'alto (Hairline, valori in chapters.ts); ferme restano disegnate
+  // (D26). Titoli per lettera con SplitTitle (A20).
   return (
     <section id={id} className="dt-chapter bg-cream">
       <div className="dt-row">
@@ -266,31 +276,38 @@ export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
         </div>
 
         {/* Checklist: i 5 pilastri in due colonne, trattino rosso; ognuno con il
-            beneficio per chi vende e per chi compra. */}
-        <ul className="mt-12 grid gap-x-[4vw] gap-y-6 text-body text-graphite md:grid-cols-2">
-          {c.pillars.map((p) => (
-            <li key={p.t} className="flex gap-3">
-              <span aria-hidden className="mt-3 h-px w-6 shrink-0 bg-red" />
-              <div>
-                <SplitTitle as="h3" font="display-400" className="font-display text-d4 font-light">
-                  {p.t}
-                </SplitTitle>
-                <p className="mt-2">
-                  <span className="block text-ui font-semibold uppercase tracking-[0.08em] text-red">
-                    {c.sellerLabel}
-                  </span>
-                  {p.seller}
-                </p>
-                <p className="mt-2 text-stone">
-                  <span className="block text-ui font-semibold uppercase tracking-[0.08em]">
-                    {c.buyerLabel}
-                  </span>
-                  {p.buyer}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+            beneficio per chi vende e per chi compra. Il foglio è rigato (D26):
+            una riga di 1 px sopra ogni pilastro e, da md, la spina fra le due
+            colonne. La spina sta nel wrapper e non nella `ul`, così la lista
+            resta fatta solo di `li` (spec §3.11). */}
+        <div ref={sheetRef} data-doc-sheet className="relative mt-12">
+          <Hairline chapter="doc" axis="y" className="hidden md:block" />
+          <ul className="grid gap-x-[4vw] gap-y-6 text-body text-graphite md:grid-cols-2">
+            {c.pillars.map((p) => (
+              <li key={p.t} className="relative flex gap-3 pt-6">
+                <Hairline chapter="doc" />
+                <span aria-hidden className="mt-3 h-px w-6 shrink-0 bg-red" />
+                <div>
+                  <SplitTitle as="h3" font="display-400" className="font-display text-d4 font-light">
+                    {p.t}
+                  </SplitTitle>
+                  <p className="mt-2">
+                    <span className="block text-ui font-semibold uppercase tracking-[0.08em] text-red">
+                      {c.sellerLabel}
+                    </span>
+                    {p.seller}
+                  </p>
+                  <p className="mt-2 text-stone">
+                    <span className="block text-ui font-semibold uppercase tracking-[0.08em]">
+                      {c.buyerLabel}
+                    </span>
+                    {p.buyer}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
 
         <Reveal>
           <p className="mt-10 max-w-[800px] text-body text-stone">{c.footnote}</p>

@@ -1314,3 +1314,33 @@ Senza corridoio:
 | 390×664 | / | nessuno | nessuno | 1 | 28075 | 0 |  | ok |
 | 1440×900 | /vendi | nessuno | nessuno | 0 | 16310 | 0 |  | ok |
 | 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 24151) | ok |
+
+## Commit 14 · D.O.C. rigato e zoom di Services (2026-09-17, a6c60a0+)
+
+### D.O.C. su /, tempi dai campioni rAF (ms e %)
+
+| viewport | riga 1 parte | passi d'ingresso | durate d'ingresso | lato dx riga 1 a 400 ms | spina inizio / durata / fine | riga 5 esce da | passi d'uscita (5→1) | durate d'uscita | lato sx riga 5 a 250 / 400 ms | spina in uscita |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | 222 | 67 / 83 / 84 / 84 | 792 / 809 / 809 / 808 / 809 | 25.1 | 222 / 1126 / 1347 (riga 5: 1347) | 21 | 50 / 50 / 50 / 51 | 509 / 492 / 492 / 492 / 492 | 13.4 / 40.0 | 492 |
+| 1024×768 | 196 | 83 / 84 / 84 / 83 | 809 / 809 / 808 / 809 / 809 | 27.0 | 196 / 1142 / 1337 (riga 5: 1337) | 22 | 50 / 50 / 50 / 50 | 492 / 492 / 491 / 492 / 492 | 13.4 / 40.3 | 492 |
+| 768×1024 | 202 | 84 / 83 / 84 / 83 | 809 / 808 / 809 / 808 / 808 | 27.2 | 202 / 1126 / 1327 (riga 5: 1343) | 9 | 50 / 50 / 50 / 50 | 509 / 509 / 509 / 509 / 509 | 13.4 / 39.5 | 509 |
+| 390×664 | 219 | 67 / 83 / 84 / 84 | 792 / 808 / 808 / 809 / 808 | 25.0 | sotto 768 | 8 | 50 / 50 / 50 / 50 | 508 / 508 / 508 / 508 / 508 | 13.3 / 40.0 | sotto 768 |
+
+### Services, scala dell'interno e sorgente della riga 1
+
+| pagina | viewport | scala a top 100 / 95 / 80 / 60 % | scala a fondo | w scaricata / servita | traboccamento (px) |
+| --- | --- | --- | --- | --- | --- |
+| / | 1440×900 | 1.150 / 1.133 / 1.082 / 1.029 | 1.000 | 1280 / 1044 | 0 |
+| / | 1024×768 | 1.150 / 1.129 / 1.070 / 1.015 | 1.000 | 768 / 742 | 0 |
+| / | 768×1024 | 1.150 / 1.131 / 1.078 / 1.024 | 1.000 | 1280 / 1113 | 0 |
+| / | 390×664 | 1.150 / 1.127 / 1.066 / 1.011 | 1.000 | 640 / 606 | 0 |
+| /servizi | 1440×900 | 1.150 / 1.133 / 1.082 / 1.029 | 1.000 | 1280 / 1044 | 0 |
+| /servizi | 390×664 | 1.150 / 1.128 / 1.066 / 1.011 | 1.000 | 640 / 606 | 0 |
+
+### CLS con sorgente nel foglio del D.O.C.
+
+| pagina | viewport | somma | nodi | quote della passata |
+| --- | --- | --- | --- | --- |
+| /vendi | 390×664 | 0.0000 | nessuno | 0.500 / 0.800 / 0.500 |
+| /metodo | 390×664 | 0.0000 | nessuno | 0.500 / 0.799 / 0.500 |
+| /acquista | 390×664 | 0.0000 | nessuno | 0.500 / 0.800 / 0.500 |

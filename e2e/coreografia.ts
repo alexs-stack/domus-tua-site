@@ -801,3 +801,132 @@ export function insetValues(clip: string): [number, number, number, number] | nu
   const [t, r = t, b = t, l = r] = v;
   return [t, r, b, l].map((n) => Math.round(n * 100) / 100 + 0) as [number, number, number, number];
 }
+
+declare global {
+  interface Window {
+    __ioObserved?: Array<{ el: Element; t: number }>;
+    __heldTimeouts?: Array<{ id: number; t: number; fn: () => void }>;
+  }
+}
+
+/**
+ * Porta il bordo `edge` del primo elemento di `selector` a `frac × innerHeight`
+ * con uno scroll istantaneo e restituisce la frazione ottenuta. Prima di ogni
+ * lettura aspetta che scrollY resti fermo per 10 fotogrammi: dopo la rotella
+ * Lenis (SmoothScroll.tsx:108-113, lerp 0,1) può ancora riscrivere lo scroll.
+ * Cinque tentativi, poi fallisce se lo scarto supera 0,005: la tolleranza stretta
+ * prova da che parte della linea dell'IntersectionObserver sta il bordo (linea al
+ * 60 % del D.O.C., spec §3.11, D26; all'80 % dell'acqua, spec §3.13, D25).
+ */
+export async function placeEdge(page: Page, selector: string, edge: "top" | "bottom", frac: number): Promise<number> {
+  const got = await page.evaluate(
+    async ({ selector, edge, frac }) => {
+      const el = document.querySelector(selector);
+      if (!el) throw new Error(`placeEdge: ${selector} assente`);
+      const fermo = async () => {
+        let last = window.scrollY;
+        let still = 0;
+        for (let n = 0; still < 10 && n < 300; n++) {
+          await new Promise<void>((res) => requestAnimationFrame(() => res()));
+          still = Math.abs(window.scrollY - last) < 0.5 ? still + 1 : 0;
+          last = window.scrollY;
+        }
+      };
+      const at = () => {
+        const r = el.getBoundingClientRect();
+        return (edge === "top" ? r.top : r.bottom) / window.innerHeight;
+      };
+      for (let i = 0; i < 5; i++) {
+        await fermo();
+        const now = at();
+        if (Math.abs(now - frac) <= 0.005) return now;
+        window.scrollTo({ top: window.scrollY + (now - frac) * window.innerHeight, behavior: "instant" });
+      }
+      await fermo();
+      return at();
+    },
+    { selector, edge, frac },
+  );
+  if (Math.abs(got - frac) > 0.005) throw new Error(`placeEdge: ${selector} ${edge} a ${got.toFixed(4)} invece di ${frac}`);
+  return got;
+}
+
+/**
+ * Sostituisce IntersectionObserver con uno che non avvisa mai e registra in
+ * `window.__ioObserved` ogni `observe(el)` col suo `performance.now()`. Va
+ * chiamata prima di `goto`. Prova le reti dei 2.500 ms dei gesti a
+ * IntersectionObserver: righe del D.O.C. (spec §3.11, D26) e acqua di Costi
+ * chiari (spec §3.13, D25).
+ */
+export async function muteIntersectionObserver(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const seen: Array<{ el: Element; t: number }> = [];
+    class Muto {
+      readonly root = null;
+      readonly rootMargin = "0px";
+      readonly thresholds: ReadonlyArray<number> = [0];
+      observe(el: Element) {
+        seen.push({ el, t: performance.now() });
+      }
+      unobserve() {}
+      disconnect() {}
+      takeRecords(): IntersectionObserverEntry[] {
+        return [];
+      }
+    }
+    window.__ioObserved = seen;
+    window.IntersectionObserver = Muto as unknown as typeof IntersectionObserver;
+  });
+}
+
+/** `performance.now()` del primo `observe()` su un elemento che corrisponde a `selector`, dopo `muteIntersectionObserver`; `null` se nessuno. */
+export async function observedAt(page: Page, selector: string): Promise<number | null> {
+  return page.evaluate((sel) => window.__ioObserved?.find((o) => o.el.matches(sel))?.t ?? null, selector);
+}
+
+/**
+ * Trattiene i `setTimeout` di esattamente `ms` millisecondi: non scattano finché
+ * `releaseTimeouts` non li chiama, e `clearTimeout` sul loro id (negativo) li
+ * toglie. Va chiamata prima di `goto`. Rende deterministiche le reti a tempo dei
+ * gesti a IntersectionObserver (2.500 ms: righe del D.O.C., spec §3.11, D26;
+ * acqua di Costi chiari, spec §3.13, D25): il test decide quando la rete scatta,
+ * senza dipendere dal tempo d'idratazione del build.
+ */
+export async function holdTimeouts(page: Page, ms: number): Promise<void> {
+  await page.addInitScript((trattenuti) => {
+    const held: Array<{ id: number; t: number; fn: () => void }> = [];
+    const origSet = window.setTimeout.bind(window);
+    const origClear = window.clearTimeout.bind(window);
+    let next = -1;
+    window.__heldTimeouts = held;
+    window.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
+      if (delay !== trattenuti || typeof handler !== "function") return origSet(handler, delay, ...args);
+      const id = next--;
+      held.push({ id, t: performance.now(), fn: () => (handler as (...a: unknown[]) => void)(...args) });
+      return id;
+    }) as typeof window.setTimeout;
+    window.clearTimeout = ((id?: number) => {
+      if (typeof id === "number" && id < 0) {
+        const i = held.findIndex((h) => h.id === id);
+        if (i > -1) held.splice(i, 1);
+        return;
+      }
+      origClear(id);
+    }) as typeof window.clearTimeout;
+  }, ms);
+}
+
+/** `performance.now()` di registrazione dei timeout trattenuti da `holdTimeouts` e ancora vivi. */
+export async function heldTimeouts(page: Page): Promise<number[]> {
+  return page.evaluate(() => (window.__heldTimeouts ?? []).map((h) => h.t));
+}
+
+/** Fa scattare adesso i timeout trattenuti ancora vivi, li svuota e restituisce quanti erano. */
+export async function releaseTimeouts(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const held = window.__heldTimeouts ?? [];
+    const due = held.splice(0, held.length);
+    for (const h of due) h.fn();
+    return due.length;
+  });
+}

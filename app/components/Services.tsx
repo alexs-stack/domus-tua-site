@@ -17,12 +17,16 @@
 // capitolo per sei righe di testo. Il numero costa zero, e' il gesto
 // editoriale del riferimento e lascia alla foto il ruolo di respiro.
 import Image from "next/image";
+import { useRef } from "react";
 import Reveal from "./Reveal";
 import RevealGroup from "./motion/RevealGroup";
 import SplitTitle from "./motion/SplitTitle";
-import Parallax from "./motion/Parallax";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
+import { gsap, useGSAP } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
+import { chapters } from "../lib/motion/chapters";
+import { ZOOM_FROM, zoomSizes } from "../lib/motion/zoom";
 
 // `featureBadge` e `docEyebrow`/`docCopy` restano nel record per lingua ma non
 // si rendono piu' (via il badge e la fascia D.O.C. col redesign). `featureTitle`
@@ -37,8 +41,11 @@ const copy = {
       "Vedere il potenziale dell’immobile prima ancora dei lavori.",
     featureAlt: "Rendering fotorealistico di un living moderno",
     featureCta: "Scopri i servizi creativi",
+    // Riga 1 (A24 di Alberto): la sala col tavolo e le sedie gialle. L'alt dice
+    // quel che si vede; l'home staging torna nell'alt solo se la cliente conferma
+    // l'allestimento (spec §7.5).
     shotAlts: [
-      "Salone valorizzato dall’home staging, con il tavolo e le sedie gialle",
+      "Soggiorno con tavolo, sedie gialle, lampada ad arco e libreria",
       "Villa con piscina fotografata dal drone al tramonto",
     ],
     services: [
@@ -77,7 +84,7 @@ const copy = {
     featureAlt: "Photorealistic rendering of a modern living room",
     featureCta: "Discover the creative services",
     shotAlts: [
-      "Living and dining room enhanced by home staging, with the yellow chairs",
+      "Living room with a table, yellow chairs, an arc lamp and a bookcase",
       "Villa with swimming pool shot from a drone at sunset",
     ],
     services: [
@@ -116,7 +123,7 @@ const copy = {
     featureAlt: "Rendu photoréaliste d’un salon moderne",
     featureCta: "Découvrir les services créatifs",
     shotAlts: [
-      "Salon valorisé par le home staging, avec la table et les chaises jaunes",
+      "Séjour avec une table, des chaises jaunes, un lampadaire arc et une bibliothèque",
       "Villa avec piscine photographiée par drone au coucher du soleil",
     ],
     services: [
@@ -155,7 +162,7 @@ const copy = {
     featureAlt: "Fotorealistisches Rendering eines modernen Wohnzimmers",
     featureCta: "Die kreativen Leistungen entdecken",
     shotAlts: [
-      "Durch Home Staging aufgewerteter Wohn- und Essbereich mit den gelben Stühlen",
+      "Wohnzimmer mit Tisch, gelben Stühlen, Bogenlampe und Bücherregal",
       "Villa mit Pool, bei Sonnenuntergang mit der Drohne aufgenommen",
     ],
     services: [
@@ -194,7 +201,7 @@ const copy = {
     featureAlt: "Renderizado fotorrealista de un salón moderno",
     featureCta: "Descubre los servicios creativos",
     shotAlts: [
-      "Salón revalorizado con home staging, con la mesa y las sillas amarillas",
+      "Salón con mesa, sillas amarillas, lámpara de arco y librería",
       "Villa con piscina fotografiada con dron al atardecer",
     ],
     services: [
@@ -225,27 +232,22 @@ const copy = {
   },
 };
 
-// Tre fotografie, una per riga: due voci per riga. Il taglio e' scelto guardando
-// il file, non la griglia — sono tutte 16:9 o 3:2, nel quadrato si perde solo
-// larghezza (l'altezza resta intera) e nessuna sale oltre 1x.
-//   home_staging  1024×683  il tavolo e le sedie stanno al centro → 50 %
-//   villa-tramonto 1600×900 casa e piscina stanno al centro → 50 %
-//   rendering_01  1920×1080 il divano e il tavolino stanno al centro → 50 %
-// Fuori dalla home restano `rendering_03_master_bedroom_legno` e
-// `premium_02_living_dining_piante` (doppioni di interni chiari) e
-// `reali/video-villa-domotica` (fotogramma col titolo del video cotto nella
-// fascia alta, che stava nel quadrato solo con un ritaglio del 125 %).
+// Tre fotografie, una per riga, due voci per riga; nel quadrato si perde solo
+// larghezza (l'altezza resta intera) e nessuna sale oltre 1x. Riga 1 (A24 di
+// Alberto, D60): la sala col tavolo e le sedie gialle, 3:2. Il fotogramma della
+// sala del video tour resta fuori: porta una targa a muro con una frase
+// leggibile. Righe 2 e 3 (spec §3.12): villa-tramonto e rendering_01, 16:9.
+// `ratio` è il rapporto vero del file (lo verifica doc-services.test.ts con
+// sharp) e decide i `sizes` dello zoom (D27): `zoomSizes(ratio)` chiede scatola ×
+// rapporto × 1,15 (app/lib/motion/zoom.ts).
+//   home_staging_01 1024×683   il tavolo e le sedie stanno al centro → 50 %
+//   villa-tramonto  1600×900   casa e piscina stanno al centro → 50 %
+//   rendering_01    1920×1080  il divano e il tavolino stanno al centro → 50 %
 const ROWS = [
-  { src: "/images/home_staging_01_sala_reale_sedie_gialle.jpg" },
-  { src: "/images/reali/villa-tramonto.jpg" },
-  { src: "/images/rendering_01_living_divano_grigio.jpg" },
+  { src: "/images/home_staging_01_sala_reale_sedie_gialle.jpg", ratio: 3 / 2 },
+  { src: "/images/reali/villa-tramonto.jpg", ratio: 16 / 9 },
+  { src: "/images/rendering_01_living_divano_grigio.jpg", ratio: 16 / 9 },
 ];
-
-// `sizes` segue la SCATOLA, non la colonna: con `object-cover` una foto 16:9 in
-// un quadrato viene resa larga 1,78 volte il lato (poi rifilata). A 42vw
-// servono ~75vw di sorgente, altrimenti il loader manda il ritaglio da 640 e lo
-// stira. Stessa aritmetica sotto i 1024, dove la scatola e' larga 100 %.
-const SHOT_SIZES = "(max-width: 1024px) 180vw, 75vw";
 
 // Il rendering vive nella sezione creativa di /servizi: il link va lì.
 const FEATURE_HREF = "/servizi#servizi-creativi";
@@ -253,6 +255,47 @@ const FEATURE_HREF = "/servizi#servizi-creativi";
 export default function Services() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const rootRef = useRef<HTMLElement | null>(null);
+
+  // Capitolo 11 (A20 di Alberto, spec §3.12): lo zoom d'ingresso. L'interno
+  // `[data-zoom]` scende da 1,15 a 1 ancorato al bordo basso mentre la scatola
+  // entra (`top bottom` → `bottom bottom`) e si posa quando è tutta in vista;
+  // risalendo si riavvolge. Firma letta da chapters.ts; il trigger è la scatola
+  // `[data-zoom-box]`, come la voce `servizi` di chapters.ts (spec §3.1 riga 11).
+  // Niente parallasse yPercent (D27) e niente Parallax (D23).
+  // Vale anche su /servizi (spec §5.3). Con reduced-motion nessuno stile inline.
+  useGSAP(
+    () => {
+      const root = rootRef.current;
+      if (!root) return;
+      const s = chapters.servizi.signature;
+      if (!("scrub" in s.time) || !("st" in s.trigger)) {
+        throw new Error("chapters.servizi: Services vuole una firma in scrub con start ed end");
+      }
+      const { scrub } = s.time;
+      const [start, end] = s.trigger.st;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        // gsap.matchMedia() crea contesti senza selettore (gsap.js:3744-3756): la
+        // query parte dalla sezione, non dal documento.
+        root.querySelectorAll<HTMLElement>("[data-zoom]").forEach((inner) => {
+          const box = inner.closest("[data-zoom-box]");
+          if (!box) return;
+          gsap.fromTo(
+            inner,
+            { scale: ZOOM_FROM, transformOrigin: "50% 100%" },
+            {
+              scale: 1,
+              transformOrigin: "50% 100%",
+              ease: s.ease,
+              scrollTrigger: { trigger: box, start, end, scrub, invalidateOnRefresh: true },
+            },
+          );
+        });
+      });
+    },
+    { scope: rootRef },
+  );
 
   // Sei voci: le cinque dell'elenco piu' il rendering, che era una riga a sé
   // con una misura propria e ora e' la 06.
@@ -260,7 +303,7 @@ export default function Services() {
   const alts = [...c.shotAlts, c.featureAlt];
 
   return (
-    <section id="servizi" className="dt-chapter bg-cream">
+    <section ref={rootRef} id="servizi" className="dt-chapter bg-cream">
       <div className="dt-row">
         {/* Testa di capitolo: eyebrow e titolo d2 in colonna stretta. */}
         <Reveal>
@@ -283,20 +326,23 @@ export default function Services() {
             key={row.src}
             className="dt-row mt-[10vh] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
           >
-            <Parallax
-              speed={-0.04}
-              scale={1.03}
+            {/* La scatola `.dt-media-half` ritaglia e non si muove; la scala dello
+                zoom (D27) sta sul wrapper interno e non sull'img di next/image
+                (spec §3.12, lane-homeB §11). */}
+            <div
+              data-zoom-box
               className={`dt-media-half ${right ? "lg:order-2 lg:justify-self-end" : ""}`}
-              innerClassName="absolute inset-0"
             >
-              <Image
-                src={row.src}
-                alt={alts[r]}
-                fill
-                sizes={SHOT_SIZES}
-                className="object-cover"
-              />
-            </Parallax>
+              <div data-zoom className="absolute inset-0">
+                <Image
+                  src={row.src}
+                  alt={alts[r]}
+                  fill
+                  sizes={zoomSizes(row.ratio)}
+                  className="object-cover"
+                />
+              </div>
+            </div>
 
             {/* Due voci per riga. Da sm stanno affiancate (mai una pila di sei
                 sul telefono); da lg tornano in colonna, perche' accanto alla
