@@ -1847,9 +1847,10 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
    ±16px nel ramo mobile di HorizonScroller — questa è la rete, non la cintura.
    `clip` e non `hidden`: `hidden` farebbe della sezione un contenitore di
    scorrimento e nessuno se ne accorgerebbe finché un giorno qui dentro non
-   arriva uno sticky. `overflow-clip-margin` lascia respirare il tralcio del
-   manifesto, che sporge di 24px dall'angolo alto a sinistra: ciò che sta nel
-   margine si dipinge, ma non genera scorrimento del documento. Dove browser
+   arriva uno sticky. `overflow-clip-margin` di 2rem lascia dipingere ciò che
+   sporge nel margine (le righe a gradini del ramo in colonna, ±16px) senza
+   generare scorrimento del documento; niente ornamenti nel nastro (C12 della
+   cliente). Dove browser
    vecchi non lo conoscono il ripiego è il clip secco, che è lo stato sicuro. */
 .dt-horizon:not([data-on]) {
   overflow-x: clip;

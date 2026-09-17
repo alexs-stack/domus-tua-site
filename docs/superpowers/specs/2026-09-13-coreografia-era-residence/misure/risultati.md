@@ -565,3 +565,63 @@ Decisione: misure del commit 9 sul build lasciato dagli e2e del giro (sei spec v
 | voci |  |  |  |  |  | 1011 | polygon(0.0366% 0%, 100% 0%, 100% 100%, 0.0457% 100%) | translate(0.0091%, 0%) translate3d(0px, 0px, 0px) | 0 |
 | voci |  |  |  |  |  | 1361 | vuoto | vuoto | 0 |
 | voci |  |  |  |  |  | 1610 | vuoto | vuoto | 0 |
+
+### 10a nastro invariato (prima), 2026-09-17, c453359, 1440x900
+
+| quota | data-on | track m41 | gradino m41 | clip sipario |
+| --- | --- | --- | --- | --- |
+| 0 | 1 | 0 | -38 | inset(0% 100% 0% 0%) |
+| 0.25 | 1 | -293 | -19 | inset(0% 100% 0% 0%) |
+| 0.5 | 1 | -908 | 0 | inset(0% 100% 0% 0%) |
+| 0.75 | 1 | -1521 | 19 | inset(0%) |
+| 1 | 1 | -1814 | 38 | inset(0%) |
+
+### 10a nastro invariato (prima), 2026-09-17, c453359+, 1024x768
+
+| quota | data-on | track m41 | gradino m41 | clip sipario |
+| --- | --- | --- | --- | --- |
+| 0 | 1 | 0 | -27 | inset(0% 100% 0% 0%) |
+| 0.25 | 1 | -206 | -13 | inset(0% 100% 0% 0%) |
+| 0.5 | 1 | -644 | 0 | inset(0% 100% 0% 0%) |
+| 0.75 | 1 | -1084 | 13 | inset(0%) |
+| 1 | 1 | -1290 | 27 | inset(0%) |
+
+### 10a nastro invariato (prima), 2026-09-17, c453359+, 390x664
+
+| quota | data-on | track m41 | gradino m41 | clip sipario |
+| --- | --- | --- | --- | --- |
+| 0 | 0 | 0 | -3 | inset(0% 100% 0% 0%) |
+| 0.25 | 0 | 0 | -2 | inset(0% 100% 0% 0%) |
+| 0.5 | 0 | 0 | 0 | inset(0% 100% 0% 0%) |
+| 0.75 | 0 | 0 | 2 | inset(0% 100% 0% 0%) |
+| 1 | 0 | 0 | 3 | inset(0%) |
+
+### 10a nastro invariato (dopo), 2026-09-17, c453359+, 1440x900
+
+| quota | data-on | track m41 | gradino m41 | clip sipario |
+| --- | --- | --- | --- | --- |
+| 0 | 1 | 0 | -38 | inset(0% 100% 0% 0%) |
+| 0.25 | 1 | -293 | -19 | inset(0% 100% 0% 0%) |
+| 0.5 | 1 | -908 | 0 | inset(0% 100% 0% 0%) |
+| 0.75 | 1 | -1521 | 19 | inset(0%) |
+| 1 | 1 | -1814 | 38 | inset(0%) |
+
+### 10a nastro invariato (dopo), 2026-09-17, c453359+, 1024x768
+
+| quota | data-on | track m41 | gradino m41 | clip sipario |
+| --- | --- | --- | --- | --- |
+| 0 | 1 | 0 | -27 | inset(0% 100% 0% 0%) |
+| 0.25 | 1 | -206 | -13 | inset(0% 100% 0% 0%) |
+| 0.5 | 1 | -644 | 0 | inset(0% 100% 0% 0%) |
+| 0.75 | 1 | -1084 | 13 | inset(0%) |
+| 1 | 1 | -1290 | 27 | inset(0%) |
+
+### 10a nastro invariato (dopo), 2026-09-17, c453359+, 390x664
+
+| quota | data-on | track m41 | gradino m41 | clip sipario |
+| --- | --- | --- | --- | --- |
+| 0 | 0 | 0 | -3 | inset(0% 100% 0% 0%) |
+| 0.25 | 0 | 0 | -2 | inset(0% 100% 0% 0%) |
+| 0.5 | 0 | 0 | 0 | inset(0% 100% 0% 0%) |
+| 0.75 | 0 | 0 | 2 | inset(0% 100% 0% 0%) |
+| 1 | 0 | 0 | 3 | inset(0%) |

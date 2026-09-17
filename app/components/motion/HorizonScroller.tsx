@@ -15,7 +15,6 @@
 //   data-horizon-stair           righe del titolo a gradini (parallasse contraria)
 //   data-horizon-slide           media col reveal a sipario (clip-path)
 //   data-horizon-slide-img       il media dentro lo slide (scale 1.15 → 1)
-//   data-horizon-flower="drift-x" | "drift-y"  decorazioni in deriva lenta
 //
 // Il set piece ORIZZONTALE vive SOLO con MQ.corridor (D22: 1024 px di
 // larghezza, 640 di altezza, motion ok): l'attributo
@@ -27,7 +26,7 @@
 // Sotto quella soglia la stessa storia si racconta in VERTICALE. Non è una versione
 // ridotta: è lo stesso film senza il pin (verdetto 15 dell'onda «parità mobile
 // 2», PORT-SENZA-PIN). Gli attributi del contratto qui sopra non nominano un
-// asse, quindi il ramo mobile li riusa TUTTI — chars, sipario, gradini, fiori —
+// asse, quindi il ramo mobile li riusa TUTTI — chars, sipario, gradini —
 // e sposta solo il punto da cui si guarda: dove il desktop innesca sul pin
 // della sezione, qui innesca ogni pezzo quando entra davvero in campo.
 // L'onda precedente aveva tradotto tre di questi in «fermo» o «reveal a
@@ -103,7 +102,7 @@ export default function HorizonScroller({
         // docs/mobile-parity.md §3.1). Qui resta la colonna e si sposta l'ASSE
         // dei trigger: ogni capitolo si apre quando lo si raggiunge, invece di
         // arrivare tutto insieme. Gli ATTI però sono gli stessi del desktop —
-        // chars, sipario, gradini, fiori — perché senza il pin si perde il
+        // chars, sipario, gradini — perché senza il pin si perde il
         // nastro, non la coreografia.
         if (!c.desktop) {
           const undo: Array<() => void> = [];
@@ -182,8 +181,8 @@ export default function HorizonScroller({
           //
           // Lo split lo fa questo componente dentro `matchMedia`, che tiene vivo
           // un ramo solo alla volta (spec §3.5): uno split, non due. Sono ~68 span
-          // su un h2 solo, `will-change` mai (`globals.css`, blocco .dt-hchar;
-          // spec §2.2), split revertito nel cleanup.
+          // sull'h3 del manifesto, `will-change` mai (`globals.css`, blocco
+          // .dt-hchar; spec §2.2), split revertito nel cleanup.
           //
           // Cambia solo il punto da cui si guarda, come per tutto il ramo: il
           // desktop innesca sul pin della sezione ("top 55%" della radice,
@@ -359,48 +358,6 @@ export default function HorizonScroller({
               onLeaveBack: () => stl?.reverse(),
             });
           });
-
-          // ── I fiori derivano anche qui ────────────────────────────────────
-          // Qui c'era scritto «i fiori restano spenti: in HorizonStory sono
-          // tutti `hidden lg:block`, non c'è niente da far derivare». Era vero
-          // e non lo è più: dalla Fase 2 il tralcio del manifesto
-          // ([data-horizon-flower="drift-y"], `HorizonStory.tsx:250-256`) è la
-          // Fioritura che resta accesa a 390 — «una per sezione» — e senza
-          // questa deriva sarebbe l'unica cosa immobile del capitolo, cioè
-          // proprio il contrario di ciò per cui è stata accesa.
-          //
-          // Stessa deriva del desktop: yPercent −10 → 10, `ease: "none"`,
-          // scrub 0.25. Cambia il trigger, che qui è il PANNELLO che ospita il
-          // fiore invece della radice pinnata: senza pin la corsa è la
-          // traversata del capitolo. E il trigger non è il fiore stesso, che
-          // pure sarebbe stato la scelta ovvia: la sua tween è su yPercent,
-          // quindi il suo rettangolo si muove in verticale mentre ScrollTrigger
-          // lo misura — start ed end inseguirebbero ciò che animano.
-          // Alleggerimento: nessun canvas nuovo (il tralcio c'è già), e il
-          // gemello "drift-x" — la scritta in fiori del territorio — non entra
-          // proprio nel selettore, perché sotto lg resta `hidden lg:block`:
-          // niente canvas, niente trigger. La guardia sul rettangolo qui sotto
-          // vale per il tralcio, il giorno che anche lui venisse gatato in
-          // larghezza: un trigger su un nodo senza box è un trigger sprecato.
-          gsap.utils
-            .toArray<HTMLElement>('[data-horizon-flower="drift-y"]', root)
-            .forEach((el) => {
-              if (!el.getClientRects().length) return;
-              gsap.fromTo(
-                el,
-                { yPercent: -10 },
-                {
-                  yPercent: 10,
-                  ease: "none",
-                  scrollTrigger: {
-                    trigger: el.parentElement ?? el,
-                    start: "top bottom",
-                    end: "bottom top",
-                    scrub: 0.25,
-                  },
-                }
-              );
-            });
 
           return () => {
             charsCancelled = true;
@@ -600,34 +557,6 @@ export default function HorizonScroller({
             onLeaveBack: () => stl?.reverse(),
           });
         });
-
-        // ── Decorazioni in deriva (slot fiori: possono non esserci) ────────
-        gsap.utils
-          .toArray<HTMLElement>('[data-horizon-flower="drift-x"]', root)
-          .forEach((el) =>
-            gsap.fromTo(
-              el,
-              { xPercent: 0 },
-              {
-                xPercent: -25,
-                ease: "none",
-                scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: 0.25 },
-              }
-            )
-          );
-        gsap.utils
-          .toArray<HTMLElement>('[data-horizon-flower="drift-y"]', root)
-          .forEach((el) =>
-            gsap.fromTo(
-              el,
-              { yPercent: -10 },
-              {
-                yPercent: 10,
-                ease: "none",
-                scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: 0.25 },
-              }
-            )
-          );
 
         return () => {
           ScrollTrigger.removeEventListener("refreshInit", size);
