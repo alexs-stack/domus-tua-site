@@ -1884,23 +1884,13 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   width: 126vw;
   padding-left: 26vw;
 }
-/* Split per-carattere del reveal "chars" (HorizonScroller): inline-block per
-   i transform, parola intera non spezzabile (smartWrap fa il resto). */
-.dt-hword {
-  display: inline-block;
-  white-space: nowrap;
-}
-/* ⚠️ NIENTE `will-change` PERMANENTE su questi selettori.
-   Vale anche per i membri dei reveal (D17, ruoli di spec §2.2 senza will-change): un elemento promosso è un
-   livello che il compositore tiene in memoria GPU finché esiste. Qui i
-   selettori colpiscono UN CARATTERE, UNA CELLA o UN PANNELLO A TUTTO SCHERMO
-   alla volta — misurato: 252 elementi promossi e 432 MB di memoria livelli
+/* ⚠️ NIENTE `will-change` PERMANENTE sulle lettere [data-c] e sui membri dei
+   reveal (ruoli del testo di A20 di Alberto, spec 2026-09-13 §2.2). Un
+   elemento promosso è un livello che il compositore tiene in memoria GPU
+   finché esiste — misurato: 252 elementi promossi e 432 MB di memoria livelli
    sulla home. Sotto pressione il compositore sfratta i livelli usciti di scena
    e li ricostruisce al ritorno: era il singhiozzo dello scroll all'indietro.
    GSAP promuove da sé ciò che sta animando, per il tempo in cui lo anima. */
-.dt-hchar {
-  display: inline-block;
-}
 
 /* Il titolo a gradini cavalca l'immagine solo nel layout orizzontale. */
 .dt-horizon[data-on] .dt-horizon_stairs {

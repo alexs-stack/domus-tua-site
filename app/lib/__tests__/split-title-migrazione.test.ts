@@ -21,7 +21,7 @@ const soloCodice = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(
 const ATTESI: Record<string, { split: number; g6?: number; script?: number }> = {
   "app/components/Posizionamento.tsx": { split: 1 },
   "app/components/HomeSearchGateway.tsx": { split: 1, g6: 1 },
-  "app/components/HorizonStory.tsx": { split: 1, script: 1 },
+  "app/components/HorizonStory.tsx": { split: 3, script: 1 },
   "app/components/StarReviews.tsx": { split: 1 },
   "app/components/Voci.tsx": { split: 1 },
   "app/components/Paths.tsx": { split: 2 },
@@ -62,7 +62,7 @@ const NUDI_AMMESSI: Record<string, number> = {
   "app/case/[slug]/VivereInZona.tsx": 3, // D32
   "app/components/Footer.tsx": 3, // reso anche in /case/[slug] (spec §5.4); commit 17
   "app/components/Congedo.tsx": 1, // commit 17 (spec §3.18)
-  "app/components/HorizonStory.tsx": 3, // commit 10 (spec §2.4, §3.5)
+  "app/components/HorizonStory.tsx": 1, // il titolo a gradini (data-horizon-stair): gesto di HorizonScroller, A12 (spec §3.5)
   "app/components/HeroCinematic.tsx": 1, // commit 8 (spec §2.5, strada «a»)
   "app/components/Contact.tsx": 1, // blocco del modulo con key={intent} (spec §8); commit 16
   "app/components/PropertyMap.tsx": 1, // dentro PropertySearch, invariato per spec §5.3
@@ -86,8 +86,8 @@ function sorgenti(dir: string, out: string[] = []): string[] {
 const conta = (t: string, re: RegExp) => (t.match(re) ?? []).length;
 
 describe("SplitTitle al posto di TextLines", () => {
-  test("71 SplitTitle in 34 file: 32 TextLines, 4 titoli semplici, 35 titoli nudi (G6)", () => {
-    assert.equal(Object.values(ATTESI).reduce((s, x) => s + x.split, 0), 36);
+  test("73 SplitTitle in 34 file: 32 TextLines, 4 titoli semplici, manifesto e h4 del nastro, 35 titoli nudi (G6)", () => {
+    assert.equal(Object.values(ATTESI).reduce((s, x) => s + x.split, 0), 38);
     assert.equal(Object.values(ATTESI).reduce((s, x) => s + (x.g6 ?? 0), 0), 35);
     assert.equal(Object.keys(ATTESI).length, 34);
   });

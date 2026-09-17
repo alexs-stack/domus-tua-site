@@ -11,8 +11,8 @@ import { SplitText } from "gsap/SplitText";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
 import { useLocale } from "../i18n/LocaleProvider";
 
-// SplitText si registra localmente, qui, in HorizonScroller e in Lead, per non finire nel chunk
-// del layout (che importa gsap.ts via SmoothScroll).
+// SplitText si registra localmente, qui e in Lead, per non finire nel chunk del layout (che
+// importa gsap.ts via SmoothScroll): il manifesto del nastro è un SplitTitle (spec §3.5).
 gsap.registerPlugin(SplitText);
 
 type Props = {

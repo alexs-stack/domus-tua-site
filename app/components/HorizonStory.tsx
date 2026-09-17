@@ -19,7 +19,9 @@ import Image from "next/image";
 import Reveal from "./Reveal";
 import ScriptWord from "./motion/ScriptWord";
 import SplitTitle from "./motion/SplitTitle";
-import HorizonScroller from "./motion/HorizonScroller";
+import Lead from "./motion/Lead";
+import RevealGroup from "./motion/RevealGroup";
+import HorizonScroller, { HorizonEnter } from "./motion/HorizonScroller";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -210,18 +212,16 @@ export default function HorizonStory() {
           />
         </div>
         {/* Il rientro delle altre righe torna insieme al modulo pieno. */}
-        <div className="lg:mt-[14vw] lg:pl-[6vw]">
+        <RevealGroup className="lg:mt-[14vw] lg:pl-[6vw]">
           <Reveal>
             <span className="eyebrow">{c.videoEyebrow}</span>
           </Reveal>
-          <Reveal delay={80}>
+          <Reveal>
             {/* Non un heading: il titolo del capitolo è uno solo, sopra. */}
             <p className="mt-6 max-w-[16ch] font-display text-d3 uppercase">{site.videos.featured.title}</p>
           </Reveal>
-          <Reveal delay={160}>
-            <p className="lead mt-8">{c.videoLead}</p>
-          </Reveal>
-        </div>
+          <Lead className="mt-8">{c.videoLead}</Lead>
+        </RevealGroup>
       </div>
 
       {/* I pannelli orizzontali: manifesto e territorio. Con MQ.corridor
@@ -233,26 +233,27 @@ export default function HorizonStory() {
           foto aerea né velo: solo l'avorio della pagina. */}
       <div className="mt-[clamp(4rem,10vh,8rem)]">
         <HorizonScroller id="storia" corridor="storia" refreshKey={locale}>
-          {/* Pannello manifesto: il titolo entra per carattere (animatore «h»
-              del riferimento), orchestrato da HorizonScroller al pin.
+          {/* Pannello manifesto (A12 di Alberto: il nastro resta; A20: titolo
+              per lettera e lead a righe, spec §2.4). Manifesto e lead sono un
+              gruppo solo, <HorizonEnter>: col nastro acceso lo fa entrare il
+              cue «top 70%» della radice e uscire la risalita sotto quel punto;
+              sotto MQ.corridor (D22) entra con l'IO del motore.
               La variante `[.dt-horizon:not([data-on])_&]` vale SOLO quando il
-              nastro non è acceso (reduced-motion, niente JS): lì i pannelli
-              sono blocchi in colonna e `lg:py-0` — giusto dentro uno schermo
-              sticky da 100svh — li faceva combaciare, con la fine del
-              manifesto attaccata all'eyebrow del territorio. */}
+              nastro non è acceso (reduced-motion, niente JS, sotto la soglia):
+              lì i pannelli sono blocchi in colonna e `lg:py-0` — giusto dentro
+              uno schermo sticky da 100svh — li faceva combaciare, con la fine
+              del manifesto attaccata all'eyebrow del territorio. */}
           <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center justify-center">
             {/* Centrato SOLO da lg, dove le tre frasi stanno su tre righe. Sul
                 telefono il centro spezzava il manifesto in sei righe con le
                 parole orfane in mezzo alla colonna: a bandiera le frasi si
                 chiudono dove finiscono. */}
-            <div className="mx-auto max-w-[1000px] px-[5vw] py-20 text-left lg:py-0 lg:text-center [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
-              <h3 key={locale} data-horizon-reveal="chars" className="font-display text-d2">
+            <HorizonEnter className="mx-auto max-w-[1000px] px-[5vw] py-20 text-left lg:py-0 lg:text-center [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+              <SplitTitle as="h3" className="font-display text-d2">
                 {c.statement}
-              </h3>
-              <Reveal delay={160}>
-                <p className="lead mt-8 lg:mx-auto">{c.lead}</p>
-              </Reveal>
-            </div>
+              </SplitTitle>
+              <Lead className="mt-8 lg:mx-auto">{c.lead}</Lead>
+            </HorizonEnter>
           </div>
 
           {/* Pannello territorio: i gradini del titolo cavalcano la foto in
@@ -281,13 +282,23 @@ export default function HorizonStory() {
                     </span>
                   ))}
                 </h3>
-                <div data-horizon-reveal="track" className="mt-10 max-w-[50ch]">
-                  <h4 className="font-display text-d4">{c.subtitle}</h4>
-                  <p className="mt-4 text-body text-graphite">{c.territory}</p>
-                  <Cta href="/acquista" variant="ghost" className="mt-7">
-                    {c.cta}
-                  </Cta>
-                </div>
+                {/* Gruppo del motore (spec §2.4): nel nastro entra quando è in
+                    scena e, risalendo, esce a destra della linea dell'85 %; in
+                    colonna entra dal basso. Col link dentro, il ruolo ctn scende
+                    a still: nei replay solo opacità (D21). */}
+                <RevealGroup className="mt-10 max-w-[50ch]">
+                  <SplitTitle as="h4" className="font-display text-d4">
+                    {c.subtitle}
+                  </SplitTitle>
+                  <Reveal as="p" className="mt-4 text-body text-graphite">
+                    {c.territory}
+                  </Reveal>
+                  <Reveal>
+                    <Cta href="/acquista" variant="ghost" className="mt-7">
+                      {c.cta}
+                    </Cta>
+                  </Reveal>
+                </RevealGroup>
               </div>
               {/* L'ALT DICE COSA SI VEDE, NON COSA VORREMMO: e' una ripresa quasi
                   a picco su UNA villa privata con piscina, non «i tetti e il
@@ -301,7 +312,9 @@ export default function HorizonStory() {
                   2560×1280, cioè PANORAMICA: sta in una banda 16:9, dove si
                   taglia l'11% e non si ingrandisce nulla; in un ritratto ne
                   resterebbe un terzo. */}
-              <div data-horizon-slide className="dt-media-full">
+              {/* Zona foto del monogramma (A21 di Alberto, spec §6.1): sopra
+                  questa foto le tacche del segno virano all'avorio. */}
+              <div data-horizon-slide data-bg="foto" className="dt-media-full">
                 <Image
                   data-horizon-slide-img
                   src="/media/hero-aerial.jpg"

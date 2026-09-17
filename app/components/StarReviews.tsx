@@ -32,8 +32,8 @@
    ORO (materiale, non decorazione: vedi l'eccezione dichiarata in
    globals.css) e puramente decorative: niente click, niente overlay. Il
    cluster prova poggia ora su voto + CTA Google + sigillo + widget.
-   FIRST VIEWPORT: il muro delle voci consegna lo sfondo pulito (uscita
-   estesa delle card); la foto Top Agency appare PICCOLA, croppata a stella,
+   FIRST VIEWPORT: il capitolo arriva sull'avorio della pagina, dopo il nastro
+   di «Perché Domus Tua» (HorizonStory); la foto Top Agency appare PICCOLA, croppata a stella,
    centrata, e lo scroll la ZOOMA a tutto schermo (demo 3 del riferimento,
    flash + titolo-cover a caratteri stirati) per poi richiuderla nella stella
    centrale della fila: 5 stelle, voto e conteggio (site.ts), CTA Google + sigillo Wikicasa.
@@ -61,11 +61,15 @@
 
 import { useRef } from "react";
 import Image from "next/image";
+import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
+import RevealGroup from "./motion/RevealGroup";
 import { site } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
-import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, requestRefresh, whenStill } from "../lib/motion/gsap";
+import type { RevealApi } from "../lib/motion/reveal-engine";
 import { starClipPath, STAR_INNER_RATIO } from "../lib/star-shape";
 
 type StarKey = "venditori" | "acquirenti" | "openDomus" | "esperienza" | "team";
@@ -90,6 +94,11 @@ const INTRO_IMG = "/images/reali/premio-team.jpg";
     STESSA timeline del desktop — 1,3 unità di posizioni e le sue ease — letta
     da un orologio invece che dallo scroll. Si cambia qui, in un posto solo. */
 const FILM_MS = 3000;
+/** Il beat del film in cui entra la testa della sezione (spec 2026-09-13 §2.4 e
+    §3.6; A12 di Alberto: il film resta). Col palcoscenico sticky qui si
+    accendono i wrapper [data-sr-el] e il gruppo della testa riceve play("in");
+    risalendo sotto questo punto, play("out"). La timeline resta di 1,3 unità. */
+const TITLE_CUE = 0.94;
 
 const copy = {
   it: {
@@ -227,6 +236,7 @@ export default function StarReviews() {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const introRef = useRef<HTMLDivElement | null>(null);
   const rowRef = useRef<HTMLUListElement | null>(null);
+  const titleApi = useRef<RevealApi | null>(null);
 
   useGSAP(
     () => {
@@ -281,6 +291,17 @@ export default function StarReviews() {
         // runway + schermo sticky, [data-sr-mob] rende presente il layer intro
         // come box (in globals.css). Nessuno dei due esiste senza JS.
         section.setAttribute(cond.lg ? "data-on" : "data-sr-mob", "");
+        // Col palcoscenico sticky il gruppo della testa è manuale sotto
+        // [data-set-on] della runway (spec §2.4). Il gruppo si è registrato nel
+        // suo layout effect, prima di questo: il refresh fa rileggere
+        // l'antenato al motore dei reveal. A scroll fermo (D53, whenStill di
+        // gsap.ts): la sezione monta con l'arrivo nativo al frammento ancora in
+        // volo (/#cerca, /#contatti) e un refresh forzato lo cancellerebbe;
+        // l'attesa si annulla col resto del cleanup.
+        if (cond.lg) {
+          runway.setAttribute("data-set-on", "");
+          cleanup.push(whenStill(() => requestRefresh()));
+        }
 
         /* IL BOX MOBILE. Sul desktop il layer intro è `inset: 0` dello schermo
            sticky, cioè il viewport. Sul telefono lo schermo sticky non c'è e
@@ -334,7 +355,7 @@ export default function StarReviews() {
         gsap.set(tiles, { opacity: 0, scale: 0.7 });
         // L'alone parte spento: l'accensione è il suo colpo di luce.
         gsap.set(halos, { opacity: 0 });
-        // La stella piccola appare dal fondo pulito che il muro consegna:
+        // La stella piccola appare sull'avorio della pagina:
         // l'intro parte spenta e i caratteri del cover partono "stirati"
         // (grammatica della demo 3: entrano quando la stella è a tutto schermo).
         gsap.set(intro, { autoAlpha: 0 });
@@ -403,22 +424,50 @@ export default function StarReviews() {
         // la fila, quindi a `top 85%` della fila il riquadro è tutto in vista.
         const startPct = 85;
 
-        // Il continuo di scroll (grammatica dell'orizzonte "Perché scegliere
-        // Domus Tua"), arco della DEMO 3 del riferimento (richiesta 2026-08-04):
-        // il muro consegna lo sfondo pulito → la foto Top Agency appare
-        // PICCOLA, croppata a stella, centrata → lo scroll la ZOOMA a tutto
-        // riquadro (lampo + titolo a caratteri stirati) → poi si richiude nella
-        // stella centrale della fila. Sul desktop è scrub (bidirezionale per
-        // natura); sul telefono la stessa timeline suonata a tempo.
+        /* IL CUE DELLA TESTA E LA ZONA DEL MONOGRAMMA, letti dal film e non
+           dallo scroll: con lo scrub 0,6 la timeline insegue lo scroll per
+           circa un secondo, e il cue deve cadere insieme ai wrapper
+           [data-sr-el]. Con uno scrub numerico l'onUpdate va sull'animazione,
+           non sul suo ScrollTrigger (documentazione di ScrollTrigger).
+           · Testa (spec §2.4): da TITLE_CUE in su play("in"), sotto play("out").
+             Il motore non rigioca un gruppo già in quello stato, quindi la
+             chiamata a ogni aggiornamento costa un confronto; e se la rete dei
+             2.500 ms ha acceso le lettere sotto il cue, col wrapper ancora a 0,
+             il primo aggiornamento del film le riporta nascoste.
+           · Monogramma (A21 di Alberto, spec §6.1 e §3.6): la copertina è zona
+             foto finché ha opacità ≥ 0,5 e il raggio interno della sua stella
+             contiene l'angolo alto a sinistra del riquadro, dove sta il segno.
+             Col palcoscenico sticky il riquadro è lo schermo, cioè il viewport. */
+        const film: { tl: gsap.core.Timeline | null } = { tl: null };
+        const onFilm = () => {
+          if (!film.tl) return;
+          if (film.tl.time() >= TITLE_CUE) titleApi.current?.play("in");
+          else titleApi.current?.play("out");
+          const copre =
+            Number(gsap.getProperty(intro, "opacity")) >= 0.5 &&
+            Math.hypot(geo.cx, geo.cy) <= geo.r * STAR_INNER_RATIO;
+          if (copre === intro.hasAttribute("data-bg")) return;
+          if (copre) intro.setAttribute("data-bg", "foto");
+          else intro.removeAttribute("data-bg");
+        };
+
+        // Il film (A12 di Alberto, 2026-09-11: resta com'era), arco della DEMO 3
+        // del riferimento (richiesta 2026-08-04): sull'avorio, dopo il nastro di
+        // HorizonStory, la foto Top Agency appare PICCOLA, croppata a stella,
+        // centrata → lo scroll la ZOOMA a tutto riquadro (lampo + titolo a
+        // caratteri stirati) → poi si richiude nella stella centrale della fila.
+        // Col palcoscenico sticky (MQ.corridor, D22) è scrub, bidirezionale per
+        // natura; sotto, la stessa timeline suonata a tempo. Resta di 1,3 unità:
+        // la testa non entra nella timeline, arriva col cue TITLE_CUE.
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: cond.lg
             ? {
                 trigger: runway,
                 // "top 55%", non "top top": la stella comincia ad accendersi
-                // mentre il muro svuotato sta ancora lasciando il viewport — lo
-                // scroll legge UNA pagina continua, senza il vuoto di un intero
-                // schermo tra i due capitoli (richiesta 2026-08-04).
+                // mentre la fine del nastro di HorizonStory sta ancora lasciando
+                // il viewport — lo scroll legge UNA pagina continua, senza il
+                // vuoto di un intero schermo tra i due capitoli (richiesta 2026-08-04).
                 start: "top 55%",
                 end: "bottom bottom",
                 scrub: 0.6,
@@ -437,6 +486,7 @@ export default function StarReviews() {
               },
           onStart: cond.lg ? undefined : morphOn,
           onComplete: cond.lg ? undefined : morphOff,
+          onUpdate: cond.lg ? onFilm : undefined,
         });
         tl
           // A. La stella piccola appare, centrata sul fondo pulito
@@ -503,9 +553,10 @@ export default function StarReviews() {
           .to(intro, { autoAlpha: 0, duration: 0.08 }, 1.02)
           // Coda di respiro prima dello sgancio dello sticky
           .to({}, { duration: 0.2 }, 1.1);
+        film.tl = tl;
         // Il testo della sezione entra col beat finale: solo dove era stato
-        // spento (desktop), altrimenti non c'è nulla da riaccendere.
-        if (cond.lg) tl.to(els, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", stagger: 0.015 }, 0.94);
+        // spento (palcoscenico sticky), altrimenti non c'è nulla da riaccendere.
+        if (cond.lg) tl.to(els, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", stagger: 0.015 }, TITLE_CUE);
 
         if (!cond.lg) {
           // L'OROLOGIO ADATTATO, e nient'altro: la timeline vale 1,3 "unità"
@@ -619,6 +670,7 @@ export default function StarReviews() {
         return () => {
           cleanup.forEach((fn) => fn());
           section.removeAttribute("data-on");
+          runway.removeAttribute("data-set-on");
           section.removeAttribute("data-sr-mob");
           section.removeAttribute("data-sr-gate");
           section.removeAttribute("data-lit");
@@ -629,11 +681,16 @@ export default function StarReviews() {
           // attraversando la soglia dei 1024 px resterebbe l'ultima stella
           // ritagliata addosso al layer.
           intro.style.removeProperty("clip-path");
+          // Lo stesso per data-bg, che lo scrive onFilm: sotto la soglia la
+          // copertina non è mai zona foto (spec §6.1, A21 di Alberto).
+          intro.removeAttribute("data-bg");
           tl.scrollTrigger?.kill();
           tl.kill();
           shimmer?.kill();
           breath?.kill();
           lit.kill();
+          // Senza [data-set-on] il gruppo della testa torna all'IO (spec §2.4).
+          whenStill(() => requestRefresh());
         };
       });
     },
@@ -641,9 +698,9 @@ export default function StarReviews() {
   );
 
   return (
-    // Niente bg-cream proprio: la sezione vive dentro la superficie curva di
-    // HorizonStory — un secondo bloom qui riaccenderebbe la linea d'ombra al
-    // confine col muro delle voci (il "taglio" segnalato il 2026-08-04).
+    // Niente bg-cream proprio: il fondo è l'avorio della pagina, uno per tutta
+    // la home (rivista bianca della cliente, 2026-09-10); un fondo qui
+    // disegnerebbe un confine fra HorizonStory e le stelle.
     <section ref={sectionRef} id="recensioni" data-corridor="recensioni" className="dt-starrev relative">
       {/* Runway + schermo sticky ([data-on]): lo scroll scolpisce il morph —
           la foto Top Agency arriva a TUTTA PAGINA come prosecuzione della
@@ -700,22 +757,34 @@ export default function StarReviews() {
           </div>
 
           <div ref={stageRef} className="dt-starrev_stage relative mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        {/* Testa: eyebrow + titolo + voto */}
-        <div className="text-center">
-          <span data-sr-el className="eyebrow eyebrow--center justify-center">
-            {c.eyebrow}
-          </span>
-          {/* Il titolo arriva col beat finale dello scrub (wrapper data-sr-el):
-              durante l'arco stella-piccola → fullscreen la scena resta pulita. */}
+        {/* Testa: occhiello, titolo e lead in un gruppo solo del motore dei
+            reveal (spec §2.4; A20 di Alberto: titolo per lettera, lead a
+            righe). Col palcoscenico sticky il gruppo è manuale sotto
+            [data-set-on] della runway ed entra al beat TITLE_CUE insieme ai
+            wrapper [data-sr-el] del film: durante l'arco stella piccola →
+            tutto schermo la scena resta pulita. Sotto MQ.corridor (D22) entra
+            con l'IO. */}
+        <RevealGroup
+          trigger="manual"
+          className="text-center"
+          onReady={(api) => {
+            titleApi.current = api;
+          }}
+        >
+          <div data-sr-el>
+            <Reveal>
+              <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
+            </Reveal>
+          </div>
           <div data-sr-el>
             <SplitTitle as="h2" className="mx-auto mt-6 max-w-[16ch] font-display text-d2">
               {c.title}
             </SplitTitle>
           </div>
-          <p data-sr-el className="lead mx-auto mt-6">
-            {c.subtitle}
-          </p>
-        </div>
+          <div data-sr-el>
+            <Lead className="mx-auto mt-6">{c.subtitle}</Lead>
+          </div>
+        </RevealGroup>
 
         {/* La fila delle cinque stelle */}
         {/* `mt-16` sotto lg: il riquadro del film e' ancorato al bordo BASSO

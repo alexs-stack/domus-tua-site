@@ -1,6 +1,6 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { test, expect, setConsent, clickUntil, videoTile } from "./helpers";
-import { matrixOf } from "./coreografia";
+import { installProbe, matrixOf, productOpacity } from "./coreografia";
 
 // Homepage: che carichi, che l'intro non intrappoli nessuno, che l'header funzioni alla
 // larghezza in cui ci si trova.
@@ -176,6 +176,204 @@ test("le cinque stelle si accendono quando la fila è in scena", async ({ page, 
   // In scena il riflesso è acceso ([data-lit]) e la fila conta cinque stelle d'oro.
   await expect(stars).toHaveAttribute("data-lit", "");
   await expect(page.locator(".dt-starrev_star")).toHaveCount(5);
+});
+
+// ── Capitoli 4 e 5 (commit 10b del piano 2026-09-13): attrezzi comuni ──────
+// Scroll istantaneo con due fotogrammi d'attesa; opacità e matrice di tutte le
+// lettere [data-c] di un titolo, non solo della prima o dell'ultima.
+const scrollNastro = (page: Page, y: number) =>
+  page.evaluate(async (top) => {
+    window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  }, y);
+const opacitaLettere = (lettere: Locator) =>
+  lettere.evaluateAll((els) => els.map((e) => Number(getComputedStyle(e).opacity)));
+const minLettere = async (lettere: Locator) => Math.min(...(await opacitaLettere(lettere)));
+const maxLettere = async (lettere: Locator) => Math.max(...(await opacitaLettere(lettere)));
+const lettereIdentita = (lettere: Locator) =>
+  lettere.evaluateAll((els) =>
+    els.every((e) => {
+      const t = getComputedStyle(e).transform;
+      const m = new DOMMatrixReadOnly(t === "none" ? undefined : t);
+      return (
+        Math.abs(m.a - 1) < 1e-3 &&
+        Math.abs(m.b) < 1e-3 &&
+        Math.abs(m.c) < 1e-3 &&
+        Math.abs(m.d - 1) < 1e-3 &&
+        Math.abs(m.m41) < 0.5 &&
+        Math.abs(m.m42) < 0.5
+      );
+    }),
+  );
+
+// ── Capitolo 4: il manifesto del nastro (spec §2.4, §3.5) ────────────────
+// Con MQ.corridor (D22) il gruppo di <HorizonEnter> è manuale (data-reveal-mode
+// "manual"): l'IO non decide, lo fanno entrare il cue «top 70%» della radice e
+// uscire la risalita sotto quel punto. Il campione sotto il cue si prende entro
+// 1.200 ms dal salto, dentro la finestra della rete dei manuali (2.500 ms, spec
+// §2.4). Sotto la soglia il gruppo è a IO ed esce quando il suo bordo alto (py-20
+// compreso) scende sotto la linea dell'85 %.
+// Tetti (D19): ingresso 0,3 + stagger al più 1,2 + 1,2 = 2,7 s; uscita 0,4 s più
+// stagger al più 0,4 s.
+test("il manifesto del nastro entra al cue «top 70%» e riesce risalendo", async ({ page, goto }) => {
+  const vp = page.viewportSize()!;
+  const corridoio = vp.width >= 1024 && vp.height >= 640;
+  await goto("/");
+  const storia = page.locator("#storia");
+  const gruppo = storia.locator("[data-reveal-group]").filter({ has: page.locator("h3") }).first();
+  const lettere = gruppo.locator("h3 [data-c]");
+  await expect(lettere.first()).toBeAttached();
+
+  if (corridoio) {
+    await expect(storia).toHaveAttribute("data-corridor", "storia");
+    await expect(storia).toHaveAttribute("data-on", "");
+    await expect(gruppo).toHaveAttribute("data-reveal-mode", "manual");
+    const top = await storia.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+    // Radice a 0,80 dell'altezza: il cue «top 70%» non è passato.
+    await scrollNastro(page, top - 0.8 * vp.height);
+    await page.waitForTimeout(1_200);
+    expect(await maxLettere(lettere)).toBeLessThan(0.1);
+    // Radice a 0,60: il cue è passato, entrano tutte le lettere.
+    await scrollNastro(page, top - 0.6 * vp.height);
+    await expect.poll(() => minLettere(lettere), { timeout: 3_500 }).toBeGreaterThanOrEqual(0.99);
+    expect(await lettereIdentita(lettere)).toBe(true);
+    // Di nuovo a 0,80: il cue ripassa all'indietro e il gruppo esce.
+    await scrollNastro(page, top - 0.8 * vp.height);
+    await expect.poll(() => maxLettere(lettere), { timeout: 1_300 }).toBeLessThan(0.1);
+    return;
+  }
+
+  await expect(storia).not.toHaveAttribute("data-on", /.*/);
+  await expect(gruppo).toHaveAttribute("data-reveal-mode", "io");
+  const centro = await gruppo.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return r.top + window.scrollY + r.height / 2 - window.innerHeight / 2;
+  });
+  await scrollNastro(page, centro);
+  await expect.poll(() => minLettere(lettere), { timeout: 3_500 }).toBeGreaterThanOrEqual(0.99);
+  expect(await lettereIdentita(lettere)).toBe(true);
+  // Bordo alto del GRUPPO a 0,95 dell'altezza: sotto la linea dell'85 %, uscita di decide().
+  const sotto = await gruppo.evaluate(
+    (el) => el.getBoundingClientRect().top + window.scrollY - 0.95 * window.innerHeight,
+  );
+  await scrollNastro(page, sotto);
+  await expect.poll(() => maxLettere(lettere), { timeout: 1_300 }).toBeLessThan(0.1);
+});
+
+// ── Capitolo 4: il blocco del territorio dentro il nastro (spec §2.4) ──────
+// Gruppo a IO sotto `.dt-horizon[data-on] .dt-horizon_track` (RIBBON del
+// motore): entra quando interseca lo schermo ed esce quando, risalendo, il suo
+// bordo sinistro torna oltre l'85 % della larghezza (rootMargin "0px -15% 0px 0px").
+test("il blocco del territorio entra nel nastro ed esce a destra risalendo", async ({ page, goto }) => {
+  const vp = page.viewportSize()!;
+  test.skip(vp.width < 1024 || vp.height < 640, "il nastro vive solo con MQ.corridor (D22)");
+  await goto("/");
+  const storia = page.locator("#storia");
+  await expect(storia).toHaveAttribute("data-on", "");
+  const gruppo = storia.locator("[data-reveal-group]").filter({ has: page.locator("h4") }).first();
+  const lettere = gruppo.locator("h4 [data-c]");
+  await expect(lettere.first()).toBeAttached();
+  await expect(gruppo).toHaveAttribute("data-reveal-mode", "io");
+  const sinistra = () => gruppo.evaluate((el) => el.getBoundingClientRect().left / window.innerWidth);
+
+  // Fine della corsa: l'ultimo fotogramma del nastro inquadra il territorio.
+  let y = await storia.evaluate(
+    (el) => el.getBoundingClientRect().top + window.scrollY + (el as HTMLElement).offsetHeight - window.innerHeight,
+  );
+  await scrollNastro(page, y);
+  await expect.poll(() => minLettere(lettere), { timeout: 3_500 }).toBeGreaterThanOrEqual(0.99);
+  expect(await sinistra()).toBeLessThan(0.85);
+
+  // Risalita a passi da 150 px; scrub 0,25 del track, 400 ms per passo.
+  for (let i = 0; i < 30 && (await sinistra()) < 0.88; i++) {
+    y -= 150;
+    await scrollNastro(page, y);
+    await page.waitForTimeout(400);
+  }
+  expect(await sinistra(), "il gruppo non è tornato a destra della linea d'uscita").toBeGreaterThanOrEqual(0.88);
+  await expect.poll(() => maxLettere(lettere), { timeout: 1_300 }).toBeLessThan(0.1);
+});
+
+// ── Capitolo 5: il titolo delle cinque stelle al beat 0,94 (spec §2.4, §3.6) ──
+// Progresso p del film: runway «top 55%» → «bottom bottom»; il cue 0,94 su 1,3
+// unità cade a p 0,723. Lo scrub 0,6 insegue lo scroll per circa un secondo.
+// Tetti del gruppo (D19): ingresso 2,7 s, uscita 0,8 s.
+// La rete dei manuali (spec §2.4: hidden e intersecante per 2.500 ms → in) è
+// voluta, e qui la si fa scattare: fermi a p 0,66 le lettere si accendono sotto
+// il wrapper [data-sr-el] ancora a 0 (prodotto delle opacità < 0,1); alla prima
+// battuta del film, a p 0,64 e sempre sotto il cue, onFilm le riporta nascoste.
+// Il wrapper arriva a 1 da t 1,075 (p 0,83): il prodotto si pretende a fine runway.
+test("il titolo delle cinque stelle arriva col beat 0,94 e riesce sotto", async ({ page, goto }) => {
+  const vp = page.viewportSize()!;
+  const corridoio = vp.width >= 1024 && vp.height >= 640;
+  await installProbe(page);
+  await goto("/");
+  const lettere = page.locator("#recensioni h2 [data-c]");
+  const runway = page.locator("#recensioni .dt-starrev_runway");
+  const intro = page.locator("#recensioni .dt-starrev_intro");
+  const gruppo = page.locator("#recensioni [data-reveal-group]").filter({ has: page.locator("h2") }).first();
+  await expect(lettere.first()).toBeAttached();
+
+  if (!corridoio) {
+    // Sotto la soglia nessun [data-set-on]: il gruppo manuale passa all'IO.
+    await expect(runway).not.toHaveAttribute("data-set-on", /.*/);
+    await expect(gruppo).toHaveAttribute("data-reveal-mode", "io");
+    const centro = await gruppo.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return r.top + window.scrollY + r.height / 2 - window.innerHeight / 2;
+    });
+    await scrollNastro(page, centro);
+    await expect.poll(() => minLettere(lettere), { timeout: 3_500 }).toBeGreaterThanOrEqual(0.99);
+    await expect(intro).not.toHaveAttribute("data-bg", /.*/);
+    return;
+  }
+
+  await expect(runway).toHaveAttribute("data-set-on", "");
+  await expect(gruppo).toHaveAttribute("data-reveal-mode", "manual");
+  const vaiA = async (p: number) => {
+    const y = await runway.evaluate((el, prog) => {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      const start = top - 0.55 * window.innerHeight;
+      const end = top + (el as HTMLElement).offsetHeight - window.innerHeight;
+      return start + prog * (end - start);
+    }, p);
+    await scrollNastro(page, y);
+  };
+
+  // Sotto il cue, dentro la finestra della rete: lettere e prodotto spenti.
+  await vaiA(0.66);
+  await page.waitForTimeout(1_200);
+  expect(await maxLettere(lettere)).toBeLessThan(0.1);
+  expect(await productOpacity(lettere.first())).toBeLessThan(0.1);
+
+  // Fermi: la rete dei 2.500 ms accende le lettere, il wrapper a 0 le tiene invisibili.
+  await expect.poll(() => minLettere(lettere), { timeout: 6_000 }).toBeGreaterThanOrEqual(0.99);
+  expect(await productOpacity(lettere.first())).toBeLessThan(0.1);
+
+  // Prima battuta del film, ancora sotto il cue: onFilm riporta il gruppo nascosto.
+  await vaiA(0.64);
+  await expect.poll(() => maxLettere(lettere), { timeout: 1_300 }).toBeLessThan(0.1);
+
+  // Oltre il cue: tutte le lettere a 1.
+  await vaiA(0.78);
+  await expect.poll(() => minLettere(lettere), { timeout: 4_500 }).toBeGreaterThanOrEqual(0.99);
+
+  // Di nuovo sotto: escono.
+  await vaiA(0.66);
+  await expect.poll(() => maxLettere(lettere), { timeout: 2_500 }).toBeLessThan(0.1);
+
+  // La copertina per il monogramma (contratto di §6.1).
+  await vaiA(0.04);
+  await expect(intro).not.toHaveAttribute("data-bg", /.*/, { timeout: 2_000 });
+  await vaiA(0.46);
+  await expect(intro).toHaveAttribute("data-bg", "foto", { timeout: 2_000 });
+
+  // Fine runway (spec §3.6): lettere a 1 e identità, wrapper acceso, copertina spenta.
+  await vaiA(1);
+  await expect.poll(() => minLettere(lettere), { timeout: 4_500 }).toBeGreaterThanOrEqual(0.99);
+  expect(await lettereIdentita(lettere)).toBe(true);
+  await expect.poll(() => productOpacity(lettere.first()), { timeout: 2_000 }).toBeGreaterThanOrEqual(0.99);
+  await expect(intro).not.toHaveAttribute("data-bg", /.*/);
 });
 
 // La rotaia del team in

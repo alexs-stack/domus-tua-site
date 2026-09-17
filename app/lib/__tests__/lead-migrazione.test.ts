@@ -2,9 +2,10 @@
 // prende i paragrafi `p.lead` (ruolo `lead` di spec §2.2), fuori dalle esclusioni dichiarate;
 // le quattro teste sopra la piega (spec §5.2) hanno un gruppo di testa (PageHero anche uno
 // annidato per la colonna del lead, D50), e le tre senza foto portano `data-fold-lcp`
-// (spec §2.5); SplitText resta a Lead, al manifesto di HorizonScroller e a
-// FrozenLines (/case/[slug], D32). I conteggi di Lead sono minimi e le esclusioni tetti: i
-// commit dei capitoli possono solo aggiungere lead a righe.
+// (spec §2.5); SplitText resta a Lead e a FrozenLines (/case/[slug], D32): il manifesto del
+// nastro è un SplitTitle e i lead di HorizonStory e delle cinque stelle sono Lead (commit 10b).
+// I conteggi di Lead sono minimi e le esclusioni tetti: i commit dei capitoli possono solo
+// aggiungere lead a righe.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -21,6 +22,8 @@ const LEAD: Record<string, number> = {
   "app/contatti/ContattiContent.tsx": 1,
   "app/case-vendute/CaseVenduteContent.tsx": 4,
   "app/components/Posizionamento.tsx": 1,
+  "app/components/HorizonStory.tsx": 2,
+  "app/components/StarReviews.tsx": 1,
   "app/components/Paths.tsx": 1,
   "app/components/Method.tsx": 1,
   "app/components/OpenDomus.tsx": 1,
@@ -52,8 +55,6 @@ const LEAD_NUDI: Record<string, number> = {
   "app/components/Contact.tsx": 1, // il testo cambia con l'intento (spec §8); commit 16
   "app/components/Reviews.tsx": 1, // il testo cambia col consenso
   "app/components/Footer.tsx": 1, // reso anche in /case/[slug] (spec §5.4); commit 17
-  "app/components/HorizonStory.tsx": 2, // commit 10
-  "app/components/StarReviews.tsx": 1, // wrapper [data-sr-el] del film (spec §2.4); commit 10
   "app/components/PropertySearch.tsx": 1, // PropertySearch invariato (spec §5.3)
   "app/case/[slug]/PropertyDetail.tsx": 2, // D32
   "app/case/[slug]/VivereInZona.tsx": 1, // D32
@@ -80,9 +81,9 @@ function sorgenti(dir: string, out: string[] = []): string[] {
 }
 
 describe("Lead al posto dei paragrafi .lead", () => {
-  test("39 Lead in 27 file", () => {
-    assert.equal(Object.values(LEAD).reduce((s, n) => s + n, 0), 39);
-    assert.equal(Object.keys(LEAD).length, 27);
+  test("42 Lead in 29 file: i 39 del lead a righe, i due lead di HorizonStory e quello delle stelle", () => {
+    assert.equal(Object.values(LEAD).reduce((s, n) => s + n, 0), 42);
+    assert.equal(Object.keys(LEAD).length, 29);
   });
   for (const [file, n] of Object.entries(LEAD)) {
     test(`${file}: almeno ${n} Lead`, () => {
@@ -113,12 +114,8 @@ describe("TextLines non c'è più", () => {
     const colpevoli = [...sorgenti(join(ROOT, "app")), ...sorgenti(join(ROOT, "e2e"))].filter((f) => /\bTextLines\b/.test(soloCodice(leggi(f))));
     assert.deepEqual(colpevoli, []);
   });
-  test("SplitText lo importano solo Lead, il manifesto di HorizonScroller e FrozenLines", () => {
+  test("SplitText lo importano solo Lead e FrozenLines (spec §2.3, D32)", () => {
     const chi = sorgenti(join(ROOT, "app")).filter((f) => /from\s+["']gsap\/SplitText["']/.test(leggi(f)));
-    assert.deepEqual(chi.sort(), [
-      "app/components/motion/FrozenLines.tsx",
-      "app/components/motion/HorizonScroller.tsx",
-      "app/components/motion/Lead.tsx",
-    ]);
+    assert.deepEqual(chi.sort(), ["app/components/motion/FrozenLines.tsx", "app/components/motion/Lead.tsx"]);
   });
 });
