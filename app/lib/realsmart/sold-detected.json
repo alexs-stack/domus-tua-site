@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-09-15T10:39:20.185Z",
+  "generatedAt": "2026-09-17T20:43:24.129Z",
   "feed": "https://www.gestim2002.it/portali/immobili_724.xml",
   "counts": {
     "total": 197,
     "sold": 166,
-    "reserved": 1
+    "reserved": 0
   },
   "items": {
     "1505": {
@@ -700,8 +700,8 @@
     "1964": {
       "sold": true,
       "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2728344.jpg",
-      "text": "WE RY PRELIMINARE"
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3073417.jpg",
+      "text": "LA PT VENDUTO"
     },
     "1965": {
       "sold": true,
@@ -999,9 +999,9 @@
     },
     "2033": {
       "sold": false,
-      "state": "reserved",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2853925.jpg",
-      "text": "G IN TRATTATIVA"
+      "state": "available",
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2823384.jpg",
+      "text": "PS"
     },
     "2034": {
       "sold": true,
@@ -1012,8 +1012,8 @@
     "2035": {
       "sold": true,
       "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2940164.jpg",
-      "text": "A PRELIMINARE AN ET YO EM AR IP"
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3073418.jpg",
+      "text": "ES OD VENDUTO"
     },
     "2036": {
       "sold": false,
@@ -1042,8 +1042,8 @@
     "2041": {
       "sold": true,
       "state": "sold",
-      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-2940227.jpg",
-      "text": "SET PRELIMINARE GA RM"
+      "cover": "https://cloud2.realsmart.it/media//portali/foto/724/724-3073419.jpg",
+      "text": "LIMA NT A PE VENDUTO"
     },
     "2042": {
       "sold": true,
