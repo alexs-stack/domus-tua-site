@@ -1,25 +1,15 @@
-// Configurazione media dell'hero — UNICA.
-//
-// Storia: esistevano due configurazioni parallele (`heroMedia` e `heroCinematic`), con file,
-// poster e URL del canale duplicati. `heroMedia` non era usato da nessun componente — solo da
-// demoStatus, che quindi riportava "hero video live" leggendo un flag morto. Resta un solo
-// oggetto, quello effettivamente consumato da HeroCinematic.tsx.
+// Configurazione dei media video del sito — UNICA.
 //
 // Il link al canale YouTube NON vive qui: la fonte unica dei canali social è app/lib/site.ts
 // (`site.social.youtube.href`).
 //
-// Hero CINEMATICO full-bleed (HeroCinematic.tsx). Vedi docs/hero-video.md.
-// Il video parte solo su desktop e senza prefers-reduced-motion; se i file /media mancano
-// o il video fallisce, resta il `base` come poster.
-// Video consigliato: 15-35s, ~1080p, muto, loop.
+// Hero CINEMATICO full-bleed (HeroCinematic.tsx), vedi docs/hero-video.md. C21, la cliente il
+// 3 agosto: niente video nell'hero, resta la foto; `enabled` resta false. `mp4` e `webm`
+// puntano al loop del drone di oggi, che la banda del Congedo legge da qui (Congedo.tsx).
 export const heroCinematic = {
-  // Scelta cliente (2026-08-03): niente video nell'hero, resta la foto.
-  // Il clip drone resta in /media pronto per un ripensamento.
   enabled: false,
-  mp4: "/media/domus-hero.mp4",
-  // Vuoto = sorgente non renderizzata (evita un 404 a ogni visita desktop);
-  // valorizzare quando esisterà la codifica webm.
-  webm: "",
+  mp4: "/media/congedo-drone-1080.mp4",
+  webm: "/media/congedo-drone-1080.webm",
   poster: "/media/hero-raffaela.jpg",
   // Base: Raffaela che presenta il soggiorno di un attico reale — dentro
   // l'arco del preloader si vede il crop su di lei, poi la camera rientra
@@ -27,3 +17,26 @@ export const heroCinematic = {
   base: "/media/hero-raffaela.jpg",
   baseAlt: "Raffaela Rizza presenta il soggiorno di un attico luminoso proposto da Domus Tua",
 } as const;
+
+export type AmbientSource = { webm: string; mp4: string };
+
+// I video d'ambiente (spec 2026-09-13 §7.3): due loop muti dal video tour di Domus Tua, senza
+// logo (ritaglio del 10 % in alto e a sinistra) e raccordati con una dissolvenza. Il drone
+// sulla villa è la cartolina del Congedo (A19 di Alberto), la superficie dell'acqua è Costi
+// chiari (A18). `hd` 1920×1080, `sd` 1280×720: la sorgente la sceglie useAmbientVideo al
+// primo play. La produzione aspetta i punti 2.2, 2.13 e 6.2 del documento per la cliente
+// (assertVillaMediaCleared in launchReadiness.ts, chiamata da next.config.ts al build).
+export const ambient: {
+  congedo: { hd: AmbientSource; sd: AmbientSource; poster: string };
+  acqua: { hd: AmbientSource; poster: string };
+} = {
+  congedo: {
+    hd: { webm: "/media/congedo-drone-1080.webm", mp4: "/media/congedo-drone-1080.mp4" },
+    sd: { webm: "/media/congedo-drone-720.webm", mp4: "/media/congedo-drone-720.mp4" },
+    poster: "/media/congedo-drone-poster.jpg",
+  },
+  acqua: {
+    hd: { webm: "/media/acqua-1080.webm", mp4: "/media/acqua-1080.mp4" },
+    poster: "/media/acqua-poster.jpg",
+  },
+};

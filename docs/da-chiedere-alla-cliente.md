@@ -207,6 +207,9 @@ In apertura della home, sotto il nome "Domus Tua", c'è scritto "Raffaela Rizza"
 - *Cosa ci serve, se la volete:* firma a penna nera su foglio bianco liscio, scansionata a 300-600 dpi (o fotografata perfettamente dall'alto, senza ombre). Alla pulizia dello sfondo e alla vettorializzazione pensiamo noi, e la firma vera prende il posto del nome in corsivo.
 - *Se non la volete:* resta il nome in corsivo; basta dirlo e chiudiamo il punto.
 
+**2.13 La licenza delle foto della villa — [BLOCCANTE]**
+Le cinque foto professionali della villa del video tour (portico con la tenda, facciata con la piscina, lettini) portano nei dati del file la firma del fotografo Davide Salerno. Ci servono: la licenza d'uso per il sito (per quanto tempo, se si possono ritagliare e animare, cioè aprire a finestra o ingrandire durante lo scorrimento); se va citato l'autore, e dove; la stessa autorizzazione del proprietario del punto 2.2. Nei file pubblicati togliamo i dati del file, compreso il contatto del fotografo: se la licenza chiede di mantenerli, ditecelo.
+
 ---
 
 ## 3. Dati aziendali e documenti legali

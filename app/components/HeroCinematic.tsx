@@ -347,13 +347,12 @@ export default function HeroCinematic() {
   // e solo se i file sono attivati. Oggi `heroCinematic.enabled=false`
   // (media.ts, scelta cliente 2026-08-03): il gate non decide nulla.
   //
-  // KEEP OFF MOTIVATO sotto 768: MANCA L'ASSET — `domus-hero.mp4` è 5,4 MB a
-  // 1920×1080, senza webm né variante mobile. La ricetta per quando arriva
-  // `hero-mobile.mp4` (≤ 3 MB, 720p, stesso taglio) e il cliente riaccende il
-  // video: gate `MQ.motionOk` a ogni larghezza; `<source media="(max-width:
-  // 767.98px)">` PRIMA del sorgente 1080p; `preload="none"`; mai con
-  // `navigator.connection.saveData` o rete 2g. Prova: `perf:report` a 390
-  // senza richieste `.mp4` finché l'asset mobile non c'è.
+  // Sotto 768 niente video. I file sono il loop del drone di app/lib/media.ts
+  // (1080 e 720, MP4 e WebM). Se la cliente riaccende il video (C21 lo tiene
+  // spento): gate `MQ.motionOk` a ogni larghezza; `<source media="(max-width:
+  // 767.98px)">` col 720 PRIMA del 1080; `preload="none"`; mai con
+  // `navigator.connection.saveData`. Prova: `perf:report` a 390 senza
+  // richieste `.mp4`.
   //
   // Il <video> viene montato SOLO dopo il primo paint del poster (LCP), così la
   // selezione della sorgente non entra nel percorso critico dell'immagine LCP.

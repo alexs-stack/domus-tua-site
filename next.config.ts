@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import { siteUrl } from "./app/lib/site";
+import { assertVillaMediaCleared } from "./app/lib/launchReadiness";
 
 /**
  * Intestazioni di sicurezza applicate a ogni risposta.
@@ -159,4 +161,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export { nextConfig };
+
+// Il cancello dei media della villa (D35, A24 di Alberto; spec 2026-09-13 §11 punto 12): nella
+// fase di build di produzione, con VERCEL_ENV=production, il build si ferma finché la cliente non
+// ha chiuso i punti 2.2, 2.13 e 6.2 e VILLA_MEDIA_CLEARED vale "true" (launchReadiness.ts).
+export default function config(phase: string): NextConfig {
+  if (phase === PHASE_PRODUCTION_BUILD) assertVillaMediaCleared(process.env);
+  return nextConfig;
+}

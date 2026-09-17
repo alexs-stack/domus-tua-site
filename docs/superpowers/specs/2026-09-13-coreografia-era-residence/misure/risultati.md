@@ -1127,3 +1127,90 @@ Nota per Alberto (spec §9.3; corsia sistema §3.6): confrontare le tabelle «10
 | scatola 1, uscita 600 ms | 0 0 0 100 |
 | scatola 2, 400 ms | 0 0 0 100 |
 | scatola 2, 3400 ms | 0 0 0 0 |
+
+### 12 · media della villa · 2026-09-17 · 67da3df+
+
+| file | byte |
+| --- | --- |
+| images/reali/villa-portico-tenda.jpg | 415910 |
+| images/reali/villa-piscina-facciata.jpg | 523126 |
+| images/reali/villa-fronte-acqua.jpg | 401868 |
+| images/reali/villa-angolo-piscina.jpg | 520374 |
+| images/reali/villa-lettini.jpg | 551907 |
+| images/reali/villa-salotto-ombrellone.jpg | 432989 |
+| images/reali/villa-vetrata-lanterne.jpg | 259822 |
+| images/reali/villa-uliveto.jpg | 688025 |
+| images/reali/territorio-quartiere.jpg | 763495 |
+| media/congedo-drone-poster.jpg | 335386 |
+| media/acqua-poster.jpg | 176854 |
+| media/congedo-drone-1080.mp4 | 5894724 |
+| media/congedo-drone-1080.webm | 5542745 |
+| media/congedo-drone-720.mp4 | 2331464 |
+| media/congedo-drone-720.webm | 2292300 |
+| media/acqua-1080.mp4 | 2989769 |
+| media/acqua-1080.webm | 2168165 |
+
+Pannello del territorio, variante servita:
+
+| passata | layout px | scala massima | DPR | w chiesta | naturalWidth | w / (layout × scala × DPR) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1440x900 reduce | 653 | 1 | 1 | 1024 | 792 | 1.57 |
+| 390x664 reduce | 351 | 1 | 1 | 420 | 390 | 1.20 |
+| 1440x900 motion, sipario | 700 | 1.15 | 1 | 1024 | 792 | 1.27 |
+
+A24: il tratto 75-81 s è un'orbita sulla villa, non una ripresa larga; la villa del territorio è la stessa del Congedo.
+
+Correzione del 17 settembre (giro di correzione 1 del commit 12): la riga di A24 qui sopra, la riga `territorio-quartiere.jpg` dei pesi e la tabella del pannello valgono per il file di quella misura, che non è più nel repo. Il fermo 1.950 non passa R1 e nessun altro candidato della finestra lo passa (tabella dei fermi qui sotto): per la regola del passo 12.8 il file non si produce, `HorizonStory` tiene `/media/hero-aerial.jpg` e A24 resta senza un fermo valido, da dire ad Alberto. Il pannello è rimisurato nella sezione «12 · media della villa» in coda al file.
+
+Fermi del passo 12.8, guardati sui quattro quadranti a piena risoluzione (1728×972) e, per R4-T, sul foglio 1880-2020 e sull'anteprima del 1.950:
+
+| nome | indice | quadranti | R1 | R2 | R3 | R4 | decimi R4-T |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| villa-uliveto | 660 | 4/4 | sì | sì | sì | sì (ulivi, prato, vialetto in pietra) | — |
+| villa-salotto-ombrellone | 770 | 4/4 | sì | sì | sì | sì (divani sotto l'ombrellone, muro in pietra, siepe) | — |
+| villa-facciata-lettini | 850 | 4/4 | NO: persona seduta al tavolo dietro la vetrata (q3, in alto a destra); c'è anche a 830, 840, 860 e 870 | sì | sì | sì | — · escluso |
+| villa-vetrata-lanterne | 1185 | 4/4 | sì | sì (quadri senza scritte) | sì | sì (vetrata, due lanterne bianche sul muretto) | — |
+| territorio-quartiere | 1950 | 4/4 | NO: persona in piedi sotto la gronda del portico, a sinistra della tenda sinistra (pantaloni blu e scarpa bianca, a cavallo fra q1 e q2, x≈1700-1780 y≈890-1000 del fermo 3456×1944), con una seconda sagoma scura accanto. La stessa figura c'è in tutti i nove candidati di R4-T, guardati a piena risoluzione sulla stessa zona: 1880 e 1900 intera (testa, busto, braccia) con una seconda persona, 1920 e 1940 busto e gambe, 1960, 1980, 2000 e 2020 gambe e scarpa. La macchia bianca accanto al cipresso in q3, vista a 6×, non è una persona riconoscibile | sì (nessuna targa leggibile sulle due auto in q3, nessuna scritta) | sì | sì (villa con piscina e pannelli solari, siepi alte, giardini, case vicine) | 1880: 5 · 1900: 5 · 1920: 5 · 1940: 5 · 1950: 4 · 1960: 4 · 1980: 4 · 2000: 4 · 2020: 4 — tutti entro un decimo, per R4-T vinceva il 1.950 · escluso: nessun candidato passa R1 |
+| villa-sala-tour | 2115 | 4/4 | sì | NO: targa a muro sopra il divano (q3) con una frase leggibile («A man is not complete until he's married…»); leggibile anche a 2125 e 2135, 2105 e 2095 fuori finestra | sì | sì | — · escluso |
+
+Righe di `check` dopo il rilancio della regola 4 del passo 12.12 (`enc congedo-drone 24 36 26 38`, `enc acqua 25 36`):
+
+| clip | fotogrammi | raccordo | passo | rapporto | mediana dei passi | rapporto mediano |
+| --- | --- | --- | --- | --- | --- | --- |
+| congedo-drone | 202 | 0,918 | 0,946 | 0,970 OK | 0,936 | 0,980 OK |
+| acqua | 94 | 0,809 | 0,831 | 0,974 OK | 0,857 | 0,944 OK |
+
+Pesi contro le soglie del passo 12.12: MP4 del drone dentro i tetti (5.894.724 ≤ 6.100.000; 2.331.464 ≤ 3.000.000); i due WebM del drone restano sopra 0,6 × il loro MP4 anche dopo il rilancio (5.542.745 contro 3.536.834; 2.292.300 contro 1.398.878) e si tengono a CRF 36/38 per D59 (decisione di lavoro del 17 settembre: «i WebM del drone si tengono al peso dell'H.264 perché il VP9 non comprime meglio su questo fogliame; il rapporto 0,6 di lane-homeC §8.3 era una stima»); `acqua-1080.mp4` 2.989.769 sopra l'obiettivo di 2.500.000 anche a CRF 25 (si tiene e si scrive il numero), `acqua-1080.webm` 2.168.165 dentro.
+
+### 12 · media della villa · 2026-09-17 · f28e4b4+
+
+| file | byte |
+| --- | --- |
+| images/reali/villa-portico-tenda.jpg | 415910 |
+| images/reali/villa-piscina-facciata.jpg | 523126 |
+| images/reali/villa-fronte-acqua.jpg | 401868 |
+| images/reali/villa-angolo-piscina.jpg | 520374 |
+| images/reali/villa-lettini.jpg | 551907 |
+| images/reali/villa-salotto-ombrellone.jpg | 432989 |
+| images/reali/villa-vetrata-lanterne.jpg | 259822 |
+| images/reali/villa-uliveto.jpg | 688025 |
+| media/congedo-drone-poster.jpg | 335386 |
+| media/acqua-poster.jpg | 176854 |
+| media/congedo-drone-1080.mp4 | 5894724 |
+| media/congedo-drone-1080.webm | 5542745 |
+| media/congedo-drone-720.mp4 | 2331464 |
+| media/congedo-drone-720.webm | 2292300 |
+| media/acqua-1080.mp4 | 2989769 |
+| media/acqua-1080.webm | 2168165 |
+
+Pannello del territorio (`/media/hero-aerial.jpg`), variante servita:
+
+| passata | layout px | scala massima | DPR | w chiesta | naturalWidth | w / (layout × scala × DPR) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1440x900 reduce | 653 | 1 | 1 | 1024 | 792 | 1.57 |
+| 390x664 reduce | 351 | 1 | 1 | 420 | 390 | 1.20 |
+| 1440x900 motion, sipario | 700 | 1.15 | 1 | 1024 | 792 | 1.27 |
+
+A24: nessun fermo valido. Il tratto 75-81 s è un'orbita sulla villa, non una ripresa larga, e in tutti i nove candidati 1880-2020 c'è una persona in piedi sotto la gronda del portico (R1): il pannello tiene `/media/hero-aerial.jpg`.
+
+Questa sezione è la rimisura del giro di correzione 1 del commit 12, dopo l'esclusione di `territorio-quartiere.jpg`: i pesi sono gli stessi della sezione «12 · media della villa · 67da3df+» meno quel file, e il pannello con `/media/hero-aerial.jpg` dà gli stessi rapporti (≥ 0,95 nelle tre passate, `sizes` invariato). La tabella dei fermi (con la cella R1 del territorio corretta), le righe di `check` e i pesi contro le soglie con D59 restano quelli della sezione precedente.
