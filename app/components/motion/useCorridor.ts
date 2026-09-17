@@ -10,7 +10,8 @@
      spaziatore [data-corridor-run];
    - il JS scrive --corridor-stick sul wrapper al montaggio e a ogni
      refreshInit, crea la timeline con lo scrub del registro (chapters.ts),
-     mette [data-on] quando la timeline esiste e chiede un refresh;
+     mette [data-on] quando la timeline esiste e chiede un refresh a scroll
+     fermo (whenStill di gsap.ts, D53);
    - sotto la soglia, con motion ok, gira `phone`: mai sticky, mai scroll-hijack.
    Nastro, stelle e rotaia non passano di qui: hanno le loro meccaniche e lo
    stesso gate.
@@ -32,7 +33,7 @@
      Domus (A19, spec §3.10) i focalizzabili stanno nello stage, fratello dello
      schermo. */
 import type { RefObject } from "react";
-import { gsap, ScrollTrigger, useGSAP, requestRefresh } from "../../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, requestRefresh, whenStill } from "../../lib/motion/gsap";
 import { MQ } from "../../lib/motion/mq";
 import { scrubOf, type CorridorId } from "../../lib/motion/chapters";
 import {
@@ -183,9 +184,14 @@ export function useCorridor(ref: RefObject<HTMLElement | null>, o: CorridorOptio
         root.addEventListener("focusin", onFocus);
 
         root.setAttribute("data-on", "");
-        requestRefresh();
+        // Il refresh dopo data-on, a scroll fermo (D53, whenStill di gsap.ts): il
+        // corridoio dell'hero è il primo ScrollTrigger della home e monta con
+        // l'arrivo nativo al frammento ancora in volo; il refresh forzato lo
+        // cancellerebbe. L'attesa si annulla nel cleanup.
+        const stopRefresh = whenStill(() => requestRefresh());
 
         return () => {
+          stopRefresh();
           root.removeEventListener("focusin", onFocus);
           ScrollTrigger.removeEventListener("refreshInit", measure);
           ScrollTrigger.removeEventListener("refresh", afterRefresh);

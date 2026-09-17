@@ -7,8 +7,8 @@
 // /valutazione-immobile-tradate: section con `data-fold-lcp`) aspetta prima la prima voce LCP e
 // i suoi lead spezzati, perché lì l'H1 e il paragrafo dipinti a 0,02 restano candidati LCP.
 // Dall'inizio dell'attesa alla partenza il gruppo porta `data-fold-pending` e il motore non lo
-// tocca. Con la rete CSS `dt-reveal-failsafe` già scattata il gruppo nasce pieno (tecnica di
-// heroNetFired, HeroCinematic.tsx:136-156); nasce pieno anche un gruppo già partito una volta
+// tocca. Con la rete CSS `dt-reveal-failsafe` già scattata il gruppo nasce pieno (foldNetFired legge
+// l'orologio della CSSAnimation, dal commit 8 anche per le lettere dell'hero); nasce pieno anche un gruppo già partito una volta
 // nella pagina (cambio lingua, reduced-motion che torna) e ogni gruppo quando la radice non porta
 // `data-hero-intro`, perché lì il testo è pieno dal primo paint (D46).
 import { HERO_REST_MS, HERO_REST_SHORT_MS, HERO_REST_WARM_MS, INTRO_EVENT } from "./intro-constants";
@@ -45,13 +45,18 @@ export function afterCurtain(cb: () => void): () => void {
   };
 }
 
-/** La rete CSS di questo elemento è già scattata? Orologio della sua CSSAnimation, poi boot script. */
-export function foldNetFired(el: Element): boolean {
+/**
+ * La rete CSS di questo elemento è già scattata? Orologio della sua CSSAnimation, poi boot script.
+ * `keyframe`: `dt-reveal-failsafe` per i gruppi (spec §2.5); `dt-rest-failsafe` per le lettere
+ * dell'hero (globals.css, `data-hero-char/tchar/schar`), che la leggono da qui dal commit 8.
+ * La soglia viene da `data-hero-intro`, lo stesso attributo che dà il ritardo alle due regole.
+ */
+export function foldNetFired(el: Element, keyframe: "dt-reveal-failsafe" | "dt-rest-failsafe" = "dt-reveal-failsafe"): boolean {
   const intro = document.documentElement.getAttribute("data-hero-intro");
   const restMs = intro === "intro" ? HERO_REST_MS : intro === "short" ? HERO_REST_SHORT_MS : HERO_REST_WARM_MS;
   if (typeof el.getAnimations === "function") {
     try {
-      const anim = el.getAnimations().find((a) => (a as CSSAnimation).animationName === "dt-reveal-failsafe");
+      const anim = el.getAnimations().find((a) => (a as CSSAnimation).animationName === keyframe);
       // Senza la sua CSSAnimation l'elemento non è sotto la regola dello 0,02 (già armato, o
       // con `animation: none` inline): non c'è una rete da dichiarare scattata.
       if (!anim) return false;

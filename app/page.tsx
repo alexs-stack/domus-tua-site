@@ -64,13 +64,13 @@ export default function Home() {
           (film d'ingresso ad arco, logo rotante, testi per righe, pannelli
           orizzontali) viene dall'altro riferimento, era-residence.com
           (dossier reverse-engineering/era-residence), senza le sue cupole, i
-          suoi fiori e le sue transizioni di pagina. Tre nastri pilotati dallo
-          scroll, da 1024 px con motion ok, tutti a sticky e nessuno con un pin
-          GSAP — i pannelli di «Perché Domus Tua», il film delle cinque stelle
-          (entrambi riportati l'11 settembre, 024d354, rifatti senza curve,
-          veli né scuro) e la rotaia del team — e nessun'altra sezione
-          pinnata; nessun cambio di tono fra i capitoli, perché il fondo è
-          uno. */}
+          suoi fiori e le sue transizioni di pagina. Da 1024 × 640 px con
+          motion ok, quattro corridoi a sticky e nessuno col pin di GSAP: il
+          tuffo dell'hero (A19 di Alberto, 13 settembre 2026), i pannelli di
+          «Perché Domus Tua», il film delle cinque stelle (entrambi riportati
+          l'11 settembre, 024d354, rifatti senza curve, veli né scuro) e la
+          rotaia del team. Nessun cambio di tono fra i capitoli, perché il
+          fondo è uno. */}
       <Header />
       <main className="flex-1">
         <HeroCinematic />

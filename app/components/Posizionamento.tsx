@@ -19,12 +19,23 @@
 // page.tsx hanno altri proprietari: la sezione non si può nemmeno togliere da qui).
 // Quel che si poteva togliere era la larghezza inventata: la griglia 5/7 con la foto
 // a 468px era la terza misura media della home nei primi tre schermi.
+//
+// COREOGRAFIA (Alberto, 13 settembre 2026: A18-A20; spec coreografia §3.3, CAT §3):
+// da 1024 × 640 px con motion ok la sezione è il foglio che scorre sopra il tuffo
+// dell'hero (margine −100svh in globals.css, sotto `data-hero-cover`), e a ogni
+// larghezza le parole del titolo si allontanano in x fino a giustificare la riga:
+// è il wordSpacing di Era reso con i transform, perché il wordSpacing rifarebbe
+// l'impaginato a ogni fotogramma. La deriva `Parallax` della foto è uscita (D23):
+// ±0,56 % dell'altezza non si vedeva ed era un secondo gesto nel capitolo.
 
 import Image from "next/image";
+import { useRef } from "react";
+import { gsap, useGSAP } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
+import { chapters } from "../lib/motion/chapters";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
-import Parallax from "./motion/Parallax";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
 
@@ -68,12 +79,59 @@ const copy: Record<Locale, Copy> = {
   },
 };
 
+/** A20 di Alberto, spec §3.3: scarto finale in x della parola sulla sua riga, k · min(10vw, slack / (n − 1)), con slack misurato a riposo; righe di una parola ferme. */
+function wordShift(word: HTMLElement, title: HTMLElement): number {
+  const words = Array.from(title.querySelectorAll<HTMLElement>(".dt-w"));
+  const row = words.filter((w) => Math.abs(w.offsetTop - word.offsetTop) < 2);
+  const n = row.length;
+  if (n < 2) return 0;
+  const k = row.indexOf(word);
+  const last = row[n - 1];
+  // Il bordo destro dell'ultima parola a riposo: si toglie la x che GSAP le ha già scritto.
+  const lastRight = last.getBoundingClientRect().right - Number(gsap.getProperty(last, "x"));
+  const slack = Math.max(0, title.getBoundingClientRect().right - lastRight);
+  return k * Math.min(window.innerWidth * 0.1, slack / (n - 1));
+}
+
 export default function Posizionamento() {
   const { locale } = useLocale();
   const c = copy[locale];
+  const textRef = useRef<HTMLDivElement>(null);
+
+  // Le parole che si allontanano (A18-A20 di Alberto; spec coreografia §3.3). La
+  // firma del capitolo sta in chapters.ts: ease none, scrub 0,8, h2 `top bottom` →
+  // `center top`. Le righe si ricavano da `.dt-w` raggruppate per offsetTop e si
+  // rimisurano a ogni refresh (valori funzione, invalidateOnRefresh); al cambio
+  // lingua il titolo si rispezza e la timeline si rifà (revertOnUpdate).
+  useGSAP(
+    () => {
+      const title = textRef.current?.querySelector<HTMLElement>("h2");
+      if (!title) return;
+      const sig = chapters.posizionamento.signature;
+      if (!("st" in sig.trigger) || !("scrub" in sig.time)) return;
+      const [start, end] = sig.trigger.st;
+      const scrub = sig.time.scrub;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const words = gsap.utils.toArray<HTMLElement>(".dt-w", title);
+        if (words.length < 2) return;
+        gsap.fromTo(
+          words,
+          { x: 0 },
+          {
+            x: (_i: number, el: HTMLElement) => wordShift(el, title),
+            ease: sig.ease,
+            immediateRender: false,
+            scrollTrigger: { trigger: title, start, end, scrub, invalidateOnRefresh: true },
+          },
+        );
+      });
+    },
+    { scope: textRef, dependencies: [locale], revertOnUpdate: true },
+  );
 
   return (
-    <section className="dt-chapter bg-cream">
+    <section data-hero-cover className="dt-chapter bg-cream">
       <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
         {/* La sede, nella METÀ (dt-media-half, 42vw quadrata): è la stessa
             scatola delle altre righe foto+testo, così scorrendo l'occhio
@@ -81,7 +139,6 @@ export default function Posizionamento() {
             consulenza.jpg è 1920×1625, quasi 1:1: nel quadrato si taglia il 15%
             e non si ingrandisce (la foto di gruppo 3:2 perderebbe i volti ai
             bordi, e la "sede" è una miniatura YouTube con del testo sopra). */}
-        <Parallax speed={-0.04}>
           <div className="dt-media-half">
             <Image
               src="/images/reali/consulenza.jpg"
@@ -96,9 +153,8 @@ export default function Posizionamento() {
               style={{ objectPosition: "45% 50%" }}
             />
           </div>
-        </Parallax>
 
-        <div className="lg:pl-[6vw]">
+        <div ref={textRef} className="lg:pl-[6vw]">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>

@@ -77,8 +77,11 @@ describe("la piega", () => {
     assert.match(fold, /export const FOLD_PENDING = "data-fold-pending";/);
   });
 
-  test("la rete si legge sull'orologio di dt-reveal-failsafe con le costanti dell'intro", () => {
-    assert.match(fold, /animationName === "dt-reveal-failsafe"/);
+  test("la rete si legge sull'orologio della keyframe (default dt-reveal-failsafe) con le costanti dell'intro", () => {
+    // Dal commit 8 la keyframe è un parametro: dt-reveal-failsafe per i gruppi, dt-rest-failsafe per le lettere dell'hero.
+    assert.match(fold, /animationName === keyframe/);
+    assert.match(fold, /keyframe: "dt-reveal-failsafe" \| "dt-rest-failsafe" = "dt-reveal-failsafe"/);
+    assert.doesNotMatch(fold, /animationName === "dt-reveal-failsafe"/);
     for (const n of ["HERO_REST_MS", "HERO_REST_SHORT_MS", "HERO_REST_WARM_MS"]) assert.match(fold, new RegExp(`\\b${n}\\b`), n);
     assert.doesNotMatch(fold, /\b1080\b/, "la porta corta si legge da HERO_REST_SHORT_MS");
   });

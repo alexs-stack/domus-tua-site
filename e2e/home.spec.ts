@@ -369,3 +369,66 @@ test("su uno schermo basso il comando per chiudere il video resta raggiungibile"
   await chiudi.click();
   await expect(dialog).toHaveCount(0);
 });
+
+// ── Posizionamento: il foglio e le parole ─────────────────────────────────
+// Alberto, 13 settembre 2026 (A18-A20): Posizionamento scorre sopra il tuffo
+// dell'hero come un foglio a bordo dritto e le parole del titolo si
+// allontanano in x fino a giustificare la riga (spec coreografia §3.3, CAT §3).
+test.describe("Posizionamento: il foglio e le parole", () => {
+  for (const lingua of ["it", "de"] as const) {
+    test(`in ${lingua} nessuna parola esce dall'h2; da 1024 il foglio arriva in cima a fine tuffo`, async ({ page, goto }) => {
+      await page.context().addCookies([{ name: "dt_locale", value: lingua, domain: "127.0.0.1", path: "/" }]);
+      await goto("/");
+      const cover = page.locator("[data-hero-cover]");
+      const vp = page.viewportSize()!;
+      if (vp.width >= 1024 && vp.height >= 640) {
+        await expect(page.locator("#top")).toHaveAttribute("data-on", "");
+        await expect(cover).toHaveCSS("margin-top", `-${vp.height}px`);
+        const fine = await page.evaluate(() => {
+          const top = document.querySelector<HTMLElement>("#top")!;
+          return top.getBoundingClientRect().top + window.scrollY + top.offsetHeight - window.innerHeight;
+        });
+        await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior }), fine);
+        await page.waitForTimeout(300);
+        const t = await cover.evaluate((el) => el.getBoundingClientRect().top);
+        expect(t).toBeGreaterThanOrEqual(-1);
+        expect(t).toBeLessThanOrEqual(1);
+      }
+      // La lingua nuova è arrivata nei caratteri (LocaleProvider passa alla lingua del cookie in un effetto).
+      const h2 = cover.locator("h2");
+      if (lingua === "de") await expect(h2).toHaveAttribute("aria-label", /Immobilie/);
+      const misura = () =>
+        h2.evaluate((el) => {
+          const destra = el.getBoundingClientRect().right;
+          const parole = Array.from(el.querySelectorAll<HTMLElement>(".dt-w"));
+          return {
+            fuori: parole.filter((w) => w.getBoundingClientRect().right > destra + 1).map((w) => w.textContent),
+            mosse: parole.filter((w) => new DOMMatrixReadOnly(getComputedStyle(w).transform).m41 > 1).length,
+          };
+        });
+      // Titolo al centro del viewport: le parole si sono già allontanate (scrub 0,8).
+      await h2.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        window.scrollTo({ top: r.top + window.scrollY + r.height / 2 - window.innerHeight / 2, behavior: "instant" as ScrollBehavior });
+      });
+      await page.waitForTimeout(1200);
+      const centro = await misura();
+      expect(centro.fuori, `parole oltre il bordo destro dell'h2: ${centro.fuori.join(", ")}`).toEqual([]);
+      expect(centro.mosse, "nessuna parola si è allontanata col titolo al centro").toBeGreaterThan(0);
+      // Fine del tratto (`center top`): ancora nessuna parola fuori.
+      await h2.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        window.scrollTo({ top: r.top + window.scrollY + r.height / 2 + 10, behavior: "instant" as ScrollBehavior });
+      });
+      await page.waitForTimeout(1200);
+      expect((await misura()).fuori).toEqual([]);
+    });
+  }
+
+  test("sotto il gate dei corridoi il foglio non copre nulla @layout", async ({ page, goto }) => {
+    const vp = page.viewportSize()!;
+    test.skip(vp.width >= 1024 && vp.height >= 640, "qui il gate è acceso");
+    await goto("/");
+    await expect(page.locator("[data-hero-cover]")).toHaveCSS("margin-top", "0px");
+  });
+});

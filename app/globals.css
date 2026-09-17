@@ -450,6 +450,7 @@ blockquote * {
 @theme static {
   --ease-dt-out: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-dt-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-dt-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 /* Durate, stagger, ritardo, stato dipinto e corsa `ctn` non sono un namespace
@@ -1905,6 +1906,35 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
   position: relative;
   z-index: 2;
   margin-right: -11vw;
+}
+
+/* ---------- Il tuffo dell'hero e il foglio di Posizionamento ----------
+   Chiesti da Alberto il 13 settembre 2026 (A18-A20, A23; spec coreografia
+   §3.2-§3.3, D22, D24). Da 1024 × 640 px con motion ok l'hero è un corridoio
+   sticky di 200svh (useCorridor, stick bottom; la corsa `--corridor-run`
+   sta nel blocco dei corridoi in coda a questo file) e Posizionamento gli
+   scorre sopra come un foglio a bordo dritto, senza raggio né ombra. Tutto
+   sta sotto `:root[data-hero-intro]`, che il boot script del layout mette
+   solo con motion ok: con reduced motion e senza JS l'hero è quello del
+   patto della porta. Il blocco sotto la foto ritaglia con `clip`, che non
+   crea un contenitore di scroll: H1 e CTA escono sotto il bordo della foto e
+   nessun testo d'inchiostro passa sopra la foto. Il marcatore `data-bg` è
+   fratello dello schermo e copre fino alla cima del foglio. La media query
+   è quella dei corridoi, nello stesso ordine: corridor-contract.test.ts
+   legge tutti i blocchi che la portano. */
+@media (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
+  :root[data-hero-intro] [data-corridor="hero"] [data-hero-block] {
+    overflow: clip;
+  }
+  :root[data-hero-intro] [data-corridor="hero"] + [data-hero-cover] {
+    position: relative;
+    z-index: 1;
+    margin-top: -100svh;
+  }
+  :root[data-hero-intro] [data-corridor="hero"] > [data-bg="foto"] {
+    height: auto;
+    bottom: 100svh;
+  }
 }
 
 /* ---------- Cinque stelle (capitolo recensioni home) ----------

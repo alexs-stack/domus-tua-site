@@ -15,11 +15,11 @@ import { LAST_Y_KEY } from "../app/lib/motion/intro-constants";
 // soglia, a 390 e con reduced motion non c'è nessun corridoio.
 
 /** Gli host accesi sulla home a 1024×768 e 1440×900, in ordine alfabetico. */
-const EXPECTED_HOME = ["recensioni", "storia", "team"];
+const EXPECTED_HOME = ["hero", "recensioni", "storia", "team"];
 /** Gli host accesi su /vendi a 1440×900. */
 const EXPECTED_VENDI: string[] = [];
 /** Le rotte, e su ognuna i corridoi che hanno uno schermo [data-corridor-screen] da misurare. */
-const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [{ path: "/", screens: [] }];
+const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [{ path: "/", screens: ["hero"] }];
 /**
  * Il contenitore dei testi quando non è lo schermo, relativo all'host. Nella
  * finestra di Open Domus (A19, spec §3.10) lo schermo è la zona delle tende,
@@ -456,4 +456,44 @@ test.describe("dentro i corridoi", () => {
     await page.waitForTimeout(1_000);
     expect(Math.abs((await page.evaluate(() => window.scrollY)) - moved)).toBeLessThanOrEqual(2);
   });
+});
+
+// Il tuffo dell'hero, uno dei sei corridoi di A19 (Alberto, 13 settembre 2026;
+// spec coreografia §4). A 1440 lo coprono i test generici qui sopra; qui la
+// larghezza minima del gate e lo schermo in flusso sotto il gate (D22).
+test.describe("il corridoio del tuffo dell'hero", () => {
+  test("a 1024×768 lo schermo è sticky e nessun antenato è trasformato o ritagliato", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "corridoio da 1024");
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await goto("/");
+    await waitGate(page);
+    await expect(page.locator('[data-corridor="hero"]')).toHaveAttribute("data-on", "");
+    const screen = page.locator('[data-corridor="hero"] > [data-corridor-screen]');
+    await expect(screen).toHaveCSS("position", "sticky");
+    const colpe = await screen.evaluate((s) => {
+      const out: string[] = [];
+      for (let el = s.parentElement; el; el = el.parentElement) {
+        const c = getComputedStyle(el);
+        if (c.transform !== "none") out.push(`${el.tagName}#${el.id} transform ${c.transform}`);
+        if (/hidden|auto|scroll/.test(`${c.overflowX} ${c.overflowY}`)) out.push(`${el.tagName}#${el.id} overflow ${c.overflowX}/${c.overflowY}`);
+      }
+      return out;
+    });
+    expect(colpe).toEqual([]);
+  });
+
+  for (const vp of [
+    { width: 1440, height: 600, mobile: false },
+    { width: 390, height: 664, mobile: true },
+  ]) {
+    test(`a ${vp.width}×${vp.height} lo schermo del tuffo resta in flusso e lo spaziatore spento`, async ({ page, goto, isMobile }) => {
+      test.skip(!!isMobile !== vp.mobile, vp.mobile ? "progetto mobile-390" : "progetto desktop");
+      if (!vp.mobile) await page.setViewportSize({ width: vp.width, height: vp.height });
+      await goto("/");
+      await waitGate(page);
+      expect(await page.locator("#top").getAttribute("data-on")).toBeNull();
+      await expect(page.locator('[data-corridor="hero"] > [data-corridor-screen]')).toHaveCSS("position", "static");
+      await expect(page.locator("#top [data-corridor-run]")).toHaveCSS("display", "none");
+    });
+  }
 });

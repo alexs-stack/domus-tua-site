@@ -40,7 +40,7 @@ const ERA_EASES: Record<string, string> = {
   ease: "0.25,0.1,0.25,1",
 };
 /** Le ease di Era che a questo punto della costruzione devono esistere. */
-const REQUIRED_EASES = ["out", "in"];
+const REQUIRED_EASES = ["out", "in", "ease"];
 
 const nums = (s: string) =>
   s
@@ -201,12 +201,40 @@ describe("i nomi che non si usano", () => {
 });
 
 describe("requestRefresh(): un refresh per fotogramma, chiesto al cambio lingua (spec §2.3)", () => {
-  test("gsap.ts lo definisce sopra requestAnimationFrame e LocaleProvider lo chiede", () => {
+  test("gsap.ts lo definisce sopra requestAnimationFrame e LocaleProvider lo chiede a scroll fermo", () => {
     assert.match(
       gsapTs,
       /export const requestRefresh = \(\(\) => \{\s*let raf = 0;\s*return \(\) => \{\s*cancelAnimationFrame\(raf\);\s*raf = requestAnimationFrame\(\(\) => ScrollTrigger\.refresh\(\)\);/,
     );
-    assert.match(read("app/components/i18n/LocaleProvider.tsx"), /requestRefresh\(\);\s*\}, \[locale\]\);/);
+    // D54: al cambio lingua il refresh passa da whenStill e l'attesa è il cleanup dell'effetto: un
+    // caricamento completo di /#frammento con cookie non `it` cambia lingua con l'arrivo nativo in volo.
+    assert.match(
+      read("app/components/i18n/LocaleProvider.tsx"),
+      /return whenStill\(\(\) => requestRefresh\(\)\);\s*\}, \[locale\]\);/,
+    );
+  });
+
+  test("whenStill(): subito a scroll fermo, altrimenti a scrollEnd col tetto del motore; uno solo per corridoi e cambio lingua (D53, D54)", () => {
+    const still = gsapTs.slice(gsapTs.indexOf("export function whenStill("), gsapTs.indexOf("export const requestRefresh"));
+    assert.ok(still.length > 0, "manca export function whenStill in gsap.ts, prima di requestRefresh");
+    assert.match(still, /if \(!ScrollTrigger\.isScrolling\(\)\) \{\s*fn\(\);\s*return \(\) => \{\};/);
+    assert.match(still, /ScrollTrigger\.addEventListener\("scrollEnd", onEnd\)/);
+    assert.match(still, /if \(!ScrollTrigger\.isScrolling\(\)\) onEnd\(\);\s*\}, STILL_CAP_MS\)/);
+    assert.match(still, /return \(\) => \{\s*ScrollTrigger\.removeEventListener\("scrollEnd", onEnd\);\s*window\.clearTimeout\(cap\);/);
+    assert.match(gsapTs, /^const STILL_CAP_MS = 4000;/m);
+    const hook = soloCodice(read("app/components/motion/useCorridor.ts"));
+    assert.match(hook, /whenStill\(\(\) => requestRefresh\(\)\)/);
+    assert.doesNotMatch(hook, /function refreshWhenStill|STILL_CAP_MS/, "il corridoio non tiene una copia dell'helper");
+  });
+
+  test("load è fuori dagli eventi di refresh automatico di ScrollTrigger: dopo load rinfresca whenStill (D56)", () => {
+    assert.match(gsapTs, /^ScrollTrigger\.config\(\{ ignoreMobileResize: true \}\);/m);
+    // Sotto la guardia di `window`: senza DOM ScrollTrigger non ha la lista degli eventi e `config` cade.
+    assert.match(
+      gsapTs,
+      /if \(typeof window !== "undefined"\) \{\s*ScrollTrigger\.config\(\{ autoRefreshEvents: "visibilitychange,DOMContentLoaded,resize" \}\);\s*\}/,
+    );
+    assert.match(gsapTs, /window\.addEventListener\("load", \(\) => whenStill\(\(\) => requestRefresh\(\)\), \{ once: true \}\);/);
   });
 });
 

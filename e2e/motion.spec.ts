@@ -109,6 +109,23 @@ test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ 
   expect(y).toBeGreaterThan(200);
 });
 
+// Il tuffo dell'hero con reduced motion (A19-A20 di Alberto, spec coreografia
+// §3.2-§3.3): nessun corridoio, nessuno stile, Posizionamento in flusso.
+test("con reduced motion l'hero non è un corridoio e Posizionamento non copre", async ({ page, goto }) => {
+  await goto("/");
+  const top = page.locator("#top");
+  await expect(top).toBeAttached();
+  expect(await top.getAttribute("data-on")).toBeNull();
+  expect(await page.locator("[data-hero-zoom]").getAttribute("style")).toBeNull();
+  await expect(page.locator("#top [data-corridor-run]")).toHaveCSS("display", "none");
+  await expect(page.locator("[data-hero-cover]")).toHaveCSS("margin-top", "0px");
+  const alt = await page.evaluate(() => ({
+    bg: document.querySelector<HTMLElement>('#top > [data-bg="foto"]')!.offsetHeight,
+    band: document.querySelector<HTMLElement>("[data-hero-media]")!.offsetHeight,
+  }));
+  expect(Math.abs(alt.bg - alt.band), "con reduced motion il marcatore data-bg non è alto quanto la banda").toBeLessThanOrEqual(1);
+});
+
 // ── Parallasse ────────────────────────────────────────────────────────────
 // Fuori dal regime reduced-motion del resto del file: qui il movimento deve
 // esserci. La rivista bianca ammette una sola deriva allo scroll, `Parallax`

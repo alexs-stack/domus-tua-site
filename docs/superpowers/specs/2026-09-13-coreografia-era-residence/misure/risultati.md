@@ -339,3 +339,151 @@ Decisione: misura del giro di correzione 1 della verifica del commit 6, sullo st
 | 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 20479) | ok |
 
 Decisione: misura della verifica completa del commit 7, sul build lasciato dagli e2e di 7f (Step 30b: codice del commit a meno dei commenti di `mq.ts`), prima degli e2e di Step 33. Uscita 0: sopra la soglia (1440×900, 1024×768, 1920×1080) accesi `recensioni storia team` e 3 sticky in #main, cioè i tre schermi; sotto (1280×600, 1440×600, 390×664) nessun corridoio e nessuno sticky nuovo (l'unico a 390 è la testata mobile di Header.tsx, `sticky top-0 lg:relative`, preesistente); /vendi nessuno fino al commit 18; overflowX 0 ovunque; ricarica a metà di #servizi a 0,6 px dal bordo atteso (bordo di prima − 120) con scrollY 20.479. Regola 2 di Step 32: nessuna riga precedente porta l'altezza della home, quindi il confronto è con spec §4 «Oggi»: 29.772 px a 1440×900 (29.692, +80 px, 0,27 %) e 25.820 px a 1024×768 (25.740, +80 px, 0,31 %), entro l'1 %. Regola 3: a 600 px d'altezza i nastri tornano in colonna, 20.933 px (1280×600) e 21.622 px (1440×600), registrati e basta.
+
+### 08 · tuffo dell'hero e foglio di Posizionamento (2026-09-17, commit 058fe26+, 1440×900)
+
+| p | H | stickTop | start | end | bandH | tImg | tPrime | corsa | margineFoglio | scala | yFoto | yTesto | fondoFotoMenoBanda | segnoMenoBanda | foglioTop | foglioAlCentro |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| geometria | 984 | -84 | 175 | 1975 | 540 | 1019 | 815 | 1800 | -900 |  |  |  |  |  |  |  |
+| 0 |  |  |  |  |  |  |  |  |  | 1 | 0 | 0 | 479 | 336 | 1800 | 0 |
+| 0.3 |  |  |  |  |  |  |  |  |  | 1 | -221 | -384 | 258 | 115 | 1260 | 0 |
+| 0.5 |  |  |  |  |  |  |  |  |  | 1.002 | -271 | -471 | 209 | 66 | 900 | 0 |
+| 0.6 |  |  |  |  |  |  |  |  |  | 1.016 | -275 | -479 | 208 | 63 | 720 | 0 |
+| 0.75 |  |  |  |  |  |  |  |  |  | 1.117 | -275 | -479 | 233 | 74 | 450 | 1 |
+| 1 |  |  |  |  |  |  |  |  |  | 2 | -275 | -479 | 458 | 173 | 0 | 1 |
+
+### 08 · tuffo dell'hero e foglio di Posizionamento (2026-09-17, commit 058fe26+, 1024×768)
+
+| p | H | stickTop | start | end | bandH | tImg | tPrime | corsa | margineFoglio | scala | yFoto | yTesto | fondoFotoMenoBanda | segnoMenoBanda | foglioTop | foglioAlCentro |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| geometria | 854 | -86 | 164 | 1700 | 461 | 724 | 579 | 1536 | -768 |  |  |  |  |  |  |  |
+| 0 |  |  |  |  |  |  |  |  |  | 1 | 0 | 0 | 264 | 162 | 1536 | 0 |
+| 0.3 |  |  |  |  |  |  |  |  |  | 1 | -95 | -306 | 169 | 67 | 1075 | 0 |
+| 0.5 |  |  |  |  |  |  |  |  |  | 1.002 | -116 | -375 | 148 | 46 | 768 | 0 |
+| 0.6 |  |  |  |  |  |  |  |  |  | 1.016 | -118 | -381 | 148 | 45 | 614 | 0 |
+| 0.75 |  |  |  |  |  |  |  |  |  | 1.117 | -118 | -381 | 167 | 53 | 384 | 1 |
+| 1 |  |  |  |  |  |  |  |  |  | 2 | -118 | -381 | 327 | 124 | 0 | 1 |
+
+### 08 · tuffo dell'hero e foglio di Posizionamento (2026-09-17, commit 058fe26+, 1920×1080)
+
+| p | H | stickTop | start | end | bandH | tImg | tPrime | corsa | margineFoglio | scala | yFoto | yTesto | fondoFotoMenoBanda | segnoMenoBanda | foglioTop | foglioAlCentro |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| geometria | 1114 | -34 | 139 | 2299 | 648 | 1358 | 1086 | 2160 | -1080 |  |  |  |  |  |  |  |
+| 0 |  |  |  |  |  |  |  |  |  | 1 | 0 | 0 | 710 | 520 | 2160 | 0 |
+| 0.3 |  |  |  |  |  |  |  |  |  | 1 | -352 | -570 | 359 | 168 | 1512 | 0 |
+| 0.5 |  |  |  |  |  |  |  |  |  | 1.002 | -431 | -698 | 280 | 89 | 1080 | 0 |
+| 0.6 |  |  |  |  |  |  |  |  |  | 1.016 | -438 | -710 | 277 | 84 | 864 | 0 |
+| 0.75 |  |  |  |  |  |  |  |  |  | 1.117 | -438 | -710 | 312 | 99 | 540 | 1 |
+| 1 |  |  |  |  |  |  |  |  |  | 2 | -438 | -710 | 612 | 231 | 0 | 1 |
+
+### 08 · tuffo dell'hero e foglio di Posizionamento (2026-09-17, commit 058fe26+, 1280×720)
+
+| p | H | stickTop | start | end | bandH | tImg | tPrime | corsa | margineFoglio | scala | yFoto | yTesto | fondoFotoMenoBanda | segnoMenoBanda | foglioTop | foglioAlCentro |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| geometria | 834 | -114 | 187 | 1627 | 432 | 906 | 725 | 1440 | -720 |  |  |  |  |  |  |  |
+| 0 |  |  |  |  |  |  |  |  |  | 1 | 0 | 0 | 474 | 347 | 1440 | 0 |
+| 0.3 |  |  |  |  |  |  |  |  |  | 1 | -235 | -380 | 239 | 112 | 1008 | 0 |
+| 0.5 |  |  |  |  |  |  |  |  |  | 1.002 | -288 | -466 | 186 | 59 | 720 | 0 |
+| 0.6 |  |  |  |  |  |  |  |  |  | 1.016 | -293 | -474 | 184 | 56 | 576 | 0 |
+| 0.75 |  |  |  |  |  |  |  |  |  | 1.117 | -293 | -474 | 207 | 66 | 360 | 1 |
+| 1 |  |  |  |  |  |  |  |  |  | 2 | -293 | -474 | 407 | 154 | 0 | 1 |
+
+### 08 · hero sotto il gate, ramo 768-1023 (2026-09-17, commit 058fe26+, 1023×768)
+
+| p | on | bandH | tImg | salita | fine | scala | yFoto | liftMin | liftMax | yBlocco | fondoFotoMenoBanda | segnoMenoBanda |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| geometria | 0 | 461 | 724 | 118.2 | 461 |  |  |  |  |  |  |  |
+| 0 |  |  |  |  |  | 1 | 0 | 0 | 0 | 0 | 263 | 162 |
+| 0.3 |  |  |  |  |  | 1.001 | -30.2 | -47.2 | -47.2 | 0 | 233 | 132 |
+| 0.6 |  |  |  |  |  | 1.016 | -52.3 | -81.7 | -81.7 | 0 | 213 | 111 |
+| 1 |  |  |  |  |  | 1.12 | -59.1 | -92.2 | -92.2 | 0 | 226 | 112 |
+
+### 08 · hero sotto il gate, ramo sotto 768 (2026-09-17, commit 058fe26+, 390×664)
+
+| p | on | bandH | tImg | salita | fine | scala | yFoto | liftMin | liftMax | yBlocco | fondoFotoMenoBanda | segnoMenoBanda |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| geometria | 0 | 398 | 398 | 0 | 398 |  |  |  |  |  |  |  |
+| 0 |  |  |  |  |  | 1 | 0 | 0 | 0 | 0 | 0 | -56 |
+| 0.3 |  |  |  |  |  | 1 | 0 | -27.1 | -27.1 | 0 | 0 | -56 |
+| 0.6 |  |  |  |  |  | 1 | 0 | -47 | -47 | 0 | 0 | -56 |
+| 1 |  |  |  |  |  | 1 | 0 | -53.1 | -53.1 | 0 | 0 | -56 |
+
+### 08 · parole di Posizionamento (it) (2026-09-17, commit 058fe26+, 1440×900)
+
+| p | riga | parole | slack | xUltima | atteso | fuori |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 1 | 3 | 119 | 0 | 0 | -118.8 |
+| 0 | 2 | 2 | 183 | 0 | 0 | -182.8 |
+| 0 | 3 | 1 | 266 | 0 | 0 | -266.5 |
+| 0 | 4 | 2 | 32 | 0 | 0 | -31.8 |
+| 0.5 | 1 | 3 | 119 | 59.5 | 59.4 | -59.3 |
+| 0.5 | 2 | 2 | 183 | 72.1 | 72 | -110.7 |
+| 0.5 | 3 | 1 | 266 | 0 | 0 | -266.5 |
+| 0.5 | 4 | 2 | 32 | 15.9 | 15.9 | -15.9 |
+| 1 | 1 | 3 | 119 | 118.8 | 118.8 | 0 |
+| 1 | 2 | 2 | 183 | 144 | 144 | -38.8 |
+| 1 | 3 | 1 | 266 | 0 | 0 | -266.5 |
+| 1 | 4 | 2 | 32 | 31.8 | 31.8 | 0 |
+
+### 08 · parole di Posizionamento (de) (2026-09-17, commit 058fe26+, 1440×900)
+
+| p | riga | parole | slack | xUltima | atteso | fuori |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 1 | 2 | 10 | 0 | 0 | -10.5 |
+| 0 | 2 | 2 | 92 | 0 | 0 | -92 |
+| 0 | 3 | 2 | 48 | 0 | 0 | -47.9 |
+| 0 | 4 | 2 | 127 | 0 | 0 | -127.5 |
+| 0.5 | 1 | 2 | 10 | 5.2 | 5.2 | -5.2 |
+| 0.5 | 2 | 2 | 92 | 46.1 | 46 | -46 |
+| 0.5 | 3 | 2 | 48 | 24 | 23.9 | -23.9 |
+| 0.5 | 4 | 2 | 127 | 63.8 | 63.7 | -63.7 |
+| 1 | 1 | 2 | 10 | 10.5 | 10.5 | 0 |
+| 1 | 2 | 2 | 92 | 92 | 92 | 0 |
+| 1 | 3 | 2 | 48 | 47.9 | 47.9 | 0 |
+| 1 | 4 | 2 | 127 | 127.5 | 127.5 | 0 |
+
+### 08 · parole di Posizionamento (it) (2026-09-17, commit 058fe26+, 390×664)
+
+| p | riga | parole | slack | xUltima | atteso | fuori |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 1 | 3 | 123 | 0 | 0 | -123.2 |
+| 0 | 2 | 3 | 22 | 0 | 0 | -21.7 |
+| 0 | 3 | 2 | 68 | 0 | 0 | -67.6 |
+| 0.5 | 1 | 3 | 123 | 39 | 39 | -84.2 |
+| 0.5 | 2 | 3 | 22 | 10.8 | 10.8 | -10.8 |
+| 0.5 | 3 | 2 | 68 | 19.5 | 19.5 | -48.1 |
+| 1 | 1 | 3 | 123 | 78 | 78 | -45.2 |
+| 1 | 2 | 3 | 22 | 21.7 | 21.7 | 0 |
+| 1 | 3 | 2 | 68 | 39 | 39 | -28.6 |
+
+### 08 · parole di Posizionamento (de) (2026-09-17, commit 058fe26+, 390×664)
+
+| p | riga | parole | slack | xUltima | atteso | fuori |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 1 | 2 | 54 | 0 | 0 | -54 |
+| 0 | 2 | 3 | 22 | 0 | 0 | -22.2 |
+| 0 | 3 | 2 | 106 | 0 | 0 | -105.7 |
+| 0 | 4 | 1 | 185 | 0 | 0 | -184.9 |
+| 0.5 | 1 | 2 | 54 | 19.5 | 19.5 | -34.5 |
+| 0.5 | 2 | 3 | 22 | 11.1 | 11.1 | -11.1 |
+| 0.5 | 3 | 2 | 106 | 19.5 | 19.5 | -86.2 |
+| 0.5 | 4 | 1 | 185 | 0 | 0 | -184.9 |
+| 1 | 1 | 2 | 54 | 39 | 39 | -15 |
+| 1 | 2 | 3 | 22 | 22.2 | 22.2 | 0 |
+| 1 | 3 | 2 | 106 | 39 | 39 | -66.7 |
+| 1 | 4 | 1 | 185 | 0 | 0 | -184.9 |
+
+### Commit 7: corridoi accesi e ripristino al capitolo (2026-09-17, 058fe26+)
+
+| viewport | rotta | accesi | attesi | sticky | altezza | overflowX | scarto ricarica (px) | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | / | hero recensioni storia team | hero recensioni storia team | 4 | 30672 | 0 |  | ok |
+| 1024×768 | / | hero recensioni storia team | hero recensioni storia team | 4 | 26588 | 0 |  | ok |
+| 1920×1080 | / | hero recensioni storia team | hero recensioni storia team | 4 | 34454 | 0 |  | ok |
+| 1280×600 | / | nessuno | nessuno | 0 | 20933 | 0 |  | ok |
+| 1440×600 | / | nessuno | nessuno | 0 | 21622 | 0 |  | ok |
+| 390×664 | / | nessuno | nessuno | 1 | 27710 | 0 |  | ok |
+| 1440×900 | /vendi | nessuno | nessuno | 0 | 16310 | 0 |  | ok |
+| 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 21379) | ok |
+
+Decisione: misure del giro di correzione 1 del commit 8, sul build lasciato dagli e2e del giro (sette spec verdi sui tre progetti: 238 passati, 41 saltati), albero con D54 (`whenStill` in `gsap.ts`, cambio lingua a scroll fermo), D55 (bordo del lockup 0,35 s nell'e2e) e D56 (`load` fuori da `autoRefreshEvents`, refresh dopo load a scroll fermo); `058fe26+` è il commit 8 nella prima versione, con l'albero corretto, prima dell'amend che lo riscrive. Uscita 0 per `08-hero-dive.mjs` e `07-corridoi.mjs`, coi numeri della prima versione: tuffo a 1440×900 H 984, stickTop −84, aggancio 175 e sgancio 1975 (spec §3.2: 174/1974, +1 px), tImg 1019, t′ 815, corsa 1800, margine del foglio −900, foto −275 e testo −479 a p 0,6, scala 1,117 a p 0,75 e 2 a p 1 col foglio a 0 e al centro, segno a quattro punte sempre sotto il bordo (minimo +63 a 1440, +45 a 1024×768); 1023×768 scala 1,12, foto −59,1, lift −92,2 (−12svh); 390×664 foto ferma, lift −53,1 (−8svh); parole di Posizionamento sull'atteso entro 0,1 px e mai fuori dall'h2, in it e de. Corridoi `hero recensioni storia team` a 1440×900, 1024×768 e 1920×1080; altezza della home 30.672 px a 1440×900 (+900 sul commit 7, spec §4), 26.588 a 1024×768, 34.454 a 1920×1080; sotto il gate invariata (21.622 a 1440×600, 27.710 a 390×664); ricarica a metà di `#servizi` a 0,6 px. Deep link `/#contatti` a 1440×900 (sonda del report del giro, `next start` avviato dalla sonda e prima navigazione a server appena acceso): a freddo e a caldo l'arrivo si ferma a scrollY 23.960, cioè 3.415 px prima dell'ancora in `it` (difetto preesistente del commit 7: la pagina cresce dopo load) e 3.972 con cookie `de` (stessa quota, ancora tedesca 557 px più in basso), contro i 25.146-25.922 a freddo e i 19.856 in `de` prima di D54 e D56; le danze dei misuratori di ScrollTrigger partono a 1,9-2,3 s, ad arrivo finito.

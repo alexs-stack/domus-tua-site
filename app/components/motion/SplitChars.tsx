@@ -75,9 +75,22 @@ const TRATTINO = /^[-\u2010]$/;
 const LETTERA = /^\p{L}/u;
 const tagliaDopo = (gs: string[], i: number) => i > 0 && i < gs.length - 1 && TRATTINO.test(gs[i]) && LETTERA.test(gs[i + 1]);
 
-export type SplitCharsProps = { children: ReactNode; font: KernFont; locale: string; upper: boolean };
+/**
+ * `charAttr`: l'attributo delle lettere dell'hero. Spec §2.5, «La home»: lockup, firma e H1
+ * non portano data-reveal, e la regola dello 0,02 di globals.css e la timeline di
+ * HeroCinematic li trovano per `data-hero-char/tchar/schar`. A20 e A22 di Alberto: gli
+ * stessi caratteri di tutti i titoli, con la crenatura misurata di D20.
+ */
+export type SplitCharsProps = {
+  children: ReactNode;
+  font: KernFont;
+  locale: string;
+  upper: boolean;
+  charAttr?: "data-hero-char" | "data-hero-tchar" | "data-hero-schar";
+};
 
-export default function SplitChars({ children, font, locale, upper }: SplitCharsProps) {
+export default function SplitChars({ children, font, locale, upper, charAttr }: SplitCharsProps) {
+  const extra: Record<string, string> | undefined = charAttr ? { [charAttr]: "" } : undefined;
   const nodes: ReactNode[] = [];
   // Inizio riga (o del titolo): gli spazi lì non si scrivono.
   let lineStart = true;
@@ -103,7 +116,7 @@ export default function SplitChars({ children, font, locale, upper }: SplitChars
       const chars = gs.map((g, i) => {
         const k = i < gs.length - 1 ? kernBetween(font, g, gs[i + 1], upper, locale) : 0;
         return (
-          <span key={i} className="dt-c" data-c="" style={k ? ({ "--k": `${k}em` } as CSSProperties) : undefined}>
+          <span key={i} className="dt-c" data-c="" {...extra} style={k ? ({ "--k": `${k}em` } as CSSProperties) : undefined}>
             {g}
           </span>
         );

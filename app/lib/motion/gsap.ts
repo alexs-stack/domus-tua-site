@@ -13,18 +13,22 @@
 //   Corsa     ctnY() 3.333vw da 1024, 11.54vw sotto ↔ --dt-ctn-y
 //   Ease      "dtOut" 0.25,1,0.5,1                  ↔ --ease-dt-out
 //             "dtIn"  0.5,0,0.75,0                  ↔ --ease-dt-in
+//             "dtEase" 0.25,0.1,0.25,1               ↔ --ease-dt-ease
 // app/lib/__tests__/motion-tokens.test.ts pretende gli stessi numeri in CSS e
 // qui. Ogni CustomEase entra con il suo primo consumatore, una per riga: è la
 // forma che leggono intro-clocks.test.ts e motion-tokens.test.ts.
 //
 // Il vocabolario di prima resta a chi lo legge: `dur` (micro, short, reveal,
-// hero, transition), `stagger.chars` (anche PropertyDetail.tsx, che su
+// transition), `stagger.chars` (anche PropertyDetail.tsx, che su
 // /case/[slug] resta ferma per D32) e `stagger.cards`; le ease "domus" e
 // "domus.inOut" alle sezioni e alla UI che le usano.
 //
 // Regole: animazioni solo dentro gsap.matchMedia(MQ.motionOk); stati nascosti
 // solo via JS (mai SSR/CSS, salvo lo stato dipinto a 0.02 di spec §2.5); mai
-// transform su antenati sticky/fixed; uno stato nascosto che contiene un link o
+// transform su antenati sticky/fixed; i refresh di ScrollTrigger si chiedono
+// con requestRefresh e, a scroll in corso, con whenStill (D39, D53, D54, D56:
+// mai un refresh forzato dentro l'arrivo nativo a un frammento); uno stato
+// nascosto che contiene un link o
 // un bottone usa opacity, mai autoAlpha — autoAlpha scrive visibility:hidden,
 // che sfila il link dalla tab order e impedisce persino alla rete di sicurezza
 // focusin di scattare (il focus in un sottoalbero invisibile non ci arriva,
@@ -53,6 +57,18 @@ gsap.registerPlugin(ScrollTrigger, CustomEase, useGSAP);
 // prompt §7.2, misura 4.8 dell'audit). Deve stare qui, a livello di modulo,
 // prima che qualunque trigger nasca.
 ScrollTrigger.config({ ignoreMobileResize: true });
+
+// `load` non è fra gli eventi del refresh automatico (D56): ScrollTrigger lo
+// tratta come refresh forzato (l'Event arriva come `force`, ScrollTrigger.js
+// 3.15 riga 1170) e sulla home a server freddo `load` cade con l'arrivo nativo
+// a /#frammento ancora in volo, quando il corridoio dell'hero ha già il primo
+// trigger della pagina: i due scroll dei misuratori (0 e ritorno) cancellano
+// l'arrivo. Il refresh dopo load lo chiede whenStill, in fondo al modulo. Solo
+// col DOM: senza `window` (test di node) ScrollTrigger non ha la lista degli
+// eventi e `config` cadrebbe.
+if (typeof window !== "undefined") {
+  ScrollTrigger.config({ autoRefreshEvents: "visibilitychange,DOMContentLoaded,resize" });
+}
 
 // Hook di prova per sonde ed e2e, mai per il prodotto. In produzione GSAP non è
 // sul `window`, quindi `scripts/mobile-cdp-probe.ts` conta [data-on]/.pin-spacer
@@ -83,6 +99,10 @@ CustomEase.create("dtOut", "0.25,1,0.5,1");
 // "dtIn" = l'uscita dei testi del riferimento (In di Era, main.pretty.js:2863):
 // la leggono le uscite di reveal-engine.ts (A18, entrate e uscite speculari).
 CustomEase.create("dtIn", "0.5,0,0.75,0");
+// "dtEase" = la Ease di Era (ERA:2863): la salita di testo e foto nel tuffo
+// dell'hero e nel ramo 768-1023, chiesti da Alberto il 13 settembre 2026
+// (A18-A20, spec coreografia §3.2).
+CustomEase.create("dtEase", "0.25,0.1,0.25,1");
 // "dtHorScroll" = la curva del track orizzontale del riferimento (§11 del
 // dossier): parte lenta, accelera al centro, frena in coda. Consapevolmente
 // NON lineare anche se usata come containerAnimation: i reveal once:true
@@ -98,7 +118,6 @@ export const dur = {
   micro: 0.3,
   short: 0.6,
   reveal: 0.9,
-  hero: 1.4,
   transition: 1.1,
 } as const;
 
@@ -124,6 +143,42 @@ export const painted = 0.02;
 export const ctnY = (): string =>
   typeof window !== "undefined" && window.matchMedia(MQ.lg).matches ? "3.333vw" : "11.54vw";
 
+/** Tetto dell'attesa dello scroll fermo, lo stesso del motore dei reveal (reveal-engine.ts, D39). */
+const STILL_CAP_MS = 4000;
+
+/**
+ * Esegue `fn` a scroll fermo: subito se `ScrollTrigger.isScrolling()` è falso, altrimenti allo
+ * scrollEnd di ScrollTrigger (200 ms dopo l'ultimo evento di scroll); al tetto STILL_CAP_MS parte
+ * solo se lo scroll è fermo, altrimenti aspetta ancora lo scrollEnd. Restituisce l'annullamento,
+ * per i cleanup degli effetti. Serve ai refresh: `ScrollTrigger.refresh()` è forzato, cioè
+ * scrollBehavior ad "auto", scroll a 0, misure, ritorno alla posizione registrata, e i due scroll
+ * programmatici cancellano uno scroll nativo in corso, l'arrivo smooth al frammento (/#contatti,
+ * html { scroll-behavior: smooth }) o un fling su touch. È la regola D39 del motore dei reveal,
+ * che tiene la sua versione con lo stato dell'arrivo (reveal-engine.ts); qui la leggono i corridoi
+ * dopo `data-on` (useCorridor.ts, D53), il cambio lingua (LocaleProvider.tsx, D54) e il refresh
+ * dopo load (D56, sotto).
+ */
+export function whenStill(fn: () => void): () => void {
+  if (!ScrollTrigger.isScrolling()) {
+    fn();
+    return () => {};
+  }
+  let cap = 0;
+  const onEnd = () => {
+    ScrollTrigger.removeEventListener("scrollEnd", onEnd);
+    window.clearTimeout(cap);
+    fn();
+  };
+  ScrollTrigger.addEventListener("scrollEnd", onEnd);
+  cap = window.setTimeout(() => {
+    if (!ScrollTrigger.isScrolling()) onEnd();
+  }, STILL_CAP_MS);
+  return () => {
+    ScrollTrigger.removeEventListener("scrollEnd", onEnd);
+    window.clearTimeout(cap);
+  };
+}
+
 /**
  * Un `ScrollTrigger.refresh()` al fotogramma dopo; più richieste nello stesso
  * fotogramma diventano una. Lo chiede chi cambia le altezze sopra i trigger:
@@ -138,5 +193,13 @@ export const requestRefresh = (() => {
     raf = requestAnimationFrame(() => ScrollTrigger.refresh());
   };
 })();
+
+// Il refresh dopo load (D56), al posto dell'evento `load` tolto da
+// autoRefreshEvents: a scroll fermo, una volta. Senza guardia sul readyState:
+// se il modulo arriva dopo load non c'è ancora nessun trigger da rinfrescare,
+// e corridoi e motore chiedono il loro refresh al montaggio.
+if (typeof window !== "undefined") {
+  window.addEventListener("load", () => whenStill(() => requestRefresh()), { once: true });
+}
 
 export { gsap, ScrollTrigger, CustomEase, useGSAP, MQ };
