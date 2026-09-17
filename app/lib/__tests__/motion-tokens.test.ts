@@ -40,7 +40,7 @@ const ERA_EASES: Record<string, string> = {
   ease: "0.25,0.1,0.25,1",
 };
 /** Le ease di Era che a questo punto della costruzione devono esistere. */
-const REQUIRED_EASES = ["out", "in", "ease"];
+const REQUIRED_EASES = ["out", "in", "ease", "in-out"];
 
 const nums = (s: string) =>
   s

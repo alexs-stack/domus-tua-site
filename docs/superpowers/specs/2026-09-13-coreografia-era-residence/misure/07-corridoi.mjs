@@ -14,7 +14,7 @@ import { devices } from "@playwright/test";
 import { ROOT, appendResults, gitCommit, launch, mdTable, motionContext, scrollInstant, startServer, today } from "./lib.mjs";
 
 /** Gli host accesi sulla home con MQ.corridor vero: lo stesso elenco di EXPECTED_HOME in e2e/corridors.spec.ts. */
-const EXPECTED_ON = ["hero", "recensioni", "storia", "team"];
+const EXPECTED_ON = ["finestra", "hero", "recensioni", "storia", "team"];
 /** Gli host accesi su /vendi a 1440×900: lo stesso elenco di EXPECTED_VENDI. */
 const EXPECTED_VENDI_ON = [];
 const VIEWPORTS = [

@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, setConsent, clickUntil, videoTile } from "./helpers";
-import { clipOf, insetValues, installProbe, matrixOf, productOpacity } from "./coreografia";
+import { clipOf, insetValues, installProbe, matrixOf, productOpacity, wheelTo } from "./coreografia";
+import { PHONE_CLIP, ordinateOf } from "../app/lib/motion/finestra";
 
 // Homepage: che carichi, che l'intro non intrappoli nessuno, che l'header funzioni alla
 // larghezza in cui ci si trova.
@@ -986,5 +987,109 @@ test.describe("Voci: il carosello arriva da destra", () => {
     expect(rec.rapporto).toBeLessThan(1);
     expect(rec.fotogrammi).toBeGreaterThan(10);
     expect(rec.chiusure, "le tessere in vista si sono chiuse all'armamento, senza scroll").toBe(0);
+  });
+});
+
+// La finestra di Open Domus (A19 e A20 di Alberto, spec 2026-09-13 §3.10): da 1024 px e
+// 640 px d'altezza con motion ok, due strati sticky; sotto, l'otturatore a tempo sul
+// quadrato della foto.
+test.describe("la finestra di Open Domus", () => {
+  for (const vp of [
+    { width: 1440, height: 900 },
+    { width: 1024, height: 768 },
+  ]) {
+    test(`a ${vp.width}×${vp.height} le tende si aprono e la casa arriva a tutto schermo`, async ({ page, goto, isMobile }) => {
+      test.skip(!!isMobile, "il corridoio vive da 1024 px");
+      await page.setViewportSize(vp);
+      await goto("/");
+      const od = page.locator("#open-domus");
+      await expect(od).toHaveAttribute("data-on", "");
+      const geo = await page.evaluate(() => {
+        const top = (el: Element) => el.getBoundingClientRect().top + window.scrollY;
+        const s = document.querySelector("#open-domus")!;
+        return { sectionTop: top(s), areaTop: top(s.querySelector(".dt-od_area")!), vh: window.innerHeight };
+      });
+      // Il trigger è la section: coincide con l'area, che in Era è il wrapper non sticky.
+      expect(Math.abs(geo.sectionTop - geo.areaTop)).toBeLessThanOrEqual(1);
+
+      // Marcatori del tema (spec §3.10): avorio da s 0 a +150svh, foto da +150svh a +300svh.
+      const m = await page.evaluate(() => {
+        const a = document.querySelector("#open-domus .dt-od_area")!.getBoundingClientRect();
+        const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
+        return {
+          aTop: r("#open-domus .dt-od_mark--a").top - a.top,
+          aH: r("#open-domus .dt-od_mark--a").height,
+          fTop: r("#open-domus .dt-od_mark--f").top - a.top,
+          fH: r("#open-domus .dt-od_mark--f").height,
+          vh: window.innerHeight,
+        };
+      });
+      expect(Math.abs(m.aTop)).toBeLessThanOrEqual(1);
+      expect(Math.abs(m.aH - 1.5 * m.vh)).toBeLessThanOrEqual(1);
+      expect(Math.abs(m.fTop - 1.5 * m.vh)).toBeLessThanOrEqual(1);
+      expect(Math.abs(m.fH - 1.5 * m.vh)).toBeLessThanOrEqual(1);
+      await expect(page.locator("#open-domus .dt-od_mark--a")).toHaveAttribute("data-bg", "avorio");
+      await expect(page.locator("#open-domus .dt-od_mark--f")).toHaveAttribute("data-bg", "foto");
+
+      // s = 0: l'area tocca il bordo alto, progresso 1/3, otturatore al 67 % (atteso ≈ 24,4).
+      await wheelTo(page, Math.round(geo.areaTop));
+      await page.waitForTimeout(500);
+      const y = ordinateOf(await clipOf(page.locator(".dt-od_shutter--l")), 3);
+      expect(y).toBeGreaterThan(18.519);
+      expect(y).toBeLessThan(36.111);
+
+      // s = +200vh: tende a 1,84, stage a 1, schermo nascosto dal cue.
+      await wheelTo(page, Math.round(geo.areaTop + 2 * geo.vh + 10));
+      await page.waitForTimeout(500);
+      expect(Math.abs((await matrixOf(page.locator(".dt-od_shutters"))).a - 1.84)).toBeLessThanOrEqual(0.01);
+      expect(Math.abs((await matrixOf(page.locator(".dt-od_stage"))).a - 1)).toBeLessThanOrEqual(0.005);
+      await expect(page.locator(".dt-od_screen")).toHaveCSS("visibility", "hidden");
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(1);
+    });
+  }
+
+  test("sotto 1024 l'otturatore apre il quadrato della foto", async ({ page, goto, isMobile }) => {
+    test.skip(!isMobile, "il ramo del telefono");
+    await goto("/");
+    const od = page.locator("#open-domus");
+    const win = od.locator(".dt-od_window");
+    const norm = (s: string) => s.replace(/\s+/g, " ").trim();
+    // Stato chiuso scritto dal JS al primo callback, con la foto sotto la piega.
+    await expect.poll(async () => norm(await clipOf(win)), { timeout: 10_000 }).toBe(norm(PHONE_CLIP[0]));
+    expect(await od.getAttribute("data-on")).toBeNull();
+    // Porta in vista la frazione `f` della foto, dal basso: bordo alto a innerHeight − f × altezza.
+    const quota = (f: number) =>
+      win.evaluate((el, frazione) => {
+        const r = el.getBoundingClientRect();
+        window.scrollTo({ top: window.scrollY + r.top - (window.innerHeight - frazione * r.height), behavior: "instant" });
+      }, f);
+    // 20 % in vista: sotto la soglia di 0,35 l'otturatore resta chiuso (spec §3.10).
+    await quota(0.2);
+    await page.waitForTimeout(600);
+    expect(norm(await clipOf(win))).toBe(norm(PHONE_CLIP[0]));
+    // 50 % in vista: oltre la soglia, M0 → M1 in 1,3 s e M1 → M2 in 0,2 s.
+    await quota(0.5);
+    await page.waitForTimeout(1600);
+    expect(norm(await clipOf(win))).toBe(norm(PHONE_CLIP[2]));
+  });
+
+  test("da «Vedi i nove passi» il Tab porta la facciata del video dentro lo schermo", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "la rete di fuoco del corridoio vive da 1024 px");
+    await goto("/");
+    await expect(page.locator("#open-domus")).toHaveAttribute("data-on", "");
+    await page.getByRole("link", { name: "Vedi i nove passi", exact: true }).focus();
+    await page.keyboard.press("Tab");
+    const facciata = page.locator("#open-domus .dt-od_content button").first();
+    await expect(facciata).toBeFocused();
+    await page.waitForTimeout(400);
+    const r = await facciata.evaluate((el) => {
+      const b = el.getBoundingClientRect();
+      return { top: b.top, bottom: b.bottom, vh: window.innerHeight };
+    });
+    expect(r.top).toBeGreaterThanOrEqual(0);
+    expect(r.bottom).toBeLessThanOrEqual(r.vh);
   });
 });

@@ -451,6 +451,7 @@ blockquote * {
   --ease-dt-out: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-dt-in: cubic-bezier(0.5, 0, 0.75, 0);
   --ease-dt-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-dt-in-out: cubic-bezier(0.75, 0, 0.25, 1);
 }
 
 /* Durate, stagger, ritardo, stato dipinto e corsa `ctn` non sono un namespace
@@ -503,6 +504,110 @@ blockquote * {
 [data-reveal="accent"] .dt-c {
   padding-inline: 0.2em;
   margin-inline: -0.2em calc(-0.2em + var(--k, 0em));
+}
+
+/* -- LA FINESTRA DI OPEN DOMUS -------------------------------------------
+   A19 e A20 di Alberto (13 settembre, «Sticky dove serve», «Fedeltà
+   letterale»; spec 2026-09-13 §3.10), solo in home con
+   <OpenDomus finestra /> (D28). Com'è fatta oggi: due strati sticky nella
+   stessa area. Sopra, la zona delle tende (absolute, 300svh, fuori dal
+   flusso) con lo schermo alto 100svh che ritaglia sé stesso (clip, non
+   hidden: nessun contenitore di scroll) e le tende che scalano a 1,84 su
+   un figlio. Sotto, lo stage con la foto a tutta pagina e il contenuto,
+   che scala .75 → 1 dall'alto. La pista di 200svh sgancia schermo e stage
+   insieme. Section, area e zona senza transform né overflow. Il layout sta
+   qui prima del paint, alla stessa soglia di MQ.corridor (D22); le tende
+   nascono col poligono chiuso di Era già in CSS (SHUTTER_L[0] e
+   SHUTTER_R[0] di finestra.ts, gli stessi che build() scrive al primo
+   fotogramma): nessuno stato nascosto in CSS (spec §2.5), il visibility
+   dello schermo lo scrive solo il JS al cue di p 1.
+   Fermo (reduced-motion, senza JS, sotto 1024 o sotto 640 d'altezza): la
+   foto in testa al capitolo, quadrata sotto lg (dt-media-half) e banda 16:9
+   da lg (utility lg:aspect-video! in OpenDomus.tsx); niente tende, pista e
+   marcatori. Lo stage è l'unico elemento trasformato fuori dallo schermo:
+   sticky lui stesso, non è antenato di nulla di sticky. */
+.dt-od_mark,
+.dt-od_shutterzone,
+.dt-od_run {
+  display: none;
+}
+.dt-od_band {
+  padding-top: clamp(6rem, 14vh, 11rem);
+}
+@media (max-width: 767px) {
+  .dt-od_band {
+    padding-top: clamp(3rem, 8vh, 5rem);
+  }
+}
+.dt-od_shutter {
+  position: absolute;
+  background-color: var(--color-cream);
+}
+.dt-od_shutter--l {
+  clip-path: polygon(0% 0%, 0% 100%, 44.444% 100%, 44.444% 36.111%, 98.889% 36.111%, 98.889% 99.074%, 44.444% 99.074%, 1.111% 100%, 100% 100%, 100% 0%);
+  inset: -1% calc(50% - 1px) 0% 0%;
+}
+.dt-od_shutter--r {
+  clip-path: polygon(0% 0%, 0% 100%, 1.111% 100%, 1.111% 0.926%, 55.556% 0.926%, 55.556% 63.889%, 1.111% 63.889%, 1.111% 100%, 100% 100%, 100% 0%);
+  inset: -1% 0% 0% 50%;
+}
+@media (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_area {
+    position: relative;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_mark {
+    display: block;
+    position: absolute;
+    left: 0;
+    width: 1px;
+    height: 150svh;
+    pointer-events: none;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_mark--a {
+    top: 0;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_mark--f {
+    top: 150svh;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_shutterzone {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 300svh;
+    z-index: 1;
+    pointer-events: none;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_screen {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: clip;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_shutters {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 50%;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_stage {
+    position: sticky;
+    top: 0;
+    transform-origin: 50% 0%;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_band {
+    padding: 0;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_window {
+    height: 100svh;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_content {
+    padding-top: 22svh;
+  }
+  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_run {
+    display: block;
+    height: 200svh;
+  }
 }
 
 /* Riga e capitolo: il vuoto del riferimento (padding laterale 8vw, capitoli

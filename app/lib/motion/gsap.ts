@@ -14,6 +14,7 @@
 //   Ease      "dtOut" 0.25,1,0.5,1                  ↔ --ease-dt-out
 //             "dtIn"  0.5,0,0.75,0                  ↔ --ease-dt-in
 //             "dtEase" 0.25,0.1,0.25,1               ↔ --ease-dt-ease
+//             "dtInOut" 0.75,0,0.25,1                ↔ --ease-dt-in-out
 // app/lib/__tests__/motion-tokens.test.ts pretende gli stessi numeri in CSS e
 // qui. Ogni CustomEase entra con il suo primo consumatore, una per riga: è la
 // forma che leggono intro-clocks.test.ts e motion-tokens.test.ts.
@@ -108,6 +109,9 @@ CustomEase.create("dtEase", "0.25,0.1,0.25,1");
 // NON lineare anche se usata come containerAnimation: i reveal once:true
 // tollerano lo scarto e il gesto guadagna testa/coda.
 CustomEase.create("dtHorScroll", "0.25,0,0.75,1");
+// "dtInOut" = l'InOut di era-residence (0.75,0,0.25,1): firma della finestra di Open Domus,
+// scala 1,84 delle tende e .75 → 1 dello stage (A20 di Alberto, spec §3.1 riga 9).
+CustomEase.create("dtInOut", "0.75,0,0.25,1");
 // "dtSosta" = la firma di Paths, capitolo 7 (A20 di Alberto, spec 2026-09-13
 // §3.1 e §3.8): le colonne in controfase si fermano allineate mentre la riga
 // passa al centro, tratto quasi piatto fra 0,4 e 0,6 (colonne di Era, CAT §11).

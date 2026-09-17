@@ -129,6 +129,26 @@ test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ 
   expect(y).toBeGreaterThan(200);
 });
 
+// La finestra di Open Domus (A19, A20) con reduced motion: nessun corridoio, nessuna tenda,
+// nessuna pista; la foto sta in testa al capitolo, quadrata sotto lg e 16:9 da lg.
+test("la finestra di Open Domus con reduced motion è la foto in testa al capitolo @layout", async ({ page, goto }) => {
+  await goto("/");
+  const od = page.locator("#open-domus");
+  await expect(od).toBeAttached();
+  expect(await od.getAttribute("data-on")).toBeNull();
+  for (const sel of [".dt-od_shutterzone", ".dt-od_run", ".dt-od_mark--a", ".dt-od_mark--f"]) {
+    await expect(od.locator(sel)).toHaveCSS("display", "none");
+  }
+  const win = od.locator(".dt-od_window");
+  await win.scrollIntoViewIfNeeded();
+  await expect(win.locator("img")).toBeVisible();
+  const box = (await win.boundingBox())!;
+  const w = page.viewportSize()?.width ?? 0;
+  expect(Math.abs(box.width / box.height - (w >= 1024 ? 16 / 9 : 1))).toBeLessThan(0.02);
+  expect(await od.locator(".dt-od_stage").getAttribute("style")).toBeNull();
+  expect(await win.getAttribute("style")).toBeNull();
+});
+
 // Il tuffo dell'hero con reduced motion (A19-A20 di Alberto, spec coreografia
 // §3.2-§3.3): nessun corridoio, nessuno stile, Posizionamento in flusso.
 test("con reduced motion l'hero non è un corridoio e Posizionamento non copre", async ({ page, goto }) => {

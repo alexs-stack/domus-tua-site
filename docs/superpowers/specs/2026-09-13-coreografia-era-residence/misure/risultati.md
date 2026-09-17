@@ -1214,3 +1214,103 @@ Pannello del territorio (`/media/hero-aerial.jpg`), variante servita:
 A24: nessun fermo valido. Il tratto 75-81 s è un'orbita sulla villa, non una ripresa larga, e in tutti i nove candidati 1880-2020 c'è una persona in piedi sotto la gronda del portico (R1): il pannello tiene `/media/hero-aerial.jpg`.
 
 Questa sezione è la rimisura del giro di correzione 1 del commit 12, dopo l'esclusione di `territorio-quartiere.jpg`: i pesi sono gli stessi della sezione «12 · media della villa · 67da3df+» meno quel file, e il pannello con `/media/hero-aerial.jpg` dà gli stessi rapporti (≥ 0,95 nelle tre passate, `sizes` invariato). La tabella dei fermi (con la cella R1 del territorio corretta), le righe di `check` e i pesi contro le soglie con D59 restano quelli della sezione precedente.
+
+### 13 · altezza di #open-domus prima della finestra · 2026-09-17 · b7f0726
+
+| viewport | section px |
+| --- | --- |
+| 1440x900 | 930 |
+| 1024x768 | 1018 |
+| 390x664 | 1362 |
+
+### 13 · finestra di Open Domus · 2026-09-17 · ff960cc+
+
+Geometria col corridoio (px):
+
+| viewport | section | pista | foto | padding contenuto |
+| --- | --- | --- | --- | --- |
+| 1440x900 | 3702 | 1800 | 900 | 198 |
+| 1024x768 | 3384 | 1536 | 768 | 169 |
+| 1920x1080 | 4323 | 2160 | 1080 | 238 |
+
+Campioni di scroll (↑ = in risalita):
+
+| viewport | s (schermi) | p | ordinata tenda sx % | a tende | a stage | schermo | top contenuto / vh | opacità h2 | traboccamento |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440x900 | -1 | 0.000 | 36.11 | 1.000 | 0.750 | visible | 1.75 | 0.00 | 0 |
+| 1440x900 | -0.5 | 0.167 | 30.25 | 1.000 | 0.750 | visible | 1.25 | 0.00 | 0 |
+| 1440x900 | -0.25 | 0.250 | 27.32 | 1.000 | 0.750 | visible | 1.00 | 0.00 | 0 |
+| 1440x900 | 0 | 0.334 | 24.38 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1440x900 | 0.25 | 0.417 | 21.45 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1440x900 | 0.5 | 0.500 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1440x900 | 0.8 | 0.600 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1440x900 | 1 | 0.667 | 18.52 | 1.018 | 0.755 | visible | 0.76 | 0.00 | 0 |
+| 1440x900 | 1.5 | 0.834 | 18.52 | 1.639 | 0.940 | visible | 0.94 | 0.00 | 0 |
+| 1440x900 | 2.01 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.99 | 0.00 | 0 |
+| 1440x900 | 2.5 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.50 | 0.45 | 0 |
+| 1440x900 | 3 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | -0.00 | 0.95 | 0 |
+| 1440x900 | 3.2 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | -0.20 | 1.00 | 0 |
+| 1440x900 | 2.5 ↑ | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.50 | 1.00 | 0 |
+| 1440x900 | 1.5 ↑ | 0.834 | 18.52 | 1.639 | 0.940 | visible | 0.94 | 0.00 | 0 |
+| 1440x900 | 0.5 ↑ | 0.500 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1024x768 | -1 | 0.000 | 36.11 | 1.000 | 0.750 | visible | 1.75 | 0.00 | 0 |
+| 1024x768 | -0.5 | 0.167 | 30.25 | 1.000 | 0.750 | visible | 1.25 | 0.00 | 0 |
+| 1024x768 | -0.25 | 0.250 | 27.32 | 1.000 | 0.750 | visible | 1.00 | 0.00 | 0 |
+| 1024x768 | 0 | 0.334 | 24.38 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1024x768 | 0.25 | 0.417 | 21.45 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1024x768 | 0.5 | 0.500 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1024x768 | 0.8 | 0.600 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1024x768 | 1 | 0.667 | 18.52 | 1.018 | 0.755 | visible | 0.76 | 0.00 | 0 |
+| 1024x768 | 1.5 | 0.834 | 18.52 | 1.639 | 0.940 | visible | 0.94 | 0.00 | 0 |
+| 1024x768 | 2.01 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.99 | 0.00 | 0 |
+| 1024x768 | 2.5 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.50 | 0.45 | 0 |
+| 1024x768 | 3 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | -0.00 | 0.95 | 0 |
+| 1024x768 | 3.2 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | -0.20 | 1.00 | 0 |
+| 1024x768 | 2.5 ↑ | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.50 | 1.00 | 0 |
+| 1024x768 | 1.5 ↑ | 0.834 | 18.52 | 1.639 | 0.940 | visible | 0.94 | 0.00 | 0 |
+| 1024x768 | 0.5 ↑ | 0.500 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1920x1080 | -1 | 0.000 | 36.11 | 1.000 | 0.750 | visible | 1.75 | 0.00 | 0 |
+| 1920x1080 | -0.5 | 0.167 | 30.25 | 1.000 | 0.750 | visible | 1.25 | 0.00 | 0 |
+| 1920x1080 | -0.25 | 0.250 | 27.32 | 1.000 | 0.750 | visible | 1.00 | 0.00 | 0 |
+| 1920x1080 | 0 | 0.333 | 24.38 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1920x1080 | 0.25 | 0.417 | 21.45 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1920x1080 | 0.5 | 0.500 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1920x1080 | 0.8 | 0.600 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+| 1920x1080 | 1 | 0.667 | 18.52 | 1.018 | 0.755 | visible | 0.76 | 0.00 | 0 |
+| 1920x1080 | 1.5 | 0.833 | 18.52 | 1.639 | 0.940 | visible | 0.94 | 0.00 | 0 |
+| 1920x1080 | 2.01 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.99 | 0.00 | 0 |
+| 1920x1080 | 2.5 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.50 | 0.46 | 0 |
+| 1920x1080 | 3 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.00 | 0.95 | 0 |
+| 1920x1080 | 3.2 | 1.000 | 18.52 | 1.840 | 1.000 | hidden | -0.20 | 1.00 | 0 |
+| 1920x1080 | 2.5 ↑ | 1.000 | 18.52 | 1.840 | 1.000 | hidden | 0.50 | 1.00 | 0 |
+| 1920x1080 | 1.5 ↑ | 0.833 | 18.52 | 1.639 | 0.940 | visible | 0.94 | 0.00 | 0 |
+| 1920x1080 | 0.5 ↑ | 0.500 | 18.52 | 1.000 | 0.750 | visible | 0.75 | 0.00 | 0 |
+
+Variante servita della foto:
+
+| passata | w | scatola larga | scatola alta | resa cover | DPR | w / (resa × DPR) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1440x900 corridoio | 1536 | 1440 | 900 | 1440 | 1 | 1.07 |
+| 1024x768 corridoio | 1536 | 1024 | 768 | 1152 | 1 | 1.33 |
+| 1920x1080 corridoio | 1920 | 1920 | 1080 | 1920 | 1 | 1.00 |
+| 1440x900 reduce | 1280 | 1210 | 680 | 1210 | 1 | 1.06 |
+
+Senza corridoio:
+
+| viewport | data-on | section | banda | foto | clip al 20 % | clip al 50 % dopo 1,7 s | opacità h2 | traboccamento |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440x600 | no | 1585 | 776 | 680 | polygon(0% 27.941%, 49% 27.941%, 49% 127.941%, 0% 127.941%, 0% 27.941%, 51% -27.941%, 100% -27.941%, 100% 72.059%, 51% 72.059%, 51% -27.941%) | polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%, 0% 0%, 50% 0%, 100% 0%, 100% 100%, 50% 100%, 50% 0%) | 1.00 | 0 |
+| 390x664 | no | 1766 | 404 | 351 | polygon(0% 27.941%, 49% 27.941%, 49% 127.941%, 0% 127.941%, 0% 27.941%, 51% -27.941%, 100% -27.941%, 100% 72.059%, 51% 72.059%, 51% -27.941%) | polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%, 0% 0%, 50% 0%, 100% 0%, 100% 100%, 50% 100%, 50% 0%) | 1.00 | 0 |
+
+### Commit 7: corridoi accesi e ripristino al capitolo (2026-09-17, ff960cc+)
+
+| viewport | rotta | accesi | attesi | sticky | altezza | overflowX | scarto ricarica (px) | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | / | finestra hero recensioni storia team | finestra hero recensioni storia team | 6 | 33444 | 0 |  | ok |
+| 1024×768 | / | finestra hero recensioni storia team | finestra hero recensioni storia team | 6 | 28954 | 0 |  | ok |
+| 1920×1080 | / | finestra hero recensioni storia team | finestra hero recensioni storia team | 6 | 37781 | 0 |  | ok |
+| 1280×600 | / | nessuno | nessuno | 0 | 21634 | 0 |  | ok |
+| 1440×600 | / | nessuno | nessuno | 0 | 22398 | 0 |  | ok |
+| 390×664 | / | nessuno | nessuno | 1 | 28075 | 0 |  | ok |
+| 1440×900 | /vendi | nessuno | nessuno | 0 | 16310 | 0 |  | ok |
+| 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 24151) | ok |

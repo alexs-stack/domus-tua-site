@@ -81,7 +81,7 @@ export default function Home() {
         <Voci />
         <Paths />
         <Method compact />
-        <OpenDomus />
+        <OpenDomus finestra />
         <DomusDocProtocol />
         <Services />
         <CostiChiari />
