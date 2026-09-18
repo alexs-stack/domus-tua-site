@@ -5,6 +5,7 @@ import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import RotatingMark from "./motion/RotatingMark";
+import MarkSegno from "./motion/MarkSegno";
 import { Logo } from "./Logo";
 import { Whatsapp } from "./Icons";
 import { Cta } from "./primitives/Cta";
@@ -49,6 +50,13 @@ export default function Header() {
     (href === "/acquista" && pathname.startsWith("/case/"));
   const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
+  // Il segno fisso (MarkSegno; Alberto, 13 settembre 2026, «Si stacca da
+  // 1024», A21) prende il posto del badge: la testata gli passa lo slot e la
+  // riga, e ferma il badge quando il segno è acceso. Su /case/* non si monta (A26).
+  const slotRef = useRef<HTMLSpanElement | null>(null);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const [segnoAcceso, setSegnoAcceso] = useState(false);
+  const conSegno = !pathname.startsWith("/case/");
 
   // Cambio di rotta con il menu aperto (back/forward del browser, o un link che
   // non passa dall'onClick): si chiude. Stato aggiustato durante il render, non
@@ -192,6 +200,7 @@ export default function Header() {
   const solid = scrolled || open;
 
   return (
+    <>
     <header
       // `!border-transparent`: globals.css ha un `* { border-color: var(--color-line) }`
       // fuori da ogni @layer, che vince sulle utility; senza il `!` la hairline
@@ -205,21 +214,17 @@ export default function Header() {
           : "!border-transparent bg-transparent"
       }`}
     >
-      <div className={`dt-row flex ${ROW_H} items-center justify-between gap-x-8`}>
+      <div ref={rowRef} className={`dt-row flex ${ROW_H} items-center justify-between gap-x-8`}>
         <Link href="/" className="flex shrink-0 items-center gap-4" aria-label="Domus Tua, vai alla home">
-          {/* Monogramma ufficiale in rotazione oraria (RotatingMark), solo da xl
-              (vedi la nota qui sotto). Lo span di
-              contorno serve perché MarkBadge porta un suo `inline-block`, e in
-              Tailwind v4 le utility della stessa proprietà escono in ordine
-              alfabetico: `hidden` passato come className perderebbe. */}
-          {/* UN cuore solo. Prima il badge rotante mostrava il monogramma e
-              sedici pixel piu' a destra il logo ricominciava con lo stesso
-              cuore piu' grande e fermo: un lockup che sembrava un errore di
-              montaggio. Ora il badge — il cuore che gira in senso orario,
-              richiesta del cliente — sta accanto al logo solo da xl, dove
-              c'e' spazio perche' si legga; sotto, il logo da solo. */}
-          <span className="hidden xl:contents">
-            <RotatingMark className="h-14 w-14" />
+          {/* Il badge del cuore che gira in senso orario (cliente, 2026-09-10)
+              sta accanto al logo solo da xl: sedici pixel dopo il cuore del
+              logo, più in stretto, sembrava un errore di montaggio. Lo span
+              `xl:contents` tiene `hidden` fuori dall'ordine alfabetico delle
+              utility di Tailwind v4. Da 1280 px, con motion ok, questo è lo
+              slot da cui parte il segno fisso (MarkSegno, A21): il badge va a
+              opacità 0 e si ferma quando il segno si accende. */}
+          <span ref={slotRef} data-segno-slot className="hidden xl:contents">
+            <RotatingMark className="h-14 w-14" paused={segnoAcceso} />
           </span>
           <Logo className="h-auto w-[clamp(150px,13vw,210px)]" />
         </Link>
@@ -333,5 +338,7 @@ export default function Header() {
         </div>
       </div>
     </header>
+    {conSegno && <MarkSegno slotRef={slotRef} rowRef={rowRef} onActive={setSegnoAcceso} />}
+    </>
   );
 }

@@ -365,8 +365,10 @@ export default function Voci() {
                     sinistra — tenendo il 70% in basso a destra, dove c'e' solo
                     il filmato. Altrimenti sopra un titolo e un play gia'
                     stampati nei pixel ce ne mettevamo altri due. Sparisce il
-                    giorno in cui arrivano i fotogrammi puliti. */}
-                <span data-voci-slide className="dt-media-full block">
+                    giorno in cui arrivano i fotogrammi puliti. `data-bg="foto"`:
+                    la copertina è zona foto per il segno fisso (A21 di
+                    Alberto, spec coreografia §6.1). */}
+                <span data-voci-slide className="dt-media-full block" data-bg="foto">
                   {/* L'immagine che scorre da destra (A20 di Alberto, spec coreografia §3.7): absolute
                       a filo della tessera, così `fill` di next/image ha il suo
                       contenitore e `dt-still-trim` resta sull'img. */}

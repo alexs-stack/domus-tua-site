@@ -805,6 +805,24 @@ details:not([open]) > summary .dt-disclosure {
   }
 }
 
+/* Il segno fisso (MarkSegno.tsx). Alberto il 13 settembre 2026, «Si stacca da
+   1024» (A21, D34): le tacche dell'anello usano currentColor (MarkBadge.tsx),
+   grafite sull'avorio e avorio sopra una zona [data-bg="foto"] (T1). Il
+   monogramma resta #595a58 e #e30716 (C23 della cliente): qui cambia solo
+   `color`, mai filtri, fusioni o fondi. */
+.dt-segno {
+  color: var(--color-ink);
+  transition: color var(--td-duration-fast) var(--td-ease-smooth-out);
+}
+.dt-segno[data-tema="foto"] {
+  color: var(--color-cream);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-segno {
+    transition: none;
+  }
+}
+
 /* ---------- Utility: hairline ---------- */
 .hairline {
   background: linear-gradient(

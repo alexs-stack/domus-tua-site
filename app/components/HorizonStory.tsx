@@ -258,11 +258,29 @@ export default function HorizonStory() {
 
           {/* Pannello territorio: i gradini del titolo cavalcano la foto in
               parallasse contraria, la foto si apre a sipario (clip-path).
-              In colonna il rientro torna a 8vw come `dt-row`: i 5vw servono al
-              pannello quando è largo un viewport, ma in pagina mettevano
-              titolo e foto su una linea verticale tutta loro. */}
+              A destra il rientro è 5vw nel nastro e 8vw in colonna: i 5vw
+              servono al pannello quando è largo un viewport, ma in pagina
+              mettevano titolo e foto su una linea verticale tutta loro.
+              IL RIENTRO SINISTRO È 9,5vw DA 1024 IN SU COL NASTRO ACCESO
+              (D68, per A27 di Alberto: il segno non copre niente e gli resta
+              almeno 16 px d'aria). Da 1024 il monogramma fisso (MarkSegno) sta
+              nel margine col centro a 4vw, e il suo bordo destro arriva a
+              4vw + clamp(40px, 3,75vw, 56px) / 2: 84,6 px a 1440, 75,2 a 1280,
+              61,0 a 1024. Chi gli si avvicina davvero non è l'h3 — la sua
+              scatola resta ferma al posto di layout — ma il gradino di mezzo
+              «Pineta»: ha `lg:ml-[9vw]` e la parallasse contraria di
+              HorizonScroller lo porta a xPercent −25 nella posa di fine corsa,
+              cioè a 1,115 · rientro − 0,024 · larghezza px dal bordo sinistro.
+              Con 8vw restava a 5,8 / 7,7 / 9,3 px dal segno (1024 / 1280 /
+              1440), sotto la riserva; il rientro che tocca esattamente i 16 px
+              è 8,9vw a 1024, e 9,5vw porta il gradino a 22,9 / 29,1 / 33,4 px e
+              l'h3 col link a 36,5 / 46,2 / 52,6, al prezzo di 15,4 px di
+              larghezza utile a 1024 (misure/20-territorio.mjs). In colonna la
+              variante `[.dt-horizon:not([data-on])_&]` tiene 8vw sui due lati:
+              lì nessun gradino cavalca la foto e il titolo è già a 20,9 px dal
+              segno. A 1920 il pannello è centrato dal max-w e sta a 209 px. */}
           <div className="dt-horizon_panel dt-horizon_panel--territory relative flex items-center">
-            <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-10 px-[5vw] py-20 [.dt-horizon:not([data-on])_&]:lg:px-[8vw] lg:grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)] lg:items-center lg:gap-0 lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+            <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-10 px-[5vw] py-20 lg:pl-[9.5vw] [.dt-horizon:not([data-on])_&]:lg:px-[8vw] lg:grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)] lg:items-center lg:gap-0 lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
               <div className="dt-horizon_stairs">
                 <p className="eyebrow">{c.cap}</p>
                 <h3 className="mt-6 font-display leading-[0.95] tracking-[-0.01em]">

@@ -160,14 +160,23 @@ test.describe("il tuffo da 1024 px con motion ok", () => {
     expect(Math.abs(riposo.top - riposo.bandTop), "a scroll 0 il marcatore non parte dalla banda").toBeLessThanOrEqual(1);
     expect(Math.abs(riposo.bottom - riposo.coverTop), "a scroll 0 il marcatore non arriva alla cima del foglio").toBeLessThanOrEqual(1);
     await scrollaA(page, 1000);
+    // Il monogramma (commit 20; Alberto, 13 settembre 2026, A21): a scrollY
+    // 1.000 il segno legge il marcatore e ha tema foto, anche dopo il refresh
+    // di ScrollTrigger che il resize rilancia (spec §3.2, Test): è il caso che
+    // prova il listener `refresh` del segno e il corridoio ricalcolato.
+    const tema = () => page.evaluate(() => document.querySelector("[data-segno]")?.getAttribute("data-tema") ?? null);
     for (const giro of ["prima", "dopo"] as const) {
       if (giro === "dopo") {
         await page.evaluate(() => window.dispatchEvent(new Event("resize")));
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(600);
+        expect(Math.abs((await page.evaluate(() => window.scrollY)) - 1000), "il refresh ha spostato la pagina").toBeLessThanOrEqual(2);
       }
       const r = await misura();
       expect(r.top, `${giro} del resize il marcatore non parte da sopra lo schermo`).toBeLessThanOrEqual(0);
       expect(r.bottom, `${giro} del resize il marcatore non arriva al foglio`).toBeGreaterThanOrEqual(r.coverTop - 1);
+      await expect
+        .poll(tema, { timeout: 3_000, message: `${giro} del resize il monogramma non ha tema foto a scrollY 1000` })
+        .toBe("foto");
     }
   });
 

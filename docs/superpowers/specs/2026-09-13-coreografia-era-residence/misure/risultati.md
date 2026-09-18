@@ -2605,6 +2605,10 @@ Regole rispettate.
 
 2026-09-18. Le tre sezioni qui sopra (due volte la sonda «dopo», porta corta) e la 19b qui sotto sono state lanciate sul build col guardiano della ricarica (D65); `19-intro-reload-dopo.json` è quello del secondo lancio. Il primo lancio della sonda «dopo» è uscito 1 per l'LCP di «/» a 390 lento in navigazione nuova (1988 contro 1856 + 100): la navigazione nuova non arma il guardiano (solo `nav === "reload"`), e il secondo lancio, sullo stesso build, dà 1916 ed esce 2. La deroga resta: a 390 lento su «/» l'attributo cade a 3026 ms (ricarica) e 2971 ms (nuova) nel secondo lancio, 3227 e 3214 nel primo, contro 2980. Nessuna soglia cambiata: la decisione è di Alberto e il push del blocco aspetta la sua risposta.
 
+### 19 · la caduta dell'attributo sulla porta corta (D69)
+
+2026-09-18, decisione del coordinatore (D69). Sulla porta corta a «/» a 390 lento l'attributo `data-preloader` cade 9-14 ms dopo `PRE_SHORT_FAILSAFE_MS` (2980 ms), cioè a 2989-2994 ms. A 2,48 s l'autohide ha già fatto svanire il sipario: in quei millisecondi non c'è niente da vedere, è ritardo del timer e si accetta. Nessuna soglia cambia e nessun codice si tocca. La tabella «dopo» qui sopra, mediana di 5 giri, segna per lo stesso caso 3026 ms in ricarica e 2971 in navigazione nuova: è lo stesso fenomeno misurato in giri diversi.
+
 ## 19b · ricarica a 0.3 schermi su «/» con la corta (D65)
 
 2026-09-18 · commit 4293262+ · misure/19b-ricarica-cima.mjs, 3 giri per caso, consenso accettato, chiave INTRO_FILM. 1440×900 senza freno; 390×664 DPR 3, CPU ×4, 1,6 Mbps / 150 ms. «fuori dalla cima» = fotogrammi rAF sotto l'attributo con scrollY > 1; «porta min» = la quota più alta della porta in quei fotogrammi, in % di innerHeight (≥ 100: sotto il bordo, pagina coperta). Tempi in ms dall'armamento.
@@ -2619,3 +2623,312 @@ Regole rispettate.
 | 390-lento | 3 | 199 | short | 127 | 1 (max 199) | 104 | 0 | 0 | 3200 | 3598 | 3744 | auto / auto |
 
 Regole rispettate.
+
+## 20 · segno fisso e tema
+
+2026-09-18 · commit c3b1c9c+ · misure/20-segno.mjs --parte segno. Attesi (spec §6.1, M1): da 1280 centro = slot + (4vw − slot)·k ±1 px e lato = 56 + (clamp − 56)·k ±1 con k = scroll/testata (1 oltre la testata), badge a opacità 0; fra 1024 e 1279 centro a 4vw ±1, opacità q ±0,03 e lato clamp·(0,8 + 0,2·q) ±1 con q = clamp((scroll − 0,5·testata)/(0,5·testata), 0, 1); risalendo a 0 di nuovo sullo slot (o a opacità 0).
+
+| viewport | scroll | y letto | hidden | opacità | attesa | centro x | atteso x | lato | atteso lato | badge op. | tema |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | 0 | 0 | false | 1.00 | 1.00 | 143.2 | 143.2 | 56.0 | 56.0 | 0.00 | grafite |
+| 1440×900 | 0,25·testata | 23 | false | 1.00 | 1.00 | 121.3 | 121.8 | 55.5 | 55.5 | 0.00 | grafite |
+| 1440×900 | 0,5·testata | 45 | false | 1.00 | 1.00 | 100.4 | 100.4 | 55.0 | 55.0 | 0.00 | grafite |
+| 1440×900 | 0,75·testata | 68 | false | 1.00 | 1.00 | 78.5 | 79.0 | 54.5 | 54.5 | 0.00 | foto |
+| 1440×900 | testata | 90 | false | 1.00 | 1.00 | 57.6 | 57.6 | 54.0 | 54.0 | 0.00 | foto |
+| 1440×900 | 1200 | 1200 | false | 1.00 | 1.00 | 57.6 | 57.6 | 54.0 | 54.0 | 0.00 | foto |
+| 1440×900 | ritorno a 0 | 0 | false | 1.00 | 1.00 | 143.2 | 143.2 | 56.0 | 56.0 | 0.00 | grafite |
+| 1280×800 | 0 | 0 | false | 1.00 | 1.00 | 130.4 | 130.4 | 56.0 | 56.0 | 0.00 | grafite |
+| 1280×800 | 0,25·testata | 20 | false | 1.00 | 1.00 | 110.6 | 110.6 | 54.0 | 54.0 | 0.00 | grafite |
+| 1280×800 | 0,5·testata | 40 | false | 1.00 | 1.00 | 90.8 | 90.8 | 52.0 | 52.0 | 0.00 | grafite |
+| 1280×800 | 0,75·testata | 60 | false | 1.00 | 1.00 | 71.0 | 71.0 | 50.0 | 50.0 | 0.00 | foto |
+| 1280×800 | testata | 80 | false | 1.00 | 1.00 | 51.2 | 51.2 | 48.0 | 48.0 | 0.00 | foto |
+| 1280×800 | 1200 | 1200 | false | 1.00 | 1.00 | 51.2 | 51.2 | 48.0 | 48.0 | 0.00 | foto |
+| 1280×800 | ritorno a 0 | 0 | false | 1.00 | 1.00 | 130.4 | 130.4 | 56.0 | 56.0 | 0.00 | grafite |
+| 1024×768 | 0 | 0 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,25·testata | 19 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,5·testata | 38 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,75·testata | 58 | false | 0.51 | 0.51 | 41.0 | 41.0 | 36.1 | 36.1 | — | foto |
+| 1024×768 | testata | 77 | false | 1.00 | 1.00 | 41.0 | 41.0 | 40.0 | 40.0 | — | foto |
+| 1024×768 | 1200 | 1200 | false | 1.00 | 1.00 | 41.0 | 41.0 | 40.0 | 40.0 | — | foto |
+| 1024×768 | ritorno a 0 | 0 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | foto |
+
+Tema a 1440 su «/», passi da 450 px: 76 passi, 6 con una foto sotto il centro, 0 col tema sbagliato.
+
+Rilevatore (querySelectorAll a ogni chiamata), 200 chiamate per quota col layout sporcato prima di ognuna, soglia 1 ms per chiamata:
+
+| quota | scrollY | zone [data-bg] | ms per chiamata |
+| --- | --- | --- | --- |
+| 0 | 0 | 16 | 0.151 |
+| 0,25 | 8525 | 16 | 0.608 |
+| 0,5 | 17049 | 16 | 0.652 |
+| 0,75 | 25574 | 16 | 0.680 |
+| 1 | 34098 | 16 | 0.183 |
+
+Regole rispettate.
+
+## 20 · VMAX del monogramma
+
+2026-09-18 · commit c3b1c9c+ · misure/20-segno.mjs --parte vmax, 1440×900, |Δ scrollY| per fotogramma (px), tre giri.
+
+| giro | rotella p95 | rotella max | End max | Home max | ancora max |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 32 | 36 | 6385 | 6479 | 276 |
+| 2 | 32 | 34 | 6338 | 6481 | 276 |
+| 3 | 32 | 37 | 6453 | 6476 | 352 |
+
+VMAX = 35 px per fotogramma (regola: p95 della rotella per eccesso a 5, fra 20 e 200). Salto minimo di End/Home 6476: i salti sono tagliati.
+
+## 20 · il segno copre
+
+2026-09-18 · commit 4afea84+ (giro di correzione del blocco 20-fix; il rosso di partenza è di a4aabde) · `e2e/segno.spec.ts:305`, «il segno non copre titoli, link e bottoni» (desktop-1440, viewport impostato nel test). **Chiuso da D68: verde su «/», /vendi e /metodo a 1024, 1280 e 1440.**
+
+Prima (build di a4aabde, contenuto del pannello a `px-[5vw]` col corridoio acceso): /vendi e /metodo 0 elementi ai tre viewport, «/» rosso a tutti e tre, sempre nel pannello del territorio di HorizonStory (corridoio «storia»), nel tratto in cui il nastro ha finito la corsa e la sezione risale:
+
+| viewport | elemento | scroll |
+| --- | --- | --- |
+| 1024×768 | h3 «Tra la Pineta e Milano» | 6432, 6472, 6512, 6552, 6592, 6632 (in scrub) |
+| 1024×768 | a «Vedi le case in vendita» | 6912 (in scrub) |
+| 1280×800 | h3 «Tra la Pineta e Milano» | 7115, 7155, 7195, 7235, 7275, 7315, 7355, 7395 (in scrub) |
+| 1280×800 | a «Vedi le case in vendita» | 7635, 7675 (in scrub) |
+| 1440×900 | h3 «Tra la Pineta e Milano» | 7807, 7847, 7887, 7927, 7967, 8007, 8047, 8087 (in scrub) |
+| 1440×900 | a «Vedi le case in vendita» | 8327, 8367, 8407 (in scrub) |
+
+Il bordo destro della scatola del segno a riposo sta a 4vw + clamp(40px, 3,75vw, 56px) / 2: 84,6 px a 1440, 75,2 a 1280, 61,0 a 1024, 104,8 a 1920. Le tacche esterne dell'anello stanno a 46,5/96 del lato dal centro: a 1440 arrivavano a 83,8 px, cioè sui primi ~11 px delle lettere. Nel nastro in corsa nessun elemento passava sotto il segno.
+
+**D68 (coordinatore, per A27 di Alberto).** Il segno non copre mai un titolo, un link o un bottone, e il pannello del territorio porta il contenuto oltre il bordo del segno anche col corridoio acceso, con almeno 16 px di riserva. `HorizonStory.tsx` prende `lg:pl-[9.5vw]`: rientro sinistro di 9,5vw da 1024 in su col nastro acceso, rientro destro fermo a 5vw. In colonna la variante `[.dt-horizon:not([data-on])_&]:lg:px-[8vw]` tiene gli 8vw di prima sui due lati (specificità maggiore: vince sul `pl`), e lì basta, perché nessun gradino cavalca la foto. Il segno non si è mosso e nessun altro capitolo è stato toccato.
+
+**Perché 8vw non bastava.** Chi si avvicina davvero al segno non è la scatola dell'h3 — che resta ferma al posto di layout, e che era l'unica cosa che il test guardasse — ma il gradino di mezzo del titolo, «Pineta»: ha `lg:ml-[9vw]` e la parallasse contraria di `HorizonScroller.tsx` lo porta a `xPercent` −25 nella posa di fine corsa, quella in cui il capitolo si guarda. Dal codice (colonna sinistra 0,46·(100vw − pl − 5vw), più gli 11vw del `margin-right: -11vw` di `.dt-horizon_stairs` in globals.css, meno `ml` 9vw, meno il 25 % della propria larghezza) il bordo delle lettere sta a 1,115·pl − 0,0243·larghezza: con 8vw restava a 5,8 / 7,7 / 9,3 px dal segno a 1024 / 1280 / 1440, sotto la riserva. Il rientro che tocca esattamente i 16 px è 8,9vw a 1024 (8,6 a 1280, 8,4 a 1440): si è preso 9,5vw, il primo mezzo vw che lascia margine alla soglia invece di sfiorarla.
+
+Misura dopo D68 (`misure/20-territorio.mjs`, ora committato: la sonda dei giri precedenti stava nello scratchpad; build di produzione sulla 3178, corsa del corridoio «storia» a passi di 40 px). «Margine» = bordo sinistro dell'elemento − bordo destro della scatola del segno, nei soli campioni in cui l'elemento si sovrappone in verticale al segno; per i gradini è la scatola d'inchiostro (Range sul testo), non quella del blocco.
+
+| viewport | segno destra | rientro sinistro 5vw → 8vw → 9,5vw | larghezza utile | margine h3 e link | margine peggiore dei gradini |
+| --- | --- | --- | --- | --- | --- |
+| 1024×768 | 61,0 | 51,2 → 81,9 → **97,3** | 921,6 → 890,9 → **875,5** | −9,5 → 21,2 → **36,5** | −28,5 → 5,8 → **22,9** |
+| 1280×800 | 75,2 | 64,0 → 102,4 → **121,6** | 1152,0 → 1113,6 → **1094,4** | −11,4 → 27,0 → **46,2** | −35,1 → 7,7 → **29,1** |
+| 1440×900 | 84,6 | 72,0 → 115,2 → **136,8** | 1296,0 → 1252,8 → **1231,2** | −12,2 → 31,0 → **52,6** | −38,9 → 9,3 → **33,4** |
+| 1920×1080 | 104,8 | 96,0 → 153,6 → **182,4** | 1408,0 → 1350,4 → **1321,6** | +151,4 → 209,0 → **237,8** | +152,7 → 216,9 → **249,0** |
+
+Stato in colonna (altezza sotto 640: il segno c'è, il corridoio no), col rientro fermo a 8vw sui due lati: a 1024×600 h3 e link a 20,9 px e il gradino peggiore a 22,1; a 1440×600 30,6 e 31,3; larghezza utile 860,2 e 1209,6. Anche qui ogni bersaglio sta oltre i 16 px.
+
+Niente sfora: i tre gradini restano su una riga sola e larghi come prima (244,5 / 250,6 / 341,5 px a 1024, 305,8 / 313,5 / 427,2 a 1280, 344,2 / 352,8 / 480,8 a 1440, 355,1 / 364,1 / 496,1 a 1920: l'inchiostro non dipende dal rientro, solo dal `clamp` del corpo), nessuno `scrollWidth` oltre il `clientWidth` né nel pannello né nel documento ai sei viewport, e `07-corridoi.mjs` dà di nuovo overflowX 0 ovunque con la home a 34.998 px a 1440. La foto del territorio non si taglia di più (A27): la scatola è `aspect-ratio: 16/9` e la sorgente 2560×1280, quindi la quota in quadro non dipende da quanto la scatola si stringe — 1,778 di rapporto e 88,9 % in quadro a 1280, 1440 e 1920 (88,7 % a 1024), `sizes` invariato e stessa variante servita (w 640 / 768 / 1024 / 1280).
+
+Il cancello: `e2e/segno.spec.ts` ora mette `[data-horizon-stair]` fra i bersagli, accanto a `h1, h2, h3, a, button`. Senza, il test guardava una scatola ferma e la riga che davvero si avvicina al segno gli era invisibile: una regressione della parallasse, di `ml-[9vw]`, del `-11vw` o delle 46/54fr sarebbe rimasta verde. L'aria che resta non la dice il test ma `20-territorio.mjs`, che esce 1 sotto i 16 px.
+
+## 20 · segno fisso e tema
+
+2026-09-18 · commit 20f0e7a+ · misure/20-segno.mjs --parte segno. Attesi (spec §6.1, M1): da 1280 centro = slot + (4vw − slot)·k ±1 px e lato = 56 + (clamp − 56)·k ±1 con k = scroll/testata (1 oltre la testata), badge a opacità 0; fra 1024 e 1279 centro a 4vw ±1, opacità q ±0,03 e lato clamp·(0,8 + 0,2·q) ±1 con q = clamp((scroll − 0,5·testata)/(0,5·testata), 0, 1); risalendo a 0 di nuovo sullo slot (o a opacità 0).
+
+| viewport | scroll | y letto | hidden | opacità | attesa | centro x | atteso x | lato | atteso lato | badge op. | tema |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | 0 | 0 | false | 1.00 | 1.00 | 143.2 | 143.2 | 56.0 | 56.0 | 0.00 | grafite |
+| 1440×900 | 0,25·testata | 23 | false | 1.00 | 1.00 | 121.3 | 121.8 | 55.5 | 55.5 | 0.00 | grafite |
+| 1440×900 | 0,5·testata | 45 | false | 1.00 | 1.00 | 100.4 | 100.4 | 55.0 | 55.0 | 0.00 | grafite |
+| 1440×900 | 0,75·testata | 68 | false | 1.00 | 1.00 | 78.5 | 79.0 | 54.5 | 54.5 | 0.00 | foto |
+| 1440×900 | testata | 90 | false | 1.00 | 1.00 | 57.6 | 57.6 | 54.0 | 54.0 | 0.00 | foto |
+| 1440×900 | 1200 | 1200 | false | 1.00 | 1.00 | 57.6 | 57.6 | 54.0 | 54.0 | 0.00 | foto |
+| 1440×900 | ritorno a 0 | 0 | false | 1.00 | 1.00 | 143.2 | 143.2 | 56.0 | 56.0 | 0.00 | grafite |
+| 1280×800 | 0 | 0 | false | 1.00 | 1.00 | 130.4 | 130.4 | 56.0 | 56.0 | 0.00 | grafite |
+| 1280×800 | 0,25·testata | 20 | false | 1.00 | 1.00 | 110.6 | 110.6 | 54.0 | 54.0 | 0.00 | grafite |
+| 1280×800 | 0,5·testata | 40 | false | 1.00 | 1.00 | 90.8 | 90.8 | 52.0 | 52.0 | 0.00 | grafite |
+| 1280×800 | 0,75·testata | 60 | false | 1.00 | 1.00 | 71.0 | 71.0 | 50.0 | 50.0 | 0.00 | foto |
+| 1280×800 | testata | 80 | false | 1.00 | 1.00 | 51.2 | 51.2 | 48.0 | 48.0 | 0.00 | foto |
+| 1280×800 | 1200 | 1200 | false | 1.00 | 1.00 | 51.2 | 51.2 | 48.0 | 48.0 | 0.00 | foto |
+| 1280×800 | ritorno a 0 | 0 | false | 1.00 | 1.00 | 130.4 | 130.4 | 56.0 | 56.0 | 0.00 | grafite |
+| 1024×768 | 0 | 0 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,25·testata | 19 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,5·testata | 38 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,75·testata | 58 | false | 0.51 | 0.51 | 41.0 | 41.0 | 36.1 | 36.1 | — | foto |
+| 1024×768 | testata | 77 | false | 1.00 | 1.00 | 41.0 | 41.0 | 40.0 | 40.0 | — | foto |
+| 1024×768 | 1200 | 1200 | false | 1.00 | 1.00 | 41.0 | 41.0 | 40.0 | 40.0 | — | foto |
+| 1024×768 | ritorno a 0 | 0 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | foto |
+
+Tema a 1440 su «/», passi da 450 px: 76 passi, 7 con una foto sotto il centro, 0 col tema sbagliato.
+
+Rilevatore (querySelectorAll a ogni chiamata), 200 chiamate per quota col layout sporcato prima di ognuna, soglia 1 ms per chiamata:
+
+| quota | scrollY | zone [data-bg] | ms per chiamata |
+| --- | --- | --- | --- |
+| 0 | 0 | 16 | 0.158 |
+| 0,25 | 8525 | 16 | 0.603 |
+| 0,5 | 17049 | 16 | 0.584 |
+| 0,75 | 25574 | 16 | 0.656 |
+| 1 | 34098 | 16 | 0.199 |
+
+Regole rispettate.
+
+## 20 · la coda del tema dopo un salto nella cartolina (D67)
+
+2026-09-18 · build del giro di correzione 1 (20f0e7a + coda sul ticker di GSAP, MARK_TEMA_CODA_S = 1,5 s) · sonda di revisione `probe-tema-stale.mjs` (scratchpad, non committata), `next start` sulla 3178 da lib.mjs, 1440×900. Per ogni quota: salto istantaneo dalla cima della cartolina a +f·100vh, lettura subito, a 2 s senza scroll e dopo uno `scroll` sintetico. Cella: tema / centro del segno dentro il marcatore / bordo sinistro e alto del marcatore in px.
+
+| f | subito | a 2 s fermi | dopo lo scroll sintetico | stantio |
+| --- | --- | --- | --- | --- |
+| 0,15 | foto / sì / 1, 0 | foto / sì / 13, 3 | foto / sì | no |
+| 0,25 | foto / sì / 1, 0 | foto / sì / 47, 11 | foto / sì | no |
+| 0,35 | foto / sì / 3, 1 | grafite / no / 122, 28 | grafite / no | no |
+| 0,5 | foto / sì / 7, 1 | grafite / no / 226, 51 | grafite / no | no |
+| 0,65 | foto / sì / 30, 7 | grafite / no / 276, 63 | grafite / no | no |
+| 0,8 | foto / sì / 20, 4 | grafite / no / 301, 68 | grafite / no | no |
+| 1 | foto / sì / 37, −171 | grafite / no / 315, −108 | grafite / no | no |
+| 1,3 | grafite / no / 84, −431 | grafite / no / 317, −378 | grafite / no | no |
+
+Prima della coda (revisione del commit 20, stesso percorso) il tema restava «foto» a 2 s fermi da f 0,35 a 1,3: 6 quote su 8 stantie. Con la coda 0 su 8. Lo presidia l'e2e «1440, salto dentro la cartolina e 2 s fermi» di segno.spec.ts (rosso prima della coda con i bordi a 122, 276, 315, 317 px; verde dopo).
+
+## 20 · segno fisso e tema
+
+2026-09-18 · commit a4aabde+ · misure/20-segno.mjs --parte segno. Attesi (spec §6.1, M1): da 1280 centro = slot + (4vw − slot)·k ±1 px e lato = 56 + (clamp − 56)·k ±1 con k = scroll/testata (1 oltre la testata), badge a opacità 0; fra 1024 e 1279 centro a 4vw ±1, opacità q ±0,03 e lato clamp·(0,8 + 0,2·q) ±1 con q = clamp((scroll − 0,5·testata)/(0,5·testata), 0, 1); risalendo a 0 di nuovo sullo slot (o a opacità 0).
+
+| viewport | scroll | y letto | hidden | opacità | attesa | centro x | atteso x | lato | atteso lato | badge op. | tema |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | 0 | 0 | false | 1.00 | 1.00 | 143.2 | 143.2 | 56.0 | 56.0 | 0.00 | grafite |
+| 1440×900 | 0,25·testata | 23 | false | 1.00 | 1.00 | 121.3 | 121.8 | 55.5 | 55.5 | 0.00 | grafite |
+| 1440×900 | 0,5·testata | 45 | false | 1.00 | 1.00 | 100.4 | 100.4 | 55.0 | 55.0 | 0.00 | grafite |
+| 1440×900 | 0,75·testata | 68 | false | 1.00 | 1.00 | 78.5 | 79.0 | 54.5 | 54.5 | 0.00 | foto |
+| 1440×900 | testata | 90 | false | 1.00 | 1.00 | 57.6 | 57.6 | 54.0 | 54.0 | 0.00 | foto |
+| 1440×900 | 1200 | 1200 | false | 1.00 | 1.00 | 57.6 | 57.6 | 54.0 | 54.0 | 0.00 | foto |
+| 1440×900 | ritorno a 0 | 0 | false | 1.00 | 1.00 | 143.2 | 143.2 | 56.0 | 56.0 | 0.00 | grafite |
+| 1280×800 | 0 | 0 | false | 1.00 | 1.00 | 130.4 | 130.4 | 56.0 | 56.0 | 0.00 | grafite |
+| 1280×800 | 0,25·testata | 20 | false | 1.00 | 1.00 | 110.6 | 110.6 | 54.0 | 54.0 | 0.00 | grafite |
+| 1280×800 | 0,5·testata | 40 | false | 1.00 | 1.00 | 90.8 | 90.8 | 52.0 | 52.0 | 0.00 | grafite |
+| 1280×800 | 0,75·testata | 60 | false | 1.00 | 1.00 | 71.0 | 71.0 | 50.0 | 50.0 | 0.00 | foto |
+| 1280×800 | testata | 80 | false | 1.00 | 1.00 | 51.2 | 51.2 | 48.0 | 48.0 | 0.00 | foto |
+| 1280×800 | 1200 | 1200 | false | 1.00 | 1.00 | 51.2 | 51.2 | 48.0 | 48.0 | 0.00 | foto |
+| 1280×800 | ritorno a 0 | 0 | false | 1.00 | 1.00 | 130.4 | 130.4 | 56.0 | 56.0 | 0.00 | grafite |
+| 1024×768 | 0 | 0 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,25·testata | 19 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,5·testata | 38 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,75·testata | 58 | false | 0.51 | 0.51 | 41.0 | 41.0 | 36.1 | 36.1 | — | foto |
+| 1024×768 | testata | 77 | false | 1.00 | 1.00 | 41.0 | 41.0 | 40.0 | 40.0 | — | foto |
+| 1024×768 | 1200 | 1200 | false | 1.00 | 1.00 | 41.0 | 41.0 | 40.0 | 40.0 | — | foto |
+| 1024×768 | ritorno a 0 | 0 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | foto |
+
+Tema a 1440 su «/», passi da 450 px: 76 passi, 6 con una foto sotto il centro, 0 col tema sbagliato.
+
+Rilevatore (querySelectorAll a ogni chiamata), 200 chiamate per quota col layout sporcato prima di ognuna, soglia 1 ms per chiamata:
+
+| quota | scrollY | zone [data-bg] | ms per chiamata |
+| --- | --- | --- | --- |
+| 0 | 0 | 16 | 0.146 |
+| 0,25 | 8525 | 16 | 0.589 |
+| 0,5 | 17049 | 16 | 0.610 |
+| 0,75 | 25574 | 16 | 0.637 |
+| 1 | 34098 | 16 | 0.181 |
+
+Regole rispettate.
+
+### Commit 7: corridoi accesi e ripristino al capitolo (2026-09-18, a4aabde+)
+
+| viewport | rotta | accesi | attesi | sticky | altezza | overflowX | scarto ricarica (px) | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 34998 | 0 |  | ok |
+| 1024×768 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 30308 | 0 |  | ok |
+| 1920×1080 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 39613 | 0 |  | ok |
+| 1280×600 | / | nessuno | nessuno | 0 | 22352 | 0 |  | ok |
+| 1440×600 | / | nessuno | nessuno | 0 | 23193 | 0 |  | ok |
+| 390×664 | / | nessuno | nessuno | 1 | 28479 | 0 |  | ok |
+| 1440×900 | /vendi | page-dive | page-dive | 1 | 17034 | 0 |  | ok |
+| 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 24223) | ok |
+
+## 20 · il territorio oltre il segno (D68)
+
+2026-09-18 · commit 4afea84+ · misure/20-territorio.mjs · corsa del corridoio «storia» su «/» a passi di 40 px, build di produzione sulla 3178.
+«Margine» = bordo sinistro dell'elemento − bordo destro della scatola del segno, nei soli campioni in cui l'elemento si sovrappone in verticale al segno;
+per i gradini è la scatola d'inchiostro (Range sul testo), non quella del blocco. Riserva chiesta da D68: 16 px.
+
+| viewport | elemento | segno destra | rientro sinistro | margine peggiore | a scroll | campioni |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1024×768 nastro | h3 (scatola) | 61.0 | 97.3 | 36.5 | 6432 | 6 |
+| 1024×768 nastro | link (scatola) | 61.0 | 97.3 | 36.5 | 6912 | 1 |
+| 1024×768 nastro | gradino 1 «Tra la» | 61.0 | 97.3 | 62.3 | 6432 | 3 |
+| 1024×768 nastro | gradino 2 «Pineta» | 61.0 | 97.3 | 22.9 | 6472 | 4 |
+| 1024×768 nastro | gradino 3 «e Milano» | 61.0 | 97.3 | 196.1 | 6552 | 3 |
+| 1280×800 nastro | h3 (scatola) | 75.2 | 121.6 | 46.2 | 7115 | 8 |
+| 1280×800 nastro | link (scatola) | 75.2 | 121.6 | 46.2 | 7635 | 2 |
+| 1280×800 nastro | gradino 1 «Tra la» | 75.2 | 121.6 | 78.4 | 7115 | 4 |
+| 1280×800 nastro | gradino 2 «Pineta» | 75.2 | 121.6 | 29.1 | 7195 | 4 |
+| 1280×800 nastro | gradino 3 «e Milano» | 75.2 | 121.6 | 245.6 | 7275 | 4 |
+| 1440×900 nastro | h3 (scatola) | 84.6 | 136.8 | 52.6 | 7807 | 8 |
+| 1440×900 nastro | link (scatola) | 84.6 | 136.8 | 52.6 | 8327 | 3 |
+| 1440×900 nastro | gradino 1 «Tra la» | 84.6 | 136.8 | 88.8 | 7767 | 5 |
+| 1440×900 nastro | gradino 2 «Pineta» | 84.6 | 136.8 | 33.4 | 7887 | 4 |
+| 1440×900 nastro | gradino 3 «e Milano» | 84.6 | 136.8 | 277.0 | 7967 | 5 |
+| 1920×1080 nastro | h3 (scatola) | 104.8 | 182.4 | 237.8 | 9370 | 9 |
+| 1920×1080 nastro | link (scatola) | 104.8 | 182.4 | 237.8 | 9930 | 2 |
+| 1920×1080 nastro | gradino 1 «Tra la» | 104.8 | 182.4 | 278.7 | 9330 | 5 |
+| 1920×1080 nastro | gradino 2 «Pineta» | 104.8 | 182.4 | 249.0 | 9450 | 5 |
+| 1920×1080 nastro | gradino 3 «e Milano» | 104.8 | 182.4 | 500.2 | 9530 | 5 |
+| 1024×600 colonna | h3 (scatola) | 61.0 | 81.9 | 20.9 | 4140 | 6 |
+| 1024×600 colonna | link (scatola) | 61.0 | 81.9 | 20.9 | 4660 | 2 |
+| 1024×600 colonna | gradino 1 «Tra la» | 61.0 | 81.9 | 22.1 | 4140 | 3 |
+| 1024×600 colonna | gradino 2 «Pineta» | 61.0 | 81.9 | 100.3 | 4300 | 4 |
+| 1024×600 colonna | gradino 3 «e Milano» | 61.0 | 81.9 | 74.0 | 4260 | 3 |
+| 1440×600 colonna | h3 (scatola) | 84.6 | 115.2 | 30.6 | 4190 | 9 |
+| 1440×600 colonna | link (scatola) | 84.6 | 115.2 | 30.6 | 4750 | 2 |
+| 1440×600 colonna | gradino 1 «Tra la» | 84.6 | 115.2 | 31.3 | 4190 | 4 |
+| 1440×600 colonna | gradino 2 «Pineta» | 84.6 | 115.2 | 147.7 | 4430 | 5 |
+| 1440×600 colonna | gradino 3 «e Milano» | 84.6 | 115.2 | 99.0 | 4350 | 5 |
+
+| viewport | larghezza utile | gradini: inchiostro e righe | trabocca pannello | trabocca documento | foto del territorio |
+| --- | --- | --- | --- | --- | --- |
+| 1024×768 nastro | 875.5 | 244.5 (1 riga) · 250.6 (1 riga) · 341.5 (1 riga) | 0 | 0 | 472.8×265.9 (1.778, 88.7 % in quadro, w=640) |
+| 1280×800 nastro | 1094.4 | 305.8 (1 riga) · 313.5 (1 riga) · 427.2 (1 riga) | 0 | 0 | 591.0×332.4 (1.778, 88.9 % in quadro, w=768) |
+| 1440×900 nastro | 1231.2 | 344.2 (1 riga) · 352.8 (1 riga) · 480.8 (1 riga) | 0 | 0 | 664.8×374.0 (1.778, 88.9 % in quadro, w=1024) |
+| 1920×1080 nastro | 1321.6 | 355.1 (1 riga) · 364.1 (1 riga) · 496.1 (1 riga) | 0 | 0 | 713.7×401.4 (1.778, 88.9 % in quadro, w=1280) |
+| 1024×600 colonna | 860.2 | 244.5 (1 riga) · 250.6 (1 riga) · 341.5 (1 riga) | 0 | 0 | 464.5×261.3 (1.778, 88.7 % in quadro, w=640) |
+| 1440×600 colonna | 1209.6 | 344.2 (1 riga) · 352.8 (1 riga) · 480.8 (1 riga) | 0 | 0 | 653.2×367.4 (1.778, 88.9 % in quadro, w=1024) |
+
+**Regole rispettate:** ogni bersaglio oltre i 16 px, i gradini su una riga sola, nessun traboccamento.
+
+## 20 · segno fisso e tema
+
+2026-09-18 · commit 4afea84+ · misure/20-segno.mjs --parte segno. Attesi (spec §6.1, M1): da 1280 centro = slot + (4vw − slot)·k ±1 px e lato = 56 + (clamp − 56)·k ±1 con k = scroll/testata (1 oltre la testata), badge a opacità 0; fra 1024 e 1279 centro a 4vw ±1, opacità q ±0,03 e lato clamp·(0,8 + 0,2·q) ±1 con q = clamp((scroll − 0,5·testata)/(0,5·testata), 0, 1); risalendo a 0 di nuovo sullo slot (o a opacità 0).
+
+| viewport | scroll | y letto | hidden | opacità | attesa | centro x | atteso x | lato | atteso lato | badge op. | tema |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | 0 | 0 | false | 1.00 | 1.00 | 143.2 | 143.2 | 56.0 | 56.0 | 0.00 | grafite |
+| 1440×900 | 0,25·testata | 23 | false | 1.00 | 1.00 | 121.3 | 121.8 | 55.5 | 55.5 | 0.00 | grafite |
+| 1440×900 | 0,5·testata | 45 | false | 1.00 | 1.00 | 100.4 | 100.4 | 55.0 | 55.0 | 0.00 | grafite |
+| 1440×900 | 0,75·testata | 68 | false | 1.00 | 1.00 | 78.5 | 79.0 | 54.5 | 54.5 | 0.00 | foto |
+| 1440×900 | testata | 90 | false | 1.00 | 1.00 | 57.6 | 57.6 | 54.0 | 54.0 | 0.00 | foto |
+| 1440×900 | 1200 | 1200 | false | 1.00 | 1.00 | 57.6 | 57.6 | 54.0 | 54.0 | 0.00 | foto |
+| 1440×900 | ritorno a 0 | 0 | false | 1.00 | 1.00 | 143.2 | 143.2 | 56.0 | 56.0 | 0.00 | grafite |
+| 1280×800 | 0 | 0 | false | 1.00 | 1.00 | 130.4 | 130.4 | 56.0 | 56.0 | 0.00 | grafite |
+| 1280×800 | 0,25·testata | 20 | false | 1.00 | 1.00 | 110.6 | 110.6 | 54.0 | 54.0 | 0.00 | grafite |
+| 1280×800 | 0,5·testata | 40 | false | 1.00 | 1.00 | 90.8 | 90.8 | 52.0 | 52.0 | 0.00 | grafite |
+| 1280×800 | 0,75·testata | 60 | false | 1.00 | 1.00 | 71.0 | 71.0 | 50.0 | 50.0 | 0.00 | foto |
+| 1280×800 | testata | 80 | false | 1.00 | 1.00 | 51.2 | 51.2 | 48.0 | 48.0 | 0.00 | foto |
+| 1280×800 | 1200 | 1200 | false | 1.00 | 1.00 | 51.2 | 51.2 | 48.0 | 48.0 | 0.00 | foto |
+| 1280×800 | ritorno a 0 | 0 | false | 1.00 | 1.00 | 130.4 | 130.4 | 56.0 | 56.0 | 0.00 | grafite |
+| 1024×768 | 0 | 0 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,25·testata | 19 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,5·testata | 38 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | grafite |
+| 1024×768 | 0,75·testata | 58 | false | 0.51 | 0.51 | 41.0 | 41.0 | 36.1 | 36.1 | — | foto |
+| 1024×768 | testata | 77 | false | 1.00 | 1.00 | 41.0 | 41.0 | 40.0 | 40.0 | — | foto |
+| 1024×768 | 1200 | 1200 | false | 1.00 | 1.00 | 41.0 | 41.0 | 40.0 | 40.0 | — | foto |
+| 1024×768 | ritorno a 0 | 0 | false | 0.00 | 0.00 | 41.0 | 41.0 | 32.0 | 32.0 | — | foto |
+
+Tema a 1440 su «/», passi da 450 px: 76 passi, 6 con una foto sotto il centro, 0 col tema sbagliato.
+
+Rilevatore (querySelectorAll a ogni chiamata), 200 chiamate per quota col layout sporcato prima di ognuna, soglia 1 ms per chiamata:
+
+| quota | scrollY | zone [data-bg] | ms per chiamata |
+| --- | --- | --- | --- |
+| 0 | 0 | 16 | 0.163 |
+| 0,25 | 8525 | 16 | 0.560 |
+| 0,5 | 17049 | 16 | 0.594 |
+| 0,75 | 25574 | 16 | 0.621 |
+| 1 | 34098 | 16 | 0.183 |
+
+Regole rispettate.
+
+### Commit 7: corridoi accesi e ripristino al capitolo (2026-09-18, 4afea84+)
+
+| viewport | rotta | accesi | attesi | sticky | altezza | overflowX | scarto ricarica (px) | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 34998 | 0 |  | ok |
+| 1024×768 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 30308 | 0 |  | ok |
+| 1920×1080 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 39613 | 0 |  | ok |
+| 1280×600 | / | nessuno | nessuno | 0 | 22352 | 0 |  | ok |
+| 1440×600 | / | nessuno | nessuno | 0 | 23193 | 0 |  | ok |
+| 390×664 | / | nessuno | nessuno | 1 | 28479 | 0 |  | ok |
+| 1440×900 | /vendi | page-dive | page-dive | 1 | 17034 | 0 |  | ok |
+| 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 24223) | ok |
