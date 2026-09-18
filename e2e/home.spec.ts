@@ -1521,3 +1521,313 @@ test.describe("capitoli 13-16: i gesti in coda alla home", () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(prima);
   });
 });
+
+// ── Capitolo 17: la cartolina del Congedo (spec 2026-09-13 §3.18) ──
+// A19 e A20 di Alberto: da 1024 px e 640 px d'altezza con motion ok la banda è
+// uno schermo sticky di 100svh su 80svh di corridoio; il video si ritira in
+// inset(8% 22%) e il footer sale da sotto crescendo da 0,75 a 1. Sotto la
+// soglia la banda non è sticky e si ritira in inset(4% 10%) a 390 (D29).
+
+const CARTOLINA = '[data-corridor="cartolina"]';
+
+/** Quote di layout (offsetTop) della cartolina e del footer. */
+function quoteCartolina(page: Page) {
+  return page.evaluate((sel) => {
+    const quota = (el: HTMLElement) => {
+      let y = 0;
+      for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
+      return y;
+    };
+    const sec = document.querySelector<HTMLElement>(sel)!;
+    const screen = sec.querySelector<HTMLElement>("[data-corridor-screen]")!;
+    const foot = document.querySelector<HTMLElement>("footer[data-postcard-foot]")!;
+    return {
+      secTop: quota(sec),
+      screenTop: quota(screen),
+      screenH: screen.offsetHeight,
+      footTop: quota(foot),
+      vh: window.innerHeight,
+    };
+  }, CARTOLINA);
+}
+
+/** Il rettangolo della finestra (schermo meno i lati del ritaglio, letti con insetValues) e quello del titolo. */
+async function finestraETitolo(page: Page) {
+  const g = await page.evaluate((sel) => {
+    const sec = document.querySelector<HTMLElement>(sel)!;
+    const box = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width, h: r.height };
+    };
+    return {
+      s: box(sec.querySelector("[data-corridor-screen]")!),
+      clip: getComputedStyle(sec.querySelector<HTMLElement>("[data-postcard-clip]")!).clipPath,
+      title: box(document.getElementById("congedo-title")!),
+    };
+  }, CARTOLINA);
+  // «none», la banda piena, vale quattro lati a zero.
+  const [t, r, b, l] = insetValues(g.clip) ?? [0, 0, 0, 0];
+  return {
+    win: {
+      l: g.s.l + (g.s.w * l) / 100,
+      r: g.s.r - (g.s.w * r) / 100,
+      t: g.s.t + (g.s.h * t) / 100,
+      b: g.s.b - (g.s.h * b) / 100,
+    },
+    title: g.title,
+  };
+}
+
+async function dentro(page: Page, etichetta: string) {
+  const { win, title } = await finestraETitolo(page);
+  expect(title.l, `${etichetta}: il titolo esce a sinistra`).toBeGreaterThanOrEqual(win.l - 1);
+  expect(title.r, `${etichetta}: il titolo esce a destra`).toBeLessThanOrEqual(win.r + 1);
+  expect(title.t, `${etichetta}: il titolo esce in alto`).toBeGreaterThanOrEqual(win.t - 1);
+  expect(title.b, `${etichetta}: il titolo esce in basso`).toBeLessThanOrEqual(win.b + 1);
+}
+
+async function apriCartolina(page: Page) {
+  const sec = page.locator(CARTOLINA);
+  await expect(sec).toHaveAttribute("data-on", "");
+  await sec.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  return quoteCartolina(page);
+}
+
+test.describe("capitolo 17: la cartolina del Congedo", () => {
+  test("la banda si ritira in cartolina e il footer sale", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "lo schermo sticky vive da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    const sec = page.locator(CARTOLINA);
+    const clip = sec.locator("[data-postcard-clip]");
+
+    // A metà corsa sticky lo schermo sta a top 0 e la finestra si sta chiudendo.
+    await vai(page, q.secTop + q.vh * 0.4, 1200);
+    const top = await sec.locator(":scope > [data-corridor-screen]").evaluate((el) => el.getBoundingClientRect().top);
+    expect(Math.abs(top)).toBeLessThanOrEqual(1);
+    const meta = insetValues(await clipOf(clip));
+    expect(meta, "a metà corsa il clip-path non è un inset").not.toBeNull();
+    expect(meta![0]).toBeGreaterThan(0);
+    expect(meta![0]).toBeLessThan(8);
+
+    // Col footer al 40 % la cartolina è ferma a inset(8% 22% 8% 22%).
+    await vai(page, q.footTop - q.vh * 0.4, 1500);
+    const fine = insetValues(await clipOf(clip))!;
+    [8, 22, 8, 22].forEach((v, i) => expect(Math.abs(fine[i] - v), `lato ${i}`).toBeLessThanOrEqual(0.2));
+    const foot = page.locator("footer[data-postcard-foot]");
+    expect(await foot.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+    expect((await matrixOf(foot)).a).toBeCloseTo(1, 3);
+  });
+
+  // Spec §3.18: il bordo basso della finestra arriva a 8 % in 0→0,54, prima che il
+  // footer entri (0,545). A 1440×900 il footer sta 8svh sopra il fondo della banda
+  // e la finestra finisce 8 % sopra il fondo: bordo del footer e bordo della
+  // finestra coincidono, e il footer non sale mai sul video.
+  test("il bordo basso della finestra chiude prima: il footer non copre mai il video", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "lo schermo sticky vive da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    const clip = page.locator(`${CARTOLINA} [data-postcard-clip]`);
+    // Progresso p del corridoio: da «top top» della section a «clamp(top 40%)» del footer.
+    const fine = q.footTop - q.vh * 0.4;
+    for (const p of [0.55, 0.6, 0.7, 0.8, 0.9, 1]) {
+      await vai(page, q.secTop + p * (fine - q.secTop), 1500);
+      const b = insetValues(await clipOf(clip))?.[2] ?? 0;
+      const r = await page.evaluate((sel) => {
+        const s = document.querySelector(`${sel} > [data-corridor-screen]`)!.getBoundingClientRect();
+        const f = document.querySelector("footer[data-postcard-foot]")!.getBoundingClientRect();
+        return { sb: s.bottom, sh: s.height, ft: f.top };
+      }, CARTOLINA);
+      expect(r.ft, `a progresso ${p} il footer sale sopra il bordo basso della finestra`).toBeGreaterThanOrEqual(
+        r.sb - (r.sh * b) / 100 - 1,
+      );
+    }
+  });
+
+  test("la CTA del Congedo resta cliccabile a inizio, metà e fine", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "lo schermo sticky vive da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    for (const y of [q.secTop, q.secTop + q.vh * 0.4, q.footTop - q.vh * 0.4]) {
+      await vai(page, y, 1200);
+      const colpita = await page.evaluate((sel) => {
+        const a = document.querySelector<HTMLElement>(`${sel} .dt-postcard_copy a`)!;
+        const r = a.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return !!hit && (hit === a || a.contains(hit));
+      }, CARTOLINA);
+      expect(colpita, `CTA coperta a scrollY ${Math.round(y)}`).toBe(true);
+    }
+  });
+
+  for (const [w, h] of [
+    [1024, 768],
+    [1440, 900],
+    [1920, 1080],
+  ] as const) {
+    test(`il titolo sta dentro la finestra nelle cinque lingue a ${w}×${h}`, async ({ page, goto, isMobile }) => {
+      test.skip(!!isMobile, "i viewport desktop si impostano dentro il test");
+      await page.setViewportSize({ width: w, height: h });
+      for (const loc of ["it", "en", "fr", "de", "es"]) {
+        await page.context().addCookies([{ name: "dt_locale", value: loc, domain: "127.0.0.1", path: "/" }]);
+        await goto("/");
+        const q = await apriCartolina(page);
+        await vai(page, q.footTop - q.vh * 0.4, 1500);
+        await dentro(page, `${loc} a ${w}×${h}`);
+      }
+    });
+  }
+
+  test("gli antenati dello schermo sticky non trasformano né ritagliano", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "lo schermo sticky vive da 1024");
+    await goto("/");
+    await apriCartolina(page);
+    const colpevoli = await page.evaluate((sel) => {
+      const out: string[] = [];
+      for (let n = document.querySelector<HTMLElement>(sel); n; n = n.parentElement) {
+        const s = getComputedStyle(n);
+        if (s.transform !== "none") out.push(`${n.tagName} transform ${s.transform}`);
+        if (/hidden|auto|scroll/.test(s.overflowY)) out.push(`${n.tagName} overflow-y ${s.overflowY}`);
+      }
+      return out;
+    }, CARTOLINA);
+    expect(colpevoli).toEqual([]);
+  });
+
+  test("un clic del mouse su un link del footer non fa saltare la pagina", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "lo schermo sticky vive da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    await vai(page, q.footTop - q.vh * 0.6, 1500);
+    const tel = page.locator('footer[data-postcard-foot] a[href^="tel:"]').first();
+    await tel.evaluate((el) =>
+      el.addEventListener(
+        "click",
+        (e) => {
+          e.preventDefault();
+          (window as unknown as { __telClic?: boolean }).__telClic = true;
+        },
+        { once: true },
+      ),
+    );
+    const prima = await page.evaluate(() => window.scrollY);
+    const box = (await tel.boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(400);
+    expect(await page.evaluate(() => window.scrollY)).toBe(prima);
+    expect(await page.evaluate(() => (window as unknown as { __telClic?: boolean }).__telClic)).toBe(true);
+  });
+
+  test("Tab dalla CTA al primo link del footer lo porta a opacità 1 entro 1 s", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "lo schermo sticky vive da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    await vai(page, q.footTop - q.vh * 0.9, 1500);
+    const foot = page.locator("footer[data-postcard-foot]");
+    expect(Number(await foot.evaluate((el) => getComputedStyle(el).opacity))).toBeLessThan(1);
+    await page.locator(`${CARTOLINA} .dt-postcard_copy a`).focus();
+    await page.keyboard.press("Tab");
+    await expect(foot.locator("a, button").first()).toBeFocused();
+    await expect
+      .poll(() => foot.evaluate((el) => getComputedStyle(el).opacity), { timeout: 1000 })
+      .toBe("1");
+  });
+
+  // Spec §3.18: un footer a schermo non passa mai a meno visibile. Alla ricarica
+  // il Preloader riporta la pagina al capitolo dopo il primo refresh (D22), e il
+  // Congedo decide lo stato armato sulla quota d'arrivo.
+  test("ricaricando col footer al 60 % il footer non si abbassa mai (D22)", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "il ripristino al capitolo vive coi corridoi, da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    await vai(page, q.footTop - q.vh * 0.6, 1500);
+    type Campione = { t: number; o: number; top: number; vh: number };
+    // Il campionatore parte con la pagina ricaricata, prima dei suoi script: un valore per fotogramma.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __foot: Campione[] };
+      w.__foot = [];
+      const t0 = performance.now();
+      const tick = () => {
+        const f = document.querySelector<HTMLElement>("footer[data-postcard-foot]");
+        if (f) {
+          w.__foot.push({
+            t: performance.now() - t0,
+            o: Number(getComputedStyle(f).opacity),
+            top: f.getBoundingClientRect().top,
+            vh: window.innerHeight,
+          });
+        }
+        if (performance.now() - t0 < 6000) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await page.reload({ waitUntil: "load" });
+    await page.waitForTimeout(1500);
+    const s = await page.evaluate(() => (window as unknown as { __foot: Campione[] }).__foot);
+    const aSchermo = s.filter((x) => x.top < x.vh);
+    expect(aSchermo.length, "dopo la ricarica il footer non è tornato a schermo").toBeGreaterThan(30);
+    for (let i = 1; i < aSchermo.length; i++) {
+      expect(aSchermo[i].o, `a ${Math.round(aSchermo[i].t)} ms l'opacità del footer scende`).toBeGreaterThanOrEqual(
+        aSchermo[i - 1].o - 0.001,
+      );
+    }
+    const pieno = aSchermo.find((x) => x.o >= 0.999);
+    expect(pieno, "il footer a schermo non arriva a opacità 1").toBeDefined();
+    expect(pieno!.t - aSchermo[0].t).toBeLessThanOrEqual(150);
+  });
+
+  // Spec §3.18: stato armato e tween del footer stanno nel contesto locale del
+  // Congedo, che si reverte al cambio di MQ.motionOk.
+  test("uscendo sopra il capitolo e rientrando il gesto resta; con reduced motion il footer torna pieno e fermo", async ({
+    page,
+    goto,
+    isMobile,
+  }) => {
+    test.skip(!!isMobile, "lo schermo sticky vive da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    const foot = page.locator("footer[data-postcard-foot]");
+    const opacita = async () => Number(await foot.evaluate((el) => getComputedStyle(el).opacity));
+    await vai(page, q.footTop - q.vh * 0.9, 1500);
+    expect(await opacita()).toBeLessThan(1);
+    await vai(page, q.secTop - q.vh, 1500);
+    await vai(page, q.footTop - q.vh * 0.9, 1500);
+    expect(await opacita(), "rientrando il footer non è più armato").toBeLessThan(1);
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.waitForTimeout(600);
+    const st = await foot.evaluate((el) => ({
+      t: getComputedStyle(el).transform,
+      o: getComputedStyle(el).opacity,
+      inline: el.getAttribute("style") ?? "",
+    }));
+    expect(st.t).toBe("none");
+    expect(st.o).toBe("1");
+    expect(st.inline).not.toMatch(/opacity|matrix|scale|translate/);
+  });
+
+  test("sul telefono la banda non è sticky e si ritira in inset(4% 10%)", async ({ page, goto, isMobile }) => {
+    test.skip(!isMobile, "ramo del telefono: progetto mobile-390");
+    const video: string[] = [];
+    page.on("request", (r) => {
+      if (/\.(mp4|webm)(\?|$)/i.test(r.url())) video.push(r.url());
+    });
+    await goto("/");
+    const sec = page.locator(CARTOLINA);
+    expect(await sec.getAttribute("data-on")).toBeNull();
+    await sec.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    expect(await sec.locator(":scope > [data-corridor-screen]").evaluate((el) => getComputedStyle(el).position)).toBe(
+      "relative",
+    );
+    const q = await quoteCartolina(page);
+    // Fine del ramo del telefono: bordo basso della banda al 30 % del viewport.
+    await vai(page, q.screenTop + q.screenH - q.vh * 0.3, 1500);
+    const fine = insetValues(await clipOf(sec.locator("[data-postcard-clip]")))!;
+    [4, 10, 4, 10].forEach((v, i) => expect(Math.abs(fine[i] - v), `lato ${i}`).toBeLessThanOrEqual(0.2));
+    await dentro(page, "390");
+    expect(await page.locator("footer[data-postcard-foot]").evaluate((el) => getComputedStyle(el).marginTop)).toBe("0px");
+    expect(video, `richieste video a 390: ${video.join(", ")}`).toEqual([]);
+  });
+});

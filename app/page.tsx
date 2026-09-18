@@ -91,7 +91,7 @@ export default function Home() {
         <Contact gesture />
         <Congedo />
       </main>
-      <Footer />
+      <Footer postcard />
       <WhatsAppFloat />
     </>
   );

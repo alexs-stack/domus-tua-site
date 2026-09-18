@@ -1455,3 +1455,660 @@ del cambio, `/?intent=buyer#cerca` e `/?intent=question#cerca` a 1440×900 e 390
 della ricerca resta a opacità 1,000 su ~230 fotogrammi in 4 s, e l'intento cambia a +277…+295 ms con
 ancora 1.334-2.514 px di arrivo nativo da percorrere: è la finestra in cui un refresh forzato
 cancellerebbe l'arrivo (sonda nello scratchpad, non committata).
+
+### Commit 17 · base di --pc-focus, la banda del commit 16 (2026-09-17, 9d5f35c, 390 · 768 · 1024 · 1440 · 1920)
+
+| viewport | fascia | fotogramma | candidato | luminanza media | quota > 180 |
+| --- | --- | --- | --- | --- | --- |
+| 390×664 | sotto 768 (regola base) | poster | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 119.4 | 0.142 |
+| 768×1024 | 768-1023 (@media min-width 768px) | poster | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 127.9 | 0.101 |
+| 1024×768 | da 1024 (@media min-width 1024px) | poster | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 96.5 | 0.105 |
+| 1440×900 | da 1024 (@media min-width 1024px) | poster | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 118.4 | 0.117 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | poster | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 125.7 | 0.101 |
+
+### Commit 17 · --pc-focus, luminanza sotto il titolo (2026-09-17, 9d5f35c+, 390 · 768 · 1024 · 1440 · 1920)
+
+| viewport | fascia | fotogramma | candidato | luminanza media | quota > 180 |
+| --- | --- | --- | --- | --- | --- |
+| 390×664 | sotto 768 (regola base) | poster | 8% 50% | 127.9 | 0.179 |
+| 390×664 | sotto 768 (regola base) | poster | 12% 50% | 128 | 0.193 |
+| 390×664 | sotto 768 (regola base) | poster | 16% 50% | 131 | 0.224 |
+| 390×664 | sotto 768 (regola base) | poster | 24% 50% | 140.2 | 0.28 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 8% 50% | 122.6 | 0.158 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 12% 50% | 122.4 | 0.17 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 16% 50% | 124.9 | 0.183 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 24% 50% | 133 | 0.221 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 8% 50% | 129.2 | 0.202 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 12% 50% | 133.1 | 0.222 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 16% 50% | 138.4 | 0.246 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 24% 50% | 151.6 | 0.313 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 8% 50% | 123.4 | 0.135 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 12% 50% | 124.1 | 0.151 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 16% 50% | 126.7 | 0.174 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 24% 50% | 135.7 | 0.228 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 149 | 0.342 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 151.5 | 0.359 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 153.9 | 0.373 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 158.9 | 0.405 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 169.2 | 0.458 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 159.2 | 0.41 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 160.5 | 0.417 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 161.6 | 0.425 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 163.7 | 0.438 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 170.3 | 0.487 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 150.8 | 0.358 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 153.3 | 0.377 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 155.5 | 0.394 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 160.2 | 0.431 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 171.4 | 0.511 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 162.3 | 0.432 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 163.2 | 0.438 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 164.2 | 0.445 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 166.1 | 0.456 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 171.7 | 0.486 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 167.1 | 0.47 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 167.5 | 0.473 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 167.9 | 0.476 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 168.5 | 0.481 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 169.6 | 0.492 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 163.5 | 0.461 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 164.3 | 0.467 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 165.2 | 0.475 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 166.9 | 0.488 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 172.8 | 0.524 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 167.2 | 0.492 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 167.2 | 0.492 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 167.2 | 0.492 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 167.2 | 0.492 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 167.2 | 0.492 |
+
+| fascia | --pc-focus | caso peggiore | quota > 180 | tetto | esito |
+| --- | --- | --- | --- | --- | --- |
+| sotto 768 (regola base) | 12% 50% | 128 | 0.193 | ≤ 119.4 (base) | KO |
+| 768-1023 (@media min-width 768px) | 8% 50% | 129.2 | 0.202 | ≤ 127.9 (base) | KO |
+| da 1024 (@media min-width 1024px) | 8% 50% | 170.4 | 0.495 | ≤ 125.7 (base) | KO |
+
+### Commit 17 · --pc-focus, luminanza sotto il titolo (2026-09-17, 9d5f35c+, 390 · 768 · 1024 · 1440 · 1920)
+
+| viewport | fascia | fotogramma | candidato | luminanza media | quota > 180 |
+| --- | --- | --- | --- | --- | --- |
+| 390×664 | sotto 768 (regola base) | poster | 8% 50% | 127.9 | 0.179 |
+| 390×664 | sotto 768 (regola base) | poster | 12% 50% | 128 | 0.193 |
+| 390×664 | sotto 768 (regola base) | poster | 16% 50% | 131 | 0.224 |
+| 390×664 | sotto 768 (regola base) | poster | 24% 50% | 140.2 | 0.28 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 8% 50% | 122.6 | 0.158 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 12% 50% | 122.4 | 0.17 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 16% 50% | 124.9 | 0.183 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 24% 50% | 133 | 0.221 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 8% 50% | 129.2 | 0.202 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 12% 50% | 133.1 | 0.222 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 16% 50% | 138.4 | 0.246 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 24% 50% | 151.6 | 0.313 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 8% 50% | 123.4 | 0.135 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 12% 50% | 124.1 | 0.151 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 16% 50% | 126.7 | 0.174 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 24% 50% | 135.7 | 0.228 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 149 | 0.342 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 151.5 | 0.359 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 153.9 | 0.373 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 158.9 | 0.405 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 169.2 | 0.458 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 159.2 | 0.41 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 160.5 | 0.417 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 161.6 | 0.425 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 163.7 | 0.438 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 170.3 | 0.487 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 150.8 | 0.358 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 153.3 | 0.377 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 155.5 | 0.394 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 160.2 | 0.431 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 171.4 | 0.511 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 162.3 | 0.432 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 163.2 | 0.438 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 164.2 | 0.445 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 166.1 | 0.456 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 171.7 | 0.486 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 167.1 | 0.47 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 167.5 | 0.473 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 167.9 | 0.476 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 168.5 | 0.481 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 169.6 | 0.492 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 163.5 | 0.461 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 164.3 | 0.467 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 165.2 | 0.475 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 166.9 | 0.488 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 172.8 | 0.524 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 166.2 | 0.46 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 170.4 | 0.495 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 167.2 | 0.492 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 167.2 | 0.492 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 167.2 | 0.492 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 167.2 | 0.492 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 167.2 | 0.492 |
+
+| fascia | --pc-focus | caso peggiore | quota > 180 | tetto | esito |
+| --- | --- | --- | --- | --- | --- |
+| sotto 768 (regola base) | 12% 50% | 128 | 0.193 | ≤ 119.4 (base) | KO |
+| 768-1023 (@media min-width 768px) | 8% 50% | 129.2 | 0.202 | ≤ 127.9 (base) | KO |
+| da 1024 (@media min-width 1024px) | 8% 50% | 170.4 | 0.495 | ≤ 125.7 (base) | KO |
+
+### Commit 17 · la cartolina del Congedo (2026-09-17, 9d5f35c+, 1024 · 1440 · 1920 · 768 · 390)
+
+| viewport | misura | valore | atteso | esito |
+| --- | --- | --- | --- | --- |
+| 1024×768 | data-on sulla cartolina | true | true | ok |
+| 1024×768 | altezza della section | 1382 | 1382 ± 1 (180svh) | ok |
+| 1024×768 | margin-top del footer | -61.44 | -61.4 ± 1 (−8svh) | ok |
+| 1024×768 | aggiunta d'altezza della home (§4) | 744.56 | 745 ± 2 | ok |
+| 1024×768 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1024×768 | inset alto a metà corsa | 4.11 | (0, 8) | ok |
+| 1024×768 | opacità del footer al 90 % | 0.068 | < 0,2 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.55 | top 763.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.7 | top 611.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.85 | top 459.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 1 | top 307.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1024×768 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1024×768 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1024×768 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1024×768 | titolo dentro la finestra (it) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (en) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (fr) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (de) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (es) | true | true | ok |
+| 1440×900 | data-on sulla cartolina | true | true | ok |
+| 1440×900 | altezza della section | 1620 | 1620 ± 1 (180svh) | ok |
+| 1440×900 | margin-top del footer | -72 | -72.0 ± 1 (−8svh) | ok |
+| 1440×900 | aggiunta d'altezza della home (§4) | 738 | 738 ± 2 | ok |
+| 1440×900 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1440×900 | inset alto a metà corsa | 4.143 | (0, 8) | ok |
+| 1440×900 | opacità del footer al 90 % | 0.07 | < 0,2 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.55 | top 895.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.7 | top 716.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.85 | top 538.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 1 | top 360.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1440×900 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1440×900 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1440×900 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1440×900 | titolo dentro la finestra (it) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (en) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (fr) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (de) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (es) | true | true | ok |
+| 1920×1080 | data-on sulla cartolina | true | true | ok |
+| 1920×1080 | altezza della section | 1944 | 1944 ± 1 (180svh) | ok |
+| 1920×1080 | margin-top del footer | -86.4 | -86.4 ± 1 (−8svh) | ok |
+| 1920×1080 | aggiunta d'altezza della home (§4) | 777.6 | 778 ± 2 | ok |
+| 1920×1080 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1920×1080 | inset alto a metà corsa | 4.141 | (0, 8) | ok |
+| 1920×1080 | opacità del footer al 90 % | 0.07 | < 0,2 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.55 | top 1074.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.7 | top 860.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.85 | top 646.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 1 | top 432.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1920×1080 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1920×1080 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1920×1080 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1920×1080 | titolo dentro la finestra (it) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (en) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (fr) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (de) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (es) | true | true | ok |
+| 768×1024 | niente data-on, schermo non sticky | false · relative | false · relative | ok |
+| 768×1024 | margin-top del footer | 0px | 0px | ok |
+| 768×1024 | inset a fine tratto | 0 0 0 0 | 4 14 4 14 ± 0,2 | KO |
+| 768×1024 | opacità del footer a fine tratto | 1 | 1 | ok |
+| 768×1024 | titolo dentro la finestra (it) | true | true | ok |
+| 390×664 | niente data-on, schermo non sticky | false · relative | false · relative | ok |
+| 390×664 | margin-top del footer | 0px | 0px | ok |
+| 390×664 | inset a fine tratto | 4 10 4 10 | 4 10 4 10 ± 0,2 | ok |
+| 390×664 | opacità del footer a fine tratto | 1 | 1 | ok |
+| 390×664 | titolo dentro la finestra (it) | true | true | ok |
+| 390×664 | richieste video | 0 | 0 | ok |
+
+### Commit 17 · la cartolina del Congedo (2026-09-17, 9d5f35c+, 1024 · 1440 · 1920 · 768 · 390)
+
+| viewport | misura | valore | atteso | esito |
+| --- | --- | --- | --- | --- |
+| 1024×768 | data-on sulla cartolina | true | true | ok |
+| 1024×768 | altezza della section | 1382 | 1382 ± 1 (180svh) | ok |
+| 1024×768 | margin-top del footer | -61.44 | -61.4 ± 1 (−8svh) | ok |
+| 1024×768 | aggiunta d'altezza della home (§4) | 744.56 | 745 ± 2 | ok |
+| 1024×768 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1024×768 | inset alto a metà corsa | 4.11 | (0, 8) | ok |
+| 1024×768 | opacità del footer al 90 % | 0.068 | < 0,2 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.55 | top 763.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.7 | top 611.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.85 | top 459.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 1 | top 307.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1024×768 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1024×768 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1024×768 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1024×768 | titolo dentro la finestra (it) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (en) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (fr) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (de) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (es) | true | true | ok |
+| 1440×900 | data-on sulla cartolina | true | true | ok |
+| 1440×900 | altezza della section | 1620 | 1620 ± 1 (180svh) | ok |
+| 1440×900 | margin-top del footer | -72 | -72.0 ± 1 (−8svh) | ok |
+| 1440×900 | aggiunta d'altezza della home (§4) | 738 | 738 ± 2 | ok |
+| 1440×900 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1440×900 | inset alto a metà corsa | 4.143 | (0, 8) | ok |
+| 1440×900 | opacità del footer al 90 % | 0.07 | < 0,2 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.55 | top 895.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.7 | top 716.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.85 | top 538.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 1 | top 360.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1440×900 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1440×900 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1440×900 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1440×900 | titolo dentro la finestra (it) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (en) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (fr) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (de) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (es) | true | true | ok |
+| 1920×1080 | data-on sulla cartolina | true | true | ok |
+| 1920×1080 | altezza della section | 1944 | 1944 ± 1 (180svh) | ok |
+| 1920×1080 | margin-top del footer | -86.4 | -86.4 ± 1 (−8svh) | ok |
+| 1920×1080 | aggiunta d'altezza della home (§4) | 777.6 | 778 ± 2 | ok |
+| 1920×1080 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1920×1080 | inset alto a metà corsa | 4.141 | (0, 8) | ok |
+| 1920×1080 | opacità del footer al 90 % | 0.07 | < 0,2 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.55 | top 1074.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.7 | top 860.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.85 | top 646.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 1 | top 432.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1920×1080 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1920×1080 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1920×1080 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1920×1080 | titolo dentro la finestra (it) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (en) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (fr) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (de) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (es) | true | true | ok |
+| 768×1024 | niente data-on, schermo non sticky | false · relative | false · relative | ok |
+| 768×1024 | margin-top del footer | 0px | 0px | ok |
+| 768×1024 | inset a fine tratto | 4 14 4 14 | 4 14 4 14 ± 0,2 | ok |
+| 768×1024 | opacità del footer a fine tratto | 1 | 1 | ok |
+| 768×1024 | titolo dentro la finestra (it) | true | true | ok |
+| 390×664 | niente data-on, schermo non sticky | false · relative | false · relative | ok |
+| 390×664 | margin-top del footer | 0px | 0px | ok |
+| 390×664 | inset a fine tratto | 4 10 4 10 | 4 10 4 10 ± 0,2 | ok |
+| 390×664 | opacità del footer a fine tratto | 1 | 1 | ok |
+| 390×664 | titolo dentro la finestra (it) | true | true | ok |
+| 390×664 | richieste video | 0 | 0 | ok |
+
+### Commit 7: corridoi accesi e ripristino al capitolo (2026-09-17, 9d5f35c+)
+
+| viewport | rotta | accesi | attesi | sticky | altezza | overflowX | scarto ricarica (px) | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 34998 | 0 |  | ok |
+| 1024×768 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 30308 | 0 |  | ok |
+| 1920×1080 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 39613 | 0 |  | ok |
+| 1280×600 | / | nessuno | nessuno | 0 | 22352 | 0 |  | ok |
+| 1440×600 | / | nessuno | nessuno | 0 | 23193 | 0 |  | ok |
+| 390×664 | / | nessuno | nessuno | 1 | 28439 | 0 |  | ok |
+| 1440×900 | /vendi | nessuno | nessuno | 0 | 16382 | 0 |  | ok |
+| 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 24223) | ok |
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-17, 9d5f35c+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-1080.webm | sì | no (scrollY 33299) | 280 | 1.98 | 3.24 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | KO |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-17, 9d5f35c+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-1080.webm | sì | sì (scrollY 33279) | 490 | 1.99 | 10.41 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | KO |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-17, 9d5f35c+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-1080.webm | sì | sì (scrollY 33279) | 492 | 1.96 | 6.89 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | KO |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-17, 9d5f35c+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-720.webm | sì | sì (scrollY 33279) | 486 | 1.84 | 2.56 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | ok |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-17, 9d5f35c+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-720.webm | sì | sì (scrollY 33279) | 488 | 1.97 | 3.24 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | ok |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+Nota: questa passata --base sostituisce quella del 2026-09-17 qui sopra. Lì il video veniva messo in pausa e nascosto, e il tetto era il solo poster; da 768 px la banda del commit 16 riproduce lo stesso loop del drone della cartolina, quindi le due passate si guardano col video acceso (misure/17-pc-focus.mjs, conVideo = vp.width >= 768).
+
+### Commit 17 · base di --pc-focus, la banda del commit 16 (2026-09-18, 9d5f35c, 390 · 768 · 1024 · 1440 · 1920)
+
+| viewport | fascia | fotogramma | candidato | luminanza media | quota > 180 |
+| --- | --- | --- | --- | --- | --- |
+| 390×664 | sotto 768 (regola base) | poster | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 119.4 | 0.142 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 130.7 | 0.218 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 140 | 0.283 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 132.4 | 0.189 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 153.1 | 0.373 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 161.2 | 0.443 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 154.3 | 0.389 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 151.4 | 0.366 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 161.9 | 0.43 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 153.6 | 0.387 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 144.7 | 0.315 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 162 | 0.409 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | oggi: piscina-lusso.jpg a 16% 50%, zoom 1,14 | 147.5 | 0.333 |
+
+### Commit 17 · --pc-focus, luminanza sotto il titolo (2026-09-18, 9d7383f+, 390 · 768 · 1024 · 1440 · 1920)
+
+| viewport | fascia | fotogramma | candidato | luminanza media | quota > 180 |
+| --- | --- | --- | --- | --- | --- |
+| 390×664 | sotto 768 (regola base) | poster | 8% 50% | 127.9 | 0.179 |
+| 390×664 | sotto 768 (regola base) | poster | 12% 50% | 128 | 0.193 |
+| 390×664 | sotto 768 (regola base) | poster | 16% 50% | 131 | 0.224 |
+| 390×664 | sotto 768 (regola base) | poster | 24% 50% | 140.2 | 0.28 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 8% 50% | 122.6 | 0.158 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 12% 50% | 122.4 | 0.17 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 16% 50% | 124.9 | 0.183 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 0.00 s | 24% 50% | 133 | 0.221 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 8% 50% | 129.2 | 0.202 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 12% 50% | 133.1 | 0.222 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 16% 50% | 138.4 | 0.246 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 4.04 s | 24% 50% | 151.6 | 0.313 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 8% 50% | 123.4 | 0.135 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 12% 50% | 124.1 | 0.151 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 16% 50% | 126.7 | 0.174 |
+| 768×1024 | 768-1023 (@media min-width 768px) | t 7.98 s | 24% 50% | 135.7 | 0.228 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 149 | 0.342 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 151.5 | 0.359 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 153.9 | 0.373 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 158.9 | 0.405 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 169.2 | 0.458 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 159.2 | 0.41 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 160.5 | 0.417 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 161.6 | 0.425 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 163.7 | 0.438 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 170.3 | 0.487 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 150.8 | 0.358 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 153.3 | 0.377 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 155.5 | 0.394 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 160.2 | 0.431 |
+| 1024×768 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 171.4 | 0.511 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 162.3 | 0.426 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 163.2 | 0.431 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 164.3 | 0.439 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 166.1 | 0.449 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 171.8 | 0.48 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 167.1 | 0.466 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 167.5 | 0.468 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 167.9 | 0.471 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 168.6 | 0.476 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 169.6 | 0.487 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 163.5 | 0.456 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 164.3 | 0.462 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 165.3 | 0.47 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 167 | 0.483 |
+| 1440×900 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 172.8 | 0.52 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 8% 50% | 166.2 | 0.448 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 12% 50% | 166.2 | 0.448 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 16% 50% | 166.2 | 0.448 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 24% 50% | 166.2 | 0.448 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 0.00 s | 50% 50% | 166.2 | 0.448 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 8% 50% | 170.5 | 0.484 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 12% 50% | 170.5 | 0.484 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 16% 50% | 170.5 | 0.484 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 24% 50% | 170.5 | 0.484 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 4.04 s | 50% 50% | 170.5 | 0.484 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 8% 50% | 167.3 | 0.483 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 12% 50% | 167.3 | 0.483 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 16% 50% | 167.3 | 0.483 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 24% 50% | 167.3 | 0.483 |
+| 1920×1080 | da 1024 (@media min-width 1024px) | t 7.98 s | 50% 50% | 167.3 | 0.483 |
+
+| fascia | --pc-focus | caso peggiore | quota > 180 | tetto | esito |
+| --- | --- | --- | --- | --- | --- |
+| sotto 768 (regola base) | 12% 50% | 128 | 0.193 | ≤ 119.4 (base) | KO |
+| 768-1023 (@media min-width 768px) | 8% 50% | 129.2 | 0.202 | ≤ 140.0 (base) | ok |
+| da 1024 (@media min-width 1024px) | 8% 50% | 170.5 | 0.484 | ≤ 162.0 (base) | KO |
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-18, 9d7383f+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-720.webm | sì | sì (scrollY 33279) | 490 | 1.82 | 7.87 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | KO |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-18, 9d7383f+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-720.webm | sì | sì (scrollY 33279) | 487 | 1.9 | 3.49 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | ok |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-18, 9d7383f+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-720.webm | sì | sì (scrollY 33279) | 494 | 1.98 | 4.89 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | KO |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-18, 9d7383f+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-1080.webm | sì | sì (scrollY 33279) | 489 | 1.97 | 8.96 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | KO |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-18, 9d7383f+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-1080.webm | sì | sì (scrollY 33279) | 493 | 2.01 | 6.93 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | KO |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+### Commit 17 · paint della cartolina nello sticky, 1440×900, CPU ×4 (2026-09-18, 9d7383f+)
+
+| viewport | video | sorgente | mark | fine nello sticky | fotogrammi con paint | p95 ms | max ms | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | playing | /media/congedo-drone-1080.webm | sì | sì (scrollY 33279) | 492 | 1.98 | 7.06 | max < 4 ms, ≥ 30 fotogrammi, video playing, fine nello sticky | KO |
+
+Nota: useAmbientVideo sceglie la sorgente al primo play, quindi la ripiega «sd forzata» di spec §3.18 vale per tutta la sessione, non solo durante lo sticky.
+
+## 05-titoli · 2026-09-18 · 9d7383f+
+
+Titolo di #servizi sulla home:
+
+| progetto | caratteri | ingresso ms | tetto ms | uscita ms (≤ 1300) | dall'alto (≥ 0,99) |
+| --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 62 | 2373 | 2950 | 815 | 1 |
+| mobile-390 | 62 | 2381 | 2950 | 813 | 1 |
+
+Accento di Method su /metodo:
+
+| progetto | caratteri | m41 armato px | atteso px (±2) | d armato (< 0,05) | ingresso ms | tetto ms | uscita ms (≤ 1300) | traboccamento px (≤ 0) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| desktop-1440 | 7 | 144 | 144 | 0 | 1854 | 2350 | 711 | 0 |
+| mobile-390 | 7 | 39 | 39 | 0 | 1774 | 2350 | 708 | 0 |
+
+[data-c] sulla home a 1440 dopo una passata: 1031 (base del test 8, e2e/baseline/data-c.json).
+
+kern-table.json: 43.170 byte (tetto 65.536, D36). Estremi per chiave (D42):
+
+| chiave | coppie | min em | max em | tetto em |
+| --- | --- | --- | --- | --- |
+| display-400 | 929 | -0.133 | 0.087 | ±0.2 |
+| display-500 | 1112 | -0.132 | 0.094 | ±0.2 |
+| brand-800 | 1169 | -0.1 | 0.19 | ±0.2 |
+| script-400 | 307 | -0.244 | 0.195 | ±0.25 |
+
+### Commit 17 · la cartolina del Congedo (2026-09-18, 9d7383f+, 1024 · 1440 · 1920 · 768 · 390)
+
+| viewport | misura | valore | atteso | esito |
+| --- | --- | --- | --- | --- |
+| 1024×768 | data-on sulla cartolina | true | true | ok |
+| 1024×768 | altezza della section | 1382 | 1382 ± 1 (180svh) | ok |
+| 1024×768 | margin-top del footer | -61.44 | -61.4 ± 1 (−8svh) | ok |
+| 1024×768 | aggiunta d'altezza della home (§4) | 744.56 | 745 ± 2 | ok |
+| 1024×768 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1024×768 | inset alto a metà corsa | 4.11 | (0, 8) | ok |
+| 1024×768 | opacità del footer al 90 % | 0.068 | < 0,2 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.55 | top 763.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.7 | top 611.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 0.85 | top 459.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | footer sotto il bordo basso della finestra a p 1 | top 307.8 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1024×768 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1024×768 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1024×768 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1024×768 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1024×768 | titolo dentro la finestra (it) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (en) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (fr) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (de) | true | true | ok |
+| 1024×768 | titolo dentro la finestra (es) | true | true | ok |
+| 1440×900 | data-on sulla cartolina | true | true | ok |
+| 1440×900 | altezza della section | 1620 | 1620 ± 1 (180svh) | ok |
+| 1440×900 | margin-top del footer | -72 | -72.0 ± 1 (−8svh) | ok |
+| 1440×900 | aggiunta d'altezza della home (§4) | 738 | 738 ± 2 | ok |
+| 1440×900 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1440×900 | inset alto a metà corsa | 4.143 | (0, 8) | ok |
+| 1440×900 | opacità del footer al 90 % | 0.07 | < 0,2 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.55 | top 895.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.7 | top 716.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 0.85 | top 538.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | footer sotto il bordo basso della finestra a p 1 | top 360.3 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1440×900 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1440×900 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1440×900 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1440×900 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1440×900 | titolo dentro la finestra (it) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (en) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (fr) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (de) | true | true | ok |
+| 1440×900 | titolo dentro la finestra (es) | true | true | ok |
+| 1920×1080 | data-on sulla cartolina | true | true | ok |
+| 1920×1080 | altezza della section | 1944 | 1944 ± 1 (180svh) | ok |
+| 1920×1080 | margin-top del footer | -86.4 | -86.4 ± 1 (−8svh) | ok |
+| 1920×1080 | aggiunta d'altezza della home (§4) | 777.6 | 778 ± 2 | ok |
+| 1920×1080 | top dello schermo a metà corsa | 0 | \|top\| ≤ 1 | ok |
+| 1920×1080 | inset alto a metà corsa | 4.141 | (0, 8) | ok |
+| 1920×1080 | opacità del footer al 90 % | 0.07 | < 0,2 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.55 | top 1074.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.7 | top 860.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 0.85 | top 646.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | footer sotto il bordo basso della finestra a p 1 | top 432.0 · b 8 % | top ≥ bordo della finestra − 1 | ok |
+| 1920×1080 | inset col footer al 40 % | 8 22 8 22 | 8 22 8 22 ± 0,2 | ok |
+| 1920×1080 | footer al 40 %: opacità e scala | 1 · 1 | 1 · 1 ± 0,001 | ok |
+| 1920×1080 | CTA libera a 0, metà, fine | true · true · true | true · true · true | ok |
+| 1920×1080 | video d'ambiente a metà corsa | playing | playing | ok |
+| 1920×1080 | titolo dentro la finestra (it) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (en) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (fr) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (de) | true | true | ok |
+| 1920×1080 | titolo dentro la finestra (es) | true | true | ok |
+| 768×1024 | niente data-on, schermo non sticky | false · relative | false · relative | ok |
+| 768×1024 | margin-top del footer | 0px | 0px | ok |
+| 768×1024 | inset a fine tratto | 4 14 4 14 | 4 14 4 14 ± 0,2 | ok |
+| 768×1024 | opacità del footer a fine tratto | 1 | 1 | ok |
+| 768×1024 | titolo dentro la finestra (it) | true | true | ok |
+| 390×664 | niente data-on, schermo non sticky | false · relative | false · relative | ok |
+| 390×664 | margin-top del footer | 0px | 0px | ok |
+| 390×664 | inset a fine tratto | 4 10 4 10 | 4 10 4 10 ± 0,2 | ok |
+| 390×664 | opacità del footer a fine tratto | 1 | 1 | ok |
+| 390×664 | titolo dentro la finestra (it) | true | true | ok |
+| 390×664 | richieste video | 0 | 0 | ok |
+
+### Commit 7: corridoi accesi e ripristino al capitolo (2026-09-18, 9d7383f+)
+
+| viewport | rotta | accesi | attesi | sticky | altezza | overflowX | scarto ricarica (px) | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 34998 | 0 |  | ok |
+| 1024×768 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 30308 | 0 |  | ok |
+| 1920×1080 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 39613 | 0 |  | ok |
+| 1280×600 | / | nessuno | nessuno | 0 | 22352 | 0 |  | ok |
+| 1440×600 | / | nessuno | nessuno | 0 | 23193 | 0 |  | ok |
+| 390×664 | / | nessuno | nessuno | 1 | 28439 | 0 |  | ok |
+| 1440×900 | /vendi | nessuno | nessuno | 0 | 16382 | 0 |  | ok |
+| 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 24223) | ok |
+
+### Commit 17 · i due cancelli aperti, da portare ad Alberto (2026-09-18, 9d7383f+)
+
+Spec §3.18 ha due criteri che il commit 17 non passa. Il codice è scritto e tutto
+il resto è verde; la scelta è di Alberto, non del commit (brief Step 13 e Step 15).
+
+**1. `--pc-focus`, la luminanza sotto il titolo bianco.** Le due passate ora si
+guardano col video acceso da 768 px in tutt'e due (prima la passata `--base`
+metteva il video in pausa e misurava il solo poster, e il confronto non era
+omogeneo). Caso peggiore fra viewport e fotogrammi, luminanza media su 255:
+
+| fascia | banda del commit 16 (tetto) | cartolina, candidato scelto | quota > 180 | esito |
+| --- | --- | --- | --- | --- |
+| sotto 768 | 119,4 | 128,0 (`12% 50%`) | 0,193 | KO di 8,6 |
+| 768-1023 | 140,0 | 129,2 (`8% 50%`) | 0,202 | ok |
+| da 1024 | 162,0 | 170,5 (`8% 50%`) | 0,484 | KO di 8,5 |
+
+Da 1024 nessuna inquadratura può rientrare: il caso peggiore lo detta 1920×1080,
+dove la banda è 16:9 come il loop e `object-cover` mostra il fotogramma intero,
+così `8%`, `12%`, `16%` e `24%` danno tutti 170,5 (solo `50% 50%` è peggio, 172,8).
+A 1024 e 1440, dove l'inquadratura conta, `8% 50%` è il più scuro (159,2 e 167,1,
+contro 171,4 e 172,8 di `50% 50%`). Sotto 768 il video non parte mai: lì i 8,6
+punti vengono dal poster riquadrato senza lo zoom 1,14 del commit 16.
+Le leve che restano sono di Alberto: un altro punto del loop, un altro taglio
+alla codifica, o accettare questi numeri. Titolo, ombra `INK_ON_VIDEO` e
+`max-w-[12ch]` non si toccano per rientrare (brief Step 13).
+
+**2. Costo di paint nello sticky, 1440×900, CPU ×4, tetto `max < 4 ms`.** Tre
+lanci per sorgente sullo stesso build, a macchina scarica:
+
+| sorgente | max ms (tre lanci) | p95 ms | fotogrammi | esito |
+| --- | --- | --- | --- | --- |
+| congedo-drone-720 | 7,87 · 3,49 · 4,89 | 1,82 · 1,90 · 1,98 | 490 · 487 · 494 | KO in 2 lanci su 3 |
+| congedo-drone-1080 | 8,96 · 6,93 · 7,06 | 1,97 · 2,01 · 1,98 | 489 · 493 · 492 | KO in 3 su 3 |
+
+Il massimo è una statistica di massimo su ~490 fotogrammi e oscilla: le due
+passate verdi del 17 settembre (2,56 e 3,24 ms) erano la coda fortunata della
+stessa distribuzione, non un altro comportamento. Il p95 invece è stabile e non
+distingue le due sorgenti, quindi non può giustificare la 720p da solo. La 720p
+resta scritta in `Congedo.tsx` perché taglia le punte ed è la ripiega che spec
+§3.18 dice di provare per prima, ma il cancello è rosso con tutt'e due: la scelta
+fra accettare il numero, cambiare criterio o cambiare la sorgente è di Alberto.

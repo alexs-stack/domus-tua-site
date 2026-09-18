@@ -54,29 +54,24 @@ describe("il gate e i consumatori", () => {
     assert.equal(MQ.desktop, "(min-width: 768px)");
   });
 
-  test("il Congedo passa a useAmbientVideo, senza GSAP e senza gate a mano", () => {
+  test("il Congedo passa a useAmbientVideo sul ritaglio della cartolina, senza pin e senza gate a mano", () => {
     const congedo = codice("app/components/Congedo.tsx");
-    assert.doesNotMatch(congedo, /from\s+["'][^"']*gsap[^"']*["']/);
-    assert.match(congedo, /useAmbientVideo\(videoRef, sectionRef, \{ sources: \{ hd: ambient\.congedo\.hd, sd: ambient\.congedo\.sd \} \}\)/);
+    // Spec 2026-09-13 §3.18 (A19 e A20 di Alberto): l'host del video è il ritaglio [data-postcard-clip].
+    assert.doesNotMatch(congedo, /\bpin\s*:/);
+    assert.match(congedo, /useAmbientVideo\(videoRef, clipRef, \{ sources: \{ hd: ambient\.congedo\.sd, sd: ambient\.congedo\.sd \} \}\)/);
     assert.doesNotMatch(congedo, /IntersectionObserver/);
     assert.doesNotMatch(congedo, /<source\b/);
   });
 
-  // Spec §2.6: il Congedo evita di proposito GSAP. Un import indiretto (mq.ts,
-  // ambient.ts, media.ts, Cta, LocaleProvider…) lo tirerebbe dentro lo stesso.
-  // Fuori dalla regola c'è un arco solo, non un nodo (D61): dal commit 13
-  // `LocaleProvider` chiama `requestRefresh` e `whenStill` di gsap.ts dopo il
-  // cambio lingua (D54, spec §2.3), quindi ogni client component che legge la
-  // lingua ci arriva. Il provider resta nella visita con tutto il suo
-  // sottoalbero: a saltare è la sola asserzione su quel passo, così un modulo
-  // nuovo che arrivasse a GSAP passando di lì farebbe rosso lo stesso.
-  const ARCHI_NOTI = new Set(["app/components/i18n/LocaleProvider.tsx → app/lib/motion/gsap.ts"]);
-
-  test("nessun modulo raggiunto dagli import del Congedo importa GSAP, salvo l'arco del provider della lingua (D61)", () => {
-    const partenza = "app/components/Congedo.tsx";
+  // Spec §2.6: il gate dei video d'ambiente non tira dentro GSAP, nemmeno per via
+  // indiretta (mq.ts, ambient.ts). Il Congedo importa GSAP per la cartolina
+  // (spec §3.18, A19 e A20 di Alberto): la visita parte dal hook, che è il modulo
+  // su cui la regola è ancora vera. Così cade anche l'eccezione D61 sull'arco
+  // LocaleProvider → gsap.ts: da qui il provider della lingua non si raggiunge.
+  test("nessun modulo raggiunto dagli import di useAmbientVideo importa GSAP", () => {
+    const partenza = "app/components/motion/useAmbientVideo.ts";
     const catene = new Map<string, string[]>([[partenza, [partenza]]]);
     const coda = [partenza];
-    const archiUsati = new Set<string>();
     while (coda.length > 0) {
       const file = coda.shift()!;
       const catena = catene.get(file)!;
@@ -89,32 +84,16 @@ describe("il gate e i consumatori", () => {
           (p) => /\.tsx?$/.test(p) && existsSync(join(ROOT, p)),
         );
         if (!trovato) continue;
-        const arco = `${file} → ${trovato}`;
-        // L'arco noto non si asserisce e non si attraversa: dentro gsap.ts ci sono
-        // gli import del pacchetto, che di lì non dicono nulla sul Congedo.
-        if (ARCHI_NOTI.has(arco)) {
-          archiUsati.add(arco);
-          continue;
-        }
-        assert.notEqual(trovato, "app/lib/motion/gsap.ts", `${[...catena, trovato].join(" → ")}: il Congedo arriva a gsap.ts`);
+        assert.notEqual(trovato, "app/lib/motion/gsap.ts", `${[...catena, trovato].join(" → ")}: il hook arriva a gsap.ts`);
         if (!catene.has(trovato)) {
           catene.set(trovato, [...catena, trovato]);
           coda.push(trovato);
         }
       }
     }
-    // La visita deve essere arrivata al hook, alle soglie e al provider, altrimenti non ha provato nulla.
-    assert.ok(catene.has("app/components/motion/useAmbientVideo.ts"), "la visita non ha raggiunto useAmbientVideo.ts");
+    // La visita deve essere arrivata alle soglie e alla scelta della sorgente, altrimenti non ha provato nulla.
     assert.ok(catene.has("app/lib/motion/mq.ts"), "la visita non ha raggiunto mq.ts");
     assert.ok(catene.has("app/lib/motion/ambient.ts"), "la visita non ha raggiunto ambient.ts");
-    assert.ok(catene.has("app/components/i18n/LocaleProvider.tsx"), "la visita non ha raggiunto LocaleProvider.tsx");
-    // Un'eccezione che non serve più va tolta: se il provider smette di chiamare
-    // gsap.ts (per esempio con un import dinamico), qui si vede subito.
-    assert.deepEqual(
-      [...ARCHI_NOTI].filter((a) => !archiUsati.has(a)),
-      [],
-      "arco noto che non esiste più: togli la voce da ARCHI_NOTI",
-    );
   });
 
   test("nessuno scrive il tempo del video e nessuno parte da solo", () => {

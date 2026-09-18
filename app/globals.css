@@ -2419,3 +2419,59 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
 [data-corridor="page-dive"] {
   --corridor-run: 120svh;
 }
+
+/* ---------- La cartolina del Congedo (A19 e A20 di Alberto, 13 set.; spec 2026-09-13 §3.18) ----------
+   Da 1024 px e 640 px d'altezza con motion ok la banda finale è uno schermo
+   sticky alto 100svh su un corridoio di 80svh: le regole generiche di
+   `[data-corridor]` mettono sticky, altezza e spaziatore prima del paint (D22)
+   e la corsa di 80svh sta qui sopra, con quelle degli altri corridoi; qui si
+   dicono solo le eccezioni della banda. Il titolo sta in percentuale dentro il
+   rettangolo finale della finestra: ci sta fermo, a metà e a fine gesto, con o
+   senza JS. `--pc-focus` è l'inquadratura del volo sotto il titolo, misurata
+   con misure/17-pc-focus.mjs sulla luminanza. Il footer sale di 8svh sopra la
+   fascia bassa della banda, che la finestra ha già lasciato libera. Sotto la
+   soglia nessun margine: la banda non è sticky. */
+.dt-postcard {
+  --pc-x: 10%;
+  --pc-y: 4%;
+  --pc-gap: 5vw;
+  --pc-focus: 12% 50%;
+}
+@media (min-width: 768px) {
+  .dt-postcard {
+    --pc-x: 14%;
+    --pc-gap: 3vw;
+    --pc-focus: 8% 50%;
+  }
+}
+@media (min-width: 1024px) {
+  .dt-postcard {
+    --pc-x: 22%;
+    --pc-y: 8%;
+    /* `8% 50%` è il candidato più scuro della corsia in questa fascia
+       (misure/17-pc-focus.mjs): a 1024 vale 12,2 punti di luminanza meno di
+       `50% 50%`, a 1440 ne vale 5,7. A 1920×1080 la banda è 16:9 come il loop,
+       quindi object-cover mostra il fotogramma intero e nessun candidato cambia
+       nulla: lì il caso peggiore (170,5, quota di pixel > 180 pari a 0,484) lo
+       detta il volo, non il CSS, e resta sopra la banda del commit 16 (162,0).
+       Cancello di spec §3.18 non passato in questa fascia e sotto 768: la
+       scelta è di Alberto. */
+    --pc-focus: 8% 50%;
+  }
+}
+.dt-postcard_copy {
+  left: calc(var(--pc-x) + var(--pc-gap));
+  bottom: calc(var(--pc-y) + 6%);
+  max-width: calc(100% - 2 * (var(--pc-x) + var(--pc-gap)));
+}
+@media (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
+  :root[data-hero-intro] [data-corridor="cartolina"] > [data-corridor-screen] {
+    aspect-ratio: auto;
+    min-height: 0;
+  }
+  :root[data-hero-intro] main:has([data-corridor="cartolina"]) + footer[data-postcard-foot] {
+    position: relative;
+    z-index: 1;
+    margin-top: -8svh;
+  }
+}

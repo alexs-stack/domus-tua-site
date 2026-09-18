@@ -15,11 +15,11 @@ import { LAST_Y_KEY } from "../app/lib/motion/intro-constants";
 // soglia, a 390 e con reduced motion non c'è nessun corridoio.
 
 /** Gli host accesi sulla home a 1024×768 e 1440×900, in ordine alfabetico. */
-const EXPECTED_HOME = ["finestra", "hero", "recensioni", "storia", "team"];
+const EXPECTED_HOME = ["cartolina", "finestra", "hero", "recensioni", "storia", "team"];
 /** Gli host accesi su /vendi a 1440×900. */
 const EXPECTED_VENDI: string[] = [];
 /** Le rotte, e su ognuna i corridoi che hanno uno schermo [data-corridor-screen] da misurare. */
-const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [{ path: "/", screens: ["finestra", "hero"] }];
+const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [{ path: "/", screens: ["cartolina", "finestra", "hero"] }];
 /**
  * Il contenitore dei testi quando non è lo schermo, relativo all'host. Nella
  * finestra di Open Domus (A19, spec §3.10) lo schermo è la zona delle tende,

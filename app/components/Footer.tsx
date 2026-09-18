@@ -16,8 +16,10 @@ import { useDict } from "./i18n/LocaleProvider";
 
    Qui prima c'era il footer graphite con l'uncover fisso (classe sull'html,
    variabile d'altezza e coda fissa), i fiori notturni e il wordmark
-   gigante in filigrana: tutto via. Nessun ref, nessun GSAP, niente posizione fissa:
-   il footer è un blocco normale e i link stanno sempre nel tab order.
+   gigante in filigrana: tutto via. Il footer resta un blocco in flusso, senza
+   posizione fissa, e i link stanno sempre nel tab order; solo in home, con
+   `postcard`, la cartolina del Congedo lo fa salire e crescere (A19 e A20 di
+   Alberto, spec 2026-09-13 §3.18).
 
    Cosa NON è cambiato: ogni link che il footer portava resta — nav, Domus
    D.O.C., FAQ, case vendute, sigillo Wikicasa, telefono/WhatsApp/mail,
@@ -26,7 +28,12 @@ import { useDict } from "./i18n/LocaleProvider";
 
 const link = "underline-offset-4 hover:underline";
 
-export default function Footer() {
+/* `postcard` lo passa solo la home (app/page.tsx): scrive `data-postcard-foot`,
+   il gancio della cartolina del Congedo. Da 1024 px con motion ok il footer
+   sale sopra la fascia bassa della banda e cresce da 0,75 a 1 (A19 e A20 di
+   Alberto, spec 2026-09-13 §3.18). Resta in flusso e i suoi link restano nel
+   tab order: si abbassa solo l'opacità, mai `visibility`. */
+export default function Footer({ postcard = false }: { postcard?: boolean } = {}) {
   const d = useDict();
   const year = new Date().getFullYear();
 
@@ -35,7 +42,10 @@ export default function Footer() {
        sono sempre due cose fisse — la MobileActionBar sotto `sm` (52 px + 12 px
        di margine) e il WhatsAppFloat sopra (64 px a 20 px dal bordo) — e con
        2.5rem la riga legale finiva sotto la pillola WhatsApp (misurato a 1440). */
-    <footer className="dt-row border-t border-line bg-cream pt-[clamp(4rem,10vh,7rem)] pb-[calc(7rem+env(safe-area-inset-bottom))] text-ink">
+    <footer
+      data-postcard-foot={postcard ? "" : undefined}
+      className="dt-row border-t border-line bg-cream pt-[clamp(4rem,10vh,7rem)] pb-[calc(7rem+env(safe-area-inset-bottom))] text-ink"
+    >
       <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         {/* 1 · Marca: logo ufficiale a 200 px, payoff editoriale, la CTA di
             valutazione come link sottolineato e il sigillo Wikicasa (§6.3:

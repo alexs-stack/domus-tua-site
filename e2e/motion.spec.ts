@@ -314,3 +314,67 @@ test("i gesti dei capitoli 13-16 con reduced motion non muovono nulla", async ({
     expect(s.inline, sel).not.toMatch(/transform|translate|scale|opacity/);
   }
 });
+
+// La cartolina del Congedo (spec 2026-09-13 §3.18) con reduced motion: nessun
+// corridoio, la banda piena e ferma, il footer in flusso a scala 1.
+test("la cartolina del Congedo con reduced motion resta una banda piena e ferma", async ({ page, goto }) => {
+  await goto("/");
+  const sec = page.locator('[data-corridor="cartolina"]');
+  await expect(sec).toBeAttached();
+  expect(await sec.getAttribute("data-on")).toBeNull();
+  await sec.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  const s = await page.evaluate(() => {
+    const sec = document.querySelector<HTMLElement>('[data-corridor="cartolina"]')!;
+    const foot = document.querySelector<HTMLElement>("footer")!;
+    return {
+      pos: getComputedStyle(sec.querySelector<HTMLElement>("[data-corridor-screen]")!).position,
+      clip: getComputedStyle(sec.querySelector<HTMLElement>("[data-postcard-clip]")!).clipPath,
+      run: getComputedStyle(sec.querySelector<HTMLElement>("[data-corridor-run]")!).display,
+      ft: getComputedStyle(foot).transform,
+      fo: getComputedStyle(foot).opacity,
+      mt: getComputedStyle(foot).marginTop,
+    };
+  });
+  expect(s.pos).toBe("relative");
+  expect(s.clip).toBe("none");
+  expect(s.run).toBe("none");
+  expect(s.ft).toBe("none");
+  expect(s.fo).toBe("1");
+  expect(s.mt).toBe("0px");
+});
+
+// Reduced motion (spec 2026-09-13 §3.18): la banda resta piena e il titolo sta
+// già dentro il rettangolo della futura finestra, calcolato coi lati finali di
+// ogni larghezza: 8/22 % da 1024, 4/14 % da 768, 4/10 % sotto (D29). Nessun
+// clip-path da leggere: la finestra si costruisce sullo schermo coi numeri della spec.
+test("la cartolina con reduced motion: il titolo sta già dentro la futura finestra", async ({ page, goto, isMobile }) => {
+  test.skip(!!isMobile, "le cinque larghezze si impostano dentro il test");
+  for (const vp of [
+    { width: 1920, height: 1080, lati: [8, 22, 8, 22] },
+    { width: 1440, height: 900, lati: [8, 22, 8, 22] },
+    { width: 1024, height: 768, lati: [8, 22, 8, 22] },
+    { width: 768, height: 1024, lati: [4, 14, 4, 14] },
+    { width: 390, height: 664, lati: [4, 10, 4, 10] },
+  ]) {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await goto("/");
+    await page.locator('[data-corridor="cartolina"]').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const g = await page.evaluate(([t, r, b, l]) => {
+      const s = document.querySelector('[data-corridor="cartolina"] > [data-corridor-screen]')!.getBoundingClientRect();
+      const tt = document.getElementById("congedo-title")!.getBoundingClientRect();
+      return {
+        clip: getComputedStyle(document.querySelector('[data-corridor="cartolina"] [data-postcard-clip]')!).clipPath,
+        win: { l: s.left + (s.width * l) / 100, r: s.right - (s.width * r) / 100, t: s.top + (s.height * t) / 100, b: s.bottom - (s.height * b) / 100 },
+        title: { l: tt.left, r: tt.right, t: tt.top, b: tt.bottom },
+      };
+    }, vp.lati);
+    const at = `${vp.width}×${vp.height}`;
+    expect(g.clip, at).toBe("none");
+    expect(g.title.l, `${at}: il titolo esce a sinistra della futura finestra`).toBeGreaterThanOrEqual(g.win.l - 1);
+    expect(g.title.r, `${at}: il titolo esce a destra della futura finestra`).toBeLessThanOrEqual(g.win.r + 1);
+    expect(g.title.t, `${at}: il titolo esce in alto dalla futura finestra`).toBeGreaterThanOrEqual(g.win.t - 1);
+    expect(g.title.b, `${at}: il titolo esce in basso dalla futura finestra`).toBeLessThanOrEqual(g.win.b + 1);
+  }
+});

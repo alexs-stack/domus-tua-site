@@ -46,3 +46,15 @@ export function assertStraight(v: string): void {
     throw new Error(`clip curvo vietato (C01): ${v}`);
   }
 }
+
+/**
+ * Quattro lati indipendenti, in percentuale, sempre a spigolo vivo. Serve alla
+ * cartolina del Congedo, che chiude il bordo basso prima degli altri tre, così
+ * il footer che sale non copre mai il video (A19 e A20 di Alberto, spec
+ * 2026-09-13 §3.18). `clipFrame(v, h)` resta la forma simmetrica.
+ */
+export function clipSides(t: number, r: number, b: number, l: number): string {
+  const v = `inset(${t}% ${r}% ${b}% ${l}%)`;
+  assertStraight(v);
+  return v;
+}

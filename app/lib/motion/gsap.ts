@@ -115,6 +115,9 @@ CustomEase.create("dtAffonda", "0.5,0,0.8,0.45");
 // "dtRail" (0.5,0,0.5,1): la rotaia del team e il pan delle tessere, capitolo 15
 // (A20, spec §3.16); vale anche su /chi-siamo.
 CustomEase.create("dtRail", "0.5,0,0.5,1");
+// "dtCartolina" (0.45,0,0.15,1): la banda del Congedo che si ritira in cartolina e
+// il footer che sale, capitolo 17 (A19 e A20 di Alberto, spec 2026-09-13 §3.18).
+CustomEase.create("dtCartolina", "0.45,0,0.15,1");
 // "dtInOut" = l'InOut di era-residence (0.75,0,0.25,1): firma della finestra di Open Domus,
 // scala 1,84 delle tende e .75 → 1 dello stage (A20 di Alberto, spec §3.1 riga 9).
 CustomEase.create("dtInOut", "0.75,0,0.25,1");
