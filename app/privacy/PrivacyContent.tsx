@@ -406,11 +406,16 @@ export default function PrivacyContent() {
 
   return (
     <main className="flex-1">
+      {/* L'unica testa senza una foto della villa (D63, 18 settembre 2026): il fermo del video tour
+          destinato a questa pagina non esiste, e ognuna delle sette foto della villa sta già in
+          un'altra testa, che spec §7.4 vuole tutte diverse. La banda tiene quindi la foto di
+          repertorio, centrata come le altre pagine senza `objectPosition`. */}
       <PageHero
         eyebrow={c.hero.eyebrow}
         title={c.hero.title()}
         subcopy={c.hero.subcopy}
         image="/images/hero_01_attico_travi_salotto.jpg"
+        srcWidth={1920}
         alt={c.hero.alt}
         primary={{ label: c.hero.primaryLabel, href: "/contatti" }}
         secondary={{ label: c.hero.secondaryLabel, href: "/cookie" }}

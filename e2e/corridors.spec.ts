@@ -17,9 +17,12 @@ import { LAST_Y_KEY } from "../app/lib/motion/intro-constants";
 /** Gli host accesi sulla home a 1024×768 e 1440×900, in ordine alfabetico. */
 const EXPECTED_HOME = ["cartolina", "finestra", "hero", "recensioni", "storia", "team"];
 /** Gli host accesi su /vendi a 1440×900. */
-const EXPECTED_VENDI: string[] = [];
+const EXPECTED_VENDI: string[] = ["page-dive"];
 /** Le rotte, e su ognuna i corridoi che hanno uno schermo [data-corridor-screen] da misurare. */
-const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [{ path: "/", screens: ["cartolina", "finestra", "hero"] }];
+const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [
+  { path: "/", screens: ["cartolina", "finestra", "hero"] },
+  { path: "/vendi", screens: ["page-dive"] },
+];
 /**
  * Il contenitore dei testi quando non è lo schermo, relativo all'host. Nella
  * finestra di Open Domus (A19, spec §3.10) lo schermo è la zona delle tende,

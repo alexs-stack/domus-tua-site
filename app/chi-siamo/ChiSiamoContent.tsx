@@ -250,6 +250,7 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
         image="/images/hero_01_attico_travi_salotto.jpg"
+        srcWidth={1920}
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#chi-siamo" }}

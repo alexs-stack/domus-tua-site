@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
+import bandPositions from "../lib/motion/band-positions.json";
 import Highlights from "../components/Highlights";
 import Method from "../components/Method";
 import DomusDocProtocol from "../components/DomusDocProtocol";
@@ -26,7 +27,7 @@ const copy = {
     ),
     heroSubcopy:
       "Ogni vendita e ogni acquisto seguono un percorso chiaro fatto di cura, documenti, marketing e assistenza fino al rogito. È il modo in cui lavoriamo dal 2007.",
-    heroAlt: "Attico con travi a vista e salotto elegante",
+    heroAlt: "Vetrata del soggiorno aperta sul portico, con due lanterne bianche sul muretto in pietra",
     heroPrimary: "Richiedi la valutazione",
     heroSecondary: "Vedi i nove passi",
     highlightsEyebrow: "Nove passaggi, tre momenti",
@@ -59,7 +60,7 @@ const copy = {
     ),
     heroSubcopy:
       "Every sale and every purchase follows a clear path built on care, paperwork, marketing and support right through to the deed. It’s how we’ve worked since 2007.",
-    heroAlt: "Penthouse with exposed beams and an elegant living room",
+    heroAlt: "Living-room glass doors opening onto the porch, with two white lanterns on the low stone wall",
     heroPrimary: "Request a valuation",
     heroSecondary: "See the nine steps",
     highlightsEyebrow: "Nine steps, three moments",
@@ -92,7 +93,7 @@ const copy = {
     ),
     heroSubcopy:
       "Chaque vente et chaque achat suivent un parcours clair fait de soin, de documents, de marketing et d’accompagnement jusqu’à l’acte notarié. C’est notre façon de travailler depuis 2007.",
-    heroAlt: "Attique avec poutres apparentes et salon élégant",
+    heroAlt: "Baie vitrée du séjour ouverte sur le portique, avec deux lanternes blanches sur le muret en pierre",
     heroPrimary: "Demander l’estimation",
     heroSecondary: "Voir les neuf étapes",
     highlightsEyebrow: "Neuf étapes, trois moments",
@@ -125,7 +126,7 @@ const copy = {
     ),
     heroSubcopy:
       "Jeder Verkauf und jeder Kauf folgt einem klaren Weg aus Sorgfalt, Unterlagen, Marketing und Begleitung bis zum Notartermin. So arbeiten wir seit 2007.",
-    heroAlt: "Penthouse mit sichtbaren Balken und elegantem Wohnzimmer",
+    heroAlt: "Glasfront des Wohnzimmers zum Säulengang hin geöffnet, mit zwei weißen Laternen auf der niedrigen Steinmauer",
     heroPrimary: "Bewertung anfordern",
     heroSecondary: "Die neun Schritte ansehen",
     highlightsEyebrow: "Neun Schritte, drei Momente",
@@ -158,7 +159,7 @@ const copy = {
     ),
     heroSubcopy:
       "Cada venta y cada compra siguen un recorrido claro hecho de cuidado, documentos, marketing y acompañamiento hasta la escritura. Es como trabajamos desde 2007.",
-    heroAlt: "Ático con vigas a la vista y salón elegante",
+    heroAlt: "Cristalera del salón abierta al porche, con dos faroles blancos sobre el murete de piedra",
     heroPrimary: "Solicita la valoración",
     heroSecondary: "Ver los nueve pasos",
     highlightsEyebrow: "Nueve pasos, tres momentos",
@@ -195,7 +196,9 @@ export default function MetodoContent() {
           eyebrow={c.heroEyebrow}
           title={c.heroTitle()}
           subcopy={c.heroSubcopy}
-          image="/images/hero_01_attico_travi_salotto.jpg"
+          image="/images/reali/villa-vetrata-lanterne.jpg"
+          objectPosition={bandPositions["/metodo"]}
+          srcWidth={2560}
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#metodo" }}

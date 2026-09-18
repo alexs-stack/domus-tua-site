@@ -82,7 +82,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "La tua casa merita di essere venduta bene, non in fretta. Non la mettiamo semplicemente online: la prepariamo, la raccontiamo e la vendiamo con metodo, riducendo errori, tempi morti e incertezze.",
-      alt: "Living luminoso con zona pranzo",
+      alt: "Villa contemporanea con rivestimento color rame, piscina e lettini bianchi, alberi alti sulla destra",
       primaryLabel: "Richiedi la valutazione",
       secondaryLabel: "Come funziona",
       trust: [
@@ -231,7 +231,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Your home deserves to be sold well, not in a hurry. We don’t simply list it online: we prepare it, tell its story and sell it with a proven method, cutting out mistakes, wasted time and uncertainty.",
-      alt: "Bright living area with dining space",
+      alt: "Contemporary villa with copper-coloured cladding, a pool and white sun loungers, tall trees on the right",
       primaryLabel: "Request a valuation",
       secondaryLabel: "How it works",
       trust: [
@@ -380,7 +380,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Votre bien mérite d’être vendu au juste prix, pas à la hâte. Nous ne nous contentons pas de le mettre en ligne : nous le préparons, le mettons en valeur et le vendons avec méthode, en réduisant erreurs, temps morts et incertitudes.",
-      alt: "Séjour lumineux avec coin repas",
+      alt: "Villa contemporaine au revêtement couleur cuivre, piscine et transats blancs, grands arbres sur la droite",
       primaryLabel: "Demander l’estimation",
       secondaryLabel: "Comment ça marche",
       trust: [
@@ -529,7 +529,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Ihr Zuhause verdient es, gut verkauft zu werden, nicht in Eile. Wir stellen es nicht einfach online: Wir bereiten es auf, erzählen seine Geschichte und verkaufen es mit Methode und reduzieren so Fehler, Leerlauf und Unsicherheiten.",
-      alt: "Helles Wohnzimmer mit Essbereich",
+      alt: "Moderne Villa mit kupferfarbener Verkleidung, Pool und weißen Liegen, hohe Bäume auf der rechten Seite",
       primaryLabel: "Bewertung anfordern",
       secondaryLabel: "So funktioniert es",
       trust: [
@@ -678,7 +678,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Tu casa merece venderse bien, no con prisas. No nos limitamos a publicarla en internet: la preparamos, la presentamos y la vendemos con método, reduciendo errores, tiempos muertos e incertidumbres.",
-      alt: "Salón luminoso con zona de comedor",
+      alt: "Villa contemporánea con revestimiento color cobre, piscina y tumbonas blancas, árboles altos a la derecha",
       primaryLabel: "Solicita la valoración",
       secondaryLabel: "Cómo funciona",
       trust: [
@@ -932,7 +932,9 @@ export default function VendiContent() {
           eyebrow={c.hero.eyebrow}
           title={c.hero.title()}
           subcopy={c.hero.subcopy}
-          image="/images/premium_02_living_dining_piante.jpg"
+          image="/images/reali/villa-piscina-facciata.jpg"
+          objectPosition="50% 55%"
+          srcWidth={2560}
           alt={c.hero.alt}
           primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "#percorso" }}

@@ -1,4 +1,5 @@
 import { test, expect, setConsent } from "./helpers";
+import { BAND_SIZES } from "../app/lib/motion/page-dive";
 
 // Reduced motion. Chi ha chiesto meno animazioni deve vedere lo stesso sito, fermo — non un
 // sito a metà: nessun testo invisibile in attesa di un'animazione che non partirà mai.
@@ -228,72 +229,31 @@ test("con reduced motion il pannello della ricerca e le tessere di Voci restano 
   expect(await page.locator("#voci [data-voci-slide]").count()).toBeGreaterThan(0);
 });
 
-// ── Parallasse ────────────────────────────────────────────────────────────
-// Fuori dal regime reduced-motion del resto del file: qui il movimento deve
-// esserci. La rivista bianca ammette una sola deriva allo scroll, `Parallax`
-// (±4 %), e la foto di PageHero su /vendi la porta con `mobile={false}`: da 768
-// in su la sua translateY cambia fra due quote di scroll (una matrix, non un
-// fade), sotto resta ferma — la corsa a 390 starebbe sotto i 10 px. Con
-// reduced motion è ferma ovunque (il resto del file).
-test.describe("la parallasse della foto di pagina", () => {
-  test.use({ contextOptions: { reducedMotion: "no-preference" } });
-
-  test("su /vendi la foto deriva da 768 in su e resta ferma sotto @layout", async ({ page, goto }, testInfo) => {
-    const w = testInfo.project.use.viewport?.width ?? 0;
-    await setConsent(page, "accepted");
-    await goto("/vendi");
-    // L'inner di Parallax: il figlio diretto del wrapper che contiene la foto 16:9.
-    const SEL = "#main section img[sizes='100vw']";
-    await expect(page.locator(SEL).first()).toBeAttached();
-    const leggi = () =>
-      page.evaluate((sel) => {
-        const img = document.querySelector<HTMLElement>(sel)!;
-        // L'inner di Parallax è l'antenato che porta la matrice. Si CERCA invece
-        // di contarlo: la cornice intermedia è sparita quando la banda è passata
-        // al modulo `.dt-media-full` (11 settembre), e il test leggeva il
-        // wrapper esterno, che non si muove mai.
-        let inner: HTMLElement = img;
-        for (let i = 0; i < 4 && inner.parentElement; i += 1) {
-          inner = inner.parentElement;
-          if (/^matrix\(/.test(getComputedStyle(inner).transform)) break;
-        }
-        const m = /^matrix\(([^)]+)\)$/.exec(getComputedStyle(inner).transform);
-        return {
-          f: m ? Number(m[1].split(",")[5]) : 0,
-          top: inner.getBoundingClientRect().top + window.scrollY,
-          h: inner.getBoundingClientRect().height,
-          vh: window.innerHeight,
-        };
-      }, SEL);
-    const scrollTo = (y: number) =>
-      page.evaluate(async (t) => {
-        window.scrollTo({ top: Math.max(0, t), behavior: "instant" });
-        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-      }, y);
-
-    const p0 = await leggi();
-    // DUE QUOTE CHE ESISTONO DAVVERO. Le vecchie erano «foto appena entrata dal
-    // basso» (top − vh + 40) e «a metà viewport» (top − vh/2): da quando la
-    // banda di PageHero risale sotto il titolo — 11 settembre — la foto comincia
-    // a y≈400, quindi a 768 ENTRAMBE le quote diventavano negative, il browser
-    // le bloccava a 0 e il test misurava due volte lo stesso fotogramma
-    // (Δy 0) concludendo che la parallasse non c'era. Ora la seconda quota è
-    // presa OLTRE la foto, che esiste a qualunque larghezza.
-    await scrollTo(Math.max(0, p0.top - p0.vh + 40));
-    await page.waitForTimeout(250);
-    const bordo = await leggi();
-    await scrollTo(p0.top + p0.h / 2);
-    await page.waitForTimeout(250);
-    const meta = await leggi();
-    // La corsa intera è ±4 % dell'altezza della foto (≈ 5-9 px a 768-1440): fra
-    // le due quote si pretende una deriva misurabile, non un numero grande.
-    const df = Math.abs(meta.f - bordo.f);
-    if (w >= 768) {
-      expect(df, `a ${w}px la foto di /vendi non deriva (Δy ${df}px)`).toBeGreaterThan(0.5);
-    } else {
-      expect(df, `a ${w}px la foto deriva di ${df}px: mobile={false} non rispettato`).toBeLessThan(0.2);
-    }
-  });
+// ── Il tuffo delle pagine interne, con reduced motion ──────────────────────
+// A20 di Alberto (13 settembre 2026, spec §5.1): da 1024 px e 640 px d'altezza con
+// motion ok ogni PageHero è un corridoio sticky, e la foto di pagina è senza
+// Parallax (D23). Con reduced motion, il regime di tutto questo file, il
+// corridoio resta spento: niente `data-on`, schermo in flusso, spaziatore spento,
+// contenuto e foto senza trasformate, nessuno strato nitido. Il movimento con
+// motion ok lo prova e2e/page-hero-dive.spec.ts.
+test("su /vendi la testa resta ferma e senza corridoio @layout", async ({ page, goto }) => {
+  await goto("/vendi");
+  const dive = page.locator('[data-corridor="page-dive"]');
+  await expect(dive).toHaveCount(1);
+  // Il tempo in cui il JS accenderebbe il corridoio se sbagliasse la condizione.
+  await page.waitForTimeout(800);
+  expect(await dive.getAttribute("data-on")).toBeNull();
+  await expect(dive.locator(":scope > [data-corridor-screen]")).toHaveCSS("position", "static");
+  await expect(dive.locator(":scope > [data-corridor-run]")).toHaveCSS("display", "none");
+  await expect(page.locator("img[data-dive-base]")).toHaveAttribute("sizes", BAND_SIZES);
+  await page.locator("[data-dive-band]").evaluate((el) =>
+    window.scrollTo({ top: el.getBoundingClientRect().bottom + window.scrollY, behavior: "instant" }),
+  );
+  await page.waitForTimeout(250);
+  for (const sel of ["[data-dive-content]", "[data-dive-band]", "[data-dive-zoom]", "[data-dive-inner]"]) {
+    await expect(page.locator(sel)).toHaveCSS("transform", "none");
+  }
+  await expect(page.locator("img[data-dive-sharp]")).toHaveCount(0);
 });
 
 // Capitoli 13-16 (spec 2026-09-13 §3.14-3.17): con reduced motion nessun gesto

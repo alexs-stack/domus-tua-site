@@ -2112,3 +2112,359 @@ distingue le due sorgenti, quindi non può giustificare la 720p da solo. La 720p
 resta scritta in `Congedo.tsx` perché taglia le punte ed è la ripiega che spec
 §3.18 dice di provare per prima, ma il cancello è rosso con tutt'e due: la scelta
 fra accettare il numero, cambiare criterio o cambiare la sorgente è di Alberto.
+
+## 18 · il tuffo delle PageHero: geometria del corridoio (motion ok, DPR 1)
+
+2026-09-18 · commit d57cddc+
+
+| viewport | rotta | section senza corridoio px | section col corridoio px | aggiunta px | Δb px | Δt px | p testo uscito | margine minimo testo-foto px | bordo alto foto a p 0,8 px | centro del segno a y px | foto sul centro del segno da p | copre a p 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1024×768 | /vendi | 1190 | 1690 | 500 | 422 | 618 | 0.5 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /domande-frequenti | 933 | 1690 | 757 | 165 | 361 | 0.45 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1440×900 | /vendi | 1328 | 1980 | 652 | 428 | 535 | 0.4 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /domande-frequenti | 1135 | 1980 | 845 | 235 | 323 | 0.4 | 27 | -29 | 45.0 | 0.75 | sì |
+| 1920×1080 | /vendi | 1554 | 2376 | 822 | 474 | 593 | 0.3 | 38 | -158 | 52.0 | 0.4 | sì |
+| 1920×1080 | /domande-frequenti | 1458 | 2376 | 918 | 378 | 473 | 0.3 | 29 | -158 | 52.0 | 0.35 | sì |
+
+Regole di spec §5.1: margine > 0, testo uscito entro p 0,6, copertura a p 1. «aggiunta px» si confronta con le stime +690 / +740 / +700. Bordo alto a p 0,8 e p della foto sul centro del segno: dati per la scelta sul tema foto a 1024×768 (spec §5.1 contro §6.1), non soglie di questo commit.
+
+## 18 · il tuffo sotto soglia su /vendi (spec §5.1, D37)
+
+2026-09-18 · commit d57cddc+
+
+| viewport | quota | scrollY | scala di [data-dive-inner] | tetto | scatola all'identità |
+| --- | --- | --- | --- | --- | --- |
+| 390×664 | scroll 0 | 0 | 1.0000 | 1.06 | sì |
+| 390×664 | metà intervallo | 458 | 1.0300 | 1.06 | sì |
+| 390×664 | fine intervallo | 842 | 1.0600 | 1.06 | sì |
+| 390×664 | fine + 40 px | 882 | 1.0600 | 1.06 | sì |
+| 768×1024 | scroll 0 | 0 | 1.0000 | 1.08 | sì |
+| 768×1024 | metà intervallo | 479 | 1.0400 | 1.08 | sì |
+| 768×1024 | fine intervallo | 855 | 1.0800 | 1.08 | sì |
+| 768×1024 | fine + 40 px | 895 | 1.0800 | 1.08 | sì |
+| 1440×600 | scroll 0 | 0 | 1.0000 | 1.08 | sì |
+| 1440×600 | metà intervallo | 728 | 1.0400 | 1.08 | sì |
+| 1440×600 | fine intervallo | 1383 | 1.0800 | 1.08 | sì |
+| 1440×600 | fine + 40 px | 1423 | 1.0800 | 1.08 | sì |
+
+Regole: nessuno sticky; scala 1 a scroll 0, fra 1 e il tetto a metà dell'intervallo section top top → banda bottom top, uguale al tetto (±0,005) alla fine e oltre; scatola sempre all'identità.
+
+## 18 · object-position dei fermi 16:9 nelle bande (ritaglio 4:5 del telefono)
+
+2026-09-18 · commit d57cddc+
+
+| rotta | file | W×H | entropia a x 30/40/50/60/70 % | scelta | ritagli |
+| --- | --- | --- | --- | --- | --- |
+| /metodo | reali/villa-vetrata-lanterne.jpg | 2560×1440 | 6.797 / 6.715 / 6.654 / 6.656 / 6.701 | 30% 50% | misure/18/ritaglio-metodo-<x>.jpg |
+| /recensioni | reali/villa-salotto-ombrellone.jpg | 2560×1440 | 7.426 / 7.396 / 7.413 / 7.494 / 7.572 | 70% 50% | misure/18/ritaglio-recensioni-<x>.jpg |
+| /privacy | hero_01_attico_travi_salotto.jpg | 1920×1067 | 7.216 / 7.332 / 7.417 / 7.402 / 7.307 | 50% 50% | misure/18/ritaglio-privacy-<x>.jpg |
+| /cookie | reali/villa-uliveto.jpg | 2560×1440 | 7.608 / 7.507 / 7.379 / 7.336 / 7.303 | 30% 50% | misure/18/ritaglio-cookie-<x>.jpg |
+
+Regola: vince l'entropia massima, a meno che superi quella a 50 % di meno di 0,05 bit. La scelta si conferma guardando i ritagli e si corregge con `scegli` (18c Step 1).
+
+## 18 · object-position dei fermi corretti a occhio
+
+2026-09-18 · commit d57cddc+
+
+| rotta | misura | scelta a occhio |
+| --- | --- | --- |
+| /metodo | 30% 50% | 60% 50% |
+| /recensioni | 70% 50% | 30% 50% |
+| /cookie | 30% 50% | 60% 50% |
+
+Col valore della misura il ritaglio 4:5 tagliava a metà il soggetto della foto (ritagli in misure/18/).
+
+## 18 · calligrafia sulla banda della villa (spec §7.4, nota di D15)
+
+2026-09-18 · commit d57cddc+
+
+| viewport | rotta | px di parola sulla foto | pixel ≥ 3:1 col rosso sotto la parola | immagine | esito |
+| --- | --- | --- | --- | --- | --- |
+| 1440×900 | /vendi | 0 | - | - | la parola non tocca la foto |
+| 1440×900 | /acquista | 0 | - | - | la parola non tocca la foto |
+| 1440×900 | /servizi | 22 | 2 % | misure/18/calligrafia-servizi-1440.png | da guardare |
+| 1440×900 | /open-domus | 22 | 18 % | misure/18/calligrafia-open-domus-1440.png | da guardare |
+| 1440×900 | /metodo | 22 | 97 % | misure/18/calligrafia-metodo-1440.png | da guardare |
+| 1440×900 | /recensioni | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /vendi | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /acquista | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /servizi | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /open-domus | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /metodo | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /recensioni | 0 | - | - | la parola non tocca la foto |
+
+La quota aiuta a guardare, non decide: l'esito lo dà il controllo a occhio dei PNG (18c Step 9), scritto con `calligrafia-esito`.
+
+## 18 · esito del controllo a occhio della calligrafia
+
+2026-09-18 · commit d57cddc+
+
+| rotta | esito |
+| --- | --- |
+| /vendi | leggibile |
+| /acquista | leggibile |
+| /servizi | illeggibile |
+| /open-domus | leggibile |
+| /metodo | leggibile |
+| /recensioni | leggibile |
+
+Dove l'esito è «illeggibile» PageHero riceve `scriptInset`, cioè `lg:pb-[5.5vw]` (spec §7.4).
+
+## 18 · calligrafia sulla banda della villa (spec §7.4, nota di D15)
+
+2026-09-18 · commit d57cddc+
+
+| viewport | rotta | px di parola sulla foto | pixel ≥ 3:1 col rosso sotto la parola | immagine | esito |
+| --- | --- | --- | --- | --- | --- |
+| 1440×900 | /vendi | 0 | - | - | la parola non tocca la foto |
+| 1440×900 | /acquista | 0 | - | - | la parola non tocca la foto |
+| 1440×900 | /servizi | 7 | 1 % | misure/18/calligrafia-servizi-1440.png | da guardare |
+| 1440×900 | /open-domus | 22 | 18 % | misure/18/calligrafia-open-domus-1440.png | da guardare |
+| 1440×900 | /metodo | 22 | 97 % | misure/18/calligrafia-metodo-1440.png | da guardare |
+| 1440×900 | /recensioni | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /vendi | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /acquista | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /servizi | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /open-domus | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /metodo | 0 | - | - | la parola non tocca la foto |
+| 1024×768 | /recensioni | 0 | - | - | la parola non tocca la foto |
+
+La quota aiuta a guardare, non decide: l'esito lo dà il controllo a occhio dei PNG (18c Step 9), scritto con `calligrafia-esito`.
+
+## 18 · object-position dei fermi corretti a occhio
+
+2026-09-18 · commit d57cddc+
+
+| rotta | misura | scelta a occhio |
+| --- | --- | --- |
+| /metodo | 60% 50% | 30% 50% |
+
+Col valore della misura il ritaglio 4:5 tagliava a metà il soggetto della foto (ritagli in misure/18/).
+
+Nota per Alberto su /metodo (terzo ramo della regola di 18c Step 1). La colonna «misura» qui sopra dice
+60 % perché `scegli` scrive il valore che trovava nel JSON, cioè la scelta a occhio precedente: la misura
+dell'entropia è 30 %, come nella tabella delle entropie. Il soggetto dell'alt di spec §7.5 sono le due
+lanterne bianche sul muretto, e **nessuna delle cinque x le tiene tutt'e due intere**: la finestra 4:5
+copre il 45 % della larghezza del fermo, le lanterne stanno a circa il 12 % e il 78 %. A 30 % una lanterna
+è intera e resta la vetrata, la prima cosa nominata dall'alt; a 40 % si vedono tutt'e due ma tagliate; da
+50 % in su la vetrata esce dal ritaglio. Per la regola, quando nessuna x tiene il soggetto intero resta la
+x della misura: /metodo torna a `30% 50%`. Vale solo sotto 768 px, perché da lì la cornice è 16:9 come il
+fermo e l'`object-position` non taglia nulla.
+
+## 18 · volti di consulenza.jpg nel tuffo (spec §8, origine 50 % 75 %)
+
+2026-09-18 · commit d57cddc+
+
+| viewport | rotta | p | scala | uniforme | immagine |
+| --- | --- | --- | --- | --- | --- |
+| 1440×900 | /lavora-con-noi | 0.600 | 1.016 | sì | misure/18/volti-lavora-con-noi-1440-06.jpg |
+| 1440×900 | /lavora-con-noi | 0.800 | 1.196 | sì | misure/18/volti-lavora-con-noi-1440-08.jpg |
+| 1440×900 | /lavora-con-noi | 1.000 | 2.000 | sì | misure/18/volti-lavora-con-noi-1440-1.jpg |
+| 1440×900 | /domande-frequenti | 0.600 | 1.016 | sì | misure/18/volti-domande-frequenti-1440-06.jpg |
+| 1440×900 | /domande-frequenti | 0.800 | 1.196 | sì | misure/18/volti-domande-frequenti-1440-08.jpg |
+| 1440×900 | /domande-frequenti | 1.000 | 2.000 | sì | misure/18/volti-domande-frequenti-1440-1.jpg |
+| 1920×1080 | /lavora-con-noi | 0.600 | 1.016 | sì | misure/18/volti-lavora-con-noi-1920-06.jpg |
+| 1920×1080 | /lavora-con-noi | 0.800 | 1.196 | sì | misure/18/volti-lavora-con-noi-1920-08.jpg |
+| 1920×1080 | /lavora-con-noi | 1.000 | 2.000 | sì | misure/18/volti-lavora-con-noi-1920-1.jpg |
+| 1920×1080 | /domande-frequenti | 0.600 | 1.016 | sì | misure/18/volti-domande-frequenti-1920-06.jpg |
+| 1920×1080 | /domande-frequenti | 0.800 | 1.196 | sì | misure/18/volti-domande-frequenti-1920-08.jpg |
+| 1920×1080 | /domande-frequenti | 1.000 | 2.000 | sì | misure/18/volti-domande-frequenti-1920-1.jpg |
+
+Controllo a occhio (18d Step 3): a p 1 nessun volto tagliato a metà dal bordo dello schermo e nessun volto più alto di metà schermo.
+
+Esito del controllo a occhio (18 set., i dodici JPEG letti uno per uno, prima i quattro a p 1): **la prima
+regola cade, la seconda regge.** A p 1 il bordo alto dello schermo taglia il volto della consulente: a
+1440×900, su tutt'e due le rotte, restano dentro naso, bocca, guancia e mento e restano fuori occhi e fronte
+(`volti-lavora-con-noi-1440-1.jpg`, `volti-domande-frequenti-1440-1.jpg`); a 1920×1080 il taglio scende
+ancora e dentro resta il solo mento (`volti-lavora-con-noi-1920-1.jpg`, `volti-domande-frequenti-1920-1.jpg`).
+La seconda regge ovunque: il volto visibile è alto circa 130 px su 900, molto meno di metà schermo. L'origine
+`50 % 75 %` è una cifra di spec §5.1 e il commit 18 non la cambia: la scelta va ad Alberto.
+
+## 18 · il tuffo delle PageHero: geometria del corridoio (motion ok, DPR 1)
+
+2026-09-18 · commit d57cddc+
+
+| viewport | rotta | section senza corridoio px | section col corridoio px | aggiunta px | Δb px | Δt px | p testo uscito | margine minimo testo-foto px | bordo alto foto a p 0,8 px | centro del segno a y px | foto sul centro del segno da p | copre a p 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1024×768 | /vendi | 1190 | 1690 | 500 | 422 | 618 | 0.5 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /acquista | 1075 | 1690 | 615 | 307 | 503 | 0.45 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /servizi | 903 | 1690 | 787 | 135 | 331 | 0.45 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /metodo | 933 | 1690 | 757 | 165 | 361 | 0.45 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /chi-siamo | 855 | 1690 | 835 | 87 | 283 | 0.4 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /recensioni | 1034 | 1690 | 656 | 266 | 462 | 0.45 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /open-domus | 963 | 1690 | 727 | 195 | 391 | 0.45 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /lavora-con-noi | 1075 | 1690 | 615 | 307 | 503 | 0.45 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /domande-frequenti | 933 | 1690 | 757 | 165 | 361 | 0.45 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /privacy | 903 | 1690 | 787 | 135 | 331 | 0.45 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /cookie | 873 | 1690 | 817 | 105 | 301 | 0.4 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1440×900 | /vendi | 1328 | 1980 | 652 | 428 | 535 | 0.4 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /acquista | 1224 | 1980 | 756 | 324 | 409 | 0.45 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /servizi | 1213 | 1980 | 767 | 313 | 399 | 0.45 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /metodo | 1135 | 1980 | 845 | 235 | 323 | 0.4 | 27 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /chi-siamo | 1123 | 1980 | 857 | 223 | 309 | 0.4 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /recensioni | 1259 | 1980 | 721 | 359 | 449 | 0.45 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /open-domus | 1135 | 1980 | 845 | 235 | 323 | 0.4 | 27 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /lavora-con-noi | 1272 | 1980 | 708 | 372 | 465 | 0.45 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /domande-frequenti | 1135 | 1980 | 845 | 235 | 323 | 0.4 | 27 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /privacy | 1088 | 1980 | 892 | 188 | 274 | 0.4 | 29 | -28 | 45.0 | 0.75 | sì |
+| 1440×900 | /cookie | 1088 | 1980 | 892 | 188 | 274 | 0.4 | 29 | -28 | 45.0 | 0.75 | sì |
+| 1920×1080 | /vendi | 1554 | 2376 | 822 | 474 | 593 | 0.3 | 38 | -158 | 52.0 | 0.4 | sì |
+| 1920×1080 | /acquista | 1479 | 2376 | 897 | 399 | 499 | 0.3 | 38 | -159 | 52.0 | 0.35 | sì |
+| 1920×1080 | /servizi | 1555 | 2376 | 821 | 475 | 594 | 0.3 | 38 | -159 | 52.0 | 0.4 | sì |
+| 1920×1080 | /metodo | 1458 | 2376 | 918 | 378 | 473 | 0.3 | 29 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /chi-siamo | 1381 | 2376 | 995 | 301 | 376 | 0.3 | 29 | -159 | 52.0 | 0.35 | sì |
+| 1920×1080 | /recensioni | 1473 | 2376 | 903 | 393 | 491 | 0.3 | 38 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /open-domus | 1458 | 2376 | 918 | 378 | 473 | 0.3 | 29 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /lavora-con-noi | 1535 | 2376 | 841 | 455 | 569 | 0.3 | 29 | -158 | 52.0 | 0.4 | sì |
+| 1920×1080 | /domande-frequenti | 1458 | 2376 | 918 | 378 | 473 | 0.3 | 29 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /privacy | 1390 | 2376 | 986 | 310 | 388 | 0.25 | 38 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /cookie | 1390 | 2376 | 986 | 310 | 388 | 0.25 | 38 | -158 | 52.0 | 0.35 | sì |
+
+Regole di spec §5.1: margine > 0, testo uscito entro p 0,6, copertura a p 1. «aggiunta px» si confronta con le stime +690 / +740 / +700. Bordo alto a p 0,8 e p della foto sul centro del segno: dati per la scelta sul tema foto a 1024×768 (spec §5.1 contro §6.1), non soglie di questo commit.
+
+### Commit 7: corridoi accesi e ripristino al capitolo (2026-09-18, d57cddc+)
+
+| viewport | rotta | accesi | attesi | sticky | altezza | overflowX | scarto ricarica (px) | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 34998 | 0 |  | ok |
+| 1024×768 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 30308 | 0 |  | ok |
+| 1920×1080 | / | cartolina finestra hero recensioni storia team | cartolina finestra hero recensioni storia team | 7 | 39613 | 0 |  | ok |
+| 1280×600 | / | nessuno | nessuno | 0 | 22352 | 0 |  | ok |
+| 1440×600 | / | nessuno | nessuno | 0 | 23193 | 0 |  | ok |
+| 390×664 | / | nessuno | nessuno | 1 | 28479 | 0 |  | ok |
+| 1440×900 | /vendi | page-dive | page-dive | 1 | 17034 | 0 |  | ok |
+| 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 24223) | ok |
+
+## 18 · iPad Pro 1024×1366 a scroll 0 (spec §9.3)
+
+2026-09-18 · commit d57cddc+
+
+| viewport | rotta | corridoio acceso | CLS | avorio sotto la banda px | immagine |
+| --- | --- | --- | --- | --- | --- |
+| 1024×1366 DPR 2 | /vendi | sì | 0.0000 | 146 | misure/18/ipad-vendi.png |
+| 1024×1366 DPR 2 | /acquista | sì | 0.0000 | 261 | misure/18/ipad-acquista.png |
+| 1024×1366 DPR 2 | /servizi | sì | 0.0000 | 433 | misure/18/ipad-servizi.png |
+| 1024×1366 DPR 2 | /metodo | sì | 0.0000 | 403 | misure/18/ipad-metodo.png |
+| 1024×1366 DPR 2 | /chi-siamo | sì | 0.0000 | 493 | misure/18/ipad-chi-siamo.png |
+| 1024×1366 DPR 2 | /recensioni | sì | 0.0000 | 302 | misure/18/ipad-recensioni.png |
+| 1024×1366 DPR 2 | /open-domus | sì | 0.0000 | 373 | misure/18/ipad-open-domus.png |
+| 1024×1366 DPR 2 | /lavora-con-noi | sì | 0.0000 | 261 | misure/18/ipad-lavora-con-noi.png |
+| 1024×1366 DPR 2 | /domande-frequenti | sì | 0.0000 | 403 | misure/18/ipad-domande-frequenti.png |
+| 1024×1366 DPR 2 | /privacy | sì | 0.0000 | 433 | misure/18/ipad-privacy.png |
+| 1024×1366 DPR 2 | /cookie | sì | 0.0000 | 463 | misure/18/ipad-cookie.png |
+
+Regola: CLS 0 su ogni rotta. L'avorio sotto la banda dentro lo schermo sticky non è una soglia: le immagini vanno ad Alberto.
+
+## 18 · D33: LCP a 390×664 DPR 3, CPU ×4, Slow 4G, contro la base del commit 2
+
+2026-09-18 · commit d57cddc+
+
+| rotta | base ms | ramo ms | Δ ms | tetto ms | elemento | w servito | 133vw stimato ms | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| /vendi | 1352 | 3204 | 1852 | 1502 | IMG | 2560 | 2256 (con route: 2976 → 2028, w 1920) | sfora anche a 133vw |
+| /acquista | 1348 | 3404 | 2056 | 1498 | IMG | 2560 | 2340 (con route: 3096 → 2032, w 1920) | sfora anche a 133vw |
+| /metodo | 1324 | 1924 | 600 | 1474 | IMG | 2560 | 1528 (con route: 1664 → 1268, w 1920) | sfora anche a 133vw |
+
+Base: commit 1a77744 del 2026-09-18 (390×664 DPR 3, CPU ×4, Slow 4G (1,6 Mbps, 750 kbps, 150 ms RTT), 5 giri dopo un giro di riscaldo, senza consenso, sipario saltato), la stessa della chiusura. Soglie di spec §5.1 e §9.3: ramo ≤ base + 150 ms e ≤ 2,5 s se la base sta sotto 2,5 s. Sfora anche 133vw, o supera 2,5 s con la base sotto: il blocco si ferma e riferisce questi numeri.
+
+## 18 · D33: LCP a 390×664 DPR 3, CPU ×4, Slow 4G, contro la base del commit 2
+
+2026-09-18 · commit d57cddc+
+
+| rotta | base ms | ramo ms | Δ ms | tetto ms | elemento | w servito | 133vw stimato ms | esito |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| /vendi | 1352 | 3212 | 1860 | 1502 | IMG | 2560 | 2268 (con route: 2972 → 2028, w 1920) | sfora anche a 133vw |
+| /acquista | 1348 | 3384 | 2036 | 1498 | IMG | 2560 | 2336 (con route: 3092 → 2044, w 1920) | sfora anche a 133vw |
+| /metodo | 1324 | 1924 | 600 | 1474 | IMG | 2560 | 1516 (con route: 1660 → 1252, w 1920) | sfora anche a 133vw |
+
+Base: commit 1a77744 del 2026-09-18 (390×664 DPR 3, CPU ×4, Slow 4G (1,6 Mbps, 750 kbps, 150 ms RTT), 5 giri dopo un giro di riscaldo, senza consenso, sipario saltato), la stessa della chiusura. Soglie di spec §5.1 e §9.3: ramo ≤ base + 150 ms e ≤ 2,5 s se la base sta sotto 2,5 s. Sfora anche 133vw, o supera 2,5 s con la base sotto: il blocco si ferma e riferisce questi numeri.
+
+## 18 · D64: i numeri di oggi si tengono (deroga di Alberto a D33 sull'LCP del telefono)
+
+2026-09-18 · commit d57cddc+
+
+| rotta | base ms | ramo ms | Δ ms | tetto ms | esito di D33 | decisione |
+| --- | --- | --- | --- | --- | --- | --- |
+| /vendi | 1352 | 3212 | 1860 | 1502 | sfora, anche a 133vw | D64: si tiene |
+| /acquista | 1348 | 3384 | 2036 | 1498 | sfora, anche a 133vw | D64: si tiene |
+| /metodo | 1324 | 1924 | 600 | 1474 | sfora, anche a 133vw | D64: si tiene |
+
+D64 (Alberto, 18 settembre 2026, riferita dal coordinatore): «tenere i numeri di oggi». Viste le tre alternative — ritagli a 780 px, ritagli a 1170 px, niente foto della villa sotto 768 — le foto della villa restano intere: `BAND_SIZES` e `SHARP_SIZES` restano quelli di D33 (200vw sotto 768, 108vw fino a 1023, 100vw da 1024; strato nitido 200vw), nessun ritaglio per il telefono e nessun calo di qualità (resta `quality={60}`). Il criterio di D33 in spec §5.1 smette di valere come cancello per il commit 18: l'LCP mediano sul telefono resta sopra il tetto e i numeri della tabella qui sopra sono quelli che entrano nel ramo. Il costo sta nei byte della banda nuova prima che nei `sizes` (sonda del giro precedente su `/_next/image` con `q=60`: la testa di repertorio di /vendi pesa ~54 KB a w 1280, la banda della villa ~89 KB a w 1280, ~176 KB a w 1920 e ~279 KB a w 2560), quindi nemmeno la variante 133vw del brief basterebbe. La riga di D64 nei due registri la scrive il commit 22.
+
+## 18 · il tuffo delle PageHero: geometria del corridoio (motion ok, DPR 1)
+
+2026-09-18 · commit d8281d8+
+
+| viewport | rotta | section senza corridoio px | section col corridoio px | aggiunta px | Δb px | Δt px | p testo uscito | p calligrafia uscita | calligrafia sulla foto a 180 px | margine minimo testo-foto px | bordo alto foto a p 0,8 px | centro del segno a y px | foto sul centro del segno da p | copre a p 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1024×768 | /vendi | 1190 | 1690 | 500 | 422 | 618 | 0.5 | 0.15 | -500 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /acquista | 1075 | 1690 | 615 | 307 | 503 | 0.45 | 0.2 | -339 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /servizi | 903 | 1690 | 787 | 135 | 339 | 0.4 | 0.45 | -127 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /metodo | 933 | 1690 | 757 | 165 | 361 | 0.45 | 0.3 | -198 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /chi-siamo | 855 | 1690 | 835 | 87 | 283 | 0.4 | 0.3 | -165 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /recensioni | 1034 | 1690 | 656 | 266 | 462 | 0.45 | 0.2 | -344 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /open-domus | 963 | 1690 | 727 | 195 | 391 | 0.45 | 0.25 | -228 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /lavora-con-noi | 1075 | 1690 | 615 | 307 | 503 | 0.45 | 0.25 | -294 | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /domande-frequenti | 933 | 1690 | 757 | 165 | 361 | 0.45 | 0.3 | -198 | 20 | 108 | 38.4 | 0.9 | sì |
+| 1024×768 | /privacy | 903 | 1690 | 787 | 135 | 331 | 0.45 | - | - | 20 | 107 | 38.4 | 0.9 | sì |
+| 1024×768 | /cookie | 873 | 1690 | 817 | 105 | 301 | 0.4 | - | - | 20 | 107 | 38.4 | 0.9 | sì |
+| 1440×900 | /vendi | 1328 | 1980 | 652 | 428 | 535 | 0.4 | 0.2 | -285 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /acquista | 1224 | 1980 | 756 | 324 | 409 | 0.45 | 0.35 | -107 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /servizi | 1213 | 1980 | 767 | 313 | 435 | 0.35 | 0.45 | -50 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /metodo | 1135 | 1980 | 845 | 235 | 372 | 0.3 | 0.45 | -43 | 27 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /chi-siamo | 1123 | 1980 | 857 | 223 | 309 | 0.4 | 0.4 | -70 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /recensioni | 1259 | 1980 | 721 | 359 | 449 | 0.45 | 0.25 | -208 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /open-domus | 1135 | 1980 | 845 | 235 | 372 | 0.3 | 0.45 | -43 | 27 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /lavora-con-noi | 1272 | 1980 | 708 | 372 | 465 | 0.45 | 0.4 | -95 | 29 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /domande-frequenti | 1135 | 1980 | 845 | 235 | 372 | 0.3 | 0.45 | -43 | 27 | -29 | 45.0 | 0.75 | sì |
+| 1440×900 | /privacy | 1088 | 1980 | 892 | 188 | 274 | 0.4 | - | - | 29 | -28 | 45.0 | 0.75 | sì |
+| 1440×900 | /cookie | 1088 | 1980 | 892 | 188 | 274 | 0.4 | - | - | 29 | -28 | 45.0 | 0.75 | sì |
+| 1920×1080 | /vendi | 1554 | 2376 | 822 | 474 | 593 | 0.3 | 0.2 | -188 | 38 | -158 | 52.0 | 0.4 | sì |
+| 1920×1080 | /acquista | 1479 | 2376 | 897 | 399 | 499 | 0.3 | 0.25 | -106 | 38 | -159 | 52.0 | 0.35 | sì |
+| 1920×1080 | /servizi | 1555 | 2376 | 821 | 475 | 594 | 0.3 | 0.35 | -34 | 38 | -159 | 52.0 | 0.4 | sì |
+| 1920×1080 | /metodo | 1458 | 2376 | 918 | 378 | 473 | 0.3 | 0.35 | -6 | 29 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /chi-siamo | 1381 | 2376 | 995 | 301 | 376 | 0.3 | 0.4 | 1 | 29 | -159 | 52.0 | 0.35 | sì |
+| 1920×1080 | /recensioni | 1473 | 2376 | 903 | 393 | 491 | 0.3 | 0.25 | -100 | 38 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /open-domus | 1458 | 2376 | 918 | 378 | 473 | 0.3 | 0.35 | -6 | 29 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /lavora-con-noi | 1535 | 2376 | 841 | 455 | 569 | 0.3 | 0.35 | -13 | 29 | -158 | 52.0 | 0.4 | sì |
+| 1920×1080 | /domande-frequenti | 1458 | 2376 | 918 | 378 | 473 | 0.3 | 0.35 | -6 | 29 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /privacy | 1390 | 2376 | 986 | 310 | 388 | 0.25 | - | - | 38 | -158 | 52.0 | 0.35 | sì |
+| 1920×1080 | /cookie | 1390 | 2376 | 986 | 310 | 388 | 0.25 | - | - | 38 | -158 | 52.0 | 0.35 | sì |
+
+Regole di spec §5.1: margine > 0, testo e calligrafia usciti entro p 0,6 (Δt col fondo della calligrafia, DIVE_BOTTOM_SEL), copertura a p 1. «calligrafia sulla foto a 180 px» è la stima di spec §5.1, un dato e non una soglia (≤ 0: già fuori dalla foto). «p testo uscito» e il margine leggono i soli `data-dive-text`: la calligrafia a p 0 attraversa la foto per scelta (DESIGN.md:583). «aggiunta px» si confronta con le stime +690 / +740 / +700. Bordo alto a p 0,8 e p della foto sul centro del segno: dati per la scelta sul tema foto a 1024×768 (spec §5.1 contro §6.1), non soglie di questo commit.
+
+## 18 · volti di consulenza.jpg nel tuffo (spec §8, origine 50 % 75 %)
+
+2026-09-18 · commit d8281d8+
+
+| viewport | rotta | p | scala | uniforme | immagine |
+| --- | --- | --- | --- | --- | --- |
+| 1440×900 | /lavora-con-noi | 0.600 | 1.016 | sì | misure/18/volti-lavora-con-noi-1440-06.jpg |
+| 1440×900 | /lavora-con-noi | 0.800 | 1.196 | sì | misure/18/volti-lavora-con-noi-1440-08.jpg |
+| 1440×900 | /lavora-con-noi | 1.000 | 2.000 | sì | misure/18/volti-lavora-con-noi-1440-1.jpg |
+| 1440×900 | /domande-frequenti | 0.600 | 1.016 | sì | misure/18/volti-domande-frequenti-1440-06.jpg |
+| 1440×900 | /domande-frequenti | 0.800 | 1.196 | sì | misure/18/volti-domande-frequenti-1440-08.jpg |
+| 1440×900 | /domande-frequenti | 1.000 | 2.000 | sì | misure/18/volti-domande-frequenti-1440-1.jpg |
+| 1920×1080 | /lavora-con-noi | 0.600 | 1.016 | sì | misure/18/volti-lavora-con-noi-1920-06.jpg |
+| 1920×1080 | /lavora-con-noi | 0.800 | 1.196 | sì | misure/18/volti-lavora-con-noi-1920-08.jpg |
+| 1920×1080 | /lavora-con-noi | 1.000 | 2.000 | sì | misure/18/volti-lavora-con-noi-1920-1.jpg |
+| 1920×1080 | /domande-frequenti | 0.600 | 1.016 | sì | misure/18/volti-domande-frequenti-1920-06.jpg |
+| 1920×1080 | /domande-frequenti | 0.800 | 1.196 | sì | misure/18/volti-domande-frequenti-1920-08.jpg |
+| 1920×1080 | /domande-frequenti | 1.000 | 2.000 | sì | misure/18/volti-domande-frequenti-1920-1.jpg |
+
+Controllo a occhio (18d Step 3): a p 1 nessun volto tagliato a metà dal bordo dello schermo e nessun volto più alto di metà schermo.
+
+Esito del controllo a occhio dopo il giro di correzione 1 del commit 18 (18 set.), sui dodici JPEG rigenerati: il
+fondo del testo di Δt comprende ora la calligrafia (spec §5.1), e a p 0,8 e 1 «Domande» e «Insieme» non stanno più
+al bordo alto sopra la foto (sei JPEG cambiati: `…-domande-frequenti-1440-{06,08,1}`, `…-domande-frequenti-1920-{08,1}`,
+`…-lavora-con-noi-1440-1`; gli altri sei sono identici byte per byte). I volti non cambiano, perché il moto netto della
+banda (−Δb) e lo zoom non dipendono da Δt: **la prima regola cade ancora, la seconda regge.** A p 1 a 1440×900 restano
+dentro naso, bocca e mento e fuori occhi e fronte; a 1920×1080 resta dentro il solo mento.
+
+Dato per la scelta di Alberto (sonda fuori dal repo, testa della consulente in `consulenza.jpg` 1920×1625 letta a
+occhio: capelli a y 450, occhi a 605, mento a 700): con l'origine di oggi, 75 %, a p 1 gli occhi stanno a −19 px a
+1440×900 e a −145 px a 1920×1080. Tengono la testa intera dentro lo schermo, con la foto che copre ancora tutto lo
+schermo, le origini verticali fra 15 e 40 % a 1440×900 e fra 5 e 30 % a 1920×1080: in comune 15-30 % (per esempio
+`50% 25%` sulle sole due rotte di `consulenza.jpg`). La testa intera resta sotto metà schermo (375 px su 900, 500 su
+1080). L'origine `50 % 75 %` è una cifra di spec §5.1: la scelta resta ad Alberto (accettare, un'origine per rotta,
+un'altra foto) e il commit 18 non la cambia.

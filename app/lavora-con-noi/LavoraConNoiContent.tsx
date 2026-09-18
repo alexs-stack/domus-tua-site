@@ -749,6 +749,7 @@ export default function LavoraConNoiContent() {
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
         image="/images/reali/consulenza.jpg"
+        srcWidth={1920}
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#candidatura" }}
         secondary={{ label: c.heroSecondary, href: "#perche" }}

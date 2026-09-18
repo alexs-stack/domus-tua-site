@@ -223,6 +223,7 @@ export default function FaqContent() {
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
         image="/images/reali/consulenza.jpg"
+        srcWidth={1920}
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: `#${groups[0].id}` }}

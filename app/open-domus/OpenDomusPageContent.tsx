@@ -32,7 +32,7 @@ const copy = {
     ),
     heroSubcopy:
       "Un format evoluto che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la visita in un momento consapevole, ordinato e professionale.",
-    heroAlt: "Living moderno con accenti senape",
+    heroAlt: "Portico con tenda da sole aperta e poltrone da esterno, una statua scura in primo piano e la piscina sullo sfondo",
     heroPrimary: "Scopri Open Domus",
     heroSecondary: "Come si svolge",
     heroSubtitle: "Non una semplice visita. Un’esperienza preparata per vendere meglio.",
@@ -154,7 +154,7 @@ const copy = {
     ),
     heroSubcopy:
       "A refined format that brings together preparation, hospitality, documentation and pre-qualification. It turns a viewing into a considered, orderly and professional moment.",
-    heroAlt: "Modern living room with mustard accents",
+    heroAlt: "Porch with an open awning and outdoor armchairs, a dark statue in the foreground and the pool in the background",
     heroPrimary: "Discover Open Domus",
     heroSecondary: "How it works",
     heroSubtitle: "Not just a viewing. An experience prepared to sell better.",
@@ -292,7 +292,7 @@ const copy = {
     ),
     heroSubcopy:
       "Un format évolué qui réunit préparation, accueil, documentation et préqualification. Il transforme la visite en un moment réfléchi, ordonné et professionnel.",
-    heroAlt: "Séjour moderne aux accents moutarde",
+    heroAlt: "Portique avec store ouvert et fauteuils d'extérieur, une statue sombre au premier plan et la piscine à l'arrière-plan",
     heroPrimary: "Découvrir Open Domus",
     heroSecondary: "Comment ça se passe",
     heroSubtitle: "Pas une simple visite. Une expérience préparée pour mieux vendre.",
@@ -430,7 +430,7 @@ const copy = {
     ),
     heroSubcopy:
       "Ein durchdachtes Format, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die Besichtigung in einen bewussten, geordneten und professionellen Moment.",
-    heroAlt: "Modernes Wohnzimmer mit senffarbenen Akzenten",
+    heroAlt: "Säulengang mit ausgefahrener Markise und Gartensesseln, eine dunkle Statue im Vordergrund und der Pool im Hintergrund",
     heroPrimary: "Open Domus entdecken",
     heroSecondary: "So läuft es ab",
     heroSubtitle: "Keine gewöhnliche Besichtigung. Ein Erlebnis, vorbereitet für den besseren Verkauf.",
@@ -568,7 +568,7 @@ const copy = {
     ),
     heroSubcopy:
       "Un formato evolucionado que reúne preparación, acogida, documentación y precalificación. Convierte la visita en un momento consciente, ordenado y profesional.",
-    heroAlt: "Salón moderno con acentos mostaza",
+    heroAlt: "Porche con el toldo abierto y sillones de exterior, una estatua oscura en primer plano y la piscina al fondo",
     heroPrimary: "Descubre Open Domus",
     heroSecondary: "Cómo se desarrolla",
     heroSubtitle: "No una simple visita. Una experiencia preparada para vender mejor.",
@@ -726,7 +726,9 @@ export default function OpenDomusPageContent() {
           eyebrow={c.heroEyebrow}
           title={c.heroTitle()}
           subcopy={c.heroSubcopy}
-          image="/images/premium_05_living_accenti_senape.jpg"
+          image="/images/reali/villa-portico-tenda.jpg"
+          objectPosition="50% 60%"
+          srcWidth={2560}
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#percorso" }}

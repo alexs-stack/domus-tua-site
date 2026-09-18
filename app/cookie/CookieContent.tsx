@@ -8,6 +8,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
+import bandPositions from "../lib/motion/band-positions.json";
 import SplitTitle from "../components/motion/SplitTitle";
 import { site } from "../lib/site";
 
@@ -44,7 +45,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Quali cookie utilizziamo, perché lo facciamo e come puoi gestire in ogni momento le tue preferenze.",
-      alt: "Salotto luminoso di un attico con travi a vista",
+      alt: "Giardino con ulivi, prato e un vialetto in pietra accanto alla casa",
       primaryLabel: "Parla con Domus Tua",
       secondaryLabel: "Privacy Policy",
     },
@@ -118,7 +119,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Which cookies we use, why we use them and how you can manage your preferences at any time.",
-      alt: "Bright penthouse living room with exposed beams",
+      alt: "Garden with olive trees, a lawn and a stone path beside the house",
       primaryLabel: "Talk to Domus Tua",
       secondaryLabel: "Privacy Policy",
     },
@@ -192,7 +193,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Quels cookies nous utilisons, pourquoi nous le faisons et comment gérer vos préférences à tout moment.",
-      alt: "Salon lumineux d’un attique avec poutres apparentes",
+      alt: "Jardin avec des oliviers, une pelouse et une allée en pierre à côté de la maison",
       primaryLabel: "Parler à Domus Tua",
       secondaryLabel: "Politique de confidentialité",
     },
@@ -266,7 +267,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Welche Cookies wir verwenden, warum wir das tun und wie Sie Ihre Einstellungen jederzeit verwalten können.",
-      alt: "Helles Wohnzimmer eines Penthouses mit sichtbaren Balken",
+      alt: "Garten mit Olivenbäumen, Rasen und einem Steinweg neben dem Haus",
       primaryLabel: "Mit Domus Tua sprechen",
       secondaryLabel: "Datenschutzerklärung",
     },
@@ -340,7 +341,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Qué cookies utilizamos, por qué lo hacemos y cómo puedes gestionar tus preferencias en cualquier momento.",
-      alt: "Salón luminoso de un ático con vigas a la vista",
+      alt: "Jardín con olivos, césped y un sendero de piedra junto a la casa",
       primaryLabel: "Habla con Domus Tua",
       secondaryLabel: "Política de privacidad",
     },
@@ -416,7 +417,9 @@ export default function CookieContent() {
           eyebrow={c.hero.eyebrow}
           title={c.hero.title()}
           subcopy={c.hero.subcopy}
-          image="/images/hero_01_attico_travi_salotto.jpg"
+          image="/images/reali/villa-uliveto.jpg"
+          objectPosition={bandPositions["/cookie"]}
+          srcWidth={2560}
           alt={c.hero.alt}
           primary={{ label: c.hero.primaryLabel, href: "/contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "/privacy" }}

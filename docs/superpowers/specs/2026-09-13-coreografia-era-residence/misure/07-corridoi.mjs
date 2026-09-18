@@ -15,8 +15,8 @@ import { ROOT, appendResults, gitCommit, launch, mdTable, motionContext, scrollI
 
 /** Gli host accesi sulla home con MQ.corridor vero: lo stesso elenco di EXPECTED_HOME in e2e/corridors.spec.ts. */
 const EXPECTED_ON = ["cartolina", "finestra", "hero", "recensioni", "storia", "team"];
-/** Gli host accesi su /vendi a 1440×900: lo stesso elenco di EXPECTED_VENDI. */
-const EXPECTED_VENDI_ON = [];
+/** Gli host accesi su /vendi a 1440×900: lo stesso elenco di EXPECTED_VENDI (il tuffo delle PageHero, A20, dal commit 18). */
+const EXPECTED_VENDI_ON = ["page-dive"];
 const VIEWPORTS = [
   [1440, 900],
   [1024, 768],
