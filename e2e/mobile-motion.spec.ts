@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect, setConsent } from "./helpers";
-import { INTRO_EVENT, INTRO_KEY, INTRO_MS, INTRO_T } from "../app/lib/motion/intro-constants";
+import { INTRO_EVENT, INTRO_FILM, INTRO_KEY, INTRO_MS, INTRO_T, SHORT_MS } from "../app/lib/motion/intro-constants";
 
 // Coreografia mobile — wave "parità mobile".
 //
@@ -137,6 +137,8 @@ type Fotogramma = {
 type RegistroIntro = {
   /** `data-preloader` è comparso (lo scrive l'inline script, pre-paint). */
   visto: boolean;
+  /** Il valore di `data-preloader` quando è comparso: "" film, "short" o "short-page" corta. */
+  valore: string | null;
   /** Preloader.tsx idratato e al timone (timer di handoff/chiusura, skip): il film è CSS dal paint. */
   live: boolean;
   /** Opacità delle lettere dell'h1 nell'istante del takeover. */
@@ -177,6 +179,7 @@ type ConRegistro = { __dtIntro: RegistroIntro; __dtPreT0?: number; __dtPreArmed?
 function registraIntro(evento: string) {
   const rec: RegistroIntro = {
     visto: false,
+    valore: null,
     live: false,
     heroOpacita: null,
     tVisto: null,
@@ -200,6 +203,7 @@ function registraIntro(evento: string) {
     const coperto = html.hasAttribute("data-preloader");
     if (coperto && !rec.visto) {
       rec.visto = true;
+      rec.valore = html.getAttribute("data-preloader");
       rec.tVisto = performance.now();
     }
     if (!rec.live && html.hasAttribute("data-pre-live")) {
@@ -376,14 +380,14 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     await page.addInitScript(registraIntro, INTRO_EVENT);
   });
 
-  // ── I QUATTRO ATTI, SU DUE ROTTE ────────────────────────────────────────
-  // Su `/` e su `/acquista` (mandato §9.3.3): la shell è nel root layout,
-  // quindi l'intro suona su OGNI rotta, e una rotta non-home lo prova. Il
-  // test gira nei due progetti «interi» (390 e 1440): è lo stesso montaggio
-  // (legge 3), quindi le stesse asserzioni; sotto i 768 cambiano solo le
-  // geometrie dell'arco, e infatti sui px di `--arch-y` non si asserisce
-  // nessun numero assoluto — solo che si muove, e nel verso giusto.
-  for (const rotta of ["/", "/acquista"] as const) {
+  // ── I QUATTRO ATTI, SULLA HOME ──────────────────────────────────────────
+  // Il film intero suona solo alla prima entrata nella home: Alberto il 13
+  // settembre 2026 (A18, A20; spec §6.2). Le pagine interne hanno la porta
+  // corta, provata in e2e/preloader-corta.spec.ts. Il test gira nei due
+  // progetti «interi» (390 e 1440): è lo stesso montaggio, quindi le stesse
+  // asserzioni; sotto i 768 cambiano solo le geometrie dell'arco, e sui px di
+  // `--arch-y` non si asserisce nessun numero assoluto.
+  for (const rotta of ["/"] as const) {
     test(`su ${rotta} suona con i quattro atti, copre l'hero, si chiude da sola e restituisce la pagina`, async ({
       page,
       request,
@@ -516,8 +520,7 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
         .toBe(true);
       const alTimone = await leggiRegistro(page);
       saltaSeAffamata(alTimone, `quattro atti su ${rotta}`);
-      // L'hero cinematico (e le sue lettere [data-hero-char]) c'è solo in home:
-      // su /acquista sotto il sipario c'è la pagina di ricerca.
+      // L'hero cinematico (e le sue lettere [data-hero-char]) c'è solo in home.
       if (rotta === "/") {
         expect(
           alTimone.heroOpacita,
@@ -798,21 +801,28 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
       ).toBeGreaterThan(0);
       expect(
         await page.evaluate((chiave) => sessionStorage.getItem(chiave), INTRO_KEY),
-        `sessionStorage ${INTRO_KEY} non è "1" a intro finita: alla prossima navigazione si rivedrebbe`,
-      ).toBe("1");
+        `sessionStorage ${INTRO_KEY} non è INTRO_FILM a film finito: alla prossima entrata nella home si rivedrebbe il film`,
+      ).toBe(INTRO_FILM);
 
-      // (g) NON SI RIPETE: seconda navigazione, documento nuovo, registro
-      // nuovo. `visto` a false vuol dire che l'attributo non è comparso
-      // NEMMENO PER UN FOTOGRAMMA — una lettura a posteriori non saprebbe
-      // distinguerlo da un lampo — e la shell (che nell'HTML c'è sempre) è
-      // display:none dal primo stile.
+      // (g) IL FILM NON SI RIPETE, SUONA LA CORTA. Alberto il 13 settembre
+      // 2026 (A18, A20): alla seconda entrata nella home la porta corta con
+      // la sagoma (spec §6.2, riga 3); la chiave resta INTRO_FILM.
       await page.goto(rotta, { waitUntil: "domcontentloaded" });
       const ritorno = await leggiRegistro(page);
-      expect(ritorno.visto, `alla seconda navigazione su ${rotta} il sipario è ricomparso`).toBe(false);
+      expect(ritorno.visto, `alla seconda navigazione su ${rotta} la porta corta non è suonata`).toBe(true);
+      expect(ritorno.valore, "alla seconda navigazione della home è suonato il film invece della corta").toBe("short");
+      await expect
+        .poll(async () => (await leggiRegistro(page)).tCaduto !== null, {
+          timeout: 15_000,
+          message: "la porta corta non si è chiusa da sola",
+        })
+        .toBe(true);
+      const corta = await leggiRegistro(page);
+      const t0Corta = (await leggiT0(page)) ?? corta.tVisto!;
       expect(
-        (await overlay(page)).display,
-        "l'overlay dell'intro è visibile lo stesso alla visita di ritorno",
-      ).toBe("none");
+        Math.round(corta.tCaduto! - t0Corta),
+        `la corta è caduta ${Math.round(corta.tCaduto! - t0Corta)}ms dopo l'armamento, oltre SHORT_MS + 1,5 s`,
+      ).toBeLessThan(SHORT_MS + 1500);
     });
   }
 
@@ -1024,15 +1034,10 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     ).toBeGreaterThan(0);
   });
 
-  test("nella stessa sessione non si rivede alla seconda navigazione", async ({ page }) => {
+  test("alla seconda navigazione della home suona la porta corta, con la sagoma", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    // Il tasto DOPO il segnale, che è l'errore di home.spec.ts:33: premuto
-    // subito dopo `domcontentloaded` non trova nessun listener e non salta
-    // niente. Qui serve anche a chiudere l'intro in fretta, ma la condizione
-    // che si aspetta è quella vera: il budget della sessione va segnato speso.
-    // Oppure il film è già finito da solo (JS oltre il failsafe di boot, sotto
-    // il carico dei quattro worker): il budget della sessione è segnato lo
-    // stesso — è ciò che questo test vuole — e il tasto non serve a niente.
+    // Il tasto DOPO il segnale: premuto subito dopo `domcontentloaded` non
+    // trova nessun listener. Oppure il film è già finito da solo sotto carico.
     await page.waitForFunction(
       () =>
         document.documentElement.hasAttribute("data-pre-live") ||
@@ -1042,41 +1047,42 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     );
     await page.keyboard.press("Enter");
     await page.waitForFunction(
-      (chiave) =>
-        !document.documentElement.hasAttribute("data-preloader") &&
-        sessionStorage.getItem(chiave) === "1",
-      INTRO_KEY,
+      ([chiave, film]) =>
+        !document.documentElement.hasAttribute("data-preloader") && sessionStorage.getItem(chiave) === film,
+      [INTRO_KEY, INTRO_FILM] as const,
       { timeout: 20_000, polling: "raf" },
     );
 
-    // Seconda navigazione: documento nuovo, registro nuovo. `visto` a false
-    // vuol dire che l'attributo non è comparso NEMMENO PER UN FOTOGRAMMA —
-    // una lettura a posteriori non saprebbe distinguerlo da un lampo.
+    // Seconda navigazione: la porta corta con la sagoma (Alberto, 13 settembre
+    // 2026, A18 e A20; spec §6.2 riga 3). La corta salta lockup, didascalie,
+    // linea e payoff (D31).
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const ritorno = await leggiRegistro(page);
-    expect(
-      ritorno.visto,
-      "alla seconda navigazione della stessa sessione il sipario è ricomparso",
-    ).toBe(false);
-    // Dal 2026-08-17 la shell dell'intro è markup reso dal SERVER, sempre nel
-    // documento (PreloaderShell.tsx): il contratto non è più «zero nodi» ma
-    // «display:none senza `html[data-preloader]`» — e la sagoma è un <img>
-    // lazy che senza box non parte (zero byte per chi torna, come prima).
-    const ov = await overlay(page);
-    expect(ov.presente, "la shell dell'intro non è nell'HTML della visita di ritorno").toBe(true);
-    expect(ov.display, "l'overlay dell'intro è visibile lo stesso alla visita di ritorno").toBe("none");
-    // E nessuna @keyframes del film è partita: senza box non c'è animazione.
-    expect(
-      await page.evaluate(() => {
-        const root = document.getElementById("dt-preloader");
-        return root ? root.getAnimations({ subtree: true }).length : -1;
-      }),
-      "alla visita di ritorno il film CSS è partito lo stesso (animazioni vive nella shell nascosta)",
-    ).toBe(0);
+    expect(ritorno.visto, "alla seconda navigazione della home la porta corta non è suonata").toBe(true);
+    expect(ritorno.valore).toBe("short");
+    const dentro = await page.evaluate(() => {
+      const root = document.getElementById("dt-preloader");
+      if (!root || !document.documentElement.hasAttribute("data-preloader")) return null;
+      const fig = root.querySelector("[data-pre-figure]")!;
+      return {
+        contenuto: getComputedStyle(root.querySelector("[data-pre-content]")!).display,
+        sagoma: getComputedStyle(fig).animationName,
+        durata: getComputedStyle(fig).animationDuration,
+        animazioni: root.getAnimations({ subtree: true }).length,
+      };
+    });
+    test.skip(dentro === null, "la corta era già caduta quando il driver l'ha letta: macchina affamata, rilancia");
+    expect(dentro!.contenuto, "nella corta [data-pre-content] si dipinge").toBe("none");
+    expect(dentro!.sagoma).toBe("dt-pre-in-fade");
+    expect(dentro!.durata).toBe("0.3s");
+    expect(dentro!.animazioni, "nella corta nessuna keyframe è partita").toBeGreaterThan(0);
+    await page.waitForFunction(() => !document.documentElement.hasAttribute("data-preloader"), undefined, {
+      timeout: 15_000,
+      polling: "raf",
+    });
+    expect(await page.evaluate((k) => sessionStorage.getItem(k), INTRO_KEY)).toBe(INTRO_FILM);
 
-    // E l'hero è leggibile davvero: senza preloader le lettere le rivela
-    // HeroCinematic un respiro dopo l'idratazione. Se restassero a 0.02 la
-    // pagina sarebbe "visibile" e vuota — di nuovo la trappola di §6.1.
+    // E l'hero è leggibile davvero dopo la corta.
     await expect
       .poll(
         () =>
@@ -1084,10 +1090,7 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
             const el = document.querySelector("[data-hero-char]");
             return el ? Number(getComputedStyle(el).opacity) : 0;
           }),
-        {
-          timeout: 10_000,
-          message: "le lettere dell'hero sono rimaste nascoste sulla visita di ritorno",
-        },
+        { timeout: 10_000, message: "le lettere dell'hero sono rimaste nascoste dopo la corta" },
       )
       .toBeGreaterThan(0.9);
   });
@@ -1141,6 +1144,15 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
 
   test.describe("con reduced-motion", () => {
     test.use({ contextOptions: { reducedMotion: "reduce" } });
+
+    test("anche alla visita di ritorno nessun sipario, né film né corta", async ({ page }) => {
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      expect((await leggiRegistro(page)).visto, "con reduced-motion alla prima visita è comparso un sipario").toBe(false);
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      expect((await leggiRegistro(page)).visto, "con reduced-motion alla visita di ritorno è comparsa la corta").toBe(false);
+      await page.goto("/acquista", { waitUntil: "domcontentloaded" });
+      expect((await leggiRegistro(page)).visto, "con reduced-motion su /acquista è comparsa la corta").toBe(false);
+    });
 
     test("l'intro non parte mai e la pagina arriva intera", async ({ page }) => {
       await page.goto("/", { waitUntil: "domcontentloaded" });

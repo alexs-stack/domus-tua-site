@@ -54,14 +54,21 @@ test("il preloader finisce da solo e si può saltare", async ({ page, guards }) 
   expect(guards.consoleErrors, guards.consoleErrors.join("\n")).toEqual([]);
 });
 
-test("l'intro non si ripresenta nella stessa sessione", async ({ page }) => {
+test("alla seconda visita suona la porta corta e l'H1 resta visibile entro 4 s", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 12_000 });
 
-  // Seconda visita nella stessa sessione: l'hero deve essere lì subito, senza rivedere l'intro.
+  // Seconda visita nella stessa sessione: il film intero non torna, suona la
+  // porta corta da 2,38 s (Alberto, 13 settembre 2026, A18 e A20; spec §6.2).
   const started = Date.now();
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.goto("/", { waitUntil: "commit" });
+  await expect(page.locator("html"), "alla seconda visita non è suonata la porta corta").toHaveAttribute(
+    "data-preloader",
+    "short",
+    { timeout: 3_000 },
+  );
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 4_000 });
+  await expect(page.locator("html")).not.toHaveAttribute("data-preloader", /.*/, { timeout: 6_000 });
   expect(Date.now() - started).toBeLessThan(8_000);
 });
 

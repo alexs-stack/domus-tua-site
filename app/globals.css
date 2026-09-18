@@ -957,7 +957,8 @@ html[data-consent] .dt-consent {
 
 /* ---------- Preloader "Arco Domus" ----------
    L'inline script nel layout marca <html data-preloader> PRIMA del primo
-   paint (prima visita di sessione, motion ok, nessuna ancora nell'URL), e
+   paint (motion ok, nessuna ancora nell'URL; il film alla prima entrata nella
+   home, la porta corta più sotto agli altri caricamenti: spec §6.2), e
    senza JS l'attributo non esiste mai → questo overlay non esiste mai.
    DAL 2026-08-17 IL MARKUP È RESO DAL SERVER (PreloaderShell.tsx, nel root
    layout) E IL FILM INTERO È CSS (opzione D, docs/mobile-parity-2.md §8.5):
@@ -1263,13 +1264,53 @@ html[data-preloader]:not([data-pre-gsap]) .dt-preloader {
     dt-pre-dive 1.5s cubic-bezier(0.6, 0, 0, 1) 3.13s forwards,
     dt-pre-autohide 0.5s ease 4.73s forwards;
 }
+/* LA PORTA CORTA (spec §6.2). Alberto il 13 settembre 2026 (A18, A20): a ogni
+   caricamento completo che non è la prima entrata nella home suonano solo
+   porta e tuffo, con le keyframe del film e i delay riscritti: porta da 0 s,
+   tuffo da SHORT_T.dive (0,88 s), autohide a PRE_SHORT_AUTOHIDE_MS (2,48 s).
+   Salta tutto il contenuto del lockup; la sagoma resta solo su «/», dove il
+   patto della porta regge, ed entra in 0,3 s; il pannello è avorio profondo
+   e il fondo espresso non si dipinge (D31). Lo skip non esiste nella corta.
+   Stessa specificità della lista del film: queste regole stanno dopo. */
+html[data-preloader^="short"] .dt-preloader [data-pre-content] {
+  display: none;
+}
+html[data-preloader="short"] .dt-preloader [data-pre-figure] {
+  animation: dt-pre-in-fade 0.3s linear 0s both;
+}
+html[data-preloader="short-page"] .dt-preloader [data-pre-figure] {
+  display: none;
+}
+html[data-preloader^="short"]:not([data-pre-gsap]) .dt-preloader {
+  animation-delay: 0s, 0.88s, 2.48s;
+}
+html[data-preloader^="short"] .dt-preloader [data-pre-panel] {
+  background-color: var(--color-cream-deep);
+}
+html[data-preloader^="short"] .dt-pre-fondo {
+  display: none;
+}
+/* Gli anelli eco sono figli del pannello e di base sono espresso (sotto, nella
+   regola degli anelli): nella corta prendono l'avorio profondo col profilo della
+   linea, niente fasce scure sull'avorio (D05, D31; C17 e A11 in spec §8). Si
+   ricolorano e non si nascondono: l'unico display:none degli anelli resta
+   quello di @supports not (mask-composite: add). Il profilo è un outline a
+   offset negativo, dentro la scatola: spec §8 (C14) vieta le ombre di scatola,
+   e un bordo cambierebbe la geometria di --arch-y e --arch-s. Scelta da
+   mostrare ad Alberto. */
+html[data-preloader^="short"] .dt-preloader [data-pre-arch-echo] {
+  background-color: var(--color-cream-deep);
+  outline: 1px solid var(--color-line);
+  outline-offset: -1px;
+}
 /* La linea di carica: la scatola si accende a INTRO_T.progress (0,55, 0,25 s
    lineare, era autoAlpha) e la barra sale a INTRO_T.track (0,6, 1,55 s).
    L'ease della barra è `dtLoader` di gsap.ts, una CustomEase a più segmenti
    (i «scatti» di un vero caricamento): non è una cubic-bezier, quindi qui è
-   `linear(...)` campionata dalla curva SVG di gsap.ts ogni 1/16 (script di
-   campionamento a mano; i valori sono la curva, non un'approssimazione a
-   occhio). Dove `linear()` manca (Safari < 17.2, Firefox < 112) resta la
+   `linear(...)` campionata dalla curva SVG di gsap.ts su 17 punti: gli
+   ancoraggi del path più i punti di errore massimo (spec del 13 settembre
+   2026, §6.2; errore massimo 0,0032 contro 0,0087 del passo fisso a 1/16).
+   Dove `linear()` manca (Safari < 17.2, Firefox < 112) resta la
    bezier dichiarata sopra, cubic-bezier(0.2, 0.45, 0, 0.25): il miglior fit
    ai minimi quadrati della stessa curva (ricerca a griglia 0,05 su 31
    campioni) — la forma media, senza gli scatti. */
@@ -1280,21 +1321,21 @@ html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
   animation: dt-pre-track 1.55s cubic-bezier(0.2, 0.45, 0, 0.25) 0.6s both;
   animation-timing-function: linear(
     0 0%,
-    0.148 6.3%,
-    0.276 12.5%,
-    0.381 18.8%,
-    0.453 25%,
+    0.154 6.5%,
+    0.283 12.9%,
+    0.378 18.6%,
+    0.414 21.2%,
+    0.442 23.8%,
+    0.482 28.2%,
     0.504 31.3%,
-    0.533 37.5%,
-    0.554 43.8%,
-    0.575 50%,
-    0.621 56.3%,
-    0.715 62.5%,
-    0.797 68.8%,
-    0.858 75%,
-    0.901 81.3%,
-    0.938 87.5%,
-    0.971 93.8%,
+    0.54 39.6%,
+    0.584 52.2%,
+    0.595 53.9%,
+    0.615 55.8%,
+    0.75 65%,
+    0.826 71.4%,
+    0.866 76%,
+    0.91 82.6%,
     1 100%
   );
 }
@@ -1370,6 +1411,14 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
 html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
   animation: dt-rest-failsafe 0.5s ease 3.33s forwards;
 }
+/* Con la porta corta (Alberto, 13 settembre 2026: A18, A20) la stessa rete
+   scatta a HERO_REST_SHORT_MS (1,08 s): tuffo della corta più 200 ms (spec §6.2). */
+html[data-hero-rest="short"] .dt-hero-rest {
+  animation: dt-rest-failsafe 0.5s ease 1.08s forwards;
+}
+html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
+  animation: dt-rest-failsafe 0.5s ease 1.08s forwards;
+}
 @keyframes dt-rest-failsafe {
   to {
     opacity: 1;
@@ -1380,7 +1429,7 @@ html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-her
    dai candidati LCP), con una rete che lo porta a 1. È l'unico stato nascosto
    scritto in CSS: solo sotto l'attributo del boot script (motion ok), mai sotto
    /case/[slug] (D32). Rete a HERO_REST_WARM_MS senza film, HERO_REST_MS col film;
-   "short" è la porta corta di spec §6.2, che oggi nessuno scrive. Le tre regole
+   "short" con la porta corta di spec §6.2, scritto dal boot script. Le tre regole
    hanno la stessa specificità: il ritardo delle ultime due vince sull'`animation`
    della prima per ordine. */
 :root[data-hero-intro] [data-reveal]:not([data-reveal-armed]):not([data-motion-freeze] *) {

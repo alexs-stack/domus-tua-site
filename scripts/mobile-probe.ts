@@ -45,7 +45,7 @@ async function main() {
 
   await page.addInitScript(() => {
     try {
-      sessionStorage.setItem("dt-intro-seen", "1");
+      sessionStorage.setItem("dt-intro-seen", "q");
     } catch {}
   });
   await page.goto(`${base}/`, { waitUntil: "networkidle", timeout: 60_000 });

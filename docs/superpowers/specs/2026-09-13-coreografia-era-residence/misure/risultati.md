@@ -2468,3 +2468,154 @@ schermo, le origini verticali fra 15 e 40 % a 1440×900 e fra 5 e 30 % a 1920×1
 `50% 25%` sulle sole due rotte di `consulenza.jpg`). La testa intera resta sotto metà schermo (375 px su 900, 500 su
 1080). L'origine `50 % 75 %` è una cifra di spec §5.1: la scelta resta ad Alberto (accettare, un'origine per rotta,
 un'altra foto) e il commit 18 non la cambia.
+
+## 19 · ricarica e navigazione nuova («prima»)
+
+2026-09-18 · commit 251dfe4+ · scripts/probe-intro-reload.mjs, mediana di 5 giri, senza consenso. 1440×900 senza freno; 390×664 DPR 3, CPU ×4, 1,6 Mbps / 150 ms.
+
+| caso | rotta | fase | LCP ms | elemento | CLS max | sipario | caduta ms |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440 | / | ricarica | 128 | IMG | 0 | nessuno nessuno nessuno nessuno nessuno | — |
+| 1440 | / | nuova | 128 | IMG | 0 | nessuno nessuno nessuno nessuno nessuno | — |
+| 1440 | /vendi | ricarica | 104 | IMG | 0 | nessuno nessuno nessuno nessuno nessuno | — |
+| 1440 | /vendi | nuova | 100 | IMG | 0 | nessuno nessuno nessuno nessuno nessuno | — |
+| 1440 | /contatti | ricarica | 68 | H1 | 0 | nessuno nessuno nessuno nessuno nessuno | — |
+| 1440 | /contatti | nuova | 60 | H1 | 0 | nessuno nessuno nessuno nessuno nessuno | — |
+| 390-lento | / | ricarica | 1892 | IMG | 0.0002 | nessuno nessuno nessuno nessuno nessuno | — |
+| 390-lento | / | nuova | 1856 | IMG | 0.0002 | nessuno nessuno nessuno nessuno nessuno | — |
+| 390-lento | /vendi | ricarica | 3248 | IMG | 0.0002 | nessuno nessuno nessuno nessuno nessuno | — |
+| 390-lento | /vendi | nuova | 3256 | IMG | 0.0002 | nessuno nessuno nessuno nessuno nessuno | — |
+| 390-lento | /contatti | ricarica | 1124 | P | 0.0002 | nessuno nessuno nessuno nessuno nessuno | — |
+| 390-lento | /contatti | nuova | 1108 | P | 0.0002 | nessuno nessuno nessuno nessuno nessuno | — |
+
+## 19 · porta corta con motion attivo
+
+2026-09-18 · commit 251dfe4+ · misure/19-preloader-corta.mjs, 3 giri per caso, consenso accettato. Attesi: dt-pre-door 0/1100 ms, dt-pre-dive 880/1500 ms, dt-pre-autohide 2480/500 ms; handoff in [830, 1180] ms a 1440 e [830, 1500] ms a 390; caduta ≤ 2980 ms; pannello e anelli eco rgb(244, 236, 226).
+
+| viewport | caso | giro | data-preloader | keyframe delay/durata ms | handoff ms | caduta ms | contenuto | sagoma | pannello | anelli eco | partenza vh | risalite | fotogrammi |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | interna /acquista | 1 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 944 | 2445 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 142 |
+| 1440×900 | interna /acquista | 2 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 949 | 2450 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 141 |
+| 1440×900 | interna /acquista | 3 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 961 | 2462 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 142 |
+| 1440×900 | home / dopo il film | 1 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 954 | 2456 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 137 |
+| 1440×900 | home / dopo il film | 2 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 970 | 2471 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 138 |
+| 1440×900 | home / dopo il film | 3 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 957 | 2458 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 138 |
+| 390×664 | interna /acquista | 1 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 951 | 2451 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 142 |
+| 390×664 | interna /acquista | 2 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 960 | 2460 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 141 |
+| 390×664 | interna /acquista | 3 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 960 | 2461 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 142 |
+| 390×664 | home / dopo il film | 1 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 968 | 2471 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 138 |
+| 390×664 | home / dopo il film | 2 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 966 | 2468 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 138 |
+| 390×664 | home / dopo il film | 3 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 968 | 2469 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 139 |
+
+Regole rispettate.
+
+## 19 · ricarica e navigazione nuova («dopo»)
+
+2026-09-18 · commit 251dfe4+ · scripts/probe-intro-reload.mjs, mediana di 5 giri, senza consenso. 1440×900 senza freno; 390×664 DPR 3, CPU ×4, 1,6 Mbps / 150 ms.
+
+| caso | rotta | fase | LCP ms | elemento | CLS max | sipario | caduta ms |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440 | / | ricarica | 136 | IMG | 0 | short short short short short | 2450 |
+| 1440 | / | nuova | 136 | IMG | 0 | short short short short short | 2440 |
+| 1440 | /vendi | ricarica | 104 | IMG | 0 | short-page short-page short-page short-page short-page | 2423 |
+| 1440 | /vendi | nuova | 104 | IMG | 0 | short-page short-page short-page short-page short-page | 2432 |
+| 1440 | /contatti | ricarica | 60 | H1 | 0 | short-page short-page short-page short-page short-page | 2406 |
+| 1440 | /contatti | nuova | 64 | H1 | 0 | short-page short-page short-page short-page short-page | 2410 |
+| 390-lento | / | ricarica | 1924 | IMG | 0.0002 | short short short short short | 2994 |
+| 390-lento | / | nuova | 1896 | IMG | 0.0002 | short short short short short | 2989 |
+| 390-lento | /vendi | ricarica | 3216 | IMG | 0.0002 | short-page short-page short-page short-page short-page | 2761 |
+| 390-lento | /vendi | nuova | 3248 | IMG | 0.0002 | short-page short-page short-page short-page short-page | 2765 |
+| 390-lento | /contatti | ricarica | 1112 | P | 0.0002 | short-page short-page short-page short-page short-page | 2479 |
+| 390-lento | /contatti | nuova | 1100 | P | 0.0002 | short-page short-page short-page short-page short-page | 2488 |
+
+Deroga da portare ad Alberto (caduta a 390 lento oltre SHORT_MS + 600 ms, lane-globali §4.9):
+- 390-lento / ricarica: caduta 2994 ms, fra 2980 e 3880
+- 390-lento / nuova: caduta 2989 ms, fra 2980 e 3880
+
+## 19 · ricarica e navigazione nuova («dopo»)
+
+2026-09-18 · commit 4293262+ · scripts/probe-intro-reload.mjs, mediana di 5 giri, senza consenso. 1440×900 senza freno; 390×664 DPR 3, CPU ×4, 1,6 Mbps / 150 ms.
+
+| caso | rotta | fase | LCP ms | elemento | CLS max | sipario | caduta ms |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440 | / | ricarica | 140 | IMG | 0 | short short short short short | 2445 |
+| 1440 | / | nuova | 140 | IMG | 0 | short short short short short | 2444 |
+| 1440 | /vendi | ricarica | 104 | IMG | 0 | short-page short-page short-page short-page short-page | 2430 |
+| 1440 | /vendi | nuova | 108 | IMG | 0 | short-page short-page short-page short-page short-page | 2437 |
+| 1440 | /contatti | ricarica | 64 | H1 | 0 | short-page short-page short-page short-page short-page | 2413 |
+| 1440 | /contatti | nuova | 64 | H1 | 0 | short-page short-page short-page short-page short-page | 2407 |
+| 390-lento | / | ricarica | 1976 | IMG | 0.0002 | short short short short short | 3227 |
+| 390-lento | / | nuova | 1988 | IMG | 0.0002 | short short short short short | 3214 |
+| 390-lento | /vendi | ricarica | 3220 | IMG | 0.0002 | short-page short-page short-page short-page short-page | 2708 |
+| 390-lento | /vendi | nuova | 3244 | IMG | 0.0002 | short-page short-page short-page short-page short-page | 2711 |
+| 390-lento | /contatti | ricarica | 1096 | P | 0.0002 | short-page short-page short-page short-page short-page | 2485 |
+| 390-lento | /contatti | nuova | 1096 | P | 0.0002 | short-page short-page short-page short-page short-page | 2482 |
+
+Soglie NON rispettate:
+- 390-lento / nuova: LCP 1988 > prima 1856 + 100
+
+Deroga da portare ad Alberto (caduta a 390 lento oltre SHORT_MS + 600 ms, lane-globali §4.9):
+- 390-lento / ricarica: caduta 3227 ms, fra 2980 e 3880
+- 390-lento / nuova: caduta 3214 ms, fra 2980 e 3880
+
+## 19 · ricarica e navigazione nuova («dopo»)
+
+2026-09-18 · commit 4293262+ · scripts/probe-intro-reload.mjs, mediana di 5 giri, senza consenso. 1440×900 senza freno; 390×664 DPR 3, CPU ×4, 1,6 Mbps / 150 ms.
+
+| caso | rotta | fase | LCP ms | elemento | CLS max | sipario | caduta ms |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440 | / | ricarica | 136 | IMG | 0 | short short short short short | 2450 |
+| 1440 | / | nuova | 140 | IMG | 0 | short short short short short | 2447 |
+| 1440 | /vendi | ricarica | 96 | IMG | 0 | short-page short-page short-page short-page short-page | 2426 |
+| 1440 | /vendi | nuova | 108 | IMG | 0 | short-page short-page short-page short-page short-page | 2426 |
+| 1440 | /contatti | ricarica | 64 | H1 | 0 | short-page short-page short-page short-page short-page | 2408 |
+| 1440 | /contatti | nuova | 64 | H1 | 0 | short-page short-page short-page short-page short-page | 2414 |
+| 390-lento | / | ricarica | 1892 | IMG | 0.0002 | short short short short short | 3026 |
+| 390-lento | / | nuova | 1916 | IMG | 0.0002 | short short short short short | 2971 |
+| 390-lento | /vendi | ricarica | 3244 | IMG | 0.0002 | short-page short-page short-page short-page short-page | 2877 |
+| 390-lento | /vendi | nuova | 3304 | IMG | 0.0002 | short-page short-page short-page short-page short-page | 2886 |
+| 390-lento | /contatti | ricarica | 1112 | P | 0.0002 | short-page short-page short-page short-page short-page | 2484 |
+| 390-lento | /contatti | nuova | 1116 | P | 0.0002 | short-page short-page short-page short-page short-page | 2479 |
+
+Deroga da portare ad Alberto (caduta a 390 lento oltre SHORT_MS + 600 ms, lane-globali §4.9):
+- 390-lento / ricarica: caduta 3026 ms, fra 2980 e 3880
+
+## 19 · porta corta con motion attivo
+
+2026-09-18 · commit 4293262+ · misure/19-preloader-corta.mjs, 3 giri per caso, consenso accettato. Attesi: dt-pre-door 0/1100 ms, dt-pre-dive 880/1500 ms, dt-pre-autohide 2480/500 ms; handoff in [830, 1180] ms a 1440 e [830, 1500] ms a 390; caduta ≤ 2980 ms; pannello e anelli eco rgb(244, 236, 226).
+
+| viewport | caso | giro | data-preloader | keyframe delay/durata ms | handoff ms | caduta ms | contenuto | sagoma | pannello | anelli eco | partenza vh | risalite | fotogrammi |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440×900 | interna /acquista | 1 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 941 | 2442 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 141 |
+| 1440×900 | interna /acquista | 2 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 954 | 2455 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 142 |
+| 1440×900 | interna /acquista | 3 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 976 | 2477 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 142 |
+| 1440×900 | home / dopo il film | 1 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 961 | 2463 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 136 |
+| 1440×900 | home / dopo il film | 2 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 993 | 2494 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 139 |
+| 1440×900 | home / dopo il film | 3 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 967 | 2468 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 138 |
+| 390×664 | interna /acquista | 1 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 943 | 2444 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 140 |
+| 390×664 | interna /acquista | 2 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 970 | 2472 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 142 |
+| 390×664 | interna /acquista | 3 | short-page | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 943 | 2444 | none | none 0.9s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 141 |
+| 390×664 | home / dopo il film | 1 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 951 | 2452 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 137 |
+| 390×664 | home / dopo il film | 2 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 980 | 2481 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 140 |
+| 390×664 | home / dopo il film | 3 | short | dt-pre-door 0/1100, dt-pre-dive 880/1500, dt-pre-autohide 2480/500 | 983 | 2483 | none | block 0.3s | rgb(244, 236, 226) | rgb(244, 236, 226) | 104 | 0 | 139 |
+
+Regole rispettate.
+
+### 19 · nota del giro di correzione 1 (D65)
+
+2026-09-18. Le tre sezioni qui sopra (due volte la sonda «dopo», porta corta) e la 19b qui sotto sono state lanciate sul build col guardiano della ricarica (D65); `19-intro-reload-dopo.json` è quello del secondo lancio. Il primo lancio della sonda «dopo» è uscito 1 per l'LCP di «/» a 390 lento in navigazione nuova (1988 contro 1856 + 100): la navigazione nuova non arma il guardiano (solo `nav === "reload"`), e il secondo lancio, sullo stesso build, dà 1916 ed esce 2. La deroga resta: a 390 lento su «/» l'attributo cade a 3026 ms (ricarica) e 2971 ms (nuova) nel secondo lancio, 3227 e 3214 nel primo, contro 2980. Nessuna soglia cambiata: la decisione è di Alberto e il push del blocco aspetta la sua risposta.
+
+## 19b · ricarica a 0.3 schermi su «/» con la corta (D65)
+
+2026-09-18 · commit 4293262+ · misure/19b-ricarica-cima.mjs, 3 giri per caso, consenso accettato, chiave INTRO_FILM. 1440×900 senza freno; 390×664 DPR 3, CPU ×4, 1,6 Mbps / 150 ms. «fuori dalla cima» = fotogrammi rAF sotto l'attributo con scrollY > 1; «porta min» = la quota più alta della porta in quei fotogrammi, in % di innerHeight (≥ 100: sotto il bordo, pagina coperta). Tempi in ms dall'armamento.
+
+| viewport | giro | scrollY prima | data-preloader | fotogrammi sotto | fuori dalla cima | porta min % | porta aperta fuori cima | scrollY max dopo (3000 ms) | caduta | load | ritiro guardiano | scrollRestoration ritiro / refresh ST |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1440 | 1 | 270 | short | 139 | 1 (max 270) | 104 | 0 | 0 | 2393 | 17 | 2393 | auto / auto |
+| 1440 | 2 | 270 | short | 140 | 1 (max 270) | 104 | 0 | 0 | 2390 | 18 | 2390 | auto / auto |
+| 1440 | 3 | 270 | short | 139 | 1 (max 270) | 104 | 0 | 0 | 2389 | 22 | 2389 | auto / auto |
+| 390-lento | 1 | 199 | short | 126 | 1 (max 199) | 104 | 0 | 0 | 3241 | 3678 | 3854 | auto / auto |
+| 390-lento | 2 | 199 | short | 126 | 1 (max 199) | 104 | 0 | 0 | 3111 | 3490 | 3631 | auto / auto |
+| 390-lento | 3 | 199 | short | 127 | 1 (max 199) | 104 | 0 | 0 | 3200 | 3598 | 3744 | auto / auto |
+
+Regole rispettate.

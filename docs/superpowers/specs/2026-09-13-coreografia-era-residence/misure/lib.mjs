@@ -12,11 +12,13 @@
 //
 // export const HERE: string, ROOT: string, PORT: 3178
 // export function introKey(): string
+// export function introString(name: string): string
+// export function introQuiet(): string
 // export function consentCookie(): string
 // export function externalHosts(): string[]
 // export async function startServer({ port }?): Promise<{ base: string, stop(): Promise<void> }>
 // export async function launch(): Promise<Browser>
-// export async function motionContext(browser, descriptor, { consent, locale, skipCurtain }?): Promise<BrowserContext>
+// export async function motionContext(browser, descriptor, { consent, locale, skipCurtain, seedKey }?): Promise<BrowserContext>
 // export async function freshTriggers(page): Promise<void>
 // export async function wheelScale(page): Promise<number>
 // export async function scrollInstant(page, y): Promise<number>
@@ -44,6 +46,18 @@ export function introKey() {
   const m = /export const INTRO_KEY = "([^"]+)"/.exec(read("app/lib/motion/intro-constants.ts"));
   if (!m) throw new Error("INTRO_KEY non trovato in app/lib/motion/intro-constants.ts");
   return m[1];
+}
+
+/** Il valore di `export const <name> = "…"` in intro-constants.ts, letto e non importato: lib.mjs gira anche senza tsx. */
+export function introString(name) {
+  const m = new RegExp(`export const ${name} = "([^"]+)"`).exec(read("app/lib/motion/intro-constants.ts"));
+  if (!m) throw new Error(`${name} non trovato in app/lib/motion/intro-constants.ts`);
+  return m[1];
+}
+
+/** La chiave del silenzio della macchina a stati (spec §6.2; Alberto, 13 set. 2026, A18 e A20): nessun sipario. */
+export function introQuiet() {
+  return introString("INTRO_QUIET");
 }
 
 export function consentCookie() {
@@ -109,7 +123,7 @@ export async function launch() {
   return chromium.launch({ headless: true });
 }
 
-export async function motionContext(browser, descriptor, { consent = null, locale = null, skipCurtain = true } = {}) {
+export async function motionContext(browser, descriptor, { consent = null, locale = null, skipCurtain = true, seedKey = null } = {}) {
   const options = { ...descriptor, reducedMotion: "no-preference" };
   delete options.defaultBrowserType;
   const ctx = await browser.newContext(options);
@@ -117,14 +131,26 @@ export async function motionContext(browser, descriptor, { consent = null, local
   if (consent) cookies.push({ name: consentCookie(), value: consent, domain: "127.0.0.1", path: "/" });
   if (locale) cookies.push({ name: "dt_locale", value: locale, domain: "127.0.0.1", path: "/" });
   if (cookies.length) await ctx.addCookies(cookies);
+  // La chiave del sipario (spec §6.2; Alberto, 13 set. 2026, A18 e A20): con
+  // skipCurtain vale INTRO_QUIET e nessun sipario suona; senza, seedKey (per
+  // esempio "1", il film già armato) si scrive solo a chiave assente, così la
+  // macchina a stati resta viva fra le navigazioni dello stesso contesto.
   if (skipCurtain) {
-    await ctx.addInitScript((key) => {
+    await ctx.addInitScript(([key, quiet]) => {
       try {
-        sessionStorage.setItem(key, "1");
+        sessionStorage.setItem(key, quiet);
       } catch {
         // storage negato: il sipario partirà
       }
-    }, introKey());
+    }, [introKey(), introQuiet()]);
+  } else if (seedKey !== null) {
+    await ctx.addInitScript(([key, value]) => {
+      try {
+        if (sessionStorage.getItem(key) === null) sessionStorage.setItem(key, value);
+      } catch {
+        // storage negato: la macchina a stati parte da chiave assente
+      }
+    }, [introKey(), seedKey]);
   }
   const hosts = externalHosts();
   await ctx.route(

@@ -36,7 +36,7 @@ async function main() {
   const page = await context.newPage();
   await page.addInitScript(() => {
     try {
-      sessionStorage.setItem("dt-intro-seen", "1");
+      sessionStorage.setItem("dt-intro-seen", "q");
     } catch {}
   });
   await page.goto(`${base}${route}`, { waitUntil: "networkidle", timeout: 60_000 });

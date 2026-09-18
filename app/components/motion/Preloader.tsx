@@ -1,7 +1,8 @@
 "use client";
 
-// Preloader "Arco Domus" — prima visita della sessione: l'ORCHESTRATORE del
-// film, non più il suo motore. Non rende markup: quello è di
+// Preloader "Arco Domus" — l'ORCHESTRATORE del sipario: il film intero alla
+// prima entrata nella home e la porta corta agli altri caricamenti completi
+// (Alberto, 13 settembre 2026: A18, A20; spec §6.2), non il loro motore. Non rende markup: quello è di
 // PreloaderShell.tsx (server). Non muove più la maschera: quello è CSS.
 //
 // Coreografia rif. era-residence.com (reverse-engineering/era-residence/):
@@ -49,7 +50,8 @@
 //     atti (legge 1 e 3 del mandato; è ciò che fa ERA).
 //   • L'attributo <html data-preloader> è messo dal boot script del layout
 //     PRIMA del primo paint: qui si orchestra e si smonta.
-//   • Una volta per sessione (sessionStorage), skip con tocco/click/tasto.
+//   • Quale sipario suona lo decide il boot script (layout.tsx, chiave
+//     INTRO_KEY); lo skip con tocco/click/tasto esiste solo nel film (D31).
 //   • Assente con reduced-motion e senza JS (l'attributo non c'è mai).
 //   • Non blocca l'LCP: l'hero sotto continua fetch/decode; l'overlay è solo
 //     un layer fixed sopra — ed è proprio ciò che l'arco rivela.
@@ -67,11 +69,15 @@ import {
 import { getLenis } from "./SmoothScroll";
 import {
   INTRO_EVENT,
+  INTRO_FILM,
   INTRO_KEY,
   INTRO_MS,
   INTRO_T,
   LAST_Y_KEY,
   PRE_FAILSAFE_MS,
+  PRE_SHORT_FAILSAFE_MS,
+  SHORT_MS,
+  SHORT_T,
   WARM_FIRST_FOLD_MS,
 } from "../../lib/motion/intro-constants";
 import {
@@ -120,7 +126,13 @@ export function hasIntroFired(): boolean {
 }
 
 /** Il boot script segna qui che il sipario era previsto (vedi layout.tsx). */
-type BootFlags = { __dtPreArmed?: number; __dtPreFailsafe?: number; __dtPreT0?: number };
+type BootFlags = {
+  __dtPreArmed?: number;
+  __dtPreFailsafe?: number;
+  __dtPreT0?: number;
+  __dtPreTop?: number;
+  __dtPreTopOff?: () => void;
+};
 const boot = () => window as unknown as BootFlags;
 
 // Le ease dell'arco ("dtLoader", "dtDiveIn") vivono nel vocabolario condiviso
@@ -205,6 +217,22 @@ function cssFilmAlive(nodes: ReadonlyArray<Element | null | undefined>): boolean
 }
 
 export default function Preloader() {
+  /* D65: alla ricarica con un sipario il guardiano del boot script (layout.tsx)
+     tiene la pagina in cima con `history.scrollRestoration = "manual"` e lo
+     rimette "auto" quando si ritira (`__dtPreTop` 1 → 0). ScrollTrigger, se è
+     partito sotto il guardiano, si è segnato "manual" e lo riscriverebbe dopo
+     ogni refresh: al ritiro, o subito se è già avvenuto, gli si dice "auto". */
+  useEffect(() => {
+    const flags = boot();
+    if (flags.__dtPreTop === undefined) return;
+    const auto = () => ScrollTrigger.clearScrollMemory("auto");
+    if (flags.__dtPreTop === 0) auto();
+    else flags.__dtPreTopOff = auto;
+    return () => {
+      if (flags.__dtPreTopOff === auto) flags.__dtPreTopOff = undefined;
+    };
+  }, []);
+
   /* Chi torna sul sito, o chi ha reduced-motion, non vede il sipario: il
      precarico non ha una copertura dietro cui girare e non deve rubare tempo
      al primo rendering. Parte quindi a ruota libera, appena il thread respira.
@@ -336,6 +364,12 @@ export default function Preloader() {
     // questo ramo sia le regole CSS gemelle, che usano la stessa soglia.
     const mobile = window.matchMedia(MQ.belowDesktop).matches;
 
+    // La porta corta (Alberto, 13 settembre 2026: A18, A20; spec §6.2): il
+    // boot script scrive "short" su «/» e "short-page" sulle interne. Solo
+    // porta e tuffo: nessuno skip, nessun precarico da aspettare, nessuna
+    // chiave del film.
+    const short = html.getAttribute("data-preloader")?.startsWith("short") ?? false;
+
     // Il JS è al timone (dei timer, dello skip, della chiusura — il film è
     // CSS): lo dice a e2e, filmstrip e sonde. Siamo in un layout effect:
     // l'attributo entra nel paint in cui l'orchestrazione si arma.
@@ -359,9 +393,13 @@ export default function Preloader() {
     const finish = (completed: boolean) => {
       if (finished) return;
       finished = true;
-      if (completed) {
+      // La chiave del film la scrive già il boot script all'armamento: qui
+      // resta la cintura. La corta non la tocca mai: se scrivesse INTRO_FILM
+      // dopo una corta interna, la home non darebbe più il film (riga 4 della
+      // macchina a stati di spec §6.2; Alberto, 13 set. 2026, A18 e A20).
+      if (completed && !short) {
         try {
-          sessionStorage.setItem(INTRO_KEY, "1");
+          sessionStorage.setItem(INTRO_KEY, INTRO_FILM);
         } catch {
           /* storage pieno/bloccato: pazienza, si rivedrà */
         }
@@ -416,9 +454,11 @@ export default function Preloader() {
     }
 
     getLenis()?.stop();
-    // L'arco rivela l'hero: la pagina deve essere in cima (reload a metà
-    // pagina, scroll restoration). Lenis è già fermo: salto istantaneo.
-    window.scrollTo(0, 0);
+    // L'arco rivela l'hero: la pagina deve essere in cima. Alla ricarica la
+    // tiene lì il guardiano del boot script (D65, layout.tsx); questa è la
+    // cintura. `instant` perché `html` ha `scroll-behavior: smooth` finché
+    // Lenis non mette la sua classe.
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
 
     // Il jank di avvio (idratazione, decode immagini) con lagSmoothing(0)
     // farebbe saltare la timeline in avanti di secondi al primo tick.
@@ -493,7 +533,11 @@ export default function Preloader() {
     // quindi ciò che è già passato; a zero la promessa si risolve subito.
     const filmMs = Math.round(elapsed * 1000);
     let scaldata: Promise<void>;
-    if (mobile) {
+    // Nella corta niente attesa (D31): 2,38 s non coprono il precarico del
+    // film (4,5 s su desktop). Il registro parte a ruota libera da finish().
+    if (short) {
+      scaldata = Promise.resolve();
+    } else if (mobile) {
       scaldata = warmFirstFold(Math.max(0, WARM_FIRST_FOLD_MS - filmMs));
     } else {
       registerWarmup(warmAllImages);
@@ -522,12 +566,15 @@ export default function Preloader() {
     // CSS: qui NON si tocca nessuno di quei nodi — un `fromTo` li riporterebbe
     // a zero con un salto visibile.
     const unwill = () => html.setAttribute("data-pre-act2", "");
+    // Nella corta l'atto I non si dipinge (D31: salta [data-pre-content]):
+    // la finestra del will-change si chiude subito.
+    if (short) unwill();
 
     // Gli istanti del film che contano qui: l'handoff (il tuffo, o il bordo
     // del sipario che scopre l'hero) e la fine.
-    const diveAt = supportsArch ? INTRO_T.dive : INTRO_T.curtain;
-    const endAt = supportsArch ? INTRO_MS / 1000 : INTRO_T.curtain + INTRO_T.curtainDur;
-    const diveDur = supportsArch ? INTRO_T.diveDur : INTRO_T.curtainDur;
+    const diveAt = short ? SHORT_T.dive : supportsArch ? INTRO_T.dive : INTRO_T.curtain;
+    const endAt = short ? SHORT_MS / 1000 : supportsArch ? INTRO_MS / 1000 : INTRO_T.curtain + INTRO_T.curtainDur;
+    const diveDur = short ? SHORT_T.diveDur : supportsArch ? INTRO_T.diveDur : INTRO_T.curtainDur;
 
     // ── CHI GUIDA? ──────────────────────────────────────────────────────
     // La CSS, di default (le keyframe di globals.css stanno correndo da prima
@@ -543,6 +590,15 @@ export default function Preloader() {
       typeof CSS !== "undefined" &&
       "registerProperty" in CSS &&
       cssFilmAlive([root, panel]);
+
+    // La corta non ha ripiego GSAP (D31): il boot script la arma solo con
+    // `registerProperty` e `mask-composite` (spec §6.2, riga 14). Se qui le
+    // keyframe non corrono, si chiude subito.
+    if (short && !cssDrives) {
+      fireIntro();
+      finish(true);
+      return;
+    }
 
     // Se l'orologio CSS dice che il film è già FINITO non c'è più niente da
     // orchestrare: si chiude subito, come il failsafe avrebbe fatto. Il caso è
@@ -856,8 +912,12 @@ export default function Preloader() {
       if (!document.hidden) return;
       closeImmediately();
     };
-    window.addEventListener("pointerdown", onPointerSkip);
-    window.addEventListener("keydown", onKeySkip);
+    // Lo skip esiste solo nel film (D31): nella corta la finestra utile è
+    // 0,88 s e lo skip farebbe scattare l'arco.
+    if (!short) {
+      window.addEventListener("pointerdown", onPointerSkip);
+      window.addEventListener("keydown", onKeySkip);
+    }
     media.addEventListener("change", onMediaChange);
     document.addEventListener("visibilitychange", onVisibility);
     removeSkipListeners = () => {
@@ -894,7 +954,7 @@ export default function Preloader() {
         boot().__dtPreFailsafe = window.setTimeout(() => {
           fireIntro();
           html.removeAttribute("data-preloader");
-        }, PRE_FAILSAFE_MS);
+        }, short ? PRE_SHORT_FAILSAFE_MS : PRE_FAILSAFE_MS);
       }
     };
   });

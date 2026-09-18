@@ -106,7 +106,7 @@ async function main() {
     await ctx.addCookies([{ name: "dt_consent", value: "accepted", url: base }]);
     await ctx.addInitScript(() => {
       try {
-        sessionStorage.setItem("dt-intro-seen", "1");
+        sessionStorage.setItem("dt-intro-seen", "q");
       } catch {}
     });
     const page = await ctx.newPage();

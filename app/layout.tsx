@@ -13,11 +13,36 @@ import SmoothScroll from "./components/motion/SmoothScroll";
 import PageTransition from "./components/motion/PageTransition";
 import PreloaderShell from "./components/motion/PreloaderShell";
 import Preloader from "./components/motion/Preloader";
-import { INTRO_KEY, PRE_FAILSAFE_MS, INTRO_T } from "./lib/motion/intro-constants";
+import {
+  INTRO_KEY,
+  INTRO_FILM,
+  INTRO_SHORT,
+  INTRO_QUIET,
+  LAST_Y_KEY,
+  RELOAD_KEEP_Y,
+  PRE_FAILSAFE_MS,
+  PRE_SHORT_FAILSAFE_MS,
+  INTRO_T,
+} from "./lib/motion/intro-constants";
 import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 
-// Anti-flash del preloader: marca <html data-preloader> PRIMA del primo paint,
-// solo alla prima visita di sessione e senza reduced-motion.
+// Anti-flash del preloader: decide il sipario PRIMA del primo paint, con la
+// macchina a stati di spec §6.2. Alberto il 13 settembre 2026 (A18, A20, A26):
+// film intero alla prima entrata nella home, porta corta (`data-preloader`
+// "short" su «/», "short-page" sulle interne) a ogni altro caricamento
+// completo, nessun sipario su /case/*. D31 esclude l'ancora, back/forward, la
+// scheda nascosta, il prerender e la ricarica oltre mezzo schermo dalla cima
+// (LAST_Y_KEY). Mai con reduced-motion; la fixture e2e scrive INTRO_QUIET.
+// D65: alla ricarica con un sipario armato un guardiano tiene la pagina in
+// cima (`__dtPreTop` = 1), così la porta si apre sull'hero e non su una foto
+// spostata. Due mani: `history.scrollRestoration = "manual"`, che messo qui
+// spegne il ripristino nativo del load ma non sempre quello dei primi layout
+// (misurato: arriva lo stesso, in un fotogramma con la porta ancora sotto il
+// bordo); e un listener che riporta a 0 ogni scroll che arriva sotto il
+// guardiano. Si ritira quando l'attributo è caduto e il load è passato da due
+// fotogrammi, o al primo gesto dell'utente a sipario caduto: rimette "auto" e
+// chiama `__dtPreTopOff`, con cui Preloader.tsx lo ridice a ScrollTrigger (che
+// si segna il valore trovato all'avvio e lo riscrive dopo ogni refresh).
 //
 // UN SOLO MONTAGGIO, A OGNI LARGHEZZA (onda «parità mobile 2», 2026-08-17).
 // Qui c'era scritto che sul telefono l'intro era «un altro montaggio, non lo
@@ -44,8 +69,9 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 //     uguali su telefono e desktop (INTRO_T in lib/motion/intro-constants.ts);
 //   • senza JS l'attributo non esiste mai → overlay display:none (globals.css).
 //
-// IL FAILSAFE È UNO, ED È DERIVATO: `PRE_FAILSAFE_MS` (INTRO_MS + 600 = 5,23 s)
-// da lib/motion/intro-constants.ts, interpolato qui sotto. Sta DOPO la fine del
+// IL FAILSAFE È UNO PER SIPARIO, ED È DERIVATO: `PRE_FAILSAFE_MS` (INTRO_MS +
+// 600 = 5,23 s) per il film e `PRE_SHORT_FAILSAFE_MS` (SHORT_MS + 600 = 2,98 s)
+// per la corta, da lib/motion/intro-constants.ts, interpolati qui sotto. Sta DOPO la fine del
 // film — non deve mai tagliare un'intro CSS legittima, che ora suona intera
 // anche senza JS — e dopo l'autohide CSS (INTRO_MS + 100: prima l'overlay
 // sfuma, poi cade l'attributo e con lui overflow:hidden). È un setTimeout: su
@@ -70,25 +96,25 @@ import { getDemoStatus, demoChecklist } from "./lib/demoStatus";
 // script decide prima del paint se mostrarlo, esattamente come per il sipario.
 // Non si mostra sotto il sipario: lì sposterebbe il focus su "Accetta" mentre
 // è coperto (Invio per saltare l'intro accetterebbe i cookie alla cieca), e ci
-// pensa CookieConsent a metterlo al handoff. `pre` è vero → niente
-// `data-consent` pre-paint → il banner arriva su INTRO_EVENT. Conseguenza da
-// sapere: sulla PRIMA visita l'elemento LCP non è più il banner.
+// pensa CookieConsent a metterlo al handoff. `pre` o `short` veri → niente
+// `data-consent` pre-paint → il banner arriva su INTRO_EVENT, che nella corta
+// parte a 0,88 s. Conseguenza da sapere: sotto un sipario l'elemento LCP non è
+// il banner.
 // Il deep-link con ancora (/#contatti) esce di scena QUI e non più a
 // idratazione avvenuta: la coreografia dell'arco presuppone la pagina in cima
 // e combatterebbe lo scroll all'ancora, quindi l'intro non parte comunque —
 // ma decidendolo prima del paint si risparmiano anche il primo fotogramma
 // (che altrimenti lampeggerebbe espresso per tutto il tempo dell'idratazione),
-// l'overflow:hidden inutile e i byte della sagoma. Il "budget intro" della
-// sessione si segna speso, che è ciò che faceva `finish(true)` dal componente:
-// stesso contratto, deciso prima.
+// l'overflow:hidden inutile e i byte della sagoma. Sulla home l'ancora segna
+// INTRO_FILM (spec §6.2, riga 8): alla prossima entrata suona la corta.
 // La SAGOMA si precarica da qui, e solo se l'intro suona: nella shell l'<img> è
 // `loading="lazy"` perché la shell sta nell'HTML di OGNI visita (anche di
 // ritorno, display:none) e un img eager la scaricherebbe sempre — ma lazy vuol
 // dire fuori dal preload scanner, e sul desktop a 1,6 Mbps la sagoma «saltava
 // dentro» a ~2 s (pellicola 1440, 2026-08-18). Due <link rel=preload as=image>
 // con `media` (mobile ≤767.98 / desktop ≥768: la stessa soglia del <source>
-// della shell) appesi al <head> prima del paint: sulla prima visita partono
-// col documento, sulle visite di ritorno non esistono. `type=image/webp` così
+// della shell) appesi al <head> prima del paint: col film e con la corta di «/»
+// partono col documento, altrove non esistono. `type=image/webp` così
 // chi non legge il webp non lo scarica per niente.
 // L'istante del tuffo, in secondi: oltre quello lo skip non ha più senso
 // (la porta è già aperta) e il boot script smette di offrirlo.
@@ -99,7 +125,7 @@ const DIVE_S = INTRO_T.dive;
 // all'idratazione, cioè fino a 4,7 s dopo aver detto che aveva fretta.
 const SKIP_TAIL_MS = Math.round((INTRO_T.diveDur + 0.35) * 1000);
 
-const preloaderBootScript = `try{var h=document.documentElement;var lc=/(^|; )dt_locale=(it|en|fr|de|es)(;|$)/.exec(document.cookie);h.setAttribute("data-locale",lc?lc[2]:"it");var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var deep=!!location.hash;if(deep){try{sessionStorage.setItem("${INTRO_KEY}","1")}catch(e){}}var pre=!deep&&m&&!sessionStorage.getItem("${INTRO_KEY}");if(pre){h.setAttribute("data-preloader","");window.__dtPreArmed=1;window.__dtPreT0=performance.now();var lk=function(u,q){var l=document.createElement("link");l.rel="preload";l.as="image";l.type="image/webp";l.href=u;l.media=q;l.setAttribute("fetchpriority","high");document.head.appendChild(l)};lk("/media/raffaela-sagoma-m.webp","(max-width: 767.98px)");lk("/media/raffaela-sagoma.webp","(min-width: 768px)");var fine=function(){try{sessionStorage.setItem("${INTRO_KEY}","1")}catch(e){}h.removeAttribute("data-preloader")};window.__dtPreFailsafe=setTimeout(fine,${PRE_FAILSAFE_MS});var sk=function(e){if(e&&e.type==="keydown"){if(e.metaKey||e.ctrlKey||e.altKey)return;var k=e.key;if(!(k==="Enter"||k===" "||k==="Escape"||k.length===1))return}if(h.hasAttribute("data-pre-skip"))return;var t=(performance.now()-window.__dtPreT0)/1000;if(t>=${DIVE_S})return;h.style.setProperty("--pre-skip",t.toFixed(3)+"s");h.setAttribute("data-pre-skip","");window.__dtPreSkipAt=t;clearTimeout(window.__dtPreFailsafe);window.__dtPreFailsafe=setTimeout(fine,${SKIP_TAIL_MS});off()},off=function(){window.removeEventListener("pointerdown",sk,true);window.removeEventListener("keydown",sk,true)};window.addEventListener("pointerdown",sk,true);window.addEventListener("keydown",sk,true);window.__dtPreSkipOff=off}if(m){h.setAttribute("data-hero-rest",pre?"intro":"");h.setAttribute("data-hero-intro",pre?"intro":"")}if(!pre&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
+const preloaderBootScript = `try{var h=document.documentElement;var lc=/(^|; )dt_locale=(it|en|fr|de|es)(;|$)/.exec(document.cookie);h.setAttribute("data-locale",lc?lc[2]:"it");var m=matchMedia("(prefers-reduced-motion: no-preference)").matches;var deep=!!location.hash;var p=location.pathname;var home=p==="/";var caso=p.indexOf("/case/")===0;var ne=performance.getEntriesByType?performance.getEntriesByType("navigation")[0]:null;var nav=ne?ne.type:"navigate";var vis=document.visibilityState==="visible"&&!document.prerendering;var cssOk=typeof CSS!=="undefined"&&"registerProperty" in CSS&&CSS.supports("mask-composite","add");if(!deep&&/[?&]intro(&|=|$)/.test(location.search)){try{sessionStorage.removeItem("${INTRO_KEY}")}catch(e){}}if(deep&&home){try{sessionStorage.setItem("${INTRO_KEY}","${INTRO_FILM}")}catch(e){}}var k=null;try{k=sessionStorage.getItem("${INTRO_KEY}")}catch(e){}var ly=0;if(nav==="reload"){try{var s=JSON.parse(sessionStorage.getItem("${LAST_Y_KEY}")||"null");if(s&&s.p===p)ly=s.y}catch(e){}}var gate=m&&!deep&&vis&&!caso&&k!=="${INTRO_QUIET}"&&nav!=="back_forward"&&!(ly>innerHeight*${RELOAD_KEEP_Y});var pre=gate&&home&&k!=="${INTRO_FILM}";var short=gate&&!pre&&cssOk;var lk=function(u,q){var l=document.createElement("link");l.rel="preload";l.as="image";l.type="image/webp";l.href=u;l.media=q;l.setAttribute("fetchpriority","high");document.head.appendChild(l)};if(pre){h.setAttribute("data-preloader","");window.__dtPreArmed=1;window.__dtPreT0=performance.now();try{sessionStorage.setItem("${INTRO_KEY}","${INTRO_FILM}")}catch(e){}lk("/media/raffaela-sagoma-m.webp","(max-width: 767.98px)");lk("/media/raffaela-sagoma.webp","(min-width: 768px)");var fine=function(){h.removeAttribute("data-preloader")};window.__dtPreFailsafe=setTimeout(fine,${PRE_FAILSAFE_MS});var sk=function(e){if(e&&e.type==="keydown"){if(e.metaKey||e.ctrlKey||e.altKey)return;var kk=e.key;if(!(kk==="Enter"||kk===" "||kk==="Escape"||kk.length===1))return}if(h.hasAttribute("data-pre-skip"))return;var t=(performance.now()-window.__dtPreT0)/1000;if(t>=${DIVE_S})return;h.style.setProperty("--pre-skip",t.toFixed(3)+"s");h.setAttribute("data-pre-skip","");window.__dtPreSkipAt=t;clearTimeout(window.__dtPreFailsafe);window.__dtPreFailsafe=setTimeout(fine,${SKIP_TAIL_MS});off()},off=function(){window.removeEventListener("pointerdown",sk,true);window.removeEventListener("keydown",sk,true)};window.addEventListener("pointerdown",sk,true);window.addEventListener("keydown",sk,true);window.__dtPreSkipOff=off}else if(short){h.setAttribute("data-preloader",home?"short":"short-page");window.__dtPreArmed=1;window.__dtPreT0=performance.now();if(home){lk("/media/raffaela-sagoma-m.webp","(max-width: 767.98px)");lk("/media/raffaela-sagoma.webp","(min-width: 768px)")}if(!k){try{sessionStorage.setItem("${INTRO_KEY}","${INTRO_SHORT}")}catch(e){}}var fineS=function(){h.removeAttribute("data-preloader")};window.__dtPreFailsafe=setTimeout(fineS,${PRE_SHORT_FAILSAFE_MS})}if((pre||short)&&nav==="reload"){var tl=0,tq=["wheel","touchstart","keydown","pointerdown"],tg=function(){try{if(scrollY)scrollTo({top:0,behavior:"instant"})}catch(e){}},tx=function(){if(!window.__dtPreTop)return;window.__dtPreTop=0;removeEventListener("scroll",tg);tq.forEach(function(t){removeEventListener(t,ti,true)});to.disconnect();try{history.scrollRestoration="auto"}catch(e){}if(window.__dtPreTopOff)window.__dtPreTopOff()},ti=function(){if(!h.hasAttribute("data-preloader"))tx()},tf=function(){if(tl&&!h.hasAttribute("data-preloader"))tx()},to=new MutationObserver(tf);window.__dtPreTop=1;try{history.scrollRestoration="manual"}catch(e){}to.observe(h,{attributeFilter:["data-preloader"]});addEventListener("scroll",tg,{passive:true});tq.forEach(function(t){addEventListener(t,ti,{capture:true,passive:true})});addEventListener("load",function(){requestAnimationFrame(function(){requestAnimationFrame(function(){tl=1;tf()})})})}if(m){var v=pre?"intro":short?"short":"";h.setAttribute("data-hero-rest",v);h.setAttribute("data-hero-intro",v)}if(!pre&&!short&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie)){h.setAttribute("data-consent","")}}catch(e){}`;
 // `viewportFit: "cover"` — la riga che rende veri tutti gli `env(safe-area-inset-*)`
 // del progetto (parità mobile, fase 4).
 //
@@ -250,7 +276,7 @@ export default function RootLayout({
             sull'orologio CSS. Compare solo sotto `html[data-preloader]` (messo
             dallo script qui sopra, che sta PRIMA nel body: le animazioni CSS
             partono già armate) e senza attributo è display:none: senza JS,
-            con reduced-motion, alla seconda visita non esiste. */}
+            con reduced-motion, con l'ancora e su /case/* non esiste. */}
         <PreloaderShell />
         <a
           href="#main"

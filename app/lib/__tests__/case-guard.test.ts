@@ -101,6 +101,22 @@ describe("/case/[slug] fuori dalla coreografia", () => {
     }
   });
 
+  test("il boot script del layout non arma nessun sipario su /case/* (A26, D32)", () => {
+    // Alberto il 13 settembre 2026, «Nessun sipario» (A26): su /case/* né film
+    // né porta corta: `!caso` sta nel gate comune di film e corta, e nessun ramo
+    // del boot script arma un sipario apposta per /case/* (D32).
+    const layout = readFileSync(join(ROOT, "app/layout.tsx"), "utf8");
+    const m = layout.match(/const preloaderBootScript = `([^`]*)`/);
+    assert.ok(m, "preloaderBootScript non trovato in app/layout.tsx");
+    const script = m![1];
+    assert.ok(script.includes('var caso=p.indexOf("/case/")===0;'), "il boot script non riconosce /case/*");
+    const gate = /var gate=([^;]*);/.exec(script);
+    assert.ok(gate && gate[1].split("&&").includes("!caso"), "gate senza !caso: su /case/* suonerebbe un sipario");
+    assert.match(script, /var pre=gate&&home&&/);
+    assert.match(script, /var short=gate&&!pre&&/);
+    assert.doesNotMatch(script, /\(caso&&/);
+  });
+
   test("Contact senza gesture", () => {
     const colpevoli = FILES.filter((f) => /<Contact\b[^>]*\bgesture\b/.test(f.code)).map((f) => f.path);
     assert.deepEqual(colpevoli, []);

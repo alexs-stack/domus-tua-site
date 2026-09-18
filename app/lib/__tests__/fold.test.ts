@@ -53,10 +53,12 @@ describe("stato dipinto a 0,02", () => {
     assert.ok(iBase > -1 && iBase < iIntro && iBase < iShort, "le varianti del ritardo devono seguire la base");
   });
 
-  test("keyframe nuova; le quattro reti dell'hero e il selettore html[…] di intro-clocks restano soli", () => {
+  test("keyframe nuova; le sei reti dell'hero (film, corta, a caldo) e il selettore html[…] di intro-clocks restano soli", () => {
     assert.match(css, /@keyframes dt-reveal-failsafe \{\s*to \{\s*opacity: 1;\s*\}\s*\}/);
     assert.doesNotMatch(css, /html\[data-hero-intro="intro"\] \[data-reveal\]/);
-    assert.equal((css.match(/animation: dt-rest-failsafe 0\.5s ease [\d.]+s forwards/g) ?? []).length, 4);
+    // Sei: la porta corta aggiunge le reti "short" dell'hero (Alberto, 13 set.
+    // 2026, A18 e A20; spec §6.2). Il numero lo presidia anche intro-clocks.
+    assert.equal((css.match(/animation: dt-rest-failsafe 0\.5s ease [\d.]+s forwards/g) ?? []).length, 6);
   });
 
   test("--dt-painted vale `painted` di gsap.ts, cioè 0,02", () => {
@@ -77,13 +79,16 @@ describe("la piega", () => {
     assert.match(fold, /export const FOLD_PENDING = "data-fold-pending";/);
   });
 
-  test("la rete si legge sull'orologio della keyframe (default dt-reveal-failsafe) con le costanti dell'intro", () => {
+  test("la rete si legge sull'orologio della keyframe (default dt-reveal-failsafe) con heroRestMs, i tre casi del boot script", () => {
     // Dal commit 8 la keyframe è un parametro: dt-reveal-failsafe per i gruppi, dt-rest-failsafe per le lettere dell'hero.
     assert.match(fold, /animationName === keyframe/);
     assert.match(fold, /keyframe: "dt-reveal-failsafe" \| "dt-rest-failsafe" = "dt-reveal-failsafe"/);
     assert.doesNotMatch(fold, /animationName === "dt-reveal-failsafe"/);
-    for (const n of ["HERO_REST_MS", "HERO_REST_SHORT_MS", "HERO_REST_WARM_MS"]) assert.match(fold, new RegExp(`\\b${n}\\b`), n);
-    assert.doesNotMatch(fold, /\b1080\b/, "la porta corta si legge da HERO_REST_SHORT_MS");
+    // La porta corta (Alberto, 13 set. 2026, A18 e A20; spec §6.2): la rete di
+    // afterCurtain e quella di foldNetFired leggono i tre casi da heroRestMs,
+    // e nessuna delle tre costanti compare più in fold.ts.
+    assert.equal((fold.match(/heroRestMs\(document\.documentElement\.getAttribute\("data-hero-intro"\)\)/g) ?? []).length, 2);
+    assert.doesNotMatch(fold, /SHORT_REST_MS|\bHERO_REST_(MS|SHORT_MS|WARM_MS)\b|\b1080\b/);
   });
 
   test("senza la CSSAnimation della rete foldNetFired non la dichiara scattata", () => {

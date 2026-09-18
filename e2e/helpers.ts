@@ -1,14 +1,15 @@
 import { test as base, expect, type Page, type Route } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { CONSENT_COOKIE } from "../app/lib/consent";
-import { INTRO_KEY } from "../app/components/motion/Preloader";
+import { INTRO_KEY, INTRO_QUIET } from "../app/lib/motion/intro-constants";
 
 // Attrezzatura comune della suite.
 //
 // Tre problemi risolti una volta sola:
-//  1. **Il preloader.** Gira una volta per sessione. Un test che aspetta la fine dell'intro a
-//     ogni pagina è lento e ballerino: `skipIntro` scrive la chiave di sessione prima del
-//     caricamento, come se l'intro fosse già stata vista. Il test dedicato all'intro non lo usa.
+//  1. **Il preloader.** Alberto il 13 settembre 2026 (A18, A20; spec §6.2): un sipario, film
+//     intero o porta corta, suona a ogni caricamento completo. La fixture `goto` scrive INTRO_QUIET nella chiave di sessione prima
+//     del caricamento: il boot script non arma nessun sipario. I test del sipario
+//     (mobile-motion.spec.ts, preloader-corta.spec.ts) non la usano.
 //  2. **I provider esterni.** YouTube, Trustindex, le tessere della mappa: in CI non devono
 //     essere raggiunti. Vengono bloccati per default e serviti come risposte finte, così i test
 //     non dipendono da servizi altrui né dalla rete.
@@ -51,7 +52,7 @@ export type Guards = {
 
 type Fixtures = {
   guards: Guards;
-  /** Va su `path` con l'intro già "vista": la pagina è subito utilizzabile. */
+  /** Va su `path` con la chiave a INTRO_QUIET: nessun sipario, la pagina è subito utilizzabile. */
   goto: (path: string) => Promise<void>;
 };
 
@@ -119,14 +120,14 @@ export const test = base.extend<Fixtures>({
 
   goto: async ({ page }, use) => {
     await page.addInitScript(
-      ([key]) => {
+      ([key, quiet]) => {
         try {
-          sessionStorage.setItem(key, "1");
+          sessionStorage.setItem(key, quiet);
         } catch {
-          /* storage negato: pazienza, l'intro partirà */
+          /* storage negato: pazienza, il sipario partirà */
         }
       },
-      [INTRO_KEY],
+      [INTRO_KEY, INTRO_QUIET],
     );
     await use(async (path: string) => {
       // `domcontentloaded`, non `load`: la home ha un video di sfondo da diversi megabyte e

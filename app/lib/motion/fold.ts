@@ -11,7 +11,7 @@
 // l'orologio della CSSAnimation, dal commit 8 anche per le lettere dell'hero); nasce pieno anche un gruppo già partito una volta
 // nella pagina (cambio lingua, reduced-motion che torna) e ogni gruppo quando la radice non porta
 // `data-hero-intro`, perché lì il testo è pieno dal primo paint (D46).
-import { HERO_REST_MS, HERO_REST_SHORT_MS, HERO_REST_WARM_MS, INTRO_EVENT } from "./intro-constants";
+import { INTRO_EVENT, heroRestMs } from "./intro-constants";
 import { hasIntroFired } from "../../components/motion/Preloader";
 
 /** Sulla section delle tre teste senza foto (spec §2.5, §5.2). */
@@ -24,7 +24,10 @@ export function curtainPending(): boolean {
   return document.documentElement.hasAttribute("data-preloader") && !hasIntroFired();
 }
 
-/** `cb` all'handoff del sipario, con la rete a HERO_REST_MS; restituisce l'annullamento. */
+/**
+ * `cb` all'handoff del sipario, con la rete al ritardo di heroRestMs: film, porta corta
+ * (Alberto, 13 set. 2026, A18 e A20; spec §6.2) o a caldo. Restituisce l'annullamento.
+ */
 export function afterCurtain(cb: () => void): () => void {
   if (hasIntroFired()) {
     cb();
@@ -37,7 +40,7 @@ export function afterCurtain(cb: () => void): () => void {
     cb();
   };
   window.addEventListener(INTRO_EVENT, run, { once: true });
-  const t = window.setTimeout(run, HERO_REST_MS);
+  const t = window.setTimeout(run, heroRestMs(document.documentElement.getAttribute("data-hero-intro")));
   return () => {
     fatto = true;
     window.removeEventListener(INTRO_EVENT, run);
@@ -52,8 +55,7 @@ export function afterCurtain(cb: () => void): () => void {
  * La soglia viene da `data-hero-intro`, lo stesso attributo che dà il ritardo alle due regole.
  */
 export function foldNetFired(el: Element, keyframe: "dt-reveal-failsafe" | "dt-rest-failsafe" = "dt-reveal-failsafe"): boolean {
-  const intro = document.documentElement.getAttribute("data-hero-intro");
-  const restMs = intro === "intro" ? HERO_REST_MS : intro === "short" ? HERO_REST_SHORT_MS : HERO_REST_WARM_MS;
+  const restMs = heroRestMs(document.documentElement.getAttribute("data-hero-intro"));
   if (typeof el.getAnimations === "function") {
     try {
       const anim = el.getAnimations().find((a) => (a as CSSAnimation).animationName === keyframe);

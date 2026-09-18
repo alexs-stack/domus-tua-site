@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { devices, type BrowserContextOptions, type Page } from "@playwright/test";
-import { INTRO_KEY } from "../app/lib/motion/intro-constants";
+import { INTRO_KEY, INTRO_QUIET } from "../app/lib/motion/intro-constants";
 import { test, expect, setConsent } from "./helpers";
 import {
   budget,
@@ -615,9 +615,9 @@ test.describe("6 · LCP contro la base di spec §2.5", () => {
       for (let i = 0; i < 3; i += 1) {
         const ctx = await browser.newContext({ ...descrittore, reducedMotion: "no-preference" });
         await routeExternal(ctx);
-        await ctx.addInitScript((k) => {
+        await ctx.addInitScript(([k, q]) => {
           try {
-            sessionStorage.setItem(k, "1");
+            sessionStorage.setItem(k, q);
           } catch {
             /* storage negato */
           }
@@ -626,7 +626,7 @@ test.describe("6 · LCP contro la base di spec §2.5", () => {
           new PerformanceObserver((l) => {
             for (const e of l.getEntries()) w.__lcp.push(Math.round(e.startTime));
           }).observe({ type: "largest-contentful-paint", buffered: true });
-        }, INTRO_KEY);
+        }, [INTRO_KEY, INTRO_QUIET]);
         const p = await ctx.newPage();
         await p.goto(`${baseURL}${rotta}`, { waitUntil: "load", timeout: 60_000 });
         await p.waitForTimeout(4_000);
