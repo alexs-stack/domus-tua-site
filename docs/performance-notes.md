@@ -1,5 +1,12 @@
 # Note di performance — Domus Tua
 
+> **In parte storia (2026-09-13).** Note di luglio 2026. Non valgono più i riferimenti a file che
+> non esistono più: `Hero.tsx` e `heroVideo` (l'hero è `HeroCinematic.tsx`, configurato in
+> `app/lib/media.ts`, e il video è spento), il poster `raffaela-ritratto.jpg` (oggi poster e base
+> sono `/media/hero-raffaela.jpg`), `SocialVideoWall.tsx` e la «video wall» (le video-recensioni
+> stanno in `Voci.tsx`). `priority` in Next 16 è deprecata: l'hero e `PageHero` usano `preload`.
+> Le raccomandazioni su compressione, `next/image`, `sizes` e widget restano valide.
+
 Raccomandazioni operative per mantenere il sito veloce man mano che si sostituiscono i contenuti
 demo con quelli reali (video pesanti, feed RealSmart, molte foto). Il sito è già impostato bene:
 queste note servono a **non regredire** quando arrivano gli asset veri.
@@ -129,7 +136,8 @@ Regola App Router: **server component di default**, `"use client"` solo dove ser
 - **Widget di terze parti** (Trustindex, feed Instagram) caricano **script/iframe esterni**: sono già
   isolati in `WidgetEmbeds.tsx` con `async`/`defer` e `loading="lazy"` sull'iframe. Caricano solo se
   configurati (`site.embeds`), quindi zero costo finché non attivati. Non spostarli fuori da lì.
-- **Font**: `next/font` (Fraunces + Plus Jakarta Sans) con `display: "swap"` — già ottimale
+- **Font**: `next/font` (Playfair Display, Plus Jakarta Sans e Pinyon Script, in `app/layout.tsx`;
+  Fraunces è stato ritirato il 2026-08-03), tutti e tre con `display: "swap"` — già ottimale
   (self-hosted, niente richiesta a Google runtime). Limitare i pesi/assi ai necessari.
 
 ---

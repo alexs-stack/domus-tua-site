@@ -1,3 +1,9 @@
+> **Storia (2026-09-13): il componente descritto qui non esiste più.** `app/components/Hero.tsx` e il
+> riquadro a destra della hero sono stati tolti: dal 2026-09-11 l'hero è una banda fotografica alta
+> 60svh in `app/components/HeroCinematic.tsx`, con il video opzionale configurato in `app/lib/media.ts`.
+> Le indicazioni su cosa girare e come esportare restano utili; lo stato del video è in
+> `docs/hero-video.md`.
+
 # Guida al video Hero — Domus Tua
 
 Il riquadro a destra della hero (foto di Raffaela) è già predisposto per ospitare una

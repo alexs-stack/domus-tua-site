@@ -1,3 +1,12 @@
+> **In parte storia (2026-09-13).** Dopo il redesign «rivista bianca» del 2026-09-10 non valgono più:
+> - lo scheletro di `LazyYouTubeEmbed` del §5b, con `rounded-[1.5rem] bg-ink`, il velo `from-ink/70` e il play bianco con ombra. Il componente vero è `app/components/LazyYouTubeEmbed.tsx`: nessun raggio, fondo avorio profondo, nessun velo, play in un cerchio rosso con triangolo bianco (56 px sul telefono, 96 px da desktop). La regola «un solo iframe, solo al click» resta.
+> - il «muro video» e `SocialVideoWall.tsx`, che non esistono più, e gli esempi di `sizes` presi da lì. Le video-recensioni stanno nel carosello di `Voci.tsx`: ogni copertina è un link a YouTube che, con JavaScript, apre il video in pagina.
+> - fra i componenti citati, `Hero.tsx`, `SocialVideoWall.tsx` e `CountUp.tsx`, che non esistono più; l'effetto `.ken-burns`, ritirato; la cartella `public/videos/` del §6.
+> - `priority` sull'hero: in Next 16 è deprecata, e `HeroCinematic` e `PageHero` usano `preload`.
+> - il poster `domus-hero-poster.jpg` e il testo «in basso a sinistra»: oggi poster e base dell'hero sono `/media/hero-raffaela.jpg`, e l'hero è una banda fotografica di 60svh (vedi `docs/hero-video.md`).
+>
+> Restano valide le regole su dimensioni dei sorgenti, compressione, poster, YouTube, nomi dei file e `prefers-reduced-motion`. Il sistema visivo è in `DESIGN.md` alla radice del repo.
+
 # Ottimizzazione media — Domus Tua
 
 Guida operativa per **immagini, video e YouTube** sul sito. Domus Tua è un sito

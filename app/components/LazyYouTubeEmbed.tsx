@@ -7,12 +7,20 @@ import { Play } from "./Icons";
 import { useVideoPlayLabel } from "./VideoLightbox";
 
 type Props = {
+  /** Proporzione del riquadro: i video del canale girati col telefono sono verticali. */
+  aspect?: "video" | "portrait";
   id: string;
   title: string;
   /** Poster curato (foto reale). Se assente, ripiega sulla thumbnail YouTube.
    *  Consigliato SEMPRE per i video verticali/Short: la thumb YouTube in 16:9 esce
    *  con bande nere ai lati (aspetto "cheap"); un poster pulito lo evita. */
   poster?: string;
+  /** Quanto e' larga la scatola, nel formato di `sizes`. Il valore di partenza
+   *  («100vw») vale solo per la banda a tutta larghezza: da quando il video
+   *  puo' stare in mezza colonna (`.dt-media-half`), chi lo mette dichiara la
+   *  propria misura, e ricordando che con `object-cover` un fotogramma piu'
+   *  largo della scatola viene reso piu' largo della scatola. */
+  posterSizes?: string;
 };
 
 // Facciata leggera per YouTube: mostra solo il poster finché l'utente non clicca.
@@ -24,7 +32,13 @@ type Props = {
 // (2) dominio "youtube-nocookie.com" (privacy-enhanced di YouTube): niente cookie di
 // tracciamento finché non c'è interazione col player. Comportamento documentato in
 // docs/legal-launch-inventory.md.
-export default function LazyYouTubeEmbed({ id, title, poster }: Props) {
+export default function LazyYouTubeEmbed({
+  id,
+  title,
+  poster,
+  aspect = "video",
+  posterSizes: posterSizesProp,
+}: Props) {
   const [active, setActive] = useState(false);
   // L etichetta era italiana fissa («Riproduci il video: …») su un sito in cinque lingue:
   // chi naviga in tedesco con uno screen reader si sentiva annunciare una frase italiana.
@@ -33,12 +47,19 @@ export default function LazyYouTubeEmbed({ id, title, poster }: Props) {
   const playLabel = useVideoPlayLabel();
 
   const embed = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
-  const posterSizes = "(max-width:768px) 100vw, (max-width:1240px) 60vw, 720px";
+  const posterSizes =
+    posterSizesProp ??
+    /* 45vw, non 420px: il ramo verticale chiedeva una copertina larga 420 e
+       la thumb YouTube e' 16:9, quindi ne restava una striscia utile di
+       133x236 che nel modulo pieno (605x1075) veniva ingrandita 4,5 volte —
+       i visi diventavano impasto. Con la misura vera della colonna la
+       scatola puo' tornare piena. */
+    (aspect === "portrait" ? "(max-width:1024px) 100vw, 45vw" : "100vw");
   const posterClassName =
     "photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105";
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-[1.5rem] border border-line bg-ink shadow-[var(--shadow-card)]">
+    <div className={`relative w-full overflow-hidden bg-cream-deep ${aspect === "portrait" ? "aspect-[9/16]" : "aspect-video"}`}>
       {active ? (
         <iframe
           src={embed}
@@ -62,11 +83,12 @@ export default function LazyYouTubeEmbed({ id, title, poster }: Props) {
           ) : (
             <YoutubeThumb id={id} alt="" sizes={posterSizes} className={posterClassName} />
           )}
-          {/* Velo caldo per profondità + leggibilità del play */}
-          <span className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/10 to-ink/5" />
-          {/* Play "premium": vetro morbido, anello sottile, ombra calda; triangolo otticamente centrato */}
-          <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-red shadow-[0_20px_50px_-15px_rgba(26,24,22,0.65)] ring-1 ring-ink/5 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-white sm:h-[4.75rem] sm:w-[4.75rem]">
-            <Play className="h-6 w-6 translate-x-0.5 sm:h-7 sm:w-7" />
+          {/* Play: cerchio rosso 96 px, l'unica curva ammessa (rivista bianca,
+              2026-09-10). Niente velo sopra la foto, niente ombra né anello.
+              Sul telefono 56: su una miniatura alta 189 px il cerchio da 96
+              ne copriva il 51% — cioe' i volti — e il riferimento ne usa 55. */}
+          <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 md:h-24 md:w-24">
+            <Play className="h-5 w-5 translate-x-0.5 md:h-8 md:w-8" />
           </span>
         </button>
       )}

@@ -1,3 +1,5 @@
+> **Superato il 2026-09-10.** Il sistema attuale è in `DESIGN.md` alla radice del repo (scritto dal costruito dopo il redesign «rivista bianca»). Questo file descrive il sistema PRECEDENTE (card, raggi, ombre, Fraunces) e resta solo come storia.
+
 # Design System — Domus Tua
 
 Sintesi operativa del sistema attuale, letta da `app/globals.css`.

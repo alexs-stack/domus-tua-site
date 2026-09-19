@@ -8,7 +8,6 @@
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
-import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { TownGroup } from "../lib/geo/comuni";
 
@@ -150,51 +149,39 @@ export default function PropertyMap({
       {/* Intestazione editoriale */}
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <span className="eyebrow gap-2.5">
-            <SegnoDomus className="h-3 w-8" embrace={false} />
-            {c.eyebrow}
-          </span>
-          <h3 className="mt-3 font-display text-2xl font-medium leading-tight tracking-tight text-ink sm:text-[1.9rem]">
-            {c.title}
-          </h3>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-stone">{c.subtitle}</p>
+          <span className="eyebrow">{c.eyebrow}</span>
+          <h3 className="mt-4 font-display text-d3">{c.title}</h3>
+          <p className="mt-3 max-w-[50ch] text-body text-graphite">{c.subtitle}</p>
         </div>
-        {/* Legenda */}
-        <div className="flex shrink-0 items-center gap-2.5 rounded-full border border-line bg-paper px-4 py-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red text-[0.7rem] font-semibold text-white tabular-nums">
+        {/* Legenda: testo, non pillola. */}
+        <p className="flex shrink-0 items-center gap-3 text-ui text-graphite">
+          <span className="tnum flex h-7 w-7 items-center justify-center rounded-full bg-red text-ui font-semibold text-white">
             3
           </span>
-          <span className="max-w-[13rem] text-[0.76rem] leading-snug text-stone">{c.legend}</span>
-        </div>
+          <span className="max-w-[16rem] leading-snug">{c.legend}</span>
+        </p>
       </div>
 
-      {/* Contenitore mappa: cornice premium, altezza fissa → niente CLS. La geografia (e i nomi
+      {/* Contenitore mappa: squadrato, altezza fissa → niente CLS. La geografia (e i nomi
           dei comuni) arriva dai tile OSM, desaturati e caldi via CSS (.dt-map) per restare on-brand. */}
-      <div className="relative overflow-hidden rounded-[1.9rem] border border-line bg-cream p-1.5 shadow-[var(--shadow-card)]">
-        <div
-          ref={containerRef}
-          className="dt-map z-0 h-[440px] w-full overflow-hidden rounded-[1.5rem] sm:h-[560px]"
-        />
-        {/* Firma di marca (Segno Domus) in filigrana sull'angolo, sopra la mappa. */}
-        <span className="pointer-events-none absolute bottom-4 left-5 z-[400] opacity-25" aria-hidden>
-          <SegnoDomus className="h-4 w-11 text-red" embrace={false} />
-        </span>
+      <div className="relative overflow-hidden border-t border-b border-line">
+        <div ref={containerRef} className="dt-map z-0 h-[440px] w-full overflow-hidden sm:h-[560px]" />
       </div>
 
       {/* Comuni senza coordinate note: elencati come chip cliccabili (mai persi, mai inventati). */}
       {others.length > 0 && (
-        <div className="mt-4">
-          <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-wide text-stone">{c.others}</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="mt-6">
+          <p className="mb-3 text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.others}</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
             {others.map((g) => (
               <button
                 key={g.key}
                 type="button"
                 onClick={() => onSelect(g.key)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1.5 text-[0.8rem] text-graphite transition-colors duration-300 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                className="inline-flex min-h-11 items-center gap-2 text-body text-graphite underline underline-offset-4 transition-colors duration-300 hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
               >
                 {g.town}
-                <span className="tnum rounded-full bg-red-soft px-1.5 text-[0.7rem] font-semibold text-red-dark">{g.count}</span>
+                <span className="tnum text-ui font-semibold text-red-dark">({g.count})</span>
               </button>
             ))}
           </div>

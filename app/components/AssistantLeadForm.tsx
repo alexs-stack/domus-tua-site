@@ -89,24 +89,25 @@ export default function AssistantLeadForm({
     return (
       <p
         role="status"
-        className="mt-3 rounded-2xl border border-line bg-cream px-4 py-3 text-[0.86rem] leading-relaxed text-graphite"
+        className="mt-3 border-t border-b border-line py-3 text-body text-graphite"
       >
         Richiesta inviata. Ti ricontattiamo appena possibile.
       </p>
     );
   }
 
+  // Campi a sola sottolineatura, come il modulo contatti (2026-09-10).
   const inputClass =
-    "min-h-11 w-full rounded-xl border border-line bg-paper px-3 py-2 text-[0.88rem] text-ink placeholder:text-stone/60 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red";
-  const labelClass = "block text-[0.78rem] font-semibold text-graphite";
+    "block min-h-11 w-full border-0 border-b border-ink! bg-transparent py-2 text-body text-ink placeholder:text-stone focus:border-red! focus:outline-none";
+  const labelClass = "block text-ui font-semibold uppercase tracking-[0.08em] text-graphite";
 
   return (
     <form
       onSubmit={submit}
-      className="mt-3 w-full space-y-3 rounded-2xl border border-line bg-cream p-3.5"
+      className="mt-3 w-full space-y-4 border-t border-line pt-4"
       aria-labelledby={`${id}-titolo`}
     >
-      <p id={`${id}-titolo`} className="text-[0.86rem] font-semibold text-ink">
+      <p id={`${id}-titolo`} className="font-display text-d4 uppercase text-ink">
         Lascia una richiesta
       </p>
 
@@ -131,7 +132,7 @@ export default function AssistantLeadForm({
           <input id={`${id}-telefono`} name="telefono" type="tel" maxLength={40} autoComplete="tel" className={inputClass} />
         </div>
       </div>
-      <p className="text-[0.72rem] text-stone">Basta uno dei due: serve per ricontattarti.</p>
+      <p className="text-ui text-stone">Basta uno dei due: serve per ricontattarti.</p>
 
       <div className="space-y-1">
         <label className={labelClass} htmlFor={`${id}-messaggio`}>
@@ -155,12 +156,12 @@ export default function AssistantLeadForm({
         <input id={`${id}-azienda`} name="azienda" tabIndex={-1} autoComplete="off" />
       </div>
 
-      <label className="flex items-start gap-2.5 text-[0.78rem] leading-snug text-graphite">
+      <label className="flex items-start gap-2.5 text-ui leading-snug text-graphite">
         <input
           name="consenso"
           type="checkbox"
           required
-          className="mt-0.5 h-4 w-4 shrink-0 accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          className="mt-0.5 h-5 w-5 shrink-0 border-ink! accent-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
         />
         <span>
           Acconsento al trattamento dei dati per essere ricontattato.{" "}
@@ -171,12 +172,12 @@ export default function AssistantLeadForm({
       </label>
 
       {errore && (
-        <p role="alert" className="rounded-xl border border-red/25 bg-red-soft/40 px-3 py-2 text-[0.8rem] text-red-dark">
+        <p role="alert" className="border-l-2 border-red pl-3 text-ui text-red-dark">
           {errore}
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-4">
         <SendCta submitting={stato === "invio"} size="sm" className="min-h-11">
           {stato === "invio" ? "Invio…" : "Invia richiesta"}
         </SendCta>

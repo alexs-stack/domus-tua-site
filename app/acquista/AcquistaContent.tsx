@@ -1,21 +1,21 @@
 "use client";
 
-import { useDict, useLocale } from "../components/i18n/LocaleProvider";
+import { useLocale } from "../components/i18n/LocaleProvider";
 import PageHero from "../components/PageHero";
-import ThreadNav from "../components/motion/ThreadNav";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
 import PropertySearch from "../components/PropertySearch";
 import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
-import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
-import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
+import RevealGroup from "../components/motion/RevealGroup";
+import Lead from "../components/motion/Lead";
+import SplitTitle from "../components/motion/SplitTitle";
 import FaqTeaser from "../components/FaqTeaser";
 import { Whatsapp } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
-import { SegnoDomusCorner, SegnoDomusBadge, SegnoTick } from "../components/BrandMotif";
+import { SegnoTick } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { FAQ_BUYER } from "../domande-frequenti/faq";
@@ -34,7 +34,7 @@ const copy = {
       ),
       subcopy:
         "Non ti mostriamo solo case. Verifichiamo i documenti prima della visita, ti diciamo cosa abbiamo controllato e restiamo con te fino al rogito.",
-      alt: "Living moderno bianco e luminoso",
+      alt: "Due lettini bianchi sul bordo della piscina, dietro la villa con la tenda da sole",
       primaryLabel: "Cerco casa",
       secondaryLabel: "Vedi le case in vendita",
       trust: ["Informazioni prima della visita", "Documenti verificati", "Assistenza fino al rogito"],
@@ -128,7 +128,7 @@ const copy = {
       ),
       subcopy:
         "We don’t just show you houses. We check the paperwork before the viewing, tell you what we verified, and stay with you through to the deed.",
-      alt: "Bright, modern white living room",
+      alt: "Two white sun loungers at the edge of the pool, with the villa and its awning behind",
       primaryLabel: "I’m looking for a home",
       secondaryLabel: "See the homes for sale",
       trust: ["Information before the viewing", "Verified documents", "Support all the way to closing"],
@@ -222,7 +222,7 @@ const copy = {
       ),
       subcopy:
         "Nous ne vous montrons pas seulement des maisons. Nous contrôlons les documents avant la visite, nous vous disons ce que nous avons vérifié, et nous restons à vos côtés jusqu’à l’acte.",
-      alt: "Séjour moderne, blanc et lumineux",
+      alt: "Deux transats blancs au bord de la piscine, avec derrière la villa et son store",
       primaryLabel: "Je cherche un bien",
       secondaryLabel: "Voir les biens à vendre",
       trust: ["Les informations avant la visite", "Documents vérifiés", "Accompagnement jusqu’à l’acte"],
@@ -316,7 +316,7 @@ const copy = {
       ),
       subcopy:
         "Wir zeigen Ihnen nicht nur Häuser. Wir prüfen die Unterlagen vor der Besichtigung, sagen Ihnen, was wir kontrolliert haben, und bleiben bis zum Notartermin an Ihrer Seite.",
-      alt: "Helles, modernes weißes Wohnzimmer",
+      alt: "Zwei weiße Liegen am Poolrand, dahinter die Villa mit der Markise",
       primaryLabel: "Ich suche ein Zuhause",
       secondaryLabel: "Immobilien zum Verkauf ansehen",
       trust: ["Informationen vor der Besichtigung", "Geprüfte Unterlagen", "Begleitung bis zum Notartermin"],
@@ -410,7 +410,7 @@ const copy = {
       ),
       subcopy:
         "No solo te mostramos casas. Comprobamos los documentos antes de la visita, te decimos qué hemos verificado y seguimos contigo hasta la escritura.",
-      alt: "Salón moderno blanco y luminoso",
+      alt: "Dos tumbonas blancas al borde de la piscina, detrás la villa con el toldo",
       primaryLabel: "Busco casa",
       secondaryLabel: "Ver las casas en venta",
       trust: ["Información antes de la visita", "Documentos verificados", "Asistencia hasta la escritura"],
@@ -503,7 +503,6 @@ const stepImages = [
 
 export default function AcquistaContent({ listings }: { listings: GridProperty[] }) {
   const { locale } = useLocale();
-  const d = useDict();
   const c = copy[locale];
 
   const buySteps = c.steps.rows.map((r, i) => ({
@@ -522,27 +521,20 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
 
   return (
     <>
-      {/* Filo rosso di pagina: fixed, fratello di <main> (mai sotto antenati trasformati). */}
-      <ThreadNav
-        chapters={[
-          { id: "top", label: "Domus Tua" },
-          { id: "case", label: d.nav.case },
-          { id: "percorso", label: d.nav.percorso },
-          { id: "recensioni", label: d.nav.recensioni },
-          { id: "contatti", label: d.nav.contatti },
-        ]}
-      />
       <main className="flex-1">
         <PageHero
           id="top"
           eyebrow={c.hero.eyebrow}
           title={c.hero.title()}
           subcopy={c.hero.subcopy}
-          image="/images/hero_04_living_moderno_bianco.jpg"
+          image="/images/reali/villa-lettini.jpg"
+          objectPosition="50% 50%"
+          srcWidth={2560}
           alt={c.hero.alt}
           primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "#case" }}
           trust={c.hero.trust}
+          scriptWord={{ it: "Senza dubbi", en: "No doubts", fr: "Sans doutes", de: "Ohne Zweifel", es: "Sin dudas" }[locale]}
         />
 
         {/* Ricerca in alto: chi compra deve poter cercare subito (#case = target dell'hero). */}
@@ -565,70 +557,69 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
           rows={buySteps}
         />
 
-        <section className="bg-paper">
-          <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-            <div className="grid gap-14 lg:grid-cols-[1fr_0.92fr] lg:items-start lg:gap-20">
+        <section className="dt-chapter bg-cream">
+          <div className="dt-row">
+            <div className="grid gap-16 lg:grid-cols-[1fr_0.92fr] lg:items-start lg:gap-20">
               {/* Rassicurazione: cosa facciamo per te */}
-              <Reveal>
-                <span className="eyebrow">{c.reassure.eyebrow}</span>
-                <h2 className="mt-5 max-w-lg font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
+              <RevealGroup>
+                <Reveal>
+                  <span className="eyebrow">{c.reassure.eyebrow}</span>
+                </Reveal>
+                <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
                   {c.reassure.title}
-                </h2>
-                <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-stone">
-                  {c.reassure.intro}
-                </p>
-                <ul className="mt-9 space-y-4">
-                  {c.reassure.list.map((item) => (
-                    <li key={item} className="flex items-start gap-3.5">
-                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-soft text-red-dark">
-                        <SegnoTick className="h-4 w-4" />
-                      </span>
-                      <span className="text-[0.98rem] leading-relaxed text-ink/85">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
+                </SplitTitle>
+                <Lead className="mt-8">{c.reassure.intro}</Lead>
+                <Reveal>
+                  <ul className="mt-10">
+                    {c.reassure.list.map((item) => (
+                      <li key={item} className="flex items-start gap-4 border-t border-line py-4">
+                        <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
+                        <span className="text-body text-graphite">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
+              </RevealGroup>
 
-              {/* Card lead acquirente + teaser AI */}
-              <Reveal delay={120} className="lg:pt-2">
-                <div className="relative overflow-hidden rounded-[2rem] border border-line bg-cream p-8 sm:p-10">
-                  <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
-                  <h3 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink sm:text-[1.7rem]">
+              {/* Blocco lead acquirente + teaser AI: testo e vuoto, niente card (2026-09-10). */}
+              <RevealGroup className="lg:pt-2">
+                <div className="border-t border-line pt-8">
+                  <SplitTitle as="h3" className="font-display text-d3">
                     {c.reassure.ctaTitle}
-                  </h3>
-                  <p className="mt-3 text-[0.98rem] leading-relaxed text-stone">
-                    {c.reassure.ctaCopy}
-                  </p>
-                  <div className="mt-7 flex flex-wrap items-center gap-3">
-                    <Cta href="#contatti" variant="cta" size="md">
-                      {c.reassure.ctaLabel}
-                    </Cta>
-                    {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
-                    <Cta
-                      href={buyerWa}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      variant="ghost"
-                      size="md"
-                      arrow={false}
-                    >
-                      <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
-                    </Cta>
-                  </div>
+                  </SplitTitle>
+                  <Lead className="mt-6">{c.reassure.ctaCopy}</Lead>
+                  <Reveal role="still">
+                    <div className="mt-8 flex flex-wrap items-center gap-6">
+                      <Cta href="#contatti" variant="cta-solid" size="md">
+                        {c.reassure.ctaLabel}
+                      </Cta>
+                      {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
+                      <Cta
+                        href={buyerWa}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="ghost"
+                        size="md"
+                        arrow={false}
+                      >
+                        <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
+                      </Cta>
+                    </div>
+                  </Reveal>
 
-                  <p className="mt-7 border-t border-line pt-6 text-[0.9rem] leading-relaxed text-stone">
-                    {c.reassure.offlineNote}
-                  </p>
-
-                  {/* Richiamo alla ricerca intelligente (attiva) resa più in basso da <PropertySearch> */}
-                  <div className="mt-7 rounded-[1.5rem] border border-dashed border-red/25 bg-paper/70 p-5">
-                    <SegnoDomusBadge>{c.reassure.aiBadge}</SegnoDomusBadge>
-                    <p className="mt-3.5 text-[0.95rem] leading-relaxed text-ink/80">
-                      {c.reassure.aiText}
+                  <Reveal>
+                    <p className="mt-10 border-t border-line pt-6 text-body text-graphite">
+                      {c.reassure.offlineNote}
                     </p>
-                  </div>
+
+                    {/* Richiamo alla ricerca intelligente (attiva) resa più in alto da <PropertySearch> */}
+                    <div className="mt-10 border-t border-line pt-6">
+                      <span className="eyebrow">{c.reassure.aiBadge}</span>
+                      <p className="mt-4 text-body text-graphite">{c.reassure.aiText}</p>
+                    </div>
+                  </Reveal>
                 </div>
-              </Reveal>
+              </RevealGroup>
             </div>
           </div>
         </section>
@@ -646,15 +637,16 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
              È il difetto che il §6.5 descrive per l’hero, sopravvissuto qui. */
         />
         <DomusDocProtocol tone="cream" />
-        <Reviews />
+        {/* Il capitolo recensioni vive SOLO su /recensioni. Qui erano 1.529px
+            identici al pixel — testa, filtri, widget Trustindex — ripetuti su
+            quattro pagine sotto contenuti diversi: chi aveva gia' letto la
+            home rivedeva la stessa coda a ogni clic. La prova indipendente
+            resta su ogni pagina nel sigillo Wikicasa del footer. */}
 
         {/* Le domande di chi compra, prima del modulo: chi sta per scrivere ha ancora
             un dubbio in testa, e spesso e' uno di questi quattro. */}
         <FaqTeaser ids={FAQ_BUYER} surface="cream" />
 
-        <div className="bg-cream-deep">
-          <SectionDivider tone="cream-deep" />
-        </div>
         {/* Pagina acquirente: il form parte già sull'intento "cerco casa". */}
         <Contact initialIntent="buyer" />
       </main>

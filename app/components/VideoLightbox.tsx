@@ -110,7 +110,7 @@ export default function VideoLightbox({ video, onClose }: VideoLightboxProps) {
       <div
         aria-hidden
         onClick={close}
-        className="absolute inset-0 bg-espresso/85 backdrop-blur-sm"
+        className="absolute inset-0 bg-cream/95"
       />
       {/* Il tetto alla LARGHEZZA è ciò che tiene il player dentro lo schermo mantenendo il
           16:9: su un telefono in orizzontale (844×390) un pannello a larghezza piena
@@ -133,7 +133,7 @@ export default function VideoLightbox({ video, onClose }: VideoLightboxProps) {
           type="button"
           onClick={close}
           aria-label={c.close}
-          className="absolute right-2 top-2 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper/90 text-ink shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)] backdrop-blur-sm transition-colors duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          className="absolute right-2 top-2 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper text-ink transition-colors duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
         >
           <svg
             viewBox="0 0 24 24"
@@ -147,7 +147,7 @@ export default function VideoLightbox({ video, onClose }: VideoLightboxProps) {
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
-        <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-ink shadow-[0_60px_120px_-40px_rgba(26,24,22,0.85)]">
+        <div className="overflow-hidden bg-cream-deep">
           <div className="relative aspect-video w-full">
             <iframe
               ref={iframeRef}
@@ -163,7 +163,7 @@ export default function VideoLightbox({ video, onClose }: VideoLightboxProps) {
         {/* Il titolo resta LEGGIBILE sotto il player, non solo nel nome accessibile: è la
             didascalia che il §6.5 vuole visibile, e qui la persona ha appena scelto di
             guardare proprio quel video. */}
-        <p className="mt-3 text-sm text-cream/90">{video.title}</p>
+        <p className="mt-3 text-body text-ink">{video.title}</p>
       </div>
     </div>,
     document.body,

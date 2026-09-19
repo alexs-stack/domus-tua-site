@@ -1,0 +1,36 @@
+// Il tema sotto il segno fisso di MarkSegno. Alberto il 13 settembre 2026,
+// «Si stacca da 1024» (A21; D34, spec §6.1): sopra una zona [data-bg="foto"]
+// le tacche dell'anello virano all'avorio; "avorio" e "foto-chiara" tengono la
+// grafite. La misura è viva, a ogni fotogramma di scroll e per la coda degli
+// scrub dopo l'ultimo evento (MarkSegno, D67), non a trigger fissi come in
+// Era: sovrapposizione non vuol dire visibilità (lezione di 6a33f85),
+// quindi una zona vince solo se l'elemento in cima al centro del segno sta
+// nel suo ambito ([data-bg-scope], altrimenti la section che la contiene).
+// Il segno è pointer-events-none: elementFromPoint non lo vede.
+
+export type Tema = "foto" | "grafite";
+
+export function temaAt(cx: number, cy: number): Tema {
+  const top = document.elementFromPoint(cx, cy);
+  if (!top) return "grafite";
+  let vincitrice: { zona: Element; ambito: Element } | null = null;
+  for (const zona of Array.from(document.querySelectorAll("[data-bg]"))) {
+    const r = zona.getBoundingClientRect();
+    if (r.height === 0) continue;
+    // Un marcatore largo 1 px vale per tutta la larghezza della pagina: deroga
+    // a spec §6.1 (b), D66. Sono tali quello dell'hero (spec §3.2, fuori dallo
+    // schermo sticky, classe `w-px`) e i due della finestra di Open Domus
+    // (spec §3.10, `.dt-od_mark` con `width: 1px` in globals.css), e solo loro:
+    // data-bg.test.ts elenca le zone larghe 1 px nei tag e nel CSS.
+    const sinistra = r.width <= 1 ? 0 : r.left;
+    const destra = r.width <= 1 ? window.innerWidth : r.right;
+    if (cx < sinistra || cx > destra || cy < r.top || cy > r.bottom) continue;
+    const cs = getComputedStyle(zona);
+    if (cs.display === "none" || cs.visibility === "hidden") continue;
+    const ambito = zona.closest("[data-bg-scope]") ?? zona.closest("section") ?? zona.parentElement;
+    if (!ambito || !ambito.contains(top)) continue;
+    // Fra due candidate vince quella con l'ambito più interno.
+    if (!vincitrice || vincitrice.ambito.contains(ambito)) vincitrice = { zona, ambito };
+  }
+  return vincitrice?.zona.getAttribute("data-bg") === "foto" ? "foto" : "grafite";
+}

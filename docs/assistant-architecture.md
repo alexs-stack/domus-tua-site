@@ -62,7 +62,7 @@ React 19.2.4, App Router, nessuna dipendenza AI installata.
    disponibile" in modo onesto — può solo indovinare.
 
 6. **Contenuti non verificati presentati come fatti.** `knowledge.ts` afferma nel system
-   prompt "4.9/5 su Google con circa 531 recensioni", le 5 fasi del Metodo, i 6 servizi e la
+   prompt "4.9/5 su Google con circa 531 recensioni" (il numero di allora: dal 2026-09-11 il sito legge 542 da `app/lib/site.ts`, e il numero è vivo), le 5 fasi del Metodo, i 6 servizi e la
    definizione di Domus D.O.C. come dati certi. Sono copy di marketing dal sito, non contenuti
    approvati dal cliente, e alcuni (il conteggio recensioni) cambiano nel tempo. Non esiste
    nessuno stato `verified`/`pending`.
@@ -270,7 +270,7 @@ in contatto" su tutto ciò che non è verificato.
 - Cosa l'assistente può e non può comunicare.
 - Nome della persona/team a cui rimandare i casi complessi.
 - Privacy Policy definitiva.
-- Conferma o rimozione delle metriche pubbliche (4,9/5, 531 recensioni, "440+ video").
+- Conferma o rimozione delle metriche pubbliche (4,9/5, 531 recensioni — oggi 542 —, "440+ video").
 
 ---
 

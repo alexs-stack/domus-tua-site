@@ -17,7 +17,11 @@
 
 /** Nome dell'evento di handoff (Preloader → HeroCinematic, CookieConsent). */
 export const INTRO_EVENT = "dt:intro:done";
-/** Chiave sessionStorage: l'intro suona una volta per sessione. */
+/**
+ * Chiave sessionStorage della macchina a stati del sipario (spec §6.2; Alberto,
+ * 13 set. 2026, A18, A20, A26): assente, INTRO_FILM, INTRO_SHORT o INTRO_QUIET.
+ * La legge il boot script del layout prima del primo paint.
+ */
 export const INTRO_KEY = "dt-intro-seen";
 
 /**
@@ -44,23 +48,34 @@ export const INTRO_KEY = "dt-intro-seen";
  */
 /**
  * IL TEMPO DEL FILM, in un numero solo. 1 = la timeline com'era nata (4,63 s
- * totali, il montaggio del desktop di sempre). 2 = quella di oggi.
+ * totali, il montaggio del desktop di sempre), ed è quella di oggi. 2 = la
+ * versione lenta (9,26 s), in uso dal 2026-08-19 (31f4231) al 2026-09-10
+ * (456026a).
  *
- * È una scelta di PRODOTTO, presa dal cliente il 2026-08-18 e misurata prima
- * di prenderla: «il preloader dev'essere lento come prima, sia da mobile che
- * da desktop — è bello da vedere con le animazioni lente». La lettura è
+ * TEMPO = 2 fu una scelta di PRODOTTO: la cliente l'aveva chiesta il
+ * 2026-08-18, e fu misurata prima di prenderla: «il preloader dev'essere lento
+ * come prima, sia da mobile che da desktop — è bello da vedere con le
+ * animazioni lente». La lettura era
  * giusta e la causa non era una timeline accorciata: fino alla Fase 1 il film
- * cominciava solo quando atterrava il chunk JS (misurato su HEAD: 2,4-4,7 s di
+ * cominciava solo quando atterrava il chunk JS (misurato allora: 2,4-4,7 s di
  * fondo scuro immobile), quindi l'insieme occupava 7-9 s. Da quando è CSS,
  * parte al primo fotogramma e finisce 2-4 s prima: stessi atti, meno intro da
- * guardare. Allungare il film restituisce il tempo — con la differenza che
- * adesso è animazione, non attesa.
+ * guardare. Raddoppiare il film restituiva il tempo, come animazione e non
+ * come attesa.
  *
- * Il riferimento (era-residence.com) tiene 10,15 s a ogni larghezza: con
- * TEMPO = 2 siamo a 9,26, cioè lì. Tutto scala insieme — atti, stagger, reti,
- * failsafe, autohide, keyframe CSS — e `intro-clocks.test.ts` lo pretende.
+ * Il riferimento della tecnica (era-residence.com, dossier §4) tiene 10,15 s
+ * a ogni larghezza: TEMPO = 2 dava 9,26 s, cioè lì; TEMPO = 1 ne dà la metà.
+ * Tutto scala insieme — atti, stagger, reti, failsafe, autohide, keyframe
+ * CSS — e `intro-clocks.test.ts` lo pretende.
  */
-export const TEMPO = 2;
+/* 2026-09-10: la cliente chiede un «preloader piu veloce» (riferito da
+   Alberto) e Alberto sceglie «Stesso film di oggi ma dimezzato»: TEMPO torna
+   a 1. Il riferimento visivo (immobiliaregoldengoal.it) non ha nessun
+   preloader. Il 2026-09-11 Alberto ha chiesto l'animazione di entrata «come
+   prima»: è tornato l'ingresso (la sagoma sulla banda dell'hero), la durata è
+   rimasta 4,63 s. Se «come prima» comprendesse anche i 9,26 s è una domanda
+   aperta: non cambiare questo numero senza chiederlo. */
+export const TEMPO = 1;
 
 export const INTRO_T = {
   figure: 0.15 * TEMPO,
@@ -139,7 +154,69 @@ export const HERO_REST_MS = Math.round((INTRO_T.dive + 0.2) * 1000);
 export const HERO_REST_WARM_MS = 6000;
 
 /**
+ * Chiave sessionStorage dello scroll alla ricarica (D22). Preloader.tsx ci
+ * scrive `{ p, y, id, dy }` al pagehide:
+ * - `p`: percorso;
+ * - `y`: scrollY;
+ * - `id`: section in vista;
+ * - `dy`: scarto dentro la section.
+ * Alla ricarica la rilegge per tornare al capitolo. La legge anche
+ * e2e/corridors.spec.ts.
+ */
+export const LAST_Y_KEY = "dt-last-y";
+
+/**
  * Warmup del telefono: `warmFirstFold` deve scadere PRIMA del tuffo, così
  * l'attesa è coperta dal sipario per costruzione (≤ INTRO_MS − tuffo).
  */
 export const WARM_FIRST_FOLD_MS = 3000;
+
+/* LA PORTA CORTA. Alberto il 13 settembre 2026 ha scelto la coreografia piena
+   (A18) e la fedeltà letterale (A20): il film intero suona alla prima entrata
+   nella home, ogni altro caricamento completo ha la porta corta, e su /case/*
+   nessun sipario (A26). Le decisioni di lavoro D31 tolgono lo skip e il fondo
+   espresso, e niente corta con ancora, back/forward, scheda nascosta,
+   prerender o ricarica oltre mezzo schermo (spec §6.2). La corta è il film
+   dimezzato: porta e tuffo con le stesse durate e lo stesso rapporto
+   (0,88 / 1,10 = 0,8, quindi `--arch-k` resta 0,972), senza l'atto I e senza la
+   linea di carica. Il test intro-clocks rilegge questi numeri in globals.css e
+   nel boot script. */
+
+/** Il film intero è stato armato in questa sessione. */
+export const INTRO_FILM = "1";
+/** È stata armata una porta corta e mai il film. */
+export const INTRO_SHORT = "c";
+/** Silenzio: nessun sipario (fixture e2e e sonde). */
+export const INTRO_QUIET = "q";
+/** Una ricarica più in basso di questa frazione di viewport non ha sipario (D31). */
+export const RELOAD_KEEP_Y = 0.5;
+
+export const SHORT_T = {
+  /** Il tuffo parte a 0,8 della porta, come nel film: 0,88 s. */
+  dive: Math.round(0.8 * INTRO_T.archDur * 1000) / 1000,
+  archDur: INTRO_T.archDur,
+  diveDur: INTRO_T.diveDur,
+  /** La sagoma su «/» entra in 0,3 s. */
+  figureDur: 0.3 * TEMPO,
+} as const;
+
+/** Durata della corta: 0,88 + 1,50 = 2,38 s. */
+export const SHORT_MS = Math.round((SHORT_T.dive + SHORT_T.diveDur) * 1000);
+/** L'autohide CSS della corta, come quello del film: fine + 100 ms. */
+export const PRE_SHORT_AUTOHIDE_MS = SHORT_MS + 100;
+/** Il failsafe del boot script per la corta: fine + 600 ms. */
+export const PRE_SHORT_FAILSAFE_MS = SHORT_MS + 600;
+/** La rete dell'hero e dei gruppi sopra la piega con la corta: tuffo + 200 ms. */
+export const HERO_REST_SHORT_MS = Math.round((SHORT_T.dive + 0.2) * 1000);
+
+/**
+ * Il ritardo della rete per il valore di `data-hero-rest` o `data-hero-intro`
+ * scritto dal boot script: "intro" col film, "short" con la corta, "" o
+ * assente a caldo. Un solo posto per i tre casi (A18, A20): un ternario a due
+ * casi farebbe cadere la corta sulla rete a caldo da 6 s.
+ */
+export function heroRestMs(value: string | null): number {
+  if (value === "intro") return HERO_REST_MS;
+  if (value === "short") return HERO_REST_SHORT_MS;
+  return HERO_REST_WARM_MS;
+}

@@ -6,7 +6,6 @@ import Services from "../components/Services";
 import EditorialRows, { type EditorialRow } from "../components/EditorialRows";
 import BeforeAfter from "../components/BeforeAfter";
 import Contact from "../components/Contact";
-import { SegnoDomusDivider } from "../components/BrandMotif";
 import { useLocale } from "../components/i18n/LocaleProvider";
 
 const copy = {
@@ -21,8 +20,8 @@ const copy = {
     ),
     heroSubcopy:
       "Dietro ogni vendita c'è un insieme di servizi che fanno la differenza: tecnici e legali, creativi e di marketing. Tutti parte di un unico metodo.",
-    heroAlt: "Cucina moderna luminosa",
-    heroPrimary: "Richiedi la valutazione del tuo immobile",
+    heroAlt: "Angolo della piscina con la facciata della villa a sinistra e una siepe alta con alberi a destra",
+    heroPrimary: "Richiedi la valutazione",
     heroSecondary: "Esplora i servizi",
     editorialEyebrow: "I servizi creativi",
     editorialTitle: "Far percepire il valore prima ancora della visita.",
@@ -57,8 +56,8 @@ const copy = {
     ),
     heroSubcopy:
       "Behind every sale there is a set of services that make the difference: technical and legal, creative and marketing. All part of one single method.",
-    heroAlt: "Bright modern kitchen",
-    heroPrimary: "Request a valuation of your property",
+    heroAlt: "Corner of the pool with the villa's façade on the left and a tall hedge with trees on the right",
+    heroPrimary: "Request a valuation",
     heroSecondary: "Explore the services",
     editorialEyebrow: "The creative services",
     editorialTitle: "Making the value felt before the viewing even begins.",
@@ -93,8 +92,8 @@ const copy = {
     ),
     heroSubcopy:
       "Derrière chaque vente se cache un ensemble de services qui font la différence : techniques et juridiques, créatifs et marketing. Tous réunis dans une seule et même méthode.",
-    heroAlt: "Cuisine moderne et lumineuse",
-    heroPrimary: "Demandez l’estimation de votre bien",
+    heroAlt: "Angle de la piscine avec la façade de la villa à gauche et une haute haie avec des arbres à droite",
+    heroPrimary: "Demander l’estimation",
     heroSecondary: "Explorer les services",
     editorialEyebrow: "Les services créatifs",
     editorialTitle: "Faire ressentir la valeur avant même la visite.",
@@ -129,7 +128,7 @@ const copy = {
     ),
     heroSubcopy:
       "Hinter jedem Verkauf steht ein Bündel an Leistungen, die den Unterschied machen: technisch und rechtlich, kreativ und im Marketing. Alle Teil einer einzigen Methode.",
-    heroAlt: "Helle moderne Küche",
+    heroAlt: "Ecke des Pools mit der Fassade der Villa links und einer hohen Hecke mit Bäumen rechts",
     heroPrimary: "Fordern Sie die Bewertung Ihrer Immobilie an",
     heroSecondary: "Leistungen entdecken",
     editorialEyebrow: "Die kreativen Leistungen",
@@ -165,8 +164,8 @@ const copy = {
     ),
     heroSubcopy:
       "Detrás de cada venta hay un conjunto de servicios que marcan la diferencia: técnicos y legales, creativos y de marketing. Todos parte de un único método.",
-    heroAlt: "Cocina moderna y luminosa",
-    heroPrimary: "Solicita la valoración de tu inmueble",
+    heroAlt: "Esquina de la piscina con la fachada de la villa a la izquierda y un seto alto con árboles a la derecha",
+    heroPrimary: "Solicita la valoración",
     heroSecondary: "Explora los servicios",
     editorialEyebrow: "Los servicios creativos",
     editorialTitle: "Hacer percibir el valor incluso antes de la visita.",
@@ -226,13 +225,16 @@ export default function ServiziContent() {
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
-        image="/images/premium_03_cucina_moderna.jpg"
+        image="/images/reali/villa-angolo-piscina.jpg"
+        objectPosition="50% 60%"
+        srcWidth={2560}
+        scriptInset
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#servizi" }}
+        scriptWord={{ it: "Su misura", en: "Tailored", fr: "Sur mesure", de: "Nach Maß", es: "A medida" }[locale]}
       />
 
-      <SegnoDomusDivider className="py-14" />
 
       <Services />
 

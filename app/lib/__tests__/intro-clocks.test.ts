@@ -14,7 +14,7 @@
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -26,6 +26,16 @@ import {
   TEMPO,
   HERO_REST_WARM_MS,
   WARM_FIRST_FOLD_MS,
+  INTRO_FILM,
+  INTRO_SHORT,
+  INTRO_QUIET,
+  RELOAD_KEEP_Y,
+  SHORT_T,
+  SHORT_MS,
+  PRE_SHORT_AUTOHIDE_MS,
+  PRE_SHORT_FAILSAFE_MS,
+  HERO_REST_SHORT_MS,
+  heroRestMs,
 } from "../motion/intro-constants";
 
 const root = join(__dirname, "..", "..", "..");
@@ -109,6 +119,44 @@ describe("intro-constants: la sorgente", () => {
     assert.ok(WARM_FIRST_FOLD_MS <= INTRO_MS - INTRO_T.diveDur * 1000);
   });
 
+  // LA PORTA CORTA. Alberto il 13 settembre 2026 (A18, A20): il film intero
+  // alla prima entrata nella home, la porta corta a ogni altro caricamento
+  // completo. È il film dimezzato: porta e tuffo con le stesse durate e lo
+  // stesso rapporto, senza atto I (spec §6.2).
+  test("gli stati della chiave sono quattro valori, e la corta ha porta e tuffo del film", () => {
+    assert.equal(INTRO_FILM, "1");
+    assert.equal(INTRO_SHORT, "c");
+    assert.equal(INTRO_QUIET, "q");
+    assert.equal(RELOAD_KEEP_Y, 0.5);
+    assert.equal(SHORT_T.archDur, INTRO_T.archDur);
+    assert.equal(SHORT_T.diveDur, INTRO_T.diveDur);
+    assert.equal(SHORT_T.dive, 0.88);
+    assert.equal(SHORT_T.figureDur, 0.3 * TEMPO);
+    // Il tuffo parte a 0,8 della porta come nel film: `--arch-k` resta 0,972.
+    const kCorta = SHORT_T.dive / SHORT_T.archDur;
+    const kFilm = (INTRO_T.dive - INTRO_T.arch) / INTRO_T.archDur;
+    assert.ok(Math.abs(kCorta - 0.8) < 1e-9, `corta: tuffo a ${kCorta} della porta`);
+    assert.ok(Math.abs(kFilm - kCorta) < 1e-9, `film ${kFilm} e corta ${kCorta} non partono dallo stesso punto`);
+  });
+
+  test("la corta è dimezzata, e autohide, failsafe e rete ne derivano", () => {
+    assert.equal(SHORT_MS, Math.round((SHORT_T.dive + SHORT_T.diveDur) * 1000));
+    assert.equal(SHORT_MS, 2380);
+    const r = SHORT_MS / INTRO_MS;
+    assert.ok(r >= 0.45 && r <= 0.55, `SHORT_MS / INTRO_MS = ${r}: la corta non è il film dimezzato`);
+    assert.equal(PRE_SHORT_AUTOHIDE_MS, SHORT_MS + 100);
+    assert.equal(PRE_SHORT_FAILSAFE_MS, SHORT_MS + 600);
+    assert.equal(HERO_REST_SHORT_MS, Math.round((SHORT_T.dive + 0.2) * 1000));
+    assert.ok(HERO_REST_SHORT_MS < SHORT_MS);
+  });
+
+  test("heroRestMs legge i tre casi del boot script", () => {
+    assert.equal(heroRestMs("intro"), HERO_REST_MS);
+    assert.equal(heroRestMs("short"), HERO_REST_SHORT_MS);
+    assert.equal(heroRestMs(""), HERO_REST_WARM_MS);
+    assert.equal(heroRestMs(null), HERO_REST_WARM_MS);
+  });
+
   test("act1End copre davvero l'ultima lettera in moto (la firma, 13 chars)", () => {
     const lastScript = INTRO_T.script + INTRO_T.scriptDur + 12 * INTRO_T.scriptStagger;
     const lastTitle = INTRO_T.chars + INTRO_T.charsDur + 7 * INTRO_T.charsStagger;
@@ -127,14 +175,15 @@ describe("layout.tsx: il boot script interpola le costanti", () => {
   assert.ok(m, "preloaderBootScript non trovato in layout.tsx");
   const script = m![1];
 
-  test("il failsafe è ${PRE_FAILSAFE_MS}, non un numero", () => {
-    // La chiusura del sipario e una funzione sola (`fine`), armata a
+  test("il failsafe è ${PRE_FAILSAFE_MS} per il film e ${PRE_SHORT_FAILSAFE_MS} per la corta, non un numero", () => {
+    // La chiusura del film è una funzione sola (`fine`), armata a
     // ${PRE_FAILSAFE_MS} e RI-armata a ${SKIP_TAIL_MS} quando il boot script
-    // serve uno skip: chi salta non deve aspettare il failsafe intero.
+    // serve uno skip. La corta ha la sua (`fineS`), senza skip (D31).
     assert.match(script, /var fine=function\(\)\{[\s\S]*?h\.removeAttribute\("data-preloader"\)\}/);
     assert.match(script, /setTimeout\(fine,\$\{PRE_FAILSAFE_MS\}\)/);
     assert.match(script, /setTimeout\(fine,\$\{SKIP_TAIL_MS\}\)/);
-    assert.doesNotMatch(script, /\b(1800|2500|4500|5230)\b/);
+    assert.match(script, /setTimeout\(fineS,\$\{PRE_SHORT_FAILSAFE_MS\}\)/);
+    assert.doesNotMatch(script, /\b(1800|2500|4500|5230|2380|2980)\b/);
     // Un solo numero, nessuna soglia di larghezza per il failsafe: l'unico
     // 767.98 ammesso è il `media` del preload della sagoma (stesso confine
     // del <source> della shell), che non è un orologio.
@@ -142,9 +191,70 @@ describe("layout.tsx: il boot script interpola le costanti", () => {
     assert.match(script, /rel="preload"[\s\S]*raffaela-sagoma-m\.webp[\s\S]*\(max-width: 767\.98px\)/);
   });
 
-  test("la chiave di sessione è ${INTRO_KEY}", () => {
-    assert.match(script, /sessionStorage\.getItem\("\$\{INTRO_KEY\}"\)/);
+  test("la chiave di sessione è ${INTRO_KEY}, letta una volta, coi quattro stati interpolati", () => {
+    assert.equal((script.match(/sessionStorage\.getItem\("\$\{INTRO_KEY\}"\)/g) ?? []).length, 1);
     assert.doesNotMatch(script, /dt-intro-seen/);
+    for (const nome of ["INTRO_FILM", "INTRO_SHORT", "INTRO_QUIET", "LAST_Y_KEY", "RELOAD_KEEP_Y"]) {
+      assert.ok(script.includes("${" + nome + "}"), `il boot script non interpola ${nome}`);
+    }
+    // Nessun valore della chiave scritto a mano.
+    assert.doesNotMatch(script, /setItem\("\$\{INTRO_KEY\}","[^$]/);
+  });
+
+  test("la macchina a stati: gate, film, corta (spec §6.2; A26, D31)", () => {
+    const righe = [
+      'var p=location.pathname;var home=p==="/";var caso=p.indexOf("/case/")===0;',
+      'var nav=ne?ne.type:"navigate";',
+      'var vis=document.visibilityState==="visible"&&!document.prerendering;',
+      'var cssOk=typeof CSS!=="undefined"&&"registerProperty" in CSS&&CSS.supports("mask-composite","add");',
+      // Riga 11 della tabella di spec §6.2 e D31: la ricarica lontana dalla
+      // cima non ha né corta né film, quindi la condizione sta in gate.
+      'var gate=m&&!deep&&vis&&!caso&&k!=="${INTRO_QUIET}"&&nav!=="back_forward"&&!(ly>innerHeight*${RELOAD_KEEP_Y});',
+      'var pre=gate&&home&&k!=="${INTRO_FILM}";',
+      'var short=gate&&!pre&&cssOk;',
+      'if(nav==="reload"){try{var s=JSON.parse(sessionStorage.getItem("${LAST_Y_KEY}")||"null");if(s&&s.p===p)ly=s.y}catch(e){}}',
+    ];
+    for (const r of righe) assert.ok(script.includes(r), `manca nel boot script: ${r}`);
+    assert.ok(
+      script.indexOf('if(nav==="reload"){') < script.indexOf("var gate="),
+      "ly si legge dopo gate: la riga 11 guarderebbe sempre 0",
+    );
+    assert.match(script, /performance\.getEntriesByType\("navigation"\)/);
+    // A26: nessun ramo che arma un sipario apposta per /case/*.
+    assert.doesNotMatch(script, /\(caso&&/);
+    assert.equal((script.match(/h\.setAttribute\("data-preloader"/g) ?? []).length, 2);
+  });
+
+  test("?intro toglie la chiave prima di leggerla, e solo senza ancora; l'ancora segna il film solo su «/»", () => {
+    const togli = 'if(!deep&&/[?&]intro(&|=|$)/.test(location.search)){try{sessionStorage.removeItem("${INTRO_KEY}")}catch(e){}}';
+    const iTogli = script.indexOf(togli);
+    const iLeggi = script.indexOf('sessionStorage.getItem("${INTRO_KEY}")');
+    assert.ok(iTogli > -1, "manca il ramo ?intro");
+    assert.ok(iTogli < iLeggi, "il ramo ?intro deve venire prima della lettura della chiave");
+    assert.ok(script.includes('if(deep&&home){try{sessionStorage.setItem("${INTRO_KEY}","${INTRO_FILM}")}catch(e){}}'));
+  });
+
+  test("il film scrive la chiave all'armamento; la corta solo a chiave assente, e fineS non la scrive", () => {
+    const iPre = script.indexOf("if(pre){");
+    const iShort = script.indexOf("}else if(short){");
+    const iM = script.indexOf("if(m){", iShort);
+    assert.ok(iPre > -1 && iShort > iPre && iM > iShort, "rami if(pre) / else if(short) / if(m) non trovati in quest'ordine");
+    // La corta finisce dove comincia il guardiano della ricarica (D65), che
+    // ascolta i gesti per ritirarsi e non è uno skip.
+    const iTop = script.indexOf('if((pre||short)&&nav==="reload"){', iShort);
+    const film = script.slice(iPre, iShort);
+    const corta = script.slice(iShort, iTop > iShort && iTop < iM ? iTop : iM);
+    assert.ok(film.includes('sessionStorage.setItem("${INTRO_KEY}","${INTRO_FILM}")'), "il film non segna INTRO_FILM all'armamento");
+    assert.ok(!corta.includes("${INTRO_FILM}"), "la corta scrive INTRO_FILM: la home non darebbe più il film");
+    assert.ok(corta.includes('if(!k){try{sessionStorage.setItem("${INTRO_KEY}","${INTRO_SHORT}")}catch(e){}}'));
+    assert.ok(corta.includes('var fineS=function(){h.removeAttribute("data-preloader")};'));
+    assert.ok(corta.includes('h.setAttribute("data-preloader",home?"short":"short-page")'));
+    assert.ok(!corta.includes("pointerdown") && !corta.includes("keydown"), "la corta non ha skip (D31)");
+    assert.match(corta, /if\(home\)\{lk\("\/media\/raffaela-sagoma-m\.webp"/);
+  });
+
+  test("il banner cookie aspetta l'handoff anche sotto la corta", () => {
+    assert.ok(script.includes("if(!pre&&!short&&!/(^|; )dt_consent=(accepted|rejected)(;|$)/.test(document.cookie))"));
   });
 
   test("stampa __dtPreT0 e data-locale (contratto con Preloader.tsx e la CSS del payoff)", () => {
@@ -152,15 +262,47 @@ describe("layout.tsx: il boot script interpola le costanti", () => {
     assert.match(script, /h\.setAttribute\("data-locale",lc\?lc\[2\]:"it"\)/);
     assert.match(script, /dt_locale=\(it\|en\|fr\|de\|es\)/);
   });
+
+  test("D65: alla ricarica con un sipario il guardiano tiene la pagina in cima e si ritira solo a sipario caduto", () => {
+    const i = script.indexOf('if((pre||short)&&nav==="reload"){');
+    const iM = script.indexOf("if(m){", i);
+    assert.ok(i > script.indexOf("}else if(short){") && iM > i, "il guardiano non sta fra i rami del sipario e if(m)");
+    const g = script.slice(i, iM);
+    // Il ripristino nativo spento e ogni scroll sotto il guardiano riportato a 0, senza la curva di html.
+    assert.ok(g.includes('window.__dtPreTop=1;try{history.scrollRestoration="manual"}catch(e){}'));
+    assert.ok(g.includes('tg=function(){try{if(scrollY)scrollTo({top:0,behavior:"instant"})}catch(e){}}'));
+    assert.ok(g.includes('addEventListener("scroll",tg,{passive:true})'));
+    // Ritiro: attributo caduto e load passato da due fotogrammi, o gesto dell'utente a sipario caduto.
+    assert.ok(g.includes('tf=function(){if(tl&&!h.hasAttribute("data-preloader"))tx()}'));
+    assert.ok(g.includes('ti=function(){if(!h.hasAttribute("data-preloader"))tx()}'));
+    assert.ok(g.includes('addEventListener("load",function(){requestAnimationFrame(function(){requestAnimationFrame(function(){tl=1;tf()})})})'));
+    assert.ok(g.includes('to.observe(h,{attributeFilter:["data-preloader"]})'));
+    // Al ritiro "auto", anche nella memoria di ScrollTrigger (Preloader.tsx).
+    assert.ok(g.includes('tx=function(){if(!window.__dtPreTop)return;window.__dtPreTop=0;'), "il ritiro non è idempotente");
+    assert.ok(g.includes('try{history.scrollRestoration="auto"}catch(e){}if(window.__dtPreTopOff)window.__dtPreTopOff()'));
+    assert.equal((script.match(/scrollRestoration=/g) ?? []).length, 2, "scrollRestoration si scrive solo nel guardiano");
+    assert.match(preloader, /flags\.__dtPreTopOff = auto;/);
+    assert.match(preloader, /const auto = \(\) => ScrollTrigger\.clearScrollMemory\("auto"\);/);
+    assert.match(preloader, /if \(flags\.__dtPreTop === 0\) auto\(\);/);
+  });
 });
 
 describe("globals.css: i numeri rimasti in CSS combaciano", () => {
-  test("autohide = PRE_AUTOHIDE_MS in entrambe le liste (ripiego e CSS che guida), nessun override mobile", () => {
+  test("autohide = PRE_AUTOHIDE_MS in entrambe le liste; la corta riscrive solo i delay", () => {
     const m = css.match(/dt-pre-autohide 0\.5s ease ([\d.]+)s forwards/g);
     assert.ok(m && m.length === 2, "attese DUE occorrenze di dt-pre-autohide (lista base + lista con porta e tuffo)");
     for (const r of m!) assert.equal(sec(r.match(/ease ([\d.]+)s/)![1]) * 1000, PRE_AUTOHIDE_MS);
     assert.doesNotMatch(css, /dt-preloader-boot/); // il primo fotogramma è la shell stessa
     assert.doesNotMatch(css, /animation-delay: 2\.3s/);
+    // La corta: porta da 0, tuffo da SHORT_T.dive, autohide a PRE_SHORT_AUTOHIDE_MS.
+    const sel = 'html[data-preloader^="short"]:not([data-pre-gsap]) .dt-preloader {';
+    const i = css.indexOf(sel);
+    assert.ok(i > -1, `selettore assente: ${sel}`);
+    const attesa = `animation-delay: 0s, ${SHORT_T.dive}s, ${PRE_SHORT_AUTOHIDE_MS / 1000}s;`;
+    assert.ok(css.slice(i, i + 120).includes(attesa), `la corta non porta «${attesa}»`);
+    // Stessa specificità della lista del film: la corta deve venire dopo.
+    const film = css.search(/html\[data-preloader\]:not\(\[data-pre-gsap\]\) \.dt-preloader \{\s*animation:/);
+    assert.ok(film > -1 && i > film, "le regole della corta stanno prima della lista del film: perderebbero");
   });
 
   test("le @property della maschera sono registrate (senza, le keyframe scatterebbero al 50 %)", () => {
@@ -211,6 +353,21 @@ describe("globals.css: i numeri rimasti in CSS combaciano", () => {
     assert.match(gsapTs, /CustomEase\.create\(\s*"dtLoader"/);
   });
 
+  test("la linea di carica del film campiona dtLoader su ancoraggi e punti di errore massimo (spec §6.2)", () => {
+    // lane-globali.md §4.7: dai 17 punti a passo fisso (errore massimo 0,0087)
+    // ai 17 punti sugli ancoraggi del path e sui punti di errore massimo (0,0032).
+    const lin = css.match(/\[data-pre-track\] \{[^}]*animation-timing-function: linear\(([\s\S]*?)\);/);
+    assert.ok(lin, "linear() della linea di carica non trovata");
+    const punti = lin![1].split(",").map((s) => s.trim().replace(/\s+/g, " "));
+    assert.deepEqual(punti, [
+      "0 0%", "0.154 6.5%", "0.283 12.9%", "0.378 18.6%", "0.414 21.2%", "0.442 23.8%",
+      "0.482 28.2%", "0.504 31.3%", "0.54 39.6%", "0.584 52.2%", "0.595 53.9%", "0.615 55.8%",
+      "0.75 65%", "0.826 71.4%", "0.866 76%", "0.91 82.6%", "1 100%",
+    ]);
+    // il ripiego senza linear() resta la bezier di oggi
+    assert.match(css, /animation: dt-pre-track 1\.55s cubic-bezier\(0\.2, 0\.45, 0, 0\.25\) 0\.6s both;/);
+  });
+
   test("congedo del lockup = INTRO_T.exit/exitDur, domus.inOut; sipario di ripiego = curtain/curtainDur", () => {
     const e = animationOf("[data-pre-content]", CSS_DRIVES);
     assert.equal(e.name, "dt-pre-exit");
@@ -247,30 +404,35 @@ describe("globals.css: i numeri rimasti in CSS combaciano", () => {
     assert.match(css, /@supports \(mask-composite: add\) \{\s*\.dt-preloader,\s*\.dt-arch-mask \{/);
   });
 
-  test("hero-rest / hero-intro: HERO_REST_MS con l'intro, HERO_REST_WARM_MS senza, a ogni larghezza", () => {
+  test("hero-rest / hero-intro: HERO_REST_MS col film, HERO_REST_SHORT_MS con la corta, HERO_REST_WARM_MS senza", () => {
     const m = css.match(/animation: dt-rest-failsafe 0\.5s ease ([\d.]+)s forwards/g);
-    assert.ok(m && m.length === 4, "attese quattro reti dt-rest-failsafe (rest/intro × caldo/intro)");
+    assert.ok(m && m.length === 6, "attese sei reti dt-rest-failsafe (rest/intro × caldo/film/corta)");
     const delays = m!.map((r) => sec(r.match(/ease ([\d.]+)s/)![1]) * 1000).sort((a, b) => a - b);
-    // Ordinati entrambi: quale delle due reti sia la più corta dipende da
-    // TEMPO (con l'intro lunga, la rete dell'intro cade DOPO quella a caldo).
     assert.deepEqual(
       delays,
-      [HERO_REST_MS, HERO_REST_MS, HERO_REST_WARM_MS, HERO_REST_WARM_MS].sort((a, b) => a - b),
+      [HERO_REST_SHORT_MS, HERO_REST_SHORT_MS, HERO_REST_MS, HERO_REST_MS, HERO_REST_WARM_MS, HERO_REST_WARM_MS].sort(
+        (a, b) => a - b,
+      ),
     );
-    // la rete dell'intro è SOLO per l'intro: selettore col valore "intro", e il
-    // suo delay è HERO_REST_MS — niente regex, il testo esatto (le regex con i
-    // numeri interpolati sono già costate un falso verde).
-    const attesa = `animation: dt-rest-failsafe 0.5s ease ${HERO_REST_MS / 1000}s forwards;`;
-    for (const sel of ['html[data-hero-rest="intro"] .dt-hero-rest', 'html[data-hero-intro="intro"]']) {
+    // Il testo esatto, niente regex coi numeri interpolati (sono già costate
+    // un falso verde).
+    const casi: Array<[string, number]> = [
+      ['html[data-hero-rest="intro"] .dt-hero-rest', HERO_REST_MS],
+      ['html[data-hero-intro="intro"]', HERO_REST_MS],
+      ['html[data-hero-rest="short"] .dt-hero-rest', HERO_REST_SHORT_MS],
+      ['html[data-hero-intro="short"]', HERO_REST_SHORT_MS],
+    ];
+    for (const [sel, ms] of casi) {
+      const attesa = `animation: dt-rest-failsafe 0.5s ease ${ms / 1000}s forwards;`;
       const i = css.indexOf(sel);
       assert.ok(i > -1, `selettore assente: ${sel}`);
-      assert.ok(
-        css.slice(i, i + 260).includes(attesa),
-        `${sel} non porta «${attesa}»`,
-      );
+      assert.ok(css.slice(i, i + 260).includes(attesa), `${sel} non porta «${attesa}»`);
     }
-    // e il boot script marca "intro" solo quando l'intro suona
-    assert.match(layout, /h\.setAttribute\("data-hero-rest",pre\?"intro":""\)/);
+    // e il boot script marca "intro" col film, "short" con la corta
+    assert.match(
+      layout,
+      /var v=pre\?"intro":short\?"short":"";h\.setAttribute\("data-hero-rest",v\);h\.setAttribute\("data-hero-intro",v\)/,
+    );
     assert.doesNotMatch(css, /animation-delay: 4s/);
   });
 
@@ -339,6 +501,26 @@ describe("globals.css: i numeri rimasti in CSS combaciano", () => {
     const mobileBlock = css.slice(css.indexOf("@media (max-width: 767.98px) {\n  /* Una porta"));
     assert.doesNotMatch(mobileBlock.slice(0, mobileBlock.indexOf("\n}\n")), /data-pre-arch-echo/);
   });
+
+  test("il badge gira in senso ORARIO, anello e monogramma nello stesso verso (cliente, 2026-09-10)", () => {
+    // Il difetto che blinda: il monogramma girava `reverse` (antiorario)
+    // mentre l'header era già stato messo in senso orario — la direttiva era
+    // stata applicata a spinMarkBadge, che il preloader non usa più.
+    const spin = (sel: string) => {
+      const m = css.match(
+        new RegExp(String.raw`html\[data-preloader\] \.dt-preloader \[${sel}\]\s*\{[^}]*?animation:\s*([^;]+);`)
+      );
+      assert.ok(m, `nessuna animation per [${sel}] in globals.css`);
+      return m![1].trim();
+    };
+    const ring = spin("data-rot-ring");
+    const mark = spin("data-rot-mark");
+    assert.equal(ring, mark, "anello e monogramma devono girare con la stessa animazione (stesso verso)");
+    assert.match(ring, /^dt-pre-spin\b/);
+    assert.doesNotMatch(ring, /\b(reverse|alternate)\b/, "il badge gira al contrario");
+    // e le keyframe vanno da 0 a +360: orario.
+    assert.match(css, /@keyframes dt-pre-spin \{\s*to \{\s*transform: rotate\(360deg\);/);
+  });
 });
 
 describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
@@ -364,9 +546,158 @@ describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
     assert.match(preloader, /INTRO_MS \/ 1000/);
   });
 
+  test("Preloader.tsx: la corta legge SHORT_T e SHORT_MS, niente skip, niente chiave del film", () => {
+    assert.match(preloader, /getAttribute\("data-preloader"\)\?\.startsWith\("short"\) \?\? false/);
+    assert.match(preloader, /short \? SHORT_T\.dive :/);
+    assert.match(preloader, /short \? SHORT_MS \/ 1000 :/);
+    assert.match(preloader, /if \(short && !cssDrives\) \{\s*fireIntro\(\);\s*finish\(true\);\s*return;/);
+    assert.match(preloader, /if \(completed && !short\) \{/);
+    assert.match(preloader, /sessionStorage\.setItem\(INTRO_KEY, INTRO_FILM\)/);
+    assert.doesNotMatch(preloader, /sessionStorage\.setItem\(INTRO_KEY, "1"\)/);
+    assert.match(
+      preloader,
+      /if \(!short\) \{\s*window\.addEventListener\("pointerdown", onPointerSkip\);\s*window\.addEventListener\("keydown", onKeySkip\);/,
+    );
+    assert.match(preloader, /short \? PRE_SHORT_FAILSAFE_MS : PRE_FAILSAFE_MS/);
+    assert.match(preloader, /if \(short\) \{\s*scaldata = Promise\.resolve\(\);/);
+  });
+
+  test("le reti a valle scelgono il ritardo con heroRestMs, senza un secondo orologio scritto a mano", () => {
+    // Il codice senza commenti: HeroCinematic.tsx cita «1920×1080» in un commento.
+    const soloCodice = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    const files: Array<[string, string]> = [
+      ["app/components/HeroCinematic.tsx", soloCodice(read("app/components/HeroCinematic.tsx"))],
+      ["app/lib/motion/fold.ts", soloCodice(read("app/lib/motion/fold.ts"))],
+    ];
+    for (const [nome, src] of files) {
+      assert.doesNotMatch(src, /\? HERO_REST_MS : HERO_REST_WARM_MS/, `${nome}: ternario a due casi, la corta cadrebbe a 6 s`);
+      assert.doesNotMatch(src, /SHORT_REST_MS|\b(1080|3330|6000)\b/, `${nome}: un ritardo di rete scritto a mano`);
+      assert.doesNotMatch(src, /\bHERO_REST_(MS|WARM_MS|SHORT_MS)\b/, `${nome}: sceglie la rete senza heroRestMs`);
+    }
+    // Dal commit 8 l'hero non ha reti sue: passano da fold.ts, che le sceglie
+    // in due punti (la rete di afterCurtain e foldNetFired), entrambi con heroRestMs.
+    const fold = files[1][1];
+    assert.equal(
+      (fold.match(/heroRestMs\(document\.documentElement\.getAttribute\("data-hero-intro"\)\)/g) ?? []).length,
+      2,
+      "fold.ts: afterCurtain e foldNetFired devono leggere la rete con heroRestMs",
+    );
+  });
+
+  test("nessuno scrive più la chiave del film per togliersi il sipario: fixture, sonde e misure scrivono INTRO_QUIET", () => {
+    // Spec §6.2 (A18, A20; D31): "1" vuol dire «film armato» e sotto quella
+    // chiave suona la corta. Chi vuole la pagina senza sipario scrive "q".
+    const cartelle = ["e2e", "scripts", "docs/superpowers/specs/2026-09-13-coreografia-era-residence/misure"];
+    const colpevoli: string[] = [];
+    const visita = (dir: string) => {
+      for (const nome of readdirSync(join(root, dir))) {
+        const rel = `${dir}/${nome}`;
+        if (statSync(join(root, rel)).isDirectory()) visita(rel);
+        else if (/\.(ts|mjs|js|cjs)$/.test(nome) && /sessionStorage\.setItem\(\s*[^,()]+,\s*["']1["']\s*\)/.test(read(rel))) colpevoli.push(rel);
+      }
+    };
+    for (const c of cartelle) visita(c);
+    assert.deepEqual(colpevoli, [], `scrivono ancora "1": ${colpevoli.join(", ")}`);
+  });
+
   test("il budget e2e è uno solo, derivato da INTRO_MS, a ogni larghezza", () => {
     // Derivato, non scritto: se cambia TEMPO il budget lo segue da sé.
     assert.match(e2e, /const budget = INTRO_MS \+ \d+;/);
     assert.doesNotMatch(e2e, /width < 768 \? 1900/);
+  });
+});
+
+/* ─────────────────────────────────────────────────────────────────────────
+   IL PATTO SAGOMA/FOTO — «l'animazione di entrata come prima».
+   L'effetto dell'intro e' che la porta ad arco si apra SULLA STANZA: la
+   sagoma dentro il sipario e la foto dell'hero sotto sono lo stesso scatto,
+   nella stessa scatola, col medesimo ritaglio — quando l'arco le attraversa
+   non c'e' un salto, c'e' la continuazione. L'11 settembre 2026 il patto si
+   era rotto in silenzio (l'hero e' diventato una banda alta, la sagoma era
+   rimasta a tutto schermo: per 750 ms due Raffaela, poi un taglio). Questi
+   controlli lo tengono chiuso: se qualcuno sposta una delle due scatole,
+   `npm test` lo dice prima di un cliente.
+   ───────────────────────────────────────────────────────────────────────── */
+describe("la porta si apre sulla stanza: sagoma e foto coincidono", () => {
+  const shell = read("app/components/motion/PreloaderShell.tsx");
+  const hero = read("app/components/HeroCinematic.tsx");
+
+  test("i due numeri della scatola esistono e sono UNO solo", () => {
+    assert.match(css, /--dt-head-h:\s*clamp\([^;]+\);/);
+    assert.match(css, /--dt-band-h:\s*60svh;/);
+  });
+
+  test("la sagoma e' ancorata alla banda (top = testata, altezza = banda)", () => {
+    const rule = css.match(/\.dt-preloader \[data-pre-figure\] \{[^}]*\}/);
+    assert.ok(rule, "manca la regola di posizione della sagoma");
+    assert.match(rule![0], /top:\s*calc\(var\(--dt-head-h\) \+ 1px\)/);
+    assert.match(rule![0], /height:\s*var\(--dt-band-h\)/);
+    // e non e' tornata a tutto schermo
+    assert.doesNotMatch(rule![0], /height:\s*100(svh|vh|%)/);
+  });
+
+  test("la banda dell'hero legge lo stesso token", () => {
+    assert.match(hero, /data-hero-media[\s\S]{0,200}h-\[var\(--dt-band-h\)\]/);
+  });
+
+  test("stesso ritaglio: un solo object-position per i due nodi", () => {
+    const pos = /objectPosition:\s*"10% 0%"/;
+    assert.match(shell, pos, "la sagoma non usa il ritaglio della foto");
+    assert.match(hero, pos, "la foto dell'hero non usa il ritaglio della sagoma");
+    assert.doesNotMatch(shell, /objectPosition:\s*"50% 70%"/);
+  });
+
+  test("la vecchia «fascia» non torna a spostare la sagoma", () => {
+    assert.doesNotMatch(css, /--dt-fascia-w/);
+  });
+});
+
+/* LA PORTA CORTA IN CSS. Alberto il 13 settembre 2026 (A18, A20; D31): salta
+   lockup, didascalie, linea e payoff; la sagoma solo su «/»; il pannello su
+   avorio profondo, senza il fondo espresso. Il patto della porta qui sopra
+   non cambia: la sagoma della corta di «/» è la stessa scatola. */
+describe("la porta corta in CSS", () => {
+  // globals.css ha le fini riga CRLF sui checkout Windows (core.autocrlf):
+  // qui solo regex con \s*, mai "\n" letterali.
+  test("salta [data-pre-content]; la sagoma solo su «/», in SHORT_T.figureDur", () => {
+    assert.match(css, /html\[data-preloader\^="short"\] \.dt-preloader \[data-pre-content\] \{\s*display: none;/);
+    assert.match(
+      css,
+      new RegExp(
+        String.raw`html\[data-preloader="short"\] \.dt-preloader \[data-pre-figure\] \{\s*animation: dt-pre-in-fade ${SHORT_T.figureDur}s linear 0s both;`,
+      ),
+      "la sagoma della corta di «/» non entra in 0,3 s",
+    );
+    assert.match(css, /html\[data-preloader="short-page"\] \.dt-preloader \[data-pre-figure\] \{\s*display: none;/);
+  });
+
+  test("pannello su avorio profondo, senza .dt-pre-fondo (D31)", () => {
+    assert.match(
+      css,
+      /html\[data-preloader\^="short"\] \.dt-preloader \[data-pre-panel\] \{\s*background-color: var\(--color-cream-deep\);/,
+    );
+    assert.match(css, /html\[data-preloader\^="short"\] \.dt-pre-fondo \{\s*display: none;/);
+  });
+
+  test("gli anelli eco della corta sono avorio profondo col profilo della linea, mai espresso (D05, D31)", () => {
+    // Gli anelli sono figli del pannello (PreloaderShell.tsx:155-156) e di
+    // base sono var(--color-espresso): senza questa regola la corta avrebbe
+    // fasce scure sull'avorio. Si ricolorano e non si nascondono: l'unico
+    // display:none degli anelli resta quello di @supports not mask-composite.
+    // Il profilo è un outline a offset negativo, dentro la scatola: spec §8
+    // (C14) vieta le ombre di scatola, e un bordo cambierebbe la geometria.
+    const regola =
+      /html\[data-preloader\^="short"\] \.dt-preloader \[data-pre-arch-echo\] \{\s*background-color: var\(--color-cream-deep\);\s*outline: 1px solid var\(--color-line\);\s*outline-offset: -1px;\s*\}/;
+    assert.match(css, regola);
+    // Nessuna ombra nuova: la regola della corta non porta box-shadow (quella
+    // inset della regola base degli anelli è del film e resta).
+    assert.doesNotMatch(css, /html\[data-preloader[^\]]*\][^{]*\[data-pre-arch-echo\] \{[^}]*box-shadow/);
+    assert.equal((css.match(/\[data-pre-arch-echo\] \{\s*display: none;/g) ?? []).length, 1);
+  });
+
+  test("nessuna regola dello skip nomina la corta", () => {
+    const skip = css.match(/html\[data-preloader[^\]]*\]\[data-pre-skip\][^{]*\{/g) ?? [];
+    assert.ok(skip.length >= 4, "regole dello skip del film sparite");
+    for (const s of skip) assert.doesNotMatch(s, /short/);
   });
 });

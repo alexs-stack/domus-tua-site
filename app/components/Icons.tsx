@@ -23,6 +23,13 @@ export const ArrowRight = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+// Specchio di ArrowRight: la freccia "indietro" del carosello delle voci.
+export const ArrowLeft = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </svg>
+);
+
 export const Star = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base({ ...p, fill: "currentColor", stroke: "none" })}>
     <path d="M12 2.5l2.7 5.9 6.3.7-4.7 4.3 1.3 6.3L12 17.9 6.1 20l1.3-6.3L2.7 9.4l6.3-.7L12 2.5z" />

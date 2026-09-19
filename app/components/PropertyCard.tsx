@@ -3,8 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, Bed, Ruler, Rooms, Check } from "./Icons";
-import Badge from "./primitives/Badge";
-import { SegnoDomusCorner } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import type { GridProperty } from "../lib/properties";
 import { isResidential, factApplies } from "../lib/propertyKind";
@@ -114,40 +112,31 @@ export default function PropertyCard({
     }
   }
 
-  // Card con "stretched link": il contenitore è un <div>, la CTA porta un ::after che
-  // copre tutta la card (l'intera card è cliccabile), mentre il pulsante Condividi vive
+  // Scheda con "stretched link": il contenitore è un <div>, la CTA porta un ::after che
+  // copre tutta la scheda (l'intera scheda è cliccabile), mentre il pulsante Condividi vive
   // sopra (z-10) come vero <button>, senza annidare interattivi dentro un <a>.
+  // 2026-09-10: niente card, foto 4:3 squadrata, badge come righe di testo sotto la foto.
   return (
-    <div
-      data-cursor="scopri"
-      className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-line bg-paper transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:border-red/20 hover:shadow-[var(--shadow-card-hover)] active:scale-[0.98]"
-    >
-      {/* Immagine più grande e curata. Niente parallax qui: in griglie da 24+
-          card il costo (uno ScrollTrigger scrub + upscale permanente per card)
-          non vale un movimento di ~2px; lo zoom hover resta l'accento motion.
+    <div className="group relative flex h-full flex-col">
+      {/* Niente parallax qui: in griglie da 24+ schede il costo (uno ScrollTrigger
+          scrub + upscale permanente per scheda) non vale un movimento di ~2px; lo zoom
+          hover resta l'accento motion.
           data-flip-id: sorgente del volo verso CaseQuickLook (match per slug). */}
-      <div data-flip-id={p.slug} className="relative aspect-[3/2] overflow-hidden">
+      <div data-flip-id={p.slug} className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={p.cover}
           alt={p.title}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 420px"
-          className="photo-warm object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
+          className="object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
         />
-        {/* Velo per leggibilità delle pill e senso di selezione */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent" />
-
-        {/* Stato immobile (vendita/affitto) — dato reale */}
-        <div className="absolute left-4 top-4">
-          <Badge variant="onImage">{statusLabel}</Badge>
-        </div>
 
         {/* Condividi — vero pulsante sopra lo stretched link (z-10), area tap 44px */}
         <button
           type="button"
           onClick={handleShare}
           aria-label={copied ? c.shared : c.share}
-          className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper/90 text-ink shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)] backdrop-blur-sm transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper text-ink transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
         >
           {copied ? (
             <Check className="h-[18px] w-[18px]" />
@@ -169,7 +158,7 @@ export default function PropertyCard({
             onClick={onQuickLook}
             aria-haspopup="dialog"
             aria-label={`${c.quickLook}: ${p.title}`}
-            className="absolute bottom-4 right-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper/90 text-ink shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)] backdrop-blur-sm transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+            className="absolute bottom-4 right-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-paper text-ink transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
           >
             <svg
               viewBox="0 0 24 24"
@@ -189,43 +178,28 @@ export default function PropertyCard({
           </button>
         )}
 
-        {/* Badge dal gestionale (Open Domus, Documenti verificati, In evidenza…) */}
-        {shownBadges.length > 0 && (
-          <div
-            className={`absolute bottom-4 left-4 flex flex-wrap gap-2 ${
-              onQuickLook ? "right-[4.25rem]" : "right-4"
-            }`}
-          >
-            {shownBadges.map((b) => (
-              <Badge
-                key={b}
-                variant="onImage"
-                className={
-                  strongBadges.has(b)
-                    ? "bg-red text-white shadow-[0_4px_14px_-6px_rgba(26,24,22,0.5)]"
-                    : ""
-                }
-              >
-                {b}
-              </Badge>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Corpo card con firma Segno Domus */}
-      <div className="relative flex flex-1 flex-col p-6 sm:p-7">
-        <SegnoDomusCorner className="right-4 top-5 opacity-60" rotate={90} />
+      {/* Corpo della scheda: sotto la foto, testo e vuoto. */}
+      <div className="relative flex flex-1 flex-col pt-5">
+        {/* Stato (vendita/affitto, dato reale) + badge dal gestionale (Open Domus,
+            Documenti verificati, In evidenza…) come righe di testo, mai sopra la foto. */}
+        <p className="flex flex-wrap gap-x-4 gap-y-1 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">
+          <span>{statusLabel}</span>
+          {shownBadges.map((b) => (
+            <span key={b} className={strongBadges.has(b) ? "text-red" : ""}>
+              {b}
+            </span>
+          ))}
+        </p>
 
-        <p className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-red">{p.zone}</p>
-        <h3 className="mt-2 line-clamp-2 max-w-[88%] font-display text-2xl font-medium leading-tight tracking-tight text-ink">
-          {p.title}
-        </h3>
+        <p className="mt-3 text-ui font-semibold uppercase tracking-[0.08em] text-red">{p.zone}</p>
+        <h3 className="mt-2 line-clamp-2 font-display text-d4 uppercase text-ink">{p.title}</h3>
 
         {/* Solo i numeri pertinenti alla categoria E davvero presenti: camere e
             bagni non compaiono su un commerciale o un terreno, i locali non su
             un terreno. La superficie vale ovunque. Vedi lib/propertyKind.ts. */}
-        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.82rem] text-stone">
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-body text-graphite">
           {p.sqm !== "—" && (
             <span className="tnum inline-flex items-center gap-1.5">
               <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
@@ -243,7 +217,7 @@ export default function PropertyCard({
           )}
           {p.baths !== "—" && factApplies(p.type, "baths") && (
             <span className="tnum inline-flex items-center gap-1.5">
-              <span className="h-1 w-1 rounded-full bg-graphite/50" aria-hidden /> {p.baths}
+              <span aria-hidden>·</span> {p.baths}
             </span>
           )}
         </div>
@@ -252,22 +226,20 @@ export default function PropertyCard({
           <span
             className={
               /\d/.test(p.price)
-                ? "tnum font-display text-2xl font-medium text-ink"
-                : "text-base font-semibold text-ink"
+                ? "tnum font-display text-d3 text-ink"
+                : "text-body font-semibold text-ink"
             }
           >
             {p.price}
           </span>
-          {/* CTA = stretched link: il ::after copre l'intera card */}
+          {/* CTA = stretched link: il ::after copre l'intera scheda */}
           <a
             href={`/case/${p.slug}`}
             aria-label={`${ctaLabel}: ${p.title}`}
-            className="inline-flex items-center gap-2 text-[0.8rem] font-semibold text-graphite transition-colors duration-300 after:absolute after:inset-0 after:content-[''] group-hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+            className="inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-graphite underline underline-offset-4 transition-colors duration-300 after:absolute after:inset-0 after:content-[''] group-hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
           >
             {ctaLabel}
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream-deep text-ink transition-all duration-300 group-hover:bg-red group-hover:text-white">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
+            <ArrowUpRight className="h-4 w-4" />
           </a>
         </div>
       </div>

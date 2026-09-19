@@ -434,7 +434,7 @@ export default function Assistant() {
         // riserva lo spazio in fondo alla pagina. Con la chat spenta niente attributo,
         // niente spazio morto — e in produzione oggi è spenta.
         data-assistant-launcher
-        className={`fixed right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-red text-white shadow-[0_20px_40px_-16px_rgba(210,10,10,0.7)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none ${
+        className={`fixed right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none ${
           open || blocked ? "pointer-events-none scale-90 opacity-0" : "opacity-100"
         }`}
         // Su mobile sta sopra la MobileActionBar (alta ~3.5rem + safe area); su desktop
@@ -455,7 +455,7 @@ export default function Assistant() {
           tabIndex={-1}
           data-lenis-prevent
           onKeyDown={onKeyDown}
-          className="fixed inset-x-0 bottom-0 z-[60] flex flex-col overflow-hidden rounded-t-[1.6rem] border border-line bg-paper shadow-[0_50px_100px_-40px_rgba(26,24,22,0.6)] sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[390px] sm:rounded-[1.6rem]"
+          className="fixed inset-x-0 bottom-0 z-[60] flex flex-col overflow-hidden border border-line bg-cream sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[400px]"
           style={{
             // Con la tastiera aperta seguiamo la visualViewport: il pannello si accorcia e
             // il campo di scrittura resta sopra i tasti. Senza tastiera (o su desktop)
@@ -469,14 +469,14 @@ export default function Assistant() {
           {/* Header */}
           <div className="flex items-center justify-between gap-3 border-b border-line bg-cream px-5 py-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-red text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-red text-white">
                 <ChatIcon className="h-5 w-5" />
               </span>
               <span className="leading-tight">
-                <span id="assistant-title" className="block font-display text-base font-semibold text-ink">
+                <span id="assistant-title" className="block font-display text-d4 uppercase text-ink">
                   {c.title}
                 </span>
-                <span className="block text-[0.78rem] text-stone">{c.subtitle}</span>
+                <span className="block text-ui text-stone">{c.subtitle}</span>
               </span>
             </div>
             <span className="flex shrink-0 items-center gap-0.5">
@@ -506,16 +506,17 @@ export default function Assistant() {
           </p>
 
           {/* Messaggi */}
-          <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
+          <div ref={listRef} className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : "flex flex-col items-start"}>
+                {/* Bolle come blocchi piatti: l'utente in rosso pieno, l'assistente su hairline. */}
                 <div
-                  className={`max-w-[85%] space-y-2 rounded-2xl px-4 py-2.5 text-[0.92rem] leading-relaxed ${
+                  className={`max-w-[85%] space-y-2 text-body ${
                     m.role === "user"
-                      ? "bg-red text-white"
+                      ? "bg-red px-4 py-2.5 text-white"
                       : m.error
-                        ? "border border-red/25 bg-red-soft/50 text-red-dark"
-                        : "border border-line bg-cream text-graphite"
+                        ? "border-l-2 border-red pl-4 text-red-dark"
+                        : "border-l-2 border-line pl-4 text-graphite"
                   }`}
                 >
                   {m.content
@@ -533,14 +534,14 @@ export default function Assistant() {
                     type="button"
                     onClick={retry}
                     disabled={loading}
-                    className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-paper px-3.5 py-2 text-[0.8rem] font-semibold text-red-dark transition-colors duration-200 hover:border-red hover:bg-red-soft/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40"
+                    className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-ui font-semibold uppercase tracking-[0.08em] text-red-dark underline underline-offset-4 transition-colors duration-200 hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <RetryIcon className="h-4 w-4" />
                     {c.retry}
                   </button>
                 )}
                 {m.incomplete && (
-                  <p className="mt-1.5 max-w-[85%] text-[0.76rem] leading-snug text-stone">
+                  <p className="mt-1.5 max-w-[85%] text-ui leading-snug text-stone">
                     {c.incomplete}
                   </p>
                 )}
@@ -594,17 +595,17 @@ export default function Assistant() {
                       <a
                         key={p.slug}
                         href={p.url}
-                        className="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-2.5 transition-colors duration-300 hover:border-red/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
+                        className="group flex items-center gap-3 border-t border-line py-3 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
                       >
-                        <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-cream">
-                          <Image src={p.cover} alt="" fill sizes="56px" className="object-cover" />
+                        <span className="relative h-16 w-16 shrink-0 overflow-hidden bg-cream-deep">
+                          <Image src={p.cover} alt="" fill sizes="64px" className="object-cover" />
                         </span>
                         <span className="min-w-0 leading-tight">
-                          <span className="block truncate text-sm font-semibold text-ink group-hover:text-red">
+                          <span className="block truncate text-body font-semibold text-ink group-hover:text-red">
                             {p.title}
                           </span>
-                          <span className="block truncate text-[0.78rem] text-stone">{p.zone}</span>
-                          <span className="block text-[0.8rem] font-semibold text-red-dark">{p.price}</span>
+                          <span className="block truncate text-ui text-stone">{p.zone}</span>
+                          <span className="block text-ui font-semibold text-red-dark">{p.price}</span>
                         </span>
                       </a>
                     ))}
@@ -624,7 +625,7 @@ export default function Assistant() {
                       key={s}
                       type="button"
                       onClick={() => void send(s)}
-                      className="min-h-11 rounded-full border border-line bg-cream px-4 py-2 text-left text-[0.82rem] text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
+                      className="min-h-11 border border-line bg-transparent px-4 py-2 text-left text-ui text-graphite transition-colors duration-200 hover:border-red hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
                     >
                       {s}
                     </button>
@@ -640,7 +641,7 @@ export default function Assistant() {
                     key={s}
                     type="button"
                     onClick={() => void send(s)}
-                    className="min-h-11 rounded-full border border-line bg-cream px-4 py-2 text-left text-[0.82rem] text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
+                    className="min-h-11 border border-line bg-transparent px-4 py-2 text-left text-ui text-graphite transition-colors duration-200 hover:border-red hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none"
                   >
                     {s}
                   </button>
@@ -653,7 +654,7 @@ export default function Assistant() {
                 <button
                   type="button"
                   onClick={stop}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-4 py-2 text-[0.8rem] font-semibold text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                  className="inline-flex min-h-11 items-center gap-2 border border-line px-4 py-2 text-ui font-semibold uppercase tracking-[0.08em] text-graphite transition-colors duration-200 hover:border-red hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                 >
                   <StopIcon className="h-3.5 w-3.5" />
                   {c.stop}
@@ -668,7 +669,7 @@ export default function Assistant() {
               e.preventDefault();
               void send(input);
             }}
-            className="flex items-center gap-2 border-t border-line bg-cream px-3 py-3"
+            className="flex items-end gap-3 border-t border-line bg-cream px-5 py-3"
           >
             <input
               ref={inputRef}
@@ -676,7 +677,7 @@ export default function Assistant() {
               onChange={(e) => setInput(e.target.value)}
               placeholder={c.placeholder}
               maxLength={1000}
-              className="min-h-11 min-w-0 flex-1 rounded-full border border-line bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-stone/60 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+              className="block min-h-11 min-w-0 flex-1 border-0 border-b border-ink! bg-transparent py-2.5 text-body text-ink placeholder:text-stone focus:border-red! focus:outline-none"
             />
             <button
               type="submit"
@@ -687,7 +688,7 @@ export default function Assistant() {
               <SendIcon className="h-5 w-5" />
             </button>
           </form>
-          <p className="bg-cream px-4 pb-3 text-center text-[0.68rem] leading-snug text-stone">
+          <p className="bg-cream px-5 pb-3 text-ui leading-snug text-stone">
             {c.disclaimer}{" "}
             <a href="/privacy" className="underline transition-colors duration-200 hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none">
               {c.privacy}

@@ -1,0 +1,636 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-13T00:00:00Z",
+  "title": "Design System: Domus Tua — la rivista bianca",
+  "extensions": {
+    "colorMeta": {
+      "red": {
+        "role": "primary",
+        "displayName": "Rosso Domus",
+        "canonical": "#d20a0a",
+        "tonalRamp": [
+          "oklch(15% 0.22 29)",
+          "oklch(26% 0.22 29)",
+          "oklch(37% 0.22 29)",
+          "oklch(48% 0.22 29)",
+          "oklch(60% 0.22 29)",
+          "oklch(72% 0.22 29)",
+          "oklch(84% 0.22 29)",
+          "oklch(95% 0.22 29)"
+        ]
+      },
+      "red-dark": {
+        "role": "primary",
+        "displayName": "Rosso cupo",
+        "canonical": "#a30707",
+        "tonalRamp": [
+          "oklch(15% 0.182 29)",
+          "oklch(26% 0.182 29)",
+          "oklch(37% 0.182 29)",
+          "oklch(48% 0.182 29)",
+          "oklch(60% 0.182 29)",
+          "oklch(72% 0.182 29)",
+          "oklch(84% 0.182 29)",
+          "oklch(95% 0.182 29)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Inchiostro",
+        "canonical": "#46423d",
+        "tonalRamp": [
+          "oklch(15% 0.01 74)",
+          "oklch(26% 0.01 74)",
+          "oklch(37% 0.01 74)",
+          "oklch(48% 0.01 74)",
+          "oklch(60% 0.01 74)",
+          "oklch(72% 0.01 74)",
+          "oklch(84% 0.01 74)",
+          "oklch(95% 0.01 74)"
+        ]
+      },
+      "graphite": {
+        "role": "neutral",
+        "displayName": "Grafite",
+        "canonical": "#46423d",
+        "tonalRamp": [
+          "oklch(15% 0.01 74)",
+          "oklch(26% 0.01 74)",
+          "oklch(37% 0.01 74)",
+          "oklch(48% 0.01 74)",
+          "oklch(60% 0.01 74)",
+          "oklch(72% 0.01 74)",
+          "oklch(84% 0.01 74)",
+          "oklch(95% 0.01 74)"
+        ]
+      },
+      "stone": {
+        "role": "neutral",
+        "displayName": "Pietra",
+        "canonical": "#6b665f",
+        "tonalRamp": [
+          "oklch(15% 0.013 77)",
+          "oklch(26% 0.013 77)",
+          "oklch(37% 0.013 77)",
+          "oklch(48% 0.013 77)",
+          "oklch(60% 0.013 77)",
+          "oklch(72% 0.013 77)",
+          "oklch(84% 0.013 77)",
+          "oklch(95% 0.013 77)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Filo",
+        "canonical": "#e4dccf",
+        "tonalRamp": [
+          "oklch(15% 0.02 80)",
+          "oklch(26% 0.02 80)",
+          "oklch(37% 0.02 80)",
+          "oklch(48% 0.02 80)",
+          "oklch(60% 0.02 80)",
+          "oklch(72% 0.02 80)",
+          "oklch(84% 0.02 80)",
+          "oklch(95% 0.02 80)"
+        ]
+      },
+      "cream": {
+        "role": "neutral",
+        "displayName": "Avorio",
+        "canonical": "#f9f5ef",
+        "tonalRamp": [
+          "oklch(15% 0.009 78)",
+          "oklch(26% 0.009 78)",
+          "oklch(37% 0.009 78)",
+          "oklch(48% 0.009 78)",
+          "oklch(60% 0.009 78)",
+          "oklch(72% 0.009 78)",
+          "oklch(84% 0.009 78)",
+          "oklch(95% 0.009 78)"
+        ]
+      },
+      "cream-deep": {
+        "role": "neutral",
+        "displayName": "Avorio profondo",
+        "canonical": "#f4ece2",
+        "tonalRamp": [
+          "oklch(15% 0.016 74)",
+          "oklch(26% 0.016 74)",
+          "oklch(37% 0.016 74)",
+          "oklch(48% 0.016 74)",
+          "oklch(60% 0.016 74)",
+          "oklch(72% 0.016 74)",
+          "oklch(84% 0.016 74)",
+          "oklch(95% 0.016 74)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Carta",
+        "canonical": "#fffdf8",
+        "tonalRamp": [
+          "oklch(15% 0.007 89)",
+          "oklch(26% 0.007 89)",
+          "oklch(37% 0.007 89)",
+          "oklch(48% 0.007 89)",
+          "oklch(60% 0.007 89)",
+          "oklch(72% 0.007 89)",
+          "oklch(84% 0.007 89)",
+          "oklch(95% 0.007 89)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "Bianco",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(37% 0 0)",
+          "oklch(48% 0 0)",
+          "oklch(60% 0 0)",
+          "oklch(72% 0 0)",
+          "oklch(84% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "gold": {
+        "role": "tertiary",
+        "displayName": "Oro delle stelle",
+        "canonical": "#d9a441",
+        "tonalRamp": [
+          "oklch(15% 0.13 80)",
+          "oklch(26% 0.13 80)",
+          "oklch(37% 0.13 80)",
+          "oklch(48% 0.13 80)",
+          "oklch(60% 0.13 80)",
+          "oklch(72% 0.13 80)",
+          "oklch(84% 0.13 80)",
+          "oklch(95% 0.13 80)"
+        ]
+      },
+      "gold-deep": {
+        "role": "tertiary",
+        "displayName": "Oro delle stelle, ombra",
+        "canonical": "#a9812a",
+        "tonalRamp": [
+          "oklch(15% 0.112 83)",
+          "oklch(26% 0.112 83)",
+          "oklch(37% 0.112 83)",
+          "oklch(48% 0.112 83)",
+          "oklch(60% 0.112 83)",
+          "oklch(72% 0.112 83)",
+          "oklch(84% 0.112 83)",
+          "oklch(95% 0.112 83)"
+        ]
+      },
+      "gold-light": {
+        "role": "tertiary",
+        "displayName": "Oro delle stelle, luce",
+        "canonical": "#eed07a",
+        "tonalRamp": [
+          "oklch(15% 0.111 91)",
+          "oklch(26% 0.111 91)",
+          "oklch(37% 0.111 91)",
+          "oklch(48% 0.111 91)",
+          "oklch(60% 0.111 91)",
+          "oklch(72% 0.111 91)",
+          "oklch(84% 0.111 91)",
+          "oklch(95% 0.111 91)"
+        ]
+      },
+      "gold-spec": {
+        "role": "tertiary",
+        "displayName": "Oro delle stelle, speculare",
+        "canonical": "#fff6d4",
+        "tonalRamp": [
+          "oklch(15% 0.045 95)",
+          "oklch(26% 0.045 95)",
+          "oklch(37% 0.045 95)",
+          "oklch(48% 0.045 95)",
+          "oklch(60% 0.045 95)",
+          "oklch(72% 0.045 95)",
+          "oklch(84% 0.045 95)",
+          "oklch(95% 0.045 95)"
+        ]
+      },
+      "espresso": {
+        "role": "tertiary",
+        "displayName": "Espresso",
+        "canonical": "#1c1512",
+        "tonalRamp": [
+          "oklch(15% 0.013 44)",
+          "oklch(26% 0.013 44)",
+          "oklch(37% 0.013 44)",
+          "oklch(48% 0.013 44)",
+          "oklch(60% 0.013 44)",
+          "oklch(72% 0.013 44)",
+          "oklch(84% 0.013 44)",
+          "oklch(95% 0.013 44)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "hero": {
+        "displayName": "Hero / lockup",
+        "purpose": "Il solo wordmark «Domus Tua» delle pagine, nella banda del primo schermo della home: due righe centrate, «Domus» in grafite e «Tua» in rosso, in maiuscole e minuscole. --font-brand, oggi Plus Jakarta Sans 800 come segnaposto del font del logo nuovo. Non è un h1. Il lockup del preloader è in Playfair: domanda aperta."
+      },
+      "d1": {
+        "displayName": "Display 1",
+        "purpose": "La testa di capitolo che possiede tutta la larghezza (home: sopra i pannelli di «Perché Domus Tua», Metodo a destra, congedo; pagine interne: ogni capitolo a tutta larghezza), il titolo della scheda immobile, i numeri a 300. Non più uno per pagina. L'h1 di PageHero non usa d1."
+      },
+      "d1-below-lg": {
+        "displayName": "Display 1, sotto i 1024 px",
+        "purpose": "La stessa testa sotto i 1024 px: la scala torna a crescere con la larghezza invece di inchiodarsi al minimo."
+      },
+      "d2": {
+        "displayName": "Display 2",
+        "purpose": "La testa in mezza colonna accanto a una foto (intro del Team), la testa che apre un carosello (Voci, ≤ 16ch), il manifesto di «Perché Domus Tua». Maiuscolo."
+      },
+      "d2-below-lg": {
+        "displayName": "Display 2, sotto i 1024 px",
+        "purpose": "La stessa testa sotto i 1024 px."
+      },
+      "d3": {
+        "displayName": "Display 3",
+        "purpose": "L'H1 dell'hero sotto la banda (≤ 28ch), la citazione della fondatrice, i sei nomi sotto la rotaia del team, i titoli dei servizi e in mezza colonna."
+      },
+      "d3-below-lg": {
+        "displayName": "Display 3, sotto i 1024 px",
+        "purpose": "La stessa misura sotto i 1024 px."
+      },
+      "d4": {
+        "displayName": "Display 4",
+        "purpose": "Titoli di colonna del footer e delle liste a 300, il sottotitolo in pietra, il link della banda di congedo; un h4 nudo resta a 400."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Il paragrafo editoriale a 300 in grafite, ≤ 38ch (50ch risolvevano a 895 px, 82 caratteri per riga), subito dopo il titolo."
+      },
+      "lead-below-lg": {
+        "displayName": "Lead, sotto i 1024 px",
+        "purpose": "Lo stesso paragrafo sotto i 1024 px."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Testo corrente a 19 px: liste del footer, campi, titoli dei video. Colonna ≤ 60ch."
+      },
+      "ui": {
+        "displayName": "UI",
+        "purpose": "Il minimo del sito, 16 px: riga legale, banner cookie, consenso, voto e conteggio recensioni, voci secondarie del menu del telefono."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Maiuscole a 16 px 600 tracking 0.08em: bottoni (0.05em sotto i 640 px), etichette dei campi e dei filtri, chip, sovratitolo dell'hero, didascalie della rotaia."
+      },
+      "eyebrow": {
+        "displayName": "Eyebrow",
+        "purpose": "L'occhiello di capitolo: 16 px 500 tracking 0.12em maiuscolo, rosso, col trattino di 1.75rem × 1 px. Più leggero e più aperto della label apposta."
+      },
+      "nav": {
+        "displayName": "Nav",
+        "purpose": "Le sei voci della testata a 16 px 400 tracking 0.1em maiuscole in inchiostro; le tre secondarie del menu del telefono in pietra; il toggle Menu/Chiudi a 600."
+      },
+      "script": {
+        "displayName": "Script",
+        "purpose": "La parola-ornamento Pinyon rossa, al più una per capitolo, aria-hidden, che attraversa l'ultima riga del titolo (margin-top −0.2em); nell'hero è la firma «Raffaela Rizza» a cavallo del bordo della banda."
+      },
+      "script-below-lg": {
+        "displayName": "Script, sotto i 1024 px",
+        "purpose": "La stessa calligrafia sotto i 1024 px."
+      },
+      "script-page-hero-lg": {
+        "displayName": "Script, PageHero da lg",
+        "purpose": "La calligrafia delle 11 pagine interne da lg: il corpo scende con la colonna del titolo, perché una calligrafia lunga («Domande frequenti») non esca dalla colonna e non finisca addosso al lead."
+      }
+    },
+    "shadows": [
+      {
+        "name": "social-hover",
+        "value": "0 12px 24px -12px rgb(163 7 7 / 0.55)",
+        "purpose": "L'unica ombra di scatola delle pagine: l'alone rosso sotto un'icona social che sale di 3 px all'hover. Risposta allo stato, mai elevazione a riposo."
+      },
+      {
+        "name": "ink-on-video",
+        "value": "text-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 0 28px rgb(0 0 0 / 0.45)",
+        "purpose": "INK_ON_VIDEO (Congedo.tsx): titolo d1 e link bianchi della banda di congedo. Attaccata alle lettere, non un velo."
+      },
+      {
+        "name": "starrev-cover",
+        "value": "text-shadow: 0 1px 2px rgb(0 0 0 / 0.25)",
+        "purpose": "Il titolo-copertina bianco delle cinque stelle, sulla foto senza velo."
+      },
+      {
+        "name": "preloader-firma",
+        "value": "text-shadow: 0 2px 28px rgba(28, 21, 18, 0.55)",
+        "purpose": "Sulla firma Pinyon rossa del preloader, non sul lockup: la stacca dalla sagoma e dall'espresso."
+      },
+      {
+        "name": "arch-echo",
+        "value": "box-shadow: inset 0 0 0 1px rgba(242, 235, 218, 0.22)",
+        "purpose": "Il filo di luce dei due anelli eco che seguono la porta ad arco; vive solo nel preloader."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Reveal (fade-up 0.9 s) e sottolineatura che si disegna (0.4 s)."
+      },
+      {
+        "name": "ease-domus",
+        "value": "cubic-bezier(0.22, 0.9, 0.36, 1)",
+        "purpose": "Il gesto del sito, out morbido con coda lunga: riga dei link (0.35 s), alone social, GSAP CustomEase «domus» per il monogramma."
+      },
+      {
+        "name": "ease-soft",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Comparsa e scomparsa degli elementi fissi (WhatsApp, barra azioni mobile) in 0.5 s."
+      },
+      {
+        "name": "dtOut",
+        "value": "cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Ingresso delle lettere del preloader e dell'hero."
+      },
+      {
+        "name": "expo.out",
+        "value": "gsap expo.out",
+        "purpose": "TextLines: righe che salgono dalla maschera, da 112 % a 0, 1.05 s, stagger 0.09 s, trigger top 86 %. È la tecnica dei testi per righe di era-residence (dossier §7)."
+      },
+      {
+        "name": "dur-micro",
+        "value": "0.3s",
+        "purpose": "Hover dei bottoni (0.25 s), scala del play (1.05), accelerazione del monogramma, colore della testata."
+      },
+      {
+        "name": "dur-reveal",
+        "value": "0.9s",
+        "purpose": "Reveal: opacità 0 → 1 e translateY 2.5rem → 0; ritardi a scalare 80–200 ms."
+      },
+      {
+        "name": "dur-hero",
+        "value": "1.4s",
+        "purpose": "Ingresso delle lettere dell'hero dopo il preloader."
+      },
+      {
+        "name": "dur-transition",
+        "value": "1.1s",
+        "purpose": "Ritorno a riposo del monogramma dopo lo scroll."
+      },
+      {
+        "name": "parallax",
+        "value": "speed -0.04 → yPercent ±0.56 (speed × 14), scrub lineare, ×0.5 sotto 768 px",
+        "purpose": "Deriva quasi impercettibile delle foto di capitolo lungo tutta la traversata del viewport; spenta sul telefono nell'hero delle pagine interne."
+      },
+      {
+        "name": "rail",
+        "value": "runway 120svh, scrub 0.6, pan ±4 % (data-depth 4), soglia 1024 px, sticky + corridoio (mai pin GSAP)",
+        "purpose": "Rotaia del team (la cliente, 10 set.; meccanica scelta da Alberto, 10 set.): parcheggiata, trasla di tutta l'eccedenza; sotto 1024 scroll nativo con snap, --rail-p e indicatore 2 px × 4rem a estremità tonde."
+      },
+      {
+        "name": "horizon",
+        "value": "screen sticky 100svh; manifesto 100vw, territorio 126vw (pista 26vw); soglia 1024 px",
+        "purpose": "«Perché Domus Tua» (#storia; Alberto, 11 set.), con la tecnica dello scroller orizzontale di era-residence (dossier §11.1-11.2) e senza cupola: due pannelli in orizzontale mentre la pagina scende; in colonna sotto 1024, senza JS o con reduced-motion."
+      },
+      {
+        "name": "star-reviews",
+        "value": "runway 360svh, scrub 0.6; sotto 1024 FILM_MS 3000 in un box ≤ 62svh",
+        "purpose": "Le cinque stelle (#recensioni; Alberto, 11 set.): foto a stella → tutto schermo col lampo → si posa nella stella centrale che si accende d'oro."
+      },
+      {
+        "name": "rotating-mark",
+        "value": "30°/s orario (12 s a giro), 30 + 10·|v| con lo scroll, mai invertito; preloader 6 s a giro in CSS",
+        "purpose": "Anello e monogramma nello stesso verso, orario (la cliente, 10 set.): in testata a 56 px solo da xl, e nel badge del preloader. Il logo rotante viene da era-residence (dossier §5)."
+      },
+      {
+        "name": "preloader",
+        "value": "4.63 s (TEMPO 1): sagoma 0.15, lettere 0.12, firma 0.60, linea 0.60→2.15, porta 2.25→3.35, congedo 2.35, tuffo 3.13→4.63; autohide 4.73, failsafe 5.23; hero rest 3.33",
+        "purpose": "Film ad arco tutto in CSS, alla prima visita della sessione, mai con reduced-motion o ancora nell'URL; si salta con un tocco o un tasto. Maschera ad arco e timeline d'ingresso vengono da era-residence (dossier §4)."
+      },
+      {
+        "name": "lenis",
+        "value": "lerp 0.1, smoothWheel only",
+        "purpose": "Scroll morbido solo da rotella; touch nativo; assente con reduced-motion."
+      },
+      {
+        "name": "header-solid",
+        "value": "background-color 0.3s",
+        "purpose": "Sotto lg, l'unico movimento della testata: da trasparente ad avorio profondo dopo 24 px di scroll. Da lg la testata scorre via."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "2xl",
+        "value": "1536px"
+      },
+      {
+        "name": "motion-desktop",
+        "value": "768px"
+      },
+      {
+        "name": "motion-set-piece",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Bottone primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Il rettangolo rosso della conversione, «Richiedi la valutazione» nella forma corta: uno per schermata, etichetta maiuscola a 16 px. Sotto i 640 px il padding laterale scende a 1.25rem e il tracking a 0.05em.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\"><span>Richiedi la valutazione</span><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 17 17 7M9 7h8v8\"/></svg></a>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; border-radius: 0; font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; padding: 1.05rem 2rem; border: 1.5px solid var(--color-red, #d20a0a); background: var(--color-red, #d20a0a); color: #fff; } .ds-btn-primary svg { width: 1.1em; height: 1.1em; } .ds-btn-primary:hover, .ds-btn-primary:focus-visible { background: var(--color-red-dark, #a30707); border-color: var(--color-red-dark, #a30707); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 3px; } @media (max-width: 39.99rem) { .ds-btn-primary { padding-inline: 1.25rem; letter-spacing: 0.05em; } }"
+    },
+    {
+      "name": "Bottone a contorno",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "La variante a contorno rosso di 1.5 px che si riempie all'hover; stessa misura del primario.",
+      "html": "<a class=\"ds-btn-outline\" href=\"#\"><span>Scopri il metodo</span><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 17 17 7M9 7h8v8\"/></svg></a>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; border-radius: 0; font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; padding: 1.05rem 2rem; border: 1.5px solid var(--color-red, #d20a0a); background: transparent; color: var(--color-red, #d20a0a); } .ds-btn-outline svg { width: 1.1em; height: 1.1em; } .ds-btn-outline:hover, .ds-btn-outline:focus-visible { background: var(--color-red, #d20a0a); color: #fff; } .ds-btn-outline:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 3px; }"
+    },
+    {
+      "name": "Link maiuscolo (ghost)",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Il rilancio di capitolo e la CTA di tutto il resto («Vendi casa», «Cerco casa»): nessuna scatola, sottolineato 1.5 px, inchiostro grafite, rosso all'hover.",
+      "html": "<a class=\"ds-btn-ghost\" href=\"#\"><span>Vendi casa</span></a>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; border-radius: 0; font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; padding: 0.4rem 0; border: 0; background: transparent; color: var(--color-ink, #46423d); text-decoration: underline; text-underline-offset: 0.35em; text-decoration-thickness: 1.5px; } .ds-btn-ghost:hover, .ds-btn-ghost:focus-visible { color: var(--color-red, #d20a0a); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 3px; }"
+    },
+    {
+      "name": "Campo di testo",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Etichetta maiuscola in pietra sopra, solo la riga sotto in inchiostro grafite; rossa a fuoco e in errore. Sotto i 768 px il campo è forzato a 16 px.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Nome e cognome</span><input class=\"ds-field__input\" type=\"text\" placeholder=\"Es. Maria Rossi\"></label>",
+      "css": ".ds-field { display: block; font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); } .ds-field__label { display: block; margin-bottom: 0.5rem; font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-stone, #6b665f); } .ds-field__input { display: block; width: 100%; padding: 0.75rem 0; border: 0; border-bottom: 1px solid var(--color-ink, #46423d); border-radius: 0; background: transparent; color: var(--color-ink, #46423d); font: inherit; font-size: 1.1875rem; line-height: 1.5; transition: border-color 0.25s ease; } .ds-field__input::placeholder { color: var(--color-stone, #6b665f); } .ds-field__input:focus { border-bottom-color: var(--color-red, #d20a0a); outline: none; } .ds-field__input[aria-invalid=\"true\"] { border-bottom-color: var(--color-red, #d20a0a); }"
+    },
+    {
+      "name": "Chip d'intento",
+      "kind": "chip",
+      "refersTo": "chip-tab",
+      "description": "Il selettore del form lead: etichette maiuscole in pietra con una riga sotto che diventa rossa quando premuta.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" type=\"button\" aria-pressed=\"true\">Voglio vendere</button><button class=\"ds-chip\" type=\"button\" aria-pressed=\"false\">Cerco casa</button><button class=\"ds-chip\" type=\"button\" aria-pressed=\"false\">Ho una domanda</button></div>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; } .ds-chip { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--color-stone, #6b665f); font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: color 0.25s ease, border-color 0.25s ease; } .ds-chip:hover { color: var(--color-ink, #46423d); } .ds-chip[aria-pressed=\"true\"] { color: var(--color-ink, #46423d); border-bottom-color: var(--color-red, #d20a0a); } .ds-chip:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Filtro della ricerca",
+      "kind": "chip",
+      "refersTo": "chip-filter",
+      "description": "I filtri della ricerca immobili: rettangoli con bordo filo, etichetta maiuscola in grafite, bordo rosso all'hover, pieni di rosso quando attivi. Sopra i risultati ogni filtro numerico in uso diventa un chip con bordo rosso e testo rosso cupo, che si toglie col clic e all'hover si riempie di rosso.",
+      "html": "<div class=\"ds-filters\"><span class=\"ds-filters__label\">Contratto</span><button class=\"ds-pill\" type=\"button\" aria-pressed=\"true\">Tutte</button><button class=\"ds-pill\" type=\"button\" aria-pressed=\"false\">Vendita</button><button class=\"ds-pill\" type=\"button\" aria-pressed=\"false\">Affitto</button></div><div class=\"ds-filters ds-filters--applied\"><button class=\"ds-chip-applied\" type=\"button\" aria-label=\"Rimuovi: da … m²\">da … m²<span aria-hidden=\"true\">×</span></button></div>",
+      "css": ".ds-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); } .ds-filters__label { margin-right: 0.5rem; font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-stone, #6b665f); } .ds-pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0.5rem 1rem; border: 1px solid var(--color-line, #e4dccf); border-radius: 0; background: transparent; color: var(--color-graphite, #46423d); font-family: inherit; font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease; } .ds-pill:hover { border-color: var(--color-red, #d20a0a); color: var(--color-ink, #46423d); } .ds-pill[aria-pressed=\"true\"] { border-color: var(--color-red, #d20a0a); background: var(--color-red, #d20a0a); color: #fff; } .ds-pill[aria-pressed=\"true\"]:hover { background: var(--color-red-dark, #a30707); color: #fff; } .ds-pill:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 2px; } .ds-filters--applied { margin-top: 1rem; } .ds-chip-applied { display: inline-flex; align-items: center; gap: 0.375rem; min-height: 44px; padding: 0.25rem 0.75rem; border: 1px solid var(--color-red, #d20a0a); border-radius: 0; background: transparent; color: var(--color-red-dark, #a30707); font-family: inherit; font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: color 0.3s ease, background-color 0.3s ease; } .ds-chip-applied:hover { background: var(--color-red, #d20a0a); color: #fff; } .ds-chip-applied:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 3px; }"
+    },
+    {
+      "name": "Nav della testata",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Una riga sola alta --dt-head-h: sei voci primarie maiuscole a 16 px 400 tracking 0.1em in inchiostro, senza scatola; sottolineate 1 px all'hover, al focus e sulla pagina corrente. Da lg; sotto lg il menu del telefono.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Principale\"><a href=\"#\" aria-current=\"page\">Vendi</a><a href=\"#\">Acquista</a><a href=\"#\">Metodo Domus</a><a href=\"#\">Open Domus</a><a href=\"#\">Chi siamo</a><a href=\"#\">Contatti</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: flex-end; gap: 2rem; min-height: var(--dt-head-h, clamp(4.5rem, 10vh, 6.5rem)); background: transparent; } .ds-nav a { white-space: nowrap; color: var(--color-ink, #46423d); font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); font-size: 1rem; font-weight: 400; letter-spacing: 0.1em; line-height: 1.3; text-transform: uppercase; text-decoration-line: none; text-decoration-thickness: 1px; text-underline-offset: 0.45em; transition: text-decoration-color 0.2s ease; } .ds-nav a:hover, .ds-nav a:focus-visible, .ds-nav a[aria-current=\"page\"] { text-decoration-line: underline; } .ds-nav a:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 3px; }"
+    },
+    {
+      "name": "Testa di capitolo",
+      "kind": "custom",
+      "refersTo": "eyebrow",
+      "description": "La cellula che apre ogni sezione: eyebrow rosso con trattino, titolo Playfair d2 maiuscolo, una parola Pinyon rossa che ne attraversa l'ultima riga, lead a 300 in grafite ≤ 38ch.",
+      "html": "<section class=\"ds-chapter\"><span class=\"ds-eyebrow\">La promessa</span><h2 class=\"ds-chapter__title\">Vendere casa, senza stress.</h2><span class=\"ds-script\" aria-hidden=\"true\">Tradate</span><p class=\"ds-lead\">Un'agenzia a Tradate dal 2007: case vere, persone vere e una sola azione, chiedere la valutazione.</p></section>",
+      "css": ".ds-chapter { background: var(--color-cream, #f9f5ef); color: var(--color-ink, #46423d); font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); padding: 2rem 0; } .ds-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-red, #d20a0a); } .ds-eyebrow::before { content: \"\"; width: 1.75rem; height: 1px; background: currentColor; opacity: 0.6; } .ds-chapter__title { margin: 1.5rem 0 0; max-width: 16ch; font-family: var(--font-playfair, \"Playfair Display\", Georgia, serif); font-size: clamp(2.3rem, min(6.4vh, 4.2vw), 4.5rem); font-weight: 500; line-height: 1; text-transform: uppercase; text-wrap: balance; } .ds-script { position: relative; z-index: 10; display: block; margin-top: -0.2em; padding-left: 14vw; font-family: var(--font-pinyon, \"Pinyon Script\", cursive); font-size: clamp(2.6rem, 7vw, 7rem); font-weight: 400; line-height: 0.8; color: var(--color-red, #d20a0a); pointer-events: none; } .ds-lead { margin: 2rem 0 0; max-width: 38ch; font-size: clamp(1.35rem, 1.72vw, 1.55rem); font-weight: 300; line-height: 1.4; color: var(--color-graphite, #46423d); } @media (max-width: 63.99rem) { .ds-chapter__title { font-size: clamp(2.15rem, 7.4vw, 4.5rem); } .ds-script { font-size: clamp(3rem, 11vw, 7rem); } .ds-lead { font-size: clamp(1.3rem, 3.1vw, 1.55rem); } }"
+    },
+    {
+      "name": "Play sul video",
+      "kind": "custom",
+      "refersTo": "icon-button-play",
+      "description": "La facciata video: poster squadrato 16:9 su avorio profondo con il cerchio rosso, 56 px sul telefono e 96 px da desktop, che scala a 1.05 all'hover.",
+      "html": "<button class=\"ds-video\" type=\"button\" aria-label=\"Guarda il video\"><span class=\"ds-video__poster\"></span><span class=\"ds-video__play\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M8 5.5v13l11-6.5z\"/></svg></span></button>",
+      "css": ".ds-video { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; padding: 0; border: 0; border-radius: 0; background: var(--color-cream-deep, #f4ece2); cursor: pointer; overflow: hidden; } .ds-video__poster { position: absolute; inset: 0; background: var(--color-cream-deep, #f4ece2); } .ds-video__play { position: absolute; left: 50%; top: 50%; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; transform: translate(-50%, -50%); border-radius: 9999px; background: var(--color-red, #d20a0a); color: #fff; transition: transform 0.3s ease; } .ds-video__play svg { width: 1.25rem; height: 1.25rem; transform: translateX(2px); } .ds-video:hover .ds-video__play, .ds-video:focus-visible .ds-video__play { transform: translate(-50%, -50%) scale(1.05); } .ds-video:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 4px; } @media (min-width: 64rem) { .ds-video__play { width: 96px; height: 96px; } .ds-video__play svg { width: 1.75rem; height: 1.75rem; } }"
+    },
+    {
+      "name": "Icona social",
+      "kind": "custom",
+      "refersTo": "icon-button-social",
+      "description": "Cerchio di 44 px in carta con bordo filo: una delle curve rimaste (eccezione dei bottoni-icona). All'hover sale di 3 px, diventa rosso, prende l'alone e mostra il tooltip rettangolare.",
+      "html": "<ul class=\"ds-social\"><li><a class=\"ds-social__link\" href=\"#\" aria-label=\"Domus Tua su Instagram\"><span class=\"ds-social__tip\" aria-hidden=\"true\">Instagram</span><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"0\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.5\" cy=\"6.5\" r=\"0.6\"/></svg></a></li></ul>",
+      "css": ".ds-social { display: flex; flex-wrap: wrap; gap: 0.625rem; margin: 0; padding: 1.5rem 0 0; list-style: none; } .ds-social__link { position: relative; display: flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: 9999px; border: 1px solid var(--color-line, #e4dccf); background: var(--color-paper, #fffdf8); color: var(--color-graphite, #46423d); transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, translate 0.3s ease, box-shadow 0.3s cubic-bezier(0.22, 0.9, 0.36, 1); } .ds-social__link svg { width: 1.25rem; height: 1.25rem; } .ds-social__link:hover, .ds-social__link:focus-visible { background: var(--color-red, #d20a0a); border-color: var(--color-red, #d20a0a); color: #fff; translate: 0 -3px; box-shadow: 0 12px 24px -12px rgb(163 7 7 / 0.55); } .ds-social__link:focus-visible { outline: 2px solid var(--color-red, #d20a0a); outline-offset: 3px; } .ds-social__tip { position: absolute; left: 50%; bottom: calc(100% + 0.55rem); z-index: 1; translate: -50% 0.4rem; opacity: 0; pointer-events: none; white-space: nowrap; padding: 0.35rem 0.75rem; border-radius: 0; background: var(--color-red, #d20a0a); color: #fff; font-family: var(--font-jakarta, \"Plus Jakarta Sans\", system-ui, sans-serif); font-size: 1rem; font-weight: 600; letter-spacing: 0.06em; transition: translate 0.3s ease, opacity 0.25s ease; } .ds-social__tip::before { content: \"\"; position: absolute; left: 50%; bottom: -0.2rem; width: 0.5rem; height: 0.5rem; translate: -50%; rotate: 45deg; background: inherit; } .ds-social__link:hover .ds-social__tip, .ds-social__link:focus-visible .ds-social__tip { opacity: 1; translate: -50% 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La rivista bianca",
+    "overview": "Domus Tua è impaginata come una rivista immobiliare stampata su un'unica carta avorio: un solo fondo (#f9f5ef) dalla testata al piè di pagina, titoli Playfair Display maiuscoli che scalano col viewport (vw nell'hero, vh nei capitoli), paragrafi grandi e leggeri in colonna stretta, fotografie e video squadrati in tre soli moduli, e vuoto generoso tra un capitolo e l'altro. La ricchezza viene dalla misura della tipografia e dei media, non dalla decorazione.\n\n**Riferimenti.** Il sistema ne ha due, con compiti diversi, e restano tutti e due. **immobiliaregoldengoal.it** è il riferimento visivo (la cliente, 10 set.): pulito, scritte grandi, niente card, foto e video grandi, spazi gestiti bene; le sue misure sono nel dossier `reverse-engineering/goldengoal/README.md`. **era-residence.com** è il riferimento per le tecniche di tipografia, movimento e struttura che il codice usa davvero (Alberto, 11 e 13 set.), dal dossier `reverse-engineering/era-residence/README.md`: la tipografia dei titoli (§2: Playfair come alternativa libera alla sua didone, la scala in vw dentro un `clamp`, interlinea e tracking stretti), il preloader con la maschera ad arco, la sua timeline d'ingresso e le sue ease (§4), il logo rotante (§5), i testi che salgono per righe con la curva `dtOut` (§7), lo scroller orizzontale pilotato dallo scroll con le parallasse interne (§11.1-11.2). Di era-residence restano fuori, per le direttive della cliente del 10 settembre, le cupole curve (§11.4), i fiori (§11.3) e le transizioni di pagina (§8). I due dossier sono gitignorati.\n\nIl rosso Domus è un accento contato: l'eyebrow, al più una parola in corsivo Pinyon per capitolo, il «Tua» del lockup, i bottoni di conversione e i pulsanti tondi. Il testo è grafite su avorio, col secondario in pietra, e nel sito non c'è una scritta nera (Alberto, 11 set.). Nessun raggio, nessuna card, nessuna transizione di pagina curva (la cliente, 10 set.), nessuna ombra sulle superfici, nessun velo sulle foto (la cliente, 10 set.), nessuna superficie scura fuori dal sipario d'ingresso, che è a sua volta una domanda aperta. Il sito lascia alle spalle la home a card, curva e smussata, e le sezioni scure che l'hanno preceduta.\n\nIl movimento è disciplina: tre gesti (righe che salgono da una maschera, fade-up, una deriva di parallasse quasi impercettibile), il monogramma che ruota in senso orario, il film d'apertura di 4,63 s e tre nastri pilotati dallo scroll da 1024 px in su: i pannelli orizzontali di «Perché Domus Tua» e il film delle cinque stelle (Alberto, 11 set.), la rotaia del team (la cliente, 10 set.). Tutti e tre sono sticky su un corridoio, nessuno usa il pin di GSAP. Delle «tante animazioni e transizioni» da eliminare (la cliente, 10 set.) restano tolte le transizioni di pagina, il cursore custom e il resto del WOW layer. Tutto è progressive enhancement: con reduced-motion o senza JavaScript la pagina è completa, ferma, e bella lo stesso.",
+    "keyCharacteristics": [
+      "Un solo fondo avorio (#f9f5ef) su tutto il sito; l'unica superficie scura è il pannello espresso del preloader, un'eccezione di lavoro ancora aperta.",
+      "Titoli Playfair Display maiuscoli per foglio di stile, misurati in vw/vh e ricalibrati sotto i 1024 px; paragrafi Plus Jakarta Sans a 300 in colonna ≤ 38ch.",
+      "Nessuna scritta nera: il testo è grafite #46423d, il secondario pietra #6b665f; il rosso resta agli accenti e agli errori, il bianco sta solo sul rosso o sopra le immagini.",
+      "Rosso #d20a0a solo come accento: eyebrow, corsivo di capitolo, «Tua» del lockup, CTA, pulsanti tondi, focus, selezione.",
+      "Raggi a zero e nessuna card. Le poche curve rimaste sono inventariate in Shapes, e solo lì.",
+      "Media in tre moduli (16:9, 1:1, 4:5), `object-cover`, senza velo né vignettatura; le lettere stanno sopra un'immagine solo in quattro punti dichiarati.",
+      "Nessun testo delle pagine sotto i 16 px: l'UI sta a 1rem, il corpo a 19 px. Non la rispettano ancora il preloader e la mappa della ricerca: l'inventario è in «La regola dei 16 px».",
+      "Tre gesti di motion, il monogramma rotante, il preloader e tre nastri pilotati dallo scroll; niente transizioni di pagina, niente cursore custom, niente fiori."
+    ],
+    "rules": [
+      {
+        "name": "La regola dell'unico fondo",
+        "body": "Tutto il sito sta su un solo avorio (#f9f5ef): nessuna sezione cambia fondo, nessuna banda di tono, nessuna card. Il taglio fra le sezioni non si deve percepire (la cliente, 6 ago.). L'unica superficie scura è il pannello del preloader, che sparisce dopo 4,63 s e non torna nella sessione.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola del rosso contato",
+        "body": "Il rosso è un accento puntuale, non un colore di riempimento: eyebrow, un corsivo per capitolo, «Tua» nel lockup, CTA e pulsanti tondi. Se in una schermata il rosso occupa più di un bottone e una parola, è troppo.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola dell'oro sulle stelle",
+        "body": "Oggi l'oro (#d9a441 e la sua rampa) sta solo sulle stelle della valutazione. La tonalità è una decisione di lavoro (11 set.); se il divieto dell'oro vada riscritto come «oro solo sulle stelle» è una domanda aperta. Se serve calore altrove, la strada è avorio profondo o carta, mai l'oro.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola dell'inchiostro grafite",
+        "body": "Nessuna scritta è nera: `ink`, `graphite` e `--foreground` valgono #46423d (Alberto, 11 set.). Il riferimento scrive titoli e corpo in #1f1f1f, quasi nero, ed è probabilmente per questo che la pagina può leggere slavata accanto a lui. Un inchiostro più scuro per i soli titoli (proposta #2e2a26) va chiesto ad Alberto, non applicato: è una domanda aperta, e finché non risponde tutto resta #46423d.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola del maiuscolo",
+        "body": "h1–h4 sono maiuscoli per foglio di stile (`text-transform: uppercase`), a 500 (h1–h3) e 400 (h4); le citazioni no. Chi ha bisogno di un titolo in tondo minuscolo usa un elemento non-heading, come fa il lockup.",
+        "section": "typography"
+      },
+      {
+        "name": "La regola dei 16 px",
+        "body": "Nessun testo delle pagine sotto 1rem (la cliente, 10 set.: «nessuna scritta piccola»): l'eyebrow sta a 16 px, la riga legale a 16 px, il sovratitolo dell'hero a `text-ui`, e sotto i 768 px i campi sono forzati a 16 px (`!important`) perché iOS non zoomi. Oggi non la rispettano due posti, e questo è l'inventario completo a cui rimandano gli altri documenti. **Il preloader**: le didascalie «Immobiliare» e «dal 2007» a 0.68rem (circa 11 px) e il payoff a 0.82rem (circa 13 px, `PreloaderShell.tsx`); se portarle a 16 px o dichiarare un'eccezione è la domanda aperta 6 della spec, §11.3. **La mappa della ricerca** (`PropertyMap.tsx`), che nessuna direttiva ha deciso: le cifre dei segnaposto hanno un corpo in linea calcolato dalla loro misura, da 11 a 16 px; quelle dei cluster vanno da 14 a 23 px e restano sotto i 16 solo nei cluster più piccoli (14-15 px); il tooltip all'hover (`dt-tip`) e la riga di attribuzione non hanno una regola del sito ed ereditano 0.75rem, cioè 12 px, da `.leaflet-container` (`leaflet.css`).",
+        "section": "typography"
+      },
+      {
+        "name": "La regola della colonna",
+        "body": "La taglia segue la colonna, non la gerarchia: il d1 va solo sulle teste che possiedono tutta la larghezza; in mezza colonna, accanto a una foto, la testa è d2 o d3 e il lead resta ≤ 38ch. Un titolo grande in colonna stretta non legge come editoriale, legge come un errore di impaginazione.",
+        "section": "typography"
+      },
+      {
+        "name": "La regola del corsivo unico",
+        "body": "Al più una parola Pinyon rossa per capitolo, mai come titolo semantico. La calligrafia segue il titolo senza margini propri e ne attraversa l'ultima riga con un rientro di −0.2em (`--script-tuck`; decisione di lavoro, 11 set.). Così passa la linea di base con le sole aste alte e il corpo resta sull'avorio; a −0.42em il rosso e la maiuscola grafite si intrecciavano a metà altezza e nessuno dei due si leggeva. Può scavalcare il bordo di una banda fotografica (la firma dell'hero con `--script-tuck: 0` e mezza lettera sulla foto; la calligrafia delle pagine interne, che ne attraversa il bordo alto per un terzo), ma non sta mai dentro una foto.",
+        "section": "typography"
+      },
+      {
+        "name": "La regola del piatto",
+        "body": "Nessuna ombra di scatola a riposo, nessun blur, nessun velo né vignettatura sulle foto. Se due cose vanno separate, le separa un'hairline di 1 px in filo o il vuoto. Un'ombra è ammessa solo attaccata alle lettere bianche che stanno su un'immagine, o come risposta allo stato (l'alone social).",
+        "section": "elevation"
+      },
+      {
+        "name": "La regola del cerchio",
+        "body": "Nelle pagine il cerchio serve a tre cose sole: il bottone-icona tondo, il disco numerato della mappa (una cifra, mai una parola) e gli indicatori di stato (la pista della rotaia, lo spinner, i puntini dell'assistente); fa eccezione il disco con l'icona accanto al titolo dell'assistente, oggi spento. Una parola, una foto o un blocco di testo stanno sempre in un rettangolo a spigolo vivo.",
+        "section": "shapes"
+      },
+      {
+        "name": "Il patto della porta",
+        "body": "La sagoma dentro il sipario e la banda fotografica in cima alla home sono lo stesso scatto nella stessa scatola (decisione di lavoro, 11 set.): `top: calc(var(--dt-head-h) + 1px)` (il pixel in più è il bordo basso della testata), `height: var(--dt-band-h)`, `left` e `right` a 0, e `objectPosition: \"10% 0%\"` da tutt'e due le parti. La regola `[data-pre-figure]` vale a ogni larghezza, e sotto i 768 px la sagoma usa `raffaela-sagoma-m.webp`, che ha lo stesso rapporto. Quando l'arco si apre, dentro il buco c'è già la stanza che sta sotto: nessun doppio, nessun taglio. Il patto si era rotto quando l'hero è diventato una banda mentre la sagoma era rimasta a tutto schermo: per 750 ms si vedevano due Raffaela, poi uno stacco. I due numeri sono token condivisi in `globals.css`, e servono anche all'altezza della testata, al `top` del pannello mobile e allo `scroll-margin-top` delle ancore (`calc(var(--dt-head-h) + 0.5rem)` sotto lg, 1rem da lg). Il test `intro-clocks` li presidia: non si cambia l'uno senza l'altro. La vecchia regola `.dt-mob-band` (≤ 767.98 px) è rimasta in `globals.css` ma nessun componente la usa.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do tenere un solo fondo, #f9f5ef, dalla testata al footer; le sezioni si distinguono per vuoto (`clamp(6rem, 14vh, 11rem)`) e hairline, non per colore.",
+      "Do misurare i titoli col viewport: d1 `clamp(2.4rem, min(10vh, 6.5vw), 7.5rem)` con interlinea 0.98, d2 `clamp(2.3rem, min(6.4vh, 4.2vw), 4.5rem)` con interlinea 1, sempre Playfair, sempre maiuscoli; sotto i 1024 px vale la scala dedicata.",
+      "Do aprire ogni capitolo con la stessa cellula: eyebrow rosso → titolo → (una parola Pinyon rossa che ne attraversa l'ultima riga) → lead a 300 in grafite ≤ 38ch → link ghost.",
+      "Do scrivere il testo in grafite #46423d e il secondario in pietra #6b665f, mai in nero; un inchiostro più scuro sui titoli si chiede prima ad Alberto.",
+      "Do tenere le etichette delle CTA entro 26 caratteri: a 390 px la colonna del bottone è 302 px e una maiuscola spaziata ne tiene 26. «Richiedi la valutazione», non «Richiedi la valutazione del tuo immobile».",
+      "Do usare il rosso solo per accento e conversione: una CTA piena per schermata, il resto sono link maiuscoli sottolineati.",
+      "Do mettere ogni foto in uno dei tre moduli, scelto dal rapporto del sorgente, su avorio profondo e senza velo; `sizes` dichiara i pixel resi, non la scatola.",
+      "Do tenere tutto il testo delle pagine a 16 px o più: UI a 1rem, corpo a 19 px, campi forzati a 16 px sul telefono.",
+      "Do limitare il movimento ai tre gesti (righe che salgono, fade-up di 2.5rem, deriva di parallasse), ai tre nastri pilotati dallo scroll (sticky su un corridoio, da 1024 px con motion ok), al monogramma e al preloader; ogni animazione dentro `prefers-reduced-motion: no-preference`, stati nascosti solo via JS.",
+      "Do separare con hairline di 1 px in filo (#e4dccf) e con vuoto; il focus è sempre `outline: 2px` rosso.",
+      "Do cambiare `--dt-head-h` e `--dt-band-h` solo insieme alla sagoma del preloader: il test `intro-clocks` presidia il patto della porta.",
+      "Do cercare l'aspetto nel dossier di immobiliaregoldengoal.it e le tecniche di tipografia, movimento e struttura nel dossier di era-residence.com (§2 tipografia dei titoli, §4 preloader ad arco, §5 logo rotante, §7 testi per righe, §11.1-11.2 scroller orizzontale): sono i due riferimenti del sistema."
+    ],
+    "donts": [
+      "Don't usare raggi su superfici, campi, bottoni o media: i token raggio valgono 0 e il cerchio è riservato ai bottoni-icona, al disco numerato della mappa e agli indicatori di stato.",
+      "Don't usare ombre di scatola, blur, veli o vignettature sulle foto; sulle immagini l'unico trattamento ammesso è l'ombra attaccata alle lettere bianche, e l'unica ombra di scatola delle pagine è l'alone rosso sotto un'icona social all'hover.",
+      "Don't creare card, riquadri o pastiglie: un blocco è titolo + testo + hairline.",
+      "Don't usare superfici scure: l'espresso del preloader è una domanda aperta, non un permesso da estendere.",
+      "Don't mettere lettere sopra un'immagine fuori dai quattro punti dichiarati: lockup e firma dell'hero, calligrafia che scavalca la banda delle pagine interne, copertina delle cinque stelle, banda di congedo.",
+      "Don't usare l'oro fuori dalle stelle della valutazione; niente blu, niente nero (né #000 né #1a1816), niente Inter, niente gradienti viola-blu.",
+      "Don't scendere sotto i 16 px, nemmeno per didascalie, eyebrow o riga legale.",
+      "Don't mettere più di una parola Pinyon per capitolo; il corsivo è ornamento `aria-hidden`, mai un heading, e non vive dentro una foto.",
+      "Don't aggiungere sezioni sticky oltre i tre nastri registrati, né usare il pin di GSAP, né transizioni di pagina, cursori custom, fiori o ornamenti disegnati: il sito deve restare bello anche fermo.",
+      "Don't prendere da era-residence le cupole curve, i fiori o le transizioni di pagina: sono le sole parti escluse di quel riferimento.",
+      "Don't mettere un d1 in mezza colonna: accanto a una foto la testa è d2 o d3 e il paragrafo ≤ 38ch.",
+      "Don't inventare una larghezza di media per sezione: esistono tre moduli (`.dt-media-full`, `.dt-media-half`, `.dt-media-column`) e la scatola segue il rapporto del sorgente.",
+      "Don't riempire con un render di repertorio: una riga senza scatto vero si racconta col suo numero (`EditorialRows` lo fa da sé, e mostra le foto solo se ogni riga ne ha una in `reali/`).",
+      "Don't ripetere un capitolo intero su più pagine: i nove passi stanno su /metodo, le recensioni solo su /recensioni, e la prova su ogni pagina è il sigillo Wikicasa del footer.",
+      "Don't ingrandire una copertina oltre 1,43 per rifilarla, né lasciare `.dt-still-trim` su un fotogramma che arriva pulito."
+    ]
+  }
+}

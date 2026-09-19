@@ -85,20 +85,25 @@ export default function MobileActionBar() {
       // "fluttuante" insieme alla bolla desktop — e sono due cose diverse (una è il pollice
       // sul telefono, l'altra il puntatore su schermo grande). Vedi SiteAnalytics.tsx.
       data-conv-source="barra-mobile"
-      className={`fixed inset-x-3 z-40 flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] sm:hidden ${
+      className={`fixed inset-x-0 z-40 flex items-center gap-3 border-t border-line bg-cream px-3 py-1.5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] sm:hidden ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       }`}
       // Questo `env()` ha smesso di valere zero solo in fase 4, con `viewportFit:
       // "cover"` nel layout: fino ad allora la riga era corretta e inerte insieme.
       // I 12px sono il margine gemello di `inset-x-3`, non un compenso allo zero —
       // l'inset si somma una volta sola e la barra sale di quel tanto, senza doppioni.
-      style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+      style={{ bottom: 0, paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}
     >
+      {/* `sm` e senza freccia: a 390px la colonna della CTA e' 302px e
+          l'etichetta maiuscola andava a capo («RICHIEDI LA / VALUTAZIONE»)
+          con la freccia appesa a destra — una scatola rossa da 74px col
+          testo spezzato, in fondo a tutte le schermate della home. */}
       <Cta
         href="/valutazione-immobile-tradate"
         variant="cta-solid"
-        size="md"
-        className="flex-1 !shadow-[0_18px_40px_-16px_rgba(210,10,10,0.75)]"
+        size="sm"
+        arrow={false}
+        className="flex-1"
       >
         {c.cta}
       </Cta>
@@ -107,7 +112,7 @@ export default function MobileActionBar() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label={c.wa}
-        className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border border-line bg-paper text-red shadow-[0_12px_30px_-14px_rgba(26,24,22,0.5)] transition-transform duration-300 active:scale-95"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 active:scale-95"
       >
         <Whatsapp className="h-6 w-6" />
       </a>

@@ -1,17 +1,16 @@
 // MarkBadge — il badge di marca statico (anello di tacche + monogramma).
 //
-// Vive in un file SENZA "use client" perché ha tre portatori con tre padroni:
-// l'header, dove RotatingMark lo mette in controrotazione da GSAP; il sipario
-// di PageTransition (`spinMarkBadge`); e — dal 2026-08-17 — la shell del
-// preloader resa dal SERVER (PreloaderShell.tsx), dove gira con una @keyframes
-// CSS prima ancora che arrivi il JavaScript. Un componente server può rendere
-// un client component, ma ne farebbe un confine di idratazione: qui non c'è
-// niente da idratare, è markup e basta. RotatingMark lo ri-esporta, così i
-// chiamanti di prima non cambiano import.
+// Vive in un file SENZA "use client" perché ha due portatori con due padroni:
+// l'header, dove RotatingMark lo fa girare da GSAP; e — dal 2026-08-17 — la
+// shell del preloader resa dal SERVER (PreloaderShell.tsx), dove gira con una
+// @keyframes CSS prima ancora che arrivi il JavaScript. Un componente server
+// può rendere un client component, ma ne farebbe un confine di idratazione:
+// qui non c'è niente da idratare, è markup e basta.
 //
-// Due agganci, non uno: `[data-rot-ring]` e `[data-rot-mark]` girano in verso
-// opposto (richiesta cliente, 2026-08), quindi non possono stare dentro lo
-// stesso gruppo rotante.
+// Due agganci, non uno: `[data-rot-ring]` e `[data-rot-mark]`. Dal 2026-09-10
+// girano nello STESSO verso (orario, richiesta cliente), ma restano separati:
+// l'anello di tacche prende `currentColor` da chi lo ospita, il monogramma è
+// il logo depositato e non si tinge.
 import MarkDomus from "../MarkDomus";
 
 // 60 tacche radiali sottili + 4 cardinali più lunghe: rosone tecnico-ornamentale
@@ -65,14 +64,14 @@ export function MarkBadge({ className = "h-12 w-12" }: { className?: string }) {
           Il contenitore è `inset-0`, quindi `h-[52%]` continua a misurarsi
           sull'altezza del badge come prima. */}
       <span className="absolute inset-0 flex items-center justify-center">
-        {/* Monogramma ufficiale: ruota su sé stesso nel verso opposto
-            all'anello, e NON cambia colore. La prop `dark` che lo ribaltava
-            nella variante crema è sparita insieme alla variante (MarkDomus):
-            sui fondi scuri il badge si posa su una pastiglia chiara — è così
-            che fanno il preloader e il sipario. L'anello di tacche invece usa
-            `currentColor`, quindi lo tinge ancora chi lo ospita.
-            Dal 2026-08-06 è VETTORIALE (MarkDomus): il PNG da 99×92 si
-            sgranava appena il badge passava i ~50px.
+        {/* Monogramma ufficiale: ruota su sé stesso nello stesso verso (orario)
+            dell'anello, e NON cambia colore. La prop `dark` che lo ribaltava
+            nella variante crema è sparita insieme alla variante (MarkDomus,
+            direttiva cliente 2026-08-26): sui fondi scuri il badge si posa su
+            una pastiglia chiara — è così che fa il preloader. L'anello di
+            tacche invece usa `currentColor`, quindi lo tinge ancora chi lo
+            ospita. Dal 2026-08-06 è VETTORIALE (MarkDomus): il PNG da 99×92
+            si sgranava appena il badge passava i ~50px.
             L'aggancio `data-rot-mark` sta sullo SPAN, non sull'svg: è lì che
             GSAP scrive il transform, e il componente non inoltra props. */}
         <span data-rot-mark className="inline-flex h-[52%] w-auto">

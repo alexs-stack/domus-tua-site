@@ -1,4 +1,4 @@
-import { test, expect, setConsent } from "./helpers";
+import { test, expect, setConsent, firstListingLink } from "./helpers";
 
 // Le pagine di contenuto: che esistano, che dicano la cosa giusta nel titolo, che non
 // producano errori e che portino da qualche parte.
@@ -159,4 +159,60 @@ test("la cookie policy spiega come cambiare idea", async ({ page, goto }) => {
   await expect(page.locator("#main")).toContainText(/cookie/i);
   // Deve esistere un modo per rivedere la scelta, non solo una pagina di testo.
   await expect(page.locator("#main")).toContainText(/consenso|preferenz|revoc|modific/i);
+});
+
+// /case/[slug] resta ferma: A26 «Nessun sipario» di Alberto e D32 (spec §5.4).
+// Dentro MotionFreeze nessun gruppo del motore e Reveal con la CSS di sempre
+// (0,9 s da 2,5rem). La sonda è un .reveal creato sotto la guardia: il valore
+// calcolato non dipende da cosa rende la scheda dei mock.
+test("la scheda immobile resta ferma sotto MotionFreeze", async ({ page, goto }) => {
+  await goto("/acquista");
+  const href = await firstListingLink(page).getAttribute("href");
+  expect(href, "nessun immobile nei mock").toBeTruthy();
+  await goto(href!);
+  await expect(page.locator("[data-motion-freeze]")).toHaveCount(1);
+  for (let i = 0; i < 12; i++) {
+    await page.mouse.wheel(0, 900);
+    await page.waitForTimeout(80);
+  }
+  await page.waitForTimeout(600);
+  await expect(
+    page.locator("[data-reveal-group], [data-reveal-armed], [data-segno], .dt-dive, [data-lag-col], [data-sink]"),
+  ).toHaveCount(0);
+  const sonda = await page.evaluate(() => {
+    const host = document.querySelector("[data-motion-freeze]");
+    if (!host) return null;
+    const d = document.createElement("div");
+    d.className = "reveal";
+    host.appendChild(d);
+    const s = getComputedStyle(d);
+    const out = { duration: s.transitionDuration, transform: s.transform, opacity: s.opacity };
+    d.remove();
+    return out;
+  });
+  expect(sonda).not.toBeNull();
+  expect(sonda!.duration).toBe("0.9s, 0.9s");
+  expect(sonda!.opacity).toBe("0");
+  expect(sonda!.transform).not.toBe("none");
+  // Chrome dell'interfaccia fermo sotto la guardia: il tooltip dei social del footer
+  // non ha transizione (spec §5.4, D32).
+  const tip = await page.evaluate(() => {
+    const t = document.querySelector("[data-motion-freeze] .dt-social__tip");
+    return t ? getComputedStyle(t).transitionDuration : null;
+  });
+  expect(tip, "nessun tooltip dei social nella scheda").not.toBeNull();
+  expect(tip!.split(",").every((d) => Number.parseFloat(d) === 0), `tooltip in transizione: ${tip}`).toBe(true);
+});
+
+// /case/[slug] è una pagina di conversione: la foto accanto al modulo resta nel
+// Reveal di oggi (D28, D32, spec 2026-09-13 §3.17). L'assenza del gesto la
+// presidia già «la scheda immobile resta ferma sotto MotionFreeze».
+test("su una scheda /case la foto del modulo resta nel Reveal", async ({ page, goto }) => {
+  await goto("/acquista");
+  const href = await firstListingLink(page).getAttribute("href");
+  expect(href).toMatch(/^\/case\//);
+  await goto(href!);
+  const foto = page.locator('#contatti img[src*="raffaela-keys"]').first();
+  await expect(foto).toHaveCount(1);
+  expect(await foto.evaluate((el) => !!el.closest(".reveal"))).toBe(true);
 });
