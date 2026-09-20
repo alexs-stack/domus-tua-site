@@ -20,7 +20,8 @@ const soloCodice = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(
 // split: TextLines e titoli semplici (G1-G5); g6: titoli display nudi (G6).
 const ATTESI: Record<string, { split: number; g6?: number; script?: number }> = {
   "app/components/Posizionamento.tsx": { split: 1 },
-  "app/components/HomeSearchGateway.tsx": { split: 1, g6: 1 },
+  // g6 0 dal 2026-09-20: il blocco "Devi vendere casa?" (h3 display) non c'e' piu' in home.
+  "app/components/HomeSearchGateway.tsx": { split: 1, g6: 0 },
   "app/components/HorizonStory.tsx": { split: 3, script: 1 },
   "app/components/StarReviews.tsx": { split: 1 },
   "app/components/Voci.tsx": { split: 1 },
@@ -86,9 +87,9 @@ function sorgenti(dir: string, out: string[] = []): string[] {
 const conta = (t: string, re: RegExp) => (t.match(re) ?? []).length;
 
 describe("SplitTitle al posto di TextLines", () => {
-  test("73 SplitTitle in 34 file: 32 TextLines, 4 titoli semplici, manifesto e h4 del nastro, 35 titoli nudi (G6)", () => {
+  test("72 SplitTitle in 34 file: 32 TextLines, 4 titoli semplici, manifesto e h4 del nastro, 34 titoli nudi (G6)", () => {
     assert.equal(Object.values(ATTESI).reduce((s, x) => s + x.split, 0), 38);
-    assert.equal(Object.values(ATTESI).reduce((s, x) => s + (x.g6 ?? 0), 0), 35);
+    assert.equal(Object.values(ATTESI).reduce((s, x) => s + (x.g6 ?? 0), 0), 34);
     assert.equal(Object.keys(ATTESI).length, 34);
   });
 

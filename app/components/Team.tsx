@@ -32,66 +32,61 @@ const copy = {
     eyebrow: "Chi siamo",
     title: "Persone prima degli immobili.",
     lead: "Dietro ogni casa c’è una storia. Dietro ogni percorso Domus Tua c’è un team che ascolta, guida e accompagna, dalla prima telefonata fino alla firma.",
-    body: "Tutto è nato nel 2007 dalla visione di Raffaela Rizza: un’agenzia immobiliare indipendente a Tradate. Non prendiamo un incarico se il prezzo non sta in piedi, controlliamo i documenti prima di pubblicare, e al telefono rispondiamo noi — la stessa persona, dalla prima chiamata al rogito.",
+    body: "Indipendenti a Tradate dal 2007: un incarico solo se il prezzo sta in piedi, e al telefono rispondiamo noi, la stessa persona dalla prima chiamata al rogito.",
     quote: "“Per noi una casa non è un annuncio: è la storia di una famiglia. La trattiamo così.”",
     role: "Fondatrice · Domus Tua",
     cta: "Conosci Domus Tua",
     founderAlt: "Raffaela Rizza, founder di Domus Tua",
     founderCaption: "Founder & CEO",
     rosterTitle: "Il team",
-    rosterIntro: "Un’agenzia a guida femminile che mette le persone al centro. Volti veri, competenze vere.",
   },
   en: {
     eyebrow: "About us",
     title: "People before properties.",
     lead: "Behind every home there is a story. Behind every Domus Tua journey there is a team that listens, guides and supports you, from the first phone call to the signing.",
-    body: "It all began in 2007 from Raffaela Rizza’s vision: an independent estate agency in Tradate. We turn down a mandate if the price does not hold up, we check the paperwork before listing, and we answer the phone ourselves — the same person, from the first call to the deed.",
+    body: "Independent in Tradate since 2007: a mandate only if the price holds up, and we answer the phone ourselves, the same person from the first call to the deed.",
     quote: "“For us a home is not a listing: it’s a family’s story. And we treat it that way.”",
     role: "Founder · Domus Tua",
     cta: "Get to know Domus Tua",
     founderAlt: "Raffaela Rizza, founder of Domus Tua",
     founderCaption: "Founder & CEO",
     rosterTitle: "The team",
-    rosterIntro: "A woman-led agency that puts people first. Real faces, real expertise.",
   },
   fr: {
     eyebrow: "Qui sommes-nous",
     title: "Les personnes avant les biens.",
     lead: "Derrière chaque maison, il y a une histoire. Derrière chaque parcours Domus Tua, il y a une équipe qui écoute, guide et accompagne, du premier appel jusqu’à la signature.",
-    body: "Tout est né en 2007 de la vision de Raffaela Rizza : une agence immobilière indépendante à Tradate. Nous refusons un mandat si le prix ne tient pas, nous contrôlons les documents avant la mise en ligne, et c’est nous qui répondons au téléphone — la même personne, du premier appel à l’acte.",
+    body: "Indépendants à Tradate depuis 2007 : un mandat seulement si le prix tient, et c’est nous qui répondons au téléphone, la même personne du premier appel à l’acte.",
     quote: "« Pour nous, une maison n’est pas une annonce : c’est l’histoire d’une famille. Nous la traitons ainsi. »",
     role: "Fondatrice · Domus Tua",
     cta: "Découvrir Domus Tua",
     founderAlt: "Raffaela Rizza, fondatrice de Domus Tua",
     founderCaption: "Fondatrice & CEO",
     rosterTitle: "L’équipe",
-    rosterIntro: "Une agence dirigée par des femmes qui place les personnes au centre. Des visages vrais, des compétences vraies.",
   },
   de: {
     eyebrow: "Über uns",
     title: "Menschen vor Immobilien.",
     lead: "Hinter jedem Zuhause steht eine Geschichte. Hinter jedem Weg mit Domus Tua steht ein Team, das zuhört, begleitet und unterstützt – vom ersten Anruf bis zur Unterschrift.",
-    body: "Alles begann 2007 mit der Vision von Raffaela Rizza: eine unabhängige Immobilienagentur in Tradate. Wir lehnen einen Auftrag ab, wenn der Preis nicht trägt, wir prüfen die Unterlagen vor der Veröffentlichung, und wir gehen selbst ans Telefon — dieselbe Person, vom ersten Anruf bis zum Notartermin.",
+    body: "Unabhängig in Tradate seit 2007: ein Auftrag nur, wenn der Preis trägt, und wir gehen selbst ans Telefon, dieselbe Person vom ersten Anruf bis zum Notartermin.",
     quote: "„Für uns ist ein Zuhause keine Anzeige: Es ist die Geschichte einer Familie. So behandeln wir es.“",
     role: "Gründerin · Domus Tua",
     cta: "Domus Tua kennenlernen",
     founderAlt: "Raffaela Rizza, Gründerin von Domus Tua",
     founderCaption: "Gründerin & CEO",
     rosterTitle: "Das Team",
-    rosterIntro: "Eine von Frauen geführte Agentur, die den Menschen in den Mittelpunkt stellt. Echte Gesichter, echte Kompetenzen.",
   },
   es: {
     eyebrow: "Quiénes somos",
     title: "Personas antes que inmuebles.",
     lead: "Detrás de cada casa hay una historia. Detrás de cada recorrido Domus Tua hay un equipo que escucha, guía y acompaña, desde la primera llamada hasta la firma.",
-    body: "Todo nació en 2007 de la visión de Raffaela Rizza: una agencia inmobiliaria independiente en Tradate. No aceptamos un encargo si el precio no se sostiene, comprobamos los documentos antes de publicar, y al teléfono respondemos nosotras — la misma persona, desde la primera llamada hasta la escritura.",
+    body: "Independientes en Tradate desde 2007: un encargo solo si el precio se sostiene, y al teléfono respondemos nosotras, la misma persona desde la primera llamada hasta la escritura.",
     quote: "“Para nosotros una casa no es un anuncio: es la historia de una familia. Y así la tratamos.”",
     role: "Fundadora · Domus Tua",
     cta: "Conoce Domus Tua",
     founderAlt: "Raffaela Rizza, fundadora de Domus Tua",
     founderCaption: "Fundadora & CEO",
     rosterTitle: "El equipo",
-    rosterIntro: "Una agencia dirigida por mujeres que pone a las personas en el centro. Rostros reales, competencias reales.",
   },
 };
 
@@ -206,10 +201,12 @@ export default function Team({ compact = false }: { compact?: boolean }) {
       </div>
 
       {/* ── La rotaia del team: foto grandi, pilotate dallo scroll ──────── */}
-      <div className="mt-[10vh]">
+      {/* Passo 6vh (era 10) e niente lead sotto l'occhiello «Il team»: «Un'agenzia
+          a guida femminile che mette le persone al centro. Volti veri…» ripeteva
+          il titolo del capitolo e il paragrafo qui sopra (2026-09-20). */}
+      <div className="mt-[6vh]">
         <div className="dt-row">
           <p className="eyebrow">{c.rosterTitle}</p>
-          <Lead className="mt-4">{c.rosterIntro}</Lead>
         </div>
         {/* Le regole di `.dt-rail_track` (globals.css) sono unlayered e battono
             le utility: gap, padding e allineamento passano solo col `!`.
@@ -219,13 +216,16 @@ export default function Team({ compact = false }: { compact?: boolean }) {
             condivide scrub ed ease con nessun altro capitolo (A20 di Alberto,
             spec 2026-09-13 §3.1); vale anche su /chi-siamo. `corridor="team"`
             è il corridoio di A19 che corridors.spec.ts conta. */}
+        {/* runway 80 e non 120 (2026-09-20, Alberto: «la home e' troppo lunga»):
+            il nastro eccede il viewport di ~700 px a 1440 e li percorre ora in
+            720 px di scroll, quasi uno a uno, invece che in 1.080. */}
         <HorizontalRail
           corridor="team"
-          runway={120}
+          runway={80}
           snapMobile
           scrub={0.7}
           ease="dtRail"
-          className="mt-10"
+          className="mt-8"
           trackClassName="!items-start !gap-[3vw] !px-[5vw] md:!px-[8vw]"
         >
           {tiles.map((t) => (
@@ -264,7 +264,7 @@ export default function Team({ compact = false }: { compact?: boolean }) {
         {/* La rosa: i sei nomi con il ruolo, dalla fonte unica. Le foto
             singole arriveranno dal cliente; fino ad allora nessuna tessera
             vuota e nessun volto finto. */}
-        <ul className="dt-row mt-10 grid gap-x-[4vw] gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="dt-row mt-8 grid gap-x-[4vw] gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
           {team.map((m) => (
             <li key={m.name}>
               <span className="block font-display text-d3 uppercase text-ink">{m.name}</span>

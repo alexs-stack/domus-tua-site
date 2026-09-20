@@ -105,6 +105,7 @@ describe("Voci: il carosello arriva da destra", () => {
     const chiusa = voci.indexOf("</span>", voci.indexOf("<YoutubeThumb", i));
     const play = voci.indexOf("<Play", i);
     assert.ok(play > chiusa, "il play sta dentro l'inner che trasla");
-    assert.match(voci, /className="relative mt-\[clamp\(3rem,8vh,6rem\)\] overflow-x-clip"/);
+    // passo clamp(2rem,5vh,4rem) dal 2026-09-20 (Alberto: distanze fra testo e foto piu' corte)
+    assert.match(voci, /className="relative mt-\[clamp\(2rem,5vh,4rem\)\] overflow-x-clip"/);
   });
 });

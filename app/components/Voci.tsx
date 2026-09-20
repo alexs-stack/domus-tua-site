@@ -38,7 +38,6 @@ import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { useConsent } from "../lib/consent";
 import SplitTitle from "./motion/SplitTitle";
-import Lead from "./motion/Lead";
 import { ratingLabel, site } from "../lib/site";
 import { wallVideos, youtubeWatch } from "../lib/videos";
 import { gsap, useGSAP } from "../lib/motion/gsap";
@@ -50,8 +49,6 @@ const copy = {
   it: {
     eyebrow: "Cosa dicono di noi",
     google: "recensioni Google",
-    description:
-      "Le storie vere del canale: le recensioni dei clienti, le case raccontate in video e vendute con Open Domus, il team che conosci prima di incontrarlo.",
     listLabel: "Le storie in video",
     play: "Guarda",
     prev: "Video precedente",
@@ -68,8 +65,6 @@ const copy = {
   en: {
     eyebrow: "What they say about us",
     google: "Google reviews",
-    description:
-      "Real stories from the channel: client reviews, homes told in video and sold with Open Domus, and the team you get to know before meeting them.",
     listLabel: "The stories on video",
     play: "Watch",
     prev: "Previous video",
@@ -86,8 +81,6 @@ const copy = {
   fr: {
     eyebrow: "Ce qu'ils disent de nous",
     google: "avis Google",
-    description:
-      "Les histoires vraies de la chaîne : les avis des clients, les biens racontés en vidéo et vendus avec Open Domus, l’équipe que l’on connaît avant de la rencontrer.",
     listLabel: "Les histoires en vidéo",
     play: "Regarder",
     prev: "Vidéo précédente",
@@ -104,8 +97,6 @@ const copy = {
   de: {
     eyebrow: "Was man über uns sagt",
     google: "Google-Bewertungen",
-    description:
-      "Echte Geschichten vom Kanal: Kundenbewertungen, im Video erzählte und mit Open Domus verkaufte Häuser und das Team, das man kennt, bevor man es trifft.",
     listLabel: "Die Geschichten im Video",
     play: "Ansehen",
     prev: "Vorheriges Video",
@@ -122,8 +113,6 @@ const copy = {
   es: {
     eyebrow: "Lo que dicen de nosotros",
     google: "reseñas de Google",
-    description:
-      "Las historias reales del canal: las reseñas de los clientes, las casas contadas en vídeo y vendidas con Open Domus y el equipo que conoces antes de conocerlo.",
     listLabel: "Las historias en vídeo",
     play: "Ver",
     prev: "Vídeo anterior",
@@ -321,14 +310,16 @@ export default function Voci() {
             {`${ratingLabel(locale)}/5 · ${site.reviewsCount} ${c.google}`}
           </p>
         </Reveal>
-        <Lead className="mt-6">{c.description}</Lead>
+        {/* Il lead («Le storie vere del canale: le recensioni dei clienti, le
+            case raccontate in video…») non c'e' piu' (2026-09-20): diceva quel
+            che il titolo e le tessere mostrano da soli. */}
       </div>
 
       {/* Carosello nativo. Da desktop TRE tessere per schermata (32vw): a 58vw
           se ne vedeva una e un terzo, e il carosello sembrava rotto. Sul
           telefono la tessera è a tutta larghezza (niente margini, snap al
           centro): una foto per volta, senza spicchi della successiva. */}
-      <div className="relative mt-[clamp(3rem,8vh,6rem)] overflow-x-clip">
+      <div className="relative mt-[clamp(2rem,5vh,4rem)] overflow-x-clip">
         <ul
           ref={railRef}
           aria-label={c.listLabel}
@@ -404,7 +395,7 @@ export default function Voci() {
       </div>
 
       {/* Il sigillo, come una riga di testo: niente chip, niente pillola. */}
-      <div className="dt-row mt-[clamp(3rem,8vh,6rem)]">
+      <div className="dt-row mt-[clamp(2rem,5vh,4rem)]">
         <Reveal>
           <a
             href={site.award.href}
@@ -430,7 +421,7 @@ export default function Voci() {
 
       {/* Il widget Trustindex (invariato) dietro il cancello del consenso.
           `data-reviews-widget` è l'appiglio della suite e2e. */}
-      <div className="dt-row mt-[clamp(4rem,10vh,8rem)]">
+      <div className="dt-row mt-[clamp(2.5rem,6vh,4.5rem)]">
         <div data-reviews-widget>
           <p className="text-ui font-semibold uppercase tracking-[0.08em] text-graphite">
             {c.widgetTitle}

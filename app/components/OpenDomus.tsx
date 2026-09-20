@@ -37,7 +37,7 @@ const copy = {
     head: "Open Domus.",
     claim: "Un’esperienza preparata per vendere meglio.",
     intro:
-      "Non una semplice visita, ma un format proprietario di Domus Tua che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la classica visita in un momento consapevole, ordinato e professionale, per chi vende e per chi cerca casa.",
+      "Un format proprietario che unisce preparazione, accoglienza, documentazione e prequalifica: la visita diventa un momento ordinato e consapevole, per chi vende e per chi cerca casa.",
     sellerLabel: "Per chi vende",
     buyerLabel: "Per chi compra",
     sellerBenefits: [
@@ -62,7 +62,7 @@ const copy = {
     head: "Open Domus.",
     claim: "An experience designed to sell better.",
     intro:
-      "Not just a viewing, but a format proprietary to Domus Tua that combines preparation, hospitality, documentation and pre-qualification. It turns the classic viewing into a considered, orderly and professional moment, for those who are selling and those who are looking for a home.",
+      "A proprietary format combining preparation, hospitality, documentation and pre-qualification: the viewing becomes an orderly, considered moment, for sellers and for buyers.",
     sellerLabel: "For sellers",
     buyerLabel: "For buyers",
     sellerBenefits: [
@@ -87,7 +87,7 @@ const copy = {
     head: "Open Domus.",
     claim: "Une expérience pensée pour mieux vendre.",
     intro:
-      "Pas une simple visite, mais un format propre à Domus Tua qui allie préparation, accueil, documentation et préqualification. Il transforme la visite classique en un moment réfléchi, ordonné et professionnel, pour ceux qui vendent comme pour ceux qui cherchent un logement.",
+      "Un format propre à Domus Tua qui allie préparation, accueil, documentation et préqualification : la visite devient un moment ordonné et réfléchi, pour ceux qui vendent comme pour ceux qui cherchent.",
     sellerLabel: "Pour les vendeurs",
     buyerLabel: "Pour les acquéreurs",
     sellerBenefits: [
@@ -112,7 +112,7 @@ const copy = {
     head: "Open Domus.",
     claim: "Ein Erlebnis, das auf besseren Verkauf ausgelegt ist.",
     intro:
-      "Keine gewöhnliche Besichtigung, sondern ein Domus Tua eigenes Format, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die klassische Besichtigung in einen bewussten, geordneten und professionellen Moment – für alle, die verkaufen, und für alle, die ein Zuhause suchen.",
+      "Ein eigenes Format, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint: Die Besichtigung wird zu einem geordneten, bewussten Moment – für Verkäufer wie für Suchende.",
     sellerLabel: "Für Verkäufer",
     buyerLabel: "Für Käufer",
     sellerBenefits: [
@@ -137,7 +137,7 @@ const copy = {
     head: "Open Domus.",
     claim: "Una experiencia preparada para vender mejor.",
     intro:
-      "No una simple visita, sino un formato propio de Domus Tua que combina preparación, acogida, documentación y precualificación. Transforma la visita clásica en un momento consciente, ordenado y profesional, para quien vende y para quien busca casa.",
+      "Un formato propio que combina preparación, acogida, documentación y precualificación: la visita se convierte en un momento ordenado y consciente, para quien vende y para quien busca casa.",
     sellerLabel: "Para quien vende",
     buyerLabel: "Para quien compra",
     sellerBenefits: [
@@ -219,7 +219,7 @@ export default function OpenDomus({ finestra = false }: Props) {
           quindi comincia sulla SUA stessa linea: con due colonne uguali sarebbe
           partita 43 px più a destra del bordo del video — uno sfasamento che si
           vede e non si spiega. */}
-      <div className="dt-row mt-[8vh] grid gap-[6vw] sm:grid-cols-2 lg:grid-cols-[1fr_min(42vw,640px)]">
+      <div className="dt-row mt-[5vh] grid gap-[6vw] sm:grid-cols-2 lg:grid-cols-[1fr_min(42vw,640px)]">
         {lists.map((list) => (
           <div key={list.title}>
             <SplitTitle as="h3" font="display-400" className="font-display text-d4 font-light">
@@ -240,7 +240,7 @@ export default function OpenDomus({ finestra = false }: Props) {
       {/* Il rilancio sta in fondo, a tutta larghezza: nella mezza colonna
           l'etichetta (44 caratteri) andava a capo e la freccia restava
           appesa a destra della prima riga. */}
-      <div className="dt-row mt-[6vh]">
+      <div className="dt-row mt-[4vh]">
         <Reveal role="still">
           <Cta href="/open-domus" variant="ghost">
             {c.cta}

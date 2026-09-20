@@ -441,7 +441,10 @@ test("Percorsi: le colonne vanno in controfase e sostano al centro", async ({ pa
     expect(a9).toBeGreaterThan(0);
     expect(b9).toBeLessThan(0);
     expect(a9 - a1).toBeGreaterThanOrEqual(40);
-    expect(b1 - b9).toBeGreaterThanOrEqual(40);
+    // La colonna del testo e' piu' bassa dal 2026-09-20 (via il lead di percorso, D236:
+    // titolo, tre punti e link, ~290 px): con gli stessi yPercent ±10 la sua corsa
+    // fra p 0,1 e p 0,9 vale 0,2 × 290 × 0,645 ≈ 37 px. Il gesto e' lo stesso.
+    expect(b1 - b9).toBeGreaterThanOrEqual(30);
     expect(Math.abs(a5)).toBeLessThanOrEqual(2);
     expect(Math.abs(b5)).toBeLessThanOrEqual(2);
     // #acquista: la foto ha lg:order-2 ed è a destra, quindi sale.
@@ -1529,68 +1532,91 @@ test.describe("capitoli 13-16: i gesti in coda alla home", () => {
   });
 });
 
-// ── Capitolo 17: la cartolina del Congedo (spec 2026-09-13 §3.18) ──
+// ── Capitolo 17: la cartolina del Congedo e l'entrata alla Lusion (spec 2026-09-13 §3.18; A35) ──
 // A19 e A20 di Alberto: da 1024 px e 640 px d'altezza con motion ok la banda è
-// uno schermo sticky di 100svh su 80svh di corridoio; il video si ritira in
-// inset(8% 22%) e il footer sale da sotto crescendo da 0,75 a 1. Sotto la
-// soglia la banda non è sticky e si ritira in inset(4% 10%) a 390 (D29).
+// uno schermo sticky di 100svh; il video si ritira in inset(8% 22%) e il footer
+// sale da sotto crescendo da 0,75 a 1. A35 e A42 (19-20 set.): davanti alla
+// cartolina sta l'entrata — il video parte nello slot 16:9 a destra del titolo
+// e cresce fino allo schermo intero, lineare su 100svh, cominciando 65svh prima
+// dell'aggancio dello sticky; pianerottolo 20svh; corridoio 135svh. La testa
+// (h2 e comando) sta in flusso sopra lo schermo, inchiostro su crema (D108,
+// D111). Sotto la soglia la banda non è sticky, nessuna entrata, e si ritira in
+// inset(4% 10%) a 390 (D29).
 
 const CARTOLINA = '[data-corridor="cartolina"]';
+/** Le cifre di lastra.ts: corsa 100svh, anticipo 0,65, pianerottolo 20svh. */
+const CORSA = 1.0;
+const ANTICIPO = 0.65;
+const PIAN = 0.2;
 
-/** Quote di layout (offsetTop) della cartolina e del footer. */
+/** Quote di layout (offsetTop) della cartolina e del footer, e le quote della timeline. */
 function quoteCartolina(page: Page) {
-  return page.evaluate((sel) => {
-    const quota = (el: HTMLElement) => {
-      let y = 0;
-      for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
-      return y;
-    };
-    const sec = document.querySelector<HTMLElement>(sel)!;
-    const screen = sec.querySelector<HTMLElement>("[data-corridor-screen]")!;
-    const foot = document.querySelector<HTMLElement>("footer[data-postcard-foot]")!;
-    return {
-      secTop: quota(sec),
-      screenTop: quota(screen),
-      screenH: screen.offsetHeight,
-      footTop: quota(foot),
-      vh: window.innerHeight,
-    };
-  }, CARTOLINA);
+  return page
+    .evaluate((sel) => {
+      const quota = (el: HTMLElement) => {
+        let y = 0;
+        for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
+        return y;
+      };
+      const sec = document.querySelector<HTMLElement>(sel)!;
+      const screen = sec.querySelector<HTMLElement>("[data-corridor-screen]")!;
+      const testa = sec.querySelector<HTMLElement>(".dt-postcard_testa")!;
+      const foot = document.querySelector<HTMLElement>("footer[data-postcard-foot]")!;
+      // La quota dello schermo è section + testa in flusso, MAI offsetTop dello sticky:
+      // quando è agganciato Chromium ne riporta la posizione spostata (trappola di A35).
+      const secTop = quota(sec);
+      return {
+        secTop,
+        screenTop: secTop + testa.offsetHeight,
+        screenH: screen.offsetHeight,
+        footTop: quota(foot),
+        vh: window.innerHeight,
+      };
+    }, CARTOLINA)
+    .then((q) => ({
+      ...q,
+      /** La quota zero dell'entrata: 31,5svh prima dell'aggancio dello schermo. */
+      start: q.screenTop - ANTICIPO * CORSA * q.vh,
+      /** Dove comincia la cartolina: dopo 90svh di entrata e 20svh di pianerottolo. */
+      cartStart: q.screenTop + (CORSA - ANTICIPO * CORSA + PIAN) * q.vh,
+    }));
 }
+/** Lo scroll a cui l'entrata sta a progresso e. */
+const aE = (q: { start: number; vh: number }, e: number) => Math.round(q.start + e * CORSA * q.vh);
 
-/** Il rettangolo della finestra (schermo meno i lati del ritaglio, letti con insetValues) e quello del titolo. */
-async function finestraETitolo(page: Page) {
+/** La testa sta in flusso sopra lo schermo, col comando sotto il titolo (D108, D111): niente lettere sulla fotografia. */
+async function testaSopra(page: Page, etichetta: string) {
   const g = await page.evaluate((sel) => {
     const sec = document.querySelector<HTMLElement>(sel)!;
-    const box = (el: Element) => {
-      const r = el.getBoundingClientRect();
-      return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width, h: r.height };
-    };
+    const screen = sec.querySelector<HTMLElement>("[data-corridor-screen]")!;
+    const banda = screen;
+    const fascia = sec.querySelector<HTMLElement>(".dt-postcard_testa")!;
+    const h2 = document.getElementById("congedo-title")!;
+    const a = fascia.querySelector("a.dt-btn")!;
+    const ink = getComputedStyle(document.documentElement).getPropertyValue("--color-ink").trim();
+    const probe = document.createElement("span");
+    probe.style.color = ink;
+    document.body.appendChild(probe);
+    const inkRgb = getComputedStyle(probe).color;
+    probe.remove();
     return {
-      s: box(sec.querySelector("[data-corridor-screen]")!),
-      clip: getComputedStyle(sec.querySelector<HTMLElement>("[data-postcard-clip]")!).clipPath,
-      title: box(document.getElementById("congedo-title")!),
+      h2NelloSchermo: screen.contains(h2),
+      h2PrimaDelloSchermo: !!(h2.compareDocumentPosition(screen) & Node.DOCUMENT_POSITION_FOLLOWING),
+      ctaNellaFascia: fascia.contains(a) && !screen.contains(a),
+      fasciaDopoLaBanda: !!(fascia.compareDocumentPosition(banda) & Node.DOCUMENT_POSITION_FOLLOWING),
+      letteSullaFoto: !!banda.querySelector("h1, h2, h3, p, a, button"),
+      h2Color: getComputedStyle(h2).color,
+      inkRgb,
+      ombra: getComputedStyle(h2).textShadow,
     };
   }, CARTOLINA);
-  // «none», la banda piena, vale quattro lati a zero.
-  const [t, r, b, l] = insetValues(g.clip) ?? [0, 0, 0, 0];
-  return {
-    win: {
-      l: g.s.l + (g.s.w * l) / 100,
-      r: g.s.r - (g.s.w * r) / 100,
-      t: g.s.t + (g.s.h * t) / 100,
-      b: g.s.b - (g.s.h * b) / 100,
-    },
-    title: g.title,
-  };
-}
-
-async function dentro(page: Page, etichetta: string) {
-  const { win, title } = await finestraETitolo(page);
-  expect(title.l, `${etichetta}: il titolo esce a sinistra`).toBeGreaterThanOrEqual(win.l - 1);
-  expect(title.r, `${etichetta}: il titolo esce a destra`).toBeLessThanOrEqual(win.r + 1);
-  expect(title.t, `${etichetta}: il titolo esce in alto`).toBeGreaterThanOrEqual(win.t - 1);
-  expect(title.b, `${etichetta}: il titolo esce in basso`).toBeLessThanOrEqual(win.b + 1);
+  expect(g.h2NelloSchermo, `${etichetta}: l'h2 sta dentro lo schermo sticky`).toBe(false);
+  expect(g.h2PrimaDelloSchermo, `${etichetta}: l'h2 non precede lo schermo`).toBe(true);
+  expect(g.ctaNellaFascia, `${etichetta}: il comando non sta nella testa`).toBe(true);
+  expect(g.fasciaDopoLaBanda, `${etichetta}: la testa non precede lo schermo`).toBe(true);
+  expect(g.letteSullaFoto, `${etichetta}: testo o comandi sopra la fotografia (D108, D111)`).toBe(false);
+  expect(g.h2Color, `${etichetta}: l'h2 non è inchiostro`).toBe(g.inkRgb);
+  expect(g.ombra, `${etichetta}: ombra sul titolo su crema`).toBe("none");
 }
 
 async function apriCartolina(page: Page) {
@@ -1609,8 +1635,8 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
     const sec = page.locator(CARTOLINA);
     const clip = sec.locator("[data-postcard-clip]");
 
-    // A metà corsa sticky lo schermo sta a top 0 e la finestra si sta chiudendo.
-    await vai(page, q.secTop + q.vh * 0.4, 1200);
+    // A 0,4vh dentro la cartolina lo schermo sta a top 0 e la finestra si sta chiudendo.
+    await vai(page, q.cartStart + q.vh * 0.4, 1200);
     const top = await sec.locator(":scope > [data-corridor-screen]").evaluate((el) => el.getBoundingClientRect().top);
     expect(Math.abs(top)).toBeLessThanOrEqual(1);
     const meta = insetValues(await clipOf(clip));
@@ -1636,10 +1662,10 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
     await goto("/");
     const q = await apriCartolina(page);
     const clip = page.locator(`${CARTOLINA} [data-postcard-clip]`);
-    // Progresso p del corridoio: da «top top» della section a «clamp(top 40%)» del footer.
+    // Progresso p della cartolina: dal suo inizio (dopo entrata e pianerottolo, A35) a «clamp(top 40%)» del footer.
     const fine = q.footTop - q.vh * 0.4;
     for (const p of [0.55, 0.6, 0.7, 0.8, 0.9, 1]) {
-      await vai(page, q.secTop + p * (fine - q.secTop), 1500);
+      await vai(page, q.cartStart + p * (fine - q.cartStart), 1500);
       const b = insetValues(await clipOf(clip))?.[2] ?? 0;
       const r = await page.evaluate((sel) => {
         const s = document.querySelector(`${sel} > [data-corridor-screen]`)!.getBoundingClientRect();
@@ -1652,14 +1678,16 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
     }
   });
 
-  test("la CTA del Congedo resta cliccabile a inizio, metà e fine", async ({ page, goto, isMobile }) => {
+  // A42: il comando sta nella testa, sotto il titolo; la miniatura a destra non lo copre mai
+  // (né prima del via né a e 0, quando il foglio comincia a crescere).
+  test("la CTA del Congedo resta cliccabile prima del via e a e 0", async ({ page, goto, isMobile }) => {
     test.skip(!!isMobile, "lo schermo sticky vive da 1024");
     await goto("/");
     const q = await apriCartolina(page);
-    for (const y of [q.secTop, q.secTop + q.vh * 0.4, q.footTop - q.vh * 0.4]) {
+    for (const y of [q.start - 300, q.start]) {
       await vai(page, y, 1200);
       const colpita = await page.evaluate((sel) => {
-        const a = document.querySelector<HTMLElement>(`${sel} .dt-postcard_copy a`)!;
+        const a = document.querySelector<HTMLElement>(`${sel} .dt-postcard_testa a.dt-btn`)!;
         const r = a.getBoundingClientRect();
         const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
         return !!hit && (hit === a || a.contains(hit));
@@ -1673,15 +1701,30 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
     [1440, 900],
     [1920, 1080],
   ] as const) {
-    test(`il titolo sta dentro la finestra nelle cinque lingue a ${w}×${h}`, async ({ page, goto, isMobile }) => {
+    test(`la testa sta in flusso sopra lo schermo e il comando nella fascia, in it e de, a ${w}×${h} (D108, D111)`, async ({ page, goto, isMobile }) => {
       test.skip(!!isMobile, "i viewport desktop si impostano dentro il test");
       await page.setViewportSize({ width: w, height: h });
-      for (const loc of ["it", "en", "fr", "de", "es"]) {
+      for (const loc of ["it", "de"]) {
         await page.context().addCookies([{ name: "dt_locale", value: loc, domain: "127.0.0.1", path: "/" }]);
         await goto("/");
         const q = await apriCartolina(page);
-        await vai(page, q.footTop - q.vh * 0.4, 1500);
-        await dentro(page, `${loc} a ${w}×${h}`);
+        await vai(page, q.start, 1200);
+        await testaSopra(page, `${loc} a ${w}×${h}`);
+        // A e 0 la testa è tutta a schermo: il titolo a sinistra, la miniatura a destra sulla stessa riga (A42).
+        const g = await page.evaluate((sel) => {
+          const h2 = document.getElementById("congedo-title")!.getBoundingClientRect();
+          const m = document.querySelector(`${sel} [data-bg="foto"]`)!.getBoundingClientRect();
+          const slot = document.querySelector(`${sel} .dt-postcard_slot`)!.getBoundingClientRect();
+          const testo = document.querySelector(`${sel} .dt-postcard_testo`)!.getBoundingClientRect();
+          return { h2Bottom: h2.bottom, h2Top: h2.top, h2Right: h2.right, testo: { t: testo.top, b: testo.bottom }, m: { l: m.left, t: m.top, w: m.width, h: m.height, b: m.bottom }, slot: { l: slot.left, t: slot.top, w: slot.width, h: slot.height }, vh: window.innerHeight };
+        }, CARTOLINA);
+        expect(g.h2Top, `${loc} a ${w}×${h}: a e 0 il titolo è tagliato sopra`).toBeGreaterThanOrEqual(-1);
+        expect(g.h2Bottom, `${loc} a ${w}×${h}: a e 0 il titolo esce sotto`).toBeLessThanOrEqual(g.vh + 1);
+        expect(g.m.l, `${loc} a ${w}×${h}: la miniatura non sta a destra del titolo`).toBeGreaterThanOrEqual(g.h2Right - 1);
+        // La miniatura è centrata sulla colonna del testo (titolo + comando): dentro quella riga.
+        expect(g.m.t, `${loc} a ${w}×${h}: la miniatura non sta sulla riga del titolo`).toBeGreaterThanOrEqual(g.testo.t - 1);
+        expect(g.m.b, `${loc} a ${w}×${h}: la miniatura scende sotto la colonna del testo`).toBeLessThanOrEqual(g.testo.b + 1);
+        for (const lato of ["l", "t", "w", "h"] as const) expect(Math.abs(g.m[lato] - g.slot[lato]), `${loc} a ${w}×${h}: a e 0 il foglio non sta nello slot (${lato})`).toBeLessThanOrEqual(1);
       }
     });
   }
@@ -1733,7 +1776,7 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
     await vai(page, q.footTop - q.vh * 0.9, 1500);
     const foot = page.locator("footer[data-postcard-foot]");
     expect(Number(await foot.evaluate((el) => getComputedStyle(el).opacity))).toBeLessThan(1);
-    await page.locator(`${CARTOLINA} .dt-postcard_copy a`).focus();
+    await page.locator(`${CARTOLINA} .dt-postcard_testa a.dt-btn`).focus();
     await page.keyboard.press("Tab");
     await expect(foot.locator("a, button").first()).toBeFocused();
     await expect
@@ -1814,6 +1857,118 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
     expect(st.inline).not.toMatch(/opacity|matrix|scale|translate/);
   });
 
+  // ── L'entrata alla Lusion (A35, A42; qualita/a35/direttive-video-entrata.md) ──
+  // Chromium headless ha SwiftShader: il cancello del renderer sceglie la via `scala`
+  // (il ritaglio DOM riceve translate + scale, nessun canvas). Con una GPU
+  // (`--use-angle=d3d11`) la via è `gl`: il canvas disegna e il ritaglio è nascosto
+  // finché il foglio non è disteso. Il test accetta le due vie e ne prova la propria.
+  test("l'entrata: chiusa prima della quota zero, piega a metà, distesa dopo 100svh a schermo intero; il foglio si richiude risalendo", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "l'entrata vive coi corridoi, da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    const sec = page.locator(CARTOLINA);
+    const stato = () =>
+      page.evaluate((sel) => {
+        const s = document.querySelector<HTMLElement>(sel)!;
+        const clip = s.querySelector<HTMLElement>("[data-postcard-clip]")!;
+        const marker = s.querySelector<HTMLElement>('[data-bg="foto"]')!;
+        const canvas = s.querySelector<HTMLCanvasElement>("canvas.dt-lastra");
+        const b = marker.getBoundingClientRect();
+        const sl = s.querySelector(".dt-postcard_slot")!.getBoundingClientRect();
+        return {
+          slot: { l: sl.left, t: sl.top, w: sl.width, h: sl.height },
+          entrata: s.getAttribute("data-entrata"),
+          via: s.getAttribute("data-entrata-via"),
+          clipT: clip.style.transform,
+          clipVis: getComputedStyle(clip).visibility,
+          canvas: canvas ? getComputedStyle(canvas).visibility : null,
+          foglio: marker.hasAttribute("data-foglio"),
+          marker: { l: b.left, t: b.top, w: b.width, h: b.height },
+          vw: window.innerWidth,
+        };
+      }, CARTOLINA);
+
+    await vai(page, q.start - 40, 1500);
+    let g = await stato();
+    expect(g.entrata).toBe("chiusa");
+    expect(["gl", "scala"]).toContain(g.via);
+    // La miniatura sta nello slot: 16:9 largo min(42vw, 640px), a filo del margine destro (8vw).
+    expect(Math.abs(g.marker.l - g.slot.l)).toBeLessThanOrEqual(1);
+    expect(Math.abs(g.marker.t - g.slot.t)).toBeLessThanOrEqual(1);
+    expect(Math.abs(g.marker.w - Math.min(0.42 * g.vw, 640))).toBeLessThanOrEqual(1);
+    expect(Math.abs(g.marker.h - (g.marker.w * 9) / 16)).toBeLessThanOrEqual(1);
+    expect(Math.abs(g.slot.l + g.slot.w - 0.92 * g.vw)).toBeLessThanOrEqual(1);
+    expect(g.foglio).toBe(true);
+    if (g.via === "scala") expect(g.clipT).toMatch(/^translate\([^)]+\) scale\(0\.[0-9]+\)$/);
+    else {
+      expect(g.canvas).toBe("visible");
+      expect(g.clipVis).toBe("hidden");
+    }
+
+    await vai(page, aE(q, 0.5), 1500);
+    g = await stato();
+    expect(g.entrata).toBe("piega");
+    expect(g.foglio).toBe(true);
+    if (g.via === "scala") {
+      const s = Number(/scale\(([0-9.]+)\)/.exec(g.clipT)?.[1]);
+      expect(s).toBeGreaterThan(0.5);
+      expect(s).toBeLessThan(1);
+    } else expect(g.clipVis).toBe("hidden");
+
+    await vai(page, aE(q, 1) + 40, 1500);
+    g = await stato();
+    expect(g.entrata).toBe("distesa");
+    expect(g.clipT).toBe("");
+    expect(g.clipVis).toBe("visible");
+    expect(g.foglio).toBe(false);
+    if (g.via === "gl") expect(g.canvas).toBe("hidden");
+    // A foglio disteso il ritaglio è lo schermo intero, al pixel: tutto il viewport.
+    const pari = await sec.evaluate((s) => {
+      const c = s.querySelector("[data-postcard-clip]")!.getBoundingClientRect();
+      return Math.max(Math.abs(c.left), Math.abs(c.top), Math.abs(c.width - window.innerWidth), Math.abs(c.height - window.innerHeight));
+    });
+    expect(pari).toBeLessThanOrEqual(0.5);
+
+    // Risalendo in cima al corridoio il foglio si richiude nella miniatura.
+    await vai(page, q.start - 40, 1500);
+    g = await stato();
+    expect(g.entrata).toBe("chiusa");
+    expect(Math.abs(g.marker.w - Math.min(0.42 * g.vw, 640))).toBeLessThanOrEqual(1);
+  });
+
+  test("a schermo agganciato l'entrata è già a 0,65: il foglio è più largo dello slot e la testa è scorsa via", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "l'entrata vive coi corridoi, da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    await vai(page, q.screenTop, 1500);
+    const g = await page.evaluate((sel) => {
+      const s = document.querySelector<HTMLElement>(sel)!;
+      const screen = s.querySelector("[data-corridor-screen]")!.getBoundingClientRect();
+      const m = s.querySelector('[data-bg="foto"]')!.getBoundingClientRect();
+      const h2 = document.getElementById("congedo-title")!.getBoundingClientRect();
+      return { entrata: s.getAttribute("data-entrata"), screenTop: screen.top, mw: m.width, h2Bottom: h2.bottom, vw: window.innerWidth };
+    }, CARTOLINA);
+    expect(Math.abs(g.screenTop)).toBeLessThanOrEqual(1);
+    expect(g.entrata).toBe("piega");
+    expect(g.mw).toBeGreaterThan(Math.min(0.42 * g.vw, 640) + 20);
+    expect(g.h2Bottom).toBeLessThanOrEqual(1);
+  });
+
+  test("il marcatore data-bg segue il foglio in entrata e torna all'inset della cartolina (A21, A35)", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "l'entrata vive coi corridoi, da 1024");
+    await goto("/");
+    const q = await apriCartolina(page);
+    const marker = page.locator(`${CARTOLINA} [data-bg="foto"]`);
+    await vai(page, aE(q, 0.5), 1500);
+    expect(await marker.getAttribute("data-foglio")).not.toBeNull();
+    expect(await marker.evaluate((el) => (el as HTMLElement).style.inset)).toBe("");
+    expect(await marker.evaluate((el) => (el as HTMLElement).style.transform)).toMatch(/^translate\(.+\) scale\(.+\)$/);
+    await vai(page, q.footTop - q.vh * 0.4, 1500);
+    expect(await marker.getAttribute("data-foglio")).toBeNull();
+    expect(await marker.evaluate((el) => (el as HTMLElement).style.transform)).toBe("");
+    expect(await marker.evaluate((el) => (el as HTMLElement).style.inset)).toBe("8% 22%");
+  });
+
   test("sul telefono la banda non è sticky e si ritira in inset(4% 10%)", async ({ page, goto, isMobile }) => {
     test.skip(!isMobile, "ramo del telefono: progetto mobile-390");
     const video: string[] = [];
@@ -1833,7 +1988,13 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
     await vai(page, q.screenTop + q.screenH - q.vh * 0.3, 1500);
     const fine = insetValues(await clipOf(sec.locator("[data-postcard-clip]")))!;
     [4, 10, 4, 10].forEach((v, i) => expect(Math.abs(fine[i] - v), `lato ${i}`).toBeLessThanOrEqual(0.2));
-    await dentro(page, "390");
+    await testaSopra(page, "390");
+    // Nessuna entrata sotto la soglia: né attributi né canvas né transform sul ritaglio.
+    const niente = await page.evaluate((sel) => {
+      const s = document.querySelector<HTMLElement>(sel)!;
+      return { entrata: s.getAttribute("data-entrata"), canvas: !!s.querySelector("canvas"), t: s.querySelector<HTMLElement>("[data-postcard-clip]")!.style.transform };
+    }, CARTOLINA);
+    expect(niente).toEqual({ entrata: null, canvas: false, t: "" });
     expect(await page.locator("footer[data-postcard-foot]").evaluate((el) => getComputedStyle(el).marginTop)).toBe("0px");
     expect(video, `richieste video a 390: ${video.join(", ")}`).toEqual([]);
   });

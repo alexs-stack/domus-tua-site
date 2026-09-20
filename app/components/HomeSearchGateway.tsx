@@ -18,10 +18,8 @@
 // del montaggio. Eyebrow, titolo e blocco venditore restano ai ruoli del testo.
 import { useState, useRef } from "react";
 import Reveal from "./Reveal";
-import RevealGroup from "./motion/RevealGroup";
 import SplitTitle from "./motion/SplitTitle";
-import Lead from "./motion/Lead";
-import { Cta, CtaButton } from "./primitives/Cta";
+import { CtaButton } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import { transitionTo } from "./motion/PageTransition";
 import { gsap, ScrollTrigger, useGSAP, whenStill } from "../lib/motion/gsap";
@@ -115,10 +113,10 @@ export default function HomeSearchGateway() {
   const dockFocused = useRef(false);
 
   useGSAP(
-    (_context, contextSafe) => {
+    () => {
       const dock = dockRef.current;
       const panel = panelRef.current;
-      if (!dock || !panel || !contextSafe) return;
+      if (!dock || !panel) return;
       const sig = chapters.ricerca.signature;
       if (!("st" in sig.trigger) || !("scrub" in sig.time)) return;
       const [start, end] = sig.trigger.st;
@@ -146,48 +144,68 @@ export default function HomeSearchGateway() {
         const ancora = ancoraDelFrammento();
         const ancoraQuiOPiuGiu = !!ancora && !!sezione && docTop(ancora) >= docTop(sezione) - 1;
         const sottoLaLinea = () => dock.getBoundingClientRect().top > 0.95 * window.innerHeight;
+        // D120: set, tween e ScrollTrigger dell'aggancio vivono in un gsap.context proprio,
+        // `contestoAggancio`, e `arma` è idempotente: smonta quello che ha creato prima di
+        // ricrearlo, quindi resta UN tween e UNO ScrollTrigger sul pannello anche quando
+        // `arma` si ripete (whenStill qui sotto; il doppio montaggio di React in sviluppo).
+        // Il contesto è figlio del solo ramo di gsap.matchMedia, e nessun `contextSafe` del
+        // Context di useGSAP gira dentro il ramo: `Context.add` esegue `prev.data.push(self)`
+        // (gsap-core.js 3.15, riga 3925), e un Context che finisce nei dati dell'altro in
+        // entrambi i versi fa ricorrere senza fondo `Context.prototype.getTweens` (riga
+        // 3949). Così l'albero dei Context resta un albero; il cleanup lo reverte.
+        // `gsap.context()` senza argomenti restituisce il contesto CORRENTE: è la funzione
+        // vuota che ne crea uno nuovo.
+        const contestoAggancio = gsap.context(() => {});
         let tween: gsap.core.Tween | undefined;
-        const arma = contextSafe(() => {
-          if (dockFocused.current) return;
-          if (!ancoraQuiOPiuGiu && sottoLaLinea()) {
-            gsap.set(panel, { opacity: 0.02, scale: 0.75 });
-          }
-          let primoRefresh = true;
-          // Senza invalidateOnRefresh: i valori sono costanti e, con immediateRender false, il revert
-          // del refresh (ScrollTrigger.js:1958-1962) lascerebbe il pannello pieno a progresso 0 finché
-          // il progresso non cambia (misurato: refresh a scroll fermo col bordo al 95 %, da 0,25 a 1).
-          tween = gsap.fromTo(
-            panel,
-            { opacity: 0.02, scale: 0.75, transformOrigin: "50% 50%" },
-            {
-              opacity: 1,
-              scale: 1,
-              ease: sig.ease,
-              immediateRender: false,
-              scrollTrigger: {
-                trigger: dock,
-                start,
-                end,
-                scrub,
-                // Spec §3.4: `/#cerca` senza fotogrammi sotto 0,99. Il primo aggiornamento dopo il refresh
-                // passa dallo scrub levigato (ScrollTrigger.js:2198-2222; nel refresh di tutti :1244-1248,
-                // prima degli onRefresh): qui lo scrub si chiude subito, una volta sola.
-                onRefresh: (self) => {
-                  if (!primoRefresh) return;
-                  primoRefresh = false;
-                  self.getTween()?.progress(1);
-                },
-              },
-            },
-          );
-          tween.scrollTrigger?.getTween()?.progress(1);
-        });
-        const onFocus = contextSafe(() => {
-          dockFocused.current = true;
+        const smonta = () => {
           tween?.scrollTrigger?.kill();
           tween?.kill();
+          tween = undefined;
+          contestoAggancio.revert();
+        };
+        const arma = () => {
+          if (dockFocused.current) return;
+          smonta();
+          contestoAggancio.add(() => {
+            if (!ancoraQuiOPiuGiu && sottoLaLinea()) {
+              gsap.set(panel, { opacity: 0.02, scale: 0.75 });
+            }
+            let primoRefresh = true;
+            // Senza invalidateOnRefresh: i valori sono costanti e, con immediateRender false, il revert
+            // del refresh (ScrollTrigger.js:1958-1962) lascerebbe il pannello pieno a progresso 0 finché
+            // il progresso non cambia (misurato: refresh a scroll fermo col bordo al 95 %, da 0,25 a 1).
+            tween = gsap.fromTo(
+              panel,
+              { opacity: 0.02, scale: 0.75, transformOrigin: "50% 50%" },
+              {
+                opacity: 1,
+                scale: 1,
+                ease: sig.ease,
+                immediateRender: false,
+                scrollTrigger: {
+                  trigger: dock,
+                  start,
+                  end,
+                  scrub,
+                  // Spec §3.4: `/#cerca` senza fotogrammi sotto 0,99. Il primo aggiornamento dopo il refresh
+                  // passa dallo scrub levigato (ScrollTrigger.js:2198-2222; nel refresh di tutti :1244-1248,
+                  // prima degli onRefresh): qui lo scrub si chiude subito, una volta sola.
+                  onRefresh: (self) => {
+                    if (!primoRefresh) return;
+                    primoRefresh = false;
+                    self.getTween()?.progress(1);
+                  },
+                },
+              },
+            );
+            tween.scrollTrigger?.getTween()?.progress(1);
+          });
+        };
+        const onFocus = () => {
+          dockFocused.current = true;
+          smonta();
           gsap.set(panel, { opacity: 1, scale: 1 });
-        });
+        };
         dock.addEventListener("focusin", onFocus, { once: true });
         // D57 (spec §3.4; D39, D56): con l'ancora qui o più giù e l'innesco ancora sotto la linea di
         // start, l'arrivo nativo al frammento è in corso o sta per partire (Chrome lo ripete a ogni
@@ -220,8 +238,7 @@ export default function HomeSearchGateway() {
         return () => {
           annulla();
           dock.removeEventListener("focusin", onFocus);
-          tween?.scrollTrigger?.kill();
-          tween?.kill();
+          smonta();
           gsap.set(panel, { clearProps: "opacity,transform,transformOrigin" });
         };
       });
@@ -345,19 +362,12 @@ export default function HomeSearchGateway() {
           </div>
         </div>
 
-        {/* Scorciatoia per chi vende: una riga di testo, non una card. §9 — la
-            RAGIONE fra la domanda e il pulsante (prepariamo, verifichiamo, fino al rogito). */}
-        <RevealGroup className="mt-[10vh] max-w-[60ch]">
-          <SplitTitle as="h3" className="font-display text-d3">
-            {d.search.sellerTitle}
-          </SplitTitle>
-          <Lead className="mt-4">{d.search.sellerCopy}</Lead>
-          <Reveal role="still">
-            <Cta href="/vendi" variant="ghost" className="mt-6">
-              {d.search.sellerCta}
-            </Cta>
-          </Reveal>
-        </RevealGroup>
+        {/* La scorciatoia per chi vende («Devi vendere casa?» + lead + link a
+            /vendi) non c'e' piu' (2026-09-20, Alberto: «riassumere e eliminare
+            diversi copy che sono inutili»): la stessa frase sta due schermi
+            sopra, nell'hero («Richiedi la valutazione», «Vendi casa») e in
+            Posizionamento; qui costava 300 px sotto il modulo di ricerca. Le
+            chiavi `search.seller*` restano nel dizionario per le altre pagine. */}
       </div>
     </section>
   );

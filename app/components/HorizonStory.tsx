@@ -47,7 +47,7 @@ const copy = {
         Persone, prima degli immobili.
       </>
     ),
-    lead: "Dal 2007 con le famiglie di Tradate e provincia: valutiamo sui dati, verifichiamo i documenti prima del mercato, raccontiamo la casa e restiamo fino al rogito.",
+    manifestoAlt: "Divano da esterno sotto un ombrellone, davanti al muro in pietra di una villa",
     cap: "Tradate · Varese",
     stairs: ["Tra la", "Pineta", "e Milano"],
     subtitle: "Il territorio che abitiamo",
@@ -74,7 +74,7 @@ const copy = {
         People before properties.
       </>
     ),
-    lead: "Since 2007 alongside the families of Tradate and its province: we value on data, check the paperwork before going to market, tell the home's story and stay through to the deed.",
+    manifestoAlt: "Outdoor sofa under a parasol, in front of a villa’s stone wall",
     cap: "Tradate · Varese",
     stairs: ["Between the", "Pineta park", "and Milan"],
     subtitle: "The land we call home",
@@ -101,7 +101,7 @@ const copy = {
         Les personnes avant les biens.
       </>
     ),
-    lead: "Depuis 2007 aux côtés des familles de Tradate et de sa province : nous estimons sur des données, contrôlons les documents avant la mise en vente, racontons le bien et restons jusqu'à l'acte.",
+    manifestoAlt: "Canapé d’extérieur sous un parasol, devant le mur en pierre d’une villa",
     cap: "Tradate · Varese",
     stairs: ["Entre la", "Pineta", "et Milan"],
     subtitle: "Le territoire que nous habitons",
@@ -128,7 +128,7 @@ const copy = {
         Menschen vor Immobilien.
       </>
     ),
-    lead: "Seit 2007 an der Seite der Familien in Tradate und Umgebung: Wir bewerten anhand von Daten, prüfen die Unterlagen vor dem Markteintritt, erzählen das Haus und bleiben bis zum Notartermin.",
+    manifestoAlt: "Gartensofa unter einem Sonnenschirm vor der Steinmauer einer Villa",
     cap: "Tradate · Varese",
     stairs: ["Zwischen dem", "Pineta-Park", "und Mailand"],
     subtitle: "Unser Zuhause, unser Gebiet",
@@ -155,7 +155,7 @@ const copy = {
         Personas antes que inmuebles.
       </>
     ),
-    lead: "Desde 2007 junto a las familias de Tradate y su provincia: valoramos con datos, comprobamos los documentos antes del mercado, contamos la casa y seguimos hasta la escritura.",
+    manifestoAlt: "Sofá de exterior bajo una sombrilla, frente al muro de piedra de una villa",
     cap: "Tradate · Varese",
     stairs: ["Entre el", "parque Pineta", "y Milán"],
     subtitle: "El territorio que habitamos",
@@ -187,11 +187,13 @@ export default function HorizonStory() {
           del canale): in un riquadro 16:9 mostrerebbe le bande sfocate di
           YouTube, quindi sta nella COLONNA (dt-media-column--tall, 9:16).
           Composizione del riferimento (§5, riga «squadra vincente»): la colonna
-          risale sotto il titolo di capitolo (-10vw) e il testo scende (+14vw),
+          risale sotto il titolo di capitolo (-10vw) e il testo scende (+10vw),
           così le due colonne non partono mai dalla stessa quota e accanto al
-          video non resta mezzo schermo vuoto. Il margine della riga (16vw)
-          tiene i 10vw di risalita lontani dalla calligrafia della testa. */}
-      <div className="dt-row mt-[clamp(3rem,8vh,6rem)] grid gap-[6vw] lg:mt-[16vw] lg:grid-cols-2">
+          video non resta mezzo schermo vuoto. Il margine della riga (12vw)
+          tiene i 10vw di risalita lontani dalla calligrafia della testa; era
+          16vw/14vw, e a 1440 lasciava 349 px di avorio fra la testa e la
+          riga (misura del 2026-09-20). */}
+      <div className="dt-row mt-[clamp(2.5rem,6vh,4.5rem)] grid gap-[6vw] lg:mt-[12vw] lg:grid-cols-2">
         {/* IL TETTO A 420px E' UN CONTO, NON UN CAPRICCIO. La copertina di uno
             Short arriva da YouTube in 16:9: dentro una scatola 9:16 viene resa
             larga 3,16 volte la scatola perche' deve coprirne l'altezza. A 605
@@ -212,7 +214,7 @@ export default function HorizonStory() {
           />
         </div>
         {/* Il rientro delle altre righe torna insieme al modulo pieno. */}
-        <RevealGroup className="lg:mt-[14vw] lg:pl-[6vw]">
+        <RevealGroup className="lg:mt-[10vw] lg:pl-[6vw]">
           <Reveal>
             <span className="eyebrow">{c.videoEyebrow}</span>
           </Reveal>
@@ -231,7 +233,7 @@ export default function HorizonStory() {
           reduced-motion o sotto quella soglia restano due blocchi in
           colonna, completi e statici. Sopra i pannelli non c'è più nessuna
           foto aerea né velo: solo l'avorio della pagina. */}
-      <div className="mt-[clamp(4rem,10vh,8rem)]">
+      <div className="mt-[clamp(3rem,7vh,5rem)]">
         <HorizonScroller id="storia" corridor="storia" refreshKey={locale}>
           {/* Pannello manifesto (A12 di Alberto: il nastro resta; A20: titolo
               per lettera e lead a righe, spec §2.4). Manifesto e lead sono un
@@ -243,16 +245,32 @@ export default function HorizonStory() {
               lì i pannelli sono blocchi in colonna e `lg:py-0` — giusto dentro
               uno schermo sticky da 100svh — li faceva combaciare, con la fine
               del manifesto attaccata all'eyebrow del territorio. */}
-          <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center justify-center">
-            {/* Centrato SOLO da lg, dove le tre frasi stanno su tre righe. Sul
-                telefono il centro spezzava il manifesto in sei righe con le
-                parole orfane in mezzo alla colonna: a bandiera le frasi si
-                chiudono dove finiscono. */}
-            <HorizonEnter className="mx-auto max-w-[1000px] px-[5vw] py-20 text-left lg:py-0 lg:text-center [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+          <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center">
+            {/* Il manifesto era una colonna di testo centrata, larga al piu' 1000
+                px, sola in un pannello di 100vw: 292 px di avorio per lato a
+                1440, e nel passaggio al territorio 761 px di nulla (misura del
+                2026-09-20, screenshot di Alberto). Ora e' la riga a due colonne
+                del sito: a sinistra le tre frasi, a bandiera; a destra una
+                fotografia nella meta' forzata a 16:9 (il sorgente e' 16:9,
+                2560×1440: nessun taglio, nessun ingrandimento). Il lead che
+                stava sotto le frasi non c'e' piu': ripeteva Posizionamento
+                parola per parola (valutare sui dati, documenti prima, raccontare,
+                fino al rogito). Sotto la soglia del nastro le due colonne si
+                impilano, foto sotto le frasi. */}
+            <HorizonEnter className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
               <SplitTitle as="h3" className="font-display text-d2">
                 {c.statement}
               </SplitTitle>
-              <Lead className="mt-8 lg:mx-auto">{c.lead}</Lead>
+              <div data-horizon-slide data-bg="foto" className="dt-media-half !aspect-video lg:justify-self-end">
+                <Image
+                  data-horizon-slide-img
+                  src="/images/reali/villa-salotto-ombrellone.jpg"
+                  alt={c.manifestoAlt}
+                  fill
+                  sizes="(max-width: 1023px) 90vw, (max-width: 1523px) 42vw, 640px"
+                  className="object-cover"
+                />
+              </div>
             </HorizonEnter>
           </div>
 

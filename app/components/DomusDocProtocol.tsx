@@ -22,7 +22,7 @@ const copy = {
     eyebrow: "Protocollo proprietario",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Il protocollo interno di Domus Tua per la verifica documentale e tecnico-urbanistica degli immobili che trattiamo: anticipa i controlli invece di subirli in trattativa. Chi vende ha una trattativa più solida, chi compra vede i problemi quando c’è ancora tempo per risolverli.",
+      "Verifichiamo documenti, catasto e urbanistica prima di mettere la casa sul mercato, così i controlli non arrivano in trattativa.",
     // ─────────────────────────────────────────────────────────────────────────
     // PROMESSE DI AZIONE, NON DI RISULTATO.
     //
@@ -70,13 +70,13 @@ const copy = {
         buyer: "Un percorso accompagnato e sicuro fino alla firma dal notaio.",
       },
     ] as Pillar[],
-    footnote: "Un unico protocollo per ogni incarico Domus Tua: verifiche documentali e tecnico-urbanistiche svolte prima della messa sul mercato. Domus D.O.C. è uno standard interno di Domus Tua, non una certificazione rilasciata da terzi.",
+    footnote: "Domus D.O.C. è uno standard interno di Domus Tua, applicato a ogni incarico: non una certificazione rilasciata da terzi.",
   },
   en: {
     eyebrow: "Proprietary protocol",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Domus Tua's internal protocol for the document and planning checks on the properties we handle: it brings the checks forward instead of meeting them mid-negotiation. Sellers get a stronger negotiation, buyers see the problems while there is still time to fix them.",
+      "We check paperwork, land registry and planning before the home goes to market, so the checks never land mid-negotiation.",
     sellerLabel: "For sellers",
     buyerLabel: "For buyers",
     cta: "See how we protect your sale",
@@ -107,13 +107,13 @@ const copy = {
         buyer: "A guided, safe path all the way to signing at the notary.",
       },
     ] as Pillar[],
-    footnote: "One protocol for every Domus Tua mandate: document and planning checks carried out before going to market. Domus D.O.C. is an internal Domus Tua standard, not a certification issued by a third party.",
+    footnote: "Domus D.O.C. is an internal Domus Tua standard applied to every mandate: not a certification issued by a third party.",
   },
   fr: {
     eyebrow: "Protocole propriétaire",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Le protocole interne de Domus Tua pour la vérification documentaire et technique des biens que nous traitons : il anticipe les contrôles au lieu de les subir en négociation. Le vendeur a une négociation plus solide, l’acquéreur voit les problèmes quand il est encore temps de les régler.",
+      "Nous vérifions documents, cadastre et urbanisme avant la mise sur le marché, pour que les contrôles n’arrivent pas en négociation.",
     sellerLabel: "Pour les vendeurs",
     buyerLabel: "Pour les acquéreurs",
     cta: "Découvrez comment nous protégeons la vente",
@@ -144,13 +144,13 @@ const copy = {
         buyer: "Un parcours accompagné et sûr jusqu’à la signature chez le notaire.",
       },
     ] as Pillar[],
-    footnote: "Un seul protocole pour chaque mandat Domus Tua : vérifications documentaires et techniques réalisées avant la mise sur le marché. Domus D.O.C. est un standard interne de Domus Tua, non une certification délivrée par un tiers.",
+    footnote: "Domus D.O.C. est un standard interne de Domus Tua, appliqué à chaque mandat : non une certification délivrée par un tiers.",
   },
   de: {
     eyebrow: "Eigenes Protokoll",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Das interne Protokoll von Domus Tua für die Unterlagen- und Baurechtsprüfung der Immobilien, die wir betreuen: Es zieht die Prüfungen vor, statt sie in der Verhandlung zu erleiden. Verkäufer erhalten eine solidere Verhandlung, Käufer sehen Probleme, solange noch Zeit bleibt, sie zu lösen.",
+      "Wir prüfen Unterlagen, Kataster und Baurecht, bevor das Haus auf den Markt kommt, damit keine Prüfung mitten in die Verhandlung fällt.",
     sellerLabel: "Für Verkäufer",
     buyerLabel: "Für Käufer",
     cta: "Sehen Sie, wie wir den Verkauf schützen",
@@ -181,13 +181,13 @@ const copy = {
         buyer: "Ein begleiteter, sicherer Weg bis zur Unterschrift beim Notar.",
       },
     ] as Pillar[],
-    footnote: "Ein Protokoll für jeden Domus-Tua-Auftrag: Unterlagen- und Baurechtsprüfungen vor dem Markteintritt. Domus D.O.C. ist ein interner Standard von Domus Tua, keine von Dritten ausgestellte Zertifizierung.",
+    footnote: "Domus D.O.C. ist ein interner Standard von Domus Tua für jeden Auftrag: keine von Dritten ausgestellte Zertifizierung.",
   },
   es: {
     eyebrow: "Protocolo propietario",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "El protocolo interno de Domus Tua para la verificación documental y técnico-urbanística de los inmuebles que gestionamos: adelanta los controles en lugar de sufrirlos en la negociación. Quien vende tiene una negociación más sólida, quien compra ve los problemas cuando aún hay tiempo de resolverlos.",
+      "Verificamos documentos, catastro y urbanismo antes de sacar la casa al mercado, para que los controles no lleguen en plena negociación.",
     sellerLabel: "Para quien vende",
     buyerLabel: "Para quien compra",
     cta: "Descubre cómo protegemos la venta",
@@ -218,7 +218,7 @@ const copy = {
         buyer: "Un recorrido acompañado y seguro hasta la firma ante notario.",
       },
     ] as Pillar[],
-    footnote: "Un único protocolo para cada encargo de Domus Tua: verificaciones documentales y técnico-urbanísticas realizadas antes de salir al mercado. Domus D.O.C. es un estándar interno de Domus Tua, no una certificación emitida por terceros.",
+    footnote: "Domus D.O.C. es un estándar interno de Domus Tua, aplicado a cada encargo: no una certificación emitida por terceros.",
   },
 } as const;
 
@@ -228,9 +228,15 @@ type Props = {
       solo avorio (2026-09-10). */
   tone?: "cream" | "paper" | "cream-deep";
   id?: string;
+  /** In home (2026-09-20, Alberto: «riassumere e eliminare diversi copy»):
+      ogni pilastro porta solo la riga per chi vende — il lettore della home
+      e' chi deve vendere (page.tsx, STORY) — e il doppio valore per esteso
+      resta su /vendi, /acquista e /metodo. Il capitolo era il piu' lungo della
+      home per parole (233) senza una foto: 1.573 px a 1440×900. */
+  compact?: boolean;
 };
 
-export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
+export default function DomusDocProtocol({ id = "domus-doc", compact = false }: Props) {
   const { locale } = useLocale();
   const c = copy[locale];
   const sheetRef = useRef<HTMLDivElement | null>(null);
@@ -280,7 +286,7 @@ export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
             una riga di 1 px sopra ogni pilastro e, da md, la spina fra le due
             colonne. La spina sta nel wrapper e non nella `ul`, così la lista
             resta fatta solo di `li` (spec §3.11). */}
-        <div ref={sheetRef} data-doc-sheet className="relative mt-12">
+        <div ref={sheetRef} data-doc-sheet className="relative mt-10">
           <Hairline chapter="doc" axis="y" className="hidden md:block" />
           <ul className="grid gap-x-[4vw] gap-y-6 text-body text-graphite md:grid-cols-2">
             {c.pillars.map((p) => (
@@ -291,18 +297,24 @@ export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
                   <SplitTitle as="h3" font="display-400" className="font-display text-d4 font-light">
                     {p.t}
                   </SplitTitle>
-                  <p className="mt-2">
-                    <span className="block text-ui font-semibold uppercase tracking-[0.08em] text-red">
-                      {c.sellerLabel}
-                    </span>
-                    {p.seller}
-                  </p>
-                  <p className="mt-2 text-stone">
-                    <span className="block text-ui font-semibold uppercase tracking-[0.08em]">
-                      {c.buyerLabel}
-                    </span>
-                    {p.buyer}
-                  </p>
+                  {compact ? (
+                    <p className="mt-2">{p.seller}</p>
+                  ) : (
+                    <>
+                      <p className="mt-2">
+                        <span className="block text-ui font-semibold uppercase tracking-[0.08em] text-red">
+                          {c.sellerLabel}
+                        </span>
+                        {p.seller}
+                      </p>
+                      <p className="mt-2 text-stone">
+                        <span className="block text-ui font-semibold uppercase tracking-[0.08em]">
+                          {c.buyerLabel}
+                        </span>
+                        {p.buyer}
+                      </p>
+                    </>
+                  )}
                 </div>
               </li>
             ))}
@@ -310,10 +322,10 @@ export default function DomusDocProtocol({ id = "domus-doc" }: Props) {
         </div>
 
         <Reveal>
-          <p className="mt-10 max-w-[800px] text-body text-stone">{c.footnote}</p>
+          <p className="mt-8 max-w-[800px] text-body text-stone">{c.footnote}</p>
         </Reveal>
         <Reveal delay={100}>
-          <Cta href="#contatti" variant="ghost" className="mt-8">
+          <Cta href="#contatti" variant="ghost" className="mt-6">
             {c.cta}
           </Cta>
         </Reveal>

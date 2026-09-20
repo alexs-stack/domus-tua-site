@@ -16,15 +16,19 @@ const leggi = (p: string) => readFileSync(join(ROOT, p), "utf8");
 const soloCodice = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 const conta = (t: string, re: RegExp) => (t.match(re) ?? []).length;
 
-// file → numero minimo di <Lead (GA, GB, GC poi GD)
+// file → numero minimo di <Lead (GA, GB, GC poi GD). Il 2026-09-20 (Alberto: «riassumere e
+// eliminare diversi copy che sono inutili») cinque lead della home sono usciti perche' il
+// testo non c'e' piu', non perche' sia tornato un <p>: HorizonStory 2→1 (il lead del
+// manifesto ripeteva Posizionamento), Paths 1→0 (i tre punti dicono lo stesso), Team 2→1
+// (l'intro della rotaia ripeteva il titolo), Voci 1→0 e HomeSearchGateway 1→0 (il blocco
+// «Devi vendere casa?» ripeteva l'hero). Il totale scende da 42 a 37 e i file da 29 a 26.
 const LEAD: Record<string, number> = {
   "app/components/PageHero.tsx": 1,
   "app/contatti/ContattiContent.tsx": 1,
   "app/case-vendute/CaseVenduteContent.tsx": 4,
   "app/components/Posizionamento.tsx": 1,
-  "app/components/HorizonStory.tsx": 2,
+  "app/components/HorizonStory.tsx": 1,
   "app/components/StarReviews.tsx": 1,
-  "app/components/Paths.tsx": 1,
   "app/components/Method.tsx": 1,
   "app/components/OpenDomus.tsx": 1,
   "app/components/DomusDocProtocol.tsx": 1,
@@ -43,9 +47,7 @@ const LEAD: Record<string, number> = {
   "app/domande-frequenti/FaqContent.tsx": 1,
   "app/chi-siamo/ChiSiamoContent.tsx": 1,
   "app/valutazione-immobile-tradate/ValutazioneContent.tsx": 1,
-  "app/components/Team.tsx": 2,
-  "app/components/Voci.tsx": 1,
-  "app/components/HomeSearchGateway.tsx": 1,
+  "app/components/Team.tsx": 1,
   "app/components/Stats.tsx": 1,
 };
 
@@ -81,9 +83,9 @@ function sorgenti(dir: string, out: string[] = []): string[] {
 }
 
 describe("Lead al posto dei paragrafi .lead", () => {
-  test("42 Lead in 29 file: i 39 del lead a righe, i due lead di HorizonStory e quello delle stelle", () => {
-    assert.equal(Object.values(LEAD).reduce((s, n) => s + n, 0), 42);
-    assert.equal(Object.keys(LEAD).length, 29);
+  test("37 Lead in 26 file: i 35 del lead a righe, il lead del video di HorizonStory e quello delle stelle", () => {
+    assert.equal(Object.values(LEAD).reduce((s, n) => s + n, 0), 37);
+    assert.equal(Object.keys(LEAD).length, 26);
   });
   for (const [file, n] of Object.entries(LEAD)) {
     test(`${file}: almeno ${n} Lead`, () => {

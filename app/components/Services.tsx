@@ -249,6 +249,13 @@ const ROWS = [
   { src: "/images/rendering_01_living_divano_grigio.jpg", ratio: 16 / 9 },
 ];
 
+/* Le tre riprese sono larghe (3:2, 16:9, 16:9): nel quadrato la prima perdeva
+   un terzo della larghezza e le altre due il 44 %. Dal 2026-09-20 stanno nella
+   meta' forzata a 16:9 (`!aspect-video`, come gli atti del Metodo): la scatola
+   segue il sorgente (D03) e ogni riga si accorcia di 265 px a 1440. `zoomSizes`
+   vuole il rapporto fra sorgente e scatola, non quello del solo sorgente. */
+const BOX_ASPECT = 16 / 9;
+
 // Il rendering vive nella sezione creativa di /servizi: il link va lì.
 const FEATURE_HREF = "/servizi#servizi-creativi";
 
@@ -324,21 +331,21 @@ export default function Services() {
         return (
           <div
             key={row.src}
-            className="dt-row mt-[10vh] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
+            className="dt-row mt-[6vh] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
           >
             {/* La scatola `.dt-media-half` ritaglia e non si muove; la scala dello
                 zoom (D27) sta sul wrapper interno e non sull'img di next/image
                 (spec §3.12, lane-homeB §11). */}
             <div
               data-zoom-box
-              className={`dt-media-half ${right ? "lg:order-2 lg:justify-self-end" : ""}`}
+              className={`dt-media-half !aspect-video ${right ? "lg:order-2 lg:justify-self-end" : ""}`}
             >
               <div data-zoom className="absolute inset-0">
                 <Image
                   src={row.src}
                   alt={alts[r]}
                   fill
-                  sizes={zoomSizes(row.ratio)}
+                  sizes={zoomSizes(row.ratio / BOX_ASPECT)}
                   className="object-cover"
                 />
               </div>
@@ -349,26 +356,28 @@ export default function Services() {
                 foto la colonna di testo e' larga ~450 px e due titoli d3
                 affiancati diventerebbero due strisce di 220 px. */}
             <div className={right ? "lg:pr-[6vw]" : "lg:pl-[6vw]"}>
-              <ol className="grid gap-x-[3vw] gap-y-12 sm:grid-cols-2 lg:grid-cols-1">
+              <ol className="grid gap-x-[3vw] gap-y-8 sm:grid-cols-2 lg:grid-cols-1">
                 {items.slice(r * 2, r * 2 + 2).map((s, j) => {
                   const n = r * 2 + j;
                   return (
                     <li key={s.title}>
                       <RevealGroup>
-                        {/* Il numero e' ornamento: l'ordine lo porta gia' <ol>. */}
+                        {/* Il numero e' ornamento: l'ordine lo porta gia' <ol>.
+                            d2 e non d1: a 115 px due numeri per riga erano piu'
+                            alti dei titoli che numeravano (2026-09-20). */}
                         <Reveal>
                           <span
                             aria-hidden
-                            className="block font-display text-d1 font-light leading-[0.85] text-stone"
+                            className="block font-display text-d2 font-light leading-[0.85] text-stone"
                           >
                             {String(n + 1).padStart(2, "0")}
                           </span>
                         </Reveal>
-                        <SplitTitle as="h3" className="mt-4 font-display text-d3">
+                        <SplitTitle as="h3" className="mt-3 font-display text-d3">
                           {s.title}
                         </SplitTitle>
                         <Reveal>
-                          <p className="mt-3 text-body text-graphite">{s.copy}</p>
+                          <p className="mt-2 text-body text-graphite">{s.copy}</p>
                         </Reveal>
                       </RevealGroup>
                     </li>

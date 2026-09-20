@@ -132,7 +132,11 @@ describe("Services: lo zoom d'ingresso (spec §3.12)", () => {
     assert.doesNotMatch(src, /Parallax/);
     assert.match(src, /data-zoom-box/);
     assert.match(src, /<div data-zoom className="absolute inset-0">/);
-    assert.match(src, /sizes=\{zoomSizes\(row\.ratio\)\}/);
+    // Dal 2026-09-20 la scatola e' la meta' forzata a 16:9: `zoomSizes` vuole il rapporto
+    // fra sorgente e scatola (D04), non quello del solo sorgente.
+    assert.match(src, /sizes=\{zoomSizes\(row\.ratio \/ BOX_ASPECT\)\}/);
+    assert.match(src, /const BOX_ASPECT = 16 \/ 9;/);
+    assert.match(src, /dt-media-half !aspect-video/);
     // gsap.matchMedia() crea contesti senza selettore: la query parte dalla radice della sezione.
     assert.match(src, /root\.querySelectorAll<HTMLElement>\("\[data-zoom\]"\)/);
     assert.doesNotMatch(src, /toArray<HTMLElement>\("\[data-zoom\]"\)/);

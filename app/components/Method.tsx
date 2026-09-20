@@ -211,14 +211,18 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
 
       {/* I tre atti, una riga ciascuno. Il lead dell'atto è l'indice dei suoi
           tre passi: il copy non ha un testo d'atto e non se ne inventa uno —
-          i passi lo dicono per esteso qui sotto. */}
+          i passi lo dicono per esteso qui sotto. Il passo fra le righe era
+          clamp(4rem,10vh,8rem): tre righe alte quanto la foto 16:9 (340 px a
+          1440) separate da 90 px di avorio; dal 2026-09-20 e' quello dei
+          blocchi interni (Alberto: «riducendo la distanza … tra una foto e un
+          testo, sia alto-basso che sinistra-destra»). */}
       {c.acts.map((a, i) => {
         const steps = c.steps.slice(i * 3, i * 3 + 3);
         const img = ACT_IMAGES[i];
         return (
           <div
             key={a.word}
-            className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
+            className="dt-row mt-[clamp(2.5rem,6vh,4.5rem)] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
           >
             {/* Colonna media: a destra da lg, sull'asse della testa di
                 capitolo. La scatola e' la META' (605 px) e non la larghezza
@@ -285,7 +289,7 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
           i nove passi ha un link che ce lo porta.
           Il numero è decorativo: l'ordine lo dà già l'<ol>. */}
       {compact ? (
-        <div className="dt-row mt-[clamp(2.5rem,7vh,5rem)]">
+        <div className="dt-row mt-[clamp(2rem,5vh,3.5rem)]">
           <Cta href="/metodo" variant="ghost">
             {c.allSteps}
           </Cta>

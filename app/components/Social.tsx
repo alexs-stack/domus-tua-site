@@ -25,7 +25,7 @@ const copy = {
     eyebrow: "Seguici",
     title: "La casa è anche racconto. Vivila con noi, ogni giorno.",
     subcopy:
-      "Case appena arrivate, before/after, Open Domus, dietro le quinte e consigli per chi vende o cerca casa. Siamo dove sei tu.",
+      "Case appena arrivate, before/after, Open Domus e dietro le quinte.",
     channelAria: (label: string) => `Domus Tua su ${label}`,
     feedTitle: "Feed Instagram di Domus Tua",
   },
@@ -33,7 +33,7 @@ const copy = {
     eyebrow: "Follow us",
     title: "A home is also a story. Live it with us, every day.",
     subcopy:
-      "Just-listed homes, before/after, Open Domus, behind the scenes and advice for anyone selling or searching for a home. We're wherever you are.",
+      "Just-listed homes, before/after, Open Domus and behind the scenes.",
     channelAria: (label: string) => `Domus Tua on ${label}`,
     feedTitle: "Domus Tua Instagram feed",
   },
@@ -41,7 +41,7 @@ const copy = {
     eyebrow: "Suivez-nous",
     title: "Une maison, c'est aussi une histoire. Vivez-la avec nous, chaque jour.",
     subcopy:
-      "Biens tout juste arrivés, avant/après, Open Domus, coulisses et conseils pour qui vend ou cherche un logement. Nous sommes là où vous êtes.",
+      "Biens tout juste arrivés, avant/après, Open Domus et coulisses.",
     channelAria: (label: string) => `Domus Tua sur ${label}`,
     feedTitle: "Fil Instagram de Domus Tua",
   },
@@ -49,7 +49,7 @@ const copy = {
     eyebrow: "Folgen Sie uns",
     title: "Ein Zuhause ist auch eine Geschichte. Erleben Sie sie mit uns, jeden Tag.",
     subcopy:
-      "Neu eingetroffene Objekte, Vorher/Nachher, Open Domus, Einblicke hinter die Kulissen und Tipps für alle, die verkaufen oder ein Zuhause suchen. Wir sind, wo Sie sind.",
+      "Neu eingetroffene Objekte, Vorher/Nachher, Open Domus und Blicke hinter die Kulissen.",
     channelAria: (label: string) => `Domus Tua auf ${label}`,
     feedTitle: "Instagram-Feed von Domus Tua",
   },
@@ -57,7 +57,7 @@ const copy = {
     eyebrow: "Síguenos",
     title: "Un hogar también es un relato. Vívelo con nosotros, cada día.",
     subcopy:
-      "Casas recién llegadas, antes/después, Open Domus, entre bastidores y consejos para quien vende o busca casa. Estamos donde estás tú.",
+      "Casas recién llegadas, antes/después, Open Domus y entre bastidores.",
     channelAria: (label: string) => `Domus Tua en ${label}`,
     feedTitle: "Feed de Instagram de Domus Tua",
   },

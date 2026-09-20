@@ -82,7 +82,7 @@ export default function Home() {
         <Paths />
         <Method compact />
         <OpenDomus finestra />
-        <DomusDocProtocol />
+        <DomusDocProtocol compact />
         <Services />
         <CostiChiari acqua />
         <FeaturedTestimonial gesture />

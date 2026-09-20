@@ -151,8 +151,18 @@ describe("HorizonScroller lascia il testo al motore", () => {
     assert.match(story, /<div data-horizon-slide data-bg="foto" className="dt-media-full">/);
   });
 
-  test("i due lead di HorizonStory sono Lead", () => {
-    assert.equal((story.match(/<Lead\b/g) ?? []).length, 2);
+  // 2026-09-20 (Alberto: «uno spazio enorme vuoto nello scroll orizzontale»): il manifesto
+  // e' la riga a due colonne con una foto nella meta' 16:9, anch'essa zona foto e sipario;
+  // il lead sotto le tre frasi non c'e' piu' (ripeteva Posizionamento). Resta il lead del video.
+  test("il manifesto porta la foto nella metà 16:9, zona foto e sipario del nastro", () => {
+    assert.match(story, /<HorizonEnter className="dt-row grid w-full gap-\[6vw\][^"]*lg:grid-cols-2[^"]*">/);
+    assert.match(story, /<div data-horizon-slide data-bg="foto" className="dt-media-half !aspect-video lg:justify-self-end">/);
+    assert.match(story, /villa-salotto-ombrellone\.jpg/);
+    assert.equal((story.match(/data-horizon-slide-img/g) ?? []).length, 2);
+  });
+
+  test("l'unico lead di HorizonStory è un Lead", () => {
+    assert.equal((story.match(/<Lead\b/g) ?? []).length, 1);
     assert.doesNotMatch(story, /className="lead[\s"]/);
   });
 
