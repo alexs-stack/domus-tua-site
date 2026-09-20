@@ -43,7 +43,8 @@ const fermi = [
   "villa-uliveto",
   "territorio-quartiere",
 ];
-const poster = ["congedo-drone", "acqua"];
+// Il poster del Congedo non passa più di qui: lo scrive scripts/media/congedo.mjs dal master 4K (A29).
+const poster = ["acqua"];
 
 async function scrivi(input, output, jpeg) {
   const info = await sharp(input)

@@ -135,6 +135,7 @@ stanno in `DESIGN.md`.
   Tua», le cinque stelle e la rotaia del team (la cliente, 10 set.: un carosello o uno scroll
   orizzontale con le foto grandi; meccanica scelta da Alberto lo stesso giorno). Nessun'altra
   sezione è pinnata: «Le voci» è un carosello nativo.
+- La lama (Alberto, 19-20 set., A36: «per le foto non a schermo intero … vorrei questi effetti del sito di era-residence, tipo una slide transition di entrata»): le sette fotografie nei moduli che non hanno già il gesto del capitolo entrano col ritaglio a parallelogramma di era-residence e uno scivolo ≤ 10 %, senza scala (A27), come ruolo comune dei media; con reduced-motion ferme. Supera in parte C03 (sette foto in più che si muovono) e per 1,2 s C01 (bordo inclinato ma dritto): alla cliente nella domanda 27, dopo la piega del Congedo. Numeri e deroghe in `DESIGN.md` → «La lama» e `docs/direttive-foto-entrata.md`.
 - Preloader più veloce (la cliente, 10 set.), nel modo scelto da Alberto: «Stesso film di oggi ma
   dimezzato», 4,63 s, una volta per sessione, mai con reduced-motion. L'ingresso l'ha rivoluto «come
   prima» (Alberto, 11 set.) ed è stato ripristinato lasciando la durata: se «come prima»

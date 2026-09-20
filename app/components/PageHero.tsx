@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
+import tinte from "../lib/motion/tinte.json";
 import { Cta } from "./primitives/Cta";
 import Reveal from "./Reveal";
 import Lead from "./motion/Lead";
-import PageHeroBand from "./motion/PageHeroBand";
-import PageHeroDive from "./motion/PageHeroDive";
+import PageHeroTesta from "./motion/PageHeroTesta";
 import RevealGroup from "./motion/RevealGroup";
 import ScriptWord from "./motion/ScriptWord";
 import SplitTitle from "./motion/SplitTitle";
@@ -15,176 +15,182 @@ type CTA = { label: string; href: string };
    riferimento (8vw ≈ 115 px a 1440), ma da lg vive nella colonna di sinistra e
    scende a 4.8vw — a 115 px una parola sola come «VALORIZZARE,» (12 segni)
    sfonderebbe la colonna. `16ch` tiene corte le righe sugli schermi larghi.
-   Gli span dei chiamanti (`text-red-soft`, nato per l'hero scuro) sull'avorio
-   non si leggono: il titolo è di un colore solo, il rosso è l'ornamento. */
+   Gli span dei chiamanti (`text-red-soft`, nato per l'hero scuro) sulla foto
+   non si leggono: il titolo è di un colore solo, il bianco (D184). */
 const TITLE =
-  "max-w-[16ch] font-display text-[clamp(3rem,8vw,9rem)] leading-[0.92] [&_span]:text-inherit lg:text-[clamp(2.75rem,4.8vw,5.25rem)]";
+  "mx-auto max-w-[18ch] font-display text-[clamp(3rem,9vw,9rem)] leading-[0.92] [&_span]:text-inherit lg:text-[clamp(3.5rem,7vw,8rem)]";
 
-/* Testa delle pagine interne della «rivista bianca» (2026-09-10, rif.
-   immobiliaregoldengoal.it): fondo avorio, titolo enorme, calligrafia rossa che
-   ne attraversa l'ultima riga, lead, CTA, foto squadrata a tutta larghezza. Da lg
-   sta su due colonne, titolo a sinistra e lead con CTA in basso a destra, e la
-   banda risale sotto il titolo col margine negativo della colonna.
-   Il tuffo è di A20 (Alberto, 13 settembre 2026, «Fedeltà letterale», spec §5.1):
-   PageHeroDive fa della section un corridoio sticky da 1024 px e 640 px d'altezza
-   con motion ok, dove il contenuto sale più veloce della banda e poi la foto passa
-   da 1 a 2; PageHeroBand porta la foto base, che è l'LCP, e lo strato nitido di
-   D33. Questo file non ha hook né "use client" (spec §5.1: «PageHero resta
-   server»); oggi lo importano solo i *Content.tsx, che sono client, e i due figli
-   client ricevono i figli React così come li compone. `data-dive-text` segna i
-   testi che il tuffo misura e che non passano mai sopra la foto; la calligrafia è
-   l'eccezione dichiarata (DESIGN.md:583), e il fondo del testo di Δt la conta lo
-   stesso (DIVE_BOTTOM_SEL, spec §5.1). Niente scuro, niente velo, niente raggi
-   (C01, C14). */
+/* La riga dei tre punti sotto la foto: la griglia di sempre (`dt-row`), centrata
+   come il blocco. */
+const GRIGLIA = "dt-row";
+
+/* «LA TESTA DI ERA» (A38 di Alberto, 20 settembre 2026; brief T, D172-D198):
+   «quando entri nella foto a schermo intero, la foto stessa diventa lo sfondo,
+   e le scritte sopra […] le scritte devono essere dentro la foto di sfondo […]
+   scritte bianche». Il riferimento è «Perfect sea views» di era-residence.
+   Questo file non ha hook né "use client" (spec §5.1: «PageHero resta server»);
+   lo importano gli undici *Content.tsx, che sono client, e PageHeroTesta
+   (client) riceve i figli React così come li compone.
+
+   Un ramo solo (D175): la fotografia è il primo pixel della pagina, in una
+   scatola alta 100svh sotto la testata trasparente (PageHeroTesta), e DENTRO
+   la foto, in alto a sinistra nella griglia (D177), in bianco NUDO, senza
+   ombra (A40 di Alberto), stanno occhiello, H1, calligrafia, lead
+   e i due comandi; i tre punti dopo, sull'avorio. Le nove rotte scorrono con la
+   parallasse (m 0,138, D182), i due legali sono fermi (m 0, D188): lo dice
+   `tinte.json` per rotta, con la foto, la sorgente e le due inquadrature
+   (D180: `lg` e `sotto`, scelte in qualita/a38/misure/cancello-T1.md). Sul
+   telefono la stessa testa, colonna unica, tutto dentro (D177).
+
+   IL BIANCO (D184; A40 di Alberto, 20 set. 2026: «negli screenshot di
+   era-residence non c'erano le ombre sulle scritte bianche, rimuovile subito»):
+   `text-white` sulle colonne e con `!` dove una regola non stratificata di
+   globals.css scrive `color` (`.eyebrow`, `.lead`, `.script-word`: le regole
+   senza layer battono le utility). Nessuna ombra, nessun alone, nessuna copia
+   sotto le lettere: il bianco sta nudo sulla foto come su era-residence, e il
+   contrasto sulla sola foto si dichiara col numero (deroga di Alberto a 1.4.3).
+   Il bottone rosso pieno resta com'è, senza reset (5,54:1
+   del bianco sul rosso). Il link fantasma sta a 18 px, impilato sotto il
+   bottone (D174). Il lead sulla foto non usa la maschera per righe. Niente
+   velo, niente rettangolo, niente gradiente sulla foto (C14). */
+
+/* LA TINTA DEL PLACEHOLDER E LE INQUADRATURE NELL'HTML INIZIALE (D78, D125,
+   D180, D187): `scripts/media/tinte.mjs` misura la banda alta della foto sul
+   ritaglio del telefono e scrive `tinte.json`, committato; qui il server emette
+   in uno <style> nell'HTML iniziale la tinta (il fondo del riquadro prima del
+   decode e la barra della testata sotto lg, D82), le due inquadrature per
+   fascia (`--dt-op-lg` / `--dt-op-sotto`: il CSS sceglie `--dt-op`). Vale senza JS, con reduced-motion, senza fetch e senza FOUC, e arriva
+   anche a `Header.tsx`, che sta fuori dalla section. Lo <style> sta nell'albero
+   del componente e non in <head> con `precedence`, così cambia con la pagina a
+   ogni navigazione client (e2e/a28.spec.ts, «le tinte»). Dove il JSON dichiara
+   `"avorio"` esce il TOKEN della zona, mai un quarto colore (D124):
+   `--color-cream-deep`. */
+const tintaCss = (b: { hex: string }, avorio: string) => (b.hex === "avorio" ? avorio : b.hex);
+
 export default function PageHero({
   id,
+  rotta,
   eyebrow,
   title,
   subcopy,
   image,
   alt,
-  objectPosition = "50% 50%",
-  srcWidth,
   primary,
   secondary,
   trust,
   scriptWord,
-  scriptInset = false,
 }: {
   /** Ancora della sezione (es. "top" per i link di risalita). */
   id?: string;
+  /** La rotta, chiave di `tinte.json` (D78, D122). È il chiamante a dirla: PageHero
+      è server e un componente server non conosce il pathname. */
+  rotta: keyof typeof tinte;
   eyebrow: string;
   title: ReactNode;
   subcopy: string;
+  /** La fotografia: la stessa di `tinte.json` per la rotta (tinte.test.ts lo pretende); l'inquadratura viene dal JSON (D180). */
   image: string;
   alt: string;
-  /** `object-position` della foto (spec §7.4); decide il ritaglio 4:5 del telefono. */
-  objectPosition?: string;
-  /** Larghezza in px del file di `image`: sopra 1920 il corridoio monta lo strato nitido (D33). Presidiata da page-hero-dive.test.ts. */
-  srcWidth: number;
   primary: CTA;
   secondary?: CTA;
   trust?: string[];
-  /** Parola-ornamento in corsivo rosso, una per pagina (es. "Vendere").
+  /** Parola-ornamento in corsivo, una per pagina (es. "Vendere"), bianca dentro la foto (D184).
       Le pagine legali non la passano. */
   scriptWord?: string;
-  /** Spec §7.4 (nota di D15): dove la calligrafia sulla foto della villa non si legge a occhio, da lg attraversa la
-      banda di 0,5vw invece di 1,5vw. L'esito sta in misure/18/calligrafia-esito.json. */
-  scriptInset?: boolean;
 }) {
-  return (
-    <PageHeroDive id={id}>
-      {/* `relative`: è il riferimento delle misure del tuffo (offsetTop). Il `pt`
-          sta qui e non sulla section, perché la section è il corridoio. */}
-      <div data-dive-content className="relative pt-[clamp(2rem,6vh,4rem)]">
-        {/* La testa è un gruppo (spec §2.5, §5.2; A20 di Alberto): occhiello, H1 e
-            calligrafia si armano insieme sopra la piega. La banda sta nel gruppo
-            ma non ha un ruolo: il motore non la tocca. La colonna del lead è un
-            gruppo annidato (D50): da lg sta accanto al titolo, interseca il
-            viewport e parte con la testa, allo stesso handoff o dopo 150 ms, con
-            gli stessi indici di ruolo (un lead, una riga CTA); sotto lg sta sotto
-            la banda 4/5, fuori dal viewport, e da gruppo di sé nasce nascosto ed
-            entra allo scroll con le righe dalla maschera e la dissolvenza della
-            CTA, con replay (C22). Il declassamento guarda il membro: `still` è la
-            sola riga CTA (spec §2.2). */}
-        <RevealGroup className="dt-row lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-x-[5vw]">
-          {/* Colonna del titolo. Da lg il margine negativo IN BASSO fa risalire la
-              fotografia misurandosi sulla colonna del titolo, non sul fondo della
-              riga: quando il lead è più alto del titolo (/vendi,
-              /domande-frequenti) la banda si ferma sotto il testo. `pb` meno
-              profondo di `-mb`: la differenza (1.5vw, 0.5vw con `scriptInset`) è
-              quanta calligrafia finisce sulla foto. Senza calligrafia (privacy,
-              cookie) la risalita non c'è. */}
-          <div
-            className={`lg:col-start-1 lg:row-start-1 ${
-              scriptWord ? (scriptInset ? "lg:-mb-[6vw] lg:pb-[5.5vw]" : "lg:-mb-[6vw] lg:pb-[4.5vw]") : "lg:pb-[2vw]"
-            }`}
-          >
-            <div data-dive-text>
-              <Reveal>
-                <span className="eyebrow">{eyebrow}</span>
-              </Reveal>
-            </div>
+  const tinta = tinte[rotta];
+  const stile = (
+    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream-deep)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto}}`}</style>
+  );
 
-            <div className="relative mt-6">
-              {/* H1 per lettera (A20 di Alberto): SplitTitle spezza nel server le
-                  stringhe, il <br/> e la span rossa dei chiamanti, e dà all'h1 il
-                  nome accessibile intero. */}
-              <div data-dive-text>
-                <SplitTitle as="h1" className={TITLE}>
-                  {title}
-                </SplitTitle>
-              </div>
-              {/* Misura e incastro vengono da `.script-word` (globals.css): la
-                  calligrafia attraversa l'ultima riga del titolo. Da lg rientro e
-                  corpo rimpiccioliscono con la colonna, se no una firma lunga
-                  («Domande frequenti») finirebbe addosso al lead. */}
-              {scriptWord && (
-                <ScriptWord className="pl-[24vw] lg:pl-[6vw] lg:!text-[clamp(2.6rem,5.6vw,6rem)]">{scriptWord}</ScriptWord>
-              )}
-            </div>
-          </div>
-
-          {/* La banda: `dt-media-full` (decisione di lavoro 11 set., D15; foto
-              squadrata a tutta pagina, niente curve né card: la cliente, C01),
-              dentro PageHeroBand, con i margini negativi che annullano il padding
-              di `.dt-row` (5vw sotto md, 8vw sopra). Sotto md la cornice è 4:5. Sta
-              subito dopo la calligrafia, prima del lead. `-z-10` la tiene sotto il
-              titolo dentro l'`isolate` della section; nel corridoio di
-              `PageHeroDive` (Alberto, 13 set., A20, spec §5.1) sale meno del
-              contenuto, di +(Δt − Δb); sotto quella soglia lo zoom leggero è di
-              PageHeroBand. */}
-          <div
-            data-dive-band
-            className="relative -z-10 -mx-[5vw] mt-[clamp(1.5rem,4vh,3rem)] md:-mx-[8vw] lg:col-start-1 lg:col-end-3 lg:row-start-2 lg:mt-0"
-          >
-            <PageHeroBand src={image} alt={alt} objectPosition={objectPosition} srcWidth={srcWidth} />
-          </div>
-
-          {/* Colonna del lead, gruppo annidato (D50): da lg in basso a destra, con
-              un `pb` che tiene l'ultima riga sopra il bordo della banda. Nessun
-              testo sopra le foto tranne la calligrafia e il congedo
-              (DESIGN.md:583): nel tuffo di A20 i `data-dive-text` escono dall'alto
-              prima che la foto cresca (spec §5.1). */}
-          <RevealGroup className="mt-[clamp(2rem,5vh,3rem)] lg:col-start-2 lg:row-start-1 lg:mt-0 lg:self-end lg:pb-[2vw]">
-            <div data-dive-text>
-              <Lead>{subcopy}</Lead>
-            </div>
-
-            <div data-dive-text>
-              <Reveal role="still">
-                <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
-                  <Cta href={primary.href} variant="cta-solid" size="lg">
-                    {primary.label}
-                  </Cta>
-                  {secondary && (
-                    <Cta href={secondary.href} variant="ghost" arrow={false}>
-                      {secondary.label}
-                    </Cta>
-                  )}
-                </div>
-              </Reveal>
-            </div>
-
-            {/* Le prove sono corpo di testo (19 px) col trattino rosso
-                dell'eyebrow davanti: si leggono come una riga di garanzie. */}
-            {trust?.length ? (
-              <div data-dive-text>
-                <ul className="mt-8 flex flex-col gap-y-3 text-body text-stone sm:flex-row sm:flex-wrap sm:gap-x-8">
-                  {trust.map((t) => (
-                    <li key={t} className="flex gap-2">
-                      {/* `mt` e non `items-center`: sulle righe che vanno a capo il
-                          trattino sta sulla PRIMA riga, non a mezza altezza. */}
-                      <span aria-hidden className="mt-[0.72em] h-px w-[1.75rem] shrink-0 bg-red opacity-60" />
-                      {t}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </RevealGroup>
-        </RevealGroup>
+  /* Il blocco dei testi, centrato come «Perfect sea views» di era-residence (A41 di
+     Alberto, 20 set. 2026: «preferisco il layout centrato tipo Perfect sea views»),
+     in tre livelli dentro i 100svh della foto:
+     - in alto il lead (il paragrafo breve di era), centrato, largo al massimo 40rem;
+     - al centro l'occhiello (senza trattino: `eyebrow--center`), l'H1 per lettera
+       (A20 di Alberto: SplitTitle spezza nel server le stringhe, il <br/> e la span
+       dei chiamanti, e dà all'h1 il nome accessibile intero) e la calligrafia, che
+       attraversa l'ultima riga del titolo (`.script-word`; sulla testa il tuck vale
+       0, D185) e sta un poco a destra del centro, come una firma;
+     - in basso il bottone rosso pieno e, sotto, il link fantasma a 18 px (D174).
+     Tutto bianco e nudo (A40). La testa è un gruppo (spec §2.5; A20): i tre livelli
+     si armano insieme sopra la piega; il livello del piede è un gruppo annidato (D50).
+     Il blocco è `.dt-testa_blocco` (globals.css): in flusso, sopra la foto sticky,
+     alto almeno 100svh, con la griglia a tre righe (auto 1fr auto). */
+  const capo = (
+    <div className="dt-testa_capo w-full">
+      <Reveal>
+        <Lead className="mx-auto max-w-[40rem] !text-white text-center">{subcopy}</Lead>
+      </Reveal>
+    </div>
+  );
+  const centro = (
+    <div className="dt-testa_centro w-full text-center text-white">
+      <Reveal>
+        <span className="eyebrow eyebrow--center !text-white">{eyebrow}</span>
+      </Reveal>
+      <div className="mt-5">
+        <SplitTitle as="h1" className={TITLE}>
+          {title}
+        </SplitTitle>
+        {scriptWord && (
+          <ScriptWord className="!text-white pl-[18vw] lg:pl-[10vw] lg:!text-[clamp(2.6rem,5.6vw,6rem)]">
+            {scriptWord}
+          </ScriptWord>
+        )}
       </div>
-    </PageHeroDive>
+    </div>
+  );
+  const piede = (
+    <RevealGroup className="dt-testa_piede w-full text-white">
+      <div>
+        <Reveal role="still">
+          <div className="flex flex-col items-center gap-y-4">
+            <Cta href={primary.href} variant="cta-solid" size="lg">
+              {primary.label}
+            </Cta>
+            {secondary && (
+              <Cta href={secondary.href} variant="ghost-dark" arrow={false} className="dt-btn--ghost-testa">
+                {secondary.label}
+              </Cta>
+            )}
+          </div>
+        </Reveal>
+      </div>
+    </RevealGroup>
+  );
+  const blocco = (
+    <RevealGroup className="dt-testa_blocco">
+      {capo}
+      {centro}
+      {piede}
+    </RevealGroup>
+  );
+
+  /* Le prove sono corpo di testo (19 px) col trattino rosso dell'eyebrow
+     davanti, sull'avorio sotto la foto, nella colonna del lead (§3.1): si
+     leggono come una riga di garanzie. */
+  const punti = trust?.length ? (
+    <div className={`${GRIGLIA} pt-[clamp(1.5rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)]`}>
+      <ul className="flex flex-col gap-y-3 text-body text-stone sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8">
+        {trust.map((t) => (
+          <li key={t} className="flex gap-2">
+            {/* `mt` e non `items-center`: sulle righe che vanno a capo il
+                trattino sta sulla PRIMA riga, non a mezza altezza. */}
+            <span aria-hidden className="mt-[0.72em] h-px w-[1.75rem] shrink-0 bg-red opacity-60" />
+            {t}
+          </li>
+        ))}
+      </ul>
+    </div>
+  ) : null;
+
+  return (
+    <>
+      {stile}
+      <PageHeroTesta id={id} src={image} alt={alt} ratio={tinta.sorgente[0] / tinta.sorgente[1]} blocco={blocco}>
+        {punti}
+      </PageHeroTesta>
+    </>
   );
 }

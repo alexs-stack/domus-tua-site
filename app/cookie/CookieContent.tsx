@@ -8,7 +8,6 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
-import bandPositions from "../lib/motion/band-positions.json";
 import SplitTitle from "../components/motion/SplitTitle";
 import { site } from "../lib/site";
 
@@ -414,12 +413,11 @@ export default function CookieContent() {
       <Header />
       <main className="flex-1">
         <PageHero
+          rotta="/cookie"
           eyebrow={c.hero.eyebrow}
           title={c.hero.title()}
           subcopy={c.hero.subcopy}
           image="/images/reali/villa-uliveto.jpg"
-          objectPosition={bandPositions["/cookie"]}
-          srcWidth={2560}
           alt={c.hero.alt}
           primary={{ label: c.hero.primaryLabel, href: "/contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "/privacy" }}

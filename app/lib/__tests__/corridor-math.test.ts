@@ -29,12 +29,10 @@ describe("corridor-math", () => {
   test("l'innesco di default è quello scritto nel registro", () => {
     assert.equal(defaultStart("bottom", -84), "top -84px");
     assert.equal(defaultStart("top", 0), "top top");
+    // Il tuffo delle PageHero ("page-dive"), che qui verificava `defaultStart("top", 0)`, e' morto con A41.
     const hero = chapters.hero.signature.trigger;
-    const dive = chapters["page-dive"].signature.trigger;
     assert.ok("st" in hero);
-    assert.ok("st" in dive);
     assert.deepEqual(hero.st, ["top ${stickTop}px", DEFAULT_END]);
-    assert.deepEqual(dive.st, [defaultStart("top", 0), DEFAULT_END]);
   });
 
   test("cue: avanti una volta, indietro una volta, i mancanti dopo un salto", () => {

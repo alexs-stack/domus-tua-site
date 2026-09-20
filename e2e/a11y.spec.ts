@@ -28,6 +28,33 @@ for (const path of PAGES) {
   test(`${path} non ha violazioni di accessibilità`, async ({ page, goto }) => {
     await goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    // La testa di era (A38/A41): il bianco sta sopra la fotografia, e prima che la foto
+    // decodifichi il riquadro mostra la tinta alta (D125). Sul build la prima richiesta
+    // a next/image di una sorgente da 2560 px dura secondi: axe misurerebbe il bianco
+    // sulla tinta, non sulla foto. Si aspetta la foto.
+    const foto = page.locator("img[data-testa-foto]");
+    if (await foto.count()) {
+      await foto.evaluate((img) => {
+        const el = img as HTMLImageElement;
+        return el.complete && el.naturalWidth > 0
+          ? undefined
+          : new Promise<void>((r) => el.addEventListener("load", () => r(), { once: true }));
+      });
+      // Il blocco dei testi è alto almeno 100svh e cresce dove non ci sta (D177: /open-domus a
+      // 390×664, l'iPhone 13 del progetto mobile): l'ultimo comando finisce sotto la piega, e a
+      // scroll 0 axe lo misura sull'avorio della pagina invece che sulla foto sticky che gli sta
+      // sotto appena si scorre. Si scorre del minimo che porta l'ultimo testo del blocco dentro
+      // il viewport (0 dove ci sta già: la testata da lg non è sticky e non deve uscire).
+      const oltre = await page.evaluate(() => {
+        const testi = Array.from(document.querySelectorAll(".dt-testa_blocco a, .dt-testa_blocco p, .dt-testa_blocco h1"));
+        const fondo = Math.max(0, ...testi.map((t) => t.getBoundingClientRect().bottom));
+        return Math.max(0, Math.ceil(fondo - window.innerHeight));
+      });
+      if (oltre > 0) {
+        await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), oltre);
+        await page.waitForTimeout(300);
+      }
+    }
     // Le animazioni d'ingresso partono allo scroll: si dà loro il tempo di posarsi, altrimenti
     // axe misura il contrasto di un testo a metà dissolvenza.
     await page.waitForTimeout(600);

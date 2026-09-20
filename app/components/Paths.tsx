@@ -20,8 +20,8 @@ import Image from "next/image";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import Reveal from "./Reveal";
+import LamaMedia from "./motion/LamaMedia";
 import SplitTitle from "./motion/SplitTitle";
-import Lead from "./motion/Lead";
 import { gsap, useGSAP } from "../lib/motion/gsap";
 import { MQ } from "../lib/motion/mq";
 import { chapters } from "../lib/motion/chapters";
@@ -29,16 +29,28 @@ import { chapters } from "../lib/motion/chapters";
 // Fotografie reali, ognuna una volta sola in home: la consulenza resta a
 // Posizionamento; qui la fondatrice (ritaglio 1:1 spostato a sinistra, dove
 // sta lei) e la villa con piscina.
-// `ratio` è la misura VERA del sorgente, e serve a due cose: dice che il
-// quadrato è il taglio giusto (2560×1920 e 1920×1280 sono riprese piene, la
-// scatola le riduce a 0,32× e 0,47× — nessun ingrandimento, e la persona in
-// piedi resta intera in altezza) e alimenta `coverSizes`.
-const paths: { id: "vendi" | "acquista"; href: string; image: string; ratio: number; pos?: string }[] = [
+// `ratio` è la misura VERA del sorgente, e serve a due cose: dice qual e' la
+// scatola giusta e alimenta `coverSizes`. La fondatrice (2560×1920, 4:3) sta
+// nel quadrato: perde il 25 % ai lati, la persona in piedi resta intera in
+// altezza, ridotta a 0,32×. La villa (1920×1280, 3:2) NON sta nel quadrato:
+// ne perdeva un terzo in larghezza; dal 2026-09-20 sta nella meta' forzata a
+// 16:9 (`box: "video"`, come gli atti del Metodo), dove perde l'11 % in altezza
+// e la riga si accorcia di 265 px a 1440 (Alberto: «riducendo la distanza tra
+// una foto e un testo»). La scatola segue il sorgente, non la griglia (D03).
+const paths: {
+  id: "vendi" | "acquista";
+  href: string;
+  image: string;
+  ratio: number;
+  box: "square" | "video";
+  pos?: string;
+}[] = [
   {
     id: "vendi",
     href: "/vendi",
     image: "/images/reali/raffaela-specchio-profilo.jpg",
     ratio: 2560 / 1920,
+    box: "square",
     pos: "24% 50%",
   },
   {
@@ -46,13 +58,18 @@ const paths: { id: "vendi" | "acquista"; href: string; image: string; ratio: num
     href: "/acquista",
     image: "/images/reali/villa-pool.jpg",
     ratio: 1920 / 1280,
+    box: "video",
   },
 ];
 
-/* In un quadrato una foto orizzontale è larga scatola × rapporto: un piatto
-   45vw serviva alla villa i due terzi dei pixel che il cover le chiede. */
-const coverSizes = (ratio: number) =>
-  `(max-width:767px) ${Math.ceil(90 * ratio)}vw, (max-width:1023px) ${Math.ceil(84 * ratio)}vw, ${Math.ceil(42 * ratio)}vw`;
+/* `sizes` descrive i pixel RESI dopo il cover, non la scatola: in un quadrato
+   una foto orizzontale e' larga scatola × rapporto; in una 16:9 sborda solo
+   se e' piu' larga di 16:9 (D04). */
+const BOX_ASPECT = { square: 1, video: 16 / 9 } as const;
+const coverSizes = (ratio: number, box: keyof typeof BOX_ASPECT) => {
+  const k = Math.max(1, ratio / BOX_ASPECT[box]);
+  return `(max-width:767px) ${Math.ceil(90 * k)}vw, (max-width:1023px) ${Math.ceil(84 * k)}vw, ${Math.ceil(42 * k)}vw`;
+};
 
 const copy = {
   it: {
@@ -63,7 +80,6 @@ const copy = {
       vendi: {
         tag: "Per chi vende",
         title: "Vendi casa con metodo, non con improvvisazione.",
-        copy: "Valutiamo, prepariamo, raccontiamo e promuoviamo il tuo immobile con un percorso pensato per ridurre stress, tempi morti e incertezze.",
         points: [
           "Valutazione professionale e documenti verificati",
           "Foto, video, rendering e home staging",
@@ -75,7 +91,6 @@ const copy = {
       acquista: {
         tag: "Per chi acquista",
         title: "Acquista casa con più risposte e meno dubbi.",
-        copy: "Organizziamo le visite, controlliamo la documentazione e ti assistiamo sulla proposta, fino al rogito.",
         points: [
           "Informazioni chiare già prima della visita",
           "Documentazione verificata e trasparente",
@@ -94,7 +109,6 @@ const copy = {
       vendi: {
         tag: "For those selling",
         title: "Sell your home with method, not improvisation.",
-        copy: "We appraise, prepare, tell the story of and promote your property through a process designed to reduce stress, downtime and uncertainty.",
         points: [
           "Professional appraisal and verified documents",
           "Photography, video, rendering and home staging",
@@ -106,7 +120,6 @@ const copy = {
       acquista: {
         tag: "For those buying",
         title: "Buy your home with more answers and fewer doubts.",
-        copy: "We organise the viewings, check the paperwork and assist you on the offer, through to the deed.",
         points: [
           "Clear information even before the viewing",
           "Verified and transparent documentation",
@@ -125,7 +138,6 @@ const copy = {
       vendi: {
         tag: "Pour ceux qui vendent",
         title: "Vendez votre bien avec méthode, pas à l'improviste.",
-        copy: "Nous évaluons, préparons, mettons en valeur et faisons la promotion de votre bien grâce à un parcours pensé pour réduire le stress, les temps morts et les incertitudes.",
         points: [
           "Évaluation professionnelle et documents vérifiés",
           "Photos, vidéos, rendus et home staging",
@@ -137,7 +149,6 @@ const copy = {
       acquista: {
         tag: "Pour ceux qui achètent",
         title: "Achetez votre bien avec plus de réponses et moins de doutes.",
-        copy: "Nous organisons les visites, contrôlons les documents et vous assistons sur l'offre, jusqu'à la signature.",
         points: [
           "Des informations claires dès avant la visite",
           "Une documentation vérifiée et transparente",
@@ -156,7 +167,6 @@ const copy = {
       vendi: {
         tag: "Für Verkäufer",
         title: "Verkaufen Sie Ihre Immobilie mit Methode, nicht mit Improvisation.",
-        copy: "Wir bewerten, bereiten vor, inszenieren und bewerben Ihre Immobilie mit einem Ablauf, der Stress, Leerlauf und Unsicherheiten reduziert.",
         points: [
           "Professionelle Bewertung und geprüfte Unterlagen",
           "Fotos, Videos, Renderings und Home Staging",
@@ -168,7 +178,6 @@ const copy = {
       acquista: {
         tag: "Für Käufer",
         title: "Kaufen Sie Ihre Immobilie mit mehr Antworten und weniger Zweifeln.",
-        copy: "Wir organisieren die Besichtigungen, prüfen die Unterlagen und unterstützen Sie beim Angebot, bis zum Notartermin.",
         points: [
           "Klare Informationen schon vor der Besichtigung",
           "Geprüfte und transparente Unterlagen",
@@ -187,7 +196,6 @@ const copy = {
       vendi: {
         tag: "Para quien vende",
         title: "Vende tu casa con método, no con improvisación.",
-        copy: "Valoramos, preparamos, contamos y promocionamos tu inmueble con un recorrido pensado para reducir el estrés, los tiempos muertos y la incertidumbre.",
         points: [
           "Valoración profesional y documentos verificados",
           "Fotos, vídeos, renders y home staging",
@@ -199,7 +207,6 @@ const copy = {
       acquista: {
         tag: "Para quien compra",
         title: "Compra tu casa con más respuestas y menos dudas.",
-        copy: "Organizamos las visitas, comprobamos la documentación y te asistimos en la oferta, hasta la firma.",
         points: [
           "Información clara ya antes de la visita",
           "Documentación verificada y transparente",
@@ -277,29 +284,42 @@ export default function Paths() {
             key={p.href}
             id={p.id}
             data-paths-row
-            className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
+            className="dt-row mt-[clamp(2.5rem,6vh,4.5rem)] grid gap-[6vw] lg:grid-cols-2 lg:items-center"
           >
             {/* La riga pari specchia: foto a destra e `justify-self-end`, perché
                 il modulo (42vw) è più largo della colonna (39vw) e senza
                 l'ancoraggio sborderebbe oltre il margine destro della pagina. */}
             <div data-paths-col className={i % 2 ? "lg:order-2 lg:justify-self-end" : ""}>
-              <div className="dt-media-half">
+              {/* La lama (A36, D200-D204): le due foto entrano DA SINISTRA, con
+                  l'inclinazione opposta a Voci che precede (A28 (10): «non 2
+                  di fila»); il profilo scivola di 3 (margine sinistro dei corpi
+                  3,3 %: 18 px a 1440, deciso col numero, D203), la villa di 10.
+                  Due gruppi, uno per riga: il collegamento «da su a giù» fra le
+                  due righe lo colloca Alberto (D204). Il tween di capitolo resta
+                  sulla colonna [data-paths-col]; la lama sta dentro, sul modulo:
+                  un tween per elemento (D216). */}
+              <LamaMedia
+                id={p.id === "vendi" ? "paths-vendi" : "paths-acquista"}
+                className={p.box === "video" ? "dt-media-half !aspect-video" : "dt-media-half"}
+              >
                 <Image
                   src={p.image}
                   alt={t.alt}
                   fill
-                  sizes={coverSizes(p.ratio)}
+                  sizes={coverSizes(p.ratio, p.box)}
                   className="object-cover"
                   style={{ objectPosition: p.pos }}
                 />
-              </div>
+              </LamaMedia>
             </div>
             <div data-paths-col className={i % 2 ? "lg:pr-[6vw]" : "lg:pl-[6vw]"}>
               <SplitTitle as="h3" className="font-display text-d3">
                 {t.title}
               </SplitTitle>
-              <Lead className="mt-6">{t.copy}</Lead>
-              <ul className="mt-6 flex flex-col gap-2 text-body">
+              {/* Il lead di percorso («Valutiamo, prepariamo, raccontiamo e
+                  promuoviamo…») non c'e' piu' (2026-09-20): i tre punti sotto
+                  dicono le stesse cose, una per riga. */}
+              <ul className="mt-8 flex flex-col gap-2 text-body">
                 {t.points.map((pt) => (
                   <li key={pt} className="flex gap-3">
                     <span aria-hidden className="mt-3 h-px w-8 shrink-0 bg-red" />

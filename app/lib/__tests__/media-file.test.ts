@@ -40,7 +40,7 @@ const NUOVI: ReadonlyArray<{ path: string; w: number; h: number }> = [
   { path: "images/reali/villa-uliveto.jpg", w: 2560, h: 1440 },
   // territorio-quartiere.jpg escluso: R1 sul fotogramma 1950 (persona in piedi sotto la
   // gronda del portico, in tutti i nove candidati 1880-2020 di R4-T), 2026-09-17
-  { path: "media/congedo-drone-poster.jpg", w: 1920, h: 1080 },
+  { path: "media/congedo-poster.jpg", w: 1920, h: 1080 },
   { path: "media/acqua-poster.jpg", w: 1920, h: 1080 },
 ];
 const MP4 = ["media/congedo-drone-1080.mp4", "media/congedo-drone-720.mp4", "media/acqua-1080.mp4"];

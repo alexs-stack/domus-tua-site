@@ -150,6 +150,16 @@ describe("le zone di spec §6.1 portano data-bg", () => {
     // e l'inset del marcatore. La geometria (±1 px) la prova e2e/segno.spec.ts.
     assert.match(src, /function paintClip\([^)]*marker[^)]*\)[\s\S]*?marker\.style\.inset = /);
     assert.match(src, /paintClip\(clipRef\.current, markerRef\.current/);
+    // A35/A42: il marcatore sta dentro lo schermo intero (le percentuali dell'inset sono dello
+    // schermo), e durante l'entrata useLastra lo porta sull'ingombro del foglio come 1×1 con
+    // translate + scale (`data-foglio`), togliendo l'inset inline che lo batterebbe.
+    const screen = src.indexOf("data-corridor-screen");
+    const marker = src.indexOf("ref={markerRef}");
+    assert.ok(screen > 0 && marker > screen, "il marcatore sta dentro lo schermo");
+    const lastra = codice("app/components/motion/useLastra.ts");
+    assert.match(lastra, /marker\.setAttribute\("data-foglio", ""\)/);
+    assert.match(lastra, /marker\.style\.removeProperty\("inset"\)/);
+    assert.match(lastra, /marker\.style\.transform = `translate\(/);
   });
 
   test("zone fuori elenco trovate dall'e2e (ZONE_EXTRA, Step 14)", () => {

@@ -34,7 +34,7 @@ export const ambient: {
   congedo: {
     hd: { webm: "/media/congedo-drone-1080.webm", mp4: "/media/congedo-drone-1080.mp4" },
     sd: { webm: "/media/congedo-drone-720.webm", mp4: "/media/congedo-drone-720.mp4" },
-    poster: "/media/congedo-drone-poster.jpg",
+    poster: "/media/congedo-poster.jpg",
   },
   acqua: {
     hd: { webm: "/media/acqua-1080.webm", mp4: "/media/acqua-1080.mp4" },

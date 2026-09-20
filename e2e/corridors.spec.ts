@@ -16,12 +16,12 @@ import { LAST_Y_KEY } from "../app/lib/motion/intro-constants";
 
 /** Gli host accesi sulla home a 1024×768 e 1440×900, in ordine alfabetico. */
 const EXPECTED_HOME = ["cartolina", "finestra", "hero", "recensioni", "storia", "team"];
-/** Gli host accesi su /vendi a 1440×900. */
-const EXPECTED_VENDI: string[] = ["page-dive"];
+/** Gli host accesi su /vendi a 1440×900: nessuno, dal 20 settembre 2026 (A38/A41: la testa di
+    era è sticky e ferma; il tuffo "page-dive" e i capitoli di pagina "ingresso" e "soglia" sono morti). */
+const EXPECTED_VENDI: string[] = [];
 /** Le rotte, e su ognuna i corridoi che hanno uno schermo [data-corridor-screen] da misurare. */
 const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [
   { path: "/", screens: ["cartolina", "finestra", "hero"] },
-  { path: "/vendi", screens: ["page-dive"] },
 ];
 /**
  * Il contenitore dei testi quando non è lo schermo, relativo all'host. Nella

@@ -186,7 +186,7 @@ export default function PreloaderShell() {
                 <PreChars text="Domus" />
                 <PreChars text="Tua" offset={5} />
               </div>
-              <span className="pointer-events-none absolute -bottom-[0.52em] left-1/2 -translate-x-1/2 whitespace-nowrap font-script text-[5.2vh] leading-none text-red [text-shadow:0_2px_28px_rgba(28,21,18,0.55)]">
+              <span className="pointer-events-none absolute -bottom-[0.52em] left-1/2 -translate-x-1/2 whitespace-nowrap font-script text-[5.2vh] leading-none text-red dt-ink-media">
                 <PreChars text="Raffaela Rizza" script />
               </span>
             </div>

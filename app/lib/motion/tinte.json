@@ -1,0 +1,223 @@
+{
+  "/vendi": {
+    "trattamento": "testa",
+    "file": "/images/reali/villa-piscina-facciata.jpg",
+    "sorgente": [
+      2560,
+      1707
+    ],
+    "objectPosition": {
+      "lg": "0% 50%",
+      "sotto": "75% 50%"
+    },
+    "alta": {
+      "hex": "#a7c4e5",
+      "sorgente": "#7eaddd",
+      "Y": 0.5335,
+      "dH": 0.3,
+      "C": 19.74,
+      "avorio": 1.657
+    }
+  },
+  "/acquista": {
+    "trattamento": "testa",
+    "file": "/images/reali/villa-lettini.jpg",
+    "sorgente": [
+      2560,
+      1707
+    ],
+    "objectPosition": {
+      "lg": "75% 50%",
+      "sotto": "75% 50%"
+    },
+    "alta": {
+      "hex": "#9fc5ec",
+      "sorgente": "#88bae9",
+      "Y": 0.5336,
+      "dH": 0.21,
+      "C": 23.66,
+      "avorio": 1.657
+    }
+  },
+  "/servizi": {
+    "trattamento": "testa",
+    "file": "/images/reali/villa-angolo-piscina.jpg",
+    "sorgente": [
+      2560,
+      1707
+    ],
+    "objectPosition": {
+      "lg": "0% 50%",
+      "sotto": "75% 50%"
+    },
+    "alta": {
+      "hex": "#a2c5eb",
+      "sorgente": "#92bce8",
+      "Y": 0.5361,
+      "dH": 0.17,
+      "C": 22.81,
+      "avorio": 1.649
+    }
+  },
+  "/metodo": {
+    "trattamento": "testa",
+    "file": "/images/reali/villa-vetrata-lanterne.jpg",
+    "sorgente": [
+      2560,
+      1440
+    ],
+    "objectPosition": {
+      "lg": "30% 50%",
+      "sotto": "50% 50%"
+    },
+    "alta": {
+      "hex": "avorio",
+      "sorgente": "#d9dad9",
+      "Y": 0.699,
+      "dH": 0,
+      "C": 0.64,
+      "avorio": 1.291,
+      "misurato": "#d9dad9"
+    }
+  },
+  "/open-domus": {
+    "trattamento": "testa",
+    "file": "/images/reali/villa-portico-tenda.jpg",
+    "sorgente": [
+      2560,
+      1707
+    ],
+    "objectPosition": {
+      "lg": "0% 0%",
+      "sotto": "0% 0%"
+    },
+    "alta": {
+      "hex": "#c2c2bc",
+      "sorgente": "#7c7c69",
+      "Y": 0.5368,
+      "dH": 0.16,
+      "C": 3.2,
+      "avorio": 1.647
+    }
+  },
+  "/chi-siamo": {
+    "trattamento": "testa",
+    "file": "/images/hero_01_attico_travi_salotto.jpg",
+    "sorgente": [
+      1920,
+      1067
+    ],
+    "objectPosition": {
+      "lg": "0% 50%",
+      "sotto": "0% 50%"
+    },
+    "alta": {
+      "hex": "#d1beab",
+      "sorgente": "#c7ae94",
+      "Y": 0.5332,
+      "dH": 0.04,
+      "C": 12.57,
+      "avorio": 1.658
+    }
+  },
+  "/recensioni": {
+    "trattamento": "testa",
+    "file": "/images/reali/villa-salotto-ombrellone.jpg",
+    "sorgente": [
+      2560,
+      1440
+    ],
+    "objectPosition": {
+      "lg": "75% 50%",
+      "sotto": "50% 50%"
+    },
+    "alta": {
+      "hex": "#c2c1c0",
+      "sorgente": "#817f7d",
+      "Y": 0.5342,
+      "dH": 0.01,
+      "C": 0.65,
+      "avorio": 1.655
+    }
+  },
+  "/lavora-con-noi": {
+    "trattamento": "testa",
+    "file": "/images/hero_02_attico_travi_living.jpg",
+    "sorgente": [
+      1920,
+      1067
+    ],
+    "objectPosition": {
+      "lg": "50% 25%",
+      "sotto": "0% 25%"
+    },
+    "alta": {
+      "hex": "#d0beb2",
+      "sorgente": "#b08a6b",
+      "Y": 0.5345,
+      "dH": 0.97,
+      "C": 9.43,
+      "avorio": 1.654
+    }
+  },
+  "/domande-frequenti": {
+    "trattamento": "testa",
+    "file": "/images/reali/piscina-lusso.jpg",
+    "sorgente": [
+      1920,
+      1280
+    ],
+    "objectPosition": {
+      "lg": "100% 50%",
+      "sotto": "50% 50%"
+    },
+    "alta": {
+      "hex": "#c0c1c6",
+      "sorgente": "#01184d",
+      "Y": 0.5342,
+      "dH": 2.57,
+      "C": 2.69,
+      "avorio": 1.655
+    }
+  },
+  "/privacy": {
+    "trattamento": "fermo",
+    "file": "/images/hero_01_attico_travi_salotto.jpg",
+    "sorgente": [
+      1920,
+      1067
+    ],
+    "objectPosition": {
+      "lg": "50% 50%",
+      "sotto": "0% 50%"
+    },
+    "alta": {
+      "hex": "#d1beab",
+      "sorgente": "#c7ae94",
+      "Y": 0.5332,
+      "dH": 0.04,
+      "C": 12.57,
+      "avorio": 1.658
+    }
+  },
+  "/cookie": {
+    "trattamento": "fermo",
+    "file": "/images/reali/villa-uliveto.jpg",
+    "sorgente": [
+      2560,
+      1440
+    ],
+    "objectPosition": {
+      "lg": "60% 50%",
+      "sotto": "75% 50%"
+    },
+    "alta": {
+      "hex": "#c0c2bf",
+      "sorgente": "#525b4c",
+      "Y": 0.5355,
+      "dH": 0.24,
+      "C": 1.77,
+      "avorio": 1.651
+    }
+  }
+}

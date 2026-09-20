@@ -14,7 +14,7 @@ import Image from "next/image";
 import Reveal from "./Reveal";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
-import Parallax from "./motion/Parallax";
+import LamaMedia from "./motion/LamaMedia";
 import { gsap, useGSAP } from "../lib/motion/gsap";
 import { MQ } from "../lib/motion/mq";
 import VideoLightbox from "./VideoLightbox";
@@ -159,10 +159,38 @@ export default function FeaturedTestimonial(props: Props) {
     { dependencies: [gesture], revertOnUpdate: true },
   );
 
+  // `dt-still-trim--top` toglie la banda col titolo cotta in cima alla
+  // copertina di YouTube («VIDEO RECENSIONE / APPARTAMENTO VENDUTO AL PRIMO
+  // OPEN DOMUS»): sopra un titolo gia' stampato nei pixel non se ne mette un
+  // secondo. Il cuore Domus in basso a destra resta: e' il loro marchio, non la
+  // grafica di YouTube. Il trim vale SOLO su quella copertina (D218): su
+  // `consulenza.jpg` di /acquista tagliava la testa di Raffaela al 72 % senza
+  // un titolo cotto da togliere (D201).
+  const cotta = image.endsWith("recensione-clienti.jpg");
+  const foto = (
+    <Image
+      src={image}
+      alt={alt}
+      fill
+      sizes={gesture ? "(max-width:1024px) 132vw, 61vw" : "(max-width:1024px) 132vw, 56vw"}
+      // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
+      quality={75}
+      className={cotta ? "dt-still-trim--top object-cover" : "object-cover"}
+    />
+  );
+  // 56px sul telefono, 96 da desktop: la stessa regola del carosello delle
+  // voci — il cerchio grande copriva i volti sulla tessera.
+  const play = (
+    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 lg:h-24 lg:w-24">
+      <Play className="ml-1 h-5 w-5 lg:h-7 lg:w-7" />
+    </span>
+  );
+
   // Il link è la cornice: non si muove mai, il bersaglio del dito resta fermo e
   // l'outline di focus sta fuori dal suo overflow. `data-bg="foto"` dice al
-  // monogramma che qui sotto c'è una foto (A21, spec §6.1).
-  const link = (
+  // monogramma che qui sotto c'è una foto (A21, spec §6.1). In home (`gesture`)
+  // il link E' il modulo e dentro la foto affonda (D28/D30).
+  const linkHome = (
     <a
       ref={frameRef}
       data-sink-frame
@@ -177,31 +205,37 @@ export default function FeaturedTestimonial(props: Props) {
       {/* Con `gesture` il contenitore è alto il 110 % (overscan del 10 %) e la
           sizes sale a 61vw: cornice 605×340 a 1440, cover 665 px × 1,30 =
           865 px (spec §3.14). */}
-      <div
-        ref={sinkRef}
-        data-sink={gesture ? "" : undefined}
-        className={gesture ? "absolute inset-x-0 bottom-0 top-[-10%]" : "absolute inset-0"}
-      >
-        {/* `dt-still-trim--top` toglie la banda col titolo cotta in cima
-            alla copertina («VIDEO RECENSIONE / APPARTAMENTO VENDUTO AL
-            PRIMO OPEN DOMUS»): sopra un titolo gia' stampato nei pixel non
-            se ne mette un secondo. Il cuore Domus in basso a destra resta:
-            e' il loro marchio, non la grafica di YouTube. */}
-        <Image
-          src={image}
-          alt={alt}
-          fill
-          sizes={gesture ? "(max-width:1024px) 132vw, 61vw" : "(max-width:1024px) 132vw, 56vw"}
-          // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
-          quality={75}
-          className="dt-still-trim--top object-cover"
-        />
+      <div ref={sinkRef} data-sink="" className="absolute inset-x-0 bottom-0 top-[-10%]">
+        {foto}
       </div>
-      {/* 56px sul telefono, 96 da desktop: la stessa regola del carosello
-          delle voci — il cerchio grande copriva i volti sulla tessera. */}
-      <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 lg:h-24 lg:w-24">
-        <Play className="ml-1 h-5 w-5 lg:h-7 lg:w-7" />
-      </span>
+      {play}
+    </a>
+  );
+  // Fuori dalla home (D206: D28 superata) la foto entra con la lama (A36): il
+  // link AVVOLGE il modulo e non riceve clip ne' transform (D208, come Voci); il
+  // cerchio del play sta dentro il ritaglio, dopo l'interno, e entra con la
+  // foto. `data-bg` passa sul modulo: avorio da chiusa, foto dall'entrata (D210).
+  // La copertina cotta entra col solo bordo (X 0, D218); `consulenza.jpg` di
+  // /acquista da sinistra con scivolo 10 (la cliente tocca il bordo destro).
+  const linkLama = (
+    <a
+      ref={frameRef}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${c.play}: ${title}`}
+      onClick={onClick}
+      className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
+    >
+      <LamaMedia
+        id={cotta ? "testimonianza-recensione" : "testimonianza-consulenza"}
+        className="dt-media-half !aspect-video"
+        data-bg="foto"
+        data-sink-frame=""
+        sopra={play}
+      >
+        {foto}
+      </LamaMedia>
     </a>
   );
 
@@ -212,9 +246,10 @@ export default function FeaturedTestimonial(props: Props) {
             quadrato — il file porta il titolo del video cotto nella fascia
             alta e un taglio 1:1 lo mozzerebbe. In home la cornice sta ferma
             e la foto affonda dentro (A20, D28); su /vendi, /acquista e
-            /recensioni resta la deriva ±4 % di Parallax. Il cerchio rosso è
-            l'unica curva. */}
-        {gesture ? link : <Parallax speed={-0.04}>{link}</Parallax>}
+            /recensioni entra con la lama (A36, D206-D207: via la deriva
+            ±0,56 % di Parallax, sotto la soglia di percezione). Il cerchio
+            rosso è l'unica curva. */}
+        {gesture ? linkHome : linkLama}
 
         <div className="lg:pl-[6vw]">
           <Reveal>

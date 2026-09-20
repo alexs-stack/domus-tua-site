@@ -41,8 +41,11 @@ const PRIMITIVE = [
   "useAmbientVideo",
   "reveal-engine",
   "text-roles",
-  "PageHeroDive",
+  "PageHeroTesta",
   "MarkSegno",
+  // La lama (A36): su /case/[slug] nessun modulo entra col ritaglio (A26/D32, D205).
+  "LamaMedia",
+  "data-lama",
 ];
 
 /** Le classi di movimento di oggi, file per file (13 settembre 2026). */

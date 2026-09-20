@@ -34,6 +34,7 @@ import { gsap, useGSAP } from "../lib/motion/gsap";
 import { MQ } from "../lib/motion/mq";
 import { chapters } from "../lib/motion/chapters";
 import Reveal from "./Reveal";
+import LamaMedia from "./motion/LamaMedia";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -138,8 +139,16 @@ export default function Posizionamento() {
             ritrova la stessa linea verticale invece di una larghezza nuova.
             consulenza.jpg è 1920×1625, quasi 1:1: nel quadrato si taglia il 15%
             e non si ingrandisce (la foto di gruppo 3:2 perderebbe i volti ai
-            bordi, e la "sede" è una miniatura YouTube con del testo sopra). */}
-          <div className="dt-media-half">
+            bordi, e la "sede" è una miniatura YouTube con del testo sopra).
+            Il 15 % si toglie a SINISTRA (`100% 50%`, D201): a `45% 50%` la
+            cliente di spalle restava tagliata all'80 % sul bordo destro; ora
+            la finestra è 0,154–1,000 del file e la cliente è intera per quanto
+            ne ha il file, Raffaela dentro (A27).
+            La foto entra con la lama (A36, D200-D203): da sinistra, perché la
+            cliente tocca il bordo destro, scivolo 10 % (margine sinistro dei
+            corpi 13,1 %). Il capitolo muove il foglio e le parole, non la foto:
+            la lama è il ruolo dei media, non un secondo gesto. */}
+          <LamaMedia id="sede" className="dt-media-half">
             <Image
               src="/images/reali/consulenza.jpg"
               alt={c.imageAlt}
@@ -150,9 +159,9 @@ export default function Posizionamento() {
               // scatola smette di crescere, quindi anche `sizes` si ferma.
               sizes="(max-width: 1023px) 118vw, (max-width: 1599px) 50vw, 760px"
               className="object-cover"
-              style={{ objectPosition: "45% 50%" }}
+              style={{ objectPosition: "100% 50%" }}
             />
-          </div>
+          </LamaMedia>
 
         <div ref={textRef} className="lg:pl-[6vw]">
           <Reveal>

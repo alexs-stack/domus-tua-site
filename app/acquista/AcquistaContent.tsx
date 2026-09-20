@@ -523,13 +523,12 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
     <>
       <main className="flex-1">
         <PageHero
+          rotta="/acquista"
           id="top"
           eyebrow={c.hero.eyebrow}
           title={c.hero.title()}
           subcopy={c.hero.subcopy}
           image="/images/reali/villa-lettini.jpg"
-          objectPosition="50% 50%"
-          srcWidth={2560}
           alt={c.hero.alt}
           primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "#case" }}

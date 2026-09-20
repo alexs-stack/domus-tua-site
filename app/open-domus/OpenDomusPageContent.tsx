@@ -722,13 +722,12 @@ export default function OpenDomusPageContent() {
     <>
       <main className="flex-1">
         <PageHero
+          rotta="/open-domus"
           id="top"
           eyebrow={c.heroEyebrow}
           title={c.heroTitle()}
           subcopy={c.heroSubcopy}
           image="/images/reali/villa-portico-tenda.jpg"
-          objectPosition="50% 60%"
-          srcWidth={2560}
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#percorso" }}

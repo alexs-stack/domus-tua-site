@@ -746,7 +746,7 @@ export default function StarReviews() {
                 foto SENZA velo, come sulla banda video finale: la cliente ha
                 bocciato vignettature e nero. */}
             <div className="absolute inset-0 flex items-center justify-center px-6">
-              <span className="dt-starrev_cover text-center font-display font-medium leading-none text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.25)]">
+              <span className="dt-starrev_cover text-center font-display font-medium leading-none text-white dt-ink-media">
                 {c.coverWord.split("").map((ch, i) => (
                   <span key={i} className="dt-starrev_char inline-block">
                     {ch === " " ? " " : ch}

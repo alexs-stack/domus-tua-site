@@ -77,7 +77,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua è un’agenzia indipendente di Tradate: indipendente per scelta, esigente per cultura. Se ti riconosci nel modo in cui lavoriamo, raccontaci chi sei.",
-    heroAlt: "Raffaela Rizza consegna una proposta d’acquisto a una cliente, nella sede di Tradate",
+    heroAlt: "Living di un attico con le travi a vista e la cucina sul fondo",
     heroPrimary: "Invia la tua candidatura",
     heroSecondary: "Perché proprio qui",
     heroTrust: [
@@ -194,7 +194,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua is an independent agency in Tradate: independent by choice, demanding by culture. If you recognise yourself in the way we work, tell us who you are.",
-    heroAlt: "Raffaela Rizza handing a purchase offer to a client at the Tradate office",
+    heroAlt: "Penthouse living room with exposed beams and the kitchen at the back",
     heroPrimary: "Send your application",
     heroSecondary: "Why here",
     heroTrust: [
@@ -327,7 +327,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua est une agence indépendante de Tradate : indépendante par choix, exigeante par culture. Si vous vous reconnaissez dans notre façon de travailler, dites-nous qui vous êtes.",
-    heroAlt: "Raffaela Rizza remet une offre d’achat à une cliente, dans les locaux de Tradate",
+    heroAlt: "Séjour d’un attique aux poutres apparentes, la cuisine au fond",
     heroPrimary: "Envoyer ma candidature",
     heroSecondary: "Pourquoi ici",
     heroTrust: [
@@ -460,7 +460,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua ist eine unabhängige Agentur in Tradate: unabhängig aus Überzeugung, anspruchsvoll aus Kultur. Wenn Sie sich in unserer Arbeitsweise wiederfinden, erzählen Sie uns, wer Sie sind.",
-    heroAlt: "Raffaela Rizza übergibt einer Kundin ein Kaufangebot im Büro in Tradate",
+    heroAlt: "Wohnzimmer eines Penthouses mit sichtbaren Balken und der Küche im Hintergrund",
     heroPrimary: "Bewerbung senden",
     heroSecondary: "Warum hier",
     heroTrust: [
@@ -593,7 +593,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua es una agencia independiente de Tradate: independiente por elección, exigente por cultura. Si te reconoces en nuestra forma de trabajar, cuéntanos quién eres.",
-    heroAlt: "Raffaela Rizza entrega una propuesta de compra a una clienta, en la sede de Tradate",
+    heroAlt: "Salón de un ático con vigas a la vista y la cocina al fondo",
     heroPrimary: "Enviar la candidatura",
     heroSecondary: "Por qué aquí",
     heroTrust: [
@@ -745,11 +745,15 @@ export default function LavoraConNoiContent() {
   return (
     <main className="flex-1">
       <PageHero
+        rotta="/lavora-con-noi"
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
-        image="/images/reali/consulenza.jpg"
-        srcWidth={1920}
+        /* D173/D181 (coordinatore, A38): consulenza.jpg (Raffaela e la cliente) rompeva A27 con le
+           scritte dentro la foto a schermo intero (sul telefono la testa della cliente usciva da ogni
+           inquadratura); la foto resta nel sito (Posizionamento, /acquista). In testa il living con le
+           travi, senza persone; l'inquadratura la dice tinte.json (D180). */
+        image="/images/hero_02_attico_travi_living.jpg"
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#candidatura" }}
         secondary={{ label: c.heroSecondary, href: "#perche" }}

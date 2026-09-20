@@ -3,10 +3,12 @@ import { test, expect, setConsent } from "./helpers";
 import { wheelTo } from "./coreografia";
 
 // Video d'ambiente (spec 2026-09-13 §2.7, §9.2). L'acqua di Costi chiari (A18 e
-// A20 di Alberto; D25, D28) e il drone del Congedo suonano solo in vista, con
-// motion ok, da 768 px e senza risparmio dati; fuori si fermano e riprendono
-// dal punto, perché il tempo del video non si scrive mai. Sotto 768, a 390 e con
-// reduced-motion resta il poster e non parte nessuna richiesta di video.
+// A20 di Alberto; D25, D28) e il video del Congedo (la clip da 02:00, A29) suonano
+// solo in vista, con motion ok, da 768 px e senza risparmio dati; fuori si fermano
+// e riprendono dal punto, perché il tempo del video non si scrive mai. Il Congedo
+// suona anche durante l'entrata della lastra (A35): il foglio piega il video che
+// suona, come Lusion (Alberto, 20 set.). Sotto 768, a 390 e con reduced-motion
+// resta il poster e non parte nessuna richiesta di video.
 // In Chromium di Playwright manca H.264: la sorgente scelta è la WebM.
 
 const VIDEO = /\.(mp4|webm)(\?|$)/;
@@ -43,14 +45,15 @@ test.beforeEach(async ({ page }) => {
 
 for (const caso of [
   { nome: "l'acqua di Costi chiari", host: ACQUA, file: /\/media\/acqua-1080\.webm/ },
-  { nome: "il drone del Congedo", host: CONGEDO, file: /\/media\/congedo-drone-(1080|720)\.webm/ },
+  { nome: "il video del Congedo", host: CONGEDO, file: /\/media\/congedo-drone-(1080|720)\.webm/ },
 ]) {
   test(`${caso.nome} suona in vista, si ferma fuori e riprende dal punto`, async ({ page, goto, isMobile }) => {
     test.skip(!!isMobile, "sotto 768 resta il poster: lo prova il test del telefono");
     await goto("/");
     await page.waitForTimeout(800);
+    const quota = () => quotaDi(page, caso.host);
 
-    await wheelTo(page, Math.max(0, await quotaDi(page, caso.host)));
+    await wheelTo(page, Math.max(0, await quota()));
     await expect.poll(async () => (await stato(page, caso.host)).ambient, { timeout: 15_000 }).toBe("playing");
     const a = await stato(page, caso.host);
     await page.waitForTimeout(300);
@@ -71,7 +74,7 @@ for (const caso of [
         v.addEventListener("playing", () => res(v.currentTime), { once: true }),
       );
     });
-    await wheelTo(page, Math.max(0, await quotaDi(page, caso.host)));
+    await wheelTo(page, Math.max(0, await quota()));
     const ripresa = await page.evaluate(() => (window as unknown as { __ripresa: Promise<number> }).__ripresa);
     expect(ripresa, "il video è ripartito da capo").toBeGreaterThanOrEqual(fermo - 0.05);
   });
@@ -140,7 +143,7 @@ const quotaWarm = (page: Page, sel: string) =>
 
 for (const caso of [
   { nome: "l'acqua di Costi chiari", host: ACQUA, file: /\/media\/acqua-1080\.webm/ },
-  { nome: "il drone del Congedo", host: CONGEDO, file: /\/media\/congedo-drone-(1080|720)\.webm/ },
+  { nome: "il video del Congedo", host: CONGEDO, file: /\/media\/congedo-drone-(1080|720)\.webm/ },
 ]) {
   test(`${caso.nome}: la sorgente si scrive al warm, prima del primo play`, async ({ page, goto, isMobile }) => {
     test.skip(!!isMobile, "sotto 768 non si scrive nessuna sorgente: lo prova il test del telefono");

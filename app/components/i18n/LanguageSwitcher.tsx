@@ -37,7 +37,9 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
   // non renderizziamo nulla quando l'i18n non è esplicitamente abilitato.
   if (!I18N_ENABLED) return null;
 
-  const base = light ? "border-cream/25 text-cream/90 hover:border-cream/60" : "border-line text-graphite hover:border-red hover:text-red";
+  // `light` (D186 del brief T, A38): sulla foto della testa il selettore è bianco nudo (senza
+  // ombra, A40) col bordo bianco al 60 %, come le voci della testata; prima era `text-cream/90`.
+  const base = light ? "border-white/60 text-white hover:border-white" : "border-line text-graphite hover:border-red hover:text-red";
 
   return (
     <div ref={ref} className="relative">

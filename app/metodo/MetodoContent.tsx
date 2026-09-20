@@ -4,7 +4,6 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
-import bandPositions from "../lib/motion/band-positions.json";
 import Highlights from "../components/Highlights";
 import Method from "../components/Method";
 import DomusDocProtocol from "../components/DomusDocProtocol";
@@ -192,13 +191,12 @@ export default function MetodoContent() {
       <Header />
       <main className="flex-1">
         <PageHero
+          rotta="/metodo"
           id="top"
           eyebrow={c.heroEyebrow}
           title={c.heroTitle()}
           subcopy={c.heroSubcopy}
           image="/images/reali/villa-vetrata-lanterne.jpg"
-          objectPosition={bandPositions["/metodo"]}
-          srcWidth={2560}
           alt={c.heroAlt}
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#metodo" }}

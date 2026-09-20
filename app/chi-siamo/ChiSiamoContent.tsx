@@ -11,6 +11,7 @@ import Team from "../components/Team";
 import Reveal from "../components/Reveal";
 import { site, yearsActive } from "../lib/site";
 import RevealGroup from "../components/motion/RevealGroup";
+import LamaMedia from "../components/motion/LamaMedia";
 import SplitTitle from "../components/motion/SplitTitle";
 import Lead from "../components/motion/Lead";
 import Contact from "../components/Contact";
@@ -246,11 +247,11 @@ export default function ChiSiamoContent({ since }: { since: number }) {
   return (
     <main className="flex-1">
       <PageHero
+        rotta="/chi-siamo"
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
         image="/images/hero_01_attico_travi_salotto.jpg"
-        srcWidth={1920}
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#chi-siamo" }}
@@ -261,20 +262,20 @@ export default function ChiSiamoContent({ since }: { since: number }) {
       <section className="dt-chapter bg-cream">
         <div className="dt-row">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <Reveal>
-              {/* Il modulo. Era un quadrato su misura da 573 px servito con
-                  la variante da 640 per una scatola che ne chiede 860: la
-                  villa era visibilmente molle (1,54x). */}
-              <div className="dt-media-half">
-                <Image
-                  src="/images/reali/villa-pool.jpg"
-                  alt={c.storiaImageAlt}
-                  fill
-                  sizes="(max-width: 1024px) 150vw, 63vw"
-                  className="object-cover object-center"
-                />
-              </div>
-            </Reveal>
+            {/* Il modulo. Era un quadrato su misura da 573 px servito con
+                la variante da 640 per una scatola che ne chiede 860: la
+                villa era visibilmente molle (1,54x). Entra con la lama (A36,
+                D200-D202) da destra, scivolo 10: il <Reveal> che l'avvolgeva
+                se n'è andato, un solo tween per foto (D207). */}
+            <LamaMedia id="chi-siamo" className="dt-media-half">
+              <Image
+                src="/images/reali/villa-pool.jpg"
+                alt={c.storiaImageAlt}
+                fill
+                sizes="(max-width: 1024px) 150vw, 63vw"
+                className="object-cover object-center"
+              />
+            </LamaMedia>
             <RevealGroup>
               <Reveal>
                 <span className="eyebrow">{c.storiaEyebrow}</span>

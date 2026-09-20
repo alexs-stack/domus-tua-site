@@ -222,13 +222,11 @@ export default function ServiziContent() {
   return (
     <main className="flex-1">
       <PageHero
+        rotta="/servizi"
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
         image="/images/reali/villa-angolo-piscina.jpg"
-        objectPosition="50% 60%"
-        srcWidth={2560}
-        scriptInset
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#servizi" }}

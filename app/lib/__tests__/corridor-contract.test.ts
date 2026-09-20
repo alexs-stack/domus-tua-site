@@ -104,12 +104,12 @@ describe("CSS dei corridoi prima del paint (spec §2.7 e §4, D22)", () => {
     assert.deepEqual(colpe, []);
   });
 
-  test("--corridor-run per id: hero 200svh, cartolina 80svh, page-dive 120svh", () => {
+  test("--corridor-run per id: hero 200svh, cartolina 135svh (A35/A42: 100 − 65 + 20 + 80); nessun corridoio di pagina (A41)", () => {
     const css = cssPulito();
+    for (const morto of ["page-dive", "soglia", "ingresso"]) assert.equal(regola(css, `[data-corridor="${morto}"]`), null, `${morto}: corridoio morto con A38/A41`);
     for (const [id, run] of [
       ["hero", "200svh"],
-      ["cartolina", "80svh"],
-      ["page-dive", "120svh"],
+      ["cartolina", "135svh"],
     ] as const) {
       const r = regola(css, `[data-corridor="${id}"]`);
       assert.ok(r?.includes(`--corridor-run: ${run}`), `${id}: manca --corridor-run: ${run}`);

@@ -3,8 +3,10 @@
 // Soglie di D18.
 //
 // Com'è fatto oggi: una voce per ognuno dei 17 capitoli della home, nella
-// tabella di spec §3.1, più il tuffo delle 11 PageHero ("page-dive"). Il tuffo
-// ripete la coppia dell'hero, ed è dichiarato in spec §5.1.
+// tabella di spec §3.1. Le pagine interne non hanno più un capitolo: il tuffo
+// delle 11 PageHero ("page-dive", spec §5.1) e i due capitoli di pagina di A28
+// ("ingresso" su /vendi, "soglia" su /acquista, commit R) sono morti con A38 e
+// A41 (20 set. 2026): la testa di era è ferma, sticky, senza corridoio.
 // - chapters.test.ts applica D18 alle 17 voci.
 // - `curve` porta le cifre di ogni CustomEase: il test costruisce la curva da
 //   lì anche prima che il consumatore la registri in gsap.ts (spec §2.6).
@@ -38,9 +40,9 @@ export const HOME_ORDER = [
 ] as const;
 
 export type HomeChapterId = (typeof HOME_ORDER)[number];
-export type ChapterId = HomeChapterId | "page-dive";
+export type ChapterId = HomeChapterId;
 /** I corridoi costruiti da useCorridor; nastro, stelle e rotaia hanno meccaniche loro. */
-export type CorridorId = "hero" | "finestra" | "cartolina" | "page-dive";
+export type CorridorId = "hero" | "finestra" | "cartolina";
 
 export type Time = { scrub: number | true } | { dur: number; delay: number; stagger?: number };
 export type Trigger =
@@ -234,27 +236,28 @@ export const chapters: Record<ChapterId, Chapter> = {
       trigger: { el: "griglia di #contatti", st: ["top 70%", "bottom 30%"] },
     },
   },
+  /* A35 e A42 di Alberto (19-20 set.), qualita/a35/direttive-video-entrata.md: davanti alla
+     cartolina sta l'entrata alla Lusion. Il video parte nello slot 16:9 a destra del titolo e
+     lungo 100svh cresce piegandosi come un foglio fino allo schermo intero (lastra.ts,
+     useLastra.ts); comincia 65svh prima dell'aggancio dello sticky (`start` come funzione
+     sull'altezza della testa in flusso); pianerottolo 20svh; poi la cartolina di A19-A20 e il
+     footer, sulla stessa timeline (252svh; Congedo.tsx). Il tratto dell'entrata è lineare, un
+     `secondary` `none` che chapters.test.ts salta nel confronto delle curve (D18); la
+     distensione del foglio a scroll fermo è un gsap.to fuori dalla timeline, in dtCartolina. */
   cartolina: {
     id: "cartolina",
-    gesture: "cartolina: la banda si ritira in inset(8% 22%), il footer sale e cresce",
+    gesture:
+      "l'entrata alla Lusion: dallo slot a destra del titolo il video cresce piegandosi fino allo schermo intero, poi la cartolina: si ritira in inset(8% 22%), il footer sale e cresce",
     signature: {
       ease: "dtCartolina",
       curve: DT_CARTOLINA,
       time: { scrub: 0.9 },
-      trigger: { el: '[data-corridor="cartolina"] → footer', st: ["top top", "clamp(top 40%)"] },
+      trigger: { el: '[data-corridor="cartolina"] → footer', st: ["top+=${testa − 65svh} top", "clamp(top 40%)"] },
     },
-    secondary: [{ ease: "dtCartolina", curve: DT_CARTOLINA, note: "footer scale .75→1, opacity 0→1, origine 50% 0%" }],
-  },
-  "page-dive": {
-    id: "page-dive",
-    gesture: "tuffo delle 11 PageHero: la coppia dell'hero, dichiarata (spec §5.1)",
-    signature: {
-      ease: "dtIn",
-      curve: DT_IN,
-      time: { scrub: true },
-      trigger: { el: '[data-corridor="page-dive"]', st: ["top top", "bottom bottom"] },
-    },
-    secondary: [{ ease: "dtEase", curve: DT_EASE, note: "salita del testo e della banda, da 0 a 0,6" }],
+    secondary: [
+      { ease: "none", note: "entrata: e 0→1 lineare su 100svh (A35, A42)" },
+      { ease: "dtCartolina", curve: DT_CARTOLINA, note: "footer scale .75→1, opacity 0→1, origine 50% 0%" },
+    ],
   },
 };
 

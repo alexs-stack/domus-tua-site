@@ -71,7 +71,6 @@ const CHAPTER_FILES: Partial<Record<ChapterId, string[]>> = {
   testimonianza: ["app/components/FeaturedTestimonial.tsx"],
   team: ["app/components/Team.tsx", "app/components/motion/HorizontalRail.tsx"],
   cartolina: ["app/components/Congedo.tsx"],
-  "page-dive": ["app/components/motion/PageHeroDive.tsx"],
 };
 
 /* Il codice dei nastri che esistono già (A12, A03), confrontato con le
@@ -138,10 +137,12 @@ function distance(a: string, b: string): number {
 }
 
 describe("chapters.ts: il registro", () => {
-  test("17 capitoli della home in ordine, più page-dive", () => {
+  // I capitoli di pagina (page-dive, ingresso, soglia) sono morti con A38/A41 (20 set. 2026).
+  test("17 capitoli della home in ordine, e nessun altro", () => {
     assert.equal(HOME_ORDER.length, 17);
     assert.equal(new Set(HOME_ORDER).size, 17);
-    for (const id of [...HOME_ORDER, "page-dive" as const]) assert.equal(chapters[id].id, id);
+    for (const id of HOME_ORDER) assert.equal(chapters[id].id, id);
+    assert.deepEqual(Object.keys(chapters).sort(), [...HOME_ORDER].sort());
   });
 
   test("ease ammesse: famiglie di serie di GSAP o CustomEase con le cifre nel registro", () => {
@@ -173,7 +174,7 @@ describe("chapters.ts: il registro", () => {
 
   test("il rilevatore dei consumatori riconosce le quattro forme e ignora data-corridor", () => {
     assert.ok(consumes("tl.to(zoom, { ease: chapters.hero.signature.ease })", "hero"));
-    assert.ok(consumes('const s = chapters["page-dive"].signature;', "page-dive"));
+    assert.ok(consumes('const s = chapters["finestra"].signature;', "finestra"));
     assert.ok(consumes('useCorridor(ref, { id: "cartolina", build })', "cartolina"));
     assert.ok(consumes('<ClipMedia chapter="method" from="left">', "method"));
     assert.ok(!consumes('<HorizontalRail corridor="team" runway={120}>', "team"));
@@ -291,11 +292,6 @@ describe("A20 sulle firme della home (D18)", () => {
     assert.equal(new Set(st).size, st.length, `coppie ripetute: ${st.join(" | ")}`);
     const io = HOME.flatMap((c) => ("io" in c.signature.trigger ? [c.signature.trigger.io.rootMargin] : []));
     assert.equal(new Set(io).size, io.length, `rootMargin ripetuti: ${io.join(" | ")}`);
-  });
-
-  test("page-dive ripete ease e scrub dell'hero, dichiarato (spec §5.1)", () => {
-    assert.equal(chapters["page-dive"].signature.ease, chapters.hero.signature.ease);
-    assert.equal(scrubOf("page-dive"), scrubOf("hero"));
   });
 
   test("scrubOf legge lo scrub e rifiuta i capitoli a tempo", () => {

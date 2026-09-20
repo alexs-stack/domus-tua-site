@@ -7,11 +7,18 @@
 // quindi una zona vince solo se l'elemento in cima al centro del segno sta
 // nel suo ambito ([data-bg-scope], altrimenti la section che la contiene).
 // Il segno è pointer-events-none: elementFromPoint non lo vede.
+// D186 (brief T, A38 di Alberto): da lg la testata è trasparente e in flusso
+// sopra la foto della testa (Header.tsx), quindi a scroll 0 in cima al centro
+// del segno c'è l'<a> del lockup o una voce della nav, e il tema restava
+// grafite sopra la fotografia. Si legge la pila di elementsFromPoint e si
+// salta ciò che sta dentro `header`: sotto il segno c'è ciò che sta sotto la
+// testata.
 
 export type Tema = "foto" | "grafite";
 
 export function temaAt(cx: number, cy: number): Tema {
-  const top = document.elementFromPoint(cx, cy);
+  const pila = document.elementsFromPoint(cx, cy);
+  const top = pila.find((el) => !el.closest("header")) ?? pila[0];
   if (!top) return "grafite";
   let vincitrice: { zona: Element; ambito: Element } | null = null;
   for (const zona of Array.from(document.querySelectorAll("[data-bg]"))) {

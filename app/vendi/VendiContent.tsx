@@ -928,13 +928,12 @@ export default function VendiContent() {
     <>
       <main className="flex-1">
         <PageHero
+          rotta="/vendi"
           id="top"
           eyebrow={c.hero.eyebrow}
           title={c.hero.title()}
           subcopy={c.hero.subcopy}
           image="/images/reali/villa-piscina-facciata.jpg"
-          objectPosition="50% 55%"
-          srcWidth={2560}
           alt={c.hero.alt}
           primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "#percorso" }}

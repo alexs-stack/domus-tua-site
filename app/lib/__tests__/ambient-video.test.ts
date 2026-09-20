@@ -96,12 +96,15 @@ describe("il gate e i consumatori", () => {
     assert.ok(catene.has("app/lib/motion/ambient.ts"), "la visita non ha raggiunto ambient.ts");
   });
 
+  // A35: anche la lastra del Congedo (useLastra.ts) non scrive il tempo né ferma il loop: il video
+  // parte in vista come sempre e il foglio piega quel che c'è (Alberto, 20 set.).
   test("nessuno scrive il tempo del video e nessuno parte da solo", () => {
-    for (const f of ["app/components/Congedo.tsx", "app/components/CostiChiari.tsx", "app/components/motion/useAmbientVideo.ts"]) {
+    for (const f of ["app/components/Congedo.tsx", "app/components/CostiChiari.tsx", "app/components/motion/useAmbientVideo.ts", "app/components/motion/useLastra.ts"]) {
       const s = codice(f);
       assert.doesNotMatch(s, /autoPlay/, f);
       assert.doesNotMatch(s, /currentTime\s*=(?!=)/, f);
     }
+    assert.doesNotMatch(codice("app/components/motion/useLastra.ts"), /video\.pause\(\)|video\.play\(\)/, "la lastra non comanda il loop");
   });
 
   test("il markup dei due video", () => {

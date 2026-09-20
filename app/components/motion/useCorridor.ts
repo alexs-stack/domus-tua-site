@@ -60,8 +60,12 @@ export type CorridorOptions = {
   end?: string | (() => string);
   /** Cartolina: il footer. */
   endTrigger?: RefObject<Element | null>;
-  /** Riempie la timeline su una durata 1. */
-  build: (tl: gsap.core.Timeline, q: (sel: string) => HTMLElement[]) => void;
+  /**
+   * Riempie la timeline su una durata 1. Può restituire un cleanup, che il hook
+   * chiama con il suo (la soglia di /acquista, D75, aggancia le rimisure a
+   * refreshInit e deve toglierle quando il ramo si smonta).
+   */
+  build: (tl: gsap.core.Timeline, q: (sel: string) => HTMLElement[]) => void | (() => void);
   cues?: Cue[];
   /** Scroll che rende visibile `el`; null = nessuno scroll. Default: bisezione sul progresso. */
   focus?: (el: Element, st: ScrollTrigger) => number | null;
@@ -128,7 +132,7 @@ export function useCorridor(ref: RefObject<HTMLElement | null>, o: CorridorOptio
             onUpdate: (self) => runCues(self.progress),
           },
         });
-        o.build(tl, q);
+        const undoBuild = o.build(tl, q);
 
         // Dopo ogni refresh: i cue mancanti e la rete di fine documento (spec
         // §2.7, verdetto sistema bloccante 2, D22). Con endTrigger conta st.end.
@@ -192,6 +196,7 @@ export function useCorridor(ref: RefObject<HTMLElement | null>, o: CorridorOptio
 
         return () => {
           stopRefresh();
+          if (typeof undoBuild === "function") undoBuild();
           root.removeEventListener("focusin", onFocus);
           ScrollTrigger.removeEventListener("refreshInit", measure);
           ScrollTrigger.removeEventListener("refresh", afterRefresh);

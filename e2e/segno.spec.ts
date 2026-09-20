@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect, setConsent } from "./helpers";
-import { clipOf, insetValues, scrollToProgress } from "./coreografia";
+import { clipOf, insetValues } from "./coreografia";
 
 // IL MONOGRAMMA SEMPRE VISIBILE (spec §6.1). Alberto il 13 settembre 2026,
 // «Si stacca da 1024» (A21, D34): da 1280 il segno parte sopra il badge
@@ -124,30 +124,37 @@ test("1440, scroll 1200: centro a 4vw, taglia clamp(40px, 3,75vw, 56px), sull'as
 });
 
 for (const vp of [
-  // Spec §5.1 chiede «tema foto a p 0,8» a tutti e due i viewport. A 1024×768 la
-  // stessa timeline di §5.1 (commit 18) lascia il bordo alto della foto a
-  // ≈ +108 px a p 0,8, sotto il centro del segno (y = --dt-head-h / 2 = 38 px),
-  // e la foto arriva sull'asse a p ≈ 0,87 (test unitario del commit 18 «a p 0,8
-  // il bordo alto della scatola che scala…»): finché Alberto non cambia la
-  // timeline, lì la quota è 0,9 (deroga in testa al commit 20, da portare in
-  // spec §5.1 col commit 22). A 1440×900 il bordo sta a −28 px: p 0,8 regge.
-  { width: 1440, height: 900, p: 0.8 },
-  { width: 1024, height: 768, p: 0.9 },
+  // La testa di era (A38, A41, 20 set. 2026): la foto è il fondo a schermo intero
+  // dal primo pixel, sticky e ferma, e il blocco dei testi le scorre sopra. Il
+  // segno sta sopra la foto da scroll 0 fino alla fine della section (tema
+  // «foto»: tacche avorio, monogramma intatto, C23) e torna grafite sull'avorio
+  // della pagina che segue. Il tuffo ("page-dive") che qui si misurava a p 0,8
+  // e 0,9 è morto con A41.
+  { width: 1440, height: 900 },
+  { width: 1024, height: 768 },
 ]) {
-  test(`/vendi ${vp.width}×${vp.height}: tema foto a p ${vp.p} del tuffo, grafite a scroll 200; le tacche virano, il monogramma no (T1, C23)`, async ({ page, goto }, info) => {
+  test(`/vendi ${vp.width}×${vp.height}: tema foto a scroll 200 e a metà testa, grafite sotto la testa; le tacche virano, il monogramma no (T1, C23)`, async ({ page, goto }, info) => {
     soloDesktop(info.project.name);
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await goto("/vendi");
     await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
+    // Sotto xl il segno si accende scorrendo (opacità 0 → 1 nella seconda metà della testata,
+    // MarkSegno) e a opacità 0 non misura: la prima lettura si fa a scroll 200, oltre la testata.
     await scrollA(page, 200);
-    await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
-    // La transizione di `color` dura --td-duration-fast (250 ms): si aspetta il colore finale.
-    await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000, message: "con la grafite le tacche non sono --color-ink" }).toBe(INK);
-    expect((await coloriSegno(page)).monogramma, "con la grafite il monogramma non è grigio e rosso").toEqual(MONOGRAMMA);
-    await scrollToProgress(page, '[data-corridor="page-dive"]', vp.p);
     await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
+    // La transizione di `color` dura --td-duration-fast (250 ms): si aspetta il colore finale.
     await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000, message: "sopra la foto le tacche non sono --color-cream" }).toBe(CREAM);
     expect((await coloriSegno(page)).monogramma, "sopra la foto il monogramma è stato ricolorato (C23)").toEqual(MONOGRAMMA);
+    const testa = await page.locator("section[data-testa]").evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return { top: r.top + window.scrollY, bottom: r.bottom + window.scrollY };
+    });
+    await scrollA(page, Math.round((testa.top + testa.bottom) / 2));
+    await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
+    await scrollA(page, Math.round(testa.bottom + vp.height * 0.6));
+    await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
+    await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000, message: "con la grafite le tacche non sono --color-ink" }).toBe(INK);
+    expect((await coloriSegno(page)).monogramma, "con la grafite il monogramma non è grigio e rosso").toEqual(MONOGRAMMA);
   });
 }
 

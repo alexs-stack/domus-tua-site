@@ -1,5 +1,6 @@
 import { test, expect, setConsent } from "./helpers";
-import { BAND_SIZES } from "../app/lib/motion/page-dive";
+import { sizesDi } from "../app/lib/motion/testa";
+import tinte from "../app/lib/motion/tinte.json";
 
 // Reduced motion. Chi ha chiesto meno animazioni deve vedere lo stesso sito, fermo — non un
 // sito a metà: nessun testo invisibile in attesa di un'animazione che non partirà mai.
@@ -229,31 +230,28 @@ test("con reduced motion il pannello della ricerca e le tessere di Voci restano 
   expect(await page.locator("#voci [data-voci-slide]").count()).toBeGreaterThan(0);
 });
 
-// ── Il tuffo delle pagine interne, con reduced motion ──────────────────────
-// A20 di Alberto (13 settembre 2026, spec §5.1): da 1024 px e 640 px d'altezza con
-// motion ok ogni PageHero è un corridoio sticky, e la foto di pagina è senza
-// Parallax (D23). Con reduced motion, il regime di tutto questo file, il
-// corridoio resta spento: niente `data-on`, schermo in flusso, spaziatore spento,
-// contenuto e foto senza trasformate, nessuno strato nitido. Il movimento con
-// motion ok lo prova e2e/page-hero-dive.spec.ts.
+// ── La testa di era delle pagine interne, con reduced motion ───────────────
+// A38, A40 e A41 di Alberto (20 settembre 2026): la foto è il fondo a schermo
+// intero, sticky e FERMA (nessun tuffo, nessun corridoio: page-dive, soglia e
+// ingresso sono morti), il blocco dei testi le scorre sopra. Il layout sta nel
+// CSS prima del paint, quindi con reduced motion, il regime di tutto questo
+// file, la pagina è identica: niente `data-corridor`, niente trasformate,
+// `sizes` dal modulo dei numeri. Il resto della testa lo prova e2e/a28.spec.ts.
 test("su /vendi la testa resta ferma e senza corridoio @layout", async ({ page, goto }) => {
   await goto("/vendi");
-  const dive = page.locator('[data-corridor="page-dive"]');
-  await expect(dive).toHaveCount(1);
-  // Il tempo in cui il JS accenderebbe il corridoio se sbagliasse la condizione.
+  await expect(page.locator("[data-corridor]")).toHaveCount(0);
+  const testa = page.locator("section[data-testa]");
+  await expect(testa).toHaveCount(1);
+  await expect(testa.locator(".dt-testa_riquadro")).toHaveCSS("position", "sticky");
+  const sorgente = tinte["/vendi"].sorgente;
+  await expect(page.locator("img[data-testa-foto]")).toHaveAttribute("sizes", sizesDi(sorgente[0] / sorgente[1]));
+  // Il tempo in cui un JS sbagliato scriverebbe una trasformata.
   await page.waitForTimeout(800);
-  expect(await dive.getAttribute("data-on")).toBeNull();
-  await expect(dive.locator(":scope > [data-corridor-screen]")).toHaveCSS("position", "static");
-  await expect(dive.locator(":scope > [data-corridor-run]")).toHaveCSS("display", "none");
-  await expect(page.locator("img[data-dive-base]")).toHaveAttribute("sizes", BAND_SIZES);
-  await page.locator("[data-dive-band]").evaluate((el) =>
-    window.scrollTo({ top: el.getBoundingClientRect().bottom + window.scrollY, behavior: "instant" }),
-  );
+  await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
   await page.waitForTimeout(250);
-  for (const sel of ["[data-dive-content]", "[data-dive-band]", "[data-dive-zoom]", "[data-dive-inner]"]) {
-    await expect(page.locator(sel)).toHaveCSS("transform", "none");
+  for (const sel of [".dt-testa_riquadro", ".dt-testa_strato", ".dt-testa_blocco", "img[data-testa-foto]"]) {
+    await expect(page.locator(sel).first()).toHaveCSS("transform", "none");
   }
-  await expect(page.locator("img[data-dive-sharp]")).toHaveCount(0);
 });
 
 // Capitoli 13-16 (spec 2026-09-13 §3.14-3.17): con reduced motion nessun gesto
@@ -304,37 +302,51 @@ test("la cartolina del Congedo con reduced motion resta una banda piena e ferma"
   expect(s.mt).toBe("0px");
 });
 
-// Reduced motion (spec 2026-09-13 §3.18): la banda resta piena e il titolo sta
-// già dentro il rettangolo della futura finestra, calcolato coi lati finali di
-// ogni larghezza: 8/22 % da 1024, 4/14 % da 768, 4/10 % sotto (D29). Nessun
-// clip-path da leggere: la finestra si costruisce sullo schermo coi numeri della spec.
-test("la cartolina con reduced motion: il titolo sta già dentro la futura finestra", async ({ page, goto, isMobile }) => {
+// Reduced motion (spec 2026-09-13 §3.18; A35, A42): la banda resta piena e ferma, la testa
+// (h2 e comando) sta in flusso sopra lo schermo a una colonna, lo slot della miniatura non
+// esiste (D108, D111); nessuna entrata: né attributi né canvas né transform sul ritaglio, su
+// cinque larghezze (i lati finali della cartolina di D29 non c'entrano più col titolo).
+test("la cartolina con reduced motion: testa sopra a una colonna, banda piena senza entrata né slot", async ({ page, goto, isMobile }) => {
   test.skip(!!isMobile, "le cinque larghezze si impostano dentro il test");
   for (const vp of [
-    { width: 1920, height: 1080, lati: [8, 22, 8, 22] },
-    { width: 1440, height: 900, lati: [8, 22, 8, 22] },
-    { width: 1024, height: 768, lati: [8, 22, 8, 22] },
-    { width: 768, height: 1024, lati: [4, 14, 4, 14] },
-    { width: 390, height: 664, lati: [4, 10, 4, 10] },
+    { width: 1920, height: 1080 },
+    { width: 1440, height: 900 },
+    { width: 1024, height: 768 },
+    { width: 768, height: 1024 },
+    { width: 390, height: 664 },
   ]) {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await goto("/");
     await page.locator('[data-corridor="cartolina"]').scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
-    const g = await page.evaluate(([t, r, b, l]) => {
-      const s = document.querySelector('[data-corridor="cartolina"] > [data-corridor-screen]')!.getBoundingClientRect();
-      const tt = document.getElementById("congedo-title")!.getBoundingClientRect();
+    const g = await page.evaluate(() => {
+      const sec = document.querySelector<HTMLElement>('[data-corridor="cartolina"]')!;
+      const screen = sec.querySelector<HTMLElement>("[data-corridor-screen]")!;
+      const banda = screen;
+      const clip = sec.querySelector<HTMLElement>("[data-postcard-clip]")!;
+      const h2 = document.getElementById("congedo-title")!;
+      const a = sec.querySelector<HTMLElement>(".dt-postcard_testa a.dt-btn")!;
       return {
-        clip: getComputedStyle(document.querySelector('[data-corridor="cartolina"] [data-postcard-clip]')!).clipPath,
-        win: { l: s.left + (s.width * l) / 100, r: s.right - (s.width * r) / 100, t: s.top + (s.height * t) / 100, b: s.bottom - (s.height * b) / 100 },
-        title: { l: tt.left, r: tt.right, t: tt.top, b: tt.bottom },
+        clip: getComputedStyle(clip).clipPath,
+        clipT: clip.style.transform,
+        entrata: sec.getAttribute("data-entrata"),
+        canvas: !!sec.querySelector("canvas"),
+        h2Fuori: !screen.contains(h2),
+        h2Sopra: h2.getBoundingClientRect().bottom <= banda.getBoundingClientRect().top + 1,
+        ctaSotto: a.getBoundingClientRect().bottom <= banda.getBoundingClientRect().top + 1,
+        slot: getComputedStyle(sec.querySelector(".dt-postcard_slot")!).display,
+        lettere: !!banda.querySelector("h1, h2, h3, p, a, button"),
       };
-    }, vp.lati);
+    });
     const at = `${vp.width}×${vp.height}`;
     expect(g.clip, at).toBe("none");
-    expect(g.title.l, `${at}: il titolo esce a sinistra della futura finestra`).toBeGreaterThanOrEqual(g.win.l - 1);
-    expect(g.title.r, `${at}: il titolo esce a destra della futura finestra`).toBeLessThanOrEqual(g.win.r + 1);
-    expect(g.title.t, `${at}: il titolo esce in alto dalla futura finestra`).toBeGreaterThanOrEqual(g.win.t - 1);
-    expect(g.title.b, `${at}: il titolo esce in basso dalla futura finestra`).toBeLessThanOrEqual(g.win.b + 1);
+    expect(g.clipT, at).toBe("");
+    expect(g.entrata, at).toBeNull();
+    expect(g.canvas, at).toBe(false);
+    expect(g.h2Fuori, `${at}: l'h2 sta dentro lo schermo`).toBe(true);
+    expect(g.h2Sopra, `${at}: l'h2 non sta sopra la banda`).toBe(true);
+    expect(g.ctaSotto, `${at}: il comando non sta sopra la banda, nella testa`).toBe(true);
+    expect(g.slot, `${at}: lo slot esiste senza l'entrata`).toBe("none");
+    expect(g.lettere, `${at}: lettere sulla fotografia`).toBe(false);
   }
 });

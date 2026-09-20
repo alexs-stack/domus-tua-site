@@ -118,9 +118,11 @@ describe("capitolo 16, Contact: il modulo resta indietro (D30)", () => {
     assert.ok(co.includes(`scrub: ${f.time.scrub}`));
     assert.ok(co.includes(`start: "${f.trigger.st![0]}"`) && co.includes(`end: "${f.trigger.st![1]}"`));
   });
-  test("in home la foto sta fuori dal Reveal, altrove resta nel Reveal di oggi (correzione bloccante 4 di homeC, D28)", () => {
+  // Dal 20 set. (A36, D205-D206) fuori dalla home le chiavi entrano con la lama, e su
+  // /case/[slug] LamaMedia rende il Reveal di oggi con lo stesso ritardo (frozenDelay 120).
+  test("in home la foto sta fuori da ogni tween, altrove entra con la lama (D28 superata da D206; D205 su /case)", () => {
     // Il ternario intero: senza, o invertito, la foto resterebbe nel Reveal anche in home.
-    assert.match(co, /\{gesture \? keysPhoto : <Reveal delay=\{120\}>\{keysPhoto\}<\/Reveal>\}/);
+    assert.match(co, /\{gesture \? \(\s*keysPhoto\s*\) : \(\s*<LamaMedia id="chiavi" className="dt-media-half mt-10" frozenDelay=\{120\}>/);
     assert.match(co, /data-lag-col/);
   });
   test("requestRefresh a scroll fermo su sent, delivery e intento, su tutte le rotte, mai al montaggio (§3.17)", () => {

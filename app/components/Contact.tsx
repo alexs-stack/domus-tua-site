@@ -9,6 +9,7 @@ import { formatLeadMessage, submitLead, type Lead, type LeadIntent } from "../li
 import { isEmailFormat, isPhoneFormat } from "../lib/forms/contactChannel";
 import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import Reveal from "./Reveal";
+import LamaMedia from "./motion/LamaMedia";
 import SplitTitle from "./motion/SplitTitle";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
@@ -656,17 +657,21 @@ export default function Contact({
 
   // Il modulo, non una scatola su misura: 605 px come ogni altra meta' del
   // sito, cosi' anche qui il bordo cade sulla mezzeria invece che 43 px prima.
-  const keysPhoto = (
-    <div className="dt-media-half mt-10">
-      <Image
-        src="/images/reali/raffaela-keys.jpg"
-        alt={c.keysAlt}
-        fill
-        sizes="(max-width: 1024px) 100vw, 42vw"
-        className="object-cover"
-      />
-    </div>
+  // Inquadratura `50% 0%` (D201): il file e' un ritratto 3:4 e nel quadrato si
+  // taglia in altezza; dal centro la testa di Raffaela usciva all'80 %, dall'alto
+  // testa e mano con le chiavi restano intere (y 0–0,748; A27). Vale ovunque,
+  // /case compresa: un'inquadratura, non un movimento (D205).
+  const keysImage = (
+    <Image
+      src="/images/reali/raffaela-keys.jpg"
+      alt={c.keysAlt}
+      fill
+      sizes="(max-width: 1024px) 100vw, 42vw"
+      className="object-cover"
+      style={{ objectPosition: "50% 0%" }}
+    />
   );
+  const keysPhoto = <div className="dt-media-half mt-10">{keysImage}</div>;
 
   // Deep-link: /contatti?intent=buyer (o seller/question/open-domus) preseleziona il tab giusto,
   // quando non è già forzato via prop (es. dalla scheda immobile). Utile per le CTA "Cerco casa"
@@ -865,7 +870,18 @@ export default function Contact({
                 sta ferma accanto al modulo che resta indietro (D30); sulle
                 altre undici rotte, /case/[slug] compresa (D32), entra col
                 Reveal (correzione bloccante 4 di homeC, spec 2026-09-13 §3.17). */}
-            {gesture ? keysPhoto : <Reveal delay={120}>{keysPhoto}</Reveal>}
+            {/* In home (`gesture`, D28/D30) le chiavi stanno ferme accanto al
+                modulo che resta indietro; sulle altre rotte entrano con la lama
+                (A36, D206: D28 superata fuori dalla home) da destra, scivolo 4
+                (margine destro dei corpi 4,0 %). Su /case/[slug], congelata
+                (A26/D32), LamaMedia rende il fade-up di oggi (D205). */}
+            {gesture ? (
+              keysPhoto
+            ) : (
+              <LamaMedia id="chiavi" className="dt-media-half mt-10" frozenDelay={120}>
+                {keysImage}
+              </LamaMedia>
+            )}
           </div>
 
           {/* Destra: il modulo a filo — campi col solo bordo inferiore, niente card */}

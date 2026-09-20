@@ -4,7 +4,6 @@ import { ratingLabel, site } from "../lib/site";
 
 import { useLocale } from "../components/i18n/LocaleProvider";
 import PageHero from "../components/PageHero";
-import bandPositions from "../lib/motion/band-positions.json";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Reviews from "../components/Reviews";
 import Stats from "../components/Stats";
@@ -100,12 +99,11 @@ export default function RecensioniContent() {
   return (
     <main className="flex-1">
       <PageHero
+        rotta="/recensioni"
         eyebrow={c.eyebrow}
         title={c.title()}
         subcopy={c.subcopy}
         image="/images/reali/villa-salotto-ombrellone.jpg"
-        objectPosition={bandPositions["/recensioni"]}
-        srcWidth={2560}
         alt={c.alt}
         primary={{ label: c.primaryLabel, href: "#contatti" }}
         secondary={{ label: c.secondaryLabel, href: "#recensioni" }}

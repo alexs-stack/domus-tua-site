@@ -2932,3 +2932,69 @@ Regole rispettate.
 | 390×664 | / | nessuno | nessuno | 1 | 28479 | 0 |  | ok |
 | 1440×900 | /vendi | page-dive | page-dive | 1 | 17034 | 0 |  | ok |
 | 1440×900 | / ricarica a metà di #servizi |  |  |  |  |  | 0.6 (scrollY 24223) | ok |
+
+### Commit T · paint dell'alone della testa di era, 1440×900, CPU ×4 (2026-09-20, cec1551+) — riproduzione del metro di 17-paint.mjs
+
+| misura | viewport | fotogrammi / pixel | p95 ms / p10 | max ms / riposo | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- |
+| cartolina (17-paint.mjs) | 1440×900 | 490 | 2.01 | 7.1 | p95 < 4 ms, ≥ 30 fotogrammi (17-paint: p95 1,8-2,0, max 7,9-10,4) | ok |
+
+Nota: lo stesso metro di 17-paint.mjs (Paint per finestra da 16,7 ms fra due mark, thread del renderer).
+
+### Commit T · paint dell'alone della testa di era, 1440×900, CPU ×4 (2026-09-20, cec1551+) — coi controlli della corsa
+
+| misura | viewport | fotogrammi / pixel | p95 ms / p10 | max ms / riposo | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- |
+| posa title /servizi de (lancio 1, 2705 ms) | 1440×900 | 113 | 1.81 | 6.51 | p95 < 4 ms, ≥ 30 fotogrammi | ok |
+| corsa 0 → 900 /servizi de, ramo (lancio 1) | 1440×900 | 254 | 10.44 | 12.56 | ≥ 30 fotogrammi, parallasse corsa; il giudizio è il delta contro il controllo (b) | dato |
+| corsa 0 → 900 /servizi de, controllo (a) senza alone (lancio 1) | 1440×900 | 292 | 12.48 | 92.47 | `.dt-alone { text-shadow: none !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa 0 → 900 /servizi de, controllo (b) strato fermo (lancio 1) | 1440×900 | 247 | 10.96 | 18.04 | `:root { --dt-testa-mf: 0 !important; } [data-testa-strato] { transform: none !important; will-change: auto !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| posa title /servizi de (lancio 2, 2706 ms) | 1440×900 | 115 | 1.88 | 5.26 | p95 < 4 ms, ≥ 30 fotogrammi | ok |
+| corsa 0 → 900 /servizi de, ramo (lancio 2) | 1440×900 | 242 | 11.13 | 14.25 | ≥ 30 fotogrammi, parallasse corsa; il giudizio è il delta contro il controllo (b) | dato |
+| corsa 0 → 900 /servizi de, controllo (a) senza alone (lancio 2) | 1440×900 | 249 | 10.72 | 19.37 | `.dt-alone { text-shadow: none !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa 0 → 900 /servizi de, controllo (b) strato fermo (lancio 2) | 1440×900 | 245 | 11.52 | 13.77 | `:root { --dt-testa-mf: 0 !important; } [data-testa-strato] { transform: none !important; will-change: auto !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| posa title /servizi de (lancio 3, 2707 ms) | 1440×900 | 113 | 1.97 | 5.78 | p95 < 4 ms, ≥ 30 fotogrammi | ok |
+| corsa 0 → 900 /servizi de, ramo (lancio 3) | 1440×900 | 247 | 10.83 | 13.31 | ≥ 30 fotogrammi, parallasse corsa; il giudizio è il delta contro il controllo (b) | dato |
+| corsa 0 → 900 /servizi de, controllo (a) senza alone (lancio 3) | 1440×900 | 274 | 14.3 | 16.39 | `.dt-alone { text-shadow: none !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa 0 → 900 /servizi de, controllo (b) strato fermo (lancio 3) | 1440×900 | 269 | 13.81 | 25.48 | `:root { --dt-testa-mf: 0 !important; } [data-testa-strato] { transform: none !important; will-change: auto !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa: mediana del ramo − mediana del controllo (b) strato fermo (3 lanci) | 1440×900 | — | 10.83 | 11.52 | delta ≤ +1 ms: la parallasse della testa non aggiunge paint alla corsa (D199, T4) | ok (-0.68 ms) |
+| corsa: mediana del ramo − mediana del controllo (a) senza alone (3 lanci) | 1440×900 | — | 10.83 | 12.48 | dato: il costo delle 18 ombre lungo la corsa | — (-1.65 ms) |
+| fermo a t 1020 ms: p10 dei pixel pieni delle 0/54 lettere atterrate | 1440×900 | 0 | — | — | ≥ riposo − 0,02 sugli stessi pixel (le lettere atterrano pulite, D230) | — (nessuna lettera a terra: nulla da sporcare) |
+| fermo a t 2021 ms: p10 dei pixel pieni delle 24/54 lettere atterrate | 1440×900 | 9396 | 1 | 1 | ≥ riposo − 0,02 sugli stessi pixel (le lettere atterrano pulite, D230) | ok |
+| fine posa a t 2710 ms: p10 dei pixel pieni dell'H1 intero | 1440×900 | 24485 | 1 | 1 | riposo ± 0,02 (l'immagine è quella a riposo, D230) | ok |
+
+Nota: con D198 le lettere in moto (posa `title`) non portano ombra; le 18 ombre stanno sulla copia statica sotto, che il browser rasterizza una volta e dissolve; il tetto dei 4 ms vale sulla posa e sulla cartolina. La corsa si giudica sul delta contro il controllo (b), la stessa pagina con lo strato fermo (`--dt-testa-mf: 0`, trasformata e will-change azzerati con `!important`): il paint della corsa è dei reveal delle sezioni sotto la testa e del segno (stili inline mutati a ogni fotogramma sul layer radice, invalidation tracking di Chromium) e c'è anche con la testa ferma; il delta contro (a) (`.dt-alone { text-shadow: none !important }`) è il dato sull'alone. I controlli sono intercalati ai lanci del ramo (stessa macchina, stesso momento) e per la stessa via (pagina nuova, posa finita, corsa: ramo e controllo differiscono solo per il CSS iniettato). I fermi (D230): a t 1,0 s nessuna lettera è a terra per costruzione (la prima vola da 0,3 a 1,5 s), a 2,0 s le atterrate, a fine posa (≈ 2,7 s) l'H1 intero. Il blocco di Open Domus dentro la finestra si misura in T2.2.
+
+### Commit T · paint dell'alone della testa di era, 1440×900, CPU ×4 (2026-09-20, cec1551+) — coi controlli della corsa
+
+| misura | viewport | fotogrammi / pixel | p95 ms / p10 | max ms / riposo | atteso | esito |
+| --- | --- | --- | --- | --- | --- | --- |
+| posa title /servizi de (lancio 1, 2707 ms) | 1440×900 | 117 | 2.58 | 6.15 | p95 < 4 ms, ≥ 30 fotogrammi | ok |
+| corsa 0 → 900 /servizi de, ramo (lancio 1) | 1440×900 | 283 | 11.79 | 18.09 | ≥ 30 fotogrammi, parallasse corsa; il giudizio è il delta contro il controllo (b) | dato |
+| corsa 0 → 900 /servizi de, controllo (a) senza alone (lancio 1) | 1440×900 | 259 | 10.84 | 13.74 | `.dt-alone { text-shadow: none !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa 0 → 900 /servizi de, controllo (b) strato fermo (lancio 1) | 1440×900 | 254 | 11.21 | 13.59 | `:root { --dt-testa-mf: 0 !important; } [data-testa-strato] { transform: none !important; will-change: auto !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| posa title /servizi de (lancio 2, 2703 ms) | 1440×900 | 110 | 3.02 | 6.12 | p95 < 4 ms, ≥ 30 fotogrammi | ok |
+| corsa 0 → 900 /servizi de, ramo (lancio 2) | 1440×900 | 235 | 12.13 | 17.66 | ≥ 30 fotogrammi, parallasse corsa; il giudizio è il delta contro il controllo (b) | dato |
+| corsa 0 → 900 /servizi de, controllo (a) senza alone (lancio 2) | 1440×900 | 246 | 11.21 | 15.75 | `.dt-alone { text-shadow: none !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa 0 → 900 /servizi de, controllo (b) strato fermo (lancio 2) | 1440×900 | 252 | 10.57 | 13.36 | `:root { --dt-testa-mf: 0 !important; } [data-testa-strato] { transform: none !important; will-change: auto !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| posa title /servizi de (lancio 3, 2706 ms) | 1440×900 | 118 | 1.8 | 7.62 | p95 < 4 ms, ≥ 30 fotogrammi | ok |
+| corsa 0 → 900 /servizi de, ramo (lancio 3) | 1440×900 | 256 | 10.88 | 18.27 | ≥ 30 fotogrammi, parallasse corsa; il giudizio è il delta contro il controllo (b) | dato |
+| corsa 0 → 900 /servizi de, controllo (a) senza alone (lancio 3) | 1440×900 | 254 | 10.55 | 12.51 | `.dt-alone { text-shadow: none !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa 0 → 900 /servizi de, controllo (b) strato fermo (lancio 3) | 1440×900 | 251 | 10.89 | 16.65 | `:root { --dt-testa-mf: 0 !important; } [data-testa-strato] { transform: none !important; will-change: auto !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| posa title /servizi de (lancio 4, 2702 ms) | 1440×900 | 115 | 1.39 | 7.97 | p95 < 4 ms, ≥ 30 fotogrammi | ok |
+| corsa 0 → 900 /servizi de, ramo (lancio 4) | 1440×900 | 255 | 11.69 | 16.14 | ≥ 30 fotogrammi, parallasse corsa; il giudizio è il delta contro il controllo (b) | dato |
+| corsa 0 → 900 /servizi de, controllo (a) senza alone (lancio 4) | 1440×900 | 258 | 10.56 | 13.18 | `.dt-alone { text-shadow: none !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa 0 → 900 /servizi de, controllo (b) strato fermo (lancio 4) | 1440×900 | 273 | 12.8 | 21.92 | `:root { --dt-testa-mf: 0 !important; } [data-testa-strato] { transform: none !important; will-change: auto !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| posa title /servizi de (lancio 5, 2712 ms) | 1440×900 | 114 | 1.8 | 6.67 | p95 < 4 ms, ≥ 30 fotogrammi | ok |
+| corsa 0 → 900 /servizi de, ramo (lancio 5) | 1440×900 | 280 | 12.23 | 15.27 | ≥ 30 fotogrammi, parallasse corsa; il giudizio è il delta contro il controllo (b) | dato |
+| corsa 0 → 900 /servizi de, controllo (a) senza alone (lancio 5) | 1440×900 | 252 | 10.45 | 14.04 | `.dt-alone { text-shadow: none !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa 0 → 900 /servizi de, controllo (b) strato fermo (lancio 5) | 1440×900 | 248 | 11.06 | 15.26 | `:root { --dt-testa-mf: 0 !important; } [data-testa-strato] { transform: none !important; will-change: auto !important; }` iniettato; ≥ 30 fotogrammi | dato |
+| corsa: mediana del ramo − mediana del controllo (b) strato fermo (5 lanci) | 1440×900 | — | 11.79 | 11.06 | delta ≤ +1 ms: la parallasse della testa non aggiunge paint alla corsa (D199, T4) | ok (+0.73 ms) |
+| corsa: mediana del ramo − mediana del controllo (a) senza alone (5 lanci) | 1440×900 | — | 11.79 | 10.56 | dato: il costo delle 18 ombre lungo la corsa | — (+1.23 ms) |
+| fermo a t 1014 ms: p10 dei pixel pieni delle 0/54 lettere atterrate | 1440×900 | 0 | — | — | ≥ riposo − 0,02 sugli stessi pixel (le lettere atterrano pulite, D230) | — (nessuna lettera a terra: nulla da sporcare) |
+| fermo a t 2011 ms: p10 dei pixel pieni delle 23/54 lettere atterrate | 1440×900 | 9007 | 1 | 1 | ≥ riposo − 0,02 sugli stessi pixel (le lettere atterrano pulite, D230) | ok |
+| fine posa a t 2709 ms: p10 dei pixel pieni dell'H1 intero | 1440×900 | 24484 | 1 | 1 | riposo ± 0,02 (l'immagine è quella a riposo, D230) | ok |
+
+Nota: con D198 le lettere in moto (posa `title`) non portano ombra; le 18 ombre stanno sulla copia statica sotto, che il browser rasterizza una volta e dissolve; il tetto dei 4 ms vale sulla posa e sulla cartolina. La corsa si giudica sul delta contro il controllo (b), la stessa pagina con lo strato fermo (`--dt-testa-mf: 0`, trasformata e will-change azzerati con `!important`): il paint della corsa è dei reveal delle sezioni sotto la testa e del segno (stili inline mutati a ogni fotogramma sul layer radice, invalidation tracking di Chromium) e c'è anche con la testa ferma; il delta contro (a) (`.dt-alone { text-shadow: none !important }`) è il dato sull'alone. I controlli sono intercalati ai lanci del ramo (stessa macchina, stesso momento) e per la stessa via (pagina nuova, posa finita, corsa: ramo e controllo differiscono solo per il CSS iniettato). I fermi (D230): a t 1,0 s nessuna lettera è a terra per costruzione (la prima vola da 0,3 a 1,5 s), a 2,0 s le atterrate, a fine posa (≈ 2,7 s) l'H1 intero. Il blocco di Open Domus dentro la finestra si misura in T2.2.
+
+Lettura (T1, giro di correzione 1, per D199 in T4): due lanci dello script (`--controllo`, 3 e 5 lanci) sullo stesso build, macchina con il `next dev` di Alberto acceso sulla 3000. Corsa del ramo p95 10,4-12,2 ms; controllo (b) strato fermo 10,6-13,8; controllo (a) senza alone 10,5-14,3: le tre corse stanno nello stesso intervallo e il delta ramo − (b) vale −0,68 (3 lanci) e +0,73 ms (5 lanci), ramo − (a) −1,65 e +1,23, cioè dentro lo scarto fra un lancio e l'altro (±1,5 ms). Il paint della corsa non è della testa: c'è uguale con lo strato fermo e senza le 18 ombre. Il tetto dei 4 ms resta sulla posa `title` (1,4-3,0) e sulla cartolina (2,0).

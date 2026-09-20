@@ -411,11 +411,11 @@ export default function PrivacyContent() {
           un'altra testa, che spec §7.4 vuole tutte diverse. La banda tiene quindi la foto di
           repertorio, centrata come le altre pagine senza `objectPosition`. */}
       <PageHero
+        rotta="/privacy"
         eyebrow={c.hero.eyebrow}
         title={c.hero.title()}
         subcopy={c.hero.subcopy}
         image="/images/hero_01_attico_travi_salotto.jpg"
-        srcWidth={1920}
         alt={c.hero.alt}
         primary={{ label: c.hero.primaryLabel, href: "/contatti" }}
         secondary={{ label: c.hero.secondaryLabel, href: "/cookie" }}
