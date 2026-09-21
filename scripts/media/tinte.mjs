@@ -29,11 +29,24 @@
 // MAI `stats().dominant`: su `villa-uliveto.jpg` e `villa-lettini.jpg` restituisce `#080808`,
 // cioè un nero — l'unica cosa che la cliente vieta.
 //
+// IL CIELO MASCHERATO (A46 di Alberto, 21 settembre 2026, sera: «su eraresidence questa foto che
+// usa come background alta ha il cielo mascherato, è no bg … dobbiamo fare la stessa cosa nel
+// nostro sito, dove ci sono le immagini così alte»). scripts/media/cielo.mjs taglia il cielo
+// delle teste in `<nome>-cielo.webp` (alpha) e rilancia questo script, che importa da lì la
+// tabella `FOTO` e `misuraCielo` e scrive per rotta `cielo: { file, linea, cima }` (il WebP e le
+// due frazioni d'altezza, vedi cielo.mjs; per i due attici interni e i due legali `file` null e
+// 0). Dove il cielo è trasparente la banda alta si misura sull'immagine COMPOSTA SU AVORIO (è
+// quello che il visitatore vede) e la tinta alta è "avorio" PER FORZA, qualunque sia la misura:
+// il fondo del riquadro si vede attraverso il cielo per sempre, non solo prima del decode, e
+// deve essere il fondo pagina (`--color-cream`, PageHero.tsx), altrimenti il cielo della tenda di
+// /open-domus (la banda misurata è la tenda, non il cielo) staccherebbe dalla carta.
+//
 // Uso, dalla radice del repo:  node scripts/media/tinte.mjs
 import sharp from "sharp";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { FOTO as CIELI, fileCielo, misuraCielo } from "./cielo.mjs";
 
 const ROOT = process.cwd();
 const USCITA = "app/lib/motion/tinte.json";
@@ -138,9 +151,10 @@ export function ritaglio(srcW, srcH, scatola, objectPosition) {
   return { left: Math.round((srcW - width) * px), top: Math.round((srcH - height) * py), width, height };
 }
 
-/* La media della banda IN LUCE LINEARE: la media fotometrica, non quella dei byte. */
-async function media(file, box) {
-  const { data, info } = await sharp(join(ROOT, file)).extract(box).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+/* La media della banda IN LUCE LINEARE: la media fotometrica, non quella dei byte. `immagine` è
+   una pipeline sharp: la foto, o il WebP col cielo composto sull'avorio (A46). */
+async function media(immagine, box) {
+  const { data, info } = await immagine.clone().extract(box).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const n = info.width * info.height;
   let r = 0;
   let g = 0;
@@ -180,6 +194,21 @@ function metriche(h, sorgente) {
 
 /* LA PIPELINE DIETRO UNA GUARDIA D'INGRESSO (D126): gira solo quando il file è il programma
    lanciato, così `tinte.test.ts` importa `ritaglio` e `SCATOLA` senza decodificare undici foto. */
+/* Il cielo di una rotta (A46): il WebP con alpha di cielo.mjs, riletto per le due misure, e la
+   stessa immagine composta sull'avorio per la banda; null dove la rotta non ha cielo. */
+async function cieloDi(rotta, meta) {
+  const f = CIELI.find((c) => c.uso === rotta);
+  const file = f ? fileCielo(f) : null;
+  if (!file) return null;
+  const percorso = join(ROOT, "public", file);
+  if (!existsSync(percorso)) throw new Error(`manca ${file}: lancia prima node scripts/media/cielo.mjs`);
+  const { data, info } = await sharp(percorso).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  if (info.width !== meta.width || info.height !== meta.height) throw new Error(`${file}: ${info.width}×${info.height}, la sorgente è ${meta.width}×${meta.height}`);
+  const alpha = new Uint8Array(info.width * info.height);
+  for (let i = 0; i < alpha.length; i++) alpha[i] = data[i * 4 + 3];
+  return { file, ...misuraCielo(alpha, info.width, info.height), composta: sharp(percorso).flatten({ background: AVORIO }) };
+}
+
 async function main() {
   const esito = {};
   const righe = [];
@@ -188,15 +217,18 @@ async function main() {
     const meta = await sharp(join(ROOT, r.file)).metadata();
     const box = ritaglio(meta.width, meta.height, SCATOLA, r.sotto);
     const alto = { ...box, height: Math.min(BANDA, box.height) };
-    const sorgenteAlta = hex(await media(r.file, alto));
+    const cielo = await cieloDi(r.rotta, meta);
+    const sorgenteAlta = hex(await media(cielo ? cielo.composta : sharp(join(ROOT, r.file)), alto));
     const misurata = metriche(schiarisci(daHex(sorgenteAlta), PAVIMENTO), sorgenteAlta);
-    const alta = misurata.avorio >= CANCELLO_ALTA ? misurata : { ...misurata, hex: "avorio", misurato: misurata.hex };
+    // A46: col cielo trasparente la tinta è l'avorio per forza; altrimenti il cancello di D123.
+    const alta = cielo || misurata.avorio < CANCELLO_ALTA ? { ...misurata, hex: "avorio", misurato: misurata.hex } : misurata;
     esito[r.rotta] = {
       trattamento: r.trattamento,
       file: r.file.replace(/^public/, ""),
       sorgente: [meta.width, meta.height],
       objectPosition: { lg: r.lg, sotto: r.sotto },
       alta,
+      cielo: cielo ? { file: cielo.file, linea: cielo.linea, cima: cielo.cima } : { file: null, linea: 0, cima: 0 },
     };
     righe.push(
       [
@@ -207,6 +239,7 @@ async function main() {
         `sotto ${r.sotto}`.padEnd(15),
         `righe ${box.top}-${box.top + alto.height}`.padEnd(17),
         `alta ${alta.hex.padEnd(7)} (${misurata.hex} <- ${misurata.sorgente}  Y ${misurata.Y.toFixed(4)}  C* ${String(misurata.C).padStart(5)}  dH ${String(misurata.dH).padStart(5)}  avorio ${misurata.avorio.toFixed(3)}:1)`,
+        cielo ? `cielo cima ${cielo.cima} linea ${cielo.linea}` : "senza cielo",
       ].join("  "),
     );
   }

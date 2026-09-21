@@ -69,6 +69,19 @@ describe("l'ombra sulle immagini, un valore solo (D80)", () => {
     assert.doesNotMatch(congedo, /text-white|ghost-dark/, "sul Congedo il testo è inchiostro su crema");
   });
 
+  // A46 (Alberto, 21 set. 2026, sera): il cielo delle foto alte è trasparente e le scritte delle nove
+  // teste stanno sull'avorio, nell'inchiostro della rivista: niente bianco, niente ombra, niente
+  // deroga. Le teste escono dall'elenco delle scritte sopra un'immagine (ink-media.ts lo dice).
+  test("le teste delle pagine interne non sono più scritte bianche su foto (A46): nessun text-white, nessun ghost-dark, nessuna ombra, e ink-media.ts lo dichiara", () => {
+    for (const f of ["app/components/PageHero.tsx", "app/components/motion/PageHeroTesta.tsx", "app/components/Header.tsx"]) {
+      // Prima le righe `//`, poi i blocchi: Header.tsx scrive «/case/*» in un commento di riga.
+      const t = leggi(f).replace(/(^|[^:])\/\/[^\n]*/g, "$1").replace(/\/\*[\s\S]*?\*\//g, " ");
+      assert.doesNotMatch(t, /text-white|ghost-dark|INK_ON_MEDIA|dt-ink-media/, `${f}: una scritta bianca o un'ombra su foto (A46)`);
+    }
+    assert.match(leggi(COSTANTE), /A46/, "ink-media.ts non dice che le teste stanno sull'avorio (A46)");
+    assert.doesNotMatch(leggi(COSTANTE), /bianco nudo, senza ombra né\s+alone, come su era-residence/, "ink-media.ts descrive ancora le teste bianche di A40");
+  });
+
   test("le cinque stelle e il preloader leggono l'utility", () => {
     for (const f of ["app/components/StarReviews.tsx", "app/components/motion/PreloaderShell.tsx"]) {
       assert.match(leggi(f), /\bdt-ink-media\b/, `${f} non legge .dt-ink-media`);

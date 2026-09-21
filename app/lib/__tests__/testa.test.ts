@@ -6,16 +6,19 @@
 // la finestra dello ScrollTrigger, `sizesDi` e `sizesSottoLg`); `PageHeroTesta.tsx` monta il
 // tween; `tinte.json` porta per rotta il trattamento (`testa` | `fermo`), la foto, la sorgente,
 // le due inquadrature (`objectPosition.lg` e `.sotto`, scelte da T1.0 in cancello-T1.md), `m`
-// e la tinta alta del placeholder. Le scritte sono bianche e nude (A40 di Alberto: nessuna
-// ombra). Qui si rileggono numeri e sorgenti, senza DOM: il movimento sui pixel lo prova
-// e2e/a28.spec.ts.
+// e la tinta alta del placeholder. A46 di Alberto (21 set. 2026, sera: «su eraresidence questa
+// foto che usa come background alta ha il cielo mascherato, è no bg … dobbiamo fare la stessa
+// cosa»): `cielo: { file, linea, cima }` per rotta, e le scritte stanno sull'avorio SOPRA il
+// soggetto, nell'inchiostro della rivista; `cieloH()` traduce la linea del cielo (frazione
+// dell'altezza della foto) in frazione della LARGHEZZA, perché margini e aspect-ratio si misurano
+// sulla larghezza. Qui si rileggono numeri e sorgenti, senza DOM: i pixel li prova e2e/a28.spec.ts.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gsap } from "gsap";
 import { CustomEase } from "gsap/CustomEase";
-import { BUCKETS, TESTA, sizesDi, sizesSottoLg } from "../motion/testa";
+import { BUCKETS, TESTA, cieloH, sizesDi, sizesSottoLg } from "../motion/testa";
 
 gsap.registerPlugin(CustomEase);
 
@@ -31,6 +34,7 @@ type Voce = {
   sorgente: [number, number];
   objectPosition: { lg: string; sotto: string };
   alta: Banda;
+  cielo: { file: string | null; linea: number; cima: number };
 };
 const tinte = JSON.parse(leggi("app/lib/motion/tinte.json")) as Record<string, Voce>;
 
@@ -215,5 +219,67 @@ describe("tinte.json: gli undici dati dell'inquadratura (D180, D187)", () => {
       assert.equal(v.objectPosition.sotto, "50% 50%", `${rotta}: centrata sul telefono`);
     }
     for (const v of Object.values(tinte)) assert.notEqual(v.file, "/images/reali/consulenza.jpg");
+  });
+});
+
+// ── A46: la testa sull'avorio, in numeri ────────────────────────────────────
+// La CIMA del soggetto (`cielo.cima`, frazione dell'altezza della foto: la prima riga in cui almeno il
+// 5 % dei pixel è opaco, misurata da cielo.mjs; sopra c'è solo cielo, cioè carta) decide di quanto lo
+// strato della foto sale sotto il blocco: `margin-top: calc(-100% * var(--dt-cielo-h))` con
+// --dt-cielo-h = cima × altezza / larghezza del sorgente (`cieloH`), cioè la cima in frazione della
+// larghezza resa. Così il soggetto comincia al fondo del blocco su ogni fascia e nessuna lettera gli
+// sta sopra. Non la `linea` (la riga in cui il soggetto riempie la larghezza): su /vendi la linea sta
+// a 0,488, i cipressi a 0,219 e il tetto a 0,33 — con la linea l'H1 posava sui cipressi e il bottone
+// sul tetto (build del 21 set., 1440×900). Il blocco è alto quanto il contenuto, da lg almeno 100svh:
+// dove la cima in px supera il blocco lo strato comincia sopra la carta e il clip ne taglia il solo
+// cielo trasparente.
+describe("A46: la cima del soggetto, in numeri (cieloH, tinte.json, i sei viewport)", () => {
+  const VIEWPORT = [
+    [390, 844],
+    [360, 640],
+    [768, 1024],
+    [1024, 640],
+    [1440, 900],
+    [1920, 1080],
+  ] as const;
+
+  test("cieloH(): una frazione dell'altezza della foto in frazione della larghezza, a quattro decimali; 0 resta 0", () => {
+    assert.equal(cieloH(0.219, [2560, 3816]), 0.3264);
+    assert.equal(cieloH(0.402, [2560, 3816]), 0.5992);
+    assert.equal(cieloH(0, [2560, 3816]), 0);
+    assert.equal(cieloH(0.5, [1000, 1000]), 0.5);
+    assert.equal(cieloH(0.134, [2560, 1717]), 0.0899);
+  });
+
+  test("testa.ts resta puro: cieloH non importa nulla e non legge tinte.json", () => {
+    const mod = soloCodice(leggi("app/lib/motion/testa.ts"));
+    assert.match(mod, /export const cieloH/);
+    assert.doesNotMatch(mod, /\bimport\b|tinte\.json/);
+  });
+
+  test("sulle nove teste la cima sta sopra la linea e, in px, sotto il pavimento di 100svh da lg (tranne /acquista a 1920×1080, dove il clip taglia solo cielo)", () => {
+    const ROTTE_TESTA = Object.keys(tinte).filter((r) => tinte[r].trattamento === "testa");
+    for (const rotta of ROTTE_TESTA) {
+      const v = tinte[rotta];
+      const [sw, sh] = v.sorgente;
+      assert.ok(v.cielo.cima >= 0 && v.cielo.cima <= v.cielo.linea, `${rotta}: cima ${v.cielo.cima} sopra la linea ${v.cielo.linea}`);
+      const h = cieloH(v.cielo.cima, v.sorgente);
+      assert.ok(Math.abs(h - (v.cielo.cima * sh) / sw) < 5e-5, `${rotta}: cieloH`);
+      for (const [vw, vh] of VIEWPORT) {
+        const cimaPx = vw * h;
+        // Da lg il blocco è almeno 100svh: la cima ci sta dentro su ogni rotta ai quattro viewport da lg, tranne
+        // /acquista (0,402) a 1920×1080: 1150 px contro 1080, e lì lo strato comincia 70 px sopra la carta.
+        if (vw >= 1024 && !(rotta === "/acquista" && vw === 1920)) assert.ok(cimaPx <= vh, `${rotta} a ${vw}×${vh}: la cima (${cimaPx.toFixed(0)} px) supera i 100svh`);
+      }
+    }
+    // I casi contati il 21 settembre a 1440: /vendi 0,219 × 2146 = 470 px, /acquista 0,402 × 2146 = 863 px (i
+    // più profondi), /servizi 642, /metodo 150, /recensioni e /open-domus 0 (il muro e la tenda toccano la cima),
+    // gli interni 0: il blocco resta a 100svh e la foto sale di quel tanto.
+    const px1440 = (rotta: string) => 1440 * cieloH(tinte[rotta].cielo.cima, tinte[rotta].sorgente);
+    assert.ok(Math.abs(px1440("/vendi") - 470) <= 1.5, `/vendi a 1440: ${px1440("/vendi").toFixed(1)}`);
+    assert.ok(Math.abs(px1440("/acquista") - 863) <= 1.5, `/acquista a 1440: ${px1440("/acquista").toFixed(1)}`);
+    assert.ok(px1440("/servizi") < 900 && px1440("/metodo") < 900 && px1440("/domande-frequenti") < 900);
+    for (const rotta of ["/chi-siamo", "/lavora-con-noi", "/open-domus", "/recensioni"]) assert.equal(px1440(rotta), 0, `${rotta}: senza cima la foto comincia sotto il blocco`);
+    assert.ok(1920 * cieloH(tinte["/acquista"].cielo.cima, tinte["/acquista"].sorgente) > 1080, "/acquista a 1920: la cima supera 100svh (dichiarato)");
   });
 });

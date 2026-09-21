@@ -155,6 +155,15 @@ stanno in `DESIGN.md`.
   voci primarie e lingua, nessuna CTA desktop, il monogramma solo da xl. Le altre tre voci vivono
   nel menu del telefono e nel footer; la testata è sticky solo sotto lg e da lg scorre via come nel
   riferimento (decisioni di lavoro).
+- Le teste delle pagine interne posano sulla carta (Alberto, 21 set., sera, A46: «su eraresidence
+  questa foto che usa come background alta ha il cielo mascherato, è no bg: ecco perché sembra un
+  tutt'uno il cielo con il colore dello sfondo del sito. Dobbiamo fare la stessa cosa nel nostro
+  sito, dove ci sono le immagini così alte»): il cielo delle sette foto alte con cielo è
+  trasparente (WebP con alpha), la villa posa sull'avorio, e le scritte — che con A38/A40 (20 set.)
+  stavano bianche e nude dentro la foto — tornano nell'inchiostro della rivista, sopra il soggetto e
+  mai sopra la foto; la testata sopra di loro è quella del resto del sito, in inchiostro. La deroga
+  di Alberto a WCAG 1.4.3 per le scritte bianche sulla foto è chiusa. Stessa cosa per la finestra di
+  Open Domus in home: il titolo «Open Domus» sta in inchiostro sul cielo, che è il fondo pagina.
 - CTA corte (decisione di lavoro, 11 set.): «Richiedi la valutazione» e le sue traduzioni corte su
   tutte le superfici, perché quella lunga sul telefono andava a capo. Resta l'heroPrimary tedesco
   di `ServiziContent.tsx`.
@@ -260,5 +269,6 @@ prefers-reduced-motion rispettato ovunque (contenuto completo, statico); focus v
 trap nel menu; slider BeforeAfter con tastiera e ARIA; testo mai nascosto senza JS (fallback
 scripting:none); tap target generosi su mobile. L'unica superficie scura è il pannello del
 preloader (lockup avorio, didascalie `cream/60` e `cream/70`, sotto i 16 px: domanda aperta). Il
-testo bianco sopra le immagini (congedo, copertina delle cinque stelle) si regge su un'ombra
-attaccata alle lettere, non su un velo.
+testo bianco sopra le immagini (copertina delle cinque stelle, firma del preloader) si regge su
+un'ombra attaccata alle lettere, non su un velo; le teste delle pagine interne non hanno più testo
+bianco (A46, 21 set.): le scritte stanno sull'avorio e reggono 4,5:1.

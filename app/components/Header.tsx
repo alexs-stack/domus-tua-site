@@ -10,7 +10,6 @@ import { Logo } from "./Logo";
 import { Whatsapp } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { nav, site } from "../lib/site";
-import tinte from "../lib/motion/tinte.json";
 import { useDict } from "./i18n/LocaleProvider";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { getLenis } from "./motion/SmoothScroll";
@@ -22,20 +21,21 @@ import { getLenis } from "./motion/SmoothScroll";
 // pill scuro, il gradiente, il blur e ogni timeline GSAP: l'unico movimento è
 // la transizione CSS del colore di fondo.
 //
-// LA TESTATA SOPRA LA FOTO (D186 del brief T; A38 di Alberto, 20 settembre
-// 2026: la fotografia a schermo intero è il primo pixel delle undici rotte con
-// PageHero, e la testata le sta sopra). `suFoto` = la rotta ha una voce in
-// tinte.json; `data-su-foto` sull'<header> (SSR: vale senza JS) lo dice al CSS
-// e agli e2e. Da lg la testata è trasparente e in flusso e scorre via con la
-// pagina: finché c'è, sta sulla foto, quindi le voci sono bianche, nude
-// (`text-white`, senza ombra: A40) con `suFoto` e basta — `solid` da lg non cambia
-// lo stile (la barra è `lg:!bg-transparent`) e legarlo a `!solid` le faceva
-// grafite fra scroll 24 e ~60, ancora sulla foto. Sotto lg la barra sticky è
-// trasparente a scroll 0 sopra la foto (D176: «Menu» bianco, senza ombra) e da
-// 24 px prende la tinta alta della rotta (`data-solid`, D82): «Menu» grafite
-// su un fondo a Y ≥ 0,5329. Il lockup PNG resta com'è (C23: mai ricolorato):
-// il suo grigio sulla foto si riporta col numero (cancello-T1.md §7). Nessuna
-// regola CSS nuova su `header`: sono classi (D186).
+// LA TESTATA SULLA CARTA (A46 di Alberto, 21 settembre 2026, sera: «su
+// eraresidence questa foto che usa come background alta ha il cielo mascherato,
+// è no bg: ecco perché sembra un tutt'uno il cielo con il colore dello sfondo
+// del sito. Dobbiamo fare la stessa cosa nel nostro sito, dove ci sono le
+// immagini così alte»). Con A38 (20 set.) le undici rotte con PageHero avevano
+// la fotografia dal primo pixel e la testata «su foto», bianca e nuda
+// (`suFoto`, `data-su-foto`, D186); con A46 il cielo delle foto alte è
+// trasparente e le scritte della testa stanno sull'avorio: sotto la testata c'è
+// la carta, su ogni rotta, e la testata è quella del resto del sito — voci,
+// «Menu» e lingua in inchiostro, nessun ramo, nessun attributo, nessuna lettura
+// di tinte.json. Sotto lg la barra sticky è trasparente a scroll 0 e da 24 px
+// prende cream-deep come ovunque (D82, la barra tinta come la foto, è morta con
+// A46: la regola `header[data-solid]` non esiste più in globals.css). Il lockup
+// PNG resta com'è (C23: mai ricolorato). Nessuna regola CSS su `header`: sono
+// classi (D186).
 //
 // Una riga sola, alta `--dt-head-h` (globals.css): lo stesso numero che la
 // sagoma del preloader usa come `top` per coincidere con la banda dell'hero, e
@@ -73,7 +73,6 @@ export default function Header() {
   const rowRef = useRef<HTMLDivElement | null>(null);
   const [segnoAcceso, setSegnoAcceso] = useState(false);
   const conSegno = !pathname.startsWith("/case/");
-  const suFoto = pathname in tinte;
 
   // Cambio di rotta con il menu aperto (back/forward del browser, o un link che
   // non passa dall'onClick): si chiude. Stato aggiustato durante il render, non
@@ -225,11 +224,10 @@ export default function Header() {
       // In flusso: sul telefono resta appiccicato in alto (serve al bottone Menu),
       // da lg in su SCORRE VIA come nel riferimento — nessuna barra fissa su
       // ogni schermata, la pagina è tutta contenuto.
-      // `data-solid`: lo legge globals.css per D82 (A28 punto 2 di Alberto) —
-      // sotto lg la barra solida prende la tinta alta della rotta con la testa
-      // al posto di cream-deep. Nessun cambio di classi né di comportamento.
+      // `data-solid`: lo leggono gli e2e (a28.spec.ts, «la testata»); la regola
+      // D82 che lo tingeva sotto lg è morta con A46 (la barra solida è cream-deep
+      // ovunque, dalla classe qui sotto). Nessun cambio di classi né di comportamento.
       data-solid={solid || undefined}
-      data-su-foto={suFoto || undefined}
       className={`sticky top-0 z-50 border-b transition-colors duration-300 lg:relative ${
         solid
           ? "border-line bg-cream-deep lg:!border-transparent lg:!bg-transparent"
@@ -264,12 +262,12 @@ export default function Header() {
               key={item.href}
               href={item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
-              className={`whitespace-nowrap text-ui uppercase tracking-[0.1em] ${suFoto ? "text-white" : "text-ink"} decoration-1 underline-offset-[0.45em] transition-[text-decoration-color] duration-200 hover:underline focus-visible:underline aria-[current=page]:underline`}
+              className="whitespace-nowrap text-ui uppercase tracking-[0.1em] text-ink decoration-1 underline-offset-[0.45em] transition-[text-decoration-color] duration-200 hover:underline focus-visible:underline aria-[current=page]:underline"
             >
               {d.nav[item.key]}
             </Link>
           ))}
-          <LanguageSwitcher light={suFoto} />
+          <LanguageSwitcher />
         </nav>
 
         {/* Toggle del menu (sotto lg): parola, non icona. L'aria-label conserva
@@ -281,7 +279,7 @@ export default function Header() {
           aria-label={open ? "Chiudi menu" : "Apri menu"}
           aria-expanded={open}
           aria-controls="mobile-menu"
-          className={`-mr-3 inline-flex min-h-11 items-center px-3 text-ui font-semibold uppercase tracking-[0.1em] ${suFoto && !solid ? "text-white" : "text-ink"} underline-offset-[0.45em] hover:underline focus-visible:underline lg:hidden`}
+          className="-mr-3 inline-flex min-h-11 items-center px-3 text-ui font-semibold uppercase tracking-[0.1em] text-ink underline-offset-[0.45em] hover:underline focus-visible:underline lg:hidden"
         >
           {open ? "Chiudi" : "Menu"}
         </button>

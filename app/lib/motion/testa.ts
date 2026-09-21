@@ -1,18 +1,33 @@
 // LA TESTA DI ERA, IN NUMERI: il passo comune delle nove rotte e i due legali.
 //
 // Chi l'ha chiesto: A38 di Alberto (20 settembre 2026): «quando entri nella foto a schermo
-// intero, la foto stessa diventa lo sfondo, e le scritte sopra […] scritte bianche»; A40: bianco
-// nudo; A41: layout centrato come «Perfect sea views» e la foto che resta ferma (sticky) mentre
-// i testi e la pagina le scorrono sopra. D176: la scatola è alta 100svh su ogni fascia. Nessun
-// tween, nessun pin, nessun corridoio, nessun margine: le foto sono 3:2 e 16:9 e non si muovono.
+// intero, la foto stessa diventa lo sfondo, e le scritte sopra»; A41: layout centrato come
+// «Perfect sea views»; A45 (21 set.): la foto alta è la pagina, in flusso. A46 di Alberto (21 set.
+// 2026, sera): «su eraresidence questa foto che usa come background alta ha il cielo mascherato,
+// è no bg: ecco perché sembra un tutt'uno il cielo con il colore dello sfondo del sito. Dobbiamo
+// fare la stessa cosa nel nostro sito, dove ci sono le immagini così alte»: il cielo è trasparente
+// e le scritte stanno sull'avorio sopra il soggetto; la linea del cielo (`cielo.linea` in
+// tinte.json) decide il pavimento del blocco e di quanto la foto sale sotto di lui (`cieloH`).
+// D176: da lg il blocco è alto almeno 100svh. Nessun tween, nessun pin, nessun corridoio.
 //
-// Com'è fatto oggi: modulo puro, senza "use client" e senza GSAP. Lo leggono PageHeroTesta.tsx
-// (per `sizes`), testa.test.ts, a28-fallback.test.ts ed e2e/a28.spec.ts.
+// Com'è fatto oggi: modulo puro, senza "use client" e senza GSAP. Lo leggono PageHero.tsx (per
+// `cieloH`), PageHeroTesta.tsx (per `sizes`), testa.test.ts, a28-fallback.test.ts ed e2e/a28.spec.ts.
 
 export const TESTA = {
-  /** Altezza del riquadro: 100svh su ogni fascia (D176). */
+  /** Altezza minima del blocco dei testi da lg: 100svh (D176; A46: sotto lg è quella del contenuto). */
   h: "100svh",
 } as const;
+
+/**
+ * La linea del cielo in frazione della LARGHEZZA resa (A46). `linea` è la frazione dell'altezza
+ * della foto (tinte.json, misurata da scripts/media/cielo.mjs); nel CSS il pavimento del blocco è un
+ * `aspect-ratio: 1 / <cieloH>` e la foto sale di `margin-top: calc(-100% * <cieloH>)`, e tutt'e due
+ * si misurano sulla larghezza del riquadro, non sull'altezza: cieloH = linea × altezza / larghezza del
+ * sorgente, a quattro decimali (0,7274 per /vendi: 0,488 × 3816 / 2560). Con linea 0 vale 0 e il
+ * rapporto `1 / 0` è degenere, cioè `auto`: il blocco è alto quanto il contenuto (o 100svh da lg).
+ */
+export const cieloH = (linea: number, sorgente: readonly number[]): number =>
+  Number(((linea * sorgente[1]) / sorgente[0]).toFixed(4));
 
 /**
  * I `deviceSizes` di next.config.ts, copiati e non importati (modulo puro): testa.test.ts pretende gli

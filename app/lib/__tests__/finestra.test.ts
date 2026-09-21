@@ -116,9 +116,16 @@ describe("dove vive la finestra", () => {
     const t = soloCodice(leggi("app/components/OpenDomus.tsx"));
     assert.match(t, /useCorridor\(sectionRef, \{\s*id: "finestra"/);
     // A45: la facciata a terrazze col glicine (Higgsfield, 3:2) al posto della villa reale; il titolo
-    // del capitolo sta nella cornice, prima della foto, e il corpo in home non lo ripete.
-    assert.match(t, /src="\/images\/reali\/villa-terrazze-glicine\.jpg"/);
+    // del capitolo sta nella cornice, prima della foto, e il corpo in home non lo ripete. A46 (Alberto,
+    // 21 set. 2026, sera): il cielo della facciata è trasparente (`-cielo.webp`, scripts/media/cielo.mjs)
+    // e il fondo pagina fa da cielo, come su era; il titolo passa dal bianco all'inchiostro.
+    assert.match(t, /src="\/images\/reali\/villa-terrazze-glicine-cielo\.webp"/, "la finestra non monta il WebP col cielo trasparente (A46)");
+    assert.doesNotMatch(t, /villa-terrazze-glicine\.jpg/);
     assert.match(t, /<div className="dt-od_cornice">\s*<h2 className="dt-od_titolo font-display">\{titolo\}<\/h2>\s*<div className="dt-od_window/);
+    const css = leggi("app/globals.css").replace(/\/\*[\s\S]*?\*\//g, " ");
+    const titolo = /\.dt-od_titolo\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
+    assert.match(titolo, /color:\s*var\(--color-ink\);/, "il titolo della finestra non è inchiostro (A46: «Open Domus» scuro sul cielo che è il fondo, come «ARCHITECTURE» su era)");
+    assert.doesNotMatch(titolo, /#fff\b|white/, "il titolo della finestra è ancora bianco (A46)");
     assert.match(t, /\{!finestra && \(\s*<SplitTitle as="h2"/);
     assert.match(t, /sizes=\{SIZES_FINESTRA\}/);
     assert.match(t, /data-corridor="finestra"/);

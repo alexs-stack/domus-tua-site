@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import sharp from "sharp";
 import { test, expect, setConsent, clickUntil, videoTile } from "./helpers";
 import {
   clipOf,
@@ -1124,7 +1125,9 @@ test.describe("la finestra di Open Domus", () => {
       expect(Math.abs(m.fTop - 1.5 * m.vh)).toBeLessThanOrEqual(1);
       expect(Math.abs(m.fH - 1.5 * m.vh)).toBeLessThanOrEqual(1);
       await expect(page.locator("#open-domus .dt-od_mark--a")).toHaveAttribute("data-bg", "avorio");
-      await expect(page.locator("#open-domus .dt-od_mark--f")).toHaveAttribute("data-bg", "foto");
+      // A46: a schermo intero sotto il segno (in alto a sinistra) c'è il cielo trasparente, cioè la
+      // carta: la zona è `foto-chiara` e il segno resta grafite.
+      await expect(page.locator("#open-domus .dt-od_mark--f")).toHaveAttribute("data-bg", "foto-chiara");
 
       // s = 0: l'area tocca il bordo alto, progresso 1/3, otturatore al 67 % (atteso ≈ 24,4).
       await wheelTo(page, Math.round(geo.areaTop));
@@ -1143,7 +1146,80 @@ test.describe("la finestra di Open Domus", () => {
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
       expect(overflow).toBeLessThanOrEqual(1);
+      // A46: a schermo intero il cielo della facciata è la carta e «Open Domus» sta in inchiostro sopra.
+      await verificaCieloFinestra(page, `${vp.width}×${vp.height} a schermo intero`);
     });
+  }
+
+  // A46 (Alberto, 21 set. 2026, sera): il WebP col cielo trasparente, il titolo in inchiostro come
+  // «ARCHITECTURE» su era, e i pixel: dove c'era il cielo (la cima della finestra) c'è l'avorio della
+  // carta; sotto il titolo, nascosto per un istante, l'inchiostro regge su quel che c'è (carta o facciata).
+  async function verificaCieloFinestra(page: Page, dove: string) {
+    const win = page.locator("#open-domus .dt-od_window");
+    const titolo = page.locator("#open-domus .dt-od_titolo");
+    await expect(page.locator("#open-domus .dt-od_window img")).toHaveAttribute("src", /villa-terrazze-glicine-cielo\.webp/);
+    await expect(titolo, `${dove}: il titolo non è inchiostro`).toHaveCSS("color", "rgb(70, 66, 61)");
+    await page.locator("#open-domus .dt-od_window img").evaluate((el) => (el as HTMLImageElement).decode().catch(() => undefined));
+    await page.waitForTimeout(200);
+    const r = await win.evaluate((el) => {
+      const b = el.getBoundingClientRect();
+      const t = el.parentElement!.querySelector<HTMLElement>(".dt-od_titolo")!;
+      const tb = t.getBoundingClientRect();
+      t.style.setProperty("visibility", "hidden");
+      return { x: b.left, y: b.top, w: b.width, h: b.height, titolo: { x: tb.left, y: tb.top, w: tb.width, h: tb.height } };
+    });
+    const png = await page.screenshot({ animations: "disabled" });
+    await titolo.evaluate((t) => (t as HTMLElement).style.removeProperty("visibility"));
+    const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+    const vp = await page.evaluate(() => ({ w: window.innerWidth, h: window.innerHeight }));
+    const k = info.width / vp.w;
+    const dentro = (x: number, y: number) => x >= 0 && y >= 0 && x < vp.w && y < vp.h;
+    const pixel = (x: number, y: number) => {
+      const i = (Math.round(y * k) * info.width + Math.round(x * k)) * info.channels;
+      return [data[i], data[i + 1], data[i + 2]];
+    };
+    const avorio = (p: number[]) => Math.abs(p[0] - 249) <= 3 && Math.abs(p[1] - 245) <= 3 && Math.abs(p[2] - 239) <= 3;
+    // A schermo intero lo stage sticky può stare qualche decina di px sopra il bordo (a 1440×900 la
+    // finestra comincia a −84): si campiona la parte VISIBILE della finestra. Il cielo trasparente della
+    // facciata è sottile in cima (le punte dei cipressi ai lati stanno a 0,121 dell'altezza della foto).
+    const vis = { x: Math.max(0, r.x), y: Math.max(0, r.y), right: Math.min(r.x + r.w, vp.w), bottom: Math.min(r.y + r.h, vp.h) };
+    const vw = vis.right - vis.x;
+    const vh = vis.bottom - vis.y;
+    expect(vh, `${dove}: la finestra non è in vista`).toBeGreaterThan(200);
+    // A schermo intero la cima della finestra sta già sopra il bordo (−84 a 1440×900, −93 a 1024×768) e
+    // dei cipressi ai lati restano le punte: la carta si cerca nella prima riga visibile, nel 60 % centrale
+    // (lì il soggetto comincia a 0,150 dell'altezza della foto: 22-42 px di viewport ancora di cielo).
+    const yCielo = vis.y + 2;
+    for (const fx of [0.4, 0.5, 0.6] as const) {
+      const x = vis.x + fx * vw;
+      const p = pixel(x, yCielo);
+      expect(avorio(p), `${dove}: in cima alla finestra, a (${Math.round(x)}, ${Math.round(yCielo)}), non c'è la carta ma rgb(${p})`).toBe(true);
+    }
+    // Il titolo resta leggibile: sotto ogni punto del suo rettangolo (nascosto) — carta del cielo, o la
+    // facciata bianca dove il titolo le si appoggia, come «ARCHITECTURE» su era (A45) — l'inchiostro regge
+    // almeno 3:1 (è un titolo da 12vw). Griglia di 9×3 punti dentro il viewport.
+    const luminanza = (c: number[]) => {
+      const lin = c.map((v) => (v / 255 <= 0.04045 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4));
+      return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+    };
+    const INCHIOSTRO = luminanza([70, 66, 61]);
+    let campionati = 0;
+    for (let i = 1; i <= 9; i++) {
+      for (let j = 1; j <= 3; j++) {
+        const [x, y] = [r.titolo.x + (r.titolo.w * i) / 10, r.titolo.y + (r.titolo.h * j) / 4];
+        if (!dentro(x, y)) continue;
+        campionati += 1;
+        const p = pixel(x, y);
+        const rapporto = (Math.max(luminanza(p), INCHIOSTRO) + 0.05) / (Math.min(luminanza(p), INCHIOSTRO) + 0.05);
+        expect(rapporto, `${dove}: sotto il titolo, a (${i}/10, ${j}/4), c'è rgb(${p}): l'inchiostro fa ${rapporto.toFixed(2)}:1, sotto 3:1 (A46)`).toBeGreaterThanOrEqual(3);
+      }
+    }
+    // A 1024×768 a schermo intero il titolo (104 px, appoggiato alla cima) sta già tutto sopra il bordo
+    // (la finestra comincia a −93): la griglia non ha punti e la lettura vale sugli altri stage.
+    if (campionati > 0) expect(campionati, `${dove}: del titolo si vede troppo poco per misurarlo`).toBeGreaterThanOrEqual(3);
+    // E la foto c'è: in basso al centro del visibile (le terrazze) il pixel non è carta.
+    const villa = pixel(vis.x + 0.5 * vw, vis.y + 0.85 * vh);
+    expect(avorio(villa), `${dove}: in basso al centro non c'è la villa`).toBe(false);
   }
 
   test("sotto 1024 l'otturatore apre il quadrato della foto", async ({ page, goto, isMobile }) => {
@@ -1169,6 +1245,10 @@ test.describe("la finestra di Open Domus", () => {
     await quota(0.5);
     await page.waitForTimeout(1600);
     expect(norm(await clipOf(win))).toBe(norm(PHONE_CLIP[2]));
+    // A46: anche sul telefono il cielo del quadrato è la carta e il titolo sta in inchiostro sopra.
+    await quota(1);
+    await page.waitForTimeout(400);
+    await verificaCieloFinestra(page, "telefono, quadrato aperto");
   });
 
   test("da «Vedi i nove passi» il Tab porta la facciata del video dentro lo schermo", async ({ page, goto, isMobile }) => {

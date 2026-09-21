@@ -78,14 +78,24 @@ describe("le zone di spec §6.1 portano data-bg", () => {
     );
   });
 
-  test("PageHero: [data-dive-zoom] (§5.1)", () => {
+  // A46 (Alberto, 21 set. 2026, sera): il cielo delle foto alte è trasparente e il riquadro della testa
+  // è la carta — sopra il cielo il segno deve restare grafite (avorio sull'avorio non si vedrebbe). La
+  // zona `foto` è il marcatore del soggetto, dalla linea del cielo in giù (`.dt-testa_soggetto`,
+  // `top: calc(var(--dt-cielo) * 100%)` in globals.css), dentro lo strato della foto.
+  test("PageHero: il marcatore del soggetto porta data-bg=\"foto\"; il riquadro [data-dive-zoom] è la carta e non porta data-bg (§5.1, A46)", () => {
     const files = sorgenti(join(ROOT, "app/components")).filter((p) =>
       attr("data-dive-zoom").test(soloCodice(readFileSync(p, "utf8"))),
     );
     assert.ok(files.length > 0, "nessun [data-dive-zoom] reso in app/components");
     for (const p of files) {
-      const tags = tagCon(soloCodice(readFileSync(p, "utf8")), attr("data-dive-zoom"));
-      assert.ok(tags.every((t) => FOTO.test(t)), `${rel(p)}: [data-dive-zoom] senza data-bg="foto"`);
+      const src = soloCodice(readFileSync(p, "utf8"));
+      const riquadri = tagCon(src, attr("data-dive-zoom"));
+      assert.ok(riquadri.every((t) => !/\sdata-bg=/.test(t)), `${rel(p)}: [data-dive-zoom] porta data-bg: sopra il cielo trasparente il segno sarebbe avorio sull'avorio (A46)`);
+      const soggetti = tagCon(src, attr("data-testa-soggetto"));
+      assert.equal(soggetti.length, 1, `${rel(p)}: un solo marcatore del soggetto`);
+      assert.ok(FOTO.test(soggetti[0]), `${rel(p)}: il marcatore del soggetto senza data-bg="foto"`);
+      assert.ok(classe("dt-testa_soggetto").test(soggetti[0]), `${rel(p)}: il marcatore non è .dt-testa_soggetto`);
+      assert.ok(/\saria-hidden\b/.test(soggetti[0]), `${rel(p)}: il marcatore non è aria-hidden`);
     }
   });
 
@@ -112,12 +122,15 @@ describe("le zone di spec §6.1 portano data-bg", () => {
     assert.ok(tags.every((t) => FOTO.test(t)), "una copertina di Voci senza data-bg=\"foto\"");
   });
 
-  test("finestra di Open Domus: avorio poi foto (§3.10)", () => {
+  // A46: la facciata della finestra ha il cielo trasparente e a schermo intero il segno (in alto a
+  // sinistra, 4vw × asse della testata) sta sul cielo, cioè sull'avorio: la zona resta chiara
+  // (`foto-chiara`, grafite), altrimenti le tacche avorio sparirebbero nel cielo avorio.
+  test("finestra di Open Domus: avorio poi foto-chiara (§3.10, A46)", () => {
     const src = codice("app/components/OpenDomus.tsx");
     const a = tagCon(src, classe("dt-od_mark--a"));
     const f = tagCon(src, classe("dt-od_mark--f"));
     assert.ok(a.length === 1 && /\sdata-bg="avorio"/.test(a[0]), "il marcatore avorio della finestra manca o ha un altro valore");
-    assert.ok(f.length === 1 && FOTO.test(f[0]), "il marcatore foto della finestra manca o ha un altro valore");
+    assert.ok(f.length === 1 && /\sdata-bg="foto-chiara"/.test(f[0]), "il marcatore della foto della finestra non è foto-chiara: sul cielo trasparente il segno deve restare grafite (A46)");
   });
 
   test("banda di Costi chiari (§3.13)", () => {

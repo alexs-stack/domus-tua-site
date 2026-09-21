@@ -124,33 +124,39 @@ test("1440, scroll 1200: centro a 4vw, taglia clamp(40px, 3,75vw, 56px), sull'as
 });
 
 for (const vp of [
-  // La testa di era (A38, A41, 20 set. 2026): la foto è il fondo a schermo intero
-  // dal primo pixel, sticky e ferma, e il blocco dei testi le scorre sopra. Il
-  // segno sta sopra la foto da scroll 0 fino alla fine della section (tema
-  // «foto»: tacche avorio, monogramma intatto, C23) e torna grafite sull'avorio
-  // della pagina che segue. Il tuffo ("page-dive") che qui si misurava a p 0,8
-  // e 0,9 è morto con A41.
+  // La testa di era (A38, A41, A45, 20-21 set. 2026): la foto alta è la pagina, in
+  // flusso. A46 (Alberto, 21 set., sera): il cielo della foto è trasparente e il
+  // riquadro è la carta: sopra il cielo (dove stanno le scritte, in inchiostro) il
+  // segno resta grafite — tacche avorio sull'avorio non si vedrebbero — e vira
+  // «foto» (tacche avorio, monogramma intatto, C23) solo sul soggetto, dalla
+  // cima del soggetto (`.dt-testa_soggetto`, data-bg="foto") alla fine della foto;
+  // poi torna grafite sull'avorio della pagina che segue.
   { width: 1440, height: 900 },
   { width: 1024, height: 768 },
 ]) {
-  test(`/vendi ${vp.width}×${vp.height}: tema foto a scroll 200 e a metà testa, grafite sotto la testa; le tacche virano, il monogramma no (T1, C23)`, async ({ page, goto }, info) => {
+  test(`/vendi ${vp.width}×${vp.height}: tema grafite a scroll 200 (il cielo è la carta), foto sul soggetto, grafite sotto la testa; le tacche virano, il monogramma no (T1, C23, A46)`, async ({ page, goto }, info) => {
     soloDesktop(info.project.name);
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await goto("/vendi");
     await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
     // Sotto xl il segno si accende scorrendo (opacità 0 → 1 nella seconda metà della testata,
-    // MarkSegno) e a opacità 0 non misura: la prima lettura si fa a scroll 200, oltre la testata.
+    // MarkSegno) e a opacità 0 non misura: la prima lettura si fa a scroll 200, oltre la testata,
+    // dove sotto il segno c'è ancora il cielo, cioè la carta (la cima del soggetto di /vendi sta al
+    // fondo del blocco: 900 px a 1440, 768 a 1024).
     await scrollA(page, 200);
-    await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
-    // La transizione di `color` dura --td-duration-fast (250 ms): si aspetta il colore finale.
-    await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000, message: "sopra la foto le tacche non sono --color-cream" }).toBe(CREAM);
-    expect((await coloriSegno(page)).monogramma, "sopra la foto il monogramma è stato ricolorato (C23)").toEqual(MONOGRAMMA);
+    await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
+    await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000, message: "sul cielo, che è la carta, le tacche non sono --color-ink (A46)" }).toBe(INK);
     const testa = await page.locator("section[data-testa]").evaluate((el) => {
       const r = el.getBoundingClientRect();
-      return { top: r.top + window.scrollY, bottom: r.bottom + window.scrollY };
+      const s = el.querySelector("[data-testa-soggetto]")!.getBoundingClientRect();
+      return { top: r.top + window.scrollY, bottom: r.bottom + window.scrollY, soggetto: s.top + window.scrollY, fondoFoto: s.bottom + window.scrollY };
     });
-    await scrollA(page, Math.round((testa.top + testa.bottom) / 2));
+    expect(testa.soggetto, "la cima del soggetto di /vendi sta sopra il segno a scroll 200").toBeGreaterThan(200 + 100);
+    // Sul soggetto: tema foto. La transizione di `color` dura --td-duration-fast (250 ms): si aspetta il colore finale.
+    await scrollA(page, Math.round((testa.soggetto + testa.fondoFoto) / 2));
     await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
+    await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000, message: "sopra la foto le tacche non sono --color-cream" }).toBe(CREAM);
+    expect((await coloriSegno(page)).monogramma, "sopra la foto il monogramma è stato ricolorato (C23)").toEqual(MONOGRAMMA);
     await scrollA(page, Math.round(testa.bottom + vp.height * 0.6));
     await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
     await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000, message: "con la grafite le tacche non sono --color-ink" }).toBe(INK);
@@ -416,15 +422,23 @@ for (const rotta of ["/", "/vendi", "/metodo"]) {
   }
 }
 
-test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, il tema è foto", async ({ page, goto }, info) => {
+// A46 (Alberto, 21 set. 2026, sera): la facciata della finestra di Open Domus ha il cielo trasparente
+// (`villa-terrazze-glicine-cielo.webp`) e a schermo intero sotto il segno, in alto a sinistra, c'è il
+// cielo, cioè la carta: lì il tema resta grafite (marcatore `foto-chiara`) anche se l'elemento in cima
+// è un <img>. Sovrapposizione non vuol dire visibilità (lezione di 6a33f85): l'immagine col cielo è
+// l'eccezione dichiarata.
+const FOTO_COL_CIELO = /villa-terrazze-glicine-cielo\.webp/;
+
+test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, il tema è foto (tranne il cielo trasparente della finestra, che è carta: grafite)", async ({ page, goto }, info) => {
   soloDesktop(info.project.name);
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await goto("/");
   await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
-  const errori = await page.evaluate(async () => {
+  const errori = await page.evaluate(async (cielo) => {
     const segno = document.querySelector<HTMLElement>("[data-segno]")!;
     const out: string[] = [];
+    let cieloVisto = 0;
     const max = document.documentElement.scrollHeight - innerHeight;
     for (let y = 0; y <= max; y += 450) {
       window.scrollTo({ top: y, behavior: "instant" });
@@ -432,17 +446,22 @@ test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, 
       if (segno.hidden || Number(getComputedStyle(segno).opacity) < 0.1) continue;
       const r = segno.getBoundingClientRect();
       const sotto = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-      if (sotto && (sotto.tagName === "IMG" || sotto.tagName === "VIDEO") && segno.getAttribute("data-tema") !== "foto") {
-        const src = (sotto as HTMLImageElement | HTMLVideoElement).currentSrc.split("/").pop();
-        out.push(`scroll ${y}: ${sotto.tagName} ${src} sotto il segno col tema ${segno.getAttribute("data-tema")}`);
+      if (sotto && (sotto.tagName === "IMG" || sotto.tagName === "VIDEO")) {
+        const src = (sotto as HTMLImageElement | HTMLVideoElement).currentSrc.split("/").pop() ?? "";
+        const tema = segno.getAttribute("data-tema");
+        if (new RegExp(cielo).test(decodeURIComponent(src))) {
+          cieloVisto += 1;
+          if (tema !== "grafite") out.push(`scroll ${y}: sul cielo trasparente della finestra (carta) il tema è ${tema}, non grafite (A46)`);
+        } else if (tema !== "foto") out.push(`scroll ${y}: ${sotto.tagName} ${src} sotto il segno col tema ${tema}`);
       }
     }
-    return out;
-  });
-  expect(errori, errori.join("\n")).toEqual([]);
+    return { out, cieloVisto };
+  }, FOTO_COL_CIELO.source);
+  expect(errori.out, errori.out.join("\n")).toEqual([]);
+  expect(errori.cieloVisto, "la corsa non ha mai trovato la finestra a schermo intero sotto il segno").toBeGreaterThan(0);
 });
 
-test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10)", async ({ page, goto }, info) => {
+test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10; A46: sul cielo della finestra grafite)", async ({ page, goto }, info) => {
   soloDesktop(info.project.name);
   await page.setViewportSize({ width: 1440, height: 900 });
   await goto("/");
@@ -456,6 +475,17 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10)
   expect(area, "manca .dt-od_area in home").not.toBeNull();
   await scrollA(page, Math.round(area! + 900));
   await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
+  // A46: da +150svh la finestra è a schermo intero e sotto il segno c'è il cielo trasparente della
+  // facciata, cioè la carta: il marcatore è `foto-chiara` e il tema resta grafite (le tacche avorio
+  // sparirebbero nell'avorio). Sotto il segno c'è davvero l'<img> col cielo.
   await scrollA(page, Math.round(area! + 2.2 * 900));
-  await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
+  await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
+  expect(
+    await page.evaluate(() => {
+      const r = document.querySelector<HTMLElement>("[data-segno]")!.getBoundingClientRect();
+      const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return el instanceof HTMLImageElement ? decodeURIComponent(el.currentSrc) : el?.tagName ?? "";
+    }),
+    "sotto il segno non c'è la facciata col cielo trasparente",
+  ).toMatch(/villa-terrazze-glicine-cielo\.webp/);
 });

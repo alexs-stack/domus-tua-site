@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import sharp from "sharp";
-import { test, expect } from "./helpers";
+import { test, expect, setConsent } from "./helpers";
 import tinte from "../app/lib/motion/tinte.json";
 import { sizesDi, sizesSottoLg } from "../app/lib/motion/testa";
 
@@ -18,9 +18,19 @@ const ROTTE_TESTA = ROTTE.filter((r) => tinte[r].trattamento === "testa");
 const LINGUE = ["it", "en", "fr", "de", "es"] as const;
 const FERMA = /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/;
 const INK = "rgb(70, 66, 61)";
-const BIANCO = "rgb(255, 255, 255)";
-/** D124: dove `tinte.json` dichiara l'avorio, la pagina spedisce il token della zona. */
-const TOKEN_ALTA = "--color-cream-deep";
+/** La grafite del lead (`--color-graphite`) ha lo stesso valore dell'inchiostro. */
+const GRAFITE = "rgb(70, 66, 61)";
+const ROSSO = "rgb(210, 10, 10)";
+const CREAM_DEEP = "rgb(244, 236, 226)";
+/** L'avorio della carta, in RGB: i pixel sotto le scritte devono essere questo, ±3 per canale (A46). */
+const AVORIO_RGB = [249, 245, 239] as const;
+/** D124: dove `tinte.json` dichiara l'avorio, la pagina spedisce un token. A46 (21 set. 2026): col
+    cielo mascherato il riquadro si vede attraverso la foto, quindi il token è il FONDO PAGINA. */
+const TOKEN_ALTA = "--color-cream";
+/** A46: la cima del soggetto di una rotta in px (`cielo.cima`: la prima riga con almeno il 5 % di pixel opachi;
+    sopra c'è solo carta), data l'altezza resa dello strato della foto. La `linea` (dove il soggetto riempie la
+    larghezza) sta più in basso e con lei l'H1 di /vendi posava sui cipressi: non si usa. */
+const cieloPx = (rotta: Rotta, altezzaStrato: number) => tinte[rotta].cielo.cima * altezzaStrato;
 
 /**
  * L'idratazione è finita: c'è `window.__dtST` (il chunk di app/lib/motion/gsap.ts è eseguito) e, a
@@ -63,6 +73,7 @@ async function geometria(page: Page) {
     const riquadro = section?.querySelector<HTMLElement>("[data-dive-zoom]") ?? null;
     const strato = section?.querySelector<HTMLElement>("[data-testa-strato]") ?? null;
     const img = strato?.querySelector<HTMLImageElement>("img") ?? null;
+    const soggetto = strato?.querySelector<HTMLElement>("[data-testa-soggetto]") ?? null;
     const blocco = section?.querySelector<HTMLElement>(".dt-testa_blocco") ?? null;
     const pagina = section?.querySelector<HTMLElement>(".dt-testa_pagina") ?? null;
     const h1 = section?.querySelector<HTMLElement>("h1") ?? null;
@@ -93,6 +104,7 @@ async function geometria(page: Page) {
       riquadro: rq,
       strato: box(strato),
       img: box(img),
+      soggetto: box(soggetto),
       blocco: box(blocco),
       pagina: box(pagina),
       h1: box(h1),
@@ -106,7 +118,11 @@ async function geometria(page: Page) {
       stili: { h1: stile(h1), eyebrow: stile(eyebrow), script: stile(script), lead: stile(lead), solid: stile(solid), ghost: stile(ghost) },
       op: img ? getComputedStyle(img).objectPosition : null,
       fondoRiquadro: riquadro ? getComputedStyle(riquadro).backgroundColor : null,
+      fondoStrato: strato ? getComputedStyle(strato).backgroundColor : null,
       fondoPagina: pagina ? getComputedStyle(pagina).backgroundColor : null,
+      dataBgRiquadro: riquadro?.getAttribute("data-bg") ?? null,
+      dataBgSoggetto: soggetto?.getAttribute("data-bg") ?? null,
+      cieloVar: section ? getComputedStyle(section).getPropertyValue("--dt-cielo").trim() : null,
       posizioneRiquadro: riquadro ? getComputedStyle(riquadro).position : null,
       posizioneBlocco: blocco ? getComputedStyle(blocco).position : null,
       overflow: riquadro ? getComputedStyle(riquadro).overflow : null,
@@ -128,21 +144,26 @@ async function geometria(page: Page) {
 const bucketDi = (src: string | null) => Number(/[?&]w=(\d+)(&|$)/.exec(src ?? "")?.[1] ?? 0);
 
 // ── la testa ───────────────────────────────────────────────────────────────
-// D176/D177: su nove + due rotte la fotografia è il primo pixel della pagina (`margin-top` negativo
-// sotto la testata trasparente), in un riquadro alto 100svh; dentro, in alto, in bianco NUDO (A40 di
-// Alberto: «negli screenshot di era-residence non c'erano le ombre sulle scritte bianche») stanno
-// occhiello, H1, calligrafia, lead e i due comandi, centrati come «Perfect sea views» (A41); i tre
-// punti sotto, sull'avorio. D184: nessuna ombra su nessun nodo e nessun reset; il bottone rosso pieno
-// com'è. A45 (Alberto, 21 set. 2026: «le foto su era residence sono la pagina stessa … stai scrollando
-// la foto stessa come se fosse la pagina»): il riquadro della foto è IN FLUSSO, alto quanto la foto resa
-// (mai meno di 100svh) e scorre con la pagina; il blocco dei testi sta dentro, in cima, alto almeno 100svh.
+// D176/D177: su nove + due rotte la carta è il primo pixel della pagina (`margin-top` negativo sotto la
+// testata trasparente); dentro, in alto, stanno occhiello, H1, calligrafia, lead e i due comandi,
+// centrati come «Perfect sea views» (A41); i tre punti sotto. A45 (Alberto, 21 set. 2026: «le foto su
+// era residence sono la pagina stessa … stai scrollando la foto stessa come se fosse la pagina»): la
+// foto è IN FLUSSO, alta quanto resa, e scorre con la pagina. A46 (Alberto, 21 set. 2026, sera: «su
+// eraresidence questa foto che usa come background alta ha il cielo mascherato, è no bg: ecco perché
+// sembra un tutt'uno il cielo con il colore dello sfondo del sito. Dobbiamo fare la stessa cosa»): il
+// cielo delle foto alte è trasparente e il riquadro è la carta (avorio); le scritte tornano nell'inchiostro
+// della rivista (occhiello rosso, h1 inchiostro, lead grafite, corsivo rosso, bottone rosso pieno, link
+// fantasma inchiostro) e stanno SOPRA il soggetto: il blocco è alto quanto il contenuto (da lg almeno
+// 100svh) e lo strato della foto, in flusso dopo il blocco, sale fino alla CIMA del soggetto, così il
+// soggetto comincia al fondo del blocco e nessuna lettera gli sta sopra. D184: nessuna ombra su nessun
+// nodo e nessun reset.
 test.describe("la testa", () => {
   for (const vp of [
     { w: 1440, h: 900 },
     { w: 1024, h: 768 },
   ] as const) {
     for (const rotta of ROTTE) {
-      test(`${rotta} a ${vp.w}×${vp.h}: foto dal pixel 0, riquadro in flusso alto quanto la foto, blocco bianco, nudo e centrato dentro in cinque lingue, tre punti sotto, sizes della sorgente`, async ({ page, goto }, info) => {
+      test(`${rotta} a ${vp.w}×${vp.h}: carta dal pixel 0, blocco inchiostro sull'avorio alto almeno 100svh in cinque lingue, foto in flusso col soggetto al fondo del blocco, tre punti dopo, sizes della sorgente`, async ({ page, goto }, info) => {
         test.skip(info.project.name !== "desktop-1440", "le quote da lg si misurano dal desktop");
         await page.setViewportSize({ width: vp.w, height: vp.h });
         for (const lang of LINGUE) {
@@ -157,22 +178,33 @@ test.describe("la testa", () => {
           expect(g.posizioneRiquadro).toBe("relative");
           expect(Math.abs(g.section!.top), `${lang}: la section non comincia a scroll 0 (D176)`).toBeLessThanOrEqual(1);
           expect(Math.abs(g.riquadro!.top), `${lang}: il riquadro non è il pixel 0`).toBeLessThanOrEqual(1);
-          // A45: il riquadro è alto quanto la foto resa a larghezza piena (`aspect-ratio` dal sorgente), mai
-          // meno di 100svh; da lg le nove foto alte lo fanno più alto dello schermo.
+          // A45/A46: lo strato della foto è alto quanto la foto resa a larghezza piena (`aspect-ratio` dal
+          // sorgente) e sta in flusso dopo il blocco, portato su di quanto vale il cielo trasparente; il
+          // riquadro (la carta) è alto quanto blocco + strato − cielo.
           const [sw, sh] = tinte[rotta].sorgente;
-          const altoFoto = Math.max(g.innerHeight, (g.riquadro!.width * sh) / sw, g.blocco!.height);
-          expect(Math.abs(g.riquadro!.height - altoFoto), `${lang}: il riquadro non è alto quanto la foto (A45)`).toBeLessThanOrEqual(2);
+          const altoFoto = (g.riquadro!.width * sh) / sw;
+          expect(Math.abs(g.strato!.height - altoFoto), `${lang}: lo strato non è alto quanto la foto resa (A45)`).toBeLessThanOrEqual(2);
+          const cielo = cieloPx(rotta, g.strato!.height);
+          expect(Math.abs(g.riquadro!.height - (g.blocco!.height + g.strato!.height - cielo)), `${lang}: il riquadro non è blocco + foto − cielo (A46)`).toBeLessThanOrEqual(2);
           expect(Math.round(g.riquadro!.width)).toBe(g.clientWidth);
           expect(g.overflow).toBe("clip");
           expect(g.posizioneBlocco, `${lang}: il blocco sta dentro il riquadro, in flusso e in cima (A45)`).toBe("relative");
           expect(Math.abs(g.blocco!.top), `${lang}: il blocco non comincia al pixel 0`).toBeLessThanOrEqual(1);
+          // Da lg il blocco è alto almeno 100svh e i comandi stanno in fondo al primo schermo, sull'avorio.
           expect(g.blocco!.height, `${lang}: il blocco non è alto almeno 100svh`).toBeGreaterThanOrEqual(g.innerHeight - 1);
           expect(g.blocco!.bottom, `${lang}: il blocco esce dal riquadro`).toBeLessThanOrEqual(g.riquadro!.bottom + 1);
-          // La foto copre il riquadro da ogni lato: lo strato È il riquadro (nessun pan, nessuna trasformata).
-          expect(Math.abs(g.strato!.top - g.riquadro!.top), `${lang}: lo strato non parte dal pixel 0`).toBeLessThanOrEqual(1);
-          expect(Math.abs(g.strato!.height - g.riquadro!.height), `${lang}: lo strato non è il riquadro (A45)`).toBeLessThanOrEqual(1);
-          expect(g.img!.left).toBeLessThanOrEqual(g.riquadro!.left + 1);
-          expect(g.img!.right).toBeGreaterThanOrEqual(g.riquadro!.right - 1);
+          // Lo strato parte a blocco − cima (a 1440 e 1024 mai sopra il pixel 0: la cima più profonda, /acquista, sta
+          // a 863 px) e chiude il riquadro; il soggetto comincia al fondo del blocco.
+          expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), `${lang}: lo strato non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
+          expect(g.strato!.top, `${lang}: lo strato esce sopra la carta`).toBeGreaterThanOrEqual(-1);
+          expect(Math.abs(g.strato!.bottom - g.riquadro!.bottom), `${lang}: lo strato non chiude il riquadro`).toBeLessThanOrEqual(1);
+          expect(Math.abs(g.soggetto!.top - g.blocco!.bottom), `${lang}: il soggetto non comincia al fondo del blocco (A46)`).toBeLessThanOrEqual(2);
+          expect(Math.abs(g.soggetto!.bottom - g.strato!.bottom)).toBeLessThanOrEqual(1);
+          expect(g.dataBgSoggetto, `${lang}: il marcatore del soggetto non è la zona foto del segno`).toBe("foto");
+          expect(g.dataBgRiquadro, `${lang}: il riquadro porta data-bg: il segno sarebbe avorio sull'avorio`).toBeNull();
+          expect(Number(g.cieloVar), `${lang}: --dt-cielo non è la cima di tinte.json`).toBe(tinte[rotta].cielo.cima);
+          expect(g.img!.left).toBeLessThanOrEqual(g.strato!.left + 1);
+          expect(g.img!.right).toBeGreaterThanOrEqual(g.strato!.right - 1);
           expect(g.trasformata).toMatch(FERMA);
           expect(g.op, `${lang}: l'inquadratura da lg non è quella di tinte.json (D180)`).toBe(tinte[rotta].objectPosition.lg);
           // I nodi stanno dentro il blocco; i tre punti dopo la foto (la fascia segue il riquadro in flusso).
@@ -183,13 +215,15 @@ test.describe("la testa", () => {
           for (const z of ["h1", "lead", "solid"] as const) if (g[z]) expect(Math.abs((g[z]!.left + g[z]!.right) / 2 - cx), `${lang}: ${z} non è centrato`).toBeLessThanOrEqual(2);
           expect(g.lead!.top, `${lang}: il lead non sta in alto`).toBeLessThan(g.h1!.top);
           expect(g.solid!.top, `${lang}: il bottone non sta in basso`).toBeGreaterThan(g.h1!.bottom);
-          // I colori, e nessuna ombra (D184, A40).
-          for (const z of ["h1", "eyebrow", "lead"] as const) expect(g.stili[z]?.color, `${lang}: ${z} non è bianco`).toBe(BIANCO);
-          if (tinte[rotta].trattamento === "testa" || g.stili.script) expect(g.stili.script?.color, `${lang}: la calligrafia non è bianca`).toBe(BIANCO);
-          for (const z of ["h1", "eyebrow", "lead", "ghost", "script", "solid"] as const) if (g.stili[z]) expect(g.stili[z]!.shadow, `${lang}: ${z} porta un'ombra (A40)`).toBe("none");
+          // I colori della rivista (A46), e nessuna ombra (D184).
+          expect(g.stili.h1?.color, `${lang}: l'H1 non è inchiostro`).toBe(INK);
+          expect(g.stili.eyebrow?.color, `${lang}: l'occhiello non è rosso`).toBe(ROSSO);
+          expect(g.stili.lead?.color, `${lang}: il lead non è grafite`).toBe(GRAFITE);
+          if (tinte[rotta].trattamento === "testa" || g.stili.script) expect(g.stili.script?.color, `${lang}: la calligrafia non è rossa`).toBe(ROSSO);
+          for (const z of ["h1", "eyebrow", "lead", "ghost", "script", "solid"] as const) if (g.stili[z]) expect(g.stili[z]!.shadow, `${lang}: ${z} porta un'ombra (D184)`).toBe("none");
           expect(g.stili.h1!.classi).not.toMatch(/dt-alone|dt-ink-media/);
           if (g.stili.ghost) {
-            expect(g.stili.ghost.color).toBe(BIANCO);
+            expect(g.stili.ghost.color, `${lang}: il fantasma non è inchiostro`).toBe(INK);
             expect(g.stili.ghost.size, `${lang}: il fantasma non è 18 px (D174)`).toBe("18px");
             expect(g.ghost!.top, `${lang}: il fantasma non sta sotto il bottone`).toBeGreaterThanOrEqual(g.solid!.bottom - 1);
           }
@@ -199,8 +233,11 @@ test.describe("la testa", () => {
           const serve = Math.max(g.strato!.width, (g.strato!.height * sw) / sh);
           expect(bucket, `${lang}: bucket ${bucket} più stretto di ${serve.toFixed(0)}`).toBeGreaterThanOrEqual(Math.min(serve, sw) - 1);
           expect(g.naturalWidth).toBeGreaterThan(0);
-          // Il fondo: il placeholder è la tinta alta, la pagina sotto l'avorio.
-          expect(g.fondoRiquadro).toBe(await tintaAttesa(page, rotta));
+          // Il WebP col cielo trasparente dove c'è (A46), altrimenti la sorgente.
+          expect(g.currentSrc ?? "", `${lang}: la foto montata non è quella di tinte.json`).toContain(encodeURIComponent(tinte[rotta].cielo.file ?? tinte[rotta].file));
+          // I fondi: il riquadro è la carta, lo strato porta il placeholder (la tinta alta, D125), la pagina sotto l'avorio.
+          expect(g.fondoRiquadro, `${lang}: il riquadro non è la carta (A46)`).toBe(rgb("#f9f5ef"));
+          expect(g.fondoStrato).toBe(await tintaAttesa(page, rotta));
           expect(g.fondoPagina).toBe(rgb("#f9f5ef"));
         }
       });
@@ -244,17 +281,19 @@ test.describe("la foto è la pagina", () => {
 });
 
 // ── la testata ─────────────────────────────────────────────────────────────
-// D186: da lg la testata è trasparente sopra la foto e scorre via con la pagina: nav bianca, senza ombra
-// finché c'è (a scroll 0 e 40), `data-su-foto` nell'HTML iniziale. Sotto lg a scroll 0 la barra sticky è
-// trasparente sopra la foto e «Menu» è bianco, senza ombra; da 24 px `data-solid` prende la tinta alta
-// (D82) e «Menu» torna grafite. Il segno vira `foto` a scroll 0 e 450 su /metodo a 1440 e `grafite` cento
-// pixel sotto il fondo della foto (A45: la foto è alta quanto la pagina la rende, 2146 px a 1440).
+// A46: la testata è quella del resto del sito. Da lg è trasparente sulla carta (il cielo è avorio) e
+// scorre via con la pagina: nav in inchiostro, senza ombra, nessun `data-su-foto` (D186 è superata).
+// Sotto lg a scroll 0 la barra sticky è trasparente e «Menu» è inchiostro; da 24 px `data-solid` prende
+// cream-deep come su ogni rotta (D82 è morta: sotto la barra c'è la carta, poi la foto). Il segno resta
+// `grafite` sul cielo (scroll 0 e 450 su /metodo a 1440: la cima del soggetto sta a 900 px, cioè al fondo
+// del blocco, sotto il segno a 450 + 40), vira `foto` sul soggetto e torna `grafite` cento pixel sotto il
+// fondo della foto.
 test.describe("la testata", () => {
-  test("da lg: header[data-su-foto] nell'HTML, nav bianca, senza ombra, a scroll 0 e 40, il selettore lingua se c'è; il segno foto a 0 e 450, grafite sotto la foto", async ({ page, goto }, info) => {
+  test("da lg: nessun data-su-foto nell'HTML, nav inchiostro, senza ombra, a scroll 0 e 40, il selettore lingua se c'è; il segno grafite sul cielo, foto sul soggetto, grafite sotto la foto", async ({ page, goto }, info) => {
     test.skip(info.project.name !== "desktop-1440", "la nav esiste da lg");
     for (const rotta of ["/metodo", "/vendi", "/privacy"] as const) {
       const html = await (await page.request.get(rotta)).text();
-      expect(html, `${rotta}: data-su-foto non è nell'HTML iniziale`).toMatch(/<header[^>]*\bdata-su-foto\b/);
+      expect(html, `${rotta}: data-su-foto è ancora nell'HTML iniziale (A46)`).not.toMatch(/<header[^>]*\bdata-su-foto\b/);
       await goto(rotta);
       await idratata(page);
       for (const s of [0, 40]) {
@@ -266,23 +305,27 @@ test.describe("la testata", () => {
           const css = (el: Element | null) => (el ? { color: getComputedStyle(el).color, shadow: getComputedStyle(el).textShadow } : null);
           return { nav: css(a), lingua: css(l), suFoto: document.querySelector("header")?.hasAttribute("data-su-foto") };
         });
-        expect(nav.suFoto).toBe(true);
-        expect(nav.nav?.color, `${rotta} a scroll ${s}: la nav non è bianca`).toBe(BIANCO);
-        expect(nav.nav?.shadow, `${rotta} a scroll ${s}: la nav porta un'ombra (A40)`).toBe("none");
+        expect(nav.suFoto).toBe(false);
+        expect(nav.nav?.color, `${rotta} a scroll ${s}: la nav non è inchiostro (A46)`).toBe(INK);
+        expect(nav.nav?.shadow, `${rotta} a scroll ${s}: la nav porta un'ombra`).toBe("none");
         if (nav.lingua) {
-          expect(nav.lingua.color).toBe(BIANCO);
+          expect(nav.lingua.color, `${rotta}: il selettore lingua non è grafite come sul resto del sito`).toBe(GRAFITE);
           expect(nav.lingua.shadow).toBe("none");
         } else if (s === 0) info.annotations.push({ type: "lingua", description: `${rotta}: selettore lingua assente (NEXT_PUBLIC_ENABLE_I18N spento)` });
       }
     }
-    // Il segno (A21; tema.ts salta la testata: sotto il segno c'è la foto).
+    // Il segno (A21; tema.ts salta la testata): sul cielo, che è la carta, resta grafite; sul soggetto vira foto.
     await goto("/metodo");
     await idratata(page);
     const tema = () => page.locator(".dt-segno").first().getAttribute("data-tema");
-    await expect.poll(tema, { timeout: 8000 }).toBe("foto");
+    await expect.poll(tema, { timeout: 8000 }).toBe("grafite");
     await page.evaluate(() => window.scrollTo({ top: 450, behavior: "instant" }));
+    await expect.poll(tema, { timeout: 8000 }).toBe("grafite");
+    const g = await geometria(page);
+    expect(g.soggetto!.top, "la cima del soggetto di /metodo a 1440 sta sopra 450 + testata: il segno sarebbe già sul soggetto").toBeGreaterThan(450 + 80);
+    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), Math.round(g.soggetto!.top) + 200);
     await expect.poll(tema, { timeout: 8000 }).toBe("foto");
-    const fondoFoto = await page.locator(".dt-testa_riquadro").evaluate((el) => el.getBoundingClientRect().bottom + window.scrollY);
+    const fondoFoto = g.riquadro!.bottom;
     expect(fondoFoto, "la foto alta non è più alta di uno schermo (A45)").toBeGreaterThan(900 + 100);
     await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), Math.round(fondoFoto) + 100);
     await expect.poll(tema, { timeout: 8000 }).toBe("grafite");
@@ -290,7 +333,7 @@ test.describe("la testata", () => {
     expect(await page.locator('header img[alt="Domus Tua Immobiliare"]').first().getAttribute("src")).toBe("/logo-domustua-original.png");
   });
 
-  test("sotto lg a scroll 0: barra trasparente sopra la foto, «Menu» bianco, senza ombra; da 24 px la barra tinta e «Menu» grafite (D82)", async ({ page, goto }, info) => {
+  test("sotto lg a scroll 0: barra trasparente sulla carta, «Menu» inchiostro, senza ombra; da 24 px la barra cream-deep come ovunque (D82 morta, A46)", async ({ page, goto }, info) => {
     test.skip(info.project.name !== "mobile-390", "la barra sticky è del telefono");
     await page.setViewportSize({ width: 390, height: 844 });
     for (const rotta of ["/vendi", "/servizi", "/cookie"] as const) {
@@ -299,10 +342,10 @@ test.describe("la testata", () => {
       const header = page.locator("header").first();
       const menu = page.locator("header button[aria-controls='mobile-menu']");
       await expect(header).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-      await expect(menu).toHaveCSS("color", BIANCO);
+      await expect(menu).toHaveCSS("color", INK);
       expect(await menu.evaluate((el) => getComputedStyle(el).textShadow)).toBe("none");
-      // Sotto la barra trasparente c'è la foto (D176): il primo elemento fuori dalla testata è il riquadro, o il
-      // blocco dei testi (A41: sale sopra la foto per 100svh) col suo fondo trasparente, mai un nodo di testo.
+      // Sotto la barra trasparente c'è la carta (D176): il primo elemento fuori dalla testata è il riquadro, o il
+      // blocco dei testi col suo fondo trasparente, mai un nodo di testo (il lead parte sotto la testata).
       const sotto = await page.evaluate(() => {
         const h = document.querySelector("header")!.getBoundingClientRect();
         const el = document.elementsFromPoint(window.innerWidth / 2, h.height / 2).find((e) => !e.closest("header"));
@@ -313,19 +356,18 @@ test.describe("la testata", () => {
         if (blocco && getComputedStyle(el).backgroundColor === "rgba(0, 0, 0, 0)") return "riquadro";
         return el.tagName.toLowerCase();
       });
-      expect(sotto, `${rotta}: sotto la barra non c'è la foto`).toBe("riquadro");
+      expect(sotto, `${rotta}: sotto la barra non c'è la carta`).toBe("riquadro");
       await page.evaluate(() => window.scrollTo({ top: 120, behavior: "instant" }));
       await expect(header).toHaveAttribute("data-solid", "true");
-      await expect(header).toHaveCSS("background-color", await tintaAttesa(page, rotta));
+      await expect(header, `${rotta}: la barra solida non è cream-deep come sul resto del sito (A46)`).toHaveCSS("background-color", CREAM_DEEP);
       await expect(menu).toHaveCSS("color", INK);
     }
   });
 
-  // 2.4.7 sulla foto (brief T §7, cancello-T1.md §7): a offset 3 nessun colore regge su ogni rotta (rosso 1,18:1 su
-  // /metodo 1440, bianco 1,00 su /chi-siamo 390), quindi l'anello del bottone rosso pieno si attacca al bordo (offset 0)
-  // e diventa bianco: il contrasto è col bottone, non con la foto. Il fantasma tiene l'anello del sito (rosso, offset 3)
-  // e il suo focus-visible (crema + sottolineatura). Le rotte sono i casi peggiori della tabella, per fascia.
-  test("il fuoco sul bottone rosso dentro la foto: anello bianco a offset 0 (2.4.7); il fantasma tiene l'anello del sito", async ({ page, goto }, info) => {
+  // 2.4.7: il bottone rosso pieno sta sull'avorio (A46) e tiene l'anello del sito, rosso 2 px a offset 3
+  // (`:focus-visible` in globals.css): la regola dell'anello bianco a offset 0, nata per il bottone dentro la
+  // foto (brief T §7), è morta. Il fantasma tiene l'anello del sito e il suo focus-visible (crema + sottolineatura).
+  test("il fuoco sul bottone rosso sull'avorio: l'anello del sito, rosso a offset 3 (2.4.7); il fantasma idem", async ({ page, goto }, info) => {
     const rotte = info.project.name === "mobile-390" ? (["/chi-siamo", "/vendi"] as const) : (["/metodo", "/servizi", "/vendi"] as const);
     for (const rotta of rotte) {
       await goto(rotta);
@@ -340,8 +382,8 @@ test.describe("la testata", () => {
         return { visibile: el.matches(":focus-visible"), color: s.outlineColor, offset: s.outlineOffset, width: s.outlineWidth, style: s.outlineStyle, fondo: s.backgroundColor };
       });
       expect(anello.visibile, `${rotta}: il bottone non è :focus-visible`).toBe(true);
-      expect(anello.color, `${rotta}: l'anello del bottone sulla foto non è bianco`).toBe(BIANCO);
-      expect(anello.offset, `${rotta}: l'anello non è attaccato al bordo`).toBe("0px");
+      expect(anello.color, `${rotta}: l'anello del bottone non è quello del sito, rosso (A46)`).toBe(ROSSO);
+      expect(anello.offset, `${rotta}: l'anello non sta a offset 3 come sul resto del sito`).toBe("3px");
       expect(anello.width).toBe("2px");
       expect(anello.style).toBe("solid");
       // Il fondo a fuoco è il rosso scuro (8,1:1 col bianco dell'anello): arriva con la transizione di 0,25 s di .dt-btn.
@@ -357,17 +399,19 @@ test.describe("la testata", () => {
         expect(fantasma.color).toBe(rgb("#d20a0a"));
         expect(fantasma.offset).toBe("3px");
         expect(fantasma.sottolineatura).toBe("underline");
-        await expect(ghost, `${rotta}: a fuoco il fantasma non è crema`).toHaveCSS("color", rgb("#f9f5ef"));
+        // Il ghost inchiostro a fuoco vira al rosso (`.dt-btn--ghost:focus-visible`), come sul resto del sito.
+        await expect(ghost, `${rotta}: a fuoco il fantasma non è rosso`).toHaveCSS("color", rgb("#d20a0a"));
       }
     }
   });
 });
 
 // ── sotto lg ───────────────────────────────────────────────────────────────
-// D176/D177, A45: sul telefono la stessa testa dal pixel 0 sotto la testata sticky trasparente: il
-// riquadro in flusso è alto quanto la foto resa e mai meno di 100svh (in verticale la foto 2:3 è più
-// bassa dello schermo e vince 100svh; in orizzontale è la foto a dettare), il blocco centrato sta dentro,
-// in cima, alto almeno 100svh (cresce dove l'H1 tedesco lo chiede, nulla si taglia), i tre punti dopo.
+// D176/D177, A45, A46: sul telefono la stessa testa dal pixel 0 sotto la testata sticky trasparente: il
+// blocco centrato sta in cima, sull'avorio, alto quanto il suo contenuto (occhiello, H1, calligrafia,
+// lead, comandi: nessun pavimento di 100svh, così il soggetto entra subito dopo i comandi senza un buco
+// d'avorio), la foto 2:3 segue a larghezza piena (585 px a 390) portata su fino alla cima del soggetto,
+// e i tre punti dopo. Nulla si taglia (il tedesco cresce, D177).
 const SOTTO_LG: Array<{ rotta: Rotta; w: number; h: number; lang: (typeof LINGUE)[number] }> = [
   { rotta: "/vendi", w: 390, h: 844, lang: "de" },
   { rotta: "/vendi", w: 390, h: 844, lang: "it" },
@@ -388,7 +432,7 @@ const SOTTO_LG: Array<{ rotta: Rotta; w: number; h: number; lang: (typeof LINGUE
 ];
 test.describe("sotto lg", () => {
   for (const c of SOTTO_LG) {
-    test(`${c.rotta} a ${c.w}×${c.h} in ${c.lang}: riquadro in flusso ≥ 100svh, blocco centrato ≥ 100svh, tutto dentro, nessuna trasformata`, async ({ page, goto }, info) => {
+    test(`${c.rotta} a ${c.w}×${c.h} in ${c.lang}: blocco inchiostro sull'avorio alto quanto il contenuto, foto 2:3 a larghezza piena col soggetto subito dopo i comandi, tutto dentro, nessuna trasformata`, async ({ page, goto }, info) => {
       test.skip(info.project.name !== "mobile-390", "il ramo sotto la soglia si misura sul telefono");
       await page.setViewportSize({ width: c.w, height: c.h });
       await lingua(page, c.lang);
@@ -398,23 +442,34 @@ test.describe("sotto lg", () => {
       const g = await geometria(page);
       expect(Math.abs(g.section!.top)).toBeLessThanOrEqual(1);
       expect(Math.abs(g.riquadro!.top)).toBeLessThanOrEqual(1);
-      // Il riquadro è alto quanto il più alto fra la foto resa, 100svh e il blocco (il tedesco cresce, D177).
+      // Lo strato è la foto resa a larghezza piena; il riquadro è blocco + foto − cielo (A46).
       const [sw, sh] = tinte[c.rotta].sorgente;
-      const altoFoto = Math.max(g.innerHeight, (g.riquadro!.width * sh) / sw, g.blocco!.height);
-      expect(Math.abs(g.riquadro!.height - altoFoto), "il riquadro non è alto quanto la foto, né 100svh, né il blocco (A45)").toBeLessThanOrEqual(2);
+      expect(Math.abs(g.strato!.height - (g.riquadro!.width * sh) / sw), "lo strato non è la foto resa a larghezza piena (A46)").toBeLessThanOrEqual(2);
+      const cielo = cieloPx(c.rotta, g.strato!.height);
+      expect(Math.abs(g.riquadro!.height - (g.blocco!.height + g.strato!.height - cielo)), "il riquadro non è blocco + foto − cielo (A46)").toBeLessThanOrEqual(2);
       expect(g.overflow).toBe("clip");
       expect(g.posizioneRiquadro).toBe("relative");
       expect(g.posizioneBlocco).toBe("relative");
       expect(g.sticky, "uno sticky nella testa (A45)").toBe(0);
       expect(Math.abs(g.blocco!.top)).toBeLessThanOrEqual(1);
-      expect(g.blocco!.height, "il blocco non è alto almeno 100svh").toBeGreaterThanOrEqual(g.innerHeight - 1);
-      expect(g.op, "l'inquadratura sotto lg non è quella di tinte.json (D180)").toBe(tinte[c.rotta].objectPosition.sotto);
-      expect(Math.abs(g.strato!.height - g.riquadro!.height)).toBeLessThanOrEqual(1);
-      expect(g.nodiFuori, "nodi fuori dal blocco").toBe(0);
+      // Sotto lg il blocco è alto quanto il contenuto: l'ultimo comando sta a un passo (il padding) dal fondo.
       const ultimo = g.ghost ?? g.solid!;
+      expect(g.blocco!.bottom - ultimo.bottom, "sotto lg il blocco lascia un buco d'avorio sotto i comandi (A46: altezza del contenuto)").toBeLessThanOrEqual(80);
+      expect(g.blocco!.bottom - ultimo.bottom, "l'ultimo comando tocca la foto").toBeGreaterThanOrEqual(24);
+      // Il soggetto comincia al fondo del blocco: la foto sale fino alla sua cima.
+      expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), "la foto non sale fino alla cima del soggetto (A46)").toBeLessThanOrEqual(2);
+      expect(g.strato!.top).toBeGreaterThanOrEqual(-1);
+      expect(Math.abs(g.soggetto!.top - g.blocco!.bottom), "il soggetto non comincia subito dopo i comandi (A46)").toBeLessThanOrEqual(2);
+      expect(g.op, "l'inquadratura sotto lg non è quella di tinte.json (D180)").toBe(tinte[c.rotta].objectPosition.sotto);
+      expect(g.nodiFuori, "nodi fuori dal blocco").toBe(0);
       expect(ultimo.bottom, "l'ultimo comando esce dal blocco").toBeLessThanOrEqual(g.blocco!.bottom + 1);
       expect(g.blocco!.bottom, "il blocco esce dal riquadro").toBeLessThanOrEqual(g.riquadro!.bottom + 1);
+      expect(Math.abs(g.strato!.bottom - g.riquadro!.bottom)).toBeLessThanOrEqual(1);
       if (g.punti) expect(g.punti.top).toBeGreaterThanOrEqual(g.riquadro!.bottom - 1);
+      // I colori della rivista anche qui (A46).
+      expect(g.stili.h1?.color).toBe(INK);
+      expect(g.stili.lead?.color).toBe(GRAFITE);
+      expect(g.stili.eyebrow?.color).toBe(ROSSO);
       expect(g.sizes).toBe(sizesDi(sw / sh));
       await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
       await page.waitForTimeout(400);
@@ -428,29 +483,32 @@ test.describe("sotto lg", () => {
 });
 
 // ── senza JS e con moto ridotto ────────────────────────────────────────────
-// D190: lo stato del CSS è lo stato a riposo; senza JS la pagina è completa e ferma, la foto intera
-// (strato = riquadro), l'H1 bianco e nudo (A40), testo e tinta nell'HTML
-// iniziale, `data-su-foto` sulla testata.
+// D190: lo stato del CSS è lo stato a riposo; senza JS la pagina è completa e ferma, la foto intera in
+// flusso sotto il blocco (A46: il soggetto comincia al fondo del blocco), l'H1 inchiostro sull'avorio,
+// testo, tinta e cima del soggetto nell'HTML iniziale, nessun `data-su-foto` sulla testata.
 test.describe("senza JS e con moto ridotto", () => {
   test.describe("senza JS", () => {
     test.use({ javaScriptEnabled: false });
 
-    test("undici rotte: nessun data-hero-intro, nessuno sticky, foto intera, H1 bianco e nudo, tinta, H1 e data-su-foto nell'HTML iniziale", async ({ page }) => {
+    test("undici rotte: nessun data-hero-intro, nessuno sticky, foto intera sotto il blocco, H1 inchiostro, tinta, cielo e H1 nell'HTML iniziale, nessun data-su-foto", async ({ page }) => {
       for (const rotta of ROTTE) {
         const html = await (await page.request.get(rotta)).text();
         expect(html, `${rotta}: la tinta non è nell'HTML iniziale`).toContain("--dt-tinta-alta:");
+        expect(html, `${rotta}: la cima del soggetto non è nell'HTML iniziale (A46)`).toContain(`--dt-cielo:${tinte[rotta].cielo.cima}`);
         expect(html, `${rotta}: l'H1 non è nell'HTML iniziale`).toMatch(/<h1[\s>]/);
-        expect(html, `${rotta}: data-su-foto non è nell'HTML iniziale`).toMatch(/<header[^>]*\bdata-su-foto\b/);
+        expect(html, `${rotta}: data-su-foto è ancora nell'HTML iniziale (A46)`).not.toMatch(/<header[^>]*\bdata-su-foto\b/);
         await page.goto(rotta, { waitUntil: "domcontentloaded" });
         expect(await page.evaluate(() => document.documentElement.hasAttribute("data-hero-intro"))).toBe(false);
         const h1 = page.locator("[data-testa] h1").first();
         await expect(h1).toBeVisible();
         expect(((await h1.textContent()) ?? "").trim().length, `${rotta}: H1 vuoto`).toBeGreaterThan(3);
-        await expect(h1, `${rotta}: l'H1 non è bianco`).toHaveCSS("color", BIANCO);
+        await expect(h1, `${rotta}: l'H1 non è inchiostro (A46)`).toHaveCSS("color", INK);
         const g = await geometria(page);
         expect(g.sticky, `${rotta}: uno sticky nella testa senza JS (A45)`).toBe(0);
         expect(g.corridoi).toBe(0);
-        expect(Math.abs(g.strato!.height - g.riquadro!.height), `${rotta}: lo strato non è il riquadro`).toBeLessThanOrEqual(1);
+        const cielo = cieloPx(rotta, g.strato!.height);
+        expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), `${rotta}: senza JS la foto non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
+        expect(Math.abs(g.soggetto!.top - g.blocco!.bottom), `${rotta}: senza JS il soggetto non comincia al fondo del blocco`).toBeLessThanOrEqual(2);
         expect(g.trasformata).toMatch(FERMA);
         expect(g.riquadro!.height).toBeGreaterThan(100);
         expect(g.stili.h1!.shadow).toBe("none");
@@ -461,16 +519,17 @@ test.describe("senza JS e con moto ridotto", () => {
   test.describe("con moto ridotto", () => {
     test.use({ contextOptions: { reducedMotion: "reduce" } });
 
-    test("nove teste: strato uguale al riquadro, nessuna trasformata dopo lo scroll, nessun corridoio, testi bianchi dentro", async ({ page, goto }) => {
+    test("nove teste: foto sotto il blocco, nessuna trasformata dopo lo scroll, nessun corridoio, testi inchiostro e grafite sull'avorio", async ({ page, goto }) => {
       for (const rotta of ROTTE_TESTA) {
         await goto(rotta);
         await page.waitForLoadState("load");
         expect(await page.evaluate(() => document.documentElement.hasAttribute("data-hero-intro"))).toBe(false);
         const g = await geometria(page);
-        expect(Math.abs(g.strato!.height - g.riquadro!.height), `${rotta}: lo strato non è il riquadro`).toBeLessThanOrEqual(1);
+        expect(Math.abs(g.soggetto!.top - g.blocco!.bottom), `${rotta}: il soggetto non comincia al fondo del blocco (A46)`).toBeLessThanOrEqual(2);
         expect(g.corridoi).toBe(0);
-        expect(g.stili.h1!.color).toBe(BIANCO);
-        expect(g.stili.lead!.color).toBe(BIANCO);
+        expect(g.stili.h1!.color).toBe(INK);
+        expect(g.stili.lead!.color).toBe(GRAFITE);
+        expect(g.fondoRiquadro).toBe(rgb("#f9f5ef"));
         expect(Math.abs(g.blocco!.top)).toBeLessThanOrEqual(1);
         await page.evaluate(() => window.scrollTo({ top: 500, behavior: "instant" }));
         await page.waitForTimeout(400);
@@ -516,11 +575,160 @@ test.describe("CLS 0", () => {
   });
 });
 
+// ── le scritte sull'avorio (A46) ────────────────────────────────────────────
+// A46 di Alberto (21 set. 2026, sera): col cielo trasparente «sembra un tutt'uno il cielo con il colore
+// dello sfondo del sito». Qui si guarda coi pixel che sotto ogni scritta del blocco (occhiello, H1,
+// calligrafia, lead, bottone, fantasma) ci sia SOLO la carta: si nasconde il blocco (`visibility:
+// hidden`, nel solo test) e si campiona lo screenshot nei rettangoli delle scritte, che devono essere
+// avorio ±3 per canale. Poi: nessun buco (il soggetto comincia al fondo del blocco), nessun
+// traboccamento orizzontale, nodi tutti dentro, e CLS 0 dal primo paint alla decodifica della foto e
+// oltre un viewport di scroll. Sei viewport: i due del progetto per intero, gli altri quattro su cinque
+// rotte scelte (cielo profondo, cielo basso, tenda senza cielo, interno).
+const VIEWPORT_A46 = [
+  { w: 390, h: 844, progetto: "mobile-390", tutte: true },
+  { w: 360, h: 640, progetto: "mobile-390", tutte: false },
+  { w: 768, h: 1024, progetto: "desktop-1440", tutte: false },
+  { w: 1024, h: 640, progetto: "desktop-1440", tutte: false },
+  { w: 1440, h: 900, progetto: "desktop-1440", tutte: true },
+  { w: 1920, h: 1080, progetto: "desktop-1440", tutte: false },
+] as const;
+const ROTTE_A46_SCELTE: Rotta[] = ["/vendi", "/acquista", "/servizi", "/open-domus", "/chi-siamo"];
+const SCRITTE = ".dt-testa_blocco .eyebrow, .dt-testa_blocco h1, .dt-testa_blocco .script-word, .dt-testa_blocco p.lead, .dt-testa_blocco a.dt-btn";
+
+/** I rettangoli delle scritte del blocco, in coordinate di pagina. */
+async function rettangoliScritte(page: Page) {
+  return page.evaluate((sel) => {
+    const y = window.scrollY;
+    return Array.from(document.querySelectorAll<HTMLElement>(sel))
+      .map((el) => ({ nome: `${el.tagName.toLowerCase()}.${el.className.split(" ")[0]}`, r: el.getBoundingClientRect() }))
+      .filter(({ r }) => r.width > 0 && r.height > 0)
+      .map(({ nome, r }) => ({ nome, left: r.left, top: r.top + y, right: r.right, bottom: r.bottom + y }));
+  }, SCRITTE);
+}
+
+/** Quanti pixel di `png` dentro il rettangolo (coordinate CSS relative al ritaglio, scala `k`) NON sono avorio ±3. */
+async function pixelNonAvorio(png: Buffer, rett: { left: number; top: number; right: number; bottom: number }, k: number) {
+  const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+  const ch = info.channels;
+  let fuori = 0;
+  let totale = 0;
+  let esempio = "";
+  const x0 = Math.max(0, Math.ceil(rett.left * k));
+  const x1 = Math.min(info.width, Math.floor(rett.right * k));
+  const y0 = Math.max(0, Math.ceil(rett.top * k));
+  const y1 = Math.min(info.height, Math.floor(rett.bottom * k));
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = (y * info.width + x) * ch;
+      totale++;
+      const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+      if (Math.abs(r - AVORIO_RGB[0]) > 3 || Math.abs(g - AVORIO_RGB[1]) > 3 || Math.abs(b - AVORIO_RGB[2]) > 3) {
+        fuori++;
+        if (!esempio) esempio = `(${Math.round(x / k)}, ${Math.round(y / k)}) = rgb(${r}, ${g}, ${b})`;
+      }
+    }
+  }
+  return { fuori, totale, esempio };
+}
+
+test.describe("le scritte sull'avorio (A46)", () => {
+  for (const vp of VIEWPORT_A46) {
+    for (const rotta of vp.tutte ? ROTTE_TESTA : ROTTE_A46_SCELTE) {
+      test(`${rotta} a ${vp.w}×${vp.h}: sotto ogni scritta solo la carta (avorio ±3), soggetto al fondo del blocco, nessun traboccamento, CLS 0`, async ({ page, goto }, info) => {
+        test.skip(info.project.name !== vp.progetto, `${vp.w}×${vp.h} si misura nel progetto ${vp.progetto}`);
+        test.setTimeout(180_000);
+        await page.setViewportSize({ width: vp.w, height: vp.h });
+        // Il banner dei cookie è fisso in mezzo allo schermo: coprirebbe i rettangoli campionati.
+        await setConsent(page, "accepted");
+        // CLS della TESTA: si contano gli spostamenti con una sorgente dentro [data-testa] (`sources`
+        // dell'API layout-shift) DA QUANDO I FONT SONO PRONTI, e sul totale la differenza prima/dopo la
+        // decodifica della foto e prima/dopo uno scroll. Il tratto prima dei font non si pretende a zero:
+        // sotto i quattro worker della suite Playfair, Pinyon e Plus Jakarta arrivano dopo il primo paint
+        // e h1, lead, corsivo e nav rifluiscono (misurato: 0,02-0,05 a 1440, con la foto trascinata dal
+        // blocco che cambia altezza; a riposo mai). Quel che A46 deve garantire è che la foto in flusso,
+        // decodificando e scorrendo, non muova nulla.
+        await page.addInitScript(() => {
+          const w = window as unknown as { __dtCls: number; __dtClsTesta: number; __dtClsVoci: string[] };
+          w.__dtCls = 0;
+          w.__dtClsTesta = 0;
+          w.__dtClsVoci = [];
+          type Voce = PerformanceEntry & { hadRecentInput?: boolean; value?: number; sources?: Array<{ node?: Node | null }> };
+          new PerformanceObserver((lista) => {
+            for (const voce of lista.getEntries() as Voce[]) {
+              if (voce.hadRecentInput) continue;
+              w.__dtCls += voce.value ?? 0;
+              const nodi = (voce.sources ?? []).map((s) => s.node).filter((n): n is Node => !!n);
+              if (nodi.some((n) => (n instanceof Element ? n : n.parentElement)?.closest("[data-testa]"))) {
+                w.__dtClsTesta += voce.value ?? 0;
+                w.__dtClsVoci.push(nodi.map((n) => (n instanceof Element ? `${n.tagName.toLowerCase()}.${n.className}` : n.nodeName)).join(","));
+              }
+            }
+          }).observe({ type: "layout-shift", buffered: true });
+        });
+        await goto(rotta);
+        await idratata(page);
+        await page.evaluate(() => document.fonts.ready.then(() => true));
+        await page.waitForTimeout(300);
+        const leggiCls = () => page.evaluate(() => { const w = window as unknown as { __dtCls: number; __dtClsTesta: number; __dtClsVoci: string[] }; return { totale: w.__dtCls, testa: w.__dtClsTesta, voci: [...w.__dtClsVoci] }; });
+        const clsPrima = await leggiCls();
+        await page.locator("[data-testa-strato] img").first().evaluate((el) => (el as HTMLImageElement).decode().catch(() => undefined));
+        await page.waitForTimeout(400);
+        const clsDopo = await leggiCls();
+        expect(clsDopo.testa - clsPrima.testa, `la testa ha mosso la pagina dopo i font: ${clsDopo.voci.slice(clsPrima.voci.length).join(" | ")}`).toBe(0);
+        expect(clsDopo.totale - clsPrima.totale, "la decodifica della foto ha mosso la pagina").toBe(0);
+        // Geometria: nessun buco, nulla fuori, nessun traboccamento.
+        const g = await geometria(page);
+        const cielo = cieloPx(rotta, g.strato!.height);
+        expect(Math.abs(g.soggetto!.top - g.blocco!.bottom), "il soggetto non comincia al fondo del blocco: buco o sovrapposizione").toBeLessThanOrEqual(2);
+        expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), "la foto non sale fino alla cima del soggetto").toBeLessThanOrEqual(2);
+        // Dove la cima in px supera il blocco (/acquista a 1920×1080: 1150 contro 1080) lo strato comincia sopra la
+        // carta e il clip taglia il solo cielo trasparente; altrove mai.
+        if (!(rotta === "/acquista" && vp.w === 1920)) expect(g.strato!.top, "lo strato esce sopra la carta").toBeGreaterThanOrEqual(-1);
+        if (vp.w >= 1024) expect(g.blocco!.height, "da lg il blocco non è alto almeno 100svh").toBeGreaterThanOrEqual(vp.h - 1);
+        expect(g.nodiFuori, "nodi fuori dal blocco").toBe(0);
+        const trabocco = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        expect(trabocco, "traboccamento orizzontale").toBeLessThanOrEqual(0);
+        // I pixel sotto le scritte: si nasconde il blocco e si guarda la carta che resta.
+        const scritte = await rettangoliScritte(page);
+        expect(scritte.length, "nessuna scritta trovata nel blocco").toBeGreaterThanOrEqual(4);
+        await page.evaluate(() => document.querySelector<HTMLElement>(".dt-testa_blocco")!.style.setProperty("visibility", "hidden"));
+        // Screenshot del VIEWPORT, mai `fullPage`: con fullPage Playwright allarga il viewport all'intera pagina
+        // e i 100svh del blocco cambiano misura, quindi i rettangoli non sarebbero più quelli. Il blocco può
+        // essere più alto dello schermo (360×640, /servizi a 1440): si scorre a ogni scritta, centrandola nel
+        // viewport, lontano dalla barra sticky della testata (cream-deep da 24 px, sotto lg) e dalla barra
+        // azioni fissa in basso (sotto 640 px) e dal lanciatore dell'assistente nell'angolo.
+        for (const s of scritte) {
+          const y = Math.max(0, Math.floor(s.top - (vp.h - (s.bottom - s.top)) / 2));
+          await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), y);
+          await page.waitForTimeout(150);
+          const scrollY = await page.evaluate(() => window.scrollY);
+          const rett = { left: s.left, right: s.right, top: Math.max(0, s.top - scrollY), bottom: Math.min(s.bottom - scrollY, vp.h) };
+          const png = await page.screenshot({ animations: "disabled", caret: "hide" });
+          const k = ((await sharp(png).metadata()).width ?? 0) / vp.w;
+          const esito = await pixelNonAvorio(png, rett, k);
+          expect(esito.totale, `${s.nome}: rettangolo vuoto`).toBeGreaterThan(0);
+          expect(esito.fuori, `${s.nome}: ${esito.fuori} pixel su ${esito.totale} sotto la scritta non sono avorio, es. ${esito.esempio} (A46: nessuna lettera sopra il soggetto)`).toBe(0);
+        }
+        await page.evaluate(() => document.querySelector<HTMLElement>(".dt-testa_blocco")!.style.removeProperty("visibility"));
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+        await page.waitForTimeout(150);
+        // CLS anche dopo un viewport di scroll (la foto in flusso non muove nulla).
+        const clsScroll0 = await leggiCls();
+        await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), vp.h);
+        await page.waitForTimeout(400);
+        const clsScroll = await leggiCls();
+        expect(clsScroll.testa - clsScroll0.testa, `scorrendo la testa ha mosso la pagina: ${clsScroll.voci.slice(clsScroll0.voci.length).join(" | ")}`).toBe(0);
+        expect(clsScroll.totale - clsScroll0.totale, "spostamento di layout scorrendo").toBe(0);
+      });
+    }
+  }
+});
+
 // ── sizes sotto lg ─────────────────────────────────────────────────────────
-// D183: in un riquadro 100svh un telefono verticale dipinge la foto per 100svh·r di larghezza. A44 (20
-// set. 2026): le nove foto sono 2:3 (2560×3816, r 0,671): a 390×844 la foto dipinge 566 px CSS (più
-// larga del riquadro di 176 px, centrata), `sizes` apre con 151vw e a DPR 2 il browser chiede
-// 151 · 3,9 · 2 = 1178 px, cioè il bucket 1280: nessun ingrandimento (0,88).
+// D183: `sizes` è scritto per un riquadro 100svh (100svh·r di larghezza dipinta) e resta invariato con
+// A46 (la foto sta a larghezza piena, 390 px a 390: il termine 151vw chiede più del necessario, mai
+// meno). A44 (20 set. 2026): le nove foto sono 2:3 (2560×3816, r 0,671): `sizes` apre con 151vw e a
+// DPR 2 il browser chiede 151 · 3,9 · 2 = 1178 px, cioè il bucket 1280: nessun ingrandimento (0,61).
 test.describe("sizes sotto lg", () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 
@@ -529,9 +737,9 @@ test.describe("sizes sotto lg", () => {
     // Il srcset di next/image è la lista dei deviceSizes qualunque sia la sorgente: a DPR 2 con 151vw il
     // browser chiede il bucket 1280; l'ottimizzatore non ingrandisce mai.
     const casi = [
-      { rotta: "/vendi" as Rotta, primo: "151vw", dipinta: 566 },
-      { rotta: "/metodo" as Rotta, primo: "151vw", dipinta: 566 },
-      { rotta: "/chi-siamo" as Rotta, primo: "151vw", dipinta: 566 },
+      { rotta: "/vendi" as Rotta, primo: "151vw", dipinta: 390 },
+      { rotta: "/metodo" as Rotta, primo: "151vw", dipinta: 390 },
+      { rotta: "/chi-siamo" as Rotta, primo: "151vw", dipinta: 390 },
     ];
     for (const c of casi) {
       await goto(c.rotta);
@@ -546,9 +754,10 @@ test.describe("sizes sotto lg", () => {
       // `naturalWidth` di un candidato `w` è corretto per la densità: il bitmap vero si legge dal file servito.
       const bitmap = (await sharp(await (await page.request.get(g.currentSrc!)).body()).metadata()).width ?? 0;
       expect(bitmap, `${c.rotta}: il bitmap non è min(1280, sorgente)`).toBe(Math.min(1280, sw));
-      const dipinta = Math.max(g.riquadro!.width, (g.riquadro!.height * sw) / sh);
+      // A46: lo strato ha il rapporto della foto, il cover dipinge esattamente la larghezza dello strato.
+      const dipinta = Math.max(g.strato!.width, (g.strato!.height * sw) / sh);
       expect(Math.abs(dipinta - c.dipinta), `${c.rotta}: dipinta ${dipinta.toFixed(0)}`).toBeLessThanOrEqual(2);
-      // Il bitmap chiesto (dipinta × 2 = 1132) contro quello che arriva (1280): nessun ingrandimento.
+      // Il bitmap chiesto (dipinta × 2 = 780) contro quello che arriva (1280): nessun ingrandimento.
       const ingr = (dipinta * 2) / bitmap;
       expect(ingr, `${c.rotta}: ingrandimento ×${ingr.toFixed(2)}`).toBeLessThanOrEqual(1.001);
     }
@@ -609,10 +818,17 @@ test.describe("le tinte", () => {
     }
   });
 
-  test("il placeholder tinto sta sul riquadro della testa, non sugli altri moduli media (D125)", async ({ page, goto }) => {
+  test("il placeholder tinto sta sullo strato della foto (A46); il riquadro è la carta; gli altri moduli media restano cream-deep (D125)", async ({ page, goto }) => {
     await goto("/vendi");
-    const testa = await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(testa, "il riquadro della testa non prende la tinta alta").toBe(await tintaAttesa(page, "/vendi"));
+    const strato = await page.locator("[data-testa-strato]").first().evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(strato, "lo strato della foto non prende la tinta alta").toBe(await tintaAttesa(page, "/vendi"));
+    const riquadro = await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(riquadro, "il riquadro della testa non è la carta (A46)").toBe(rgb("#f9f5ef"));
+    // Su un interno la tinta misurata (D123) resta sullo strato e la carta resta avorio.
+    await goto("/chi-siamo");
+    expect(await page.locator("[data-testa-strato]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await tintaAttesa(page, "/chi-siamo"));
+    expect(await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(rgb("#f9f5ef"));
+    await goto("/vendi");
     const modulo = await page.evaluate(() => {
       const el = document.createElement("div");
       el.className = "dt-media-full";

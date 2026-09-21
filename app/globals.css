@@ -447,10 +447,12 @@ blockquote * {
 /* D78 di A28 (punto 6 di Alberto) e D125: il placeholder della TESTA, prima
    che la fotografia decodifichi, è la tinta ALTA della sua stessa foto e non
    l'avorio, cosi' il lampo avorio non c'è. `--dt-tinta-alta` sta su `:root` e
-   vale per tutta la pagina (lo <style> di PageHero.tsx), ma la usa solo il
-   riquadro della testa (`.dt-testa_riquadro`, che porta `data-dive-zoom`, più
-   in basso): ogni modulo media che una rotta con la testa monti resta
-   cream-deep. */
+   vale per tutta la pagina (lo <style> di PageHero.tsx), ma la usa solo lo
+   strato della foto della testa (`.dt-testa_strato`, più in basso; da A46 il
+   riquadro è la carta e sulle sette teste col cielo trasparente la tinta è
+   l'avorio stesso): ogni modulo media che una rotta con la testa monti resta
+   cream-deep, tranne la finestra di Open Domus in home, che mostra il cielo
+   trasparente e posa sulla carta (`.dt-od_window`, A46). */
 .dt-media-half,
 .dt-media-column {
   position: relative;
@@ -490,14 +492,19 @@ blockquote * {
   text-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 0 28px rgb(0 0 0 / 0.45);
 }
 
-/* -- LE SCRITTE BIANCHE DENTRO LE FOTO DELLE TESTE (A40 di Alberto, 20 set. 2026) ---
+/* -- LE SCRITTE DELLE TESTE (A40 e A46 di Alberto, 20-21 set. 2026) ---------
    A38 ha portato le scritte bianche DENTRO le fotografie a schermo intero delle
    teste; il coordinatore le aveva date un alone di 18 ombre (D172, D178) per
    arrivare al 3:1 sulle foto di giorno. A40 di Alberto, al risveglio: «negli
    screenshot di era-residence non c'erano le ombre sulle scritte bianche —
-   rimuovile subito». Quindi: NESSUNA ombra, nessun alone, nessun token — il
-   bianco sta nudo sulla foto come su era-residence, e il contrasto sulla foto
-   si dichiara col numero (deroga a 1.4.3 di Alberto, come C01 per era). */
+   rimuovile subito»: nessuna ombra, nessun alone, nessun token. A46 (21 set.,
+   sera: il cielo delle foto alte è mascherato, «no bg», e la villa posa sulla
+   carta) chiude il capitolo: le scritte delle teste stanno sull'avorio, SOPRA
+   il soggetto, nell'inchiostro della rivista (occhiello rosso, h1 inchiostro,
+   lead grafite, corsivo rosso), senza ombra perché non ce n'è bisogno, e la
+   deroga a 1.4.3 non serve più (h1 e lead reggono 4,5:1 sulla carta,
+   e2e/a11y.spec.ts). Il bianco nudo resta solo dove sta un'immagine vera sotto:
+   nessuna testa. */
 
 /* IL LESSICO DEI TEMPI (D17; A20 «Fedeltà letterale» di Alberto, spec §2.6).
    Un nome per parte, gemello di app/lib/motion/gsap.ts:
@@ -597,20 +604,29 @@ blockquote * {
   padding-top: clamp(4.5rem, 10vh, 8rem);
 }
 /* A45 (Alberto, 21 set. 2026): la finestra è la sezione «Architecture» di era-residence. La
-   cornice tiene foto e titolo; il titolo è l'h2 del capitolo, bianco nudo (A40: niente ombra,
-   niente velo), in Playfair alla misura di «ARCHITECTURE» (12vw), appoggiato al bordo alto
-   della foto, dentro (0,05em: come su era la parola comincia sul bordo e a schermo intero
-   resta in vista), centrato, sopra la foto nello stacking. Scala con lo stage del corridoio,
-   come tutto il resto. */
+   cornice tiene foto e titolo; il titolo è l'h2 del capitolo in Playfair alla misura di
+   «ARCHITECTURE» (12vw), appoggiato al bordo alto della foto, dentro (0,05em: come su era la
+   parola comincia sul bordo e a schermo intero resta in vista), centrato, sopra la foto nello
+   stacking. Scala con lo stage del corridoio, come tutto il resto. A46 (Alberto, 21 set. 2026,
+   sera: «su eraresidence questa foto … ha il cielo mascherato, è no bg: ecco perché sembra un
+   tutt'uno il cielo con il colore dello sfondo del sito»): la foto è il WebP con l'alpha, il
+   cielo è la carta, e il titolo è INCHIOSTRO, scuro sul cielo che è il fondo, come
+   «ARCHITECTURE» negli screenshot di Alberto (il bianco nudo di A40 valeva per il cielo
+   fotografato). La finestra posa sulla carta: `.dt-od_window` prende `--color-cream` al posto
+   del cream-deep del modulo, così il cielo trasparente non stacca dal fondo (niente ombra,
+   niente velo). */
 .dt-od_cornice {
   position: relative;
+}
+.dt-od_window {
+  background-color: var(--color-cream);
 }
 .dt-od_titolo {
   position: absolute;
   inset: 0.05em 0 auto 0;
   z-index: 1;
   margin: 0;
-  color: #fff;
+  color: var(--color-ink);
   font-size: clamp(2.6rem, 12vw, 13rem);
   line-height: 0.85;
   letter-spacing: -0.02em;
@@ -1955,12 +1971,13 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
 .dt-btn--ghost-dark:focus-visible {
   color: var(--color-cream);
 }
-/* D174 (coordinatore, A38): il link fantasma DENTRO la foto della testa sta a
-   18 px (a 16 px cadeva in 22 celle su 27 sulla sola foto), impilato sotto il
+/* D174 (coordinatore, A38): il link fantasma della testa sta a 18 px (nato
+   per reggere sulla foto: a 16 px cadeva in 22 celle su 27), impilato sotto il
    bottone rosso. Interlinea 1,6 e non 1,2: dove il fantasma va a capo (de, fr
    a 390) la sottolineatura della prima riga non deve toccare i glifi della
    seconda (misurato in cancello-T1.mjs: a 1,2 la riga perdeva la
-   sottolineatura). Bianco nudo, senza ombra (A40). */
+   sottolineatura). Da A46 (21 set. 2026) è il ghost inchiostro di sempre
+   sull'avorio, non più `ghost-dark`: la taglia resta. */
 .dt-btn--ghost-testa {
   font-size: 1.125rem;
   line-height: 1.6;
@@ -2732,44 +2749,67 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   }
 }
 
-/* ---------- «La testa di era»: il passo comune delle nove rotte e i due legali (A38, A40, A41 di Alberto; D175-D191 del brief T) ----------
+/* ---------- «La testa di era»: il passo comune delle nove rotte e i due legali (A38, A41, A45, A46 di Alberto; D175-D191 del brief T) ----------
    A38 (20 settembre 2026): «quando entri nella foto a schermo intero, la foto
-   stessa diventa lo sfondo, e le scritte sopra […] scritte bianche». A40: bianco
-   nudo, senza ombra. A41: «preferisco il layout centrato tipo Perfect sea views»
-   e «lo scroll continuo senza uscire dalla foto». Il layout sta tutto qui,
-   prima del paint, e lo stato scritto è lo stato a RIPOSO: senza JS e con
-   reduced-motion la pagina è questa, completa (D190); sticky non è un gesto.
+   stessa diventa lo sfondo, e le scritte sopra». A41: «preferisco il layout
+   centrato tipo Perfect sea views» e «lo scroll continuo senza uscire dalla
+   foto». A45 (21 set.): «le foto su era residence sono la pagina stessa: quando
+   scrolli, le scritte salgono su come se fossero in quello spazio della foto, e
+   stai scrollando la foto stessa come se fosse la pagina». A46 (21 set. 2026,
+   sera): «su eraresidence questa foto che usa come background alta ha il cielo
+   mascherato, è no bg: ecco perché sembra un tutt'uno il cielo con il colore
+   dello sfondo del sito. Dobbiamo fare la stessa cosa nel nostro sito, dove ci
+   sono le immagini così alte». Il layout sta tutto qui, prima del paint, e lo
+   stato scritto è lo stato a RIPOSO: senza JS e con reduced-motion la pagina è
+   questa, completa (D190); niente sticky, niente trasformate.
    - `.dt-testa` è la section: sale sotto la testata col margin-top negativo su
-     OGNI fascia (D176): da lg la testata è trasparente e in flusso sopra la
-     foto, sotto lg è sticky e trasparente a scroll 0 (Header.tsx). Porta
-     `--dt-op`, l'inquadratura scelta per fascia fra le due che PageHero.tsx
-     scrive su :root (`--dt-op-sotto` / `--dt-op-lg`, D180), e `--script-tuck: 0`
-     (D185);
-   - `.dt-testa_riquadro` è la foto, IN FLUSSO (A45 di Alberto, 21 set. 2026:
-     «le foto su era residence sono la pagina stessa: quando scrolli, le scritte
-     salgono su come se fossero in quello spazio della foto, e stai scrollando
-     la foto stessa come se fosse la pagina»): `position: relative`, alto quanto
-     la foto ALTA resa a larghezza piena (`aspect-ratio: var(--dt-testa-ar)`, il
-     rapporto del sorgente scritto da PageHero.tsx) e mai meno del blocco dei
-     testi che sta dentro in flusso (`min-height: auto`: per un box con
-     aspect-ratio che non è un contenitore di scroll il minimo automatico è il
-     contenuto, css-sizing-4 §5.2.2 — un `min-height` esplicito lo spegnerebbe e
-     il tedesco a 375×667 uscirebbe dal ritaglio), `overflow: clip` (mai hidden:
-     ne farebbe un contenitore di scroll, corridor-contract.test.ts). Scorre con
-     la pagina, 1:1, come su era; nessuno sticky, nessun pan, nessuno zoom. Il
-     fondo è la tinta alta, cioè il placeholder prima che la foto decodifichi
-     (D125), sul solo riquadro (`[data-dive-zoom]`);
-   - `.dt-testa_strato` è lo strato della foto: assoluto, il riquadro intero
-     (cover esatto da lg, dove il riquadro ha il rapporto della foto);
-   - `.dt-testa_blocco` è il blocco dei testi: DENTRO il riquadro, in flusso e in
-     cima (`position: relative`, sopra lo strato), alto almeno 100svh (dove l'H1
-     tedesco non ci sta cresce, il riquadro con lui, e nulla si taglia, D177),
-     griglia a tre righe —
-     il lead in alto (`padding-top` = testata + 1 px + respiro), il titolo al
-     centro, i comandi in basso — tutto centrato come «Perfect sea views». Sotto
-     il primo schermo la foto continua da sola, senza lettere. Il bianco sta nel
-     markup di PageHero.tsx (D184: qui nessun `color`, nessuna ombra);
-   - `.dt-testa_pagina` è la pagina che sale sopra la foto dopo il blocco, sull'avorio
+     OGNI fascia (D176): la testata è trasparente sulla carta (da lg in flusso,
+     sotto lg sticky e trasparente a scroll 0, Header.tsx). Porta `--dt-op`,
+     l'inquadratura scelta per fascia fra le due che PageHero.tsx scrive su :root
+     (`--dt-op-sotto` / `--dt-op-lg`, D180), e `--script-tuck: 0` (D185);
+   - `.dt-testa_riquadro` è la CARTA (A46): in flusso, `position: relative`, fondo
+     `--color-cream` — col cielo trasparente il riquadro si vede attraverso la
+     foto per sempre, e deve essere un tutt'uno con lo sfondo del sito —,
+     `overflow: clip` (mai hidden: ne farebbe un contenitore di scroll,
+     corridor-contract.test.ts), alto quanto il blocco più la foto meno il cielo
+     (il minimo automatico del contenuto: NESSUNA altezza esplicita, D177). Scorre
+     con la pagina, 1:1, come su era; nessuno sticky, nessun pan, nessuno zoom;
+   - `.dt-testa_blocco` è il blocco dei testi, sull'avorio SOPRA il soggetto: in
+     flusso, primo nel riquadro, sopra lo strato nello stacking (z 1), griglia a
+     tre righe — il lead in alto (`padding-top` = testata + 1 px + respiro), il
+     titolo al centro, i comandi in basso — tutto centrato come «Perfect sea
+     views». Alto quanto il contenuto; da lg almeno 100svh (`min-height:
+     var(--dt-testa-h)` sotto la media query), così i comandi stanno in fondo al
+     primo schermo. Sotto lg nessun pavimento: il soggetto entra subito dopo i
+     comandi, senza un buco d'avorio. Dove l'H1 tedesco non ci sta il blocco
+     cresce e nulla si taglia (D177). NESSUN aspect-ratio qui: un box con
+     aspect-ratio e un min-height esplicito perde il minimo del contenuto (il
+     21 set. su /servizi a 1440×900 il blocco restava a 900 px con 967 px di
+     testo, e il fantasma usciva). Nessun `color`: i colori sono le classi di
+     sempre nel markup (D184);
+   - `.dt-testa_strato` è la foto: IN FLUSSO dopo il blocco, larga tutto, alta
+     quanto la foto resa (`aspect-ratio: var(--dt-testa-ar)`, il rapporto del
+     sorgente), portata SU fino alla CIMA del soggetto con `margin-top:
+     calc(-100% * var(--dt-cielo-h))` — --dt-cielo-h è `cielo.cima` di
+     tinte.json (la prima riga in cui almeno il 5 % dei pixel è opaco: sopra c'è
+     solo cielo, cioè carta) in frazione della LARGHEZZA, perché la percentuale
+     di un margine verticale si misura sulla larghezza del contenitore (CSS 2.1
+     §8.3) — così il soggetto comincia esattamente al fondo del blocco e nessuna
+     lettera gli sta sopra, su ogni fascia. Non la `linea` (la riga in cui il
+     soggetto riempie la larghezza): su /vendi la linea sta a 0,488 ma i cipressi
+     cominciano a 0,219 e il tetto a 0,33, e con la linea l'H1 posava sui
+     cipressi e il bottone sul tetto (misurato il 21 set. sul build). Dove la
+     cima sta più in alto del blocco (a 1920×1080 su /acquista: 1150 px contro
+     1080) lo strato comincia sopra la carta e `overflow: clip` ne taglia il solo
+     cielo trasparente: nulla si vede. Il fondo è la tinta alta, cioè il
+     placeholder prima che la foto decodifichi (D125), e col cielo trasparente è
+     la carta. Il cover non ritaglia nulla: lo strato ha il rapporto della foto;
+   - `.dt-testa_soggetto` è il marcatore del soggetto per il segno (D34,
+     tema.ts): assoluto nello strato dalla cima del soggetto in giù (`top` in
+     percentuale dell'altezza dello strato, definita dall'aspect-ratio),
+     `data-bg="foto"` nel markup; sulla carta del cielo il segno resta grafite,
+     sulla villa vira all'avorio. Senza puntatore: elementsFromPoint non lo vede;
+   - `.dt-testa_pagina` è la pagina che segue la foto in flusso, sull'avorio
      (D187: la tinta bassa è morta, A32.3 vale sotto).
    Tutto in svh, mai dvh. */
 .dt-testa {
@@ -2782,13 +2822,8 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   position: relative;
   z-index: 0;
   width: 100%;
-  aspect-ratio: var(--dt-testa-ar, 2 / 3);
   overflow: clip;
-  background-color: var(--dt-tinta-alta, var(--color-cream-deep));
-}
-.dt-testa_strato {
-  position: absolute;
-  inset: 0;
+  background-color: var(--color-cream);
 }
 .dt-testa_blocco {
   position: relative;
@@ -2797,7 +2832,6 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   grid-template-rows: auto 1fr auto;
   justify-items: center;
   row-gap: clamp(1.25rem, 4vh, 2.5rem);
-  min-height: var(--dt-testa-h);
   padding-top: calc(var(--dt-head-h) + 1px + clamp(1.25rem, 3.5vh, 2.5rem));
   padding-bottom: clamp(2rem, 8svh, 4.5rem);
   padding-inline: 5vw;
@@ -2805,6 +2839,19 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
 }
 .dt-testa_centro {
   align-self: center;
+}
+.dt-testa_strato {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--dt-testa-ar, 2 / 3);
+  margin-top: calc(-100% * var(--dt-cielo-h, 0));
+  background-color: var(--dt-tinta-alta, var(--color-cream));
+}
+.dt-testa_soggetto {
+  position: absolute;
+  inset: auto 0 0;
+  top: calc(var(--dt-cielo, 0) * 100%);
+  pointer-events: none;
 }
 .dt-testa_pagina {
   position: relative;
@@ -2819,41 +2866,17 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   align-content: center;
   min-height: clamp(12rem, 30svh, 22rem);
 }
-/* 2.4.7 sulla foto (brief T §7: «T1 decide col numero»; il numero è in
-   qualita/a38/misure/cancello-T1.md §7). L'anello del sito (rosso 2 px a
-   offset 3) attorno al bottone rosso pieno sta contro la fotografia, e nessun
-   colore a offset 3 regge su ogni rotta: rosso 1,18:1 su /metodo 1440, 1,31 su
-   /servizi 1440, 2,17 su /vendi 1440; bianco 1,00 su /chi-siamo 390, 1,32 su
-   /vendi 390. Qui l'anello si attacca al bordo del bottone (offset 0) e
-   diventa bianco: il contrasto è col bottone e non con la foto — 5,54:1 su
-   #d20a0a, 8,1:1 sul rosso scuro che il bottone prende a fuoco — uguale su
-   ogni rotta e ogni fascia. `outline-color`, non `color` (D184: il CSS della
-   testa non scrive color). Il link fantasma tiene l'anello del sito e il suo
-   focus-visible (crema + sottolineatura). */
-.dt-testa .dt-btn--cta-solid:focus-visible {
-  outline-color: #fff;
-  outline-offset: 0;
-}
 @media (min-width: 64rem) {
   .dt-testa {
     --dt-op: var(--dt-op-lg, 50% 50%);
   }
-}
-
-/* D82 (A28 punto 2 di Alberto: «l'immagine stacca da sopra che è bianco»):
-   sotto lg la testata è sticky e da scrollata accende la barra solida
-   (`bg-cream-deep`, Header.tsx); su una rotta con la testa quella barra
-   galleggerebbe avorio sui primi pixel della fotografia per tutta la corsa.
-   Qui prende la tinta ALTA della rotta, misurata da tinte.mjs sul ritaglio che
-   il telefono vede a riposo (D187); sulle rotte senza PageHero la variabile non
-   esiste e resta cream-deep. Da lg la testata è già `!bg-transparent` in
-   entrambi gli stati e non si tocca: la testata bianca sopra la foto è fatta di
-   classi nel markup (D186), nessuna regola qui. A scroll 0 la barra è
-   trasparente e sotto di lei c'è la foto (D176): «Menu» è bianco, senza ombra;
-   da 24 px la barra tinta porta «Menu» grafite (Y della tinta ≥ 0,5329).
-   Regola senza layer: batte l'utility, come vuole il repo. */
-@media (max-width: 63.99rem) {
-  header[data-solid] {
-    background-color: var(--dt-tinta-alta, var(--color-cream-deep));
+  .dt-testa_blocco {
+    min-height: var(--dt-testa-h);
   }
 }
+/* 2.4.7: sull'avorio il bottone rosso pieno tiene l'anello del sito (rosso 2 px a offset 3,
+   `:focus-visible` in cima al file). La regola dell'anello bianco a offset 0, nata per il
+   bottone dentro la foto (brief T §7, cancello-T1.md §7), è morta con A46. D82 (la barra
+   sticky sotto lg tinta come la foto) è morta con A46 nello stesso modo: sotto la barra c'è la
+   carta, poi la foto, e la barra solida è `bg-cream-deep` come su ogni altra rotta (la classe
+   nel markup, Header.tsx). Nessuna regola CSS su `header` (D186). */

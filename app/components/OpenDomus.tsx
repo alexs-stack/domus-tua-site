@@ -30,7 +30,8 @@ import {
 // il titolo lungo occupava quattro righe in mezza colonna e leggeva come un
 // errore di impaginazione, la frase è scesa nel paragrafo editoriale.
 // `villaAlt` descrive la foto della finestra in home (A19, spec 2026-09-13 §7.5):
-// quel che si vede, senza luoghi né frasi sulla vendita.
+// quel che si vede, senza luoghi né frasi sulla vendita. Da A46 il cielo della foto è
+// trasparente e al suo posto c'è la carta: l'alt non nomina più «un cielo azzurro».
 const copy = {
   it: {
     eyebrow: "Il nostro format esclusivo",
@@ -55,7 +56,7 @@ const copy = {
     cardText: "La storia vera di Teresa, raccontata da lei.",
     videoAria: "Guarda la storia di Teresa, venduta al primo Open Domus",
     imageAlt: "Raffaela Rizza con Teresa, cliente che ha venduto al primo Open Domus",
-    villaAlt: "Facciata a terrazze bianche di una residenza contemporanea, col glicine in fiore sui parapetti e i cipressi, sotto un cielo azzurro",
+    villaAlt: "Facciata a terrazze bianche di una residenza contemporanea, col glicine in fiore sui parapetti e i cipressi",
   },
   en: {
     eyebrow: "Our signature format",
@@ -80,7 +81,7 @@ const copy = {
     cardText: "Teresa's true story, told in her own words.",
     videoAria: "Watch Teresa's story, sold at the first Open Domus",
     imageAlt: "Raffaela Rizza with Teresa, the client who sold at the first Open Domus",
-    villaAlt: "White terraced facade of a contemporary residence, with wisteria in bloom on the parapets and cypresses, under a blue sky",
+    villaAlt: "White terraced facade of a contemporary residence, with wisteria in bloom on the parapets and cypresses",
   },
   fr: {
     eyebrow: "Notre format signature",
@@ -105,7 +106,7 @@ const copy = {
     cardText: "La véritable histoire de Teresa, racontée par elle-même.",
     videoAria: "Regardez l'histoire de Teresa, vendue au premier Open Domus",
     imageAlt: "Raffaela Rizza avec Teresa, la cliente qui a vendu au premier Open Domus",
-    villaAlt: "Façade en terrasses blanches d’une résidence contemporaine, avec la glycine en fleurs sur les parapets et des cyprès, sous un ciel bleu",
+    villaAlt: "Façade en terrasses blanches d’une résidence contemporaine, avec la glycine en fleurs sur les parapets et des cyprès",
   },
   de: {
     eyebrow: "Unser eigenes Format",
@@ -130,7 +131,7 @@ const copy = {
     cardText: "Die wahre Geschichte von Teresa, von ihr selbst erzählt.",
     videoAria: "Sehen Sie die Geschichte von Teresa, verkauft beim ersten Open Domus",
     imageAlt: "Raffaela Rizza mit Teresa, der Kundin, die beim ersten Open Domus verkauft hat",
-    villaAlt: "Weiße Terrassenfassade einer modernen Residenz, mit blühender Glyzinie an den Brüstungen und Zypressen, unter blauem Himmel",
+    villaAlt: "Weiße Terrassenfassade einer modernen Residenz, mit blühender Glyzinie an den Brüstungen und Zypressen",
   },
   es: {
     eyebrow: "Nuestro formato exclusivo",
@@ -155,7 +156,7 @@ const copy = {
     cardText: "La historia real de Teresa, contada por ella misma.",
     videoAria: "Mira la historia de Teresa, vendida en el primer Open Domus",
     imageAlt: "Raffaela Rizza con Teresa, la clienta que vendió en el primer Open Domus",
-    villaAlt: "Fachada de terrazas blancas de una residencia contemporánea, con la glicina en flor en los antepechos y cipreses, bajo un cielo azul",
+    villaAlt: "Fachada de terrazas blancas de una residencia contemporánea, con la glicina en flor en los antepechos y cipreses",
   },
 };
 
@@ -176,9 +177,10 @@ export default function OpenDomus({ finestra = false }: Props) {
   ];
 
   // A45 (Alberto, 21 set. 2026: «non hai fatto quello che ti ho chiesto per la sezione rifatta
-  // di era residence di architecture»): in home la finestra porta il TITOLO del capitolo, enorme
-  // e bianco a cavallo del bordo alto della foto, come «ARCHITECTURE» su era-residence; il corpo
-  // qui sotto allora non ripete l'h2 (occhiello, claim, intro, liste e rilancio restano).
+  // di era residence di architecture»): in home la finestra porta il TITOLO del capitolo, enorme,
+  // appoggiato al bordo alto della foto, come «ARCHITECTURE» su era-residence — in inchiostro sul
+  // cielo trasparente da A46 —; il corpo qui sotto allora non ripete l'h2 (occhiello, claim,
+  // intro, liste e rilancio restano).
   // RIVISTA BIANCA (2026-09-11): la storia di Teresa era una FOTO 1280×510
   // schiacciata in un quadrato da 589 px — ne restava il 40 % (ingrandito
   // 1,15 volte) e le due donne erano tagliate alla fronte. Ora è il video da
@@ -434,7 +436,12 @@ function Finestra({ villaAlt, titolo, locale, children }: { villaAlt: string; ti
     <section ref={sectionRef} id="open-domus" className="dt-od bg-cream" data-corridor="finestra" data-od>
       <div className="dt-od_area">
         <span aria-hidden data-bg="avorio" className="dt-od_mark dt-od_mark--a" />
-        <span aria-hidden data-bg="foto" className="dt-od_mark dt-od_mark--f" />
+        {/* A46 (Alberto, 21 set. 2026, sera): il cielo della facciata è trasparente e a schermo
+            intero sotto il segno (in alto a sinistra, 4vw × l'asse della testata) c'è il cielo,
+            cioè la carta: la zona è `foto-chiara` (tema.ts: le tacche restano grafite), perché
+            tacche avorio sull'avorio del cielo sparirebbero. Il cielo copre i due angoli alti
+            della foto (cima 0,134: il soggetto comincia più in basso). */}
+        <span aria-hidden data-bg="foto-chiara" className="dt-od_mark dt-od_mark--f" />
         <div className="dt-od_shutterzone" aria-hidden>
           <div className="dt-od_screen" data-corridor-screen>
             <div className="dt-od_shutters">
@@ -446,17 +453,21 @@ function Finestra({ villaAlt, titolo, locale, children }: { villaAlt: string; ti
         <div className="dt-od_stage">
           <div className="dt-od_band dt-row">
             {/* La sezione «Architecture» di era-residence (A45): dentro la cornice, il titolo del
-                capitolo in bianco nudo (A40), enorme, appoggiato al bordo alto della foto, e la
-                foto — la facciata a terrazze col glicine generata con Higgsfield, ampia (3:2). La
-                cornice è `relative` (il modulo media ritaglia, la cornice no): il titolo scala
-                con lo stage come tutto il resto, così a schermo intero è più grande, come
-                «ARCHITECTURE». L'h2 sta prima della foto nel DOM
-                (l'ordine di lettura) e sopra di lei nello stacking. */}
+                capitolo, enorme, appoggiato al bordo alto della foto, e la foto — la facciata a
+                terrazze col glicine generata con Higgsfield, ampia (3:2). A46 (Alberto, 21 set.
+                2026, sera: «su eraresidence questa foto … ha il cielo mascherato, è no bg … dobbiamo
+                fare la stessa cosa»): la foto è il WebP con l'alpha (`villa-terrazze-glicine-cielo.webp`,
+                scripts/media/cielo.mjs), il cielo è il fondo pagina e il titolo è in INCHIOSTRO
+                (`.dt-od_titolo`, globals.css), scuro sul cielo che è la carta, come «ARCHITECTURE»
+                su era negli screenshot di Alberto; il bianco nudo di A40 valeva per il cielo
+                fotografato. La cornice è `relative` (il modulo media ritaglia, la cornice no): il
+                titolo scala con lo stage come tutto il resto, così a schermo intero è più grande.
+                L'h2 sta prima della foto nel DOM (l'ordine di lettura) e sopra di lei nello stacking. */}
             <div className="dt-od_cornice">
               <h2 className="dt-od_titolo font-display">{titolo}</h2>
               <div className="dt-od_window dt-media-half lg:w-full! lg:max-w-none! lg:aspect-video!">
                 <Image
-                  src="/images/reali/villa-terrazze-glicine.jpg"
+                  src="/images/reali/villa-terrazze-glicine-cielo.webp"
                   alt={villaAlt}
                   fill
                   sizes={SIZES_FINESTRA}

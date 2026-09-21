@@ -54,8 +54,12 @@ saturazione da cartolina.
 
 ## Le regole di composizione per le foto alte
 
-1. **Cielo o soffitto nel terzo alto**, pulito: lì cadono lead e h1 bianchi delle teste
-   (`.dt-testa_blocco`) e il lockup «Domus Tua» dell'hero.
+1. **Cielo o soffitto nel terzo alto**, pulito. *(Riletta il 21 set. con A46: il cielo delle sette
+   foto con cielo è TRASPARENTE nel sito — `<nome>-cielo.webp`, `scripts/media/cielo.mjs` — e al suo
+   posto c'è la carta; le scritte delle teste, in inchiostro, non stanno più «nel cielo» ma sull'avorio
+   SOPRA la cima del soggetto, e la foto sale sotto di loro fino a quella cima. Il cielo serve quindi
+   a essere tolto pulito, con un orizzonte netto e senza soggetto che lo attraversi; il soffitto degli
+   interni resta nella foto e la foto comincia sotto i comandi. Il lockup dell'hero resta sulla sua foto.)*
 2. Il soggetto (facciata, piscina, salotto) nel **60 % basso**: è quello che compare scorrendo.
 3. **Hero**: il terzo sinistro a altezza occhi resta libero (pavimento in vista, nessun mobile
    alto) per posare Raffaela; la luce viene da destra o frontale, come nel ritaglio (volto
@@ -151,13 +155,25 @@ scrolli, le scritte salgono su come se fossero in quello spazio della foto, e st
 la foto stessa come se fosse la pagina». La prima versione — riquadro sticky 100svh e pan con
 `translateY` — era sbagliata ed è stata tolta con `usePanTesta`.)*
 
-Come su era: la foto sta a larghezza 100 % in un riquadro IN FLUSSO alto quanto la foto resa
-(`aspect-ratio` dal sorgente, mai meno di 100svh; con 2:3 a 1440: 2146 px), e scorre con la
-pagina 1:1, **senza zoom, senza sticky, senza trasformate** (A27: nessun taglio dei volti). Le
-scritte stanno DENTRO il riquadro, in cima, alte un primo schermo: salgono con la foto, e la foto
-continua da sola per un altro schermo e mezzo prima che l'avorio riprenda. Reduced-motion e
-senza JS: la stessa pagina. Il preloader mostra la stessa inquadratura dell'hero (patto della
-porta, `intro-clocks.test.ts`).
+Come su era: la foto sta a larghezza 100 % in flusso, alta quanto resa (`aspect-ratio` dal
+sorgente; con 2:3 a 1440: 2146 px), e scorre con la pagina 1:1, **senza zoom, senza sticky, senza
+trasformate** (A27: nessun taglio dei volti). Reduced-motion e senza JS: la stessa pagina. Il
+preloader mostra la stessa inquadratura dell'hero (patto della porta, `intro-clocks.test.ts`).
+
+*(Riscritto di nuovo il 21 set., sera, A46 di Alberto: «su eraresidence questa foto che usa come
+background alta ha il cielo mascherato, è no bg: ecco perché sembra un tutt'uno il cielo con il
+colore dello sfondo del sito. Dobbiamo fare la stessa cosa nel nostro sito, dove ci sono le immagini
+così alte».)* **Il cielo è trasparente**: le sette teste con cielo montano `<nome>-cielo.webp` (alpha,
+stessa risoluzione, `scripts/media/cielo.mjs`; `tinte.json` porta `cielo: { file, linea, cima }`) e
+la villa posa sulla carta. Le scritte non stanno più dentro la foto: il blocco dei testi
+(`.dt-testa_blocco`, inchiostro sull'avorio: occhiello rosso, h1 inchiostro, lead grafite, corsivo
+rosso, bottone rosso, fantasma inchiostro) viene prima, alto quanto il contenuto e da lg almeno
+100svh, e lo strato della foto sale sotto di lui fino alla CIMA del soggetto (`margin-top:
+calc(-100% * var(--dt-cielo-h))`, con `--dt-cielo-h` = `cielo.cima` × altezza / larghezza del
+sorgente): il soggetto comincia esattamente al fondo del blocco, su ogni fascia, e nessuna lettera gli
+sta sopra. Dove la foto non ha cielo (i due attici, la tenda di /open-domus, i legali) la foto
+comincia sotto i comandi. La finestra di Open Domus in home usa `villa-terrazze-glicine-cielo.webp`
+col titolo in inchiostro. Le sorgenti JPEG restano su disco come riserva.
 
 ## Stato
 
@@ -220,7 +236,8 @@ dell'hero e sagome del preloader):
 - **nove teste** alte in `tinte.json`, in flusso (A45: la foto è la pagina; niente `usePanTesta`),
   alt nuovi in cinque lingue;
 - **la finestra di Open Domus** con A1 (`villa-terrazze-glicine.jpg`, 2560×1717) e il titolo
-  «Open Domus» bianco sopra, come «ARCHITECTURE» su era (A45).
+  «Open Domus» sopra, come «ARCHITECTURE» su era (A45); dal 21 set. sera (A46) la foto montata è
+  `villa-terrazze-glicine-cielo.webp` col cielo trasparente e il titolo è in inchiostro.
 
 Non ancora usati: `villa-facciata-sale-alta.jpg` e `villa-terrazza-colline-alta.jpg` (corridoi
 9:16), `villa-portico-glicine-alta.jpg`, `villa-ingresso-scala-alta.jpg`, `villa-salotto-doppio.jpg`,

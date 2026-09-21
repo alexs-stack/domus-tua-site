@@ -19,23 +19,37 @@
 // D125 (compromesso dichiarato in D187): da lg il placeholder riusa la tinta misurata sul
 // ritaglio del telefono — vive i 100-300 ms del decode. D126: `ritaglio()` decide QUALI pixel si
 // misurano, quindi si prova qui; il modulo si importa senza far girare la pipeline.
+//
+// IL CIELO MASCHERATO (A46 di Alberto, 21 set. 2026, sera: «su eraresidence questa foto che usa
+// come background alta ha il cielo mascherato, è no bg … dobbiamo fare la stessa cosa nel nostro
+// sito, dove ci sono le immagini così alte»). `scripts/media/cielo.mjs` taglia il cielo delle
+// teste in `<nome>-cielo.webp` con alpha e `tinte.mjs` scrive per rotta `cielo: { file, linea,
+// cima }`; col cielo trasparente il fondo del riquadro si vede attraverso la foto per sempre,
+// quindi la tinta alta è "avorio" per forza e PageHero la traduce nel FONDO PAGINA
+// (`--color-cream`, non più `--color-cream-deep`: D124 vale ancora per l'idea, il token cambia).
+// Qui si legge il WebP nei byte (VP8X con l'alpha, nessun chunk ICCP/EXIF/XMP) e con sharp (la
+// prima riga trasparente, l'ultima opaca), e si pinnano le due misure.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import sharp from "sharp";
 import { CANCELLO_ALTA, SCATOLA as SCATOLA_DELLO_SCRIPT, ritaglio } from "../../../scripts/media/tinte.mjs";
+import { FOTO as CIELI, fileCielo, misuraCielo } from "../../../scripts/media/cielo.mjs";
 
 const ROOT = process.cwd();
 const leggi = (p: string) => readFileSync(join(ROOT, p), "utf8");
 
 type Banda = { hex: string; sorgente: string; Y: number; dH: number; C: number; avorio: number; misurato?: string };
+type Cielo = { file: string | null; linea: number; cima: number };
 type Voce = {
   trattamento: "testa" | "fermo";
   file: string;
   sorgente: [number, number];
   objectPosition: { lg: string; sotto: string };
   alta: Banda;
+  cielo: Cielo;
 };
 const tinte = JSON.parse(leggi("app/lib/motion/tinte.json")) as Record<string, Voce>;
 
@@ -44,8 +58,10 @@ const tinte = JSON.parse(leggi("app/lib/motion/tinte.json")) as Record<string, V
 const PAVIMENTI = { assoluto: 0.4241, lavoro: 0.5329 };
 const AVORIO = "#f9f5ef";
 
-/* D124: il token che la pagina spedisce dove il JSON dichiara l'avorio, col suo valore in globals.css. */
-const TOKEN_ALTA = "--color-cream-deep";
+/* D124: il token che la pagina spedisce dove il JSON dichiara l'avorio, col suo valore in
+   globals.css. A46: è il FONDO PAGINA, perché col cielo trasparente il riquadro non deve
+   staccare dalla carta. */
+const TOKEN_ALTA = "--color-cream";
 const valoreToken = (nome: string) => {
   const trovato = new RegExp(`${nome}:\\s*(#[0-9a-f]{6});`).exec(leggi("app/globals.css"));
   assert.ok(trovato, `globals.css non dichiara ${nome}`);
@@ -152,7 +168,7 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
       const v = tinte[rotta];
       assert.equal(v.trattamento, trattamento, `${rotta}: trattamento fuori dal repertorio di §0`);
       assert.ok(existsSync(join(ROOT, "public", v.file)), `${rotta}: manca public${v.file}`);
-      assert.deepEqual(Object.keys(v).sort(), ["alta", "file", "objectPosition", "sorgente", "trattamento"], `${rotta}: campi`);
+      assert.deepEqual(Object.keys(v).sort(), ["alta", "cielo", "file", "objectPosition", "sorgente", "trattamento"], `${rotta}: campi`);
     }
     // La scatola con cui lo script misura è quella dichiarata qui, non un'altra.
     assert.deepEqual(SCATOLA_DELLO_SCRIPT, SCATOLA, "la scatola di scripts/media/tinte.mjs non è il riquadro del telefono");
@@ -197,7 +213,7 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
   });
 
   test("i pavimenti di chiarezza, sul valore che la pagina spedisce: nessuna sezione scura (§4.3, D124)", () => {
-    assert.equal(HEX_TOKEN_ALTA, "#f4ece2", "il token dell'avorio di D124 non vale più quel che valeva");
+    assert.equal(HEX_TOKEN_ALTA, "#f9f5ef", "il token dell'avorio (A46: il fondo pagina) non vale più quel che valeva");
     const scuro = lumaY(daHex("#aeaeae"));
     for (const [rotta, v] of Object.entries(tinte)) {
       const y = spedita(v.alta).y;
@@ -214,10 +230,16 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
     }
   });
 
-  test(`il cancello della banda alta: distanza di valore >= ${CANCELLO_ALTA}:1 dall'avorio (D123)`, () => {
+  test(`il cancello della banda alta: distanza di valore >= ${CANCELLO_ALTA}:1 dall'avorio (D123); col cielo trasparente l'avorio è per forza (A46)`, () => {
     assert.equal(CANCELLO_ALTA, 1.49, "D123: la soglia della banda alta è 1,49:1, a due decimali");
     for (const [rotta, v] of Object.entries(tinte)) {
       const alta = decisa(v.alta);
+      if (v.cielo.file) {
+        // Il fondo del riquadro si vede attraverso il cielo per sempre: sulla tenda di /open-domus la
+        // banda misurata è la tenda (1,66:1 dall'avorio), e la tinta è l'avorio lo stesso.
+        assert.equal(v.alta.hex, "avorio", `${rotta}: il cielo è trasparente e la tinta alta non è l'avorio`);
+        continue;
+      }
       if (v.alta.hex === "avorio") {
         assert.ok(alta.av < CANCELLO_ALTA, `${rotta}: dichiara l'avorio ma sta a ${alta.av.toFixed(4)}:1, cioè è una tinta`);
       } else {
@@ -251,6 +273,17 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
     assert.equal(figlio.status, 0, figlio.stderr);
     assert.equal(figlio.stdout.trim(), "CANCELLO_ALTA,SCATOLA,ritaglio", "l'import ha stampato altro: la pipeline è partita");
     assert.equal(statSync(json).mtimeMs, prima, "l'import ha riscritto tinte.json");
+    // A46: lo stesso per cielo.mjs, che tinte.mjs importa: nessun WebP riscritto.
+    const webp = join(ROOT, "public", tinte["/vendi"].cielo.file ?? "");
+    const primaWebp = existsSync(webp) ? statSync(webp).mtimeMs : null;
+    const figlioCielo = spawnSync(
+      process.execPath,
+      ["--input-type=module", "-e", "const m = await import('./scripts/media/cielo.mjs'); console.log(Object.keys(m).sort().join(','));", "app/lib/__tests__/tinte.test.ts"],
+      { cwd: ROOT, encoding: "utf8", timeout: 30_000 },
+    );
+    assert.equal(figlioCielo.status, 0, figlioCielo.stderr);
+    assert.equal(figlioCielo.stdout.trim(), "FOTO,fileCielo,misuraCielo", "l'import di cielo.mjs ha stampato altro: la pipeline è partita");
+    assert.equal(existsSync(webp) ? statSync(webp).mtimeMs : null, primaWebp, "l'import di cielo.mjs ha riscritto un WebP");
   });
 
   test("la fotografia del JSON è quella che il *Content.tsx passa a PageHero; l'inquadratura non si passa più (D180)", () => {
@@ -275,20 +308,30 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
     assert.match(hero, /--dt-op-lg/, "lo <style> non scrive --dt-op-lg");
     assert.match(hero, /--dt-op-sotto/, "lo <style> non scrive --dt-op-sotto");
     assert.doesNotMatch(hero, /--dt-testa-mf/, "lo <style> scrive ancora --dt-testa-mf (A41: nessun margine)");
-    // L'avorio non è un hex nel JSON: arriva come il token della sua ZONA (D124).
+    // L'avorio non è un hex nel JSON: arriva come token (D124), e dal cielo mascherato è il fondo
+    // pagina (A46): col cielo trasparente il riquadro non deve staccare dalla carta.
     assert.match(hero, new RegExp(`tintaCss\\(tinta\\.alta,\\s*"var\\(${TOKEN_ALTA}\\)"\\)`), `l'avorio della banda alta deve uscire come var(${TOKEN_ALTA})`);
+    assert.doesNotMatch(hero, /tintaCss\([^)]*cream-deep/, "il placeholder del cielo trasparente non può essere cream-deep (A46)");
     assert.match(hero, /rotta:\s*keyof typeof tinte/, "la rotta non è tipata sulle chiavi di tinte.json");
     assert.doesNotMatch(hero, /objectPosition\s*[=:]/, "PageHero non prende più objectPosition come prop (D180)");
   });
 
-  test("il placeholder tinto sta sul solo riquadro della testa; i moduli media restano cream-deep (§4.2, D125)", () => {
+  test("il placeholder tinto sta sul solo strato della foto (A46); il riquadro è la carta; i moduli media restano cream-deep, tranne la finestra col cielo (§4.2, D125)", () => {
     const css = leggi("app/globals.css").replace(/\/\*[\s\S]*?\*\//g, " ");
     const modulo = /\.dt-media-full\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
     assert.match(modulo, /background-color:\s*var\(--color-cream-deep\);/, "il modulo .dt-media-full non ha più il fondo di oggi");
     assert.doesNotMatch(modulo, /--dt-tinta-alta/, "la tinta della testa è finita su tutti i moduli media della rotta");
     assert.doesNotMatch(css, /\.dt-media-full\[data-dive-zoom\]/, "la regola della banda del tuffo è morta con PageHeroBand (D196)");
-    const testa = /\.dt-testa_riquadro\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
-    assert.match(testa, /background-color:\s*var\(--dt-tinta-alta,\s*var\(--color-cream-deep\)\)/, "il lampo avorio prima della decodifica resta sul riquadro della testa");
+    // A46: il riquadro è la carta (col cielo trasparente si vede attraverso la foto per sempre); il lampo
+    // prima del decode (D125) sta sullo strato della foto e ricade sull'avorio, mai su cream-deep.
+    const riquadro = /\.dt-testa_riquadro\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
+    assert.match(riquadro, /background-color:\s*var\(--color-cream\);/, "il riquadro della testa non è la carta (A46)");
+    assert.doesNotMatch(riquadro, /--dt-tinta-alta|cream-deep/, "la tinta del placeholder sta sullo strato, non sul riquadro (A46)");
+    const strato = /\.dt-testa_strato\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
+    assert.match(strato, /background-color:\s*var\(--dt-tinta-alta,\s*var\(--color-cream\)\)/, "il lampo prima della decodifica non sta sullo strato della foto (D125, A46)");
+    // La finestra di Open Domus mostra il cielo trasparente: il suo modulo prende la carta, non cream-deep.
+    const finestra = /\.dt-od_window\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
+    assert.match(finestra, /background-color:\s*var\(--color-cream\);/, "la finestra col cielo trasparente non posa sulla carta (A46)");
     // Il riquadro della testa porta davvero il gancio, sullo stesso tag della scatola.
     assert.match(soloCodice(leggi("app/components/motion/PageHeroTesta.tsx")), /<div[^>]*\bdata-dive-zoom\b[^>]*className="dt-testa_riquadro\b/);
     for (const f of ["CostiChiari", "HorizonStory", "Voci", "FeaturedTestimonial", "EditorialRows", "Method"]) {
@@ -301,5 +344,166 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
     const mjs = leggi("scripts/media/tinte.mjs");
     assert.doesNotMatch(soloCodice(mjs), /\.dominant/, "stats().dominant dà #080808 su villa-uliveto e villa-lettini: un nero");
     assert.match(mjs, /sharp/);
+  });
+});
+
+/* IL CIELO MASCHERATO (A46). I chunk di un WebP: RIFF, "WEBP", poi FourCC + lunghezza LE; VP8X
+   porta i flag (0x20 ICC, 0x10 alpha, 0x08 Exif, 0x04 XMP) e il canvas (larghezza−1, altezza−1
+   su 24 bit). Un lossy con alpha è VP8X + ALPH + VP8. */
+type WebpInfo = { w: number; h: number; alpha: boolean; chunks: string[]; metadati: string[] };
+function webpInfo(buf: Buffer): WebpInfo {
+  assert.equal(buf.subarray(0, 4).toString("latin1"), "RIFF", "non è un RIFF");
+  assert.equal(buf.subarray(8, 12).toString("latin1"), "WEBP", "non è un WebP");
+  const out: WebpInfo = { w: 0, h: 0, alpha: false, chunks: [], metadati: [] };
+  let i = 12;
+  while (i + 8 <= buf.length) {
+    const fourcc = buf.subarray(i, i + 4).toString("latin1");
+    const len = buf.readUInt32LE(i + 4);
+    out.chunks.push(fourcc);
+    if (fourcc === "VP8X") {
+      const flag = buf[i + 8];
+      out.alpha = (flag & 0x10) !== 0;
+      out.w = buf.readUIntLE(i + 12, 3) + 1;
+      out.h = buf.readUIntLE(i + 15, 3) + 1;
+      if (flag & 0x20) out.metadati.push("ICC (flag)");
+      if (flag & 0x08) out.metadati.push("Exif (flag)");
+      if (flag & 0x04) out.metadati.push("XMP (flag)");
+    }
+    if (fourcc === "ICCP" || fourcc === "EXIF" || fourcc === "XMP ") out.metadati.push(fourcc.trim());
+    if (fourcc === "ALPH") out.alpha = true;
+    i += 8 + len + (len % 2);
+  }
+  return out;
+}
+
+/** Le frazioni di pixel trasparenti (alpha < 128) della prima riga e opachi (alpha = 255) dell'ultima. */
+async function righeEstreme(percorso: string) {
+  const { data, info } = await sharp(percorso).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const W = info.width;
+  const H = info.height;
+  let trasparentiPrima = 0;
+  let opachiUltima = 0;
+  let cielo = 0;
+  for (let x = 0; x < W; x++) {
+    if (data[x * 4 + 3] < 128) trasparentiPrima++;
+    if (data[((H - 1) * W + x) * 4 + 3] === 255) opachiUltima++;
+  }
+  for (let i = 3; i < data.length; i += 4) if (data[i] < 128) cielo++;
+  return { W, H, trasparentiPrima: trasparentiPrima / W, opachiUltima: opachiUltima / W, cielo: cielo / (W * H), meta: await sharp(percorso).metadata() };
+}
+
+/* Le sette teste col cielo e la frazione minima di prima riga trasparente. La tenda di /open-domus
+   copre TUTTA la cima: il cielo è una tasca a destra e una striscia fra i pilastri (il 6,8 % dei
+   pixel), la prima riga è opaca e `linea` e `cima` valgono 0 come su un interno; su /recensioni
+   il muro a sinistra tocca il bordo alto (prima riga trasparente all'85 %); sulle altre cinque
+   almeno il 90 %. Su tutte almeno il 4 % dei pixel è cielo. */
+const PRIMA_RIGA: Record<string, number> = {
+  "/vendi": 0.9,
+  "/acquista": 0.9,
+  "/servizi": 0.9,
+  "/metodo": 0.9,
+  "/open-domus": 0,
+  "/recensioni": 0.8,
+  "/domande-frequenti": 0.9,
+};
+const CIELO_MINIMO = 0.04;
+/* I due attici sono interni: nessun cielo, nessun WebP, linea e cima 0. */
+const INTERNI = ["/chi-siamo", "/lavora-con-noi"];
+
+describe("il cielo mascherato delle foto alte (A46)", () => {
+  test("la tabella di cielo.mjs copre le nove teste con la loro foto e la finestra di Open Domus", () => {
+    for (const [rotta, trattamento] of REPERTORIO) {
+      const f = CIELI.find((c) => c.uso === rotta);
+      if (trattamento === "fermo") {
+        assert.equal(f, undefined, `${rotta}: i legali restano fermi sulla loro foto, senza cielo`);
+        continue;
+      }
+      assert.ok(f, `${rotta}: manca nella tabella FOTO di cielo.mjs`);
+      assert.equal(`/images/reali/${f.nome}.jpg`, tinte[rotta].file, `${rotta}: la sorgente di cielo.mjs non è la foto di tinte.json`);
+      if (INTERNI.includes(rotta)) assert.equal(f.classe, "interno", `${rotta}: è un interno`);
+      else assert.ok(["giorno", "sera"].includes(f.classe), `${rotta}: classe ${f.classe}`);
+    }
+    // La finestra ha l'azzurro MEDIO del tardo pomeriggio (classe `medio`, vedi cielo.mjs).
+    const finestra = CIELI.find((c) => c.nome === "villa-terrazze-glicine");
+    assert.ok(finestra && finestra.classe === "medio", "la finestra di Open Domus (villa-terrazze-glicine) manca o non è nella classe dell'azzurro medio");
+    // La finestra monta il WebP col cielo trasparente, non più il JPEG (A46).
+    assert.match(soloCodice(leggi("app/components/OpenDomus.tsx")), new RegExp(`src="${fileCielo(finestra!)}"`), "OpenDomus.tsx non monta il WebP col cielo della facciata a terrazze (A46)");
+    assert.doesNotMatch(soloCodice(leggi("app/components/OpenDomus.tsx")), /villa-terrazze-glicine\.jpg/, "OpenDomus.tsx monta ancora il JPEG col cielo azzurro (A46)");
+  });
+
+  test("le nove teste montano il WebP col cielo dove c'è: PageHero passa `tinta.cielo.file ?? image` (A46)", () => {
+    assert.match(soloCodice(leggi("app/components/PageHero.tsx")), /src=\{tinta\.cielo\.file \?\? image\}/, "PageHero non passa il WebP col cielo a PageHeroTesta");
+    for (const rotta of Object.keys(PRIMA_RIGA)) assert.ok(tinte[rotta].cielo.file, `${rotta}: senza cielo.file la testa monterebbe il JPEG`);
+  });
+
+  test("ogni rotta con cielo ha il WebP: esiste, alpha, stessa misura della sorgente, nessun metadato; linea fra 0,05 e 0,7, cima <= linea", () => {
+    for (const rotta of Object.keys(PRIMA_RIGA)) {
+      const v = tinte[rotta];
+      const f = CIELI.find((c) => c.uso === rotta)!;
+      assert.equal(v.cielo.file, fileCielo(f), `${rotta}: cielo.file non è il WebP di cielo.mjs`);
+      assert.match(v.cielo.file ?? "", /^\/images\/reali\/[a-z-]+-cielo\.webp$/, `${rotta}: il nome del WebP`);
+      const percorso = join(ROOT, "public", v.cielo.file!);
+      assert.ok(existsSync(percorso), `${rotta}: manca public${v.cielo.file} — lancia node scripts/media/cielo.mjs`);
+      const w = webpInfo(readFileSync(percorso));
+      assert.ok(w.alpha, `${rotta}: il WebP non ha l'alpha (chunk ${w.chunks.join(",")})`);
+      assert.deepEqual([w.w, w.h], v.sorgente, `${rotta}: il WebP è ${w.w}×${w.h}, la sorgente ${v.sorgente.join("×")}`);
+      assert.deepEqual(w.metadati, [], `${rotta}: il WebP porta metadati`);
+      const minimo = PRIMA_RIGA[rotta] > 0 ? 0.05 : 0;
+      assert.ok(v.cielo.linea >= minimo && v.cielo.linea <= 0.7, `${rotta}: linea del cielo ${v.cielo.linea} fuori da ${minimo}-0,7`);
+      assert.ok(v.cielo.cima >= 0 && v.cielo.cima <= v.cielo.linea, `${rotta}: cima ${v.cielo.cima} sopra la linea ${v.cielo.linea}`);
+      assert.equal(v.cielo.linea, Number(v.cielo.linea.toFixed(3)), `${rotta}: linea a più di tre decimali`);
+    }
+  });
+
+  test("i due attici interni: nessun cielo, nessun WebP, linea e cima 0; i due legali senza cielo", () => {
+    for (const rotta of INTERNI) {
+      const v = tinte[rotta];
+      assert.deepEqual(v.cielo, { file: null, linea: 0, cima: 0 }, `${rotta}: è un interno`);
+      assert.equal(existsSync(join(ROOT, "public", v.file.replace(/\.jpg$/, "-cielo.webp"))), false, `${rotta}: un WebP del cielo per un interno`);
+      assert.notEqual(v.alta.hex, "avorio", `${rotta}: senza cielo la tinta resta misurata (D123)`);
+    }
+    for (const rotta of ["/privacy", "/cookie"]) assert.deepEqual(tinte[rotta].cielo, { file: null, linea: 0, cima: 0 }, `${rotta}: i legali sono fermi`);
+  });
+
+  test("nel WebP la prima riga è trasparente (il cielo) e l'ultima tutta opaca (il giardino); sharp vede l'alpha", async () => {
+    for (const [rotta, minimo] of Object.entries(PRIMA_RIGA)) {
+      const v = tinte[rotta];
+      const r = await righeEstreme(join(ROOT, "public", v.cielo.file!));
+      assert.equal(r.meta.hasAlpha, true, `${rotta}: sharp non vede l'alpha`);
+      assert.equal(r.meta.format, "webp", `${rotta}: formato ${r.meta.format}`);
+      assert.ok(r.trasparentiPrima >= minimo, `${rotta}: la prima riga è trasparente al ${(100 * r.trasparentiPrima).toFixed(1)} %, attesi ≥ ${100 * minimo} %`);
+      assert.equal(r.opachiUltima, 1, `${rotta}: l'ultima riga è opaca al ${(100 * r.opachiUltima).toFixed(1)} %`);
+      assert.ok(r.cielo >= CIELO_MINIMO, `${rotta}: solo il ${(100 * r.cielo).toFixed(1)} % dei pixel è cielo`);
+    }
+  });
+
+  test("la finestra di Open Domus: villa-terrazze-glicine-cielo.webp, 3:2 come la sorgente, alpha, senza metadati", async () => {
+    const f = CIELI.find((c) => c.nome === "villa-terrazze-glicine")!;
+    const percorso = join(ROOT, "public", fileCielo(f)!);
+    assert.ok(existsSync(percorso), `manca ${fileCielo(f)}`);
+    const sorgente = await sharp(join(ROOT, "public/images/reali/villa-terrazze-glicine.jpg")).metadata();
+    const w = webpInfo(readFileSync(percorso));
+    assert.ok(w.alpha, "il WebP della finestra non ha l'alpha");
+    assert.deepEqual([w.w, w.h], [sorgente.width, sorgente.height]);
+    assert.deepEqual(w.metadati, []);
+    const r = await righeEstreme(percorso);
+    assert.ok(r.trasparentiPrima >= 0.9, `la prima riga è trasparente al ${(100 * r.trasparentiPrima).toFixed(1)} %`);
+    assert.equal(r.opachiUltima, 1, `l'ultima riga è opaca al ${(100 * r.opachiUltima).toFixed(1)} %`);
+  });
+
+  test("misuraCielo(): linea dove meno del 5 % è trasparente, cima dove almeno il 5 % è opaco", () => {
+    // 100×100: le prime 20 righe tutte cielo; dalle righe 20-49 un cipresso largo 10 (10 % opaco);
+    // dalla 50 in giù tutto opaco tranne 3 colonne di cielo (3 % trasparente) fino alla 59; poi pieno.
+    const W = 100;
+    const H = 100;
+    const alpha = new Uint8Array(W * H);
+    for (let y = 20; y < H; y++) for (let x = 0; x < W; x++) alpha[y * W + x] = y < 50 ? (x < 10 ? 255 : 0) : y < 60 ? (x < 97 ? 255 : 0) : 255;
+    assert.deepEqual(misuraCielo(alpha, W, H), { linea: 0.5, cima: 0.2 });
+    // Un cipresso largo 4 (4 %) non fa cima: sotto il 5 %.
+    for (let y = 20; y < 50; y++) for (let x = 4; x < 10; x++) alpha[y * W + x] = 0;
+    assert.deepEqual(misuraCielo(alpha, W, H), { linea: 0.5, cima: 0.5 });
+    // Tutto opaco: 0 e 0. Tutto trasparente: 1 e 1 (il soggetto non comincia mai).
+    assert.deepEqual(misuraCielo(new Uint8Array(W * H).fill(255), W, H), { linea: 0, cima: 0 });
+    assert.deepEqual(misuraCielo(new Uint8Array(W * H), W, H), { linea: 1, cima: 1 });
   });
 });
