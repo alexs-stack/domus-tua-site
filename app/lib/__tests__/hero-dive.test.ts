@@ -51,20 +51,27 @@ function jpegSize(buf: Buffer): { w: number; h: number } {
 const GATE = "@media (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)";
 
 describe("HeroCinematic: il DOM del tuffo", () => {
-  test("lo zoom ha già in SSR l'altezza resa della foto, col rapporto del file", () => {
-    const { w, h } = jpegSize(readFileSync(join(root, "public/media/hero-raffaela.jpg")));
+  test("lo zoom ha già in SSR l'altezza resa della foto, col rapporto dei due file (A44), ancorato in basso", () => {
+    // A44 (20 set. 2026): due file (2:3 da 768, 9:16 sotto), il rapporto sta nel token
+    // `--dt-hero-ar` di globals.css, letto dalla classe aspect; il riquadro è ancorato in basso.
+    const css = readFileSync(join(root, "app/globals.css"), "utf8");
+    const d = jpegSize(readFileSync(join(root, "public/media/hero-raffaela-villa.jpg")));
+    const t = jpegSize(readFileSync(join(root, "public/media/hero-raffaela-villa-m.jpg")));
+    assert.match(css, new RegExp(`--dt-hero-ar:\\s*${t.w} / ${t.h};`), "il rapporto del telefono nel token");
+    assert.match(css, new RegExp(`@media \\(min-width: 48rem\\) \\{\\s*:root \\{\\s*--dt-hero-ar:\\s*${d.w} / ${d.h};`), "il rapporto del desktop da 768");
     const m = hero.match(/data-hero-zoom\s+className="([^"]*)"/);
     assert.ok(m, "manca il div data-hero-zoom con la sua classe");
-    for (const cls of ["absolute", "inset-x-0", "top-0", "min-h-full", `aspect-[${w}/${h}]`, "origin-[50%_75%]"]) {
+    for (const cls of ["absolute", "inset-x-0", "bottom-0", "min-h-full", "aspect-[var(--dt-hero-ar)]", "origin-[50%_75%]"]) {
       assert.ok(m![1].split(/\s+/).includes(cls), `data-hero-zoom senza la classe ${cls}`);
     }
+    assert.ok(!m![1].split(/\s+/).includes("top-0"), "data-hero-zoom non è più ancorato in alto");
     // Si parte dal TAG: i selettori `[data-hero-zoom]` e `[data-hero-lift]` compaiono anche nelle misure e nella timeline.
     const zoom = hero.search(/<div\s+data-hero-zoom\b/);
     assert.ok(zoom > -1, "manca il tag <div data-hero-zoom>");
     const lift = zoom + hero.slice(zoom).search(/<div\s+data-hero-lift\b/);
-    const img = hero.indexOf("<Image", zoom);
+    const img = hero.indexOf("<picture", zoom);
     const video = hero.indexOf("<video", zoom);
-    assert.ok(img > zoom && img < lift, "l'Image dell'hero non sta dentro data-hero-zoom");
+    assert.ok(img > zoom && img < lift, "il <picture> dell'hero non sta dentro data-hero-zoom");
     assert.ok(video > zoom && video < lift, "il video dell'hero non sta dentro data-hero-zoom");
   });
 
@@ -135,8 +142,10 @@ describe("HeroCinematic: il DOM del tuffo", () => {
     assert.match(hero, /return dentro \? null : st\.start;/);
   });
 
-  test("salita a 0,80·tImg (A23) e le due ease del tuffo", () => {
-    assert.match(hero, /0\.8\s*\*\s*tImg/);
+  test("nessuna salita della foto (A44: riquadro ancorato in basso, t′ = banda) e le due ease del tuffo", () => {
+    assert.doesNotMatch(hero, /0\.8\s*\*\s*tImg/, "la salita a 0,80·tImg (A23) scoprirebbe il fondo sotto il riquadro ancorato in basso");
+    assert.match(hero, /return \{ bandH, tPrime: bandH \};/);
+    assert.match(hero, /const svh = \(\) => window\.innerHeight \/ 100;/, "il svh del telefono non è più la banda / 60");
     assert.match(hero, /ease:\s*"dtEase"/);
     assert.match(hero, /ease:\s*chapters\.hero\.signature\.ease/);
   });

@@ -233,16 +233,18 @@ test("con reduced motion il pannello della ricerca e le tessere di Voci restano 
 // ── La testa di era delle pagine interne, con reduced motion ───────────────
 // A38, A40 e A41 di Alberto (20 settembre 2026): la foto è il fondo a schermo
 // intero, sticky e FERMA (nessun tuffo, nessun corridoio: page-dive, soglia e
-// ingresso sono morti), il blocco dei testi le scorre sopra. Il layout sta nel
-// CSS prima del paint, quindi con reduced motion, il regime di tutto questo
-// file, la pagina è identica: niente `data-corridor`, niente trasformate,
-// `sizes` dal modulo dei numeri. Il resto della testa lo prova e2e/a28.spec.ts.
+// ingresso sono morti), e dal 21 set. (A45) la foto è la pagina: il riquadro in
+// flusso, alto quanto la foto, scorre con lei, il blocco dei testi dentro. Il
+// layout sta nel CSS prima del paint, quindi con reduced motion, il regime di
+// tutto questo file, la pagina è identica: niente `data-corridor`, niente sticky,
+// niente trasformate, `sizes` dal modulo dei numeri. Il resto della testa lo
+// prova e2e/a28.spec.ts.
 test("su /vendi la testa resta ferma e senza corridoio @layout", async ({ page, goto }) => {
   await goto("/vendi");
   await expect(page.locator("[data-corridor]")).toHaveCount(0);
   const testa = page.locator("section[data-testa]");
   await expect(testa).toHaveCount(1);
-  await expect(testa.locator(".dt-testa_riquadro")).toHaveCSS("position", "sticky");
+  await expect(testa.locator(".dt-testa_riquadro")).toHaveCSS("position", "relative");
   const sorgente = tinte["/vendi"].sorgente;
   await expect(page.locator("img[data-testa-foto]")).toHaveAttribute("sizes", sizesDi(sorgente[0] / sorgente[1]));
   // Il tempo in cui un JS sbagliato scriverebbe una trasformata.

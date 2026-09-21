@@ -1198,9 +1198,13 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
         ).filter((el) => Number(getComputedStyle(el).opacity) < 0.9).length,
       );
       expect(spente, "pezzi dell'hero rimasti trasparenti in attesa di un'animazione che non parte").toBe(0);
-      // E l'hero è a schermo: il primo h1 della pagina, dentro il viewport.
+      // E l'hero è a schermo. A44 (20 set. 2026): la banda della foto è a schermo intero e il primo
+      // h1 sta sotto la piega, come su era-residence; è visibile, a piena opacità, e uno scroll lo porta
+      // nel viewport senza che nessuna animazione debba rivelarlo.
       const h1 = page.locator("h1").first();
       await expect(h1, "l'h1 dell'hero non è visibile con reduced-motion").toBeVisible();
+      expect(await h1.evaluate((el) => Number(getComputedStyle(el).opacity)), "l'h1 non è a piena opacità").toBeGreaterThanOrEqual(0.9);
+      await h1.scrollIntoViewIfNeeded();
       await expect(h1).toBeInViewport();
       // La pagina scorre: nessuna serratura residua.
       expect(await scorreDavvero(page), "con reduced-motion la pagina non scorre").toBeGreaterThan(0);

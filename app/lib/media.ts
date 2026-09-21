@@ -10,12 +10,19 @@ export const heroCinematic = {
   enabled: false,
   mp4: "/media/congedo-drone-1080.mp4",
   webm: "/media/congedo-drone-1080.webm",
-  poster: "/media/hero-raffaela.jpg",
-  // Base: Raffaela che presenta il soggiorno di un attico reale — dentro
-  // l'arco del preloader si vede il crop su di lei, poi la camera rientra
-  // e rivela la stanza (vedi HERO_FOCUS in HeroCinematic.tsx).
-  base: "/media/hero-raffaela.jpg",
-  baseAlt: "Raffaela Rizza presenta il soggiorno di un attico luminoso proposto da Domus Tua",
+  poster: "/media/hero-raffaela-villa.jpg",
+  // Base (A44/A45, 20-21 set. 2026): la scena AMPIA 3:2 generata con Higgsfield (il salotto intero
+  // di una villa con la vetrata sul portico e la piscina, come l'hero di prima: Alberto, «era
+  // molto più ampia») col ritaglio vero di Raffaela posato in basso a sinistra da
+  // scripts/media/foto-alte.mjs; `baseM` è il 9:16 per il telefono (art direction a 768 in
+  // HeroCinematic.tsx). Il soggiorno dell'attico di prima (`hero-raffaela.jpg`) è uscito: la
+  // cliente non può più mostrare quella casa.
+  base: "/media/hero-raffaela-villa.jpg",
+  baseM: "/media/hero-raffaela-villa-m.jpg",
+  /** Le misure dei due file: le legge HeroCinematic per `getImageProps` e hero-dive.test.ts. */
+  baseSize: { w: 2560, h: 1717 },
+  baseMSize: { w: 1440, h: 2580 },
+  baseAlt: "Raffaela Rizza presenta il soggiorno luminoso di una villa con piscina proposta da Domus Tua",
 } as const;
 
 export type AmbientSource = { webm: string; mp4: string };

@@ -239,8 +239,10 @@ export default function Congedo() {
   // sorgente al primo avvicinamento (spec §2.7), quindi la 720p vale per tutta
   // la sessione, non solo durante lo sticky.
   // Il loop parte in vista, anche durante l'entrata: il foglio piega il video che
-  // suona, come Lusion (Alberto, 20 set.). La clip è quella da 02:00 (A29).
-  useAmbientVideo(videoRef, clipRef, { sources: { hd: ambient.congedo.sd, sd: ambient.congedo.sd } });
+  // suona, come Lusion (Alberto, 20 set.). La clip è quella da 02:00 (A29), CON LA
+  // VOCE di Raffaela (A44: `audio: true`, il suono parte da solo dove il browser lo
+  // permette e altrimenti al primo gesto; la logica sta nel hook).
+  useAmbientVideo(videoRef, clipRef, { sources: { hd: ambient.congedo.sd, sd: ambient.congedo.sd }, audio: true });
 
   // L'entrata alla Lusion (A35, A42): vive da sola dentro MQ.corridor, il canvas
   // lo crea lei; la timeline qui sotto le passa `e` a ogni tick del primo tratto.

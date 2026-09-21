@@ -55,7 +55,7 @@ const copy = {
     cardText: "La storia vera di Teresa, raccontata da lei.",
     videoAria: "Guarda la storia di Teresa, venduta al primo Open Domus",
     imageAlt: "Raffaela Rizza con Teresa, cliente che ha venduto al primo Open Domus",
-    villaAlt: "Facciata di una villa contemporanea vista dal bordo della piscina, con l'acqua in primo piano",
+    villaAlt: "Facciata a terrazze bianche di una residenza contemporanea, col glicine in fiore sui parapetti e i cipressi, sotto un cielo azzurro",
   },
   en: {
     eyebrow: "Our signature format",
@@ -80,7 +80,7 @@ const copy = {
     cardText: "Teresa's true story, told in her own words.",
     videoAria: "Watch Teresa's story, sold at the first Open Domus",
     imageAlt: "Raffaela Rizza with Teresa, the client who sold at the first Open Domus",
-    villaAlt: "Facade of a contemporary villa seen from the edge of the pool, with the water in the foreground",
+    villaAlt: "White terraced facade of a contemporary residence, with wisteria in bloom on the parapets and cypresses, under a blue sky",
   },
   fr: {
     eyebrow: "Notre format signature",
@@ -105,7 +105,7 @@ const copy = {
     cardText: "La véritable histoire de Teresa, racontée par elle-même.",
     videoAria: "Regardez l'histoire de Teresa, vendue au premier Open Domus",
     imageAlt: "Raffaela Rizza avec Teresa, la cliente qui a vendu au premier Open Domus",
-    villaAlt: "Façade d’une villa contemporaine vue depuis le bord de la piscine, avec l’eau au premier plan",
+    villaAlt: "Façade en terrasses blanches d’une résidence contemporaine, avec la glycine en fleurs sur les parapets et des cyprès, sous un ciel bleu",
   },
   de: {
     eyebrow: "Unser eigenes Format",
@@ -130,7 +130,7 @@ const copy = {
     cardText: "Die wahre Geschichte von Teresa, von ihr selbst erzählt.",
     videoAria: "Sehen Sie die Geschichte von Teresa, verkauft beim ersten Open Domus",
     imageAlt: "Raffaela Rizza mit Teresa, der Kundin, die beim ersten Open Domus verkauft hat",
-    villaAlt: "Fassade einer modernen Villa vom Beckenrand aus gesehen, mit dem Wasser im Vordergrund",
+    villaAlt: "Weiße Terrassenfassade einer modernen Residenz, mit blühender Glyzinie an den Brüstungen und Zypressen, unter blauem Himmel",
   },
   es: {
     eyebrow: "Nuestro formato exclusivo",
@@ -155,7 +155,7 @@ const copy = {
     cardText: "La historia real de Teresa, contada por ella misma.",
     videoAria: "Mira la historia de Teresa, vendida en el primer Open Domus",
     imageAlt: "Raffaela Rizza con Teresa, la clienta que vendió en el primer Open Domus",
-    villaAlt: "Fachada de una villa contemporánea vista desde el borde de la piscina, con el agua en primer plano",
+    villaAlt: "Fachada de terrazas blancas de una residencia contemporánea, con la glicina en flor en los antepechos y cipreses, bajo un cielo azul",
   },
 };
 
@@ -175,6 +175,10 @@ export default function OpenDomus({ finestra = false }: Props) {
     { title: c.buyerLabel, items: c.buyerBenefits },
   ];
 
+  // A45 (Alberto, 21 set. 2026: «non hai fatto quello che ti ho chiesto per la sezione rifatta
+  // di era residence di architecture»): in home la finestra porta il TITOLO del capitolo, enorme
+  // e bianco a cavallo del bordo alto della foto, come «ARCHITECTURE» su era-residence; il corpo
+  // qui sotto allora non ripete l'h2 (occhiello, claim, intro, liste e rilancio restano).
   // RIVISTA BIANCA (2026-09-11): la storia di Teresa era una FOTO 1280×510
   // schiacciata in un quadrato da 589 px — ne restava il 40 % (ingrandito
   // 1,15 volte) e le due donne erano tagliate alla fronte. Ora è il video da
@@ -204,9 +208,11 @@ export default function OpenDomus({ finestra = false }: Props) {
           <Reveal role="ctn">
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <SplitTitle as="h2" className="mt-6 font-display text-d2">
-            {c.head}
-          </SplitTitle>
+          {!finestra && (
+            <SplitTitle as="h2" className="mt-6 font-display text-d2">
+              {c.head}
+            </SplitTitle>
+          )}
           <Lead className="mt-6">{c.claim}</Lead>
           <Reveal role="ctn">
             <p className="mt-6 max-w-[60ch] text-body text-graphite">{c.intro}</p>
@@ -258,7 +264,7 @@ export default function OpenDomus({ finestra = false }: Props) {
     );
   }
   return (
-    <Finestra villaAlt={c.villaAlt} locale={locale}>
+    <Finestra villaAlt={c.villaAlt} titolo={c.head.replace(/\.$/, "")} locale={locale}>
       {body}
     </Finestra>
   );
@@ -282,7 +288,7 @@ export default function OpenDomus({ finestra = false }: Props) {
    Sotto la soglia e con motion ok: nessuno sticky, la foto si apre con due
    rettangoli sfalsati quando è in vista per il 35 % e si richiude uscendo dal basso.
    Con reduced-motion e senza JS: nessuna delle due cose, la foto è ferma. */
-function Finestra({ villaAlt, locale, children }: { villaAlt: string; locale: string; children: ReactNode }) {
+function Finestra({ villaAlt, titolo, locale, children }: { villaAlt: string; titolo: string; locale: string; children: ReactNode }) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const group = useRef<RevealApi | null>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
@@ -439,15 +445,25 @@ function Finestra({ villaAlt, locale, children }: { villaAlt: string; locale: st
         </div>
         <div className="dt-od_stage">
           <div className="dt-od_band dt-row">
-            <div className="dt-od_window dt-media-half lg:w-full! lg:max-w-none! lg:aspect-video!">
-              <Image
-                src="/images/reali/villa-fronte-acqua.jpg"
-                alt={villaAlt}
-                fill
-                sizes={SIZES_FINESTRA}
-                className="object-cover"
-                style={{ objectPosition: "50% 38%" }}
-              />
+            {/* La sezione «Architecture» di era-residence (A45): dentro la cornice, il titolo del
+                capitolo in bianco nudo (A40), enorme, appoggiato al bordo alto della foto, e la
+                foto — la facciata a terrazze col glicine generata con Higgsfield, ampia (3:2). La
+                cornice è `relative` (il modulo media ritaglia, la cornice no): il titolo scala
+                con lo stage come tutto il resto, così a schermo intero è più grande, come
+                «ARCHITECTURE». L'h2 sta prima della foto nel DOM
+                (l'ordine di lettura) e sopra di lei nello stacking. */}
+            <div className="dt-od_cornice">
+              <h2 className="dt-od_titolo font-display">{titolo}</h2>
+              <div className="dt-od_window dt-media-half lg:w-full! lg:max-w-none! lg:aspect-video!">
+                <Image
+                  src="/images/reali/villa-terrazze-glicine.jpg"
+                  alt={villaAlt}
+                  fill
+                  sizes={SIZES_FINESTRA}
+                  className="object-cover"
+                  style={{ objectPosition: "50% 30%" }}
+                />
+              </div>
             </div>
           </div>
           <RevealGroup

@@ -104,12 +104,13 @@ export default function PreloaderShell() {
             che il visitatore vede, e la sorgente dev'essere una. */}
         <div className="dt-pre-fondo absolute inset-0" />
 
-        {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha della stessa
-            foto dell'hero (stesso canvas 2000×1415, fornito dal cliente), con
-            la stessa geometria object-cover dell'immagine sotto — silhouette
-            pulita sul fondo del preloader, e quando l'arco la attraversa
-            sagoma e foto coincidono pixel su pixel: la stanza "torna".
-            Entra in dissolvenza da 0,15 s (CSS: `dt-pre-in-fade`). */}
+        {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha posato sullo
+            STESSO canvas della foto dell'hero (A44, 20 set. 2026: 2:3 da 768,
+            9:16 sotto, scripts/media/foto-alte.mjs), con la stessa geometria
+            object-cover dell'immagine sotto — silhouette pulita sul fondo del
+            preloader, e quando l'arco la attraversa sagoma e foto coincidono
+            pixel su pixel: la stanza "torna". Entra in dissolvenza da 0,15 s
+            (CSS: `dt-pre-in-fade`). */}
         <div data-pre-figure className="absolute inset-0">
           {/* WebP, non PNG: stesso canvas e stesso canale alpha, 79 KB invece
               di 809. Il preloader è la PRIMA cosa che scarica un visitatore
@@ -134,17 +135,19 @@ export default function PreloaderShell() {
           <picture>
             <source
               media="(max-width: 767.98px)"
-              srcSet="/media/raffaela-sagoma-m.webp"
+              srcSet="/media/raffaela-sagoma-villa-m.webp"
               type="image/webp"
             />
-            <source srcSet="/media/raffaela-sagoma.webp" type="image/webp" />
+            {/* Il `src` è il WebP del desktop: il PNG di ripiego non esiste più
+                (il ritaglio sorgente, `raffaela-sagoma.png`, è su un altro canvas
+                e serve solo a foto-alte.mjs; nessun browser del sito è senza WebP). */}
             <img
-              src="/media/raffaela-sagoma.png"
+              src="/media/raffaela-sagoma-villa.webp"
               alt=""
               loading="lazy"
               decoding="async"
               className="h-full w-full object-cover"
-              style={{ objectPosition: "10% 0%" }}
+              style={{ objectPosition: "10% 100%" }}
             />
           </picture>
         </div>

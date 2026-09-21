@@ -56,7 +56,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "Quello che ci chiedono più spesso chi vende e chi compra casa a Tradate e in provincia di Varese. Se la tua domanda non è qui, chiedicela: rispondiamo noi.",
-    heroAlt: "Piscina di una villa la sera, con i lettini, le palme e una lampada accesa",
+    heroAlt: "Piscina lunga di una villa bianca la sera, con il bordo in pietra e una fila di cipressi",
     heroPrimary: "Fai la tua domanda",
     heroSecondary: "Vai alle risposte",
     indexLabel: "In questa pagina",
@@ -78,7 +78,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "What sellers and buyers in Tradate and the Varese province ask us most often. If your question isn't here, ask us: you'll hear back from us.",
-    heroAlt: "Villa swimming pool in the evening, with sun loungers, palm trees and a lit lamp",
+    heroAlt: "Long pool of a white villa in the evening, with a stone deck and a row of cypresses",
     heroPrimary: "Ask your question",
     heroSecondary: "Go to the answers",
     indexLabel: "On this page",
@@ -100,7 +100,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "Ce que nous demandent le plus souvent celles et ceux qui vendent ou achètent à Tradate et dans la province de Varese. Si votre question n'y est pas, posez-la : c'est nous qui répondons.",
-    heroAlt: "Piscine d’une villa le soir, avec des transats, des palmiers et une lampe allumée",
+    heroAlt: "Long bassin d'une villa blanche le soir, avec sa margelle en pierre et une rangée de cyprès",
     heroPrimary: "Posez votre question",
     heroSecondary: "Aller aux réponses",
     indexLabel: "Sur cette page",
@@ -122,7 +122,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "Was uns Verkäuferinnen und Käufer in Tradate und der Provinz Varese am häufigsten fragen. Steht Ihre Frage nicht dabei, stellen Sie sie uns: Sie hören von uns.",
-    heroAlt: "Pool einer Villa am Abend, mit Liegen, Palmen und einer brennenden Lampe",
+    heroAlt: "Langer Pool einer weißen Villa am Abend, mit Steinrand und einer Zypressenreihe",
     heroPrimary: "Stellen Sie Ihre Frage",
     heroSecondary: "Zu den Antworten",
     indexLabel: "Auf dieser Seite",
@@ -144,7 +144,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "Lo que más nos preguntan quienes venden y quienes compran casa en Tradate y en la provincia de Varese. Si tu pregunta no está, háznosla: te respondemos nosotras.",
-    heroAlt: "Piscina de una villa al atardecer, con tumbonas, palmeras y una lámpara encendida",
+    heroAlt: "Piscina larga de una villa blanca al atardecer, con borde de piedra y una hilera de cipreses",
     heroPrimary: "Haz tu pregunta",
     heroSecondary: "Ir a las respuestas",
     indexLabel: "En esta página",
@@ -227,7 +227,7 @@ export default function FaqContent() {
            dentro la foto a schermo intero (sul telefono la testa della cliente usciva da ogni
            inquadratura); in testa la piscina di sera, senza persone, l'unica foto notturna della
            fototeca (sulla sola foto il bianco regge da lg); l'inquadratura la dice tinte.json (D180). */
-        image="/images/reali/piscina-lusso.jpg"
+        image="/images/reali/villa-piscina-lunga-alta.jpg"
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: `#${groups[0].id}` }}

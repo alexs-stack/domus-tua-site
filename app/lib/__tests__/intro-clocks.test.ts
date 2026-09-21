@@ -188,7 +188,7 @@ describe("layout.tsx: il boot script interpola le costanti", () => {
     // 767.98 ammesso è il `media` del preload della sagoma (stesso confine
     // del <source> della shell), che non è un orologio.
     assert.doesNotMatch(script.replace(/lk\("[^"]+","\([^)]+\)"\)/g, ""), /max-width: 767\.98px/);
-    assert.match(script, /rel="preload"[\s\S]*raffaela-sagoma-m\.webp[\s\S]*\(max-width: 767\.98px\)/);
+    assert.match(script, /rel="preload"[\s\S]*raffaela-sagoma-villa-m\.webp[\s\S]*\(max-width: 767\.98px\)/);
   });
 
   test("la chiave di sessione è ${INTRO_KEY}, letta una volta, coi quattro stati interpolati", () => {
@@ -250,7 +250,7 @@ describe("layout.tsx: il boot script interpola le costanti", () => {
     assert.ok(corta.includes('var fineS=function(){h.removeAttribute("data-preloader")};'));
     assert.ok(corta.includes('h.setAttribute("data-preloader",home?"short":"short-page")'));
     assert.ok(!corta.includes("pointerdown") && !corta.includes("keydown"), "la corta non ha skip (D31)");
-    assert.match(corta, /if\(home\)\{lk\("\/media\/raffaela-sagoma-m\.webp"/);
+    assert.match(corta, /if\(home\)\{lk\("\/media\/raffaela-sagoma-villa-m\.webp"/);
   });
 
   test("il banner cookie aspetta l'handoff anche sotto la corta", () => {
@@ -624,7 +624,8 @@ describe("la porta si apre sulla stanza: sagoma e foto coincidono", () => {
 
   test("i due numeri della scatola esistono e sono UNO solo", () => {
     assert.match(css, /--dt-head-h:\s*clamp\([^;]+\);/);
-    assert.match(css, /--dt-band-h:\s*60svh;/);
+    // A44 (20 set. 2026): lo schermo intero meno la testata, non più 60svh.
+    assert.match(css, /--dt-band-h:\s*calc\(100svh - var\(--dt-head-h\) - 1px\);/);
   });
 
   test("la sagoma e' ancorata alla banda (top = testata, altezza = banda)", () => {
@@ -641,9 +642,15 @@ describe("la porta si apre sulla stanza: sagoma e foto coincidono", () => {
   });
 
   test("stesso ritaglio: un solo object-position per i due nodi", () => {
-    const pos = /objectPosition:\s*"10% 0%"/;
+    // A44: il piede della foto alta (100 % in verticale), dove sta Raffaela.
+    const pos = /objectPosition:\s*"10% 100%"/;
     assert.match(shell, pos, "la sagoma non usa il ritaglio della foto");
     assert.match(hero, pos, "la foto dell'hero non usa il ritaglio della sagoma");
+    assert.doesNotMatch(shell, /objectPosition:\s*"10% 0%"/);
+    assert.doesNotMatch(hero, /objectPosition:\s*"10% 0%"/);
+    // e i due canvas coincidono: gli stessi due confini (767.98 / 768) e gli stessi rapporti.
+    assert.match(shell, /raffaela-sagoma-villa-m\.webp[\s\S]*raffaela-sagoma-villa\.webp/);
+    assert.match(hero, /<source media="\(min-width: 768px\)" srcSet=\{fotoDesktop\}/);
     assert.doesNotMatch(shell, /objectPosition:\s*"50% 70%"/);
   });
 

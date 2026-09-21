@@ -11,20 +11,21 @@
 //
 // Com'è fatto (tutto nel CSS del server, globals.css «la testa di era»; nessun JS di
 // movimento, nessun tween, nessun pin, nessun corridoio):
-// - `.dt-testa_riquadro` è la foto: `position: sticky; top: 0; height: 100svh`. Resta
-//   ferma mentre il blocco dei testi e la pagina sotto le scorrono sopra, finché la
-//   section finisce: è lo «scroll continuo dentro la foto» di era fatto senza foto alte
-//   (le nostre sono tutte 3:2 e 16:9: nessun pan, la foto non si muove né si zooma);
-// - `.dt-testa_blocco` (composto da PageHero, tre livelli centrati) sale sopra la foto
-//   con `margin-top: -100svh`, alto almeno 100svh, e scorre in flusso; poi
-//   `.dt-testa_pagina` (i tre punti sull'avorio) sale a sua volta sopra la foto;
+// - `.dt-testa_riquadro` è la foto, in flusso e alta quanto la foto resa (A45), mai meno
+//   del blocco: scorre con la pagina; `.dt-testa_blocco` (composto da PageHero, tre
+//   livelli centrati) sta dentro, in flusso e in cima, alto almeno 100svh, sopra lo
+//   strato assoluto della foto; poi `.dt-testa_pagina` (i tre punti sull'avorio) segue;
 // - lo stato del CSS è lo stato a riposo: senza JS e con reduced-motion la pagina è
 //   questa, completa; sticky non è un'animazione (D190). CLS 0 per costruzione: nulla
 //   si misura, nulla si scrive dopo il paint;
 // - `data-dive-zoom` e `data-bg="foto"` stanno sul riquadro: è il rettangolo che
 //   tema.ts legge per il segno (D34) e il gancio del placeholder tinto (D125);
 // - la foto è l'LCP: `preload`, `quality 60`, `sizes` dal rapporto della sorgente
-//   (`sizesDi`, D183), inquadratura `--dt-op` scelta dal CSS per fascia (D180).
+//   (`sizesDi`, D183), inquadratura `--dt-op` scelta dal CSS per fascia (D180);
+// - A44/A45 (20-21 set. 2026): le nove foto sono ALTE (2:3, generate con Higgsfield) e il
+//   riquadro è IN FLUSSO, alto quanto la foto (`--dt-testa-ar`): «le foto su era residence sono
+//   la pagina stessa … stai scrollando la foto stessa come se fosse la pagina» (Alberto). Il
+//   blocco dei testi sta DENTRO il riquadro, in cima, e scorre con la foto. Nessun hook.
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { sizesDi } from "../../lib/motion/testa";
@@ -63,8 +64,8 @@ export default function PageHeroTesta({
             style={{ objectPosition: "var(--dt-op)" }}
           />
         </div>
+        {blocco}
       </div>
-      {blocco}
       <div className="dt-testa_pagina">{children}</div>
     </section>
   );

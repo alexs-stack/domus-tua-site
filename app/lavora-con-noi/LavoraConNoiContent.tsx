@@ -77,7 +77,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua è un’agenzia indipendente di Tradate: indipendente per scelta, esigente per cultura. Se ti riconosci nel modo in cui lavoriamo, raccontaci chi sei.",
-    heroAlt: "Living di un attico con le travi a vista e la cucina sul fondo",
+    heroAlt: "Studio luminoso in mansarda con scrivania di rovere davanti a una grande finestra sulle colline",
     heroPrimary: "Invia la tua candidatura",
     heroSecondary: "Perché proprio qui",
     heroTrust: [
@@ -194,7 +194,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua is an independent agency in Tradate: independent by choice, demanding by culture. If you recognise yourself in the way we work, tell us who you are.",
-    heroAlt: "Penthouse living room with exposed beams and the kitchen at the back",
+    heroAlt: "Bright attic study with an oak desk in front of a large window over the hills",
     heroPrimary: "Send your application",
     heroSecondary: "Why here",
     heroTrust: [
@@ -327,7 +327,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua est une agence indépendante de Tradate : indépendante par choix, exigeante par culture. Si vous vous reconnaissez dans notre façon de travailler, dites-nous qui vous êtes.",
-    heroAlt: "Séjour d’un attique aux poutres apparentes, la cuisine au fond",
+    heroAlt: "Bureau lumineux sous les combles avec un bureau en chêne devant une grande fenêtre sur les collines",
     heroPrimary: "Envoyer ma candidature",
     heroSecondary: "Pourquoi ici",
     heroTrust: [
@@ -460,7 +460,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua ist eine unabhängige Agentur in Tradate: unabhängig aus Überzeugung, anspruchsvoll aus Kultur. Wenn Sie sich in unserer Arbeitsweise wiederfinden, erzählen Sie uns, wer Sie sind.",
-    heroAlt: "Wohnzimmer eines Penthouses mit sichtbaren Balken und der Küche im Hintergrund",
+    heroAlt: "Helles Arbeitszimmer im Dachgeschoss mit Eichenschreibtisch vor einem großen Fenster mit Blick auf die Hügel",
     heroPrimary: "Bewerbung senden",
     heroSecondary: "Warum hier",
     heroTrust: [
@@ -593,7 +593,7 @@ const copy = {
     ),
     heroSubcopy:
       "Domus Tua es una agencia independiente de Tradate: independiente por elección, exigente por cultura. Si te reconoces en nuestra forma de trabajar, cuéntanos quién eres.",
-    heroAlt: "Salón de un ático con vigas a la vista y la cocina al fondo",
+    heroAlt: "Estudio luminoso en el ático con escritorio de roble frente a un gran ventanal sobre las colinas",
     heroPrimary: "Enviar la candidatura",
     heroSecondary: "Por qué aquí",
     heroTrust: [
@@ -753,7 +753,7 @@ export default function LavoraConNoiContent() {
            scritte dentro la foto a schermo intero (sul telefono la testa della cliente usciva da ogni
            inquadratura); la foto resta nel sito (Posizionamento, /acquista). In testa il living con le
            travi, senza persone; l'inquadratura la dice tinte.json (D180). */
-        image="/images/hero_02_attico_travi_living.jpg"
+        image="/images/reali/attico-studio-alta.jpg"
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#candidatura" }}
         secondary={{ label: c.heroSecondary, href: "#perche" }}

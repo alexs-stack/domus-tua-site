@@ -160,7 +160,13 @@
      Raffaela, poi un taglio (misurato con la pellicola dell'intro). Da qui i
      numeri sono uno solo, e il test intro-clocks li presidia. */
   --dt-head-h: clamp(4.5rem, 10vh, 6.5rem);
-  --dt-band-h: 60svh;
+  /* A44 (20 set. 2026): la banda dell'hero è a SCHERMO INTERO sotto la testata, come su
+     era-residence («la foto è il background stesso»); prima era 60svh e la foto 2000×1415
+     restava col mento di Raffaela sul bordo. La foto è alta (2:3 / 9:16) e ancorata in basso:
+     `--dt-hero-ar` è il rapporto del file per fascia (media.ts, foto-alte.mjs), che dà allo
+     zoom del tuffo l'altezza resa già in SSR. */
+  --dt-band-h: calc(100svh - var(--dt-head-h) - 1px);
+  --dt-hero-ar: 1440 / 2580;
 
   /* Motion — stesso vocabolario dei token GSAP in app/lib/motion/gsap.ts */
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
@@ -181,6 +187,14 @@
   --shadow-card: none;
   --shadow-card-hover: none;
   --shadow-float: none;
+}
+
+/* Il rapporto della foto dell'hero da 768 (A44/A45): il 3:2 AMPIO del desktop al posto del 9:16
+   del telefono dichiarato nel tema. Fuori da `@theme` perché Tailwind non ammette `@media` lì. */
+@media (min-width: 48rem) {
+  :root {
+    --dt-hero-ar: 2560 / 1717;
+  }
 }
 
 :root {
@@ -568,9 +582,32 @@ blockquote * {
 .dt-od_run {
   display: none;
 }
-/* Lo stesso passo di .dt-chapter (10vh, 6vh sul telefono): la banda apre il capitolo. */
+/* Lo stesso passo di .dt-chapter (10vh, 6vh sul telefono): la banda apre il capitolo. Il
+   passo in alto lascia anche l'aria al titolo che sporge sopra la foto (A45). */
 .dt-od_band {
   padding-top: clamp(4.5rem, 10vh, 8rem);
+}
+/* A45 (Alberto, 21 set. 2026): la finestra è la sezione «Architecture» di era-residence. La
+   cornice tiene foto e titolo; il titolo è l'h2 del capitolo, bianco nudo (A40: niente ombra,
+   niente velo), in Playfair alla misura di «ARCHITECTURE» (12vw), appoggiato al bordo alto
+   della foto, dentro (0,05em: come su era la parola comincia sul bordo e a schermo intero
+   resta in vista), centrato, sopra la foto nello stacking. Scala con lo stage del corridoio,
+   come tutto il resto. */
+.dt-od_cornice {
+  position: relative;
+}
+.dt-od_titolo {
+  position: absolute;
+  inset: 0.05em 0 auto 0;
+  z-index: 1;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.6rem, 12vw, 13rem);
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-wrap: balance;
+  pointer-events: none;
 }
 @media (max-width: 767px) {
   .dt-od_band {
@@ -1096,9 +1133,11 @@ html[data-preloader] .dt-preloader [data-pre-content] {
   opacity: 1;
 }
 /* IL PATTO: la sagoma occupa esattamente la banda dell'hero — sotto la
-   testata, alta `--dt-band-h`, stesso `object-position` (10% 0%, scritto
-   nel markup di PreloaderShell). Cosi', quando la porta si apre, dentro il
-   buco c'e' la stessa immagine che sta sotto: nessun doppio, nessun taglio. */
+   testata, alta `--dt-band-h` (dal 20 set. 2026 lo schermo intero meno la
+   testata), stesso `object-position` (10% 100%, scritto nel markup di
+   PreloaderShell: il piede della foto alta, dove sta Raffaela). Cosi', quando
+   la porta si apre, dentro il buco c'e' la stessa immagine che sta sotto:
+   nessun doppio, nessun taglio. */
 .dt-preloader [data-pre-figure] {
   /* +1px: la testata porta un bordo basso di un pixel, e la banda comincia
      sotto quello. Un pixel non si vede, ma il patto o e' esatto o non e'. */
@@ -1657,8 +1696,8 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
      sagoma segue la banda dell'hero a ogni larghezza — stessa scatola,
      stesso ritaglio, vedi i token `--dt-head-h`/`--dt-band-h`. Il difetto
      dell'avambraccio ingrandito che l'aveva generata, docs/foto-mobile.md,
-     non si ripresenta: la banda e' larga quanto lo schermo e bassa 60svh,
-     cioe' la stessa scatola della foto dell'hero.) */
+     non si ripresenta: la banda e' larga quanto lo schermo e alta quanto lo
+     schermo meno la testata (A44), cioe' la stessa scatola della foto dell'hero.) */
 
   /* Ora che la figura c'è davvero, il testo del sipario deve farle posto — e
      lo fa nel modo in cui glielo fa GIÀ il desktop: lì i caps stanno in
@@ -2647,21 +2686,30 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
      `--dt-op`, l'inquadratura scelta per fascia fra le due che PageHero.tsx
      scrive su :root (`--dt-op-sotto` / `--dt-op-lg`, D180), e `--script-tuck: 0`
      (D185);
-   - `.dt-testa_riquadro` è la foto: `position: sticky; top: 0`, alta 100svh,
-     `overflow: clip` (mai hidden: ne farebbe un contenitore di scroll,
-     corridor-contract.test.ts). Resta ferma finché la section finisce, mentre il
-     blocco e la pagina le scorrono sopra (A41). Il fondo è la tinta alta, cioè il
-     placeholder prima che la foto decodifichi (D125), sul solo riquadro
-     (`[data-dive-zoom]`);
-   - `.dt-testa_strato` è lo strato della foto: il riquadro, fermo (le foto sono
-     3:2 e 16:9: nessun pan, nessuno zoom);
-   - `.dt-testa_blocco` è il blocco dei testi: in flusso, sale sopra la foto con
-     `margin-top: -100svh`, alto almeno 100svh (dove l'H1 tedesco non ci sta
-     cresce e nulla si taglia, D177: la foto sotto resta sticky), griglia a tre
-     righe — il lead in alto (`padding-top` = testata + 1 px + respiro), il
-     titolo al centro, i comandi in basso — tutto centrato come «Perfect sea
-     views». Il bianco sta nel markup di PageHero.tsx (D184: qui nessun `color`,
-     nessuna ombra);
+   - `.dt-testa_riquadro` è la foto, IN FLUSSO (A45 di Alberto, 21 set. 2026:
+     «le foto su era residence sono la pagina stessa: quando scrolli, le scritte
+     salgono su come se fossero in quello spazio della foto, e stai scrollando
+     la foto stessa come se fosse la pagina»): `position: relative`, alto quanto
+     la foto ALTA resa a larghezza piena (`aspect-ratio: var(--dt-testa-ar)`, il
+     rapporto del sorgente scritto da PageHero.tsx) e mai meno del blocco dei
+     testi che sta dentro in flusso (`min-height: auto`: per un box con
+     aspect-ratio che non è un contenitore di scroll il minimo automatico è il
+     contenuto, css-sizing-4 §5.2.2 — un `min-height` esplicito lo spegnerebbe e
+     il tedesco a 375×667 uscirebbe dal ritaglio), `overflow: clip` (mai hidden:
+     ne farebbe un contenitore di scroll, corridor-contract.test.ts). Scorre con
+     la pagina, 1:1, come su era; nessuno sticky, nessun pan, nessuno zoom. Il
+     fondo è la tinta alta, cioè il placeholder prima che la foto decodifichi
+     (D125), sul solo riquadro (`[data-dive-zoom]`);
+   - `.dt-testa_strato` è lo strato della foto: assoluto, il riquadro intero
+     (cover esatto da lg, dove il riquadro ha il rapporto della foto);
+   - `.dt-testa_blocco` è il blocco dei testi: DENTRO il riquadro, in flusso e in
+     cima (`position: relative`, sopra lo strato), alto almeno 100svh (dove l'H1
+     tedesco non ci sta cresce, il riquadro con lui, e nulla si taglia, D177),
+     griglia a tre righe —
+     il lead in alto (`padding-top` = testata + 1 px + respiro), il titolo al
+     centro, i comandi in basso — tutto centrato come «Perfect sea views». Sotto
+     il primo schermo la foto continua da sola, senza lettere. Il bianco sta nel
+     markup di PageHero.tsx (D184: qui nessun `color`, nessuna ombra);
    - `.dt-testa_pagina` è la pagina che sale sopra la foto dopo il blocco, sull'avorio
      (D187: la tinta bassa è morta, A32.3 vale sotto).
    Tutto in svh, mai dvh. */
@@ -2672,11 +2720,10 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   margin-top: calc(-1 * (var(--dt-head-h) + 1px));
 }
 .dt-testa_riquadro {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 0;
   width: 100%;
-  height: var(--dt-testa-h);
+  aspect-ratio: var(--dt-testa-ar, 2 / 3);
   overflow: clip;
   background-color: var(--dt-tinta-alta, var(--color-cream-deep));
 }
@@ -2691,7 +2738,6 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   grid-template-rows: auto 1fr auto;
   justify-items: center;
   row-gap: clamp(1.25rem, 4vh, 2.5rem);
-  margin-top: calc(-1 * var(--dt-testa-h));
   min-height: var(--dt-testa-h);
   padding-top: calc(var(--dt-head-h) + 1px + clamp(1.25rem, 3.5vh, 2.5rem));
   padding-bottom: clamp(2rem, 8svh, 4.5rem);
@@ -2706,14 +2752,13 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   z-index: 1;
   background-color: var(--color-cream);
 }
-/* A41: la fascia dei tre punti è la «sezione dopo» che sale sopra la foto ferma, come su
-   era-residence: alta almeno 60svh, coi punti centrati, così la foto resta sticky per
-   quel tratto mentre il blocco dei testi e la fascia le scorrono sopra. Dove la rotta
-   non ha punti la fascia è vuota e non occupa niente. */
+/* La fascia dei tre punti è la «sezione dopo» la foto (A45: la foto è la pagina, la fascia
+   la segue in flusso), coi punti centrati in un passo di capitolo. Dove la rotta non ha
+   punti la fascia è vuota e non occupa niente. */
 .dt-testa_pagina:not(:empty) {
   display: grid;
   align-content: center;
-  min-height: 60svh;
+  min-height: clamp(12rem, 30svh, 22rem);
 }
 /* 2.4.7 sulla foto (brief T §7: «T1 decide col numero»; il numero è in
    qualita/a38/misure/cancello-T1.md §7). L'anello del sito (rosso 2 px a

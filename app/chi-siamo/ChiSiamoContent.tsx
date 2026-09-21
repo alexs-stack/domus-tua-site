@@ -29,7 +29,7 @@ const copy = {
     ),
     heroSubcopy:
       "Dietro ogni casa c'è una storia. Dietro ogni percorso Domus Tua c'è un team che ascolta, guida e accompagna, dalla prima telefonata fino alla firma.",
-    heroAlt: "Attico luminoso con travi a vista",
+    heroAlt: "Mansarda luminosa con travi bianche a vista, divano di lino e piante",
     heroPrimary: "Conosciamoci",
     heroSecondary: "Il team",
     storiaImageAlt: "Raffaela Rizza con una cliente nella sede Domus Tua di Tradate",
@@ -73,7 +73,7 @@ const copy = {
     ),
     heroSubcopy:
       "Behind every home there is a story. Behind every Domus Tua journey there is a team that listens, guides and accompanies you, from the first phone call to the signing.",
-    heroAlt: "Bright penthouse with exposed beams",
+    heroAlt: "Bright attic living room with white exposed beams, a linen sofa and plants",
     heroPrimary: "Let’s get to know each other",
     heroSecondary: "The team",
     storiaImageAlt: "Raffaela Rizza with a client at the Domus Tua office in Tradate",
@@ -117,7 +117,7 @@ const copy = {
     ),
     heroSubcopy:
       "Derrière chaque maison, il y a une histoire. Derrière chaque parcours Domus Tua, il y a une équipe qui écoute, guide et accompagne, du premier appel jusqu’à la signature.",
-    heroAlt: "Attique lumineux avec poutres apparentes",
+    heroAlt: "Combles lumineux aux poutres blanches apparentes, canapé en lin et plantes",
     heroPrimary: "Faisons connaissance",
     heroSecondary: "L’équipe",
     storiaImageAlt: "Raffaela Rizza avec une cliente à l’agence Domus Tua de Tradate",
@@ -161,7 +161,7 @@ const copy = {
     ),
     heroSubcopy:
       "Hinter jedem Zuhause steht eine Geschichte. Hinter jedem Weg mit Domus Tua steht ein Team, das zuhört, berät und begleitet, vom ersten Anruf bis zur Unterschrift.",
-    heroAlt: "Helles Penthouse mit sichtbaren Balken",
+    heroAlt: "Heller Dachwohnraum mit weißen Sichtbalken, Leinensofa und Pflanzen",
     heroPrimary: "Lernen wir uns kennen",
     heroSecondary: "Das Team",
     storiaImageAlt: "Raffaela Rizza mit einer Kundin im Domus Tua Büro in Tradate",
@@ -205,7 +205,7 @@ const copy = {
     ),
     heroSubcopy:
       "Detrás de cada casa hay una historia. Detrás de cada recorrido con Domus Tua hay un equipo que escucha, guía y acompaña, desde la primera llamada hasta la firma.",
-    heroAlt: "Ático luminoso con vigas a la vista",
+    heroAlt: "Ático luminoso con vigas blancas a la vista, sofá de lino y plantas",
     heroPrimary: "Conozcámonos",
     heroSecondary: "El equipo",
     storiaImageAlt: "Raffaela Rizza con una clienta en la oficina de Domus Tua en Tradate",
@@ -251,7 +251,7 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
-        image="/images/hero_01_attico_travi_salotto.jpg"
+        image="/images/reali/attico-travi-alta.jpg"
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#chi-siamo" }}

@@ -14,7 +14,7 @@
 // rito d'ingresso delle lettere dopo il preloader (`data-hero-char/tchar/
 // schar`) e il mount del <video> dopo il primo paint. Vedi docs/hero-video.md.
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import { Star } from "./Icons";
 import { Cta } from "./primitives/Cta";
 import { site, ratingLabel } from "../lib/site";
@@ -66,7 +66,7 @@ const copy = {
     place: "A Tradate dal 2007",
     awardChip: "3 anni consecutivi fra le migliori 400 agenzie d'Italia — Wikicasa Top Agency",
     noCost: "Nessun costo anticipato",
-    heroAlt: "Raffaela Rizza presenta il soggiorno di un attico luminoso con terrazza proposto da Domus Tua",
+    heroAlt: "Raffaela Rizza presenta il soggiorno luminoso di una villa con piscina proposta da Domus Tua",
   },
   en: {
     badge: "Estate agency in Tradate · since 2007",
@@ -79,7 +79,7 @@ const copy = {
     place: "In Tradate since 2007",
     awardChip: "Three years running among Italy's top 400 agencies — Wikicasa Top Agency",
     noCost: "No upfront costs",
-    heroAlt: "Raffaela Rizza presenting the living room of a bright penthouse with terrace offered by Domus Tua",
+    heroAlt: "Raffaela Rizza presenting the bright living room of a villa with a pool offered by Domus Tua",
   },
   fr: {
     badge: "Agence immobilière à Tradate · depuis 2007",
@@ -92,7 +92,7 @@ const copy = {
     place: "À Tradate depuis 2007",
     awardChip: "Trois années consécutives parmi les 400 meilleures agences d'Italie — Wikicasa Top Agency",
     noCost: "Aucun frais d'avance",
-    heroAlt: "Raffaela Rizza présente le séjour d'un penthouse lumineux avec terrasse proposé par Domus Tua",
+    heroAlt: "Raffaela Rizza présente le séjour lumineux d'une villa avec piscine proposée par Domus Tua",
   },
   de: {
     badge: "Immobilienagentur in Tradate · seit 2007",
@@ -105,7 +105,7 @@ const copy = {
     place: "In Tradate seit 2007",
     awardChip: "Drei Jahre in Folge unter Italiens besten 400 Agenturen — Wikicasa Top Agency",
     noCost: "Keine Kosten im Voraus",
-    heroAlt: "Raffaela Rizza präsentiert das Wohnzimmer eines hellen Penthouses mit Terrasse im Angebot von Domus Tua",
+    heroAlt: "Raffaela Rizza präsentiert das helle Wohnzimmer einer Villa mit Pool im Angebot von Domus Tua",
   },
   es: {
     badge: "Agencia inmobiliaria en Tradate · desde 2007",
@@ -118,29 +118,29 @@ const copy = {
     place: "En Tradate desde 2007",
     awardChip: "Tres años consecutivos entre las 400 mejores agencias de Italia — Wikicasa Top Agency",
     noCost: "Sin costes por adelantado",
-    heroAlt: "Raffaela Rizza presenta el salón de un ático luminoso con terraza ofrecido por Domus Tua",
+    heroAlt: "Raffaela Rizza presenta el salón luminoso de una villa con piscina ofrecida por Domus Tua",
   },
 };
 
 // ─── LE MISURE DEL TUFFO ─────────────────────────────────────────────────
 // Alberto, 13 settembre 2026: il tuffo sticky dell'hero come era-residence
-// (A18-A20, CAT §2), con la foto che sale fino a 0,80·tImg così il segno chiaro
-// a quattro punte del file resta sotto il ritaglio (A23, D24; spec coreografia
-// §3.2). Le misure usano offsetHeight e offsetTop, che i transform non
-// toccano, come Era. `[data-hero-zoom]` ha già in SSR l'altezza resa della
-// foto (classe aspect col rapporto del file e min-h-full): tImg è la sua
-// altezza.
+// (A18-A20, CAT §2). Le misure usano offsetHeight e offsetTop, che i transform
+// non toccano, come Era. `[data-hero-zoom]` ha già in SSR l'altezza resa della
+// foto (classe aspect col rapporto del file e min-h-full).
+// A44 (20 set. 2026): la foto è ALTA (2:3) e il riquadro è ANCORATO IN BASSO,
+// così a riposo la banda a schermo intero mostra Raffaela intera in basso a
+// sinistra (A27); la parte alta della foto resta nascosta sopra e serve solo
+// agli schermi più alti che larghi (cover). Quindi la SALITA della foto del
+// tuffo (A23: fino a 0,80·tImg, un pan verso il basso della foto) non esiste
+// più — scoprirebbe il fondo sotto il riquadro — e resta il solo zoom a 2 con
+// origine 50 % 75 %; t′ vale la banda, e la salita del testo si misura sul
+// blocco (A20: L = max(1,25·t′ − bandH, 1,05·B) = max(0,25·bandH, 1,05·B)).
 function heroBox(root: HTMLElement) {
   const bandH = root.querySelector<HTMLElement>("[data-hero-media]")?.offsetHeight ?? 0;
-  const tImg = Math.max(bandH, root.querySelector<HTMLElement>("[data-hero-zoom]")?.offsetHeight ?? 0);
-  return { bandH, tPrime: 0.8 * tImg };
+  return { bandH, tPrime: bandH };
 }
 
-/**
- * Salita della foto, A23 di Alberto (13 settembre 2026): fino a 0,80·tImg. Quando
- * 0,80·tImg < bandH (schermi più alti che larghi, per esempio 1024×1366) la salita resta 0:
- * altrimenti la foto scenderebbe e scoprirebbe il fondo avorio della banda (D24).
- */
+/** Salita della foto: 0 (A44, riquadro ancorato in basso; vedi sopra). Resta come punto d'innesto del tween. */
 function photoRise(root: HTMLElement): number {
   const { bandH, tPrime } = heroBox(root);
   return Math.max(0, tPrime - bandH);
@@ -148,7 +148,7 @@ function photoRise(root: HTMLElement): number {
 
 /**
  * Salita del testo, A20 di Alberto (fedeltà letterale al tuffo di Era, spec §3.2):
- * L = max(1,25·t′ − bandH, 1,05·B), B = fondo del contenuto del blocco + 24 px.
+ * L = max(1,25·t′ − bandH, 1,05·B), B = fondo del contenuto del blocco + 24 px; con t′ = bandH (A44).
  */
 function textLift(root: HTMLElement): number {
   const { bandH, tPrime } = heroBox(root);
@@ -315,9 +315,9 @@ export default function HeroCinematic() {
       const root = sectionRef.current;
       const band = q("[data-hero-media]")[0];
       if (!root || !band) return;
-      // Spec §3.2 (A20): lift di 12svh da 768 e di 8svh sotto. La banda è 60svh (--dt-band-h,
-      // patto della porta), quindi un svh è la sua altezza divisa per 60.
-      const svh = () => band.offsetHeight / 60;
+      // Spec §3.2 (A20): lift di 12svh da 768 e di 8svh sotto. La banda è a schermo intero
+      // meno la testata (--dt-band-h, A44): un svh è il viewport diviso per 100.
+      const svh = () => window.innerHeight / 100;
       const headH = () => document.querySelector<HTMLElement>("header")?.offsetHeight ?? 0;
       const mm = gsap.matchMedia();
       mm.add(MQ.desktop, () => {
@@ -391,6 +391,17 @@ export default function HeroCinematic() {
   // intanto /recensioni scriveva "4.9/5" in italiano. Una regola sola, un posto solo.
   const ratingDisplay = ratingLabel(locale);
 
+  // I due file dell'hero (A44): stesso alt, stessi sizes, stessa qualità; il <picture> sotto
+  // sceglie il 2:3 da 768 e il 9:16 sotto. `fotoImg` porta src/width/height/loading/fetchPriority
+  // del ramo telefono; il srcSet lo rimettiamo esplicito per chiarezza.
+  const comuni = { alt: c.heroAlt, sizes: "100vw", quality: 78, preload: true } as const;
+  const {
+    props: { srcSet: fotoDesktop },
+  } = getImageProps({ ...comuni, src: heroCinematic.base, width: heroCinematic.baseSize.w, height: heroCinematic.baseSize.h });
+  const {
+    props: { srcSet: fotoTelefono, ...fotoImg },
+  } = getImageProps({ ...comuni, src: heroCinematic.baseM, width: heroCinematic.baseMSize.w, height: heroCinematic.baseMSize.h });
+
   return (
     <section
       ref={sectionRef}
@@ -413,18 +424,21 @@ export default function HeroCinematic() {
           sui discendenti. */}
       <div data-corridor-screen>
         {/* LA BANDA CON LA FOTO DIETRO LA SCRITTA. `data-hero-media` resta per
-            sonde ed e2e; il poster è la foto reale, candidato LCP della home;
-            il <video> arriva dopo il primo paint, se e quando il cliente lo
-            riaccende (media.ts). NESSUN VELO sopra la foto: la cliente ha
-            bocciato vignettature e nero. L'inquadratura parte dall'alto
-            (`objectPosition` 0 % in verticale), la stessa della sagoma del
-            preloader che deve coincidere con questa foto (intro-clocks.test.ts):
-            il lockup sta al CENTRO della banda e sotto resta in campo
-            Raffaela; il 10 % orizzontale conta solo sul telefono, dove
-            la foto è più larga della scatola e il taglio la terrebbe altrimenti
-            fuori campo (l'avambraccio ingrandito che il cliente aveva
-            segnalato, docs/foto-mobile.md). Il rettangolo avorio profondo
-            precede la foto, come per ogni media del sito. */}
+            sonde ed e2e; la foto è la LCP della home; il <video> arriva dopo il
+            primo paint, se e quando il cliente lo riaccende (media.ts). NESSUN
+            VELO sopra la foto: la cliente ha bocciato vignettature e nero.
+            A44 (20 set. 2026): la banda è a SCHERMO INTERO sotto la testata
+            (`--dt-band-h`) e la foto è ALTA, 2:3 sul desktop e 9:16 sul telefono
+            (art direction a 768 con `getImageProps` e <picture>: due file di
+            media.ts, generati con Higgsfield e col ritaglio vero di Raffaela
+            posato in basso a sinistra, scripts/media/foto-alte.mjs).
+            L'inquadratura parte dal BASSO (`objectPosition` 100 % in verticale),
+            la stessa della sagoma del preloader che deve coincidere con questa
+            foto (intro-clocks.test.ts): il lockup sta al CENTRO della banda e
+            in basso a sinistra resta in campo Raffaela intera (A27); il 10 %
+            orizzontale conta solo dove la foto è più larga della scatola. Il
+            rettangolo avorio profondo precede la foto, come per ogni media del
+            sito. */}
         <div
           data-hero-media
           className="relative flex h-[var(--dt-band-h)] w-full flex-col bg-cream-deep"
@@ -434,32 +448,34 @@ export default function HeroCinematic() {
               scavalca il bordo del video. */}
           <div className="absolute inset-0 overflow-hidden">
             {/* Lo zoom del tuffo (A23): alto già in SSR quanto la foto resa
-                (rapporto del file 2000×1415, mai meno della banda), così a
-                riposo il ritaglio mostra gli stessi pixel di sempre e il patto
-                della porta regge. Origine della scala 50 % 75 % (CAT §2). */}
+                (rapporto del file, `--dt-hero-ar` in globals.css: 1440/2580 sul
+                telefono, 2560/3816 da 768; mai meno della banda) e ANCORATO IN
+                BASSO (A44), così a riposo il ritaglio mostra il piede della foto,
+                con Raffaela, e il patto della porta regge. Origine della scala
+                50 % 75 % (CAT §2). */}
             <div
               data-hero-zoom
-              className="absolute inset-x-0 top-0 aspect-[2000/1415] min-h-full origin-[50%_75%]"
+              className="absolute inset-x-0 bottom-0 aspect-[var(--dt-hero-ar)] min-h-full origin-[50%_75%]"
             >
-              <Image
-                src={heroCinematic.base}
-                alt={c.heroAlt}
-                fill
-                // `preload`, non `priority` (deprecata in Next 16, come in PageHero):
-                // è l'unica immagine prioritaria del sito, la LCP della home.
-                preload
-                // Qualità 78 (non 60): la sorgente è una foto WhatsApp già molto
-                // compressa e ricampionata — una seconda compressione aggressiva
-                // la sgranerebbe visibilmente a tutta larghezza.
-                quality={78}
-                sizes="100vw"
-                className="object-cover"
-                style={{ objectPosition: "10% 0%" }}
-              />
+              {/* Art direction (Next 16, `getImageProps`): il 2:3 da 768, il 9:16
+                  sotto; `preload` (non `priority`, deprecata) perché è l'unica
+                  immagine prioritaria del sito, la LCP della home; qualità 78 come
+                  prima. Un <img> con le classi del `fill` di next/image: la scatola
+                  è il div dello zoom. */}
+              <picture>
+                <source media="(min-width: 768px)" srcSet={fotoDesktop} sizes="100vw" />
+                <img
+                  {...fotoImg}
+                  alt={c.heroAlt}
+                  srcSet={fotoTelefono}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={{ objectPosition: "10% 100%" }}
+                />
+              </picture>
               {playVideo && (
                 <video
                   className="absolute inset-0 h-full w-full object-cover"
-                  style={{ objectPosition: "10% 0%" }}
+                  style={{ objectPosition: "10% 100%" }}
                   poster={heroCinematic.poster}
                   autoPlay
                   muted

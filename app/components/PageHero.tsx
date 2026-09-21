@@ -100,7 +100,7 @@ export default function PageHero({
 }) {
   const tinta = tinte[rotta];
   const stile = (
-    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream-deep)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto}}`}</style>
+    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream-deep)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]}}`}</style>
   );
 
   /* Il blocco dei testi, centrato come «Perfect sea views» di era-residence (A41 di

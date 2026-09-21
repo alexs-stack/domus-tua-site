@@ -163,8 +163,8 @@ describe("Congedo.tsx", () => {
   });
   // Spec §3.18: col clip-path in corsa la 1080p supera il tetto di paint, quindi
   // la 720p sta su tutt'e due le chiavi (misure/17-paint.mjs).
-  test("video d'ambiente sul ritaglio, 720p forzata", () => {
-    assert.match(congedo, /useAmbientVideo\(videoRef, clipRef, \{ sources: \{ hd: ambient\.congedo\.sd, sd: ambient\.congedo\.sd \} \}\)/);
+  test("video d'ambiente sul ritaglio, 720p forzata, con la voce (A44)", () => {
+    assert.match(congedo, /useAmbientVideo\(videoRef, clipRef, \{ sources: \{ hd: ambient\.congedo\.sd, sd: ambient\.congedo\.sd \}, audio: true \}\)/);
   });
   test("sizes del poster: la resa al taglio più stretto di ogni larghezza", () => {
     assert.ok(congedo.includes('"(max-width: 767px) 270vw, (max-width: 1023px) 166vw, 134vw"'));

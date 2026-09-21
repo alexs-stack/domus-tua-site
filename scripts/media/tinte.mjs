@@ -47,18 +47,23 @@ export const SCATOLA = { w: 390, h: 844 };
    numero sulla sola foto come spareggio; le sette che tengono la foto di oggi hanno la `lg` di
    D180, le due foto nuove (D173, D181) l'hanno dalla griglia di 25. `tinte.test.ts` riverifica
    sul sorgente che PageHero legga da qui, così la misura non può divergere dal markup. */
+/* A44 (20 set. 2026): le nove teste hanno le foto ALTE generate con Higgsfield (2:3, 2560×3816,
+   scripts/media/foto-alte.mjs). Da lg a riposo si vede la CIMA (`lg: "50% 0%"`: cielo o soffitto
+   sotto le scritte bianche) e usePanTesta la percorre scorrendo; sul telefono un 2:3 sta quasi
+   intero in 390×844, centrato (`sotto: "50% 50%"`), e la banda alta si misura lì. I due legali
+   restano fermi sulle foto di prima. */
 const ROTTE = [
-  { rotta: "/vendi", trattamento: "testa", file: "public/images/reali/villa-piscina-facciata.jpg", lg: "0% 50%", sotto: "75% 50%" },
-  { rotta: "/acquista", trattamento: "testa", file: "public/images/reali/villa-lettini.jpg", lg: "75% 50%", sotto: "75% 50%" },
-  { rotta: "/servizi", trattamento: "testa", file: "public/images/reali/villa-angolo-piscina.jpg", lg: "0% 50%", sotto: "75% 50%" },
-  { rotta: "/metodo", trattamento: "testa", file: "public/images/reali/villa-vetrata-lanterne.jpg", lg: "30% 50%", sotto: "50% 50%" },
-  { rotta: "/open-domus", trattamento: "testa", file: "public/images/reali/villa-portico-tenda.jpg", lg: "0% 0%", sotto: "0% 0%" },
-  { rotta: "/chi-siamo", trattamento: "testa", file: "public/images/hero_01_attico_travi_salotto.jpg", lg: "0% 50%", sotto: "0% 50%" },
-  { rotta: "/recensioni", trattamento: "testa", file: "public/images/reali/villa-salotto-ombrellone.jpg", lg: "75% 50%", sotto: "50% 50%" },
+  { rotta: "/vendi", trattamento: "testa", file: "public/images/reali/villa-facciata-piscina-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
+  { rotta: "/acquista", trattamento: "testa", file: "public/images/reali/villa-lettini-prato-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
+  { rotta: "/servizi", trattamento: "testa", file: "public/images/reali/villa-angolo-piscina-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
+  { rotta: "/metodo", trattamento: "testa", file: "public/images/reali/villa-vetrata-sera-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
+  { rotta: "/open-domus", trattamento: "testa", file: "public/images/reali/villa-portico-tenda-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
+  { rotta: "/chi-siamo", trattamento: "testa", file: "public/images/reali/attico-travi-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
+  { rotta: "/recensioni", trattamento: "testa", file: "public/images/reali/villa-salotto-esterno-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
   /* D181: hero_02 (1920×1067, senza persone) al posto di attico-tradate (1200×800, render). */
-  { rotta: "/lavora-con-noi", trattamento: "testa", file: "public/images/hero_02_attico_travi_living.jpg", lg: "50% 25%", sotto: "0% 25%" },
+  { rotta: "/lavora-con-noi", trattamento: "testa", file: "public/images/reali/attico-studio-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
   /* D173: la piscina di notte (1920×1280, senza persone) al posto di consulenza.jpg (A27 sul telefono). */
-  { rotta: "/domande-frequenti", trattamento: "testa", file: "public/images/reali/piscina-lusso.jpg", lg: "100% 50%", sotto: "50% 50%" },
+  { rotta: "/domande-frequenti", trattamento: "testa", file: "public/images/reali/villa-piscina-lunga-alta.jpg", lg: "50% 0%", sotto: "50% 50%" },
   { rotta: "/privacy", trattamento: "fermo", file: "public/images/hero_01_attico_travi_salotto.jpg", lg: "50% 50%", sotto: "0% 50%" },
   { rotta: "/cookie", trattamento: "fermo", file: "public/images/reali/villa-uliveto.jpg", lg: "60% 50%", sotto: "75% 50%" },
 ];

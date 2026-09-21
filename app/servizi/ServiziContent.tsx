@@ -20,7 +20,7 @@ const copy = {
     ),
     heroSubcopy:
       "Dietro ogni vendita c'è un insieme di servizi che fanno la differenza: tecnici e legali, creativi e di marketing. Tutti parte di un unico metodo.",
-    heroAlt: "Angolo della piscina con la facciata della villa a sinistra e una siepe alta con alberi a destra",
+    heroAlt: "Angolo di una piscina a sfioro contro una parete bianca coperta di gelsomino, cipressi e colline dietro",
     heroPrimary: "Richiedi la valutazione",
     heroSecondary: "Esplora i servizi",
     editorialEyebrow: "I servizi creativi",
@@ -56,7 +56,7 @@ const copy = {
     ),
     heroSubcopy:
       "Behind every sale there is a set of services that make the difference: technical and legal, creative and marketing. All part of one single method.",
-    heroAlt: "Corner of the pool with the villa's façade on the left and a tall hedge with trees on the right",
+    heroAlt: "Corner of an infinity pool against a white wall covered in jasmine, cypresses and hills behind",
     heroPrimary: "Request a valuation",
     heroSecondary: "Explore the services",
     editorialEyebrow: "The creative services",
@@ -92,7 +92,7 @@ const copy = {
     ),
     heroSubcopy:
       "Derrière chaque vente se cache un ensemble de services qui font la différence : techniques et juridiques, créatifs et marketing. Tous réunis dans une seule et même méthode.",
-    heroAlt: "Angle de la piscine avec la façade de la villa à gauche et une haute haie avec des arbres à droite",
+    heroAlt: "Angle d'une piscine à débordement contre un mur blanc couvert de jasmin, cyprès et collines derrière",
     heroPrimary: "Demander l’estimation",
     heroSecondary: "Explorer les services",
     editorialEyebrow: "Les services créatifs",
@@ -128,7 +128,7 @@ const copy = {
     ),
     heroSubcopy:
       "Hinter jedem Verkauf steht ein Bündel an Leistungen, die den Unterschied machen: technisch und rechtlich, kreativ und im Marketing. Alle Teil einer einzigen Methode.",
-    heroAlt: "Ecke des Pools mit der Fassade der Villa links und einer hohen Hecke mit Bäumen rechts",
+    heroAlt: "Ecke eines Infinity-Pools an einer weißen, mit Jasmin bewachsenen Wand, Zypressen und Hügel dahinter",
     heroPrimary: "Fordern Sie die Bewertung Ihrer Immobilie an",
     heroSecondary: "Leistungen entdecken",
     editorialEyebrow: "Die kreativen Leistungen",
@@ -164,7 +164,7 @@ const copy = {
     ),
     heroSubcopy:
       "Detrás de cada venta hay un conjunto de servicios que marcan la diferencia: técnicos y legales, creativos y de marketing. Todos parte de un único método.",
-    heroAlt: "Esquina de la piscina con la fachada de la villa a la izquierda y un seto alto con árboles a la derecha",
+    heroAlt: "Esquina de una piscina infinita junto a una pared blanca cubierta de jazmín, cipreses y colinas detrás",
     heroPrimary: "Solicita la valoración",
     heroSecondary: "Explora los servicios",
     editorialEyebrow: "Los servicios creativos",
@@ -226,7 +226,7 @@ export default function ServiziContent() {
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
-        image="/images/reali/villa-angolo-piscina.jpg"
+        image="/images/reali/villa-angolo-piscina-alta.jpg"
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#servizi" }}

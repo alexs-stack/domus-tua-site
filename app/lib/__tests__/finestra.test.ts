@@ -115,7 +115,11 @@ describe("dove vive la finestra", () => {
   test("OpenDomus monta il corridoio `finestra` con la foto della villa e senza pin", () => {
     const t = soloCodice(leggi("app/components/OpenDomus.tsx"));
     assert.match(t, /useCorridor\(sectionRef, \{\s*id: "finestra"/);
-    assert.match(t, /src="\/images\/reali\/villa-fronte-acqua\.jpg"/);
+    // A45: la facciata a terrazze col glicine (Higgsfield, 3:2) al posto della villa reale; il titolo
+    // del capitolo sta nella cornice, prima della foto, e il corpo in home non lo ripete.
+    assert.match(t, /src="\/images\/reali\/villa-terrazze-glicine\.jpg"/);
+    assert.match(t, /<div className="dt-od_cornice">\s*<h2 className="dt-od_titolo font-display">\{titolo\}<\/h2>\s*<div className="dt-od_window/);
+    assert.match(t, /\{!finestra && \(\s*<SplitTitle as="h2"/);
     assert.match(t, /sizes=\{SIZES_FINESTRA\}/);
     assert.match(t, /data-corridor="finestra"/);
     assert.match(t, /data-corridor-screen/);

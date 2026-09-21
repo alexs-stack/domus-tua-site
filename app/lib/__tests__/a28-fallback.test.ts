@@ -28,7 +28,7 @@
 //   oltre a D82 (`header[data-solid]` sotto lg).
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, sep } from "node:path";
 
 const ROOT = process.cwd();
@@ -82,16 +82,18 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     assert.ok(dellaTesta.length >= 6, `attese almeno sei regole .dt-testa*: ${dellaTesta.length}`);
   });
 
-  test("fuori flusso stanno solo lo strato della foto (assoluto nel riquadro) e il riquadro (sticky, A41); nessun gate, nessun fixed", () => {
+  // A45 (21 set. 2026): la foto è la pagina — il riquadro è in flusso (relative), il blocco dei testi
+  // in flusso dentro di lui, e fuori flusso sta solo lo strato della foto (assoluto nel riquadro).
+  test("fuori flusso sta solo lo strato della foto (assoluto nel riquadro, A45); nessuno sticky, nessun gate, nessun fixed", () => {
     const fuori: string[] = [];
     for (const r of dellaTesta) {
       if (!/position\s*:\s*(absolute|fixed|sticky)/.test(r.corpo)) continue;
       const selettori = r.selettore.split(",").map((s) => s.trim());
       if (selettori.every((s) => s === STRATO_FOTO) && /position\s*:\s*absolute/.test(r.corpo)) continue;
-      if (selettori.every((s) => s === RIQUADRO) && /position\s*:\s*sticky/.test(r.corpo)) continue;
       fuori.push(r.selettore);
     }
     assert.deepEqual(fuori, []);
+    for (const r of dellaTesta) assert.doesNotMatch(r.corpo, /position\s*:\s*sticky/, `${r.selettore}: sticky nella testa (A45: la foto scorre con la pagina)`);
     assert.ok(!dellaTesta.some((r) => r.selettore.startsWith(":root[data-hero-intro]")), "la testa non ha più regole sotto il gate: lo stato è uno solo (A41)");
     for (const r of dellaTesta) assert.doesNotMatch(r.corpo, /position\s*:\s*fixed/, `${r.selettore}: fixed nella testa`);
   });
@@ -113,53 +115,58 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     assert.ok(!dellaTesta.some((r) => /eyebrow::before/.test(r.selettore)), "il trattino resta decorativo (esente da 1.4.11)");
   });
 
-  test("la scatola (D176, A41): section sotto la testata su ogni fascia; riquadro sticky 100svh con clip; strato = riquadro; blocco in flusso sopra la foto, centrato, a tre righe", () => {
+  test("la scatola (D176, A45): section sotto la testata su ogni fascia; riquadro in flusso alto quanto la foto e mai meno del blocco, con clip; strato = riquadro; blocco in flusso in cima, centrato, a tre righe", () => {
     const base = per(".dt-testa").filter((r) => r.media.length === 0);
     assert.ok(base.length >= 1, ".dt-testa senza regola base");
     assert.ok(base.some((r) => /margin-top\s*:\s*calc\(-1 \* \(var\(--dt-head-h\) \+ 1px\)\)/.test(r.corpo)), "la section non sale sotto la testata fuori da ogni media query (D176)");
     assert.ok(base.some((r) => /--dt-testa-h\s*:\s*100svh/.test(r.corpo)), "la scatola non è 100svh");
     assert.ok(base.some((r) => /--script-tuck\s*:\s*0\b/.test(r.corpo)), "--script-tuck: 0 non sta sotto .dt-testa (D185)");
     assert.doesNotMatch(css, /--dt-testa-m\b|--dt-testa-mf/, "il margine della parallasse è morto (A41)");
-    // Il riquadro: sticky in alto, alto 100svh, clip (mai hidden), il placeholder tinta alta; una regola sola, su ogni fascia.
+    // Il riquadro: in flusso, alto quanto la foto resa (aspect-ratio dal sorgente, --dt-testa-ar scritto da
+    // PageHero) e mai meno del blocco in flusso dentro di lui: NESSUN min-height esplicito (spegnerebbe il
+    // minimo automatico del box con aspect-ratio, css-sizing-4 §5.2.2, e il tedesco a 375×667 verrebbe
+    // ritagliato); clip (mai hidden: un contenitore di scroll perde quel minimo); il placeholder tinta alta;
+    // una regola sola, su ogni fascia.
     const riquadro = per(RIQUADRO);
-    assert.equal(riquadro.length, 1, "una sola regola del riquadro, senza media query (A41)");
+    assert.equal(riquadro.length, 1, "una sola regola del riquadro, senza media query (A45)");
     assert.deepEqual(riquadro[0].media, []);
-    assert.match(riquadro[0].corpo, /position\s*:\s*sticky/);
-    assert.match(riquadro[0].corpo, /(^|[^-])top\s*:\s*0/);
-    assert.match(riquadro[0].corpo, /(^|[^-])height\s*:\s*var\(--dt-testa-h\)/, "il riquadro non è alto 100svh");
+    assert.match(riquadro[0].corpo, /position\s*:\s*relative/);
+    assert.match(riquadro[0].corpo, /aspect-ratio\s*:\s*var\(--dt-testa-ar, 2 \/ 3\)/, "il riquadro non è alto quanto la foto (A45)");
+    assert.doesNotMatch(riquadro[0].corpo, /min-height|(^|[^-])height\s*:/, "un'altezza esplicita sul riquadro spegne il minimo automatico: il blocco lungo verrebbe ritagliato (D177)");
     assert.match(riquadro[0].corpo, /overflow\s*:\s*clip/, "il riquadro ritaglia con clip, mai hidden");
-    assert.doesNotMatch(riquadro[0].corpo, /overflow\s*:\s*(hidden|auto|scroll)|clip-path|transform|min-height/);
+    assert.doesNotMatch(riquadro[0].corpo, /overflow\s*:\s*(hidden|auto|scroll)|clip-path|transform|position\s*:\s*sticky|(^|[^-])top\s*:/);
+    assert.match(leggi("app/components/PageHero.tsx"), /--dt-testa-ar:\$\{tinta\.sorgente\[0\]\} \/ \$\{tinta\.sorgente\[1\]\}/, "PageHero non scrive il rapporto della foto");
     assert.match(riquadro[0].corpo, /background-color\s*:\s*var\(--dt-tinta-alta, var\(--color-cream-deep\)\)/, "il placeholder del riquadro non è la tinta alta (D125)");
     // Lo strato è il riquadro: inset 0, nessun margine, nessuna trasformazione.
     const strato = per(STRATO_FOTO);
     assert.equal(strato.length, 1);
     assert.match(strato[0].corpo, /inset\s*:\s*0/);
     assert.doesNotMatch(strato[0].corpo, /transform|clip-path|height\s*:\s*calc/);
-    // Il blocco: in flusso, sopra la foto (z 1) con margin-top −100svh, alto almeno 100svh, griglia a tre righe centrata (A41).
+    // Il blocco: in flusso DENTRO il riquadro, in cima, sopra lo strato (z 1), alto almeno 100svh, griglia a tre righe centrata (A45).
     const blocco = per(BLOCCO);
-    assert.equal(blocco.length, 1, "una sola regola del blocco, senza media query (A41)");
+    assert.equal(blocco.length, 1, "una sola regola del blocco, senza media query (A45)");
     assert.match(blocco[0].corpo, /position\s*:\s*relative/);
+    assert.doesNotMatch(blocco[0].corpo, /position\s*:\s*absolute|inset\s*:|(^|[^-])top\s*:/, "il blocco assoluto non fa crescere il riquadro (D177)");
     assert.match(blocco[0].corpo, /z-index\s*:\s*1/);
-    assert.match(blocco[0].corpo, /margin-top\s*:\s*calc\(-1 \* var\(--dt-testa-h\)\)/, "il blocco non sale sopra la foto");
+    assert.doesNotMatch(blocco[0].corpo, /margin-top\s*:\s*calc\(-1/, "il margine negativo di A41 è morto (A45: il blocco sta dentro la foto)");
     assert.match(blocco[0].corpo, /min-height\s*:\s*var\(--dt-testa-h\)/, "il blocco non è alto almeno 100svh");
     assert.match(blocco[0].corpo, /display\s*:\s*grid/);
     assert.match(blocco[0].corpo, /grid-template-rows\s*:\s*auto 1fr auto/, "le tre righe: lead, titolo, comandi");
     assert.match(blocco[0].corpo, /justify-items\s*:\s*center/);
     assert.match(blocco[0].corpo, /text-align\s*:\s*center/, "il blocco non è centrato (A41: Perfect sea views)");
     assert.match(blocco[0].corpo, /padding-top\s*:\s*calc\(var\(--dt-head-h\) \+ 1px \+ clamp\(/, "il lead non parte sotto la testata");
-    assert.doesNotMatch(blocco[0].corpo, /position\s*:\s*absolute|(^|[^-])top\s*:/);
     assert.match(per(".dt-testa_centro")[0]?.corpo ?? "", /align-self\s*:\s*center/, "il titolo non sta al centro della riga 1fr");
     // La pagina sotto la foto sta in flusso, sull'avorio (D187: la tinta bassa è morta).
     const pagina = per(".dt-testa_pagina");
     assert.equal(pagina.length, 1);
     assert.match(pagina[0].corpo, /position\s*:\s*relative/);
-    assert.match(pagina[0].corpo, /z-index\s*:\s*1/, "la pagina non sale sopra la foto sticky (A41)");
+    assert.match(pagina[0].corpo, /z-index\s*:\s*1/);
     assert.doesNotMatch(pagina[0].corpo, /position\s*:\s*(absolute|fixed|sticky)|transform|margin-top\s*:\s*calc\(-1/);
     assert.match(pagina[0].corpo, /background-color\s*:\s*var\(--color-cream\)/);
-    // A41: la fascia coi punti è alta almeno 60svh (la «sezione dopo» che copre la foto); vuota, non occupa niente.
+    // A45: la fascia coi punti segue la foto in flusso, con un passo di capitolo; vuota, non occupa niente.
     const fascia = per(".dt-testa_pagina:not(:empty)");
     assert.equal(fascia.length, 1);
-    assert.match(fascia[0].corpo, /min-height\s*:\s*60svh/);
+    assert.match(fascia[0].corpo, /min-height\s*:\s*clamp\(12rem, 30svh, 22rem\)/);
     assert.doesNotMatch(css, /--dt-tinta-bassa/, "la tinta bassa è morta (D187)");
     // L'inquadratura per fascia (D180): --dt-op dalla media query.
     assert.ok(base.some((r) => /--dt-op\s*:\s*var\(--dt-op-sotto/.test(r.corpo)), "sotto lg --dt-op non legge --dt-op-sotto");
@@ -264,13 +271,22 @@ describe("PageHero e PageHeroTesta senza JS e senza gesto", () => {
     assert.doesNotMatch(hero, /script-tuck/);
   });
 
-  test("PageHeroTesta è statico (A41): nessun hook, nessun GSAP, nessun tween; la foto sticky sta nel CSS", () => {
+  // A45 (21 set. 2026): la testa è tornata statica — la foto alta è la pagina (in flusso), nessun
+  // hook, nessun GSAP, nessun pan (usePanTesta è morto): senza JS e con reduced-motion la pagina è questa.
+  test("PageHeroTesta è statico (A45): nessun hook, nessun GSAP, nessun tween; la foto scorre con la pagina", () => {
     assert.doesNotMatch(testa, /["']use client["']/, "PageHeroTesta non ha bisogno del client");
-    assert.doesNotMatch(testa, /\buse[A-Z]\w*\(|gsap|useGSAP|ScrollTrigger|matchMedia|fromTo|yPercent|willChange/, "un residuo del tween (A41)");
-    assert.doesNotMatch(testa, /\bpin\s*:|pinSpacing|anticipatePin|position:\s*["']sticky/, "nessun pin, nessuno sticky scritto da JS (sta nel CSS)");
+    assert.doesNotMatch(testa, /\buse[A-Z]\w*(?=\s*(?:<[^>]*>)?\()|gsap|useGSAP|ScrollTrigger|matchMedia|fromTo|yPercent|willChange|usePanTesta/, "un residuo di movimento (A45)");
+    assert.doesNotMatch(testa, /\bpin\s*:|pinSpacing|anticipatePin|position:\s*["']sticky/, "nessun pin, nessuno sticky scritto da JS");
     assert.doesNotMatch(testa, /\bParallax\b|ScrollTrigger\.refresh\(\)/);
     assert.doesNotMatch(testa, /\.style\.|gsap\.set\(/, "nessuno stile scritto da JS");
     assert.doesNotMatch(testa, /data-corridor|data-on|data-stick/, "la testa non è un corridoio");
+    assert.ok(!existsSync(join(ROOT, "app/components/motion/usePanTesta.ts")), "usePanTesta.ts esiste ancora");
+    // Il blocco dei testi sta DENTRO il riquadro, dopo lo strato della foto.
+    const riq = testa.indexOf('className="dt-testa_riquadro"');
+    const strato = testa.indexOf('className="dt-testa_strato"', riq);
+    const blocco = testa.indexOf("{blocco}", strato);
+    const chiusa = testa.indexOf('className="dt-testa_pagina"', blocco);
+    assert.ok(riq > -1 && strato > riq && blocco > strato && chiusa > blocco, "il blocco non sta dentro il riquadro, prima della pagina");
     assert.match(testa, /className="dt-testa_riquadro"/);
     assert.match(testa, /sizes=\{sizesDi\(/, "sizes non viene dal rapporto della sorgente (D183)");
     assert.match(testa, /quality=\{60\}/);

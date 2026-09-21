@@ -58,7 +58,9 @@ describe("il gate e i consumatori", () => {
     const congedo = codice("app/components/Congedo.tsx");
     // Spec 2026-09-13 §3.18 (A19 e A20 di Alberto): l'host del video è il ritaglio [data-postcard-clip].
     assert.doesNotMatch(congedo, /\bpin\s*:/);
-    assert.match(congedo, /useAmbientVideo\(videoRef, clipRef, \{ sources: \{ hd: ambient\.congedo\.sd, sd: ambient\.congedo\.sd \} \}\)/);
+    // A44: `audio: true`, la voce di Raffaela parte da sola (o al primo gesto); l'acqua resta muta.
+    assert.match(congedo, /useAmbientVideo\(videoRef, clipRef, \{ sources: \{ hd: ambient\.congedo\.sd, sd: ambient\.congedo\.sd \}, audio: true \}\)/);
+    assert.doesNotMatch(codice("app/components/CostiChiari.tsx"), /audio: true/);
     assert.doesNotMatch(congedo, /IntersectionObserver/);
     assert.doesNotMatch(congedo, /<source\b/);
   });
@@ -98,13 +100,36 @@ describe("il gate e i consumatori", () => {
 
   // A35: anche la lastra del Congedo (useLastra.ts) non scrive il tempo né ferma il loop: il video
   // parte in vista come sempre e il foglio piega quel che c'è (Alberto, 20 set.).
-  test("nessuno scrive il tempo del video e nessuno parte da solo", () => {
-    for (const f of ["app/components/Congedo.tsx", "app/components/CostiChiari.tsx", "app/components/motion/useAmbientVideo.ts", "app/components/motion/useLastra.ts"]) {
+  // A44 (20 set., sera): l'UNICA scrittura del tempo nel sito sta nel hook, dentro `accendi`, il
+  // gestore del primo gesto che accende il suono: la clip ricomincia dalle parole di Raffaela
+  // (02:00 del master). Nei componenti nessuna; nessun `autoPlay` da nessuna parte.
+  test("nessuno scrive il tempo del video e nessuno parte da solo, salvo l'accensione del suono al primo gesto", () => {
+    for (const f of ["app/components/Congedo.tsx", "app/components/CostiChiari.tsx", "app/components/motion/useLastra.ts"]) {
       const s = codice(f);
       assert.doesNotMatch(s, /autoPlay/, f);
       assert.doesNotMatch(s, /currentTime\s*=(?!=)/, f);
     }
+    const hook = codice("app/components/motion/useAmbientVideo.ts");
+    assert.doesNotMatch(hook, /autoPlay/);
+    assert.equal((hook.match(/currentTime\s*=(?!=)/g) ?? []).length, 1, "una sola scrittura di currentTime nel hook");
+    const accendi = /const accendi = \(\) => \{[\s\S]*?\n    \};/.exec(hook);
+    assert.ok(accendi, "manca `accendi`, il gestore del primo gesto");
+    assert.match(accendi![0], /v\.muted = false;\s*v\.currentTime = 0;\s*v\.play\(\)/, "la scrittura del tempo sta nel gestore del gesto, prima del play");
+    assert.match(accendi![0], /if \(!allowed\(\) \|\| !inView\) return;/, "fuori vista il gesto non fa partire niente");
     assert.doesNotMatch(codice("app/components/motion/useLastra.ts"), /video\.pause\(\)|video\.play\(\)/, "la lastra non comanda il loop");
+  });
+
+  test("il suono (A44): prova non muto solo in vista, ricorda il rifiuto, si arma sul primo gesto e si disarma allo smontaggio", () => {
+    const hook = codice("app/components/motion/useAmbientVideo.ts");
+    assert.match(hook, /audio\?: boolean;/);
+    assert.match(hook, /const audio = o\.audio === true;/);
+    assert.match(hook, /if \(audio && !negato && v\.muted\) \{\s*v\.muted = false;\s*v\.play\(\)/, "prova col suono solo se chiesto, non ancora negato e ancora muto");
+    assert.match(hook, /negato = true;\s*v\.muted = true;\s*v\.play\(\)\.catch\(markStill\);\s*arma\(\);/, "al rifiuto: muto, riparte, arma il gesto");
+    assert.match(hook, /const GESTI = \["pointerdown", "keydown"\] as const;/);
+    assert.match(hook, /window\.addEventListener\(t, accendi, \{ capture: true, passive: true \}\)/);
+    assert.match(hook, /return \(\) => \{\s*disarma\(\);/, "lo smontaggio disarma il gesto");
+    assert.match(hook, /\.name === "AbortError"\) return;/, "la pausa nostra non è un rifiuto");
+    assert.match(hook, /if \(inView\) \{\s*suona\(\);/);
   });
 
   test("il markup dei due video", () => {

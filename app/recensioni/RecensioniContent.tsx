@@ -21,7 +21,7 @@ const copy = {
     ),
     subcopy:
       `Chi ha scelto Domus Tua lo ha scritto: ${site.reviewsCount} recensioni su Google. Le loro parole raccontano un modo diverso di vivere la compravendita: più umano, più chiaro, più seguito.`,
-    alt: "Divani bianchi da esterno sotto un ombrellone, fra un muro in pietra e la siepe",
+    alt: "Salotto all'aperto su una terrazza in pietra con ombrellone chiaro, poltrone in corda e ortensie",
     primaryLabel: "Inizia anche tu",
     secondaryLabel: "Leggi le recensioni",
     trust: [`${ratingLabel("it")}/5 di media`, `${site.reviewsCount} recensioni`, "Google · Trustindex"],
@@ -37,7 +37,7 @@ const copy = {
     ),
     subcopy:
       `Those who chose Domus Tua wrote it down: ${site.reviewsCount} reviews on Google. Their words describe a different way to buy and sell a home: more human, clearer, more supported.`,
-    alt: "White outdoor sofas under a parasol, between a stone wall and the hedge",
+    alt: "Outdoor lounge on a stone terrace with a cream parasol, rope armchairs and hydrangeas",
     primaryLabel: "Start with us too",
     secondaryLabel: "Read the reviews",
     trust: [`${ratingLabel("en")}/5 average`, `${site.reviewsCount} reviews`, "Google · Trustindex"],
@@ -53,7 +53,7 @@ const copy = {
     ),
     subcopy:
       `Ceux qui ont choisi Domus Tua l’ont écrit : ${site.reviewsCount} avis sur Google. Leurs mots racontent une autre façon de vendre et d’acheter : plus humaine, plus claire, plus accompagnée.`,
-    alt: "Canapés d'extérieur blancs sous un parasol, entre un mur en pierre et la haie",
+    alt: "Salon d'extérieur sur une terrasse en pierre avec parasol clair, fauteuils en corde et hortensias",
     primaryLabel: "Commencez vous aussi",
     secondaryLabel: "Lire les avis",
     trust: [`${ratingLabel("fr")}/5 de moyenne`, `${site.reviewsCount} avis`, "Google · Trustindex"],
@@ -69,7 +69,7 @@ const copy = {
     ),
     subcopy:
       `Wer sich für Domus Tua entschieden hat, hat es aufgeschrieben: ${site.reviewsCount} Bewertungen auf Google. Ihre Worte erzählen von einer anderen Art zu kaufen und zu verkaufen: menschlicher, klarer, besser begleitet.`,
-    alt: "Weiße Gartensofas unter einem Sonnenschirm, zwischen einer Steinmauer und der Hecke",
+    alt: "Sitzecke im Freien auf einer Steinterrasse mit hellem Sonnenschirm, Seilsesseln und Hortensien",
     primaryLabel: "Starten auch Sie",
     secondaryLabel: "Bewertungen lesen",
     trust: [`${ratingLabel("de")}/5 im Schnitt`, `${site.reviewsCount} Bewertungen`, "Google · Trustindex"],
@@ -85,7 +85,7 @@ const copy = {
     ),
     subcopy:
       `Quienes eligieron Domus Tua lo escribieron: ${site.reviewsCount} reseñas en Google. Sus palabras cuentan otra forma de comprar y vender casa: más humana, más clara, más acompañada.`,
-    alt: "Sofás blancos de exterior bajo una sombrilla, entre un muro de piedra y el seto",
+    alt: "Salón exterior en una terraza de piedra con sombrilla clara, sillones de cuerda y hortensias",
     primaryLabel: "Empieza tú también",
     secondaryLabel: "Leer las reseñas",
     trust: [`${ratingLabel("es")}/5 de media`, `${site.reviewsCount} reseñas`, "Google · Trustindex"],
@@ -103,7 +103,7 @@ export default function RecensioniContent() {
         eyebrow={c.eyebrow}
         title={c.title()}
         subcopy={c.subcopy}
-        image="/images/reali/villa-salotto-ombrellone.jpg"
+        image="/images/reali/villa-salotto-esterno-alta.jpg"
         alt={c.alt}
         primary={{ label: c.primaryLabel, href: "#contatti" }}
         secondary={{ label: c.secondaryLabel, href: "#recensioni" }}

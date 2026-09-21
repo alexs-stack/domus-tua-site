@@ -133,15 +133,16 @@ const bucketDi = (src: string | null) => Number(/[?&]w=(\d+)(&|$)/.exec(src ?? "
 // Alberto: «negli screenshot di era-residence non c'erano le ombre sulle scritte bianche») stanno
 // occhiello, H1, calligrafia, lead e i due comandi, centrati come «Perfect sea views» (A41); i tre
 // punti sotto, sull'avorio. D184: nessuna ombra su nessun nodo e nessun reset; il bottone rosso pieno
-// com'è. A41: il riquadro della foto è sticky (fermo mentre la pagina gli scorre sopra), il blocco dei
-// testi sta in flusso sopra di lui, alto almeno 100svh.
+// com'è. A45 (Alberto, 21 set. 2026: «le foto su era residence sono la pagina stessa … stai scrollando
+// la foto stessa come se fosse la pagina»): il riquadro della foto è IN FLUSSO, alto quanto la foto resa
+// (mai meno di 100svh) e scorre con la pagina; il blocco dei testi sta dentro, in cima, alto almeno 100svh.
 test.describe("la testa", () => {
   for (const vp of [
     { w: 1440, h: 900 },
     { w: 1024, h: 768 },
   ] as const) {
     for (const rotta of ROTTE) {
-      test(`${rotta} a ${vp.w}×${vp.h}: foto dal pixel 0, riquadro 100svh, blocco bianco, nudo e centrato dentro in cinque lingue, tre punti sotto, sizes della sorgente`, async ({ page, goto }, info) => {
+      test(`${rotta} a ${vp.w}×${vp.h}: foto dal pixel 0, riquadro in flusso alto quanto la foto, blocco bianco, nudo e centrato dentro in cinque lingue, tre punti sotto, sizes della sorgente`, async ({ page, goto }, info) => {
         test.skip(info.project.name !== "desktop-1440", "le quote da lg si misurano dal desktop");
         await page.setViewportSize({ width: vp.w, height: vp.h });
         for (const lang of LINGUE) {
@@ -152,26 +153,31 @@ test.describe("la testa", () => {
           const g = await geometria(page);
           expect(g.section, `${lang}: nessuna section della testa`).not.toBeNull();
           expect(g.corridoi, `${lang}: la testa non è un corridoio`).toBe(0);
-          expect(g.sticky, `${lang}: uno sticky solo nella testa, il riquadro (A41)`).toBe(1);
-          expect(g.posizioneRiquadro).toBe("sticky");
+          expect(g.sticky, `${lang}: uno sticky nella testa (A45: la foto scorre con la pagina)`).toBe(0);
+          expect(g.posizioneRiquadro).toBe("relative");
           expect(Math.abs(g.section!.top), `${lang}: la section non comincia a scroll 0 (D176)`).toBeLessThanOrEqual(1);
           expect(Math.abs(g.riquadro!.top), `${lang}: il riquadro non è il pixel 0`).toBeLessThanOrEqual(1);
-          expect(Math.abs(g.riquadro!.height - g.innerHeight), `${lang}: il riquadro non è 100svh`).toBeLessThanOrEqual(1);
+          // A45: il riquadro è alto quanto la foto resa a larghezza piena (`aspect-ratio` dal sorgente), mai
+          // meno di 100svh; da lg le nove foto alte lo fanno più alto dello schermo.
+          const [sw, sh] = tinte[rotta].sorgente;
+          const altoFoto = Math.max(g.innerHeight, (g.riquadro!.width * sh) / sw, g.blocco!.height);
+          expect(Math.abs(g.riquadro!.height - altoFoto), `${lang}: il riquadro non è alto quanto la foto (A45)`).toBeLessThanOrEqual(2);
           expect(Math.round(g.riquadro!.width)).toBe(g.clientWidth);
           expect(g.overflow).toBe("clip");
-          expect(g.posizioneBlocco, `${lang}: il blocco sta in flusso sopra la foto (A41)`).toBe("relative");
+          expect(g.posizioneBlocco, `${lang}: il blocco sta dentro il riquadro, in flusso e in cima (A45)`).toBe("relative");
           expect(Math.abs(g.blocco!.top), `${lang}: il blocco non comincia al pixel 0`).toBeLessThanOrEqual(1);
           expect(g.blocco!.height, `${lang}: il blocco non è alto almeno 100svh`).toBeGreaterThanOrEqual(g.innerHeight - 1);
-          // La foto copre il riquadro da ogni lato: lo strato È il riquadro (A41: nessun margine, nessuna trasformata).
-          expect(Math.abs(g.strato!.bottom - g.riquadro!.bottom)).toBeLessThanOrEqual(1);
-          expect(Math.abs(g.strato!.height - g.riquadro!.height), `${lang}: lo strato non è il riquadro`).toBeLessThanOrEqual(1);
+          expect(g.blocco!.bottom, `${lang}: il blocco esce dal riquadro`).toBeLessThanOrEqual(g.riquadro!.bottom + 1);
+          // La foto copre il riquadro da ogni lato: lo strato È il riquadro (nessun pan, nessuna trasformata).
+          expect(Math.abs(g.strato!.top - g.riquadro!.top), `${lang}: lo strato non parte dal pixel 0`).toBeLessThanOrEqual(1);
+          expect(Math.abs(g.strato!.height - g.riquadro!.height), `${lang}: lo strato non è il riquadro (A45)`).toBeLessThanOrEqual(1);
           expect(g.img!.left).toBeLessThanOrEqual(g.riquadro!.left + 1);
           expect(g.img!.right).toBeGreaterThanOrEqual(g.riquadro!.right - 1);
           expect(g.trasformata).toMatch(FERMA);
           expect(g.op, `${lang}: l'inquadratura da lg non è quella di tinte.json (D180)`).toBe(tinte[rotta].objectPosition.lg);
-          // I nodi stanno dentro il blocco; i tre punti dopo il blocco (sopra la foto, che resta sticky).
+          // I nodi stanno dentro il blocco; i tre punti dopo la foto (la fascia segue il riquadro in flusso).
           expect(g.nodiFuori, `${lang}: nodi fuori dal blocco`).toBe(0);
-          if (g.punti) expect(g.punti.top, `${lang}: i tre punti non stanno dopo il blocco`).toBeGreaterThanOrEqual(g.blocco!.bottom - 1);
+          if (g.punti) expect(g.punti.top, `${lang}: i tre punti non stanno dopo la foto`).toBeGreaterThanOrEqual(g.riquadro!.bottom - 1);
           // Centrato (A41): H1 e lead hanno lo stesso centro del riquadro, entro 2 px.
           const cx = (g.riquadro!.left + g.riquadro!.right) / 2;
           for (const z of ["h1", "lead", "solid"] as const) if (g[z]) expect(Math.abs((g[z]!.left + g[z]!.right) / 2 - cx), `${lang}: ${z} non è centrato`).toBeLessThanOrEqual(2);
@@ -188,7 +194,6 @@ test.describe("la testa", () => {
             expect(g.ghost!.top, `${lang}: il fantasma non sta sotto il bottone`).toBeGreaterThanOrEqual(g.solid!.bottom - 1);
           }
           // I byte: `sizes` dal rapporto della sorgente; il bitmap non è più stretto di quel che lo strato dipinge.
-          const [sw, sh] = tinte[rotta].sorgente;
           expect(g.sizes).toBe(sizesDi(sw / sh));
           const bucket = bucketDi(g.currentSrc);
           const serve = Math.max(g.strato!.width, (g.strato!.height * sw) / sh);
@@ -203,38 +208,37 @@ test.describe("la testa", () => {
   }
 });
 
-// ── la foto ferma ────────────────────────────────────────────────────────────
-// A41: la foto è sticky in alto e non si muove; il blocco dei testi e la fascia dei punti le scorrono
-// sopra finché la section finisce (alta 100svh + la fascia, ≥ 60svh); poi tutto scorre insieme. Nessun
-// ScrollTrigger, nessuna trasformata, a nessuna quota.
-test.describe("la foto ferma", () => {
+// ── la foto è la pagina ──────────────────────────────────────────────────────
+// A45 (Alberto, 21 set. 2026): «le foto su era residence sono la pagina stessa: quando scrolli, le
+// scritte salgono su come se fossero in quello spazio della foto, e stai scrollando la foto stessa come
+// se fosse la pagina». Il riquadro è in flusso e alto quanto la foto: a ogni quota scorre 1:1 con la
+// pagina, il blocco dei testi (dentro) con lui, la fascia dei punti segue; nessuno sticky, nessuna
+// trasformata, nessuno ScrollTrigger della testa.
+test.describe("la foto è la pagina", () => {
   for (const rotta of ["/vendi", "/metodo"] as const) {
-    test(`${rotta} a 1440×900: riquadro a 0 mentre il blocco sale e la fascia lo copre; poi scorre con la pagina; strato mai trasformato`, async ({ page, goto }, info) => {
+    test(`${rotta} a 1440×900: riquadro, blocco e fascia scorrono 1:1 con la pagina; strato mai trasformato; nessun trigger`, async ({ page, goto }, info) => {
       test.skip(info.project.name !== "desktop-1440", "le quote sono a 1440×900");
       await goto(rotta);
       await idratata(page);
       const riposo = await geometria(page);
       expect(Math.abs(riposo.riquadro!.top)).toBeLessThanOrEqual(1);
-      expect(Math.round(riposo.riquadro!.height)).toBe(900);
+      const altoFoto = riposo.riquadro!.height;
+      expect(altoFoto, "il riquadro non è più alto dello schermo: la foto alta non è la pagina").toBeGreaterThan(900 + 100);
       expect(riposo.trasformata).toMatch(FERMA);
-      // La fascia dei punti: ≥ 60svh dove i punti ci sono (/vendi); /metodo non ne passa e la fascia è vuota (0).
       const fascia = riposo.pagina!.height;
-      if (riposo.punti) expect(fascia, "la fascia dei punti non è alta almeno 60svh (A41)").toBeGreaterThanOrEqual(540 - 1);
       const st0 = await page.evaluate(() => window.__dtST!());
-      // `geometria` dà quote DI PAGINA (top + scrollY): il riquadro fermo nel viewport ha top di pagina = y,
-      // il blocco in flusso resta a 0, la fascia resta a 900 (sotto il blocco alto 100svh).
-      for (const y of [300, Math.round(fascia), Math.round(fascia) + 260, 450, 0]) {
+      // `geometria` dà quote DI PAGINA (top + scrollY): in flusso restano quelle di riposo a ogni quota.
+      for (const y of [300, 900, Math.round(altoFoto) + 260, 450, 0]) {
         await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), y);
         await page.waitForTimeout(350);
         const g = await geometria(page);
-        const atteso = -Math.max(0, y - fascia);
-        const riquadroViewport = g.riquadro!.top - y;
-        expect(Math.abs(riquadroViewport - atteso), `scroll ${y}: il riquadro sta a ${riquadroViewport} invece di ${atteso}`).toBeLessThanOrEqual(1);
-        expect(Math.abs(g.blocco!.top), `scroll ${y}: il blocco non scorre in flusso`).toBeLessThanOrEqual(1);
-        expect(Math.abs(g.pagina!.top - 900), `scroll ${y}: la fascia non sale sopra la foto`).toBeLessThanOrEqual(1);
+        expect(Math.abs(g.riquadro!.top), `scroll ${y}: il riquadro non scorre con la pagina`).toBeLessThanOrEqual(1);
+        expect(Math.abs(g.blocco!.top), `scroll ${y}: il blocco non scorre con la foto`).toBeLessThanOrEqual(1);
+        expect(Math.abs(g.pagina!.top - altoFoto), `scroll ${y}: la fascia non segue la foto`).toBeLessThanOrEqual(1);
+        expect(Math.abs(g.pagina!.height - fascia)).toBeLessThanOrEqual(1);
         expect(g.trasformata, `scroll ${y}: lo strato si è mosso`).toMatch(FERMA);
       }
-      expect(await page.evaluate(() => window.__dtST!()), "la testa ha creato uno ScrollTrigger").toBe(st0);
+      expect(await page.evaluate(() => window.__dtST!()), "scorrendo la testa ha creato altri ScrollTrigger").toBe(st0);
     });
   }
 });
@@ -243,9 +247,10 @@ test.describe("la foto ferma", () => {
 // D186: da lg la testata è trasparente sopra la foto e scorre via con la pagina: nav bianca, senza ombra
 // finché c'è (a scroll 0 e 40), `data-su-foto` nell'HTML iniziale. Sotto lg a scroll 0 la barra sticky è
 // trasparente sopra la foto e «Menu» è bianco, senza ombra; da 24 px `data-solid` prende la tinta alta
-// (D82) e «Menu» torna grafite. Il segno vira `foto` a scroll 0 e 450 su /metodo a 1440, `grafite` a 1200.
+// (D82) e «Menu» torna grafite. Il segno vira `foto` a scroll 0 e 450 su /metodo a 1440 e `grafite` cento
+// pixel sotto il fondo della foto (A45: la foto è alta quanto la pagina la rende, 2146 px a 1440).
 test.describe("la testata", () => {
-  test("da lg: header[data-su-foto] nell'HTML, nav bianca, senza ombra, a scroll 0 e 40, il selettore lingua se c'è; il segno foto a 0 e 450, grafite a 1200", async ({ page, goto }, info) => {
+  test("da lg: header[data-su-foto] nell'HTML, nav bianca, senza ombra, a scroll 0 e 40, il selettore lingua se c'è; il segno foto a 0 e 450, grafite sotto la foto", async ({ page, goto }, info) => {
     test.skip(info.project.name !== "desktop-1440", "la nav esiste da lg");
     for (const rotta of ["/metodo", "/vendi", "/privacy"] as const) {
       const html = await (await page.request.get(rotta)).text();
@@ -277,7 +282,9 @@ test.describe("la testata", () => {
     await expect.poll(tema, { timeout: 8000 }).toBe("foto");
     await page.evaluate(() => window.scrollTo({ top: 450, behavior: "instant" }));
     await expect.poll(tema, { timeout: 8000 }).toBe("foto");
-    await page.evaluate(() => window.scrollTo({ top: 1200, behavior: "instant" }));
+    const fondoFoto = await page.locator(".dt-testa_riquadro").evaluate((el) => el.getBoundingClientRect().bottom + window.scrollY);
+    expect(fondoFoto, "la foto alta non è più alta di uno schermo (A45)").toBeGreaterThan(900 + 100);
+    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), Math.round(fondoFoto) + 100);
     await expect.poll(tema, { timeout: 8000 }).toBe("grafite");
     // Il lockup non si ricolora (C23): è la stessa immagine di sempre.
     expect(await page.locator('header img[alt="Domus Tua Immobiliare"]').first().getAttribute("src")).toBe("/logo-domustua-original.png");
@@ -357,9 +364,10 @@ test.describe("la testata", () => {
 });
 
 // ── sotto lg ───────────────────────────────────────────────────────────────
-// D176/D177, A41: sul telefono la stessa testa dal pixel 0 sotto la testata sticky trasparente: il
-// riquadro sticky è 100svh, il blocco centrato sta in flusso sopra di lui ed è alto almeno 100svh
-// (cresce dove l'H1 tedesco lo chiede, nulla si taglia: la foto sotto resta ferma), i tre punti dopo.
+// D176/D177, A45: sul telefono la stessa testa dal pixel 0 sotto la testata sticky trasparente: il
+// riquadro in flusso è alto quanto la foto resa e mai meno di 100svh (in verticale la foto 2:3 è più
+// bassa dello schermo e vince 100svh; in orizzontale è la foto a dettare), il blocco centrato sta dentro,
+// in cima, alto almeno 100svh (cresce dove l'H1 tedesco lo chiede, nulla si taglia), i tre punti dopo.
 const SOTTO_LG: Array<{ rotta: Rotta; w: number; h: number; lang: (typeof LINGUE)[number] }> = [
   { rotta: "/vendi", w: 390, h: 844, lang: "de" },
   { rotta: "/vendi", w: 390, h: 844, lang: "it" },
@@ -380,7 +388,7 @@ const SOTTO_LG: Array<{ rotta: Rotta; w: number; h: number; lang: (typeof LINGUE
 ];
 test.describe("sotto lg", () => {
   for (const c of SOTTO_LG) {
-    test(`${c.rotta} a ${c.w}×${c.h} in ${c.lang}: riquadro sticky 100svh, blocco centrato ≥ 100svh, tutto dentro, nessuna trasformata`, async ({ page, goto }, info) => {
+    test(`${c.rotta} a ${c.w}×${c.h} in ${c.lang}: riquadro in flusso ≥ 100svh, blocco centrato ≥ 100svh, tutto dentro, nessuna trasformata`, async ({ page, goto }, info) => {
       test.skip(info.project.name !== "mobile-390", "il ramo sotto la soglia si misura sul telefono");
       await page.setViewportSize({ width: c.w, height: c.h });
       await lingua(page, c.lang);
@@ -390,10 +398,14 @@ test.describe("sotto lg", () => {
       const g = await geometria(page);
       expect(Math.abs(g.section!.top)).toBeLessThanOrEqual(1);
       expect(Math.abs(g.riquadro!.top)).toBeLessThanOrEqual(1);
-      expect(Math.abs(g.riquadro!.height - g.innerHeight), "il riquadro non è 100svh").toBeLessThanOrEqual(1);
+      // Il riquadro è alto quanto il più alto fra la foto resa, 100svh e il blocco (il tedesco cresce, D177).
+      const [sw, sh] = tinte[c.rotta].sorgente;
+      const altoFoto = Math.max(g.innerHeight, (g.riquadro!.width * sh) / sw, g.blocco!.height);
+      expect(Math.abs(g.riquadro!.height - altoFoto), "il riquadro non è alto quanto la foto, né 100svh, né il blocco (A45)").toBeLessThanOrEqual(2);
       expect(g.overflow).toBe("clip");
-      expect(g.posizioneRiquadro).toBe("sticky");
+      expect(g.posizioneRiquadro).toBe("relative");
       expect(g.posizioneBlocco).toBe("relative");
+      expect(g.sticky, "uno sticky nella testa (A45)").toBe(0);
       expect(Math.abs(g.blocco!.top)).toBeLessThanOrEqual(1);
       expect(g.blocco!.height, "il blocco non è alto almeno 100svh").toBeGreaterThanOrEqual(g.innerHeight - 1);
       expect(g.op, "l'inquadratura sotto lg non è quella di tinte.json (D180)").toBe(tinte[c.rotta].objectPosition.sotto);
@@ -401,20 +413,16 @@ test.describe("sotto lg", () => {
       expect(g.nodiFuori, "nodi fuori dal blocco").toBe(0);
       const ultimo = g.ghost ?? g.solid!;
       expect(ultimo.bottom, "l'ultimo comando esce dal blocco").toBeLessThanOrEqual(g.blocco!.bottom + 1);
-      if (g.punti) expect(g.punti.top).toBeGreaterThanOrEqual(g.blocco!.bottom - 1);
-      expect(g.sizes).toBe(sizesDi(tinte[c.rotta].sorgente[0] / tinte[c.rotta].sorgente[1]));
+      expect(g.blocco!.bottom, "il blocco esce dal riquadro").toBeLessThanOrEqual(g.riquadro!.bottom + 1);
+      if (g.punti) expect(g.punti.top).toBeGreaterThanOrEqual(g.riquadro!.bottom - 1);
+      expect(g.sizes).toBe(sizesDi(sw / sh));
       await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
       await page.waitForTimeout(400);
       const dopo = await geometria(page);
       expect(dopo.trasformata, "sotto la soglia lo strato si muove").toMatch(FERMA);
-      // Quote di pagina: il riquadro sticky resta fermo nel viewport finché la section ha corsa (la sua altezza
-      // meno quella del riquadro: la fascia dei punti e quel che il blocco supera i 100svh; su /metodo e /servizi
-      // senza punti la corsa può essere zero e la foto scorre con la pagina), poi scorre col resto. Il blocco in
-      // flusso resta a 0 di pagina.
-      const corsa = Math.max(0, g.section!.height - g.riquadro!.height);
-      const attesoPagina = Math.min(300, corsa);
-      expect(Math.abs(dopo.riquadro!.top - attesoPagina), `a scroll 300 la foto non sta a ${attesoPagina} di pagina (sticky con corsa ${Math.round(corsa)})`).toBeLessThanOrEqual(1);
-      expect(Math.abs(dopo.blocco!.top), "il blocco non scorre sopra la foto").toBeLessThanOrEqual(1);
+      // Quote di pagina (A45): riquadro e blocco scorrono 1:1 con la pagina, restano a 0 di pagina.
+      expect(Math.abs(dopo.riquadro!.top), "a scroll 300 la foto non scorre con la pagina").toBeLessThanOrEqual(1);
+      expect(Math.abs(dopo.blocco!.top), "il blocco non scorre con la foto").toBeLessThanOrEqual(1);
     });
   }
 });
@@ -440,7 +448,7 @@ test.describe("senza JS e con moto ridotto", () => {
         expect(((await h1.textContent()) ?? "").trim().length, `${rotta}: H1 vuoto`).toBeGreaterThan(3);
         await expect(h1, `${rotta}: l'H1 non è bianco`).toHaveCSS("color", BIANCO);
         const g = await geometria(page);
-        expect(g.sticky, `${rotta}: uno sticky solo senza JS, il riquadro (A41)`).toBe(1);
+        expect(g.sticky, `${rotta}: uno sticky nella testa senza JS (A45)`).toBe(0);
         expect(g.corridoi).toBe(0);
         expect(Math.abs(g.strato!.height - g.riquadro!.height), `${rotta}: lo strato non è il riquadro`).toBeLessThanOrEqual(1);
         expect(g.trasformata).toMatch(FERMA);
@@ -509,20 +517,21 @@ test.describe("CLS 0", () => {
 });
 
 // ── sizes sotto lg ─────────────────────────────────────────────────────────
-// D183: in un riquadro 100svh un telefono verticale dipinge la foto per 100svh·r di larghezza (1266 /
-// 1501 / 1518 px CSS a 390×844 per 3:2 / 16:9 / 1,8); `sizes` apre con 338vw / 400vw / 405vw e a DPR 2
-// il browser riceve il bucket 2560 sulle sorgenti 2560 e 1920 sulle 1920 (dichiarato: ×1,32 e ×1,58).
+// D183: in un riquadro 100svh un telefono verticale dipinge la foto per 100svh·r di larghezza. A44 (20
+// set. 2026): le nove foto sono 2:3 (2560×3816, r 0,671): a 390×844 la foto dipinge 566 px CSS (più
+// larga del riquadro di 176 px, centrata), `sizes` apre con 151vw e a DPR 2 il browser chiede
+// 151 · 3,9 · 2 = 1178 px, cioè il bucket 1280: nessun ingrandimento (0,88).
 test.describe("sizes sotto lg", () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 
-  test("390×844 a DPR 2 su /vendi (3:2), /metodo (16:9) e /chi-siamo (1,8): il primo termine, il bucket vero, la larghezza dipinta", async ({ page, goto }, info) => {
+  test("390×844 a DPR 2 su /vendi, /metodo e /chi-siamo (2:3, A44): il primo termine, il bucket vero, la larghezza dipinta", async ({ page, goto }, info) => {
     test.skip(info.project.name !== "mobile-390", "il caso a DPR 2 vive nel project del telefono");
-    // Il srcset di next/image è la lista dei deviceSizes qualunque sia la sorgente: a DPR 2 il browser chiede
-    // sempre `w=2560`; l'ottimizzatore non ingrandisce mai, e sulle sorgenti 1920 il bitmap che arriva è 1920.
+    // Il srcset di next/image è la lista dei deviceSizes qualunque sia la sorgente: a DPR 2 con 151vw il
+    // browser chiede il bucket 1280; l'ottimizzatore non ingrandisce mai.
     const casi = [
-      { rotta: "/vendi" as Rotta, primo: "338vw", dipinta: 1266 },
-      { rotta: "/metodo" as Rotta, primo: "400vw", dipinta: 1501 },
-      { rotta: "/chi-siamo" as Rotta, primo: "405vw", dipinta: 1518 },
+      { rotta: "/vendi" as Rotta, primo: "151vw", dipinta: 566 },
+      { rotta: "/metodo" as Rotta, primo: "151vw", dipinta: 566 },
+      { rotta: "/chi-siamo" as Rotta, primo: "151vw", dipinta: 566 },
     ];
     for (const c of casi) {
       await goto(c.rotta);
@@ -533,16 +542,15 @@ test.describe("sizes sotto lg", () => {
       const [sw, sh] = tinte[c.rotta].sorgente;
       expect(g.sizes!.startsWith(`(max-width: 1023.98px) ${c.primo}, `), `${c.rotta}: sizes ${g.sizes}`).toBe(true);
       expect(sizesSottoLg(sw / sh)).toBe(c.primo);
-      expect(bucketDi(g.currentSrc), `${c.rotta}: bucket`).toBe(2560);
-      // `naturalWidth` di un candidato `w` è corretto per la densità (2560 / 1318 css px ≈ 1,94): il bitmap
-      // vero si legge dal file servito.
+      expect(bucketDi(g.currentSrc), `${c.rotta}: bucket`).toBe(1280);
+      // `naturalWidth` di un candidato `w` è corretto per la densità: il bitmap vero si legge dal file servito.
       const bitmap = (await sharp(await (await page.request.get(g.currentSrc!)).body()).metadata()).width ?? 0;
-      expect(bitmap, `${c.rotta}: il bitmap non è min(2560, sorgente)`).toBe(Math.min(2560, sw));
+      expect(bitmap, `${c.rotta}: il bitmap non è min(1280, sorgente)`).toBe(Math.min(1280, sw));
       const dipinta = Math.max(g.riquadro!.width, (g.riquadro!.height * sw) / sh);
       expect(Math.abs(dipinta - c.dipinta), `${c.rotta}: dipinta ${dipinta.toFixed(0)}`).toBeLessThanOrEqual(2);
-      // Il bitmap chiesto (dipinta × 2) contro quello che arriva: 1,000 sulle 2560 (×1,17 sulla 16:9), ×1,58 dichiarato sulle 1920 (D183).
+      // Il bitmap chiesto (dipinta × 2 = 1132) contro quello che arriva (1280): nessun ingrandimento.
       const ingr = (dipinta * 2) / bitmap;
-      expect(ingr, `${c.rotta}: ingrandimento ×${ingr.toFixed(2)}`).toBeLessThanOrEqual(sw >= 2560 ? (sw / sh > 1.7 ? 1.18 : 1.001) : 1.6);
+      expect(ingr, `${c.rotta}: ingrandimento ×${ingr.toFixed(2)}`).toBeLessThanOrEqual(1.001);
     }
   });
 });

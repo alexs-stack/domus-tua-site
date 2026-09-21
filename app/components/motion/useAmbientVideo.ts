@@ -14,6 +14,22 @@
 // e da confermare ad Alberto (handoff).
 // Il tempo del video non si scrive mai: riprende da dove si era fermato, come
 // Era. Senza JS e fuori dal gate nessun byte di video.
+// IL SUONO (`audio: true`, A44 di Alberto, 20 set. sera: «voglio che sia
+// automatico con l'audio attivo, senza che l'utente debba cliccare»; già A30:
+// «quella parte è proprio dove parla Raffaela»). I browser negano l'autoplay col
+// suono finché la pagina non ha ricevuto un gesto (clic, tocco, tasto: lo
+// scroll non conta). Quindi, in vista, il hook prova PRIMA col suono; se il
+// browser lo nega (`NotAllowedError`), riparte muto e arma un ascolto unico su
+// `pointerdown`/`keydown` della finestra: al primo gesto il suono si accende da
+// solo e — se il video è in vista — la clip ricomincia da 0, cioè dalle parole
+// di Raffaela (02:00 del master): è l'unica scrittura di `currentTime` nel
+// sito, e sta qui dentro, non nei componenti. Chi ha già cliccato qualcosa
+// prima del Congedo (il banner dei cookie, il menu, un bottone) lo sente al
+// primo passaggio. Il rifiuto si ricorda (`negato`): non si riprova a ogni
+// sync, perché Chrome mette in pausa un video che viene smutato senza gesto.
+// Deroga dichiarata a WCAG 1.4.2 (audio che parte da solo oltre 3 s senza un
+// comando proprio): scelta di Alberto, in DESIGN.md; fuori vista il video si
+// ferma, il che è la sola mitigazione.
 // Non importa GSAP (MQ arriva da mq.ts): il Congedo resta senza GSAP.
 // Lo stato sta sull'host in `data-ambient="playing|paused|off"`, per i test.
 import { useEffect, type RefObject } from "react";
@@ -27,6 +43,8 @@ export type AmbientVideoOptions = {
   minWidth?: string;
   /** Sorgenti scelte al primo avvicinamento; senza, valgono le <source> del markup. */
   sources?: AmbientSources;
+  /** Col suono (A44): prova a suonare non muto, e se il browser lo nega si accende al primo gesto. */
+  audio?: boolean;
 };
 
 type ConSaveData = Navigator & { connection?: { saveData?: boolean } };
@@ -41,6 +59,7 @@ export function useAmbientVideo(
 ): void {
   const warm = o.warm ?? "50% 0px";
   const minWidth = o.minWidth ?? MQ.desktop;
+  const audio = o.audio === true;
   // Stringhe e non l'oggetto: i chiamanti passano un letterale nuovo a ogni render.
   const hdWebm = o.sources?.hd.webm;
   const hdMp4 = o.sources?.hd.mp4;
@@ -74,6 +93,48 @@ export function useAmbientVideo(
       if (v.paused) mark(allowed() ? "paused" : "off");
     };
 
+    // Il suono: `negato` = il browser ha rifiutato il play non muto, si riprova solo dopo un gesto.
+    let negato = false;
+    let armato = false;
+    const GESTI = ["pointerdown", "keydown"] as const;
+    const disarma = () => {
+      if (!armato) return;
+      armato = false;
+      for (const t of GESTI) window.removeEventListener(t, accendi, true);
+    };
+    const accendi = () => {
+      disarma();
+      negato = false;
+      if (!allowed() || !inView) return; // il gesto vale: al prossimo ingresso in vista si prova col suono
+      v.muted = false;
+      v.currentTime = 0;
+      v.play().catch((e: unknown) => {
+        if ((e as DOMException | undefined)?.name === "AbortError") return;
+        negato = true;
+        v.muted = true;
+        v.play().catch(markStill);
+      });
+    };
+    const arma = () => {
+      if (armato) return;
+      armato = true;
+      for (const t of GESTI) window.addEventListener(t, accendi, { capture: true, passive: true });
+    };
+    const suona = () => {
+      if (audio && !negato && v.muted) {
+        v.muted = false;
+        v.play().catch((e: unknown) => {
+          if ((e as DOMException | undefined)?.name === "AbortError") return;
+          negato = true;
+          v.muted = true;
+          v.play().catch(markStill);
+          arma();
+        });
+        return;
+      }
+      v.play().catch(markStill);
+    };
+
     const sync = () => {
       if (!allowed()) {
         v.pause();
@@ -94,7 +155,7 @@ export function useAmbientVideo(
         v.preload = "auto";
       }
       if (inView) {
-        v.play().catch(markStill);
+        suona();
       } else {
         v.pause();
         markStill();
@@ -126,6 +187,7 @@ export function useAmbientVideo(
     sync();
 
     return () => {
+      disarma();
       ioWarm.disconnect();
       ioView.disconnect();
       motion.removeEventListener("change", sync);
@@ -135,5 +197,5 @@ export function useAmbientVideo(
       v.removeEventListener("pause", markStill);
       v.pause();
     };
-  }, [videoRef, hostRef, warm, minWidth, hdWebm, hdMp4, sdWebm, sdMp4]);
+  }, [videoRef, hostRef, warm, minWidth, hdWebm, hdMp4, sdWebm, sdMp4, audio]);
 }

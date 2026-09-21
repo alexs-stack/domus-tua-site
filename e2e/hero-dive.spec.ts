@@ -44,14 +44,29 @@ test.describe("il tuffo da 1024 px con motion ok", () => {
     { width: 1440, height: 900 },
     { width: 1024, height: 768 },
   ]) {
-    test(`${vp.width}×${vp.height}: identità a riposo, foto dentro il ritaglio, segno fuori campo (A23)`, async ({ page, goto }) => {
+    // A44/A45 (20-21 set. 2026): la banda è a schermo intero sotto la testata e la foto, AMPIA come la
+    // stanza del main (3:2, A45), è ancorata in basso: a riposo H1 e CTA stanno SOTTO la piega (come su
+    // era-residence), e il segno a quattro punte del vecchio file non esiste più (la foto è generata:
+    // niente marchio da tenere fuori campo).
+    test(`${vp.width}×${vp.height}: identità a riposo, banda a schermo intero, H1 sotto la piega, foto dentro il ritaglio (A44)`, async ({ page, goto }) => {
       await page.setViewportSize(vp);
       await goto("/");
       await expect(page.locator("#top")).toHaveAttribute("data-on", "");
       expect(identita(await matrixOf(page.locator("[data-hero-zoom]")))).toBe(true);
       expect(identita(await matrixOf(page.locator("[data-hero-block-lift]")))).toBe(true);
-      await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
-      await expect(cta(page)).toBeInViewport();
+      const riposo = await page.evaluate(() => {
+        const head = document.querySelector<HTMLElement>("header")!.getBoundingClientRect();
+        const media = document.querySelector("[data-hero-media]")!.getBoundingClientRect();
+        const z = document.querySelector("[data-hero-zoom]")!.getBoundingClientRect();
+        const h1 = document.querySelector("h1")!.getBoundingClientRect();
+        return { headBottom: head.bottom, bandTop: media.top, bandBottom: media.bottom, zoomTop: z.top, zoomBottom: z.bottom, h1Top: h1.top, vh: window.innerHeight };
+      });
+      expect(Math.abs(riposo.bandTop - riposo.headBottom), "la banda non comincia sotto la testata").toBeLessThanOrEqual(2);
+      expect(Math.abs(riposo.bandBottom - riposo.vh), "la banda non arriva al fondo dello schermo").toBeLessThanOrEqual(1);
+      expect(Math.abs(riposo.zoomBottom - riposo.bandBottom), "il riquadro non è ancorato in basso").toBeLessThanOrEqual(1);
+      // A45: la foto è AMPIA (3:2) — a 1440×900 sporge sopra la banda, a 1024×768 la pareggia (min-h-full).
+      expect(riposo.zoomTop, "il riquadro comincia sotto il bordo alto della banda").toBeLessThanOrEqual(riposo.bandTop + 1);
+      expect(riposo.h1Top, "l'H1 non sta sotto la piega").toBeGreaterThanOrEqual(riposo.bandBottom - 1);
 
       const g = await corsa(page);
       for (const p of [0.3, 0.6, 1]) {
@@ -59,10 +74,9 @@ test.describe("il tuffo da 1024 px con motion ok", () => {
         const r = await page.evaluate(() => {
           const media = document.querySelector("[data-hero-media]")!.getBoundingClientRect();
           const z = document.querySelector("[data-hero-zoom]")!.getBoundingClientRect();
-          return { mediaBottom: media.bottom, zoomBottom: z.bottom, segno: z.top + 0.86 * z.height };
+          return { mediaBottom: media.bottom, zoomBottom: z.bottom };
         });
         expect(r.zoomBottom, `a p ${p} la foto scopre il fondo della banda`).toBeGreaterThanOrEqual(r.mediaBottom - 1);
-        expect(r.segno, `a p ${p} il segno a quattro punte entra in campo`).toBeGreaterThan(r.mediaBottom);
       }
     });
 
@@ -137,8 +151,10 @@ test.describe("il tuffo da 1024 px con motion ok", () => {
       expect(sullaCta, "60 Tab senza arrivare alla CTA dell'hero").toBe(true);
       await page.waitForTimeout(600);
       const y = await page.evaluate(() => window.scrollY);
-      expect(y, "il fuoco sulla CTA ha riportato la pagina a st.start").toBeLessThan(g.start);
-      expect(y, `il fuoco ha spostato la pagina più dei ${sporge.toFixed(1)} px di cui la CTA sporge`).toBeLessThanOrEqual(sporge + 1);
+      // A44: con la banda a schermo intero la CTA sporge di centinaia di px sotto la piega e lo scroll
+      // del fuoco si ferma all'aggancio dello sticky (st.start, misurato 444 a 1440×900 contro 288 di
+      // sporgenza): mai oltre st.start, e la CTA resta tutta in vista.
+      expect(y, "il fuoco sulla CTA ha portato la pagina oltre st.start").toBeLessThanOrEqual(Math.max(sporge, g.start) + 1);
       // Col fondo della CTA sul bordo il rapporto di intersezione resta sotto 1 di una frazione di pixel (0,996 misurato).
       await expect(cta(page)).toBeInViewport({ ratio: 0.99 });
     });
@@ -204,16 +220,16 @@ test.describe("il tuffo da 1024 px con motion ok", () => {
       const head = document.querySelector<HTMLElement>("header")!;
       return band.getBoundingClientRect().bottom + window.scrollY - head.offsetHeight;
     });
-    // Il ramo non sticky (spec §3.2, 768-1023): lo stesso controllo del bordo basso e del segno a p 0,3, 0,6 e 1.
+    // Il ramo non sticky (spec §3.2, 768-1023): lo stesso controllo del bordo basso a p 0,3, 0,6 e 1
+    // (A44: il segno a quattro punte del vecchio file non esiste più).
     for (const p of [0.3, 0.6, 1]) {
       await scrollaA(page, p * fine);
       const r = await page.evaluate(() => {
         const media = document.querySelector("[data-hero-media]")!.getBoundingClientRect();
         const z = document.querySelector("[data-hero-zoom]")!.getBoundingClientRect();
-        return { mediaBottom: media.bottom, zoomBottom: z.bottom, segno: z.top + 0.86 * z.height };
+        return { mediaBottom: media.bottom, zoomBottom: z.bottom };
       });
       expect(r.zoomBottom, `a p ${p} la foto scopre il fondo della banda`).toBeGreaterThanOrEqual(r.mediaBottom - 1);
-      expect(r.segno, `a p ${p} il segno a quattro punte entra in campo`).toBeGreaterThan(r.mediaBottom);
     }
     await expect.poll(async () => (await matrixOf(zoom)).a, { timeout: 3000 }).toBeGreaterThan(1.1);
     expect((await matrixOf(zoom)).a).toBeLessThanOrEqual(1.121);

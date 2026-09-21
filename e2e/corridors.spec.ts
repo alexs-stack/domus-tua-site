@@ -534,7 +534,10 @@ test.describe("la finestra fra i corridoi", () => {
       areaTop: el.getBoundingClientRect().top + window.scrollY,
       vh: window.innerHeight,
     }));
-    const carattere = od.locator(".dt-od_content h2 [data-c]").first();
+    // A45 (21 set. 2026): in home l'h2 del capitolo sta nella cornice della foto (la sezione
+    // «Architecture» di era), fuori dal gruppo in attesa; il primo membro del gruppo è l'occhiello
+    // (Reveal `ctn`: opacità 0 → 1), e su di lui si misura l'attesa e l'entrata.
+    const carattere = od.locator(".dt-od_content .eyebrow").first();
     // s = +100vh: lo stage scalato porta il contenuto dentro il viewport, ma il gruppo è in
     // attesa. 3 s coprono anche la rete dei 2.500 ms.
     await wheelTo(page, Math.round(areaTop + vh));

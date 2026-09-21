@@ -165,12 +165,12 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
       assert.match(v.objectPosition.sotto, /^\d+% \d+%$/, `${rotta}: objectPosition.sotto`);
       assert.ok(v.sorgente[0] >= 1920 && v.sorgente[1] >= 1000, `${rotta}: sorgente ${v.sorgente.join("×")}`);
     }
-    // D173 (/metodo resta 30% 50%), D181 (hero_02 su /lavora-con-noi), D173 (piscina-lusso su /domande-frequenti).
-    assert.equal(tinte["/metodo"].objectPosition.lg, "30% 50%");
-    assert.equal(tinte["/lavora-con-noi"].file, "/images/hero_02_attico_travi_living.jpg");
-    assert.deepEqual(tinte["/lavora-con-noi"].sorgente, [1920, 1067]);
-    assert.equal(tinte["/domande-frequenti"].file, "/images/reali/piscina-lusso.jpg");
-    assert.deepEqual(tinte["/domande-frequenti"].sorgente, [1920, 1280]);
+    // A44: le nove foto alte (2560×3816) con la cima a riposo da lg; D173/D181 superate.
+    assert.equal(tinte["/metodo"].objectPosition.lg, "50% 0%");
+    assert.equal(tinte["/lavora-con-noi"].file, "/images/reali/attico-studio-alta.jpg");
+    assert.deepEqual(tinte["/lavora-con-noi"].sorgente, [2560, 3816]);
+    assert.equal(tinte["/domande-frequenti"].file, "/images/reali/villa-piscina-lunga-alta.jpg");
+    assert.deepEqual(tinte["/domande-frequenti"].sorgente, [2560, 3816]);
   });
 
   test("ogni valore è un colore a sei cifre, o l'avorio dichiarato col numero misurato", () => {

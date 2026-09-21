@@ -34,7 +34,7 @@ const copy = {
       ),
       subcopy:
         "Non ti mostriamo solo case. Verifichiamo i documenti prima della visita, ti diciamo cosa abbiamo controllato e restiamo con te fino al rogito.",
-      alt: "Due lettini bianchi sul bordo della piscina, dietro la villa con la tenda da sole",
+      alt: "Prato e piscina di una villa bianca con due lettini, un ulivo e le colline sullo sfondo",
       primaryLabel: "Cerco casa",
       secondaryLabel: "Vedi le case in vendita",
       trust: ["Informazioni prima della visita", "Documenti verificati", "Assistenza fino al rogito"],
@@ -128,7 +128,7 @@ const copy = {
       ),
       subcopy:
         "We don’t just show you houses. We check the paperwork before the viewing, tell you what we verified, and stay with you through to the deed.",
-      alt: "Two white sun loungers at the edge of the pool, with the villa and its awning behind",
+      alt: "Lawn and pool of a white villa with two sun loungers, an olive tree and hills behind",
       primaryLabel: "I’m looking for a home",
       secondaryLabel: "See the homes for sale",
       trust: ["Information before the viewing", "Verified documents", "Support all the way to closing"],
@@ -222,7 +222,7 @@ const copy = {
       ),
       subcopy:
         "Nous ne vous montrons pas seulement des maisons. Nous contrôlons les documents avant la visite, nous vous disons ce que nous avons vérifié, et nous restons à vos côtés jusqu’à l’acte.",
-      alt: "Deux transats blancs au bord de la piscine, avec derrière la villa et son store",
+      alt: "Pelouse et piscine d'une villa blanche avec deux transats, un olivier et les collines au loin",
       primaryLabel: "Je cherche un bien",
       secondaryLabel: "Voir les biens à vendre",
       trust: ["Les informations avant la visite", "Documents vérifiés", "Accompagnement jusqu’à l’acte"],
@@ -316,7 +316,7 @@ const copy = {
       ),
       subcopy:
         "Wir zeigen Ihnen nicht nur Häuser. Wir prüfen die Unterlagen vor der Besichtigung, sagen Ihnen, was wir kontrolliert haben, und bleiben bis zum Notartermin an Ihrer Seite.",
-      alt: "Zwei weiße Liegen am Poolrand, dahinter die Villa mit der Markise",
+      alt: "Rasen und Pool einer weißen Villa mit zwei Liegen, einem Olivenbaum und Hügeln im Hintergrund",
       primaryLabel: "Ich suche ein Zuhause",
       secondaryLabel: "Immobilien zum Verkauf ansehen",
       trust: ["Informationen vor der Besichtigung", "Geprüfte Unterlagen", "Begleitung bis zum Notartermin"],
@@ -410,7 +410,7 @@ const copy = {
       ),
       subcopy:
         "No solo te mostramos casas. Comprobamos los documentos antes de la visita, te decimos qué hemos verificado y seguimos contigo hasta la escritura.",
-      alt: "Dos tumbonas blancas al borde de la piscina, detrás la villa con el toldo",
+      alt: "Césped y piscina de una villa blanca con dos tumbonas, un olivo y colinas al fondo",
       primaryLabel: "Busco casa",
       secondaryLabel: "Ver las casas en venta",
       trust: ["Información antes de la visita", "Documentos verificados", "Asistencia hasta la escritura"],
@@ -528,7 +528,7 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
           eyebrow={c.hero.eyebrow}
           title={c.hero.title()}
           subcopy={c.hero.subcopy}
-          image="/images/reali/villa-lettini.jpg"
+          image="/images/reali/villa-lettini-prato-alta.jpg"
           alt={c.hero.alt}
           primary={{ label: c.hero.primaryLabel, href: "#contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "#case" }}

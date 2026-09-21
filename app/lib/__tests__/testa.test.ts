@@ -101,7 +101,8 @@ describe("testa.ts: i numeri della testa di era (D176; A41: nessun margine, la f
     assert.deepEqual([...BUCKETS], CONFIG.deviceSizes, "i bucket copiati in testa.ts non sono i deviceSizes di next.config.ts");
     const client = soloCodice(leggi("app/components/motion/PageHeroTesta.tsx"));
     assert.doesNotMatch(client, /tinte\.json/, "PageHeroTesta legge tinte.json");
-    assert.doesNotMatch(client, /\bm:\s*number|yPercent|gsap|useGSAP|ScrollTrigger|["']use client["']|\buse[A-Z]\w*\(/, "PageHeroTesta non è più statico (A41: sticky nel CSS, nessun tween)");
+    // A45: statico di nuovo — la foto alta scorre con la pagina; nessun hook, nessun GSAP, niente `m`.
+    assert.doesNotMatch(client, /\bm:\s*number|yPercent|gsap|useGSAP|ScrollTrigger|["']use client["']|\buse[A-Z]\w*(?=\s*(?:<[^>]*>)?\()/, "PageHeroTesta non è più statico (A45: la foto è la pagina)");
     assert.match(client, /sizes=\{sizesDi\(/, "sizes non viene dal rapporto della sorgente (D183)");
   });
 });
@@ -203,11 +204,16 @@ describe("tinte.json: gli undici dati dell'inquadratura (D180, D187)", () => {
       assert.ok(v.alta.Y >= 0.5329, `${rotta}: la tinta alta sta sotto il pavimento di lavoro`);
       assert.ok(existsSync(join(ROOT, "public", v.file)), `${rotta}: manca public${v.file}`);
     }
-    // D173/D181: le due foto nuove, senza persone; consulenza.jpg non è più in nessuna testa.
-    assert.equal(tinte["/lavora-con-noi"].file, "/images/hero_02_attico_travi_living.jpg");
-    assert.equal(tinte["/domande-frequenti"].file, "/images/reali/piscina-lusso.jpg");
+    // A44 (20 set. 2026): le nove teste hanno le foto ALTE generate con Higgsfield (2:3, 2560×3816),
+    // la cima a riposo da lg (`50% 0%`) e il centro sul telefono; D173/D181 (hero_02, piscina-lusso,
+    // /metodo a 30% 50%) sono superate. consulenza.jpg non è in nessuna testa.
+    for (const rotta of ["/vendi", "/acquista", "/servizi", "/metodo", "/open-domus", "/chi-siamo", "/recensioni", "/lavora-con-noi", "/domande-frequenti"] as const) {
+      const v = tinte[rotta];
+      assert.match(v.file, /^\/images\/reali\/[a-z-]+-alta\.jpg$/, `${rotta}: non è una foto alta`);
+      assert.deepEqual(v.sorgente, [2560, 3816], `${rotta}: sorgente`);
+      assert.equal(v.objectPosition.lg, "50% 0%", `${rotta}: la cima a riposo da lg`);
+      assert.equal(v.objectPosition.sotto, "50% 50%", `${rotta}: centrata sul telefono`);
+    }
     for (const v of Object.values(tinte)) assert.notEqual(v.file, "/images/reali/consulenza.jpg");
-    // D173: /metodo resta 30% 50% da lg.
-    assert.equal(tinte["/metodo"].objectPosition.lg, "30% 50%");
   });
 });

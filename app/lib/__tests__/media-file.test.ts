@@ -202,13 +202,16 @@ describe("i media della villa", () => {
     assert.deepEqual(problemi, []);
   });
 
-  test("le clip sono solo video, col moov prima del mdat", () => {
+  // A44 (20 set.): le clip del Congedo portano la voce di Raffaela (`vide` + `soun`,
+  // scripts/media/congedo.mjs); l'acqua di Costi chiari resta un loop di solo video.
+  test("le clip del Congedo hanno video e audio, l'acqua solo video, col moov prima del mdat", () => {
     for (const f of MP4) {
       const p = join(PUB, f);
       assert.ok(existsSync(p), `${f}: manca`);
       const { order, handlers } = mp4Info(readFileSync(p));
       assert.ok(order.indexOf("moov") !== -1 && order.indexOf("moov") < order.indexOf("mdat"), `${f}: ordine ${order.join(",")}`);
-      assert.deepEqual(handlers.filter((h) => h !== "mdir"), ["vide"], `${f}: tracce ${handlers.join(",")}`);
+      const attese = f.includes("congedo") ? ["vide", "soun"] : ["vide"];
+      assert.deepEqual(handlers.filter((h) => h !== "mdir").sort(), attese.sort(), `${f}: tracce ${handlers.join(",")}`);
     }
     for (const f of WEBM) {
       const p = join(PUB, f);
