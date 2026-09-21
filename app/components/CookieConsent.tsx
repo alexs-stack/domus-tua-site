@@ -39,7 +39,7 @@ import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { useLocale } from "./i18n/LocaleProvider";
 import { isIntroRunning, hasIntroFired } from "./motion/Preloader";
-import { INTRO_EVENT, HERO_REST_MS } from "../lib/motion/intro-constants";
+import { afterCurtain } from "../lib/motion/fold";
 import { readConsent, writeConsent, CONSENT_REOPEN_EVENT, type ConsentValue } from "../lib/consent";
 
 const copy = {
@@ -116,19 +116,25 @@ export default function CookieConsent() {
       setShow(true);
       return;
     }
-    const onIntroDone = () => {
+    // LA RETE È QUELLA DI TUTTI: afterCurtain (fold.ts), E NON RIAPRE UNA SCELTA FATTA.
+    // Audit del 21 settembre 2026 (blocco 23), difetto V01: la rete restava armata
+    // dopo l'handoff e scattava a HERO_REST_MS dal mount, cioè DOPO la scelta di chi
+    // cliccava «Solo necessari» entro ~1,3 s dalla fine della porta corta — il
+    // banner tornava col cookie già scritto (sonda probe-cookie2.mjs: mutazioni
+    // [1136 consent=true] [2622 …]). Il primo giro rifaceva a mano ciò che fold.ts
+    // espone già: `afterCurtain` ascolta INTRO_EVENT una volta, arma la rete col
+    // ritardo di heroRestMs (film, porta corta o a caldo: intro-constants.ts, e il
+    // test «le reti a valle scelgono il ritardo con heroRestMs») e all'handoff la
+    // cancella. Il secondo giro (revisori del 21 settembre) l'ha rimesso in fila:
+    // qui c'era HERO_REST_MS secco, l'orologio del film anche sulla corta (2,25 s
+    // in più a evento perso). Il callback rilegge il cookie: se davvero l'evento è
+    // andato perso e la rete scatta dopo una scelta, la scelta resta chiusa
+    // (e2e/cookie-banner.spec.ts).
+    return afterCurtain(() => {
+      if (readConsent() !== null) return;
       html.setAttribute("data-consent", "");
       setShow(true);
-    };
-    window.addEventListener(INTRO_EVENT, onIntroDone, { once: true });
-    // Safety: se l'evento va perso, il banner appare comunque — HERO_REST_MS
-    // (intro-constants.ts: dive + 200 ms, contato da qui), lo stesso orologio
-    // dell'hero. Il handoff vero arriva da Preloader.tsx a INTRO_T.dive.
-    const safety = window.setTimeout(onIntroDone, HERO_REST_MS);
-    return () => {
-      window.removeEventListener(INTRO_EVENT, onIntroDone);
-      window.clearTimeout(safety);
-    };
+    });
   }, []);
 
   // Riapertura: un link "Preferenze cookie" (footer/Cookie Policy) rimostra il banner anche

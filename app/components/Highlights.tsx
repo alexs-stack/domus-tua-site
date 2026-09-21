@@ -23,6 +23,14 @@ export default function Highlights({
           <Reveal>
             <span className="eyebrow">{eyebrow}</span>
           </Reveal>
+          {/* Nessuna taglia propria: sotto i 640 px `text-d1` segue la larghezza
+              per OGNI testa di capitolo (globals.css, «La scala dei capitoli sotto
+              i 640 px») — audit del 21 settembre 2026 (blocco 23), difetto V04: a
+              390 px «accompagnamento.» (/metodo, 413 px) non entrava nei 351 px
+              della colonna e finiva fuori dallo schermo di 42 px (70 a 360). Il
+              primo giro metteva qui una classe `dt-d1-lunga`; il secondo l'ha
+              tolta perché sulla stessa pagina lasciava teste dello stesso rango a
+              due taglie (regola della colonna, DESIGN.md). */}
           <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
             {title}
           </SplitTitle>

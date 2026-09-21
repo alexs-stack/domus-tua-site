@@ -54,6 +54,146 @@ for (const rotta of ROTTE) {
   });
 }
 
+// ── Nessuna parola e nessun titolo fuori dallo schermo, nelle cinque lingue ──
+// Audit del 21 settembre 2026 (blocco 23), difetto V04: su /metodo a 390 px l'h2
+// «Cura, trasparenza, accompagnamento.» sbordava — la parola più lunga (413 px)
+// non entra nei 351 px della colonna, `.dt-w` è nowrap e html/body hanno
+// `overflow-x: clip`, quindi scrollWidth resta 390 e la rete qui sopra non lo
+// vede. Questa guarda gli ELEMENTI, non il documento: dopo una passata intera,
+// nessuna parola spezzata (`.dt-w`) e nessun h1/h2/h3 può avere il bordo destro
+// oltre lo schermo o il sinistro prima. Le lingue si scelgono col cookie
+// `dt_locale`, come fa il boot script del layout; i titoli per lettera in
+// tedesco e francese sono il rischio dichiarato (spec §9 «nessun
+// traboccamento»). Restano fuori, per disegno e non per comodità: le tessere
+// dei nastri guidati da JS (`[data-on]`: stanno fuori dallo schermo finché lo
+// scroll non le porta dentro), quelle dei nastri nativi (un antenato che
+// scorre in orizzontale: il dito le raggiunge) e ciò che è invisibile (opacità
+// ≤ 0,05 o `visibility: hidden` sull'elemento o su un antenato): il titolo di
+// «Seguici» in uscita è scalato a 1,12 e sfuma (A25), e un rettangolo che
+// nessuno vede non è un traboccamento. La misura si prende a animazioni
+// finite: l'accento entra da 10vw a destra (text-roles.ts) e una lettera a
+// metà corsa non è un traboccamento.
+//
+// SECONDO GIRO (revisori del 21 settembre): il primo giro escludeva anche ciò
+// che un antenato dentro lo schermo ritaglia (`overflow-x: hidden|clip`). Era
+// una rete cieca: `.dt-testa_riquadro` ha `overflow: clip` ed è largo quanto lo
+// schermo, quindi l'H1 di OGNI rotta con la testa di era non veniva misurato, e
+// a 360 «Besichtigung.» a +26 px oltre lo schermo rispondeva verde. Un
+// antenato che ritaglia NASCONDE il testo che sporge: è il difetto da vedere,
+// non una ragione per non guardare. L'esclusione è tolta.
+//
+// Due misure in più, sempre dopo la passata:
+// - ogni parola (`.dt-w`) sta dentro la scatola del SUO titolo (h1-h4): un h4
+//   dentro una griglia a tre colonne può restare dentro lo schermo mentre la
+//   parola corre nel margine o sopra la colonna accanto («Dokumentenprüfung»
+//   sui passi di /metodo, «Immobilienberatung» sui ruoli di /lavora-con-noi:
+//   la taglia segue la colonna, DESIGN.md);
+// - le teste d1 (h1-h3 con `text-d1`) hanno UNA taglia sola sulla pagina:
+//   sotto i 640 la scala segue la larghezza per tutte (globals.css), non per
+//   il componente che ha la parola lunga — sulla stessa colonna due misure per
+//   lo stesso rango erano il rilievo dei revisori (31,2 e 38,4 px a 390).
+const ROTTE_PAROLE = [
+  ...ROTTE,
+  "/servizi",
+  "/open-domus",
+  "/recensioni",
+  "/lavora-con-noi",
+  "/domande-frequenti",
+] as const;
+const LINGUE = ["it", "en", "fr", "de", "es"] as const;
+
+/** Quanto aspettare dopo la passata perché entrate e uscite dei testi siano finite. */
+const TESTI_FERMI_MS = 2000;
+
+type Sbordo = { tag: string; testo: string; px: number; lato: "destra" | "sinistra" };
+
+for (const lingua of LINGUE) {
+  for (const rotta of ROTTE_PAROLE) {
+    test(`nessuna parola né titolo fuori dallo schermo su ${rotta} in ${lingua} @layout`, async ({ page, goto }) => {
+      await page.context().addCookies([{ name: "dt_locale", value: lingua, domain: "127.0.0.1", path: "/" }]);
+      await goto(rotta);
+      // Il server rende in italiano e il client si allinea al cookie dopo
+      // l'idratazione (LocaleProvider): si misura il documento nella lingua chiesta.
+      await page.waitForFunction((l) => document.documentElement.lang === l, lingua, { timeout: 20_000 });
+      await page.evaluate(async () => {
+        const step = window.innerHeight;
+        for (let y = 0; y < document.body.scrollHeight; y += step) {
+          window.scrollTo(0, y);
+          await new Promise((r) => setTimeout(r, 60));
+        }
+      });
+      await page.waitForTimeout(TESTI_FERMI_MS);
+      const { lang, fuori, fuoriColonna, taglieD1 } = await page.evaluate(() => {
+        const W = document.documentElement.clientWidth;
+        const scorrevole = (el: Element) => {
+          for (let p = el.parentElement; p; p = p.parentElement) {
+            const o = getComputedStyle(p).overflowX;
+            if ((o === "auto" || o === "scroll") && p.scrollWidth > p.clientWidth + 1) return true;
+          }
+          return false;
+        };
+        const invisibile = (el: Element) => {
+          for (let p: Element | null = el; p && p !== document.documentElement; p = p.parentElement) {
+            const cs = getComputedStyle(p);
+            if (Number(cs.opacity) <= 0.05 || cs.visibility === "hidden") return true;
+          }
+          return false;
+        };
+        const breve = (el: Element) => (el.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 60);
+        const out: Sbordo[] = [];
+        for (const el of document.querySelectorAll(".dt-w, h1, h2, h3")) {
+          const b = el.getBoundingClientRect();
+          // Nascosti (display none, sr-only) non impaginano nulla.
+          if (b.width <= 1 || b.height <= 1) continue;
+          if (el.closest("[data-on]") || scorrevole(el) || invisibile(el)) continue;
+          const tag = el.tagName === "SPAN" ? `${el.closest("h1,h2,h3,h4,p")?.tagName ?? "SPAN"}>.dt-w` : el.tagName;
+          if (b.right > W + 1) out.push({ tag, testo: breve(el), px: +(b.right - W).toFixed(1), lato: "destra" });
+          else if (b.left < -1) out.push({ tag, testo: breve(el), px: +(-b.left).toFixed(1), lato: "sinistra" });
+        }
+        // Ogni parola dentro la scatola del suo titolo. Da 1024 in su le righe
+        // foto+testo hanno un canale di 6vw fra le colonne (DESIGN.md, «Griglia»):
+        // una parola che vi sporge di pochi pixel non tocca nulla — a 1440
+        // «Marketingkampagnen» (Servizi, de) sporge di 8,9 px in un canale di 86 —
+        // quindi lì la tolleranza è 12 px; sotto, dove le colonne sono una, 1 px.
+        const tolleranzaColonna = W >= 1024 ? 12 : 1;
+        const colonna: string[] = [];
+        for (const h of document.querySelectorAll("h1, h2, h3, h4")) {
+          const hb = h.getBoundingClientRect();
+          if (hb.width <= 1 || hb.height <= 1) continue;
+          if (h.closest("[data-on]") || scorrevole(h) || invisibile(h)) continue;
+          for (const w of h.querySelectorAll(".dt-w")) {
+            const b = w.getBoundingClientRect();
+            if (b.width <= 1) continue;
+            const oltre = Math.max(b.right - hb.right, hb.left - b.left);
+            if (oltre > tolleranzaColonna) {
+              colonna.push(
+                `${h.tagName} «${breve(h)}»: la parola «${breve(w)}» (${b.width.toFixed(1)}px) sporge di ${oltre.toFixed(1)}px dalla colonna del titolo (${hb.width.toFixed(1)}px)`,
+              );
+            }
+          }
+        }
+        // Una taglia sola per le teste d1.
+        const taglie = new Map<string, string>();
+        for (const h of document.querySelectorAll(":is(h1, h2, h3).text-d1")) {
+          const fs = getComputedStyle(h).fontSize;
+          if (!taglie.has(fs)) taglie.set(fs, `${h.tagName} «${breve(h)}»`);
+        }
+        return {
+          lang: document.documentElement.lang,
+          fuori: out,
+          fuoriColonna: colonna,
+          taglieD1: [...taglie].map(([fs, chi]) => `${fs}: ${chi}`),
+        };
+      });
+      expect(lang, "la lingua del documento non è quella del cookie").toBe(lingua);
+      const elenco = fuori.map((f) => `${rotta} [${lingua}] ${f.tag} «${f.testo}»: +${f.px}px a ${f.lato}`).join("\n");
+      expect(fuori, `parole o titoli fuori dallo schermo:\n${elenco}`).toEqual([]);
+      expect(fuoriColonna, `parole fuori dalla colonna del loro titolo su ${rotta} [${lingua}]:\n${fuoriColonna.join("\n")}`).toEqual([]);
+      expect(taglieD1.length, `le teste d1 di ${rotta} [${lingua}] hanno più di una taglia:\n${taglieD1.join("\n")}`).toBeLessThanOrEqual(1);
+    });
+  }
+}
+
 // ── IL SIPARIO ARCO DOMUS, ADESSO CHE SUONA ANCHE SUL TELEFONO ────────────
 // Fase 3 della parità mobile (2026-08-11), riscritto per la Fase 1 dell'onda
 // «parità mobile 2» (2026-08-17/18). Prima di quel blocco l'intro aveva DUE

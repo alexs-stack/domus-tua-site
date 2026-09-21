@@ -79,6 +79,7 @@ export default function PageHero({
   secondary,
   trust,
   scriptWord,
+  tightTitle = false,
 }: {
   /** Ancora della sezione (es. "top" per i link di risalita). */
   id?: string;
@@ -97,6 +98,17 @@ export default function PageHero({
   /** Parola-ornamento in corsivo, una per pagina (es. "Vendere"), bianca dentro la foto (D184).
       Le pagine legali non la passano. */
   scriptWord?: string;
+  /** Pavimento dell'H1 più basso sotto lg (2,5rem invece di 3rem) per la LINGUA in cui
+      una parola sola del titolo non entra nei 324 px della colonna a 360 px:
+      «Besichtigung.» di /open-domus in tedesco (368 px a 48 px) e «currículums.» di
+      /lavora-con-noi in spagnolo (356 px). Audit del 21 settembre 2026 (blocco 23),
+      difetto V04: taglia più piccola, mai testo nascosto né lettere spezzate. Il
+      chiamante lo passa legato alla lingua (`tightTitle={locale === "de"}`): il primo
+      giro lo passava secco e l'H1 scendeva a 40 px in tutte e cinque le lingue su due
+      rotte, così chi legge in italiano vedeva due testate di taglia diversa senza una
+      ragione visibile (revisori del 21 settembre). Le altre nove teste restano al
+      pavimento di 3rem in ogni lingua; scala-telefono.test.ts lo pinna. */
+  tightTitle?: boolean;
 }) {
   const tinta = tinte[rotta];
   const stile = (
@@ -129,7 +141,10 @@ export default function PageHero({
       <Reveal>
         <span className="eyebrow eyebrow--center !text-white">{eyebrow}</span>
       </Reveal>
-      <div className="mt-5">
+      {/* `tightTitle`: la taglia stretta sta sul contenitore (`[&_h1]`), non su
+          TITLE, che resta la classe unica dell'H1 (a28-fallback.test.ts); sotto lg
+          batte `text-[clamp(3rem,…)]` per specificità, da lg vale il ramo lg di TITLE. */}
+      <div className={tightTitle ? "mt-5 max-lg:[&_h1]:text-[clamp(2.5rem,9vw,9rem)]" : "mt-5"}>
         <SplitTitle as="h1" className={TITLE}>
           {title}
         </SplitTitle>

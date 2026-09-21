@@ -52,7 +52,11 @@ const copy = {
     stairs: ["Tra la", "Pineta", "e Milano"],
     subtitle: "Il territorio che abitiamo",
     territory:
-      `Lavoriamo dove viviamo: Tradate e i comuni di ${territoryLabel}, tra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Conosciamo il valore di ogni via, perché è anche la nostra: è da lì che nasce la valutazione che ti diamo.`,
+      // «Tradate e i comuni di la provincia…» era il refuso di H03 (audit del 21
+      // settembre 2026, blocco 23): la label di site.ts comincia con l'articolo
+      // («la provincia di Varese e l'alta provincia di Como», e lì serve così a
+      // CareerApplication), quindi la frase non interpola più un «di» davanti.
+      `Lavoriamo dove viviamo: Tradate, ${territoryLabel}, tra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Conosciamo il valore di ogni via, perché è anche la nostra: è da lì che nasce la valutazione che ti diamo.`,
     cta: "Vedi le case in vendita",
   },
   en: {
@@ -321,8 +325,13 @@ export default function HorizonStory() {
                 {/* Gruppo del motore (spec §2.4): nel nastro entra quando è in
                     scena e, risalendo, esce a destra della linea dell'85 %; in
                     colonna entra dal basso. Col link dentro, il ruolo ctn scende
-                    a still: nei replay solo opacità (D21). */}
-                <RevealGroup className="mt-10 max-w-[50ch]">
+                    a still: nei replay solo opacità (D21).
+                    `dt-horizon_text`: col nastro acceso il gruppo rende gli 11vw
+                    che i gradini prendono per cavalcare la foto, più 2rem di
+                    canale (globals.css), così lead, h4 e link si fermano prima
+                    della foto e non ci finiscono sotto né a filo — audit del 21
+                    settembre 2026 (blocco 23), difetto H03, due giri. */}
+                <RevealGroup className="dt-horizon_text mt-10 max-w-[50ch]">
                   <SplitTitle as="h4" className="font-display text-d4">
                     {c.subtitle}
                   </SplitTitle>

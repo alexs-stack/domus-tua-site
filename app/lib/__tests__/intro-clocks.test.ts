@@ -565,9 +565,15 @@ describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
   test("le reti a valle scelgono il ritardo con heroRestMs, senza un secondo orologio scritto a mano", () => {
     // Il codice senza commenti: HeroCinematic.tsx cita «1920×1080» in un commento.
     const soloCodice = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    // CookieConsent.tsx sta in lista dal blocco 23 (audit del 21 settembre 2026,
+    // difetto V01): aspettava l'handoff con una rete sua a HERO_REST_MS secco, cioè
+    // l'orologio del film anche sulla porta corta (2,25 s di ritardo in più se
+    // l'evento va perso); ora passa da afterCurtain di fold.ts, che sceglie il
+    // ritardo con heroRestMs come tutte le altre reti a valle.
     const files: Array<[string, string]> = [
       ["app/components/HeroCinematic.tsx", soloCodice(read("app/components/HeroCinematic.tsx"))],
       ["app/lib/motion/fold.ts", soloCodice(read("app/lib/motion/fold.ts"))],
+      ["app/components/CookieConsent.tsx", soloCodice(read("app/components/CookieConsent.tsx"))],
     ];
     for (const [nome, src] of files) {
       assert.doesNotMatch(src, /\? HERO_REST_MS : HERO_REST_WARM_MS/, `${nome}: ternario a due casi, la corta cadrebbe a 6 s`);
@@ -582,6 +588,12 @@ describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
       2,
       "fold.ts: afterCurtain e foldNetFired devono leggere la rete con heroRestMs",
     );
+    // Il banner cookie non tiene un orologio suo: la rete è quella di afterCurtain,
+    // che si cancella all'handoff (V01: la rete armata dopo l'evento riapriva una
+    // scelta già fatta) e non ha né setTimeout né INTRO_EVENT scritti a mano.
+    const cookie = files[2][1];
+    assert.match(cookie, /afterCurtain\(/, "CookieConsent.tsx: la rete dopo il sipario è afterCurtain di fold.ts");
+    assert.doesNotMatch(cookie, /setTimeout\(|INTRO_EVENT/, "CookieConsent.tsx: un secondo orologio o un secondo ascoltatore dell'handoff accanto ad afterCurtain");
   });
 
   test("nessuno scrive più la chiave del film per togliersi il sipario: fixture, sonde e misure scrivono INTRO_QUIET", () => {

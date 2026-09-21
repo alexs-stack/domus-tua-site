@@ -43,6 +43,7 @@ import {
   ENUM_LEAD_INS,
   HIGHLIGHTS,
   ITEM_STOP_OPENERS,
+  SURFACE_RE,
 } from "./lexicon";
 
 // ── Modello ──────────────────────────────────────────────────────────────────
@@ -246,8 +247,12 @@ function countCues(text: string, cues: readonly RegExp[]): number {
   return cues.reduce((n, re) => (re.test(text) ? n + 1 : n), 0);
 }
 
+// La regex delle superfici è SURFACE_RE di lexicon.ts, la stessa delle evidenze: qui ne
+// stava una copia con `\b` finale, che dopo «²» non scatta mai — «30 m²» non era una
+// misura e la frase passava per atmosfera (audit del 21 settembre 2026, blocco 23,
+// secondo giro di V06).
 function hasMeasurement(text: string): boolean {
-  return /\d{1,5}(?:[.,]\d{1,2})?\s?(?:mq|m²|m2)\b/i.test(text) || /€|\beuro\b/i.test(text);
+  return SURFACE_RE.test(text) || /€|\beuro\b/i.test(text);
 }
 
 function isAtmosphere(text: string): boolean {

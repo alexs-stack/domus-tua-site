@@ -286,7 +286,57 @@ test("il manifesto del nastro entra al cue «top 70%» e riesce risalendo", asyn
 // Gruppo a IO sotto `.dt-horizon[data-on] .dt-horizon_track` (RIBBON del
 // motore): entra quando interseca lo schermo ed esce quando, risalendo, il suo
 // bordo sinistro torna oltre l'85 % della larghezza (rootMargin "0px -15% 0px 0px").
-test("il blocco del territorio entra nel nastro ed esce a destra risalendo", async ({ page, goto }) => {
+//
+// Audit del 21 settembre 2026 (blocco 23), difetto H03: nel fotogramma finale
+// il titolo a gradini cavalca la foto aerea per scelta (A18-A20, `-11vw` in
+// globals.css), ma sottotitolo, lead e link no — ogni loro riga (rettangoli del
+// Range) deve fermarsi PRIMA del bordo sinistro della foto, con un canale
+// d'aria. Prima della correzione le righe lunghe finivano sotto la foto di
+// 13,8 px a 1440×900, 42,9 a 1366×768 e 107,8 a 1024×640 (scratchpad
+// impl-G1/misura-h03.mjs); dopo il primo giro toccavano la foto a filo (0,5 px
+// a 1024, 1,3 a 1366, 7,9 a 1440: revisori del 21 settembre), perché il gruppo
+// rendeva esattamente gli 11vw dei gradini e il suo bordo destro coincideva col
+// bordo della foto. Ora il gruppo rende 11vw + 2rem, e qui si pretendono almeno
+// ARIA_MIN_PX. Il test è `@layout` (gira anche a 1366×768) e ha un giro a
+// 1024×640, il viewport minimo del corridoio (spec §9.2), dove il difetto era
+// più grande.
+const ARIA_MIN_PX = 24;
+
+/** Le righe di h4, lead e link del territorio troppo vicine alla foto aerea (o sotto). */
+const righeAddossoAllaFoto = (storia: Locator) =>
+  storia.evaluate((el, ariaMin) => {
+    const pannello = el.querySelector(".dt-horizon_panel--territory")!;
+    const foto = pannello.querySelector('[data-horizon-slide][data-bg="foto"]')!.getBoundingClientRect();
+    const h4 = pannello.querySelector("h4")!;
+    const bersagli: Array<[string, Element]> = [
+      ["h4", h4],
+      ["lead", h4.nextElementSibling!],
+      ["link", pannello.querySelector('a[href="/acquista"]')!],
+    ];
+    const out: string[] = [];
+    for (const [nome, nodo] of bersagli) {
+      const range = document.createRange();
+      range.selectNodeContents(nodo);
+      for (const r of range.getClientRects()) {
+        if (r.width < 2 || r.height < 2) continue;
+        const aria = foto.left - r.right;
+        if (aria < ariaMin) out.push(`${nome}: riga a y ${Math.round(r.top)} a ${aria.toFixed(1)}px dalla foto (minimo ${ariaMin})`);
+      }
+    }
+    return out;
+  }, ARIA_MIN_PX);
+
+/** Porta il nastro al fotogramma finale (il territorio inquadrato, lettere entrate) e restituisce la y. */
+async function fineCorsaTerritorio(page: Page, storia: Locator, lettere: Locator) {
+  const y = await storia.evaluate(
+    (el) => el.getBoundingClientRect().top + window.scrollY + (el as HTMLElement).offsetHeight - window.innerHeight,
+  );
+  await scrollNastro(page, y);
+  await expect.poll(() => minLettere(lettere), { timeout: 3_500 }).toBeGreaterThanOrEqual(0.99);
+  return y;
+}
+
+test("il blocco del territorio entra nel nastro ed esce a destra risalendo @layout", async ({ page, goto }) => {
   const vp = page.viewportSize()!;
   test.skip(vp.width < 1024 || vp.height < 640, "il nastro vive solo con MQ.corridor (D22)");
   await goto("/");
@@ -299,12 +349,11 @@ test("il blocco del territorio entra nel nastro ed esce a destra risalendo", asy
   const sinistra = () => gruppo.evaluate((el) => el.getBoundingClientRect().left / window.innerWidth);
 
   // Fine della corsa: l'ultimo fotogramma del nastro inquadra il territorio.
-  let y = await storia.evaluate(
-    (el) => el.getBoundingClientRect().top + window.scrollY + (el as HTMLElement).offsetHeight - window.innerHeight,
-  );
-  await scrollNastro(page, y);
-  await expect.poll(() => minLettere(lettere), { timeout: 3_500 }).toBeGreaterThanOrEqual(0.99);
+  let y = await fineCorsaTerritorio(page, storia, lettere);
   expect(await sinistra()).toBeLessThan(0.85);
+
+  const addosso = await righeAddossoAllaFoto(storia);
+  expect(addosso, `lead, sottotitolo o link del territorio addosso alla foto:\n${addosso.join("\n")}`).toEqual([]);
 
   // Risalita a passi da 150 px; scrub 0,25 del track, 400 ms per passo.
   for (let i = 0; i < 30 && (await sinistra()) < 0.88; i++) {
@@ -314,6 +363,28 @@ test("il blocco del territorio entra nel nastro ed esce a destra risalendo", asy
   }
   expect(await sinistra(), "il gruppo non è tornato a destra della linea d'uscita").toBeGreaterThanOrEqual(0.88);
   await expect.poll(() => maxLettere(lettere), { timeout: 1_300 }).toBeLessThan(0.1);
+});
+
+// Il viewport minimo del corridoio (1024×640, spec §9.2): qui il lead del
+// territorio prende sei righe e il difetto H03 era di 107,8 px. Solo sui
+// progetti desktop: il descrittore del telefono porta DPR 3 e tocco, e il
+// nastro non è il suo caso.
+test("a 1024×640 il testo del territorio tiene il canale d'aria dalla foto @layout", async ({ page, goto }) => {
+  const vp = page.viewportSize()!;
+  test.skip(vp.width < 1024, "misura del corridoio al minimo: solo dai progetti desktop");
+  await page.setViewportSize({ width: 1024, height: 640 });
+  await goto("/");
+  const storia = page.locator("#storia");
+  await expect(storia).toHaveAttribute("data-on", "");
+  const gruppo = storia.locator("[data-reveal-group]").filter({ has: page.locator("h4") }).first();
+  const lettere = gruppo.locator("h4 [data-c]");
+  await expect(lettere.first()).toBeAttached();
+  await fineCorsaTerritorio(page, storia, lettere);
+  const addosso = await righeAddossoAllaFoto(storia);
+  expect(addosso, `a 1024×640 il testo del territorio è addosso alla foto:\n${addosso.join("\n")}`).toEqual([]);
+  // Il pannello sta nello schermo: h4, lead e link non scendono sotto i 640 px.
+  const fondo = await gruppo.evaluate((el) => el.getBoundingClientRect().bottom);
+  expect(fondo, "il gruppo del territorio esce dal fondo dello schermo a 1024×640").toBeLessThanOrEqual(640);
 });
 
 // ── Capitolo 5: il titolo delle cinque stelle al beat 0,94 (spec §2.4, §3.6) ──

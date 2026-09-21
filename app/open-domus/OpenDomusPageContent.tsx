@@ -721,7 +721,11 @@ export default function OpenDomusPageContent() {
   return (
     <>
       <main className="flex-1">
+        {/* `tightTitle` solo in tedesco: «Besichtigung.» (368 px a 48 px) non entra
+            nei 324 px della colonna a 360 — audit del 21 settembre 2026 (blocco 23),
+            difetto V04; nelle altre quattro lingue l'H1 resta quello di ogni rotta. */}
         <PageHero
+          tightTitle={locale === "de"}
           rotta="/open-domus"
           id="top"
           eyebrow={c.heroEyebrow}

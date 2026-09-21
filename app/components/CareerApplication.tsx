@@ -487,14 +487,24 @@ export default function CareerApplication({
             <Lead className="mt-8">{c.subcopy}</Lead>
             <p className="mt-6 text-ui font-semibold uppercase tracking-[0.08em] text-graphite">{c.badge}</p>
 
-            {/* Foto squadrata, senza cornice ad arco (2026-09-10). */}
+            {/* Foto squadrata, senza cornice ad arco (2026-09-10).
+                width/height sono le misure VERE del file (1920×1280, 3:2):
+                next/image ne ricava l'aspect-ratio del segnaposto. Dichiarava
+                480×640, cioè un rettangolo verticale per una foto orizzontale, e
+                al decode tutto ciò che sta sotto risaliva di 192 px — audit del
+                21 settembre 2026 (blocco 23), difetto V05; spec §9, nessun salto
+                di layout. Il test image-ratio.test.ts confronta i numeri col file.
+                `sizes="18rem"`: la figura ha un tetto di 18rem, quindi la foto è resa
+                288 px a ogni larghezza; dichiarava «60vw» sotto 1024 (461 px a 768,
+                216 a 360: il doppio o meno del reso). DESIGN.md, «La regola dei
+                sizes»: sizes descrive i pixel chiesti (secondo giro del blocco 23). */}
             <figure className="mt-10 w-full max-w-[18rem]">
               <Image
                 src="/images/reali/team-trio.jpg"
                 alt={c.imageAlt}
-                width={480}
-                height={640}
-                sizes="(min-width: 1024px) 18rem, 60vw"
+                width={1920}
+                height={1280}
+                sizes="18rem"
                 className="h-auto w-full object-cover"
               />
             </figure>

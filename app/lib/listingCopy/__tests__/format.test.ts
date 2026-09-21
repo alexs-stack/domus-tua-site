@@ -198,6 +198,18 @@ test("un paragrafo con misure non viene mai scambiato per atmosfera", () => {
   assert.ok(blocks.every((b) => b.kind !== "atmosphere"));
 });
 
+test("una misura in m² conta come misura anche per l'atmosfera: la regex delle superfici è una sola", () => {
+  // Audit del 21 settembre 2026 (blocco 23), secondo giro di V06: hasMeasurement portava
+  // una copia della regex delle superfici con un `` finale, che dopo «²» non scatta mai,
+  // quindi «30 m²» non era una misura e la frase passava per atmosfera mentre con «30 mq»
+  // no. Da qui le due leggono SURFACE_RE di lexicon.ts.
+  const { blocks } = formatListingDescription([
+    "Apertura.",
+    "Immagina di svegliarti qui: il soggiorno di 30 m² si apre sul terrazzo e la colazione arriva col profumo del giardino.",
+  ]);
+  assert.ok(blocks.every((b) => b.kind !== "atmosphere"));
+});
+
 // ── 5. Elenchi ──────────────────────────────────────────────────────────────
 
 test("un'enumerazione di dotazioni diventa un elenco puntato", () => {
@@ -394,6 +406,34 @@ test("le superfici in m² vengono evidenziate quanto quelle in mq", () => {
       .flatMap((b) => (b.kind === "list" ? [] : b.runs))
       .filter((r) => r.t === "strong");
     assert.deepEqual(strongs.map((r) => r.v), [`45 ${unit}`], `unità non riconosciuta: ${unit}`);
+  }
+});
+
+test("le superfici con le migliaia col punto si evidenziano intere: «2.000 mq», non «000 mq»", () => {
+  // Audit del 21 settembre 2026 (blocco 23), difetto V06: su /case/2083 la regex delle
+  // superfici ammetteva al più due cifre dopo il separatore, quindi «2.000 mq» usciva
+  // in grassetto come «000 mq» — un numero che nell'annuncio non esiste. Le forme di
+  // prima (decimali con la virgola, unità attaccata, m² e m2) restano evidenziate.
+  const casi: ReadonlyArray<[string, string]> = [
+    ["Villa con giardino di 2.000 mq e piscina.", "2.000 mq"],
+    ["Terreno di circa 1.250 m² edificabile.", "circa 1.250 m²"],
+    ["Compendio di 12.500 mq recintato.", "12.500 mq"],
+    ["Uno studio di 45 m² al piano primo.", "45 m²"],
+    ["Bilocale di 60mq con balcone.", "60mq"],
+    ["Appartamento di 176,5 mq al secondo piano.", "176,5 mq"],
+    ["Capannone di oltre 1200 m2 con uffici.", "oltre 1200 m2"],
+    // Secondo giro (stessa famiglia di V06): migliaia col punto E decimali con la
+    // virgola. Prima usciva «250,50 mq», un altro numero che nell'annuncio non esiste.
+    ["Lotto di 1.250,50 mq pianeggiante.", "1.250,50 mq"],
+    ["Terreno di 2.000,5 m² agricolo.", "2.000,5 m²"],
+  ];
+  for (const [frase, atteso] of casi) {
+    const { blocks } = formatListingDescription(["Apertura.", frase]);
+    const strongs = blocks
+      .flatMap((b) => (b.kind === "list" ? [] : b.runs))
+      .filter((r) => r.t === "strong")
+      .map((r) => r.v);
+    assert.deepEqual(strongs, [atteso], `in «${frase}» il grassetto è ${JSON.stringify(strongs)}`);
   }
 });
 

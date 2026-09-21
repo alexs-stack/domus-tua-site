@@ -827,6 +827,13 @@ function SellRisks({ risks }: { risks: Copy["risks"] }) {
           <Reveal>
             <span className="eyebrow">{risks.eyebrow}</span>
           </Reveal>
+          {/* Nessuna taglia propria: sotto i 640 px `text-d1` segue la larghezza
+              per ogni testa di capitolo (globals.css, «La scala dei capitoli sotto
+              i 640 px») — audit del 21 settembre 2026 (blocco 23), difetto V04:
+              «veröffentlichen» del capitolo qui sotto in tedesco (366 px a 360)
+              usciva dallo schermo di 24 px. Il primo giro metteva una classe
+              `dt-d1-lunga` su questi due h2 e su Highlights; il secondo l'ha tolta
+              (teste dello stesso rango a due taglie sulla stessa colonna). */}
           <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
             {risks.title}
           </SplitTitle>

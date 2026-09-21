@@ -287,7 +287,19 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
           dedicata: stessa testa, stessi tre atti, stessa griglia 01-09. Chi
           scorre la home non deve leggere due volte la stessa cosa; chi vuole
           i nove passi ha un link che ce lo porta.
-          Il numero è decorativo: l'ordine lo dà già l'<ol>. */}
+          Il numero è decorativo: l'ordine lo dà già l'<ol>.
+
+          LA GRIGLIA DEI PASSI SEGUE LA PAROLA PIÙ LUNGA DELLE CINQUE LINGUE.
+          Audit del 21 settembre 2026 (blocco 23), difetto V04, secondo giro: a
+          768 px la griglia era già a tre colonne (194,6 px l'una) e il titolo a
+          d3 (24 px): «Dokumentenprüfung» (275,6 px, una parola sola, nowrap per
+          lettera) usciva dallo schermo di 19,6 px; a 1440, a d3 (40,3 px), la
+          stessa parola è larga 462 px in una colonna di 365 e correva per 97 px
+          nel margine destro. Due colonne fra 768 e 1023 (307 px a 768: entra con
+          31 px d'aria; il nono passo resta solo in fondo a sinistra) e tre da
+          1024 con il titolo a d4 (23-28 px: 297 px a 1440 in 365; a 1024 sfiora
+          la colonna di 7 px dentro il margine di 82). Lo stesso criterio dei
+          ruoli di /lavora-con-noi: la taglia segue la colonna (DESIGN.md). */}
       {compact ? (
         <div className="dt-row mt-[clamp(2rem,5vh,3.5rem)]">
           <Cta href="/metodo" variant="ghost">
@@ -295,7 +307,7 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
           </Cta>
         </div>
       ) : (
-      <ol className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-x-[4vw] gap-y-16 md:grid-cols-3">
+      <ol className="dt-row mt-[clamp(4rem,10vh,8rem)] grid gap-x-[4vw] gap-y-16 md:grid-cols-2 lg:grid-cols-3">
         {c.steps.map((s, i) => (
           <li key={s.title}>
             <RevealGroup>
@@ -304,7 +316,7 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
                   {String(i + 1).padStart(2, "0")}.
                 </span>
               </Reveal>
-              <SplitTitle as="h4" className="mt-4 font-display text-d3">
+              <SplitTitle as="h4" className="mt-4 font-display text-d3 lg:text-d4">
                 {s.title}
               </SplitTitle>
               <Reveal>

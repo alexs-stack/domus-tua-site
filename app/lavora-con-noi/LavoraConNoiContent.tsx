@@ -744,7 +744,11 @@ export default function LavoraConNoiContent() {
 
   return (
     <main className="flex-1">
+      {/* `tightTitle` solo in spagnolo: «currículums.» (356 px a 48 px) non entra nei
+          324 px della colonna a 360 — audit del 21 settembre 2026 (blocco 23), difetto
+          V04; nelle altre quattro lingue l'H1 resta quello di ogni rotta. */}
       <PageHero
+        tightTitle={locale === "es"}
         rotta="/lavora-con-noi"
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}
@@ -780,6 +784,15 @@ export default function LavoraConNoiContent() {
                     {String(i + 1).padStart(2, "0")}
                   </span>
                 </Reveal>
+                {/* La prima voce è d2, e sotto i 640 px d2 segue la larghezza per
+                    regola (globals.css, «La scala dei capitoli sotto i 640 px»):
+                    a 360 px d2 valeva 36,8 px e «l’improvvisazione» (363 px) non
+                    entrava nei 324 px della colonna; la griglia implicita si
+                    allargava alla parola e le quattro voci uscivano dallo schermo
+                    di 21 px. Audit del 21 settembre 2026 (blocco 23), difetto V04:
+                    taglia più piccola (7,4vw: 26,6 px a 360, 28,9 a 390, 36,8 da
+                    497 px), mai testo nascosto né lettere spezzate. Il primo giro
+                    aveva qui una classe `dt-d2-lunga`; il secondo l'ha tolta. */}
                 <SplitTitle as="h3" className={`mt-4 font-display ${i === 0 ? "text-d2" : "text-d3"}`}>
                   {item.title}
                 </SplitTitle>
@@ -806,7 +819,14 @@ export default function LavoraConNoiContent() {
                   key={id}
                   className="group flex h-full flex-col border-t border-line py-8"
                 >
-                  <SplitTitle as="h3" className="font-display text-d3">
+                  {/* Da lg la griglia è a tre colonne (371 px a 1440) e il titolo
+                      scende a d4: a d3 (40 px) «Immobilienberatung» è largo 459 px e
+                      copriva la colonna accanto di 88 px, «Sachbearbeitung» 384 (audit
+                      del 21 settembre 2026, blocco 23, difetto V04 — stesso criterio,
+                      taglia più piccola nella colonna stretta; DESIGN.md: «la taglia
+                      dipende dalla COLONNA»). Sotto lg le colonne sono due o una e d3
+                      ci sta. */}
+                  <SplitTitle as="h3" className="font-display text-d3 lg:text-d4">
                     {r.title}
                   </SplitTitle>
 
