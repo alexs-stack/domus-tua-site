@@ -74,6 +74,37 @@ export function evaluateLaunchReadiness(env: Env): LaunchReport {
     action: previewBadge ? "Togliere NEXT_PUBLIC_PREVIEW_BADGE in produzione" : "—",
   });
 
+  // 4) Foto e riprese della villa del video tour (spec 2026-09-13 §7: D35, A24 di Alberto).
+  //    Restano fuori dalla produzione finché la cliente non chiude per iscritto i punti 2.2
+  //    (autorizzazione del proprietario), 2.13 (licenza delle foto del fotografo) e 6.2 (chi
+  //    ha girato il video) di docs/da-chiedere-alla-cliente.md.
+  const villaCleared = isTrue(env.VILLA_MEDIA_CLEARED);
+  checks.push({
+    area: "Media",
+    check: "Foto e riprese della villa autorizzate (punti 2.2, 2.13, 6.2)",
+    status: villaCleared ? "PASS" : "BLOCKED",
+    detail: villaCleared
+      ? "VILLA_MEDIA_CLEARED=true"
+      : "licenza delle foto e autorizzazione del proprietario non ancora ricevute",
+    action: villaCleared
+      ? "—"
+      : "Chiudere 2.2, 2.13 e 6.2 con la cliente, poi VILLA_MEDIA_CLEARED=true; se negate, togliere villa-* del 13 settembre, territorio-quartiere e i loop congedo-drone e acqua prima del lancio",
+  });
+
   const blockers = checks.filter((c) => c.status === "BLOCKED").length;
   return { checks, ready: blockers === 0, blockers };
+}
+
+/**
+ * Il cancello al build per le foto e le riprese della villa (spec 2026-09-13 §7 e §11 punto 12:
+ * D35, A24 di Alberto). next.config.ts lo chiama nella fase PHASE_PRODUCTION_BUILD: su Vercel
+ * Production (VERCEL_ENV=production) il build si ferma finché VILLA_MEDIA_CLEARED non vale
+ * "true". Preview, CI e build locali non hanno VERCEL_ENV=production e passano.
+ */
+export function assertVillaMediaCleared(env: Env): void {
+  if (env.VERCEL_ENV === "production" && !isTrue(env.VILLA_MEDIA_CLEARED)) {
+    throw new Error(
+      'Build di produzione fermato: VILLA_MEDIA_CLEARED non vale "true". Foto e riprese della villa aspettano i punti 2.2, 2.13 e 6.2 di docs/da-chiedere-alla-cliente.md.',
+    );
+  }
 }

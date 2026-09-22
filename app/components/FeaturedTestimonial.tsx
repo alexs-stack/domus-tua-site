@@ -1,26 +1,53 @@
 "use client";
 
+// La testimonianza in evidenza — sul chiaro (rivista bianca, 2026-09-10):
+// il fotogramma della recensione a sinistra, a destra eyebrow, il titolo
+// reale del video in Playfair d2, un lead che dice cosa si sta per vedere e
+// il link che apre il video in pagina (VideoLightbox, lo schema di Voci.tsx).
+//
+// PERCHÉ NON C'È PIÙ LA CITAZIONE. Le frasi tra virgolette che stavano qui
+// le avevamo scritte noi e firmate «Cliente Domus Tua»
+// (docs/da-chiedere-alla-cliente.md §1.2), e PRODUCT.md vieta le recensioni
+// inventate. La sola cosa vera è il video: parole del cliente, non nostre.
+//
+// A72 (Alberto, 22 set. 2026, notte: «… ed entra la sezione di Carmine e Seguici»): in home il blocco
+// è il SECONDO PANNELLO del nastro di Costi chiari (`panel`, CostiChiari.tsx): la stessa riga a due
+// colonne, con la cornice del video che entra col sipario del nastro (data-horizon-slide: clip da
+// sinistra e scala 1,15 → 1) e dentro la foto che AFFONDA mentre il pannello attraversa lo schermo (il
+// gesto del capitolo 13 di A20, con la firma del registro: dtAffonda, scrub 1,2, agganciata al track
+// del nastro con useHorizonTrack). Fuori dalla home (D206) la foto entra con la lama (A36).
+import { useRef, useState, type MouseEvent } from "react";
 import Image from "next/image";
-import { useRef } from "react";
 import Reveal from "./Reveal";
-import MaskReveal from "./motion/MaskReveal";
-import Parallax from "./motion/Parallax";
-import TextLines from "./motion/TextLines";
-import Fioritura from "./motion/Fioritura";
-import { Star, Play } from "./Icons";
+import RevealGroup from "./motion/RevealGroup";
+import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
+import LamaMedia from "./motion/LamaMedia";
+import { useHorizonTrack } from "./motion/HorizonScroller";
+import { gsap, useGSAP } from "../lib/motion/gsap";
+import { chapters, scrubOf } from "../lib/motion/chapters";
+import VideoLightbox from "./VideoLightbox";
+import { Play } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { testimonialVideo, youtubeWatch } from "../lib/videos";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 
 type Props = {
+  /** `quote`, `author`, `context`: accettati per contratto, non più resi. */
   quote?: string;
   author?: string;
   context?: string;
   image?: string;
   alt?: string;
   videoHref?: string;
+  /** Solo la home lo passa (D28), dentro il nastro di Costi chiari (A72): il blocco è un pannello del
+      track, col sipario del nastro e la foto che affonda dentro la cornice ferma mentre il pannello
+      attraversa lo schermo (spec 2026-09-13 §3.14). Senza, la <section> con la lama (A36). */
+  panel?: boolean;
 };
 
+// `quote`, `author`, `context` restano nel record ma non vengono più resi:
+// erano parole nostre attribuite a un cliente generico (§1.2), non sue.
 const copy = {
   it: {
     eyebrow: "Una storia, tra centinaia",
@@ -28,9 +55,10 @@ const copy = {
       "Ci hanno ascoltato prima ancora di parlare di prezzo. L’appartamento è stato venduto al primo Open Domus, e noi sereni dall’inizio alla fine.",
     author: "Cliente Domus Tua",
     context: "Venduto al primo Open Domus, Tradate",
+    lead: "La recensione in video di un cliente, registrata dopo la vendita. Parole sue, non nostre.",
     alt: "Raffaela Rizza con una cliente nella video recensione Domus Tua",
-    watchVideo: "Guarda la video recensione",
-    watchVideoAria: "Guarda la video recensione su YouTube",
+    play: "Guarda",
+    watchVideo: "Guarda la recensione video",
   },
   en: {
     eyebrow: "One story, among hundreds",
@@ -38,9 +66,10 @@ const copy = {
       "They listened to us before we even talked about price. The apartment sold at the very first Open Domus, and we felt at ease from start to finish.",
     author: "Domus Tua client",
     context: "Sold at the first Open Domus, Tradate",
+    lead: "A client’s video review, recorded after the sale. Their words, not ours.",
     alt: "Raffaela Rizza with a client in the Domus Tua video testimonial",
-    watchVideo: "Watch the video testimonial",
-    watchVideoAria: "Watch the video testimonial on YouTube",
+    play: "Watch",
+    watchVideo: "Watch the video review",
   },
   fr: {
     eyebrow: "Une histoire, parmi des centaines",
@@ -48,9 +77,10 @@ const copy = {
       "Ils nous ont écoutés avant même de parler de prix. L’appartement a été vendu dès le premier Open Domus, et nous avons été sereins du début à la fin.",
     author: "Client Domus Tua",
     context: "Vendu au premier Open Domus, Tradate",
+    lead: "L’avis vidéo d’un client, enregistré après la vente. Ses mots, pas les nôtres.",
     alt: "Raffaela Rizza avec une cliente dans le témoignage vidéo Domus Tua",
-    watchVideo: "Voir le témoignage vidéo",
-    watchVideoAria: "Voir le témoignage vidéo sur YouTube",
+    play: "Regarder",
+    watchVideo: "Voir l’avis vidéo",
   },
   de: {
     eyebrow: "Eine Geschichte, unter Hunderten",
@@ -58,9 +88,10 @@ const copy = {
       "Sie haben uns zugehört, noch bevor über den Preis gesprochen wurde. Die Wohnung wurde schon beim ersten Open Domus verkauft, und wir waren von Anfang bis Ende entspannt.",
     author: "Domus Tua Kundin",
     context: "Beim ersten Open Domus verkauft, Tradate",
+    lead: "Die Videobewertung eines Kunden, aufgenommen nach dem Verkauf. Seine Worte, nicht unsere.",
     alt: "Raffaela Rizza mit einer Kundin im Domus Tua Video-Testimonial",
-    watchVideo: "Video-Testimonial ansehen",
-    watchVideoAria: "Video-Testimonial auf YouTube ansehen",
+    play: "Ansehen",
+    watchVideo: "Die Videobewertung ansehen",
   },
   es: {
     eyebrow: "Una historia, entre cientos",
@@ -68,286 +99,223 @@ const copy = {
       "Nos escucharon antes incluso de hablar de precio. El piso se vendió en el primer Open Domus, y estuvimos tranquilos de principio a fin.",
     author: "Cliente de Domus Tua",
     context: "Vendido en el primer Open Domus, Tradate",
+    lead: "La reseña en vídeo de un cliente, grabada tras la venta. Sus palabras, no las nuestras.",
     alt: "Raffaela Rizza con una clienta en el testimonio en vídeo de Domus Tua",
-    watchVideo: "Ver el testimonio en vídeo",
-    watchVideoAria: "Ver el testimonio en vídeo en YouTube",
+    play: "Ver",
+    watchVideo: "Ver la reseña en vídeo",
   },
 };
 
 export default function FeaturedTestimonial(props: Props) {
   const { locale } = useLocale();
   const c = copy[locale];
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const glyphRef = useRef<HTMLSpanElement | null>(null);
-  const starsRef = useRef<HTMLSpanElement | null>(null);
 
-  // Un'unica timeline all'ingresso della card: la virgoletta si "posa"
-  // (scala + rotazione), poi le stelle sbocciano in sequenza. Solo transform.
-  // TextLines resta autonomo: ha la sua maschera per righe.
+  // Il video aperto in pagina, o null (stesso schema di Voci.tsx).
+  const [open, setOpen] = useState<{ id: string; title: string } | null>(null);
+
+  const image = props.image ?? "/images/reali/recensione-clienti.jpg";
+  const alt = props.alt ?? c.alt;
+  const href = props.videoHref ?? youtubeWatch(testimonialVideo.id);
+  const title = testimonialVideo.title;
+
+  // Il clic semplice apre il video in pagina; cmd/ctrl/shift/tasto centrale
+  // — o un `videoHref` diverso dal video-testimonianza — lasciano fare al link.
+  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (props.videoHref || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    setOpen({ id: testimonialVideo.id, title });
+  };
+
+  const panel = props.panel ?? false;
+  const frameRef = useRef<HTMLAnchorElement | null>(null);
+  const sinkRef = useRef<HTMLDivElement | null>(null);
+  const track = useHorizonTrack();
+
+  // La foto affonda dentro la cornice ferma (A20 di Alberto, spec 2026-09-13 §3.14): il contenitore
+  // alto il 110 % scende di 9,0909 % di sé, cioè del 10 % della cornice. A72: nel nastro il gesto è
+  // agganciato al TRACK (containerAnimation, come i sipari): parte quando il pannello entra dal bordo
+  // destro dello schermo e finisce quando ne è uscito a sinistra, con l'ease e lo scrub del registro
+  // (chapters.ts `testimonianza`: dtAffonda, 1,2; D18). Solo col nastro acceso: il canale del track
+  // chiama solo nel corridoio con motion ok, e riprende la sua pulizia quando il track muore. Nessuno
+  // stato iniziale scritto: yPercent 0 è lo stato del CSS.
   useGSAP(
     () => {
-      const card = cardRef.current;
-      if (!card) return;
-      const mm = gsap.matchMedia();
-
-      // DUE CONTESTI. L'ingresso non dipende dal puntatore né dalla larghezza;
-      // la parallasse sì. Tenerli insieme vorrebbe dire che GSAP reverte e
-      // ricostruisce ANCHE l'ingresso a ogni attraversamento dei 1024 — e la
-      // timeline riparte dal suo from-state (virgoletta a scale 0.7 e ruotata,
-      // stelle a 0.6) con `toggleActions` che sullo slot onLeave non fa nulla:
-      // se la card è già passata, resta rimpicciolita e storta fino a un nuovo
-      // ingresso dall'alto.
-      mm.add(MQ.motionOk, () => {
-        const tl = gsap.timeline({
-          // Replay a ogni passaggio: restart all'ingresso, reverse risalendo
-          // (niente clearProps: la timeline resta riavvolgibile).
-          scrollTrigger: { trigger: card, start: "top 82%", toggleActions: "restart none none reverse" },
-        });
-        if (glyphRef.current) {
-          tl.fromTo(
-            glyphRef.current,
-            { scale: 0.7, rotate: -6 },
-            {
-              scale: 1,
-              rotate: 0,
-              duration: 1,
-              ease: "expo.out",
+      const frame = frameRef.current;
+      const sink = sinkRef.current;
+      if (!panel || !frame || !sink || !track) return;
+      return track((tween) => {
+        const tw = gsap.fromTo(
+          sink,
+          { yPercent: 0 },
+          {
+            yPercent: 9.0909,
+            ease: chapters.testimonianza.signature.ease,
+            scrollTrigger: {
+              trigger: frame.closest<HTMLElement>(".dt-horizon_panel") ?? frame,
+              containerAnimation: tween,
+              start: "left right",
+              end: "right left",
+              scrub: scrubOf("testimonianza"),
+              invalidateOnRefresh: true,
+              onToggle: (self) => {
+                sink.style.willChange = self.isActive ? "transform" : "";
+              },
             },
-            0
-          );
-        }
-        if (starsRef.current) {
-          tl.fromTo(
-            starsRef.current.children,
-            { scale: 0.6, transformOrigin: "50% 50%" },
-            {
-              scale: 1,
-              duration: 0.6,
-              ease: "back.out(1.6)",
-              stagger: 0.06,
-            },
-            0.55
-          );
-        }
-      });
-
-      /* PARALLASSE DA PUNTATORE A LENTE LUNGA.
-           Rif. _refs/three-skull — vedi docs/effetti-reference.md §2.5.
-           Due piani che TRASLANO, mai che ruotano: il tilt su una card
-           editoriale con dentro una citazione lunga la fa "ondeggiare" e il
-           testo diventa faticoso. La traslazione dà profondità senza spostare
-           niente di leggibile.
-           Quote fisse: 5% per la fotografia (piano lontano), 3% in senso
-           CONTRARIO per la virgoletta (piano vicino). È l'opposizione a fare
-           la profondità, non l'ampiezza.
-           quickTo = smorzamento critico: il piano insegue il puntatore senza
-           rimbalzare e senza creare una tween nuova a ogni mousemove.
-           Sul dito resta spenta PER SEMPRE, e non è un buco della parità
-           mobile: senza puntatore non c'è nessun bersaglio da inseguire, e
-           l'effetto semplicemente non esiste.
-           La soglia sta nelle condizioni e non in un window.matchMedia letto a
-           mano: prima si decideva una volta sola all'idratazione, e un tablet
-           ruotato restava con la scelta di prima. */
-      mm.add(`${MQ.motionOk} and ${MQ.lg} and ${MQ.finePointer}`, () => {
-        const photo = card.querySelector<HTMLElement>("[data-ft-photo]");
-        const glyph = glyphRef.current;
-        const set = (el: HTMLElement | null, amt: number) =>
-          el
-            ? {
-                x: gsap.quickTo(el, "x", { duration: 0.7, ease: "power3" }),
-                y: gsap.quickTo(el, "y", { duration: 0.7, ease: "power3" }),
-                amt,
-              }
-            : null;
-        const planes = [set(photo, 0.05), set(glyph, -0.03)].filter(Boolean) as {
-          x: gsap.QuickToFunc;
-          y: gsap.QuickToFunc;
-          amt: number;
-        }[];
-        const onMove = (e: PointerEvent) => {
-          const r = card.getBoundingClientRect();
-          // Bersaglio fisso al centro della card: normalizzato -1..1.
-          const nx = (e.clientX - r.left) / r.width - 0.5;
-          const ny = (e.clientY - r.top) / r.height - 0.5;
-          planes.forEach((p) => {
-            p.x(nx * r.width * p.amt);
-            p.y(ny * r.height * p.amt);
-          });
-        };
-        const onLeave = () => planes.forEach((p) => (p.x(0), p.y(0)));
-        card.addEventListener("pointermove", onMove);
-        card.addEventListener("pointerleave", onLeave);
+          },
+        );
         return () => {
-          card.removeEventListener("pointermove", onMove);
-          card.removeEventListener("pointerleave", onLeave);
+          tw.scrollTrigger?.kill();
+          tw.kill();
+          sink.style.willChange = "";
+          gsap.set(sink, { clearProps: "transform" });
         };
       });
     },
-    { scope: cardRef }
+    { dependencies: [panel, track], revertOnUpdate: true },
   );
 
-  const defaults = {
-    quote: c.quote,
-    author: c.author,
-    context: c.context,
-    image: "/images/reali/consulenza.jpg",
-    alt: c.alt,
-    videoHref: youtubeWatch(testimonialVideo.id),
-  };
+  // `dt-still-trim--top` toglie la banda col titolo cotta in cima alla
+  // copertina di YouTube («VIDEO RECENSIONE / APPARTAMENTO VENDUTO AL PRIMO
+  // OPEN DOMUS»): sopra un titolo gia' stampato nei pixel non se ne mette un
+  // secondo. Il cuore Domus in basso a destra resta: e' il loro marchio, non la
+  // grafica di YouTube. Il trim vale SOLO su quella copertina (D218): su
+  // `consulenza.jpg` di /acquista tagliava la testa di Raffaela al 72 % senza
+  // un titolo cotto da togliere (D201).
+  const cotta = image.endsWith("recensione-clienti.jpg");
+  const foto = (
+    <Image
+      src={image}
+      alt={alt}
+      fill
+      sizes={panel ? "(max-width:1024px) 132vw, 61vw" : "(max-width:1024px) 132vw, 56vw"}
+      // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
+      quality={75}
+      className={cotta ? "dt-still-trim--top object-cover" : "object-cover"}
+    />
+  );
+  // 56px sul telefono, 96 da desktop: la stessa regola del carosello delle
+  // voci — il cerchio grande copriva i volti sulla tessera.
+  const play = (
+    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-105 lg:h-24 lg:w-24">
+      <Play className="ml-1 h-5 w-5 lg:h-7 lg:w-7" />
+    </span>
+  );
 
-  const { quote, author, context, image, alt, videoHref } = { ...defaults, ...props };
-
-  return (
-    <section data-tone="paper" className="relative bg-paper">
-      {/* LA LASTRA — la fotografia non è più una colonna dentro una card: è una
-          banda a tutta larghezza con la citazione sopra, in crema.
-          Il `py` esterno NON è un ripensamento: la superficie continua deve
-          restare visibile sopra e sotto, così la lastra legge come CONTENUTO
-          dentro la pagina e non come un secondo fondo che la interrompe. È la
-          differenza fra «immagine grande» e il «taglio» che abbiamo tolto. */}
-      <div className="py-16 sm:py-24">
-        <div ref={cardRef} className="relative isolate overflow-hidden bg-ink">
-          {/* Il sipario da destra era già il gesto di questa sezione: ora
-              attraversa tutto lo schermo invece di mezza card.
-              data-ft-photo: il piano lontano della parallasse da puntatore.
-              Sta DENTRO la maschera e FUORI dal Parallax di scroll, così i due
-              movimenti non si contendono la stessa transform.
-              Il Parallax di scroll è `mobile`: sul telefono la parallasse da
-              puntatore non esiste (non c'è puntatore) e questa lastra è la
-              fotografia più grande della home. Restava l'unica immagine a
-              piena larghezza completamente immobile — che è precisamente il
-              momento in cui una foto grande legge come uno sfondo incollato.
-              Il velo sta anch'esso DENTRO la maschera: fuori, prima che il
-              sipario si apra, si vedrebbe un rettangolo scuro a tutta pagina —
-              esattamente la giuntura che non vogliamo. */}
-          <MaskReveal from="right" zoom={1.1} className="absolute inset-0" innerClassName="absolute inset-0">
-            <div data-ft-photo className="dt-mob-band absolute inset-0">
-              <Parallax speed={0.12} scale={1.12} mobile className="absolute inset-0" innerClassName="absolute inset-0">
-                <Image
-                  src={image}
-                  alt={alt}
-                  fill
-                  sizes="100vw"
-                  // Niente `priority`: l'unica immagine prioritaria del sito è
-                  // l'hero. 75 è uno dei valori configurati in images.qualities.
-                  quality={75}
-                  className="photo-warm object-cover"
-                  // A tutta larghezza il ritaglio è severo: il sorgente è quasi
-                  // quadrato (1920×1625) e centrato terrebbe in campo la
-                  // scrivania tagliando i volti. 42% inquadra la consulenza.
-                  style={{ objectPosition: "50% 42%" }}
-                />
-              </Parallax>
-            </div>
-            <span
-              aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/45 to-ink/20"
-            />
-          </MaskReveal>
-
-          {/* IL TRALCIO — DENTRO la lastra, nell'angolo in alto a sinistra
-              (2026-08-09, direttiva cliente: «i fiori vanno dentro la card, in
-              questo caso l'immagine»). Prima nasceva sul crema e scavalcava il
-              bordo alto della lastra; adesso l'`overflow: hidden` della lastra
-              lo rifila e il tralcio fiorisce sulla fotografia.
-              Sta DOPO la MaskReveal (quindi sopra la foto e il velo) e PRIMA
-              della colonna di testo (quindi sotto la citazione): l'ordine del
-              DOM è l'ordine di pittura, ed è così che la regola «mai un fiore
-              sopra un testo» regge da sola. In alto a sinistra, poi, il testo
-              non c'è: la prima riga della colonna è il tondo del video, ancorato
-              a destra.
-              `palette="dark"`: il fondo qui è fotografia velata di scuro, e su
-              quella i rossi di brand si spengono. È la stessa scelta già presa
-              per i due tralci che vivono su una foto (Metodo, lastra Servizi).
-              Acceso anche sotto lg (onda «parità mobile 2», verdetto 6): a 390
-              l'angolo alto a sinistra è libero come sul desktop — la prima
-              riga della colonna è il tondo del video, a destra — e il box è
-              117px quadrati (`w-[30vw]`), con dpr 1,5 e tetto 900 dentro
-              Fioritura. È l'unica Fioritura della sezione. */}
-          <Fioritura
-            variant="corner-tl"
-            palette="dark"
-            className="pointer-events-none absolute left-0 top-0 h-[16vh] w-[30vw] lg:h-[26vh] lg:w-[12vw]"
-          />
-
-          {/* La colonna di testo detta l'altezza della lastra: la foto è
-              `absolute inset-0` e si adatta, quindi non esiste una misura
-              scritta due volte che possa divergere. */}
-          <div className="relative mx-auto flex min-h-[74svh] max-w-[1240px] flex-col justify-between gap-12 px-5 py-12 sm:px-8 sm:py-16">
-            {/* In alto solo il richiamo al video: l'angolo alto-sinistro resta
-                libero per il tralcio (regola: mai un fiore sopra un testo). */}
-            <div className="flex justify-end">
-              <Reveal>
-                <a
-                  href={videoHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={c.watchVideoAria}
-                  className="group flex h-16 w-16 items-center justify-center rounded-full bg-paper/90 text-red shadow-lg transition-transform duration-300 hover:scale-110"
-                >
-                  <Play className="h-6 w-6" />
-                </a>
-              </Reveal>
-            </div>
-
-            <div>
-              <Reveal>
-                <span className="eyebrow eyebrow-light">{c.eyebrow}</span>
-                {/* Segno tipografico editoriale: virgoletta fuori scala. Sul
-                    velo scuro il rosso al 20% sparirebbe: qui sta al 55%. */}
-                <span
-                  ref={glyphRef}
-                  aria-hidden
-                  className="mt-2 block font-display text-[5.5rem] italic leading-[0.5] text-red/55"
-                >
-                  “
-                </span>
-              </Reveal>
-              {/* IL CUORE DELLA SEZIONE. Era `text-2xl/[2rem]`, cioè un
-                  paragrafo: adesso è un gradino display (d3, che porta con sé
-                  la propria interlinea) e le righe salgono dalla maschera.
-                  `exit`: risalendo la pagina la citazione se ne va dalla parte
-                  opposta invece di restare ferma. */}
-              <TextLines
-                as="blockquote"
-                exit
-                stagger={0.1}
-                className="mt-6 font-display text-d3 font-medium tracking-tight text-paper"
-              >
-                {quote}
-              </TextLines>
-              <Reveal delay={120}>
-                {/* Le stelle del VOTO sono oro in tutto il sito (eccezione
-                    dichiarata in globals.css): il rosso resta il marchio, non
-                    la valutazione. */}
-                <span ref={starsRef} className="mt-8 flex gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-gold" />
-                  ))}
-                </span>
-                <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-paper/25 pt-6">
-                  <div className="leading-tight">
-                    <span className="block text-sm font-semibold text-paper">{author}</span>
-                    <span className="block text-[0.8rem] text-paper/75">{context}</span>
-                  </div>
-                  <a
-                    href={videoHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group inline-flex items-center gap-2.5 rounded-full border border-paper/35 bg-paper/10 py-2.5 pl-2.5 pr-5 text-sm font-semibold text-paper transition-all duration-300 hover:border-paper hover:bg-paper hover:text-ink"
-                  >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red text-white transition-transform duration-300 group-hover:scale-110">
-                      <Play className="h-3.5 w-3.5" />
-                    </span>
-                    {c.watchVideo}
-                  </a>
-                </div>
-              </Reveal>
-            </div>
-          </div>
+  // Il link è la cornice: non si muove mai (nessun transform suo: il sipario è un clip-path, la scala
+  // sta sul figlio [data-horizon-slide-img] e l'affondo sul nipote [data-sink]), il bersaglio del dito
+  // resta fermo e l'outline di focus sta fuori dal suo overflow. `data-bg="foto"` dice al monogramma
+  // che qui sotto c'è una foto (A21, spec §6.1). Con `panel` il contenitore della foto è alto il 110 %
+  // (overscan del 10 %) e la sizes sale a 61vw: cornice 605×340 a 1440, cover 665 px × 1,30 = 865 px
+  // (spec §3.14).
+  const linkPanel = (
+    <a
+      ref={frameRef}
+      data-horizon-slide
+      data-sink-frame
+      data-bg="foto"
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${c.play}: ${title}`}
+      onClick={onClick}
+      className="dt-media-half !aspect-video group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
+    >
+      <div data-horizon-slide-img className="absolute inset-0">
+        <div ref={sinkRef} data-sink="" className="absolute inset-x-0 bottom-0 top-[-10%]">
+          {foto}
         </div>
       </div>
+      {play}
+    </a>
+  );
+  // Fuori dalla home (D206: D28 superata) la foto entra con la lama (A36): il
+  // link AVVOLGE il modulo e non riceve clip ne' transform (D208, come Voci); il
+  // cerchio del play sta dentro il ritaglio, dopo l'interno, e entra con la
+  // foto. `data-bg` passa sul modulo: avorio da chiusa, foto dall'entrata (D210).
+  // La copertina cotta entra col solo bordo (X 0, D218); `consulenza.jpg` di
+  // /acquista da sinistra con scivolo 10 (la cliente tocca il bordo destro).
+  const linkLama = (
+    <a
+      ref={frameRef}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${c.play}: ${title}`}
+      onClick={onClick}
+      className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
+    >
+      <LamaMedia
+        id={cotta ? "testimonianza-recensione" : "testimonianza-consulenza"}
+        className="dt-media-half !aspect-video"
+        data-bg="foto"
+        data-sink-frame=""
+        sopra={play}
+      >
+        {foto}
+      </LamaMedia>
+    </a>
+  );
 
+  const testo = (
+    <>
+      <Reveal>
+        <span className="eyebrow">{c.eyebrow}</span>
+      </Reveal>
+      {/* Il titolo È quello del video sul canale: non si traduce, non si riscrive. */}
+      <SplitTitle as="h2" className="mt-6 font-display text-d2">
+        {title}
+      </SplitTitle>
+      <Lead className="mt-6">{c.lead}</Lead>
+      <Reveal delay={140}>
+        {/* Nel nastro (A72; Alberto: «le scritte e i bottoni sono troppo piccole») il rilancio del video è il
+            bottone a contorno grande (cta lg), secondo al pieno rosso del claim che lo precede; fuori dalla
+            home resta il link ghost. */}
+        <Cta
+          href={href}
+          variant={panel ? "cta" : "ghost"}
+          size={panel ? "lg" : "md"}
+          className="mt-8"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${c.watchVideo}: ${title}`}
+          onClick={onClick}
+        >
+          {c.watchVideo}
+        </Cta>
+      </Reveal>
+    </>
+  );
+
+  if (panel) {
+    return (
+      /* Il pannello del nastro (A72): la riga a due colonne del sito, la cornice del video a sinistra col
+         sipario e la foto che affonda, a destra i testi come gruppo del motore dei reveal (nel nastro
+         entrano quando sono in scena, spec §2.4). In colonna il pannello prende il passo dei blocchi. */
+      <div className="dt-horizon_panel dt-cc_panel dt-cc_panel--carmine relative flex items-center">
+        <div className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+          {linkPanel}
+          <RevealGroup className="lg:pl-[6vw]">{testo}</RevealGroup>
+        </div>
+        <VideoLightbox video={open} onClose={() => setOpen(null)} />
+      </div>
+    );
+  }
+
+  return (
+    <section className="dt-chapter bg-cream">
+      <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
+        {/* Il fotogramma è 1280×720: sta nel modulo «banda» (16:9), non in un
+            quadrato — il file porta il titolo del video cotto nella fascia
+            alta e un taglio 1:1 lo mozzerebbe. Su /vendi, /acquista e
+            /recensioni entra con la lama (A36, D206-D207: via la deriva
+            ±0,56 % di Parallax, sotto la soglia di percezione). Il cerchio
+            rosso è l'unica curva. */}
+        {linkLama}
+
+        <div className="lg:pl-[6vw]">{testo}</div>
+      </div>
+
+      <VideoLightbox video={open} onClose={() => setOpen(null)} />
     </section>
   );
 }

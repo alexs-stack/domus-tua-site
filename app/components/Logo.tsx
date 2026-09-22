@@ -90,7 +90,12 @@ export function Logo({
 
   if (status === "loading") {
     // Segnaposto invisibile che riserva lo spazio (nessun broken-image, nessun layout shift).
-    return <span aria-hidden style={{ display: "inline-block", width: brand.width, height: brand.height }} />;
+    // A46 (Alberto, 21 set. 2026: CLS 0 sulle teste, misurato sui pixel a sei viewport): riservava
+    // 200 × 37 px fissi, mentre l'<img> qui sotto è resa con la classe della testata
+    // (`w-[clamp(150px,13vw,210px)] h-auto`: 150 × 28 a 390 px) e il link si spostava di 4 px al
+    // carico su ogni rotta del telefono. Ora porta la stessa classe e il rapporto dell'immagine:
+    // la scatola vuota ha la misura resa a ogni larghezza (logo-segnaposto.test.ts).
+    return <span aria-hidden className={className} style={{ display: "inline-block", aspectRatio: `${brand.width} / ${brand.height}` }} />;
   }
 
   return (

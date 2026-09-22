@@ -1,0 +1,21 @@
+{
+  "file": "/images/reali/villa-piscina-lunga-alta-cielo.webp",
+  "sorgente": [
+    2560,
+    3816
+  ],
+  "cielo": {
+    "linea": 0.427,
+    "cima": 0.267
+  },
+  "segno": [
+    [
+      0.438,
+      0.667
+    ],
+    [
+      0.766,
+      1
+    ]
+  ]
+}

@@ -131,7 +131,11 @@ export const faq: Record<Locale, FaqGroup[]> = {
         {
           id: "zone",
           q: "In quali zone lavorate?",
-          a: `Tradate e i comuni di ${territoryLabel}, fra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Lavoriamo dove viviamo: conosciamo il valore di ogni via perché è anche la nostra.`,
+          // «Tradate e i comuni di la provincia…» era il refuso di H03 (audit del 21 settembre
+          // 2026, blocco 23, secondo giro): la label di site.ts comincia con l'articolo, quindi
+          // la frase non interpola più un «di» davanti (territorio-copy.test.ts). Vale anche
+          // per il JSON-LD FAQPage, che legge questa stessa stringa.
+          a: `Tradate, ${territoryLabel}, fra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Lavoriamo dove viviamo: conosciamo il valore di ogni via perché è anche la nostra.`,
         },
         {
           id: "sede-orari",

@@ -1,31 +1,44 @@
 "use client";
 
-import { useRef } from "react";
+import { useId, useRef } from "react";
+import Image from "next/image";
+import Hairline, { useHairlineSheet } from "./motion/Hairline";
 import Reveal from "./Reveal";
-import Parallax from "./motion/Parallax";
-import CharFlip from "./motion/CharFlip";
-import TextLines from "./motion/TextLines";
-import Fioritura from "./motion/Fioritura";
-import { SegnoDomus, SegnoDomusBadge, SegnoTick } from "./BrandMotif";
-import { ArrowUpRight, ArrowRight, Star } from "./Icons";
+import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ, dur, stagger } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP } from "../lib/motion/gsap";
+import { MQ } from "../lib/motion/mq";
+import { chapters } from "../lib/motion/chapters";
 
 // Domus D.O.C. — Domus di Origine Certificata.
 // Protocollo proprietario in 5 pilastri: Documenti, Conformità, Trasparenza, Preparazione, Tutela.
 // Ogni pilastro porta un beneficio per chi vende E uno per chi compra (doppio valore).
 // Posizionamento: "il protocollo Domus Tua per rendere più chiaro, verificato e sicuro il
 // percorso immobiliare". CTA: "Scopri come proteggiamo la vendita".
+//
+// A59 (Alberto, 22 set. 2026, sera: «aggiungere animazione e rendere più bella la sezione D.O.C.
+// della home, mettendo più foto»). Com'è fatta oggi: IL FOGLIO DELLE FOTO. La lista dei pilastri
+// sta a sinistra, in una colonna sola; a destra una cornice sticky (da lg) tiene cinque foto, una
+// per pilastro, e sfoglia mentre si legge: il pilastro che passa il 62 % dello schermo diventa
+// quello attivo, il suo trattino rosso si allunga, gli altri pilastri scendono in pietra, e la
+// sua foto entra dal basso (dall'alto risalendo) con la tendina a spigolo vivo e la scala 1,08 → 1
+// — la stessa grammatica del sipario del nastro, senza scala fuori dalla foto —, mentre la
+// cornice prende l'altezza del suo sorgente: NESSUNA foto è tagliata, la scatola segue il
+// rapporto (la regola dei tre moduli) e la cornice respira fra 2:3 e 3:2. Il sigillo D.O.C. è
+// un anello di testo che gira in senso orario (come il monogramma, C06), 24 s a giro, a 16 px.
+// Sotto lg la cornice sta sopra la lista, non sticky, e sfoglia lo stesso; con reduced-motion o
+// senza JS resta la prima foto, ferma, e i pilastri tutti in grafite: la pagina è completa.
 
-type Pillar = { t: string; seller: string; buyer: string };
+type Pillar = { t: string; seller: string; buyer: string; alt: string };
 
 const copy = {
   it: {
     eyebrow: "Protocollo proprietario",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Il protocollo interno di Domus Tua per la verifica documentale e tecnico-urbanistica degli immobili che trattiamo: anticipa i controlli invece di subirli in trattativa. Chi vende ha una trattativa più solida, chi compra vede i problemi quando c’è ancora tempo per risolverli.",
+      "Verifichiamo documenti, catasto e urbanistica prima di mettere la casa sul mercato, così i controlli non arrivano in trattativa.",
     // ─────────────────────────────────────────────────────────────────────────
     // PROMESSE DI AZIONE, NON DI RISULTATO.
     //
@@ -51,35 +64,40 @@ const copy = {
         t: "Documenti",
         seller: "Raccogliamo tutti i documenti prima di partire: è la causa più frequente di trattative che saltano.",
         buyer: "Sai cosa stai comprando, nero su bianco, fin dalla prima visita.",
+        alt: "Uno studio luminoso con la scrivania in rovere sotto le travi bianche e la finestra ad arco sulle colline",
       },
       {
         t: "Conformità",
         seller: "Controlliamo catasto, urbanistica e impianti prima di pubblicare, non durante la trattativa.",
         buyer: "Se c’è un problema, lo troviamo noi — quando c’è ancora tempo per risolverlo.",
+        alt: "L'ingresso di una villa con la scala in rovere e il parapetto di vetro, un ulivo in vaso sotto la finestra ad arco",
       },
       {
         t: "Trasparenza",
         seller: "Acquirenti più sicuri e informati: offerte più concrete e serie.",
         buyer: "Decidi con tutte le informazioni in mano, senza zone d’ombra.",
+        alt: "Raffaela Rizza nel soggiorno di una villa, che mostra la vetrata aperta sul prato e sulla piscina",
       },
       {
         t: "Preparazione",
         seller: "La casa si presenta al suo valore reale, valorizzata e raccontata bene.",
         buyer: "Capisci subito il potenziale dell’immobile, non solo lo stato di fatto.",
+        alt: "La terrazza di una villa bianca affacciata sulle colline",
       },
       {
         t: "Tutela",
         seller: "Un riferimento umano che protegge la vendita in ogni fase, fino al rogito.",
         buyer: "Un percorso accompagnato e sicuro fino alla firma dal notaio.",
+        alt: "Raffaela Rizza sotto il portico di una villa, col glicine sulla pergola e la piscina sul prato",
       },
     ] as Pillar[],
-    footnote: "Un unico protocollo per ogni incarico Domus Tua: verifiche documentali e tecnico-urbanistiche svolte prima della messa sul mercato. Domus D.O.C. è uno standard interno di Domus Tua, non una certificazione rilasciata da terzi.",
+    footnote: "Domus D.O.C. è uno standard interno di Domus Tua, applicato a ogni incarico: non una certificazione rilasciata da terzi.",
   },
   en: {
     eyebrow: "Proprietary protocol",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Domus Tua's internal protocol for the document and planning checks on the properties we handle: it brings the checks forward instead of meeting them mid-negotiation. Sellers get a stronger negotiation, buyers see the problems while there is still time to fix them.",
+      "We check paperwork, land registry and planning before the home goes to market, so the checks never land mid-negotiation.",
     sellerLabel: "For sellers",
     buyerLabel: "For buyers",
     cta: "See how we protect your sale",
@@ -88,35 +106,40 @@ const copy = {
         t: "Documents",
         seller: "We gather every document before going to market: a missing paper is the most common reason deals fall through.",
         buyer: "You know what you’re buying, in black and white, from the very first viewing.",
+        alt: "A bright study with an oak desk under white beams and an arched window over the hills",
       },
       {
         t: "Compliance",
         seller: "We check land registry, planning and building systems before listing, not during negotiations.",
         buyer: "If there is a problem, we are the ones who find it — while there is still time to fix it.",
+        alt: "The entrance of a villa with an oak staircase and glass balustrade, a potted olive tree under the arched window",
       },
       {
         t: "Transparency",
         seller: "More confident, informed buyers: more concrete, serious offers.",
         buyer: "You decide with every piece of information in hand, with no grey areas.",
+        alt: "Raffaela Rizza in the living room of a villa, showing the glass wall open onto the lawn and the pool",
       },
       {
         t: "Preparation",
         seller: "The home shows at its true value, enhanced and told well.",
         buyer: "You grasp the property’s potential right away, not just its current state.",
+        alt: "The terrace of a white villa overlooking the hills",
       },
       {
         t: "Protection",
         seller: "A human point of reference protecting the sale at every step, up to the deed.",
         buyer: "A guided, safe path all the way to signing at the notary.",
+        alt: "Raffaela Rizza under the portico of a villa, with wisteria on the pergola and the pool on the lawn",
       },
     ] as Pillar[],
-    footnote: "One protocol for every Domus Tua mandate: document and planning checks carried out before going to market. Domus D.O.C. is an internal Domus Tua standard, not a certification issued by a third party.",
+    footnote: "Domus D.O.C. is an internal Domus Tua standard applied to every mandate: not a certification issued by a third party.",
   },
   fr: {
     eyebrow: "Protocole propriétaire",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Le protocole interne de Domus Tua pour la vérification documentaire et technique des biens que nous traitons : il anticipe les contrôles au lieu de les subir en négociation. Le vendeur a une négociation plus solide, l’acquéreur voit les problèmes quand il est encore temps de les régler.",
+      "Nous vérifions documents, cadastre et urbanisme avant la mise sur le marché, pour que les contrôles n’arrivent pas en négociation.",
     sellerLabel: "Pour les vendeurs",
     buyerLabel: "Pour les acquéreurs",
     cta: "Découvrez comment nous protégeons la vente",
@@ -125,35 +148,40 @@ const copy = {
         t: "Documents",
         seller: "Nous réunissons tous les documents avant de commencer : c’est la cause la plus fréquente des négociations qui échouent.",
         buyer: "Vous savez ce que vous achetez, noir sur blanc, dès la première visite.",
+        alt: "Un bureau lumineux avec une table en chêne sous les poutres blanches et une fenêtre en arc sur les collines",
       },
       {
         t: "Conformité",
         seller: "Nous vérifions cadastre, urbanisme et installations avant la mise en ligne, pas pendant la négociation.",
         buyer: "S’il y a un problème, c’est nous qui le trouvons — quand il est encore temps de le régler.",
+        alt: "L’entrée d’une villa avec l’escalier en chêne et le garde-corps en verre, un olivier en pot sous la fenêtre en arc",
       },
       {
         t: "Transparence",
         seller: "Des acquéreurs plus sûrs et informés : des offres plus concrètes et sérieuses.",
         buyer: "Vous décidez avec toutes les informations en main, sans zones d’ombre.",
+        alt: "Raffaela Rizza dans le séjour d’une villa, montrant la baie vitrée ouverte sur la pelouse et la piscine",
       },
       {
         t: "Préparation",
         seller: "Le bien se présente à sa vraie valeur, mis en valeur et bien raconté.",
         buyer: "Vous saisissez tout de suite le potentiel du bien, pas seulement son état.",
+        alt: "La terrasse d’une villa blanche donnant sur les collines",
       },
       {
         t: "Protection",
         seller: "Un interlocuteur humain qui protège la vente à chaque étape, jusqu’à l’acte.",
         buyer: "Un parcours accompagné et sûr jusqu’à la signature chez le notaire.",
+        alt: "Raffaela Rizza sous le portique d’une villa, la glycine sur la pergola et la piscine sur la pelouse",
       },
     ] as Pillar[],
-    footnote: "Un seul protocole pour chaque mandat Domus Tua : vérifications documentaires et techniques réalisées avant la mise sur le marché. Domus D.O.C. est un standard interne de Domus Tua, non une certification délivrée par un tiers.",
+    footnote: "Domus D.O.C. est un standard interne de Domus Tua, appliqué à chaque mandat : non une certification délivrée par un tiers.",
   },
   de: {
     eyebrow: "Eigenes Protokoll",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "Das interne Protokoll von Domus Tua für die Unterlagen- und Baurechtsprüfung der Immobilien, die wir betreuen: Es zieht die Prüfungen vor, statt sie in der Verhandlung zu erleiden. Verkäufer erhalten eine solidere Verhandlung, Käufer sehen Probleme, solange noch Zeit bleibt, sie zu lösen.",
+      "Wir prüfen Unterlagen, Kataster und Baurecht, bevor das Haus auf den Markt kommt, damit keine Prüfung mitten in die Verhandlung fällt.",
     sellerLabel: "Für Verkäufer",
     buyerLabel: "Für Käufer",
     cta: "Sehen Sie, wie wir den Verkauf schützen",
@@ -162,35 +190,40 @@ const copy = {
         t: "Unterlagen",
         seller: "Wir sammeln alle Unterlagen, bevor es losgeht: ein fehlendes Papier ist der häufigste Grund für geplatzte Verhandlungen.",
         buyer: "Sie wissen, was Sie kaufen – schwarz auf weiß, ab der ersten Besichtigung.",
+        alt: "Ein helles Arbeitszimmer mit Eichenschreibtisch unter weißen Balken und einem Bogenfenster zu den Hügeln",
       },
       {
         t: "Konformität",
         seller: "Wir prüfen Kataster, Baurecht und Anlagen vor der Veröffentlichung, nicht während der Verhandlung.",
         buyer: "Wenn es ein Problem gibt, finden wir es — solange noch Zeit bleibt, es zu lösen.",
+        alt: "Der Eingang einer Villa mit Eichentreppe und Glasgeländer, ein Olivenbaum im Topf unter dem Bogenfenster",
       },
       {
         t: "Transparenz",
         seller: "Sicherere, informierte Käufer: konkretere, seriösere Angebote.",
         buyer: "Sie entscheiden mit allen Informationen in der Hand, ohne Grauzonen.",
+        alt: "Raffaela Rizza im Wohnzimmer einer Villa, die Glasfront zum Rasen und zum Pool geöffnet",
       },
       {
         t: "Vorbereitung",
         seller: "Die Immobilie zeigt ihren wahren Wert, aufgewertet und gut erzählt.",
         buyer: "Sie erfassen sofort das Potenzial, nicht nur den Ist-Zustand.",
+        alt: "Die Terrasse einer weißen Villa mit Blick auf die Hügel",
       },
       {
         t: "Schutz",
         seller: "Ein menschlicher Ansprechpartner, der den Verkauf in jeder Phase schützt, bis zum Notar.",
         buyer: "Ein begleiteter, sicherer Weg bis zur Unterschrift beim Notar.",
+        alt: "Raffaela Rizza unter dem Portikus einer Villa, Glyzinie auf der Pergola und der Pool auf dem Rasen",
       },
     ] as Pillar[],
-    footnote: "Ein Protokoll für jeden Domus-Tua-Auftrag: Unterlagen- und Baurechtsprüfungen vor dem Markteintritt. Domus D.O.C. ist ein interner Standard von Domus Tua, keine von Dritten ausgestellte Zertifizierung.",
+    footnote: "Domus D.O.C. ist ein interner Standard von Domus Tua für jeden Auftrag: keine von Dritten ausgestellte Zertifizierung.",
   },
   es: {
     eyebrow: "Protocolo propietario",
     subtitle: "Domus di Origine Certificata",
     intro:
-      "El protocolo interno de Domus Tua para la verificación documental y técnico-urbanística de los inmuebles que gestionamos: adelanta los controles en lugar de sufrirlos en la negociación. Quien vende tiene una negociación más sólida, quien compra ve los problemas cuando aún hay tiempo de resolverlos.",
+      "Verificamos documentos, catastro y urbanismo antes de sacar la casa al mercado, para que los controles no lleguen en plena negociación.",
     sellerLabel: "Para quien vende",
     buyerLabel: "Para quien compra",
     cta: "Descubre cómo protegemos la venta",
@@ -199,245 +232,256 @@ const copy = {
         t: "Documentos",
         seller: "Reunimos todos los documentos antes de empezar: es la causa más frecuente de negociaciones que se caen.",
         buyer: "Sabes qué estás comprando, negro sobre blanco, desde la primera visita.",
+        alt: "Un estudio luminoso con escritorio de roble bajo las vigas blancas y una ventana en arco sobre las colinas",
       },
       {
         t: "Conformidad",
         seller: "Comprobamos catastro, urbanismo e instalaciones antes de publicar, no durante la negociación.",
         buyer: "Si hay un problema, lo encontramos nosotros — cuando aún hay tiempo para resolverlo.",
+        alt: "La entrada de una villa con la escalera de roble y la barandilla de cristal, un olivo en maceta bajo la ventana en arco",
       },
       {
         t: "Transparencia",
         seller: "Compradores más seguros e informados: ofertas más concretas y serias.",
         buyer: "Decides con toda la información en la mano, sin zonas oscuras.",
+        alt: "Raffaela Rizza en el salón de una villa, mostrando la cristalera abierta al césped y a la piscina",
       },
       {
         t: "Preparación",
         seller: "La casa se presenta a su valor real, revalorizada y bien contada.",
         buyer: "Entiendes enseguida el potencial del inmueble, no solo su estado actual.",
+        alt: "La terraza de una villa blanca con vistas a las colinas",
       },
       {
         t: "Protección",
         seller: "Una referencia humana que protege la venta en cada fase, hasta la escritura.",
         buyer: "Un recorrido acompañado y seguro hasta la firma ante notario.",
+        alt: "Raffaela Rizza bajo el pórtico de una villa, con la glicina en la pérgola y la piscina en el césped",
       },
     ] as Pillar[],
-    footnote: "Un único protocolo para cada encargo de Domus Tua: verificaciones documentales y técnico-urbanísticas realizadas antes de salir al mercado. Domus D.O.C. es un estándar interno de Domus Tua, no una certificación emitida por terceros.",
+    footnote: "Domus D.O.C. es un estándar interno de Domus Tua, aplicado a cada encargo: no una certificación emitida por terceros.",
   },
 } as const;
 
-export default function DomusDocProtocol({
-  tone = "cream",
-  id = "domus-doc",
-}: {
+/* Le cinque foto del foglio (D-A59), una per pilastro, tutte dal set delle foto alte generate
+   (A44) più il salotto doppio: nessuna è già montata in home (una foto non si ripete nella
+   pagina). Documenti = la scrivania dello studio; Conformità = l'ingresso con la scala, la casa
+   com'è; Trasparenza = Raffaela che mostra il soggiorno in piena luce; Preparazione = la casa
+   pronta; Tutela = Raffaela sotto il portico, il riferimento umano. `w`/`h` sono le misure del
+   sorgente: la cornice prende il loro rapporto. */
+const FOTO = [
+  { src: "/images/reali/attico-studio-alta.jpg", w: 2560, h: 3816 },
+  { src: "/images/reali/villa-ingresso-scala-alta.jpg", w: 2560, h: 3816 },
+  { src: "/images/reali/raffaela-salotto-alta.jpg", w: 2560, h: 3816 },
+  // A69: il salotto doppio non piace ad Alberto; la piscina-facciata va al Metodo, qui la terrazza sulle colline (generata, 9:16).
+  { src: "/images/reali/villa-terrazza-colline-alta.jpg", w: 2160, h: 3870 },
+  { src: "/images/reali/raffaela-portico-alta.jpg", w: 2560, h: 3816 },
+] as const;
+/* La cornice: larga come la riga sotto lg, da lg al più 42vw / 640 px e non più alta di 80svh
+   (globals.css, «IL FOGLIO DELLE FOTO DI DOMUS D.O.C.»). */
+const FOTO_SIZES = "(max-width: 1023px) 90vw, 42vw";
+/** Il pilastro attivo è quello che attraversa questa quota dello schermo. */
+const QUOTA = "62%";
+
+/** Il tratto dello sfoglio, dal registro (chapters.ts `doc`, nota «sfoglio 1,1 s»). */
+function sfoglio(): { ease: string; dur: number } {
+  const t = chapters.doc.secondary?.find((s) => s.note.startsWith("sfoglio"));
+  const m = t && /(\d+),(\d+) s/.exec(t.note);
+  if (!t || !m) throw new Error("chapters.doc: manca il tratto «sfoglio» con la durata");
+  return { ease: t.ease, dur: Number(`${m[1]}.${m[2]}`) };
+}
+
+type Props = {
+  /** Resta nella firma per le pagine interne (/metodo, /vendi, /acquista), ma
+      non rende più alcun fondo né tappa `data-tone`: la rivista bianca ha un
+      solo avorio (2026-09-10). */
   tone?: "cream" | "paper" | "cream-deep";
   id?: string;
-}) {
+  /** In home (2026-09-20, Alberto: «riassumere e eliminare diversi copy»):
+      ogni pilastro porta solo la riga per chi vende — il lettore della home
+      e' chi deve vendere (page.tsx, STORY) — e il doppio valore per esteso
+      resta su /vendi, /acquista e /metodo. */
+  compact?: boolean;
+};
+
+export default function DomusDocProtocol({ id = "domus-doc", compact = false }: Props) {
   const { locale } = useLocale();
   const c = copy[locale];
-  const bg = tone === "paper" ? "bg-paper" : tone === "cream-deep" ? "bg-cream-deep" : "bg-cream";
-
-  // Componente MULTI-ISTANZA (home + /metodo): tutto scopato ai ref locali.
   const rootRef = useRef<HTMLElement | null>(null);
-  const sealRef = useRef<SVGCircleElement | null>(null);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const anello = useId();
+  // I `li` hanno per chiave il titolo del pilastro e cambiano nodo con la lingua:
+  // il foglio si riarma a ogni cambio (A20 di Alberto: flip per lettera anche nei
+  // pilastri, spec §2.3; righe del foglio D26).
+  useHairlineSheet(sheetRef, "doc", [locale]);
 
-  // Il timbro D.O.C. si "stampa" (cerchio che si disegna + pop del contenuto)
-  // e i 5 pilastri entrano in cascata con i numeri che salgono dalla maschera.
+  // Lo sfoglio delle foto (A59). Con motion ok: la foto del pilastro attivo entra a tendina, la
+  // cornice prende la sua altezza; senza, non si scrive nulla (la prima foto è quella del CSS).
   useGSAP(
     () => {
       const root = rootRef.current;
-      if (!root) return;
+      const cornice = root?.querySelector<HTMLElement>("[data-doc-cornice]");
+      const sheet = sheetRef.current;
+      if (!root || !cornice || !sheet) return;
+      const foto = gsap.utils.toArray<HTMLElement>("[data-doc-foto]", cornice);
+      const pilastri = gsap.utils.toArray<HTMLElement>("[data-doc-pilastro]", sheet);
+      if (foto.length !== FOTO.length || pilastri.length !== FOTO.length) return;
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
-        const seal = sealRef.current;
-        const sealBox = root.querySelector<HTMLElement>("[data-doc-seal]");
-        const pillars = gsap.utils.toArray<HTMLElement>("[data-doc-pillar]", root);
-        const nums = gsap.utils.toArray<HTMLElement>("[data-doc-num]", root);
-
-        // Replay a ogni passaggio: restart all'ingresso, reverse risalendo.
-        const tl = gsap.timeline({
-          defaults: { ease: "domus" },
-          scrollTrigger: { trigger: root, start: "top 72%", toggleActions: "restart none none reverse" },
-        });
-        if (seal && sealBox) {
-          const len = seal.getTotalLength() + 2;
-          gsap.set(seal, { strokeDasharray: len, strokeDashoffset: len });
-          tl.fromTo(
-            sealBox,
-            { scale: 0.85, autoAlpha: 0, rotate: -8 },
-            { scale: 1, autoAlpha: 1, rotate: 0, duration: dur.short },
-            0
-          ).to(seal, { strokeDashoffset: 0, duration: dur.reveal, ease: "power2.inOut" }, 0.1);
-        }
-        if (pillars.length) {
-          // Niente clearProps: romperebbe il restart/reverse della timeline.
-          tl.fromTo(
-            pillars,
-            { y: 22, autoAlpha: 0 },
-            { y: 0, autoAlpha: 1, duration: dur.short, stagger: stagger.cards * 0.8 },
-            0.25
+        const { ease, dur } = sfoglio();
+        let attivo = 0;
+        let z = foto.length;
+        const altezza = (i: number) => (cornice.clientWidth * FOTO[i].h) / FOTO[i].w;
+        const marca = (i: number) => pilastri.forEach((p, k) => p.toggleAttribute("data-doc-attivo", k === i));
+        const vai = (i: number, dir: number) => {
+          if (i === attivo) return;
+          attivo = i;
+          marca(i);
+          const f = foto[i];
+          const img = f.querySelector("img");
+          gsap.set(f, { zIndex: ++z });
+          // Scendendo la foto nuova entra dal basso; risalendo, dall'alto (l'uscita speculare, A18).
+          gsap.fromTo(
+            f,
+            { clipPath: dir >= 0 ? "inset(100% 0% 0% 0%)" : "inset(0% 0% 100% 0%)" },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: dur, ease, overwrite: "auto" },
           );
-        }
-        if (nums.length) {
-          tl.fromTo(
-            nums,
-            { yPercent: 110 },
-            { yPercent: 0, duration: dur.short, ease: "expo.out", stagger: stagger.cards * 0.8 },
-            0.35
-          );
-        }
+          if (img) gsap.fromTo(img, { scale: 1.08 }, { scale: 1, duration: dur, ease, overwrite: "auto" });
+          gsap.to(cornice, { height: altezza(i), duration: dur * 0.8, ease, overwrite: "auto" });
+        };
+        gsap.set(foto, { clipPath: (i: number) => (i === 0 ? "inset(0% 0% 0% 0%)" : "inset(100% 0% 0% 0%)"), zIndex: (i: number) => i });
+        gsap.set(cornice, { height: altezza(0) });
+        sheet.setAttribute("data-doc-vivo", "");
+        marca(0);
+        const posa = () => gsap.set(cornice, { height: altezza(attivo) });
+        ScrollTrigger.addEventListener("refreshInit", posa);
+        const trigger = pilastri.map((p, i) =>
+          ScrollTrigger.create({
+            trigger: p,
+            start: `top ${QUOTA}`,
+            end: `bottom ${QUOTA}`,
+            onToggle: (self) => {
+              if (self.isActive) vai(i, self.direction);
+            },
+          }),
+        );
+        return () => {
+          ScrollTrigger.removeEventListener("refreshInit", posa);
+          trigger.forEach((t) => t.kill());
+          sheet.removeAttribute("data-doc-vivo");
+          pilastri.forEach((p) => p.removeAttribute("data-doc-attivo"));
+          gsap.set(cornice, { clearProps: "height" });
+          gsap.set(foto, { clearProps: "clipPath,zIndex" });
+        };
       });
     },
-    { scope: rootRef }
+    { scope: rootRef, dependencies: [locale], revertOnUpdate: true },
   );
 
+  // Riga piana, multi-istanza (home, /vendi, /metodo, /acquista): niente card.
+  // Il gesto del capitolo 10 (A20 di Alberto, spec §3.11) vale su tutte e quattro:
+  // le righe sopra i pilastri si tirano da sinistra e la spina fra la lista e la
+  // cornice scende dall'alto (Hairline, valori in chapters.ts); ferme restano
+  // disegnate (D26). Titoli per lettera con SplitTitle (A20).
   return (
-    <section ref={rootRef} id={id} data-tone={tone} className={bg}>
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
-        <Reveal>
-          <div className="relative overflow-hidden rounded-[2.2rem] border border-line bg-paper p-8 shadow-[0_50px_100px_-70px_rgba(26,24,22,0.6)] sm:p-12">
-            {/* watermark motif: lenta deriva parallax dentro la card (profondità).
-                mob off (misura), e la ragione è aritmetica prima che di gusto:
-                speed -0.12 su un segno alto 160px vale ±2,7px a piena corsa,
-                ~1,3px con la corsa dimezzata del telefono — meno di un capello
-                a 390, sotto i ~10px del criterio dell'onda «parità mobile 2».
-                Sarebbe uno ScrollTrigger scrubbato in più sul telefono per un
-                movimento che nessuno può vedere — la filigrana sta al 6% di
-                opacità. (Il tralcio qui sotto invece sul telefono c'è: la sua
-                decisione è la sua.) */}
-            <div className="pointer-events-none absolute -right-6 -top-6 opacity-[0.06]" aria-hidden>
-              <Parallax speed={-0.12} mobile={false}>
-                <SegnoDomus className="h-40 w-72" embrace={false} />
-              </Parallax>
-            </div>
-
-            {/* IL TRALCIO — DENTRO la card, nell'angolo in basso a sinistra
-                (2026-08-09, direttiva cliente). Prima sporgeva sopra il bordo
-                alto, fuori dalla card: un fiore sospeso nel respiro della
-                sezione. Qui l'`overflow: hidden` della card lo rifila sui suoi
-                stessi raggi, quindi il tralcio è dentro la carta e non può mai
-                sbordare né portarsi dietro una barra di scorrimento.
-                Sta PRIMA della griglia nel DOM apposta: entrambi sono
-                posizionati e l'ordine di pittura è quello del documento, così
-                il contenuto gli passa sempre sopra — è la regola «mai un fiore
-                sopra un testo» tenuta dalla struttura e non da una misura che
-                il primo cambio di copy smentirebbe. La colonna di sinistra
-                (intro + CTA) finisce ben più in alto dei cinque pilastri:
-                l'angolo basso è aria, ed è lì che il tralcio fiorisce.
-                SOTTO lg (onda «parità mobile 2», verdetto 6: stesso tralcio,
-                angolo adattato) la card è una colonna sola e l'angolo basso a
-                sinistra è l'ultimo pilastro e la nota di chiusura, cioè testo:
-                lì il tralcio violerebbe la regola qui sopra. L'aria, in
-                colonna, sta in alto a destra: accanto al sigillo (64px alto, a
-                sinistra) e sopra il titolo, che parte a ~116px dal bordo. Il
-                box sotto lg è quindi `top-0 right-0`, alto 11vh (93px a 844,
-                113 a 1024: sempre sotto la prima riga del titolo) e il disegno
-                lo segue con `variantBelowLg="corner-tr"`. Il velo `hidden`
-                sotto lg è caduto: era la vecchia dottrina «tradurre», e qui
-                l'effetto sul telefono è lo stesso, con i suoi parametri. */}
-            <Fioritura
-              variant="corner-bl"
-              variantBelowLg="corner-tr"
-              className="pointer-events-none absolute right-0 top-0 h-[11vh] w-[28vw] lg:bottom-0 lg:left-0 lg:right-auto lg:top-auto lg:h-[26vh] lg:w-[12vw]"
-            />
-
-            <div className="relative grid gap-y-12 lg:grid-cols-[0.95fr_1px_1.05fr] lg:gap-x-14 lg:gap-y-0">
-              {/* Intro */}
-              <div>
-                {/* Sigillo D.O.C. — firma visiva del protocollo: il cerchio è un
-                    tratto SVG che si "stampa" all'ingresso (senza JS: completo).
-                    Poi la luce lo prende: un lampo che gira intorno al sigillo
-                    (rif. _refs/aurelia, vedi docs/effetti-reference.md §2.6). */}
-                <div
-                  data-doc-seal
-                  className="dt-docseal relative mb-6 flex h-16 w-16 flex-col items-center justify-center text-red"
-                >
-                  <span aria-hidden className="dt-docseal_flash" />
-                  <svg aria-hidden viewBox="0 0 64 64" className="absolute inset-0 h-full w-full -rotate-90">
-                    <circle ref={sealRef} cx="32" cy="32" r="30" fill="none" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                  <SegnoDomus className="h-3 w-8" embrace={false} />
-                  <span className="mt-0.5 text-[0.58rem] font-bold tracking-[0.14em]">D.O.C.</span>
-                </div>
-                <SegnoDomusBadge>{c.eyebrow}</SegnoDomusBadge>
-                {/* TESTA DI CAPITOLO alla scala del riferimento: text-d2 +
-                    display-tight, non più 48px fissi. `balance` è via apposta —
-                    text-wrap: balance si ricalcola DOPO lo split di CharFlip e
-                    fa saltare una riga. Con `exit` il titolo, risalendo la
-                    pagina, gira dalla parte opposta invece di spegnersi. */}
-                <CharFlip
-                  as="h2"
-                  className="mt-5 font-display text-d2 display-tight font-medium text-ink"
-                  exit
-                >
-                  Domus D.O.C.
-                </CharFlip>
-                {/* Nome esteso — coerente ovunque: "Domus D.O.C. — Domus di Origine Certificata" */}
-                <TextLines as="p" className="mt-2 font-display text-lg text-red-dark" exit>
-                  {c.subtitle}
-                </TextLines>
-                <TextLines
-                  as="p"
-                  className="mt-6 max-w-md text-[1.02rem] leading-relaxed text-stone"
-                  exit
-                >
-                  {c.intro}
-                </TextLines>
-
-                <Cta href="#contatti" variant="reveal-cream" size="md" className="mt-8">
-                  {c.cta}
-                </Cta>
-              </div>
-
-              {/* Divisore verticale hairline tra intro e pilastri (solo desktop) */}
-              <div className="hidden lg:block" aria-hidden>
-                <span className="block h-full w-px bg-gradient-to-b from-transparent via-line to-transparent" />
-              </div>
-
-              {/* 5 pilastri — ognuno con beneficio per chi vende E per chi compra. */}
-              <ul className="flex flex-col">
-                {c.pillars.map((p, i) => (
-                  <li
-                    key={p.t}
-                    data-doc-pillar
-                    className="group border-t border-line py-5 first:border-t-0 first:pt-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="tnum flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-red-soft font-display text-sm font-semibold text-red-dark transition-colors duration-300 group-hover:bg-red group-hover:text-white">
-                        <span data-doc-num className="block">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <SegnoTick className="h-4 w-4 text-red-dark" />
-                        <p className="font-display text-lg font-medium text-ink">{p.t}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 grid gap-3 pl-12 sm:grid-cols-2">
-                      <div>
-                        <p className="flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-red-dark">
-                          <ArrowUpRight className="h-3 w-3" />
-                          {c.sellerLabel}
-                        </p>
-                        <p className="mt-1 text-[0.85rem] leading-relaxed text-graphite">{p.seller}</p>
-                      </div>
-                      <div>
-                        <p className="flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-stone">
-                          <ArrowRight className="h-3 w-3 text-red" />
-                          {c.buyerLabel}
-                        </p>
-                        <p className="mt-1 text-[0.85rem] leading-relaxed text-stone">{p.buyer}</p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-                <li className="mt-4 flex items-center gap-2 border-t border-line pt-4 text-[0.8rem] text-stone">
-                  <Star className="h-3.5 w-3.5 shrink-0 text-red" />
-                  {c.footnote}
-                </li>
-              </ul>
-            </div>
+    <section ref={rootRef} id={id} className="dt-chapter bg-cream">
+      <div className="dt-row">
+        <div className="flex flex-col gap-8 md:flex-row md:items-start">
+          {/* Sigillo D.O.C. (A59): 160 px, l'anello di testo a 16 px gira in senso orario in CSS
+              (globals.css), la sigla in Playfair al centro. Decorativo: il nome esteso sta nel
+              sottotitolo qui accanto. */}
+          <div aria-hidden className="dt-doc_sigillo">
+            <svg viewBox="0 0 160 160" className="dt-doc_anello">
+              <defs>
+                <path id={anello} d="M80 18a62 62 0 1 1-.01 0" />
+              </defs>
+              <text className="dt-doc_anello-testo">
+                <textPath href={`#${anello}`}>Domus di Origine Certificata ·</textPath>
+              </text>
+            </svg>
+            <span className="dt-doc_sigla font-display">D.O.C.</span>
           </div>
-        </Reveal>
+
+          <div>
+            <Reveal>
+              <span className="eyebrow">{c.eyebrow}</span>
+            </Reveal>
+            <SplitTitle as="h2" className="mt-6 font-display text-d2">
+              Domus D.O.C.
+            </SplitTitle>
+            {/* Nome esteso — coerente ovunque: "Domus D.O.C. — Domus di Origine Certificata" */}
+            <Reveal>
+              <p className="mt-4 font-display text-d4 font-light text-stone">{c.subtitle}</p>
+            </Reveal>
+            <Lead className="mt-6">{c.intro}</Lead>
+          </div>
+        </div>
+
+        {/* Il foglio: a sinistra i 5 pilastri in colonna col trattino rosso, ognuno con il
+            beneficio per chi vende (e per chi compra, fuori dalla home); a destra la cornice
+            delle foto, sticky da lg. Il foglio è rigato (D26): una riga di 1 px sopra ogni
+            pilastro e, da lg, la spina fra la lista e la cornice. La spina sta nel wrapper e non
+            nella `ul`, così la lista resta fatta solo di `li` (spec §3.11). */}
+        {/* `grid-cols-[minmax(0,1fr)]` sotto lg (22 set., A72, e2e mobile-motion): la cornice ha il rapporto
+            2:3 nel CSS E l'altezza scritta da GSAP per la foto attiva; con la terrazza 9:16 (A69) una traccia
+            `auto` prendeva il suo contributo min-content, 627 × 2:3 = 421 px a 390, e tutta la colonna dei
+            pilastri usciva di 50-70 px dallo schermo (tagliata da overflow-x: clip). Col minimo a 0 la
+            colonna resta larga quanto la riga e la cornice prende davvero il rapporto della foto attiva. */}
+        <div ref={sheetRef} data-doc-sheet className="dt-doc_foglio relative mt-10 grid grid-cols-[minmax(0,1fr)] gap-[6vw] lg:grid-cols-2 lg:items-start">
+          <Hairline chapter="doc" axis="y" className="hidden lg:block" />
+          <div>
+            <ul className="grid text-body text-graphite">
+              {/* A64 (Alberto, 22 set., sera: «distanzia di più i pilastri … al momento è troppo veloce e non
+                  si fa in tempo a vedere quella successiva»): passo doppio (py-12) e la riga in misura lead,
+                  così fra uno sfoglio e l'altro passano ~220 px di scroll a 1440. */}
+              {c.pillars.map((p) => (
+                <li key={p.t} data-doc-pilastro className="dt-doc_pilastro relative flex gap-3 py-12">
+                  <Hairline chapter="doc" />
+                  <span aria-hidden className="dt-doc_tratto mt-3 h-px w-6 shrink-0 bg-red" />
+                  <div>
+                    <SplitTitle as="h3" font="display-400" className="font-display text-d3 font-light">
+                      {p.t}
+                    </SplitTitle>
+                    {compact ? (
+                      <p className="mt-3 text-lead">{p.seller}</p>
+                    ) : (
+                      <>
+                        <p className="mt-2">
+                          <span className="block text-ui font-semibold uppercase tracking-[0.08em] text-red-dark">
+                            {c.sellerLabel}
+                          </span>
+                          {p.seller}
+                        </p>
+                        <p className="mt-2 text-stone">
+                          <span className="block text-ui font-semibold uppercase tracking-[0.08em]">
+                            {c.buyerLabel}
+                          </span>
+                          {p.buyer}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <Reveal>
+              <p className="mt-8 max-w-[800px] text-body text-stone">{c.footnote}</p>
+            </Reveal>
+            <Reveal delay={100}>
+              <Cta href="#contatti" variant="ghost" className="mt-6">
+                {c.cta}
+              </Cta>
+            </Reveal>
+          </div>
+
+          <div data-doc-cornice data-bg="foto" className="dt-doc_cornice lg:justify-self-end">
+            {FOTO.map((f, i) => (
+              <div key={f.src} data-doc-foto className="dt-doc_foto">
+                <Image src={f.src} alt={c.pillars[i]?.alt ?? ""} fill sizes={FOTO_SIZES} className="object-cover" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -1,6 +1,13 @@
 "use client";
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* RIPORTATO il 2026-09-11 su richiesta di Alberto («mantenendo quelle
+   animazioni che non erano curve, tipo quella del 5 stelle»), nella grammatica
+   della rivista bianca: via il velo di vino sulla foto, le scritte piccole, il
+   sigillo che fluttua e il widget Trustindex in coda (lo porta «Le voci»).
+   Il film — stella piccola, zoom, lampo, titolo per carattere, la fila che si
+   accende d'oro — è quello di sempre.
+
+   ═══════════════════════════════════════════════════════════════════════════
    CINQUE STELLE — il capitolo recensioni della home (2026-08-04).
 
    THESIS: la valutazione Google non è un contatore ma cinque momenti reali
@@ -25,11 +32,11 @@
    ORO (materiale, non decorazione: vedi l'eccezione dichiarata in
    globals.css) e puramente decorative: niente click, niente overlay. Il
    cluster prova poggia ora su voto + CTA Google + sigillo + widget.
-   FIRST VIEWPORT: il muro delle voci consegna lo sfondo pulito (uscita
-   estesa delle card); la foto Top Agency appare PICCOLA, croppata a stella,
+   FIRST VIEWPORT: il capitolo arriva sull'avorio della pagina, dopo il nastro
+   di «Perché Domus Tua» (HorizonStory); la foto Top Agency appare PICCOLA, croppata a stella,
    centrata, e lo scroll la ZOOMA a tutto schermo (demo 3 del riferimento,
    flash + titolo-cover a caratteri stirati) per poi richiuderla nella stella
-   centrale della fila: 5 stelle, voto 4,9/531, CTA Google + sigillo Wikicasa.
+   centrale della fila: 5 stelle, voto e conteggio (site.ts), CTA Google + sigillo Wikicasa.
    FORM: codrops/FullscreenClipEffect (demo 1) — morph di clip-path a
    topologia costante (10 vertici), maschere a stella al posto delle pillole;
    pinned dal cliente in chat, con continuum scrubbato richiesto in chat
@@ -42,10 +49,11 @@
    PARITÀ MOBILE 2 (2026-08-18, scheda 16): il film è lo STESSO a ogni
    larghezza — stella che si forma, zoom, lampo, caratteri stirati,
    accensione della fila — e cambiano tre parametri: il palcoscenico
-   ([data-on] = schermo sticky sul desktop, [data-sr-mob] = un box ancorato
-   alla fila sul telefono, perché la legge 4 vieta di pinnare), l'orologio
-   (scrub sul desktop, timeline `once` a tempo sul telefono) e il contorno
-   (sotto lg il testo della sezione non si spegne: il box non lo copre).
+   ([data-on] = schermo sticky con MQ.corridor, [data-sr-mob] = un box
+   ancorato alla fila sotto quella soglia, perché la legge 4 vieta di
+   pinnare), l'orologio (scrub nel corridoio, timeline `once` a tempo sotto)
+   e il contorno (sotto la soglia il testo della sezione non si spegne: il
+   box non lo copre). Soglia D22: 1024 px di larghezza, 640 di altezza.
    Progressive enhancement invariato: entrambi gli attributi li mette JS —
    senza JS e con reduced-motion la sezione è completa e statica, con le
    stelle già d'oro e il riflesso affidato a un'animazione CSS.
@@ -53,15 +61,15 @@
 
 import { useRef } from "react";
 import Image from "next/image";
-import TextLines from "./motion/TextLines";
-import { Star, Google } from "./Icons";
-import { Cta } from "./primitives/Cta";
-import TrustindexEmbed from "./TrustindexEmbed";
+import Reveal from "./Reveal";
+import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
+import RevealGroup from "./motion/RevealGroup";
 import { site } from "../lib/site";
-import { useConsent } from "../lib/consent";
 import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
-import { gsap, ScrollTrigger, useGSAP, MQ } from "../lib/motion/gsap";
+import { gsap, ScrollTrigger, useGSAP, MQ, requestRefresh, whenStill } from "../lib/motion/gsap";
+import type { RevealApi } from "../lib/motion/reveal-engine";
 import { starClipPath, STAR_INNER_RATIO } from "../lib/star-shape";
 
 type StarKey = "venditori" | "acquirenti" | "openDomus" | "esperienza" | "team";
@@ -86,6 +94,11 @@ const INTRO_IMG = "/images/reali/premio-team.jpg";
     STESSA timeline del desktop — 1,3 unità di posizioni e le sue ease — letta
     da un orologio invece che dallo scroll. Si cambia qui, in un posto solo. */
 const FILM_MS = 3000;
+/** Il beat del film in cui entra la testa della sezione (spec 2026-09-13 §2.4 e
+    §3.6; A12 di Alberto: il film resta). Col palcoscenico sticky qui si
+    accendono i wrapper [data-sr-el] e il gruppo della testa riceve play("in");
+    risalendo sotto questo punto, play("out"). La timeline resta di 1,3 unità. */
+const TITLE_CUE = 0.94;
 
 const copy = {
   it: {
@@ -216,13 +229,6 @@ const copy = {
 export default function StarReviews() {
   const { locale } = useLocale();
   const c = copy[locale];
-  // "2024 · 2025 · 2026". Composto qui e usato SIA nel testo visibile SIA nella coda
-  // dell'aria-label: se un giorno cambia un anno, i due non possono divergere — che è
-  // esattamente il difetto (label-content-name-mismatch) già corretto una volta qui.
-  const awardYears = site.award.years.join(" · ");
-  const consent = useConsent();
-  const showTrustindex = site.embeds.trustindexLoader.length > 0 && consent === "accepted";
-  const awaitingConsent = site.embeds.trustindexLoader.length > 0 && consent !== "accepted";
 
   const sectionRef = useRef<HTMLElement | null>(null);
   const runwayRef = useRef<HTMLDivElement | null>(null);
@@ -230,7 +236,7 @@ export default function StarReviews() {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const introRef = useRef<HTMLDivElement | null>(null);
   const rowRef = useRef<HTMLUListElement | null>(null);
-  const widgetRef = useRef<HTMLDivElement | null>(null);
+  const titleApi = useRef<RevealApi | null>(null);
 
   useGSAP(
     () => {
@@ -243,7 +249,10 @@ export default function StarReviews() {
       if (!section || !stage || !intro || !row || !runway || !screen) return;
 
       const mm = gsap.matchMedia();
-      mm.add({ lg: MQ.lg, motionOk: MQ.motionOk }, (ctx) => {
+      // Gate del palcoscenico sticky: MQ.corridor (D22), cioè 1024 px di
+      // larghezza, 640 di altezza e motion ok. Sotto la soglia, anche a
+      // 1440×600, il film suona a tempo nel box di [data-sr-mob].
+      mm.add({ lg: MQ.corridor, motionOk: MQ.motionOk }, (ctx) => {
         const cond = ctx.conditions as { lg: boolean; motionOk: boolean };
         if (!cond.motionOk) return;
 
@@ -282,6 +291,17 @@ export default function StarReviews() {
         // runway + schermo sticky, [data-sr-mob] rende presente il layer intro
         // come box (in globals.css). Nessuno dei due esiste senza JS.
         section.setAttribute(cond.lg ? "data-on" : "data-sr-mob", "");
+        // Col palcoscenico sticky il gruppo della testa è manuale sotto
+        // [data-set-on] della runway (spec §2.4). Il gruppo si è registrato nel
+        // suo layout effect, prima di questo: il refresh fa rileggere
+        // l'antenato al motore dei reveal. A scroll fermo (D53, whenStill di
+        // gsap.ts): la sezione monta con l'arrivo nativo al frammento ancora in
+        // volo (/#cerca, /#contatti) e un refresh forzato lo cancellerebbe;
+        // l'attesa si annulla col resto del cleanup.
+        if (cond.lg) {
+          runway.setAttribute("data-set-on", "");
+          cleanup.push(whenStill(() => requestRefresh()));
+        }
 
         /* IL BOX MOBILE. Sul desktop il layer intro è `inset: 0` dello schermo
            sticky, cioè il viewport. Sul telefono lo schermo sticky non c'è e
@@ -335,7 +355,7 @@ export default function StarReviews() {
         gsap.set(tiles, { opacity: 0, scale: 0.7 });
         // L'alone parte spento: l'accensione è il suo colpo di luce.
         gsap.set(halos, { opacity: 0 });
-        // La stella piccola appare dal fondo pulito che il muro consegna:
+        // La stella piccola appare sull'avorio della pagina:
         // l'intro parte spenta e i caratteri del cover partono "stirati"
         // (grammatica della demo 3: entrano quando la stella è a tutto schermo).
         gsap.set(intro, { autoAlpha: 0 });
@@ -404,22 +424,50 @@ export default function StarReviews() {
         // la fila, quindi a `top 85%` della fila il riquadro è tutto in vista.
         const startPct = 85;
 
-        // Il continuo di scroll (grammatica dell'orizzonte "Perché scegliere
-        // Domus Tua"), arco della DEMO 3 del riferimento (richiesta 2026-08-04):
-        // il muro consegna lo sfondo pulito → la foto Top Agency appare
-        // PICCOLA, croppata a stella, centrata → lo scroll la ZOOMA a tutto
-        // riquadro (lampo + titolo a caratteri stirati) → poi si richiude nella
-        // stella centrale della fila. Sul desktop è scrub (bidirezionale per
-        // natura); sul telefono la stessa timeline suonata a tempo.
+        /* IL CUE DELLA TESTA E LA ZONA DEL MONOGRAMMA, letti dal film e non
+           dallo scroll: con lo scrub 0,6 la timeline insegue lo scroll per
+           circa un secondo, e il cue deve cadere insieme ai wrapper
+           [data-sr-el]. Con uno scrub numerico l'onUpdate va sull'animazione,
+           non sul suo ScrollTrigger (documentazione di ScrollTrigger).
+           · Testa (spec §2.4): da TITLE_CUE in su play("in"), sotto play("out").
+             Il motore non rigioca un gruppo già in quello stato, quindi la
+             chiamata a ogni aggiornamento costa un confronto; e se la rete dei
+             2.500 ms ha acceso le lettere sotto il cue, col wrapper ancora a 0,
+             il primo aggiornamento del film le riporta nascoste.
+           · Monogramma (A21 di Alberto, spec §6.1 e §3.6): la copertina è zona
+             foto finché ha opacità ≥ 0,5 e il raggio interno della sua stella
+             contiene l'angolo alto a sinistra del riquadro, dove sta il segno.
+             Col palcoscenico sticky il riquadro è lo schermo, cioè il viewport. */
+        const film: { tl: gsap.core.Timeline | null } = { tl: null };
+        const onFilm = () => {
+          if (!film.tl) return;
+          if (film.tl.time() >= TITLE_CUE) titleApi.current?.play("in");
+          else titleApi.current?.play("out");
+          const copre =
+            Number(gsap.getProperty(intro, "opacity")) >= 0.5 &&
+            Math.hypot(geo.cx, geo.cy) <= geo.r * STAR_INNER_RATIO;
+          if (copre === intro.hasAttribute("data-bg")) return;
+          if (copre) intro.setAttribute("data-bg", "foto");
+          else intro.removeAttribute("data-bg");
+        };
+
+        // Il film (A12 di Alberto, 2026-09-11: resta com'era), arco della DEMO 3
+        // del riferimento (richiesta 2026-08-04): sull'avorio, dopo il nastro di
+        // HorizonStory, la foto Top Agency appare PICCOLA, croppata a stella,
+        // centrata → lo scroll la ZOOMA a tutto riquadro (lampo + titolo a
+        // caratteri stirati) → poi si richiude nella stella centrale della fila.
+        // Col palcoscenico sticky (MQ.corridor, D22) è scrub, bidirezionale per
+        // natura; sotto, la stessa timeline suonata a tempo. Resta di 1,3 unità:
+        // la testa non entra nella timeline, arriva col cue TITLE_CUE.
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: cond.lg
             ? {
                 trigger: runway,
                 // "top 55%", non "top top": la stella comincia ad accendersi
-                // mentre il muro svuotato sta ancora lasciando il viewport — lo
-                // scroll legge UNA pagina continua, senza il vuoto di un intero
-                // schermo tra i due capitoli (richiesta 2026-08-04).
+                // mentre la fine del nastro di HorizonStory sta ancora lasciando
+                // il viewport — lo scroll legge UNA pagina continua, senza il
+                // vuoto di un intero schermo tra i due capitoli (richiesta 2026-08-04).
                 start: "top 55%",
                 end: "bottom bottom",
                 scrub: 0.6,
@@ -438,6 +486,7 @@ export default function StarReviews() {
               },
           onStart: cond.lg ? undefined : morphOn,
           onComplete: cond.lg ? undefined : morphOff,
+          onUpdate: cond.lg ? onFilm : undefined,
         });
         tl
           // A. La stella piccola appare, centrata sul fondo pulito
@@ -455,8 +504,9 @@ export default function StarReviews() {
              sulla foto: un filtro per frame su un'immagine a tutto schermo è
              ricalcolo di pixel, ed è nell'elenco anti-pattern dell'onda. Stesso
              effetto — la luce che sale e ricade lasciando la foto un filo più
-             chiara — con un velo caldo in sola `opacity` sopra la fotografia e
-             sotto il velo di vino: composited, e senza il salto di layer che
+             chiara — con uno strato caldo in sola `opacity` direttamente sopra
+             la fotografia (il velo di vino che lo copriva è tolto): composited,
+             e senza il salto di layer che
              `filter` provoca. Il guadagno è di TUTTE le larghezze, non solo del
              telefono: il desktop lo suona da qui in poi allo stesso modo. */
           .to(flash, { opacity: 0.5, duration: 0.14, ease: "power2.in" }, 0.4)
@@ -503,9 +553,10 @@ export default function StarReviews() {
           .to(intro, { autoAlpha: 0, duration: 0.08 }, 1.02)
           // Coda di respiro prima dello sgancio dello sticky
           .to({}, { duration: 0.2 }, 1.1);
+        film.tl = tl;
         // Il testo della sezione entra col beat finale: solo dove era stato
-        // spento (desktop), altrimenti non c'è nulla da riaccendere.
-        if (cond.lg) tl.to(els, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", stagger: 0.015 }, 0.94);
+        // spento (palcoscenico sticky), altrimenti non c'è nulla da riaccendere.
+        if (cond.lg) tl.to(els, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", stagger: 0.015 }, TITLE_CUE);
 
         if (!cond.lg) {
           // L'OROLOGIO ADATTATO, e nient'altro: la timeline vale 1,3 "unità"
@@ -616,58 +667,10 @@ export default function StarReviews() {
           },
         });
 
-        // Widget: rivelato con la stessa lingua (stella → aperto), una volta.
-        // Resta solo sul desktop: sotto lg il blocco è un iframe di terza parte
-        // dietro il cancello del consenso, e ritagliarlo a stella significa
-        // clip-path per frame su un contenuto che non controlliamo.
-        let wst: ScrollTrigger | null = null;
-        const widget = widgetRef.current;
-        if (cond.lg && widget) {
-          // Solo opacity (mai autoAlpha): dentro ci sono link e iframe che
-          // devono restare raggiungibili da tastiera per la rete focusin.
-          gsap.set(widget, { opacity: 0 });
-          // Replay a ogni passaggio: tween persistente (niente clearProps),
-          // restart all'ingresso e reverse risalendo oltre l'inizio.
-          let wtl: gsap.core.Tween | null = null;
-          wst = ScrollTrigger.create({
-            trigger: widget,
-            start: "top 82%",
-            onEnter: () => {
-              if (!wtl) {
-                const r = widget.getBoundingClientRect();
-                // Stessa tecnica a proxy: raggio animato, clip rigenerata.
-                const wgeo = { r: Math.min(r.width, r.height) * 0.18, o: 0 };
-                const wCover = (Math.hypot(r.width, r.height) / 2 / STAR_INNER_RATIO) * 1.08;
-                wtl = gsap.to(wgeo, {
-                  r: wCover,
-                  o: 1,
-                  duration: 1.2,
-                  ease: "domus.inOut",
-                  paused: true,
-                  onUpdate: () => {
-                    widget.style.opacity = String(wgeo.o);
-                    widget.style.clipPath = starClipPath(r.width, r.height, r.width / 2, r.height / 2, wgeo.r);
-                  },
-                });
-              }
-              wtl.restart();
-              const snap = wtl;
-              window.setTimeout(() => {
-                if (snap.progress() === 0) snap.progress(1);
-              }, 1800);
-            },
-            onLeaveBack: () => wtl?.reverse(),
-          });
-          const revealWidget = () => {
-            wst?.kill();
-            gsap.set(widget, { clearProps: "opacity,clipPath" });
-          };
-          widget.addEventListener("focusin", revealWidget, { once: true });
-        }
-
         return () => {
           cleanup.forEach((fn) => fn());
           section.removeAttribute("data-on");
+          runway.removeAttribute("data-set-on");
           section.removeAttribute("data-sr-mob");
           section.removeAttribute("data-sr-gate");
           section.removeAttribute("data-lit");
@@ -678,12 +681,16 @@ export default function StarReviews() {
           // attraversando la soglia dei 1024 px resterebbe l'ultima stella
           // ritagliata addosso al layer.
           intro.style.removeProperty("clip-path");
+          // Lo stesso per data-bg, che lo scrive onFilm: sotto la soglia la
+          // copertina non è mai zona foto (spec §6.1, A21 di Alberto).
+          intro.removeAttribute("data-bg");
           tl.scrollTrigger?.kill();
           tl.kill();
           shimmer?.kill();
           breath?.kill();
           lit.kill();
-          wst?.kill();
+          // Senza [data-set-on] il gruppo della testa torna all'IO (spec §2.4).
+          whenStill(() => requestRefresh());
         };
       });
     },
@@ -691,14 +698,14 @@ export default function StarReviews() {
   );
 
   return (
-    // Niente bg-cream proprio: la sezione vive dentro la superficie curva di
-    // HorizonStory — un secondo bloom qui riaccenderebbe la linea d'ombra al
-    // confine col muro delle voci (il "taglio" segnalato il 2026-08-04).
-    <section ref={sectionRef} id="recensioni" className="dt-starrev relative">
+    // Niente bg-cream proprio: il fondo è l'avorio della pagina, uno per tutta
+    // la home (rivista bianca della cliente, 2026-09-10); un fondo qui
+    // disegnerebbe un confine fra HorizonStory e le stelle.
+    <section ref={sectionRef} id="recensioni" data-corridor="recensioni" className="dt-starrev relative">
       {/* Runway + schermo sticky ([data-on]): lo scroll scolpisce il morph —
           la foto Top Agency arriva a TUTTA PAGINA come prosecuzione della
           sezione precedente e, scendendo, entra dentro la stella centrale.
-          Sotto lg ([data-sr-mob]) gli stessi atti suonano dentro un box
+          Sotto MQ.corridor (D22) ([data-sr-mob]) gli stessi atti suonano dentro un box
           ancorato alla fila, a tempo invece che in scrub. Senza JS e con
           reduced-motion nessuno dei due attributi compare: flusso normale,
           statico, il layer intro resta display:none. */}
@@ -723,22 +730,23 @@ export default function StarReviews() {
               alt=""
               fill
               sizes="(max-width: 1023.98px) 55vw, 100vw"
-              className="photo-warm object-cover"
+              className="object-cover"
             />
-            {/* IL LAMPO, e perché è un velo e non un filtro: a cavallo del
+            {/* IL LAMPO, e perché è uno strato e non un filtro: a cavallo del
                 fullscreen la foto riceve un colpo di luce. Fino al 2026-08-18
                 era `filter: brightness() saturate()` tweenato due volte, cioè
                 pixel ricalcolati per frame su un'immagine a tutto schermo — il
                 primo anti-pattern dell'onda «parità mobile 2». Ora è questo
-                velo: sopra la fotografia, sotto il velo di vino (esattamente
-                dov'era il filtro), animato in sola opacity. Sta nel DOM a ogni
+                strato: direttamente sopra la fotografia e sotto il titolo-cover,
+                animato in sola opacity, a riposo 0. Sta nel DOM a ogni
                 larghezza perché il miglioramento è di tutte. */}
             <div className="dt-starrev_flash absolute inset-0" />
-            {/* Velo caldo + titolo-cover gigante: i caratteri escono in scaleY
-                con stagger dal centro mentre la stella si chiude (rif. Codrops). */}
-            <div className="absolute inset-0 bg-wine/30" />
+            {/* Titolo-cover gigante: i caratteri escono in scaleY con stagger dal
+                centro mentre la stella si chiude (rif. Codrops). Bianco sulla
+                foto SENZA velo, come sulla banda video finale: la cliente ha
+                bocciato vignettature e nero. */}
             <div className="absolute inset-0 flex items-center justify-center px-6">
-              <span className="dt-starrev_cover text-center font-display font-medium leading-none text-cream">
+              <span className="dt-starrev_cover text-center font-display font-medium leading-none text-white dt-ink-media">
                 {c.coverWord.split("").map((ch, i) => (
                   <span key={i} className="dt-starrev_char inline-block">
                     {ch === " " ? " " : ch}
@@ -749,43 +757,46 @@ export default function StarReviews() {
           </div>
 
           <div ref={stageRef} className="dt-starrev_stage relative mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        {/* Testa: eyebrow + titolo + voto */}
-        <div className="text-center">
-          <span data-sr-el className="eyebrow eyebrow--center justify-center">
-            {c.eyebrow}
-          </span>
-          {/* Il titolo arriva col beat finale dello scrub (wrapper data-sr-el):
-              durante l'arco stella-piccola → fullscreen la scena resta pulita. */}
+        {/* Testa: occhiello, titolo e lead in un gruppo solo del motore dei
+            reveal (spec §2.4; A20 di Alberto: titolo per lettera, lead a
+            righe). Col palcoscenico sticky il gruppo è manuale sotto
+            [data-set-on] della runway ed entra al beat TITLE_CUE insieme ai
+            wrapper [data-sr-el] del film: durante l'arco stella piccola →
+            tutto schermo la scena resta pulita. Sotto MQ.corridor (D22) entra
+            con l'IO. */}
+        <RevealGroup
+          trigger="manual"
+          className="text-center"
+          onReady={(api) => {
+            titleApi.current = api;
+          }}
+        >
           <div data-sr-el>
-            <TextLines
-              as="h2"
-              className="mx-auto mt-5 max-w-[20ch] font-display text-d3 display-tight font-medium text-ink"
-            >
-              {c.title}
-            </TextLines>
+            <Reveal>
+              <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
+            </Reveal>
           </div>
-          <p data-sr-el className="mx-auto mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-stone">
-            <span className="flex items-center gap-2">
-              <span className="tnum font-display text-2xl font-medium text-ink">{site.rating.replace(".", ",")}</span>
-              {/* Le stelline del voto seguono il materiale della fila: rosso e
-                  oro nello stesso blocco leggerebbero come due sistemi. */}
-              <span className="flex gap-0.5" aria-hidden>
-                {Array.from({ length: 5 }).map((_, k) => (
-                  <Star key={k} className="h-3.5 w-3.5 text-gold" />
-                ))}
-              </span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Google className="h-3.5 w-3.5" /> {c.ratingLine(String(site.reviewsCount))}
-            </span>
-          </p>
-          <p data-sr-el className="mx-auto mt-4 max-w-xl text-[0.98rem] leading-relaxed text-stone">
-            {c.subtitle}
-          </p>
-        </div>
+          <div data-sr-el>
+            <SplitTitle as="h2" className="mx-auto mt-6 max-w-[16ch] font-display text-d2">
+              {c.title}
+            </SplitTitle>
+          </div>
+          <div data-sr-el>
+            <Lead className="mx-auto mt-6">{c.subtitle}</Lead>
+          </div>
+        </RevealGroup>
 
         {/* La fila delle cinque stelle */}
-        <ul ref={rowRef} className="dt-starrev_row mx-auto mt-10 grid w-full max-w-[1050px] grid-cols-5 gap-2 sm:gap-4 lg:gap-6">
+        {/* `mt-16` sotto lg: il riquadro del film e' ancorato al bordo BASSO
+            della fila e alto 62svh, quindi con dieci unita' di margine la sua
+            cima cadeva dentro l'ultima riga del lead e la stella entrava
+            sopra le parole. Spostando la fila si sposta il riquadro.
+            `gap-1`: cinque colonne in 390px danno stelle da 66px invece di
+            63, che e' la differenza fra un segno e un puntino. */}
+        <ul
+          ref={rowRef}
+          className="dt-starrev_row mx-auto mt-16 grid w-full max-w-[1050px] grid-cols-5 gap-1 sm:gap-4 lg:mt-10 lg:gap-6"
+        >
           {STARS.map((s) => {
             const sc = c.stars[s.key];
             return (
@@ -801,120 +812,37 @@ export default function StarReviews() {
                     <span className="dt-starrev_sweep" />
                   </span>
                 </span>
-                <span data-sr-el className="block text-center">
-                  <span className="block text-[0.6rem] font-semibold leading-tight text-graphite sm:text-[0.8rem]">
+                <span data-sr-el className="hidden text-center sm:block">
+                  <span className="block text-ui font-semibold uppercase leading-tight tracking-[0.08em] text-graphite">
                     {sc.label}
                   </span>
                   {/* Sotto sm la fila è di cinque colonne strettissime: la
                       didascalia diventerebbe una colonna di sillabe. */}
-                  <span className="mt-1 hidden text-[0.72rem] leading-snug text-stone sm:block">{sc.caption}</span>
+                  <span className="mt-2 block text-body leading-snug text-stone">{sc.caption}</span>
                 </span>
               </li>
             );
           })}
         </ul>
+        {/* Sotto sm le cinque colonne sono strette 70px e le etichette non ci
+            stanno: diventano un ELENCO su due colonne, col trattino rosso che
+            il sito usa per le liste. In riga a capo libero, sotto cinque
+            stelle equidistanti, si disponevano 3+2 e nessuna cadeva piu'
+            sotto la sua stella: sembrava un errore di allineamento. */}
+        <ul
+          data-sr-el
+          className="dt-row mt-8 grid grid-cols-2 gap-x-6 gap-y-2 text-body text-graphite sm:hidden"
+        >
+          {STARS.map((s) => (
+            <li key={s.key} className="flex items-baseline gap-2">
+              <span aria-hidden className="h-px w-4 shrink-0 translate-y-[-0.35em] bg-red" />
+              {c.stars[s.key].label}
+            </li>
+          ))}
+        </ul>
 
-        {/* CTA + sigillo Top Agency */}
-        <div data-sr-el className="mt-10 flex flex-col items-center justify-center gap-6 sm:flex-row sm:gap-10">
-          <Cta href={site.googleReviewsUrl} variant="cta" size="md" target="_blank" rel="noopener noreferrer">
-            {c.cta}
-          </Cta>
-          {/* Sigillo Wikicasa: fluttua piano (dt-float), fermo con reduced-motion.
-              Il claim di autorevolezza (ex banda Authority) chiude il cluster prova.
-              Quando il cliente consegna la foto del certificato Top Agency 2026
-              (docs/da-chiedere-alla-cliente.md §2.11) il sigillo diventa il fronte di un
-              flip certificato/badge — lo slot è questo. */}
-          {/* IL NOME ACCESSIBILE NASCE DAL TESTO VISIBILE (parità mobile,
-              Fase 4, 2026-08-11). Lighthouse dava qui
-              `label-content-name-mismatch`: l'etichetta diceva «Top Agency
-              2026 SU Wikicasa — …» e quel «su» in mezzo bastava perché le
-              parole che si leggono non fossero più contenute nel nome che si
-              sente. Non è un cavillo di conformità: chi guida il sito a voce
-              pronuncia ciò che vede, e con quel «su» il comando non aggancia
-              più il link. Ora la testa dell'etichetta è composta con le
-              STESSE due costanti che stanno a schermo, quindi non può più
-              divergere quando il copy cambia — e la coda (dove va, e che si
-              apre altrove) resta, perché è l'informazione che il testo
-              visibile non dà. */}
-          <a
-            href={site.award.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${site.award.label} ${awardYears} — ${c.awardAriaHint}`}
-            className="dt-starrev_award group flex items-center gap-3"
-          >
-            <span className="block" style={{ animation: "dt-float 7s ease-in-out infinite" }}>
-              <Image
-                src="/badges/wikicasa-top-agency.svg"
-                alt=""
-                width={120}
-                height={58}
-                unoptimized
-                className="transition-transform duration-500 ease-[cubic-bezier(0.22,0.9,0.36,1)] group-hover:-rotate-2 group-hover:scale-105"
-              />
-            </span>
-            <span className="leading-tight">
-              {/* Lo spazio esplicito qui sotto non è una svista e non si vede:
-                  fra due span `block` il browser scarta lo spazio bianco, il
-                  disegno non si muove di un pixel. Serve nel DOM, perché il
-                  testo visibile lo si ricava concatenando i nodi di testo
-                  SENZA separatore: senza questo spazio si leggerebbe «Top
-                  Agency 2026Wikicasa» tutto attaccato, e l'etichetta qui sopra
-                  — che lo spazio ce l'ha — non lo conterrebbe più. */}
-              {/* Sotto il nome del premio vanno gli ANNI, non l'ente: l'ente è già
-                  dentro il nome ("Top Agency Wikicasa") e ripeterlo dava «Top Agency
-                  Wikicasa / Wikicasa». Gli anni invece sono l'informazione che il badge
-                  da solo non dà, ed è quella che conta: uno è un risultato, tre
-                  consecutivi sono un andamento. */}
-              <span className="block text-sm font-semibold text-ink">{site.award.label}</span>{" "}
-              <span className="link-draw block text-[0.8rem] text-stone">{awardYears}</span>
-            </span>
-          </a>
-        </div>
-        <p data-sr-el className="mx-auto mt-7 max-w-md text-center text-sm italic leading-snug text-stone">
-          {c.claim}
-        </p>
 
           </div>
-        </div>
-      </div>
-
-      {/* Il widget Trustindex (o la prova reale senza consenso).
-          NON è più una sezione con un titolo suo. Si chiamava «Parola per parola» ed era
-          la quinta intestazione di recensioni della home: cinque titoli diversi per la
-          stessa prova, che così si indebolisce invece di rafforzarsi (§ item 11).
-          Adesso è quello che è sempre stato nei fatti — la verifica di terza parte in coda
-          al blocco del voto, sotto lo stesso titolo — e il ruolo lo dice una riga di
-          servizio, non un'intestazione che promette una sezione nuova. */}
-      <div className="mx-auto max-w-[1240px] px-5 pb-16 sm:px-8 sm:pb-20">
-        {/* `data-reviews-widget` è l'appiglio per i test, e non è zucchero: la suite
-            trovava questo blocco cercando il testo del suo titolo, quindi un cambio di
-            copy — che è lavoro editoriale normale — faceva fallire un test sul
-            CARICAMENTO PIGRO, che col copy non c'entra niente. Un attributo stabile
-            separa le due cose: la copy può cambiare, il cancello resta verificabile. */}
-        <div ref={widgetRef} data-reviews-widget>
-          <p className="eyebrow">{c.widgetTitle}</p>
-          {showTrustindex ? (
-            <div className="mt-6">
-              <TrustindexEmbed title={c.iframeTitle} />
-            </div>
-          ) : (
-            <div className="mt-6 rounded-[1.75rem] border border-line bg-paper p-8 text-center">
-              <p className="mx-auto max-w-md text-[0.98rem] leading-relaxed text-graphite">
-                {awaitingConsent ? c.consentGate : c.widgetNote}
-              </p>
-              <Cta
-                href={site.googleReviewsUrl}
-                variant="cta"
-                size="sm"
-                className="mt-5"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {c.cta}
-              </Cta>
-            </div>
-          )}
         </div>
       </div>
 

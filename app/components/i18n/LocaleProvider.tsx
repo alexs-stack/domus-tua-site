@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { dictionaries, defaultLocale, locales, type Locale } from "../../lib/i18n/dictionaries";
+import { requestRefresh, whenStill } from "../../lib/motion/gsap";
 
 type Ctx = {
   locale: Locale;
@@ -34,6 +35,22 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       document.documentElement.lang = saved;
     }
   }, []);
+
+  // Una lingua nuova cambia le altezze dei testi sopra i trigger scrubbati:
+  // i titoli spezzati per lettera (A20 di Alberto) e i corridoi (A19, D22).
+  // Un refresh riallinea ScrollTrigger (spec §2.3), a scroll fermo (D54,
+  // whenStill di gsap.ts): un caricamento completo di /#frammento con cookie
+  // non `it` cambia lingua con l'arrivo nativo ancora in volo, e il refresh
+  // forzato lo cancellerebbe. L'attesa è il cleanup dell'effetto. Il primo
+  // render, in `it`, non ne chiede.
+  const primo = useRef(true);
+  useEffect(() => {
+    if (primo.current) {
+      primo.current = false;
+      return;
+    }
+    return whenStill(() => requestRefresh());
+  }, [locale]);
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);

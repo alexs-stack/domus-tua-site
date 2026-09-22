@@ -48,11 +48,9 @@ function GroupBox({
   const rest = sorted.slice(MAX_VISIBLE);
 
   return (
-    <section className="rounded-[2rem] border border-line bg-cream p-6 sm:p-7">
-      <h2 className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-graphite">
-        {title}
-      </h2>
-      <FactList facts={visible} className="mt-4" />
+    <section className="border-t border-line pt-6">
+      <h2 className="font-display text-d4">{title}</h2>
+      <FactList facts={visible} className="mt-5" />
       {rest.length > 0 && (
         <details className="mt-2">
           {/* `min-h-11` = 44px: è un bersaglio tattile, non una riga di testo. Senza,
@@ -60,7 +58,7 @@ function GroupBox({
               Il segno Domus ruotato è l'AFFORDANCE: senza, "Altre 3 voci" era testo rosso
               indistinguibile da un link — niente diceva che apre lì, né se è già aperto.
               Punta in giù da chiuso, torna su da aperto, con la stessa ease del sito. */}
-          <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-semibold text-red outline-offset-4 transition-colors hover:text-red-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-red">
+          <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 outline-offset-4 transition-colors hover:text-red-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-red">
             {moreLabel(rest.length)}
             <SegnoTick className="dt-disclosure h-2.5 w-2.5" />
           </summary>
@@ -88,12 +86,8 @@ function FactList({ facts, className }: { facts: readonly PropertyFact[]; classN
         <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
           {valued.map((f) => (
             <div key={f.key} className="row-span-2 grid grid-rows-subgrid gap-y-1">
-              <dt className="text-[0.75rem] font-medium uppercase tracking-[0.06em] text-graphite">
-                {f.label}
-              </dt>
-              <dd className="tnum self-start text-[1rem] font-medium leading-snug text-ink">
-                {f.value}
-              </dd>
+              <dt className="text-ui font-medium uppercase tracking-[0.06em] text-graphite">{f.label}</dt>
+              <dd className="tnum self-start text-body font-medium leading-snug text-ink">{f.value}</dd>
             </div>
           ))}
         </dl>
@@ -101,13 +95,8 @@ function FactList({ facts, className }: { facts: readonly PropertyFact[]; classN
       {flags.length > 0 && (
         <ul className={valued.length > 0 ? "mt-5 flex flex-col gap-2.5" : "flex flex-col gap-2.5"}>
           {flags.map((f) => (
-            <li key={f.key} className="flex items-start gap-2.5 text-[1rem] leading-snug text-graphite">
-              <span
-                aria-hidden
-                className="mt-[0.15rem] flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
-              >
-                <SegnoTick className="h-3 w-3" />
-              </span>
+            <li key={f.key} className="flex items-start gap-3 text-body leading-snug text-graphite">
+              <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
               {f.label}
             </li>
           ))}

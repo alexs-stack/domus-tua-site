@@ -60,7 +60,7 @@ async function main() {
     // così lo scatto mostra la pagina e non il sipario.
     await page.addInitScript(() => {
       try {
-        sessionStorage.setItem("dt-intro-seen", "1");
+        sessionStorage.setItem("dt-intro-seen", "q");
       } catch {}
     });
     await page.goto(`${base}${route}`, { waitUntil: "networkidle", timeout: 60_000 });

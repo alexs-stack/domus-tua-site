@@ -44,7 +44,7 @@ async function measure(browser: Browser, route: string): Promise<Row> {
     { name: "dt_consent", value: "accepted", url: BASE },
   ]);
   const page = await context.newPage();
-  await page.addInitScript(() => sessionStorage.setItem("dt-intro-seen", "1"));
+  await page.addInitScript(() => sessionStorage.setItem("dt-intro-seen", "q"));
 
   const bytes: Record<string, number> = {};
   let requests = 0;

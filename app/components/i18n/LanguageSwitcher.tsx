@@ -20,7 +20,7 @@ function Globe({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-export default function LanguageSwitcher({ light = false }: { light?: boolean }) {
+export default function LanguageSwitcher() {
   const { locale, setLocale } = useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -37,7 +37,11 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
   // non renderizziamo nulla quando l'i18n non è esplicitamente abilitato.
   if (!I18N_ENABLED) return null;
 
-  const base = light ? "border-cream/25 text-cream/90 hover:border-cream/60" : "border-line text-graphite hover:border-red hover:text-red";
+  // Un solo aspetto, quello del resto della testata: grafite col filo. La variante bianca
+  // (`light`, D186 del brief T, A38: il selettore bianco nudo sulla foto della testa) è morta
+  // con A46 (Alberto, 21 set. 2026, sera): sotto la testata c'è la carta su ogni rotta, e
+  // Header.tsx non la chiedeva più; tolta il 22 set. dalla revisione avversaria di A46.
+  const base = "border-line text-graphite hover:border-red hover:text-red";
 
   return (
     <div ref={ref} className="relative">
@@ -47,7 +51,7 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Lingua: ${localeNames[locale]}`}
-        className={`flex h-11 items-center gap-1.5 rounded-full border px-3 text-[0.8rem] font-semibold transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${base}`}
+        className={`flex h-11 items-center gap-1.5 border px-3 text-ui font-semibold uppercase tracking-[0.08em] transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${base}`}
       >
         <Globe className="h-4 w-4" />
         {localeShort[locale]}
@@ -56,8 +60,8 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
       <ul
         role="listbox"
         aria-hidden={!open}
-        className={`absolute right-0 top-[calc(100%+0.5rem)] z-50 w-40 origin-top-right overflow-hidden rounded-2xl border border-line bg-paper py-1.5 shadow-[0_24px_50px_-24px_rgba(26,24,22,0.5)] transition-all duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none invisible -translate-y-1 scale-95 opacity-0"
+        className={`absolute right-0 top-[calc(100%+0.5rem)] z-50 w-44 origin-top-right overflow-hidden border border-line bg-paper py-1.5 transition-opacity duration-200 ${
+          open ? "opacity-100" : "pointer-events-none invisible opacity-0"
         }`}
       >
         {locales.map((l) => (
@@ -70,12 +74,12 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
                 setLocale(l);
                 setOpen(false);
               }}
-              className={`flex w-full items-center justify-between px-4 py-2 text-left text-sm transition-colors ${
+              className={`flex w-full items-center justify-between px-4 py-2 text-left text-ui transition-colors ${
                 l === locale ? "font-semibold text-red" : "text-graphite hover:bg-cream-deep hover:text-ink"
               }`}
             >
               {localeNames[l]}
-              <span className="text-[0.68rem] font-semibold text-stone">{localeShort[l]}</span>
+              <span className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{localeShort[l]}</span>
             </button>
           </li>
         ))}

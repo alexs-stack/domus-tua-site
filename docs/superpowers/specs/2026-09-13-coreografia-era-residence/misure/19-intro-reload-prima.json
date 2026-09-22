@@ -1,0 +1,158 @@
+{
+ "1440 / ricarica": {
+  "lcp": 128,
+  "lcpTag": "IMG",
+  "clsMax": 0,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "1440 / nuova": {
+  "lcp": 128,
+  "lcpTag": "IMG",
+  "clsMax": 0,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "1440 /vendi ricarica": {
+  "lcp": 104,
+  "lcpTag": "IMG",
+  "clsMax": 0,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "1440 /vendi nuova": {
+  "lcp": 100,
+  "lcpTag": "IMG",
+  "clsMax": 0,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "1440 /contatti ricarica": {
+  "lcp": 68,
+  "lcpTag": "H1",
+  "clsMax": 0,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "1440 /contatti nuova": {
+  "lcp": 60,
+  "lcpTag": "H1",
+  "clsMax": 0,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "390-lento / ricarica": {
+  "lcp": 1892,
+  "lcpTag": "IMG",
+  "clsMax": 0.0002,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "390-lento / nuova": {
+  "lcp": 1856,
+  "lcpTag": "IMG",
+  "clsMax": 0.0002,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "390-lento /vendi ricarica": {
+  "lcp": 3248,
+  "lcpTag": "IMG",
+  "clsMax": 0.0002,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "390-lento /vendi nuova": {
+  "lcp": 3256,
+  "lcpTag": "IMG",
+  "clsMax": 0.0002,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "390-lento /contatti ricarica": {
+  "lcp": 1124,
+  "lcpTag": "P",
+  "clsMax": 0.0002,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ },
+ "390-lento /contatti nuova": {
+  "lcp": 1108,
+  "lcpTag": "P",
+  "clsMax": 0.0002,
+  "sipario": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "caduta": null
+ }
+}

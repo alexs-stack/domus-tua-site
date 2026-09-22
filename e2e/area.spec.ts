@@ -79,7 +79,11 @@ test.describe("sezione d'area", () => {
 
     // Ogni riga deve dichiarare da dove viene. È la promessa dell'intero dominio: un fatto senza
     // attribuzione visibile vale quanto una frase di marketing.
-    const text = await section.innerText();
+    // `textContent`, non `innerText`: le fonti stanno in un <details> che si CHIUDE appena
+    // l'area ha una narrativa approvata (VivereInZona.tsx), e Chromium esclude da innerText
+    // il contenuto di un details chiuso. Il test deve leggere ciò che è servito, non ciò che è
+    // dipinto — altrimenti passerebbe solo finché Tradate resta senza racconto.
+    const text = (await section.evaluate((el) => el.textContent)) ?? "";
     for (const owner of ["Trenord", "Comune di Tradate", "ASST Sette Laghi"]) {
       expect(text, `manca l'attribuzione a ${owner}`).toContain(owner);
     }

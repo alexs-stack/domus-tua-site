@@ -8,17 +8,18 @@
 // intercettano invece chi la domanda ce l'ha già, mentre legge — e rimandano qui.
 //
 // Il contenuto vive tutto in ./faq.ts: qui c'è solo la composizione.
-// Motion di casa: occhiello in Reveal, titolo in TextLines, colonna d'indice appiccicata
+// Motion di casa: occhiello in Reveal, titolo per lettera in SplitTitle (A20 di Alberto), colonna d'indice appiccicata
 // che accompagna la lettura, elenchi in stagger.
 
 import { useRef, useState } from "react";
 import Link from "next/link";
 import PageHero from "../components/PageHero";
 import Reveal from "../components/Reveal";
+import RevealGroup from "../components/motion/RevealGroup";
 import FaqList from "../components/FaqList";
 import Contact from "../components/Contact";
-import TextLines from "../components/motion/TextLines";
-import { SegnoDomusDivider } from "../components/BrandMotif";
+import SplitTitle from "../components/motion/SplitTitle";
+import Lead from "../components/motion/Lead";
 import { ArrowRight } from "../components/Icons";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
@@ -55,7 +56,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "Quello che ci chiedono più spesso chi vende e chi compra casa a Tradate e in provincia di Varese. Se la tua domanda non è qui, chiedicela: rispondiamo noi.",
-    heroAlt: "Raffaela Rizza con una cliente nella sede Domus Tua di Tradate",
+    heroAlt: "Piscina lunga di una villa bianca la sera, con il bordo in pietra e una fila di cipressi",
     heroPrimary: "Fai la tua domanda",
     heroSecondary: "Vai alle risposte",
     indexLabel: "In questa pagina",
@@ -77,7 +78,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "What sellers and buyers in Tradate and the Varese province ask us most often. If your question isn't here, ask us: you'll hear back from us.",
-    heroAlt: "Raffaela Rizza with a client at the Domus Tua office in Tradate",
+    heroAlt: "Long pool of a white villa in the evening, with a stone deck and a row of cypresses",
     heroPrimary: "Ask your question",
     heroSecondary: "Go to the answers",
     indexLabel: "On this page",
@@ -99,7 +100,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "Ce que nous demandent le plus souvent celles et ceux qui vendent ou achètent à Tradate et dans la province de Varese. Si votre question n'y est pas, posez-la : c'est nous qui répondons.",
-    heroAlt: "Raffaela Rizza avec une cliente à l'agence Domus Tua de Tradate",
+    heroAlt: "Long bassin d'une villa blanche le soir, avec sa margelle en pierre et une rangée de cyprès",
     heroPrimary: "Posez votre question",
     heroSecondary: "Aller aux réponses",
     indexLabel: "Sur cette page",
@@ -121,7 +122,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "Was uns Verkäuferinnen und Käufer in Tradate und der Provinz Varese am häufigsten fragen. Steht Ihre Frage nicht dabei, stellen Sie sie uns: Sie hören von uns.",
-    heroAlt: "Raffaela Rizza mit einer Kundin im Domus Tua Büro in Tradate",
+    heroAlt: "Langer Pool einer weißen Villa am Abend, mit Steinrand und einer Zypressenreihe",
     heroPrimary: "Stellen Sie Ihre Frage",
     heroSecondary: "Zu den Antworten",
     indexLabel: "Auf dieser Seite",
@@ -143,7 +144,7 @@ const copy: Record<Locale, Copy> = {
     ),
     heroSubcopy:
       "Lo que más nos preguntan quienes venden y quienes compran casa en Tradate y en la provincia de Varese. Si tu pregunta no está, háznosla: te respondemos nosotras.",
-    heroAlt: "Raffaela Rizza con una clienta en la oficina de Domus Tua en Tradate",
+    heroAlt: "Piscina larga de una villa blanca al atardecer, con borde de piedra y una hilera de cipreses",
     heroPrimary: "Haz tu pregunta",
     heroSecondary: "Ir a las respuestas",
     indexLabel: "En esta página",
@@ -218,26 +219,27 @@ export default function FaqContent() {
   return (
     <main className="flex-1">
       <PageHero
+        rotta="/domande-frequenti"
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}
         subcopy={c.heroSubcopy}
-        image="/images/reali/consulenza.jpg"
+        /* D173 (coordinatore, A38): consulenza.jpg (Raffaela e la cliente) rompeva A27 con le scritte
+           dentro la foto a schermo intero (sul telefono la testa della cliente usciva da ogni
+           inquadratura); in testa la piscina di sera, senza persone, l'unica foto notturna della
+           fototeca (sulla sola foto il bianco regge da lg); l'inquadratura la dice tinte.json (D180). */
+        image="/images/reali/villa-piscina-lunga-alta.jpg"
         alt={c.heroAlt}
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: `#${groups[0].id}` }}
-        // Stessa foto d'ufficio molto luminosa di /lavora-con-noi: col velo standard
-        // il titolo crema si perde sulla metà chiara dell'immagine.
-        scrim="strong"
+        scriptWord={{ it: "Domande", en: "Questions", fr: "Questions", de: "Fragen", es: "Preguntas" }[locale]}
       />
 
-      <SegnoDomusDivider className="py-14" />
-
-      <section className="relative bg-paper">
-        <div className="mx-auto max-w-[1240px] px-5 pb-24 sm:px-8 sm:pb-32">
+      <section className="dt-chapter relative bg-cream">
+        <div className="dt-row">
           <div className="grid gap-12 lg:grid-cols-[0.62fr_1.38fr] lg:gap-16">
             {/* Indice: appiccicato su desktop, accompagna la lettura senza rincorrerla.
                 NIENTE transform sugli antenati di un elemento sticky (regola del layer
-                motion): questa colonna resta fuori da CameraIn e da Parallax. */}
+                motion): questa colonna resta fuori da Parallax. */}
             <nav aria-label={c.indexLabel} className="lg:sticky lg:top-32 lg:self-start">
               <Reveal>
                 <p className="eyebrow">{c.indexLabel}</p>
@@ -258,7 +260,7 @@ export default function FaqContent() {
                       <a
                         href={`#${group.id}`}
                         aria-current={current ? "true" : undefined}
-                        className={`tap-target group inline-flex items-baseline gap-3 font-display text-lg font-medium transition-colors duration-300 hover:text-red ${
+                        className={`tap-target group inline-flex items-baseline gap-3 font-display text-d4 uppercase transition-colors duration-300 hover:text-red ${
                           current ? "text-red" : "text-ink"
                         }`}
                       >
@@ -271,9 +273,11 @@ export default function FaqContent() {
                             current ? "w-5 opacity-100" : "w-0 opacity-0"
                           }`}
                         />
+                        {/* Rosso pieno, non al 70 %: il numero è testo a 16 px e sul
+                            crema l'alfa lo portava sotto il 4,5:1 (axe, e2e a11y). */}
                         <span
-                          className={`tnum text-[0.72rem] font-semibold tracking-[0.2em] transition-colors duration-300 ${
-                            current ? "text-red/70" : "text-stone"
+                          className={`tnum text-ui font-semibold tracking-[0.08em] transition-colors duration-300 ${
+                            current ? "text-red" : "text-stone"
                           }`}
                         >
                           {String(i + 1).padStart(2, "0")}
@@ -286,7 +290,7 @@ export default function FaqContent() {
               </ul>
 
               <Reveal delay={280}>
-                <span aria-hidden className="hairline my-8 block" />
+                <span aria-hidden className="my-8 block border-t border-line" />
                 {/* Stessa coppia di classi delle voci qui sopra, e per la stessa ragione:
                     sono due link di navigazione impilati, alti quanto la loro riga. Il
                     passo passa da 12 a 24 di gap: con righe da 20px fa esattamente 44,
@@ -294,14 +298,14 @@ export default function FaqContent() {
                 <div className="tap-list flex flex-col gap-3">
                   <Link
                     href="/open-domus"
-                    className="tap-target group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                    className="tap-target group inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors hover:text-red-dark"
                   >
                     {c.linkOpenDomus}
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                   <Link
                     href="/metodo"
-                    className="tap-target group inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
+                    className="tap-target group inline-flex items-center gap-2 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 transition-colors hover:text-red-dark"
                   >
                     {c.linkMetodo}
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -313,12 +317,9 @@ export default function FaqContent() {
             <div ref={bodyRef} className="flex flex-col gap-16 sm:gap-20">
               {groups.map((group) => (
                 <div key={group.id} id={group.id} data-faq-group={group.id} className="scroll-mt-32">
-                  <TextLines
-                    as="h2"
-                    className="font-display text-3xl font-medium leading-[1.06] tracking-tight text-ink balance sm:text-[2.4rem]"
-                  >
+                  <SplitTitle as="h2" className="font-display text-d2">
                     {group.title}
-                  </TextLines>
+                  </SplitTitle>
                   <div className="mt-8">
                     <FaqList entries={group.entries} />
                   </div>
@@ -327,19 +328,21 @@ export default function FaqContent() {
 
               {/* La via d'uscita: nessuna FAQ copre tutto, e fingere di sì è il modo
                   più rapido per far sentire solo chi ha una domanda vera. */}
-              <div className="rounded-[2rem] border border-line bg-cream p-8 sm:p-10">
-                <Reveal>
-                  <span className="eyebrow">{c.restEyebrow}</span>
-                  <h2 className="mt-5 font-display text-2xl font-medium leading-snug tracking-tight text-ink balance sm:text-3xl">
+              <div className="border-t border-line pt-10">
+                <RevealGroup>
+                  <Reveal>
+                    <span className="eyebrow">{c.restEyebrow}</span>
+                  </Reveal>
+                  <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d2">
                     {c.restTitle}
-                  </h2>
-                  <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-stone">
-                    {c.restCopy}
-                  </p>
-                  <Cta href="#contatti" variant="cta" size="md" className="mt-7">
-                    {c.restCta}
-                  </Cta>
-                </Reveal>
+                  </SplitTitle>
+                  <Lead className="mt-8">{c.restCopy}</Lead>
+                  <Reveal role="still">
+                    <Cta href="#contatti" variant="cta-solid" size="md" className="mt-10">
+                      {c.restCta}
+                    </Cta>
+                  </Reveal>
+                </RevealGroup>
               </div>
             </div>
           </div>

@@ -72,7 +72,7 @@ function GalleryArrow({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className={`grid h-11 w-11 place-items-center rounded-full border border-line bg-paper/90 text-ink shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-red/40 hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red disabled:pointer-events-none disabled:opacity-0 ${className}`}
+      className={`grid h-11 w-11 place-items-center rounded-full bg-paper text-ink transition-all duration-300 hover:bg-red hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red disabled:pointer-events-none disabled:opacity-0 ${className}`}
     >
       <ArrowRight
         className={`h-4 w-4 ${direction === "prev" ? "rotate-180" : ""}`}
@@ -231,7 +231,7 @@ export default function PropertyGallery({
       : `${title} — foto ${active + 1} di ${images.length}`;
 
   return (
-    <div className="rounded-[2rem] border border-line bg-cream p-2">
+    <div>
       {/* Contenitore relativo: le frecce della foto grande stanno FUORI dal
           tabpanel, non dentro. Il pannello resta puro — è quello che axe
           ispeziona nella suite, e infilarci dei controlli lo sporcherebbe. */}
@@ -244,22 +244,20 @@ export default function PropertyGallery({
           {...(hasThumbs
             ? { role: "tabpanel", id: panelId, "aria-labelledby": tabId(active), tabIndex: 0 }
             : {})}
-          className="relative aspect-[16/10] overflow-hidden rounded-[calc(2rem-0.5rem)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          className="relative aspect-[4/3] overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
         >
           {images.length > 0 && (
             <ActiveImage src={images[active]} alt={mainAlt} preload={!hasInteracted} />
           )}
-          {hasThumbs && (
-            // Indicatore di posizione puramente visivo: lo stato lo dà già
-            // `aria-selected` sul tab, quindi qui è aria-hidden (niente "1 / 8").
-            <span
-              aria-hidden
-              className="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cream backdrop-blur-sm"
-            >
-              {active + 1}/{images.length}
-            </span>
-          )}
         </div>
+
+        {hasThumbs && (
+          // Indicatore di posizione puramente visivo, SOTTO la foto e non sopra:
+          // lo stato lo dà già `aria-selected` sul tab, quindi qui è aria-hidden.
+          <span aria-hidden className="tnum mt-3 block text-ui font-semibold uppercase tracking-[0.08em] text-graphite">
+            {active + 1}/{images.length}
+          </span>
+        )}
 
         {hasThumbs && (
           <>
@@ -283,7 +281,7 @@ export default function PropertyGallery({
         // Il nastro e le sue frecce. Le frecce sono SORELLE del tablist, non
         // figlie: dentro un `role="tablist"` ci vanno solo i tab, e un bottone
         // qualunque lì dentro è una violazione che axe segnala.
-        <div className="relative mt-2">
+        <div className="relative mt-3">
           <div
             ref={railRef}
             role="tablist"
@@ -292,7 +290,7 @@ export default function PropertyGallery({
             // restare tagliata a metà. `scrollbar-none` perché la barra di
             // sistema su Windows è alta e spezzerebbe il ritmo delle immagini;
             // la corsa resta evidente dalle frecce e dal taglio dell'ultima.
-            className="dt-gallery-rail flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-px-2"
+            className="dt-gallery-rail flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-0"
           >
             {images.map((img, i) => (
               <button
@@ -314,8 +312,8 @@ export default function PropertyGallery({
                 // Larghezza FISSA: con 77 foto una griglia a 4 colonne stampava
                 // venti righe di miniature sotto la foto grande. Il nastro ne
                 // mostra quante ne stanno e le altre le tiene in corsa.
-                className={`relative aspect-[4/3] w-28 shrink-0 snap-start overflow-hidden rounded-2xl border transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red sm:w-32 ${
-                  active === i ? "border-red ring-2 ring-red/30" : "border-line hover:border-red/40"
+                className={`relative aspect-[4/3] w-28 shrink-0 snap-start overflow-hidden border-b-2 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red sm:w-32 ${
+                  active === i ? "border-red!" : "border-transparent! opacity-70 hover:opacity-100"
                 }`}
               >
                 <Image

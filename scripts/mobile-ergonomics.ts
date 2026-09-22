@@ -65,7 +65,7 @@ async function main() {
     const page = await context.newPage();
     await page.addInitScript(() => {
       try {
-        sessionStorage.setItem("dt-intro-seen", "1");
+        sessionStorage.setItem("dt-intro-seen", "q");
       } catch {}
     });
 

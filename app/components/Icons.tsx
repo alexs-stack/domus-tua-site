@@ -23,6 +23,13 @@ export const ArrowRight = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+// Specchio di ArrowRight: la freccia "indietro" del carosello delle voci.
+export const ArrowLeft = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </svg>
+);
+
 export const Star = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base({ ...p, fill: "currentColor", stroke: "none" })}>
     <path d="M12 2.5l2.7 5.9 6.3.7-4.7 4.3 1.3 6.3L12 17.9 6.1 20l1.3-6.3L2.7 9.4l6.3-.7L12 2.5z" />
@@ -103,6 +110,25 @@ export const Rooms = (p: SVGProps<SVGSVGElement>) => (
 export const Play = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base({ ...p, fill: "currentColor", stroke: "none" })}>
     <path d="M8 5.5v13l11-6.5z" />
+  </svg>
+);
+
+// I comandi del video della storia (StoryVideo, A60): pausa e audio, pieni come il play.
+export const Pause = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ ...p, fill: "currentColor", stroke: "none" })}>
+    <path d="M7 5.5h3.5v13H7zm6.5 0H17v13h-3.5z" />
+  </svg>
+);
+
+export const SoundOn = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ ...p, fill: "currentColor", stroke: "none" })}>
+    <path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4zm11.2-1.3-1.4 1.4a3.5 3.5 0 0 1 0 4.8l1.4 1.4a5.5 5.5 0 0 0 0-7.6zm2.6-2.6-1.4 1.4a7.2 7.2 0 0 1 0 10l1.4 1.4a9.2 9.2 0 0 0 0-12.8z" />
+  </svg>
+);
+
+export const SoundOff = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ ...p, fill: "currentColor", stroke: "none" })}>
+    <path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4zm10.6.3 1.9-1.9 1.4 1.4-1.9 1.9 1.9 1.9-1.4 1.4-1.9-1.9-1.9 1.9-1.4-1.4 1.9-1.9-1.9-1.9 1.4-1.4z" />
   </svg>
 );
 

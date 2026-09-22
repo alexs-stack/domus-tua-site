@@ -1,29 +1,52 @@
-// Configurazione media dell'hero — UNICA.
-//
-// Storia: esistevano due configurazioni parallele (`heroMedia` e `heroCinematic`), con file,
-// poster e URL del canale duplicati. `heroMedia` non era usato da nessun componente — solo da
-// demoStatus, che quindi riportava "hero video live" leggendo un flag morto. Resta un solo
-// oggetto, quello effettivamente consumato da HeroCinematic.tsx.
+// Configurazione dei media video del sito — UNICA.
 //
 // Il link al canale YouTube NON vive qui: la fonte unica dei canali social è app/lib/site.ts
 // (`site.social.youtube.href`).
 //
-// Hero CINEMATICO full-bleed (HeroCinematic.tsx). Vedi docs/hero-video.md.
-// Il video parte solo su desktop e senza prefers-reduced-motion; se i file /media mancano
-// o il video fallisce, resta il `base` come poster.
-// Video consigliato: 15-35s, ~1080p, muto, loop.
+// Hero CINEMATICO full-bleed (HeroCinematic.tsx), vedi docs/hero-video.md. C21, la cliente il
+// 3 agosto: niente video nell'hero, resta la foto; `enabled` resta false. `mp4` e `webm`
+// puntano al loop del drone; il Congedo usa `ambient.congedo` con useAmbientVideo (spec §2.7).
 export const heroCinematic = {
-  // Scelta cliente (2026-08-03): niente video nell'hero, resta la foto.
-  // Il clip drone resta in /media pronto per un ripensamento.
   enabled: false,
-  mp4: "/media/domus-hero.mp4",
-  // Vuoto = sorgente non renderizzata (evita un 404 a ogni visita desktop);
-  // valorizzare quando esisterà la codifica webm.
-  webm: "",
-  poster: "/media/hero-raffaela.jpg",
-  // Base: Raffaela che presenta il soggiorno di un attico reale — dentro
-  // l'arco del preloader si vede il crop su di lei, poi la camera rientra
-  // e rivela la stanza (vedi HERO_FOCUS in HeroCinematic.tsx).
-  base: "/media/hero-raffaela.jpg",
-  baseAlt: "Raffaela Rizza presenta il soggiorno di un attico luminoso proposto da Domus Tua",
+  mp4: "/media/congedo-drone-1080.mp4",
+  webm: "/media/congedo-drone-1080.webm",
+  poster: "/images/reali/hero-raffaela-piscina-alta.jpg",
+  // Base (A49 e A71, 22 set. 2026, sera; Alberto: «non c'è né l'immagine alta che fa da sfondo pagina
+  // a schermo intero, né l'effetto dello scroll dentro l'immagine»; «sì, fallo … e falla no-bg così è
+  // più bella»): la FOTO VERA di Raffaela davanti alla villa con piscina (villa-pool.jpg, 3:2, che A55
+  // aveva portato all'hero da Paths) ESTESA a 2:3 con Higgsfield (outpaint + upscale 4K,
+  // `hero-raffaela-piscina-alta.jpg`) e col cielo trasparente da scripts/media/cielo.mjs: `base` è il
+  // WebP con l'alpha, `baseM` la striscia 9:16 centrata per il telefono, ritagliata dallo stesso WebP
+  // da scripts/media/hero-piscina.mjs (art direction a 768 in HeroCinematic.tsx; le misure in
+  // app/lib/motion/hero.json). I due JPEG di A55 in public/media restano su disco, non montati. La
+  // scena AMPIA generata con Higgsfield (A44/A45, `hero-raffaela-villa.jpg`) resta in Paths. Il
+  // soggiorno dell'attico di prima (`hero-raffaela.jpg`) è uscito: la cliente non può più mostrare
+  // quella casa.
+  base: "/images/reali/hero-raffaela-piscina-alta-cielo.webp",
+  baseM: "/images/reali/hero-raffaela-piscina-alta-m-cielo.webp",
+  /** Le misure dei due file (hero.json): le legge HeroCinematic per `getImageProps` e hero-alto.test.ts. */
+  baseSize: { w: 2560, h: 3812 },
+  baseMSize: { w: 2144, h: 3812 },
+  baseAlt: "Raffaela Rizza davanti alla villa con piscina proposta da Domus Tua",
 } as const;
+
+export type AmbientSource = { webm: string; mp4: string };
+
+// I video d'ambiente (spec 2026-09-13 §7.3): loop muti dal video tour di Domus Tua, senza logo
+// (ritaglio del 10 % in alto e a sinistra) e raccordati con una dissolvenza. Il drone sulla villa
+// è la cartolina del Congedo (A19 di Alberto). La superficie dell'acqua di Costi chiari (A18;
+// `acqua-1080.mp4/webm`, `acqua-poster.jpg`) è uscita dal codice con A72 (22 set. 2026, notte:
+// il capitolo è un nastro con la facciata); i file restano in public/media, non montati (Alberto,
+// 22 set.: i file non montati restano). `hd` 1920×1080, `sd` 1280×720: la sorgente la scrive
+// useAmbientVideo la prima volta che l'host si avvicina (warm 50 %): 720p fino a 1.408 px resi,
+// 1080p oltre. La produzione aspetta i punti 2.2, 2.13 e 6.2 del documento per la cliente
+// (assertVillaMediaCleared in launchReadiness.ts, chiamata da next.config.ts al build).
+export const ambient: {
+  congedo: { hd: AmbientSource; sd: AmbientSource; poster: string };
+} = {
+  congedo: {
+    hd: { webm: "/media/congedo-drone-1080.webm", mp4: "/media/congedo-drone-1080.mp4" },
+    sd: { webm: "/media/congedo-drone-720.webm", mp4: "/media/congedo-drone-720.mp4" },
+    poster: "/media/congedo-poster.jpg",
+  },
+};

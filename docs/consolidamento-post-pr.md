@@ -41,7 +41,7 @@ I contenuti dell'elenco **non erano stati rimossi** dalle PR precedenti: erano a
 | Trustindex prima del consenso | `Reviews.tsx`: iframe montato al primo render | Dietro `dt_consent=accepted` |
 
 **La sezione "I numeri" resta**, con le stesse animazioni (odometro + CountUp + marquee), ma mostra
-solo dati con fonte annotata in `site.ts`: **531 recensioni Google verificate**, **4,9 valutazione
+solo dati con fonte annotata in `site.ts`: **531 recensioni Google verificate** (il numero di allora; oggi 542, letto da `site.ts`), **4,9 valutazione
 media**, **anni di attività** calcolati da `site.since` (2007). La griglia secondaria passa da 3 a 2
 colonne perché i numeri verificati sono due.
 

@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from "react";
 import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
 import PropertyCard from "./PropertyCard";
@@ -9,12 +10,11 @@ import PropertyCard from "./PropertyCard";
 // chi passa alla vista mappa: si caricano al momento del passaggio, non prima.
 const PropertyMap = dynamic(() => import("./PropertyMap"), {
   ssr: false,
-  loading: () => <div className="h-[420px] animate-pulse rounded-[2rem] bg-cream" aria-hidden />,
+  loading: () => <div className="h-[420px] animate-pulse bg-cream-deep" aria-hidden />,
 });
 import CaseQuickLook from "./CaseQuickLook";
 import { ArrowRight } from "./Icons";
 import { Cta, CtaButton } from "./primitives/Cta";
-import { SegnoDomusBadge } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
@@ -25,9 +25,9 @@ import { isAvailable, isSold } from "../lib/availability";
 import type { GridProperty } from "../lib/properties";
 import type { ParsedSearch, SearchResponse } from "../lib/ai/types";
 
-// Flip serve solo al riordino dei risultati al cambio filtri: registrato
-// localmente (stesso pattern di TextLines con SplitText) per non finire nel
-// chunk del layout via gsap.ts.
+// Flip serve solo al riordino dei risultati al cambio filtri (PropertySearch
+// invariato, spec §5.3): registrato localmente, come SplitText in Lead (A20 di
+// Alberto), per non finire nel chunk del layout via gsap.ts.
 gsap.registerPlugin(Flip);
 
 // Dizionario UI inline. Le VALUE dei filtri (contract/type/feature) restano in italiano
@@ -386,9 +386,41 @@ function haystack(p: GridProperty) {
   return `${p.features.join(" ")} ${p.excerpt} ${p.badges.join(" ")}`.toLowerCase();
 }
 
-export default function PropertySearch({ properties }: { properties: GridProperty[] }) {
-  const { locale } = useLocale();
-  const c = copy[locale];
+// ── Lo stato della ricerca (A48, Alberto 22 set. 2026) ──────────────────────
+// «la ricerca intelligente va più su, in modo che appaia sopra la foto e dopo la scritta hero»:
+// la TESTA della ricerca (occhiello, campo, stato) posa sulla foto della testa di /acquista
+// (PageHero `sopra`, in bianco da lg; sotto lg segue la foto in inchiostro), i filtri e i
+// risultati restano sulla carta (#case). Le due parti vivono in due punti dell'albero: lo stato
+// che condividono (la frase, i filtri, il risultato AI, il FLIP della griglia) sta in
+// RicercaProvider, che AcquistaContent monta attorno a entrambe. Senza provider PropertySearch
+// se lo monta da solo e rende la testa in sezione, com'era prima (nessun altro chiamante oggi).
+type Ai = { query: string; slugs: string[]; key: string } | null;
+type Ricerca = {
+  properties: GridProperty[];
+  nl: string;
+  setNl: (v: string) => void;
+  f: PropertyFilters;
+  setF: Dispatch<SetStateAction<PropertyFilters>>;
+  /** Identico a setF, in più cattura il layout corrente per animare il riordino (FLIP). */
+  setFilters: Dispatch<SetStateAction<PropertyFilters>>;
+  searching: boolean;
+  aiError: boolean;
+  ai: Ai;
+  runSearch: (query?: string) => Promise<void>;
+  clearAi: () => void;
+  resetFilters: () => void;
+  filtersActive: boolean;
+  gridRef: MutableRefObject<HTMLDivElement | null>;
+  flipStateRef: MutableRefObject<ReturnType<typeof Flip.getState> | null>;
+  /** I comuni della tendina (comuniFacet + quello cercato), le scelte di budget localizzate, la valuta. */
+  comuni: string[];
+  budgetChoices: Array<{ value: number; label: string }>;
+  money: (v: number) => string;
+};
+
+const RicercaContext = createContext<Ricerca | null>(null);
+
+function useRicerca(properties: GridProperty[]): Ricerca {
   const [nl, setNl] = useState("");
   const [f, setF] = useState<PropertyFilters>({
     contract: "Tutte",
@@ -402,23 +434,35 @@ export default function PropertySearch({ properties }: { properties: GridPropert
     features: [],
     availability: "available",
   });
-  const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
-  const [visible, setVisible] = useState(24);
   const [searching, setSearching] = useState(false);
-  // Vista risultati: elenco card oppure mappa dei comuni con immobili disponibili.
-  const [view, setView] = useState<"list" | "map">("list");
-  // Anteprima (CaseQuickLook): stato UI indipendente dalla ricerca.
-  const [preview, setPreview] = useState<GridProperty | null>(null);
   const [aiError, setAiError] = useState(false);
   // Risultato della ricerca AI: query mostrata + slug ordinati per rilevanza + firma dei filtri
   // applicati (per capire quando l'utente modifica un filtro a mano e uscire dalla modalità AI).
-  const [ai, setAi] = useState<{ query: string; slugs: string[]; key: string } | null>(null);
-
-  const bySlug = useMemo(() => new Map(properties.map((p) => [p.slug, p])), [properties]);
+  const [ai, setAi] = useState<Ai>(null);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
   // Layout della griglia catturato PRIMA del cambio di stato (punto di partenza del FLIP).
   const flipStateRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
+
+  const { locale } = useLocale();
+  const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
+  // La tendina della zona (nella ricerca, A52) legge la stessa lista, con le stesse chiavi, della facet passata al
+  // parser lato server: comuniFacet è la fonte unica, così tendina e filtro non possono divergere; "Tutti" resta
+  // fisso in cima e il comune cercato entra anche se nessun immobile combacia (mostra «nessun risultato»).
+  const comuni = useMemo(() => {
+    const base = comuniFacet(properties);
+    return base.includes(f.comune) ? base : [...base, f.comune];
+  }, [properties, f.comune]);
+  // Le scelte di budget della tendina (A52), localizzate, più l'eventuale valore fuori scaglione (es. «sotto
+  // 300.000») che arriva dalla ricerca in linguaggio naturale.
+  const budgetChoices = useMemo(() => {
+    const c = copy[locale];
+    const list = budgetOptions.map((b) => ({ value: b.value, label: c.budgetLabels[b.label] ?? b.label }));
+    if (f.maxBudget > 0 && !budgetOptions.some((b) => b.value === f.maxBudget)) {
+      list.push({ value: f.maxBudget, label: `${c.budgetUpTo} ${new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(f.maxBudget)} €` });
+    }
+    return list;
+  }, [locale, f.maxBudget]);
 
   // Il FLIP è evento-driven (non vive in matchMedia().add): check runtime, così con
   // reduced-motion il riordino resta istantaneo. Solo decorativo: mai ritardare lo stato.
@@ -514,12 +558,6 @@ export default function PropertySearch({ properties }: { properties: GridPropert
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Al cambio filtri (o risultato AI) riparti dalle prime 24 case.
-  useEffect(() => {
-    /* eslint-disable-next-line react-hooks/set-state-in-effect */
-    setVisible(24);
-  }, [f, ai]);
-
   // Se l'utente modifica un filtro a mano, esci dalla modalità AI (torna al filtro client).
   // La ricerca AI imposta f = mapped e ai.key = JSON(mapped): finché combaciano, resta attiva.
   useEffect(() => {
@@ -534,13 +572,175 @@ export default function PropertySearch({ properties }: { properties: GridPropert
     }
   }, [f, ai]);
 
-  // Stessa lista (e stesse chiavi) della facet passata al parser lato server: comuniFacet è la
-  // fonte unica, così tendina e filtro non possono divergere. "Tutti" resta fisso in cima.
-  const comuni = useMemo(() => {
-    const base = comuniFacet(properties);
-    // Include il comune cercato anche se nessun immobile combacia (mostra il blocco "nessun risultato").
-    return base.includes(f.comune) ? base : [...base, f.comune];
-  }, [properties, f.comune]);
+  return { properties, nl, setNl, f, setF, setFilters, searching, aiError, ai, runSearch, clearAi, resetFilters, filtersActive, gridRef, flipStateRef, comuni, budgetChoices, money };
+}
+
+/** Lo stato condiviso fra la testa della ricerca (sulla foto) e i risultati (sulla carta). */
+export function RicercaProvider({ properties, children }: { properties: GridProperty[]; children: ReactNode }) {
+  const value = useRicerca(properties);
+  return <RicercaContext.Provider value={value}>{children}</RicercaContext.Provider>;
+}
+
+/* LA RICERCA (A52 di Alberto, 22 set. 2026, sera: «la ricerca non è leggibile, inoltre l'hai spezzata in
+   due. cambiamo il design della ricerca per renderlo consono al resto del sito, attualmente è orribile,
+   poco professionale. e rendiamola leggibile sopra la foto»). Un blocco solo, come una riga della
+   rivista: l'occhiello, il campo in linguaggio naturale alla misura d4 con la sola riga sotto e il
+   pulsante rosso, lo stato (teaser → risultato/errore), e sotto le CINQUE tendine in una riga (zona,
+   budget, locali, tipologia, contratto), nella forma dei campi del modulo (DESIGN.md «Inputs / Fields»:
+   nessuna scatola, la riga sotto, etichetta 1rem 600 maiuscola). I rettangoli con bordo dei filtri sono
+   morti: i chip restano solo per gli affinamenti (caratteristiche, venduti) sopra i risultati, nella
+   forma del modulo (testo con la riga sotto rossa quando selezionato). Sulla foto (da lg, con la banda
+   scura) tutto vira al bianco per le regole di globals.css; sotto lg e sulla carta è inchiostro. */
+type Opzione = { value: string; label: string };
+
+// La freccia della tendina: `appearance-none` toglie quella del browser (come nel modulo, Contact.tsx).
+function Caret() {
+  return (
+    <svg aria-hidden viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-stone">
+      <path d="M3 6l5 5 5-5" />
+    </svg>
+  );
+}
+
+function Tendina({ label, value, onChange, options, attivo }: { label: string; value: string; onChange: (v: string) => void; options: Opzione[]; attivo: boolean }) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{label}</span>
+      <span className="relative block">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`block w-full appearance-none border-0 border-b border-ink! bg-transparent py-3 pr-8 text-body text-ink transition-colors focus:border-red! focus:outline-none ${attivo ? "font-medium" : ""}`}
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <Caret />
+      </span>
+    </label>
+  );
+}
+
+function TestaRicerca({ r }: { r: Ricerca }) {
+  const { locale } = useLocale();
+  const c = copy[locale];
+  const { nl, setNl, runSearch, searching, ai, clearAi, aiError, f, setFilters, comuni, budgetChoices } = r;
+  return (
+    <div className="dt-ricerca">
+      {/* Ricerca in linguaggio naturale (AI): campo a sola sottolineatura, come il modulo, alla misura d4. */}
+      <Reveal>
+        <div className="border-t border-line pt-6">
+          <span className="eyebrow">{c.smartBadge}</span>
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+            <input
+              value={nl}
+              onChange={(e) => setNl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void runSearch();
+                }
+              }}
+              placeholder={c.nlPlaceholder}
+              className="block w-full flex-1 border-0 border-b border-ink! bg-transparent py-3 text-d4 font-light text-ink placeholder:text-stone focus:border-red! focus:outline-none"
+              aria-label={c.nlAria}
+            />
+            <button
+              type="button"
+              onClick={() => void runSearch()}
+              disabled={searching || !nl.trim()}
+              aria-label={c.searchAria}
+              className="grid h-14 w-14 shrink-0 place-items-center self-start rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
+            >
+              {searching ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <ArrowRight className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        </div>
+        {/* Regione live: annuncia a screen reader il passaggio teaser → risultato/errore. */}
+        <div role="status" aria-live="polite">
+          {ai ? (
+            <p className="mt-4 flex flex-wrap items-center gap-2 text-body text-graphite">
+              <span>
+                {c.aiResultPrefix}: <span className="font-semibold text-ink">“{ai.query}”</span>
+              </span>
+              <button type="button" onClick={clearAi} className="underline underline-offset-2 hover:text-ink">
+                {c.aiClear}
+              </button>
+            </p>
+          ) : aiError ? (
+            <p className="mt-4 text-body text-red-dark">{c.aiError}</p>
+          ) : (
+            <p className="mt-4 text-body text-graphite">{c.teaser}</p>
+          )}
+        </div>
+      </Reveal>
+      {/* Le cinque tendine in una riga: la zona per prima (è quella che restringe davvero, e2e search.spec). */}
+      <Reveal delay={80} className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-5">
+        <Tendina label={c.zone} value={f.comune} onChange={(v) => setFilters((s) => ({ ...s, comune: v }))} options={comuni.map((z) => ({ value: z, label: z === "Tutti" ? c.zoneAll : z }))} attivo={f.comune !== "Tutti"} />
+        <Tendina label={c.budget} value={String(f.maxBudget)} onChange={(v) => setFilters((s) => ({ ...s, maxBudget: Number(v) }))} options={budgetChoices.map((b) => ({ value: String(b.value), label: b.label }))} attivo={f.maxBudget !== 0} />
+        <Tendina label={c.rooms} value={String(f.minRooms)} onChange={(v) => setFilters((s) => ({ ...s, minRooms: Number(v) }))} options={roomOptions.map((o) => ({ value: String(o.value), label: o.value === 0 ? c.roomsAny : o.label }))} attivo={f.minRooms !== 0} />
+        <Tendina label={c.type} value={f.type} onChange={(v) => setFilters((s) => ({ ...s, type: v as PropertyFilters["type"] }))} options={types.map((t) => ({ value: t, label: (c.typeLabels as Record<string, string>)[t] ?? t }))} attivo={f.type !== "Tutte"} />
+        <Tendina label={c.contract} value={f.contract} onChange={(v) => setFilters((s) => ({ ...s, contract: v as PropertyFilters["contract"] }))} options={(["Tutte", "Vendita", "Affitto"] as const).map((v) => ({ value: v, label: c.contractLabels[v] }))} attivo={f.contract !== "Tutte"} />
+      </Reveal>
+    </div>
+  );
+}
+
+/**
+ * La testa della ricerca da posare sulla foto della testa di /acquista (PageHero `sopra`, A48):
+ * dentro RicercaProvider. Passo verticale come i tre punti (PageHero), riga `dt-row` come la sezione.
+ */
+export function SearchHead() {
+  const r = useContext(RicercaContext);
+  if (!r) throw new Error("SearchHead va montata dentro RicercaProvider (A48)");
+  return (
+    <div className="dt-row pt-[clamp(1.5rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)]">
+      <TestaRicerca r={r} />
+    </div>
+  );
+}
+
+export default function PropertySearch({ properties }: { properties: GridProperty[] }) {
+  const ctx = useContext(RicercaContext);
+  if (ctx) return <Risultati properties={properties} r={ctx} conTesta={false} />;
+  return (
+    <RicercaProvider properties={properties}>
+      <DaSolo properties={properties} />
+    </RicercaProvider>
+  );
+}
+
+function DaSolo({ properties }: { properties: GridProperty[] }) {
+  const r = useContext(RicercaContext);
+  if (!r) return null;
+  return <Risultati properties={properties} r={r} conTesta />;
+}
+
+/** I filtri e i risultati (sulla carta); con `conTesta` anche la testa della ricerca in sezione. */
+function Risultati({ properties, r, conTesta }: { properties: GridProperty[]; r: Ricerca; conTesta: boolean }) {
+  const { locale } = useLocale();
+  const c = copy[locale];
+  const { nl, f, setFilters, searching, ai, resetFilters, filtersActive, gridRef, flipStateRef, money } = r;
+  const [visible, setVisible] = useState(24);
+  // Vista risultati: elenco card oppure mappa dei comuni con immobili disponibili.
+  const [view, setView] = useState<"list" | "map">("list");
+  // Anteprima (CaseQuickLook): stato UI indipendente dalla ricerca.
+  const [preview, setPreview] = useState<GridProperty | null>(null);
+
+  const bySlug = useMemo(() => new Map(properties.map((p) => [p.slug, p])), [properties]);
+
+  // Al cambio filtri (o risultato AI) riparti dalle prime 24 case.
+  useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
+    setVisible(24);
+  }, [f, ai]);
 
   // Aggregazione per comune usata dalla mappa: indipendente dai filtri attivi, così la
   // mappa resta una panoramica di tutto il disponibile anche mentre l'elenco è filtrato.
@@ -590,9 +790,8 @@ export default function PropertySearch({ properties }: { properties: GridPropert
     const state = flipStateRef.current;
     flipStateRef.current = null;
     const grid = gridRef.current;
-    // La lista cambia l'altezza della pagina: i ScrollTrigger globali (il rail
-    // ThreadNav su /acquista mappa nodi e fill su maxScroll) vanno ricalibrati
-    // a layout assestato — mai a metà Flip (absolute:true = card fuori flusso).
+    // La lista cambia l'altezza della pagina: gli ScrollTrigger globali (tarati
+    // su maxScroll) vanno ricalibrati a layout assestato — mai a metà Flip (absolute:true = card fuori flusso).
     const refresh = () => requestAnimationFrame(() => ScrollTrigger.refresh());
     if (!state || !grid) {
       refresh();
@@ -622,10 +821,11 @@ export default function PropertySearch({ properties }: { properties: GridPropert
       if (tl.isActive()) tl.progress(1);
       tl.kill();
     };
-  }, [listedKey]);
+    // I due ref vengono dal provider (A48): identità stabili, stanno nelle dipendenze per la regola.
+  }, [listedKey, flipStateRef, gridRef]);
 
   // Lista ⇄ mappa cambia l'altezza della pagina in un colpo solo: senza refresh i
-  // ScrollTrigger globali (rail ThreadNav su maxScroll) restano tarati sul layout vecchio.
+  // ScrollTrigger globali (tarati su maxScroll) restano tarati sul layout vecchio.
   useEffect(() => {
     const id = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => cancelAnimationFrame(id);
@@ -703,17 +903,11 @@ export default function PropertySearch({ properties }: { properties: GridPropert
         : [...s.features, label],
     }));
 
-  // Opzioni budget localizzate + eventuale valore fuori-bucket (es. "sotto 300.000") dalla ricerca.
-  const budgetChoices = budgetOptions.map((b) => ({ value: b.value, label: c.budgetLabels[b.label] ?? b.label }));
-  if (f.maxBudget > 0 && !budgetOptions.some((b) => b.value === f.maxBudget)) {
-    budgetChoices.push({ value: f.maxBudget, label: `${c.budgetUpTo} ${money(f.maxBudget)} €` });
-  }
-
-  const pill = (active: boolean) =>
-    `inline-flex min-h-[44px] items-center rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-      active
-        ? "border-red bg-red text-white hover:bg-red-dark"
-        : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
+  // Gli affinamenti sopra i risultati (A52): chip di testo come quelli del modulo (DESIGN.md «Chips»):
+  // etichetta maiuscola 1rem 600, riga sotto di 2 px rossa quando selezionato, inchiostro all'hover.
+  const tab = (active: boolean) =>
+    `inline-flex min-h-11 items-center border-b-2 pb-0.5 text-ui font-semibold uppercase tracking-[0.08em] transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+      active ? "border-red text-ink" : "border-transparent text-stone hover:text-ink"
     }`;
 
   // Empty-state / "non trovi la casa giusta": WhatsApp buyer precompilato con la frase cercata =
@@ -728,194 +922,48 @@ export default function PropertySearch({ properties }: { properties: GridPropert
 
   return (
     <section className="bg-cream">
-      <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
-        {/* Ricerca in linguaggio naturale (AI) */}
-        <Reveal>
-          <div className="rounded-[2rem] border border-line bg-paper p-2 shadow-[0_40px_90px_-60px_rgba(26,24,22,0.5)]">
-            <div className="flex flex-col gap-3 rounded-[calc(2rem-0.5rem)] bg-cream p-5 sm:flex-row sm:items-center sm:p-4 sm:pl-6">
-              <SegnoDomusBadge className="shrink-0 self-start border-red/25 bg-red-soft text-red-dark sm:self-auto">
-                {c.smartBadge}
-              </SegnoDomusBadge>
-              <input
-                value={nl}
-                onChange={(e) => setNl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void runSearch();
-                  }
-                }}
-                placeholder={c.nlPlaceholder}
-                className="w-full flex-1 rounded-lg bg-transparent text-base text-ink placeholder:text-stone/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
-                aria-label={c.nlAria}
-              />
-              <button
-                type="button"
-                onClick={() => void runSearch()}
-                disabled={searching || !nl.trim()}
-                aria-label={c.searchAria}
-                className="grid h-11 w-11 shrink-0 place-items-center self-start rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
-              >
-                {searching ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                ) : (
-                  <ArrowRight className="h-5 w-5" />
-                )}
-              </button>
-            </div>
-          </div>
-          {/* Regione live: annuncia a screen reader il passaggio teaser → risultato/errore. */}
-          <div role="status" aria-live="polite">
-          {ai ? (
-            <p className="mt-3 flex flex-wrap items-center gap-2 pl-2 text-[0.82rem] text-stone">
-              <span>
-                {c.aiResultPrefix}: <span className="font-semibold text-ink">“{ai.query}”</span>
-              </span>
-              <button
-                type="button"
-                onClick={clearAi}
-                className="underline underline-offset-2 hover:text-ink"
-              >
-                {c.aiClear}
-              </button>
-            </p>
-          ) : aiError ? (
-            <p className="mt-3 pl-2 text-[0.82rem] text-red-dark">{c.aiError}</p>
-          ) : (
-            <p className="mt-3 pl-2 text-[0.82rem] text-stone">{c.teaser}</p>
-          )}
-          </div>
-        </Reveal>
+      <div className="dt-row py-16 sm:py-20">
+        {conTesta && <TestaRicerca r={r} />}
 
-        {/* Filtri */}
-        <Reveal delay={80} className="mt-8 flex flex-col gap-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
-              {c.contract}
-            </span>
-            {(["Tutte", "Vendita", "Affitto"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={f.contract === v}
-                onClick={() => setFilters((s) => ({ ...s, contract: v }))}
-                className={pill(f.contract === v)}
-              >
-                {c.contractLabels[v]}
-              </button>
-            ))}
-          </div>
-
-          {/* Disponibilità: appare solo se c'è almeno un immobile venduto (default: nasconde i venduti). */}
-          {properties.some(isSold) && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
-                {c.availabilityLabel}
-              </span>
-              {(["available", "sold"] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  aria-pressed={f.availability === v}
-                  onClick={() => setFilters((s) => ({ ...s, availability: v }))}
-                  className={pill(f.availability === v)}
-                >
-                  {v === "available" ? c.availAvailable : c.availSold}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
-              {c.type}
-            </span>
-            {types.map((t) => (
-              <button
-                key={t}
-                type="button"
-                aria-pressed={f.type === t}
-                onClick={() => setFilters((s) => ({ ...s, type: t }))}
-                className={pill(f.type === t)}
-              >
-                {(c.typeLabels as Record<string, string>)[t] ?? t}
-              </button>
-            ))}
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <label className="flex flex-col gap-1.5">
-              <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.zone}</span>
-              <select
-                value={f.comune}
-                onChange={(e) => setFilters((s) => ({ ...s, comune: e.target.value }))}
-                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                  f.comune !== "Tutti" ? "border-red/45 font-medium" : ""
-                }`}
-              >
-                {comuni.map((z) => (
-                  <option key={z} value={z}>
-                    {z === "Tutti" ? c.zoneAll : z}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.budget}</span>
-              <select
-                value={f.maxBudget}
-                onChange={(e) => setFilters((s) => ({ ...s, maxBudget: Number(e.target.value) }))}
-                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                  f.maxBudget !== 0 ? "border-red/45 font-medium" : ""
-                }`}
-              >
-                {budgetChoices.map((b) => (
-                  <option key={b.value} value={b.value}>
-                    {b.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-[0.78rem] font-semibold uppercase tracking-wide text-stone">{c.rooms}</span>
-              <select
-                value={f.minRooms}
-                onChange={(e) => setFilters((s) => ({ ...s, minRooms: Number(e.target.value) }))}
-                className={`rounded-xl border border-line bg-paper px-4 py-3 text-sm text-ink transition-colors duration-300 focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
-                  f.minRooms !== 0 ? "border-red/45 font-medium" : ""
-                }`}
-              >
-                {roomOptions.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.value === 0 ? c.roomsAny : r.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-[0.78rem] font-semibold uppercase tracking-wide text-stone">
-              {c.features}
-            </span>
+        {/* Affinamenti (A52): le caratteristiche e i venduti restano sulla carta, sopra i risultati. */}
+        <Reveal delay={80} className={`${conTesta ? "mt-12 " : ""}flex flex-wrap items-center gap-x-10 gap-y-4`}>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <span className="mr-1 text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.features}</span>
             {featureOptions.map((o) => (
               <button
                 key={o.label}
                 type="button"
                 aria-pressed={f.features.includes(o.label)}
                 onClick={() => toggleFeature(o.label)}
-                className={pill(f.features.includes(o.label))}
+                className={tab(f.features.includes(o.label))}
               >
                 {c.featureLabels[o.label] ?? o.label}
               </button>
             ))}
           </div>
+          {/* Disponibilità: appare solo se c'è almeno un immobile venduto (default: nasconde i venduti). */}
+          {properties.some(isSold) && (
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <span className="mr-1 text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.availabilityLabel}</span>
+              {(["available", "sold"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={f.availability === v}
+                  onClick={() => setFilters((s) => ({ ...s, availability: v }))}
+                  className={tab(f.availability === v)}
+                >
+                  {v === "available" ? c.availAvailable : c.availSold}
+                </button>
+              ))}
+            </div>
+          )}
         </Reveal>
 
         {/* Risultati */}
-        <div className="mt-10 flex items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="text-sm text-stone">
+        <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="text-body text-graphite">
               <span className="font-semibold text-ink">{shown.length}</span>{" "}
               {shown.length === 1 ? c.resultsOne : c.resultsMany}
             </p>
@@ -924,7 +972,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 type="button"
                 onClick={() => setFilters((s) => ({ ...s, minBudget: 0 }))}
                 aria-label={c.priceRemove}
-                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+                className="inline-flex min-h-11 items-center gap-1.5 border border-red px-3 py-1 text-ui font-semibold uppercase tracking-[0.08em] text-red-dark transition-colors duration-300 hover:bg-red hover:text-white"
               >
                 {c.priceFrom} {money(f.minBudget)} €<span aria-hidden>×</span>
               </button>
@@ -934,7 +982,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 type="button"
                 onClick={() => setFilters((s) => ({ ...s, minSqm: 0 }))}
                 aria-label={`${c.remove}: ${c.priceFrom} ${f.minSqm} m²`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+                className="inline-flex min-h-11 items-center gap-1.5 border border-red px-3 py-1 text-ui font-semibold uppercase tracking-[0.08em] text-red-dark transition-colors duration-300 hover:bg-red hover:text-white"
               >
                 {c.priceFrom} {f.minSqm} m²<span aria-hidden>×</span>
               </button>
@@ -944,7 +992,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 type="button"
                 onClick={() => setFilters((s) => ({ ...s, maxSqm: 0 }))}
                 aria-label={`${c.remove}: ${c.budgetUpTo} ${f.maxSqm} m²`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-red/30 bg-red-soft px-3 py-1 text-[0.8rem] font-medium text-red-dark transition-colors duration-300 hover:border-red hover:text-red"
+                className="inline-flex min-h-11 items-center gap-1.5 border border-red px-3 py-1 text-ui font-semibold uppercase tracking-[0.08em] text-red-dark transition-colors duration-300 hover:bg-red hover:text-white"
               >
                 {c.budgetUpTo} {f.maxSqm} m²<span aria-hidden>×</span>
               </button>
@@ -953,7 +1001,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
               <button
                 type="button"
                 onClick={resetFilters}
-                className="text-sm text-stone underline underline-offset-2 transition-colors duration-300 hover:text-ink"
+                className="text-ui font-semibold uppercase tracking-[0.08em] text-stone underline underline-offset-4 transition-colors duration-300 hover:text-ink"
               >
                 {c.manualReset}
               </button>
@@ -964,7 +1012,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             <div
               role="group"
               aria-label={`${c.viewList} / ${c.viewMap}`}
-              className="flex rounded-full border border-line bg-cream p-0.5"
+              className="flex border border-line"
             >
               {(["list", "map"] as const).map((v) => (
                 <button
@@ -974,7 +1022,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                   onClick={() => setView(v)}
                   // min-h-11 = 44px: la soglia di tocco. Senza, il toggle era alto 31px —
                   // il comando più piccolo della pagina, e quello che si usa di più.
-                  className={`inline-flex min-h-11 items-center justify-center rounded-full px-4 text-[0.8rem] font-semibold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                  className={`inline-flex min-h-11 items-center justify-center px-4 text-ui font-semibold uppercase tracking-[0.08em] transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                     view === v ? "bg-red text-white" : "text-graphite hover:text-ink"
                   }`}
                 >
@@ -984,7 +1032,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             </div>
             <a
               href="#contatti"
-              className="group hidden items-center gap-1.5 text-sm font-semibold text-red hover:text-red-dark sm:inline-flex"
+              className="group hidden items-center gap-1.5 text-ui font-semibold uppercase tracking-[0.08em] text-red underline underline-offset-4 hover:text-red-dark sm:inline-flex"
             >
               {c.notFound}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -1011,7 +1059,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             <div
               ref={gridRef}
               aria-busy={searching}
-              className={`mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3 ${
+              className={`mt-10 grid gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-3 ${
                 searching ? "opacity-50 transition-opacity duration-300" : "transition-opacity duration-300"
               }`}
             >
@@ -1035,7 +1083,7 @@ export default function PropertySearch({ properties }: { properties: GridPropert
                 >
                   {c.showMore}
                 </CtaButton>
-                <p className="text-[0.82rem] text-stone">
+                <p className="text-ui text-graphite">
                   {c.showingHint
                     .replace("{n}", String(Math.min(visible, shown.length)))
                     .replace("{tot}", String(shown.length))}
@@ -1044,9 +1092,9 @@ export default function PropertySearch({ properties }: { properties: GridPropert
             )}
           </>
         ) : (
-          <div className="mt-6 rounded-[1.75rem] border border-line bg-paper p-10 text-center">
-            <p className="font-display text-2xl font-medium text-ink">{c.emptyTitle}</p>
-            <p className="mx-auto mt-2 max-w-xl text-stone">{c.emptyBody}</p>
+          <div className="mt-10 border-t border-line pt-10">
+            <p className="max-w-[20ch] font-display text-d2 uppercase text-ink">{c.emptyTitle}</p>
+            <p className="lead mt-6">{c.emptyBody}</p>
             {/* CTA a intento acquirente su WhatsApp, precompilato con la frase cercata. */}
             <Cta
               href={buyerWaUrl}

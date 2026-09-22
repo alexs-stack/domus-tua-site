@@ -99,18 +99,30 @@ export default function PreloaderShell() {
   return (
     <div id="dt-preloader" aria-hidden className="dt-preloader">
       <div data-pre-panel className="absolute inset-0 overflow-hidden bg-espresso">
+        {/* LO SLOT DELLA GOMMA (22 set. 2026): vuoto nell'HTML; Preloader.tsx ci
+            monta DomusTuaPreloader in un portale a INTRO_T.gomma. È il PRIMO
+            figlio del pannello e la gomma ha `zIndex` 0: il suo foglio dipinge
+            sotto il fondo caldo e la sagoma (globals.css, «La gomma»). */}
+        <div data-pre-gomma />
         {/* Profondità calda, mai nero piatto (stesse regole di .bg-ink).
             Il gradiente sta in globals.css (`.dt-pre-fondo`): è il primo colore
             che il visitatore vede, e la sorgente dev'essere una. */}
         <div className="dt-pre-fondo absolute inset-0" />
-        <div className="grain !absolute !z-0" aria-hidden />
 
-        {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha della stessa
-            foto dell'hero (stesso canvas 2000×1415, fornito dal cliente), con
-            la stessa geometria object-cover dell'immagine sotto — silhouette
-            pulita sul fondo del preloader, e quando l'arco la attraversa
-            sagoma e foto coincidono pixel su pixel: la stanza "torna".
-            Entra in dissolvenza da 0,15 s (CSS: `dt-pre-in-fade`). */}
+        {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha posato sulla
+            banda dell'hero (A44, 20 set. 2026: `--dt-band-h` sotto la testata,
+            scripts/media/foto-alte.mjs), col suo object-cover 10 % 100 % —
+            silhouette pulita sul fondo del preloader; fino ad A55 (22 set.)
+            sagoma e foto coincidevano pixel su pixel (la stanza "tornava").
+            Con la foto della piscina sotto (media.ts) la figura non coincide
+            più, per scelta di Alberto («e se usassimo la maschera del preloader
+            vecchia di Raffaela? La preferisco, e poi all'entrata ci sarà la
+            foto nuova, la maschera se ne va via con l'entrata ad arco sulla
+            hero»): la sagoma è la figura del preloader, e l'arco la porta via.
+            Da A49 (la sera) sotto c'è la foto ALTA in flusso, intera e senza
+            ritaglio: la banda è il suo primo schermo (cielo-carta e villa), e
+            il patto della porta è la sola scatola (intro-clocks.test). Entra
+            in dissolvenza da 0,15 s (CSS: `dt-pre-in-fade`). */}
         <div data-pre-figure className="absolute inset-0">
           {/* WebP, non PNG: stesso canvas e stesso canale alpha, 79 KB invece
               di 809. Il preloader è la PRIMA cosa che scarica un visitatore
@@ -135,46 +147,41 @@ export default function PreloaderShell() {
           <picture>
             <source
               media="(max-width: 767.98px)"
-              srcSet="/media/raffaela-sagoma-m.webp"
+              srcSet="/media/raffaela-sagoma-villa-m.webp"
               type="image/webp"
             />
-            <source srcSet="/media/raffaela-sagoma.webp" type="image/webp" />
+            {/* Il `src` è il WebP del desktop: il PNG di ripiego non esiste più
+                (il ritaglio sorgente, `raffaela-sagoma.png`, è su un altro canvas
+                e serve solo a foto-alte.mjs; nessun browser del sito è senza WebP). */}
             <img
-              src="/media/raffaela-sagoma.png"
+              src="/media/raffaela-sagoma-villa.webp"
               alt=""
               loading="lazy"
               decoding="async"
               className="h-full w-full object-cover"
-              style={{ objectPosition: "50% 70%" }}
+              style={{ objectPosition: "10% 100%" }}
             />
           </picture>
         </div>
-
-        {/* Anelli eco della porta (solo variante arco, vedi globals.css):
-            la maschera li taglia dove c'è il buco, restano i profili. Seguono
-            l'arco via transform (`--arch-s`, `--arch-y`), mai via layout. */}
-        <div data-pre-arch-echo="2" />
-        <div data-pre-arch-echo="1" />
 
         <div
           data-pre-content
           className="relative flex h-full flex-col items-center justify-between py-10 sm:py-12"
         >
-          {/* Alto: il marchio ufficiale, con l'anello che gira in CSS
-              (`dt-pre-spin`, 6 s, anello e monogramma in versi opposti — lo
-              stesso gesto dell'header) — gira anche prima del JS.
+          {/* Alto: il marchio ufficiale, con anello e monogramma che girano
+              in CSS nello stesso verso, orario (`dt-pre-spin`, 6 s — lo stesso
+              gesto dell'header, richiesta cliente 2026-09-10) — gira anche
+              prima del JS.
 
               Qui il monogramma era nella variante negativa (crema+rosso):
               sulla PRIMA schermata del sito il logo del cliente si presentava
-              bianco. Ora è quello depositato, grigio e rosso, posato su una
-              pastiglia chiara che gli fa da fondo — come nel footer e
-              nell'header sopra l'hero. La pastiglia sta fuori dal badge (il
-              padding le lascia il bordo libero), così l'anello di tacche non
-              tocca il taglio del disco mentre gira. */}
-          <span
-            data-pre-badge
-            className="inline-flex rounded-full bg-paper p-2 text-graphite shadow-[0_16px_44px_-24px_rgba(0,0,0,0.9)]"
-          >
+              bianco. Ora è quello depositato, grigio e rosso (direttiva
+              2026-08-26), posato su un disco carta che gli fa da fondo. Il
+              disco sta fuori dal badge (il padding gli lascia il bordo
+              libero), così l'anello di tacche non tocca il taglio mentre
+              gira. Senza ombra: la rivista bianca non ne ammette nemmeno qui
+              — il preloader è l'eccezione per lo scuro, non per il rilievo. */}
+          <span data-pre-badge className="inline-flex rounded-full bg-paper p-2 text-graphite">
             <MarkBadge className="h-14 w-14" />
           </span>
 
@@ -188,7 +195,7 @@ export default function PreloaderShell() {
                 <PreChars text="Domus" />
                 <PreChars text="Tua" offset={5} />
               </div>
-              <span className="pointer-events-none absolute -bottom-[0.52em] left-1/2 -translate-x-1/2 whitespace-nowrap font-script text-[5.2vh] leading-none text-red [text-shadow:0_2px_28px_rgba(28,21,18,0.55)]">
+              <span className="pointer-events-none absolute -bottom-[0.52em] left-1/2 -translate-x-1/2 whitespace-nowrap font-script text-[5.2vh] leading-none text-red dt-ink-media">
                 <PreChars text="Raffaela Rizza" script />
               </span>
             </div>

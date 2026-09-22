@@ -1,37 +1,43 @@
 "use client";
 
-// HorizonStory — il set piece della home dopo la ricerca, in tre atti
-// (tecnica dal dossier reverse-engineering/era-residence §11, contenuti nostri):
-// 1. fondale: la foto aerea reale resta pinnata (sticky) mentre...
-// 2. ...la cupola crema — arco ribassato, variante Domus del semicerchio del
-//    riferimento — le sale sopra dal basso, col titolo curvato e FERMO su un
-//    textPath circolare (perché fermo: vedi la nota sull'SVG, atto 2);
-// 3. i pannelli orizzontali (HorizonScroller): manifesto + territorio.
-// Mobile: fondale semplice, pannelli in colonna — con la stessa coreografia,
-// sull'asse verticale e senza pin (ramo mobile di HorizonScroller: chars del
-// manifesto, gradini, sipario e deriva del tralcio, verdetto 15 dell'onda
-// «parità mobile 2»).
-// Reduced-motion o senza JS: tutto fermo, tutto visibile.
-import type { ReactNode } from "react";
-import { territoryLabel, territoryLabelBy } from "../lib/site";
-import Image from "next/image";
-import SurfaceVeil from "./motion/SurfaceVeil";
-import Link from "next/link";
-import HorizonScroller from "./motion/HorizonScroller";
-import Fioritura from "./motion/Fioritura";
-import ReviewsWall from "./ReviewsWall";
+// HorizonStory — «Perché scegliere Domus Tua»: il capitolo dopo la ricerca,
+// coi PANNELLI ORIZZONTALI pilotati dallo scroll (HorizonScroller) che il
+// redesign aveva tolto e che Alberto ha chiesto di riavere (2026-09-11:
+// «mantenendo quelle animazioni che non erano curve … lo scroll orizzontale
+// nella sezione perché domus tua»). Nella grammatica della rivista bianca:
+// via il fondale aereo (punto 6 della cliente, «togliere foto dopo ricerca»),
+// la cupola (una curva), i fiori e i veli. La stessa ripresa aerea è poi
+// tornata come foto del pannello territorio (360c76b, qui sotto): se il punto
+// 6 escluda anche quella è una domanda aperta. Resta il gesto — manifesto e
+// territorio cuciti in orizzontale
+// mentre la pagina scende, da lg in su con motion ok, in colonna altrove
+// (HorizonScroller: [data-on] lo mette solo JS). Sopra i pannelli, il video in
+// evidenza del capitolo «Come lavoriamo» (che questo sostituisce): stava in
+// fondo, largo 420px, con 700px di vuoto accanto — adesso è la colonna
+// verticale della riga a due colonne, subito sotto la testa di capitolo.
 import Reveal from "./Reveal";
-import { SegnoDomus } from "./BrandMotif";
-import { ArrowRight } from "./Icons";
+import ScriptWord from "./motion/ScriptWord";
+import SplitTitle from "./motion/SplitTitle";
+import Lead from "./motion/Lead";
+import RevealGroup from "./motion/RevealGroup";
+import HorizonScroller, { HorizonEnter } from "./motion/HorizonScroller";
+import FotoSlide from "./motion/FotoSlide";
+import StoryVideo from "./StoryVideo";
+import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
+import { site, territoryLabel, territoryLabelBy } from "../lib/site";
 
 const copy = {
   it: {
-    backdropAlt: "Vista aerea dei tetti e del verde attorno a Tradate",
+    backdropAlt: "Ripresa col drone di una villa con giardino e piscina",
     domeTitle: "Perché scegliere Domus Tua",
     domeLeft: "Tradate",
     domeRight: "dal 2007",
     eyebrow: "La promessa",
+    videoEyebrow: "Storie vere",
+    videoLead:
+      "Le case che vendiamo le raccontiamo: le persone, le stanze, il risultato. Questa è una di quelle storie.",
+    scriptWord: "Come lavoriamo",
     statement: (
       <>
         Vendere senza stress.
@@ -41,21 +47,32 @@ const copy = {
         Persone, prima degli immobili.
       </>
     ),
-    lead: "Dal 2007 con le famiglie di Tradate e provincia: valutiamo sui dati, verifichiamo i documenti prima del mercato, raccontiamo la casa e restiamo fino al rogito.",
+    manifestoAlt: "Divano da esterno sotto un ombrellone, davanti al muro in pietra di una villa",
+    lanterneAlt: "La vetrata di un soggiorno sulla terrazza, con due lanterne bianche",
+    glicineAlt: "Terrazze di una palazzina bianca coperte di glicine, fra i cipressi",
+    ulivoAlt: "Giardino in pendenza con un ulivo, siepi e prato",
+    acquaAlt: "Villa moderna vista dall'acqua della piscina, fra gli alberi",
     cap: "Tradate · Varese",
     stairs: ["Tra la", "Pineta", "e Milano"],
     subtitle: "Il territorio che abitiamo",
     territory:
-      `Lavoriamo dove viviamo: Tradate e i comuni di ${territoryLabel}, tra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Conosciamo il valore di ogni via, perché è anche la nostra: è da lì che nasce la valutazione che ti diamo.`,
+      // «Tradate e i comuni di la provincia…» era il refuso di H03 (audit del 21
+      // settembre 2026, blocco 23): la label di site.ts comincia con l'articolo
+      // («la provincia di Varese e l'alta provincia di Como», e lì serve così a
+      // CareerApplication), quindi la frase non interpola più un «di» davanti.
+      `Lavoriamo dove viviamo: Tradate, ${territoryLabel}, tra il verde del Parco Pineta e i collegamenti per Milano e Malpensa. Conosciamo il valore di ogni via, perché è anche la nostra: è da lì che nasce la valutazione che ti diamo.`,
     cta: "Vedi le case in vendita",
-    imageAlt: "Attico con terrazzo a Tradate seguito da Domus Tua",
   },
   en: {
-    backdropAlt: "Aerial view of the rooftops and greenery around Tradate",
+    backdropAlt: "Drone shot of a villa with garden and pool",
     domeTitle: "Why choose Domus Tua",
     domeLeft: "Tradate",
     domeRight: "since 2007",
     eyebrow: "Our promise",
+    videoEyebrow: "True stories",
+    videoLead:
+      "We tell the homes we sell in full: the people, the rooms, the result. This is one of those stories.",
+    scriptWord: "How we work",
     statement: (
       <>
         Selling without stress.
@@ -65,21 +82,28 @@ const copy = {
         People before properties.
       </>
     ),
-    lead: "Since 2007 alongside the families of Tradate and its province: we value on data, check the paperwork before going to market, tell the home's story and stay through to the deed.",
+    manifestoAlt: "Outdoor sofa under a parasol, in front of a villa’s stone wall",
+    lanterneAlt: "A living room’s glass wall onto the terrace, with two white lanterns",
+    glicineAlt: "Terraces of a white building draped in wisteria, among cypress trees",
+    ulivoAlt: "Sloping garden with an olive tree, hedges and lawn",
+    acquaAlt: "Modern villa seen across its pool, among the trees",
     cap: "Tradate · Varese",
     stairs: ["Between the", "Pineta park", "and Milan"],
     subtitle: "The land we call home",
     territory:
       `We work where we live: Tradate and the towns of ${territoryLabelBy.en}, between the green of the Pineta park and the connections to Milan and Malpensa. We know the value of every street, because it is ours too — and that is where the valuation we give you comes from.`,
     cta: "See the homes for sale",
-    imageAlt: "Penthouse with terrace in Tradate listed by Domus Tua",
   },
   fr: {
-    backdropAlt: "Vue aérienne des toits et de la verdure autour de Tradate",
+    backdropAlt: "Prise de vue par drone d’une villa avec jardin et piscine",
     domeTitle: "Pourquoi choisir Domus Tua",
     domeLeft: "Tradate",
     domeRight: "depuis 2007",
     eyebrow: "Notre promesse",
+    videoEyebrow: "Des histoires vraies",
+    videoLead:
+      "Les biens que nous vendons, nous les racontons : les personnes, les pièces, le résultat. Voici l'une de ces histoires.",
+    scriptWord: "Notre méthode",
     statement: (
       <>
         Vendre sans stress.
@@ -89,21 +113,28 @@ const copy = {
         Les personnes avant les biens.
       </>
     ),
-    lead: "Depuis 2007 aux côtés des familles de Tradate et de sa province : nous estimons sur des données, contrôlons les documents avant la mise en vente, racontons le bien et restons jusqu'à l'acte.",
+    manifestoAlt: "Canapé d’extérieur sous un parasol, devant le mur en pierre d’une villa",
+    lanterneAlt: "La baie vitrée d’un séjour sur la terrasse, avec deux lanternes blanches",
+    glicineAlt: "Terrasses d’un immeuble blanc couvertes de glycine, entre les cyprès",
+    ulivoAlt: "Jardin en pente avec un olivier, des haies et une pelouse",
+    acquaAlt: "Villa moderne vue depuis la piscine, entre les arbres",
     cap: "Tradate · Varese",
     stairs: ["Entre la", "Pineta", "et Milan"],
     subtitle: "Le territoire que nous habitons",
     territory:
       `Nous travaillons là où nous vivons : Tradate et les communes de ${territoryLabelBy.fr}, entre le vert du parc Pineta et les liaisons vers Milan et Malpensa. Nous connaissons la valeur de chaque rue, parce qu’elle est aussi la nôtre : c’est de là que naît l’estimation que nous vous donnons.`,
     cta: "Voir les biens à vendre",
-    imageAlt: "Attique avec terrasse à Tradate proposé par Domus Tua",
   },
   de: {
-    backdropAlt: "Luftaufnahme der Dächer und des Grüns rund um Tradate",
+    backdropAlt: "Drohnenaufnahme einer Villa mit Garten und Pool",
     domeTitle: "Warum Domus Tua",
     domeLeft: "Tradate",
     domeRight: "seit 2007",
     eyebrow: "Unser Versprechen",
+    videoEyebrow: "Echte Geschichten",
+    videoLead:
+      "Die Häuser, die wir verkaufen, erzählen wir ganz: die Menschen, die Räume, das Ergebnis. Dies ist eine dieser Geschichten.",
+    scriptWord: "So arbeiten wir",
     statement: (
       <>
         Verkaufen ohne Stress.
@@ -113,21 +144,28 @@ const copy = {
         Menschen vor Immobilien.
       </>
     ),
-    lead: "Seit 2007 an der Seite der Familien in Tradate und Umgebung: Wir bewerten anhand von Daten, prüfen die Unterlagen vor dem Markteintritt, erzählen das Haus und bleiben bis zum Notartermin.",
+    manifestoAlt: "Gartensofa unter einem Sonnenschirm vor der Steinmauer einer Villa",
+    lanterneAlt: "Die Glasfront eines Wohnzimmers zur Terrasse, mit zwei weißen Laternen",
+    glicineAlt: "Terrassen eines weißen Hauses voller Glyzinien, zwischen Zypressen",
+    ulivoAlt: "Hanggarten mit Olivenbaum, Hecken und Rasen",
+    acquaAlt: "Moderne Villa vom Pool aus gesehen, zwischen Bäumen",
     cap: "Tradate · Varese",
     stairs: ["Zwischen dem", "Pineta-Park", "und Mailand"],
     subtitle: "Unser Zuhause, unser Gebiet",
     territory:
       `Wir arbeiten dort, wo wir leben: Tradate und die Gemeinden ${territoryLabelBy.de}, zwischen dem Grün des Pineta-Parks und den Verbindungen nach Mailand und Malpensa. Wir kennen den Wert jeder Straße — denn es sind auch unsere, und daraus entsteht Ihre Bewertung.`,
     cta: "Immobilien zum Verkauf ansehen",
-    imageAlt: "Penthouse mit Terrasse in Tradate im Angebot von Domus Tua",
   },
   es: {
-    backdropAlt: "Vista aérea de los tejados y el verde alrededor de Tradate",
+    backdropAlt: "Toma con dron de una villa con jardín y piscina",
     domeTitle: "Por qué elegir Domus Tua",
     domeLeft: "Tradate",
     domeRight: "desde 2007",
     eyebrow: "Nuestra promesa",
+    videoEyebrow: "Historias reales",
+    videoLead:
+      "Las casas que vendemos las contamos enteras: las personas, las habitaciones, el resultado. Esta es una de esas historias.",
+    scriptWord: "Cómo trabajamos",
     statement: (
       <>
         Vender sin estrés.
@@ -137,264 +175,232 @@ const copy = {
         Personas antes que inmuebles.
       </>
     ),
-    lead: "Desde 2007 junto a las familias de Tradate y su provincia: valoramos con datos, comprobamos los documentos antes del mercado, contamos la casa y seguimos hasta la escritura.",
+    manifestoAlt: "Sofá de exterior bajo una sombrilla, frente al muro de piedra de una villa",
+    lanterneAlt: "La cristalera de un salón hacia la terraza, con dos faroles blancos",
+    glicineAlt: "Terrazas de un edificio blanco cubiertas de glicina, entre cipreses",
+    ulivoAlt: "Jardín en pendiente con un olivo, setos y césped",
+    acquaAlt: "Villa moderna vista desde la piscina, entre los árboles",
     cap: "Tradate · Varese",
     stairs: ["Entre el", "parque Pineta", "y Milán"],
     subtitle: "El territorio que habitamos",
     territory:
       `Trabajamos donde vivimos: Tradate y los municipios de ${territoryLabelBy.es}, entre el verde del parque Pineta y las conexiones con Milán y Malpensa. Conocemos el valor de cada calle, porque también es la nuestra: de ahí nace la valoración que te damos.`,
     cta: "Ver las casas en venta",
-    imageAlt: "Ático con terraza en Tradate ofrecido por Domus Tua",
   },
 } as const;
 
-// Arco del titolo curvato: cerchio largo (r=1800, centro sotto il viewBox) →
-// curvatura dolce, coerente con l'arco ribassato della cupola. startOffset 25%
-// = apice del cerchio (il path parte dal punto più a sinistra).
-const ARC_PATH = "M 800,1900 m -1800,0 a 1800,1800 0 1,1 3600,0 a 1800,1800 0 1,1 -3600,0";
-
-export default function HorizonStory({ children }: { children?: ReactNode }) {
+export default function HorizonStory() {
   const { locale } = useLocale();
   const c = copy[locale];
+  // A76 (Alberto, 22 set. 2026, notte): le foto che scorrono da sole nei due pannelli (FotoSlide). La
+  // prima di ogni lista è quella di sempre; le altre sono 16:9 o 3:2 senza persone, così nessun volto
+  // rischia il taglio della banda 16:9 (A27). Le 3:2 hanno `pos`: le terrazze al 40 % (esce cielo e muro),
+  // la villa dall'acqua al 45 % (il tetto resta intero).
+  const fotoManifesto = [
+    { src: "/images/reali/villa-salotto-ombrellone.jpg", alt: c.manifestoAlt },
+    { src: "/images/reali/villa-vetrata-lanterne.jpg", alt: c.lanterneAlt },
+    { src: "/images/reali/villa-terrazze-glicine.jpg", alt: c.glicineAlt, pos: "50% 40%" },
+  ];
+  const fotoTerritorio = [
+    { src: "/media/hero-aerial.jpg", alt: c.backdropAlt },
+    { src: "/images/reali/villa-uliveto.jpg", alt: c.ulivoAlt },
+    { src: "/images/reali/villa-fronte-acqua.jpg", alt: c.acquaAlt, pos: "50% 45%" },
+  ];
 
   return (
-    <>
-      {/* Atto 1 — fondale: la foto resta pinnata mentre la cupola le sale sopra. */}
-      <div className="relative z-0 h-[160svh]">
-        {/* `bg-cream-deep`: sul desktop non si vede — la foto copre il pannello
-            per intero — ma sotto i 768 la foto diventa una fascia centrata
-            (globals.css, «Le foto a tutto schermo diventano fasce») e attorno a
-            lei ci vuole il crema del capitolo, non il vuoto. Il tono è quello
-            del velo qui sotto: un campo solo, nessuna giuntura. */}
-        <div className="sticky top-0 h-svh overflow-hidden bg-cream-deep">
-          {/* Il wrapper esiste per la fascia: `Image fill` si posiziona da sé
-              su `inset-0` del pannello, e la geometria del telefono va scritta
-              su un nodo che possiamo governare. */}
-          <div className="dt-mob-band dt-mob-band--centro absolute inset-0">
-            <Image
-              src="/media/hero-aerial.jpg"
-              alt={c.backdropAlt}
-              fill
-              sizes="100vw"
-              // A differenza dell'hero in PageHero, qui la foto non ha velature scure:
-              // è il fondale a schermo intero del primo atto, quindi resta il soggetto
-              // — quality 60 la rendeva visibilmente sgranata sui tetti/alberi.
-              quality={75}
-              className="object-cover"
-            />
-          </div>
-          {/* La ricerca (crema) consegna alla foto aerea: senza velo il bordo
-              è un taglio da ΔRGB 583. Qui il crema entra dentro il cielo. */}
-          <SurfaceVeil edge="top" tone="cream-deep" height="22svh" />
-        </div>
+    <section id="perche-domus-tua" className="dt-chapter bg-cream">
+      {/* Testa di capitolo: eyebrow, titolo d1 (era il titolo curvato della
+          cupola: ora è un titolo e basta), corsivo rosso. */}
+      <div className="dt-row">
+        <Reveal>
+          <span className="eyebrow">{c.eyebrow}</span>
+        </Reveal>
+        <SplitTitle as="h2" className="mt-6 max-w-[16ch] font-display text-d1">
+          {c.domeTitle}
+        </SplitTitle>
+        <ScriptWord className="pl-[14vw]">{c.scriptWord}</ScriptWord>
       </div>
 
-      {/* Atti 2 e 3 vivono in UN SOLO contenitore curvo: il trattamento-luce di
-          .bg-cream (bloom dall'alto) riparte a ogni elemento che porta la classe,
-          e due superfici separate creavano una linea d'ombra al confine. Con la
-          cupola come wrapper la pagina che sale è davvero una sola. */}
-      <div data-tone-keep="cream" className="dt-dome relative z-10 -mt-[60svh] bg-cream">
-        {/* Atto 2 — l'intro sotto l'arco. Il titolo curvato è decorativo
-            (aria-hidden): il testo leggibile vive nell'h2 sr-only. */}
-        <div className="mx-auto max-w-[1600px] px-5 pb-6 pt-[16svh] sm:px-8">
-          <h2 className="sr-only">{c.domeTitle}</h2>
-          {/* Qui le parole del titolo si distendevano lungo l'arco in scrub
-              (word-spacing 0 → 0.55em, rif. §11.4 del dossier). TOLTO — e non
-              è una svista, non rimettercelo. Il motivo non è la larghezza:
-              word-spacing è una proprietà di LAYOUT, quindi ogni fotogramma
-              dello scrub rifaceva il layout del testo e costringeva il
-              textPath a rimisurare e ripiazzare ogni glifo lungo la curva.
-              La Fase 2 si era limitata a chiuderlo dentro MQ.lg contando il
-              taglio come regola Chanel: mezza misura, perché la legge «solo
-              transform, opacity, clip-path» non ha una clausola «tranne che
-              sul desktop». Con il tween se n'è andato l'unico useGSAP del
-              file, e con lui uno ScrollTrigger in scrub acceso per tutta la
-              sezione. Il titolo fermo si legge benissimo: il gesto è l'arco,
-              non il respiro delle parole. Il credito Chanel della parità
-              mobile ora lo paga lo scrub dei gradini in HorizonScroller.
-              L'SVG resta identico, `data-dome-text` compreso: è un marcatore
-              inerte, nessuno lo interroga più. */}
-          <div aria-hidden className="mx-auto w-full max-w-[1240px]">
-            <svg viewBox="0 0 1600 460" width="100%" height="100%" className="block">
-              <defs>
-                <path id="dt-dome-arc" d={ARC_PATH} />
-              </defs>
-              <text
-                data-dome-text
-                textAnchor="middle"
-                fill="currentColor"
-                className="font-display uppercase text-ink"
-                style={{ fontSize: 96, letterSpacing: "0.02em" }}
-              >
-                <textPath href="#dt-dome-arc" startOffset="25%">
-                  {c.domeTitle}
-                </textPath>
-              </text>
-            </svg>
-          </div>
-          <Reveal className="mt-4 flex items-center justify-center gap-4">
-            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-graphite">
-              {c.domeLeft}
-            </span>
-            <SegnoDomus className="h-4 w-10" />
-            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-graphite">
-              {c.domeRight}
-            </span>
+      {/* Il video in evidenza è VERTICALE (girato col telefono, come le storie
+          del canale): in un riquadro 16:9 mostrerebbe le bande sfocate di
+          YouTube, quindi sta nella COLONNA (dt-media-column--tall, 9:16).
+          Composizione del riferimento (§5, riga «squadra vincente»): la colonna
+          risale sotto il titolo di capitolo (-10vw) e il testo scende (+10vw),
+          così le due colonne non partono mai dalla stessa quota e accanto al
+          video non resta mezzo schermo vuoto. Il margine della riga (12vw)
+          tiene i 10vw di risalita lontani dalla calligrafia della testa; era
+          16vw/14vw, e a 1440 lasciava 349 px di avorio fra la testa e la
+          riga (misura del 2026-09-20). */}
+      <div className="dt-row mt-[clamp(2.5rem,6vh,4.5rem)] grid gap-[6vw] lg:mt-[12vw] lg:grid-cols-2">
+        {/* A60 (Alberto, 22 set. 2026, sera): il file vero della storia di Roberta, 1080×1920, al
+            posto della facciata di YouTube — «mettilo al posto della preview youtube, con la logica
+            di audio che si attiva in automatico, e quando esci dalla sezione scrollando la pagina,
+            si disattiva». Il tetto a 420 px era il conto della copertina 16:9 di YouTube stirata in
+            9:16 (1.280 px di sorgente per 1.911 resi): col fotogramma vero 1080×1920 il tetto si
+            toglie, come promesso, e la colonna torna piena (605 px a 1440, 640 al massimo). La
+            voce parte in vista e si ferma fuori vista (useAmbientVideo, A44). */}
+        <StoryVideo
+          /* A63 (Alberto, 22 set., sera: «rimpicciolisci il video villa di roberta di poco»): 36vw e
+             560 px al massimo invece dei 42vw / 640 del modulo (il `!` perché il modulo sta fuori dai
+             layer): 518 px a 1440, 560 da 1556. */
+          className="dt-media-column dt-media-column--tall lg:-mt-[10vw] lg:!w-[36vw] lg:!max-w-[560px]"
+          title={site.videos.featured.title}
+          poster="/media/open-domus-roberta-poster.jpg"
+          sources={{
+            hd: { webm: "/media/open-domus-roberta-1080.webm", mp4: "/media/open-domus-roberta-1080.mp4" },
+            sd: { webm: "/media/open-domus-roberta-720.webm", mp4: "/media/open-domus-roberta-720.mp4" },
+            ar: 9 / 16,
+            sdWidth: 720,
+          }}
+        />
+        {/* Il rientro delle altre righe torna insieme al modulo pieno. */}
+        <RevealGroup className="lg:mt-[10vw] lg:pl-[6vw]">
+          <Reveal>
+            <span className="eyebrow">{c.videoEyebrow}</span>
           </Reveal>
-          <Reveal delay={120} className="mx-auto mt-8 h-14 w-px bg-red/40" as="div">
-            <span className="sr-only" />
+          <Reveal>
+            {/* Non un heading: il titolo del capitolo è uno solo, sopra. */}
+            <p className="mt-6 max-w-[16ch] font-display text-d3 uppercase">{site.videos.featured.title}</p>
           </Reveal>
-        </div>
+          <Lead className="mt-8">{c.videoLead}</Lead>
+        </RevealGroup>
+      </div>
 
-        {/* Atto 3 — i pannelli orizzontali (stessa superficie curva, nessun
-            proprio sfondo: la luce resta quella del wrapper). */}
-        <HorizonScroller id="storia" refreshKey={locale}>
-        {/* Pannello manifesto */}
-        <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center justify-center">
-          {/* L'angolo fiorito del riferimento (era-residence §11.3): il tralcio
-              sboccia dall'angolo alto e deriva con la parallasse dei fiori.
-              Acceso anche sotto lg (onda «parità mobile 2», verdetto 6): delle
-              due Fioriture di questo capitolo è QUESTA che resta a 390 — «una
-              per sezione» — con box 117px quadrati (`w-[30vw]`), dpr 1,5 e
-              tetto 900 dentro Fioritura; l'angolo alto a sinistra del
-              manifesto è aria anche in colonna (il testo è centrato e parte
-              sotto py-20). La deriva `drift-y` sotto lg la fa HorizonScroller
-              nel suo ramo mobile (Fase 3): qui c'è il tralcio, lì il moto. */}
-          <div
-            aria-hidden
-            data-horizon-flower="drift-y"
-            className="pointer-events-none absolute -left-6 -top-8 z-10 h-[22vh] w-[30vw] lg:h-[44vh] lg:w-[20vw]"
-          >
-            <Fioritura variant="corner-tl" className="h-full w-full" />
-          </div>
-          <div className="mx-auto max-w-[1000px] px-5 py-20 text-center sm:px-8 lg:py-0">
-            <Reveal>
-              <span className="eyebrow eyebrow--center justify-center">{c.eyebrow}</span>
-            </Reveal>
-            {/* Reveal per-carattere (animatore "h" del riferimento, §7 del
-                dossier): orchestrato da HorizonScroller al pin della sezione —
-                un trigger di posizione qui suonerebbe a sipario ancora chiuso. */}
-            <h2
-              key={locale}
-              data-horizon-reveal="chars"
-              className="mt-6 font-display text-d3 display-tight font-medium uppercase text-ink"
-            >
-              {c.statement}
-            </h2>
-            <Reveal delay={160}>
-              <p className="mx-auto mt-8 max-w-xl text-[0.98rem] leading-relaxed text-stone sm:text-base">
-                {c.lead}
-              </p>
-            </Reveal>
-            <Reveal delay={240} className="mt-8 flex justify-center">
-              <SegnoDomus className="h-5 w-12" />
-            </Reveal>
-          </div>
-        </div>
-
-        {/* Pannello territorio */}
-        <div className="dt-horizon_panel dt-horizon_panel--territory relative flex items-center">
-          <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-10 px-5 py-20 sm:px-8 lg:grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)] lg:items-center lg:gap-0 lg:py-0">
-            <div className="dt-horizon_stairs">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-red">
-                {c.cap}
-              </p>
-              <h2 className="mt-6 font-display font-medium uppercase leading-[0.95] tracking-[-0.01em] text-ink">
-                {c.stairs.map((line, i) => (
-                  <span
-                    key={line}
-                    data-horizon-stair
-                    // NON `text-d2`: i gradini vivono dentro un pannello del
-                    // nastro orizzontale largo ~918px, e a 7,6vw una riga in
-                    // maiuscolo lo sfora di ~190px (misurato) finendo sotto
-                    // l'overflow:clip della sezione. Questa era già la misura
-                    // più grande del sito: qui "più grande" vorrebbe dire
-                    // "tagliato".
-                    className={`block text-[clamp(2.6rem,7vw,6.5rem)] ${
-                      i === 1 ? "lg:ml-[9vw]" : i === 2 ? "lg:ml-[4vw]" : ""
-                    }`}
-                  >
-                    {line}
-                  </span>
-                ))}
-              </h2>
-              <div data-horizon-reveal="track" className="mt-10 max-w-md">
-                <h3 className="font-display text-xl font-medium text-ink sm:text-2xl">
-                  {c.subtitle}
-                </h3>
-                <p className="mt-4 text-[0.95rem] leading-relaxed text-stone sm:text-base">
-                  {c.territory}
-                </p>
-                <Link
-                  href="/acquista"
-                  className="tap-target group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
-                >
-                  {c.cta}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </div>
-            <div
-              data-horizon-slide
-              className="relative aspect-[4/3] w-full overflow-hidden rounded-card lg:aspect-auto lg:h-[72vh]"
-            >
-              <Image
-                data-horizon-slide-img
-                src="/images/reali/attico-tradate.jpg"
-                alt={c.imageAlt}
-                fill
-                sizes="(min-width: 1024px) 60vw, 100vw"
-                className="object-cover"
+      {/* I pannelli orizzontali: manifesto e territorio. Con MQ.corridor
+          (D22: 1024 px di larghezza, 640 di altezza, motion ok) lo screen è
+          sticky e il track scorre in orizzontale mentre la pagina scende
+          (l'altezza della sezione È la larghezza del track); senza JS, con
+          reduced-motion o sotto quella soglia restano due blocchi in
+          colonna, completi e statici. Sopra i pannelli non c'è più nessuna
+          foto aerea né velo: solo l'avorio della pagina. */}
+      <div className="mt-[clamp(3rem,7vh,5rem)]">
+        <HorizonScroller id="storia" corridor="storia" refreshKey={locale}>
+          {/* Pannello manifesto (A12 di Alberto: il nastro resta; A20: titolo
+              per lettera e lead a righe, spec §2.4). Manifesto e lead sono un
+              gruppo solo, <HorizonEnter>: col nastro acceso lo fa entrare il
+              cue «top 70%» della radice e uscire la risalita sotto quel punto;
+              sotto MQ.corridor (D22) entra con l'IO del motore.
+              La variante `[.dt-horizon:not([data-on])_&]` vale SOLO quando il
+              nastro non è acceso (reduced-motion, niente JS, sotto la soglia):
+              lì i pannelli sono blocchi in colonna e `lg:py-0` — giusto dentro
+              uno schermo sticky da 100svh — li faceva combaciare, con la fine
+              del manifesto attaccata all'eyebrow del territorio. */}
+          <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center">
+            {/* Il manifesto era una colonna di testo centrata, larga al piu' 1000
+                px, sola in un pannello di 100vw: 292 px di avorio per lato a
+                1440, e nel passaggio al territorio 761 px di nulla (misura del
+                2026-09-20, screenshot di Alberto). Ora e' la riga a due colonne
+                del sito: a sinistra le tre frasi, a bandiera; a destra una
+                fotografia nella meta' forzata a 16:9 (il sorgente e' 16:9,
+                2560×1440: nessun taglio, nessun ingrandimento). Il lead che
+                stava sotto le frasi non c'e' piu': ripeteva Posizionamento
+                parola per parola (valutare sui dati, documenti prima, raccontare,
+                fino al rogito). Sotto la soglia del nastro le due colonne si
+                impilano, foto sotto le frasi. */}
+            <HorizonEnter className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+              <SplitTitle as="h3" className="font-display text-d2">
+                {c.statement}
+              </SplitTitle>
+              {/* A76: le foto scorrono da sole una sopra l'altra, come la galleria di era (FotoSlide, che
+                  porta la zona foto del segno e il sipario del nastro sulla sua scatola). */}
+              <FotoSlide
+                className="lg:justify-self-end"
+                boxClassName="dt-media-half !aspect-video"
+                sizes="(max-width: 1023px) 90vw, (max-width: 1523px) 42vw, 640px"
+                foto={fotoManifesto}
               />
+            </HorizonEnter>
+          </div>
+
+          {/* Pannello territorio: i gradini del titolo cavalcano la foto in
+              parallasse contraria, la foto si apre a sipario (clip-path).
+              A destra il rientro è 5vw nel nastro e 8vw in colonna: i 5vw
+              servono al pannello quando è largo un viewport, ma in pagina
+              mettevano titolo e foto su una linea verticale tutta loro.
+              IL RIENTRO SINISTRO È 9,5vw DA 1024 IN SU COL NASTRO ACCESO
+              (D68, per A27 di Alberto: il segno non copre niente e gli resta
+              almeno 16 px d'aria). Da 1024 il monogramma fisso (MarkSegno) sta
+              nel margine col centro a 4vw, e il suo bordo destro arriva a
+              4vw + clamp(40px, 3,75vw, 56px) / 2: 84,6 px a 1440, 75,2 a 1280,
+              61,0 a 1024. Chi gli si avvicina davvero non è l'h3 — la sua
+              scatola resta ferma al posto di layout — ma il gradino di mezzo
+              «Pineta»: ha `lg:ml-[9vw]` e la parallasse contraria di
+              HorizonScroller lo porta a xPercent −25 nella posa di fine corsa,
+              cioè a 1,115 · rientro − 0,024 · larghezza px dal bordo sinistro.
+              Con 8vw restava a 5,8 / 7,7 / 9,3 px dal segno (1024 / 1280 /
+              1440), sotto la riserva; il rientro che tocca esattamente i 16 px
+              è 8,9vw a 1024, e 9,5vw porta il gradino a 22,9 / 29,1 / 33,4 px e
+              l'h3 col link a 36,5 / 46,2 / 52,6, al prezzo di 15,4 px di
+              larghezza utile a 1024 (misure/20-territorio.mjs). In colonna la
+              variante `[.dt-horizon:not([data-on])_&]` tiene 8vw sui due lati:
+              lì nessun gradino cavalca la foto e il titolo è già a 20,9 px dal
+              segno. A 1920 il pannello è centrato dal max-w e sta a 209 px. */}
+          <div className="dt-horizon_panel dt-horizon_panel--territory relative flex items-center">
+            <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-10 px-[5vw] py-20 lg:pl-[9.5vw] [.dt-horizon:not([data-on])_&]:lg:px-[8vw] lg:grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)] lg:items-center lg:gap-0 lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+              <div className="dt-horizon_stairs">
+                <p className="eyebrow">{c.cap}</p>
+                <h3 className="mt-6 font-display leading-[0.95] tracking-[-0.01em]">
+                  {c.stairs.map((line, i) => (
+                    <span
+                      key={line}
+                      data-horizon-stair
+                      // NON `text-d2`: i gradini vivono dentro un pannello del
+                      // nastro orizzontale largo ~918px, e a 7,6vw una riga in
+                      // maiuscolo lo sfora di ~190px (misurato) finendo sotto
+                      // l'overflow:clip della sezione.
+                      className={`block text-[clamp(2.6rem,7vw,6.5rem)] ${
+                        i === 1 ? "lg:ml-[9vw]" : i === 2 ? "lg:ml-[4vw]" : ""
+                      }`}
+                    >
+                      {line}
+                    </span>
+                  ))}
+                </h3>
+                {/* Gruppo del motore (spec §2.4): nel nastro entra quando è in
+                    scena e, risalendo, esce a destra della linea dell'85 %; in
+                    colonna entra dal basso. Col link dentro, il ruolo ctn scende
+                    a still: nei replay solo opacità (D21).
+                    `dt-horizon_text`: col nastro acceso il gruppo rende gli 11vw
+                    che i gradini prendono per cavalcare la foto, più 2rem di
+                    canale (globals.css), così lead, h4 e link si fermano prima
+                    della foto e non ci finiscono sotto né a filo — audit del 21
+                    settembre 2026 (blocco 23), difetto H03, due giri. */}
+                <RevealGroup className="dt-horizon_text mt-10 max-w-[50ch]">
+                  <SplitTitle as="h4" className="font-display text-d4">
+                    {c.subtitle}
+                  </SplitTitle>
+                  <Reveal as="p" className="mt-4 text-body text-graphite">
+                    {c.territory}
+                  </Reveal>
+                  <Reveal>
+                    <Cta href="/acquista" variant="ghost" className="mt-7">
+                      {c.cta}
+                    </Cta>
+                  </Reveal>
+                </RevealGroup>
+              </div>
+              {/* L'ALT DICE COSA SI VEDE, NON COSA VORREMMO: e' una ripresa quasi
+                  a picco su UNA villa privata con piscina, non «i tetti e il
+                  verde attorno a Tradate». docs/da-chiedere-alla-cliente.md
+                  §2.2 lo segna come bloccante — immobile, autorizzazione del
+                  proprietario e diritti sono ancora da chiarire — e fino ad
+                  allora la descrizione non puo' promettere un luogo.
+                  Il territorio si illustra col territorio: la ripresa col
+                  drone, non il render 3D di un attico (era
+                  ingrandito 1,7× dentro una scatola alta 72vh). La sorgente è
+                  2560×1280, cioè PANORAMICA: sta in una banda 16:9, dove si
+                  taglia l'11% e non si ingrandisce nulla; in un ritratto ne
+                  resterebbe un terzo. */}
+              {/* Zona foto del monogramma (A21 di Alberto, spec §6.1): sopra
+                  questa foto le tacche del segno virano all'avorio. */}
+              {/* A76: anche qui le foto scorrono da sole (FotoSlide): dopo la ripresa col drone, il verde
+                  del territorio e la villa vista dall'acqua. */}
+              <FotoSlide className="w-full" boxClassName="dt-media-full" sizes="(min-width: 1024px) 55vw, 100vw" foto={fotoTerritorio} />
             </div>
           </div>
-          {/* La scritta in fiori (tecnica WebGL-typing, canvas 2D): il nome del
-              territorio fiorisce come una firma botanica sotto i gradini.
-              Sotto lg resta `hidden` per la regola «una Fioritura per sezione
-              a 390» (docs/effetti-reference.md; onda «parità mobile 2»,
-              verdetto 6): il capitolo tiene il tralcio del manifesto qui
-              sopra, e fra le due questa è la più cara (una scritta campiona
-              ogni pixel: 2 200 particelle a passo 1). Non è la dottrina
-              «tradurre»: è un tetto di densità, e vale anche sul tablet. */}
-          <div
-            aria-hidden
-            data-horizon-flower="drift-x"
-            className="pointer-events-none absolute bottom-[7vh] left-[5vw] z-10 hidden h-[13vh] w-[30vw] lg:block"
-          >
-            <Fioritura word="Tradate" variant="corner-bl" className="h-full w-full" />
-          </div>
-        </div>
-
-        {/* QUI STAVANO DUE PANNELLI RECENSIONI, E SONO STATI TOLTI.
-            («Lo specchio del nostro lavoro» e «Le voci, in prima persona».)
-
-            La home aveva CINQUE sezioni di recensioni — questi due, il muro delle voci,
-            «Cinque stelle, una alla volta» e «Parola per parola» — e in nessuna delle
-            cinque si leggeva una parola scritta da un cliente. Cinque titoli diversi per
-            dire la stessa cosa non sono cinque prove: sono una prova sola, ripetuta
-            cinque volte, e ogni ripetizione la indebolisce.
-
-            Sono caduti questi due perché erano i più deboli: bellissimi da guardare, ma
-            parlavano DI recensioni invece di mostrarne una. Restano il muro delle voci
-            (Atto 4), che porta i titoli veri delle storie dei clienti, e StarReviews
-            (Atto 5), che porta voto, premio e il widget di verifica.
-
-            Il set piece orizzontale torna a due pannelli — la promessa e il territorio —
-            che è poi il suo arco naturale: chi siamo, e dove. */}
-
         </HorizonScroller>
-
-        {/* Atto 4 — dall'ultimo fotogramma orizzontale lo scroll torna
-            verticale e il muro delle voci si compone (stessa superficie
-            curva: nessuna cucitura di luce). */}
-        <ReviewsWall />
-
-        {/* Atto 5 — i capitoli che continuano la stessa pagina (es. le cinque
-            stelle): DENTRO la superficie curva, così il trattamento-luce di
-            .bg-cream non riparte e il confine non disegna la linea d'ombra
-            che spezzava lo scroll (stessa lezione degli atti 2-3). */}
-        {children}
       </div>
-    </>
+
+    </section>
   );
 }
