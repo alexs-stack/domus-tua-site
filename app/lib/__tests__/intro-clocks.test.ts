@@ -629,8 +629,15 @@ describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
    rimasta a tutto schermo: per 750 ms due Raffaela, poi un taglio). Questi
    controlli lo tengono chiuso: se qualcuno sposta una delle due scatole,
    `npm test` lo dice prima di un cliente.
+   Dal 22 settembre (A55) la foto sotto e' quella vera della piscina, con
+   Raffaela al centro, e la sagoma resta la maschera in pizzo di A44: le due
+   figure non coincidono piu', per scelta di Alberto («la preferisco, e poi
+   all'entrata ci sara' la foto nuova, la maschera se ne va via con l'entrata
+   ad arco sulla hero»). Il patto che resta e' la SCATOLA: stessa banda,
+   stesso ritaglio, stessi confini, cosi' l'arco si apre sulla foto senza un
+   salto di inquadratura.
    ───────────────────────────────────────────────────────────────────────── */
-describe("la porta si apre sulla stanza: sagoma e foto coincidono", () => {
+describe("la porta si apre sulla stanza: sagoma e foto nella stessa scatola", () => {
   const shell = read("app/components/motion/PreloaderShell.tsx");
   const hero = read("app/components/HeroCinematic.tsx");
 

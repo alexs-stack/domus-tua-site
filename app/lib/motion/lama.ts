@@ -92,7 +92,7 @@ export type LamaId =
  *   file → da sinistra, margine sinistro 13,1 % → 10;
  * - Paths 1 (`raffaela-specchio-profilo.jpg`): da sinistra per la regola della
  *   fila (Voci, che precede, apre da destra: A28 (10)), margine 3,3 % → 3;
- * - Paths 2 (`villa-pool.jpg`): da sinistra per la stessa regola, 47 % → 10;
+ * - Paths 2 (`hero-raffaela-villa.jpg` dal 22 set. 2026, A55; prima `villa-pool.jpg`, 47 %): da sinistra per la stessa regola → 10;
  * - Chi siamo (`villa-pool.jpg`): da destra, 36,5 % → 10;
  * - le chiavi (`raffaela-keys.jpg` a `50% 0%`): da destra, 4,0 % → 4;
  * - la testimonianza con la copertina cotta (`recensione-clienti.jpg`, trim): i

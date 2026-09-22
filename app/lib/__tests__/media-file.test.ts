@@ -42,6 +42,10 @@ const NUOVI: ReadonlyArray<{ path: string; w: number; h: number }> = [
   // gronda del portico, in tutti i nove candidati 1880-2020 di R4-T), 2026-09-17
   { path: "media/congedo-poster.jpg", w: 1920, h: 1080 },
   { path: "media/acqua-poster.jpg", w: 1920, h: 1080 },
+  // A55 (22 set.): l'hero della home dalla foto vera della piscina, ricodificata senza l'APP1 di
+  // villa-pool.jpg (scripts/media/hero-piscina.mjs): la foto intera 3:2 e la striscia 9:16 del telefono.
+  { path: "media/hero-raffaela-piscina.jpg", w: 1920, h: 1280 },
+  { path: "media/hero-raffaela-piscina-m.jpg", w: 720, h: 1280 },
 ];
 const MP4 = ["media/congedo-drone-1080.mp4", "media/congedo-drone-720.mp4", "media/acqua-1080.mp4"];
 const WEBM = ["media/congedo-drone-1080.webm", "media/congedo-drone-720.webm", "media/acqua-1080.webm"];

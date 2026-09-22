@@ -162,11 +162,11 @@
   --dt-head-h: clamp(4.5rem, 10vh, 6.5rem);
   /* A44 (20 set. 2026): la banda dell'hero è a SCHERMO INTERO sotto la testata, come su
      era-residence («la foto è il background stesso»); prima era 60svh e la foto 2000×1415
-     restava col mento di Raffaela sul bordo. La foto è alta (2:3 / 9:16) e ancorata in basso:
-     `--dt-hero-ar` è il rapporto del file per fascia (media.ts, foto-alte.mjs), che dà allo
-     zoom del tuffo l'altezza resa già in SSR. */
+     restava col mento di Raffaela sul bordo. La foto è ancorata in basso e `--dt-hero-ar` è il
+     rapporto del file per fascia (media.ts), che dà allo zoom del tuffo l'altezza resa già in SSR.
+     A55 (22 set.): la foto vera della piscina (hero-piscina.mjs), 9:16 sul telefono, 3:2 da 768. */
   --dt-band-h: calc(100svh - var(--dt-head-h) - 1px);
-  --dt-hero-ar: 1440 / 2580;
+  --dt-hero-ar: 720 / 1280;
 
   /* Motion — stesso vocabolario dei token GSAP in app/lib/motion/gsap.ts */
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
@@ -189,12 +189,23 @@
   --shadow-float: none;
 }
 
-/* Il rapporto della foto dell'hero da 768 (A44/A45): il 3:2 AMPIO del desktop al posto del 9:16
-   del telefono dichiarato nel tema. Fuori da `@theme` perché Tailwind non ammette `@media` lì. */
+/* Il rapporto della foto dell'hero da 768 (A44/A45, e A55: la foto vera della piscina, 1920×1280):
+   il 3:2 AMPIO del desktop al posto del 9:16 del telefono dichiarato nel tema. Fuori da `@theme`
+   perché Tailwind non ammette `@media` lì. */
 @media (min-width: 48rem) {
   :root {
-    --dt-hero-ar: 2560 / 1717;
+    --dt-hero-ar: 1920 / 1280;
   }
+}
+
+/* Il lockup dell'hero da lg (A55, 22 set.): con la foto della piscina Raffaela sta al centro della
+   banda e il lockup, sceso in basso a destra, deve restarle a destra. A 13vw (`--text-hero`) la «D»
+   di «Domus» le copriva le gambe (a 1440 il lockup cominciava a 700 px e lei finisce a 770; a 1024
+   a 498 contro 560). A 10,5vw il bordo sinistro sta a 800 a 1440, a 630 a 1024, a 1.210 a 1920.
+   Solo l'hero (`lg:text-(length:--text-hero-lg)` in HeroCinematic.tsx): il lockup del preloader e
+   il telefono restano a `--text-hero`. */
+:root {
+  --text-hero-lg: clamp(3.1rem, 10.5vw, 13rem);
 }
 
 :root {

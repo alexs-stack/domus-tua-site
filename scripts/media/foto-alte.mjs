@@ -77,6 +77,8 @@ const FOTO = [
    a 16:9 ne mostra il 70-84 % dell'altezza (ancorata in basso), un 21:9 il 58 %: la figura è alta
    il 55 % del canvas così è intera fin quasi al 21:9. Sul telefono resta il 9:16 (M1) con la figura
    al 42 %. Il bordo basso della figura sta sul bordo basso del canvas (il taglio del ritaglio). */
+// A55 (22 set.): la home ha per hero la foto vera della piscina (hero-piscina.mjs); di questi due
+// file resta nel repo solo hero-raffaela-villa.jpg, la scena di Paths: il 9:16 e le due sagome -villa sono usciti.
 const HERO = [
   { job: "cd67e18a", out: "hero-raffaela-villa.jpg", sagoma: "raffaela-sagoma-villa.webp", w: 2560, tieni: 1, figura: 0.55, sagomaW: 1600 },
   { job: "d1b8f6ea", out: "hero-raffaela-villa-m.jpg", sagoma: "raffaela-sagoma-villa-m.webp", w: 1440, tieni: 1, figura: 0.42, sagomaW: 800 },

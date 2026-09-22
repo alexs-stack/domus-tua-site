@@ -10,19 +10,21 @@ export const heroCinematic = {
   enabled: false,
   mp4: "/media/congedo-drone-1080.mp4",
   webm: "/media/congedo-drone-1080.webm",
-  poster: "/media/hero-raffaela-villa.jpg",
-  // Base (A44/A45, 20-21 set. 2026): la scena AMPIA 3:2 generata con Higgsfield (il salotto intero
-  // di una villa con la vetrata sul portico e la piscina, come l'hero di prima: Alberto, «era
-  // molto più ampia») col ritaglio vero di Raffaela posato in basso a sinistra da
-  // scripts/media/foto-alte.mjs; `baseM` è il 9:16 per il telefono (art direction a 768 in
-  // HeroCinematic.tsx). Il soggiorno dell'attico di prima (`hero-raffaela.jpg`) è uscito: la
-  // cliente non può più mostrare quella casa.
-  base: "/media/hero-raffaela-villa.jpg",
-  baseM: "/media/hero-raffaela-villa-m.jpg",
+  poster: "/media/hero-raffaela-piscina.jpg",
+  // Base (A55, 22 set. 2026, Alberto: «vorrei invertire le posizioni di questa immagine con quella
+  // della hero», con lo screenshot della riga «Acquista» di Paths): la FOTO VERA di Raffaela davanti
+  // alla villa con piscina (villa-pool.jpg, 3:2), che fino a quel giorno stava in Paths; la scena
+  // AMPIA generata con Higgsfield col suo ritaglio (A44/A45, `hero-raffaela-villa.jpg`,
+  // foto-alte.mjs) è andata al suo posto in Paths. I due file li scrive scripts/media/hero-piscina.mjs:
+  // `base` è la foto intera ricodificata senza metadati, `baseM` la striscia 9:16 per il telefono
+  // (art direction a 768 in HeroCinematic.tsx). Il soggiorno dell'attico di prima
+  // (`hero-raffaela.jpg`) è uscito: la cliente non può più mostrare quella casa.
+  base: "/media/hero-raffaela-piscina.jpg",
+  baseM: "/media/hero-raffaela-piscina-m.jpg",
   /** Le misure dei due file: le legge HeroCinematic per `getImageProps` e hero-dive.test.ts. */
-  baseSize: { w: 2560, h: 1717 },
-  baseMSize: { w: 1440, h: 2580 },
-  baseAlt: "Raffaela Rizza presenta il soggiorno luminoso di una villa con piscina proposta da Domus Tua",
+  baseSize: { w: 1920, h: 1280 },
+  baseMSize: { w: 720, h: 1280 },
+  baseAlt: "Raffaela Rizza davanti alla villa con piscina proposta da Domus Tua",
 } as const;
 
 export type AmbientSource = { webm: string; mp4: string };

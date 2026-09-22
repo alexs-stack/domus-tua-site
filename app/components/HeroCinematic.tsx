@@ -66,7 +66,7 @@ const copy = {
     place: "A Tradate dal 2007",
     awardChip: "3 anni consecutivi fra le migliori 400 agenzie d'Italia — Wikicasa Top Agency",
     noCost: "Nessun costo anticipato",
-    heroAlt: "Raffaela Rizza presenta il soggiorno luminoso di una villa con piscina proposta da Domus Tua",
+    heroAlt: "Raffaela Rizza davanti alla villa con piscina proposta da Domus Tua",
   },
   en: {
     badge: "Estate agency in Tradate · since 2007",
@@ -79,7 +79,7 @@ const copy = {
     place: "In Tradate since 2007",
     awardChip: "Three years running among Italy's top 400 agencies — Wikicasa Top Agency",
     noCost: "No upfront costs",
-    heroAlt: "Raffaela Rizza presenting the bright living room of a villa with a pool offered by Domus Tua",
+    heroAlt: "Raffaela Rizza in front of a villa with a pool offered by Domus Tua",
   },
   fr: {
     badge: "Agence immobilière à Tradate · depuis 2007",
@@ -92,7 +92,7 @@ const copy = {
     place: "À Tradate depuis 2007",
     awardChip: "Trois années consécutives parmi les 400 meilleures agences d'Italie — Wikicasa Top Agency",
     noCost: "Aucun frais d'avance",
-    heroAlt: "Raffaela Rizza présente le séjour lumineux d'une villa avec piscine proposée par Domus Tua",
+    heroAlt: "Raffaela Rizza devant une villa avec piscine proposée par Domus Tua",
   },
   de: {
     badge: "Immobilienagentur in Tradate · seit 2007",
@@ -105,7 +105,7 @@ const copy = {
     place: "In Tradate seit 2007",
     awardChip: "Drei Jahre in Folge unter Italiens besten 400 Agenturen — Wikicasa Top Agency",
     noCost: "Keine Kosten im Voraus",
-    heroAlt: "Raffaela Rizza präsentiert das helle Wohnzimmer einer Villa mit Pool im Angebot von Domus Tua",
+    heroAlt: "Raffaela Rizza vor einer Villa mit Pool im Angebot von Domus Tua",
   },
   es: {
     badge: "Agencia inmobiliaria en Tradate · desde 2007",
@@ -118,7 +118,7 @@ const copy = {
     place: "En Tradate desde 2007",
     awardChip: "Tres años consecutivos entre las 400 mejores agencias de Italia — Wikicasa Top Agency",
     noCost: "Sin costes por adelantado",
-    heroAlt: "Raffaela Rizza presenta el salón luminoso de una villa con piscina ofrecida por Domus Tua",
+    heroAlt: "Raffaela Rizza delante de una villa con piscina ofrecida por Domus Tua",
   },
 };
 
@@ -392,7 +392,7 @@ export default function HeroCinematic() {
   const ratingDisplay = ratingLabel(locale);
 
   // I due file dell'hero (A44): stesso alt, stessi sizes, stessa qualità; il <picture> sotto
-  // sceglie il 2:3 da 768 e il 9:16 sotto. `fotoImg` porta src/width/height/loading/fetchPriority
+  // sceglie il 3:2 da 768 e il 9:16 sotto (A55). `fotoImg` porta src/width/height/loading/fetchPriority
   // del ramo telefono; il srcSet lo rimettiamo esplicito per chiarezza.
   const comuni = { alt: c.heroAlt, sizes: "100vw", quality: 78, preload: true } as const;
   const {
@@ -428,15 +428,22 @@ export default function HeroCinematic() {
             primo paint, se e quando il cliente lo riaccende (media.ts). NESSUN
             VELO sopra la foto: la cliente ha bocciato vignettature e nero.
             A44 (20 set. 2026): la banda è a SCHERMO INTERO sotto la testata
-            (`--dt-band-h`) e la foto è ALTA, 2:3 sul desktop e 9:16 sul telefono
-            (art direction a 768 con `getImageProps` e <picture>: due file di
-            media.ts, generati con Higgsfield e col ritaglio vero di Raffaela
-            posato in basso a sinistra, scripts/media/foto-alte.mjs).
-            L'inquadratura parte dal BASSO (`objectPosition` 100 % in verticale),
-            la stessa della sagoma del preloader che deve coincidere con questa
-            foto (intro-clocks.test.ts): il lockup sta al CENTRO della banda e
-            in basso a sinistra resta in campo Raffaela intera (A27); il 10 %
-            orizzontale conta solo dove la foto è più larga della scatola. Il
+            (`--dt-band-h`); A55 (22 set., Alberto: «vorrei invertire le
+            posizioni di questa immagine con quella della hero») la foto è
+            quella VERA di Raffaela davanti alla villa con piscina, che stava in
+            Paths: 3:2 sul desktop, la striscia 9:16 sul telefono (art direction
+            a 768 con `getImageProps` e <picture>: due file di media.ts scritti
+            da scripts/media/hero-piscina.mjs). La scena generata di A44/A45 è
+            andata in Paths. L'inquadratura parte dal BASSO (`objectPosition`
+            100 % in verticale), la stessa della sagoma del preloader, che
+            resta la VECCHIA maschera in pizzo di A44 (Alberto, A55: «la
+            preferisco, e poi all'entrata ci sarà la foto nuova, la maschera se
+            ne va via con l'entrata ad arco»): stessa scatola e stesso ritaglio
+            (intro-clocks.test.ts), ma la figura non coincide più con quella
+            della foto. Raffaela sta al centro della foto, intera coi piedi sul
+            bordo della piscina (A27), e per questo il lockup è sceso in basso,
+            a destra da lg, sull'acqua, fuori da lei; il 10 % orizzontale conta
+            solo dove la foto è più larga della scatola (sul telefono). Il
             rettangolo avorio profondo precede la foto, come per ogni media del
             sito. */}
         <div
@@ -448,8 +455,8 @@ export default function HeroCinematic() {
               scavalca il bordo del video. */}
           <div className="absolute inset-0 overflow-hidden">
             {/* Lo zoom del tuffo (A23): alto già in SSR quanto la foto resa
-                (rapporto del file, `--dt-hero-ar` in globals.css: 1440/2580 sul
-                telefono, 2560/3816 da 768; mai meno della banda) e ANCORATO IN
+                (rapporto del file, `--dt-hero-ar` in globals.css: 720/1280 sul
+                telefono, 1920/1280 da 768, A55; mai meno della banda) e ANCORATO IN
                 BASSO (A44), così a riposo il ritaglio mostra il piede della foto,
                 con Raffaela, e il patto della porta regge. Origine della scala
                 50 % 75 % (CAT §2). */}
@@ -457,7 +464,7 @@ export default function HeroCinematic() {
               data-hero-zoom
               className="absolute inset-x-0 bottom-0 aspect-[var(--dt-hero-ar)] min-h-full origin-[50%_75%]"
             >
-              {/* Art direction (Next 16, `getImageProps`): il 2:3 da 768, il 9:16
+              {/* Art direction (Next 16, `getImageProps`): il 3:2 da 768, il 9:16
                   sotto; `preload` (non `priority`, deprecata) perché è l'unica
                   immagine prioritaria del sito, la LCP della home; qualità 78 come
                   prima. Un <img> con le classi del `fill` di next/image: la scatola
@@ -493,8 +500,12 @@ export default function HeroCinematic() {
 
           {/* Lockup nel font del logo (`font-brand`, richiesta cliente: «stesso
               font del logo in tutte le scritte Domus Tua») e coi colori del
-              logo, al centro della banda, SULLA foto: a 13vw le lettere si
-              leggono anche dove la stanza è piena.
+              logo, SULLA foto: a 13vw le lettere si leggono anche dove la
+              foto è piena. Stava al centro della banda (posizioni chieste da
+              Alberto il 10 set.); con la foto della piscina (A55, 22 set.)
+              Raffaela sta proprio al centro, e il lockup è sceso in BASSO,
+              sull'acqua: centrato sul telefono, a destra da lg (`lg:items-end`),
+              dove la sua mano tesa lo presenta e nessuna lettera la copre.
               NON è l'h1 (vedi la nota sopra `copy`).
               Le lettere animate stanno in uno span aria-hidden intorno a
               SplitChars: il nome leggibile vive nello span sr-only — un
@@ -503,11 +514,11 @@ export default function HeroCinematic() {
               (`data-hero-lift`, A19 di Alberto). */}
           <div
             data-hero-lift
-            className="dt-row relative z-10 flex flex-1 flex-col items-center justify-center pb-[clamp(2rem,6vh,4rem)] pt-[clamp(1.5rem,4vh,3rem)] text-center"
+            className="dt-row relative z-10 flex flex-1 flex-col items-center justify-end lg:items-end lg:text-right pb-[clamp(2rem,6vh,4rem)] pt-[clamp(1.5rem,4vh,3rem)] text-center"
           >
             {/* Minuscolo come il logo («DomusTua»): la regola globale mette in
                 maiuscolo solo h1-h4, e questo è un div apposta. */}
-            <div className="font-brand text-hero font-extrabold tracking-[-0.02em]">
+            <div className="font-brand text-hero font-extrabold tracking-[-0.02em] lg:text-(length:--text-hero-lg)">
               <span className="sr-only">Domus Tua</span>
               {/* Due righe centrate, come il lockup di sempre (posizioni chieste
                   da Alberto, 2026-09-10 sera); il font resta quello del logo.

@@ -143,9 +143,15 @@ stanno in `DESIGN.md`.
 
 ### Primo schermo e testata
 
-- Hero: la foto della stanza è una banda di 60svh senza velo, dietro la scritta «Domus Tua»
-  (Alberto, 11 set.). Sopra ci stanno solo il lockup e la firma (decisione di lavoro, 11 set.), la
-  firma a cavallo del bordo basso (la cliente, 10 set.: «firma più in basso»). Sotto, sull'avorio e
+- Hero: la foto è una banda a schermo intero senza velo, dietro la scritta «Domus Tua» (Alberto,
+  11 set.; lo schermo intero dal 20 set., A44). Dal 22 set. (A55, Alberto: «vorrei invertire le
+  posizioni di questa immagine con quella della hero») è la foto vera di Raffaela davanti alla villa
+  con piscina, che stava nella riga «Acquista» di Paths, e la scena generata è andata in Paths; la
+  scritta sta in basso, a destra da lg, perché lei è al centro. La maschera del preloader resta
+  quella vecchia in pizzo (Alberto: «la preferisco, e poi all'entrata ci sarà la foto nuova, la
+  maschera se ne va via con l'entrata ad arco sulla hero»). Sopra ci stanno solo il lockup e la
+  firma (decisione di lavoro, 11 set.), la firma a cavallo del bordo basso (la cliente, 10 set.:
+  «firma più in basso»). Sotto, sull'avorio e
   centrati (Alberto, 10 set.: «rimettilo centrale», lasciando la tipografia della rivista), vengono
   sovratitolo, H1, la CTA «Richiedi la valutazione», il link «Vendi casa» al posto del bottone del
   video (la cliente, 10 set.), «Cerco casa» e il voto. Niente subcopy né riga del founder (la

@@ -26,17 +26,23 @@ import { gsap, useGSAP } from "../lib/motion/gsap";
 import { MQ } from "../lib/motion/mq";
 import { chapters } from "../lib/motion/chapters";
 
-// Fotografie reali, ognuna una volta sola in home: la consulenza resta a
+// Fotografie, ognuna una volta sola in home: la consulenza resta a
 // Posizionamento; qui la fondatrice (ritaglio 1:1 spostato a sinistra, dove
-// sta lei) e la villa con piscina.
+// sta lei) e, dal 22 set. 2026 (A55 di Alberto: «vorrei invertire le posizioni
+// di questa immagine con quella della hero»), la scena AMPIA generata con
+// Higgsfield col ritaglio vero di Raffaela (`hero-raffaela-villa.jpg`,
+// 2560×1717, foto-alte.mjs), che era l'hero della home: la foto vera della
+// piscina (`villa-pool.jpg`) è salita all'hero (media.ts, hero-piscina.mjs).
 // `ratio` è la misura VERA del sorgente, e serve a due cose: dice qual e' la
 // scatola giusta e alimenta `coverSizes`. La fondatrice (2560×1920, 4:3) sta
 // nel quadrato: perde il 25 % ai lati, la persona in piedi resta intera in
-// altezza, ridotta a 0,32×. La villa (1920×1280, 3:2) NON sta nel quadrato:
-// ne perdeva un terzo in larghezza; dal 2026-09-20 sta nella meta' forzata a
-// 16:9 (`box: "video"`, come gli atti del Metodo), dove perde l'11 % in altezza
-// e la riga si accorcia di 265 px a 1440 (Alberto: «riducendo la distanza tra
-// una foto e un testo»). La scatola segue il sorgente, non la griglia (D03).
+// altezza, ridotta a 0,32×. La scena 3:2 NON sta nel quadrato (la villa di
+// prima ne perdeva un terzo in larghezza); dal 2026-09-20 la seconda riga sta
+// nella meta' forzata a 16:9 (`box: "video"`, come gli atti del Metodo), dove
+// la scena perde il 16 % in altezza — dal soffitto: `pos` la ancora in basso,
+// così Raffaela resta intera coi piedi sul bordo (A27) — e la riga si
+// accorcia di 265 px a 1440 (Alberto: «riducendo la distanza tra una foto e
+// un testo»). La scatola segue il sorgente, non la griglia (D03).
 const paths: {
   id: "vendi" | "acquista";
   href: string;
@@ -56,9 +62,10 @@ const paths: {
   {
     id: "acquista",
     href: "/acquista",
-    image: "/images/reali/villa-pool.jpg",
-    ratio: 1920 / 1280,
+    image: "/media/hero-raffaela-villa.jpg",
+    ratio: 2560 / 1717,
     box: "video",
+    pos: "50% 100%",
   },
 ];
 
@@ -97,7 +104,7 @@ const copy = {
           "Supporto su proposta, compromesso e rogito",
         ],
         cta: "Cerco casa",
-        alt: "Villa con piscina seguita da Domus Tua",
+        alt: "Raffaela Rizza presenta il soggiorno luminoso di una villa con piscina proposta da Domus Tua",
       },
     },
   },
@@ -126,7 +133,7 @@ const copy = {
           "Support with offer, preliminary contract and closing",
         ],
         cta: "I’m looking for a home",
-        alt: "Villa with pool listed by Domus Tua",
+        alt: "Raffaela Rizza presenting the bright living room of a villa with a pool offered by Domus Tua",
       },
     },
   },
@@ -155,7 +162,7 @@ const copy = {
           "Un accompagnement pour l'offre, le compromis et la signature",
         ],
         cta: "Je cherche un bien",
-        alt: "Villa avec piscine proposée par Domus Tua",
+        alt: "Raffaela Rizza présente le séjour lumineux d'une villa avec piscine proposée par Domus Tua",
       },
     },
   },
@@ -184,7 +191,7 @@ const copy = {
           "Unterstützung bei Angebot, Vorvertrag und Notartermin",
         ],
         cta: "Ich suche ein Zuhause",
-        alt: "Villa mit Pool im Angebot von Domus Tua",
+        alt: "Raffaela Rizza präsentiert das helle Wohnzimmer einer Villa mit Pool im Angebot von Domus Tua",
       },
     },
   },
@@ -213,7 +220,7 @@ const copy = {
           "Apoyo en la oferta, el contrato preliminar y la firma",
         ],
         cta: "Busco casa",
-        alt: "Villa con piscina ofrecida por Domus Tua",
+        alt: "Raffaela Rizza presenta el salón luminoso de una villa con piscina ofrecida por Domus Tua",
       },
     },
   },

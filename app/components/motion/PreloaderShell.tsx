@@ -108,9 +108,14 @@ export default function PreloaderShell() {
             STESSO canvas della foto dell'hero (A44, 20 set. 2026: 2:3 da 768,
             9:16 sotto, scripts/media/foto-alte.mjs), con la stessa geometria
             object-cover dell'immagine sotto — silhouette pulita sul fondo del
-            preloader, e quando l'arco la attraversa sagoma e foto coincidono
-            pixel su pixel: la stanza "torna". Entra in dissolvenza da 0,15 s
-            (CSS: `dt-pre-in-fade`). */}
+            preloader; fino ad A55 (22 set.) sagoma e foto coincidevano
+            pixel su pixel (la stanza "tornava"). Con la foto della piscina
+            sotto (media.ts) la figura non coincide più, per scelta di Alberto
+            («e se usassimo la maschera del preloader vecchia di Raffaela? La
+            preferisco, e poi all'entrata ci sarà la foto nuova, la maschera
+            se ne va via con l'entrata ad arco sulla hero»): la sagoma è la
+            figura del preloader, e l'arco la porta via. Entra in dissolvenza
+            da 0,15 s (CSS: `dt-pre-in-fade`). */}
         <div data-pre-figure className="absolute inset-0">
           {/* WebP, non PNG: stesso canvas e stesso canale alpha, 79 KB invece
               di 809. Il preloader è la PRIMA cosa che scarica un visitatore

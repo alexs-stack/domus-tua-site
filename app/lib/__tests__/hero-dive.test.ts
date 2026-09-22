@@ -14,6 +14,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { chapters } from "../motion/chapters";
 import { kernBetween } from "../motion/kern";
+import { heroCinematic } from "../media";
 import SplitChars from "../../components/motion/SplitChars";
 
 const root = join(__dirname, "..", "..", "..");
@@ -55,8 +56,12 @@ describe("HeroCinematic: il DOM del tuffo", () => {
     // A44 (20 set. 2026): due file (2:3 da 768, 9:16 sotto), il rapporto sta nel token
     // `--dt-hero-ar` di globals.css, letto dalla classe aspect; il riquadro è ancorato in basso.
     const css = readFileSync(join(root, "app/globals.css"), "utf8");
-    const d = jpegSize(readFileSync(join(root, "public/media/hero-raffaela-villa.jpg")));
-    const t = jpegSize(readFileSync(join(root, "public/media/hero-raffaela-villa-m.jpg")));
+    // A55 (22 set.): i due file sono quelli di media.ts — la foto vera della piscina, 3:2 e 9:16 —
+    // e le misure dichiarate lì (`baseSize`, `baseMSize`) devono essere quelle dei file.
+    const d = jpegSize(readFileSync(join(root, "public", heroCinematic.base)));
+    const t = jpegSize(readFileSync(join(root, "public", heroCinematic.baseM)));
+    assert.deepEqual({ w: d.w, h: d.h }, { ...heroCinematic.baseSize }, "baseSize di media.ts non è la misura del file");
+    assert.deepEqual({ w: t.w, h: t.h }, { ...heroCinematic.baseMSize }, "baseMSize di media.ts non è la misura del file");
     assert.match(css, new RegExp(`--dt-hero-ar:\\s*${t.w} / ${t.h};`), "il rapporto del telefono nel token");
     assert.match(css, new RegExp(`@media \\(min-width: 48rem\\) \\{\\s*:root \\{\\s*--dt-hero-ar:\\s*${d.w} / ${d.h};`), "il rapporto del desktop da 768");
     const m = hero.match(/data-hero-zoom\s+className="([^"]*)"/);
@@ -73,6 +78,29 @@ describe("HeroCinematic: il DOM del tuffo", () => {
     const video = hero.indexOf("<video", zoom);
     assert.ok(img > zoom && img < lift, "il <picture> dell'hero non sta dentro data-hero-zoom");
     assert.ok(video > zoom && video < lift, "il video dell'hero non sta dentro data-hero-zoom");
+  });
+
+  // A55 (Alberto, 22 set. 2026: «vorrei invertire le posizioni di questa immagine con quella della
+  // hero»): l'hero è la foto vera della piscina che stava in Paths, e la scena generata di A44/A45
+  // sta in Paths. Raffaela è al centro della foto: il lockup, che stava al centro della banda, sta in
+  // basso e da lg a destra, così nessuna lettera la copre (A27: la cliente intera, mai coperta).
+  test("A55: l'hero è la foto della piscina, la scena generata sta in Paths, il lockup in basso a destra", () => {
+    assert.equal(heroCinematic.base, "/media/hero-raffaela-piscina.jpg");
+    assert.equal(heroCinematic.baseM, "/media/hero-raffaela-piscina-m.jpg");
+    const paths = soloCodice(read("app/components/Paths.tsx"));
+    assert.match(paths, /image:\s*"\/media\/hero-raffaela-villa\.jpg"/, "Paths (acquista) non mostra la scena generata dell'hero di prima");
+    assert.doesNotMatch(paths, /villa-pool\.jpg/, "villa-pool.jpg è l'hero: in Paths non torna");
+    const m = hero.match(/data-hero-lift\s+className="([^"]*)"/);
+    assert.ok(m, "manca il div del lockup con data-hero-lift");
+    const classi = m![1].split(/\s+/);
+    for (const cls of ["justify-end", "lg:items-end", "lg:text-right"]) assert.ok(classi.includes(cls), `il lockup senza ${cls}`);
+    assert.ok(!classi.includes("justify-center"), "il lockup è tornato al centro della banda, sopra Raffaela");
+    // Da lg le lettere scendono a 10,5vw (`--text-hero-lg`): a 13vw la «D» di «Domus» le copriva le
+    // gambe a 1440 e a 1024. Il telefono e il lockup del preloader restano a `--text-hero`.
+    assert.match(hero, /font-brand text-hero [^"]*lg:text-\(length:--text-hero-lg\)/, "il lockup dell'hero senza la misura ridotta da lg");
+    assert.match(css, /--text-hero-lg:\s*clamp\(3\.1rem, 10\.5vw, 13rem\);/, "manca il token --text-hero-lg in globals.css");
+    const shell = read("app/components/motion/PreloaderShell.tsx");
+    assert.doesNotMatch(shell, /--text-hero-lg/, "il lockup del preloader non deve seguire la misura ridotta dell'hero");
   });
 
   test("la banda resta quella del patto: nessun data- e nessuno style fra data-hero-media e il token", () => {
