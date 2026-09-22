@@ -105,9 +105,15 @@ export const FOTO = [
   { nome: "attico-studio-alta", uso: "/lavora-con-noi", classe: "interno" },
   { nome: "villa-piscina-lunga-alta", uso: "/domande-frequenti", classe: "giorno" },
   // A49/A71 (22 set., sera): l'hero alto della home, la piscina di Raffaela estesa a 2:3 con
-  // Higgsfield (outpaint + upscale) e col cielo trasparente («falla no-bg così è più bella»).
-  // Non è una testa: tinte.mjs la salta (`uso` "/"), le misure le scrive finestra.mjs in hero.json.
-  { nome: "hero-raffaela-piscina-alta", uso: "/", classe: "giorno" },
+  // Higgsfield (outpaint + upscale) e col cielo trasparente («falla no-bg così è più bella»); A73 (la
+  // notte): la Raffaela vera del preloader al posto di quella alterata (scripts/media/hero-raffaela.mjs).
+  // Non è una testa: tinte.mjs la salta (`uso` "/"), le misure le scrive hero-piscina.mjs in hero.json.
+  // Le tasche di cielo fra le fronde dell'albero sul bordo destro (y 0,12-0,40) non toccano il bordo alto
+  // né le colonne accanto: la linea del cielo si cerca su ±700 px come su /acquista e ogni pixel di
+  // cielo sopra il 42 % dell'altezza si libera senza chiedere la contiguità (`libere`, come su
+  // /open-domus); la piscina, che è azzurra, sta sotto il 60 % e non si tocca (A73: «togliere il bg,
+  // ha qualche problema»: era questa tasca, azzurra sulla carta).
+  { nome: "hero-raffaela-piscina-alta", uso: "/", classe: "giorno", raggio: 700, libere: 0.42, pallido: true },
   /* La finestra di Open Domus in home (OpenDomus.tsx): «Architecture» di era. A47 (Alberto, 22 set.
      2026: «qua perchè hai tagliato l'immagine, deve continuare, abbiamo fatto le immagini alte
      apposta per poterci scrollare a schermo intero senza uscire dalla foto»): la facciata a terrazze
@@ -121,7 +127,11 @@ export const FOTO = [
 
 /* I parametri comuni: la soglia del flood fill, il fondo oltre cui non scende, la crescita per
    similarità nella foschia, il raggio della linea del cielo per le tasche, la sfumatura. */
-const DEFAULT = { soglia: 0.55, ymax: 0.8, crescita: true, raggio: 80, sfumatura: 1.6, estensione: 2, lati: 0, libere: 0, bordo: 3, foschia: 12 };
+/* `pallido` (A73): il cielo PALLIDO fra le fronde — azzurro quasi bianco (L ≥ 0,78, tinta 190-235°,
+   B − R ≥ 28), che in HSL ha una saturazione alta solo perché è chiarissimo (S 0,7-0,8 a 203,229,248)
+   e che il punteggio di giorno scarta — conta come cielo. Solo dove la foto lo chiede: sull'hero la
+   tasca fra le foglie dell'albero a destra restava azzurra sulla carta. */
+const DEFAULT = { soglia: 0.55, ymax: 0.8, crescita: true, raggio: 80, sfumatura: 1.6, estensione: 2, lati: 0, libere: 0, bordo: 3, foschia: 12, pallido: false };
 
 /* Il percorso pubblico del WebP di una foto, o null per gli interni. */
 export const fileCielo = (f) => (f.classe === "interno" ? null : `/images/reali/${f.nome}-cielo.webp`);
@@ -219,6 +229,11 @@ function maschera(data, W, H, classe, p) {
     const b = data[i * 3 + 2];
     score[i] = classe.punteggio(r, g, b);
     haze[i] = p.crescita ? classe.foschia(r, g, b) : 0;
+    // A73: il cielo pallido fra le fronde (vedi `pallido` in DEFAULT).
+    if (p.pallido && b - r >= 28) {
+      const [h, , l] = hsl(r, g, b);
+      if (l >= 0.78 && h >= 190 && h <= 235) score[i] = Math.max(score[i], 0.9);
+    }
   }
   // 2. Il flood fill dal bordo alto (e, con `lati`, dai bordi laterali fino a quella frazione).
   const mask = new Uint8Array(n);
