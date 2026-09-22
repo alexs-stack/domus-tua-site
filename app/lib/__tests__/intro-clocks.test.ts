@@ -661,7 +661,8 @@ describe("la porta si apre sulla stanza: sagoma e foto nella stessa scatola", ()
   // `--dt-band-h` (globals.css, «L'HERO ALTO DELLA HOME»), non più un'altezza scritta nel markup.
   test("la banda dell'hero legge lo stesso token: la salita a riposo dello strato è misurata sulla banda", () => {
     assert.doesNotMatch(hero, /h-\[var\(--dt-band-h\)\]/, "l'hero non ha più una banda alta --dt-band-h nel markup (A49)");
-    assert.match(css, /\.dt-hero \.dt-testa_strato \{[^}]*calc\(var\(--dt-band-h\) - 100% \* var\(--dt-hero-testo\) \* var\(--dt-hero-hw\)\)/);
+    // D-A75-1: la salita a riposo porta le suole di Raffaela al fondo della banda, meno il respiro.
+    assert.match(css, /\.dt-hero \.dt-testa_strato \{[^}]*calc\(var\(--dt-band-h\) - 100% \* var\(--dt-hero-piedi\) \* var\(--dt-hero-hw\) - var\(--dt-hero-respiro\)\)/);
   });
 
   test("la sagoma tiene il suo ritaglio; la foto sotto è intera, dalla cima, sugli stessi due confini", () => {

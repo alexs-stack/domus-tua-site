@@ -3166,12 +3166,18 @@ a.text-red {
    sopra dentro lo strato) senza il blocco dei testi sull'avorio, con quattro differenze dichiarate:
    - la sezione sta SOTTO la testata, non sotto di lei col margine negativo: la banda del primo
      schermo (`--dt-band-h`, sotto la testata) resta la scatola su cui si apre l'arco del preloader;
-   - la SALITA A RIPOSO (D-A49-1): lo strato sale sotto la testata di `testo × H − banda` (H l'altezza
-     resa della foto), mai oltre il cielo trasparente (il tetto non si taglia) e mai sotto zero (sul
-     telefono e sui tablet alti la foto resta al suo posto): il primo schermo finisce dove comincia il
-     blocco, così è cielo-carta e villa senza una riga tagliata dalla piega; il cielo che finisce sopra
-     la carta è trasparente e il clip del riquadro non ritaglia nulla di visibile (come su /acquista a
-     1920×1080);
+   - la SALITA A RIPOSO (D-A75-1, A75 di Alberto: la foto sale «fino a dove Raffaela dell'immagine
+     entra nella prospettiva»; supera D-A49-1, che si fermava al cielo): lo strato sale di
+     `piedi × H − banda + respiro` (H l'altezza resa della foto, `piedi` le suole di Raffaela), così
+     lei sta intera nel primo schermo con 6svh di respiro sotto i piedi e la mano tesa verso il blocco;
+     mai sotto zero (sul telefono e sui tablet alti la foto sta già tutta nel primo schermo) e mai oltre
+     `testo` (il blocco resta sotto la testata). È l'inquadratura d'arrivo dell'entrata (il blocco
+     «L'ENTRATA DELL'HERO» più sotto) e quella ferma;
+   - il RIQUADRO RITAGLIA AL BORDO DELLA TESTATA (D-A75-2): con la salita nuova il tetto e il primo
+     piano della villa passano sopra la banda, e sotto il logo e il menu (inchiostro su ocra e tegole,
+     misurato a 1440 e a 1908) non si leggevano; `display: flow-root` tiene il margine negativo dello
+     strato DENTRO il riquadro (senza, collassava fino alla sezione e la portava sotto la testata) e
+     `overflow: clip` taglia la foto dove finisce la testata;
    - lo spazio sopra comincia da lg alla cima del portico a destra di Raffaela (`testo`, la banda scura
      misurata: L 0,28-0,39) col blocco in bianco (A70) in un terzo di riga a destra, e finisce con il
      lockup e la firma sull'acqua (`coda`): la posa è alta (coda − testo) × H, blocco in cima e marca
@@ -3189,12 +3195,17 @@ a.text-red {
   --dt-hero-acqua: 0.68;
   --dt-hero-coda: 0.85;
   --dt-hero-cotto: 0.07;
+  --dt-hero-piedi: 0.617;
+  --dt-hero-respiro: 6svh;
   margin-top: 0;
+}
+.dt-hero .dt-testa_riquadro {
+  display: flow-root;
 }
 .dt-hero .dt-testa_strato {
   margin-top: clamp(
-    calc(-100% * var(--dt-hero-cima) * var(--dt-hero-hw)),
-    calc(var(--dt-band-h) - 100% * var(--dt-hero-testo) * var(--dt-hero-hw)),
+    calc(-100% * var(--dt-hero-testo) * var(--dt-hero-hw)),
+    calc(var(--dt-band-h) - 100% * var(--dt-hero-piedi) * var(--dt-hero-hw) - var(--dt-hero-respiro)),
     0px
   );
 }
@@ -3252,6 +3263,125 @@ a.text-red {
   }
   .dt-hero[data-sopra="foto"] .dt-testa_sopra .dt-hero_marca .text-graphite {
     color: var(--color-graphite);
+  }
+}
+
+/* -- L'ENTRATA DELL'HERO (A75) ------------------------------------------------
+   A75 di Alberto (22 set. 2026, notte): «dobbiamo rendere l'entrata tra il preloader e la hero
+   cinematografica e immersive … prima c'è l'animazione della scritta Domus Tua, al centro, e la firma
+   sotto (la casa della foto in questo momento non si deve vedere, quindi deve stare in basso fuori
+   dalla prospettiva), subito dopo la foto risale su dal basso con la curva dell'animazione smooth,
+   fino a dove Raffaela dell'immagine entra nella prospettiva». Com'è fatta (i tempi in hero.ts
+   `ENTRATA`, in secondi dall'handoff del sipario; hero-alto.test li confronta):
+   - suona solo col sipario sulla home: il boot script di layout.tsx scrive `data-hero-entrata`
+     ("intro" col film, "short" con la porta corta) prima del primo paint, e HeroCinematic lo toglie
+     quando la salita è finita. Così a caldo, con l'ancora, con reduced-motion e senza JS non esiste,
+     e la pagina è l'inquadratura d'arrivo ferma. È tutto @keyframes, come il film del preloader: parte
+     sull'orologio CSS dal primo paint, regge un'idratazione lenta, e la salita gira sul compositor;
+   - l'orologio: `--dt-entrata-t` è l'handoff, il tuffo del film (INTRO_T.dive 3,13 s, o `--pre-skip`
+     se il visitatore ha saltato il preambolo: Preloader.tsx lo scrive su <html> e lì resta) o della
+     corta (SHORT_T.dive 0,88 s);
+   - il lockup d'entrata (`.dt-hero_entrata`, aria-hidden: il nome vive nel lockup sull'acqua) sta al
+     centro del primo schermo, sotto la testata, DIETRO lo strato della foto; le lettere entrano coi
+     ruoli di Era scritti qui (title: 0,3 s, stagger 0,05, 1,2 s, dtOut; accent sulla firma: 0,3 s,
+     stagger 0,1, origine 50 % 100 %), come le lettere del preloader scritte in CSS;
+   - la foto parte giù di `--dt-hero-giu`: il tetto (la cima del soggetto, `--dt-hero-cima`) sta 4svh
+     sotto il fondo dello schermo, il cielo trasparente sopra di lui è carta. A `sale` risale con
+     domus.inOut, la curva della porta del preloader, fino al suo posto (la salita a riposo, D-A75-1):
+     le suole di Raffaela a 6svh dal fondo. Il lockup risale di 55svh nello stesso tempo e la villa gli
+     passa davanti, poi sfuma: nessuna lettera resta sopra di lei (A27);
+   - l'LCP resta la sagoma del preloader sulla stessa banda, dipinta prima; la foto è precaricata. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-hero-entrata="intro"] {
+    --dt-entrata-t: var(--pre-skip, 3.13s);
+  }
+  html[data-hero-entrata="short"] {
+    --dt-entrata-t: 0.88s;
+  }
+  html[data-hero-entrata] .dt-hero .dt-testa_strato {
+    /* H = 100vw × hw e non il 100 % della trasformata: sotto lg lo strato contiene anche il blocco dopo
+       la foto ed è più alto di lei (misurato a 390: 1.099 px contro 693, e il tetto spuntava in fondo). La
+       barra di scorrimento del desktop (15 px in 100vw) sposta il via di 9 px più in basso: dentro i 4svh. */
+    --dt-hero-giu: calc(
+      100svh - var(--dt-head-h) - 1px
+        + clamp(0px, calc(100vw * var(--dt-hero-hw) * var(--dt-hero-piedi) - var(--dt-band-h) + var(--dt-hero-respiro)), calc(100vw * var(--dt-hero-hw) * var(--dt-hero-testo)))
+        - 100vw * var(--dt-hero-hw) * var(--dt-hero-cima) + 4svh
+    );
+    animation: dt-hero-sale 2.1s cubic-bezier(0.66, 0, 0.22, 1) calc(var(--dt-entrata-t) + 2.2s) backwards;
+  }
+  /* La scatola della foto ha per fondo la tinta di caricamento (la carta): col cielo trasparente sopra il
+     lockup coprirebbe le lettere dal bordo dello strato in giù. Sotto c'è la stessa carta del riquadro. */
+  html[data-hero-entrata] .dt-hero .dt-testa_foto {
+    background-color: transparent;
+  }
+  /* Il fondale: il lockup risale con la foto ma più piano, e sfuma prima che quello sull'acqua si scriva. */
+  html[data-hero-entrata] .dt-hero_entrata {
+    display: flex;
+    animation:
+      dt-entrata-fondale 2.1s cubic-bezier(0.66, 0, 0.22, 1) calc(var(--dt-entrata-t) + 2.2s) both,
+      dt-entrata-sfuma 0.9s cubic-bezier(0.5, 0, 0.75, 0) calc(var(--dt-entrata-t) + 2.4s) forwards;
+  }
+  html[data-hero-entrata] .dt-hero_entrata [data-entrata-riga] .dt-c {
+    animation: dt-entrata-title 1.2s cubic-bezier(0.25, 1, 0.5, 1) calc(var(--dt-entrata-t) + 0.3s + var(--i, 0) * 0.05s) both;
+  }
+  html[data-hero-entrata] .dt-hero_entrata [data-entrata-firma] .dt-c {
+    transform-origin: 50% 100%;
+    animation: dt-entrata-accent 1.2s cubic-bezier(0.25, 1, 0.5, 1) calc(var(--dt-entrata-t) + 0.3s + var(--i, 0) * 0.1s) both;
+  }
+}
+.dt-hero_entrata {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 0;
+  display: none;
+  height: var(--dt-band-h);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+@keyframes dt-hero-sale {
+  from {
+    transform: translateY(var(--dt-hero-giu));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes dt-entrata-fondale {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-55svh);
+  }
+}
+@keyframes dt-entrata-sfuma {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes dt-entrata-title {
+  from {
+    opacity: 0;
+    transform: translateY(50%) rotateY(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dt-entrata-accent {
+  from {
+    opacity: 0;
+    transform: translateX(10vw) rotateX(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 

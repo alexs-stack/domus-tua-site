@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect, setConsent } from "./helpers";
-import { HERO, hwDi, salitaRiposo } from "../app/lib/motion/hero";
+import { HERO, RAFFAELA, RESPIRO_SVH, hwDi, salitaRiposo } from "../app/lib/motion/hero";
 import foto from "../app/lib/motion/hero.json";
 
 // L'HERO ALTO della home (A49 e A71 di Alberto, 22 settembre 2026): la foto alta col cielo trasparente
@@ -103,13 +103,17 @@ test.describe("l'hero alto da 1024 px con motion ok (A49)", () => {
       expect(g.boxTransform).toBe("none");
       expect(g.stratoTransform).toBe("none");
       expect(g.boxClip).toBe("none");
-      // La salita a riposo: lo strato sale sotto la testata di salitaRiposo, il tetto (la cima) resta sotto la testata.
-      const salita = salitaRiposo({ testo: HERO.testo, cima: foto.cielo.cima, fotoH: H, band: g.vh - g.headBottom });
+      // La salita a riposo (D-A75-1): lo strato sale finché Raffaela è intera nel primo schermo, le suole a
+      // 6svh dal fondo; la sezione resta sotto la testata e il riquadro ritaglia lì la foto (D-A75-2).
+      const respiro = (RESPIRO_SVH / 100) * g.vh;
+      const salita = salitaRiposo({ testo: HERO.testo, piedi: RAFFAELA.piedi, fotoH: H, band: g.vh - g.headBottom, respiro });
       expect(Math.abs(g.headBottom - g.strato.top - salita), `la salita a riposo non è ${salita.toFixed(1)} px`).toBeLessThanOrEqual(2);
-      expect(g.strato.top + foto.cielo.cima * H, "la cima del soggetto è sopra la testata: il tetto è tagliato").toBeGreaterThanOrEqual(g.headBottom - 1);
-      // Il blocco comincia alla cima del portico (`testo`) e, con la salita, alla piega: niente riga tagliata nel primo schermo.
+      expect(Math.abs(g.sezione.top - g.headBottom), "la sezione non comincia sotto la testata (flow-root)").toBeLessThanOrEqual(1);
+      expect(g.strato.top + RAFFAELA.testa * H, "la testa di Raffaela è sopra la testata").toBeGreaterThanOrEqual(g.headBottom);
+      expect(Math.abs(g.strato.top + RAFFAELA.piedi * H - (g.vh - respiro)), "le suole di Raffaela non stanno a 6svh dal fondo").toBeLessThanOrEqual(2);
+      // Il blocco comincia alla cima del portico (`testo`), sotto la testata.
       expect(Math.abs(g.blocco.top - (g.strato.top + HERO.testo * H)), "il blocco non comincia a `testo`").toBeLessThanOrEqual(3);
-      if (salita > 0) expect(g.blocco.top, "con la salita il blocco deve cominciare alla piega").toBeGreaterThanOrEqual(g.vh - 2);
+      expect(g.blocco.top, "il blocco passa sotto la testata").toBeGreaterThanOrEqual(g.headBottom);
       // A destra di Raffaela (x ≥ 58 %), bianco, allineato a sinistra dentro la riga.
       expect(g.blocco.left / g.vw).toBeGreaterThanOrEqual(0.58);
       expect(g.blocco.right / g.vw).toBeLessThanOrEqual(0.93);
@@ -180,16 +184,56 @@ test.describe("l'hero alto da 1024 px con motion ok (A49)", () => {
     });
   }
 
+  // A75: l'entrata col film intero (niente fixture `goto`, che spegne il sipario). Fra la fine del tuffo
+  // (4,63 s) e la salita (3,13 + 2,2 = 5,33 s) il lockup d'entrata è intero al centro della banda, sulla
+  // carta, e il tetto della foto sta sotto il fondo dello schermo; poi la foto sale, si ferma alla salita a
+  // riposo (Raffaela intera) e HeroCinematic toglie l'attributo.
+  test("1440×900: l'entrata col film (A75): il lockup al centro sulla carta, la foto sotto la piega, poi sale fino a Raffaela", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    expect(await page.evaluate(() => document.documentElement.getAttribute("data-hero-entrata"))).toBe("intro");
+    await page.waitForFunction(() => performance.now() - ((window as unknown as { __dtPreT0?: number }).__dtPreT0 ?? 0) > 4_850, undefined, { timeout: 15_000 });
+    const meta = await page.evaluate((cima) => {
+      const strato = document.querySelector<HTMLElement>("#top [data-testa-strato]")!;
+      const s = strato.getBoundingClientRect();
+      const e = document.querySelector<HTMLElement>("#top .dt-hero_entrata")!.getBoundingClientRect();
+      const head = document.querySelector<HTMLElement>("header")!.getBoundingClientRect().bottom;
+      const chars = Array.from(document.querySelectorAll<HTMLElement>("#top .dt-hero_entrata [data-entrata-riga] .dt-c"));
+      const lettere = chars.map((c) => c.getBoundingClientRect());
+      return {
+        tetto: s.top + cima * s.height,
+        vh: innerHeight,
+        head,
+        banda: [e.top, e.bottom],
+        min: Math.min(...chars.map((c) => Number(getComputedStyle(c).opacity))),
+        centroLettere: (Math.min(...lettere.map((r) => r.top)) + Math.max(...lettere.map((r) => r.bottom))) / 2,
+      };
+    }, foto.cielo.cima);
+    expect(meta.tetto, "il tetto si vede prima della salita").toBeGreaterThanOrEqual(meta.vh);
+    expect(Math.abs(meta.banda[0] - meta.head), "il lockup d'entrata non comincia sotto la testata").toBeLessThanOrEqual(2);
+    expect(meta.min, "le lettere del lockup d'entrata non sono accese").toBeGreaterThan(0.9);
+    expect(meta.centroLettere, "il lockup non sta nella metà alta della banda").toBeLessThan((meta.banda[0] + meta.banda[1]) / 2 + 40);
+    expect(meta.centroLettere).toBeGreaterThan(meta.head);
+    await expect.poll(() => page.evaluate(() => document.documentElement.getAttribute("data-hero-entrata")), { timeout: 12_000, message: "l'attributo dell'entrata non cade" }).toBeNull();
+    const g = await geometria(page);
+    expect(g.stratoTransform).toBe("none");
+    const H = g.docW * hwDi(foto.sorgente);
+    const salita = salitaRiposo({ testo: HERO.testo, piedi: RAFFAELA.piedi, fotoH: H, band: g.vh - g.headBottom, respiro: (RESPIRO_SVH / 100) * g.vh });
+    expect(Math.abs(g.headBottom - g.strato.top - salita), "a fine entrata la foto non è alla salita a riposo").toBeLessThanOrEqual(2);
+    expect(await page.locator("#top .dt-hero_entrata").evaluate((el) => getComputedStyle(el).display)).toBe("none");
+  });
+
   // D-A49-5: a riposo il lockup sta sull'acqua, sotto la piega: le sue lettere aspettano la prima entrata in
-  // scena e poi entrano col ruolo title (flip su Y). L'H1 comincia alla piega: anche lui aspetta.
-  test("1440×900: le lettere del lockup e dell'H1 restano armate finché non entrano in scena, poi si accendono col ruolo", async ({ page, goto }) => {
+  // scena e poi entrano col ruolo title (flip su Y). D-A75-1: l'H1 invece è nel primo schermo, accanto a
+  // Raffaela, ed entra subito.
+  test("1440×900: l'H1 in scena entra subito; le lettere del lockup restano armate finché non entrano in scena, poi si accendono col ruolo", async ({ page, goto }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await goto("/");
     const opacita = (sel: string) => page.evaluate((s) => Number(getComputedStyle(document.querySelector<HTMLElement>(s)!).opacity), sel);
     await expect.poll(() => page.evaluate(() => (document.querySelector<HTMLElement>("[data-hero-char]")?.style.animation ?? "").includes("none")), { timeout: 5_000 }).toBe(true);
-    await page.waitForTimeout(2_500);
+    await expect.poll(() => opacita("[data-hero-tchar]"), { timeout: 4_000, message: "l'H1 è nel primo schermo e non è entrato" }).toBeGreaterThan(0.9);
+    await page.waitForTimeout(1_500);
     expect(await opacita("[data-hero-char]"), "il lockup è entrato fuori campo").toBeLessThanOrEqual(0.05);
-    expect(await opacita("[data-hero-tchar]"), "l'H1 è entrato fuori campo").toBeLessThanOrEqual(0.05);
     const g = await geometria(page);
     await scrollaA(page, g.marca.top - g.vh / 2);
     await expect.poll(() => opacita("[data-hero-char]"), { timeout: 4_000 }).toBeGreaterThan(0.9);

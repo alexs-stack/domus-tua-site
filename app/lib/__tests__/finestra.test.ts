@@ -81,10 +81,13 @@ describe("dove vive la finestra", () => {
     assert.match(src, /tail=\{\{\s*selector: "\.dt-od_coda_foto",\s*also: "\.dt-od_coda_testo"/);
     assert.match(src, /ease=\{chapters\.finestra\.signature\.ease\}/);
     assert.match(src, /scrub=\{scrubOf\("finestra"\)\}/);
-    assert.equal((src.match(/data-horizon-slide\b(?!-)/g) ?? []).length, 2, "due sipari: il video di Teresa e la piscina della coda");
+    // A77: il sipario del video sta nella scatola di FotoSlide (le facciate dei video che scorrono da sole).
+    assert.equal((src.match(/data-horizon-slide\b(?!-)/g) ?? []).length, 1, "un sipario scritto qui: la piscina della coda");
+    assert.equal((src.match(/<FotoSlide className="lg:justify-self-end" boxClassName="dt-media-half aspect-video!" lastre=\{lastreVideo\} \/>/g) ?? []).length, 1, "il secondo sipario: le facciate dei video in FotoSlide");
     assert.equal((src.match(/data-horizon-stair\b/g) ?? []).length, 1, "il titolo a gradini della coda (A66)");
-    // A68: la chiusura in cartolina della coda, dallo sgancio al 10 % del viewport, con la cornice del Congedo.
-    assert.match(src, /scrollTrigger: \{ trigger: root, start: "bottom bottom", end: "bottom 10%", scrub: 0\.9, invalidateOnRefresh: true \}/);
+    // A68 + A79: la chiusura in cartolina della coda, col fondo della sezione dal 230 % al 70 % del viewport (A79:
+    // comincia con la piscina a tutto schermo, prima partiva allo sgancio), con la cornice del Congedo.
+    assert.match(src, /scrollTrigger: \{ trigger: root, start: "bottom 230%", end: "bottom 70%", scrub: 0\.9, invalidateOnRefresh: true \}/);
     assert.match(src, /import \{ CORNICE_LG \} from "\.\/motion\/ChiusuraFoto"/);
     // `<ChiusuraFoto` (il componente delle teste) è morto sulla finestra; da ChiusuraFoto si importa solo CORNICE_LG (A68).
     for (const morto of ["useCorridor", "<ChiusuraFoto", "dt-od_shutter", "dt-od_stage", "dt-od_mark", "dt-od_run", "SHUTTER_L", "PHONE_CLIP", "PORTA", "dt-od_porta"]) {

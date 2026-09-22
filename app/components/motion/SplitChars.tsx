@@ -87,10 +87,17 @@ export type SplitCharsProps = {
   locale: string;
   upper: boolean;
   charAttr?: "data-hero-char" | "data-hero-tchar" | "data-hero-schar";
+  /**
+   * A75: da dove conta `--i` sui caratteri, di seguito attraverso le parole, per uno stagger scritto
+   * in CSS (il lockup d'entrata dell'hero, `.dt-hero_entrata` in globals.css, come le lettere del
+   * preloader). Senza, nessun `--i`: le lettere animate da GSAP non ne hanno bisogno.
+   */
+  index?: number;
 };
 
-export default function SplitChars({ children, font, locale, upper, charAttr }: SplitCharsProps) {
+export default function SplitChars({ children, font, locale, upper, charAttr, index }: SplitCharsProps) {
   const extra: Record<string, string> | undefined = charAttr ? { [charAttr]: "" } : undefined;
+  let n = index ?? 0;
   const nodes: ReactNode[] = [];
   // Inizio riga (o del titolo): gli spazi lì non si scrivono.
   let lineStart = true;
@@ -115,8 +122,11 @@ export default function SplitChars({ children, font, locale, upper, charAttr }: 
       const gs = graphemes(token, locale);
       const chars = gs.map((g, i) => {
         const k = i < gs.length - 1 ? kernBetween(font, g, gs[i + 1], upper, locale) : 0;
+        const stile: Record<string, string | number> = {};
+        if (k) stile["--k"] = `${k}em`;
+        if (index !== undefined) stile["--i"] = n++;
         return (
-          <span key={i} className="dt-c" data-c="" {...extra} style={k ? ({ "--k": `${k}em` } as CSSProperties) : undefined}>
+          <span key={i} className="dt-c" data-c="" {...extra} style={Object.keys(stile).length ? (stile as CSSProperties) : undefined}>
             {g}
           </span>
         );

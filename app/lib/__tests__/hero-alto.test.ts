@@ -16,7 +16,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chapters, scrubOf } from "../motion/chapters";
 import { heroCinematic } from "../media";
-import { HERO, SIZES_HERO, hwDi, salitaRiposo } from "../motion/hero";
+import { CHIUSURA, ENTRATA, HERO, RAFFAELA, RESPIRO_SVH, SIZES_HERO, hwDi, salitaRiposo } from "../motion/hero";
+import { INTRO_T, SHORT_T } from "../motion/intro-constants";
+import { ROLES, groupDelay } from "../motion/text-roles";
 import foto from "../motion/hero.json";
 
 const root = join(__dirname, "..", "..", "..");
@@ -120,18 +122,27 @@ describe("hero.ts: le quote e la salita a riposo (D-A49-1, D-A49-2, D-A49-3)", (
     }
   });
 
-  test("salitaRiposo: il primo schermo finisce dove comincia il blocco, mai oltre il cielo, mai negativa", () => {
+  test("salitaRiposo (D-A75-1): Raffaela intera nel primo schermo col respiro sotto i piedi, mai negativa, mai oltre il blocco", () => {
+    const base = { testo: HERO.testo, piedi: RAFFAELA.piedi };
     const H = 1440 * 1.4891; // 2144 px a 1440
-    // 1440×900: testata 90 + 1 px, banda 809: sale di 0,42·H − 809.
-    assert.ok(Math.abs(salitaRiposo({ testo: HERO.testo, cima: foto.cielo.cima, fotoH: H, band: 809 }) - (0.42 * H - 809)) < 1e-9);
-    // Telefono: la foto (693 px) è più corta della banda: resta al suo posto.
-    assert.equal(salitaRiposo({ testo: HERO.testo, cima: foto.telefono.cielo.cima, fotoH: 693, band: 759 }), 0);
-    // Schermo largo e basso (2560×720): la salita si ferma alla cima del soggetto, il tetto non si taglia.
+    // 1440×900: testata 90 + 1 px, banda 809, respiro 6svh = 54: sale di piedi·H − 809 + 54, e le suole
+    // di Raffaela cadono 54 px sopra il fondo della banda.
+    const s = salitaRiposo({ ...base, fotoH: H, band: 809, respiro: 54 });
+    assert.ok(Math.abs(s - (RAFFAELA.piedi * H - 809 + 54)) < 1e-9);
+    assert.ok(Math.abs(91 - s + RAFFAELA.piedi * H - (900 - 54)) < 1e-9, "le suole non stanno a 54 px dal fondo");
+    // Il blocco resta sotto la testata: la salita è meno di testo·H.
+    assert.ok(s < HERO.testo * H);
+    // Telefono: la foto (693 px) sta tutta nella banda: resta al suo posto.
+    assert.equal(salitaRiposo({ ...base, fotoH: 693, band: 759, respiro: 51 }), 0);
+    // Schermo largo e bassissimo (2560×500): la salita si ferma a testo·H, il blocco non passa sotto la testata.
     const H2 = 2560 * 1.4891;
-    assert.equal(salitaRiposo({ testo: HERO.testo, cima: foto.cielo.cima, fotoH: H2, band: 647 }), foto.cielo.cima * H2);
+    assert.equal(salitaRiposo({ ...base, fotoH: H2, band: 395, respiro: 30 }), HERO.testo * H2);
+    // Raffaela sta nella foto sotto il cielo, sopra l'acqua.
+    assert.ok(RAFFAELA.testa > foto.cielo.cima && RAFFAELA.piedi > RAFFAELA.testa && RAFFAELA.piedi < HERO.acqua);
+    assert.equal(RESPIRO_SVH, 6);
   });
 
-  test("il CSS porta le stesse quote e la stessa salita (clamp fra −cima·H, banda − testo·H e 0)", () => {
+  test("il CSS porta le stesse quote e la stessa salita (clamp fra −testo·H, banda − piedi·H − respiro e 0)", () => {
     const r = regola(".dt-hero");
     assert.ok(r, "manca .dt-hero");
     assert.match(r!, /--dt-testa-ar: var\(--dt-hero-ar\)/, "l'hero non passa il rapporto alle classi della testa");
@@ -141,12 +152,16 @@ describe("hero.ts: le quote e la salita a riposo (D-A49-1, D-A49-2, D-A49-3)", (
     assert.match(r!, new RegExp(String.raw`--dt-hero-coda: ${HERO.coda};`));
     assert.match(r!, new RegExp(String.raw`--dt-hero-cotto: ${HERO.cotto};`));
     assert.match(r!, /margin-top: 0;/, "l'hero deve stare sotto la testata (il patto della porta), non sotto di lei col margine della testa");
+    assert.match(r!, new RegExp(String.raw`--dt-hero-piedi: ${RAFFAELA.piedi};`));
+    assert.match(r!, new RegExp(String.raw`--dt-hero-respiro: ${RESPIRO_SVH}svh;`));
+    // D-A75-2: il riquadro tiene dentro il margine negativo dello strato e lo ritaglia al bordo della testata.
+    assert.match(regola(".dt-hero .dt-testa_riquadro") ?? "", /display: flow-root;/);
     const strato = regola(".dt-hero .dt-testa_strato");
     assert.ok(strato, "manca la salita a riposo sullo strato");
     assert.match(
       strato!,
-      /margin-top: clamp\( calc\(-100% \* var\(--dt-hero-cima\) \* var\(--dt-hero-hw\)\), calc\(var\(--dt-band-h\) - 100% \* var\(--dt-hero-testo\) \* var\(--dt-hero-hw\)\), 0px \);/,
-      "la salita a riposo non è clamp(−cima·H, banda − testo·H, 0) in percentuali della larghezza",
+      /margin-top: clamp\( calc\(-100% \* var\(--dt-hero-testo\) \* var\(--dt-hero-hw\)\), calc\(var\(--dt-band-h\) - 100% \* var\(--dt-hero-piedi\) \* var\(--dt-hero-hw\) - var\(--dt-hero-respiro\)\), 0px \);/,
+      "la salita a riposo non è clamp(−testo·H, banda − piedi·H − respiro, 0) in percentuali della larghezza",
     );
     // Sotto lg lo spazio sopra comincia sull'acqua; la marca è alta quanto l'acqua col cotto nel padding (border-box).
     assert.match(regola(".dt-hero .dt-testa_sopra") ?? "", /padding-top: calc\(100% \* var\(--dt-hero-acqua\) \* var\(--dt-hero-hw\)\);/);
@@ -177,6 +192,75 @@ describe("hero.ts: le quote e la salita a riposo (D-A49-1, D-A49-2, D-A49-3)", (
   });
 });
 
+describe("l'entrata dell'hero (A75): lockup al centro, poi la foto sale fino a Raffaela", () => {
+  const entrataCss = (() => {
+    const i = css.indexOf("@media (prefers-reduced-motion: no-preference) {\n  html[data-hero-entrata=");
+    assert.ok(i > -1, "manca il blocco dell'entrata sotto prefers-reduced-motion: no-preference");
+    return css.slice(i, css.indexOf("@keyframes dt-entrata-accent", i) + 400);
+  })();
+  const s = (n: number) => `${Number(n.toFixed(3))}s`;
+
+  test("i tempi del CSS sono quelli di ENTRATA, contati dall'handoff del film (o dello skip) e della corta", () => {
+    assert.match(entrataCss, new RegExp(String.raw`html\[data-hero-entrata="intro"\] \{\s*--dt-entrata-t: var\(--pre-skip, ${s(INTRO_T.dive)}\);`));
+    assert.match(entrataCss, new RegExp(String.raw`html\[data-hero-entrata="short"\] \{\s*--dt-entrata-t: ${s(SHORT_T.dive)};`));
+    const sale = `${s(ENTRATA.saleDurata)} cubic-bezier\\(0\\.66, 0, 0\\.22, 1\\) calc\\(var\\(--dt-entrata-t\\) \\+ ${s(ENTRATA.sale)}\\)`;
+    assert.match(entrataCss, new RegExp(`animation: dt-hero-sale ${sale} backwards;`), "la salita della foto");
+    assert.match(entrataCss, new RegExp(`dt-entrata-fondale ${sale} both,`), "il fondale del lockup, con la stessa corsa della foto");
+    assert.match(entrataCss, new RegExp(String.raw`dt-entrata-sfuma ${s(ENTRATA.sfumaDurata)} cubic-bezier\(0\.5, 0, 0\.75, 0\) calc\(var\(--dt-entrata-t\) \+ ${s(ENTRATA.sfuma)}\) forwards;`));
+    assert.match(entrataCss, new RegExp(String.raw`translateY\(-${ENTRATA.fondale}svh\)`));
+    // Le lettere coi ruoli di Era: title sul lockup, accent sulla firma (ROLES e groupDelay di text-roles).
+    assert.equal(ENTRATA.lettere, groupDelay("title", 0));
+    assert.equal(ENTRATA.firma, groupDelay("accent", 0));
+    assert.equal(ENTRATA.staggerLettere, ROLES.title.enter.stagger);
+    assert.equal(ENTRATA.staggerFirma, ROLES.accent.enter.stagger);
+    assert.equal(ENTRATA.durata, ROLES.title.enter.duration);
+    assert.match(
+      entrataCss,
+      new RegExp(String.raw`\[data-entrata-riga\] \.dt-c \{\s*animation: dt-entrata-title ${s(ENTRATA.durata)} cubic-bezier\(0\.25, 1, 0\.5, 1\) calc\(var\(--dt-entrata-t\) \+ ${s(ENTRATA.lettere)} \+ var\(--i, 0\) \* ${s(ENTRATA.staggerLettere)}\) both;`),
+    );
+    assert.match(
+      entrataCss,
+      new RegExp(String.raw`\[data-entrata-firma\] \.dt-c \{\s*transform-origin: 50% 100%;\s*animation: dt-entrata-accent ${s(ENTRATA.durata)} cubic-bezier\(0\.25, 1, 0\.5, 1\) calc\(var\(--dt-entrata-t\) \+ ${s(ENTRATA.firma)} \+ var\(--i, 0\) \* ${s(ENTRATA.staggerFirma)}\) both;`),
+    );
+    // La salita parte dopo la fine del tuffo del preloader, e la firma è quasi intera.
+    assert.ok(ENTRATA.sale > INTRO_T.diveDur, "la foto sale prima che il tuffo del preloader sia finito");
+    assert.match(css, /@keyframes dt-entrata-title \{\s*from \{\s*opacity: 0;\s*transform: translateY\(50%\) rotateY\(90deg\);/, "il from di ROLES.title");
+    assert.match(css, /@keyframes dt-entrata-accent \{\s*from \{\s*opacity: 0;\s*transform: translateX\(10vw\) rotateX\(90deg\);/, "il from di ROLES.accent");
+  });
+
+  test("la foto parte col tetto sotto lo schermo e arriva alla salita a riposo; il lockup è dietro, al centro della banda", () => {
+    assert.match(
+      entrataCss,
+      /--dt-hero-giu: calc\(\s*100svh - var\(--dt-head-h\) - 1px\s*\+ clamp\(0px, calc\(100vw \* var\(--dt-hero-hw\) \* var\(--dt-hero-piedi\) - var\(--dt-band-h\) \+ var\(--dt-hero-respiro\)\), calc\(100vw \* var\(--dt-hero-hw\) \* var\(--dt-hero-testo\)\)\)\s*- 100vw \* var\(--dt-hero-hw\) \* var\(--dt-hero-cima\) \+ 4svh\s*\);/,
+    );
+    assert.match(css, /@keyframes dt-hero-sale \{\s*from \{\s*transform: translateY\(var\(--dt-hero-giu\)\);\s*\}\s*to \{\s*transform: translateY\(0\);/);
+    assert.match(entrataCss, /html\[data-hero-entrata\] \.dt-hero \.dt-testa_foto \{\s*background-color: transparent;/, "il fondo della scatola coprirebbe il lockup");
+    const lockup = regola(".dt-hero_entrata") ?? "";
+    assert.match(lockup, /position: absolute;/);
+    assert.match(lockup, /z-index: 0;/);
+    assert.match(lockup, /display: none;/, "senza l'attributo il lockup d'entrata non esiste");
+    assert.match(lockup, /height: var\(--dt-band-h\);/);
+    assert.match(lockup, /justify-content: center;/);
+    // Il DOM: nel riquadro, PRIMA dello strato (così la foto gli passa davanti), aria-hidden, senza charAttr.
+    const entrata = hero.indexOf('<div className="dt-hero_entrata" aria-hidden>');
+    assert.ok(entrata > hero.indexOf('className="dt-testa_riquadro"') && entrata < hero.indexOf("<div data-testa-strato"));
+    const blocco = hero.slice(entrata, hero.indexOf("<div data-testa-strato"));
+    assert.match(blocco, /<SplitChars font="brand-800" locale=\{locale\} upper=\{false\} index=\{0\}>\s*Domus/);
+    assert.match(blocco, /<SplitChars font="brand-800" locale=\{locale\} upper=\{false\} index=\{5\}>\s*Tua/);
+    assert.match(blocco, /<SplitChars font="script-400" locale=\{locale\} upper=\{false\} index=\{0\}>\s*Raffaela Rizza/);
+    assert.doesNotMatch(blocco, /charAttr|data-hero-char|data-hero-schar/, "il rito di GSAP e la regola dello 0,02 non devono toccarlo");
+  });
+
+  test("il boot script scrive data-hero-entrata solo col sipario sulla home, e HeroCinematic lo toglie a salita finita", () => {
+    const layout = read("app/layout.tsx");
+    assert.match(layout, /if\(pre\|\|short&&home\)\{h\.setAttribute\("data-hero-entrata",pre\?"intro":"short"\)\}/);
+    assert.match(hero, /animationName === "dt-hero-sale"/);
+    assert.match(hero, /salita\.finished\.then\(fine, fine\);/);
+    assert.match(hero, /html\.removeAttribute\("data-hero-entrata"\);\s*requestRefresh\(\);/);
+    assert.match(hero, /if \(strato && !strato\.isConnected\) html\.removeAttribute\("data-hero-entrata"\);/, "allo smontaggio vero, non al doppio montaggio di StrictMode");
+  });
+});
+
 describe("HeroCinematic: il DOM della testa senza blocco (A49)", () => {
   test("è la testa di era: section#top con data-testa e data-sopra=foto, riquadro, strato, scatola della foto, spazio sopra, chiusura", () => {
     assert.match(hero, /<section\s+ref=\{sectionRef\}\s+id="top"\s+data-testa\s+data-sopra="foto"\s+className="dt-testa dt-hero relative isolate bg-cream">/);
@@ -188,7 +272,7 @@ describe("HeroCinematic: il DOM della testa senza blocco (A49)", () => {
     const posa = hero.indexOf('className="dt-row dt-hero_posa"');
     const marca = hero.indexOf('<div data-hero-lockup className="dt-hero_marca');
     const blocco = hero.indexOf("data-hero-block");
-    const chiusuraAt = hero.indexOf('<ChiusuraFoto ease={chapters.hero.signature.ease} scrub={scrubOf("hero")} />');
+    const chiusuraAt = hero.indexOf('<ChiusuraFoto ease={chapters.hero.signature.ease} scrub={scrubOf("hero")} fondo={CHIUSURA} />');
     assert.ok(
       riquadro > -1 && strato > riquadro && box > strato && picture > box && sopra > picture && posa > sopra && marca > posa && blocco > marca && chiusuraAt > blocco,
       "l'ordine del DOM non è riquadro → strato → foto → spazio sopra (marca, blocco) → chiusura",
@@ -288,12 +372,16 @@ describe("il registro: la firma dell'hero è l'uscita in cartolina (D-A49-6), Po
     assert.equal(s.ease, "dtCartolina");
     assert.ok("scrub" in s.time && s.time.scrub === 0.9);
     assert.ok("st" in s.trigger && s.trigger.el === "#top [data-testa-strato]");
-    if ("st" in s.trigger) assert.deepEqual(s.trigger.st, ["top+=${fineSopra} top", "top+=${foto} 10%"]);
+    // A79: la corsa sul fondo della foto, dal 130 % al 35 % del viewport (CHIUSURA di hero.ts, prop `fondo`).
+    if ("st" in s.trigger) assert.deepEqual(s.trigger.st, [`top+=\${foto} ${CHIUSURA[0]}%`, `top+=\${foto} ${CHIUSURA[1]}%`]);
+    assert.match(hero, /<ChiusuraFoto ease=\{chapters\.hero\.signature\.ease\} scrub=\{scrubOf\("hero"\)\} fondo=\{CHIUSURA\} \/>/);
+    assert.match(chiusura, /fondo\s*\?\s*`top\+=\$\{foto\.offsetHeight\} \$\{fondo\[0\]\}%`/);
+    assert.match(chiusura, /fondo\s*\?\s*`top\+=\$\{foto\.offsetHeight\} \$\{fondo\[1\]\}%`/);
     assert.equal(scrubOf("hero"), 0.9);
     assert.ok((chapters.hero.secondary ?? []).some((x) => x.ease === "dtOut"));
     assert.match(hero, /chapters\.hero\.signature\.ease/, "l'hero non legge la firma dal registro");
     // ChiusuraFoto prende ease e scrub per prop, coi default delle teste.
-    assert.match(chiusura, /export default function ChiusuraFoto\(\{ ease = "dtCartolina", scrub = 0\.9 \}/);
+    assert.match(chiusura, /export default function ChiusuraFoto\(\{\s*ease = "dtCartolina",\s*scrub = 0\.9,\s*fondo,\s*\}/);
     assert.match(chiusura, /defaults: \{ ease, immediateRender: false \}/);
     assert.match(chiusura, /\bscrub,\s*invalidateOnRefresh: true/);
   });

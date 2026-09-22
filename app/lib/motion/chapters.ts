@@ -80,12 +80,13 @@ export const chapters: Record<ChapterId, Chapter> = {
   // della foto in home). Il rito delle lettere (ruoli title/accent) resta un tratto secondario.
   hero: {
     id: "hero",
-    gesture: "la foto alta in flusso; le lettere entrano coi ruoli quando sono in scena; all'uscita la foto si ritira in inset(8% 22%) (A49, A53)",
+    gesture:
+      "l'entrata: il lockup al centro, poi la foto alta sale fino a Raffaela (A75); le lettere entrano coi ruoli quando sono in scena; all'uscita la foto si ritira in inset(8% 22%) mentre il suo fondo va dal 130 % al 35 % del viewport (A49, A53, A79)",
     signature: {
       ease: "dtCartolina",
       curve: DT_CARTOLINA,
       time: { scrub: 0.9 },
-      trigger: { el: "#top [data-testa-strato]", st: ["top+=${fineSopra} top", "top+=${foto} 10%"] },
+      trigger: { el: "#top [data-testa-strato]", st: ["top+=${foto} 130%", "top+=${foto} 35%"] },
     },
     secondary: [{ ease: "dtOut", curve: "0.25,1,0.5,1", note: "il rito delle lettere: ruoli title (lockup, H1) e accent (firma), 1,2 s, all'handoff o alla prima entrata in scena" }],
   },

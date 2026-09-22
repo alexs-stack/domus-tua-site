@@ -105,9 +105,11 @@ describe("le zone di spec §6.1 portano data-bg", () => {
   });
 
   test("territorio in HorizonStory (§3.5, A24)", () => {
-    const tags = tagCon(codice("app/components/HorizonStory.tsx"), attr("data-horizon-slide"));
+    // A76: le foto dei due pannelli scorrono in FotoSlide, che porta sipario e zona foto sulla scatola.
+    const tags = tagCon(codice("app/components/motion/FotoSlide.tsx"), attr("data-horizon-slide"));
     assert.ok(tags.length > 0, "manca [data-horizon-slide]");
     assert.ok(tags.some((t) => FOTO.test(t)), "la foto del territorio non porta data-bg=\"foto\"");
+    assert.match(codice("app/components/HorizonStory.tsx"), /<FotoSlide className="w-full" boxClassName="dt-media-full"/);
   });
 
   test("cinque stelle: .dt-starrev_intro acceso e spento dal film (§3.6)", () => {

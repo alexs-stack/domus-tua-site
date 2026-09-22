@@ -5,8 +5,10 @@ import Reveal from "./Reveal";
 import RevealGroup from "./motion/RevealGroup";
 import HorizonScroller from "./motion/HorizonScroller";
 import SplitTitle from "./motion/SplitTitle";
+import SplitChars from "./motion/SplitChars";
 import Lead from "./motion/Lead";
 import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
+import FotoSlide from "./motion/FotoSlide";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { useRef } from "react";
@@ -228,7 +230,11 @@ export default function OpenDomus({ finestra = false }: Props) {
         };
         const tl = gsap.timeline({
           defaults: { ease: "dtCartolina", immediateRender: false },
-          scrollTrigger: { trigger: root, start: "bottom bottom", end: "bottom 10%", scrub: 0.9, invalidateOnRefresh: true },
+          // A79 (Alberto: «stessa cosa qua, a questa altezza dell'immagine», la piscina a tutto schermo nella
+          // coda): la cartolina comincia quando il fondo della sezione sta ancora 1,3 schermi sotto il bordo
+          // (all'inizio della discesa della coda) e finisce al 70 %: con la piscina che riempie lo schermo (il
+          // fondo a 1,5 schermi) è già a metà. Prima partiva allo sgancio e finiva al 10 %, a foto uscita.
+          scrollTrigger: { trigger: root, start: "bottom 230%", end: "bottom 70%", scrub: 0.9, invalidateOnRefresh: true },
         });
         tl.fromTo(f, { p: 0 }, { p: 1, duration: 1, onUpdate: dipingi });
         return () => {
@@ -238,6 +244,59 @@ export default function OpenDomus({ finestra = false }: Props) {
     },
     { dependencies: [locale, finestra], revertOnUpdate: true },
   );
+  // A78 (Alberto, 22 set. 2026, notte: «la scritta Open Domus deve essere animata dal centro verso
+  // l'esterno, con GSAP, come se uscisse dal centro e si allargasse verso sinistra e destra»): quando il
+  // titolo entra in scena la scritta si apre dal centro (un clip-path a poligono dalla linea di mezzo ai bordi) e le lettere,
+  // raccolte verso il centro, scivolano ai loro posti a sinistra e a destra (le più vicine al centro per
+  // prime), expo.out in 1,6 s. Le distanze sono misurate con offsetLeft (la trasformata del nastro non le
+  // tocca) e rimisurate a ogni entrata; uscito sotto lo schermo il titolo si riarma, così risalendo e
+  // riscendendo si riapre. Solo con motion ok: con reduced-motion e senza JS la scritta è intera e ferma.
+  const titoloRef = useRef<HTMLHeadingElement | null>(null);
+  useGSAP(
+    () => {
+      const h2 = titoloRef.current;
+      if (!h2) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.motionOk, () => {
+        const lettere = gsap.utils.toArray<HTMLElement>(".dt-c", h2);
+        if (lettere.length === 0) return;
+        const verso = (el: HTMLElement) => h2.offsetWidth / 2 - (el.offsetLeft + el.offsetWidth / 2);
+        const tl = gsap
+          .timeline({ paused: true, defaults: { duration: 1.6, ease: "expo.out" } })
+          // Un poligono e non `inset(`: i tween a tempo con inset sono dei gesti dichiarati (chapters.test, D18).
+          .fromTo(h2, { clipPath: "polygon(50% 0%, 50% 0%, 50% 100%, 50% 100%)" }, { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)" }, 0)
+          .fromTo(
+            lettere,
+            { x: (_: number, el: HTMLElement) => verso(el) * 0.85, opacity: 0 },
+            { x: 0, opacity: 1, stagger: { each: 0.035, from: "center" } },
+            0,
+          );
+        // Si osserva la cornice e non l'h2: col clip chiuso l'h2 ha area zero e per l'IntersectionObserver
+        // non entra mai. Parte quando la cima della cornice (dove posa il titolo) passa il 75 % dello schermo.
+        const cornice = h2.parentElement ?? h2;
+        const io = new IntersectionObserver(
+          (voci) => {
+            for (const v of voci) {
+              if (v.isIntersecting) {
+                if (tl.progress() === 0) tl.invalidate().restart();
+              } else if (v.boundingClientRect.top > window.innerHeight) {
+                tl.pause(0);
+              }
+            }
+          },
+          { threshold: 0, rootMargin: "0px 0px -25% 0px" },
+        );
+        io.observe(cornice);
+        return () => {
+          io.disconnect();
+          tl.kill();
+          gsap.set([h2, ...lettere], { clearProps: "clipPath,transform,opacity" });
+        };
+      });
+    },
+    { dependencies: [locale, finestra], revertOnUpdate: true },
+  );
+
   const lists = [
     { title: c.sellerLabel, items: c.sellerBenefits },
     { title: c.buyerLabel, items: c.buyerBenefits },
@@ -248,9 +307,22 @@ export default function OpenDomus({ finestra = false }: Props) {
   // alla fronte. Ora è il video da cui quel fotogramma è preso, in una scatola 16:9 larga come la
   // mezza foto del resto della home: il ritaglio toglie solo larghezza (l'altezza resta intera, i
   // volti sono interi) e la sorgente scende a 0,67x — nessun ingrandimento.
-  const video = (
-    <LazyYouTubeEmbed id={site.videos.openDomus.id} title={site.videos.openDomus.title} poster={TERESA_POSTER} posterSizes={TERESA_SIZES} />
-  );
+  // A77 (Alberto, 22 set. 2026, notte: «ora fai la stessa cosa anche per questa sezione, con le preview di
+  // YouTube»): le facciate dei video scorrono da sole una sopra l'altra come le foto di «Perché Domus Tua»
+  // (FotoSlide, sosta 1 s): prima Teresa col suo poster, poi le tre video recensioni del canale con la
+  // copertina di YouTube. Un clic sul play ferma il giro su quel video. Le facciate restano quelle di
+  // sempre (click-to-load, youtube-nocookie: nessuna richiesta al player prima del play, solo le copertine
+  // da i.ytimg.com come nel muro delle voci).
+  const lastreVideo = [
+    {
+      key: site.videos.openDomus.id,
+      node: <LazyYouTubeEmbed id={site.videos.openDomus.id} title={site.videos.openDomus.title} poster={TERESA_POSTER} posterSizes={TERESA_SIZES} />,
+    },
+    ...site.videos.reviews.map((v) => ({
+      key: v.id,
+      node: <LazyYouTubeEmbed id={v.id} title={v.title} posterSizes="(max-width:1024px) 100vw, 42vw" />,
+    })),
+  ];
   const cta = (
     <Reveal role="still">
       <Cta href="/open-domus" variant="ghost">
@@ -265,7 +337,7 @@ export default function OpenDomus({ finestra = false }: Props) {
         <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
           {/* La scatola è più larga della colonna della griglia (42vw contro ~39vw): a destra deve
               allinearsi alla fine, o sborda dal margine. */}
-          <div className="dt-media-half aspect-video! lg:order-2 lg:justify-self-end">{video}</div>
+          <FotoSlide className="lg:order-2 lg:justify-self-end" boxClassName="dt-media-half aspect-video!" lastre={lastreVideo} />
           <div className="lg:pr-[6vw]">
             <Reveal role="ctn">
               <span className="eyebrow">{c.eyebrow}</span>
@@ -369,7 +441,15 @@ export default function OpenDomus({ finestra = false }: Props) {
             carta (A46). L'h2 sta prima della foto nel DOM (l'ordine di lettura) e sopra di lei nello
             stacking: nella salita (A65) la scatola della foto gli passa dietro. */}
         <div className="dt-od_cornice">
-          <h2 className="dt-od_titolo font-display">{c.head.replace(/\.$/, "")}</h2>
+          {/* A78: le lettere per l'apertura dal centro (useGSAP qui sopra); il nome leggibile nello sr-only. */}
+          <h2 ref={titoloRef} className="dt-od_titolo font-display">
+            <span className="sr-only">{c.head.replace(/\.$/, "")}</span>
+            <span aria-hidden className="block">
+              <SplitChars font="display-500" locale={locale} upper>
+                {c.head.replace(/\.$/, "")}
+              </SplitChars>
+            </span>
+          </h2>
           <div className="dt-od_window">
             <Image src={foto.file} alt={c.villaAlt} fill sizes={SIZES_FINESTRA} className="object-cover" style={{ objectPosition: "50% 0%" }} />
             <Bande segno={foto.segno} />
@@ -391,9 +471,8 @@ export default function OpenDomus({ finestra = false }: Props) {
             </SplitTitle>
             <Lead className="mt-6 max-w-[38ch]">{c.intro}</Lead>
           </RevealGroup>
-          <div data-horizon-slide data-bg="foto" className="dt-media-half aspect-video! lg:justify-self-end">
-            <div data-horizon-slide-img className="absolute inset-0">{video}</div>
-          </div>
+          {/* A77: le facciate dei video scorrono da sole (FotoSlide porta il sipario del nastro e la zona foto). */}
+          <FotoSlide className="lg:justify-self-end" boxClassName="dt-media-half aspect-video!" lastre={lastreVideo} />
         </div>
       </div>
 

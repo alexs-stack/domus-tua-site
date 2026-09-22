@@ -46,14 +46,76 @@ export const HERO = {
 } as const;
 
 /**
- * La salita a riposo, in px (D-A49-1): quanto la foto sale sotto la testata perché il primo schermo
- * (la banda, `--dt-band-h`) finisca dove comincia il blocco; mai oltre il cielo trasparente (il tetto
- * non si taglia mai) e mai negativa (se la foto è più corta del blocco resta al suo posto). Nel CSS è
- * `margin-top: clamp(-cima·H, band − testo·H, 0)` sullo strato, in percentuali della larghezza.
+ * Raffaela nella foto, in frazione dell'altezza (A74: la figura intera posata su FIGURA di
+ * scripts/media/hero-raffaela.mjs, testa a 1833 e suole a 2352 px su 3812; la striscia del telefono è
+ * tagliata ai lati dallo stesso WebP, quindi le quote verticali sono le stesse).
  */
-export function salitaRiposo(o: { testo: number; cima: number; fotoH: number; band: number }): number {
-  return Math.min(o.cima * o.fotoH, Math.max(0, o.testo * o.fotoH - o.band));
+export const RAFFAELA = { testa: 0.481, piedi: 0.617 } as const;
+
+/**
+ * A75 (Alberto, 22 set. 2026, notte): «la foto risale su dal basso … fino a dove Raffaela dell'immagine
+ * entra nella prospettiva». Il respiro fra le sue suole e il fondo del primo schermo, in svh: il CSS lo
+ * porta come `--dt-hero-respiro: 6svh` (hero-alto.test li confronta).
+ */
+export const RESPIRO_SVH = 6;
+
+/**
+ * La salita a riposo, in px (D-A75-1, supera D-A49-1): quanto la foto sale sotto la testata perché
+ * Raffaela stia INTERA nel primo schermo (la banda, `--dt-band-h`), le suole a `respiro` px dal fondo:
+ * è l'inquadratura d'arrivo dell'entrata e quella ferma (reduced-motion, senza JS, a caldo). Mai
+ * negativa (sul telefono e sui tablet alti la foto sta già tutta nel primo schermo e resta al suo
+ * posto) e mai oltre la cima del blocco (`testo`), che resta sotto la testata. Sopra la banda la foto
+ * non si vede: da D-A75-2 il riquadro la ritaglia al bordo della testata (niente logo e menu sopra la
+ * villa). Nel CSS è `margin-top: clamp(-testo·H, band − piedi·H − respiro, 0)` sullo strato, in
+ * percentuali della larghezza.
+ */
+export function salitaRiposo(o: { testo: number; piedi: number; fotoH: number; band: number; respiro: number }): number {
+  return Math.min(o.testo * o.fotoH, Math.max(0, o.piedi * o.fotoH - o.band + o.respiro));
 }
+
+/**
+ * A79 (Alberto: «a questa altezza si deve chiudere/rimpicciolire prima, attualmente si chiude troppo in
+ * fondo e non si nota neanche quando scrolli»): la cartolina dell'hero corre mentre il FONDO della foto va
+ * dal 130 % al 35 % del viewport (ChiusuraFoto `fondo`), un viewport abbondante di scroll con la piscina e il
+ * lockup in scena; prima partiva quando il fondo del lockup passava la cima dello schermo e restava solo la
+ * coda. Al 130 % il blocco bianco è già uscito dall'alto (1440×900: 60 px sopra il bordo a 1908×894).
+ */
+export const CHIUSURA: readonly [number, number] = [130, 35];
+
+/**
+ * L'ENTRATA (A75): all'handoff del sipario (il tuffo del preloader, INTRO_T.dive o `--pre-skip`; con la
+ * porta corta SHORT_T.dive) il lockup «Domus Tua» e la firma entrano al CENTRO del primo schermo, sulla
+ * carta, coi ruoli `title` e `accent` di Era scritti in CSS; la foto è sotto, fuori campo. Poi la foto
+ * sale dal basso fino all'inquadratura d'arrivo, davanti al lockup (che è dietro di lei e risale più
+ * piano, come un fondale), e si ferma quando Raffaela è intera. Tutti i tempi in secondi dall'handoff;
+ * globals.css li porta a mano nel blocco «L'ENTRATA DELL'HERO» e hero-alto.test li confronta.
+ */
+export const ENTRATA = {
+  /** Le lettere del lockup: groupDelay("title", 0), stagger 0,05, 1,2 s, dtOut (ROLES.title). */
+  lettere: 0.3,
+  staggerLettere: 0.05,
+  /** La firma: groupDelay("accent", 0), stagger 0,1, 1,2 s, dtOut, origine 50 % 100 % (ROLES.accent). */
+  firma: 0.3,
+  staggerFirma: 0.1,
+  durata: 1.2,
+  /**
+   * La foto comincia a salire qui: il tuffo del preloader finisce a +1,5 e il lockup formato resta solo
+   * sulla carta per 0,7 s, il tempo di leggere «Domus Tua» e la firma (misurato sulla pellicola a
+   * 1908×894: con +1,9 la pausa era 0,4 s e la firma non si leggeva).
+   */
+  sale: 2.2,
+  /** Quanto dura la salita: ease domus.inOut, la curva della porta del preloader (0.66,0,0.22,1). */
+  saleDurata: 2.1,
+  /** Il lockup risale di questi svh mentre la foto gli passa davanti (il fondale: meno della metà della foto). */
+  fondale: 55,
+  /**
+   * Da qui il lockup sfuma, in `sfumaDurata` con dtIn: è sparito prima che il lockup sull'acqua entri in
+   * scena col suo rito (sul telefono a +1,15 s dalla salita, misurato a 390×844), così i due «Domus Tua»
+   * non stanno mai insieme nello schermo; sul desktop la villa gli passa davanti mentre si ritira.
+   */
+  sfuma: 2.4,
+  sfumaDurata: 0.9,
+} as const;
 
 /** Altezza / larghezza di una sorgente a quattro decimali: il token `--dt-hero-hw` di globals.css. */
 export const hwDi = (sorgente: readonly number[]): number => Number((sorgente[1] / sorgente[0]).toFixed(4));

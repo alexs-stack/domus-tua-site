@@ -15,13 +15,13 @@
 // evidenza del capitolo «Come lavoriamo» (che questo sostituisce): stava in
 // fondo, largo 420px, con 700px di vuoto accanto — adesso è la colonna
 // verticale della riga a due colonne, subito sotto la testa di capitolo.
-import Image from "next/image";
 import Reveal from "./Reveal";
 import ScriptWord from "./motion/ScriptWord";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
 import RevealGroup from "./motion/RevealGroup";
 import HorizonScroller, { HorizonEnter } from "./motion/HorizonScroller";
+import FotoSlide from "./motion/FotoSlide";
 import StoryVideo from "./StoryVideo";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -48,6 +48,10 @@ const copy = {
       </>
     ),
     manifestoAlt: "Divano da esterno sotto un ombrellone, davanti al muro in pietra di una villa",
+    lanterneAlt: "La vetrata di un soggiorno sulla terrazza, con due lanterne bianche",
+    glicineAlt: "Terrazze di una palazzina bianca coperte di glicine, fra i cipressi",
+    ulivoAlt: "Giardino in pendenza con un ulivo, siepi e prato",
+    acquaAlt: "Villa moderna vista dall'acqua della piscina, fra gli alberi",
     cap: "Tradate · Varese",
     stairs: ["Tra la", "Pineta", "e Milano"],
     subtitle: "Il territorio che abitiamo",
@@ -79,6 +83,10 @@ const copy = {
       </>
     ),
     manifestoAlt: "Outdoor sofa under a parasol, in front of a villa’s stone wall",
+    lanterneAlt: "A living room’s glass wall onto the terrace, with two white lanterns",
+    glicineAlt: "Terraces of a white building draped in wisteria, among cypress trees",
+    ulivoAlt: "Sloping garden with an olive tree, hedges and lawn",
+    acquaAlt: "Modern villa seen across its pool, among the trees",
     cap: "Tradate · Varese",
     stairs: ["Between the", "Pineta park", "and Milan"],
     subtitle: "The land we call home",
@@ -106,6 +114,10 @@ const copy = {
       </>
     ),
     manifestoAlt: "Canapé d’extérieur sous un parasol, devant le mur en pierre d’une villa",
+    lanterneAlt: "La baie vitrée d’un séjour sur la terrasse, avec deux lanternes blanches",
+    glicineAlt: "Terrasses d’un immeuble blanc couvertes de glycine, entre les cyprès",
+    ulivoAlt: "Jardin en pente avec un olivier, des haies et une pelouse",
+    acquaAlt: "Villa moderne vue depuis la piscine, entre les arbres",
     cap: "Tradate · Varese",
     stairs: ["Entre la", "Pineta", "et Milan"],
     subtitle: "Le territoire que nous habitons",
@@ -133,6 +145,10 @@ const copy = {
       </>
     ),
     manifestoAlt: "Gartensofa unter einem Sonnenschirm vor der Steinmauer einer Villa",
+    lanterneAlt: "Die Glasfront eines Wohnzimmers zur Terrasse, mit zwei weißen Laternen",
+    glicineAlt: "Terrassen eines weißen Hauses voller Glyzinien, zwischen Zypressen",
+    ulivoAlt: "Hanggarten mit Olivenbaum, Hecken und Rasen",
+    acquaAlt: "Moderne Villa vom Pool aus gesehen, zwischen Bäumen",
     cap: "Tradate · Varese",
     stairs: ["Zwischen dem", "Pineta-Park", "und Mailand"],
     subtitle: "Unser Zuhause, unser Gebiet",
@@ -160,6 +176,10 @@ const copy = {
       </>
     ),
     manifestoAlt: "Sofá de exterior bajo una sombrilla, frente al muro de piedra de una villa",
+    lanterneAlt: "La cristalera de un salón hacia la terraza, con dos faroles blancos",
+    glicineAlt: "Terrazas de un edificio blanco cubiertas de glicina, entre cipreses",
+    ulivoAlt: "Jardín en pendiente con un olivo, setos y césped",
+    acquaAlt: "Villa moderna vista desde la piscina, entre los árboles",
     cap: "Tradate · Varese",
     stairs: ["Entre el", "parque Pineta", "y Milán"],
     subtitle: "El territorio que habitamos",
@@ -172,6 +192,20 @@ const copy = {
 export default function HorizonStory() {
   const { locale } = useLocale();
   const c = copy[locale];
+  // A76 (Alberto, 22 set. 2026, notte): le foto che scorrono da sole nei due pannelli (FotoSlide). La
+  // prima di ogni lista è quella di sempre; le altre sono 16:9 o 3:2 senza persone, così nessun volto
+  // rischia il taglio della banda 16:9 (A27). Le 3:2 hanno `pos`: le terrazze al 40 % (esce cielo e muro),
+  // la villa dall'acqua al 45 % (il tetto resta intero).
+  const fotoManifesto = [
+    { src: "/images/reali/villa-salotto-ombrellone.jpg", alt: c.manifestoAlt },
+    { src: "/images/reali/villa-vetrata-lanterne.jpg", alt: c.lanterneAlt },
+    { src: "/images/reali/villa-terrazze-glicine.jpg", alt: c.glicineAlt, pos: "50% 40%" },
+  ];
+  const fotoTerritorio = [
+    { src: "/media/hero-aerial.jpg", alt: c.backdropAlt },
+    { src: "/images/reali/villa-uliveto.jpg", alt: c.ulivoAlt },
+    { src: "/images/reali/villa-fronte-acqua.jpg", alt: c.acquaAlt, pos: "50% 45%" },
+  ];
 
   return (
     <section id="perche-domus-tua" className="dt-chapter bg-cream">
@@ -267,16 +301,14 @@ export default function HorizonStory() {
               <SplitTitle as="h3" className="font-display text-d2">
                 {c.statement}
               </SplitTitle>
-              <div data-horizon-slide data-bg="foto" className="dt-media-half !aspect-video lg:justify-self-end">
-                <Image
-                  data-horizon-slide-img
-                  src="/images/reali/villa-salotto-ombrellone.jpg"
-                  alt={c.manifestoAlt}
-                  fill
-                  sizes="(max-width: 1023px) 90vw, (max-width: 1523px) 42vw, 640px"
-                  className="object-cover"
-                />
-              </div>
+              {/* A76: le foto scorrono da sole una sopra l'altra, come la galleria di era (FotoSlide, che
+                  porta la zona foto del segno e il sipario del nastro sulla sua scatola). */}
+              <FotoSlide
+                className="lg:justify-self-end"
+                boxClassName="dt-media-half !aspect-video"
+                sizes="(max-width: 1023px) 90vw, (max-width: 1523px) 42vw, 640px"
+                foto={fotoManifesto}
+              />
             </HorizonEnter>
           </div>
 
@@ -361,16 +393,9 @@ export default function HorizonStory() {
                   resterebbe un terzo. */}
               {/* Zona foto del monogramma (A21 di Alberto, spec §6.1): sopra
                   questa foto le tacche del segno virano all'avorio. */}
-              <div data-horizon-slide data-bg="foto" className="dt-media-full">
-                <Image
-                  data-horizon-slide-img
-                  src="/media/hero-aerial.jpg"
-                  alt={c.backdropAlt}
-                  fill
-                  sizes="(min-width: 1024px) 55vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
+              {/* A76: anche qui le foto scorrono da sole (FotoSlide): dopo la ripresa col drone, il verde
+                  del territorio e la villa vista dall'acqua. */}
+              <FotoSlide className="w-full" boxClassName="dt-media-full" sizes="(min-width: 1024px) 55vw, 100vw" foto={fotoTerritorio} />
             </div>
           </div>
         </HorizonScroller>

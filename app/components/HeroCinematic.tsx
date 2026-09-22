@@ -44,12 +44,12 @@ import { Cta } from "./primitives/Cta";
 import { site, ratingLabel } from "../lib/site";
 import { heroCinematic } from "../lib/media";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, durDt, painted } from "../lib/motion/gsap";
+import { gsap, useGSAP, durDt, painted, requestRefresh } from "../lib/motion/gsap";
 import { MQ } from "../lib/motion/mq";
 import { ROLES, staggerEach, groupDelay, type RoleSpec } from "../lib/motion/text-roles";
 import { afterCurtain, foldNetFired } from "../lib/motion/fold";
 import { chapters, scrubOf } from "../lib/motion/chapters";
-import { SIZES_HERO } from "../lib/motion/hero";
+import { CHIUSURA, SIZES_HERO } from "../lib/motion/hero";
 import foto from "../lib/motion/hero.json";
 import SplitChars from "./motion/SplitChars";
 import ChiusuraFoto from "./motion/ChiusuraFoto";
@@ -281,6 +281,33 @@ export default function HeroCinematic() {
     { scope: sectionRef, dependencies: [locale], revertOnUpdate: true },
   );
 
+  // La fine dell'ENTRATA (A75). La salita è CSS (`dt-hero-sale` sullo strato, globals.css) e parte da
+  // sola sull'orologio del preloader; qui si toglie `data-hero-entrata` quando è finita, così il lockup
+  // d'entrata sparisce dal layout (display none) e una navigazione a caldo verso la home non la
+  // ripete, e si chiede un refresh a ScrollTrigger: le misure prese durante la salita (la cartolina di
+  // ChiusuraFoto, i nastri sotto) contavano la foto spostata. Se l'animazione non c'è più (JS arrivato
+  // tardi) o viene annullata (reduced-motion a pagina aperta) si toglie subito. Allo smontaggio vero
+  // (lo strato fuori dal DOM) si toglie anche a metà; il doppio montaggio di StrictMode lascia il nodo
+  // al suo posto e non la ferma.
+  useEffect(() => {
+    const html = document.documentElement;
+    if (!html.hasAttribute("data-hero-entrata")) return;
+    const strato = sectionRef.current?.querySelector<HTMLElement>("[data-testa-strato]") ?? null;
+    let vivo = true;
+    const fine = () => {
+      if (!vivo) return;
+      html.removeAttribute("data-hero-entrata");
+      requestRefresh();
+    };
+    const salita = strato?.getAnimations().find((a) => (a as CSSAnimation).animationName === "dt-hero-sale");
+    if (salita) salita.finished.then(fine, fine);
+    else fine();
+    return () => {
+      vivo = false;
+      if (strato && !strato.isConnected) html.removeAttribute("data-hero-entrata");
+    };
+  }, []);
+
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
   // e solo se i file sono attivati. Oggi `heroCinematic.enabled=false`
   // (media.ts, scelta cliente 2026-08-03): il gate non decide nulla.
@@ -351,9 +378,39 @@ export default function HeroCinematic() {
       {/* Il riquadro è la CARTA (A46): in flusso, avorio, `overflow: clip`; sopra il cielo trasparente
           il segno resta grafite (nessun data-bg qui, data-bg.test). */}
       <div className="dt-testa_riquadro">
+        {/* L'ENTRATA (A75): il lockup e la firma al centro del primo schermo, sulla carta, DIETRO lo strato
+            della foto, che all'handoff è giù fuori campo e poi sale davanti a loro fino a Raffaela. Esiste
+            solo sotto `html[data-hero-entrata]` (boot script, sipario sulla home); le lettere, la salita
+            e il fondale sono @keyframes di globals.css («L'ENTRATA DELL'HERO»), sull'orologio del
+            preloader. Decorativo e senza charAttr: il rito di GSAP e la regola dello 0,02 non lo
+            toccano; il nome «Domus Tua» vive nel lockup sull'acqua. */}
+        <div className="dt-hero_entrata" aria-hidden>
+          <div className="font-brand text-hero font-extrabold tracking-[-0.02em] lg:text-(length:--text-hero-lg)">
+            <span data-entrata-riga className="block text-graphite">
+              <SplitChars font="brand-800" locale={locale} upper={false} index={0}>
+                Domus
+              </SplitChars>
+            </span>
+            <span data-entrata-riga className="block text-red">
+              <SplitChars font="brand-800" locale={locale} upper={false} index={5}>
+                Tua
+              </SplitChars>
+            </span>
+          </div>
+          <span
+            data-entrata-firma
+            className="script-word relative block !text-[clamp(2.2rem,6vw,5.5rem)]"
+            style={{ "--script-tuck": "0" } as React.CSSProperties}
+          >
+            <SplitChars font="script-400" locale={locale} upper={false} index={0}>
+              Raffaela Rizza
+            </SplitChars>
+          </span>
+        </div>
         {/* Lo strato della foto: IN FLUSSO, alto quanto la foto resa (`--dt-hero-ar`), portato su della
-            salita a riposo (D-A49-1, CSS). Il <picture> e i marcatori stanno nella scatola della foto;
-            lo spazio sopra, con le scritte, la segue nello stacking e nel flusso. */}
+            salita a riposo (D-A75-1, CSS) finché Raffaela è intera nel primo schermo. Il <picture> e i
+            marcatori stanno nella scatola della foto; lo spazio sopra, con le scritte, la segue nello
+            stacking e nel flusso. */}
         <div data-testa-strato className="dt-testa_strato">
           {/* La scatola della foto (A48): assoluta in cima allo strato, da lg lo riempie; il fondo è la
               carta (il cielo è trasparente). `data-hero-media` resta per sonde ed e2e; la foto è la LCP
@@ -518,7 +575,7 @@ export default function HeroCinematic() {
           {/* A53 sulla home (A49): finita la posa, la coda libera della foto si ritira nella cornice della
               cartolina mentre sale, con la firma del capitolo (chapters.ts `hero`: dtCartolina, scrub
               0,9, il motivo comune d'uscita delle foto alte). */}
-          <ChiusuraFoto ease={chapters.hero.signature.ease} scrub={scrubOf("hero")} />
+          <ChiusuraFoto ease={chapters.hero.signature.ease} scrub={scrubOf("hero")} fondo={CHIUSURA} />
         </div>
       </div>
     </section>

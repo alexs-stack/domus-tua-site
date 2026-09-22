@@ -1196,7 +1196,7 @@ test.describe("la finestra di Open Domus", () => {
       expect(Math.abs((await matrixOf(od.locator(".dt-horizon_track"))).m41 + run)).toBeLessThanOrEqual(3);
 
       // A68: all'uscita la piscina si chiude in cartolina (8/22, ChiusuraFoto) finché il fondo della sezione
-      // non arriva al 10 % del viewport; 100 px oltre quel punto la cornice è piena.
+      // non arriva al 70 % del viewport (A79: comincia al 230 %); al 10 % meno 100 px la cornice è piena.
       await wheelTo(page, Math.round(topFine + geo.h - 0.1 * geo.vh + 100));
       await page.waitForTimeout(1200);
       const cartolina = insetValues(await clipOf(od.locator(".dt-od_coda")))!;

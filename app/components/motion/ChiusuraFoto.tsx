@@ -43,7 +43,17 @@ const MQ_LG = "(min-width: 64rem)";
    blocco): lì la posa (blocco, lockup e firma) è lo spazio sopra e la coda libera è l'ultimo 15 % della
    foto (hero.ts `coda`). L'hero passa ease e scrub dal registro (chapters.ts `hero`: gli stessi della
    cartolina, il motivo comune d'uscita); le teste tengono i default. */
-export default function ChiusuraFoto({ ease = "dtCartolina", scrub = 0.9 }: { ease?: string; scrub?: number | true } = {}) {
+/* A79 (Alberto, 22 set. 2026, notte, con lo screenshot del fondo dell'hero: «a questa altezza si deve
+   chiudere/rimpicciolire prima, attualmente si chiude troppo in fondo e non si nota neanche quando
+   scrolli»): `fondo` dà la corsa in percentuali del viewport lette sul FONDO della foto — comincia quando il
+   fondo della foto sta a `fondo[0]` % dalla cima dello schermo (oltre 100: ancora sotto il bordo) e finisce
+   a `fondo[1]` %. Lo usa l'hero, dove le scritte sulla carta scoperta sono il lockup grafite e rosso (fuori
+   dalla scatola ritagliata) e il blocco bianco è già uscito dall'alto quando la corsa comincia. */
+export default function ChiusuraFoto({
+  ease = "dtCartolina",
+  scrub = 0.9,
+  fondo,
+}: { ease?: string; scrub?: number | true; fondo?: readonly [number, number] } = {}) {
   const ref = useRef<HTMLSpanElement | null>(null);
 
   useGSAP(
@@ -84,8 +94,22 @@ export default function ChiusuraFoto({ ease = "dtCartolina", scrub = 0.9 }: { ea
           defaults: { ease, immediateRender: false },
           scrollTrigger: {
             trigger: strato,
-            start: () => (coda() < window.innerHeight * 0.25 ? MAI : suFoto() ? `top+=${fineSopra()} top` : `top+=${foto.offsetHeight} bottom`),
-            end: () => (coda() < window.innerHeight * 0.25 ? MAI : suFoto() ? `top+=${foto.offsetHeight} 10%` : `top+=${foto.offsetHeight} 30%`),
+            start: () =>
+              fondo
+                ? `top+=${foto.offsetHeight} ${fondo[0]}%`
+                : coda() < window.innerHeight * 0.25
+                  ? MAI
+                  : suFoto()
+                    ? `top+=${fineSopra()} top`
+                    : `top+=${foto.offsetHeight} bottom`,
+            end: () =>
+              fondo
+                ? `top+=${foto.offsetHeight} ${fondo[1]}%`
+                : coda() < window.innerHeight * 0.25
+                  ? MAI
+                  : suFoto()
+                    ? `top+=${foto.offsetHeight} 10%`
+                    : `top+=${foto.offsetHeight} 30%`,
             scrub,
             invalidateOnRefresh: true,
           },
@@ -96,7 +120,7 @@ export default function ChiusuraFoto({ ease = "dtCartolina", scrub = 0.9 }: { ea
         };
       });
     },
-    { scope: ref },
+    { scope: ref, dependencies: [fondo?.[0], fondo?.[1]] },
   );
 
   return <span ref={ref} hidden data-chiusura />;
