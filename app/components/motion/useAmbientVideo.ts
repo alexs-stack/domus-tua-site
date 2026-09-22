@@ -45,6 +45,9 @@ export type AmbientVideoOptions = {
   sources?: AmbientSources;
   /** Col suono (A44): prova a suonare non muto, e se il browser lo nega si accende al primo gesto. */
   audio?: boolean;
+  /** Rapporto della clip e larghezza del file sd (ambient.ts): la storia di Roberta è 9:16 con sd a 720 (A60). */
+  ar?: number;
+  sdWidth?: number;
 };
 
 type ConSaveData = Navigator & { connection?: { saveData?: boolean } };
@@ -65,6 +68,8 @@ export function useAmbientVideo(
   const hdMp4 = o.sources?.hd.mp4;
   const sdWebm = o.sources?.sd?.webm;
   const sdMp4 = o.sources?.sd?.mp4;
+  const ar = o.ar;
+  const sdWidth = o.sdWidth;
 
   useEffect(() => {
     const v = videoRef.current;
@@ -72,7 +77,7 @@ export function useAmbientVideo(
     if (!v || !h) return;
     const sources: AmbientSources | undefined =
       hdWebm && hdMp4
-        ? { hd: { webm: hdWebm, mp4: hdMp4 }, sd: sdWebm && sdMp4 ? { webm: sdWebm, mp4: sdMp4 } : undefined }
+        ? { hd: { webm: hdWebm, mp4: hdMp4 }, sd: sdWebm && sdMp4 ? { webm: sdWebm, mp4: sdMp4 } : undefined, ar, sdWidth }
         : undefined;
     if (process.env.NODE_ENV !== "production" && (!v.muted || !v.playsInline)) {
       console.warn("useAmbientVideo: il <video> vuole muted e playsInline");
@@ -102,10 +107,13 @@ export function useAmbientVideo(
       armato = false;
       for (const t of GESTI) window.removeEventListener(t, accendi, true);
     };
+    // A60: chi ha tolto l'audio col comando del video (StoryVideo scrive `data-user-muted`) non
+    // se lo vede riaccendere né dal gesto né al rientro in vista.
+    const zittito = () => v.dataset.userMuted === "1";
     const accendi = () => {
       disarma();
       negato = false;
-      if (!allowed() || !inView) return; // il gesto vale: al prossimo ingresso in vista si prova col suono
+      if (!allowed() || !inView || zittito()) return; // il gesto vale: al prossimo ingresso in vista si prova col suono
       v.muted = false;
       v.currentTime = 0;
       v.play().catch((e: unknown) => {
@@ -121,7 +129,7 @@ export function useAmbientVideo(
       for (const t of GESTI) window.addEventListener(t, accendi, { capture: true, passive: true });
     };
     const suona = () => {
-      if (audio && !negato && v.muted) {
+      if (audio && !negato && v.muted && !zittito()) {
         v.muted = false;
         v.play().catch((e: unknown) => {
           if ((e as DOMException | undefined)?.name === "AbortError") return;
@@ -197,5 +205,5 @@ export function useAmbientVideo(
       v.removeEventListener("pause", markStill);
       v.pause();
     };
-  }, [videoRef, hostRef, warm, minWidth, hdWebm, hdMp4, sdWebm, sdMp4, audio]);
+  }, [videoRef, hostRef, warm, minWidth, hdWebm, hdMp4, sdWebm, sdMp4, audio, ar, sdWidth]);
 }

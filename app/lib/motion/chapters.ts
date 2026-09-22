@@ -41,8 +41,8 @@ export const HOME_ORDER = [
 
 export type HomeChapterId = (typeof HOME_ORDER)[number];
 export type ChapterId = HomeChapterId;
-/** I corridoi costruiti da useCorridor; nastro, stelle e rotaia hanno meccaniche loro. */
-export type CorridorId = "hero" | "finestra" | "cartolina";
+/** I corridoi costruiti da useCorridor; i nastri (storia e, da A57, la finestra), le stelle e la rotaia hanno meccaniche loro. */
+export type CorridorId = "hero" | "cartolina";
 
 export type Time = { scrub: number | true } | { dur: number; delay: number; stagger?: number };
 export type Trigger =
@@ -151,18 +151,21 @@ export const chapters: Record<ChapterId, Chapter> = {
     },
     secondary: [{ ease: "power4.in", note: "uscita 0,4 s" }],
   },
+  // A57/A58 (22 set. 2026, sera): il nastro della finestra. La firma (ease, scrub) resta quella
+  // del capitolo per D18; il gesto è quello di `storia` (HorizonScroller con `lead`, `ease` e
+  // `scrub` per prop): la facciata sale lineare dentro lo schermo, poi il track scorre con dtInOut.
   finestra: {
     id: "finestra",
-    gesture: "finestra: otturatore, montanti, scala 1,84, stage .75→1",
+    gesture: "nastro: la facciata sale a schermo intero, poi claim e liste scorrono di lato (A57, A58)",
     signature: {
       ease: "dtInOut",
       curve: DT_IN_OUT,
       time: { scrub: 0.15 },
-      trigger: { el: ".dt-od_area", st: ["top bottom", "+=300%"] },
+      trigger: { el: "#open-domus", st: ["top+=salita top", "97.5% bottom"] },
     },
     secondary: [
-      { ease: "none", note: "otturatore e montanti" },
-      { ease: "dtInOut", curve: DT_IN_OUT, note: "sotto 1024 otturatore a tempo 1,3 s, poi 0,2 s none" },
+      { ease: "none", note: "la salita della facciata prima del nastro, scrub 0,15" },
+      { ease: "dtOut", curve: "0.25,1,0.5,1", note: "sipario del video e della soglia 1,6 s con scala 1,15→1 (il gesto del nastro)" },
     ],
   },
   doc: {
@@ -176,6 +179,9 @@ export const chapters: Record<ChapterId, Chapter> = {
     secondary: [
       { ease: "power1.out", note: "spina 1,12 s" },
       { ease: "circ.in", note: "uscita 0,5 s" },
+      // A59: il foglio delle foto (DomusDocProtocol): la foto del pilastro attivo entra a tendina
+      // con la scala 1,08→1 e la cornice prende la sua altezza in 0,8 volte il tempo.
+      { ease: "dtOut", curve: "0.25,1,0.5,1", note: "sfoglio 1,1 s: tendina dal basso (dall'alto risalendo), scala 1,08→1, cornice all'altezza del sorgente" },
     ],
   },
   servizi: {

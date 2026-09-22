@@ -16,7 +16,8 @@ import {
   releaseTimeouts,
   wheelTo,
 } from "./coreografia";
-import { PHONE_CLIP, ordinateOf } from "../app/lib/motion/finestra";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 // Homepage: che carichi, che l'intro non intrappoli nessuno, che l'header funzioni alla
 // larghezza in cui ci si trova.
@@ -155,7 +156,8 @@ test("il set piece orizzontale cuce i pannelli allo scroll", async ({ page, goto
   await goto("/");
 
   // Attivo solo via JS (desktop + motion ok): l'attributo è la prova del pin.
-  const horizon = page.locator(".dt-horizon");
+  // A57: i nastri sono due (storia e la finestra di Open Domus): qui si guarda quello di storia.
+  const horizon = page.locator("#storia");
   await expect(horizon).toHaveAttribute("data-on", "");
 
   // Si scrolla come un utente (wheel → Lenis) fin dentro la sezione pinnata:
@@ -163,7 +165,7 @@ test("il set piece orizzontale cuce i pannelli allo scroll", async ({ page, goto
   await horizon.scrollIntoViewIfNeeded();
   const readX = () =>
     page
-      .locator(".dt-horizon_track")
+      .locator("#storia .dt-horizon_track")
       .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41);
   let x = 0;
   for (let i = 0; i < 80 && x > -50; i++) {
@@ -1086,112 +1088,102 @@ test.describe("Voci: il carosello arriva da destra", () => {
   });
 });
 
-// La finestra di Open Domus (A19 e A20 di Alberto, spec 2026-09-13 §3.10): da 1024 px e
-// 640 px d'altezza con motion ok, due strati sticky; sotto, l'otturatore a tempo sul
-// quadrato della foto.
+// La finestra di Open Domus (A57/A58 di Alberto, 22 set. 2026, sera): un nastro come «Tra la Pineta e
+// Milano» con la facciata che sale. Da 1024×640 con motion ok lo schermo si aggancia con la foto a
+// schermo intero DA SUBITO (niente tende né scala: A58), la cornice sale di `lead` px finché la cima
+// delle terrazze non sta al 10 % del viewport (la posa dello screenshot di A57), poi il track scorre
+// di lato: la foto esce a sinistra e i due pannelli del capitolo entrano coi sipari del nastro.
 test.describe("la finestra di Open Domus", () => {
+  const CIMA = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/finestra.json"), "utf8")) as { cielo: { cima: number } }).cielo.cima;
   for (const vp of [
     { width: 1440, height: 900 },
     { width: 1024, height: 768 },
   ]) {
-    test(`a ${vp.width}×${vp.height} le tende si aprono e la casa arriva a tutto schermo`, async ({ page, goto, isMobile }) => {
+    test(`a ${vp.width}×${vp.height} la facciata è a schermo intero da subito, sale, poi il nastro scorre di lato`, async ({ page, goto, isMobile }) => {
       test.skip(!!isMobile, "il corridoio vive da 1024 px");
       await page.setViewportSize(vp);
       await goto("/");
       const od = page.locator("#open-domus");
       await expect(od).toHaveAttribute("data-on", "");
-      const geo = await page.evaluate(() => {
-        const top = (el: Element) => el.getBoundingClientRect().top + window.scrollY;
-        const s = document.querySelector("#open-domus")!;
-        return { sectionTop: top(s), areaTop: top(s.querySelector(".dt-od_area")!), vh: window.innerHeight };
-      });
-      // Il trigger è la section: coincide con l'area, che in Era è il wrapper non sticky.
-      expect(Math.abs(geo.sectionTop - geo.areaTop)).toBeLessThanOrEqual(1);
-
-      // Marcatori del tema (spec §3.10): avorio da s 0 a +150svh, foto-chiara da +150svh fino al fondo
-      // dell'area (A47: la facciata continua dopo la pista, e sotto il segno c'è la carta del cielo o il
-      // muro bianco: grafite; le travi scure hanno i loro marcatori `foto`, finestra.json).
-      const m = await page.evaluate(() => {
-        const a = document.querySelector("#open-domus .dt-od_area")!.getBoundingClientRect();
-        const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
+      // A58: tende, stage, pista, marcatori, spazio sopra e chiusura sono morti.
+      expect(await od.locator(".dt-od_shutterzone, .dt-od_stage, .dt-od_run, .dt-od_mark, .dt-od_content, .dt-od_area").count()).toBe(0);
+      await expect(od.locator(".dt-horizon_screen")).toHaveCSS("position", "sticky");
+      const geo = await od.evaluate((el) => {
+        const cornice = el.querySelector<HTMLElement>(".dt-od_cornice")!;
+        const track = el.querySelector<HTMLElement>(".dt-horizon_track")!;
         return {
-          aTop: r("#open-domus .dt-od_mark--a").top - a.top,
-          aH: r("#open-domus .dt-od_mark--a").height,
-          fTop: r("#open-domus .dt-od_mark--f").top - a.top,
-          fH: r("#open-domus .dt-od_mark--f").height,
-          areaH: a.height,
+          top: el.getBoundingClientRect().top + window.scrollY,
+          h: (el as HTMLElement).offsetHeight,
+          corniceH: cornice.offsetHeight,
+          trackW: track.scrollWidth,
           vh: window.innerHeight,
+          vw: window.innerWidth,
         };
       });
-      expect(Math.abs(m.aTop)).toBeLessThanOrEqual(1);
-      expect(Math.abs(m.aH - 1.5 * m.vh)).toBeLessThanOrEqual(1);
-      expect(Math.abs(m.fTop - 1.5 * m.vh)).toBeLessThanOrEqual(1);
-      expect(Math.abs(m.fTop + m.fH - m.areaH), "il marcatore foto-chiara non arriva al fondo dell'area (A47)").toBeLessThanOrEqual(1);
-      await expect(page.locator("#open-domus .dt-od_mark--a")).toHaveAttribute("data-bg", "avorio");
-      // A46: a schermo intero sotto il segno (in alto a sinistra) c'è il cielo trasparente, cioè la
-      // carta: la zona è `foto-chiara` e il segno resta grafite.
-      await expect(page.locator("#open-domus .dt-od_mark--f")).toHaveAttribute("data-bg", "foto-chiara");
+      const lead = Math.max(0, CIMA * geo.corniceH - 0.1 * geo.vh);
+      expect(lead, "la salita c'è").toBeGreaterThan(100);
+      // La sezione è alta quanto il track più la salita (il gesto resta 1:1), e il track sono tre pannelli.
+      expect(Math.abs(geo.h - (geo.trackW + lead))).toBeLessThanOrEqual(2);
+      expect(Math.abs(geo.trackW - 3 * geo.vw)).toBeLessThanOrEqual(3);
 
-      // s = 0: l'area tocca il bordo alto, progresso 1/3, otturatore al 67 % (atteso ≈ 24,4).
-      await wheelTo(page, Math.round(geo.areaTop));
-      await page.waitForTimeout(500);
-      const y = ordinateOf(await clipOf(page.locator(".dt-od_shutter--l")), 3);
-      expect(y).toBeGreaterThan(18.519);
-      expect(y).toBeLessThan(36.111);
+      // All'aggancio (s ≈ 0; wheelTo arriva a passi e può sforare di qualche decina di px): la cornice è
+      // salita di quanto si è sceso, il track è fermo, la foto è già a schermo intero: in cima la carta
+      // del cielo e il titolo in inchiostro (A46), la trave della pergola in vista.
+      await wheelTo(page, Math.round(geo.top));
+      await page.waitForTimeout(600);
+      // La cornice sale di quanto la sezione è passata sotto il bordo alto (letto dal DOM, non dalla quota
+      // misurata prima: un refresh può spostarla), mai oltre la salita.
+      const relA = await od.evaluate((el) => el.getBoundingClientRect().top);
+      expect(relA, "wheelTo è finito oltre la salita").toBeGreaterThan(-(lead - 50));
+      expect(Math.abs((await matrixOf(od.locator(".dt-od_cornice"))).m42 - Math.max(-lead, Math.min(0, relA)))).toBeLessThanOrEqual(3);
+      expect(Math.abs((await matrixOf(od.locator(".dt-horizon_track"))).m41)).toBeLessThanOrEqual(2);
+      await verificaCieloFinestra(page, `${vp.width}×${vp.height} all'aggancio`);
 
-      // s = +200vh: tende a 1,84, stage a 1, schermo nascosto dal cue.
-      await wheelTo(page, Math.round(geo.areaTop + 2 * geo.vh + 10));
-      await page.waitForTimeout(500);
-      expect(Math.abs((await matrixOf(page.locator(".dt-od_shutters"))).a - 1.84)).toBeLessThanOrEqual(0.01);
-      expect(Math.abs((await matrixOf(page.locator(".dt-od_stage"))).a - 1)).toBeLessThanOrEqual(0.005);
-      await expect(page.locator(".dt-od_screen")).toHaveCSS("visibility", "hidden");
-      const overflow = await page.evaluate(
-        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      );
-      expect(overflow).toBeLessThanOrEqual(1);
-      // A46: a schermo intero il cielo della facciata è la carta e «Open Domus» sta in inchiostro sopra.
-      await verificaCieloFinestra(page, `${vp.width}×${vp.height} a schermo intero`);
-
-      // A47 (Alberto, 22 set. 2026: «deve continuare, abbiamo fatto le immagini alte apposta per poterci
-      // scrollare a schermo intero senza uscire dalla foto»; «questa sezione va sopra l'immagine di open
-      // domus»): dopo la pista (s = +300vh) lo stage scorre via e la facciata 9:16 PROSEGUE sotto la piega,
-      // col capitolo posato sulla sua metà bassa, in bianco con l'ombra del sito (A54).
-      await wheelTo(page, Math.round(geo.areaTop + 3 * geo.vh + 10));
-      await page.waitForTimeout(500);
-      // Il rettangolo di `.dt-od_content` comincia in cima alla cornice (porta il `padding-top` dello spazio sopra):
-      // dove il capitolo COMINCIA lo dice il suo primo figlio.
-      const dopo = await page.evaluate(() => {
-        const w = document.querySelector("#open-domus .dt-od_window")!.getBoundingClientRect();
-        const content = document.querySelector("#open-domus .dt-od_content")!;
-        const c = content.firstElementChild!.getBoundingClientRect();
-        const cb = content.getBoundingClientRect();
-        return { winTop: w.top, winBottom: w.bottom, winH: w.height, cTop: c.top, cBottom: cb.bottom, vh: window.innerHeight };
+      // Fine salita (s ≥ lead): la cornice è salita di `lead` e resta lì, la cima delle terrazze sta al 10 %
+      // del viewport (A57: «all'altezza dello screenshot»), il track ha appena cominciato, niente overflow.
+      await wheelTo(page, Math.round(geo.top + lead + 120));
+      await page.waitForTimeout(700);
+      const salita = await od.evaluate((el) => {
+        const w = el.querySelector(".dt-od_window")!.getBoundingClientRect();
+        return { top: w.top, h: w.height };
       });
-      expect(dopo.winBottom, "la foto finisce con la pista: non continua sotto la piega (A47)").toBeGreaterThan(dopo.vh);
-      expect(dopo.winH / dopo.vh, "la finestra non è alta più di due schermi").toBeGreaterThan(2);
-      expect(dopo.cTop, "il capitolo non posa sulla metà bassa della foto (A47)").toBeGreaterThan(dopo.winTop + 0.5 * dopo.winH - 2);
-      expect(dopo.cBottom, "il capitolo esce dalla foto").toBeLessThanOrEqual(dopo.winBottom + 2);
-      // A53 sulla finestra (Alberto, 22 set. 2026, pomeriggio: «qua, la foto, come nelle altre pagine con le foto a
-      // schermo intero no bg, deve rimpicciolirsi alla fine»): con una coda libera di almeno un quarto di viewport
-      // sotto il capitolo, quando il fondo della foto arriva al 10 % del viewport la scatola sta nella cornice 8/22.
-      const coda = dopo.winBottom - dopo.cBottom;
-      if (coda >= 0.25 * dopo.vh) {
-        const fineFoto = await page.evaluate(() => document.querySelector("#open-domus .dt-od_window")!.getBoundingClientRect().bottom + window.scrollY);
-        await wheelTo(page, Math.round(fineFoto - 0.1 * geo.vh));
-        await page.waitForTimeout(1200);
-        const clip = await page.locator("#open-domus .dt-od_window").evaluate((el) => getComputedStyle(el).clipPath);
-        const lati = clip.match(/inset\(([^)]*)\)/)?.[1].split(/\s+/).map((v) => parseFloat(v)) ?? [];
-        expect(lati.length, `a fine coda la facciata non è ritagliata: ${clip}`).toBeGreaterThan(0);
-        const [alto, destra] = [lati[0], lati[1] ?? lati[0]];
-        expect(Math.abs(alto - 8), `cornice sopra ${alto} %`).toBeLessThanOrEqual(1);
-        expect(Math.abs(destra - 22), `cornice a destra ${destra} %`).toBeLessThanOrEqual(1);
-      } else {
-        expect(await page.locator("#open-domus .dt-od_window").evaluate((el) => getComputedStyle(el).clipPath), "coda corta: nessun clip").toBe("none");
-      }
-      // A56 (22 set., pomeriggio): nel grigio del lockup, senza ombra, non più in bianco.
-      const occhiello = page.locator("#open-domus .dt-od_content .eyebrow").first();
-      await expect(occhiello).toHaveCSS("color", "rgb(70, 66, 61)");
-      await expect(occhiello).toHaveCSS("text-shadow", "none");
+      expect(Math.abs((await matrixOf(od.locator(".dt-od_cornice"))).m42 + lead)).toBeLessThanOrEqual(3);
+      expect(Math.abs(salita.top + CIMA * salita.h - 0.1 * geo.vh), "la cima delle terrazze non sta al 10 % del viewport").toBeLessThanOrEqual(4);
+      const xB = (await matrixOf(od.locator(".dt-horizon_track"))).m41;
+      expect(xB).toBeLessThanOrEqual(0);
+      expect(xB, "a inizio nastro il track è quasi fermo (dtInOut parte lenta)").toBeGreaterThan(-0.2 * geo.vw);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+
+      // A metà nastro (p ≈ 0,5 del track: dtInOut è simmetrica, x ≈ −1vw; wheelTo e la quota misurata
+      // prima possono scostare di un centinaio di px, e la curva lì è ripida) il secondo pannello è in
+      // scena: la foto è uscita a sinistra, il video di Teresa ha il sipario aperto e l'occhiello è entrato.
+      const inizio = geo.top + lead;
+      const fine = geo.top + 0.975 * geo.h - geo.vh;
+      await wheelTo(page, Math.round(inizio + 0.5 * (fine - inizio)));
+      await page.waitForTimeout(2200);
+      const x = (await matrixOf(od.locator(".dt-horizon_track"))).m41;
+      expect(Math.abs(x + geo.vw), `il track sta a ${x}, non attorno a −1vw`).toBeLessThanOrEqual(0.35 * geo.vw);
+      expect((await od.locator(".dt-od_window").boundingBox())!.x + geo.vw, "la foto non è uscita a sinistra").toBeLessThanOrEqual(0.1 * geo.vw);
+      const video = od.locator(".dt-od_panel--claim [data-horizon-slide]");
+      await expect.poll(async () => insetValues(await clipOf(video)), { timeout: 3000 }).toEqual([0, 0, 0, 0]);
+      await expect.poll(() => productOpacity(od.locator(".dt-od_panel--claim .eyebrow").first()), { timeout: 3000 }).toBeGreaterThan(0.99);
+
+      // A fine nastro (bordo basso della sezione al bordo basso del viewport): il terzo pannello, con le due
+      // liste, il rilancio e Raffaela sulla soglia a sipario aperto, alta 80svh, intera e dentro lo schermo.
+      await wheelTo(page, Math.round(geo.top + geo.h - geo.vh));
+      await page.waitForTimeout(2200);
+      const porta = od.locator(".dt-od_porta");
+      await expect.poll(async () => insetValues(await clipOf(porta)), { timeout: 3000 }).toEqual([0, 0, 0, 0]);
+      const pb = (await porta.boundingBox())!;
+      expect(pb.x).toBeGreaterThanOrEqual(0);
+      expect(pb.x + pb.width).toBeLessThanOrEqual(geo.vw + 1);
+      expect(Math.abs(pb.height - 0.8 * geo.vh)).toBeLessThanOrEqual(2);
+      expect(Math.abs(pb.width / pb.height - 2560 / 3816)).toBeLessThan(0.01);
+      const cta = od.getByRole("link", { name: /Scopri Open Domus/ });
+      const cb = (await cta.boundingBox())!;
+      expect(cb.x).toBeGreaterThanOrEqual(0);
+      expect(cb.y + cb.height).toBeLessThanOrEqual(geo.vh);
     });
   }
 
@@ -1278,50 +1270,58 @@ test.describe("la finestra di Open Domus", () => {
     expect(avorio(villa), `${dove}: sulla trave della pergola c'è la carta, non la villa`).toBe(false);
   }
 
-  // A47: sotto 1024 la foto è la 9:16 intera, in flusso, e il capitolo la segue in inchiostro (come le
-  // teste sotto lg); l'otturatore a tempo di spec §3.10 la apre come apriva il quadrato.
-  test("sotto 1024 l'otturatore apre la foto 9:16", async ({ page, goto, isMobile }) => {
+  // A57/A58 sotto 1024: nessun nastro; la foto è la 9:16 intera, in flusso, a tutta larghezza, e i due
+  // pannelli del capitolo la seguono in colonna; il cielo è la carta e il titolo sta in inchiostro sopra.
+  test("sotto 1024 la facciata è intera, in flusso, e il capitolo la segue in colonna", async ({ page, goto, isMobile }) => {
     test.skip(!isMobile, "il ramo del telefono");
     await goto("/");
     const od = page.locator("#open-domus");
-    const win = od.locator(".dt-od_window");
-    const norm = (s: string) => s.replace(/\s+/g, " ").trim();
-    // Stato chiuso scritto dal JS al primo callback, con la foto sotto la piega.
-    await expect.poll(async () => norm(await clipOf(win)), { timeout: 10_000 }).toBe(norm(PHONE_CLIP[0]));
     expect(await od.getAttribute("data-on")).toBeNull();
-    // Porta in vista la frazione `f` della foto, dal basso: bordo alto a innerHeight − f × altezza.
-    const quota = (f: number) =>
-      win.evaluate((el, frazione) => {
-        const r = el.getBoundingClientRect();
-        window.scrollTo({ top: window.scrollY + r.top - (window.innerHeight - frazione * r.height), behavior: "instant" });
-      }, f);
-    // 20 % in vista: sotto la soglia di 0,35 l'otturatore resta chiuso (spec §3.10).
-    await quota(0.2);
-    await page.waitForTimeout(600);
-    expect(norm(await clipOf(win))).toBe(norm(PHONE_CLIP[0]));
-    // 50 % in vista: oltre la soglia, M0 → M1 in 1,3 s e M1 → M2 in 0,2 s.
-    await quota(0.5);
-    await page.waitForTimeout(1600);
-    expect(norm(await clipOf(win))).toBe(norm(PHONE_CLIP[2]));
-    // A46: anche sul telefono il cielo del quadrato è la carta e il titolo sta in inchiostro sopra.
-    await quota(1);
+    const win = od.locator(".dt-od_window");
+    await win.scrollIntoViewIfNeeded();
     await page.waitForTimeout(400);
-    await verificaCieloFinestra(page, "telefono, quadrato aperto");
+    const r = await win.evaluate((el) => {
+      const b = el.getBoundingClientRect();
+      return { w: b.width, h: b.height, vw: window.innerWidth, clip: getComputedStyle(el).clipPath };
+    });
+    expect(Math.abs(r.w - r.vw), "la foto è larga come lo schermo").toBeLessThanOrEqual(1);
+    expect(Math.abs(r.w / r.h - 2160 / 3870)).toBeLessThan(0.02);
+    expect(r.clip, "nessun otturatore (A58)").toBe("none");
+    // La cima della foto sotto la testata sticky del telefono (che coprirebbe il titolo): il cielo è la
+    // carta e il titolo sta in inchiostro sopra (A46).
+    await win.evaluate((el) => {
+      const testata = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - testata - 4, behavior: "instant" });
+    });
+    await page.waitForTimeout(400);
+    await verificaCieloFinestra(page, "telefono, foto in flusso");
+    // Il capitolo segue la foto: l'occhiello sta sotto il fondo della foto.
+    const sotto = await page.evaluate(() => {
+      const w = document.querySelector("#open-domus .dt-od_window")!.getBoundingClientRect();
+      const e = document.querySelector("#open-domus .dt-od_panel--claim .eyebrow")!.getBoundingClientRect();
+      return e.top - w.bottom;
+    });
+    expect(sotto).toBeGreaterThan(0);
   });
 
-  test("da «Vedi i nove passi» il Tab porta la facciata del video dentro lo schermo", async ({ page, goto, isMobile }) => {
-    test.skip(!!isMobile, "la rete di fuoco del corridoio vive da 1024 px");
+  // La rete di fuoco del nastro (HorizonScroller, A57): il Tab dal rilancio del Metodo porta il fuoco al
+  // video di Teresa, nel secondo pannello; lo schermo non scorre in orizzontale e il pannello è in scena.
+  test("da «Vedi i nove passi» il Tab porta il video di Teresa in scena nel nastro", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "la rete di fuoco del nastro vive da 1024 px");
     await goto("/");
     await expect(page.locator("#open-domus")).toHaveAttribute("data-on", "");
     await page.getByRole("link", { name: "Vedi i nove passi", exact: true }).focus();
     await page.keyboard.press("Tab");
-    const facciata = page.locator("#open-domus .dt-od_content button").first();
+    const facciata = page.locator("#open-domus .dt-od_panel--claim button").first();
     await expect(facciata).toBeFocused();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(600);
     const r = await facciata.evaluate((el) => {
       const b = el.getBoundingClientRect();
-      return { top: b.top, bottom: b.bottom, vh: window.innerHeight };
+      return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, vw: window.innerWidth, vh: window.innerHeight, sl: el.closest(".dt-horizon_screen")!.scrollLeft };
     });
+    expect(r.sl, "lo schermo del nastro non deve scorrere in orizzontale col focus").toBe(0);
+    expect(r.left).toBeGreaterThanOrEqual(0);
+    expect(r.right).toBeLessThanOrEqual(r.vw);
     expect(r.top).toBeGreaterThanOrEqual(0);
     expect(r.bottom).toBeLessThanOrEqual(r.vh);
   });

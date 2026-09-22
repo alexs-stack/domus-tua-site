@@ -45,6 +45,7 @@ import { createContext, useCallback, useContext, useRef, type ReactNode } from "
 import type { ChapterId } from "../../lib/motion/chapters";
 import type { RevealApi } from "../../lib/motion/reveal-engine";
 import { gsap, ScrollTrigger, useGSAP, MQ, requestRefresh, whenStill } from "../../lib/motion/gsap";
+import { getLenis } from "./SmoothScroll";
 import RevealGroup from "./RevealGroup";
 
 /** Il sipario del media: dura più di un reveal perché il clip-path deve
@@ -77,12 +78,18 @@ export function HorizonEnter({ className, children }: { className?: string; chil
   );
 }
 
+/** La firma di `storia` (chapters.ts): il track del nastro di «Perché Domus Tua». */
+const STORIA = { ease: "dtHorScroll", scrub: 0.25 } as const;
+
 export default function HorizonScroller({
   children,
   className = "",
   id,
   corridor,
   refreshKey,
+  ease = STORIA.ease,
+  scrub = STORIA.scrub,
+  lead,
 }: {
   children: ReactNode;
   className?: string;
@@ -92,6 +99,13 @@ export default function HorizonScroller({
   /** Cambia (es. locale) → l'intero context viene revertito e ricreato:
       altezza del track, gradini, sipari e cue si rimisurano sul testo nuovo. */
   refreshKey?: string;
+  /** A57: la firma del capitolo che monta il nastro (ease e scrub del track); senza, quella di `storia` (D18). */
+  ease?: string;
+  scrub?: number | true;
+  /** A57: la SALITA prima del track. Un elemento del primo pannello che GSAP fa salire di `distance`
+      px, lineare e 1:1 con lo scroll, mentre lo schermo è già agganciato; la sezione si allunga di
+      altrettanto e il track parte dopo. La finestra di Open Domus ci fa salire la facciata. */
+  lead?: { selector: string; distance: (el: HTMLElement, screen: HTMLElement) => number };
 }) {
   const rootRef = useRef<HTMLElement | null>(null);
   const api = useRef<RevealApi | null>(null);
@@ -238,23 +252,74 @@ export default function HorizonScroller({
         // Altezza sezione = larghezza track: la distanza verticale da percorrere
         // coincide con quella orizzontale. Rimisurata a ogni refresh (trappola
         // nota: altezze dinamiche + ScrollTrigger, vedi dossier WOW layer).
+        // A57: la salita. Misurata a ogni refresh insieme all'altezza: la sezione è alta quanto il
+        // track PIÙ la salita, così il gesto resta 1:1 anche nel tratto verticale.
+        const leadEl = lead ? root.querySelector<HTMLElement>(lead.selector) : null;
+        let leadPx = 0;
         const size = () => {
-          root.style.height = `${track.scrollWidth}px`;
+          leadPx = leadEl && lead ? Math.max(0, Math.round(lead.distance(leadEl, screen))) : 0;
+          root.style.height = `${track.scrollWidth + leadPx}px`;
         };
         size();
         ScrollTrigger.addEventListener("refreshInit", size);
 
+        if (leadEl) {
+          gsap.fromTo(
+            leadEl,
+            { y: 0 },
+            {
+              y: () => -leadPx,
+              ease: "none",
+              scrollTrigger: { trigger: root, start: "top top", end: () => `+=${leadPx}`, scrub, invalidateOnRefresh: true },
+            },
+          );
+        }
+
+        const innesco: ScrollTrigger.Vars = {
+          trigger: root,
+          start: "2.5% top",
+          end: "97.5% bottom",
+          scrub,
+          invalidateOnRefresh: true,
+        };
+        // Con la salita il track parte quando la salita è finita (chapters.ts `finestra`: "top+=salita top").
+        if (leadEl) innesco.start = () => `top+=${leadPx} top`;
         const tween = gsap.to(track, {
           x: () => -(track.scrollWidth - screen.clientWidth),
-          ease: "dtHorScroll",
-          scrollTrigger: {
-            trigger: root,
-            start: "2.5% top",
-            end: "97.5% bottom",
-            scrub: 0.25,
-            invalidateOnRefresh: true,
-          },
+          ease,
+          scrollTrigger: innesco,
         });
+
+        // La rete di fuoco del nastro (A57; la formula di spec §3.10 portata sui pannelli). Il Tab su un
+        // focalizzabile di un pannello fuori scena farebbe scorrere lo schermo in orizzontale: `overflow:
+        // hidden` scorre lo stesso col focus e il track trasformato resterebbe fuori posto. Si annulla
+        // quello scroll e si porta la pagina alla quota in cui il pannello è in scena, invertendo l'ease
+        // del track per bisezione; poi lo scrub salta a fine corsa. Solo col focus da tastiera.
+        const onFocus = (e: FocusEvent) => {
+          const el = e.target;
+          const st = tween.scrollTrigger;
+          if (!(el instanceof HTMLElement) || !el.matches(":focus-visible") || !st) return;
+          screen.scrollLeft = 0;
+          const panel = el.closest<HTMLElement>(".dt-horizon_panel") ?? el;
+          const run = track.scrollWidth - screen.clientWidth;
+          if (run <= 0) return;
+          const target = Math.min(run, Math.max(0, panel.offsetLeft));
+          const curva = gsap.parseEase(ease) as (t: number) => number;
+          let lo = 0;
+          let hi = 1;
+          for (let i = 0; i < 24; i++) {
+            const mid = (lo + hi) / 2;
+            if (curva(mid) * run < target) lo = mid;
+            else hi = mid;
+          }
+          const y = st.start + hi * (st.end - st.start);
+          const lenis = getLenis();
+          if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+          else window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
+          ScrollTrigger.update();
+          st.getTween()?.progress(1);
+        };
+        screen.addEventListener("focusin", onFocus);
 
         // ── Il cue di <HorizonEnter> (spec §2.4) ───────────────────────────
         // «top 70%» della radice: lo schermo sticky è entrato per il 30 % della
@@ -314,6 +379,7 @@ export default function HorizonScroller({
 
         return () => {
           stopRefresh();
+          screen.removeEventListener("focusin", onFocus);
           ScrollTrigger.removeEventListener("refreshInit", size);
           root.removeAttribute("data-on");
           root.style.height = "";
@@ -321,7 +387,7 @@ export default function HorizonScroller({
         };
       });
     },
-    { scope: rootRef, dependencies: [refreshKey], revertOnUpdate: true }
+    { scope: rootRef, dependencies: [refreshKey, ease, scrub], revertOnUpdate: true }
   );
 
   return (

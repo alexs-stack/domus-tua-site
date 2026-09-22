@@ -18,15 +18,22 @@
 // - nessuna scala, nessun transform: il clip sta sul modulo media e mai su un
 //   antenato di uno sticky;
 // - reduced-motion e senza JS: nessuno stile scritto, foto intera.
-import { useRef, type ReactNode } from "react";
+import { useRef, type CSSProperties, type ReactNode } from "react";
 import { gsap, useGSAP, durDt } from "../../lib/motion/gsap";
 import { MQ } from "../../lib/motion/mq";
 import { chapters } from "../../lib/motion/chapters";
 import { clipClosed, clipOpen } from "../../lib/motion/clip";
 
-type ClipMediaProps = { chapter: "method"; from: "left" | "right"; className?: string; children: ReactNode };
+type ClipMediaProps = {
+  chapter: "method";
+  from: "left" | "right";
+  className?: string;
+  /** A61: il rapporto del sorgente, scritto inline sulla scatola (batte il quadrato del modulo). */
+  style?: CSSProperties;
+  children: ReactNode;
+};
 
-export default function ClipMedia({ chapter, from, className = "", children }: ClipMediaProps) {
+export default function ClipMedia({ chapter, from, className = "", style, children }: ClipMediaProps) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useGSAP(
@@ -120,7 +127,7 @@ export default function ClipMedia({ chapter, from, className = "", children }: C
   );
 
   return (
-    <div ref={ref} data-clip={chapter} data-from={from} className={className}>
+    <div ref={ref} data-clip={chapter} data-from={from} className={className} style={style}>
       {children}
     </div>
   );

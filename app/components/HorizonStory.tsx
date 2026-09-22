@@ -22,7 +22,7 @@ import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
 import RevealGroup from "./motion/RevealGroup";
 import HorizonScroller, { HorizonEnter } from "./motion/HorizonScroller";
-import LazyYouTubeEmbed from "./LazyYouTubeEmbed";
+import StoryVideo from "./StoryVideo";
 import { Cta } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
 import { site, territoryLabel, territoryLabelBy } from "../lib/site";
@@ -198,25 +198,24 @@ export default function HorizonStory() {
           16vw/14vw, e a 1440 lasciava 349 px di avorio fra la testa e la
           riga (misura del 2026-09-20). */}
       <div className="dt-row mt-[clamp(2.5rem,6vh,4.5rem)] grid gap-[6vw] lg:mt-[12vw] lg:grid-cols-2">
-        {/* IL TETTO A 420px E' UN CONTO, NON UN CAPRICCIO. La copertina di uno
-            Short arriva da YouTube in 16:9: dentro una scatola 9:16 viene resa
-            larga 3,16 volte la scatola perche' deve coprirne l'altezza. A 605
-            px di colonna servirebbero 1.911 px di sorgente e ce ne sono 1.280:
-            i visi diventano impasto (2,95x misurato). A 420 ne servono 1.328 e
-            il conto torna (1,04x). Il giorno in cui arriva un fotogramma vero
-            1080x1920 questo tetto si toglie.
-            E `posterSizes` dichiara quei pixel, non la larghezza della
-            scatola: e' la stessa regola dei `sizes` delle foto.
-            Il `!` perche' il `max-width` del modulo sta in globals.css, fuori dai
-            layer, e batterebbe l'utility (regola del repo). */}
-        <div className="dt-media-column dt-media-column--tall lg:-mt-[10vw] lg:!max-w-[420px]">
-          <LazyYouTubeEmbed
-            id={site.videos.featured.id}
-            title={site.videos.featured.title}
-            aspect="portrait"
-            posterSizes="(max-width: 1024px) 284vw, 1328px"
-          />
-        </div>
+        {/* A60 (Alberto, 22 set. 2026, sera): il file vero della storia di Roberta, 1080×1920, al
+            posto della facciata di YouTube — «mettilo al posto della preview youtube, con la logica
+            di audio che si attiva in automatico, e quando esci dalla sezione scrollando la pagina,
+            si disattiva». Il tetto a 420 px era il conto della copertina 16:9 di YouTube stirata in
+            9:16 (1.280 px di sorgente per 1.911 resi): col fotogramma vero 1080×1920 il tetto si
+            toglie, come promesso, e la colonna torna piena (605 px a 1440, 640 al massimo). La
+            voce parte in vista e si ferma fuori vista (useAmbientVideo, A44). */}
+        <StoryVideo
+          className="dt-media-column dt-media-column--tall lg:-mt-[10vw]"
+          title={site.videos.featured.title}
+          poster="/media/open-domus-roberta-poster.jpg"
+          sources={{
+            hd: { webm: "/media/open-domus-roberta-1080.webm", mp4: "/media/open-domus-roberta-1080.mp4" },
+            sd: { webm: "/media/open-domus-roberta-720.webm", mp4: "/media/open-domus-roberta-720.mp4" },
+            ar: 9 / 16,
+            sdWidth: 720,
+          }}
+        />
         {/* Il rientro delle altre righe torna insieme al modulo pieno. */}
         <RevealGroup className="lg:mt-[10vw] lg:pl-[6vw]">
           <Reveal>

@@ -115,7 +115,8 @@ describe("il gate e i consumatori", () => {
     const accendi = /const accendi = \(\) => \{[\s\S]*?\n    \};/.exec(hook);
     assert.ok(accendi, "manca `accendi`, il gestore del primo gesto");
     assert.match(accendi![0], /v\.muted = false;\s*v\.currentTime = 0;\s*v\.play\(\)/, "la scrittura del tempo sta nel gestore del gesto, prima del play");
-    assert.match(accendi![0], /if \(!allowed\(\) \|\| !inView\) return;/, "fuori vista il gesto non fa partire niente");
+    // A60: chi ha tolto l'audio col comando (StoryVideo, `data-user-muted`) non se lo vede riaccendere dal gesto.
+    assert.match(accendi![0], /if \(!allowed\(\) \|\| !inView \|\| zittito\(\)\) return;/, "fuori vista, o zittito, il gesto non fa partire niente");
     assert.doesNotMatch(codice("app/components/motion/useLastra.ts"), /video\.pause\(\)|video\.play\(\)/, "la lastra non comanda il loop");
   });
 
@@ -123,7 +124,7 @@ describe("il gate e i consumatori", () => {
     const hook = codice("app/components/motion/useAmbientVideo.ts");
     assert.match(hook, /audio\?: boolean;/);
     assert.match(hook, /const audio = o\.audio === true;/);
-    assert.match(hook, /if \(audio && !negato && v\.muted\) \{\s*v\.muted = false;\s*v\.play\(\)/, "prova col suono solo se chiesto, non ancora negato e ancora muto");
+    assert.match(hook, /if \(audio && !negato && v\.muted && !zittito\(\)\) \{\s*v\.muted = false;\s*v\.play\(\)/, "prova col suono solo se chiesto, non ancora negato, ancora muto e non zittito dall'utente (A60)");
     assert.match(hook, /negato = true;\s*v\.muted = true;\s*v\.play\(\)\.catch\(markStill\);\s*arma\(\);/, "al rifiuto: muto, riparte, arma il gesto");
     assert.match(hook, /const GESTI = \["pointerdown", "keydown"\] as const;/);
     assert.match(hook, /window\.addEventListener\(t, accendi, \{ capture: true, passive: true \}\)/);

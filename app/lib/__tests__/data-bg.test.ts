@@ -126,12 +126,14 @@ describe("le zone di spec §6.1 portano data-bg", () => {
   // A46: la facciata della finestra ha il cielo trasparente e a schermo intero il segno (in alto a
   // sinistra, 4vw × asse della testata) sta sul cielo, cioè sull'avorio: la zona resta chiara
   // (`foto-chiara`, grafite), altrimenti le tacche avorio sparirebbero nel cielo avorio.
-  test("finestra di Open Domus: avorio poi foto-chiara (§3.10, A46)", () => {
+  // A57 (22 set. 2026, sera): la finestra è un nastro e i marcatori da 1 px del corridoio sono morti;
+  // restano le bande delle travi dentro la scatola della foto (`.dt-od_soggetto`, `foto`), che
+  // viaggiano con la cornice: sul cielo trasparente (la carta) e sui muri il segno resta grafite.
+  test("finestra di Open Domus: le bande della facciata, e nessun marcatore da 1 px (§3.10, A46, A57)", () => {
     const src = codice("app/components/OpenDomus.tsx");
-    const a = tagCon(src, classe("dt-od_mark--a"));
-    const f = tagCon(src, classe("dt-od_mark--f"));
-    assert.ok(a.length === 1 && /\sdata-bg="avorio"/.test(a[0]), "il marcatore avorio della finestra manca o ha un altro valore");
-    assert.ok(f.length === 1 && /\sdata-bg="foto-chiara"/.test(f[0]), "il marcatore della foto della finestra non è foto-chiara: sul cielo trasparente il segno deve restare grafite (A46)");
+    const bande = tagCon(src, classe("dt-od_soggetto"));
+    assert.ok(bande.length === 1 && FOTO.test(bande[0]), "il marcatore delle travi della facciata non porta data-bg=\"foto\"");
+    assert.equal(tagCon(src, classe("dt-od_mark--a")).length + tagCon(src, classe("dt-od_mark--f")).length, 0, "i marcatori da 1 px del corridoio sono morti con A57");
   });
 
   test("banda di Costi chiari (§3.13)", () => {
@@ -243,7 +245,7 @@ describe("il rilevatore (tema.ts, MarkSegno)", () => {
         }
       }
     }
-    assert.ok(classi1px.has("dt-od_mark"), "globals.css non dà più width: 1px a .dt-od_mark: da rivedere la deroga D66");
+    // A57: `.dt-od_mark` è morta con il corridoio della finestra; la deroga D66 resta al solo hero.
     const larghe1: string[] = [];
     for (const p of sorgenti(join(ROOT, "app"))) {
       for (const t of tagCon(soloCodice(readFileSync(p, "utf8")), /\sdata-bg=/)) {
@@ -257,11 +259,7 @@ describe("il rilevatore (tema.ts, MarkSegno)", () => {
     }
     assert.deepEqual(
       larghe1,
-      [
-        "app/components/HeroCinematic.tsx · w-px",
-        "app/components/OpenDomus.tsx · .dt-od_mark (app/globals.css)",
-        "app/components/OpenDomus.tsx · .dt-od_mark (app/globals.css)",
-      ],
+      ["app/components/HeroCinematic.tsx · w-px"],
       `zone data-bg larghe 1 px:\n${larghe1.join("\n")}`,
     );
   });

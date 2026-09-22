@@ -365,6 +365,8 @@ describe("componenti dei gesti a clip", () => {
      scrive `paintClip` in un `onUpdate`, non un tween di clipPath. */
   const DICHIARATI = new Set([
     "app/components/motion/HorizonScroller.tsx",
+    // A59: lo sfoglio delle foto di D.O.C. (tratto «sfoglio» del registro).
+    "app/components/DomusDocProtocol.tsx",
     "app/components/CostiChiari.tsx",
     "app/components/motion/ClipMedia.tsx",
     "app/components/motion/Hairline.tsx",

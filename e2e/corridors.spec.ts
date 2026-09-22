@@ -21,7 +21,7 @@ const EXPECTED_HOME = ["cartolina", "finestra", "hero", "recensioni", "storia", 
 const EXPECTED_VENDI: string[] = [];
 /** Le rotte, e su ognuna i corridoi che hanno uno schermo [data-corridor-screen] da misurare. */
 const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [
-  { path: "/", screens: ["cartolina", "finestra", "hero"] },
+  { path: "/", screens: ["cartolina", "hero"] },
 ];
 /**
  * Il contenitore dei testi quando non è lo schermo, relativo all'host. Nella
@@ -31,7 +31,8 @@ const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [
  * corridoio contro il viewport; gli altri in cima alla pagina, contro il
  * bordo basso del loro schermo.
  */
-const SCREEN_TEXT: Partial<Record<string, string>> = { finestra: ".dt-od_content" };
+// A57: la finestra è un nastro e non ha più uno stage col testo sotto lo schermo: nessuna voce.
+const SCREEN_TEXT: Partial<Record<string, string>> = {};
 
 async function hostsOn(page: Page): Promise<string[]> {
   return page.evaluate(() =>
@@ -501,71 +502,28 @@ test.describe("il corridoio del tuffo dell'hero", () => {
   }
 });
 
-// La finestra di Open Domus (A19, A20; spec §3.10 e §9.2): due strati sticky senza antenati
-// ritagliati, un testo che aspetta la finestra aperta, e nessun corridoio sotto la soglia.
+// La finestra di Open Domus (A57/A58): un nastro come storia. Lo schermo sticky del nastro non ha antenati
+// trasformati o ritagliati (spec §2.7); la cornice che sale è trasformata ma dentro il track, e non è
+// antenata di nulla di sticky. Sotto la soglia non c'è nessun corridoio.
 test.describe("la finestra fra i corridoi", () => {
-  test("schermo e stage della finestra non hanno antenati trasformati o ritagliati", async ({ page, goto, isMobile }) => {
+  test("lo schermo del nastro della finestra è sticky e non ha antenati trasformati o ritagliati", async ({ page, goto, isMobile }) => {
     test.skip(!!isMobile, "il corridoio vive da 1024 px");
     await goto("/");
     await expect(page.locator("#open-domus")).toHaveAttribute("data-on", "");
     const colpevoli = await page.evaluate(() => {
       const out: string[] = [];
-      for (const start of document.querySelectorAll<HTMLElement>("#open-domus .dt-od_screen, #open-domus .dt-od_stage")) {
-        for (let el = start.parentElement; el; el = el.parentElement) {
-          const s = getComputedStyle(el);
-          if (s.transform !== "none" || /hidden|auto|scroll/.test(s.overflowY) || s.clipPath !== "none") {
-            out.push(`${start.className} ← ${el.tagName}.${el.className}`);
-          }
+      const start = document.querySelector<HTMLElement>("#open-domus .dt-horizon_screen")!;
+      for (let el = start.parentElement; el; el = el.parentElement) {
+        const s = getComputedStyle(el);
+        if (s.transform !== "none" || /hidden|auto|scroll/.test(s.overflowY) || s.clipPath !== "none") {
+          out.push(`${el.tagName}.${el.className}`);
         }
       }
       return out;
     });
     expect(colpevoli).toEqual([]);
-    await expect(page.locator("#open-domus .dt-od_screen")).toHaveCSS("position", "sticky");
-    await expect(page.locator("#open-domus .dt-od_stage")).toHaveCSS("position", "sticky");
-  });
-
-  test("il testo di Open Domus aspetta che la finestra sia aperta", async ({ page, goto, isMobile }) => {
-    test.skip(!!isMobile, "il corridoio vive da 1024 px");
-    await goto("/");
-    const od = page.locator("#open-domus");
-    await expect(od).toHaveAttribute("data-on", "");
-    const { areaTop, vh } = await od.evaluate((el) => ({
-      areaTop: el.getBoundingClientRect().top + window.scrollY,
-      vh: window.innerHeight,
-    }));
-    // A45 (21 set. 2026): in home l'h2 del capitolo sta nella cornice della foto (la sezione
-    // «Architecture» di era), fuori dal gruppo in attesa; il primo membro del gruppo è l'occhiello
-    // (Reveal `ctn`: opacità 0 → 1), e su di lui si misura l'attesa e l'entrata.
-    const carattere = od.locator(".dt-od_content .eyebrow").first();
-    // s = +100vh: lo stage è agganciato e scalato; il capitolo sta SULLA foto, sotto la piega (A47:
-    // dal 55 % della facciata che sale), e il gruppo è in attesa. 3 s coprono anche la rete dei 2.500 ms.
-    await wheelTo(page, Math.round(areaTop + vh));
-    await page.waitForTimeout(3000);
-    expect(await productOpacity(carattere)).toBeLessThan(0.1);
-    // Dove il capitolo entra in vista: dopo la pista (sgancio a +200vh dalla cima dell'area, insieme al
-    // cue di p 1) lo stage scorre via; il primo figlio del capitolo (il rettangolo di `.dt-od_content`
-    // porta il padding dello spazio sopra) sta a `contentY` dalla cima dello stage (offsetTop, senza la
-    // scala) e lo si porta a metà schermo.
-    const contentY = await od.evaluate((el) => {
-      const stage = el.querySelector<HTMLElement>(".dt-od_stage")!;
-      let y = 0;
-      for (let e = el.querySelector<HTMLElement>(".dt-od_content > *"); e && e !== stage; e = e.offsetParent as HTMLElement | null) y += e.offsetTop;
-      return y;
-    });
-    const inVista = Math.round(areaTop + 2 * vh + contentY - 0.5 * vh);
-    // Oltre il cue e col capitolo in vista: finestra aperta, stage sganciato → entra.
-    await wheelTo(page, inVista);
-    await expect.poll(() => productOpacity(carattere), { timeout: 3500 }).toBeGreaterThan(0.99);
-    // Ritorno sotto p 1 (s = +1,5vh): il cue all'indietro rimette lo schermo, fa uscire il testo
-    // (C22, uscita speculare) e rimette l'attesa.
-    await wheelTo(page, Math.round(areaTop + 1.5 * vh));
-    await expect.poll(() => productOpacity(carattere), { timeout: 1500 }).toBeLessThan(0.1);
-    await expect(od.locator(".dt-od_screen")).toHaveCSS("visibility", "visible");
-    await expect(od.locator(".dt-od_content")).toHaveAttribute("data-reveal-hold", "");
-    // Di nuovo oltre il cue, col capitolo in vista: il testo rientra.
-    await wheelTo(page, inVista);
-    await expect.poll(() => productOpacity(carattere), { timeout: 3500 }).toBeGreaterThan(0.99);
+    await expect(page.locator("#open-domus .dt-horizon_screen")).toHaveCSS("position", "sticky");
+    expect(await page.locator("#open-domus .dt-od_cornice *").evaluateAll((els) => els.filter((e) => getComputedStyle(e).position === "sticky").length)).toBe(0);
   });
 
   // D28: /metodo e /open-domus rendono <OpenDomus /> senza finestra, col markup del capitolo.

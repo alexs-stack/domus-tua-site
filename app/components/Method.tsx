@@ -45,9 +45,9 @@ const copy = {
     actVideo: "Guarda la video recensione",
     allSteps: "Vedi i nove passi",
     acts: [
-      { up: "Prima,", down: "le persone", word: "Ascolto", alt: "Raffaela Rizza, fondatrice di Domus Tua, in ascolto" },
-      { up: "Poi,", down: "le immagini", word: "Racconto", alt: "Il racconto video di una villa seguita da Domus Tua" },
-      { up: "Infine,", down: "il rogito", word: "Firma", alt: "La stretta di mano che chiude una compravendita seguita da Domus Tua" },
+      { up: "Prima,", down: "le persone", word: "Ascolto", alt: "Raffaela Rizza, fondatrice di Domus Tua, allo specchio: il riflesso sorride a chi guarda" },
+      { up: "Poi,", down: "le immagini", word: "Racconto", alt: "Il salotto a doppia altezza di una villa, con la piscina oltre la vetrata" },
+      { up: "Infine,", down: "il rogito", word: "Firma", alt: "Raffaela Rizza consegna le chiavi davanti alla villa" },
     ],
     steps: [
       { title: "Primo ascolto", copy: "Partiamo da te: obiettivi, tempi, aspettative. Prima delle case vengono le persone." },
@@ -70,9 +70,9 @@ const copy = {
     actVideo: "Watch the video review",
     allSteps: "See the nine steps",
     acts: [
-      { up: "First,", down: "the people", word: "Listening", alt: "Raffaela Rizza, founder of Domus Tua, listening" },
-      { up: "Then,", down: "the images", word: "Story", alt: "The video story of a villa listed by Domus Tua" },
-      { up: "Finally,", down: "the deed", word: "Signing", alt: "The handshake closing a sale assisted by Domus Tua" },
+      { up: "First,", down: "the people", word: "Listening", alt: "Raffaela Rizza, founder of Domus Tua, at the mirror: her reflection smiles at the viewer" },
+      { up: "Then,", down: "the images", word: "Story", alt: "The double-height living room of a villa, with the pool beyond the glass wall" },
+      { up: "Finally,", down: "the deed", word: "Signing", alt: "Raffaela Rizza handing over the keys in front of the villa" },
     ],
     steps: [
       { title: "First, we listen", copy: "We start with you: goals, timing, expectations. People come before homes." },
@@ -95,9 +95,9 @@ const copy = {
     actVideo: "Voir l’avis en vidéo",
     allSteps: "Voir les neuf étapes",
     acts: [
-      { up: "D'abord,", down: "les personnes", word: "Écoute", alt: "Raffaela Rizza, fondatrice de Domus Tua, à l'écoute" },
-      { up: "Puis,", down: "les images", word: "Récit", alt: "Le récit vidéo d'une villa proposée par Domus Tua" },
-      { up: "Enfin,", down: "l’acte", word: "Signature", alt: "La poignée de main qui conclut une vente accompagnée par Domus Tua" },
+      { up: "D'abord,", down: "les personnes", word: "Écoute", alt: "Raffaela Rizza, fondatrice de Domus Tua, devant le miroir : son reflet sourit à qui regarde" },
+      { up: "Puis,", down: "les images", word: "Récit", alt: "Le salon à double hauteur d'une villa, avec la piscine derrière la baie vitrée" },
+      { up: "Enfin,", down: "l’acte", word: "Signature", alt: "Raffaela Rizza remet les clés devant la villa" },
     ],
     steps: [
       { title: "Première écoute", copy: "Nous partons de vous : objectifs, délais, attentes. Avant les maisons viennent les personnes." },
@@ -120,9 +120,9 @@ const copy = {
     actVideo: "Video-Bewertung ansehen",
     allSteps: "Die neun Schritte ansehen",
     acts: [
-      { up: "Zuerst", down: "die Menschen", word: "Zuhören", alt: "Raffaela Rizza, Gründerin von Domus Tua, beim Zuhören" },
-      { up: "Dann", down: "die Bilder", word: "Erzählen", alt: "Die Video-Geschichte einer Villa im Angebot von Domus Tua" },
-      { up: "Zuletzt", down: "der Notartermin", word: "Unterschrift", alt: "Der Handschlag zum Abschluss eines von Domus Tua begleiteten Verkaufs" },
+      { up: "Zuerst", down: "die Menschen", word: "Zuhören", alt: "Raffaela Rizza, Gründerin von Domus Tua, vor dem Spiegel: ihr Spiegelbild lächelt den Betrachter an" },
+      { up: "Dann", down: "die Bilder", word: "Erzählen", alt: "Das doppelt hohe Wohnzimmer einer Villa mit dem Pool hinter der Glasfront" },
+      { up: "Zuletzt", down: "der Notartermin", word: "Unterschrift", alt: "Raffaela Rizza übergibt die Schlüssel vor der Villa" },
     ],
     steps: [
       { title: "Erstes Zuhören", copy: "Wir beginnen bei Ihnen: Ziele, Zeitrahmen, Erwartungen. Vor den Häusern kommen die Menschen." },
@@ -145,9 +145,9 @@ const copy = {
     actVideo: "Ver la reseña en vídeo",
     allSteps: "Ver los nueve pasos",
     acts: [
-      { up: "Primero,", down: "las personas", word: "Escucha", alt: "Raffaela Rizza, fundadora de Domus Tua, escuchando" },
-      { up: "Luego,", down: "las imágenes", word: "Relato", alt: "El relato en vídeo de una villa ofrecida por Domus Tua" },
-      { up: "Al final,", down: "la escritura", word: "Firma", alt: "El apretón de manos que cierra una compraventa acompañada por Domus Tua" },
+      { up: "Primero,", down: "las personas", word: "Escucha", alt: "Raffaela Rizza, fundadora de Domus Tua, ante el espejo: su reflejo sonríe a quien mira" },
+      { up: "Luego,", down: "las imágenes", word: "Relato", alt: "El salón a doble altura de una villa, con la piscina tras la cristalera" },
+      { up: "Al final,", down: "la escritura", word: "Firma", alt: "Raffaela Rizza entrega las llaves delante de la villa" },
     ],
     steps: [
       { title: "Primera escucha", copy: "Partimos de ti: objetivos, plazos, expectativas. Antes que las casas están las personas." },
@@ -163,35 +163,31 @@ const copy = {
   },
 } as const;
 
-/* Le foto degli atti, con la misura VERA del sorgente: tutte e tre sono
-   riprese larghe (1.73, 2.54, 1.77), quindi tutte e tre stanno in 16:9 — il
-   modulo `dt-media-half` forzato a `!aspect-video` — e nessuna viene
-   ingrandita. Nel quadrato di prima il ritratto — 763×442, il file più
-   piccolo del sito — teneva il 58% dell'inquadratura e saliva di 1,37×: il
-   volto usciva tagliato e molle. In 16:9 la scatola è la metà da 42vw (~605 px
-   a 1440, al massimo 640): il ritratto scende a 0,79×, la villa a 0,67×, la
-   stretta di mano a 0,32×.
-   `pos`: il ritratto non ha aria sopra la testa nel sorgente, quindi il taglio
-   si prende i 9 px di troppo dal basso (`50% 0%`), non dai capelli.
-   `video`: handshake.jpg è la copertina della video recensione e porta il
-   pulsante play COTTO nei pixel; senza un link leggerebbe come un player
-   rotto, quindi l'atto porta al video vero (scelta del 2026-08-06). */
+/* Le foto degli atti (A61 di Alberto, 22 set. 2026, sera: «dobbiamo cambiare le immagini di
+   Prima, le persone / Poi, le immagini / Infine, il rogito: nella prima sempre una foto di
+   Raffaela, magari quelle allo specchio, e le altre scegli tu»). Scelte mie (D-A61):
+   - «Prima, le persone»: Raffaela allo specchio, di spalle, col riflesso che guarda chi legge
+     (`raffaela-specchio-riflesso.jpg`, 3:4, l'unica delle tre allo specchio non ancora montata:
+     `-sorriso` sta nella rotaia del team e `-profilo` in Percorsi, e una foto non si ripete
+     nella pagina);
+   - «Poi, le immagini»: la casa raccontata, il salotto a doppia altezza con la piscina dietro
+     la vetrata (`villa-salotto-doppio.jpg`, 3:2), senza persone: l'atto parla delle immagini;
+   - «Infine, il rogito»: Raffaela che consegna le chiavi davanti alla villa
+     (`raffaela-chiavi-alta.jpg`, 2:3). Al posto di `handshake.jpg`, la copertina col play cotto
+     nei pixel; il link al video della recensione resta.
+   La scatola è la metà (42vw, al massimo 640 px) col RAPPORTO DEL SORGENTE (la regola dei tre
+   moduli: la scatola segue il sorgente, non la griglia), quindi nessuna foto è tagliata e nessuna
+   è ingrandita: `sizes` dichiara la scatola. `video`: l'atto del rogito porta al video vero
+   della recensione (scelta del 2026-08-06). */
 const ACT_IMAGES = [
-  { src: "/images/reali/raffaela-ritratto.jpg", ratio: 763 / 442, pos: "50% 0%", video: null },
-  { src: "/images/reali/video-villa-mozart.jpg", ratio: 1280 / 505, pos: undefined, video: null },
-  { src: "/images/reali/handshake.jpg", ratio: 1920 / 1087, pos: undefined, video: site.videos.reviews[0].id },
+  { src: "/images/reali/raffaela-specchio-riflesso.jpg", w: 1920, h: 2560, video: null },
+  { src: "/images/reali/villa-salotto-doppio.jpg", w: 2560, h: 1717, video: null },
+  { src: "/images/reali/raffaela-chiavi-alta.jpg", w: 2560, h: 3816, video: site.videos.reviews[0].id },
 ] as const;
 
-/* `sizes` descrive la larghezza dell'IMMAGINE dopo il cover, non della
-   scatola: in una 16:9 un sorgente più largo di 16:9 sborda e va chiesto più
-   grande (villa-mozart, 2.54, è larga 1,43 volte la scatola). Le tre misure
-   sono quelle vere della scatola: 90vw sotto 768 (dt-row a 5vw), 84vw fino a
-   1024 (dt-row a 8vw, ancora impilata), poi i 42vw della metà. */
-const FULL_ASPECT = 16 / 9;
-const coverSizes = (ratio: number) => {
-  const k = Math.max(1, ratio / FULL_ASPECT);
-  return `(max-width:767px) ${Math.ceil(90 * k)}vw, (max-width:1023px) ${Math.ceil(84 * k)}vw, ${Math.ceil(42 * k)}vw`;
-};
+/* Le misure vere della scatola: 90vw sotto 768 (dt-row a 5vw), 84vw fino a 1024 (dt-row a 8vw,
+   ancora impilata), poi i 42vw della metà col tetto a 640 px. */
+const ACT_SIZES = "(max-width:767px) 90vw, (max-width:1023px) 84vw, (max-width:1523px) 42vw, 640px";
 
 export default function Method({ compact = false }: { compact?: boolean } = {}) {
   const { locale } = useLocale();
@@ -233,19 +229,15 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
                 le tre riprese sono larghe (1,73 · 2,54 · 1,77) e in un
                 quadrato andrebbero ingrandite. */}
             <div className="lg:order-2 lg:justify-self-end">
+              {/* A61: la scatola prende il rapporto del sorgente (stile inline: batte il quadrato
+                  del modulo, che sta fuori dai layer). */}
               <ClipMedia
                 chapter="method"
                 from={i % 2 ? "right" : "left"}
-                className="dt-media-half !aspect-video"
+                className="dt-media-half"
+                style={{ aspectRatio: `${img.w} / ${img.h}` }}
               >
-                <Image
-                  src={img.src}
-                  alt={a.alt}
-                  fill
-                  sizes={coverSizes(img.ratio)}
-                  className="object-cover"
-                  style={{ objectPosition: img.pos }}
-                />
+                <Image src={img.src} alt={a.alt} fill sizes={ACT_SIZES} className="object-cover" />
               </ClipMedia>
             </div>
             <div className="lg:pr-[6vw]">

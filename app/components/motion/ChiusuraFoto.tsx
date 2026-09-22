@@ -43,19 +43,17 @@ export default function ChiusuraFoto() {
 
   useGSAP(
     () => {
-      const testa = ref.current?.closest<HTMLElement>("[data-testa], [data-od]") ?? null;
-      // A47: nella finestra di Open Domus (`data-od`) le tre scatole hanno i nomi della finestra.
-      const od = testa?.hasAttribute("data-od") ?? false;
-      const strato = testa?.querySelector<HTMLElement>(od ? ".dt-od_cornice" : "[data-testa-strato]") ?? null;
-      const foto = testa?.querySelector<HTMLElement>(od ? ".dt-od_window" : "[data-testa-foto-box]") ?? null;
-      const sopra = testa?.querySelector<HTMLElement>(od ? ".dt-od_content" : ".dt-testa_sopra") ?? null;
+      const testa = ref.current?.closest<HTMLElement>("[data-testa]") ?? null;
+      const strato = testa?.querySelector<HTMLElement>("[data-testa-strato]") ?? null;
+      const foto = testa?.querySelector<HTMLElement>("[data-testa-foto-box]") ?? null;
+      const sopra = testa?.querySelector<HTMLElement>(".dt-testa_sopra") ?? null;
       if (!testa || !strato || !foto) return;
       const mm = gsap.matchMedia();
       // Nella finestra (A47) sotto lg il clip della scatola è dell'otturatore di spec §3.10 (OpenDomus.tsx,
       // ramo `phone`): due padroni sullo stesso clip-path sono uno di troppo, e la chiusura lì non si arma.
       mm.add({ motionOk: MQ.motionOk, lg: MQ_LG }, (ctx) => {
         const c = ctx.conditions as { motionOk: boolean; lg: boolean };
-        if (!c.motionOk || (od && !c.lg)) return;
+        if (!c.motionOk) return;
         const cornice = () => (window.matchMedia(MQ_LG).matches ? CORNICE_LG : window.matchMedia(MQ.desktop).matches ? CORNICE_TAB : CORNICE_PHONE);
         // Lo spazio sopra sta SULLA foto (da lg, con la banda scura): la chiusura parte quando il suo fondo passa la
         // cima del viewport, così nessuna scritta bianca resta sulla carta scoperta dal ritaglio. Altrimenti parte

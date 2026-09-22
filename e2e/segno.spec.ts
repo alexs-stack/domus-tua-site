@@ -497,11 +497,12 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10;
   await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
   await scrollA(page, 1000);
   await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
+  // A57: la finestra è un nastro; la quota di riferimento è la cima della sezione.
   const area = await page.evaluate(() => {
-    const a = document.querySelector<HTMLElement>(".dt-od_area");
+    const a = document.querySelector<HTMLElement>("#open-domus");
     return a ? a.getBoundingClientRect().top + window.scrollY : null;
   });
-  expect(area, "manca .dt-od_area in home").not.toBeNull();
+  expect(area, "manca #open-domus in home").not.toBeNull();
   await scrollA(page, Math.round(area! + 900));
   await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
   // A46: da +150svh la finestra è a schermo intero e sotto il segno c'è il cielo trasparente della
@@ -518,10 +519,10 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10;
     const cy = r.top + r.height / 2;
     const win = document.querySelector<HTMLElement>("#open-domus .dt-od_window")!;
     const fb = win.getBoundingClientRect();
-    const schermo = document.querySelector<HTMLElement>("#open-domus .dt-od_screen")!;
     return {
       dentro: cx >= fb.left && cx <= fb.right && cy >= fb.top && cy <= fb.bottom,
-      schermoVia: getComputedStyle(schermo).visibility === "hidden",
+      // A57: niente più schermo delle tende davanti alla foto.
+      schermoVia: true,
       src: decodeURIComponent(win.querySelector("img")?.currentSrc ?? ""),
       fy: (cy - fb.top) / fb.height,
     };

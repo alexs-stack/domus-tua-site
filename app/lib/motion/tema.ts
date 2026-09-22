@@ -25,10 +25,10 @@ export function temaAt(cx: number, cy: number): Tema {
     const r = zona.getBoundingClientRect();
     if (r.height === 0) continue;
     // Un marcatore largo 1 px vale per tutta la larghezza della pagina: deroga
-    // a spec §6.1 (b), D66. Sono tali quello dell'hero (spec §3.2, fuori dallo
-    // schermo sticky, classe `w-px`) e i due della finestra di Open Domus
-    // (spec §3.10, `.dt-od_mark` con `width: 1px` in globals.css), e solo loro:
-    // data-bg.test.ts elenca le zone larghe 1 px nei tag e nel CSS.
+    // a spec §6.1 (b), D66. Oggi è tale solo quello dell'hero (spec §3.2, fuori
+    // dallo schermo sticky, classe `w-px`): i due della finestra di Open Domus
+    // sono morti col nastro (A57, 22 set.), e data-bg.test.ts elenca le zone
+    // larghe 1 px nei tag e nel CSS.
     const sinistra = r.width <= 1 ? 0 : r.left;
     const destra = r.width <= 1 ? window.innerWidth : r.right;
     if (cx < sinistra || cx > destra || cy < r.top || cy > r.bottom) continue;

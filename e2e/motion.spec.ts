@@ -79,14 +79,15 @@ test("la rotaia del team con reduced motion resta uno scorrimento nativo complet
 
 test("lo scroller orizzontale con reduced motion resta una colonna completa", async ({ page, goto }) => {
   await goto("/");
-  const horizon = page.locator(".dt-horizon");
+  // A57: i nastri sono due (storia e la finestra di Open Domus): qui si guarda quello di storia.
+  const horizon = page.locator("#storia");
   await expect(horizon).toBeAttached();
   // Senza motion l'attributo che attiva pin e track orizzontale non deve esserci.
   expect(await horizon.getAttribute("data-on")).toBeNull();
   // I pannelli restano in flusso normale, visibili e completi.
-  await page.locator(".dt-horizon_panel").first().scrollIntoViewIfNeeded();
-  await expect(page.locator(".dt-horizon_panel").first()).toBeVisible();
-  await expect(page.locator(".dt-horizon_panel").last()).toBeAttached();
+  await page.locator("#storia .dt-horizon_panel").first().scrollIntoViewIfNeeded();
+  await expect(page.locator("#storia .dt-horizon_panel").first()).toBeVisible();
+  await expect(page.locator("#storia .dt-horizon_panel").last()).toBeAttached();
 });
 
 test("le cinque stelle con reduced motion sono già d'oro, senza palcoscenico", async ({ page, goto }) => {
@@ -125,7 +126,8 @@ test("D.O.C. e Services con reduced motion: righe disegnate e foto ferme", async
   expect(orizzontali).toHaveLength(5);
   for (const m of misure.filter((m) => m.display !== "none")) {
     expect(m.clip).toBe("none");
-    expect(m.bg).toBe("rgb(228, 220, 207)");
+    // A51 (22 set.): il filo è #e9c9c0 sulla carta rosa tramonto.
+    expect(m.bg).toBe("rgb(233, 201, 192)");
   }
   for (const m of orizzontali) expect(m.h).toBe(1);
 
@@ -185,15 +187,15 @@ test("la finestra di Open Domus con reduced motion è la foto in testa al capito
   const od = page.locator("#open-domus");
   await expect(od).toBeAttached();
   expect(await od.getAttribute("data-on")).toBeNull();
-  for (const sel of [".dt-od_shutterzone", ".dt-od_run", ".dt-od_mark--a", ".dt-od_mark--f"]) {
-    await expect(od.locator(sel)).toHaveCSS("display", "none");
-  }
+  // A57/A58: tende, pista, marcatori e stage non esistono più; con reduced motion il nastro non scrive nulla.
+  expect(await od.locator(".dt-od_shutterzone, .dt-od_run, .dt-od_mark--a, .dt-od_mark--f, .dt-od_stage").count()).toBe(0);
+  expect(await od.getAttribute("style")).toBeNull();
+  expect(await od.locator(".dt-od_cornice").getAttribute("style")).toBeNull();
   const win = od.locator(".dt-od_window");
   await win.scrollIntoViewIfNeeded();
   await expect(win.locator("img")).toBeVisible();
   const box = (await win.boundingBox())!;
   expect(Math.abs(box.width / box.height - 2160 / 3870)).toBeLessThan(0.02);
-  expect(await od.locator(".dt-od_stage").getAttribute("style")).toBeNull();
   expect(await win.getAttribute("style")).toBeNull();
 });
 

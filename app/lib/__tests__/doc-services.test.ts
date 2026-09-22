@@ -55,7 +55,8 @@ describe("D.O.C.: le righe che si tirano (spec §3.11)", () => {
   test("una riga per pilastro e una spina, e la spina sta nel wrapper prima della ul", () => {
     const src = codice("app/components/DomusDocProtocol.tsx");
     assert.equal((src.match(/<Hairline\b/g) ?? []).length, 2, "attese due <Hairline: una nel map dei pilastri, una per la spina");
-    assert.match(src, /<Hairline chapter="doc" axis="y" className="hidden md:block" \/>/);
+    // A59: la spina separa la lista dalla cornice delle foto, che sta accanto da lg.
+    assert.match(src, /<Hairline chapter="doc" axis="y" className="hidden lg:block" \/>/);
     assert.match(src, /<Hairline chapter="doc" \/>/);
     assert.match(src, /useHairlineSheet\(sheetRef, "doc", \[locale\]\)/);
     const foglio = src.indexOf("data-doc-sheet");

@@ -1,84 +1,51 @@
 // LA FINESTRA DI OPEN DOMUS, COME DATI.
 //
-// Chi l'ha chiesto: A19 e A20 di Alberto (13 settembre), spec 2026-09-13 §3.10. Com'è fatta
-// oggi: le tende sono due rettangoli color avorio con un foro poligonale. I poligoni sono
-// quelli di era-residence (ERA:2720-2769) riportati alle frazioni 4/9, 5/9, 89/90, 1/90,
-// 5/27, 22/27, 13/36, 107/108, 1/108, 23/36. Sotto la soglia dei corridoi la foto si apre
-// con due rettangoli sfalsati (scarto 19/68, fessura fra 49 % e 51 %). Il modulo non importa
-// GSAP e non tocca il DOM al caricamento: lo leggono OpenDomus.tsx, i test unitari e gli e2e.
-// A47 (Alberto, 22 set. 2026: «qua perchè hai tagliato l'immagine, deve continuare, abbiamo
-// fatto le immagini alte apposta per poterci scrollare a schermo intero senza uscire dalla
-// foto»; «questa sezione va sopra l'immagine di open domus»): la foto è la facciata che SALE,
-// 9:16, intera (app/lib/motion/finestra.json, scripts/media/finestra.mjs), e il capitolo posa
-// sulla foto dal 55 % della sua altezza (`sopra`); la foto continua sotto la piega dopo la pista.
-
-export const SHUTTER_L = [
-  "polygon(0% 0%, 0% 100%, 44.444% 100%, 44.444% 36.111%, 98.889% 36.111%, 98.889% 99.074%, 44.444% 99.074%, 1.111% 100%, 100% 100%, 100% 0%)",
-  "polygon(0% 0%, 0% 100%, 44.444% 100%, 44.444% 18.519%, 98.889% 18.519%, 98.889% 81.481%, 44.444% 81.481%, 1.111% 100%, 100% 100%, 100% 0%)",
-  "polygon(0% 0%, 0% 100%, 44.444% 100%, 44.444% 18.519%, 100% 18.519%, 100% 81.481%, 44.444% 81.481%, 1.111% 100%, 100% 100%, 100% 0%)",
-] as const;
-
-export const SHUTTER_R = [
-  "polygon(0% 0%, 0% 100%, 1.111% 100%, 1.111% 0.926%, 55.556% 0.926%, 55.556% 63.889%, 1.111% 63.889%, 1.111% 100%, 100% 100%, 100% 0%)",
-  "polygon(0% 0%, 0% 100%, 1.111% 100%, 1.111% 18.519%, 55.556% 18.519%, 55.556% 81.481%, 1.111% 81.481%, 1.111% 100%, 100% 100%, 100% 0%)",
-  "polygon(0% 0%, 0% 100%, 0% 100%, 0% 18.519%, 55.556% 18.519%, 55.556% 81.481%, 0% 81.481%, 0% 100%, 100% 100%, 100% 0%)",
-] as const;
-
-export const PHONE_CLIP = [
-  "polygon(0% 27.941%, 49% 27.941%, 49% 127.941%, 0% 127.941%, 0% 27.941%, 51% -27.941%, 100% -27.941%, 100% 72.059%, 51% 72.059%, 51% -27.941%)",
-  "polygon(0% 0%, 49% 0%, 49% 100%, 0% 100%, 0% 0%, 51% 0%, 100% 0%, 100% 100%, 51% 100%, 51% 0%)",
-  "polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%, 0% 0%, 50% 0%, 100% 0%, 100% 100%, 50% 100%, 50% 0%)",
-] as const;
+// Com'è fatta oggi (A57 e A58 di Alberto, 22 set. 2026, sera): un NASTRO come «Tra la Pineta e
+// Milano» (HorizonScroller, spec 2026-09-13 §3.5), con la facciata che sale davanti. Parole esatte:
+// A58 «togli l'animazione dell'immagine di open domus all'entrata, mantieni la stessa posizione ma
+// lasciala a schermo intero da subito (non serve neanche l'animazione di uscita che si chiude,
+// perché con il punto 5 con lo scroll orizzontale andando verso destra usciamo dalla foto)»;
+// A57 «aggiungere lo stesso effetto di scroll orizzontale con gsap e animazione entrata immagine
+// come in "Tra la Pineta e Milano" nella sezione Open domus della home, all'altezza dello
+// screenshot allegato» — lo screenshot è la facciata a schermo intero con la cima delle terrazze
+// sotto il bordo alto.
+// Tre pannelli: la foto (9:16, intera, il titolo sul cielo che è la carta), il claim col video di
+// Teresa, le due liste con la CTA e Raffaela sulla soglia. Nel corridoio la cornice della foto sale
+// dentro lo schermo agganciato (la «salita», `leadDistance`) finché la cima del soggetto non sta a
+// `leadTop` del viewport — la posa dello screenshot —, poi il nastro scorre di lato e la foto esce a
+// sinistra. Niente tende, niente stage in scala, niente chiusura in cartolina: la foto è a schermo
+// intero da subito, in flusso, come le teste (A45). Sotto la soglia dei corridoi, con reduced-motion
+// e senza JS i tre pannelli sono in colonna e la foto è intera.
+// Il modulo non importa GSAP e non tocca il DOM: lo leggono OpenDomus.tsx, finestra.test.ts e gli e2e.
 
 // A47: la foto è intera e larga tutto a ogni larghezza (la scatola ha il rapporto della sorgente,
-// `--dt-od-ar`; sotto lg sta nella riga, da lg è la cornice a tutta larghezza) e lo stage del
-// corridoio la rende al più a 100vw (scala .75 → 1): nessun cover che ritagli, come SIZES_TESTA.
+// `--dt-od-ar`): nessun cover che ritagli, come SIZES_TESTA.
 export const SIZES_FINESTRA = "100vw";
 
+/** La foto del terzo pannello: Raffaela sulla soglia (A57; 2:3, intera, alta 80svh nel nastro). */
+export const PORTA = {
+  file: "/images/reali/raffaela-porta-alta.jpg",
+  sorgente: [2560, 3816] as const,
+  /** nel nastro la scatola è alta 80svh e larga di conseguenza; in colonna è larga come la riga */
+  sizes: "(max-width: 1023px) 90vw, 40vw",
+} as const;
+
 export const FINESTRA = {
-  /** fine della timeline: 3 schermi dopo «top bottom» della section */
-  endVh: 3,
-  /** pista sotto lo stage: sgancia schermo e stage a +200vh */
-  runSvh: 200,
   /**
-   * A47: dove comincia il capitolo sulla foto, in frazione dell'ALTEZZA della foto (dal 55 %: la
-   * metà bassa della facciata, sotto la piega dello schermo agganciato). Il CSS lo porta come
-   * `--dt-od-sopra` = sopra × h / w (il padding in percentuale si misura sulla larghezza, CSS 2.1
-   * §8.3), finestra.test.ts confronta i due numeri.
+   * A57: la salita finisce quando la cima del soggetto della foto (finestra.json `cielo.cima`) sta a
+   * questa frazione del viewport dal bordo alto: è la posa dello screenshot di Alberto (la cima
+   * delle terrazze a ~100 px su 981).
    */
-  sopra: 0.55,
-  shutterScale: 1.84,
-  stageFrom: 0.75,
-  /** otturatore 0 → 0,5, montanti 0,5 → 0,6, scale 0,6 → 1 */
-  shutterEnd: 0.5,
-  mullionEnd: 0.6,
-  /** sotto la soglia: M0 → M1 in 1,3 s `dtInOut`, M1 → M2 in 0,2 s `none`, IO a 0,35 */
-  phoneOpen: 1.3,
-  phoneSnap: 0.2,
-  phoneThreshold: 0.35,
+  leadTop: 0.1,
+  /** i pannelli del nastro: la foto, il claim col video, le liste con Raffaela sulla soglia */
+  panels: 3,
 } as const;
 
 /**
- * Scroll che porta `offset` (px dal bordo alto del contenuto) al 25 % dello schermo dopo lo sgancio.
- * Lo sgancio sta a start + 3vh (aggancio a +1vh, pista di 2vh); il contenuto sta a `contentTop` dalla
- * cima dello stage, senza la scala (A47: sulla foto, dal 55 % della sua altezza, non più a 122svh).
+ * La salita della facciata prima del nastro, in px: la cima del soggetto (cima × altezza resa della
+ * foto) meno `leadTop × vh`, mai negativa. È la corsa verticale che HorizonScroller aggiunge
+ * all'altezza della sezione (il gesto resta 1:1) e che scrubba sulla cornice prima del track.
  */
-export function finestraFocusY(o: { start: number; vh: number; contentTop: number; offset: number }): number {
-  return o.start + 3 * o.vh + o.contentTop + o.offset - 0.25 * o.vh;
-}
-
-/** Distanza di `el` dal bordo alto del contenuto, senza la scala dello stage. */
-export function offsetInside(content: HTMLElement, el: Element): number {
-  const c = content.getBoundingClientRect();
-  const scale = content.offsetWidth ? c.width / content.offsetWidth : 1;
-  return (el.getBoundingClientRect().top - c.top) / (scale || 1);
-}
-
-/** Ordinata, in percentuale, del punto `index` di un `polygon(...)`. */
-export function ordinateOf(polygon: string, index: number): number {
-  const corpo = /^polygon\((.*)\)$/.exec(polygon.trim());
-  if (!corpo) throw new Error(`non è un polygon: ${polygon}`);
-  const punto = corpo[1].split(",")[index];
-  if (!punto) throw new Error(`punto ${index} assente in ${polygon}`);
-  return Number.parseFloat(punto.trim().split(/\s+/)[1]);
+export function leadDistance(o: { cima: number; fotoH: number; vh: number }): number {
+  return Math.max(0, o.cima * o.fotoH - FINESTRA.leadTop * o.vh);
 }
