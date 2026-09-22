@@ -209,7 +209,8 @@ describe("i media della villa", () => {
   });
 
   // A44 (20 set.): le clip del Congedo portano la voce di Raffaela (`vide` + `soun`,
-  // scripts/media/congedo.mjs); l'acqua di Costi chiari resta un loop di solo video.
+  // scripts/media/congedo.mjs); l'acqua di Costi chiari resta un loop di solo video — dal 22 set. (A72)
+  // non è più montata (il capitolo è un nastro), ma i file restano nel repo, e qui si continuano a leggere.
   test("le clip del Congedo hanno video e audio, l'acqua solo video, col moov prima del mdat", () => {
     for (const f of MP4) {
       const p = join(PUB, f);

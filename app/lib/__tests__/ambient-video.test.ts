@@ -1,13 +1,13 @@
 // VIDEO D'AMBIENTE (spec 2026-09-13 §2.7, §3.13).
 //
-// Due consumatori, voluti con la coreografia piena (A18-A20 di Alberto): l'acqua
-// di Costi chiari, solo in home (D25, D28), e il drone del Congedo, gate unico
-// dei video d'ambiente (soglia dei 768 px di DESIGN.md:401).
+// Un consumatore, voluto con la coreografia piena (A18-A20 di Alberto): il drone del
+// Congedo, gate unico dei video d'ambiente (soglia dei 768 px di DESIGN.md:401).
+// L'acqua di Costi chiari (D25, D28) è uscita dal codice con A72 (22 set. 2026, notte:
+// il capitolo è un nastro con la facciata): i suoi file restano nel repo, non montati.
 // Qui si rileggono la scelta della sorgente, il gate senza GSAP (anche negli
-// import indiretti del Congedo), la firma dell'acqua letta da chapters.ts e il
-// markup; che il video suoni, si fermi e riprenda lo misura
-// e2e/ambient-video.spec.ts. I commenti vanno via prima di cercare, come in
-// logo-colore.test.ts.
+// import indiretti del Congedo), il markup e l'uscita dell'acqua; che il video
+// suoni, si fermi e riprenda lo misura e2e/ambient-video.spec.ts. I commenti
+// vanno via prima di cercare, come in logo-colore.test.ts.
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
@@ -58,9 +58,8 @@ describe("il gate e i consumatori", () => {
     const congedo = codice("app/components/Congedo.tsx");
     // Spec 2026-09-13 §3.18 (A19 e A20 di Alberto): l'host del video è il ritaglio [data-postcard-clip].
     assert.doesNotMatch(congedo, /\bpin\s*:/);
-    // A44: `audio: true`, la voce di Raffaela parte da sola (o al primo gesto); l'acqua resta muta.
+    // A44: `audio: true`, la voce di Raffaela parte da sola (o al primo gesto).
     assert.match(congedo, /useAmbientVideo\(videoRef, clipRef, \{ sources: \{ hd: ambient\.congedo\.sd, sd: ambient\.congedo\.sd \}, audio: true \}\)/);
-    assert.doesNotMatch(codice("app/components/CostiChiari.tsx"), /audio: true/);
     assert.doesNotMatch(congedo, /IntersectionObserver/);
     assert.doesNotMatch(congedo, /<source\b/);
   });
@@ -104,7 +103,7 @@ describe("il gate e i consumatori", () => {
   // gestore del primo gesto che accende il suono: la clip ricomincia dalle parole di Raffaela
   // (02:00 del master). Nei componenti nessuna; nessun `autoPlay` da nessuna parte.
   test("nessuno scrive il tempo del video e nessuno parte da solo, salvo l'accensione del suono al primo gesto", () => {
-    for (const f of ["app/components/Congedo.tsx", "app/components/CostiChiari.tsx", "app/components/motion/useLastra.ts"]) {
+    for (const f of ["app/components/Congedo.tsx", "app/components/motion/useLastra.ts"]) {
       const s = codice(f);
       assert.doesNotMatch(s, /autoPlay/, f);
       assert.doesNotMatch(s, /currentTime\s*=(?!=)/, f);
@@ -133,8 +132,8 @@ describe("il gate e i consumatori", () => {
     assert.match(hook, /if \(inView\) \{\s*suona\(\);/);
   });
 
-  test("il markup dei due video", () => {
-    for (const f of ["app/components/Congedo.tsx", "app/components/CostiChiari.tsx"]) {
+  test("il markup del video del Congedo", () => {
+    for (const f of ["app/components/Congedo.tsx"]) {
       assert.match(
         codice(f),
         /<video[\s\S]*?\bmuted\b[\s\S]*?\bloop\b[\s\S]*?\bplaysInline\b[\s\S]*?preload="none"[\s\S]*?\bdisablePictureInPicture\b[\s\S]*?\bdisableRemotePlayback\b[\s\S]*?\baria-hidden\b[\s\S]*?tabIndex=\{-1\}/,
@@ -143,39 +142,33 @@ describe("il gate e i consumatori", () => {
     }
   });
 
-  test("l'acqua solo in home (D28), con la firma del capitolo 12 e la banda della spec", () => {
-    assert.match(codice("app/page.tsx"), /<CostiChiari acqua \/>/);
-    assert.doesNotMatch(codice("app/vendi/VendiContent.tsx"), /<CostiChiari[^>]*\bacqua\b/);
-    const s = chapters.costi.signature;
-    assert.equal(s.ease, "expo.out");
-    assert.deepEqual(s.time, { dur: 1.8, delay: 0 });
-    assert.deepEqual(s.trigger, { io: { rootMargin: "0px 0px -20% 0px", threshold: 0 } });
-    assert.deepEqual(
-      (chapters.costi.secondary ?? []).map((t) => [t.ease, t.note]),
-      [["sine.in", "uscita 0,7 s"]],
-    );
+  // A72 (22 set. 2026, notte; Alberto: «togliamo il video della piscina, e mettiamo un'altra immagine
+  // no-bg alta … ed entra la sezione di Carmine e Seguici»): l'acqua è uscita dal codice — nessun
+  // consumatore, nessuna voce in media.ts, nessun <video> in Costi chiari — e i suoi file restano nel
+  // repo (Alberto, 22 set.: i file non montati restano). Il capitolo 12 è il nastro (costi.test.ts).
+  test("l'acqua è uscita dal codice con A72: nessun consumatore, i file restano nel repo", () => {
+    assert.match(codice("app/page.tsx"), /<CostiChiari nastro \/>/);
+    assert.doesNotMatch(codice("app/page.tsx"), /<CostiChiari[^>]*\bacqua\b/);
+    assert.doesNotMatch(codice("app/vendi/VendiContent.tsx"), /<CostiChiari[^>]*\b(acqua|nastro)\b/);
     const costi = codice("app/components/CostiChiari.tsx");
-    // Firma e uscita lette dal registro, non riscritte: se chapters.ts cambia, il gesto lo segue (D18).
-    assert.match(costi, /chapters\.costi\.signature/);
-    assert.match(costi, /chapters\.costi\.secondary/);
-    assert.doesNotMatch(costi, /rootMargin:\s*["']/);
-    assert.doesNotMatch(costi, /["'](expo\.out|sine\.in)["']/);
-    assert.doesNotMatch(costi, /duration:\s*(1\.8|0\.7)\b/);
-    // La rete vale solo finché l'IntersectionObserver non ha deciso; il primo avviso ammette l'ingresso.
-    assert.match(costi, /if \(!deciso && !aperta && r\.top < window\.innerHeight && r\.bottom > 0\)/);
-    assert.equal((costi.match(/deciso = true;\s*window\.clearTimeout\(rete\);/g) ?? []).length, 2);
-    assert.doesNotMatch(costi, /if \(primo\) \{/);
-    assert.match(costi, /useAmbientVideo\(videoRef, bandRef, \{ sources: \{ hd: ambient\.acqua\.hd \} \}\)/);
-    assert.match(costi, /data-acqua-band data-bg="foto" className="dt-media-full"/);
-    assert.match(costi, /sizes="\(max-width: 767px\) 90vw, 84vw"/);
-    assert.match(costi, /mt-\[clamp\(2\.5rem,7vh,5rem\)\]/);
+    for (const morto of ["useAmbientVideo", "<video", "data-acqua-band", "ambient.acqua", "IntersectionObserver", "clipClosed", "clipOpen"]) {
+      assert.ok(!costi.includes(morto), `${morto} è ancora in CostiChiari.tsx`);
+    }
+    assert.doesNotMatch(codice("app/lib/media.ts"), /\bacqua\b/);
+    assert.deepEqual(Object.keys(ambient), ["congedo"]);
+    assert.equal((codice("app/components/motion/useAmbientVideo.ts").match(/\bacqua\b/g) ?? []).length, 0);
+    for (const p of ["/media/acqua-1080.webm", "/media/acqua-1080.mp4", "/media/acqua-poster.jpg"]) {
+      assert.ok(existsSync(join(ROOT, "public", p)), `manca public${p}: i file dell'acqua restano nel repo (A72)`);
+    }
+    // La firma del capitolo 12 non è più l'acqua a tempo: è il nastro (D18).
+    const s = chapters.costi.signature;
+    assert.equal(s.ease, "dtTappe");
+    assert.deepEqual(s.time, { scrub: true });
+    assert.ok("st" in s.trigger && s.trigger.st[0] === "top+=arrivo top");
   });
 
   test("i file che i consumatori chiedono esistono", () => {
-    for (const p of [
-      ambient.acqua.hd.webm, ambient.acqua.hd.mp4, ambient.acqua.poster,
-      ambient.congedo.hd.webm, ambient.congedo.hd.mp4, ambient.congedo.sd.webm, ambient.congedo.sd.mp4,
-    ]) {
+    for (const p of [ambient.congedo.hd.webm, ambient.congedo.hd.mp4, ambient.congedo.sd.webm, ambient.congedo.sd.mp4, ambient.congedo.poster]) {
       assert.ok(existsSync(join(ROOT, "public", p)), `manca public${p}`);
     }
   });

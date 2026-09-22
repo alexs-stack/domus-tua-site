@@ -68,7 +68,10 @@ const CHAPTER_FILES: Partial<Record<ChapterId, string[]>> = {
   voci: ["app/components/Voci.tsx"],
   paths: ["app/components/Paths.tsx"],
   finestra: ["app/components/OpenDomus.tsx"],
+  // A72: il nastro di Costi chiari (dtTappe) e i suoi pannelli: Carmine (dtAffonda nel track) e Seguici.
+  costi: ["app/components/CostiChiari.tsx"],
   testimonianza: ["app/components/FeaturedTestimonial.tsx"],
+  social: ["app/components/Social.tsx"],
   team: ["app/components/Team.tsx", "app/components/motion/HorizontalRail.tsx"],
   cartolina: ["app/components/Congedo.tsx"],
 };
@@ -315,6 +318,8 @@ describe("A20 sulle firme della home (D18)", () => {
     // A49: l'hero non è più il tuffo in scrub true; la sua uscita ha lo scrub della cartolina.
     assert.equal(scrubOf("hero"), 0.9);
     assert.equal(scrubOf("finestra"), 0.15);
+    // A72: il nastro di Costi chiari è il solo track saldato allo scroll.
+    assert.equal(scrubOf("costi"), true);
     assert.equal(scrubOf("team"), 0.7);
     assert.throws(() => scrubOf("voci"), /a tempo/);
   });
@@ -377,15 +382,15 @@ describe("componenti dei gesti a clip", () => {
     return out;
   }
 
-  /* Dichiarati in spec §3.1: il sipario esistente del nastro e la firma di
-     Costi chiari; ClipMedia e Hairline portano le firme di Method e D.O.C.
-     (spec §2.7, D18). Congedo non serve: il ritaglio della cartolina lo
-     scrive `paintClip` in un `onUpdate`, non un tween di clipPath. */
+  /* Dichiarati in spec §3.1: il sipario esistente del nastro; ClipMedia e
+     Hairline portano le firme di Method e D.O.C. (spec §2.7, D18). Congedo non
+     serve: il ritaglio della cartolina lo scrive `paintClip` in un `onUpdate`,
+     non un tween di clipPath. Costi chiari non c'è più: l'acqua a tempo è morta
+     con A72 (il capitolo è un nastro, in scrub). */
   const DICHIARATI = new Set([
     "app/components/motion/HorizonScroller.tsx",
     // A59: lo sfoglio delle foto di D.O.C. (tratto «sfoglio» del registro).
     "app/components/DomusDocProtocol.tsx",
-    "app/components/CostiChiari.tsx",
     "app/components/motion/ClipMedia.tsx",
     "app/components/motion/Hairline.tsx",
   ]);

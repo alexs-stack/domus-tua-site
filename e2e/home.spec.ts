@@ -156,7 +156,7 @@ test("il set piece orizzontale cuce i pannelli allo scroll", async ({ page, goto
   await goto("/");
 
   // Attivo solo via JS (desktop + motion ok): l'attributo è la prova del pin.
-  // A57: i nastri sono due (storia e la finestra di Open Domus): qui si guarda quello di storia.
+  // A57, A72: i nastri sono tre (storia, la finestra di Open Domus e Costi chiari): qui si guarda quello di storia.
   const horizon = page.locator("#storia");
   await expect(horizon).toHaveAttribute("data-on", "");
 
@@ -1501,56 +1501,171 @@ for (const path of ["/", "/servizi"]) {
   });
 }
 
-// Capitolo 12, Costi chiari (spec §3.13; A20 di Alberto, D25, D28). La banda
-// dell'acqua si apre dal basso a tempo quando passa la linea dell'80 % dello
-// schermo (rootMargin −20 %) e si richiude verso il basso quando ci torna sotto
-// (C22). La linea si prova dai due lati: bordo alto a 0,79 dentro, a 0,81 fuori.
-// Il video lo prova e2e/ambient-video.spec.ts.
-const BANDA = "#costi [data-acqua-band]";
+// Capitolo 12, Costi chiari: il NASTRO (A72 di Alberto, 22 set. 2026, notte: «togliamo il video della
+// piscina, e mettiamo un'altra immagine no-bg alta … stesso stile e animazione dello sticky scroll che poi
+// diventa scroll orizzontale, ed entra la sezione di Carmine e Seguici»). Come la finestra: da 1024×640 con
+// motion ok lo schermo si aggancia con la facciata a schermo intero e la riga del capitolo in inchiostro sul
+// cielo-carta (D-A72-1), la scatola della foto sale — l'arrivo — finché la cima dei cipressi non tocca il
+// piede della riga, poi il track scorre di lato: Carmine col sipario e la foto che affonda, Seguici col
+// titolo grande; niente coda (D-A72-3): finito il track lo schermo si sgancia. L'acqua è morta.
+/** = COSTI.cimaTitolo (costi.ts): il tetto piatto della villa sotto il titolo, a destra, in frazione dell'altezza della foto. */
+const CIMA_TITOLO = 0.332;
+const COSTI_GEO = (page: Page) =>
+  page.locator("#costi").evaluate((el) => {
+    const win = el.querySelector<HTMLElement>(".dt-cc_window")!;
+    const riga = el.querySelector<HTMLElement>(".dt-cc_riga")!;
+    const titolo = el.querySelector<HTMLElement>(".dt-cc_titolo")!;
+    const track = el.querySelector<HTMLElement>(".dt-horizon_track")!;
+    return {
+      top: el.getBoundingClientRect().top + window.scrollY,
+      h: (el as HTMLElement).offsetHeight,
+      winH: win.offsetHeight,
+      // A65: la salita finisce col tetto a metà delle lettere del titolo (COSTI.copri 0,5).
+      copri: riga.offsetTop + titolo.offsetTop + 0.5 * titolo.offsetHeight,
+      trackW: track.offsetWidth,
+      screenW: el.querySelector<HTMLElement>(".dt-horizon_screen")!.clientWidth,
+      vh: window.innerHeight,
+      vw: window.innerWidth,
+    };
+  });
 
-test("Costi chiari: l'acqua sale quando la banda passa l'80 % e scende tornando sotto", async ({ page, goto, isMobile }) => {
-  await goto("/");
-  await expect(page.locator(BANDA)).toHaveCount(1);
-  // A scroll 0 la banda è sotto lo schermo: chiusa dal basso, scritto dal JS.
-  await expect.poll(async () => insetValues(await clipOf(page.locator(BANDA))), { timeout: 10_000 }).toEqual([100, 0, 0, 0]);
+test.describe("il nastro di Costi chiari (A72)", () => {
+  for (const vp of [
+    { width: 1440, height: 900 },
+    { width: 1024, height: 768 },
+  ]) {
+    test(`a ${vp.width}×${vp.height} la facciata è a schermo intero con la riga sul cielo, sale fino al piede della riga, poi Carmine e Seguici scorrono di lato`, async ({ page, goto, isMobile }) => {
+      test.skip(!!isMobile, "il corridoio vive da 1024 px");
+      await page.setViewportSize(vp);
+      await goto("/");
+      const cc = page.locator("#costi");
+      await expect(cc).toHaveAttribute("data-on", "");
+      expect(await cc.locator("[data-acqua-band], video").count(), "l'acqua è morta (A72)").toBe(0);
+      await expect(cc.locator(".dt-horizon_screen")).toHaveCSS("position", "sticky");
+      const geo = await COSTI_GEO(page);
+      const arrivo = Math.max(0, CIMA_TITOLO * geo.winH - geo.copri);
+      const run = geo.trackW - geo.screenW;
+      expect(arrivo, "la salita c'è (A65): il tetto ha strada da fare fino a metà del titolo").toBeGreaterThan(100);
+      // La sezione è alta arrivo + corsa del track + schermo (niente coda, D-A72-3); il track sono quattro
+      // pannelli, il claim largo 60vw (niente carta vuota): 360vw.
+      expect(Math.abs(geo.h - (arrivo + run + geo.vh))).toBeLessThanOrEqual(3);
+      expect(Math.abs(geo.trackW - 3.6 * geo.vw)).toBeLessThanOrEqual(3);
 
-  // Da desktop la rotella attraversa i corridoi che stanno sopra (spec §3.13).
-  if (!isMobile) {
-    const y = await page.locator(BANDA).evaluate((el) => el.getBoundingClientRect().top + window.scrollY - window.innerHeight);
-    await wheelTo(page, Math.max(0, y));
+      // All'aggancio: la foto a schermo intero da subito, il titolo in inchiostro sul cielo, a destra dei
+      // cipressi, dentro lo schermo; il track fermo.
+      await wheelTo(page, Math.round(geo.top));
+      await page.waitForTimeout(600);
+      const relA = await cc.evaluate((el) => el.getBoundingClientRect().top);
+      expect(relA, "wheelTo è finito oltre la salita").toBeGreaterThan(-(arrivo - 50));
+      expect(Math.abs((await matrixOf(cc.locator(".dt-cc_window"))).m42 - Math.max(-arrivo, Math.min(0, relA)))).toBeLessThanOrEqual(3);
+      expect(Math.abs((await matrixOf(cc.locator(".dt-horizon_track"))).m41)).toBeLessThanOrEqual(2);
+      await expect(cc.locator(".dt-cc_titolo")).toHaveCSS("color", "rgb(70, 66, 61)");
+      const tb = (await cc.locator(".dt-cc_titolo").boundingBox())!;
+      expect(tb.y).toBeGreaterThanOrEqual(0);
+      expect(tb.y + tb.height).toBeLessThanOrEqual(geo.vh);
+      expect(tb.x, "il titolo sta sui cipressi (arrivano al 36 % della larghezza)").toBeGreaterThanOrEqual(0.36 * geo.vw);
+      // Il titolo sta sul cielo: a riposo finisce sopra il tetto piatto della villa.
+      const riposo = await cc.evaluate((el) => {
+        const w = el.querySelector(".dt-cc_window")!.getBoundingClientRect();
+        const t = el.querySelector(".dt-cc_titolo")!.getBoundingClientRect();
+        return { top: w.top, h: w.height, titoloTop: t.top, titolo: t.bottom };
+      });
+      expect(riposo.titolo, "il titolo scende sul tetto").toBeLessThanOrEqual(riposo.top + CIMA_TITOLO * riposo.h + 4);
+
+      // Fine dell'arrivo: la scatola è salita di `arrivo` e resta lì; il tetto piatto sta a metà delle lettere
+      // del titolo, che non si è mosso (A65); il track ha appena cominciato; niente overflow.
+      await wheelTo(page, Math.round(geo.top + arrivo + 120));
+      await page.waitForTimeout(700);
+      const salita = await cc.evaluate((el) => {
+        const w = el.querySelector(".dt-cc_window")!.getBoundingClientRect();
+        const t = el.querySelector(".dt-cc_titolo")!.getBoundingClientRect();
+        return { top: w.top, h: w.height, titoloTop: t.top, titoloMeta: t.top + 0.5 * t.height };
+      });
+      expect(Math.abs((await matrixOf(cc.locator(".dt-cc_window"))).m42 + arrivo)).toBeLessThanOrEqual(3);
+      expect(Math.abs(salita.top + CIMA_TITOLO * salita.h - salita.titoloMeta), "il tetto non sta a metà delle lettere del titolo (A65)").toBeLessThanOrEqual(4);
+      expect(Math.abs(salita.titoloTop - riposo.titoloTop), "il titolo non deve muoversi").toBeLessThanOrEqual(1);
+      const xB = (await matrixOf(cc.locator(".dt-horizon_track"))).m41;
+      expect(xB).toBeLessThanOrEqual(0);
+      expect(xB, "a inizio nastro il track è quasi fermo (dtTappe parte morbida)").toBeGreaterThan(-0.2 * geo.vw);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+
+      // A 0,35 della corsa il claim dei costi (secondo pannello) è in scena, con la frase in d2 e il
+      // rilancio pieno dentro lo schermo.
+      await wheelTo(page, Math.round(geo.top + arrivo + 0.35 * run));
+      await page.waitForTimeout(2200);
+      const h3 = (await cc.locator(".dt-cc_panel--claim h3").boundingBox())!;
+      expect(h3.x, "il claim non è entrato").toBeLessThan(0.5 * geo.vw);
+      expect(h3.x + h3.width).toBeGreaterThan(0);
+      const pieno = (await cc.locator(".dt-cc_panel--claim a[href='#contatti']").boundingBox())!;
+      expect(pieno.y + pieno.height).toBeLessThanOrEqual(geo.vh);
+
+      // A 0,67 della corsa (la sosta di Carmine di dtTappe: 0,62 × 2,6vw, x ≈ −1,6vw) Carmine, terzo pannello
+      // (da 1,6vw), è al centro dello schermo: il sipario del video è aperto e l'occhiello è entrato.
+      await wheelTo(page, Math.round(geo.top + arrivo + 0.67 * run));
+      await page.waitForTimeout(2200);
+      const x = (await matrixOf(cc.locator(".dt-horizon_track"))).m41;
+      expect(x, `il track sta a ${x}`).toBeLessThan(-1.3 * geo.vw);
+      expect(x).toBeGreaterThan(-2.0 * geo.vw);
+      const video = cc.locator(".dt-cc_panel--carmine [data-horizon-slide]");
+      await expect.poll(async () => insetValues(await clipOf(video)), { timeout: 3000 }).toEqual([0, 0, 0, 0]);
+      await expect.poll(() => productOpacity(cc.locator(".dt-cc_panel--carmine .eyebrow").first()), { timeout: 3000 }).toBeGreaterThan(0.99);
+
+      // Fine del track (s = arrivo + corsa): Seguici è in scena — il titolo, il lead e le icone dentro lo
+      // schermo — e la riga dei costi è uscita a sinistra.
+      await wheelTo(page, Math.round(geo.top + arrivo + run));
+      await page.waitForTimeout(2200);
+      expect(Math.abs((await matrixOf(cc.locator(".dt-horizon_track"))).m41 + run)).toBeLessThanOrEqual(3);
+      const gb = (await cc.locator("[data-seguici-congedo] h2").first().boundingBox())!;
+      expect(gb.x).toBeGreaterThanOrEqual(0);
+      expect(gb.y).toBeGreaterThanOrEqual(0);
+      const icone = (await cc.locator(".dt-social").first().boundingBox())!;
+      expect(icone.x).toBeGreaterThanOrEqual(0);
+      expect(icone.y + icone.height).toBeLessThanOrEqual(geo.vh);
+      expect((await cc.locator(".dt-cc_titolo").boundingBox())!.x + geo.vw, "la riga dei costi non è uscita a sinistra").toBeLessThanOrEqual(0.1 * geo.vw);
+
+      // Sganciato: 150 px oltre la fine della sezione lo schermo sale con la pagina e il track non si è mosso
+      // oltre la sua corsa. La quota si rilegge dal DOM (quel che sta sopra può accorciarsi dopo il primo passaggio).
+      const topFine = await cc.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+      await wheelTo(page, Math.round(topFine + geo.h - geo.vh + 150));
+      await page.waitForTimeout(900);
+      expect(Math.abs((await matrixOf(cc.locator(".dt-horizon_track"))).m41 + run)).toBeLessThanOrEqual(3);
+      const sganciato = await cc.locator(".dt-horizon_screen").evaluate((el) => el.getBoundingClientRect().top);
+      expect(Math.abs(sganciato + 150)).toBeLessThanOrEqual(6);
+    });
   }
-  // 0,79: sopra la linea dell'80 % (placeEdge tiene lo scarto entro 0,005). Dopo 2 s,
-  // come dice la spec, inset(0%): 1,8 s expo.out.
-  await placeEdge(page, BANDA, "top", 0.79);
-  await page.waitForTimeout(2_000);
-  expect(insetValues(await clipOf(page.locator(BANDA)))).toEqual([0, 0, 0, 0]);
 
-  // 0,81: sotto la linea. Uscita 0,7 s sine.in.
-  await placeEdge(page, BANDA, "top", 0.81);
-  await page.waitForTimeout(1_000);
-  expect(insetValues(await clipOf(page.locator(BANDA)))).toEqual([100, 0, 0, 0]);
-});
-
-// La rete dei 2.500 ms dell'acqua (spec §3.13; D25, C22) salva una banda chiusa in vista
-// solo se l'IntersectionObserver non ha deciso: richiusa sotto la linea con la banda in
-// vista, resta chiusa anche quando le reti trattenute scattano.
-test("Costi chiari: richiusa sotto la linea, la rete dei 2.500 ms non la riapre", async ({ page, goto }) => {
-  await holdTimeouts(page, 2_500);
-  await goto("/");
-  await expect(page.locator(BANDA)).toHaveCount(1);
-  await expect.poll(async () => insetValues(await clipOf(page.locator(BANDA))), { timeout: 10_000 }).toEqual([100, 0, 0, 0]);
-
-  await placeEdge(page, BANDA, "top", 0.79);
-  await page.waitForTimeout(2_000);
-  expect(insetValues(await clipOf(page.locator(BANDA)))).toEqual([0, 0, 0, 0]);
-  await placeEdge(page, BANDA, "top", 0.81);
-  await page.waitForTimeout(1_000);
-  expect(insetValues(await clipOf(page.locator(BANDA)))).toEqual([100, 0, 0, 0]);
-
-  // Scattano le reti trattenute: quella della banda l'ha già tolta l'IntersectionObserver.
-  await releaseTimeouts(page);
-  await page.waitForTimeout(1_000); // una rete scattata avrebbe già aperto più del 90 % (expo.out)
-  expect(insetValues(await clipOf(page.locator(BANDA))), "la rete ha riaperto una banda richiusa in vista").toEqual([100, 0, 0, 0]);
+  // A72 sotto 1024: nessun nastro; il titolo sta prima della foto, in flusso, e la foto gli sale sotto (−30vw)
+  // col suo cielo trasparente, che è la carta: le punte dei cipressi (0,184 dell'altezza, misurate sul WebP)
+  // restano sotto il titolo, a non più di ~110 px. La foto è la 2:3 intera a tutta larghezza; il claim,
+  // Carmine e Seguici la seguono in colonna.
+  test("sotto 1024 il titolo sta sul cielo della facciata intera, e il claim, Carmine e Seguici seguono in colonna", async ({ page, goto, isMobile }) => {
+    test.skip(!isMobile, "il ramo del telefono");
+    await goto("/");
+    const cc = page.locator("#costi");
+    expect(await cc.getAttribute("data-on")).toBeNull();
+    const win = cc.locator(".dt-cc_window");
+    await win.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    const r = await win.evaluate((el) => {
+      const b = el.getBoundingClientRect();
+      const titolo = el.closest(".dt-cc_panel")!.querySelector(".dt-cc_titolo")!.getBoundingClientRect();
+      return { w: b.width, h: b.height, top: b.top, vw: window.innerWidth, clip: getComputedStyle(el).clipPath, titoloBottom: titolo.bottom };
+    });
+    expect(Math.abs(r.w - r.vw), "la foto è larga come lo schermo").toBeLessThanOrEqual(1);
+    expect(Math.abs(r.w / r.h - 2560 / 3816)).toBeLessThan(0.02);
+    expect(r.clip).toBe("none");
+    const cipressi = r.top + 0.184 * r.h;
+    expect(r.titoloBottom, "il titolo scende sui cipressi").toBeLessThanOrEqual(cipressi - 20);
+    expect(cipressi - r.titoloBottom, "fra il titolo e i cipressi resta troppa carta").toBeLessThanOrEqual(110);
+    const ordine = await page.evaluate(() => {
+      const q = (s: string) => document.querySelector(s)!.getBoundingClientRect().top + window.scrollY;
+      return { foto: q("#costi .dt-cc_window"), claim: q("#costi .dt-cc_panel--claim h3"), carmine: q("#costi a[data-sink-frame]"), seguici: q("#costi [data-seguici-congedo]") };
+    });
+    expect(ordine.claim).toBeGreaterThan(ordine.foto);
+    expect(ordine.carmine).toBeGreaterThan(ordine.claim);
+    expect(ordine.seguici).toBeGreaterThan(ordine.carmine);
+  });
 });
 
 // ── Capitoli 13-16: i gesti in coda alla home (spec 2026-09-13 §3.14-3.17) ──
@@ -1573,31 +1688,47 @@ function layout(page: Page, sel: string) {
 }
 
 test.describe("capitoli 13-16: i gesti in coda alla home", () => {
-  test("la foto della testimonianza affonda dentro la cornice ferma", async ({ page, goto }) => {
+  // A72: Carmine è il secondo pannello del nastro di Costi chiari e il gesto è agganciato al track
+  // (containerAnimation): la foto affonda del 10 % mentre il pannello attraversa lo schermo, da quando entra
+  // dal bordo destro (s = arrivo) a quando è uscito a sinistra (s = arrivo + corsa), con dtAffonda e scrub 1,2.
+  test("la foto di Carmine affonda dentro la cornice ferma mentre il pannello attraversa il nastro (A72)", async ({ page, goto, isMobile }) => {
+    test.skip(!!isMobile, "il nastro vive da 1024 px; sotto, la cornice è ferma (motion.spec)");
     await goto("/");
-    const frame = page.locator("main a[data-sink-frame]").first();
+    const cc = page.locator("#costi");
+    await expect(cc).toHaveAttribute("data-on", "");
+    const frame = cc.locator("a[data-sink-frame]");
     const sink = frame.locator("[data-sink]");
     await expect(sink).toHaveCount(1);
-    await frame.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(500);
-    const g = await layout(page, "main a[data-sink-frame]");
+    const geo = await COSTI_GEO(page);
+    const arrivo = Math.max(0, CIMA_TITOLO * geo.winH - geo.copri);
+    const run = geo.trackW - geo.screenW;
+    const h = (await frame.boundingBox())!.height;
 
-    // Bordo basso della cornice a metà viewport: progresso 0,5, dtAffonda 0,185.
-    await vai(page, g.top + g.h - g.vh * 0.5, 1600);
+    // A inizio nastro (s = arrivo) il pannello di Carmine, il terzo, sta uno schermo a destra: non affonda.
+    await wheelTo(page, Math.round(geo.top + arrivo));
+    await page.waitForTimeout(1600);
+    expect(Math.abs((await matrixOf(sink)).m42)).toBeLessThanOrEqual(1.5);
+
+    // Nella sosta di Carmine (0,67 della corsa, x ≈ −1,6vw: il pannello è a metà della sua traversata,
+    // dtAffonda ≈ 0,19): affondata, fra 0 e il 10 % della cornice.
+    await wheelTo(page, Math.round(geo.top + arrivo + 0.67 * run));
+    await page.waitForTimeout(1800);
     const meta = await matrixOf(sink);
     expect(meta.m42, "a metà corsa la foto non affonda").toBeGreaterThan(1);
-    expect(meta.m42).toBeLessThanOrEqual(0.1 * g.h + 1);
+    expect(meta.m42).toBeLessThanOrEqual(0.1 * h + 1);
 
-    // Bordo basso al 5 % del viewport: progresso 0,95, dtAffonda 0,87.
-    await vai(page, g.top + g.h - g.vh * 0.05, 1600);
+    // A fine corsa (progresso 1): affondata di tutto il 10 %.
+    await wheelTo(page, Math.round(geo.top + arrivo + run));
+    await page.waitForTimeout(1800);
     const fine = await matrixOf(sink);
-    expect(fine.m42).toBeGreaterThan(0.08 * g.h - 1);
-    expect(fine.m42).toBeLessThanOrEqual(0.1 * g.h + 1);
+    expect(fine.m42).toBeGreaterThan(0.08 * h - 1);
+    expect(fine.m42).toBeLessThanOrEqual(0.1 * h + 1);
 
-    // Il link non si muove: nessun transform su di lui né sugli antenati fino alla section.
+    // Il link non si muove: nessun transform su di lui né sugli antenati fino al pannello (il track sotto
+    // è il nastro, e si muove per mestiere); il sipario è un clip-path e la scala sta sul figlio.
     const mosso = await frame.evaluate((el) => {
       const out: string[] = [];
-      for (let n: Element | null = el; n && n.tagName !== "SECTION"; n = n.parentElement) {
+      for (let n: Element | null = el; n && !n.classList.contains("dt-horizon_panel"); n = n.parentElement) {
         if (getComputedStyle(n).transform !== "none") out.push(`${n.tagName}.${n.className}`);
       }
       return out;
@@ -1605,15 +1736,35 @@ test.describe("capitoli 13-16: i gesti in coda alla home", () => {
     expect(mosso).toEqual([]);
   });
 
-  test("il titolo di Seguici si congeda crescendo e sfumando (A25)", async ({ page, goto }) => {
+  // A72: nel nastro il trigger del congedo è la sezione, dallo sgancio dello schermo («bottom bottom») finché il
+  // piede del blocco non esce dal bordo alto; in colonna (il telefono) resta il wrapper fermo del blocco,
+  // «center center» → «bottom top». Le misure sono le stesse: a 0,9 dell'uscita expo.in vale 0,503.
+  test("il titolo di Seguici si congeda crescendo e sfumando (A25, A72)", async ({ page, goto }) => {
     await goto("/");
     const block = page.locator("[data-seguici-congedo]");
     await expect(block).toHaveCount(1);
     await block.scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
-    const g = await layout(page, "[data-seguici-congedo]");
-    const start = g.top + g.h / 2 - g.vh / 2; // center center
-    const end = g.top + g.h; // bottom top
+    const nastro = (await page.locator("#costi").getAttribute("data-on")) !== null;
+    let start: number;
+    let end: number;
+    if (nastro) {
+      const q = await page.evaluate(() => {
+        const sec = document.querySelector<HTMLElement>("#costi")!;
+        const screen = sec.querySelector<HTMLElement>(".dt-horizon_screen")!;
+        const b = document.querySelector<HTMLElement>("[data-seguici-congedo]")!.getBoundingClientRect();
+        const s = screen.getBoundingClientRect();
+        return { top: sec.getBoundingClientRect().top + window.scrollY, h: sec.offsetHeight, vh: window.innerHeight, piede: b.bottom - s.top };
+      });
+      start = q.top + q.h - q.vh; // bottom bottom: lo sgancio
+      // Dallo sgancio lo schermo sale con la pagina: il piede del blocco, a `piede` px dalla cima dello
+      // schermo, esce dal bordo alto dopo altrettanti px («bottom ${vh − piede}px» del componente).
+      end = start + q.piede;
+    } else {
+      const g = await layout(page, "[data-seguici-congedo]");
+      start = g.top + g.h / 2 - g.vh / 2; // center center
+      end = g.top + g.h; // bottom top
+    }
     // Numeri, non la matrice: un DOMMatrixReadOnly non attraversa `evaluate`.
     const leggi = () =>
       block.evaluate((el) => {

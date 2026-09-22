@@ -144,6 +144,13 @@ stanno in `DESIGN.md`.
 
 ### Primo schermo e testata
 
+- Costi chiari in home è un nastro (A72, Alberto, 22 set., notte: «togliamo il video della piscina, e
+  mettiamo un'altra immagine no-bg alta … stesso stile e animazione dello sticky scroll che poi diventa
+  scroll orizzontale, ed entra la sezione di Carmine e Seguici»): la facciata della villa bianca con la
+  piscina, intera, col titolo «Nessun costo anticipato» sul cielo-carta e la salita del tetto dietro
+  le lettere (A65), poi il claim dei costi (la prima frase del lead grande, le righe del mandato, il
+  rilancio pieno), Carmine (la recensione in video) e Seguici come pannelli; il loop dell'acqua non
+  c'è più (i file restano). Su /vendi la riga sola, come prima.
 - Hero: la foto alta di Raffaela davanti alla villa con piscina è la pagina (A49, Alberto, 22 set.:
   «non c'è né l'immagine alta che fa da sfondo pagina a schermo intero, né l'effetto dello scroll
   dentro l'immagine»; A71: «sì, fallo, anche il voto e i due link … e falla no-bg così è più bella»):

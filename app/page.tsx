@@ -13,8 +13,6 @@ import OpenDomus from "./components/OpenDomus";
 import DomusDocProtocol from "./components/DomusDocProtocol";
 import Services from "./components/Services";
 import CostiChiari from "./components/CostiChiari";
-import FeaturedTestimonial from "./components/FeaturedTestimonial";
-import Social from "./components/Social";
 import Team from "./components/Team";
 import Contact from "./components/Contact";
 import Congedo from "./components/Congedo";
@@ -67,11 +65,12 @@ export default function Home() {
           orizzontali) viene dall'altro riferimento, era-residence.com
           (dossier reverse-engineering/era-residence), senza le sue cupole, i
           suoi fiori e le sue transizioni di pagina. Da 1024 × 640 px con
-          motion ok, cinque corridoi a sticky e nessuno col pin di GSAP: i
+          motion ok, sei corridoi a sticky e nessuno col pin di GSAP: i
           pannelli di «Perché Domus Tua», il film delle cinque stelle
           (entrambi riportati l'11 settembre, 024d354, rifatti senza curve,
-          veli né scuro), la finestra di Open Domus (A57), la rotaia del team
-          e la cartolina del Congedo; l'hero scorre 1:1 con la pagina (A49:
+          veli né scuro), la finestra di Open Domus (A57), il nastro di Costi
+          chiari con Carmine e Seguici (A72), la rotaia del team e la
+          cartolina del Congedo; l'hero scorre 1:1 con la pagina (A49:
           la foto alta è la pagina, senza corridoio). Nessun cambio di tono
           fra i capitoli, perché il fondo è uno. */}
       <Header />
@@ -87,9 +86,9 @@ export default function Home() {
         <OpenDomus finestra />
         <DomusDocProtocol compact />
         <Services />
-        <CostiChiari acqua />
-        <FeaturedTestimonial gesture />
-        <Social />
+        {/* A72 (22 set., notte): il nastro dei costi porta dentro Carmine (FeaturedTestimonial) e
+            Seguici (Social) come secondo e terzo pannello. */}
+        <CostiChiari nastro />
         <Team />
         <Contact gesture />
         <Congedo />

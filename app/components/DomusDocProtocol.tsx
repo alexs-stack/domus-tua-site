@@ -422,7 +422,12 @@ export default function DomusDocProtocol({ id = "domus-doc", compact = false }: 
             delle foto, sticky da lg. Il foglio è rigato (D26): una riga di 1 px sopra ogni
             pilastro e, da lg, la spina fra la lista e la cornice. La spina sta nel wrapper e non
             nella `ul`, così la lista resta fatta solo di `li` (spec §3.11). */}
-        <div ref={sheetRef} data-doc-sheet className="dt-doc_foglio relative mt-10 grid gap-[6vw] lg:grid-cols-2 lg:items-start">
+        {/* `grid-cols-[minmax(0,1fr)]` sotto lg (22 set., A72, e2e mobile-motion): la cornice ha il rapporto
+            2:3 nel CSS E l'altezza scritta da GSAP per la foto attiva; con la terrazza 9:16 (A69) una traccia
+            `auto` prendeva il suo contributo min-content, 627 × 2:3 = 421 px a 390, e tutta la colonna dei
+            pilastri usciva di 50-70 px dallo schermo (tagliata da overflow-x: clip). Col minimo a 0 la
+            colonna resta larga quanto la riga e la cornice prende davvero il rapporto della foto attiva. */}
+        <div ref={sheetRef} data-doc-sheet className="dt-doc_foglio relative mt-10 grid grid-cols-[minmax(0,1fr)] gap-[6vw] lg:grid-cols-2 lg:items-start">
           <Hairline chapter="doc" axis="y" className="hidden lg:block" />
           <div>
             <ul className="grid text-body text-graphite">

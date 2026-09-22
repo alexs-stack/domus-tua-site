@@ -439,6 +439,10 @@ const BANDE_FINESTRA = (JSON.parse(readFileSync(join(__dirname, "../app/lib/moti
 // grafite. Il file è quello di media.ts (`hero-raffaela-piscina-alta-cielo.webp`).
 const FOTO_HERO = /hero-raffaela-piscina-alta(-m)?-cielo\.webp/;
 const BANDE_HERO = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/hero.json"), "utf8")) as { segno: number[][] }).segno;
+// A72 (22 set., notte): anche la facciata del nastro di Costi chiari ha il cielo trasparente (costi.json):
+// sotto il segno il tema vira `foto` nelle sue bande (i cipressi, il gelsomino e la vetrata, la piscina),
+// sul cielo-carta e sui muri bianchi resta grafite.
+const BANDE_COSTI = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/costi.json"), "utf8")) as { segno: number[][] }).segno;
 /** Il tema atteso sotto il segno quando in cima c'è la facciata: `foto` dentro una banda, `grafite` fuori; null a un pelo dal bordo. */
 function temaSullaFacciata(fy: number, bande: number[][]): "foto" | "grafite" | null {
   if (bande.some(([a, z]) => Math.abs(fy - a) < 0.004 || Math.abs(fy - z) < 0.004)) return null;
@@ -452,7 +456,7 @@ test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, 
   await goto("/");
   await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
   const errori = await page.evaluate(
-    async ({ cielo, bande, hero, bandeHero }) => {
+    async ({ cielo, bande, hero, bandeHero, bandeCosti }) => {
       const segno = document.querySelector<HTMLElement>("[data-segno]")!;
       const out: string[] = [];
       let cieloVisto = 0;
@@ -491,6 +495,16 @@ test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, 
           if (!alBordo && tema !== atteso) out.push(`scroll ${y}: sulla facciata della finestra (y ${fy.toFixed(3)}, ${atteso === "foto" ? "trave" : "carta o muro"}) il tema è ${tema}, non ${atteso} (A46, A47)`);
           continue;
         }
+        // A72: la facciata del nastro di Costi chiari, come la finestra: grafite sul cielo-carta e sui muri,
+        // foto nelle bande di costi.json; a un pelo dal bordo non si giudica.
+        const ccb = document.querySelector<HTMLElement>("#costi .dt-cc_window")?.getBoundingClientRect();
+        if (ccb && cx >= ccb.left && cx <= ccb.right && cy >= ccb.top && cy <= ccb.bottom) {
+          const fy = (cy - ccb.top) / ccb.height;
+          const alBordo = bandeCosti.some(([a, z]) => Math.abs(fy - a) < 0.004 || Math.abs(fy - z) < 0.004);
+          const atteso = bandeCosti.some(([a, z]) => fy >= a && fy <= z) ? "foto" : "grafite";
+          if (!alBordo && tema !== atteso) out.push(`scroll ${y}: sulla facciata di Costi chiari (y ${fy.toFixed(3)}, ${atteso === "foto" ? "banda" : "carta o muro"}) il tema è ${tema}, non ${atteso} (A72)`);
+          continue;
+        }
         const sotto = document.elementFromPoint(cx, cy);
         if (sotto && (sotto.tagName === "IMG" || sotto.tagName === "VIDEO")) {
           const src = (sotto as HTMLImageElement | HTMLVideoElement).currentSrc.split("/").pop() ?? "";
@@ -500,7 +514,7 @@ test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, 
       }
       return { out, cieloVisto };
     },
-    { cielo: FOTO_COL_CIELO.source, bande: BANDE_FINESTRA, hero: FOTO_HERO.source, bandeHero: BANDE_HERO },
+    { cielo: FOTO_COL_CIELO.source, bande: BANDE_FINESTRA, hero: FOTO_HERO.source, bandeHero: BANDE_HERO, bandeCosti: BANDE_COSTI },
   );
   expect(errori.out, errori.out.join("\n")).toEqual([]);
   expect(errori.cieloVisto, "la corsa non ha mai trovato la finestra a schermo intero sotto il segno").toBeGreaterThan(0);

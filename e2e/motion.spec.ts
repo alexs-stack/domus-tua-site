@@ -138,18 +138,27 @@ test("D.O.C. e Services con reduced motion: righe disegnate e foto ferme", async
   expect(zoom).toEqual(["none", "none", "none"]);
 });
 
-// L'acqua di Costi chiari con reduced motion (spec §3.13): poster intero, nessun
-// clip, nessun video.
-test("l'acqua di Costi chiari con reduced motion: poster intero e nessun clip", async ({ page, goto }) => {
+// Il nastro di Costi chiari con reduced motion (A72): nessun corridoio, i tre pannelli in colonna, la
+// facciata intera senza clip né transform, la cornice di Carmine senza sipario, il titolo di Seguici fermo.
+test("il nastro di Costi chiari con reduced motion: tre pannelli in colonna, la facciata intera, nessun clip", async ({ page, goto }) => {
   await goto("/");
-  const banda = page.locator("#costi [data-acqua-band]");
-  // Prima il conteggio: senza banda lo scroll qui sotto aspetterebbe fino al timeout del test.
-  await expect(banda).toHaveCount(1);
-  await banda.scrollIntoViewIfNeeded();
+  const cc = page.locator("#costi");
+  await expect(cc).toHaveCount(1);
+  expect(await cc.getAttribute("data-on")).toBeNull();
+  const win = cc.locator(".dt-cc_window");
+  await win.scrollIntoViewIfNeeded();
   await page.waitForTimeout(400);
-  await expect(banda).toHaveCSS("clip-path", "none");
-  await expect(banda).toHaveAttribute("data-ambient", "off");
-  await expect(banda.locator("img")).toBeVisible();
+  await expect(win).toHaveCSS("clip-path", "none");
+  await expect(win).toHaveCSS("transform", "none");
+  await expect(win.locator("img")).toBeVisible();
+  await expect(cc.locator(".dt-horizon_track")).toHaveCSS("transform", "none");
+  const carmine = cc.locator("a[data-sink-frame]");
+  await carmine.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  await expect(carmine).toHaveCSS("clip-path", "none");
+  await expect(carmine.locator("[data-horizon-slide-img]")).toHaveCSS("transform", "none");
+  // Nessun video dell'acqua: è uscita dal codice.
+  expect(await cc.locator("video, [data-acqua-band]").count()).toBe(0);
 });
 
 test("con reduced motion le colonne di Percorsi e le tendine del Metodo restano ferme", async ({ page, goto }) => {

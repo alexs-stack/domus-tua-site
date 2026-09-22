@@ -624,7 +624,8 @@ blockquote * {
   overflow: clip;
   background-color: var(--color-cream);
 }
-.dt-od_soggetto {
+.dt-od_soggetto,
+.dt-cc_soggetto {
   position: absolute;
   left: 0;
   right: 0;
@@ -694,6 +695,99 @@ blockquote * {
 .dt-od[data-on] .dt-od_panel--foto {
   position: relative;
   overflow: clip;
+}
+
+/* -- IL NASTRO DI COSTI CHIARI (A72) ----------------------------------------
+   A72 di Alberto (22 set. 2026, notte), solo in home con <CostiChiari nastro /> (D28): «togliamo il
+   video della piscina, e mettiamo un'altra immagine no-bg alta: villa-facciata-piscina-alta-cielo.webp,
+   stesso stile e animazione dello sticky scroll che poi diventa scroll orizzontale, ed entra la
+   sezione di Carmine e Seguici». Com'è fatto oggi: la sezione è un HorizonScroller (il layout del
+   nastro sta nel blocco .dt-horizon) con quattro pannelli. Il primo è la cornice della facciata della
+   villa bianca con la piscina, 2:3, INTERA a ogni larghezza (costi.json: --dt-cc-ar è il suo
+   rapporto, costi.test lo confronta), col cielo trasparente che è la carta (A46) e sopra il cielo,
+   a destra, il solo TITOLO in inchiostro (D-A72-1: a destra dei cipressi, che arrivano al 36 %
+   della larghezza; niente bianco sulla foto: la villa è bianca). In colonna il titolo sta in flusso
+   prima della foto e il cielo-carta lo continua; nel nastro ([data-on]) la riga del titolo posa
+   assoluta sul cielo, il pannello è alto quanto lo schermo e ritaglia la cornice, che GSAP fa salire
+   — l'ARRIVO di A65, costi.ts — finché il tetto piatto della villa non arriva a metà delle lettere;
+   poi il track scorre di lato e la foto esce a sinistra. Il secondo pannello è il claim dei costi
+   (occhiello, prima frase del lead in d2, intro, righe del mandato, rilancio pieno), il terzo
+   Carmine (FeaturedTestimonial `panel`), il quarto Seguici (Social): righe sulla carta, nessuna
+   coda né cartolina (D-A72-3). Le bande del segno (.dt-cc_soggetto, la regola sta sopra con
+   .dt-od_soggetto) viaggiano con la foto. */
+.dt-cc {
+  --dt-cc-ar: 2560 / 3816;
+}
+.dt-cc_cornice {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--dt-cc-ar);
+}
+.dt-cc_window {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  background-color: var(--color-cream);
+}
+/* Il titolo: per lettera (SplitTitle), in inchiostro, nella misura del nastro — tre righe («Nessun /
+   costo / anticipato.», Playfair maiuscolo a 7,5vw) allineate a destra su 52vw (le utility di
+   CostiChiari), non la riga di 12vw centrata di «Open Domus»: a sinistra ci sono i cipressi. */
+.dt-cc_titolo {
+  color: var(--color-ink);
+  font-size: clamp(2.4rem, 7.5vw, 8.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.dt-cc[data-on] .dt-cc_panel--foto {
+  position: relative;
+  overflow: clip;
+}
+/* In colonna (sotto la soglia dei corridoi, reduced-motion, senza JS) la foto sale sotto il titolo
+   come «Open Domus» sta sul cielo della sua facciata: senza, fra il titolo e le punte dei cipressi
+   restavano ~190 px di carta vuota a 390 (il padding della riga più il cielo trasparente, 27 % della
+   larghezza; misurato il 22 set. sulla pellicola di A72, Alberto: «gestisci gli spazi»). Con −30vw
+   le punte stanno ~70 px sotto il titolo a 360-768; da lg il titolo è a destra, sopra il cielo che
+   scende fino al tetto, e basta −20vw. Il titolo resta sopra la foto nello stacking. */
+.dt-cc:not([data-on]) .dt-cc_riga {
+  position: relative;
+  z-index: 1;
+}
+/* Le icone social di Seguici sono i soli bottoni del suo pannello: nel nastro salgono da 44 a 56 px (il
+   cerchio del play delle facciate), con l'icona a 24 (Alberto, 22 set.: «i bottoni sono troppo piccoli»).
+   Fuori dal nastro dei costi (footer, contatti) restano quelle di sempre. */
+.dt-cc_panel--seguici .dt-social__link {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+.dt-cc_panel--seguici .dt-social__link svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.dt-cc:not([data-on]) .dt-cc_cornice {
+  margin-top: -30vw;
+}
+@media (min-width: 64rem) {
+  .dt-cc:not([data-on]) .dt-cc_cornice {
+    margin-top: -20vw;
+  }
+}
+/* Il claim dei costi è testo solo: su 100vw lascerebbe mezza carta vuota (Alberto sul manifesto del
+   nastro di storia, 20 set.: «uno spazio enorme vuoto nello scroll orizzontale»; e il 22 set. sul
+   nastro dei costi: «gestisci gli spazi»). Il pannello è largo 60vw: 44vw di colonna dentro la riga
+   (8vw per lato) e Carmine subito dopo. Il track è 100 + 60 + 100 + 100 = 360vw. Il selettore porta
+   anche .dt-horizon_panel: `.dt-horizon[data-on] .dt-horizon_panel { width: 100vw }` ha la stessa
+   specificità e sta più in basso nel file, quindi vinceva (misurato il 22 set.: pannello a 1440). */
+.dt-cc[data-on] .dt-horizon_panel.dt-cc_panel--claim {
+  width: 60vw;
+}
+.dt-cc[data-on] .dt-cc_riga {
+  position: absolute;
+  z-index: 1;
+  top: 12svh;
+  left: 0;
+  right: 0;
+  padding-block: 0;
 }
 
 /* -- IL FOGLIO DELLE FOTO DI DOMUS D.O.C. (A59) ------------------------------

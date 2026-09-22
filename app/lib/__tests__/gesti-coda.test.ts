@@ -49,12 +49,17 @@ describe("capitolo 13, FeaturedTestimonial: la foto affonda", () => {
   test("dtAffonda è registrata in gsap.ts con la curva di §3.1", () => {
     assert.match(gsapTs, /CustomEase\.create\("dtAffonda", "0\.5,0,0\.8,0\.45"\);/);
   });
-  test("ease, scrub e innesco del codice = registro", () => {
-    assert.match(ft, /ease:\s*"dtAffonda"/);
-    assert.ok(ft.includes(`scrub: ${f.time.scrub}`), `scrub ${f.time.scrub} assente`);
+  // A72: il gesto vive nel pannello del nastro di Costi chiari e legge ease e scrub dal registro (D18);
+  // l'innesco è il pannello nel track (containerAnimation), dal bordo destro al bordo sinistro.
+  test("ease e scrub dal registro, innesco del codice = registro (A72)", () => {
+    assert.match(ft, /ease:\s*chapters\.testimonianza\.signature\.ease/);
+    assert.match(ft, /scrub:\s*scrubOf\("testimonianza"\)/);
+    assert.equal(f.time.scrub, 1.2);
     assert.ok(ft.includes(`start: "${f.trigger.st![0]}"`) && ft.includes(`end: "${f.trigger.st![1]}"`));
+    assert.match(ft, /containerAnimation:\s*tween/);
+    assert.match(ft, /useHorizonTrack\(\)/);
   });
-  test("con gesture la sizes sale a 61vw, senza resta quella di oggi", () => {
+  test("con panel la sizes sale a 61vw, senza resta quella di oggi", () => {
     assert.ok(ft.includes('"(max-width:1024px) 132vw, 61vw"'));
     assert.ok(ft.includes('"(max-width:1024px) 132vw, 56vw"'));
   });
@@ -68,14 +73,22 @@ describe("capitolo 14, Social: il titolo si congeda (A25)", () => {
     // `0` seguito da un punto o da una cifra (0.5, 02) non vale: l'opacità finale è 0 tondo.
     assert.match(so, /opacity:\s*0(?![.\d])/);
     assert.match(so, /transformOrigin:\s*"0% 100%"/);
-    assert.match(so, /ease:\s*"expo\.in"/);
+    assert.match(so, /ease:\s*chapters\.social\.signature\.ease/);
+    assert.equal(f.ease, "expo.in");
   });
-  test("scrub e innesco del codice = registro", () => {
-    assert.ok(so.includes(`scrub: ${f.time.scrub}`));
-    assert.ok(so.includes(`start: "${f.trigger.st![0]}"`) && so.includes(`end: "${f.trigger.st![1]}"`));
+  // A72: nel nastro il trigger è la sezione dallo sgancio dello schermo (il registro lo descrive); in colonna
+  // resta il wrapper fermo del blocco, «center center» → «bottom top».
+  test("scrub dal registro; innesco del nastro allo sgancio, in colonna quello di prima", () => {
+    assert.match(so, /scrub:\s*scrubOf\("social"\)/);
+    assert.equal(f.time.scrub, 1.3);
+    assert.ok(so.includes(`start: "${f.trigger.st![0]}"`));
+    assert.match(so, /end: \(\) => `bottom \$\{screen\.clientHeight - /);
+    assert.match(so, /congedo\(\{ trigger, start: "center center", end: "bottom top" \}\)/);
+    assert.match(so, /useHorizonTrack\(\)/);
   });
-  test("la section ritaglia in orizzontale (nessuno sticky dentro)", () => {
-    assert.match(so, /<section className="[^"]*\boverflow-x-clip\b/);
+  test("è un pannello del nastro, non una section: il ritaglio in orizzontale lo dà il nastro", () => {
+    assert.doesNotMatch(so, /<section\b/);
+    assert.match(so, /<div className="dt-horizon_panel dt-cc_panel dt-cc_panel--seguici/);
   });
 });
 
@@ -141,10 +154,15 @@ describe("capitolo 16, Contact: il modulo resta indietro (D30)", () => {
 });
 
 describe("i gesti di FeaturedTestimonial e Contact restano in home (D28)", () => {
-  test("solo app/page.tsx passa gesture", () => {
-    const ft = TUTTI.filter((f) => /<FeaturedTestimonial\b[^>]*\bgesture\b/.test(f.testo)).map((f) => f.rel);
+  // A72: FeaturedTestimonial in home è il pannello del nastro di Costi chiari (`panel`, passato da
+  // CostiChiari.tsx), e il nastro (`nastro`) lo monta solo app/page.tsx.
+  test("solo CostiChiari passa panel, solo app/page.tsx passa nastro e gesture a Contact", () => {
+    const ft = TUTTI.filter((f) => /<FeaturedTestimonial\b[^>]*\bpanel\b/.test(f.testo)).map((f) => f.rel);
+    const cc = TUTTI.filter((f) => /<CostiChiari\b[^>]*\bnastro\b/.test(f.testo)).map((f) => f.rel);
     const co = TUTTI.filter((f) => /<Contact\b[^>]*\bgesture\b/.test(f.testo)).map((f) => f.rel);
-    assert.deepEqual(ft, ["app/page.tsx"]);
+    assert.deepEqual(ft, ["app/components/CostiChiari.tsx"]);
+    assert.deepEqual(cc, ["app/page.tsx"]);
     assert.deepEqual(co, ["app/page.tsx"]);
+    assert.equal(TUTTI.filter((f) => /<FeaturedTestimonial\b[^>]*\bgesture\b/.test(f.testo)).length, 0, "gesture è morta con A72");
   });
 });

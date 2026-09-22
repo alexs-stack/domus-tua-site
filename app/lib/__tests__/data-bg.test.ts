@@ -140,9 +140,14 @@ describe("le zone di spec §6.1 portano data-bg", () => {
     assert.equal(tagCon(src, classe("dt-od_mark--a")).length + tagCon(src, classe("dt-od_mark--f")).length, 0, "i marcatori da 1 px del corridoio sono morti con A57");
   });
 
-  test("banda di Costi chiari (§3.13)", () => {
-    const tags = tagCon(codice("app/components/CostiChiari.tsx"), classe("dt-media-full"));
-    assert.ok(tags.some((t) => FOTO.test(t)), "la banda .dt-media-full di Costi chiari non porta data-bg=\"foto\"");
+  // A72 (22 set. 2026, notte): Costi chiari è un nastro con la facciata col cielo trasparente (costi.json):
+  // le bande scure (`.dt-cc_soggetto`, `foto`: i cipressi, il gelsomino e la vetrata, la piscina) viaggiano
+  // con la foto; sul cielo-carta e sui muri bianchi il segno resta grafite. La banda dell'acqua è morta.
+  test("nastro di Costi chiari: le bande della facciata, e nessuna banda dell'acqua (A72)", () => {
+    const src = codice("app/components/CostiChiari.tsx");
+    const bande = tagCon(src, classe("dt-cc_soggetto"));
+    assert.ok(bande.length === 1 && FOTO.test(bande[0]), "il marcatore delle bande della facciata di Costi chiari non porta data-bg=\"foto\"");
+    assert.equal(tagCon(src, attr("data-acqua-band")).length, 0, "la banda dell'acqua è morta con A72");
   });
 
   test("testimonianza: [data-sink-frame] (§3.14)", () => {

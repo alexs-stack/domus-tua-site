@@ -32,24 +32,21 @@ export const heroCinematic = {
 
 export type AmbientSource = { webm: string; mp4: string };
 
-// I video d'ambiente (spec 2026-09-13 §7.3): due loop muti dal video tour di Domus Tua, senza
-// logo (ritaglio del 10 % in alto e a sinistra) e raccordati con una dissolvenza. Il drone
-// sulla villa è la cartolina del Congedo (A19 di Alberto), la superficie dell'acqua è Costi
-// chiari (A18). `hd` 1920×1080, `sd` 1280×720: la sorgente la scrive useAmbientVideo la
-// prima volta che l'host si avvicina (warm 50 %): 720p fino a 1.408 px resi, 1080p oltre.
-// La produzione aspetta i punti 2.2, 2.13 e 6.2 del documento per la cliente
+// I video d'ambiente (spec 2026-09-13 §7.3): loop muti dal video tour di Domus Tua, senza logo
+// (ritaglio del 10 % in alto e a sinistra) e raccordati con una dissolvenza. Il drone sulla villa
+// è la cartolina del Congedo (A19 di Alberto). La superficie dell'acqua di Costi chiari (A18;
+// `acqua-1080.mp4/webm`, `acqua-poster.jpg`) è uscita dal codice con A72 (22 set. 2026, notte:
+// il capitolo è un nastro con la facciata); i file restano in public/media, non montati (Alberto,
+// 22 set.: i file non montati restano). `hd` 1920×1080, `sd` 1280×720: la sorgente la scrive
+// useAmbientVideo la prima volta che l'host si avvicina (warm 50 %): 720p fino a 1.408 px resi,
+// 1080p oltre. La produzione aspetta i punti 2.2, 2.13 e 6.2 del documento per la cliente
 // (assertVillaMediaCleared in launchReadiness.ts, chiamata da next.config.ts al build).
 export const ambient: {
   congedo: { hd: AmbientSource; sd: AmbientSource; poster: string };
-  acqua: { hd: AmbientSource; poster: string };
 } = {
   congedo: {
     hd: { webm: "/media/congedo-drone-1080.webm", mp4: "/media/congedo-drone-1080.mp4" },
     sd: { webm: "/media/congedo-drone-720.webm", mp4: "/media/congedo-drone-720.mp4" },
     poster: "/media/congedo-poster.jpg",
-  },
-  acqua: {
-    hd: { webm: "/media/acqua-1080.webm", mp4: "/media/acqua-1080.mp4" },
-    poster: "/media/acqua-poster.jpg",
   },
 };

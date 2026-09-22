@@ -9,14 +9,23 @@
 // le avevamo scritte noi e firmate «Cliente Domus Tua»
 // (docs/da-chiedere-alla-cliente.md §1.2), e PRODUCT.md vieta le recensioni
 // inventate. La sola cosa vera è il video: parole del cliente, non nostre.
+//
+// A72 (Alberto, 22 set. 2026, notte: «… ed entra la sezione di Carmine e Seguici»): in home il blocco
+// è il SECONDO PANNELLO del nastro di Costi chiari (`panel`, CostiChiari.tsx): la stessa riga a due
+// colonne, con la cornice del video che entra col sipario del nastro (data-horizon-slide: clip da
+// sinistra e scala 1,15 → 1) e dentro la foto che AFFONDA mentre il pannello attraversa lo schermo (il
+// gesto del capitolo 13 di A20, con la firma del registro: dtAffonda, scrub 1,2, agganciata al track
+// del nastro con useHorizonTrack). Fuori dalla home (D206) la foto entra con la lama (A36).
 import { useRef, useState, type MouseEvent } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
+import RevealGroup from "./motion/RevealGroup";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
 import LamaMedia from "./motion/LamaMedia";
+import { useHorizonTrack } from "./motion/HorizonScroller";
 import { gsap, useGSAP } from "../lib/motion/gsap";
-import { MQ } from "../lib/motion/mq";
+import { chapters, scrubOf } from "../lib/motion/chapters";
 import VideoLightbox from "./VideoLightbox";
 import { Play } from "./Icons";
 import { Cta } from "./primitives/Cta";
@@ -31,10 +40,10 @@ type Props = {
   image?: string;
   alt?: string;
   videoHref?: string;
-  /** Solo la home lo passa (D28): la cornice sta ferma e dentro la foto
-      affonda del 10 % mentre il capitolo esce (A20 di Alberto, spec
-      2026-09-13 §3.14). Senza, resta la deriva di Parallax di oggi. */
-  gesture?: boolean;
+  /** Solo la home lo passa (D28), dentro il nastro di Costi chiari (A72): il blocco è un pannello del
+      track, col sipario del nastro e la foto che affonda dentro la cornice ferma mentre il pannello
+      attraversa lo schermo (spec 2026-09-13 §3.14). Senza, la <section> con la lama (A36). */
+  panel?: boolean;
 };
 
 // `quote`, `author`, `context` restano nel record ma non vengono più resi:
@@ -117,33 +126,36 @@ export default function FeaturedTestimonial(props: Props) {
     setOpen({ id: testimonialVideo.id, title });
   };
 
-  const gesture = props.gesture ?? false;
+  const panel = props.panel ?? false;
   const frameRef = useRef<HTMLAnchorElement | null>(null);
   const sinkRef = useRef<HTMLDivElement | null>(null);
+  const track = useHorizonTrack();
 
-  // La foto affonda dentro la cornice ferma (A20 di Alberto, spec 2026-09-13
-  // §3.14): il contenitore alto il 110 % scende di 9,0909 % di sé, cioè del
-  // 10 % della cornice, mentre il bordo basso della cornice va dal fondo alla
-  // cima del viewport. Solo con motion ok e solo in home (D28). Nessuno stato
-  // iniziale scritto: yPercent 0 è lo stato del CSS.
+  // La foto affonda dentro la cornice ferma (A20 di Alberto, spec 2026-09-13 §3.14): il contenitore
+  // alto il 110 % scende di 9,0909 % di sé, cioè del 10 % della cornice. A72: nel nastro il gesto è
+  // agganciato al TRACK (containerAnimation, come i sipari): parte quando il pannello entra dal bordo
+  // destro dello schermo e finisce quando ne è uscito a sinistra, con l'ease e lo scrub del registro
+  // (chapters.ts `testimonianza`: dtAffonda, 1,2; D18). Solo col nastro acceso: il canale del track
+  // chiama solo nel corridoio con motion ok, e riprende la sua pulizia quando il track muore. Nessuno
+  // stato iniziale scritto: yPercent 0 è lo stato del CSS.
   useGSAP(
     () => {
       const frame = frameRef.current;
       const sink = sinkRef.current;
-      if (!gesture || !frame || !sink) return;
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        gsap.fromTo(
+      if (!panel || !frame || !sink || !track) return;
+      return track((tween) => {
+        const tw = gsap.fromTo(
           sink,
           { yPercent: 0 },
           {
             yPercent: 9.0909,
-            ease: "dtAffonda",
+            ease: chapters.testimonianza.signature.ease,
             scrollTrigger: {
-              trigger: frame,
-              start: "bottom bottom",
-              end: "bottom top",
-              scrub: 1.2,
+              trigger: frame.closest<HTMLElement>(".dt-horizon_panel") ?? frame,
+              containerAnimation: tween,
+              start: "left right",
+              end: "right left",
+              scrub: scrubOf("testimonianza"),
               invalidateOnRefresh: true,
               onToggle: (self) => {
                 sink.style.willChange = self.isActive ? "transform" : "";
@@ -152,11 +164,14 @@ export default function FeaturedTestimonial(props: Props) {
           },
         );
         return () => {
+          tw.scrollTrigger?.kill();
+          tw.kill();
           sink.style.willChange = "";
+          gsap.set(sink, { clearProps: "transform" });
         };
       });
     },
-    { dependencies: [gesture], revertOnUpdate: true },
+    { dependencies: [panel, track], revertOnUpdate: true },
   );
 
   // `dt-still-trim--top` toglie la banda col titolo cotta in cima alla
@@ -172,7 +187,7 @@ export default function FeaturedTestimonial(props: Props) {
       src={image}
       alt={alt}
       fill
-      sizes={gesture ? "(max-width:1024px) 132vw, 61vw" : "(max-width:1024px) 132vw, 56vw"}
+      sizes={panel ? "(max-width:1024px) 132vw, 61vw" : "(max-width:1024px) 132vw, 56vw"}
       // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
       quality={75}
       className={cotta ? "dt-still-trim--top object-cover" : "object-cover"}
@@ -186,13 +201,16 @@ export default function FeaturedTestimonial(props: Props) {
     </span>
   );
 
-  // Il link è la cornice: non si muove mai, il bersaglio del dito resta fermo e
-  // l'outline di focus sta fuori dal suo overflow. `data-bg="foto"` dice al
-  // monogramma che qui sotto c'è una foto (A21, spec §6.1). In home (`gesture`)
-  // il link E' il modulo e dentro la foto affonda (D28/D30).
-  const linkHome = (
+  // Il link è la cornice: non si muove mai (nessun transform suo: il sipario è un clip-path, la scala
+  // sta sul figlio [data-horizon-slide-img] e l'affondo sul nipote [data-sink]), il bersaglio del dito
+  // resta fermo e l'outline di focus sta fuori dal suo overflow. `data-bg="foto"` dice al monogramma
+  // che qui sotto c'è una foto (A21, spec §6.1). Con `panel` il contenitore della foto è alto il 110 %
+  // (overscan del 10 %) e la sizes sale a 61vw: cornice 605×340 a 1440, cover 665 px × 1,30 = 865 px
+  // (spec §3.14).
+  const linkPanel = (
     <a
       ref={frameRef}
+      data-horizon-slide
       data-sink-frame
       data-bg="foto"
       href={href}
@@ -202,11 +220,10 @@ export default function FeaturedTestimonial(props: Props) {
       onClick={onClick}
       className="dt-media-half !aspect-video group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red"
     >
-      {/* Con `gesture` il contenitore è alto il 110 % (overscan del 10 %) e la
-          sizes sale a 61vw: cornice 605×340 a 1440, cover 665 px × 1,30 =
-          865 px (spec §3.14). */}
-      <div ref={sinkRef} data-sink="" className="absolute inset-x-0 bottom-0 top-[-10%]">
-        {foto}
+      <div data-horizon-slide-img className="absolute inset-0">
+        <div ref={sinkRef} data-sink="" className="absolute inset-x-0 bottom-0 top-[-10%]">
+          {foto}
+        </div>
       </div>
       {play}
     </a>
@@ -239,41 +256,63 @@ export default function FeaturedTestimonial(props: Props) {
     </a>
   );
 
+  const testo = (
+    <>
+      <Reveal>
+        <span className="eyebrow">{c.eyebrow}</span>
+      </Reveal>
+      {/* Il titolo È quello del video sul canale: non si traduce, non si riscrive. */}
+      <SplitTitle as="h2" className="mt-6 font-display text-d2">
+        {title}
+      </SplitTitle>
+      <Lead className="mt-6">{c.lead}</Lead>
+      <Reveal delay={140}>
+        {/* Nel nastro (A72; Alberto: «le scritte e i bottoni sono troppo piccole») il rilancio del video è il
+            bottone a contorno grande (cta lg), secondo al pieno rosso del claim che lo precede; fuori dalla
+            home resta il link ghost. */}
+        <Cta
+          href={href}
+          variant={panel ? "cta" : "ghost"}
+          size={panel ? "lg" : "md"}
+          className="mt-8"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${c.watchVideo}: ${title}`}
+          onClick={onClick}
+        >
+          {c.watchVideo}
+        </Cta>
+      </Reveal>
+    </>
+  );
+
+  if (panel) {
+    return (
+      /* Il pannello del nastro (A72): la riga a due colonne del sito, la cornice del video a sinistra col
+         sipario e la foto che affonda, a destra i testi come gruppo del motore dei reveal (nel nastro
+         entrano quando sono in scena, spec §2.4). In colonna il pannello prende il passo dei blocchi. */
+      <div className="dt-horizon_panel dt-cc_panel dt-cc_panel--carmine relative flex items-center">
+        <div className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+          {linkPanel}
+          <RevealGroup className="lg:pl-[6vw]">{testo}</RevealGroup>
+        </div>
+        <VideoLightbox video={open} onClose={() => setOpen(null)} />
+      </div>
+    );
+  }
+
   return (
     <section className="dt-chapter bg-cream">
       <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
         {/* Il fotogramma è 1280×720: sta nel modulo «banda» (16:9), non in un
             quadrato — il file porta il titolo del video cotto nella fascia
-            alta e un taglio 1:1 lo mozzerebbe. In home la cornice sta ferma
-            e la foto affonda dentro (A20, D28); su /vendi, /acquista e
+            alta e un taglio 1:1 lo mozzerebbe. Su /vendi, /acquista e
             /recensioni entra con la lama (A36, D206-D207: via la deriva
             ±0,56 % di Parallax, sotto la soglia di percezione). Il cerchio
             rosso è l'unica curva. */}
-        {gesture ? linkHome : linkLama}
+        {linkLama}
 
-        <div className="lg:pl-[6vw]">
-          <Reveal>
-            <span className="eyebrow">{c.eyebrow}</span>
-          </Reveal>
-          {/* Il titolo È quello del video sul canale: non si traduce, non si riscrive. */}
-          <SplitTitle as="h2" className="mt-6 font-display text-d2">
-            {title}
-          </SplitTitle>
-          <Lead className="mt-6">{c.lead}</Lead>
-          <Reveal delay={140}>
-            <Cta
-              href={href}
-              variant="ghost"
-              className="mt-8"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${c.watchVideo}: ${title}`}
-              onClick={onClick}
-            >
-              {c.watchVideo}
-            </Cta>
-          </Reveal>
-        </div>
+        <div className="lg:pl-[6vw]">{testo}</div>
       </div>
 
       <VideoLightbox video={open} onClose={() => setOpen(null)} />

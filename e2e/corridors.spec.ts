@@ -14,8 +14,9 @@ import { LAST_Y_KEY } from "../app/lib/motion/intro-constants";
 // Il gate è 1024 px di larghezza, 640 di altezza e motion ok: sotto quella
 // soglia, a 390 e con reduced motion non c'è nessun corridoio.
 
-/** Gli host accesi sulla home a 1024×768 e 1440×900, in ordine alfabetico (A49: il tuffo dell'hero è morto). */
-const EXPECTED_HOME = ["cartolina", "finestra", "recensioni", "storia", "team"];
+/** Gli host accesi sulla home a 1024×768 e 1440×900, in ordine alfabetico (A49: il tuffo dell'hero è morto;
+    A72: il nastro di Costi chiari, `costi`). */
+const EXPECTED_HOME = ["cartolina", "costi", "finestra", "recensioni", "storia", "team"];
 /** Gli host accesi su /vendi a 1440×900: nessuno, dal 20 settembre 2026 (A38/A41: la testa di
     era è sticky e ferma; il tuffo "page-dive" e i capitoli di pagina "ingresso" e "soglia" sono morti). */
 const EXPECTED_VENDI: string[] = [];

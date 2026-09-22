@@ -2,17 +2,21 @@ import type { Page } from "@playwright/test";
 import { test, expect, setConsent } from "./helpers";
 import { wheelTo } from "./coreografia";
 
-// Video d'ambiente (spec 2026-09-13 §2.7, §9.2). L'acqua di Costi chiari (A18 e
-// A20 di Alberto; D25, D28) e il video del Congedo (la clip da 02:00, A29) suonano
-// solo in vista, con motion ok, da 768 px e senza risparmio dati; fuori si fermano
-// e riprendono dal punto, perché il tempo del video non si scrive mai. Il Congedo
-// suona anche durante l'entrata della lastra (A35): il foglio piega il video che
+// Video d'ambiente (spec 2026-09-13 §2.7, §9.2). Il video del Congedo (la clip da
+// 02:00, A29) suona solo in vista, con motion ok, da 768 px e senza risparmio dati;
+// fuori si ferma e riprende dal punto, perché il tempo del video non si scrive mai.
+// Suona anche durante l'entrata della lastra (A35): il foglio piega il video che
 // suona, come Lusion (Alberto, 20 set.). Sotto 768, a 390 e con reduced-motion
-// resta il poster e non parte nessuna richiesta di video.
+// resta il poster e non parte nessuna richiesta di video. L'acqua di Costi chiari
+// (A18 e A20; D25, D28) è uscita dal codice con A72 (22 set. 2026, notte): nessuna
+// richiesta di acqua-1080 deve più partire, da nessuna larghezza.
 // In Chromium di Playwright manca H.264: la sorgente scelta è la WebM.
 
 const VIDEO = /\.(mp4|webm)(\?|$)/;
-const ACQUA = "#costi [data-acqua-band]";
+const ACQUA_FILE = /\/media\/acqua-/;
+// A60 (22 set.): il video di Roberta in «Storie vere» (StoryVideo, con l'audio) non è un video d'ambiente:
+// ha il suo player e il suo poster, e chiede i suoi byte anche sul telefono. Qui non si conta.
+const STORIA_VERA = /\/media\/open-domus-roberta-/;
 const CONGEDO = 'section[aria-labelledby="congedo-title"]';
 
 // L'host del hook è l'elemento con `data-ambient`, sulla sezione o dentro di lei:
@@ -43,10 +47,7 @@ test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
 });
 
-for (const caso of [
-  { nome: "l'acqua di Costi chiari", host: ACQUA, file: /\/media\/acqua-1080\.webm/ },
-  { nome: "il video del Congedo", host: CONGEDO, file: /\/media\/congedo-drone-(1080|720)\.webm/ },
-]) {
+for (const caso of [{ nome: "il video del Congedo", host: CONGEDO, file: /\/media\/congedo-drone-(1080|720)\.webm/ }]) {
   test(`${caso.nome} suona in vista, si ferma fuori e riprende dal punto`, async ({ page, goto, isMobile }) => {
     test.skip(!!isMobile, "sotto 768 resta il poster: lo prova il test del telefono");
     await goto("/");
@@ -84,37 +85,37 @@ test("sul telefono resta il poster: nessuna richiesta di video", async ({ page, 
   test.skip(!isMobile, "è il ramo sotto 768");
   const richieste: string[] = [];
   page.on("request", (r) => {
-    if (VIDEO.test(r.url())) richieste.push(r.url());
+    if (VIDEO.test(r.url()) && !STORIA_VERA.test(r.url())) richieste.push(r.url());
   });
   await goto("/");
   await passataIntera(page);
   expect(richieste).toEqual([]);
-  await expect(hostOf(page, ACQUA)).toHaveAttribute("data-ambient", "off");
   await expect(hostOf(page, CONGEDO)).toHaveAttribute("data-ambient", "off");
 });
 
 // La soglia del gate (spec §2.7: `minWidth` di default MQ.desktop, 768 px) si prova
-// al bordo, fuori dai progetti: a 767 nessun byte di video, a 768 l'acqua suona.
-test("la soglia dei 768 px: a 767 resta il poster, a 768 l'acqua suona", async ({ page, goto, isMobile }) => {
+// al bordo, fuori dai progetti: a 767 nessun byte di video, a 768 il Congedo suona (fino
+// ad A72 lo provava l'acqua di Costi chiari, oggi fuori dal codice).
+test("la soglia dei 768 px: a 767 resta il poster, a 768 il Congedo suona", async ({ page, goto, isMobile }) => {
   test.skip(!!isMobile, "il progetto del telefono ha già la sua larghezza");
   const richieste: string[] = [];
   page.on("request", (r) => {
-    if (VIDEO.test(r.url())) richieste.push(r.url());
+    if (VIDEO.test(r.url()) && !STORIA_VERA.test(r.url())) richieste.push(r.url());
   });
 
   await page.setViewportSize({ width: 767, height: 900 });
   await goto("/");
   await passataIntera(page);
   expect(richieste, "a 767 px è partita una richiesta di video").toEqual([]);
-  await expect(hostOf(page, ACQUA)).toHaveAttribute("data-ambient", "off");
   await expect(hostOf(page, CONGEDO)).toHaveAttribute("data-ambient", "off");
 
   await page.setViewportSize({ width: 768, height: 900 });
   await goto("/");
   await page.waitForTimeout(800);
-  await wheelTo(page, Math.max(0, await quotaDi(page, ACQUA)));
-  await expect.poll(async () => (await stato(page, ACQUA)).ambient, { timeout: 15_000 }).toBe("playing");
-  expect(richieste.some((u) => /\/media\/acqua-1080\.webm/.test(u)), "a 768 px l'acqua non ha chiesto acqua-1080.webm").toBe(true);
+  await wheelTo(page, Math.max(0, await quotaDi(page, CONGEDO)));
+  await expect.poll(async () => (await stato(page, CONGEDO)).ambient, { timeout: 15_000 }).toBe("playing");
+  expect(richieste.some((u) => /\/media\/congedo-drone-(1080|720)\.webm/.test(u)), "a 768 px il Congedo non ha chiesto la sua WebM").toBe(true);
+  expect(richieste.some((u) => ACQUA_FILE.test(u)), "è partita una richiesta dell'acqua, uscita dal codice con A72").toBe(false);
 });
 
 // La sorgente si scrive al warm, prima del primo play: regola del commit 15 (nei suoi
@@ -141,10 +142,7 @@ const sorgente = (page: Page, sel: string): Promise<Sorgente> =>
 const quotaWarm = (page: Page, sel: string) =>
   hostOf(page, sel).evaluate((h) => h.getBoundingClientRect().top + window.scrollY - window.innerHeight * 1.25);
 
-for (const caso of [
-  { nome: "l'acqua di Costi chiari", host: ACQUA, file: /\/media\/acqua-1080\.webm/ },
-  { nome: "il video del Congedo", host: CONGEDO, file: /\/media\/congedo-drone-(1080|720)\.webm/ },
-]) {
+for (const caso of [{ nome: "il video del Congedo", host: CONGEDO, file: /\/media\/congedo-drone-(1080|720)\.webm/ }]) {
   test(`${caso.nome}: la sorgente si scrive al warm, prima del primo play`, async ({ page, goto, isMobile }) => {
     test.skip(!!isMobile, "sotto 768 non si scrive nessuna sorgente: lo prova il test del telefono");
     await goto("/");
@@ -178,13 +176,11 @@ test.describe("con reduced motion", () => {
     test.skip(!!isMobile, "il telefono è coperto dal test sopra");
     const richieste: string[] = [];
     page.on("request", (r) => {
-      if (VIDEO.test(r.url())) richieste.push(r.url());
+      if (VIDEO.test(r.url()) && !STORIA_VERA.test(r.url())) richieste.push(r.url());
     });
     await goto("/");
     await passataIntera(page);
     expect(richieste).toEqual([]);
-    await expect(hostOf(page, ACQUA)).toHaveAttribute("data-ambient", "off");
-    await expect(hostOf(page, CONGEDO)).toHaveAttribute("data-ambient", "off");
-    await expect(page.locator(ACQUA)).toHaveCSS("clip-path", "none");
+      await expect(hostOf(page, CONGEDO)).toHaveAttribute("data-ambient", "off");
   });
 });

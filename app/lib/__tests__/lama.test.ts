@@ -171,7 +171,9 @@ describe("i consumatori (brief §4, D212)", () => {
     assert.match(contact, /objectPosition: "50% 0%"/, "le chiavi dall'alto (D201)");
     assert.match(contact, /frozenDelay=\{120\}/, "su /case il fade-up di oggi (D205)");
     const testim = soloCodice(leggi("app/components/FeaturedTestimonial.tsx"));
-    assert.match(testim, /gesture \? linkHome : linkLama/);
+    // A72: in home il blocco è il pannello del nastro (`panel`, linkPanel); altrove la lama.
+    assert.match(testim, /if \(panel\) \{/);
+    assert.match(testim, /\{linkLama\}/);
     assert.match(testim, /id=\{cotta \? "testimonianza-recensione" : "testimonianza-consulenza"\}/);
     assert.match(testim, /className=\{cotta \? "dt-still-trim--top object-cover" : "object-cover"\}/, "il trim solo sulla copertina cotta (D218)");
     assert.doesNotMatch(testim, /Parallax/, "via la deriva fuori dalla home (D207)");

@@ -41,7 +41,7 @@ export const HOME_ORDER = [
 
 export type HomeChapterId = (typeof HOME_ORDER)[number];
 export type ChapterId = HomeChapterId;
-/** I corridoi costruiti da useCorridor (dal 22 set., A49, la sola cartolina: il tuffo dell'hero è morto); i nastri (storia e, da A57, la finestra), le stelle e la rotaia hanno meccaniche loro. */
+/** I corridoi costruiti da useCorridor (dal 22 set., A49, la sola cartolina: il tuffo dell'hero è morto); i nastri (storia e, da A57 e A72, la finestra e Costi chiari), le stelle e la rotaia hanno meccaniche loro. */
 export type CorridorId = "cartolina";
 
 export type Time = { scrub: number | true } | { dur: number; delay: number; stagger?: number };
@@ -61,6 +61,14 @@ const DT_IN_OUT = "0.75,0,0.25,1";
 const DOMUS_IN_OUT = "M0,0 C0.66,0 0.22,1 1,1";
 const DT_RAIL = "0.5,0,0.5,1";
 const DT_CARTOLINA = "0.45,0,0.15,1";
+// A72: il track del nastro di Costi chiari, a TAPPE: parte morbido, rallenta a una deriva lenta dove il
+// claim dei costi è al centro dello schermo (0,27 → 0,35 della corsa in 0,22 → 0,40 dello scroll) e dove
+// Carmine è al centro (0,58 → 0,65 in 0,58 → 0,76), poi si posa su Seguici. Con la curva di prima (dtPosa,
+// 0.6,0,0.2,1, in-out) il track correva proprio sui due pannelli coi contenuti: Carmine restava intero
+// nello schermo per il 2,5 % della corsa, ora per il 17,4 % (il claim dal 7,8 al 30,1 %; misurato il 22
+// set.). Dista 0,149 dalla curva più vicina del registro (dtSosta di Paths).
+const DT_TAPPE =
+  "M0,0 C0.08,0 0.15,0.239 0.22,0.27 C0.28,0.296 0.34,0.324 0.4,0.35 C0.46,0.376 0.52,0.554 0.58,0.58 C0.64,0.606 0.7,0.624 0.76,0.65 C0.83,0.681 0.92,1 1,1";
 
 export const chapters: Record<ChapterId, Chapter> = {
   // A49/A71 (22 set. 2026, sera): l'hero è la foto alta in flusso, senza corridoio né tuffo (il
@@ -198,33 +206,52 @@ export const chapters: Record<ChapterId, Chapter> = {
       trigger: { el: "#servizi [data-zoom-box]", st: ["top bottom", "bottom bottom"] },
     },
   },
+  // A72 (22 set. 2026, notte; Alberto: «togliamo il video della piscina, e mettiamo un'altra immagine
+  // no-bg alta … stesso stile e animazione dello sticky scroll che poi diventa scroll orizzontale, ed
+  // entra la sezione di Carmine e Seguici»): Costi chiari è un NASTRO come la finestra (HorizonScroller
+  // con la salita). L'acqua che saliva a tempo (A20, D25: expo.out 1,8 s, uscita sine.in 0,7 s) è
+  // morta col suo loop. La firma è nuova (D18: la finestra ha dtInOut/0,15, storia dtHorScroll/0,25):
+  // dtTappe e scrub `true`, il solo track saldato allo scroll (la morbidezza è quella di Lenis).
+  // L'innesco è quello dei nastri con la salita, con la SUA quota: «arrivo» è la salita di A65, il tetto
+  // piatto della villa sotto il titolo fino a metà delle lettere (costi.ts `cimaTitolo`).
   costi: {
     id: "costi",
-    gesture: "l'acqua sale: clip dal basso e loop in vista",
+    gesture: "nastro: la facciata sale dietro il titolo finché il tetto non è a metà delle lettere, poi claim, Carmine e Seguici scorrono di lato con due soste (A72)",
     signature: {
-      ease: "expo.out",
-      time: { dur: 1.8, delay: 0 },
-      trigger: { io: { rootMargin: "0px 0px -20% 0px", threshold: 0 } },
+      ease: "dtTappe",
+      curve: DT_TAPPE,
+      time: { scrub: true },
+      trigger: { el: "#costi", st: ["top+=arrivo top", "top+=arrivo+corsa top"] },
     },
-    secondary: [{ ease: "sine.in", note: "uscita 0,7 s" }],
+    secondary: [
+      { ease: "none", note: "l'arrivo della facciata prima del nastro (la salita di A65: il tetto fino a metà del titolo), lineare, 1:1" },
+      { ease: "dtOut", curve: "0.25,1,0.5,1", note: "sipario del video di Carmine 1,6 s con scala 1,15→1 (il gesto del nastro)" },
+    ],
   },
+  // A72: Carmine è il secondo pannello del nastro. Il gesto resta quello di A20 (la foto affonda del
+  // 10 % dentro la cornice ferma), agganciato al TRACK (containerAnimation): dal bordo destro dello
+  // schermo, quando il pannello entra, al bordo sinistro, quando è uscito (useHorizonTrack).
   testimonianza: {
     id: "testimonianza",
-    gesture: "la foto affonda dentro la cornice ferma",
+    gesture: "la foto affonda dentro la cornice ferma mentre il pannello attraversa lo schermo del nastro (A72)",
     signature: {
       ease: "dtAffonda",
       curve: "0.5,0,0.8,0.45",
       time: { scrub: 1.2 },
-      trigger: { el: "[data-sink-frame]", st: ["bottom bottom", "bottom top"] },
+      trigger: { el: "il pannello di [data-sink-frame], nel track del nastro (containerAnimation)", st: ["left right", "right left"] },
     },
   },
+  // A72: Seguici è il terzo pannello. Il congedo del titolo (A25) resta; nel nastro il trigger è la
+  // SEZIONE (non sticky): dallo sgancio dello schermo, finita la corsa del track, finché il piede del
+  // blocco non esce dal bordo alto. In colonna il trigger è il wrapper fermo del blocco («center
+  // center» → «bottom top», la firma di prima).
   social: {
     id: "social",
-    gesture: "il titolo si congeda: scala 1→1,12 e opacità 1→0, origine 0% 100%",
+    gesture: "il titolo si congeda allo sgancio del nastro: scala 1→1,12 e opacità 1→0, origine 0% 100% (A25, A72)",
     signature: {
       ease: "expo.in",
       time: { scrub: 1.3 },
-      trigger: { el: "blocco eyebrow e titolo di Social", st: ["center center", "bottom top"] },
+      trigger: { el: "#costi, la sezione del nastro, allo sgancio dello schermo", st: ["bottom bottom", "bottom ${schermo − piede del blocco}px"] },
     },
   },
   team: {

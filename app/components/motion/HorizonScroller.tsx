@@ -64,6 +64,21 @@ const CURTAIN_DUR = 1.6;
  *  gira prima dell'effetto del nastro: al momento del cue l'api c'è già. */
 const EnterSlot = createContext<((api: RevealApi) => void) | null>(null);
 
+/** Il canale del TRACK (A72, 22 set. 2026, notte). Un pannello che vuole un gesto agganciato al
+ *  track (containerAnimation, come i sipari) si iscrive qui con useHorizonTrack: il nastro lo chiama
+ *  quando il track esiste — subito, se esiste già — col tween e lo schermo, e tiene la pulizia che il
+ *  gesto restituisce per quando il track muore (cambio di lingua, di media query, smontaggio). Il
+ *  nastro chiama SOLO nel corridoio con motion ok: sotto la soglia il gesto non nasce. Fuori da un
+ *  HorizonScroller il hook rende null. Oggi lo usano i pannelli del nastro di Costi chiari: Carmine
+ *  (la foto affonda mentre il pannello attraversa lo schermo, chapters.ts `testimonianza`) e Seguici
+ *  (il congedo del titolo allo sgancio dello schermo, `social`). */
+export type TrackCb = (tween: gsap.core.Tween, screen: HTMLElement) => void | (() => void);
+export type TrackSub = (cb: TrackCb) => () => void;
+const TrackSlot = createContext<TrackSub | null>(null);
+export function useHorizonTrack(): TrackSub | null {
+  return useContext(TrackSlot);
+}
+
 /** Il gruppo di testo che il nastro fa entrare al suo cue: `enter` di spec §2.4,
  *  manuale con cue a «top 70%» della radice, che esce risalendo (A18 di
  *  Alberto). Oggi lo usa il pannello del manifesto in HorizonStory. Resta
@@ -78,7 +93,8 @@ export function HorizonEnter({ className, children }: { className?: string; chil
   );
 }
 
-/** La firma di `storia` (chapters.ts): il track del nastro di «Perché Domus Tua». */
+/** La firma di `storia` (chapters.ts): il track del nastro di «Perché Domus Tua». I nastri della
+ *  finestra (A57) e di Costi chiari (A72) portano la loro per prop. */
 const STORIA = { ease: "dtHorScroll", scrub: 0.25 } as const;
 
 export default function HorizonScroller({
@@ -121,6 +137,17 @@ export default function HorizonScroller({
   const api = useRef<RevealApi | null>(null);
   const deliver = useCallback((a: RevealApi) => {
     api.current = a;
+  }, []);
+  // Gli iscritti al canale del track, ognuno con la pulizia del suo gesto; `live` è il track di oggi.
+  const subs = useRef(new Map<TrackCb, (() => void) | undefined>());
+  const live = useRef<{ tween: gsap.core.Tween; screen: HTMLElement } | null>(null);
+  const subscribe = useCallback<TrackSub>((cb) => {
+    subs.current.set(cb, live.current ? cb(live.current.tween, live.current.screen) || undefined : undefined);
+    return () => {
+      const off = subs.current.get(cb);
+      subs.current.delete(cb);
+      if (off) off();
+    };
   }, []);
 
   useGSAP(
@@ -318,6 +345,9 @@ export default function HorizonScroller({
           ease,
           scrollTrigger: innesco,
         });
+        // Il track c'è: i gesti dei pannelli iscritti al canale nascono ora (A72).
+        live.current = { tween, screen };
+        for (const cb of subs.current.keys()) subs.current.set(cb, cb(tween, screen) || undefined);
 
         if (tailEl) {
           const coda = (): ScrollTrigger.Vars => ({
@@ -426,6 +456,12 @@ export default function HorizonScroller({
 
         return () => {
           stopRefresh();
+          // I gesti dei pannelli iscritti al canale muoiono col track (A72).
+          for (const [cb, off] of subs.current) {
+            if (off) off();
+            subs.current.set(cb, undefined);
+          }
+          live.current = null;
           screen.removeEventListener("focusin", onFocus);
           ScrollTrigger.removeEventListener("refreshInit", size);
           root.removeAttribute("data-on");
@@ -439,11 +475,13 @@ export default function HorizonScroller({
 
   return (
     <EnterSlot.Provider value={deliver}>
-      <section ref={rootRef} id={id} data-corridor={corridor} className={`dt-horizon ${className}`}>
-        <div className="dt-horizon_screen">
-          <div className="dt-horizon_track">{children}</div>
-        </div>
-      </section>
+      <TrackSlot.Provider value={subscribe}>
+        <section ref={rootRef} id={id} data-corridor={corridor} className={`dt-horizon ${className}`}>
+          <div className="dt-horizon_screen">
+            <div className="dt-horizon_track">{children}</div>
+          </div>
+        </section>
+      </TrackSlot.Provider>
     </EnterSlot.Provider>
   );
 }

@@ -135,6 +135,10 @@ CustomEase.create("dtCartolina", "0.45,0,0.15,1");
 // "dtInOut" = l'InOut di era-residence (0.75,0,0.25,1): firma della finestra di Open Domus,
 // scala 1,84 delle tende e .75 → 1 dello stage (A20 di Alberto, spec §3.1 riga 9).
 CustomEase.create("dtInOut", "0.75,0,0.25,1");
+// "dtTappe": il track del nastro di Costi chiari (A72, 22 set. 2026, notte), con due soste lente — sul
+// claim dei costi (0,27-0,35 della corsa) e su Carmine (0,58-0,65) — e l'arrivo morbido su Seguici;
+// consumatore CostiChiari.tsx via chapters.costi (D18: la finestra ha dtInOut, storia dtHorScroll).
+CustomEase.create("dtTappe", "M0,0 C0.08,0 0.15,0.239 0.22,0.27 C0.28,0.296 0.34,0.324 0.4,0.35 C0.46,0.376 0.52,0.554 0.58,0.58 C0.64,0.606 0.7,0.624 0.76,0.65 C0.83,0.681 0.92,1 1,1");
 // "dtSosta" = la firma di Paths, capitolo 7 (A20 di Alberto, spec 2026-09-13
 // §3.1 e §3.8): le colonne in controfase si fermano allineate mentre la riga
 // passa al centro, tratto quasi piatto fra 0,4 e 0,6 (colonne di Era, CAT §11).
