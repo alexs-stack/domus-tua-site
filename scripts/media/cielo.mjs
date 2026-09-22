@@ -4,7 +4,7 @@
 // mascherato, è no bg: ecco perché sembra un tutt'uno il cielo con il colore dello sfondo del
 // sito. Dobbiamo fare la stessa cosa nel nostro sito, dove ci sono le immagini così alte»). Su
 // era-residence («Architecture», la piscina) il cielo è alpha e il fondo pagina fa da cielo; da
-// noi il fondo è l'avorio #f9f5ef (`--color-cream`): il cielo delle foto alte va via, la villa e
+// noi il fondo è l'avorio #f9ede8 (`--color-cream`): il cielo delle foto alte va via, la villa e
 // il giardino posano sulla carta, e le scritte che stavano «nel cielo» tornano nell'inchiostro
 // della rivista (quello lo fa il layout, non questo script).
 //
@@ -456,7 +456,7 @@ function puntiDaGuardare(alpha, W, H) {
    per guardare cipressi, chiome, tetti, glicine e orizzonti: niente aloni azzurri, niente muri
    mangiati, niente tasche di cielo. */
 async function contatto(esiti, dir) {
-  const AVORIO = "#f9f5ef";
+  const AVORIO = "#f9ede8";
   const TW = 400;
   const ZW = 400;
   const ZH = 300;

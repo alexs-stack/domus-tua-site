@@ -163,7 +163,7 @@ test("su /acquista alla prima entrata suona la corta senza sagoma, su avorio pro
   expect(r.sagoma, "la sagoma della home non va sulle pagine interne").toBe("none");
   expect(r.fondo, "il fondo espresso non va nella corta").toBe("none");
   expect(r.pannello, "il pannello della corta è ancora espresso").not.toBe("rgb(28, 21, 18)");
-  expect(r.pannello, "il pannello della corta non è --color-cream-deep").toBe("rgb(244, 236, 226)");
+  expect(r.pannello, "il pannello della corta non è --color-cream-deep").toBe("rgb(246, 233, 225)");
 
   await expect
     .poll(async () => (await leggi(page)).tCaduto, { timeout: 15_000, message: "la corta non si è chiusa da sola" })

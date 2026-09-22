@@ -90,7 +90,7 @@ const PAVIMENTO = 0.5329;
 export const CANCELLO_ALTA = 1.49;
 /* La banda: le prime 24 righe SORGENTE del ritaglio visibile. */
 const BANDA = 24;
-const AVORIO = "#f9f5ef";
+const AVORIO = "#f9ede8";
 
 const LUT = Array.from({ length: 256 }, (_, i) => {
   const c = i / 255;

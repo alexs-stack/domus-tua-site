@@ -41,25 +41,22 @@ describe("l'ombra sulle immagini, un valore solo (D80)", () => {
   // A54 (Alberto, 22 set. 2026, sera: «metti una lieve ombra se non si legge, o fai le scritte più grandi»): la
   // terza occorrenza è la regola da lg dello spazio sopra la foto delle teste (globals.css «La testa di era»),
   // con lo stesso valore, carattere per carattere.
-  // A47 (Alberto, 22 set. 2026: «questa sezione va sopra l'immagine di open domus»): la quarta occorrenza è
-  // il capitolo di Open Domus posato sulla facciata della finestra in home (globals.css «La finestra di
-  // Open Domus»), lo stesso spazio sopra delle teste, con lo stesso valore.
-  test("in tutto app/ ci sono esattamente quattro occorrenze: la costante, l'utility, lo spazio sopra la foto (A54) e la finestra (A47)", () => {
+  // A54 (22 set., sera) aveva dato l'ombra alle sezioni bianche sopra le foto (terza e quarta occorrenza:
+  // le teste e la finestra di Open Domus); A56 (Alberto, 22 set., pomeriggio: «le scritte bianche sopra le
+  // immagini, mettile di colore grigio, come quello della hero della scritta "domus"») le fa grigie, e col
+  // grigio l'ombra non serve: si torna alle DUE occorrenze di D80.
+  test("in tutto app/ ci sono esattamente due occorrenze: la costante e l'utility (D80; A56 ha tolto l'ombra dalle sezioni sopra le foto)", () => {
     const trovate = sorgenti()
       .map((p) => [p, (leggi(p).match(OMBRA) ?? []).length] as const)
       .filter(([, n]) => n > 0);
     assert.deepEqual(
       trovate,
       [
-        [UTILITY, 3],
+        [UTILITY, 1],
         [COSTANTE, 1],
       ],
-      `l'ombra va dichiarata in quattro posti soli: invece ${trovate.map(([p, n]) => `${p} x${n}`).join(", ") || "nessuno"}`,
+      `l'ombra va dichiarata in due posti soli: invece ${trovate.map(([p, n]) => `${p} x${n}`).join(", ") || "nessuno"}`,
     );
-    const sopra = /\.dt-testa\[data-sopra="foto"\] \.dt-testa_sopra\s*\{[^}]*text-shadow:\s*([^;]+);/.exec(leggi(UTILITY))?.[1];
-    assert.equal(sopra?.trim(), VALORE, "lo spazio sopra la foto non porta il valore del Congedo (A54)");
-    const finestra = /\.dt-od\[data-sopra="foto"\] \.dt-od_content\s*\{[^}]*text-shadow:\s*([^;]+);/.exec(leggi(UTILITY))?.[1];
-    assert.equal(finestra?.trim(), VALORE, "il capitolo sulla facciata della finestra non porta il valore del Congedo (A47)");
   });
 
   test("la costante e l'utility portano lo stesso valore, carattere per carattere", () => {

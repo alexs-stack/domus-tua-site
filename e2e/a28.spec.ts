@@ -21,9 +21,9 @@ const INK = "rgb(70, 66, 61)";
 /** La grafite del lead (`--color-graphite`) ha lo stesso valore dell'inchiostro. */
 const GRAFITE = "rgb(70, 66, 61)";
 const ROSSO = "rgb(210, 10, 10)";
-const CREAM_DEEP = "rgb(244, 236, 226)";
+const CREAM_DEEP = "rgb(246, 233, 225)";
 /** L'avorio della carta, in RGB: i pixel sotto le scritte devono essere questo, ±3 per canale (A46). */
-const AVORIO_RGB = [249, 245, 239] as const;
+const AVORIO_RGB = [249, 237, 232] as const;
 /** D124: dove `tinte.json` dichiara l'avorio, la pagina spedisce un token. A46 (21 set. 2026): col
     cielo mascherato il riquadro si vede attraverso la foto, quindi il token è il FONDO PAGINA. */
 const TOKEN_ALTA = "--color-cream";
@@ -238,8 +238,10 @@ test.describe("la testa", () => {
             // bianco con l'ombra attaccata alle lettere (A54): le sezioni riempiono la foto da lì in giù.
             expect(g.punti.top, `${lang}: i tre punti non stanno sulla foto subito dopo il blocco (A48)`).toBeGreaterThanOrEqual(g.blocco!.bottom - 1);
             expect(g.punti.top, `${lang}: i tre punti stanno troppo sotto il blocco`).toBeLessThanOrEqual(g.blocco!.bottom + 80);
-            expect(g.stili.punti?.color, `${lang}: sulla foto i tre punti non sono bianchi (A48)`).toBe("rgb(255, 255, 255)");
-            expect(g.stili.punti?.shadow, `${lang}: sulla foto i tre punti non portano l'ombra attaccata alle lettere (A54)`).not.toBe("none");
+            // A56 (22 set., pomeriggio: «le scritte bianche sopra le immagini, mettile di colore grigio, come quello della
+            // hero della scritta "domus"»): il grigio del lockup (`--color-graphite`), senza l'ombra di A54.
+            expect(g.stili.punti?.color, `${lang}: sulla foto i tre punti non sono nel grigio del lockup (A56)`).toBe("rgb(70, 66, 61)");
+            expect(g.stili.punti?.shadow, `${lang}: sulla foto i tre punti portano ancora l'ombra (A56: col grigio non serve)`).toBe("none");
           } else if (g.punti) {
             // Nessuna banda scura (/recensioni, il muro bianco a sinistra): i tre punti seguono la foto, in pietra sulla carta.
             expect(g.punti.top, `${lang}: senza banda i tre punti non seguono la foto (A48)`).toBeGreaterThanOrEqual(g.foto!.bottom - 2);
@@ -273,7 +275,7 @@ test.describe("la testa", () => {
           // Il WebP col cielo trasparente dove c'è (A46), altrimenti la sorgente.
           expect(g.currentSrc ?? "", `${lang}: la foto montata non è quella di tinte.json`).toContain(encodeURIComponent(tinte[rotta].cielo.file ?? tinte[rotta].file));
           // I fondi: il riquadro è la carta, la scatola della foto porta il placeholder (la tinta alta, D125), lo spazio sopra è nudo.
-          expect(g.fondoRiquadro, `${lang}: il riquadro non è la carta (A46)`).toBe(rgb("#f9f5ef"));
+          expect(g.fondoRiquadro, `${lang}: il riquadro non è la carta (A46)`).toBe(rgb("#f9ede8"));
           expect(g.fondoFoto, `${lang}: la scatola della foto non porta la tinta di attesa (D125)`).toBe(await tintaAttesa(page, rotta));
           expect(g.fondoStrato, `${lang}: lo strato ha un fondo: colorerebbe lo spazio sotto la foto (A48)`).toBe("rgba(0, 0, 0, 0)");
           expect(g.fondoPagina, `${lang}: lo spazio sopra la foto ha un fondo (A48: niente velo)`).toBe("rgba(0, 0, 0, 0)");
@@ -413,8 +415,9 @@ test.describe("la ricerca sulla foto (A48)", () => {
       expect(r.top, "la ricerca non viene dopo i tre punti").toBeGreaterThanOrEqual(g.punti!.bottom - 1);
       if (c.suFoto) {
         expect(r.bottom, "la ricerca esce dalla foto").toBeLessThanOrEqual(g.foto!.bottom + 1);
-        expect(r.color, "sulla foto il campo non è bianco (A48, A40)").toBe("rgb(255, 255, 255)");
-        expect(r.occhiello, "sulla foto l'occhiello non è bianco").toBe("rgb(255, 255, 255)");
+        // A56: il grigio del lockup al posto del bianco.
+        expect(r.color, "sulla foto il campo non è nel grigio del lockup (A56)").toBe("rgb(70, 66, 61)");
+        expect(r.occhiello, "sulla foto l'occhiello non è nel grigio del lockup (A56)").toBe("rgb(70, 66, 61)");
       } else {
         expect(r.top, "sotto lg la ricerca non segue la foto").toBeGreaterThanOrEqual(g.foto!.bottom - 1);
         expect(r.color, "sotto lg il campo non è inchiostro").toBe(INK);
@@ -689,7 +692,7 @@ test.describe("senza JS e con moto ridotto", () => {
         expect(g.corridoi).toBe(0);
         expect(g.stili.h1!.color).toBe(INK);
         expect(g.stili.lead!.color).toBe(GRAFITE);
-        expect(g.fondoRiquadro).toBe(rgb("#f9f5ef"));
+        expect(g.fondoRiquadro).toBe(rgb("#f9ede8"));
         expect(Math.abs(g.blocco!.top)).toBeLessThanOrEqual(1);
         await page.evaluate(() => window.scrollTo({ top: 500, behavior: "instant" }));
         await page.waitForTimeout(400);
@@ -988,11 +991,11 @@ test.describe("le tinte", () => {
     expect(scatola, "la scatola della foto non prende la tinta alta").toBe(await tintaAttesa(page, "/vendi"));
     expect(await page.locator("[data-testa-strato]").first().evaluate((el) => getComputedStyle(el).backgroundColor), "lo strato ha un fondo: colorerebbe lo spazio sotto la foto (A48)").toBe("rgba(0, 0, 0, 0)");
     const riquadro = await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(riquadro, "il riquadro della testa non è la carta (A46)").toBe(rgb("#f9f5ef"));
+    expect(riquadro, "il riquadro della testa non è la carta (A46)").toBe(rgb("#f9ede8"));
     // Su un interno la tinta misurata (D123) resta sullo strato e la carta resta avorio.
     await goto("/chi-siamo");
     expect(await page.locator("[data-testa-foto-box]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await tintaAttesa(page, "/chi-siamo"));
-    expect(await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(rgb("#f9f5ef"));
+    expect(await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(rgb("#f9ede8"));
     await goto("/vendi");
     const modulo = await page.evaluate(() => {
       const el = document.createElement("div");
@@ -1002,7 +1005,7 @@ test.describe("le tinte", () => {
       el.remove();
       return c;
     });
-    expect(modulo).toBe(rgb("#f4ece2"));
+    expect(modulo).toBe(rgb("#f6e9e1"));
   });
 });
 

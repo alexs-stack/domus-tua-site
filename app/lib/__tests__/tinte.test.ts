@@ -58,7 +58,7 @@ const tinte = JSON.parse(leggi("app/lib/motion/tinte.json")) as Record<string, V
 /* I pavimenti di §4.3: assoluto = 4,5:1 con ink #46423d («nessuna sezione scura» detto con una
    cifra); di lavoro = 4,5:1 col rosso cupo #a30707 e con «Menu» grafite sulla barra. */
 const PAVIMENTI = { assoluto: 0.4241, lavoro: 0.5329 };
-const AVORIO = "#f9f5ef";
+const AVORIO = "#f9ede8";
 
 /* D124: il token che la pagina spedisce dove il JSON dichiara l'avorio, col suo valore in
    globals.css. A46: è il FONDO PAGINA, perché col cielo trasparente il riquadro non deve
@@ -215,7 +215,7 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
   });
 
   test("i pavimenti di chiarezza, sul valore che la pagina spedisce: nessuna sezione scura (§4.3, D124)", () => {
-    assert.equal(HEX_TOKEN_ALTA, "#f9f5ef", "il token dell'avorio (A46: il fondo pagina) non vale più quel che valeva");
+    assert.equal(HEX_TOKEN_ALTA, "#f9ede8", "il token dell'avorio (A46: il fondo pagina) non vale più quel che valeva");
     const scuro = lumaY(daHex("#aeaeae"));
     for (const [rotta, v] of Object.entries(tinte)) {
       const y = spedita(v.alta).y;

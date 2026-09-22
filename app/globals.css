@@ -55,10 +55,10 @@
   --color-ink: #46423d;
   --color-graphite: #46423d;
   --color-stone: #6b665f;
-  --color-line: #e4dccf;
-  --color-cream: #f9f5ef;
-  --color-cream-deep: #f4ece2;
-  --color-paper: #fffdf8;
+  --color-line: #e8d8d0;
+  --color-cream: #f9ede8;
+  --color-cream-deep: #f6e9e1;
+  --color-paper: #fff9f6;
 
   /* Darks caldi (bordeaux/espresso) — profondità nelle sezioni scure, mai grigio/nero piatto */
   --color-espresso: #1c1512;
@@ -209,7 +209,7 @@
 }
 
 :root {
-  --background: #f9f5ef;
+  --background: #f9ede8;
   --foreground: #46423d;
 }
 
@@ -676,18 +676,18 @@ blockquote * {
     inset: 0;
     aspect-ratio: auto;
   }
+  /* A56 (22 set., pomeriggio): come lo spazio sopra delle teste, nel grigio del lockup e senza ombra. */
   .dt-od[data-sopra="foto"] .dt-od_content {
     position: relative;
     z-index: 1;
     padding-top: calc(100% * var(--dt-od-sopra));
-    color: #fff;
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 0 28px rgb(0 0 0 / 0.45);
+    color: var(--color-graphite);
   }
   .dt-od[data-sopra="foto"] .dt-od_content .text-body {
     font-size: var(--text-lead);
   }
   .dt-od[data-sopra="foto"] .dt-od_content :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, h2, h3, h4, p, li) {
-    color: #fff;
+    color: var(--color-graphite);
   }
   .dt-od[data-sopra="foto"] .dt-od_content :is(.bg-cream, .bg-paper, .bg-cream-deep) {
     background-color: transparent;
@@ -2982,10 +2982,14 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
      valgono le regole base anche da lg: lo spazio sopra segue la foto, in inchiostro. Da lg lo
      spazio comincia al fondo del blocco (A48) e le scritte sono bianche con l'ombra attaccata alle
      lettere (A54: il valore di ink-media.ts, ink-media.test lo pinna carattere per carattere). */
+  /* A56 (Alberto, 22 set. 2026, pomeriggio: «le scritte bianche sopra le immagini, mettile di colore
+     grigio, come quello della hero della scritta "domus"»): il colore è quello del lockup,
+     `--color-graphite`, e senza ombra — l'ombra di A54 reggeva il bianco, il grigio non ne ha bisogno
+     (ink-media.test torna alle due occorrenze di D80). Le utility di colore dentro le sezioni cedono
+     al grigio; righe e segnaposto lo portano attenuato con color-mix, mai un bianco. */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra {
     padding-top: calc(100% * var(--dt-cielo-h, 0));
-    color: #fff;
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 0 28px rgb(0 0 0 / 0.45);
+    color: var(--color-graphite);
   }
   /* «o fai le scritte più grandi» (A54): sulla foto il corpo di testo sale alla misura del lead. */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra .text-body {
@@ -2996,25 +3000,22 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
     aspect-ratio: auto;
   }
   .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, input, select, h2, h3, h4, p, li, dt, dd) {
-    color: #fff;
+    color: var(--color-graphite);
   }
   /* Le tendine della ricerca sulla foto (A52): le opzioni aperte restano native (inchiostro su carta). */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra select option {
     color: var(--color-ink);
   }
-  /* Il campo e le tendine della ricerca di /acquista (A48, A52): riga e segnaposto bianchi sulla foto;
-     `border-ink!` è un'utility importante, quindi anche qui serve l'importante. */
+  /* Il campo e le tendine della ricerca di /acquista (A48, A52): il segnaposto nel grigio attenuato; la riga
+     sotto il campo è l'utility `border-ink!`, che col grigio è già giusta. */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra input::placeholder {
-    color: rgb(255 255 255 / 0.72);
-  }
-  .dt-testa[data-sopra="foto"] .dt-testa_sopra .border-ink\! {
-    border-color: rgb(255 255 255 / 0.7) !important;
+    color: color-mix(in srgb, var(--color-graphite) 72%, transparent);
   }
   .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.bg-cream, .bg-paper, .bg-cream-deep) {
     background-color: transparent;
   }
   .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.border-line, .border-t, .border-b) {
-    border-color: rgb(255 255 255 / 0.45);
+    border-color: color-mix(in srgb, var(--color-graphite) 45%, transparent);
   }
 }
 /* 2.4.7: sull'avorio il bottone rosso pieno tiene l'anello del sito (rosso 2 px a offset 3,

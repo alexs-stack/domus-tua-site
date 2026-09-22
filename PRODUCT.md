@@ -75,8 +75,8 @@ stanno in `DESIGN.md`.
 
 ### Colore
 
-- Palette: rosso #d20a0a (un accento per vista) + neutri caldi carta #fffdf8, avorio #f9f5ef,
-  avorio profondo #f4ece2 + inchiostro #46423d (uguale alla grafite), pietra #6b665f, filo #e4dccf.
+- Palette: rosso #d20a0a (un accento per vista) + neutri caldi carta #fff9f6, avorio #f9ede8,
+  avorio profondo #f6e9e1 + inchiostro #46423d (uguale alla grafite), pietra #6b665f, filo #e8d8d0.
   Il rosso cupo #a30707 è lo stato hover/focus dei bottoni rossi e, a riposo, il colore dei testi
   rossi che devono reggere sull'avorio (errori e conferme dei form, chip dei filtri, contatore
   della mappa).
@@ -172,7 +172,7 @@ stanno in `DESIGN.md`.
   A48 e A54 (22 set.: «portare le sezioni più sopra in modo che la foto sia semplicemente lo sfondo
   della pagina», «dobbiamo riempire più spazi possibili nelle foto alte a schermo intero», «metti
   una lieve ombra se non si legge, o fai le scritte più grandi») i tre punti e le sezioni che la
-  pagina posa sulla foto partono subito sotto il blocco e la riempiono, in bianco con l'ombra
+  pagina posa sulla foto partono subito sotto il blocco e la riempiono, nel grigio del lockup e senza ombra (A56, 22 set.: «le scritte bianche sopra le immagini, mettile di colore grigio, come quello della hero della scritta "domus"»; fino ad A56 in bianco con l'ombra)
   attaccata alle lettere (il valore unico del sito, decisione di lavoro D80) e coi corpi di testo
   alla misura del lead; su /acquista la ricerca intelligente sta lì, sulla foto, dopo la scritta
   della testa (A52), e a fine foto la foto si chiude nella cornice della cartolina (A53). Per quelle
@@ -181,7 +181,7 @@ stanno in `DESIGN.md`.
   22 set. (A47: «deve continuare, abbiamo fatto le immagini alte apposta per poterci scrollare a schermo
   intero senza uscire dalla foto»; «questa sezione va sopra l'immagine di open domus») la foto è la
   facciata 9:16 intera, che continua sotto la piega dopo le tende, col capitolo di Open Domus posato
-  sulla sua metà bassa in bianco con l'ombra. Su /chi-siamo i valori posano sulla foto della testa (A54).
+  sulla sua metà bassa nel grigio del lockup (A56). Su /chi-siamo i valori posano sulla foto della testa (A54).
 - CTA corte (decisione di lavoro, 11 set.): «Richiedi la valutazione» e le sue traduzioni corte su
   tutte le superfici, perché quella lunga sul telefono andava a capo. Resta l'heroPrimary tedesco
   di `ServiziContent.tsx`.

@@ -231,11 +231,14 @@ describe("dove vive la finestra", () => {
     );
     assert.ok(regole.every((r) => !(/\.dt-od_window$/.test(r.sel) && /height:\s*100svh/.test(r.body))), "la foto è ancora ritagliata a uno schermo (A47)");
     assert.ok(regole.some((r) => /\.dt-od_run$/.test(r.sel) && /height:\s*200svh/.test(r.body)));
-    // Il capitolo sulla foto: dal 55 % dell'altezza (`--dt-od-sopra`), bianco con l'ombra del sito (A54).
+    // Il capitolo sulla foto: dal 55 % dell'altezza (`--dt-od-sopra`), nel grigio del lockup e senza ombra (A56,
+    // 22 set.: «le scritte bianche sopra le immagini, mettile di colore grigio, come quello della hero della
+    // scritta "domus"»).
     assert.ok(regole.every((r) => !(/\.dt-od_content$/.test(r.sel) && /padding-top:\s*22svh/.test(r.body))), "la soglia dei 22svh è tornata (A47)");
     const sopra = regole.find((r) => /\.dt-od\[data-sopra="foto"\] \.dt-od_content$/.test(r.sel) && /padding-top:\s*calc\(100% \* var\(--dt-od-sopra\)\)/.test(r.body));
     assert.ok(sopra, "il capitolo non posa sulla foto dal 55 % (A47)");
-    assert.match(sopra!.body, /color:\s*#fff;/, "il capitolo sulla foto non è bianco (A54)");
+    assert.match(sopra!.body, /color:\s*var\(--color-graphite\);/, "il capitolo sulla foto non è nel grigio del lockup (A56)");
+    assert.doesNotMatch(sopra!.body, /text-shadow|#fff\b/, "il capitolo sulla foto porta ancora il bianco o l'ombra (A56)");
     // I marcatori del segno sulle travi: assoluti nella scatola, larghi tutto (come .dt-testa_soggetto).
     assert.ok(regole.some((r) => /\.dt-od_soggetto$/.test(r.sel) && /position:\s*absolute/.test(r.body) && /pointer-events:\s*none/.test(r.body)), "manca la regola dei marcatori del segno");
     // Il marcatore `foto-chiara` copre la foto fino alla fine dell'area: la facciata continua dopo la pista.

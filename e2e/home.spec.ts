@@ -1171,7 +1171,10 @@ test.describe("la finestra di Open Domus", () => {
       expect(dopo.winH / dopo.vh, "la finestra non è alta più di due schermi").toBeGreaterThan(2);
       expect(dopo.cTop, "il capitolo non posa sulla metà bassa della foto (A47)").toBeGreaterThan(dopo.winTop + 0.5 * dopo.winH - 2);
       expect(dopo.cBottom, "il capitolo esce dalla foto").toBeLessThanOrEqual(dopo.winBottom + 2);
-      await expect(page.locator("#open-domus .dt-od_content .eyebrow").first()).toHaveCSS("color", "rgb(255, 255, 255)");
+      // A56 (22 set., pomeriggio): nel grigio del lockup, senza ombra, non più in bianco.
+      const occhiello = page.locator("#open-domus .dt-od_content .eyebrow").first();
+      await expect(occhiello).toHaveCSS("color", "rgb(70, 66, 61)");
+      await expect(occhiello).toHaveCSS("text-shadow", "none");
     });
   }
 
@@ -1203,7 +1206,7 @@ test.describe("la finestra di Open Domus", () => {
       const i = (Math.round(y * k) * info.width + Math.round(x * k)) * info.channels;
       return [data[i], data[i + 1], data[i + 2]];
     };
-    const avorio = (p: number[]) => Math.abs(p[0] - 249) <= 3 && Math.abs(p[1] - 245) <= 3 && Math.abs(p[2] - 239) <= 3;
+    const avorio = (p: number[]) => Math.abs(p[0] - 249) <= 3 && Math.abs(p[1] - 237) <= 3 && Math.abs(p[2] - 232) <= 3;
     // A schermo intero lo stage sticky può stare qualche decina di px sopra il bordo (a 1440×900 la
     // finestra comincia a −84): si campiona la parte VISIBILE della finestra. Il cielo trasparente della
     // facciata è sottile in cima (le punte dei cipressi ai lati stanno a 0,121 dell'altezza della foto).

@@ -104,7 +104,7 @@ for (const f of FOTO) {
   const meta = await src.metadata();
   const h = Math.round((meta.height * f.w) / meta.width);
   const out = join(REALI, f.out);
-  const info = await src.resize(f.w, h, { kernel: "lanczos3" }).flatten({ background: "#f9f5ef" }).jpeg(JPG).toFile(out);
+  const info = await src.resize(f.w, h, { kernel: "lanczos3" }).flatten({ background: "#f9ede8" }).jpeg(JPG).toFile(out);
   console.log(`${f.out}  ${info.width}×${info.height}  ${mib(info.size)}  (${f.uso})`);
 }
 
@@ -129,7 +129,7 @@ for (const h of HERO) {
   const top = H - sagH; // il bordo basso del ritaglio sul bordo basso del canvas
   const out = join(MEDIA, h.out);
   const info = await src
-    .flatten({ background: "#f9f5ef" })
+    .flatten({ background: "#f9ede8" })
     .composite([{ input: sagoma, left: 0, top }])
     .jpeg(JPG)
     .toFile(out);
