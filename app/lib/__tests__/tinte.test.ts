@@ -35,7 +35,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
-import { CANCELLO_ALTA, SCATOLA as SCATOLA_DELLO_SCRIPT, SEGNO, SOPRA, misuraSegno, misuraSopra, ritaglio } from "../../../scripts/media/tinte.mjs";
+import { CANCELLO_ALTA, SCATOLA as SCATOLA_DELLO_SCRIPT, SEGNO, misuraSegno, ritaglio } from "../../../scripts/media/tinte.mjs";
 import { FOTO as CIELI, fileCielo, misuraCielo } from "../../../scripts/media/cielo.mjs";
 
 const ROOT = process.cwd();
@@ -52,8 +52,6 @@ type Voce = {
   cielo: Cielo;
   /** Le bande del segno (22 set. 2026, C01/G02): dove, nella striscia del segno, la foto è opaca e scura. */
   segno: Array<[number, number]>;
-  /** La banda scura dello spazio sopra (A48, 22 set. 2026): la corsa più lunga in cui, nella colonna del testo, la foto regge il bianco nudo; null se non c'è. */
-  sopra: [number, number] | null;
 };
 const tinte = JSON.parse(leggi("app/lib/motion/tinte.json")) as Record<string, Voce>;
 
@@ -172,7 +170,7 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
       const v = tinte[rotta];
       assert.equal(v.trattamento, trattamento, `${rotta}: trattamento fuori dal repertorio di §0`);
       assert.ok(existsSync(join(ROOT, "public", v.file)), `${rotta}: manca public${v.file}`);
-      assert.deepEqual(Object.keys(v).sort(), ["alta", "cielo", "file", "objectPosition", "segno", "sopra", "sorgente", "trattamento"], `${rotta}: campi`);
+      assert.deepEqual(Object.keys(v).sort(), ["alta", "cielo", "file", "objectPosition", "segno", "sorgente", "trattamento"], `${rotta}: campi`);
     }
     // La scatola con cui lo script misura è quella dichiarata qui, non un'altra.
     assert.deepEqual(SCATOLA_DELLO_SCRIPT, SCATOLA, "la scatola di scripts/media/tinte.mjs non è il riquadro del telefono");
@@ -275,7 +273,7 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
       { cwd: ROOT, encoding: "utf8", timeout: 30_000 },
     );
     assert.equal(figlio.status, 0, figlio.stderr);
-    assert.equal(figlio.stdout.trim(), "CANCELLO_ALTA,SCATOLA,SEGNO,SOPRA,misuraSegno,misuraSopra,ritaglio", "l'import ha stampato altro: la pipeline è partita");
+    assert.equal(figlio.stdout.trim(), "CANCELLO_ALTA,SCATOLA,SEGNO,misuraSegno,ritaglio", "l'import ha stampato altro: la pipeline è partita");
     assert.equal(statSync(json).mtimeMs, prima, "l'import ha riscritto tinte.json");
     // A46: lo stesso per cielo.mjs, che tinte.mjs importa: nessun WebP riscritto.
     const webp = join(ROOT, "public", tinte["/vendi"].cielo.file ?? "");
@@ -554,77 +552,3 @@ describe("le bande del segno (22 set. 2026)", () => {
   });
 });
 
-// ── La banda scura dello spazio sopra (A48 di Alberto, 22 set. 2026) ────────────────────────────────
-// «si le scritte in bianco, ma non vanno dopo la foto "in fondo" … ma sopra la foto proprio»: i tre punti e
-// le sezioni che la pagina posa sulla foto stanno in bianco nudo (A40) dentro la foto. Cominciare al fondo
-// del blocco (la cima del soggetto) li metteva sul cielo trasparente — che è la carta — e sui muri bianchi
-// della villa: bianco su avorio, invisibili (pellicole del 22 set.: /vendi sui cipressi e sul tetto,
-// /recensioni sul muro bianco, /lavora-con-noi sulle travi). tinte.mjs misura, nella colonna del testo
-// (8-92 % della larghezza, la `dt-row`) divisa in TRE TERZI (i tre punti stanno in tre colonne; la piscina
-// di /vendi cominciava col bordo assolato a sinistra), la corsa più lunga di righe in cui in OGNI terzo i pixel
-// CHIARI (trasparenti, cioè carta, o con Y lineare > 0,48 ≈ #bbb) sono al più il 35 %, e la scrive in
-// `sopra: [da, a]`; PageHero ne fa `--dt-sopra-h` (da × altezza / larghezza) e lo spazio sopra comincia lì
-// da lg. Dove non c'è banda (`null`: /recensioni, col muro bianco a sinistra per tutta la foto) la testa
-// porta `data-sopra="carta"` e lo spazio sopra segue la foto in inchiostro anche da lg.
-describe("la banda scura dello spazio sopra (A48, 22 set. 2026)", () => {
-  test("ogni rotta ha `sopra`: null o una corsa [da, a] in frazione dell'altezza, lunga almeno l'8 %, mai sopra la cima del soggetto", () => {
-    for (const [rotta, v] of Object.entries(tinte)) {
-      assert.ok("sopra" in v, `${rotta}: manca sopra`);
-      if (v.sopra === null) continue;
-      const [da, a] = v.sopra;
-      assert.ok(da >= 0 && a <= 1 && a - da >= SOPRA.minimo - 1e-9, `${rotta}: banda ${da}-${a}`);
-      assert.ok(da >= v.cielo.cima - 1e-9, `${rotta}: la banda comincia sul cielo trasparente (${da} < cima ${v.cielo.cima})`);
-    }
-  });
-
-  test("le bande di /vendi, /acquista, /recensioni e /lavora-con-noi (le rotte coi tre punti) sono quelle che misuraSopra rilegge dal file montato", async () => {
-    for (const rotta of ["/vendi", "/acquista", "/recensioni", "/lavora-con-noi"]) {
-      const v = tinte[rotta];
-      const { data, info } = await sharp(join(ROOT, "public", v.cielo.file ?? v.file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-      assert.deepEqual(misuraSopra(data, info.width, info.height), v.sopra, `${rotta}: la banda in tinte.json non è quella del file`);
-    }
-  });
-
-  test("i casi che hanno fatto nascere la misura: /vendi sulla piscina oltre il bordo assolato, /acquista sul prato, /recensioni nessuna banda (il muro bianco a sinistra), /lavora-con-noi sulla scrivania", () => {
-    assert.ok(tinte["/vendi"].sopra && tinte["/vendi"].sopra[0] >= 0.7, "/vendi: il bianco posa sui muri o sul bordo assolato della piscina (e2e del 22 set.: 66 % di chiari sotto il primo punto)");
-    assert.ok(tinte["/acquista"].sopra && tinte["/acquista"].sopra[0] >= 0.45 && tinte["/acquista"].sopra[0] <= 0.6, "/acquista: il bianco non posa sul prato");
-    assert.equal(tinte["/recensioni"].sopra, null, "/recensioni: il muro bianco a sinistra corre per tutta la foto (96 % di chiari sotto il primo punto): nessuna banda, i punti restano sulla carta");
-    assert.ok(tinte["/lavora-con-noi"].sopra && tinte["/lavora-con-noi"].sopra[0] >= 0.6, "/lavora-con-noi: il bianco posa sulle travi chiare");
-  });
-
-  test("misuraSopra su un caso sintetico: metà alta bianca, metà bassa scura → [0.5, 1]; tutto chiaro → null; la corsa più lunga vince", () => {
-    const W = 100, H = 200;
-    const tela = (riga: (y: number) => number) => {
-      const rgba = new Uint8Array(W * H * 4);
-      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; const v = riga(y); rgba[i] = rgba[i + 1] = rgba[i + 2] = v; rgba[i + 3] = 255; }
-      return rgba;
-    };
-    assert.deepEqual(misuraSopra(tela((y) => (y < 100 ? 250 : 40)), W, H), [0.5, 1]);
-    assert.equal(misuraSopra(tela(() => 250), W, H), null);
-    // Due corse scure: 10 % in cima e 40 % in fondo: vince la lunga.
-    assert.deepEqual(misuraSopra(tela((y) => (y < 20 || y >= 120 ? 40 : 250)), W, H), [0.6, 1]);
-    // Trasparente = chiaro: una tela scura ma trasparente non è una banda.
-    const t = tela(() => 40); for (let i = 3; i < t.length; i += 4) t[i] = 0;
-    assert.equal(misuraSopra(t, W, H), null);
-    // Per terzi: un muro bianco sul terzo sinistro per tutta l'altezza (come /recensioni) toglie la banda anche se
-    // la riga nel suo insieme è scura per due terzi.
-    const muro = tela(() => 40); for (let y = 0; y < H; y++) for (let x = 0; x < 36; x++) { const i = (y * W + x) * 4; muro[i] = muro[i + 1] = muro[i + 2] = 250; }
-    assert.equal(misuraSopra(muro, W, H), null);
-  });
-
-  test("PageHeroTesta porta data-sopra: «foto» dove c'è la banda, «carta» dove non c'è (lo spazio sopra segue la foto in inchiostro anche da lg)", () => {
-    const hero = soloCodice(leggi("app/components/PageHero.tsx"));
-    assert.match(hero, /suFoto=\{tinta\.sopra !== null\}/, "PageHero non dice a PageHeroTesta se c'è la banda");
-    const testa = soloCodice(leggi("app/components/motion/PageHeroTesta.tsx"));
-    assert.match(testa, /data-sopra=\{suFoto \? "foto" : "carta"\}/, "PageHeroTesta non porta data-sopra");
-    const css = leggi("app/globals.css");
-    assert.doesNotMatch(css, /@media \(min-width: 64rem\)[^@]*\n  \.dt-testa_sopra\s*\{/, "una regola da lg sullo spazio sopra senza il cancello [data-sopra=\"foto\"]");
-  });
-
-  test("PageHero scrive --dt-sopra-h dalla banda (o dalla cima se non c'è) e globals.css la usa per lo spazio sopra da lg", () => {
-    const hero = soloCodice(leggi("app/components/PageHero.tsx"));
-    assert.match(hero, /--dt-sopra-h:\$\{cieloH\(tinta\.sopra\?\.\[0\] \?\? tinta\.cielo\.cima, tinta\.sorgente\)\}/, "PageHero non scrive --dt-sopra-h dalla banda scura");
-    const css = leggi("app/globals.css");
-    assert.match(css, /\.dt-testa_sopra\s*\{[^}]*padding-top:\s*calc\(100% \* var\(--dt-sopra-h, var\(--dt-cielo-h, 0\)\)\)/, "lo spazio sopra non comincia alla banda scura da lg");
-  });
-});

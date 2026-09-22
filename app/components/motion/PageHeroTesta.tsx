@@ -36,13 +36,15 @@
 // - `.dt-testa_sopra` è lo spazio DENTRO lo strato, dopo l'immagine (A48 di Alberto, 22 set.
 //   2026: «portare le sezioni più sopra in modo che la foto sia semplicemente lo sfondo della
 //   pagina»): in flusso, coi tre punti e le sezioni che la pagina posa sulla foto (`sopra`).
-//   Da lg comincia alla BANDA SCURA della foto (`padding-top` = `--dt-sopra-h`: la corsa in cui
-//   ogni terzo della colonna del testo regge il bianco, `sopra` di tinte.json misurata da tinte.mjs)
-//   in bianco nudo (A40) e senza fondo: lo strato è alto max(foto, banda + contenuto) e l'immagine
-//   copre dall'alto; sotto lg comincia dopo la foto (`padding-top` = l'altezza della foto,
-//   `--dt-testa-hw`), in inchiostro; da lg il bianco vale solo con `data-sopra="foto"` (la foto ha una
-//   banda scura per il bianco), altrimenti (`carta`: /recensioni) anche da lg lo spazio sopra segue la
-//   foto in inchiostro. La foto e i marcatori stanno nella scatola `.dt-testa_foto`
+//   Da lg comincia subito sotto il blocco (`padding-top` = il cielo, `--dt-cielo-h`) in bianco con
+//   l'ombra attaccata alle lettere del sito (A54, 22 set. sera: «metti una lieve ombra se non si
+//   legge, o fai le scritte più grandi»; «dobbiamo riempire più spazi possibili nelle foto alte a
+//   schermo intero») e senza fondo: lo strato è alto max(foto, cielo + contenuto) e l'immagine copre
+//   dall'alto; sotto lg comincia dopo la foto (`padding-top` = l'altezza della foto, `--dt-testa-hw`),
+//   in inchiostro; da lg il bianco vale con `data-sopra="foto"` (le teste con la foto della villa),
+//   con `carta` (i due legali) anche da lg lo spazio sopra segue la foto in inchiostro. Dopo lo
+//   spazio sopra, ChiusuraFoto (A53): la coda libera della foto si ritira nella cornice della
+//   cartolina mentre sale. La foto e i marcatori stanno nella scatola `.dt-testa_foto`
 //   (assoluta in cima allo strato: da lg riempie lo strato, sotto lg è alta quanto la foto resa), così
 //   le bande del segno restano frazioni della FOTO anche quando lo strato cresce col contenuto;
 // - lo stato del CSS è lo stato a riposo: senza JS e con reduced-motion la pagina è
@@ -58,6 +60,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { SIZES_TESTA } from "../../lib/motion/testa";
+import ChiusuraFoto from "./ChiusuraFoto";
 
 export default function PageHeroTesta({
   id,
@@ -76,7 +79,7 @@ export default function PageHeroTesta({
   segno: ReadonlyArray<ReadonlyArray<number>>;
   /** Il blocco dei testi, centrato sull'avorio sopra il soggetto (lead; occhiello, H1, calligrafia; comandi): lo compone PageHero. */
   blocco: ReactNode;
-  /** A48: la foto ha una banda scura per il bianco (`sopra` di tinte.json)? Se no, lo spazio sopra segue la foto in inchiostro anche da lg. */
+  /** A48/A54: la testa ha la foto della villa (trattamento «testa»)? Allora da lg lo spazio sopra sta sulla foto, in bianco con l'ombra; altrimenti («carta») la segue in inchiostro. */
   suFoto: boolean;
   /** Lo spazio sopra la foto (A48): i tre punti e le sezioni che la pagina posa sulla foto; vuoto dove non c'è niente. */
   sopra?: ReactNode;
@@ -110,6 +113,7 @@ export default function PageHeroTesta({
             ))}
           </div>
           <div className="dt-testa_sopra">{sopra}</div>
+          <ChiusuraFoto />
         </div>
       </div>
     </section>

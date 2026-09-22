@@ -739,21 +739,24 @@ export default function OpenDomusPageContent() {
              «Una visita» stamperebbe le stesse due parole, in rosso, sopra se
              stesse. Qui la parola aggiunge il tempo, che il titolo non dice. */
           scriptWord={{ it: "Tre ore", en: "Three hours", fr: "Trois heures", de: "Drei Stunden", es: "Tres horas" }[locale]}
+          /* A48/A54 (Alberto, 22 set. 2026): il claim di prodotto posa SULLA foto della testa, in
+             bianco con l'ombra («riempire più spazi possibili nelle foto alte a schermo intero»);
+             sotto lg segue la foto in inchiostro. Era la prima sezione sull'avorio. */
+          sopra={
+            <section className="dt-chapter bg-cream">
+              <div className="dt-row">
+                <RevealGroup>
+                  <Reveal>
+                    <span className="eyebrow">Open Domus</span>
+                  </Reveal>
+                  <SplitTitle as="h2" className="mt-6 max-w-[24ch] font-display text-d2">
+                    {c.heroSubtitle}
+                  </SplitTitle>
+                </RevealGroup>
+              </div>
+            </section>
+          }
         />
-
-        {/* Claim di prodotto: una frase grande sul fondo avorio, niente banda scura. */}
-        <section className="dt-chapter bg-cream">
-          <div className="dt-row">
-            <RevealGroup>
-              <Reveal>
-                <span className="eyebrow">Open Domus</span>
-              </Reveal>
-              <SplitTitle as="h2" className="mt-6 max-w-[24ch] font-display text-d2">
-                {c.heroSubtitle}
-              </SplitTitle>
-            </RevealGroup>
-          </div>
-        </section>
 
         <OpenDomus />
 

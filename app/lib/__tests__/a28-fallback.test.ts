@@ -132,6 +132,11 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     for (const r of dellaTesta) {
       // A48 (22 set.): l'unico colore scritto dal CSS della testa è il bianco nudo dello spazio sopra la foto, da lg
       // (le utility della rivista dentro le sezioni cedono al bianco): fuori di lì i colori restano le classi nel markup.
+      // A52: le opzioni aperte delle tendine sulla foto restano native, inchiostro su carta (il menu del sistema è chiaro).
+      if (/\.dt-testa_sopra select option$/.test(r.selettore)) {
+        assert.match(r.corpo, /(^|[^-])color\s*:\s*var\(--color-ink\)/, `${r.selettore}: le opzioni della tendina non sono inchiostro`);
+        continue;
+      }
       if (r.selettore.includes(".dt-testa_sopra") && /(^|[^-])color\s*:/.test(r.corpo)) {
         assert.deepEqual(r.media, [MQ_LG], `${r.selettore}: un colore scritto fuori dalla fascia lg (sotto lg le sezioni seguono la foto in inchiostro)`);
         assert.doesNotMatch(r.corpo, /(^|[^-])color\s*:(?!\s*(#fff\b|rgb\(255 255 255))/, `${r.selettore}: sulla foto solo il bianco nudo (A48, A40)`);
@@ -241,19 +246,22 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     assert.ok(!dellaTesta.some((r) => /focus-visible/.test(r.selettore)), "la testa non ha più regole di focus proprie: l'anello è quello del sito (A46)");
     assert.doesNotMatch(css, /\.dt-testa \.dt-btn--cta-solid:focus-visible/);
     // A48 (22 set.): lo spazio «sopra» sta DENTRO lo strato, in flusso, senza fondo: sotto lg comincia dopo la
-    // foto (padding = l'altezza della foto), da lg alla banda scura della foto (padding = --dt-sopra-h) in bianco nudo.
+    // foto (padding = l'altezza della foto), da lg subito sotto il blocco (padding = il cielo, --dt-cielo-h) in bianco
+    // con l'ombra attaccata alle lettere (A54, 22 set. sera: «metti una lieve ombra se non si legge, o fai le scritte
+    // più grandi»: il valore unico di ink-media.ts), così le sezioni riempiono la foto («riempire più spazi possibili»).
     const sopra = per(".dt-testa_sopra");
     const sopraBase = sopra.find((r) => r.media.length === 0);
     const sopraLg = per('.dt-testa[data-sopra="foto"] .dt-testa_sopra').find((r) => r.media.length === 1 && r.media[0] === MQ_LG);
     assert.ok(sopraBase && sopraLg, "mancano le due regole di .dt-testa_sopra (base e da lg sotto il cancello data-sopra=foto)");
-    assert.equal(sopra.length, 1, "la regola base dello spazio sopra è una sola: il bianco da lg vale solo col cancello data-sopra=foto (A48: /recensioni resta sulla carta)");
+    assert.equal(sopra.length, 1, "la regola base dello spazio sopra è una sola: il bianco da lg vale solo col cancello data-sopra=foto");
     assert.match(sopraBase!.corpo, /position\s*:\s*relative/);
     assert.match(sopraBase!.corpo, /z-index\s*:\s*1/);
     assert.match(sopraBase!.corpo, /padding-top\s*:\s*calc\(100% \* var\(--dt-testa-hw, 1\.5\)\)/, "sotto lg lo spazio sopra non comincia dopo la foto");
-    assert.doesNotMatch(sopraBase!.corpo, /background|position\s*:\s*(absolute|fixed|sticky)|transform|margin-top/);
-    assert.match(sopraLg!.corpo, /padding-top\s*:\s*calc\(100% \* var\(--dt-sopra-h, var\(--dt-cielo-h, 0\)\)\)/, "da lg lo spazio sopra non comincia alla banda scura della foto (A48)");
-    assert.match(sopraLg!.corpo, /color\s*:\s*#fff/, "da lg le scritte sulla foto non sono bianche (A48, A40)");
-    assert.doesNotMatch(sopraLg!.corpo, /text-shadow|background/, "sulla foto niente ombra né fondo (A40, C14)");
+    assert.doesNotMatch(sopraBase!.corpo, /background|position\s*:\s*(absolute|fixed|sticky)|transform|margin-top|text-shadow/);
+    assert.match(sopraLg!.corpo, /padding-top\s*:\s*calc\(100% \* var\(--dt-cielo-h, 0\)\)/, "da lg lo spazio sopra non comincia subito sotto il blocco (A48, A54)");
+    assert.match(sopraLg!.corpo, /color\s*:\s*#fff/, "da lg le scritte sulla foto non sono bianche (A48)");
+    assert.match(sopraLg!.corpo, /text-shadow\s*:\s*0 1px 2px rgb\(0 0 0 \/ 0\.35\), 0 0 28px rgb\(0 0 0 \/ 0\.45\)/, "sulla foto l'ombra non è quella unica del sito (A54, ink-media.ts)");
+    assert.doesNotMatch(sopraLg!.corpo, /background|backdrop-filter|filter\s*:/, "sulla foto niente velo (C14): solo l'ombra attaccata alle lettere");
     assert.ok(per(".dt-testa_pagina").length === 0, "la fascia dei tre punti dopo la foto è morta (A48)");
     assert.doesNotMatch(css, /--dt-tinta-bassa/, "la tinta bassa è morta (D187)");
     // L'inquadratura per fascia (D180): --dt-op dalla media query.
@@ -405,6 +413,9 @@ describe("PageHero e PageHeroTesta senza JS e senza gesto", () => {
     assert.doesNotMatch(testa, /data-testa-strato[^>]*data-bg/, "data-bg non sta sullo strato");
     assert.ok(testa.indexOf('className="dt-testa_sopra"') > testa.indexOf("{blocco}"), "lo spazio sopra non segue il blocco");
     assert.match(testa, /<div className="dt-testa_sopra">\{sopra\}<\/div>/, "lo spazio sopra non rende la prop sopra (A48)");
+    // A53: la chiusura della foto è un componente client a sé (ChiusuraFoto.tsx), montato nello strato dopo lo spazio
+    // sopra: PageHeroTesta resta server e senza stili scritti da JS.
+    assert.match(testa, /<div className="dt-testa_sopra">\{sopra\}<\/div>\s*<ChiusuraFoto \/>/, "la chiusura della foto non è montata dopo lo spazio sopra (A53)");
     assert.match(testa, /<section[^>]*\bdata-sopra=\{suFoto \? "foto" : "carta"\}/, "la section non porta data-sopra (A48: il bianco solo dove la foto ha una banda scura)");
   });
 

@@ -2814,19 +2814,23 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
      Alberto, 22 set. 2026: «non devi aspettare che finisca la foto, ma portare
      le sezioni più sopra in modo che la foto sia semplicemente lo sfondo della
      pagina (fino ai limiti della grandezza)»): in flusso, coi tre punti e le
-     sezioni che la pagina posa sulla foto. Da lg comincia alla BANDA SCURA
-     della foto (`padding-top` = `--dt-sopra-h`, la corsa più lunga in cui la
-     colonna del testo regge il bianco, misurata per rotta da tinte.mjs: la
-     piscina su /vendi, il prato su /acquista; misurata per terzi della colonna,
-     perché i tre punti stanno in tre colonne) in BIANCO NUDO (A40: nessuna
-     ombra, nessun velo) e senza fondo (le utility di fondo e di colore dentro
-     cedono alle regole unlayered qui sotto), solo con `data-sopra="foto"`;
-     dove la foto non ha una banda (`carta`: /recensioni, il muro bianco a
-     sinistra per tutta la foto) lo spazio sopra segue la foto in inchiostro
-     anche da lg, come sotto lg. Prima
-     cominciava al fondo del blocco e il bianco posava sul cielo trasparente,
-     cioè sulla carta, e sui muri bianchi della villa (pellicole del 22 set.).
-     Lo strato è alto max(foto, banda + contenuto) e l'immagine `fill` copre
+     sezioni che la pagina posa sulla foto. Da lg comincia subito sotto il
+     blocco (`padding-top` = il cielo trasparente, `--dt-cielo-h`) in bianco con
+     l'OMBRA ATTACCATA ALLE LETTERE del sito — il valore unico di ink-media.ts,
+     lo stesso delle cinque stelle — e senza fondo (le utility di fondo e di
+     colore dentro cedono alle regole unlayered qui sotto), solo con
+     `data-sopra="foto"` (le teste con la foto della villa; con `carta`, i due
+     legali, lo spazio sopra segue la foto in inchiostro anche da lg). A54 di
+     Alberto (22 set. 2026, sera: «dobbiamo riempire più spazi possibili nelle
+     foto alte a schermo intero … questo vale per tutte le pagine»; «metti una
+     lieve ombra se non si legge, o fai le scritte più grandi») supera per
+     queste sezioni il bianco nudo di A40: sulle foto della villa il bianco
+     nudo regge solo su prato e piscina (misurato il 22 set. per terzi della
+     colonna del testo: su /acquista il 52-77 % della foto, su /recensioni
+     nessuna riga), e Alberto vuole le sezioni su tutta la foto; con l'ombra
+     partono dal fondo del blocco e riempiono la foto verso il basso, coi
+     corpi di testo alla misura del lead. Niente velo, niente vignettatura
+     (C14). Lo strato è alto max(foto, cielo + contenuto) e l'immagine `fill` copre
      dall'alto (`--dt-op-lg` 50 % 0 %: se il contenuto è più alto della foto lo
      zoom sposta la cima in basso, mai sopra il blocco). Sotto lg (la 2:3 a 390 px è alta 585 px) comincia DOPO
      la foto (`padding-top` = l'altezza della foto, `--dt-testa-hw`), in
@@ -2904,22 +2908,32 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   .dt-testa_blocco {
     min-height: var(--dt-testa-h);
   }
-  /* Solo dove la foto ha una banda scura per il bianco (`data-sopra="foto"`, da `sopra` di
-     tinte.json); con `carta` (/recensioni: il muro bianco a sinistra per tutta la foto) valgono le
-     regole base anche da lg: lo spazio sopra segue la foto, in inchiostro. */
+  /* Solo sulle teste con la foto della villa (`data-sopra="foto"`); con `carta` (i due legali)
+     valgono le regole base anche da lg: lo spazio sopra segue la foto, in inchiostro. Da lg lo
+     spazio comincia al fondo del blocco (A48) e le scritte sono bianche con l'ombra attaccata alle
+     lettere (A54: il valore di ink-media.ts, ink-media.test lo pinna carattere per carattere). */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra {
-    padding-top: calc(100% * var(--dt-sopra-h, var(--dt-cielo-h, 0)));
+    padding-top: calc(100% * var(--dt-cielo-h, 0));
     color: #fff;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 0 28px rgb(0 0 0 / 0.45);
+  }
+  /* «o fai le scritte più grandi» (A54): sulla foto il corpo di testo sale alla misura del lead. */
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra .text-body {
+    font-size: var(--text-lead);
   }
   .dt-testa[data-sopra="foto"] .dt-testa_foto {
     bottom: 0;
     aspect-ratio: auto;
   }
-  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, input, h2, h3, h4, p, li, dt, dd) {
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, input, select, h2, h3, h4, p, li, dt, dd) {
     color: #fff;
   }
-  /* Il campo della ricerca di /acquista (A48): riga e segnaposto bianchi sulla foto; `border-ink!`
-     è un'utility importante, quindi anche qui serve l'importante. */
+  /* Le tendine della ricerca sulla foto (A52): le opzioni aperte restano native (inchiostro su carta). */
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra select option {
+    color: var(--color-ink);
+  }
+  /* Il campo e le tendine della ricerca di /acquista (A48, A52): riga e segnaposto bianchi sulla foto;
+     `border-ink!` è un'utility importante, quindi anche qui serve l'importante. */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra input::placeholder {
     color: rgb(255 255 255 / 0.72);
   }

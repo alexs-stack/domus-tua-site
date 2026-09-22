@@ -201,27 +201,31 @@ export default function MetodoContent() {
           primary={{ label: c.heroPrimary, href: "#contatti" }}
           secondary={{ label: c.heroSecondary, href: "#metodo" }}
           scriptWord={{ it: "Nove passi", en: "Nine steps", fr: "Neuf étapes", de: "Neun Schritte", es: "Nueve pasos" }[locale]}
-        />
-
-        <Highlights
-          tone="paper"
-          eyebrow={c.highlightsEyebrow}
-          title={c.highlightsTitle}
-          intro={c.highlightsIntro}
-          items={[
-            {
-              title: c.item1Title,
-              copy: c.item1Copy,
-            },
-            {
-              title: c.item2Title,
-              copy: c.item2Copy,
-            },
-            {
-              title: c.item3Title,
-              copy: c.item3Copy,
-            },
-          ]}
+          /* A48/A54 (Alberto, 22 set. 2026): le tre leve posano SULLA foto della testa, in bianco
+             con l'ombra («riempire più spazi possibili nelle foto alte a schermo intero»); sotto lg
+             seguono la foto in inchiostro. Erano la prima sezione sull'avorio. */
+          sopra={
+            <Highlights
+              tone="paper"
+              eyebrow={c.highlightsEyebrow}
+              title={c.highlightsTitle}
+              intro={c.highlightsIntro}
+              items={[
+                {
+                  title: c.item1Title,
+                  copy: c.item1Copy,
+                },
+                {
+                  title: c.item2Title,
+                  copy: c.item2Copy,
+                },
+                {
+                  title: c.item3Title,
+                  copy: c.item3Copy,
+                },
+              ]}
+            />
+          }
         />
 
         <Method />

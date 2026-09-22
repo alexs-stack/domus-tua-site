@@ -18,9 +18,14 @@
    questa foto che usa come background alta ha il cielo mascherato, è no bg …
    dobbiamo fare la stessa cosa») il cielo delle foto alte è trasparente e le
    scritte stanno sull'avorio, sopra il soggetto, nell'inchiostro della rivista:
-   nessun bianco, nessuna ombra, nessuna deroga. `ink-media.test.ts` ammette DUE
-   occorrenze della proprietà in app/ (questa costante e l'utility) e nessun
-   reset. */
+   nessun bianco, nessuna ombra, nessuna deroga. Le SEZIONI che con A48/A52
+   posano sulla foto sotto il blocco (i tre punti, la ricerca di /acquista,
+   «Costi chiari» su /vendi) tornano invece nell'elenco con A54 (Alberto, 22
+   set. 2026, sera: «metti una lieve ombra se non si legge, o fai le scritte
+   più grandi»): stesso valore, scritto in globals.css sulla regola da lg di
+   `.dt-testa[data-sopra="foto"] .dt-testa_sopra`. `ink-media.test.ts` ammette
+   TRE occorrenze della proprietà in app/ (questa costante, l'utility e quella
+   regola) e nessun reset. */
 export const INK_ON_MEDIA = {
   textShadow: "0 1px 2px rgb(0 0 0 / 0.35), 0 0 28px rgb(0 0 0 / 0.45)",
 } as const;

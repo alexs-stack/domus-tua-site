@@ -163,11 +163,14 @@ stanno in `DESIGN.md`.
   stavano bianche e nude dentro la foto — tornano nell'inchiostro della rivista, sopra il soggetto e
   mai sopra la foto; la testata sopra di loro è quella del resto del sito, in inchiostro. La deroga
   di Alberto a WCAG 1.4.3 per le scritte bianche sulla foto è chiusa per il blocco della testa; con
-  A48 (22 set.: «portare le sezioni più sopra in modo che la foto sia semplicemente lo sfondo della
-  pagina») i tre punti e le sezioni che la pagina posa sulla foto stanno in bianco nudo dentro la
-  foto, dalla sua banda scura (la piscina di /vendi, il prato di /acquista; dove non c'è banda, come
-  su /recensioni, restano sulla carta), e su /acquista la ricerca intelligente sta lì, sulla foto,
-  dopo la scritta della testa; per quelle scritte la deroga resta. Stessa cosa per la finestra di
+  A48 e A54 (22 set.: «portare le sezioni più sopra in modo che la foto sia semplicemente lo sfondo
+  della pagina», «dobbiamo riempire più spazi possibili nelle foto alte a schermo intero», «metti
+  una lieve ombra se non si legge, o fai le scritte più grandi») i tre punti e le sezioni che la
+  pagina posa sulla foto partono subito sotto il blocco e la riempiono, in bianco con l'ombra
+  attaccata alle lettere (il valore unico del sito, decisione di lavoro D80) e coi corpi di testo
+  alla misura del lead; su /acquista la ricerca intelligente sta lì, sulla foto, dopo la scritta
+  della testa (A52), e a fine foto la foto si chiude nella cornice della cartolina (A53). Per quelle
+  scritte la deroga resta. Stessa cosa per la finestra di
   Open Domus in home: il titolo «Open Domus» sta in inchiostro sul cielo, che è il fondo pagina.
 - CTA corte (decisione di lavoro, 11 set.): «Richiedi la valutazione» e le sue traduzioni corte su
   tutte le superfici, perché quella lunga sul telefono andava a capo. Resta l'heroPrimary tedesco

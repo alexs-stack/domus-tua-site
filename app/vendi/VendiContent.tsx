@@ -950,9 +950,12 @@ export default function VendiContent() {
              i tre punti, in bianco da lg (sotto lg segue la foto, in inchiostro). Era in cima
              subito sotto l'hero (§6.4): il costo è la prima obiezione di chi deve dare un
              incarico. Cream, non paper: con lo spazio sopra il fondo è trasparente da lg. */
+          /* A54 (22 set., sera: «riempire più spazi possibili nelle foto alte»): le tre leve NON ci
+             stanno: coi punti e «Costi chiari» sforano la foto a 1440 in inglese e a 1024 in
+             italiano (e2e a28: la coda oltre il 5 % scalerebbe la foto e il cielo). Restano sulla
+             carta, subito dopo la chiusura. */
           sopra={<CostiChiari surface="cream" />}
         />
-
 
         <Highlights
           tone="paper"

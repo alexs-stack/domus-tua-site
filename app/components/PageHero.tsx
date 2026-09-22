@@ -69,12 +69,8 @@ const GRIGLIA = "dt-row";
    tinte.json, la prima riga in cui almeno il 5 % dei pixel è opaco — sopra c'è
    solo cielo, cioè carta —, tradotta da `cieloH` di testa.ts): globals.css ne fa il margine negativo dello strato
    (`calc(-100% * var(--dt-cielo-h))`), così il soggetto comincia al fondo del
-   blocco e nessuna lettera gli sta sopra. A48 (22 set.): anche la BANDA SCURA
-   dello spazio sopra (`--dt-sopra-h`: `sopra[0]` di tinte.json, la corsa più
-   lunga in cui la colonna del testo regge il bianco nudo, misurata da
-   tinte.mjs; la cima se non c'è), stessa traduzione: da lg lo spazio sopra
-   comincia lì, così i tre punti e le sezioni in bianco non posano mai sul
-   cielo trasparente né sui muri chiari. Non `cielo.linea` (la riga in cui il
+   blocco e nessuna lettera gli sta sopra; da lg lo spazio sopra la foto
+   comincia lì (globals.css `.dt-testa_sopra`, A48/A54). Non `cielo.linea` (la riga in cui il
    soggetto riempie la larghezza): su /vendi la linea sta a 0,488 ma i cipressi
    cominciano a 0,219 e il tetto a 0,33, e con la linea l'H1 posava sui cipressi
    e il bottone sul tetto (misurato il 21 set. sul build a 1440×900). Vale senza
@@ -136,17 +132,18 @@ export default function PageHero({
       pavimento di 3rem in ogni lingua; scala-telefono.test.ts lo pinna. */
   tightTitle?: boolean;
   /** A48 (Alberto, 22 set. 2026: «portare le sezioni più sopra in modo che la foto sia semplicemente
-      lo sfondo della pagina»): le sezioni che la pagina posa SULLA foto, dopo i tre punti. Da lg
-      stanno dentro lo strato, in bianco nudo (A40), dalla banda scura della foto (`sopra` di
-      tinte.json; dove non c'è banda, `data-sopra="carta"`, seguono la foto in inchiostro anche
-      da lg); sotto lg seguono la foto
-      in inchiostro (la 2:3 a 390 px è alta 585 px: non regge una sezione). Sezioni atomiche: o tutta
+      lo sfondo della pagina»; la sera: «dobbiamo riempire più spazi possibili nelle foto alte a
+      schermo intero»): le sezioni che la pagina posa SULLA foto, dopo i tre punti. Da lg stanno
+      dentro lo strato subito sotto il blocco, in bianco con l'ombra attaccata alle lettere del sito
+      (A54: «metti una lieve ombra se non si legge, o fai le scritte più grandi»: ink-media.ts, la
+      stessa delle cinque stelle) e riempiono la foto verso il basso; sotto lg seguono la foto in
+      inchiostro (la 2:3 a 390 px è alta 585 px: non regge una sezione). Sezioni atomiche: o tutta
       sulla foto o tutta sulla carta. */
   sopra?: ReactNode;
 }) {
   const tinta = tinte[rotta];
   const stile = (
-    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]};--dt-testa-hw:${(tinta.sorgente[1] / tinta.sorgente[0]).toFixed(4)};--dt-cielo-h:${cieloH(tinta.cielo.cima, tinta.sorgente)};--dt-sopra-h:${cieloH(tinta.sopra?.[0] ?? tinta.cielo.cima, tinta.sorgente)}}`}</style>
+    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]};--dt-testa-hw:${(tinta.sorgente[1] / tinta.sorgente[0]).toFixed(4)};--dt-cielo-h:${cieloH(tinta.cielo.cima, tinta.sorgente)}}`}</style>
   );
 
   /* Il blocco dei testi, centrato come «Perfect sea views» di era-residence (A41 di
@@ -247,7 +244,7 @@ export default function PageHero({
         alt={alt}
         segno={tinta.segno}
         blocco={blocco}
-        suFoto={tinta.sopra !== null}
+        suFoto={tinta.trattamento === "testa"}
         sopra={
           <>
             {punti}

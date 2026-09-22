@@ -150,63 +150,6 @@ async function segnoDi(fileMontato) {
   return misuraSegno(data, info.width, info.height);
 }
 
-/* LA BANDA SCURA DELLO SPAZIO SOPRA (A48 di Alberto, 22 set. 2026: «si le scritte in bianco … sopra la
-   foto proprio», «portare le sezioni più sopra in modo che la foto sia semplicemente lo sfondo della
-   pagina»). I tre punti e le sezioni che la pagina posa sulla foto stanno in bianco nudo (A40) dentro la
-   foto. Cominciare al fondo del blocco (la cima del soggetto) li metteva sul cielo trasparente — che è
-   la carta — e sui muri bianchi della villa: bianco su avorio (pellicole del 22 set.: /vendi sui
-   cipressi e sul tetto, /recensioni sul muro bianco, /lavora-con-noi sulle travi). Qui si misura, nella
-   colonna del testo (8-92 % della larghezza, la `dt-row`) divisa in TRE TERZI — i tre punti stanno in
-   tre colonne, una testa di sezione ha il titolo a sinistra e il lead a destra: con la misura sull'intera
-   riga la piscina di /vendi cominciava col bordo assolato a sinistra (66 % di chiari sotto il primo
-   punto) —, riga per riga la quota di pixel CHIARI in ogni terzo (alpha < 128, cioè carta, oppure Y
-   lineare > 0,48 ≈ #bbb, cioè Y sRGB > 0,72) e si prende la corsa PIÙ LUNGA di righe in cui in OGNI terzo
-   i chiari sono al più il 35 % (corse separate da meno del 3 % dell'altezza si uniscono: le sdraio di
-   /acquista tagliano il prato; sotto l'8 % non contano: un passo di capitolo a 1440 è ~170 px):
-   `sopra: [da, a]`, frazioni dell'altezza, o null. PageHero ne fa `--dt-sopra-h` (da × altezza /
-   larghezza, come la cima) e `data-sopra="foto"`, e globals.css apre lo spazio sopra lì, da lg; con
-   null (`data-sopra="carta"`: /recensioni, il muro bianco a sinistra per tutta la foto) lo spazio sopra
-   segue la foto in inchiostro anche da lg. Sulle foto di oggi: /vendi la piscina oltre il bordo
-   (0,73-1), /acquista il prato (0,52-0,77), /lavora-con-noi la scrivania (0,73-1). */
-export const SOPRA = { x0: 0.08, x1: 0.92, terzi: 3, y: 0.48, quota: 0.35, salto: 0.03, minimo: 0.08 };
-export function misuraSopra(rgba, W, H, p = SOPRA) {
-  const xa = Math.floor(W * p.x0);
-  const xb = Math.max(xa + p.terzi, Math.floor(W * p.x1));
-  const bordi = Array.from({ length: p.terzi + 1 }, (_, t) => xa + Math.round(((xb - xa) * t) / p.terzi));
-  const scura = new Uint8Array(H);
-  for (let y = 0; y < H; y++) {
-    let ok = 1;
-    for (let t = 0; t < p.terzi && ok; t++) {
-      let chiari = 0;
-      for (let x = bordi[t]; x < bordi[t + 1]; x++) {
-        const i = (y * W + x) * 4;
-        if (rgba[i + 3] < 128 || 0.2126 * LUT[rgba[i]] + 0.7152 * LUT[rgba[i + 1]] + 0.0722 * LUT[rgba[i + 2]] > p.y) chiari++;
-      }
-      if (chiari > p.quota * (bordi[t + 1] - bordi[t])) ok = 0;
-    }
-    scura[y] = ok;
-  }
-  const corse = [];
-  for (let y = 0; y < H; y++) {
-    if (!scura[y]) continue;
-    let a = y;
-    while (a + 1 < H && scura[a + 1]) a++;
-    const u = corse[corse.length - 1];
-    if (u && y - u[1] < p.salto * H) u[1] = a + 1;
-    else corse.push([y, a + 1]);
-    y = a;
-  }
-  const lunghe = corse.filter(([a, b]) => b - a >= p.minimo * H);
-  if (!lunghe.length) return null;
-  const [a, b] = lunghe.reduce((m, c) => (c[1] - c[0] > m[1] - m[0] ? c : m));
-  return [Number((a / H).toFixed(3)), Number((b / H).toFixed(3))];
-}
-
-async function sopraDi(fileMontato) {
-  const { data, info } = await sharp(join(ROOT, "public", fileMontato)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  return misuraSopra(data, info.width, info.height);
-}
-
 /* Lab D65 dalla luce lineare sRGB, per il C* e per il ΔH′ della CIEDE2000. */
 function lab(lin) {
   const [r, g, b] = lin;
@@ -327,7 +270,6 @@ async function main() {
     // A46: col cielo trasparente la tinta è l'avorio per forza; altrimenti il cancello di D123.
     const alta = cielo || misurata.avorio < CANCELLO_ALTA ? { ...misurata, hex: "avorio", misurato: misurata.hex } : misurata;
     const segno = await segnoDi(cielo ? cielo.file : r.file.replace(/^public/, ""));
-    const sopra = await sopraDi(cielo ? cielo.file : r.file.replace(/^public/, ""));
     esito[r.rotta] = {
       trattamento: r.trattamento,
       file: r.file.replace(/^public/, ""),
@@ -336,7 +278,6 @@ async function main() {
       alta,
       cielo: cielo ? { file: cielo.file, linea: cielo.linea, cima: cielo.cima } : { file: null, linea: 0, cima: 0 },
       segno,
-      sopra,
     };
     righe.push(
       [
@@ -349,7 +290,6 @@ async function main() {
         `alta ${alta.hex.padEnd(7)} (${misurata.hex} <- ${misurata.sorgente}  Y ${misurata.Y.toFixed(4)}  C* ${String(misurata.C).padStart(5)}  dH ${String(misurata.dH).padStart(5)}  avorio ${misurata.avorio.toFixed(3)}:1)`,
         cielo ? `cielo cima ${cielo.cima} linea ${cielo.linea}` : "senza cielo",
         `segno ${segno.map(([a, b]) => `${a}-${b}`).join(" ") || "mai"}`,
-        `sopra ${sopra ? `${sopra[0]}-${sopra[1]}` : "mai"}`,
       ].join("  "),
     );
   }

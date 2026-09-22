@@ -38,18 +38,23 @@ function sorgenti(): string[] {
 }
 
 describe("l'ombra sulle immagini, un valore solo (D80)", () => {
-  test("in tutto app/ ci sono esattamente due occorrenze: la costante e l'utility", () => {
+  // A54 (Alberto, 22 set. 2026, sera: «metti una lieve ombra se non si legge, o fai le scritte più grandi»): la
+  // terza occorrenza è la regola da lg dello spazio sopra la foto delle teste (globals.css «La testa di era»),
+  // con lo stesso valore, carattere per carattere.
+  test("in tutto app/ ci sono esattamente tre occorrenze: la costante, l'utility e lo spazio sopra la foto (A54)", () => {
     const trovate = sorgenti()
       .map((p) => [p, (leggi(p).match(OMBRA) ?? []).length] as const)
       .filter(([, n]) => n > 0);
     assert.deepEqual(
       trovate,
       [
-        [UTILITY, 1],
+        [UTILITY, 2],
         [COSTANTE, 1],
       ],
-      `l'ombra va dichiarata in due posti soli: invece ${trovate.map(([p, n]) => `${p} x${n}`).join(", ") || "nessuno"}`,
+      `l'ombra va dichiarata in tre posti soli: invece ${trovate.map(([p, n]) => `${p} x${n}`).join(", ") || "nessuno"}`,
     );
+    const sopra = /\.dt-testa\[data-sopra="foto"\] \.dt-testa_sopra\s*\{[^}]*text-shadow:\s*([^;]+);/.exec(leggi(UTILITY))?.[1];
+    assert.equal(sopra?.trim(), VALORE, "lo spazio sopra la foto non porta il valore del Congedo (A54)");
   });
 
   test("la costante e l'utility portano lo stesso valore, carattere per carattere", () => {
