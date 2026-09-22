@@ -244,6 +244,15 @@ html {
   overflow-x: clip;
 }
 
+/* Alla ricarica e al back/forward (`data-ripristino`, dal boot script del layout) lo scroll è
+   istantaneo per tutta la visita. Il ripristino nativo della quota legge lo scroll-behavior della
+   radice: con smooth diventava una corsa dalla cima (~1,3 s a 390×664) che finiva dopo
+   l'idratazione, e Voci si armava a metà strada (D22). Mai a tempo: ScrollTrigger legge
+   scroll-behavior una volta sola. La navigazione nuova resta smooth: l'arrivo all'ancora è D45. */
+html[data-ripristino] {
+  scroll-behavior: auto;
+}
+
 /* ---------- Lenis (smooth scroll) ----------
    Regole raccomandate: quando Lenis è attivo governa lui l'inerzia, quindi
    lo smooth nativo va spento (altrimenti i due si sommano). Senza JS o con
