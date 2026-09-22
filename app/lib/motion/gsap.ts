@@ -77,10 +77,24 @@ if (typeof window !== "undefined") {
 // `__dtST()` legge il numero vero, con `__dtSTRefresh` conta i refresh in un
 // ciclo 844→744→844 (barra URL, atteso 0) o in una rotazione (atteso > 0) —
 // e2e di prompt §9.3. Costo per l'utente: una closure e un intero.
-type STProbe = { __dtST?: () => number; __dtSTRefresh?: number };
+// `__dtSTList()` (22 set. 2026, A49): i trigger uno per uno — innesco (tag e attributi data- del
+// trigger), start, end e progresso — per diagnosticare in un e2e uno scrub che non parte
+// (hero-alto.spec.ts, la chiusura in cartolina); stesso costo: una closure.
+export type STVoce = { trigger: string; start: number; end: number; progress: number };
+type STProbe = { __dtST?: () => number; __dtSTRefresh?: number; __dtSTList?: () => STVoce[] };
 if (typeof window !== "undefined") {
   const w = window as unknown as STProbe;
   w.__dtST = () => ScrollTrigger.getAll().length;
+  w.__dtSTList = () =>
+    ScrollTrigger.getAll().map((t) => ({
+      trigger:
+        t.trigger instanceof Element
+          ? [t.trigger.tagName.toLowerCase(), ...Array.from(t.trigger.attributes).filter((a) => a.name.startsWith("data-")).map((a) => a.name)].join(" ")
+          : String(t.trigger),
+      start: t.start,
+      end: t.end,
+      progress: t.progress,
+    }));
   w.__dtSTRefresh = 0;
   ScrollTrigger.addEventListener("refresh", () => {
     w.__dtSTRefresh = (w.__dtSTRefresh ?? 0) + 1;

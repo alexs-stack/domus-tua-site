@@ -13,5 +13,22 @@
       0.269,
       0.695
     ]
-  ]
+  ],
+  "telefono": {
+    "file": "/images/reali/hero-raffaela-piscina-alta-m-cielo.webp",
+    "sorgente": [
+      2144,
+      3812
+    ],
+    "cielo": {
+      "linea": 0.421,
+      "cima": 0.193
+    },
+    "segno": [
+      [
+        0.241,
+        0.696
+      ]
+    ]
+  }
 }

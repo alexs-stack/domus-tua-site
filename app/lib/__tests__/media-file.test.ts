@@ -43,7 +43,9 @@ const NUOVI: ReadonlyArray<{ path: string; w: number; h: number }> = [
   { path: "media/congedo-poster.jpg", w: 1920, h: 1080 },
   { path: "media/acqua-poster.jpg", w: 1920, h: 1080 },
   // A55 (22 set.): l'hero della home dalla foto vera della piscina, ricodificata senza l'APP1 di
-  // villa-pool.jpg (scripts/media/hero-piscina.mjs): la foto intera 3:2 e la striscia 9:16 del telefono.
+  // villa-pool.jpg: la foto intera 3:2 e la striscia 9:16 del telefono. Da A49 (la sera) l'hero monta la
+  // foto ALTA (`images/reali/hero-raffaela-piscina-alta-cielo.webp` e la striscia `-m-cielo.webp`,
+  // hero-alto.test.ts): questi due restano su disco, non montati (Alberto: «lasciali nel repo»).
   { path: "media/hero-raffaela-piscina.jpg", w: 1920, h: 1280 },
   { path: "media/hero-raffaela-piscina-m.jpg", w: 720, h: 1280 },
 ];

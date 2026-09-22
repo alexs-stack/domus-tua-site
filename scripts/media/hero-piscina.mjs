@@ -1,47 +1,72 @@
-// L'HERO DELLA HOME DALLA FOTO VERA DELLA PISCINA (A55 di Alberto, 22 settembre 2026).
+// L'HERO ALTO DELLA HOME, IN NUMERI E NEI SUOI FILE (A49 e A71 di Alberto, 22 settembre 2026).
 //
-// Chi l'ha chiesto: A55, «vorrei invertire le posizioni di questa immagine con quella della hero»,
-// con lo screenshot della riga «Acquista casa con più risposte e meno dubbi» di Paths: la foto vera
-// di Raffaela davanti alla villa con piscina (`public/images/reali/villa-pool.jpg`, 1920×1280, 3:2)
-// diventa l'hero della home, e la scena generata con Higgsfield (`hero-raffaela-villa.jpg`,
-// foto-alte.mjs) prende il suo posto in Paths.
+// Chi l'ha chiesto: A49, «non c'è né l'immagine alta che fa da sfondo pagina a schermo intero, né
+// l'effetto dello scroll dentro l'immagine perché l'hai tagliata a metà e bloccato lo scroll della
+// pagina per l'effetto zoom»; A71, «sì, fallo, anche il voto e i due link. prova a vedere se riesci a
+// fare un upscale se ho crediti, sennò fa niente, e falla no-bg così è più bella». La foto è la piscina
+// di Raffaela (villa-pool.jpg, 3:2) estesa a 2:3 con Higgsfield (outpaint + upscale 4K, 22 set., sera:
+// `hero-raffaela-piscina-alta.jpg`, 2560×3812) e col cielo trasparente da scripts/media/cielo.mjs (la
+// voce `hero-raffaela-piscina-alta`): `hero-raffaela-piscina-alta-cielo.webp`.
 //
-// Cosa scrive, in public/media, con sharp e senza metadati (villa-pool.jpg porta un segmento APP1;
-// media-file.test.ts vuole i JPEG puliti):
-// - `hero-raffaela-piscina.jpg` 1920×1280: la foto intera, ricodificata (mozjpeg 85), per il desktop
-//   (da 768: il `<source>` di HeroCinematic.tsx). Raffaela sta al centro (corpo 940→1040): per questo
-//   il lockup della banda è sceso in basso a destra, sull'acqua (A55, HeroCinematic.tsx);
-// - `hero-raffaela-piscina-m.jpg` 720×1280: il 9:16 del telefono, la striscia da x 660 con Raffaela
-//   al 39-53 % della larghezza e la palma alla sua sinistra.
-//
-// La sagoma del preloader NON cambia: Alberto, nello stesso giro, «e se usassimo la maschera del
-// preloader vecchia di Raffaela? La preferisco, e poi all'entrata ci sarà la foto nuova, la maschera
-// se ne va via con l'entrata ad arco sulla hero». Restano `raffaela-sagoma-villa.webp` e `-m.webp`
-// (foto-alte.mjs, il ritaglio in pizzo in basso a sinistra), che con questa foto non coincidono più
-// con la figura sotto: la sagoma è la figura del preloader, e l'arco la porta via. Un ritaglio di
-// Raffaela dalla foto della piscina (background remover di Higgsfield, job 8edab310) era stato
-// provato e scartato con quella risposta.
-//
-// Uso, dalla radice del repo:  node scripts/media/hero-piscina.mjs
+// Cosa scrive, dalla radice del repo (`node scripts/media/hero-piscina.mjs`), dopo cielo.mjs:
+// - `public/images/reali/hero-raffaela-piscina-alta-m-cielo.webp`: la STRISCIA 9:16 del telefono,
+//   ritagliata dal WebP alto (x 208 → 2352, cioè 2144 px centrati su 2560; l'alpha del cielo resta
+//   lossless come in cielo.mjs). Scelta mia (D-A49): sotto i 768 la 2:3 a tutta larghezza è alta 581 px
+//   a 390 e lascia 180 px di carta nel primo schermo; la 9:16 è alta 693, riempie la banda, tiene
+//   Raffaela un sesto più grande e il lockup ha più acqua sotto. Raffaela sta al centro (x 0,51 della
+//   foto → 0,51 della striscia) ed è intera; escono 208 px per lato: un pezzo del parapetto a sinistra
+//   e del bordo in cotto a destra;
+// - `app/lib/motion/hero.json`: le misure che il layout legge (hero.ts, HeroCinematic.tsx, globals.css
+//   a mano, hero-alto.test.ts le confronta): per la foto e per la striscia, sorgente [w, h], il cielo
+//   (`linea`, `cima`: misuraCielo di cielo.mjs, frazioni dell'altezza) e le bande del segno (`segno`:
+//   misuraSegno di tinte.mjs sulla striscia 2-6 % della larghezza — sull'hero la parete e la ringhiera
+//   dell'ala sinistra della villa —, dove le tacche del segno virano all'avorio; sul cielo, cioè la
+//   carta, e sull'acqua chiara restano grafite). Il file lo scrive questo script, non finestra.mjs.
+// I due JPEG di A55 in public/media (`hero-raffaela-piscina.jpg`, `-m.jpg`) restano su disco, non
+// montati (Alberto, 22 set.: «lasciali nel repo»).
 import sharp from "sharp";
+import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { misuraCielo } from "./cielo.mjs";
+import { misuraSegno } from "./tinte.mjs";
 
 const ROOT = process.cwd();
-const SRC = join(ROOT, "public/images/reali/villa-pool.jpg");
-const MEDIA = join(ROOT, "public/media");
-const JPG = { quality: 85, mozjpeg: true, chromaSubsampling: "4:2:0" };
-/** La striscia 9:16 del telefono. */
-const TELEFONO = { left: 660, top: 0, width: 720, height: 1280 };
-const mib = (n) => `${(n / 1048576).toFixed(2)} MiB`;
+const REALI = "public/images/reali";
+const NOME = "hero-raffaela-piscina-alta";
+const USCITA = "app/lib/motion/hero.json";
+/* Il WebP: la qualità di cielo.mjs, alpha lossless. */
+const WEBP = { quality: 86, alphaQuality: 100, effort: 4 };
+/* La striscia 9:16: 3812 × 9 / 16 = 2144,25 → 2144 px, centrati (208 per lato). */
+const TELEFONO = { left: 208, width: 2144 };
 
-const meta = await sharp(SRC).metadata();
-if (meta.width !== 1920 || meta.height !== 1280) throw new Error(`villa-pool.jpg è ${meta.width}×${meta.height}, attesa 1920×1280`);
+const src = join(ROOT, REALI, `${NOME}-cielo.webp`);
+if (!existsSync(src)) throw new Error(`manca ${src}: lancia prima node scripts/media/cielo.mjs <dir> ${NOME}`);
 
-// 1. L'hero del desktop: la foto intera, senza metadati.
-const desk = await sharp(SRC).jpeg(JPG).toFile(join(MEDIA, "hero-raffaela-piscina.jpg"));
-console.log(`hero-raffaela-piscina.jpg  ${desk.width}×${desk.height}  ${mib(desk.size)}`);
+/** Le misure di un WebP con alpha: sorgente, cielo e bande del segno. */
+async function misura(file) {
+  const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const alpha = new Uint8Array(info.width * info.height);
+  for (let i = 0; i < alpha.length; i++) alpha[i] = data[i * 4 + 3];
+  return { sorgente: [info.width, info.height], cielo: misuraCielo(alpha, info.width, info.height), segno: misuraSegno(data, info.width, info.height) };
+}
 
-// 2. L'hero del telefono: la striscia 9:16.
-const tel = await sharp(SRC).extract(TELEFONO).jpeg(JPG).toFile(join(MEDIA, "hero-raffaela-piscina-m.jpg"));
-console.log(`hero-raffaela-piscina-m.jpg  ${tel.width}×${tel.height}  ${mib(tel.size)}`);
+const meta = await sharp(src).metadata();
+if (meta.width !== 2560 || meta.height !== 3812) throw new Error(`${NOME}-cielo.webp è ${meta.width}×${meta.height}, attesa 2560×3812`);
+
+// 1. La striscia del telefono, dal WebP col cielo (l'alpha viaggia col ritaglio).
+const outM = join(ROOT, REALI, `${NOME}-m-cielo.webp`);
+const tel = await sharp(src).extract({ left: TELEFONO.left, top: 0, width: TELEFONO.width, height: meta.height }).webp(WEBP).toFile(outM);
+console.log(`${NOME}-m-cielo.webp  ${tel.width}×${tel.height}  ${Math.round(tel.size / 1024)} KB`);
+
+// 2. Le misure dei due file.
+const foto = await misura(src);
+const telefono = await misura(outM);
+const esito = {
+  file: `/images/reali/${NOME}-cielo.webp`,
+  ...foto,
+  telefono: { file: `/images/reali/${NOME}-m-cielo.webp`, ...telefono },
+};
+writeFileSync(join(ROOT, USCITA), `${JSON.stringify(esito, null, 2)}\n`);
+const riga = (m) => `cielo cima ${m.cielo.cima} linea ${m.cielo.linea}, segno ${m.segno.map(([a, b]) => `${a}-${b}`).join(" ") || "mai"}`;
+console.log(`${USCITA}: foto ${foto.sorgente.join("×")} ${riga(foto)}; telefono ${telefono.sorgente.join("×")} ${riga(telefono)}`);
 console.log("fatto");

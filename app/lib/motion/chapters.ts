@@ -41,8 +41,8 @@ export const HOME_ORDER = [
 
 export type HomeChapterId = (typeof HOME_ORDER)[number];
 export type ChapterId = HomeChapterId;
-/** I corridoi costruiti da useCorridor; i nastri (storia e, da A57, la finestra), le stelle e la rotaia hanno meccaniche loro. */
-export type CorridorId = "hero" | "cartolina";
+/** I corridoi costruiti da useCorridor (dal 22 set., A49, la sola cartolina: il tuffo dell'hero è morto); i nastri (storia e, da A57, la finestra), le stelle e la rotaia hanno meccaniche loro. */
+export type CorridorId = "cartolina";
 
 export type Time = { scrub: number | true } | { dur: number; delay: number; stagger?: number };
 export type Trigger =
@@ -57,32 +57,37 @@ export type Chapter = {
   frozen?: string[];
 };
 
-const DT_IN = "0.5,0,0.75,0";
-const DT_EASE = "0.25,0.1,0.25,1";
 const DT_IN_OUT = "0.75,0,0.25,1";
 const DOMUS_IN_OUT = "M0,0 C0.66,0 0.22,1 1,1";
 const DT_RAIL = "0.5,0,0.5,1";
 const DT_CARTOLINA = "0.45,0,0.15,1";
 
 export const chapters: Record<ChapterId, Chapter> = {
+  // A49/A71 (22 set. 2026, sera): l'hero è la foto alta in flusso, senza corridoio né tuffo (il
+  // tuffo dtIn/dtEase di A18-A23 è morto). Il suo gesto di scroll è l'USCITA: la foto si ritira nella
+  // cornice della cartolina (ChiusuraFoto, A53), lo stesso motivo delle teste di era e della coda della
+  // finestra (A68). La firma è quindi quella della cartolina — dtCartolina, scrub 0,9 — per volontà di
+  // Alberto («si chiudesse con l'animazione, come qui», A53; «come nelle altre foto lunga alta», A68):
+  // D18 non vale fra i due (D-A49-6, chapters.test.ts `MOTIVO_COMUNE`); l'innesco è diverso (lo strato
+  // della foto in home). Il rito delle lettere (ruoli title/accent) resta un tratto secondario.
   hero: {
     id: "hero",
-    gesture: "tuffo: testo e foto salgono a due velocità, foto 1→2",
+    gesture: "la foto alta in flusso; le lettere entrano coi ruoli quando sono in scena; all'uscita la foto si ritira in inset(8% 22%) (A49, A53)",
     signature: {
-      ease: "dtIn",
-      curve: DT_IN,
-      time: { scrub: true },
-      trigger: { el: "#top", st: ["top ${stickTop}px", "bottom bottom"] },
+      ease: "dtCartolina",
+      curve: DT_CARTOLINA,
+      time: { scrub: 0.9 },
+      trigger: { el: "#top [data-testa-strato]", st: ["top+=${fineSopra} top", "top+=${foto} 10%"] },
     },
-    secondary: [{ ease: "dtEase", curve: DT_EASE, note: "salita di foto, testo e firma, da 0 a 0,6" }],
+    secondary: [{ ease: "dtOut", curve: "0.25,1,0.5,1", note: "il rito delle lettere: ruoli title (lockup, H1) e accent (firma), 1,2 s, all'handoff o alla prima entrata in scena" }],
   },
   posizionamento: {
     id: "posizionamento",
-    gesture: "foglio a bordo dritto sopra lo sticky, parole che si allontanano in x",
+    gesture: "le parole del titolo si allontanano in x (il foglio sopra lo sticky è morto con A49)",
     signature: {
       ease: "none",
       time: { scrub: 0.8 },
-      trigger: { el: "[data-hero-cover] h2", st: ["top bottom", "center top"] },
+      trigger: { el: "#posizionamento h2", st: ["top bottom", "center top"] },
     },
   },
   ricerca: {

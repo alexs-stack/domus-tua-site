@@ -656,18 +656,22 @@ describe("la porta si apre sulla stanza: sagoma e foto nella stessa scatola", ()
     assert.doesNotMatch(rule![0], /height:\s*100(svh|vh|%)/);
   });
 
-  test("la banda dell'hero legge lo stesso token", () => {
-    assert.match(hero, /data-hero-media[\s\S]{0,200}h-\[var\(--dt-band-h\)\]/);
+  // A49 (22 set. 2026, sera): l'hero è la foto ALTA in flusso (HeroCinematic.tsx, la testa di era
+  // senza blocco) e la banda è il suo primo schermo: la salita a riposo dello strato legge
+  // `--dt-band-h` (globals.css, «L'HERO ALTO DELLA HOME»), non più un'altezza scritta nel markup.
+  test("la banda dell'hero legge lo stesso token: la salita a riposo dello strato è misurata sulla banda", () => {
+    assert.doesNotMatch(hero, /h-\[var\(--dt-band-h\)\]/, "l'hero non ha più una banda alta --dt-band-h nel markup (A49)");
+    assert.match(css, /\.dt-hero \.dt-testa_strato \{[^}]*calc\(var\(--dt-band-h\) - 100% \* var\(--dt-hero-testo\) \* var\(--dt-hero-hw\)\)/);
   });
 
-  test("stesso ritaglio: un solo object-position per i due nodi", () => {
-    // A44: il piede della foto alta (100 % in verticale), dove sta Raffaela.
-    const pos = /objectPosition:\s*"10% 100%"/;
-    assert.match(shell, pos, "la sagoma non usa il ritaglio della foto");
-    assert.match(hero, pos, "la foto dell'hero non usa il ritaglio della sagoma");
+  test("la sagoma tiene il suo ritaglio; la foto sotto è intera, dalla cima, sugli stessi due confini", () => {
+    // A44: il piede della foto (100 % in verticale) per la sagoma. A49: la foto alta non si ritaglia (A27,
+    // A45): comincia dalla cima, la scatola ha il suo rapporto, e i due file cambiano a 768 come la sagoma.
+    assert.match(shell, /objectPosition:\s*"10% 100%"/, "la sagoma non usa il ritaglio del piede");
+    assert.match(hero, /objectPosition:\s*"50% 0%"/, "la foto dell'hero non comincia dalla cima");
+    assert.doesNotMatch(hero, /objectPosition:\s*"10% 100%"/, "la foto alta porta il ritaglio della sagoma: A49 la vuole intera");
     assert.doesNotMatch(shell, /objectPosition:\s*"10% 0%"/);
-    assert.doesNotMatch(hero, /objectPosition:\s*"10% 0%"/);
-    // e i due canvas coincidono: gli stessi due confini (767.98 / 768) e gli stessi rapporti.
+    // e i due canvas coincidono: gli stessi due confini (767.98 / 768).
     assert.match(shell, /raffaela-sagoma-villa-m\.webp[\s\S]*raffaela-sagoma-villa\.webp/);
     assert.match(hero, /<source media="\(min-width: 768px\)" srcSet=\{fotoDesktop\}/);
     assert.doesNotMatch(shell, /objectPosition:\s*"50% 70%"/);

@@ -39,7 +39,11 @@ const CORNICE_TAB = { t: 4, r: 14, b: 4, l: 14 };
 const CORNICE_PHONE = { t: 4, r: 10, b: 4, l: 10 };
 const MQ_LG = "(min-width: 64rem)";
 
-export default function ChiusuraFoto() {
+/* A49 (22 set. 2026, sera): lo monta anche l'HERO della home (HeroCinematic.tsx, la testa di era senza
+   blocco): lì la posa (blocco, lockup e firma) è lo spazio sopra e la coda libera è l'ultimo 15 % della
+   foto (hero.ts `coda`). L'hero passa ease e scrub dal registro (chapters.ts `hero`: gli stessi della
+   cartolina, il motivo comune d'uscita); le teste tengono i default. */
+export default function ChiusuraFoto({ ease = "dtCartolina", scrub = 0.9 }: { ease?: string; scrub?: number | true } = {}) {
   const ref = useRef<HTMLSpanElement | null>(null);
 
   useGSAP(
@@ -77,12 +81,12 @@ export default function ChiusuraFoto() {
           foto.style.clipPath = clipSides(+(k.t * f.p).toFixed(3), +(k.r * f.p).toFixed(3), +(k.b * f.p).toFixed(3), +(k.l * f.p).toFixed(3));
         };
         const tl = gsap.timeline({
-          defaults: { ease: "dtCartolina", immediateRender: false },
+          defaults: { ease, immediateRender: false },
           scrollTrigger: {
             trigger: strato,
             start: () => (coda() < window.innerHeight * 0.25 ? MAI : suFoto() ? `top+=${fineSopra()} top` : `top+=${foto.offsetHeight} bottom`),
             end: () => (coda() < window.innerHeight * 0.25 ? MAI : suFoto() ? `top+=${foto.offsetHeight} 10%` : `top+=${foto.offsetHeight} 30%`),
-            scrub: 0.9,
+            scrub,
             invalidateOnRefresh: true,
           },
         });

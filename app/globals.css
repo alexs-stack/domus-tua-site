@@ -161,12 +161,17 @@
      numeri sono uno solo, e il test intro-clocks li presidia. */
   --dt-head-h: clamp(4.5rem, 10vh, 6.5rem);
   /* A44 (20 set. 2026): la banda dell'hero è a SCHERMO INTERO sotto la testata, come su
-     era-residence («la foto è il background stesso»); prima era 60svh e la foto 2000×1415
-     restava col mento di Raffaela sul bordo. La foto è ancorata in basso e `--dt-hero-ar` è il
-     rapporto del file per fascia (media.ts), che dà allo zoom del tuffo l'altezza resa già in SSR.
-     A55 (22 set.): la foto vera della piscina (hero-piscina.mjs), 9:16 sul telefono, 3:2 da 768. */
+     era-residence («la foto è il background stesso»). A49/A71 (22 set., sera): l'hero è la foto ALTA
+     in flusso (hero.json: la piscina di Raffaela estesa a 2:3, 2560×3812, cielo trasparente; sul
+     telefono la striscia 9:16 2144×3812, hero-piscina.mjs): la banda è il primo schermo della foto,
+     dove l'arco del preloader si apre (il patto della porta, intro-clocks.test). `--dt-hero-ar` è il
+     rapporto del file per fascia (media.ts), `--dt-hero-hw` la sua altezza su larghezza e
+     `--dt-hero-cima` la cima del soggetto in frazione dell'altezza (`cielo.cima` di hero.json): li
+     legge il blocco «L'HERO ALTO DELLA HOME» più in basso, hero-alto.test.ts li confronta. */
   --dt-band-h: calc(100svh - var(--dt-head-h) - 1px);
-  --dt-hero-ar: 720 / 1280;
+  --dt-hero-ar: 2144 / 3812;
+  --dt-hero-hw: 1.7780;
+  --dt-hero-cima: 0.193;
 
   /* Motion — stesso vocabolario dei token GSAP in app/lib/motion/gsap.ts */
   --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
@@ -189,12 +194,14 @@
   --shadow-float: none;
 }
 
-/* Il rapporto della foto dell'hero da 768 (A44/A45, e A55: la foto vera della piscina, 1920×1280):
-   il 3:2 AMPIO del desktop al posto del 9:16 del telefono dichiarato nel tema. Fuori da `@theme`
-   perché Tailwind non ammette `@media` lì. */
+/* La foto dell'hero da 768 (A49/A71): la 2:3 intera, 2560×3812, al posto della striscia 9:16 del
+   telefono dichiarata nel tema (hero.json e `telefono` di hero.json). Fuori da `@theme` perché
+   Tailwind non ammette `@media` lì. */
 @media (min-width: 48rem) {
   :root {
-    --dt-hero-ar: 1920 / 1280;
+    --dt-hero-ar: 2560 / 3812;
+    --dt-hero-hw: 1.4891;
+    --dt-hero-cima: 0.192;
   }
 }
 
@@ -2354,34 +2361,10 @@ a.text-red {
   margin-right: calc(11vw + 2rem);
 }
 
-/* ---------- Il tuffo dell'hero e il foglio di Posizionamento ----------
-   Chiesti da Alberto il 13 settembre 2026 (A18-A20, A23; spec coreografia
-   §3.2-§3.3, D22, D24). Da 1024 × 640 px con motion ok l'hero è un corridoio
-   sticky di 200svh (useCorridor, stick bottom; la corsa `--corridor-run`
-   sta nel blocco dei corridoi in coda a questo file) e Posizionamento gli
-   scorre sopra come un foglio a bordo dritto, senza raggio né ombra. Tutto
-   sta sotto `:root[data-hero-intro]`, che il boot script del layout mette
-   solo con motion ok: con reduced motion e senza JS l'hero è quello del
-   patto della porta. Il blocco sotto la foto ritaglia con `clip`, che non
-   crea un contenitore di scroll: H1 e CTA escono sotto il bordo della foto e
-   nessun testo d'inchiostro passa sopra la foto. Il marcatore `data-bg` è
-   fratello dello schermo e copre fino alla cima del foglio. La media query
-   è quella dei corridoi, nello stesso ordine: corridor-contract.test.ts
-   legge tutti i blocchi che la portano. */
-@media (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
-  :root[data-hero-intro] [data-corridor="hero"] [data-hero-block] {
-    overflow: clip;
-  }
-  :root[data-hero-intro] [data-corridor="hero"] + [data-hero-cover] {
-    position: relative;
-    z-index: 1;
-    margin-top: -100svh;
-  }
-  :root[data-hero-intro] [data-corridor="hero"] > [data-bg="foto"] {
-    height: auto;
-    bottom: 100svh;
-  }
-}
+/* (Il tuffo dell'hero e il foglio di Posizionamento — A18-A20, A23 di Alberto, 13 set. 2026:
+   corridoio sticky di 200svh, zoom della foto, lift dei testi, Posizionamento a coprire come un
+   foglio — sono morti con A49 (22 set. 2026, sera): l'hero è la foto alta in flusso, blocco
+   «L'HERO ALTO DELLA HOME» più in basso, e Posizionamento è il capitolo che la segue.) */
 
 /* ---------- Cinque stelle (capitolo recensioni home) ----------
    Rif. tecnica: codrops/FullscreenClipEffect — qui il morph è tra poligoni
@@ -2755,10 +2738,8 @@ a.text-red {
     overflow: clip;
   }
 }
-/* La corsa di ogni corridoio del hook (spec §2.7 e §4, D22). */
-[data-corridor="hero"] {
-  --corridor-run: 200svh;
-}
+/* La corsa di ogni corridoio del hook (spec §2.7 e §4, D22). Il corridoio dell'hero (200svh, A19) è
+   morto con A49: resta la cartolina. */
 /* A35 e A42 (Alberto, 19-20 set.): l'entrata alla Lusion sta davanti alla cartolina. La corsa
    è 100 (entrata) − 65 (l'anticipo: l'entrata comincia in flusso, prima dell'aggancio) + 20
    (pianerottolo a foglio disteso) + 80 (la cartolina di A19-A20) = 135svh; le cifre stanno in
@@ -3081,6 +3062,105 @@ a.text-red {
     border-color: color-mix(in srgb, #fff 55%, transparent);
   }
 }
+/* -- L'HERO ALTO DELLA HOME (A49, A71) --------------------------------------
+   A49 di Alberto (22 set. 2026): «non c'è né l'immagine alta che fa da sfondo pagina a schermo
+   intero, né l'effetto dello scroll dentro l'immagine perché l'hai tagliata a metà e bloccato lo
+   scroll della pagina per l'effetto zoom»; A71 (la sera): «sì, fallo, anche il voto e i due link …
+   e falla no-bg così è più bella». Com'è fatto oggi (HeroCinematic.tsx; i numeri in hero.ts e
+   hero.json): la sezione è una TESTA DI ERA (le classi .dt-testa_* qui sopra: riquadro = la carta,
+   strato in flusso alto quanto la foto, scatola della foto assoluta con le bande del segno, spazio
+   sopra dentro lo strato) senza il blocco dei testi sull'avorio, con quattro differenze dichiarate:
+   - la sezione sta SOTTO la testata, non sotto di lei col margine negativo: la banda del primo
+     schermo (`--dt-band-h`, sotto la testata) resta la scatola su cui si apre l'arco del preloader;
+   - la SALITA A RIPOSO (D-A49-1): lo strato sale sotto la testata di `testo × H − banda` (H l'altezza
+     resa della foto), mai oltre il cielo trasparente (il tetto non si taglia) e mai sotto zero (sul
+     telefono e sui tablet alti la foto resta al suo posto): il primo schermo finisce dove comincia il
+     blocco, così è cielo-carta e villa senza una riga tagliata dalla piega; il cielo che finisce sopra
+     la carta è trasparente e il clip del riquadro non ritaglia nulla di visibile (come su /acquista a
+     1920×1080);
+   - lo spazio sopra comincia da lg alla cima del portico a destra di Raffaela (`testo`, la banda scura
+     misurata: L 0,28-0,39) col blocco in bianco (A70) in un terzo di riga a destra, e finisce con il
+     lockup e la firma sull'acqua (`coda`): la posa è alta (coda − testo) × H, blocco in cima e marca
+     in fondo; sotto lg comincia sull'acqua (`acqua`) col lockup centrato, alto quanto l'acqua fino al
+     cotto, e il blocco segue la foto sulla carta in inchiostro;
+   - il lockup resta grafite e rosso anche dentro lo spazio bianco (è il marchio, A55), la firma rossa.
+   Le altezze verticali sono percentuali della LARGHEZZA (padding e margin, CSS 2.1 §8.3) o
+   aspect-ratio con i numeri di hero.ts: nessun px scritto da JS, CLS 0 per costruzione. Con
+   reduced-motion e senza JS lo stato è questo, fermo; la chiusura in cartolina (ChiusuraFoto, A53)
+   scrive il clip solo dentro la corsa. */
+.dt-hero {
+  --dt-testa-ar: var(--dt-hero-ar);
+  --dt-testa-hw: var(--dt-hero-hw);
+  --dt-hero-testo: 0.42;
+  --dt-hero-acqua: 0.68;
+  --dt-hero-coda: 0.85;
+  --dt-hero-cotto: 0.07;
+  margin-top: 0;
+}
+.dt-hero .dt-testa_strato {
+  margin-top: clamp(
+    calc(-100% * var(--dt-hero-cima) * var(--dt-hero-hw)),
+    calc(var(--dt-band-h) - 100% * var(--dt-hero-testo) * var(--dt-hero-hw)),
+    0px
+  );
+}
+.dt-hero .dt-testa_sopra {
+  padding-top: calc(100% * var(--dt-hero-acqua) * var(--dt-hero-hw));
+}
+.dt-hero_posa {
+  display: flex;
+  flex-direction: column;
+}
+/* La marca sotto lg: la scatola dell'acqua, dal `acqua` al fondo della foto, col lockup in fondo sopra
+   il cotto (il padding, border-box): il blocco che segue comincia esattamente dopo la foto. La posa è
+   una riga (`.dt-row`, padding 8vw; 5vw sotto i 768) e l'aspect-ratio si misura sulla larghezza della
+   scatola: la marca esce dal padding coi margini negativi, così è larga quanto la foto e alta quanto
+   l'acqua (misurato a 390: senza, finiva 22 px prima del fondo della foto). */
+.dt-hero_marca {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-inline: -8vw;
+  aspect-ratio: 1 / calc((1 - var(--dt-hero-acqua)) * var(--dt-hero-hw));
+  padding-bottom: calc(100% * var(--dt-hero-cotto) * var(--dt-hero-hw));
+}
+@media (max-width: 767px) {
+  .dt-hero_marca {
+    margin-inline: -5vw;
+  }
+}
+.dt-hero_blocco {
+  order: 2;
+}
+@media (min-width: 64rem) {
+  .dt-hero[data-sopra="foto"] .dt-testa_sopra {
+    padding-top: calc(100% * var(--dt-hero-testo) * var(--dt-hero-hw));
+  }
+  /* La posa: dal blocco alla fine della marca, blocco in cima e marca in fondo. */
+  .dt-hero_posa {
+    justify-content: space-between;
+    aspect-ratio: 1 / calc((var(--dt-hero-coda) - var(--dt-hero-testo)) * var(--dt-hero-hw));
+  }
+  .dt-hero_marca {
+    order: 2;
+    margin-inline: 0;
+    aspect-ratio: auto;
+    padding-bottom: 0;
+  }
+  .dt-hero_blocco {
+    order: 1;
+  }
+  /* A70 sul blocco: l'H1 bianco e un quinto più grande; il lockup resta grafite e rosso. */
+  .dt-hero[data-sopra="foto"] .dt-testa_sopra h1 {
+    color: #fff;
+    font-size: calc(var(--text-d3) * 1.2);
+  }
+  .dt-hero[data-sopra="foto"] .dt-testa_sopra .dt-hero_marca .text-graphite {
+    color: var(--color-graphite);
+  }
+}
+
 /* 2.4.7: sull'avorio il bottone rosso pieno tiene l'anello del sito (rosso 2 px a offset 3,
    `:focus-visible` in cima al file). La regola dell'anello bianco a offset 0, nata per il
    bottone dentro la foto (brief T §7, cancello-T1.md §7), è morta con A46. D82 (la barra

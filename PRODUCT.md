@@ -144,20 +144,21 @@ stanno in `DESIGN.md`.
 
 ### Primo schermo e testata
 
-- Hero: la foto è una banda a schermo intero senza velo, dietro la scritta «Domus Tua» (Alberto,
-  11 set.; lo schermo intero dal 20 set., A44). Dal 22 set. (A55, Alberto: «vorrei invertire le
-  posizioni di questa immagine con quella della hero») è la foto vera di Raffaela davanti alla villa
-  con piscina, che stava nella riga «Acquista» di Paths, e la scena generata è andata in Paths; la
-  scritta sta in basso, a destra da lg, perché lei è al centro. La maschera del preloader resta
-  quella vecchia in pizzo (Alberto: «la preferisco, e poi all'entrata ci sarà la foto nuova, la
-  maschera se ne va via con l'entrata ad arco sulla hero»). Sopra ci stanno solo il lockup e la
-  firma (decisione di lavoro, 11 set.), la firma a cavallo del bordo basso (la cliente, 10 set.:
-  «firma più in basso»). Sotto, sull'avorio e
-  centrati (Alberto, 10 set.: «rimettilo centrale», lasciando la tipografia della rivista), vengono
-  sovratitolo, H1, la CTA «Richiedi la valutazione», il link «Vendi casa» al posto del bottone del
-  video (la cliente, 10 set.), «Cerco casa» e il voto. Niente subcopy né riga del founder (la
-  cliente, 10 set.). Il «box vendi casa più a destra» della cliente è stato ribaltato da Alberto la
-  sera stessa: se dirglielo è una domanda aperta.
+- Hero: la foto alta di Raffaela davanti alla villa con piscina è la pagina (A49, Alberto, 22 set.:
+  «non c'è né l'immagine alta che fa da sfondo pagina a schermo intero, né l'effetto dello scroll
+  dentro l'immagine»; A71: «sì, fallo, anche il voto e i due link … e falla no-bg così è più bella»):
+  la piscina di A55 estesa a 2:3 con Higgsfield e col cielo trasparente, in flusso come le teste,
+  senza corridoio, tuffo, zoom né lift. A riposo il primo schermo è cielo-carta e villa (la foto sale
+  sotto la testata finché la piega non cade dove comincia il blocco: decisione di lavoro, da
+  mostrare); scorrendo dentro la foto, il blocco (sovratitolo, H1, «Richiedi la valutazione», «Vendi
+  casa» e «Cerco casa», il voto) in bianco senza ombra (A70) a destra di Raffaela, sulla banda scura
+  del portico, e il lockup «Domus Tua» con la firma sull'acqua in basso a destra (A55); alla fine la
+  foto si chiude nella cartolina (A53). Sul telefono la striscia 9:16 della stessa foto, il lockup
+  sull'acqua e il blocco dopo la foto in inchiostro (decisione di lavoro). La maschera del preloader
+  resta quella vecchia in pizzo (Alberto: «la preferisco, e poi all'entrata ci sarà la foto nuova, la
+  maschera se ne va via con l'entrata ad arco sulla hero»). Niente subcopy né riga del founder (la
+  cliente, 10 set.). Il «box vendi casa più a destra» della cliente era stato ribaltato da Alberto
+  l'11 settembre; da lg il blocco ora sta a destra per la foto: se dirglielo è una domanda aperta.
 - Testata su una riga (Alberto, 11 set.: il «menu sopra» fra le cose formattate male): logo, sei
   voci primarie e lingua, nessuna CTA desktop, il monogramma solo da xl. Le altre tre voci vivono
   nel menu del telefono e nel footer; la testata è sticky solo sotto lg e da lg scorre via come nel

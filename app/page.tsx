@@ -52,11 +52,13 @@ export default function Home() {
           STORY: chi deve vendere capisce in un colpo cosa fa l'agenzia, vede
           persone e case vere, legge le voci dei clienti e trova una sola
           azione: chiedere la valutazione.
-          FIRST VIEWPORT: header chiaro su una riga; la foto della stanza fa
-          da fondo alla banda alta (60svh, senza velo) con il lockup «Domus
-          Tua» a 13vw al centro e la firma a cavallo del bordo basso; poi,
-          sull'avorio, sovratitolo, H1, la CTA della valutazione, sotto
-          «Vendi casa» e «Cerco casa», e il voto, tutto centrato.
+          FIRST VIEWPORT: header chiaro su una riga; sotto, la foto alta di
+          Raffaela davanti alla villa con piscina, col cielo trasparente che è
+          la carta, in flusso e intera (A49, 22 set.): il primo schermo è
+          cielo e villa; scorrendo, sulla foto, il blocco bianco (sovratitolo,
+          H1, la CTA della valutazione, «Vendi casa» e «Cerco casa», il voto)
+          a destra di lei e il lockup «Domus Tua» con la firma sull'acqua; sul
+          telefono il lockup sull'acqua e il blocco dopo la foto, sull'avorio.
           FORM: il canone visivo del riferimento che la cliente ha mostrato
           più volte (immobiliaregoldengoal.it), eseguito nella nostra palette:
           rosso al posto dell'oro, che resta solo sulle stelle, e fondo chiaro
@@ -65,12 +67,13 @@ export default function Home() {
           orizzontali) viene dall'altro riferimento, era-residence.com
           (dossier reverse-engineering/era-residence), senza le sue cupole, i
           suoi fiori e le sue transizioni di pagina. Da 1024 × 640 px con
-          motion ok, quattro corridoi a sticky e nessuno col pin di GSAP: il
-          tuffo dell'hero (A19 di Alberto, 13 settembre 2026), i pannelli di
-          «Perché Domus Tua», il film delle cinque stelle (entrambi riportati
-          l'11 settembre, 024d354, rifatti senza curve, veli né scuro) e la
-          rotaia del team. Nessun cambio di tono fra i capitoli, perché il
-          fondo è uno. */}
+          motion ok, cinque corridoi a sticky e nessuno col pin di GSAP: i
+          pannelli di «Perché Domus Tua», il film delle cinque stelle
+          (entrambi riportati l'11 settembre, 024d354, rifatti senza curve,
+          veli né scuro), la finestra di Open Domus (A57), la rotaia del team
+          e la cartolina del Congedo; l'hero scorre 1:1 con la pagina (A49:
+          la foto alta è la pagina, senza corridoio). Nessun cambio di tono
+          fra i capitoli, perché il fondo è uno. */}
       <Header />
       <main className="flex-1">
         <HeroCinematic />

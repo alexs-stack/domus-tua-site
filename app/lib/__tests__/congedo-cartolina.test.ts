@@ -62,8 +62,10 @@ describe("la firma del capitolo 17", () => {
     assert.match(gsapTs, /CustomEase\.create\("dtCartolina", "0\.45,0,0\.15,1"\);/);
   });
   test("registro: scrub 0,9 e fine clamp(top 40%); il ramo del telefono usa lo stesso scrub", () => {
-    const c = (Object.values(chapters) as Array<{ signature: Firma }>).find((ch) => ch.signature.ease === "dtCartolina");
-    assert.ok(c, "nessun capitolo con ease dtCartolina in chapters.ts");
+    // A49 (22 set. 2026, sera): anche l'hero ha dtCartolina come firma (la chiusura in cartolina è il motivo
+    // comune d'uscita, D-A49-6): il capitolo 17 si prende per nome.
+    const c = chapters.cartolina as unknown as { signature: Firma };
+    assert.ok(c, "nessun capitolo cartolina in chapters.ts");
     assert.equal(c!.signature.time.scrub, 0.9);
     assert.match(c!.signature.trigger.st![1], /clamp\(top 40%\)/);
     assert.ok(congedo.includes(`scrub: ${c!.signature.time.scrub}`));

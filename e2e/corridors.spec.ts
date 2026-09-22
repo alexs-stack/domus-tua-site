@@ -14,14 +14,14 @@ import { LAST_Y_KEY } from "../app/lib/motion/intro-constants";
 // Il gate è 1024 px di larghezza, 640 di altezza e motion ok: sotto quella
 // soglia, a 390 e con reduced motion non c'è nessun corridoio.
 
-/** Gli host accesi sulla home a 1024×768 e 1440×900, in ordine alfabetico. */
-const EXPECTED_HOME = ["cartolina", "finestra", "hero", "recensioni", "storia", "team"];
+/** Gli host accesi sulla home a 1024×768 e 1440×900, in ordine alfabetico (A49: il tuffo dell'hero è morto). */
+const EXPECTED_HOME = ["cartolina", "finestra", "recensioni", "storia", "team"];
 /** Gli host accesi su /vendi a 1440×900: nessuno, dal 20 settembre 2026 (A38/A41: la testa di
     era è sticky e ferma; il tuffo "page-dive" e i capitoli di pagina "ingresso" e "soglia" sono morti). */
 const EXPECTED_VENDI: string[] = [];
 /** Le rotte, e su ognuna i corridoi che hanno uno schermo [data-corridor-screen] da misurare. */
 const SCREEN_ROUTES: Array<{ path: string; screens: string[] }> = [
-  { path: "/", screens: ["cartolina", "hero"] },
+  { path: "/", screens: ["cartolina"] },
 ];
 /**
  * Il contenitore dei testi quando non è lo schermo, relativo all'host. Nella
@@ -462,42 +462,22 @@ test.describe("dentro i corridoi", () => {
   });
 });
 
-// Il tuffo dell'hero, uno dei sei corridoi di A19 (Alberto, 13 settembre 2026;
-// spec coreografia §4). A 1440 lo coprono i test generici qui sopra; qui la
-// larghezza minima del gate e lo schermo in flusso sotto il gate (D22).
-test.describe("il corridoio del tuffo dell'hero", () => {
-  test("a 1024×768 lo schermo è sticky e nessun antenato è trasformato o ritagliato", async ({ page, goto, isMobile }) => {
-    test.skip(!!isMobile, "corridoio da 1024");
-    await page.setViewportSize({ width: 1024, height: 768 });
-    await goto("/");
-    await waitGate(page);
-    await expect(page.locator('[data-corridor="hero"]')).toHaveAttribute("data-on", "");
-    const screen = page.locator('[data-corridor="hero"] > [data-corridor-screen]');
-    await expect(screen).toHaveCSS("position", "sticky");
-    const colpe = await screen.evaluate((s) => {
-      const out: string[] = [];
-      for (let el = s.parentElement; el; el = el.parentElement) {
-        const c = getComputedStyle(el);
-        if (c.transform !== "none") out.push(`${el.tagName}#${el.id} transform ${c.transform}`);
-        if (/hidden|auto|scroll/.test(`${c.overflowX} ${c.overflowY}`)) out.push(`${el.tagName}#${el.id} overflow ${c.overflowX}/${c.overflowY}`);
-      }
-      return out;
-    });
-    expect(colpe).toEqual([]);
-  });
-
+// L'hero (A49, 22 set. 2026): non è più un corridoio. La foto alta scorre in flusso con la pagina a ogni
+// larghezza (hero-alto.spec.ts); qui si pretende solo che #top non si accenda mai e non abbia schermo.
+test.describe("l'hero non è un corridoio (A49)", () => {
   for (const vp of [
+    { width: 1024, height: 768, mobile: false },
     { width: 1440, height: 600, mobile: false },
     { width: 390, height: 664, mobile: true },
   ]) {
-    test(`a ${vp.width}×${vp.height} lo schermo del tuffo resta in flusso e lo spaziatore spento`, async ({ page, goto, isMobile }) => {
+    test(`a ${vp.width}×${vp.height} #top non porta data-on e non ha schermo né spaziatore`, async ({ page, goto, isMobile }) => {
       test.skip(!!isMobile !== vp.mobile, vp.mobile ? "progetto mobile-390" : "progetto desktop");
       if (!vp.mobile) await page.setViewportSize({ width: vp.width, height: vp.height });
       await goto("/");
       await waitGate(page);
       expect(await page.locator("#top").getAttribute("data-on")).toBeNull();
-      await expect(page.locator('[data-corridor="hero"] > [data-corridor-screen]')).toHaveCSS("position", "static");
-      await expect(page.locator("#top [data-corridor-run]")).toHaveCSS("display", "none");
+      expect(await page.locator("#top").getAttribute("data-corridor")).toBeNull();
+      expect(await page.locator("#top [data-corridor-screen], #top [data-corridor-run]").count()).toBe(0);
     });
   }
 });

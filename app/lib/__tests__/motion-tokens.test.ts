@@ -137,7 +137,8 @@ describe("durate, stagger, ritardo, stato dipinto, corsa ctn", () => {
     assert.equal(token("--dt-painted"), "0.02");
     assert.equal(painted, 0.02);
     assert.match(css, /\[data-hero-schar\]\) \{\s*opacity: var\(--dt-painted\);/);
-    assert.match(read("app/components/HeroCinematic.tsx"), /gsap\.set\(allChars, \{ opacity: painted \}\);/);
+    // A49: le lettere da armare sono `arma` (i gruppi non ancora entrati), non più tutte insieme.
+    assert.match(read("app/components/HeroCinematic.tsx"), /gsap\.set\(arma, \{ opacity: painted \}\);/);
   });
 
   test("--dt-ctn-y: 11.54vw sotto 1024, 3.333vw da 64rem; ctnY() dice lo stesso con MQ.lg", () => {

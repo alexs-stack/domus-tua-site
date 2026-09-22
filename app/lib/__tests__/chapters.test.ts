@@ -85,6 +85,15 @@ const CODE: Partial<Record<ChapterId, string>> = {
 };
 const PENDING: Partial<Record<ChapterId, number>> = {};
 
+/* D-A49-6 (22 set. 2026, sera): l'USCITA dell'hero è la chiusura in cartolina — la stessa animazione delle
+   teste di era e della coda della finestra, voluta uguale da Alberto (A53: «la foto con un animazione si
+   chiude, come qui»; A68: «come nelle altre foto lunga alta, si chiudesse con l'animazione»; A49/A71 sulla
+   home). L'hero e la cartolina del Congedo condividono quindi ease (dtCartolina) e scrub (0,9) per
+   scelta, con inneschi diversi: fra questi due D18 non vale, e i controlli sulle firme li saltano a
+   coppia dichiarata. */
+const MOTIVO_COMUNE: ReadonlyArray<readonly [ChapterId, ChapterId]> = [["hero", "cartolina"]];
+const comune = (a: ChapterId, b: ChapterId) => MOTIVO_COMUNE.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
 const quotedIn = (code: string, name: string) => [`"${name}"`, `'${name}'`, "`" + name + "`"].some((q) => code.includes(q));
 
@@ -227,9 +236,15 @@ describe("chapters.ts: il registro", () => {
 });
 
 describe("A20 sulle firme della home (D18)", () => {
-  test("nomi di ease diversi fra le 17 firme", () => {
-    const names = HOME.map((c) => c.signature.ease);
-    assert.equal(new Set(names).size, names.length, `ease ripetute: ${names.join(", ")}`);
+  test("nomi di ease diversi fra le 17 firme, salvo il motivo comune d'uscita (hero e cartolina, D-A49-6)", () => {
+    const ripetute: string[] = [];
+    for (let i = 0; i < HOME.length; i++) {
+      for (let j = i + 1; j < HOME.length; j++) {
+        if (HOME[i].signature.ease === HOME[j].signature.ease && !comune(HOME[i].id, HOME[j].id)) ripetute.push(`${HOME[i].id}/${HOME[j].id}: ${HOME[i].signature.ease}`);
+      }
+    }
+    assert.deepEqual(ripetute, []);
+    assert.equal(chapters.hero.signature.ease, chapters.cartolina.signature.ease, "l'uscita dell'hero è la cartolina (A53, A49)");
   });
 
   test("`none` è firma di un capitolo solo", () => {
@@ -241,6 +256,7 @@ describe("A20 sulle firme della home (D18)", () => {
     const vicine: string[] = [];
     for (let i = 0; i < HOME.length; i++) {
       for (let j = i + 1; j < HOME.length; j++) {
+        if (comune(HOME[i].id, HOME[j].id)) continue;
         const d = distance(HOME[i].signature.ease, HOME[j].signature.ease);
         if (d < 0.045) vicine.push(`${HOME[i].id}/${HOME[j].id} ${d.toFixed(3)}`);
       }
@@ -254,7 +270,7 @@ describe("A20 sulle firme della home (D18)", () => {
       for (const s of ch.secondary ?? []) {
         if (s.ease === "none") continue;
         for (const other of HOME) {
-          if (other.id === ch.id) continue;
+          if (other.id === ch.id || comune(ch.id, other.id)) continue;
           const d = distance(s.ease, other.signature.ease);
           if (d < 0.045) vicine.push(`${ch.id}:${s.ease}/${other.id} ${d.toFixed(3)}`);
         }
@@ -270,6 +286,7 @@ describe("A20 sulle firme della home (D18)", () => {
     const vicini: string[] = [];
     for (let i = 0; i < nums.length; i++) {
       for (let j = i + 1; j < nums.length; j++) {
+        if (comune(nums[i].id, nums[j].id)) continue;
         if (Math.abs(nums[i].v - nums[j].v) < 0.1 - EPS) vicini.push(`${nums[i].id}/${nums[j].id}`);
       }
     }
@@ -295,7 +312,8 @@ describe("A20 sulle firme della home (D18)", () => {
   });
 
   test("scrubOf legge lo scrub e rifiuta i capitoli a tempo", () => {
-    assert.equal(scrubOf("hero"), true);
+    // A49: l'hero non è più il tuffo in scrub true; la sua uscita ha lo scrub della cartolina.
+    assert.equal(scrubOf("hero"), 0.9);
     assert.equal(scrubOf("finestra"), 0.15);
     assert.equal(scrubOf("team"), 0.7);
     assert.throws(() => scrubOf("voci"), /a tempo/);

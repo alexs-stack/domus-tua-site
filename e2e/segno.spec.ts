@@ -434,6 +434,11 @@ for (const rotta of ["/", "/vendi", "/metodo"]) {
 // marcatori `foto` (le bande di finestra.json, scripts/media/finestra.mjs): lì il tema vira.
 const FOTO_COL_CIELO = /villa-facciata-sale-alta-cielo\.webp/;
 const BANDE_FINESTRA = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/finestra.json"), "utf8")) as { segno: number[][] }).segno;
+// A49 (22 set., sera): anche l'hero è una foto col cielo trasparente in flusso (hero.json): sotto il segno
+// il tema vira `foto` solo nelle sue bande (la parete dell'ala sinistra), sul cielo e sull'acqua chiara resta
+// grafite. Il file è quello di media.ts (`hero-raffaela-piscina-alta-cielo.webp`).
+const FOTO_HERO = /hero-raffaela-piscina-alta(-m)?-cielo\.webp/;
+const BANDE_HERO = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/hero.json"), "utf8")) as { segno: number[][] }).segno;
 /** Il tema atteso sotto il segno quando in cima c'è la facciata: `foto` dentro una banda, `grafite` fuori; null a un pelo dal bordo. */
 function temaSullaFacciata(fy: number, bande: number[][]): "foto" | "grafite" | null {
   if (bande.some(([a, z]) => Math.abs(fy - a) < 0.004 || Math.abs(fy - z) < 0.004)) return null;
@@ -447,7 +452,7 @@ test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, 
   await goto("/");
   await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
   const errori = await page.evaluate(
-    async ({ cielo, bande }) => {
+    async ({ cielo, bande, hero, bandeHero }) => {
       const segno = document.querySelector<HTMLElement>("[data-segno]")!;
       const out: string[] = [];
       let cieloVisto = 0;
@@ -460,6 +465,17 @@ test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, 
         const cx = r.left + r.width / 2;
         const cy = r.top + r.height / 2;
         const tema = segno.getAttribute("data-tema");
+        // A49: l'hero è la foto alta col cielo in flusso; le zone `foto` sono le bande di hero.json.
+        const hb = document.querySelector<HTMLElement>("#top [data-testa-foto-box]")?.getBoundingClientRect();
+        if (hb && cx >= hb.left && cx <= hb.right && cy >= hb.top && cy <= hb.bottom) {
+          const fy = (cy - hb.top) / hb.height;
+          const alBordo = bandeHero.some(([a, z]) => Math.abs(fy - a) < 0.004 || Math.abs(fy - z) < 0.004);
+          const atteso = bandeHero.some(([a, z]) => fy >= a && fy <= z) ? "foto" : "grafite";
+          const src = decodeURIComponent(document.querySelector<HTMLImageElement>("#top [data-testa-foto-box] img")?.currentSrc ?? "");
+          if (!new RegExp(hero).test(src)) out.push(`scroll ${y}: l'hero non monta la foto alta col cielo (${src.split("/").pop()})`);
+          if (!alBordo && tema !== atteso) out.push(`scroll ${y}: sull'hero (y ${fy.toFixed(3)}, ${atteso === "foto" ? "parete" : "cielo o acqua"}) il tema è ${tema}, non ${atteso} (A49)`);
+          continue;
+        }
         // A47: la facciata si riconosce dalla geometria, non da elementFromPoint: sopra l'<img> sta il
         // capitolo (`.dt-od_content`, col padding dello spazio sopra) e prima di p 1 lo schermo delle tende.
         // Sulla facciata a schermo intero il tema è grafite (cielo = carta, muri, travertino) tranne nelle
@@ -484,7 +500,7 @@ test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, 
       }
       return { out, cieloVisto };
     },
-    { cielo: FOTO_COL_CIELO.source, bande: BANDE_FINESTRA },
+    { cielo: FOTO_COL_CIELO.source, bande: BANDE_FINESTRA, hero: FOTO_HERO.source, bandeHero: BANDE_HERO },
   );
   expect(errori.out, errori.out.join("\n")).toEqual([]);
   expect(errori.cieloVisto, "la corsa non ha mai trovato la finestra a schermo intero sotto il segno").toBeGreaterThan(0);
@@ -495,8 +511,14 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10;
   await page.setViewportSize({ width: 1440, height: 900 });
   await goto("/");
   await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
+  // A49 (22 set., sera): l'hero è la foto alta in flusso e le sue zone `foto` sono le bande di hero.json
+  // (0,269-0,695 dell'altezza: la parete dell'ala sinistra della villa). A 1440 la foto è alta 2144 px e
+  // comincia ~90 px sopra la testata (la salita a riposo): a scrollY 1000 l'asse del segno (~45 px) cade
+  // a ~0,49 della foto, dentro la banda; sul cielo (la carta) e sull'acqua chiara il tema resta grafite.
   await scrollA(page, 1000);
   await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
+  await scrollA(page, 100);
+  await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
   // A57: la finestra è un nastro; la quota di riferimento è la cima della sezione.
   const area = await page.evaluate(() => {
     const a = document.querySelector<HTMLElement>("#open-domus");
@@ -505,11 +527,13 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10;
   expect(area, "manca #open-domus in home").not.toBeNull();
   await scrollA(page, Math.round(area! + 900));
   await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
-  // A46: da +150svh la finestra è a schermo intero e sotto il segno c'è il cielo trasparente della
+  // A46: a schermo agganciato la finestra è a schermo intero e sotto il segno c'è il cielo trasparente della
   // facciata, cioè la carta: il marcatore è `foto-chiara` e il tema resta grafite (le tacche avorio
   // sparirebbero nell'avorio). A47: sulle travi delle pergole (bande di finestra.json) vira foto. Sotto
-  // il segno c'è davvero l'<img> col cielo.
-  await scrollA(page, Math.round(area! + 2.2 * 900));
+  // il segno c'è davvero l'<img> col cielo. La quota: dentro la SALITA (A65: ~520 px a 1440, prima che il
+  // track scorra di lato e la facciata esca a sinistra; a +2,2 schermi, la quota di prima, il nastro è già
+  // a metà corsa e sotto il segno c'è il pannello del claim).
+  await scrollA(page, Math.round(area! + 300));
   // La facciata si riconosce dalla geometria (sopra l'<img> sta il capitolo con lo spazio sopra): il centro
   // del segno dentro la scatola della foto, con lo schermo delle tende già nascosto dal cue di p 1, e la
   // foto montata è il WebP col cielo.

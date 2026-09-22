@@ -29,10 +29,13 @@ describe("corridor-math", () => {
   test("l'innesco di default è quello scritto nel registro", () => {
     assert.equal(defaultStart("bottom", -84), "top -84px");
     assert.equal(defaultStart("top", 0), "top top");
-    // Il tuffo delle PageHero ("page-dive"), che qui verificava `defaultStart("top", 0)`, e' morto con A41.
+    assert.equal(DEFAULT_END, "bottom bottom");
+    // Il tuffo delle PageHero ("page-dive"), che qui verificava `defaultStart("top", 0)`, e' morto con A41;
+    // il tuffo dell'hero (stick bottom, «top ${stickTop}px» → «bottom bottom») con A49 (22 set. 2026): oggi
+    // nessun capitolo scrive nel registro l'innesco di default del hook, e l'hero non è più un corridoio.
     const hero = chapters.hero.signature.trigger;
     assert.ok("st" in hero);
-    assert.deepEqual(hero.st, ["top ${stickTop}px", DEFAULT_END]);
+    assert.notDeepEqual(hero.st, ["top ${stickTop}px", DEFAULT_END]);
   });
 
   test("cue: avanti una volta, indietro una volta, i mancanti dopo un salto", () => {

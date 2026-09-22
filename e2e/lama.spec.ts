@@ -70,7 +70,7 @@ test("Paths in home entra da sinistra (regola della fila, D203): profilo X 3, vi
 
 test("la sede in home entra da sinistra con l'inquadratura di D201 (100% 50%)", async ({ page, goto }) => {
   await goto("/");
-  const sede = page.locator('[data-hero-cover] [data-lama]');
+  const sede = page.locator("#posizionamento [data-lama]");
   await expect(sede).toHaveAttribute("data-from", "left");
   await expect(sede.locator("img")).toHaveCSS("object-position", "100% 50%");
 });

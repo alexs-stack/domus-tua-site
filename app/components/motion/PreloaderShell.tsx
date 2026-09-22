@@ -104,18 +104,20 @@ export default function PreloaderShell() {
             che il visitatore vede, e la sorgente dev'essere una. */}
         <div className="dt-pre-fondo absolute inset-0" />
 
-        {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha posato sullo
-            STESSO canvas della foto dell'hero (A44, 20 set. 2026: 2:3 da 768,
-            9:16 sotto, scripts/media/foto-alte.mjs), con la stessa geometria
-            object-cover dell'immagine sotto — silhouette pulita sul fondo del
-            preloader; fino ad A55 (22 set.) sagoma e foto coincidevano
-            pixel su pixel (la stanza "tornava"). Con la foto della piscina
-            sotto (media.ts) la figura non coincide più, per scelta di Alberto
-            («e se usassimo la maschera del preloader vecchia di Raffaela? La
-            preferisco, e poi all'entrata ci sarà la foto nuova, la maschera
-            se ne va via con l'entrata ad arco sulla hero»): la sagoma è la
-            figura del preloader, e l'arco la porta via. Entra in dissolvenza
-            da 0,15 s (CSS: `dt-pre-in-fade`). */}
+        {/* La "sagoma" di Raffaela: il RITAGLIO con canale alpha posato sulla
+            banda dell'hero (A44, 20 set. 2026: `--dt-band-h` sotto la testata,
+            scripts/media/foto-alte.mjs), col suo object-cover 10 % 100 % —
+            silhouette pulita sul fondo del preloader; fino ad A55 (22 set.)
+            sagoma e foto coincidevano pixel su pixel (la stanza "tornava").
+            Con la foto della piscina sotto (media.ts) la figura non coincide
+            più, per scelta di Alberto («e se usassimo la maschera del preloader
+            vecchia di Raffaela? La preferisco, e poi all'entrata ci sarà la
+            foto nuova, la maschera se ne va via con l'entrata ad arco sulla
+            hero»): la sagoma è la figura del preloader, e l'arco la porta via.
+            Da A49 (la sera) sotto c'è la foto ALTA in flusso, intera e senza
+            ritaglio: la banda è il suo primo schermo (cielo-carta e villa), e
+            il patto della porta è la sola scatola (intro-clocks.test). Entra
+            in dissolvenza da 0,15 s (CSS: `dt-pre-in-fade`). */}
         <div data-pre-figure className="absolute inset-0">
           {/* WebP, non PNG: stesso canvas e stesso canale alpha, 79 KB invece
               di 809. Il preloader è la PRIMA cosa che scarica un visitatore

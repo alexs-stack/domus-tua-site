@@ -70,12 +70,16 @@ const FOTO = /\sdata-bg="foto"/;
 const ZONE_EXTRA: Array<[string, string]> = [];
 
 describe("le zone di spec §6.1 portano data-bg", () => {
-  test("hero: marcatore fratello dello schermo, alto quanto la banda (§3.2)", () => {
-    const tags = tagCon(codice("app/components/HeroCinematic.tsx"), FOTO);
-    assert.ok(
-      tags.some((t) => /h-\[var\(--dt-band-h\)\]/.test(t) && /pointer-events-none/.test(t) && /\saria-hidden/.test(t)),
-      "manca il marcatore dell'hero con h-[var(--dt-band-h)]",
-    );
+  // A49 (22 set. 2026, sera): l'hero è la foto alta in flusso, la testa di era senza blocco: il marcatore
+  // da 1 px del corridoio (D66) è morto e le zone `foto` sono le bande del segno di hero.json
+  // (`.dt-testa_soggetto`, come le teste): sul cielo trasparente e sull'acqua chiara il segno resta grafite.
+  test("hero: le bande di hero.json come marcatori del soggetto, nessun marcatore da 1 px (§3.2, A49)", () => {
+    const src = codice("app/components/HeroCinematic.tsx");
+    const tags = tagCon(src, FOTO);
+    assert.equal(tags.length, 1, "un solo tag con data-bg=\"foto\" nell'hero");
+    assert.ok(attr("data-testa-soggetto").test(tags[0]) && classe("dt-testa_soggetto").test(tags[0]) && /\saria-hidden\b/.test(tags[0]), "il marcatore dell'hero non è .dt-testa_soggetto aria-hidden");
+    assert.ok(!/\bw-px\b|h-\[var\(--dt-band-h\)\]/.test(tags[0]), "il marcatore da 1 px alto quanto la banda è morto con A49");
+    assert.doesNotMatch(src, /data-dive-zoom/, "l'hero non è una testa con [data-dive-zoom]: il rettangolo degli e2e delle undici rotte");
   });
 
   // A46 (Alberto, 21 set. 2026, sera): il cielo delle foto alte è trasparente e il riquadro della testa
@@ -231,7 +235,7 @@ describe("i valori e il colore", () => {
 });
 
 describe("il rilevatore (tema.ts, MarkSegno)", () => {
-  test("le zone larghe 1 px, che valgono per tutta la larghezza, sono l'hero e i due marcatori di Open Domus (D66, deroga a §6.1 b)", () => {
+  test("nessuna zona larga 1 px che valga per tutta la larghezza (D66, deroga a §6.1 b: morta con A57 e A49)", () => {
     // Le classi a cui un foglio di app/ dà `width: 1px` (il soggetto di ogni
     // selettore: l'ultimo composto). Le regole annidate in @media contano.
     const classi1px = new Map<string, string>();
@@ -245,7 +249,8 @@ describe("il rilevatore (tema.ts, MarkSegno)", () => {
         }
       }
     }
-    // A57: `.dt-od_mark` è morta con il corridoio della finestra; la deroga D66 resta al solo hero.
+    // A57: `.dt-od_mark` è morta con il corridoio della finestra; A49: anche il marcatore dell'hero. La
+    // deroga D66 non ha più zone: il rilevatore la tiene per la larghezza ≤ 1 px, e questo elenco è vuoto.
     const larghe1: string[] = [];
     for (const p of sorgenti(join(ROOT, "app"))) {
       for (const t of tagCon(soloCodice(readFileSync(p, "utf8")), /\sdata-bg=/)) {
@@ -257,11 +262,7 @@ describe("il rilevatore (tema.ts, MarkSegno)", () => {
         }
       }
     }
-    assert.deepEqual(
-      larghe1,
-      ["app/components/HeroCinematic.tsx · w-px"],
-      `zone data-bg larghe 1 px:\n${larghe1.join("\n")}`,
-    );
+    assert.deepEqual(larghe1, [], `zone data-bg larghe 1 px:\n${larghe1.join("\n")}`);
   });
 
   test("la coda del tema dura più dello scrub numerico più lungo di app/, con 0,2 s di margine (D67)", () => {

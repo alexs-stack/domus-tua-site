@@ -3,7 +3,8 @@
 //
 // Oggi app/components/motion/useCorridor.ts e il CSS dei corridoi in
 // app/globals.css reggono due cose:
-// - i corridoi del hook: hero, finestra, cartolina, page-dive;
+// - i corridoi del hook: la cartolina (l'hero, la finestra e page-dive sono
+//   morti: A49, A57, A41);
 // - il layout delle stelle prima del paint.
 // Il test legge i sorgenti coi commenti tolti (schema di logo-colore.test.ts)
 // e pretende:
@@ -104,13 +105,11 @@ describe("CSS dei corridoi prima del paint (spec §2.7 e §4, D22)", () => {
     assert.deepEqual(colpe, []);
   });
 
-  test("--corridor-run per id: hero 200svh, cartolina 135svh (A35/A42: 100 − 65 + 20 + 80); nessun corridoio di pagina (A41)", () => {
+  test("--corridor-run per id: cartolina 135svh (A35/A42: 100 − 65 + 20 + 80); nessun corridoio di pagina (A41) né dell'hero (A49)", () => {
     const css = cssPulito();
-    for (const morto of ["page-dive", "soglia", "ingresso"]) assert.equal(regola(css, `[data-corridor="${morto}"]`), null, `${morto}: corridoio morto con A38/A41`);
-    for (const [id, run] of [
-      ["hero", "200svh"],
-      ["cartolina", "135svh"],
-    ] as const) {
+    // A49 (22 set. 2026): il tuffo dell'hero (200svh) è morto: l'hero è la foto alta in flusso.
+    for (const morto of ["page-dive", "soglia", "ingresso", "hero"]) assert.equal(regola(css, `[data-corridor="${morto}"]`), null, `${morto}: corridoio morto con A38/A41/A49`);
+    for (const [id, run] of [["cartolina", "135svh"]] as const) {
       const r = regola(css, `[data-corridor="${id}"]`);
       assert.ok(r?.includes(`--corridor-run: ${run}`), `${id}: manca --corridor-run: ${run}`);
     }

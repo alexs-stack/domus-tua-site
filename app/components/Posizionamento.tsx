@@ -21,12 +21,13 @@
 // a 468px era la terza misura media della home nei primi tre schermi.
 //
 // COREOGRAFIA (Alberto, 13 settembre 2026: A18-A20; spec coreografia §3.3, CAT §3):
-// da 1024 × 640 px con motion ok la sezione è il foglio che scorre sopra il tuffo
-// dell'hero (margine −100svh in globals.css, sotto `data-hero-cover`), e a ogni
-// larghezza le parole del titolo si allontanano in x fino a giustificare la riga:
-// è il wordSpacing di Era reso con i transform, perché il wordSpacing rifarebbe
-// l'impaginato a ogni fotogramma. La deriva `Parallax` della foto è uscita (D23):
-// ±0,56 % dell'altezza non si vedeva ed era un secondo gesto nel capitolo.
+// a ogni larghezza le parole del titolo si allontanano in x fino a giustificare la
+// riga: è il wordSpacing di Era reso con i transform, perché il wordSpacing
+// rifarebbe l'impaginato a ogni fotogramma. La deriva `Parallax` della foto è
+// uscita (D23): ±0,56 % dell'altezza non si vedeva ed era un secondo gesto nel
+// capitolo. Il foglio che scorreva sopra il tuffo dell'hero (margine −100svh sotto
+// `data-hero-cover`) è morto con A49 (22 set. 2026): l'hero è la foto alta in
+// flusso e questa è la sezione che la segue (`#posizionamento`).
 
 import Image from "next/image";
 import { useRef } from "react";
@@ -132,7 +133,7 @@ export default function Posizionamento() {
   );
 
   return (
-    <section data-hero-cover className="dt-chapter bg-cream">
+    <section id="posizionamento" className="dt-chapter bg-cream">
       <div className="dt-row grid gap-[6vw] lg:grid-cols-2 lg:items-center">
         {/* La sede, nella METÀ (dt-media-half, 42vw quadrata): è la stessa
             scatola delle altre righe foto+testo, così scorrendo l'occhio

@@ -201,21 +201,26 @@ test("la finestra di Open Domus con reduced motion è la foto in testa al capito
   expect(await win.getAttribute("style")).toBeNull();
 });
 
-// Il tuffo dell'hero con reduced motion (A19-A20 di Alberto, spec coreografia
-// §3.2-§3.3): nessun corridoio, nessuno stile, Posizionamento in flusso.
-test("con reduced motion l'hero non è un corridoio e Posizionamento non copre", async ({ page, goto }) => {
+// L'hero alto con reduced motion (A49 di Alberto, 22 set. 2026; A19-A20 per il resto): la foto alta è
+// in flusso a ogni larghezza e con moto ridotto non si chiude nemmeno in cartolina: nessun corridoio,
+// nessuno stile, nessun clip; Posizionamento la segue senza margine.
+test("con reduced motion l'hero è la foto alta ferma: nessun corridoio, nessun clip, Posizionamento in flusso", async ({ page, goto }) => {
   await goto("/");
   const top = page.locator("#top");
   await expect(top).toBeAttached();
   expect(await top.getAttribute("data-on")).toBeNull();
-  expect(await page.locator("[data-hero-zoom]").getAttribute("style")).toBeNull();
-  await expect(page.locator("#top [data-corridor-run]")).toHaveCSS("display", "none");
-  await expect(page.locator("[data-hero-cover]")).toHaveCSS("margin-top", "0px");
-  const alt = await page.evaluate(() => ({
-    bg: document.querySelector<HTMLElement>('#top > [data-bg="foto"]')!.offsetHeight,
-    band: document.querySelector<HTMLElement>("[data-hero-media]")!.offsetHeight,
-  }));
-  expect(Math.abs(alt.bg - alt.band), "con reduced motion il marcatore data-bg non è alto quanto la banda").toBeLessThanOrEqual(1);
+  expect(await page.locator("#top [data-corridor-screen], #top [data-corridor-run], [data-hero-zoom]").count()).toBe(0);
+  await expect(page.locator("#posizionamento")).toHaveCSS("margin-top", "0px");
+  const box = page.locator("#top [data-testa-foto-box]");
+  await expect(box).toHaveCSS("clip-path", "none");
+  expect(await box.getAttribute("style")).toBeNull();
+  // A fine foto, con moto ridotto, ancora nessun ritaglio (A53 sulla home).
+  await page.evaluate(() => {
+    const s = document.querySelector<HTMLElement>("#top [data-testa-strato]")!;
+    window.scrollTo({ top: s.getBoundingClientRect().top + window.scrollY + s.offsetHeight - window.innerHeight * 0.1, behavior: "instant" });
+  });
+  await page.waitForTimeout(800);
+  await expect(box).toHaveCSS("clip-path", "none");
 });
 
 // Ricerca e Voci con reduced motion (A18-A20 di Alberto, spec coreografia §3.4

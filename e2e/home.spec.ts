@@ -823,30 +823,19 @@ test("su uno schermo basso il comando per chiudere il video resta raggiungibile"
   await expect(dialog).toHaveCount(0);
 });
 
-// ── Posizionamento: il foglio e le parole ─────────────────────────────────
-// Alberto, 13 settembre 2026 (A18-A20): Posizionamento scorre sopra il tuffo
-// dell'hero come un foglio a bordo dritto e le parole del titolo si
-// allontanano in x fino a giustificare la riga (spec coreografia §3.3, CAT §3).
-test.describe("Posizionamento: il foglio e le parole", () => {
+// ── Posizionamento: le parole ────────────────────────────────────────────
+// Alberto, 13 settembre 2026 (A18-A20): le parole del titolo si allontanano in x
+// fino a giustificare la riga (spec coreografia §3.3, CAT §3). Il foglio che
+// scorreva sopra il tuffo dell'hero è morto con A49 (22 set.): la sezione segue
+// la foto alta in flusso, senza margine negativo.
+test.describe("Posizionamento: le parole", () => {
   for (const lingua of ["it", "de"] as const) {
-    test(`in ${lingua} nessuna parola esce dall'h2; da 1024 il foglio arriva in cima a fine tuffo`, async ({ page, goto }) => {
+    test(`in ${lingua} nessuna parola esce dall'h2; la sezione segue l'hero in flusso`, async ({ page, goto }) => {
       await page.context().addCookies([{ name: "dt_locale", value: lingua, domain: "127.0.0.1", path: "/" }]);
       await goto("/");
-      const cover = page.locator("[data-hero-cover]");
-      const vp = page.viewportSize()!;
-      if (vp.width >= 1024 && vp.height >= 640) {
-        await expect(page.locator("#top")).toHaveAttribute("data-on", "");
-        await expect(cover).toHaveCSS("margin-top", `-${vp.height}px`);
-        const fine = await page.evaluate(() => {
-          const top = document.querySelector<HTMLElement>("#top")!;
-          return top.getBoundingClientRect().top + window.scrollY + top.offsetHeight - window.innerHeight;
-        });
-        await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior }), fine);
-        await page.waitForTimeout(300);
-        const t = await cover.evaluate((el) => el.getBoundingClientRect().top);
-        expect(t).toBeGreaterThanOrEqual(-1);
-        expect(t).toBeLessThanOrEqual(1);
-      }
+      const cover = page.locator("#posizionamento");
+      await expect(cover).toHaveCSS("margin-top", "0px");
+      expect(await page.locator("#top").getAttribute("data-on")).toBeNull();
       // La lingua nuova è arrivata nei caratteri (LocaleProvider passa alla lingua del cookie in un effetto).
       const h2 = cover.locator("h2");
       if (lingua === "de") await expect(h2).toHaveAttribute("aria-label", /Immobilie/);
@@ -877,13 +866,6 @@ test.describe("Posizionamento: il foglio e le parole", () => {
       expect((await misura()).fuori).toEqual([]);
     });
   }
-
-  test("sotto il gate dei corridoi il foglio non copre nulla @layout", async ({ page, goto }) => {
-    const vp = page.viewportSize()!;
-    test.skip(vp.width >= 1024 && vp.height >= 640, "qui il gate è acceso");
-    await goto("/");
-    await expect(page.locator("[data-hero-cover]")).toHaveCSS("margin-top", "0px");
-  });
 });
 
 // ── HomeSearchGateway: l'aggancio del pannello ────────────────────────────

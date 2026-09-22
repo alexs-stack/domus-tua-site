@@ -1,18 +1,42 @@
 "use client";
 
-// HeroCinematic — l'hero della rivista bianca (direttiva cliente 2026-09-10,
-// rif. immobiliaregoldengoal.it) con la FOTO DIETRO LA SCRITTA (richiesta di
-// Alberto, 2026-09-11: «come era prima del cambiamento», cioè la foto che fa
-// da fondo al lockup, non un media dopo il testo). La foto reale è la banda
-// alta del primo schermo e sopra ci stanno SOLO il lockup «Domus Tua» nel
-// font del logo a 13vw e la firma calligrafica: a quella misura le lettere
-// si leggono su qualunque stanza. Sovratitolo, H1 a d3, CTA e voto seguono
-// sull'avorio, nello stesso primo schermo — a 38 px un titolo sopra un
-// divano non si legge, e il velo scuro che prima lo salvava è ciò che la
-// cliente ha bocciato (punti 10 e 13: vignettatura no, niente nero). Niente
-// curve, niente scritte piccole. Del vecchio hero cinematografico restano il
-// rito d'ingresso delle lettere dopo il preloader (`data-hero-char/tchar/
-// schar`) e il mount del <video> dopo il primo paint. Vedi docs/hero-video.md.
+// HeroCinematic — l'HERO ALTO della home (A49 e A71 di Alberto, 22 settembre 2026).
+//
+// Chi l'ha chiesto. A49, con lo screenshot dell'hero: «ma sopratutto la hero e il preloader, stesso
+// discorso di prima ma qua ancora peggio. non c'è né l'immagine alta che fa da sfondo pagina a schermo
+// intero, né l'effetto dello scroll dentro l'immagine perché l'hai tagliata a metà e bloccato lo scroll
+// della pagina per l'effetto zoom»; A71, la sera: «sì, fallo, anche il voto e i due link. prova a vedere
+// se riesci a fare un upscale se ho crediti, sennò fa niente, e falla no-bg così è più bella».
+//
+// Com'è fatto oggi (i numeri in app/lib/motion/hero.ts e hero.json; il CSS nel blocco «L'HERO ALTO
+// DELLA HOME» di globals.css, che riusa le classi della testa di era, PageHeroTesta.tsx):
+// - la foto è la piscina di Raffaela estesa a 2:3 con Higgsfield e col cielo trasparente
+//   (`hero-raffaela-piscina-alta-cielo.webp`, 2560×3812; sul telefono la striscia 9:16 centrata,
+//   scripts/media/hero-piscina.mjs), IN FLUSSO come le teste (A45): larga tutto, alta quanto è resa,
+//   nessun corridoio, nessun tuffo, nessuno zoom, nessun lift. Le scritte stanno DENTRO lo strato della
+//   foto e salgono con lei, come se fossero nella foto; il cielo è la carta (A46);
+// - a riposo lo strato sale sotto la testata finché il primo schermo (la banda `--dt-band-h`, dove
+//   l'arco del preloader si apre: il patto della porta, intro-clocks.test) non finisce dove comincia il
+//   blocco (D-A49-1, hero.ts `salitaRiposo`): il primo schermo è cielo-carta e villa, Raffaela e le
+//   scritte arrivano col primo scroll; sul telefono la foto resta al suo posto e sta tutta nel primo
+//   schermo;
+// - da lg il blocco (sovratitolo, H1, CTA «Richiedi la valutazione», «Vendi casa» e «Cerco casa», il
+//   voto) posa SULLA foto in bianco senza ombra (A70), grande, nella banda scura misurata: il portico a
+//   destra di Raffaela (D-A49-2), in un terzo di riga a destra, così nessuna lettera la copre (A27) e la
+//   sua mano tesa lo presenta; il lockup «Domus Tua» (font del logo, grafite e rosso, 10,5vw da lg, A55)
+//   e la firma stanno sull'acqua in basso a destra, e sotto resta la coda libera in cui la foto si
+//   ritira nella cornice della cartolina (ChiusuraFoto, A53: la firma del capitolo in chapters.ts);
+// - sotto lg il lockup e la firma posano sull'acqua, centrati, e il blocco segue la foto sulla carta,
+//   in inchiostro, centrato come prima (le sezioni sono atomiche: o tutte sulla foto o tutte sulla
+//   carta, A48);
+// - il rito d'ingresso delle lettere resta (ruoli `title` sul lockup e sull'H1, `accent` sulla firma:
+//   A20/A22; `data-hero-char/tchar/schar`): ogni gruppo entra all'handoff del preloader se è in scena,
+//   altrimenti la prima volta che entra nel viewport (D-A49-5: da lg a riposo il lockup sta sull'acqua,
+//   sotto la piega, e un flip fuori campo non lo vede nessuno);
+// - il <video> del drone resta montato dopo il primo paint, se e quando la cliente lo riaccende
+//   (media.ts, `enabled: false`, C21).
+// Nessun velo sopra la foto (la cliente, 10 set.). Con reduced-motion e senza JS la pagina è questa,
+// ferma e completa.
 import { useEffect, useRef, useState } from "react";
 import { getImageProps } from "next/image";
 import { Star } from "./Icons";
@@ -22,11 +46,13 @@ import { heroCinematic } from "../lib/media";
 import { useLocale } from "./i18n/LocaleProvider";
 import { gsap, useGSAP, durDt, painted } from "../lib/motion/gsap";
 import { MQ } from "../lib/motion/mq";
-import { ROLES, staggerEach, groupDelay } from "../lib/motion/text-roles";
+import { ROLES, staggerEach, groupDelay, type RoleSpec } from "../lib/motion/text-roles";
 import { afterCurtain, foldNetFired } from "../lib/motion/fold";
-import { chapters } from "../lib/motion/chapters";
+import { chapters, scrubOf } from "../lib/motion/chapters";
+import { SIZES_HERO } from "../lib/motion/hero";
+import foto from "../lib/motion/hero.json";
 import SplitChars from "./motion/SplitChars";
-import { useCorridor } from "./motion/useCorridor";
+import ChiusuraFoto from "./motion/ChiusuraFoto";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // L'H1 È UNA PROMESSA, NON IL MARCHIO.
@@ -122,65 +148,35 @@ const copy = {
   },
 };
 
-// ─── LE MISURE DEL TUFFO ─────────────────────────────────────────────────
-// Alberto, 13 settembre 2026: il tuffo sticky dell'hero come era-residence
-// (A18-A20, CAT §2). Le misure usano offsetHeight e offsetTop, che i transform
-// non toccano, come Era. `[data-hero-zoom]` ha già in SSR l'altezza resa della
-// foto (classe aspect col rapporto del file e min-h-full).
-// A44 (20 set. 2026): la foto è ALTA (2:3) e il riquadro è ANCORATO IN BASSO,
-// così a riposo la banda a schermo intero mostra Raffaela intera in basso a
-// sinistra (A27); la parte alta della foto resta nascosta sopra e serve solo
-// agli schermi più alti che larghi (cover). Quindi la SALITA della foto del
-// tuffo (A23: fino a 0,80·tImg, un pan verso il basso della foto) non esiste
-// più — scoprirebbe il fondo sotto il riquadro — e resta il solo zoom a 2 con
-// origine 50 % 75 %; t′ vale la banda, e la salita del testo si misura sul
-// blocco (A20: L = max(1,25·t′ − bandH, 1,05·B) = max(0,25·bandH, 1,05·B)).
-function heroBox(root: HTMLElement) {
-  const bandH = root.querySelector<HTMLElement>("[data-hero-media]")?.offsetHeight ?? 0;
-  return { bandH, tPrime: bandH };
-}
-
-/** Salita della foto: 0 (A44, riquadro ancorato in basso; vedi sopra). Resta come punto d'innesto del tween. */
-function photoRise(root: HTMLElement): number {
-  const { bandH, tPrime } = heroBox(root);
-  return Math.max(0, tPrime - bandH);
-}
-
-/**
- * Salita del testo, A20 di Alberto (fedeltà letterale al tuffo di Era, spec §3.2):
- * L = max(1,25·t′ − bandH, 1,05·B), B = fondo del contenuto del blocco + 24 px; con t′ = bandH (A44).
- */
-function textLift(root: HTMLElement): number {
-  const { bandH, tPrime } = heroBox(root);
-  const block = root.querySelector<HTMLElement>("[data-hero-block-lift]");
-  const last = block?.lastElementChild as HTMLElement | null | undefined;
-  const b = block && last ? last.offsetTop + last.offsetHeight - block.offsetTop + 24 : 0;
-  return Math.max(1.25 * tPrime - bandH, 1.05 * b);
-}
+/** Un gruppo di lettere del rito d'ingresso: le sue lettere, il ruolo, il ritardo nel gruppo, l'elemento che dice se è in scena. */
+type Gruppo = { nome: "lockup" | "h1" | "firma"; chars: HTMLElement[]; role: RoleSpec["enter"]; at: number; host: HTMLElement };
 
 export default function HeroCinematic() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [playVideo, setPlayVideo] = useState(false);
   const sectionRef = useRef<HTMLElement | null>(null);
-  // L'ingresso delle lettere è partito in questo montaggio (spec §2.3): un cambio lingua dopo non lo rifà.
-  const lettersPlayed = useRef(false);
+  // I gruppi di lettere già entrati in questo montaggio (spec §2.3): un cambio lingua dopo non li rifà.
+  const suonati = useRef(new Set<Gruppo["nome"]>());
 
-  // Ingresso delle lettere a OGNI load, coi ruoli del testo di Era: `title` su
-  // lockup e H1, `accent` sulla firma (A20 e A22 di Alberto, 13 settembre 2026;
-  // spec coreografia §2.2 e §2.5). Lettere piatte, senza prospettiva (A22). I
-  // tempi di Era superano il «ritmo disteso» di C21 (3 agosto); il video resta
-  // spento come C21 chiede (media.ts). Ritardi dall'ordine nel gruppo: lockup
-  // 0,3 s, H1 0,4 s, firma 0,3 s. Col sipario partono all'handoff (afterCurtain
-  // di fold.ts, subito se l'handoff è già partito), senza sipario 150 ms dopo
-  // l'armamento. Stato dipinto a 0,02 e rete CSS `dt-rest-failsafe` restano
-  // quelli di globals.css su `data-hero-char/tchar/schar`; lockup, firma e H1
-  // non portano `data-reveal`, quindi il motore dei gruppi non li tocca.
-  // Cambio lingua (spec §2.3): LocaleProvider passa alla lingua del cookie in un
-  // effetto passivo, dopo questo layout effect, e SplitChars crea span nuovi per
-  // le lettere in più. Con `dependencies: [locale]` e `revertOnUpdate` l'effetto
-  // si rifà sugli span di oggi: prima dell'ingresso si riarma; a ingresso partito
-  // le lettere si accendono senza replay; a rete CSS già scattata si accendono
+  // Ingresso delle lettere coi ruoli del testo di Era: `title` su lockup e H1,
+  // `accent` sulla firma (A20 e A22 di Alberto, 13 settembre 2026; spec
+  // coreografia §2.2 e §2.5). Lettere piatte, senza prospettiva (A22). Ritardi
+  // dall'ordine nel gruppo: lockup 0,3 s, H1 0,4 s, firma 0,3 s. Col sipario
+  // partono all'handoff (afterCurtain di fold.ts, subito se l'handoff è già
+  // partito), senza sipario 150 ms dopo l'armamento. D-A49-5: ogni gruppo suona
+  // all'handoff solo se il suo elemento è in scena; altrimenti aspetta la prima
+  // entrata nel viewport (IntersectionObserver), perché da lg a riposo il lockup
+  // e l'H1 stanno nella foto sotto la piega e un flip fuori campo non lo vede
+  // nessuno. Stato dipinto a 0,02 e rete CSS `dt-rest-failsafe` restano quelli
+  // di globals.css su `data-hero-char/tchar/schar` (la rete si spegne
+  // all'armamento: un gruppo armato aspetta l'entrata, non l'orologio); lockup,
+  // firma e H1 non portano `data-reveal`, quindi il motore dei gruppi non li
+  // tocca. Cambio lingua (spec §2.3): LocaleProvider passa alla lingua del
+  // cookie in un effetto passivo, dopo questo layout effect, e SplitChars crea
+  // span nuovi. Con `dependencies: [locale]` e `revertOnUpdate` l'effetto si
+  // rifà sugli span di oggi: un gruppo già entrato si accende senza replay; uno
+  // non ancora entrato si riarma e aspetta; a rete CSS già scattata si accendono
   // solo gli span nati dopo, e gli altri finiscono la loro animazione CSS.
   useGSAP(
     () => {
@@ -191,11 +187,15 @@ export default function HeroCinematic() {
 
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
-        const titleChars = gsap.utils.toArray<HTMLElement>("[data-hero-char]", section);
-        const taglineChars = gsap.utils.toArray<HTMLElement>("[data-hero-tchar]", section);
-        const scriptChars = gsap.utils.toArray<HTMLElement>("[data-hero-schar]", section);
-        const allChars = [...titleChars, ...taglineChars, ...scriptChars];
-        if (allChars.length === 0) return;
+        const chars = (sel: string) => gsap.utils.toArray<HTMLElement>(sel, section);
+        const host = (sel: string) => section.querySelector<HTMLElement>(sel);
+        const candidati: Array<Omit<Gruppo, "host"> & { host: HTMLElement | null }> = [
+          { nome: "lockup", chars: chars("[data-hero-char]"), role: ROLES.title.enter, at: groupDelay("title", 0), host: host("[data-hero-lockup]") },
+          { nome: "h1", chars: chars("[data-hero-tchar]"), role: ROLES.title.enter, at: groupDelay("title", 1), host: host("h1") },
+          { nome: "firma", chars: chars("[data-hero-schar]"), role: ROLES.accent.enter, at: groupDelay("accent", 0), host: host("[data-hero-script]") },
+        ];
+        const gruppi = candidati.filter((g): g is Gruppo => g.chars.length > 0 && g.host !== null);
+        if (gruppi.length === 0) return;
         const accendi = (els: HTMLElement[]) => {
           els.forEach((el) => {
             el.style.animation = "none";
@@ -203,145 +203,83 @@ export default function HeroCinematic() {
           gsap.set(els, { opacity: 1 });
         };
 
-        if (lettersPlayed.current) {
-          accendi(allChars);
-          return;
-        }
+        // I gruppi già entrati (cambio lingua) si accendono e basta.
+        for (const g of gruppi) if (suonati.current.has(g.nome)) accendi(g.chars);
+        const daSuonare = gruppi.filter((g) => !suonati.current.has(g.nome));
+        if (daSuonare.length === 0) return;
         // Rete CSS già scattata (JS arrivato tardi): nessun ingresso. Si accendono solo gli span
         // la cui animazione CSS non è ancora partita, cioè quelli nati col cambio lingua.
-        if (foldNetFired(allChars[0], "dt-rest-failsafe")) {
-          accendi(allChars.filter((el) => !foldNetFired(el, "dt-rest-failsafe")));
+        const arma = daSuonare.flatMap((g) => g.chars);
+        if (foldNetFired(arma[0], "dt-rest-failsafe")) {
+          accendi(arma.filter((el) => !foldNetFired(el, "dt-rest-failsafe")));
           return;
         }
-        allChars.forEach((el) => {
+        arma.forEach((el) => {
           el.style.animation = "none";
         });
-        gsap.set(allChars, { opacity: painted });
+        gsap.set(arma, { opacity: painted });
 
-        let played = false;
-        const play = () => {
-          if (played) return;
-          played = true;
-          lettersPlayed.current = true;
-          const title = ROLES.title.enter;
-          const accent = ROLES.accent.enter;
-          gsap.set(allChars, { willChange: "transform" });
+        const osservatori: IntersectionObserver[] = [];
+        const suona = (g: Gruppo) => {
+          if (suonati.current.has(g.nome)) return;
+          suonati.current.add(g.nome);
+          const r = g.role;
+          gsap.set(g.chars, { willChange: "transform" });
           // Origine dei ruoli (spec §2.2): `accent` gira dalla linea di base, 50 % 100 %; `title` resta al centro.
-          if (title.origin) gsap.set([...titleChars, ...taglineChars], { transformOrigin: title.origin });
-          if (accent.origin) gsap.set(scriptChars, { transformOrigin: accent.origin });
+          if (r.origin) gsap.set(g.chars, { transformOrigin: r.origin });
           gsap
-            .timeline({ onComplete: () => gsap.set(allChars, { clearProps: "willChange" }) })
+            .timeline({ onComplete: () => gsap.set(g.chars, { clearProps: "willChange" }) })
             .fromTo(
-              titleChars,
-              { ...title.from },
+              g.chars,
+              { ...r.from },
               {
-                ...title.to,
-                duration: title.duration,
-                ease: title.ease,
-                stagger: staggerEach(title.stagger, titleChars.length, durDt.l),
+                ...r.to,
+                duration: r.duration,
+                ease: r.ease,
+                stagger: staggerEach(r.stagger, g.chars.length, durDt.l),
                 overwrite: true,
               },
-              groupDelay("title", 0),
-            )
-            .fromTo(
-              taglineChars,
-              { ...title.from },
-              {
-                ...title.to,
-                duration: title.duration,
-                ease: title.ease,
-                stagger: staggerEach(title.stagger, taglineChars.length, durDt.l),
-                overwrite: true,
-              },
-              groupDelay("title", 1),
-            )
-            .fromTo(
-              scriptChars,
-              { ...accent.from },
-              {
-                ...accent.to,
-                duration: accent.duration,
-                ease: accent.ease,
-                stagger: staggerEach(accent.stagger, scriptChars.length, durDt.l),
-                overwrite: true,
-              },
-              groupDelay("accent", 0),
+              g.at,
             );
         };
+        const inScena = (el: HTMLElement) => {
+          const b = el.getBoundingClientRect();
+          return b.bottom > 0 && b.top < window.innerHeight;
+        };
+        const play = () => {
+          for (const g of daSuonare) {
+            if (inScena(g.host) || typeof IntersectionObserver === "undefined") {
+              suona(g);
+              continue;
+            }
+            const io = new IntersectionObserver(
+              (voci) => {
+                if (!voci.some((v) => v.isIntersecting)) return;
+                io.disconnect();
+                suona(g);
+              },
+              { threshold: 0 },
+            );
+            io.observe(g.host);
+            osservatori.push(io);
+          }
+        };
 
-        if (html.hasAttribute("data-preloader")) return afterCurtain(play);
-        const t = window.setTimeout(play, 150);
-        return () => window.clearTimeout(t);
+        let annulla: () => void;
+        if (html.hasAttribute("data-preloader")) {
+          annulla = afterCurtain(play);
+        } else {
+          const t = window.setTimeout(play, 150);
+          annulla = () => window.clearTimeout(t);
+        }
+        return () => {
+          annulla();
+          osservatori.forEach((o) => o.disconnect());
+        };
       });
     },
     { scope: sectionRef, dependencies: [locale], revertOnUpdate: true },
   );
-
-  // Il tuffo (A18-A20 e A23 di Alberto; spec coreografia §3.2, CAT §2). Da
-  // MQ.corridor lo schermo resta agganciato col bordo basso per 200svh: foto e
-  // testo salgono a due velocità (dtEase, 0 → 0,6) e la foto scala 1 → 2
-  // dall'origine 50 % 75 % (dtIn, 0,4 → 1). Il flip delle lettere sta sui
-  // caratteri e i lift sui wrapper: nodi diversi. Nessun tween tocca un nodo
-  // con utility translate-*, perché GSAP riscrive la proprietà `translate` e
-  // toglierebbe il 26 % della firma: per questo la firma ha un wrapper suo.
-  // Sotto il gate (spec §3.2), da 768 la foto scala fino a 1,12 in scrub
-  // mentre la banda passa sotto la testata; sotto 768 salgono solo lockup e
-  // firma, di 8svh. Fuoco (A19; spec §2.7 e §3.2): se l'elemento interseca il
-  // viewport e non è ritagliato da `[data-hero-block]` il hook non sposta la
-  // pagina (a p 0 la CTA sporge di ~18 px sotto il bordo a 1440×900 e 1024×768:
-  // la porta in vista lo scroll nativo del fuoco, senza salti; D52); altrimenti
-  // torna a `st.start`, dove H1 e CTA sono in vista senza transform. La bisezione
-  // di default del hook guarda solo il viewport e non vede `overflow: clip`.
-  useCorridor(sectionRef, {
-    id: "hero",
-    stick: "bottom",
-    deps: [locale],
-    focus: (el, st) => {
-      const r = el.getBoundingClientRect();
-      const clip = sectionRef.current?.querySelector("[data-hero-block]")?.getBoundingClientRect();
-      const dentro =
-        r.bottom > 0 && r.top < window.innerHeight && (!clip || (r.top >= clip.top && r.bottom <= clip.bottom));
-      return dentro ? null : st.start;
-    },
-    build: (tl, q) => {
-      const root = sectionRef.current;
-      if (!root) return;
-      const zoom = q("[data-hero-zoom]");
-      tl.to(zoom, { y: () => -photoRise(root), ease: "dtEase", duration: 0.6 }, 0)
-        .to(q("[data-hero-lift], [data-hero-block-lift]"), { y: () => -textLift(root), ease: "dtEase", duration: 0.6 }, 0)
-        .to(zoom, { scale: 2, ease: chapters.hero.signature.ease, duration: 0.6 }, 0.4);
-    },
-    phone: (q) => {
-      const root = sectionRef.current;
-      const band = q("[data-hero-media]")[0];
-      if (!root || !band) return;
-      // Spec §3.2 (A20): lift di 12svh da 768 e di 8svh sotto. La banda è a schermo intero
-      // meno la testata (--dt-band-h, A44): un svh è il viewport diviso per 100.
-      const svh = () => window.innerHeight / 100;
-      const headH = () => document.querySelector<HTMLElement>("header")?.offsetHeight ?? 0;
-      const mm = gsap.matchMedia();
-      mm.add(MQ.desktop, () => {
-        const zoom = q("[data-hero-zoom]");
-        gsap
-          .timeline({
-            defaults: { ease: "none", immediateRender: false },
-            scrollTrigger: { trigger: band, start: 0, end: () => `bottom ${headH()}px`, scrub: true, invalidateOnRefresh: true },
-          })
-          .to(zoom, { scale: 1.12, ease: "dtIn", duration: 1 }, 0)
-          .to(zoom, { y: () => -0.5 * photoRise(root), ease: "dtEase", duration: 1 }, 0)
-          .to(q("[data-hero-lift]"), { y: () => -12 * svh(), ease: "dtEase", duration: 1 }, 0);
-      });
-      mm.add(MQ.belowDesktop, () => {
-        gsap.to(q("[data-hero-lift]"), {
-          y: () => -8 * svh(),
-          ease: "dtEase",
-          immediateRender: false,
-          scrollTrigger: { trigger: band, start: 0, end: () => `bottom ${headH()}px`, scrub: true, invalidateOnRefresh: true },
-        });
-      });
-      return () => mm.revert();
-    },
-  });
 
   // Il video parte solo su desktop e se l'utente non ha ridotto le animazioni,
   // e solo se i file sono attivati. Oggi `heroCinematic.enabled=false`
@@ -391,10 +329,13 @@ export default function HeroCinematic() {
   // intanto /recensioni scriveva "4.9/5" in italiano. Una regola sola, un posto solo.
   const ratingDisplay = ratingLabel(locale);
 
-  // I due file dell'hero (A44): stesso alt, stessi sizes, stessa qualità; il <picture> sotto
-  // sceglie il 3:2 da 768 e il 9:16 sotto (A55). `fotoImg` porta src/width/height/loading/fetchPriority
-  // del ramo telefono; il srcSet lo rimettiamo esplicito per chiarezza.
-  const comuni = { alt: c.heroAlt, sizes: "100vw", quality: 78, preload: true } as const;
+  // I due file dell'hero (A49): il WebP col cielo trasparente 2:3 da 768, la striscia 9:16 sotto;
+  // stesso alt, stessi `sizes` (100vw: la scatola ha il rapporto della foto, il cover non ritaglia),
+  // stessa qualità (75, la voce di next.config `qualities` fra i 60 delle teste e i 78 dell'hero di
+  // prima: è la foto LCP e la più grande del sito). `fotoImg` porta src/width/height/loading/
+  // fetchPriority del ramo telefono; il srcSet lo rimettiamo esplicito per chiarezza. `preload` (non
+  // `priority`, deprecata): è l'unica immagine prioritaria del sito.
+  const comuni = { alt: c.heroAlt, sizes: SIZES_HERO, quality: 75, preload: true } as const;
   const {
     props: { srcSet: fotoDesktop },
   } = getImageProps({ ...comuni, src: heroCinematic.base, width: heroCinematic.baseSize.w, height: heroCinematic.baseSize.h });
@@ -403,235 +344,183 @@ export default function HeroCinematic() {
   } = getImageProps({ ...comuni, src: heroCinematic.baseM, width: heroCinematic.baseMSize.w, height: heroCinematic.baseMSize.h });
 
   return (
-    <section
-      ref={sectionRef}
-      id="top"
-      data-corridor="hero"
-      data-stick="bottom"
-      className="relative bg-cream"
-    >
-      {/* Il marcatore del tema del monogramma sta FUORI dallo schermo sticky
-          (spec coreografia §3.2, correzione bloccante 4 di homeA): copre la
-          banda e, sotto il gate dei corridoi, tutto il corridoio fino alla
-          cima di Posizionamento (globals.css). Lo legge il rilevatore di A21. */}
-      <span
-        aria-hidden
-        data-bg="foto"
-        className="pointer-events-none absolute left-0 top-0 h-[var(--dt-band-h)] w-px"
-      />
-      {/* Lo schermo del corridoio (A19 di Alberto): sticky solo sotto il gate,
-          in CSS prima del paint. Nessuno stile qui: transform e ritagli stanno
-          sui discendenti. */}
-      <div data-corridor-screen>
-        {/* LA BANDA CON LA FOTO DIETRO LA SCRITTA. `data-hero-media` resta per
-            sonde ed e2e; la foto è la LCP della home; il <video> arriva dopo il
-            primo paint, se e quando il cliente lo riaccende (media.ts). NESSUN
-            VELO sopra la foto: la cliente ha bocciato vignettature e nero.
-            A44 (20 set. 2026): la banda è a SCHERMO INTERO sotto la testata
-            (`--dt-band-h`); A55 (22 set., Alberto: «vorrei invertire le
-            posizioni di questa immagine con quella della hero») la foto è
-            quella VERA di Raffaela davanti alla villa con piscina, che stava in
-            Paths: 3:2 sul desktop, la striscia 9:16 sul telefono (art direction
-            a 768 con `getImageProps` e <picture>: due file di media.ts scritti
-            da scripts/media/hero-piscina.mjs). La scena generata di A44/A45 è
-            andata in Paths. L'inquadratura parte dal BASSO (`objectPosition`
-            100 % in verticale), la stessa della sagoma del preloader, che
-            resta la VECCHIA maschera in pizzo di A44 (Alberto, A55: «la
-            preferisco, e poi all'entrata ci sarà la foto nuova, la maschera se
-            ne va via con l'entrata ad arco»): stessa scatola e stesso ritaglio
-            (intro-clocks.test.ts), ma la figura non coincide più con quella
-            della foto. Raffaela sta al centro della foto, intera coi piedi sul
-            bordo della piscina (A27), e per questo il lockup è sceso in basso,
-            a destra da lg, sull'acqua, fuori da lei; il 10 % orizzontale conta
-            solo dove la foto è più larga della scatola (sul telefono). Il
-            rettangolo avorio profondo precede la foto, come per ogni media del
-            sito. */}
-        <div
-          data-hero-media
-          className="relative flex h-[var(--dt-band-h)] w-full flex-col bg-cream-deep"
-        >
-          {/* Il ritaglio sta QUI, non sulla banda: la banda deve lasciar sbordare
-              la firma sul bordo basso, come la calligrafia del riferimento che
-              scavalca il bordo del video. */}
-          <div className="absolute inset-0 overflow-hidden">
-            {/* Lo zoom del tuffo (A23): alto già in SSR quanto la foto resa
-                (rapporto del file, `--dt-hero-ar` in globals.css: 720/1280 sul
-                telefono, 1920/1280 da 768, A55; mai meno della banda) e ANCORATO IN
-                BASSO (A44), così a riposo il ritaglio mostra il piede della foto,
-                con Raffaela, e il patto della porta regge. Origine della scala
-                50 % 75 % (CAT §2). */}
-            <div
-              data-hero-zoom
-              className="absolute inset-x-0 bottom-0 aspect-[var(--dt-hero-ar)] min-h-full origin-[50%_75%]"
-            >
-              {/* Art direction (Next 16, `getImageProps`): il 3:2 da 768, il 9:16
-                  sotto; `preload` (non `priority`, deprecata) perché è l'unica
-                  immagine prioritaria del sito, la LCP della home; qualità 78 come
-                  prima. Un <img> con le classi del `fill` di next/image: la scatola
-                  è il div dello zoom. */}
-              <picture>
-                <source media="(min-width: 768px)" srcSet={fotoDesktop} sizes="100vw" />
-                <img
-                  {...fotoImg}
-                  alt={c.heroAlt}
-                  srcSet={fotoTelefono}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  style={{ objectPosition: "10% 100%" }}
-                />
-              </picture>
-              {playVideo && (
-                <video
-                  className="absolute inset-0 h-full w-full object-cover"
-                  style={{ objectPosition: "10% 100%" }}
-                  poster={heroCinematic.poster}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  onError={() => setPlayVideo(false)}
+    // La testa di era (le classi .dt-testa_* di globals.css e i ganci di ChiusuraFoto: `data-testa`,
+    // `data-sopra="foto"`, lo strato, la scatola della foto, lo spazio sopra) più `.dt-hero`, che la
+    // tiene sotto la testata e le dà la salita a riposo e le quote di hero.ts.
+    <section ref={sectionRef} id="top" data-testa data-sopra="foto" className="dt-testa dt-hero relative isolate bg-cream">
+      {/* Il riquadro è la CARTA (A46): in flusso, avorio, `overflow: clip`; sopra il cielo trasparente
+          il segno resta grafite (nessun data-bg qui, data-bg.test). */}
+      <div className="dt-testa_riquadro">
+        {/* Lo strato della foto: IN FLUSSO, alto quanto la foto resa (`--dt-hero-ar`), portato su della
+            salita a riposo (D-A49-1, CSS). Il <picture> e i marcatori stanno nella scatola della foto;
+            lo spazio sopra, con le scritte, la segue nello stacking e nel flusso. */}
+        <div data-testa-strato className="dt-testa_strato">
+          {/* La scatola della foto (A48): assoluta in cima allo strato, da lg lo riempie; il fondo è la
+              carta (il cielo è trasparente). `data-hero-media` resta per sonde ed e2e; la foto è la LCP
+              della home; NESSUN VELO sopra (la cliente ha bocciato vignettature e nero). La chiusura in
+              cartolina (A53) scrive il clip qui, solo dentro la corsa. */}
+          <div data-testa-foto-box data-hero-media className="dt-testa_foto">
+            {/* Art direction (Next 16, `getImageProps`): la 2:3 da 768, la striscia 9:16 sotto (D-A49-4,
+                hero-piscina.mjs). La foto comincia dalla cima (`50% 0%`): la scatola ha il suo rapporto
+                e nulla viene ritagliato (A27); la sagoma del preloader tiene il ritaglio suo, perché con
+                A55 non coincide più con la foto. */}
+            <picture>
+              <source media="(min-width: 768px)" srcSet={fotoDesktop} sizes={SIZES_HERO} />
+              <img
+                {...fotoImg}
+                alt={c.heroAlt}
+                srcSet={fotoTelefono}
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{ objectPosition: "50% 0%" }}
+              />
+            </picture>
+            {playVideo && (
+              <video
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{ objectPosition: "50% 0%" }}
+                poster={heroCinematic.poster}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onError={() => setPlayVideo(false)}
+              >
+                {heroCinematic.webm && <source src={heroCinematic.webm} type="video/webm" />}
+                <source src={heroCinematic.mp4} type="video/mp4" />
+              </video>
+            )}
+            {/* I marcatori del segno (D34, A21): uno per banda `segno` di hero.json — la parete e la
+                ringhiera dell'ala sinistra della villa, dove la striscia del segno è opaca e scura —
+                con `data-bg="foto"`: lì le tacche virano all'avorio; sul cielo (la carta) e sull'acqua
+                chiara restano grafite. Il marcatore da 1 px del corridoio (D66) è morto con A49. */}
+            {foto.segno.map(([da = 0, a = 0]) => (
+              <span
+                key={`${da}-${a}`}
+                aria-hidden
+                data-testa-soggetto
+                data-bg="foto"
+                className="dt-testa_soggetto"
+                style={{ top: `${(da * 100).toFixed(2)}%`, bottom: `${((1 - a) * 100).toFixed(2)}%` }}
+              />
+            ))}
+          </div>
+
+          {/* Lo spazio sopra la foto (A48/A54): in flusso dentro lo strato, senza fondo. La POSA tiene la
+              marca e il blocco: da lg comincia alla cima del portico (`testo`) col blocco in cima a
+              destra e la marca sull'acqua in fondo (`coda`); sotto lg comincia sull'acqua (`acqua`) con
+              la marca centrata alta quanto l'acqua e il blocco dopo la foto, sulla carta (CSS). */}
+          <div className="dt-testa_sopra">
+            <div className="dt-row dt-hero_posa">
+              {/* LA MARCA: il lockup nel font del logo (`font-brand`, richiesta cliente: «stesso font del
+                  logo in tutte le scritte Domus Tua») coi colori del logo, SULL'ACQUA, in basso a destra
+                  da lg e centrato sotto (A55: Raffaela sta al centro della foto e nessuna lettera la
+                  copre; da lg 10,5vw perché a 13vw la «D» le copriva le gambe). NON è l'h1 (vedi la nota
+                  sopra `copy`). Le lettere animate stanno in uno span aria-hidden intorno a SplitChars:
+                  il nome leggibile vive nello span sr-only — un aria-label su un <div> senza ruolo
+                  verrebbe ignorato dalle AT e segnalato da axe (aria-prohibited-attr). `data-hero-lockup`
+                  è l'elemento che il rito guarda per dire se il lockup è in scena. */}
+              <div data-hero-lockup className="dt-hero_marca items-center text-center lg:items-end lg:text-right">
+                {/* Minuscolo come il logo («DomusTua»): la regola globale mette in
+                    maiuscolo solo h1-h4, e questo è un div apposta. */}
+                <div className="font-brand text-hero font-extrabold tracking-[-0.02em] lg:text-(length:--text-hero-lg)">
+                  <span className="sr-only">Domus Tua</span>
+                  {/* Due righe, come il lockup di sempre (posizioni chieste da Alberto, 2026-09-10 sera);
+                      il font resta quello del logo. Caratteri di SplitChars con la crenatura di
+                      `brand-800` (A20, D20); `upper={false}` perché il lockup è minuscolo. */}
+                  <span aria-hidden className="block text-graphite">
+                    <SplitChars font="brand-800" locale={locale} upper={false} charAttr="data-hero-char">
+                      Domus
+                    </SplitChars>
+                  </span>
+                  <span aria-hidden className="block text-red">
+                    <SplitChars font="brand-800" locale={locale} upper={false} charAttr="data-hero-char">
+                      Tua
+                    </SplitChars>
+                  </span>
+                </div>
+
+                {/* La firma sotto il lockup, sull'acqua («firma più in basso», la cliente, 10 set.): non
+                    scavalca più il bordo della foto, perché da lg quel bordo è la coda in cui la foto si
+                    ritira nella cartolina (A53) e una firma a cavallo del ritaglio si taglierebbe.
+                    `.script-word` (globals.css) è fuori dai layer e impone `position: relative`; `!text-…`
+                    perché vincerebbe sull'utility (regola unlayered-beats-utilities). Le lettere sono di
+                    SplitChars, con la crenatura di `script-400` (D20). */}
+                <span
+                  data-hero-script
+                  aria-hidden
+                  className="script-word relative block !text-[clamp(2.2rem,6vw,5.5rem)]"
+                  style={{ "--script-tuck": "0" } as React.CSSProperties}
                 >
-                  {heroCinematic.webm && <source src={heroCinematic.webm} type="video/webm" />}
-                  <source src={heroCinematic.mp4} type="video/mp4" />
-                </video>
-              )}
-            </div>
-          </div>
-
-          {/* Lockup nel font del logo (`font-brand`, richiesta cliente: «stesso
-              font del logo in tutte le scritte Domus Tua») e coi colori del
-              logo, SULLA foto: a 13vw le lettere si leggono anche dove la
-              foto è piena. Stava al centro della banda (posizioni chieste da
-              Alberto il 10 set.); con la foto della piscina (A55, 22 set.)
-              Raffaela sta proprio al centro, e il lockup è sceso in BASSO,
-              sull'acqua: centrato sul telefono, a destra da lg (`lg:items-end`),
-              dove la sua mano tesa lo presenta e nessuna lettera la copre.
-              NON è l'h1 (vedi la nota sopra `copy`).
-              Le lettere animate stanno in uno span aria-hidden intorno a
-              SplitChars: il nome leggibile vive nello span sr-only — un
-              aria-label su un <div> senza ruolo verrebbe ignorato dalle AT e
-              segnalato da axe (aria-prohibited-attr). Nel tuffo sale col testo
-              (`data-hero-lift`, A19 di Alberto). */}
-          <div
-            data-hero-lift
-            className="dt-row relative z-10 flex flex-1 flex-col items-center justify-end lg:items-end lg:text-right pb-[clamp(2rem,6vh,4rem)] pt-[clamp(1.5rem,4vh,3rem)] text-center"
-          >
-            {/* Minuscolo come il logo («DomusTua»): la regola globale mette in
-                maiuscolo solo h1-h4, e questo è un div apposta. */}
-            <div className="font-brand text-hero font-extrabold tracking-[-0.02em] lg:text-(length:--text-hero-lg)">
-              <span className="sr-only">Domus Tua</span>
-              {/* Due righe centrate, come il lockup di sempre (posizioni chieste
-                  da Alberto, 2026-09-10 sera); il font resta quello del logo.
-                  Caratteri di SplitChars con la crenatura di `brand-800` (A20,
-                  D20); `upper={false}` perché il lockup è minuscolo. */}
-              <span aria-hidden className="block text-graphite">
-                <SplitChars font="brand-800" locale={locale} upper={false} charAttr="data-hero-char">
-                  Domus
-                </SplitChars>
-              </span>
-              <span aria-hidden className="block text-red">
-                <SplitChars font="brand-800" locale={locale} upper={false} charAttr="data-hero-char">
-                  Tua
-                </SplitChars>
-              </span>
-            </div>
-          </div>
-
-          {/* Firma PIÙ IN BASSO (richiesta cliente 2026-09-10), e sul BORDO della
-              banda: prima cadeva sulla parte affollata della stanza — finestre,
-              divano, la sua stessa mano — dove il rosso sottile spariva. Qui
-              scavalca il confine foto/avorio, che è il gesto del riferimento
-              (la calligrafia a cavallo del bordo del video). Metà lettera sta
-              sulla foto, metà sull'avorio: si legge su entrambi.
-              Il wrapper porta il lift del tuffo (A19 e A20 di Alberto, spec
-              coreografia §3.2): lo span tiene `translate-y-[26%]`, che un tween
-              di GSAP cancellerebbe. `.script-word` (globals.css:351-368) è fuori
-              dai layer e impone `position: relative`: la firma sta nel flusso
-              della banda, e il wrapper con lei, così il lockup non si sposta.
-              `!text-…` perché `.script-word` vincerebbe sull'utility (regola
-              unlayered-beats-utilities). Le lettere sono di SplitChars, con la
-              crenatura di `script-400` (D20). */}
-          <div data-hero-lift className="relative z-10 block">
-            <span
-              data-hero-script
-              aria-hidden
-              className="script-word dt-row relative block translate-y-[26%] text-center !text-[clamp(2.2rem,6vw,5.5rem)]"
-              style={{ "--script-tuck": "0" } as React.CSSProperties}
-            >
-              <SplitChars font="script-400" locale={locale} upper={false} charAttr="data-hero-schar">
-                Raffaela Rizza
-              </SplitChars>
-            </span>
-          </div>
-        </div>
-
-        {/* Sotto la foto, sull'avorio e ancora nel primo schermo: sovratitolo,
-            H1, CTA e voto, centrati come il lockup. Nel tuffo il contenuto sale
-            (`data-hero-block-lift`) e sparisce sotto il bordo della foto, perché
-            `data-hero-block` ritaglia con `clip` sotto il gate (globals.css):
-            nessun testo d'inchiostro passa sopra la foto. */}
-        {/* L'attacco tiene conto della firma: il Pinyon ha aste discendenti
-            lunghe e, centrata com'e', cadeva esattamente sull'occhiello — «AGENZIA
-            IMMOBILIARE A TRADATE» con dentro la coda della «ff» di Raffaela.
-            Sotto lg la firma e' piu' piccola e serve meno aria. */}
-        <div data-hero-block>
-          <div
-            data-hero-block-lift
-            className="dt-row flex flex-col items-center pb-[clamp(2.5rem,7vh,4.5rem)] pt-[clamp(2.5rem,5vh,4rem)] text-center"
-          >
-            {/* Sovratitolo: cosa fa l'agenzia e dove, prima ancora della promessa.
-                16 px, non di meno: la cliente non vuole scritte piccole. */}
-            <p className="text-balance text-ui font-semibold uppercase tracking-[0.08em] text-stone">
-              {c.badge}
-            </p>
-            <h1 className="mx-auto mt-3 max-w-[28ch] font-display text-d3">
-              <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
-              {/* H1 maiuscolo per la regola globale di h1-h4, a peso 500
-                  (globals.css:318-322): crenatura di `display-500` col maiuscolo
-                  della lingua (A20, D20). */}
-              <span aria-hidden className="block">
-                <SplitChars font="display-500" locale={locale} upper charAttr="data-hero-tchar">
-                  {c.title1}
-                </SplitChars>
-              </span>
-              <span aria-hidden className="block">
-                <SplitChars font="display-500" locale={locale} upper charAttr="data-hero-tchar">
-                  {c.title2}
-                </SplitChars>
-              </span>
-            </h1>
-            <div className="mt-6 flex w-full max-w-[640px] flex-col items-center gap-4">
-              <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="lg" arrow={false}>
-                {c.ctaValuta}
-              </Cta>
-              <div className="flex flex-wrap justify-center gap-x-8 gap-y-2">
-                <Cta href="/vendi" variant="ghost" arrow={false}>
-                  {c.ctaVendi}
-                </Cta>
-                <Cta href="#cerca" variant="ghost" arrow={false}>
-                  {c.ctaCerco}
-                </Cta>
+                  <SplitChars font="script-400" locale={locale} upper={false} charAttr="data-hero-schar">
+                    Raffaela Rizza
+                  </SplitChars>
+                </span>
               </div>
-              {/* Voto e conteggio in UN elemento solo, 16 px. Oro solo sulle
-                  stelle: l'unica eccezione cromatica già sancita. */}
-              <a href="#recensioni" className="mt-2 flex items-center gap-3 text-ui text-ink">
-                <span className="flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-gold" />
-                  ))}
-                </span>
-                <span className="font-semibold">
-                  {ratingDisplay}/5 · {c.reviews}
-                </span>
-              </a>
+
+              {/* IL BLOCCO: sovratitolo, H1, CTA, i due link e il voto. Da lg posa sulla foto in bianco
+                  (A70, senza ombra) nel terzo di riga a destra, allineato a sinistra come una colonna
+                  accanto a Raffaela; sotto lg sta dopo la foto, sull'avorio, centrato (Alberto, 10 set.:
+                  «rimettilo centrale»), in inchiostro. */}
+              <div
+                data-hero-block
+                className="dt-hero_blocco flex flex-col items-center text-center max-lg:pb-[clamp(2.5rem,7vh,4.5rem)] max-lg:pt-[clamp(2.5rem,5vh,4rem)] lg:w-[32vw] lg:items-start lg:self-end lg:text-left"
+              >
+                {/* Sovratitolo: cosa fa l'agenzia e dove, prima ancora della promessa.
+                    16 px, non di meno: la cliente non vuole scritte piccole. */}
+                <p className="text-balance text-ui font-semibold uppercase tracking-[0.08em] text-stone">
+                  {c.badge}
+                </p>
+                <h1 className="mt-3 max-w-[28ch] font-display text-d3">
+                  <span className="sr-only">{`${c.title1} ${c.title2}`}</span>
+                  {/* H1 maiuscolo per la regola globale di h1-h4, a peso 500
+                      (globals.css:318-322): crenatura di `display-500` col maiuscolo
+                      della lingua (A20, D20). */}
+                  <span aria-hidden className="block">
+                    <SplitChars font="display-500" locale={locale} upper charAttr="data-hero-tchar">
+                      {c.title1}
+                    </SplitChars>
+                  </span>
+                  <span aria-hidden className="block">
+                    <SplitChars font="display-500" locale={locale} upper charAttr="data-hero-tchar">
+                      {c.title2}
+                    </SplitChars>
+                  </span>
+                </h1>
+                <div className="mt-6 flex w-full max-w-[640px] flex-col items-center gap-4 lg:items-start">
+                  <Cta href="/valutazione-immobile-tradate" variant="cta-solid" size="lg" arrow={false}>
+                    {c.ctaValuta}
+                  </Cta>
+                  <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 lg:justify-start">
+                    <Cta href="/vendi" variant="ghost" arrow={false}>
+                      {c.ctaVendi}
+                    </Cta>
+                    <Cta href="#cerca" variant="ghost" arrow={false}>
+                      {c.ctaCerco}
+                    </Cta>
+                  </div>
+                  {/* Voto e conteggio in UN elemento solo, 16 px. Oro solo sulle
+                      stelle: l'unica eccezione cromatica già sancita. */}
+                  <a href="#recensioni" className="mt-2 flex items-center gap-3 text-ui text-ink">
+                    <span className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-gold" />
+                      ))}
+                    </span>
+                    <span className="font-semibold">
+                      {ratingDisplay}/5 · {c.reviews}
+                    </span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
+          {/* A53 sulla home (A49): finita la posa, la coda libera della foto si ritira nella cornice della
+              cartolina mentre sale, con la firma del capitolo (chapters.ts `hero`: dtCartolina, scrub
+              0,9, il motivo comune d'uscita delle foto alte). */}
+          <ChiusuraFoto ease={chapters.hero.signature.ease} scrub={scrubOf("hero")} />
         </div>
       </div>
-      {/* Lo spaziatore della corsa (200svh; A19 di Alberto, D22: layout in CSS
-          prima del paint): in SSR è nascosto, lo accende la CSS dei corridoi
-          sotto il gate. */}
-      <div data-corridor-run aria-hidden className="hidden" />
     </section>
   );
 }
