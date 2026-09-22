@@ -256,6 +256,12 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         primary={{ label: c.heroPrimary, href: "#contatti" }}
         secondary={{ label: c.heroSecondary, href: "#chi-siamo" }}
         scriptWord={{ it: "Dal 2007", en: "Since 2007", fr: "Depuis 2007", de: "Seit 2007", es: "Desde 2007" }[locale]}
+        /* A54 (Alberto, 22 set. 2026: «dobbiamo riempire più spazi possibili nelle foto alte a schermo
+           intero … questo vale per tutte le pagine»): i valori posano SULLA foto della testa (l'attico
+           con le travi, senza cielo: la foto comincia sotto i comandi), in bianco con l'ombra, come le
+           tre leve su /metodo; sotto lg seguono la foto in inchiostro. Erano il capitolo dopo la storia,
+           che resta sulla carta con la sua foto: un modulo foto dentro la foto non si posa. */
+        sopra={<Highlights tone="paper" eyebrow={c.valoriEyebrow} title={c.valoriTitle} items={c.valori} />}
       />
 
       {/* Storia: foto squadrata, titolo d1, paragrafi lead (2026-09-10). */}
@@ -295,14 +301,7 @@ export default function ChiSiamoContent({ since }: { since: number }) {
         </div>
       </section>
 
-      <Highlights
-        tone="cream"
-        eyebrow={c.valoriEyebrow}
-        title={c.valoriTitle}
-        items={c.valori}
-      />
-
-      {/* La nostra squadra */}
+      {/* La nostra squadra (i valori stanno sulla foto della testa, A54: vedi `sopra` di PageHero) */}
       <section className="dt-chapter bg-cream">
         <div className="dt-row">
           <RevealGroup>
