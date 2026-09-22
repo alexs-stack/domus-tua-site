@@ -1285,28 +1285,28 @@ html[data-consent] .dt-consent {
   display: block;
 }
 
-/* ---------- Preloader "Arco Domus" ----------
+/* ---------- Preloader: l'atto I e la gomma ----------
    L'inline script nel layout marca <html data-preloader> PRIMA del primo
    paint (motion ok, nessuna ancora nell'URL; il film alla prima entrata nella
    home, la porta corta più sotto agli altri caricamenti: spec §6.2), e
    senza JS l'attributo non esiste mai → questo overlay non esiste mai.
-   DAL 2026-08-17 IL MARKUP È RESO DAL SERVER (PreloaderShell.tsx, nel root
-   layout) E IL FILM INTERO È CSS (opzione D, docs/mobile-parity-2.md §8.5):
-   atto I (sagoma, marchio, lettere, firma, caps, payoff), atto II (linea di
-   carica), atto III (porta ad arco), atto IV (tuffo), congedo del lockup,
-   anelli eco e autohide sono @keyframes in questo blocco, deterministici dal
-   primo paint, senza dipendere dall'arrivo del JavaScript. La ragione è
-   misurata: con l'atto I in CSS e gli atti II-IV in GSAP, sotto CPU ×4 e
-   Slow-4G il JS della home atterrava a 8-12 s — porta e tuffo non suonavano
-   mai sul telefono lento (docs/shots/intro-390-fase1-smoke2). Preloader.tsx
-   (client) non muove più la maschera: al mount legge l'orologio CSS, mette i
-   timer di handoff (INTRO_T.dive) e chiusura (INTRO_MS), gestisce lo skip, e
-   guida con GSAP SOLO in ripiego — `html[data-pre-gsap]`, che spegne le
-   keyframe degli atti II-IV qui sotto — dove `@property` manca (Safari <
-   16.4, Firefox < 128: senza registrazione le custom property scatterebbero
-   al 50 % invece di interpolare) o se le keyframe non sono mai partite.
-   È lo stesso film a OGNI larghezza: sotto i 768 cambiano solo le geometrie
-   dell'arco e la taglia della linea (blocco in fondo), mai i tempi.
+   Il markup è reso dal SERVER (PreloaderShell.tsx, nel root layout) e l'atto I
+   (sagoma, marchio, lettere, firma, caps, payoff), la linea di carica e il
+   congedo del lockup sono @keyframes in questo blocco, deterministici dal
+   primo paint (opzione D, docs/mobile-parity-2.md §8.5).
+   DAL 22 SETTEMBRE 2026 LA PORTA È LA GOMMA. Alberto: «devi sostituire
+   l'entrata ad arco del preloader con questo, al centro dello schermo,
+   affianco a Raffaela, alla sua destra». Porta ad arco, tuffo, anelli eco e
+   sipario di ripiego non esistono più: a INTRO_T.gomma Preloader.tsx monta
+   DomusTuaPreloader nello slot `[data-pre-gomma]` della shell, il suo foglio
+   (espresso nel film, avorio profondo nella corta) prende il posto del fondo
+   del pannello, la gomma disegna il cuore del logo al centro dello schermo e
+   dentro il cuore compare il sito (la foto dell'hero rimpicciolita, «L'ENTRATA
+   DELL'HERO» più sotto); poi la cancellatura si allarga e scopre tutto. La
+   gomma è JavaScript: senza JS (o col JS dopo l'autohide) il sipario sfuma da
+   solo a PRE_AUTOHIDE_MS, dove finiva il film di prima.
+   È lo stesso film a OGNI larghezza: sotto i 768 cambia solo la taglia della
+   linea (blocco in fondo), mai i tempi.
    I numeri qui sotto sono quelli di app/lib/motion/intro-constants.ts
    (INTRO_T): il test app/lib/__tests__/intro-clocks.test.ts li rilegge da
    questo file e fallisce se uno dei due lati cambia da solo. */
@@ -1469,81 +1469,11 @@ html[data-preloader] .dt-preloader [data-rot-mark] {
   }
 }
 
-/* (Il freeze del ken-burns durante l'intro non serve più: l'effetto è stato
-   ritirato — la foto dell'hero è ferma per design, sagoma e foto coincidono
-   sempre pixel su pixel sotto l'arco.) */
-/* ── ATTI II-IV, IN CSS (opzione D, 2026-08-17) ──────────────────────────
-   Le custom property della maschera sono REGISTRATE con @property: è ciò che
-   le rende interpolabili con continuità dentro una @keyframes (non registrate,
-   il browser le tratterebbe come token e scatterebbero al 50 %: quel caso è
-   il ripiego GSAP di Preloader.tsx, `html[data-pre-gsap]`). `initial-value`
-   dev'essere «computazionalmente indipendente» (css-properties-values-api §
-   registration): per <length> le unità di viewport NON sono ammesse, quindi
-   qui sta `0px` e il valore vero (24vw / 40vw, 104vh) lo scrive la regola
-   normale su `.dt-preloader` più giù — stesso posto di prima. `inherits:
-   true`: gli anelli eco sono figli dell'overlay e leggono --arch-y/--arch-s. */
-@property --arch-w {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 0px;
-}
-@property --arch-y {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 0px;
-}
-@property --arch-s {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 1;
-}
-
-/* Le keyframe della porta e del tuffo. Sono DUE animazioni sullo stesso nodo,
-   non una sola in due segmenti, per restare fedeli al film di sempre: in GSAP
-   la porta (2,25 → 3,35, domus.inOut) e il tuffo (3,13 → 4,63, dtDiveIn) si
-   sovrappongono per 0,22 s e il tween del tuffo, che parte dal valore corrente,
-   VINCE da 3,13. Qui uguale: la porta corre intera sotto, il tuffo — dichiarato
-   DOPO nella lista `animation`, quindi vincente sulle stesse proprietà — parte
-   a INTRO_T.dive dal valore che la porta ha in quell'istante: progresso
-   (3,13−2,25)/1,1 = 0,8 di domus.inOut, cioè 0,972 della corsa (calcolato
-   dalla bezier; `--arch-k`). Così INTRO_T resta com'era (dive 3,13, INTRO_MS
-   4 630) invece di slittare a 3,35. Il tuffo è `forwards`, non `both`: con
-   `both` il suo `from` coprirebbe la porta durante tutto il proprio delay. */
-@keyframes dt-pre-door {
-  from {
-    --arch-w: var(--arch-w0);
-    --arch-y: 104vh;
-    --arch-s: 1;
-  }
-  to {
-    --arch-w: var(--arch-w1);
-    --arch-y: var(--arch-y1);
-    --arch-s: var(--arch-s1);
-  }
-}
-@keyframes dt-pre-dive {
-  from {
-    --arch-w: calc(var(--arch-w0) + (var(--arch-w1) - var(--arch-w0)) * var(--arch-k));
-    --arch-y: calc(104vh + (var(--arch-y1) - 104vh) * var(--arch-k));
-    --arch-s: calc(1 + (var(--arch-s1) - 1) * var(--arch-k));
-  }
-  to {
-    --arch-w: var(--arch-w2);
-    --arch-y: -100vh;
-    --arch-s: var(--arch-s2);
-  }
-}
-/* Ripiego senza mask-composite (browser datati): il sipario a salire in
-   clip-path, interpolabile nativamente, stessi tempi di sempre (INTRO_T.curtain
-   2,6 + 0,9 s, domus.inOut). */
-@keyframes dt-pre-curtain {
-  from {
-    clip-path: inset(0% 0% 0% 0%);
-  }
-  to {
-    clip-path: inset(0% 0% 100% 0%);
-  }
-}
+/* ── ATTO II, IN CSS (opzione D, 2026-08-17) ─────────────────────────────
+   La linea di carica e il congedo del lockup. La porta ad arco e il tuffo che
+   seguivano (atti III-IV, custom property registrate con @property e due
+   keyframe sovrapposte) sono stati tolti il 22 settembre 2026: al loro posto
+   c'è la gomma («La gomma», più sotto). */
 /* Atto II: la linea di carica sale a scatti (era `yPercent -100 → 0`). */
 @keyframes dt-pre-track {
   from {
@@ -1553,7 +1483,7 @@ html[data-preloader] .dt-preloader [data-rot-mark] {
     transform: translateY(0);
   }
 }
-/* Il congedo del lockup mentre la porta sale (era `y −28/−20, autoAlpha 0`):
+/* Il congedo del lockup mentre la gomma entra (era `y −28/−20, autoAlpha 0`):
    visibility passa a hidden solo all'ultimo fotogramma, come autoAlpha. */
 @keyframes dt-pre-exit {
   from {
@@ -1571,7 +1501,8 @@ html[data-preloader] .dt-preloader [data-rot-mark] {
    visibility hidden, che lo sfila anche dall'hit-testing (niente click o
    tocchi mangiati); l'attributo — e con lui `overflow:hidden` — lo toglie il
    failsafe del boot script (PRE_FAILSAFE_MS, mezzo secondo dopo). Con il JS
-   al timone `finish()` toglie l'attributo a INTRO_MS e questa rete non si vede. */
+   al timone la gomma spegne questa rete al montaggio (`html[data-gomma]`) e
+   `finish()` toglie l'attributo quando la cancellatura ha scoperto tutto. */
 @keyframes dt-pre-autohide {
   to {
     opacity: 0;
@@ -1579,31 +1510,20 @@ html[data-preloader] .dt-preloader [data-rot-mark] {
   }
 }
 
-/* La lista `animation` dell'overlay. Due regole in cascata: la prima vale
-   anche in ripiego GSAP (`html[data-pre-gsap]`: solo l'autohide, e Preloader.tsx
-   la spegne con style.animation="none" quando prende lui il timone), la
-   seconda — la CSS che guida — aggiunge porta e tuffo.
-   Delay/durate = INTRO_T (arch 2,25/1,1 · dive 3,13/1,5); le bezier SONO le
-   ease di gsap.ts: domus.inOut «M0,0 C0.66,0 0.22,1 1,1» = cubic-bezier(0.66,
-   0, 0.22, 1); dtDiveIn = cubic-bezier(0.6, 0, 0, 1). L'autohide parte a
-   PRE_AUTOHIDE_MS = INTRO_MS + 100 ms (4,73 s). */
+/* La rete dell'overlay senza JS: l'autohide a PRE_AUTOHIDE_MS = INTRO_MS +
+   100 ms (4,73 s), dove finiva il tuffo di prima. Col JS la gomma la spegne
+   (sotto, «La gomma»). */
 html[data-preloader] .dt-preloader {
   animation: dt-pre-autohide 0.5s ease 4.73s forwards;
 }
-html[data-preloader]:not([data-pre-gsap]) .dt-preloader {
-  animation:
-    dt-pre-door 1.1s cubic-bezier(0.66, 0, 0.22, 1) 2.25s both,
-    dt-pre-dive 1.5s cubic-bezier(0.6, 0, 0, 1) 3.13s forwards,
-    dt-pre-autohide 0.5s ease 4.73s forwards;
-}
 /* LA PORTA CORTA (spec §6.2). Alberto il 13 settembre 2026 (A18, A20): a ogni
-   caricamento completo che non è la prima entrata nella home suonano solo
-   porta e tuffo, con le keyframe del film e i delay riscritti: porta da 0 s,
-   tuffo da SHORT_T.dive (0,88 s), autohide a PRE_SHORT_AUTOHIDE_MS (2,48 s).
-   Salta tutto il contenuto del lockup; la sagoma resta solo su «/», dove il
-   patto della porta regge, ed entra in 0,3 s; il pannello è avorio profondo
-   e il fondo espresso non si dipinge (D31). Lo skip non esiste nella corta.
-   Stessa specificità della lista del film: queste regole stanno dopo. */
+   caricamento completo che non è la prima entrata nella home suona solo la
+   porta; dal 22 settembre è la gomma `veloce`, montata appena arriva il JS, e
+   senza JS la rete sfuma il pannello a PRE_SHORT_AUTOHIDE_MS (2,48 s).
+   Salta tutto il contenuto del lockup; la sagoma resta solo su «/» ed entra
+   in 0,3 s; il pannello (e il foglio della gomma) è avorio profondo e il fondo
+   espresso non si dipinge (D31). Lo skip non esiste nella corta.
+   Stessa specificità della rete del film: queste regole stanno dopo. */
 html[data-preloader^="short"] .dt-preloader [data-pre-content] {
   display: none;
 }
@@ -1613,27 +1533,14 @@ html[data-preloader="short"] .dt-preloader [data-pre-figure] {
 html[data-preloader="short-page"] .dt-preloader [data-pre-figure] {
   display: none;
 }
-html[data-preloader^="short"]:not([data-pre-gsap]) .dt-preloader {
-  animation-delay: 0s, 0.88s, 2.48s;
+html[data-preloader^="short"] .dt-preloader {
+  animation-delay: 2.48s;
 }
 html[data-preloader^="short"] .dt-preloader [data-pre-panel] {
   background-color: var(--color-cream-deep);
 }
 html[data-preloader^="short"] .dt-pre-fondo {
   display: none;
-}
-/* Gli anelli eco sono figli del pannello e di base sono espresso (sotto, nella
-   regola degli anelli): nella corta prendono l'avorio profondo col profilo della
-   linea, niente fasce scure sull'avorio (D05, D31; C17 e A11 in spec §8). Si
-   ricolorano e non si nascondono: l'unico display:none degli anelli resta
-   quello di @supports not (mask-composite: add). Il profilo è un outline a
-   offset negativo, dentro la scatola: spec §8 (C14) vieta le ombre di scatola,
-   e un bordo cambierebbe la geometria di --arch-y e --arch-s. Scelta da
-   mostrare ad Alberto. */
-html[data-preloader^="short"] .dt-preloader [data-pre-arch-echo] {
-  background-color: var(--color-cream-deep);
-  outline: 1px solid var(--color-line);
-  outline-offset: -1px;
 }
 /* La linea di carica: la scatola si accende a INTRO_T.progress (0,55, 0,25 s
    lineare, era autoAlpha) e la barra sale a INTRO_T.track (0,6, 1,55 s).
@@ -1646,10 +1553,10 @@ html[data-preloader^="short"] .dt-preloader [data-pre-arch-echo] {
    bezier dichiarata sopra, cubic-bezier(0.2, 0.45, 0, 0.25): il miglior fit
    ai minimi quadrati della stessa curva (ricerca a griglia 0,05 su 31
    campioni) — la forma media, senza gli scatti. */
-html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-progress] {
+html[data-preloader] .dt-preloader [data-pre-progress] {
   animation: dt-pre-in-fade 0.25s linear 0.55s both;
 }
-html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
+html[data-preloader] .dt-preloader [data-pre-track] {
   animation: dt-pre-track 1.55s cubic-bezier(0.2, 0.45, 0, 0.25) 0.6s both;
   animation-timing-function: linear(
     0 0%,
@@ -1672,42 +1579,95 @@ html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
   );
 }
 /* Il congedo del lockup: INTRO_T.exit 2,35 / 0,55 s, domus.inOut. */
-html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-content] {
+html[data-preloader] .dt-preloader [data-pre-content] {
   animation: dt-pre-exit 0.55s cubic-bezier(0.66, 0, 0.22, 1) 2.35s both;
 }
-/* Il sipario di ripiego, dove la porta ad arco non può esistere. */
-@supports not (mask-composite: add) {
-  html[data-preloader]:not([data-pre-gsap]) .dt-preloader [data-pre-panel] {
-    animation: dt-pre-curtain 0.9s cubic-bezier(0.66, 0, 0.22, 1) 2.6s both;
-  }
-}
 
-/* LO SKIP in modalità CSS (Preloader.tsx, `html[data-pre-skip]`): «entra
-   ADESSO» = tutto ciò che precede il tuffo è finito, il tuffo parte ora.
-   Cambiare `animation-delay` a un'animazione in corso ne ricalcola la
-   posizione dallo stesso start time (css-animations-1, «changes to
-   animation-* while running»): un delay NEGATIVO pari alla durata la manda
-   alla propria fine qualunque sia l'istante; il tuffo invece deve partire da
-   «ora», che la CSS non conosce — glielo scrive il JS in `--pre-skip`
-   (= secondi già trascorsi sull'orologio CSS, inline sull'overlay), e
-   l'autohide slitta di conseguenza (tuffo 1,5 s + 0,1). Come `tl.seek("dive")`
-   di sempre: si taglia il preambolo, non la porta. */
-html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader {
-  animation-delay: -1.1s, var(--pre-skip, 0s), calc(var(--pre-skip, 0s) + 1.6s);
+/* LO SKIP (`html[data-pre-skip]`, dal boot script al primo tocco o da
+   Preloader.tsx): «entra ADESSO» = l'atto I va alla fine e la gomma parte
+   subito, `veloce`. Cambiare `animation-delay` a un'animazione in corso ne
+   ricalcola la posizione dallo stesso start time (css-animations-1, «changes
+   to animation-* while running»): un delay NEGATIVO pari alla durata la manda
+   alla propria fine qualunque sia l'istante. La gomma è JavaScript: se lo skip
+   arriva prima del JS, la rete dell'overlay slitta a `--pre-skip` (l'ora del
+   tocco sull'orologio CSS, scritta dal boot script) + INTRO_T.skipCoda + 0,1,
+   e il boot script lo offre solo fino a INTRO_T.skip, così la rete non scatta
+   mai dopo quella senza skip. Col JS la gomma la spegne come sempre. */
+html[data-preloader][data-pre-skip] .dt-preloader {
+  animation-delay: calc(var(--pre-skip, 0s) + 1.6s);
 }
-html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-progress] {
+html[data-preloader][data-pre-skip] .dt-preloader [data-pre-progress] {
   animation-delay: -0.25s;
 }
-html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-track] {
+html[data-preloader][data-pre-skip] .dt-preloader [data-pre-track] {
   animation-delay: -1.55s;
 }
-html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-content] {
+html[data-preloader][data-pre-skip] .dt-preloader [data-pre-content] {
   animation-delay: -0.55s;
 }
-@supports not (mask-composite: add) {
-  html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre-panel] {
-    animation-delay: var(--pre-skip, 0s);
-  }
+
+/* ---------- La gomma (22 set. 2026) ----------
+   DomusTuaPreloader (Preloader.tsx lo monta a INTRO_T.gomma nello slot
+   `[data-pre-gomma]`, PRIMO figlio del pannello, con `zIndex` 0: dipinge sotto
+   il fondo caldo e la sagoma, che le stanno sopra). Il suo foglio è una tinta
+   piatta presa da `--dt-gomma-foglio` (la prop `sheetColor` del componente):
+   espresso nel film, come il pannello, avorio profondo nella corta.
+   Dal montaggio (`html[data-gomma]`, scritto dal componente) il foglio fa da
+   fondo: il pannello diventa trasparente — stessa tinta, nessun salto — e la
+   rete senza JS si spegne. Dall'allargamento (`data-gomma="reveal"`) il sito
+   sotto è già cliccabile, come il componente fa col suo foglio.
+   La sagoma di Raffaela e il fondo caldo sono HTML SOPRA il foglio: il foglio
+   li cancellerebbe solo se fossero dentro la sua maschera SVG, e riferire una
+   <mask> SVG da un elemento HTML Safari non lo sa fare (MDN, mask-image: «Does
+   not support referencing an SVG <mask> element from a non-SVG element»).
+   Allora li buca un cerchio che segue la cancellatura: Preloader.tsx legge a
+   ogni fotogramma la larghezza del tratto che si allarga e la scala del logo
+   (`data-gomma-swell`, `data-gomma-logo`) e scrive centro e raggio
+   (`--gomma-x`, `--gomma-y`, `--gomma-r`) sulla shell; il raggio sta un poco
+   avanti al fronte, così Raffaela non resta mai sopra il sito già scoperto. */
+.dt-preloader {
+  --dt-gomma-foglio: var(--color-espresso);
+}
+html[data-preloader^="short"] .dt-preloader {
+  --dt-gomma-foglio: var(--color-cream-deep);
+}
+.dt-preloader [data-pre-gomma] {
+  display: contents;
+}
+html[data-preloader][data-gomma] .dt-preloader {
+  animation: none;
+}
+html[data-preloader][data-gomma] .dt-preloader [data-pre-panel] {
+  background-color: transparent;
+}
+html[data-preloader][data-gomma="reveal"] .dt-preloader {
+  pointer-events: none;
+}
+html[data-preloader][data-gomma="reveal"] .dt-preloader .dt-pre-fondo {
+  -webkit-mask-image: radial-gradient(
+    circle at var(--gomma-x, 50%) var(--gomma-y, 47%),
+    transparent var(--gomma-r, 0px),
+    #000 calc(var(--gomma-r, 0px) + 1px)
+  );
+  mask-image: radial-gradient(
+    circle at var(--gomma-x, 50%) var(--gomma-y, 47%),
+    transparent var(--gomma-r, 0px),
+    #000 calc(var(--gomma-r, 0px) + 1px)
+  );
+}
+/* La sagoma sta nella banda sotto la testata: il centro del cerchio si conta
+   dal suo bordo alto. */
+html[data-preloader][data-gomma="reveal"] .dt-preloader [data-pre-figure] {
+  -webkit-mask-image: radial-gradient(
+    circle at var(--gomma-x, 50%) calc(var(--gomma-y, 47vh) - var(--dt-head-h) - 1px),
+    transparent var(--gomma-r, 0px),
+    #000 calc(var(--gomma-r, 0px) + 1px)
+  );
+  mask-image: radial-gradient(
+    circle at var(--gomma-x, 50%) calc(var(--gomma-y, 47vh) - var(--dt-head-h) - 1px),
+    transparent var(--gomma-r, 0px),
+    #000 calc(var(--gomma-r, 0px) + 1px)
+  );
 }
 
 /* ---------- Hero: il "resto" appare solo dopo il primo scroll ----------
@@ -1716,13 +1676,12 @@ html[data-preloader][data-pre-skip]:not([data-pre-gsap]) .dt-preloader [data-pre
    dall'inline script (solo motion ok → reduced-motion e no-JS vedono tutto).
    Il reveal è di GSAP (HeroCinematic); la rete CSS se il JS tarda o non
    arriva: con l'intro (`data-hero-rest="intro"`) HERO_REST_MS
-   (intro-constants.ts) = INTRO_T.dive + 200 ms = 3,33 s, a OGNI larghezza;
+   (intro-constants.ts) = PRE_AUTOHIDE_MS + 200 ms = 4,93 s, a OGNI larghezza;
    senza intro HERO_REST_WARM_MS = 6 s (la rete di sempre: a caldo non c'è
-   nessuna porta che si apre, e a 3,33 s scatterebbe prima dell'idratazione
-   lenta, rubando il rito del primo scroll). DENTRO l'intro, non dopo, ed è voluto (opzione D): il
-   film del preloader è tutto CSS, la porta si apre a 3,13 anche senza JS, e
-   le lettere dell'hero devono accendersi quando l'arco le scopre — non tre
-   secondi dopo. Se il JS arriva quando questa rete è già scattata,
+   nessun sipario che si apre). La rete serve a chi non ha il JS: per lui il
+   sipario sfuma all'autohide (4,73 s) e le lettere si accendono subito dopo.
+   Col JS le lettere aspettano la gomma (l'handoff): HeroCinematic spegne la
+   rete all'armamento. Se il JS arriva quando questa rete è già scattata,
    HeroCinematic lo legge dall'orologio e NON rifà l'ingresso. */
 html[data-hero-rest] .dt-hero-rest {
   opacity: 0;
@@ -1731,7 +1690,7 @@ html[data-hero-rest] .dt-hero-rest {
   animation: dt-rest-failsafe 0.5s ease 6s forwards;
 }
 html[data-hero-rest="intro"] .dt-hero-rest {
-  animation: dt-rest-failsafe 0.5s ease 3.33s forwards;
+  animation: dt-rest-failsafe 0.5s ease 4.93s forwards;
 }
 /* Lockup, motto e script rientrano a OGNI load (rif. era-residence: refresh
    compreso). 0.02 = dipinti (l'LCP conta il testo) ma invisibili; il reveal
@@ -1741,15 +1700,15 @@ html[data-hero-intro] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]
   animation: dt-rest-failsafe 0.5s ease 6s forwards;
 }
 html[data-hero-intro="intro"] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
-  animation: dt-rest-failsafe 0.5s ease 3.33s forwards;
+  animation: dt-rest-failsafe 0.5s ease 4.93s forwards;
 }
 /* Con la porta corta (Alberto, 13 settembre 2026: A18, A20) la stessa rete
-   scatta a HERO_REST_SHORT_MS (1,08 s): tuffo della corta più 200 ms (spec §6.2). */
+   scatta a HERO_REST_SHORT_MS (2,68 s): l'autohide della corta più 200 ms. */
 html[data-hero-rest="short"] .dt-hero-rest {
-  animation: dt-rest-failsafe 0.5s ease 1.08s forwards;
+  animation: dt-rest-failsafe 0.5s ease 2.68s forwards;
 }
 html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-hero-schar]) {
-  animation: dt-rest-failsafe 0.5s ease 1.08s forwards;
+  animation: dt-rest-failsafe 0.5s ease 2.68s forwards;
 }
 @keyframes dt-rest-failsafe {
   to {
@@ -1769,10 +1728,10 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   animation: dt-reveal-failsafe 0.5s ease 6s forwards;
 }
 :root[data-hero-intro="intro"] [data-reveal]:not([data-reveal-armed]):not([data-motion-freeze] *) {
-  animation-delay: 3.33s;
+  animation-delay: 4.93s;
 }
 :root[data-hero-intro="short"] [data-reveal]:not([data-reveal-armed]):not([data-motion-freeze] *) {
-  animation-delay: 1.08s;
+  animation-delay: 2.68s;
 }
 @keyframes dt-reveal-failsafe {
   to {
@@ -1780,144 +1739,19 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   }
 }
 
-/* ---------- Arco Domus — la "porta" del preloader ----------
-   Maschera additiva a 4 layer sull'overlay: tre rettangoli pieni (sinistra,
-   colonna centrale sopra l'arco, destra) + una cornice ad arco SVG posizionata
-   a --arch-y. L'area DENTRO l'arco non è coperta da nessun layer → buco
-   trasparente: una porta ad arco che sale dal fondo e rivela l'hero sotto.
-   Le keyframe dt-pre-door/dt-pre-dive (sopra) animano --arch-w / --arch-y /
-   --arch-s; GSAP le tweena solo in ripiego (Preloader.tsx).
-   L'SVG (560×2592) è una cornice geometrica con spalla di 16 unità:
-   bianco = frame + zona sopra la curva; l'interno dell'arco è vuoto. */
-.dt-preloader,
-.dt-arch-mask {
-  --arch-w: 24vw;
-  --arch-h: calc(var(--arch-w) * (5600 / 560));
-  --arch-y: 104vh;
-}
-/* Classe generica, oggi portata dal solo preloader (il sipario di
-   PageTransition che la condivideva è stato tolto il 2026-09-10). Il
-   preloader la porta di suo (senza aspettare che il JS aggiunga la classe:
-   la porta deve esistere anche senza JS); Preloader.tsx la aggiunge comunque
-   a runtime dove la maschera è supportata, per chi ispeziona il DOM. */
-@supports (mask-composite: add) {
-  .dt-preloader,
-  .dt-arch-mask {
-    mask-image:
-      linear-gradient(#fff, #fff),
-      linear-gradient(#fff, #fff),
-      linear-gradient(#fff, #fff),
-      /* Gambe lunghe (560×5600): nelle finestre portrait il fondo dell'SVG
-         non deve mai entrare nel viewport (il buco "sgraderebbe" a rettangolo). */
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='560' height='5600' viewBox='0 0 560 5600'><path d='M560 5600H544V280C544 134.197 425.803 16 280 16C134.197 16 16 134.197 16 280V5600H0V0H560V5600Z' fill='white'/></svg>");
-    mask-size:
-      calc(50% - var(--arch-w) / 2 + 2px) 100%,
-      calc(var(--arch-w) + 4px) calc(var(--arch-y) + 2px),
-      calc(50% - var(--arch-w) / 2 + 2px) 100%,
-      var(--arch-w) var(--arch-h);
-    mask-position:
-      left top,
-      center top,
-      right top,
-      center var(--arch-y);
-    mask-repeat: no-repeat;
-    mask-composite: add;
-  }
-}
-/* Anelli "eco" attorno alla porta: due archi leggermente più larghi del buco,
-   stesso colore del pannello + filo di luce crema. La maschera li taglia dove
-   c'è la porta: restano solo i profili concentrici che la seguono in salita.
-   SU TRANSFORM, A OGNI LARGHEZZA (2026-08-17; prima erano `width/height/top`
-   in calc() di --arch-w/--arch-y — layout per frame — e sul telefono erano
-   display:none per quel motivo). Poiché --arch-h = --arch-w × 10 la forma è
-   omotetica e uno `scale()` uniforme la conserva; ma calc() non sa dividere
-   due lunghezze in un fattore adimensionale, quindi le stesse keyframe
-   dell'arco animano ANCHE una var unitless `--arch-s` (= arch-w / arch-w0),
-   con la stessa ease. Gli anelli hanno misure FISSE al valore iniziale
-   (--arch-w0) e seguono la porta con `translate(-50%, quota) scale(--arch-s)`
-   attorno al proprio bordo superiore centrale: solo transform, nessun layout.
-   Il `box-shadow inset 1px` scala con l'anello (×4,1 a 165 vw, ×5,2 a 125 vw):
-   accettato — è un filo di luce, non un bordo, e compensarlo con
-   `calc(1px / var(--arch-s))` rimetterebbe una ridipintura per frame su un
-   elemento alto dieci larghezze. */
+/* Il congedo del lockup sale di 28 px (20 sul telefono, sotto). */
 .dt-preloader {
-  /* LE GEOMETRIE DELL'ARCO, IN UN POSTO SOLO (desktop; il telefono le
-     sovrascrive nel blocco ≤767.98 più giù): larghezza iniziale / a porta
-     aperta / a tuffo finito (24 → 36 → 125 vw), quota di riposo 15vh, e i
-     fattori unitless per gli anelli (s1 = w1/w0 = 1,5; s2 = w2/w0 = 5,2083 —
-     calc() non divide lunghezze, quindi sono scritti). `--arch-k` = 0,972 è il
-     progresso della porta all'istante del tuffo (vedi le keyframe). Le
-     proprietà REGISTRATE partono da qui: --arch-w = w0, --arch-y 104vh (nella
-     regola condivisa sopra), --arch-s 1. Preloader.tsx legge gli stessi
-     numeri dal proprio oggetto G solo per il ripiego GSAP. */
-  --arch-w0: 24vw;
-  --arch-w1: 36vw;
-  --arch-w2: 125vw;
-  --arch-y1: 15vh;
-  --arch-s1: 1.5;
-  --arch-s2: 5.2083;
-  --arch-k: 0.972;
   --pre-exit-y: -28px;
-  --arch-w: var(--arch-w0);
-  --arch-s: 1;
-}
-/* Gli anelli esistono solo dove esiste la porta (con la maschera): la stessa
-   condizione della maschera, in CSS, non più la classe `is-arch` del JS. */
-@supports not (mask-composite: add) {
-  .dt-preloader [data-pre-arch-echo] {
-    display: none;
-  }
-}
-.dt-preloader [data-pre-arch-echo] {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  background-color: var(--color-espresso);
-  /* box-shadow inset, non outline: su Safari 15.4–16.3 l'outline non segue
-     il border-radius e gli anelli diventerebbero rettangoli. */
-  box-shadow: inset 0 0 0 1px rgba(242, 235, 218, 0.22);
-  border-top-left-radius: var(--arch-w0);
-  border-top-right-radius: var(--arch-w0);
-  transform-origin: 50% 0;
-}
-.dt-preloader [data-pre-arch-echo="1"] {
-  width: calc(var(--arch-w0) * 1.02);
-  height: calc(var(--arch-w0) * 10 * 1.01);
-  /* La quota: --arch-y meno mezzo per cento dell'altezza CORRENTE
-     (h0 × 0,005 × s), come il `top` di prima. */
-  transform: translate(-50%, calc(var(--arch-y) - var(--arch-w0) * 0.05 * var(--arch-s)))
-    scale(var(--arch-s));
-}
-.dt-preloader [data-pre-arch-echo="2"] {
-  width: calc(var(--arch-w0) * 1.1);
-  height: calc(var(--arch-w0) * 10 * 1.03);
-  transform: translate(-50%, calc(var(--arch-y) - var(--arch-w0) * 0.15 * var(--arch-s)))
-    scale(var(--arch-s));
 }
 
 /* ---------- L'INTRO SUL TELEFONO: STESSO FILM, ALTRE GEOMETRIE -----------
-   Onda «parità mobile 2» (2026-08-17), legge 1 e 3: sotto i 768 suonano gli
-   stessi quattro atti del desktop, con le stesse durate (4,63 s) e le stesse
-   ease — tutti nel blocco «Preloader» qui sopra, a ogni larghezza. Qui
-   restano SOLO i parametri che dipendono dalla geometria del telefono. (Fino
-   a oggi questo blocco era «un altro montaggio»: atto I per riga, niente
-   linea di carica, niente anelli, 1,75 s. Non più.) */
+   Onda «parità mobile 2» (2026-08-17), legge 1 e 3: sotto i 768 suona lo
+   stesso film del desktop, con gli stessi tempi e le stesse ease — tutti nel
+   blocco «Preloader» qui sopra, a ogni larghezza. Qui restano SOLO i
+   parametri che dipendono dalla geometria del telefono (la gomma si misura da
+   sé sul lato minore dello schermo: DomusTuaPreloader, `size`). */
 @media (max-width: 767.98px) {
-  /* Una porta più larga in proporzione: 40vw su 390px sono 156px, e sotto i
-     ~150 l'arco smette di leggersi come una porta e diventa una feritoia
-     (40 → 58 → 165 vw; desktop 24 → 36 → 125; riposo 16vh; congedo −20 px).
-     s1 = 58/40 = 1,45; s2 = 165/40 = 4,125. Solo `.dt-preloader`: il sipario
-     di PageTransition condivide la maschera ma si scrive i propri valori.
-     Le quote restano `vh` PURI, come ERA: sui browser mobili `vh` è il
-     viewport grande, quindi 104vh sta sotto il bordo anche a barra URL
-     nascosta e 16vh è visibile in entrambi gli stati della barra. */
   .dt-preloader {
-    --arch-w0: 40vw;
-    --arch-w1: 58vw;
-    --arch-w2: 165vw;
-    --arch-y1: 16vh;
-    --arch-s1: 1.45;
-    --arch-s2: 4.125;
     --pre-exit-y: -20px;
   }
 
@@ -3287,9 +3121,11 @@ a.text-red {
      quando la salita è finita. Così a caldo, con l'ancora, con reduced-motion e senza JS non esiste,
      e la pagina è l'inquadratura d'arrivo ferma. È tutto @keyframes, come il film del preloader: parte
      sull'orologio CSS dal primo paint, regge un'idratazione lenta, e la salita gira sul compositor;
-   - l'orologio: `--dt-entrata-t` è l'handoff, il tuffo del film (INTRO_T.dive 3,13 s, o `--pre-skip`
-     se il visitatore ha saltato il preambolo: Preloader.tsx lo scrive su <html> e lì resta) o della
-     corta (SHORT_T.dive 0,88 s);
+   - l'orologio: `--dt-entrata-t` è l'handoff. Dal 22 settembre è la GOMMA che comincia ad allargarsi,
+     un istante che decide il JavaScript (DomusTuaPreloader: il tratto, la pausa, l'attesa della pagina
+     pronta): Preloader.tsx lo tiene lontano (`9999s`, inline su <html>) finché la gomma disegna e ci
+     scrive l'ora del film quando la cancellatura parte. Qui c'è la rete senza JS: l'autohide del
+     sipario (PRE_AUTOHIDE_MS 4,73 s, o l'ora dello skip + 1,6 s) e quello della corta (2,48 s);
    - il lockup d'entrata (`.dt-hero_entrata`, aria-hidden: il nome vive nel lockup sull'acqua) sta al
      centro del primo schermo, sotto la testata, DIETRO lo strato della foto; le lettere entrano coi
      ruoli di Era scritti qui (title: 0,3 s, stagger 0,05, 1,2 s, dtOut; accent sulla firma: 0,3 s,
@@ -3299,13 +3135,32 @@ a.text-red {
      domus.inOut, la curva della porta del preloader, fino al suo posto (la salita a riposo, D-A75-1):
      le suole di Raffaela a 6svh dal fondo. Il lockup risale di 55svh nello stesso tempo e la villa gli
      passa davanti, poi sfuma: nessuna lettera resta sopra di lei (A27);
+   - LA DISCESA (Alberto, 22 set. 2026, con la gomma): mentre la gomma disegna, la scatola della foto
+     sta rimpicciolita e centrata sul logo (`--gomma-foto-s`, `--gomma-foto-y`, scritti da Preloader.tsx
+     con hero.ts `DISCESA`), così dentro il cuore c'è la casa; quando la cancellatura si allarga torna al
+     suo posto in 1,6 s (domus.inOut), cioè giù fuori campo col suo strato, e a `sale` risale come prima
+     (l'orologio dell'entrata parte mezzo secondo dopo l'allargamento: hero.ts `DISCESA.entrata`);
    - l'LCP resta la sagoma del preloader sulla stessa banda, dipinta prima; la foto è precaricata. */
 @media (prefers-reduced-motion: no-preference) {
   html[data-hero-entrata="intro"] {
-    --dt-entrata-t: var(--pre-skip, 3.13s);
+    --dt-entrata-t: 4.73s;
+  }
+  html[data-hero-entrata="intro"][data-pre-skip] {
+    --dt-entrata-t: calc(var(--pre-skip, 0s) + 1.6s);
   }
   html[data-hero-entrata="short"] {
-    --dt-entrata-t: 0.88s;
+    --dt-entrata-t: 2.48s;
+  }
+  /* La foto nel cuore: rimpicciolita e centrata sul logo finché la gomma disegna (la trasformata parte
+     dal bordo alto della scatola, dove la misura Preloader.tsx), poi torna al suo posto. */
+  html[data-hero-entrata][data-gomma="active"] .dt-hero .dt-testa_foto {
+    transform-origin: 50% 0;
+    transform: translateY(var(--gomma-foto-y, 0px)) scale(var(--gomma-foto-s, 1));
+  }
+  /* Anche a gomma finita ("done", dopo 1,05 s): senza, la transizione verrebbe troncata a metà corsa. */
+  html[data-hero-entrata]:is([data-gomma="reveal"], [data-gomma="done"]) .dt-hero .dt-testa_foto {
+    transform-origin: 50% 0;
+    transition: transform 1.6s cubic-bezier(0.66, 0, 0.22, 1);
   }
   html[data-hero-entrata] .dt-hero .dt-testa_strato {
     /* H = 100vw × hw e non il 100 % della trasformata: sotto lg lo strato contiene anche il blocco dopo

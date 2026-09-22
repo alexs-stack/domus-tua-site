@@ -117,5 +117,39 @@ export const ENTRATA = {
   sfumaDurata: 0.9,
 } as const;
 
+/**
+ * LA DISCESA (Alberto, 22 set. 2026, con la gomma al posto dell'arco): «nel preloader sotto lo sfondo
+ * scuro mettiamo, invisibile, la foto dell'hero rimpicciolita al centro dello schermo, così quando avviene
+ * l'animazione della gomma a forma del logo del cuore fa il reveal; poi, allo zoom del cuore,
+ * contemporaneamente la foto scende dove doveva essere, e poi risale come fa già». La foto è quella vera
+ * (la scatola `.dt-testa_foto` dello strato, nessuna copia e nessun secondo download): finché la gomma
+ * disegna sta rimpicciolita e centrata sul logo; quando la cancellatura comincia ad allargarsi (l'handoff)
+ * torna in `durata` al suo posto nello strato, che in quell'istante è giù fuori campo (il `from` di
+ * `dt-hero-sale`), e a `ENTRATA.sale` risale come prima. Preloader.tsx scrive la scala e la quota su
+ * <html> (`--gomma-foto-s`, `--gomma-foto-y`), globals.css fa il resto («L'ENTRATA DELL'HERO»).
+ */
+export const DISCESA = {
+  /** La foto rimpicciolita è larga così tante volte il logo: il cuore sta tutto dentro la foto. */
+  larghezza: 1.3,
+  /**
+   * La quota della foto (frazione della sua altezza) che cade sul centro del logo: il centro di Raffaela
+   * (RAFFAELA, 0,481-0,617), così lei resta intera nel rombo vuoto al centro del cuore e mai tagliata dai
+   * tratti (A27); nei lobi la villa, in basso l'acqua.
+   */
+  centro: 0.549,
+  /**
+   * Quanto dura il ritorno al suo posto: domus.inOut, la curva della salita. Più della cancellatura
+   * (1,05 s): quando la pagina è scoperta tutta la foto è ancora a metà strada, e la si vede scendere.
+   */
+  durata: 1.6,
+  /**
+   * L'entrata dell'hero (le lettere, poi la salita a `ENTRATA.sale`) parte così tanti secondi dopo che la
+   * cancellatura ha cominciato ad allargarsi: le lettere stanno DIETRO la foto, e nel primo mezzo secondo
+   * la foto rimpicciolita è ancora al centro, col cielo trasparente sopra il tetto (pellicola a 1440, 23
+   * set.: con l'orologio all'handoff spuntavano pezzi di «Domus» dentro il cuore, sopra la villa).
+   */
+  entrata: 0.5,
+} as const;
+
 /** Altezza / larghezza di una sorgente a quattro decimali: il token `--dt-hero-hw` di globals.css. */
 export const hwDi = (sorgente: readonly number[]): number => Number((sorgente[1] / sorgente[0]).toFixed(4));

@@ -1,6 +1,19 @@
 import type { Page } from "@playwright/test";
 import { test, expect, setConsent } from "./helpers";
-import { INTRO_EVENT, INTRO_FILM, INTRO_KEY, INTRO_MS, INTRO_T, SHORT_MS } from "../app/lib/motion/intro-constants";
+import {
+  GOMMA_MS,
+  GOMMA_TEMPI,
+  INTRO_EVENT,
+  INTRO_FILM,
+  INTRO_KEY,
+  INTRO_T,
+} from "../app/lib/motion/intro-constants";
+
+/** La gomma a una velocità: fino all'allargamento (l'handoff) e intera, in ms. */
+const gommaMs = (v: keyof typeof GOMMA_TEMPI) => {
+  const g = GOMMA_TEMPI[v];
+  return { reveal: g.delay + g.draw + g.hold, tutta: g.delay + g.draw + g.hold + g.exit };
+};
 
 // Coreografia mobile — wave "parità mobile".
 //
@@ -213,19 +226,19 @@ for (const lingua of LINGUE) {
 //
 // IL CONTRATTO NUOVO (opzione D, docs/mobile-parity-2.md §8.5; mandato §6 e
 // §9.3). La shell dell'intro è markup reso dal SERVER (PreloaderShell.tsx,
-// `#dt-preloader.dt-preloader`, nel primo HTML di ogni rotta) e il FILM
-// INTERO è CSS (globals.css «Preloader»): atto I `dt-pre-char/schar/cap/word`
-// sulle lettere, atto II `dt-pre-track` sulla linea di carica, atto III
-// `dt-pre-door` (2,25 s) e atto IV `dt-pre-dive` (3,13 s) sull'overlay via le
-// custom property REGISTRATE `--arch-w/--arch-y/--arch-s`. Tutto parte al
-// primo paint sotto `html[data-preloader]`, che il boot script del layout
-// mette prima della shell (con `__dtPreArmed`/`__dtPreT0`). Preloader.tsx
-// (client, import statico) non muove più niente: legge l'orologio CSS, scrive
-// `data-pre-live` («sono al timone»), spara INTRO_EVENT a INTRO_T.dive, chiude
-// a INTRO_MS (attributo via, Lenis start, sessionStorage), e gestisce lo skip
-// (`html[data-pre-skip]` → tuffo subito, chiusura +1,5 s). Quindi qui si
-// misura DAVVERO il film — le lettere, la linea, la porta, il tuffo — non la
-// presenza dei nodi, e a due larghezze (390 e 1440: è lo stesso montaggio).
+// `#dt-preloader.dt-preloader`, nel primo HTML di ogni rotta): l'atto I è CSS
+// (globals.css «Preloader»: `dt-pre-char/schar/cap/word` sulle lettere,
+// `dt-pre-track` sulla linea di carica) e parte al primo paint sotto
+// `html[data-preloader]`, che il boot script del layout mette prima della
+// shell (con `__dtPreArmed`/`__dtPreT0`). DAL 22 SETTEMBRE 2026 LA PORTA È LA
+// GOMMA (Alberto: «devi sostituire l'entrata ad arco del preloader con
+// questo»): Preloader.tsx legge l'orologio CSS, scrive `data-pre-live` («sono
+// al timone»), a INTRO_T.gomma monta DomusTuaPreloader nella shell
+// (`html[data-gomma]`), spara INTRO_EVENT quando la cancellatura si allarga e
+// chiude quando ha scoperto tutto; lo skip (`html[data-pre-skip]`) fa partire
+// subito la gomma `veloce`. Quindi qui si misura DAVVERO il film — le lettere,
+// la linea, il tratto della gomma, la cancellatura — non la presenza dei nodi,
+// e a due larghezze (390 e 1440: è lo stesso montaggio).
 //
 // TRE SCELTE DI METODO, tutte e tre ereditate dai commenti qui sopra:
 //  1. NIENTE fixture `goto`. Quella scrive `dt-intro-seen` prima del
@@ -266,11 +279,12 @@ type Fotogramma = {
   track: string;
   /** La linea ha `dt-pre-track` fra le proprie animazioni CSS. */
   trackAnim: boolean;
-  /** `--arch-y` computata sull'overlay, in px (atti III-IV; NaN se assente). */
-  archY: number;
-  /** L'overlay ha `dt-pre-door` / `dt-pre-dive` fra le proprie animazioni CSS. */
-  porta: boolean;
-  tuffo: boolean;
+  /** `html[data-gomma]`: null prima che la gomma entri, poi "active" e "reveal". */
+  gomma: string | null;
+  /** Il tratto della gomma: `stroke-dashoffset` del percorso (lunghezza → 0 mentre disegna; NaN senza gomma). */
+  tratto: number;
+  /** La cancellatura che si allarga: `stroke-width` dell'allargamento (0 fino all'handoff; NaN senza gomma). */
+  allarga: number;
 };
 
 /** Ciò che il registro in-pagina raccoglie di ogni documento. */
@@ -397,10 +411,11 @@ function registraIntro(evento: string) {
   }
 
   // LA SENTINELLA DEL FILM. In rAF, dentro la pagina: aspetta la shell, e
-  // finché `data-preloader` è su <html> legge a ogni ~80 ms i tre nodi che
-  // portano i quattro atti. `getAnimations()` restituisce anche le animazioni
-  // finite con `fill` e quelle ancora nel proprio delay: il nome c'è per tutta
-  // l'intro, il VALORE (opacità, transform, --arch-y) dice se si muove.
+  // finché `data-preloader` è su <html> legge a ogni ~80 ms la prima lettera,
+  // la linea di carica e la gomma. `getAnimations()` restituisce anche le
+  // animazioni finite con `fill` e quelle ancora nel proprio delay: il nome c'è
+  // per tutta l'intro, il VALORE (opacità, transform, tratto, allargamento)
+  // dice se si muove.
   let root: HTMLElement | null = null;
   let ultimo = -Infinity;
   const nomi = (el: Element | null) => {
@@ -425,16 +440,19 @@ function registraIntro(evento: string) {
       ultimo = now;
       const ch = root.querySelector("[data-pre-char]");
       const tr = root.querySelector("[data-pre-track]");
-      const nomiRoot = nomi(root);
+      // Il percorso della gomma (dentro il logo, sotto la clip) e l'allargamento.
+      const gomma = root.querySelector(".dt-gomma");
+      const tratto = gomma?.querySelector("[data-gomma-logo] > g > path") ?? null;
+      const allarga = gomma?.querySelector("[data-gomma-swell]") ?? null;
       rec.film.push({
         t: now,
         char: ch ? Number(getComputedStyle(ch).opacity) : -1,
         charAnim: nomi(ch).includes("dt-pre-char"),
         track: tr ? getComputedStyle(tr).transform : "",
         trackAnim: nomi(tr).includes("dt-pre-track"),
-        archY: parseFloat(getComputedStyle(root).getPropertyValue("--arch-y")),
-        porta: nomiRoot.includes("dt-pre-door"),
-        tuffo: nomiRoot.includes("dt-pre-dive"),
+        gomma: html.getAttribute("data-gomma"),
+        tratto: tratto ? parseFloat(tratto.getAttribute("stroke-dashoffset") ?? "NaN") : NaN,
+        allarga: allarga ? parseFloat(allarga.getAttribute("stroke-width") ?? "NaN") : NaN,
       });
     }
     // Si smette alla caduta (o dopo 20 s: un documento che non ha mai avuto
@@ -694,43 +712,41 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
         description: `${durata}ms dal takeover alla caduta; dall'armatura: JS al timone ${Math.round(fine.tLive! - t0)}ms, handoff ${Math.round((fine.handoff ?? NaN) - t0)}ms, caduta ${Math.round(fine.tCaduto! - t0)}ms; ${fine.film.length} fotogrammi`,
       });
 
-      // (e) L'HANDOFF: INTRO_EVENT è partito, dopo l'armatura di almeno il
-      // tuffo (3,13 s: le lettere dell'hero non devono accendersi con la porta
-      // ancora chiusa — sarebbe un altro tipo di intro) e comunque entro
-      // il budget — INTRO_MS più un margine — dall'istante in cui il boot
-      // script ha armato il sipario (`__dtPreT0`). Derivato, non scritto: la
-      // durata del film è una scelta di prodotto e vive in `TEMPO`
-      // (intro-constants.ts).
+      // (e) L'HANDOFF: INTRO_EVENT parte quando la cancellatura della gomma
+      // comincia ad allargarsi (le lettere dell'hero non devono accendersi a
+      // gomma ancora al lavoro — sarebbe un altro tipo di intro). L'istante
+      // atteso si ricava da quando la gomma è entrata: a INTRO_T.gomma, o
+      // appena il JS è al timone se è arrivato dopo (e allora `veloce` oltre
+      // INTRO_T.tardi); più il suo delay, il tratto e la pausa. Derivato, non
+      // scritto: i tempi sono quelli del componente (GOMMA_TEMPI).
       expect(fine.handoff, "INTRO_EVENT (dt:intro:done) non è mai partito").not.toBeNull();
       const handoffDaT0 = Math.round(fine.handoff! - t0);
+      const liveDaT0 = Math.round(fine.tLive! - t0);
+      const entra = Math.max(INTRO_T.gomma * 1000, liveDaT0);
+      const passo = gommaMs(entra >= INTRO_T.tardi * 1000 ? "veloce" : "normale");
+      const attesoHandoff = entra + passo.reveal;
       expect(
         handoffDaT0,
-        `l'handoff è partito a ${handoffDaT0}ms dall'armatura: PRIMA del tuffo (INTRO_T.dive = ${INTRO_T.dive * 1000}ms) — nessuno l'ha saltato`,
-      ).toBeGreaterThanOrEqual(INTRO_T.dive * 1000 - 150);
-      const tettoHandoff = INTRO_T.dive * 1000 + 1500;
+        `l'handoff è partito a ${handoffDaT0}ms dall'armatura: PRIMA che la gomma finisse di disegnare (atteso ~${attesoHandoff}ms) — nessuno l'ha saltata`,
+      ).toBeGreaterThanOrEqual(attesoHandoff - 150);
+      const tettoHandoff = attesoHandoff + 1500;
       expect(
         handoffDaT0,
-        `l'handoff è partito a ${handoffDaT0}ms dall'armatura, tetto ${tettoHandoff}ms (INTRO_T.dive + 1,5 s di margine per il ticker e la lettura del registro)`,
+        `l'handoff è partito a ${handoffDaT0}ms dall'armatura, tetto ${tettoHandoff}ms (la gomma + 1,5 s di margine per il ticker, il precarico e la lettura del registro)`,
       ).toBeLessThan(tettoHandoff);
 
-      // IL BUDGET SI ASSERISCE, non si annota. Dal 2026-08-17 (onda «parità
-      // mobile 2», legge 3) l'intro è UN solo montaggio, lungo INTRO_MS, a ogni
-      // larghezza — INTRO_MS in app/lib/motion/intro-constants.ts — quindi il
-      // budget è uno solo, telefono compreso (prima sotto i 768 era 1 900, per
-      // il montaggio corto da 1,75 s che non c'è più). Registrarlo e basta
-      // vorrebbe dire che la suite resta verde se domani qualcuno allunga un
-      // tuffo o rimette un'attesa senza tetto.
-      // Il margine sopra il bersaglio copre il ticker (l'ultimo fotogramma cade
-      // dopo la fine nominale) e il tempo di lettura del registro, non un atto.
-      // Nota: `durata` parte da `tLive` (il JS al timone), che ora arriva a
-      // atto I già in corso: è ≤ dell'intro intera, il budget resta valido.
-      // DERIVATO da INTRO_MS, non scritto: la durata del film è una scelta di
-      // prodotto che vive in `TEMPO` (intro-constants.ts) e può cambiare — il
-      // tetto la segue da sé, e resta un tetto.
-      const budget = INTRO_MS + 170;
+      // IL BUDGET SI ASSERISCE, non si annota. L'intro è UN solo montaggio a
+      // ogni larghezza (onda «parità mobile 2», legge 3), e dal 22 settembre
+      // finisce con la gomma: GOMMA_MS (atto I fino a INTRO_T.gomma, poi la
+      // gomma `normale` intera), in app/lib/motion/intro-constants.ts. Il
+      // margine copre il ticker e la lettura del registro, non un atto.
+      // Nota: `durata` parte da `tLive` (il JS al timone), che arriva a atto I
+      // già in corso: è ≤ dell'intro intera, il budget resta valido anche col
+      // JS in ritardo (la gomma allora è `veloce`, più corta).
+      const budget = GOMMA_MS + 170;
       expect(
         durata,
-        `l'intro è durata ${durata}ms, budget ${budget}ms — un solo montaggio, INTRO_MS in intro-constants.ts`,
+        `l'intro è durata ${durata}ms, budget ${budget}ms — un solo montaggio, GOMMA_MS in intro-constants.ts`,
       ).toBeLessThan(budget);
       // E a chiuderla è stato il JS, non il failsafe del boot script: quello
       // toglie SOLO `data-preloader` e lascia `data-pre-live` su <html>
@@ -742,18 +758,15 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
         await page.evaluate(() => document.documentElement.hasAttribute("data-pre-live")),
         "html[data-pre-live] è rimasto dopo la caduta: l'attributo l'ha tolto il failsafe di boot, non finish() di Preloader.tsx",
       ).toBe(false);
-      // La caduta dall'armatura, con un tetto largo. MISURATO (2026-08-18):
-      // a 390 cade a ~4 700 ms; a 1440 a 4 836-4 966 con due test in
-      // parallelo e a 5 274-5 547 con quattro worker — su desktop `finish()`
-      // aspetta `runWarmup` (TUTTE le immagini, decode compreso) e il timer
-      // di chiusura arriva in ritardo su un thread occupato (la sentinella
-      // conta 40 fotogrammi invece di ~58: rAF affamata). Non è il failsafe
-      // (PRE_FAILSAFE_MS, intro-constants.ts: vedi sopra) ma è un ritardo vero, e
-      // sopra i 1,5 s dal film sarebbe una pagina murata a film finito.
+      // La caduta dall'armatura, con un tetto largo: la gomma intera dal suo
+      // ingresso, più 1,5 s (il precarico che la gomma aspetta come `ready`
+      // sta dentro, per costruzione: scade prima della fine del tratto). Oltre
+      // sarebbe una pagina murata a film finito.
+      const tettoCaduta = entra + passo.tutta + 1500;
       expect(
         Math.round(fine.tCaduto! - t0),
-        `l'attributo è caduto ${Math.round(fine.tCaduto! - t0)}ms dopo l'armatura: più di 1,5 s dopo la fine del film (INTRO_MS ${INTRO_MS}): la pagina resta murata a intro finita`,
-      ).toBeLessThan(INTRO_MS + 1500);
+        `l'attributo è caduto ${Math.round(fine.tCaduto! - t0)}ms dopo l'armatura: più di 1,5 s dopo la fine della gomma (tetto ${tettoCaduta}ms): la pagina resta murata a intro finita`,
+      ).toBeLessThan(tettoCaduta);
 
       // ── IL FILM, FOTOGRAMMA PER FOTOGRAMMA ─────────────────────────────
       const film = fine.film;
@@ -814,95 +827,61 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
         `atto II: la linea di carica ha mostrato ${trasformate.size} trasformata/e distinta/e in ${film.length} fotogrammi con la sentinella che copriva la corsa 0,6-2,15 s (buco massimo ${bucoTrack}ms) — non si è mossa`,
       ).toBe(true);
 
-      // (d) ATTI III e IV: `--arch-y` letta computata sull'overlay. La porta
-      // (2,25 → 3,35 s) porta la quota da 104vh alla quota di riposo `--arch-y1`
-      // (16vh sul telefono, 15vh su desktop); il tuffo (INTRO_T.dive → fine) da lì a
-      // −100vh: la quota SCENDE, sempre. Niente px assoluti — solo che si
-      // muove, nel verso giusto, e negli intervalli giusti.
-      //
-      // La prova NON è «a t=2 vale X e a t=3 vale Y»: la sentinella campiona
-      // in rAF, e sotto carico (idratazione lunga, quattro worker, decode
-      // immagini su desktop) la rAF resta a secco anche per un secondo —
-      // misurato: 40 fotogrammi invece di ~58, e a 390 sotto carico esterno
-      // NESSUN fotogramma fra 2,1 e 3,05 s. Si prova quindi per VALORI, che
-      // sono univoci per atto: una quota strettamente fra la partenza (104vh)
-      // e la quota di riposo — con 25 px di margine sopra il riposo, perché il
-      // tuffo riparte da 0,972 della porta, cioè ~20 px sopra il riposo — la
-      // può produrre SOLO la porta; una quota sotto il riposo SOLO il tuffo.
-      // Se manca il fotogramma della porta si guarda se la sentinella aveva
-      // copertura in quella finestra: senza copertura è la macchina (e lo si
-      // annota), con copertura è il film.
-      const validi = film.filter((f) => Number.isFinite(f.archY));
+      // (d) LA GOMMA (22 set. 2026, al posto di porta e tuffo). La sentinella
+      // legge `html[data-gomma]`, il `stroke-dashoffset` del tratto (dalla
+      // lunghezza a 0 mentre la gomma disegna il cuore) e lo `stroke-width`
+      // dell'allargamento (0 fino all'handoff, poi fino a coprire lo schermo).
+      // Si prova per VALORI, come per l'arco: la rAF sotto carico resta a secco
+      // anche per un secondo, quindi un fotogramma mancante in una finestra
+      // senza copertura è la macchina (e lo si annota), con copertura è il film.
+      const conGomma = film.filter((f) => f.gomma !== null && Number.isFinite(f.tratto));
       expect(
-        validi.length,
-        "atti III-IV: --arch-y non è mai stata leggibile come lunghezza sull'overlay (@property assente? proprietà rinominata?)",
-      ).toBeGreaterThan(10);
-      const geo = await page.evaluate(() => {
-        const root = document.getElementById("dt-preloader")!;
-        const y1 = getComputedStyle(root).getPropertyValue("--arch-y1").trim();
-        const m = /^([\d.]+)vh$/.exec(y1);
-        return { vh: window.innerHeight, y1: m ? (Number(m[1]) / 100) * window.innerHeight : NaN, y1raw: y1 };
-      });
-      expect(geo.y1, `--arch-y1 non è in vh (${geo.y1raw}): il test non sa più dov'è il riposo della porta`).not.toBeNaN();
-      const partenza = validi[0].archY;
+        conGomma.length,
+        "la gomma non è mai stata vista: `html[data-gomma]` e il suo tratto non sono mai comparsi sotto il sipario",
+      ).toBeGreaterThan(5);
+      // Entra all'ora giusta: non prima di INTRO_T.gomma (col lockup ancora al centro).
+      const tEntra = Math.round(conGomma[0].t - t0);
       expect(
-        partenza,
-        `al primo fotogramma --arch-y è ${arrotonda(partenza)}px: la porta non parte da sotto il bordo (≥ 100vh = ${geo.vh}px)`,
-      ).toBeGreaterThanOrEqual(geo.vh);
-      // ATTO III — la porta: un fotogramma con la quota fra riposo+25 e
-      // partenza−1, cioè la porta a metà corsa.
-      const soloPorta = validi.filter((f) => f.archY < partenza - 1 && f.archY > geo.y1 + 25);
-      const bucoPorta = bucoIn(INTRO_T.arch * 1000, INTRO_T.dive * 1000);
+        tEntra,
+        `la gomma è entrata a ${tEntra}ms dall'armatura: prima di INTRO_T.gomma (${INTRO_T.gomma * 1000}), col lockup ancora in scena`,
+      ).toBeGreaterThanOrEqual(INTRO_T.gomma * 1000 - 100);
+      // Il tratto DISEGNA: un fotogramma a metà (fra la partenza e lo zero), e
+      // mai all'indietro (tolleranza di mezza unità: è un attributo arrotondato).
+      const partenza = conGomma[0].tratto;
+      const aMetaTratto = conGomma.filter((f) => f.tratto < partenza - 1 && f.tratto > 1);
+      const bucoTratto = bucoIn(entra + passo.reveal - 2000, entra + passo.reveal - 400);
       test.info().annotations.push({
-        type: "atto III",
-        description: `${soloPorta.length} fotogrammi con la porta a metà corsa; buco massimo della sentinella nella finestra della porta ${bucoPorta}ms`,
+        type: "la gomma",
+        description: `entrata a ${tEntra}ms; ${aMetaTratto.length} fotogrammi col tratto a metà; buco massimo della sentinella nel tratto ${bucoTratto}ms`,
       });
       expect(
-        soloPorta.length > 0 || bucoPorta >= 500,
-        `atto III: la porta non è mai stata vista a metà corsa (quota fra ${arrotonda(geo.y1 + 25)} e ${arrotonda(partenza)}px) con la sentinella che copriva la finestra 2,25-3,13 s (buco massimo ${bucoPorta}ms): la porta non è salita`,
+        aMetaTratto.length > 0 || bucoTratto >= 500,
+        `la gomma non è mai stata vista a metà tratto (dashoffset fra 1 e ${arrotonda(partenza)}) con la sentinella che copriva il disegno (buco massimo ${bucoTratto}ms): il cuore non si è disegnato`,
       ).toBe(true);
-      if (soloPorta.length > 0) {
-        // E dentro la finestra della porta, non altrove.
-        const tPorta = soloPorta.map((f) => Math.round(f.t - t0));
-        expect(
-          Math.min(...tPorta),
-          `atto III: la porta è stata vista a metà corsa già a ${Math.min(...tPorta)}ms — prima di INTRO_T.arch (${INTRO_T.arch * 1000})`,
-        ).toBeGreaterThanOrEqual(INTRO_T.arch * 1000 - 100);
-      }
-      // ATTO IV — il tuffo: quote SOTTO il riposo della porta, e in fondo
-      // sotto lo zero (verso −100vh): l'arco è uscito dallo schermo.
-      const soloTuffo = validi.filter((f) => f.archY < geo.y1 - 25);
-      const bucoTuffo = bucoIn(INTRO_T.dive * 1000 + 200, INTRO_MS);
-      test.info().annotations.push({
-        type: "atto IV",
-        description: `${soloTuffo.length} fotogrammi con l'arco sotto il riposo; ultima quota ${arrotonda(validi[validi.length - 1].archY)}px a ${Math.round(validi[validi.length - 1].t - t0)}ms; buco massimo nella finestra del tuffo ${bucoTuffo}ms`,
-      });
+      const indietro = conGomma.filter((f, i) => i > 0 && f.tratto > conGomma[i - 1].tratto + 0.5);
       expect(
-        soloTuffo.length > 0 || bucoTuffo >= 500,
-        `atto IV: --arch-y non è mai scesa sotto il riposo della porta (${arrotonda(geo.y1)}px) con la sentinella che copriva la finestra del tuffo (buco massimo ${bucoTuffo}ms): il tuffo non è partito`,
-      ).toBe(true);
-      if (soloTuffo.length > 0) {
-        const tTuffo = soloTuffo.map((f) => Math.round(f.t - t0));
-        expect(
-          Math.min(...tTuffo),
-          `atto IV: l'arco era sotto il riposo già a ${Math.min(...tTuffo)}ms — prima di INTRO_T.dive (${INTRO_T.dive * 1000})`,
-        ).toBeGreaterThanOrEqual(INTRO_T.dive * 1000 - 100);
-      }
-      // E la corsa è MONOTONA: mai una risalita. Tolleranza di pochi px: a
-      // 3,13 s il tuffo riparte da `--arch-k` (0,972 della corsa, calcolato
-      // dalla bezier): una frazione di pixel fra le due keyframe non è un
-      // salto che si veda.
-      const risalite = validi.filter((f, i) => i > 0 && f.archY > validi[i - 1].archY + 4);
-      expect(
-        risalite.length,
-        `l'arco è RISALITO in ${risalite.length} fotogramma/i (es. a ${risalite[0] ? Math.round(risalite[0].t - t0) : "?"}ms): porta e tuffo non sono monotoni — un salto fra le due keyframe`,
+        indietro.length,
+        `il tratto della gomma è TORNATO INDIETRO in ${indietro.length} fotogramma/i (es. a ${indietro[0] ? Math.round(indietro[0].t - t0) : "?"}ms)`,
       ).toBe(0);
-      // E sono le keyframe di globals.css a muovere l'arco — i nomi esatti,
-      // visti dalla sentinella sulle animazioni dell'overlay durante il film.
+      // La cancellatura si allarga DOPO l'handoff, e solo in avanti.
+      const allarga = film.filter((f) => Number.isFinite(f.allarga) && f.allarga > 0);
+      const bucoAllarga = bucoIn(handoffDaT0 + 100, handoffDaT0 + passo.tutta - passo.reveal);
       expect(
-        film.some((f) => f.porta) && film.some((f) => f.tuffo),
-        "sull'overlay mancano le keyframe della porta/del tuffo (dt-pre-door/dt-pre-dive) durante il film",
+        allarga.length > 0 || bucoAllarga >= 400,
+        `la cancellatura non si è mai vista allargarsi con la sentinella che copriva l'uscita (buco massimo ${bucoAllarga}ms)`,
       ).toBe(true);
+      if (allarga.length > 0) {
+        expect(
+          Math.round(allarga[0].t - t0),
+          "la cancellatura si allargava già prima dell'handoff: le lettere dell'hero arriverebbero a sipario mezzo aperto",
+        ).toBeGreaterThanOrEqual(handoffDaT0 - 100);
+        const restringe = allarga.filter((f, i) => i > 0 && f.allarga < allarga[i - 1].allarga - 0.5);
+        expect(restringe.length, "la cancellatura si è ristretta mentre si allargava").toBe(0);
+        expect(
+          allarga.every((f) => f.gomma === "reveal"),
+          "la cancellatura si allarga ma `html[data-gomma]` non dice «reveal»",
+        ).toBe(true);
+      }
 
       // (f) LA PAGINA RESTITUITA: attributo via, overlay fuori dal paint,
       // Lenis rilasciato, la pagina SCORRE, la sessione segnata.
@@ -958,15 +937,18 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
         })
         .toBe(true);
       const corta = await leggiRegistro(page);
-      const t0Corta = (await leggiT0(page)) ?? corta.tVisto!;
+      // La corta è la gomma `veloce`, montata appena il JS è al timone: si
+      // chiude entro la sua durata più 1,5 s da lì.
+      const tettoCorta = gommaMs("veloce").tutta + 1500;
+      const cortaDalJs = Math.round(corta.tCaduto! - (corta.tLive ?? corta.tVisto!));
       expect(
-        Math.round(corta.tCaduto! - t0Corta),
-        `la corta è caduta ${Math.round(corta.tCaduto! - t0Corta)}ms dopo l'armamento, oltre SHORT_MS + 1,5 s`,
-      ).toBeLessThan(SHORT_MS + 1500);
+        cortaDalJs,
+        `la corta è caduta ${cortaDalJs}ms dopo il JS al timone, oltre la gomma veloce + 1,5 s (${tettoCorta}ms)`,
+      ).toBeLessThan(tettoCorta);
     });
   }
 
-  test("si salta al PRIMO tocco che il JS può sentire, e il tuffo suona intero @layout", async ({ page }, testInfo) => {
+  test("si salta al PRIMO tocco che il JS può sentire, e la gomma veloce suona intera @layout", async ({ page }, testInfo) => {
     test.skip(
       !testInfo.project.use.hasTouch,
       "serve un contesto touch: qui il gesto del dito non esiste",
@@ -1063,23 +1045,27 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     ).toBeLessThan(200);
     expect(
       sonda.tSkip! - (sonda.tVisto ?? 0),
-      `lo skip è arrivato dopo il tuffo naturale (${Math.round(sonda.tSkip! - (sonda.tVisto ?? 0))}ms dall'armatura): non è uno skip, è un'attesa (${cronologia})`,
-    ).toBeLessThan(INTRO_T.dive * 1000);
+      `lo skip è arrivato dopo l'ultimo istante in cui è offerto (${Math.round(sonda.tSkip! - (sonda.tVisto ?? 0))}ms dall'armatura, INTRO_T.skip ${INTRO_T.skip * 1000}): non è uno skip, è un'attesa (${cronologia})`,
+    ).toBeLessThan(INTRO_T.skip * 1000);
     expect(
       sonda.handoff! - sonda.tSkip!,
       `l'handoff precede lo skip di ${Math.round(sonda.tSkip! - sonda.handoff!)}ms: non viene da quel gesto (${cronologia})`,
     ).toBeGreaterThan(-50);
+    // Dal 22 settembre lo skip fa partire la gomma `veloce`, che disegna il
+    // cuore prima dell'handoff: il tetto è la sua corsa fino all'allargamento,
+    // contata da quando il JS ha potuto montarla (il tocco, o il JS al timone
+    // se il tocco l'ha servito il boot script prima), più un margine.
+    const montabile = Math.max(toccoBuono!, sonda.tLive ?? toccoBuono!);
+    const veloce = gommaMs("veloce");
     expect(
-      ritardo,
-      `tocco → dt:intro:done ${Math.round(ritardo)}ms, oltre il tetto del mandato di 1 700 ms (${cronologia})`,
-    ).toBeLessThan(1700);
+      sonda.handoff! - montabile,
+      `tocco → dt:intro:done ${Math.round(sonda.handoff! - montabile)}ms dal JS in grado di rispondere, oltre la gomma veloce fino all'allargamento + 1 s (${veloce.reveal + 1000}ms) (${cronologia})`,
+    ).toBeLessThan(veloce.reveal + 1000);
 
-    // Saltare manda le keyframe al tuffo (`--pre-skip` + data-pre-skip),
-    // quindi la porta suona per intero (1,5 s a ogni larghezza): lo skip
-    // taglia il preambolo, non il tuffo. La chiusura arriva a +1,5 s: si
-    // aspetta la caduta e si misura che NON sia stata istantanea (un taglio
-    // secco lascerebbe l'arco a metà) e che non abbia aspettato l'intro
-    // naturale (INTRO_MS).
+    // Saltare fa partire la gomma `veloce` e lei suona per intero: lo skip
+    // taglia il preambolo, non la porta. Si aspetta la caduta e si misura che
+    // NON sia stata istantanea (un taglio secco lascerebbe il cuore a metà) e
+    // che non abbia aspettato l'intro naturale (GOMMA_MS).
     await expect
       .poll(async () => (await bloccata(page)).attributo, {
         timeout: 10_000,
@@ -1088,21 +1074,21 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
       .toBe(false);
     const dopo = await leggiRegistro(page);
     const chiusuraDalTocco = Math.round(dopo.tCaduto! - toccoBuono!);
-    test.info().annotations.push({ type: "skip → caduta", description: `${chiusuraDalTocco}ms` });
+    const chiusuraDalJs = Math.round(dopo.tCaduto! - montabile);
+    test.info().annotations.push({ type: "skip → caduta", description: `${chiusuraDalTocco}ms dal tocco, ${chiusuraDalJs}ms dal JS in grado di rispondere` });
     expect(
-      chiusuraDalTocco,
-      `il sipario è caduto ${chiusuraDalTocco}ms dopo il tocco: il tuffo (${INTRO_T.diveDur * 1000}ms) non ha suonato intero`,
-    ).toBeGreaterThanOrEqual(INTRO_T.diveDur * 1000 - 100);
-    // Il tetto: la chiusura viene dal timer dello skip (tocco + 1,5 s), con
-    // il margine di un timer in ritardo su un thread occupato — misurato
-    // 2 754 ms sotto carico. Che non sia la fine naturale lo dice, oltre a
-    // `data-pre-skip`, il confronto con quando sarebbe finita da sola.
+      chiusuraDalJs,
+      `il sipario è caduto ${chiusuraDalJs}ms dopo che il JS ha potuto montare la gomma: la gomma veloce (${veloce.tutta}ms) non ha suonato intera`,
+    ).toBeGreaterThanOrEqual(veloce.tutta - 100);
+    // Il tetto: la gomma veloce intera, con il margine di un thread occupato.
+    // Che non sia la fine naturale lo dice, oltre a `data-pre-skip`, il
+    // confronto con quando sarebbe finita da sola.
     expect(
-      chiusuraDalTocco,
-      `il sipario è caduto ${chiusuraDalTocco}ms dopo il tocco: lo skip non ha accorciato niente`,
-    ).toBeLessThan(INTRO_T.diveDur * 1000 + 1500);
-    const fineNaturale = Math.round(INTRO_MS - (toccoBuono! - sonda.tVisto!));
-    if (fineNaturale - INTRO_T.diveDur * 1000 > 800) {
+      chiusuraDalJs,
+      `il sipario è caduto ${chiusuraDalJs}ms dopo il JS al timone: lo skip non ha accorciato niente`,
+    ).toBeLessThan(veloce.tutta + 1500);
+    const fineNaturale = Math.round(GOMMA_MS - (toccoBuono! - sonda.tVisto!));
+    if (fineNaturale - veloce.tutta > 800) {
       expect(
         chiusuraDalTocco,
         `il sipario è caduto ${chiusuraDalTocco}ms dopo il tocco, cioè alla fine NATURALE (${fineNaturale}ms dal tocco): lo skip non ha spostato la chiusura`,

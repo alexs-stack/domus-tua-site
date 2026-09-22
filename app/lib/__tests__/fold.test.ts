@@ -44,7 +44,7 @@ describe("stato dipinto a 0,02", () => {
   test("col film HERO_REST_MS, con la porta corta HERO_REST_SHORT_MS, e la stessa specificità della base", () => {
     assert.ok(blocco(`:root[data-hero-intro="intro"] ${NON_ARMATO}`).includes(`animation-delay: ${HERO_REST_MS / 1000}s;`));
     assert.ok(blocco(`:root[data-hero-intro="short"] ${NON_ARMATO}`).includes(`animation-delay: ${HERO_REST_SHORT_MS / 1000}s;`));
-    assert.equal(HERO_REST_SHORT_MS, 1080);
+    assert.equal(HERO_REST_SHORT_MS, 2680);
     // A specificità pari vince l'ultima regola (spec §2.5): il ritardo di "intro" e "short"
     // batte lo shorthand della base solo se le due varianti la seguono nel foglio.
     const iBase = css.indexOf(`:root[data-hero-intro] ${NON_ARMATO} {`);

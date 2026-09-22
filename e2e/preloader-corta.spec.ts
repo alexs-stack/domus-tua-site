@@ -5,8 +5,11 @@ import {
   INTRO_KEY,
   INTRO_SHORT,
   LAST_Y_KEY,
-  SHORT_MS,
+  GOMMA_TEMPI,
 } from "../app/lib/motion/intro-constants";
+
+/** La corta è la gomma `veloce` intera (22 set. 2026: la porta ad arco non c'è più). */
+const CORTA_MS = GOMMA_TEMPI.veloce.delay + GOMMA_TEMPI.veloce.draw + GOMMA_TEMPI.veloce.hold + GOMMA_TEMPI.veloce.exit;
 
 // LA PORTA CORTA E LA MACCHINA A STATI (spec §6.2). Alberto il 13 settembre
 // 2026: il film intero alla prima entrata nella home, la porta corta a ogni
@@ -31,7 +34,7 @@ type Corta = {
   nav: string | null;
   /** Fotogrammi sotto l'attributo con la shell nel DOM. */
   sotto: number;
-  /** Fotogrammi sotto l'attributo fuori dalla cima: [scrollY, --arch-y, innerHeight]. */
+  /** Fotogrammi sotto l'attributo fuori dalla cima: [scrollY, gomma montata (1/0), innerHeight]. */
   fuori: number[][];
   /** Lo scrollY più grande visto dopo la caduta dell'attributo. */
   dopoMax: number;
@@ -84,12 +87,13 @@ function registraCorta(evento: string) {
     const html = document.documentElement;
     const root = document.getElementById("dt-preloader");
     // D65: sotto il sipario la pagina sta in cima; un fotogramma fuori dalla
-    // cima si segna con la quota della porta.
+    // cima si segna con lo stato della gomma (1 se è montata: da lì può
+    // scoprire la pagina; 0 se copre ancora il pannello pieno).
     if (root && html?.hasAttribute("data-preloader")) {
       rec.sotto += 1;
       if (window.scrollY > 1) {
-        const archY = Number.parseFloat(getComputedStyle(root).getPropertyValue("--arch-y"));
-        rec.fuori.push([Math.round(window.scrollY), Math.round(archY), window.innerHeight]);
+        const gomma = html.hasAttribute("data-gomma") && html.getAttribute("data-gomma") !== "done" ? 1 : 0;
+        rec.fuori.push([Math.round(window.scrollY), gomma, window.innerHeight]);
       }
     } else if (rec.tCaduto !== null) rec.dopoMax = Math.max(rec.dopoMax, Math.round(window.scrollY));
     if (root && html?.hasAttribute("data-preloader") && rec.pannello === null) {
@@ -173,10 +177,13 @@ test("su /acquista alla prima entrata suona la corta senza sagoma, su avorio pro
     fine.tLive !== null && fine.tVisto !== null && fine.tLive - fine.tVisto > AFFAMATA_MS,
     `macchina affamata: JS al timone a ${Math.round((fine.tLive ?? 0) - (fine.tVisto ?? 0))}ms (soglia ${AFFAMATA_MS})`,
   );
+  // La gomma veloce si monta al takeover e si chiude da sola: tutta, più il
+  // margine del ticker.
   const durata = Math.round(fine.tCaduto! - (fine.tLive ?? fine.tVisto!));
-  expect(durata, `la corta è durata ${durata}ms dal takeover, budget ${SHORT_MS + 170}ms`).toBeLessThan(SHORT_MS + 170);
-  const daT0 = Math.round(fine.tCaduto! - (fine.t0 ?? fine.tVisto!));
-  expect(daT0, `attributo caduto a ${daT0}ms dall'armamento`).toBeLessThan(SHORT_MS + 600);
+  expect(durata, `la corta è durata ${durata}ms dal takeover, budget ${CORTA_MS + 400}ms`).toBeLessThan(CORTA_MS + 400);
+  expect(durata, `la corta è durata ${durata}ms dal takeover: la gomma veloce (${CORTA_MS}ms) non ha suonato intera`).toBeGreaterThanOrEqual(
+    CORTA_MS - 100,
+  );
   expect(fine.handoff, "INTRO_EVENT non è partito nella corta").not.toBeNull();
   expect(await page.evaluate((k) => sessionStorage.getItem(k), INTRO_KEY)).toBe(INTRO_SHORT);
 });
@@ -259,11 +266,11 @@ test("D65: ricarica a 0,3 schermi su «/», la corta si apre sulla pagina in cim
   expect(r.valore, "a 0,3 schermi dalla cima la ricarica di «/» ha la corta").toBe("short");
   expect(r.sotto, "troppo pochi fotogrammi sotto la corta").toBeGreaterThan(30);
   // Il ripristino nativo dei primi layout può arrivare in un fotogramma prima
-  // che il guardiano lo riporti a 0: lì la porta è ancora sotto il bordo e il
-  // pannello copre tutto. Da quando la porta sale, la pagina è in cima in ogni
-  // fotogramma.
-  const visibili = r.fuori.filter(([, archY, vh]) => archY < vh);
-  expect(visibili, "fotogrammi [scrollY, --arch-y, innerHeight] con la porta aperta su una pagina fuori dalla cima").toEqual([]);
+  // che il guardiano lo riporti a 0: lì la gomma non è ancora montata e il
+  // pannello copre tutto. Da quando la gomma è in scena (e può scoprire la
+  // pagina), la pagina è in cima in ogni fotogramma.
+  const visibili = r.fuori.filter(([, gomma]) => gomma === 1);
+  expect(visibili, "fotogrammi [scrollY, gomma montata, innerHeight] con la gomma su una pagina fuori dalla cima").toEqual([]);
   expect(r.dopoMax, "dopo la corta la pagina è scesa (ripristino nativo al load)").toBeLessThanOrEqual(1);
   expect(await page.evaluate(() => (window as unknown as { __dtPreTop?: number }).__dtPreTop), "il guardiano non si è armato").toBe(0);
   expect(await page.evaluate(() => history.scrollRestoration), "il guardiano non ha rimesso auto").toBe("auto");

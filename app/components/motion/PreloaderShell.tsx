@@ -99,6 +99,11 @@ export default function PreloaderShell() {
   return (
     <div id="dt-preloader" aria-hidden className="dt-preloader">
       <div data-pre-panel className="absolute inset-0 overflow-hidden bg-espresso">
+        {/* LO SLOT DELLA GOMMA (22 set. 2026): vuoto nell'HTML; Preloader.tsx ci
+            monta DomusTuaPreloader in un portale a INTRO_T.gomma. È il PRIMO
+            figlio del pannello e la gomma ha `zIndex` 0: il suo foglio dipinge
+            sotto il fondo caldo e la sagoma (globals.css, «La gomma»). */}
+        <div data-pre-gomma />
         {/* Profondità calda, mai nero piatto (stesse regole di .bg-ink).
             Il gradiente sta in globals.css (`.dt-pre-fondo`): è il primo colore
             che il visitatore vede, e la sorgente dev'essere una. */}
@@ -158,12 +163,6 @@ export default function PreloaderShell() {
             />
           </picture>
         </div>
-
-        {/* Anelli eco della porta (solo variante arco, vedi globals.css):
-            la maschera li taglia dove c'è il buco, restano i profili. Seguono
-            l'arco via transform (`--arch-s`, `--arch-y`), mai via layout. */}
-        <div data-pre-arch-echo="2" />
-        <div data-pre-arch-echo="1" />
 
         <div
           data-pre-content

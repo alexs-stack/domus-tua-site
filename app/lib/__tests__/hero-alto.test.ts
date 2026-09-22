@@ -16,8 +16,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chapters, scrubOf } from "../motion/chapters";
 import { heroCinematic } from "../media";
-import { CHIUSURA, ENTRATA, HERO, RAFFAELA, RESPIRO_SVH, SIZES_HERO, hwDi, salitaRiposo } from "../motion/hero";
-import { INTRO_T, SHORT_T } from "../motion/intro-constants";
+import { CHIUSURA, DISCESA, ENTRATA, HERO, RAFFAELA, RESPIRO_SVH, SIZES_HERO, hwDi, salitaRiposo } from "../motion/hero";
+import { INTRO_T, PRE_AUTOHIDE_MS, PRE_SHORT_AUTOHIDE_MS } from "../motion/intro-constants";
 import { ROLES, groupDelay } from "../motion/text-roles";
 import foto from "../motion/hero.json";
 
@@ -200,9 +200,14 @@ describe("l'entrata dell'hero (A75): lockup al centro, poi la foto sale fino a R
   })();
   const s = (n: number) => `${Number(n.toFixed(3))}s`;
 
-  test("i tempi del CSS sono quelli di ENTRATA, contati dall'handoff del film (o dello skip) e della corta", () => {
-    assert.match(entrataCss, new RegExp(String.raw`html\[data-hero-entrata="intro"\] \{\s*--dt-entrata-t: var\(--pre-skip, ${s(INTRO_T.dive)}\);`));
-    assert.match(entrataCss, new RegExp(String.raw`html\[data-hero-entrata="short"\] \{\s*--dt-entrata-t: ${s(SHORT_T.dive)};`));
+  test("i tempi del CSS sono quelli di ENTRATA, e la rete senza JS è l'autohide del sipario (o dello skip) e della corta", () => {
+    // Col JS l'orologio lo scrive Preloader.tsx quando la gomma si allarga; nel CSS resta la rete.
+    assert.match(entrataCss, new RegExp(String.raw`html\[data-hero-entrata="intro"\] \{\s*--dt-entrata-t: ${s(PRE_AUTOHIDE_MS / 1000)};`));
+    assert.match(
+      entrataCss,
+      new RegExp(String.raw`html\[data-hero-entrata="intro"\]\[data-pre-skip\] \{\s*--dt-entrata-t: calc\(var\(--pre-skip, 0s\) \+ ${s(INTRO_T.skipCoda + 0.1)}\);`),
+    );
+    assert.match(entrataCss, new RegExp(String.raw`html\[data-hero-entrata="short"\] \{\s*--dt-entrata-t: ${s(PRE_SHORT_AUTOHIDE_MS / 1000)};`));
     const sale = `${s(ENTRATA.saleDurata)} cubic-bezier\\(0\\.66, 0, 0\\.22, 1\\) calc\\(var\\(--dt-entrata-t\\) \\+ ${s(ENTRATA.sale)}\\)`;
     assert.match(entrataCss, new RegExp(`animation: dt-hero-sale ${sale} backwards;`), "la salita della foto");
     assert.match(entrataCss, new RegExp(`dt-entrata-fondale ${sale} both,`), "il fondale del lockup, con la stessa corsa della foto");
@@ -222,10 +227,29 @@ describe("l'entrata dell'hero (A75): lockup al centro, poi la foto sale fino a R
       entrataCss,
       new RegExp(String.raw`\[data-entrata-firma\] \.dt-c \{\s*transform-origin: 50% 100%;\s*animation: dt-entrata-accent ${s(ENTRATA.durata)} cubic-bezier\(0\.25, 1, 0\.5, 1\) calc\(var\(--dt-entrata-t\) \+ ${s(ENTRATA.firma)} \+ var\(--i, 0\) \* ${s(ENTRATA.staggerFirma)}\) both;`),
     );
-    // La salita parte dopo la fine del tuffo del preloader, e la firma è quasi intera.
-    assert.ok(ENTRATA.sale > INTRO_T.diveDur, "la foto sale prima che il tuffo del preloader sia finito");
+    // La salita parte dopo la discesa della foto nel cuore (l'orologio parte DISCESA.entrata dopo
+    // l'allargamento della gomma), e la firma è quasi intera.
+    assert.ok(DISCESA.entrata + ENTRATA.sale > DISCESA.durata, "la foto risalirebbe prima di essere scesa al suo posto");
     assert.match(css, /@keyframes dt-entrata-title \{\s*from \{\s*opacity: 0;\s*transform: translateY\(50%\) rotateY\(90deg\);/, "il from di ROLES.title");
     assert.match(css, /@keyframes dt-entrata-accent \{\s*from \{\s*opacity: 0;\s*transform: translateX\(10vw\) rotateX\(90deg\);/, "il from di ROLES.accent");
+  });
+
+  test("la discesa (con la gomma): la foto sta nel cuore finché la gomma disegna, poi torna al suo posto in DISCESA.durata", () => {
+    // Rimpicciolita e centrata sul logo con le var che scrive Preloader.tsx, dal bordo alto della scatola.
+    assert.match(
+      entrataCss,
+      /html\[data-hero-entrata\]\[data-gomma="active"\] \.dt-hero \.dt-testa_foto \{\s*transform-origin: 50% 0;\s*transform: translateY\(var\(--gomma-foto-y, 0px\)\) scale\(var\(--gomma-foto-s, 1\)\);/,
+    );
+    // La transizione vale anche a gomma finita: la cancellatura dura meno della discesa.
+    assert.match(
+      entrataCss,
+      new RegExp(
+        String.raw`html\[data-hero-entrata\]:is\(\[data-gomma="reveal"\], \[data-gomma="done"\]\) \.dt-hero \.dt-testa_foto \{\s*transform-origin: 50% 0;\s*transition: transform ${s(DISCESA.durata)} cubic-bezier\(0\.66, 0, 0\.22, 1\);`,
+      ),
+    );
+    // Raffaela (RAFFAELA) sta intera nel rombo vuoto del cuore: il centro è il suo.
+    assert.ok(DISCESA.centro > RAFFAELA.testa && DISCESA.centro < RAFFAELA.piedi);
+    assert.ok(Math.abs(DISCESA.centro - (RAFFAELA.testa + RAFFAELA.piedi) / 2) < 0.005);
   });
 
   test("la foto parte col tetto sotto lo schermo e arriva alla salita a riposo; il lockup è dietro, al centro della banda", () => {

@@ -23,7 +23,7 @@ const root = join(__dirname, "..", "..", "..");
 const layout = readFileSync(join(root, "app/layout.tsx"), "utf8");
 const css = readFileSync(join(root, "app/globals.css"), "utf8");
 
-/** Il boot script con le costanti interpolate come nel build (DIVE_S e SKIP_TAIL_MS come in layout.tsx). */
+/** Il boot script con le costanti interpolate come nel build (SKIP_S e SKIP_TAIL_MS come in layout.tsx). */
 function bootScript(): string {
   const m = layout.match(/const preloaderBootScript = `([^`]*)`/);
   assert.ok(m, "preloaderBootScript non trovato in app/layout.tsx");
@@ -36,8 +36,8 @@ function bootScript(): string {
     RELOAD_KEEP_Y: C.RELOAD_KEEP_Y,
     PRE_FAILSAFE_MS: C.PRE_FAILSAFE_MS,
     PRE_SHORT_FAILSAFE_MS: C.PRE_SHORT_FAILSAFE_MS,
-    DIVE_S: C.INTRO_T.dive,
-    SKIP_TAIL_MS: Math.round((C.INTRO_T.diveDur + 0.35) * 1000),
+    SKIP_S: C.INTRO_T.skip,
+    SKIP_TAIL_MS: Math.round((C.INTRO_T.skipCoda + 0.35) * 1000),
   };
   return m![1].replace(/\$\{(\w+)\}/g, (_, nome: string) => {
     assert.ok(nome in valori, `interpolazione nuova nel boot script: ${nome}`);

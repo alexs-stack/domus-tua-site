@@ -26,25 +26,23 @@ export const INTRO_KEY = "dt-intro-seen";
 
 /**
  * La scaletta, in secondi dal primo fotogramma. È UN solo montaggio, a ogni
- * larghezza (onda «parità mobile 2», legge 3): sul telefono cambiano le
- * geometrie dell'arco (vw/vh: globals.css `--arch-w0…`), mai questi tempi.
+ * larghezza (onda «parità mobile 2», legge 3).
  *
- * DAL 2026-08-17 (opzione D, docs/mobile-parity-2.md §8.5) TUTTO IL FILM È
- * CSS, deterministico dal primo paint: le keyframe di globals.css portano
- * questi stessi numeri come delay/durate, e il test intro-clocks li rilegge.
- * Il JS (Preloader.tsx) non muove più la maschera: mette i timer di handoff e
- * chiusura sull'orologio CSS, e guida con GSAP SOLO in ripiego (browser senza
- * `@property`, o keyframe mai partite).
- *
- * Atto I (CSS): sagoma da 0,15 · lettere del titolo da 0,12 (stagger .075) ·
- *   firma da 0,60 (stagger .065) · caps da 0,40 (stagger .11) · payoff da
- *   0,65 (stagger .14). L'ultima lettera in moto è la 13ª della firma:
- *   0,60 + 1,30 + 12×0,065 ≈ 2,68 → `act1End`.
- * Atti II-IV (CSS, e GSAP in ripiego): linea di carica 0,60→2,15 · porta
- *   2,25→3,35 · congedo 2,35 · tuffo 3,13→4,63. Porta e tuffo si
- *   SOVRAPPONGONO per 0,22 s (3,13-3,35), come i due tween GSAP di sempre: il
- *   tuffo parte dal valore che la porta ha a 3,13 (progresso 0,8 di
- *   domus.inOut = 0,972 della corsa: `--arch-k` in globals.css) e da lì vince.
+ * Atto I (CSS, dal primo paint, anche senza JS): sagoma da 0,15 · lettere del
+ *   titolo da 0,12 (stagger .075) · firma da 0,60 (stagger .065) · caps da
+ *   0,40 (stagger .11) · payoff da 0,65 (stagger .14). L'ultima lettera in moto
+ *   è la 13ª della firma: 0,60 + 1,30 + 12×0,065 ≈ 2,68 → `act1End`.
+ * Atto II (CSS): linea di carica 0,60→2,15 · congedo del lockup 2,35→2,90.
+ * LA GOMMA (22 set. 2026, Alberto: «devi sostituire l'entrata ad arco del
+ *   preloader con questo, al centro dello schermo, affianco a Raffaela, alla sua
+ *   destra»): al posto della porta ad arco e del tuffo (atti III-IV, CSS dal
+ *   17 agosto) c'è DomusTuaPreloader, che Preloader.tsx monta a `gomma` sotto
+ *   la sagoma. Il suo tempo è JavaScript (rAF), non CSS: il foglio scuro è suo,
+ *   la gomma disegna il cuore del logo al centro dello schermo, a destra della
+ *   mano tesa di Raffaela, e dentro il cuore c'è la foto dell'hero rimpicciolita;
+ *   poi la cancellatura si allarga (l'handoff) e la foto scende al suo posto.
+ *   Senza JS la gomma non esiste: il sipario sfuma da solo a `senzaJs` (+0,1
+ *   l'autohide), come finiva il film di prima.
  */
 /**
  * IL TEMPO DEL FILM, in un numero solo. 1 = la timeline com'era nata (4,63 s
@@ -97,26 +95,67 @@ export const INTRO_T = {
   progress: 0.55 * TEMPO,
   track: 0.6 * TEMPO,
   trackDur: 1.55 * TEMPO,
-  arch: 2.25 * TEMPO,
-  archDur: 1.1 * TEMPO,
+  /**
+   * La gomma entra in scena: Preloader.tsx monta DomusTuaPreloader qui, dove
+   * partiva la porta ad arco; poi il suo `delay` (0,3 s a foglio pieno) e il
+   * tratto da 2,55, mentre il lockup si congeda (2,35→2,90).
+   */
+  gomma: 2.25 * TEMPO,
   exit: 2.35 * TEMPO,
   exitDur: 0.55 * TEMPO,
-  dive: 3.13 * TEMPO,
-  diveDur: 1.5 * TEMPO,
-  /** Ripiego senza mask-composite: sipario clip-path. */
-  curtain: 2.6 * TEMPO,
-  curtainDur: 0.9 * TEMPO,
+  /**
+   * Col JS arrivato dopo di qui la gomma suona `veloce`: chi ha già aspettato
+   * sull'atto I finito recupera il ritardo invece di allungare l'attesa.
+   */
+  tardi: 3.13 * TEMPO,
+  /** Fin qui il boot script offre lo skip prima che il JS arrivi (dopo: skipCoda + 0,1 < autohide). */
+  skip: 3.13 * TEMPO,
+  /** Dopo uno skip servito senza JS, quanto il sipario aspetta il JS prima di sfumare (autohide a +0,1). */
+  skipCoda: 1.5 * TEMPO,
+  /**
+   * LA RETE SENZA JS: la gomma è JavaScript, e se non è partita entro qui il
+   * sipario sfuma da solo (autohide a +0,1) e l'hero entra per conto suo. È la
+   * fine del film di prima (tuffo 3,13 + 1,5): senza JS si entra quando si
+   * entrava, e chi ha il JS lo spegne montando la gomma.
+   */
+  senzaJs: 4.63 * TEMPO,
 } as const;
 
-/** Durata dell'intro con la maschera ad arco: 3,13 + 1,50 = 4,63 s. */
-export const INTRO_MS = Math.round((INTRO_T.dive + INTRO_T.diveDur) * 1000);
+/** La fine del sipario SENZA la gomma (la rete CSS): 4,63 s. */
+export const INTRO_MS = Math.round(INTRO_T.senzaJs * 1000);
 
 /**
- * L'autohide CSS (globals.css `dt-pre-autohide`): il film è tutto CSS, quindi
- * la fine del tuffo è nota anche senza JS — l'overlay va a opacity 0 +
- * visibility hidden appena dopo (INTRO_MS + 100 ms) e senza JS l'intro
- * finisce pulita. Con il JS al timone `finish()` toglie l'attributo prima e
- * questa rete non si vede mai.
+ * I tempi della gomma, in ms: gli stessi di SPEEDS in DomusTuaPreloader.tsx
+ * (il test intro-clocks li confronta; qui non si importa un modulo "use client",
+ * che il layout server riceverebbe come riferimento e non come valore).
+ * `normale` nel film a tempo; `veloce` nella porta corta, dopo uno skip e col JS
+ * in ritardo (INTRO_T.tardi).
+ */
+export const GOMMA_TEMPI = {
+  normale: { delay: 300, draw: 2300, hold: 360, exit: 1050 },
+  veloce: { delay: 200, draw: 1500, hold: 240, exit: 820 },
+} as const;
+
+/** Il film a tempo: la cancellatura comincia ad allargarsi (l'handoff) a 2,25 + 0,3 + 2,3 + 0,36 = 5,21 s. */
+export const GOMMA_REVEAL_MS =
+  Math.round(INTRO_T.gomma * 1000) + GOMMA_TEMPI.normale.delay + GOMMA_TEMPI.normale.draw + GOMMA_TEMPI.normale.hold;
+/** E finisce (la gomma si smonta, cade l'attributo) a 5,21 + 1,05 = 6,26 s. */
+export const GOMMA_MS = GOMMA_REVEAL_MS + GOMMA_TEMPI.normale.exit;
+
+/**
+ * La geometria del logo della gomma: i default di DomusTuaPreloader (larghezza
+ * = 26 % del lato minore fra 132 e 240 px, centro a 0,47 dell'altezza, sempre
+ * al centro in orizzontale), passati per esteso da Preloader.tsx perché la foto
+ * dell'hero rimpicciolita (hero.ts `DISCESA`) si centra sullo stesso punto.
+ * Al centro dello schermo, a destra della mano tesa di Raffaela: sul desktop la
+ * sua mano arriva al 33 % della larghezza, sul telefono il logo le sta sopra.
+ */
+export const GOMMA_LOGO = { ratio: 0.26, min: 132, max: 240, centroY: 0.47 } as const;
+
+/**
+ * L'autohide CSS (globals.css `dt-pre-autohide`): senza JS la gomma non parte e
+ * il sipario sfuma da solo a INTRO_MS + 100 ms. Con il JS al timone la gomma
+ * lo spegne al montaggio (`html[data-gomma]`) e questa rete non si vede mai.
  */
 export const PRE_AUTOHIDE_MS = INTRO_MS + 100;
 
@@ -134,16 +173,17 @@ export const PRE_FAILSAFE_MS = INTRO_MS + 600;
 
 /**
  * Le reti a valle: hero-rest/hero-intro in CSS, la `safety` di HeroCinematic e
- * CookieConsent. Con il film in CSS le lettere dell'hero devono accendersi
- * quando la porta si apre ANCHE SENZA JS: la rete CSS scatta al tuffo più un
- * margine (dive + 200 ms ≈ 3,33 s), cioè dentro l'intro, non dopo. Se il JS
- * arriva dopo che la rete è già scattata, HeroCinematic lo deduce
- * dall'orologio e non rifà l'ingresso (le lettere non spariscono e rientrano).
+ * CookieConsent. Senza JS il sipario si apre all'autohide (4,73 s): la rete CSS
+ * scatta lì più un margine (4,93 s), cioè quando la pagina si scopre. Col JS le
+ * reti si spengono all'armamento e le lettere aspettano l'handoff della gomma
+ * (5,21 s a tempo); la `safety` di fold.ts conta dal montaggio, quindi scatta
+ * dopo. Se il JS arriva dopo che la rete è già scattata, HeroCinematic lo
+ * deduce dall'orologio e non rifà l'ingresso.
  */
-export const HERO_REST_MS = Math.round((INTRO_T.dive + 0.2) * 1000);
+export const HERO_REST_MS = PRE_AUTOHIDE_MS + 200;
 /**
  * La stessa rete SENZA intro (visita di ritorno, hash profondo): non c'è
- * nessuna porta che si apre a 3,13, quindi 3,33 s sarebbe presto — la rete
+ * nessun sipario che si apre, quindi un numero da film sarebbe presto — la rete
  * scatterebbe prima dell'idratazione su una macchina lenta e HeroCinematic,
  * trovandola scattata, salterebbe il rito del primo scroll (misurato in e2e
  * col carico dei quattro worker, 2026-08-18). A caldo la rete è quella di
@@ -166,8 +206,9 @@ export const HERO_REST_WARM_MS = 6000;
 export const LAST_Y_KEY = "dt-last-y";
 
 /**
- * Warmup del telefono: `warmFirstFold` deve scadere PRIMA del tuffo, così
- * l'attesa è coperta dal sipario per costruzione (≤ INTRO_MS − tuffo).
+ * Warmup del telefono: `warmFirstFold` deve scadere PRIMA che la cancellatura
+ * si allarghi (GOMMA_REVEAL_MS), così l'attesa è coperta dal sipario per
+ * costruzione. È anche il `ready` che Preloader.tsx passa alla gomma.
  */
 export const WARM_FIRST_FOLD_MS = 3000;
 
@@ -176,11 +217,12 @@ export const WARM_FIRST_FOLD_MS = 3000;
    nella home, ogni altro caricamento completo ha la porta corta, e su /case/*
    nessun sipario (A26). Le decisioni di lavoro D31 tolgono lo skip e il fondo
    espresso, e niente corta con ancora, back/forward, scheda nascosta,
-   prerender o ricarica oltre mezzo schermo (spec §6.2). La corta è il film
-   dimezzato: porta e tuffo con le stesse durate e lo stesso rapporto
-   (0,88 / 1,10 = 0,8, quindi `--arch-k` resta 0,972), senza l'atto I e senza la
-   linea di carica. Il test intro-clocks rilegge questi numeri in globals.css e
-   nel boot script. */
+   prerender o ricarica oltre mezzo schermo (spec §6.2). Dal 22 settembre la
+   corta è la gomma `veloce` sul pannello avorio profondo, montata appena il JS
+   arriva, senza l'atto I e senza la linea di carica; senza JS il pannello
+   sfuma da solo a SHORT_MS + 100, la fine della corta di prima (porta 0,88 +
+   tuffo 1,5). Il test intro-clocks rilegge questi numeri in globals.css e nel
+   boot script. */
 
 /** Il film intero è stato armato in questa sessione. */
 export const INTRO_FILM = "1";
@@ -192,22 +234,20 @@ export const INTRO_QUIET = "q";
 export const RELOAD_KEEP_Y = 0.5;
 
 export const SHORT_T = {
-  /** Il tuffo parte a 0,8 della porta, come nel film: 0,88 s. */
-  dive: Math.round(0.8 * INTRO_T.archDur * 1000) / 1000,
-  archDur: INTRO_T.archDur,
-  diveDur: INTRO_T.diveDur,
+  /** La rete senza JS della corta: la sua fine di prima (porta 0,88 + tuffo 1,5). */
+  senzaJs: 2.38 * TEMPO,
   /** La sagoma su «/» entra in 0,3 s. */
   figureDur: 0.3 * TEMPO,
 } as const;
 
-/** Durata della corta: 0,88 + 1,50 = 2,38 s. */
-export const SHORT_MS = Math.round((SHORT_T.dive + SHORT_T.diveDur) * 1000);
+/** La fine della corta SENZA la gomma (la rete CSS): 2,38 s. */
+export const SHORT_MS = Math.round(SHORT_T.senzaJs * 1000);
 /** L'autohide CSS della corta, come quello del film: fine + 100 ms. */
 export const PRE_SHORT_AUTOHIDE_MS = SHORT_MS + 100;
 /** Il failsafe del boot script per la corta: fine + 600 ms. */
 export const PRE_SHORT_FAILSAFE_MS = SHORT_MS + 600;
-/** La rete dell'hero e dei gruppi sopra la piega con la corta: tuffo + 200 ms. */
-export const HERO_REST_SHORT_MS = Math.round((SHORT_T.dive + 0.2) * 1000);
+/** La rete dell'hero e dei gruppi sopra la piega con la corta: autohide + 200 ms. */
+export const HERO_REST_SHORT_MS = PRE_SHORT_AUTOHIDE_MS + 200;
 
 /**
  * Il ritardo della rete per il valore di `data-hero-rest` o `data-hero-intro`

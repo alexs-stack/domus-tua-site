@@ -362,8 +362,9 @@ describe("globals.css: nessuno stato nascosto per i membri del motore (stati sol
   });
 
   // Spec §9.1: le reti dello stato dipinto (spec §2.5; A20 di Alberto; D31 per la porta corta).
-  // Gli orologi sono quelli dell'intro: 6 s senza film, 3,33 s col film, 1,08 s con la porta corta.
-  test("dt-reveal-failsafe a 6 s, 3,33 s col film e 1,08 s con la porta corta", () => {
+  // Gli orologi sono quelli dell'intro: 6 s senza film, 4,93 s col film, 2,68 s con la porta corta
+  // (dal 23 set. 2026 la porta è la gomma: le reti scattano dopo l'autohide senza JS).
+  test("dt-reveal-failsafe a 6 s, 4,93 s col film e 2,68 s con la porta corta", () => {
     const NON_ARMATO = "[data-reveal]:not([data-reveal-armed]):not([data-motion-freeze] *)";
     const regola = (sel: string) => {
       const i = css.indexOf(`${sel} {`);
@@ -371,12 +372,12 @@ describe("globals.css: nessuno stato nascosto per i membri del motore (stati sol
       return css.slice(i, css.indexOf("}", i) + 1);
     };
     assert.equal(HERO_REST_WARM_MS / 1000, 6);
-    assert.equal(HERO_REST_MS / 1000, 3.33);
-    assert.equal(HERO_REST_SHORT_MS / 1000, 1.08);
+    assert.equal(HERO_REST_MS / 1000, 4.93);
+    assert.equal(HERO_REST_SHORT_MS / 1000, 2.68);
     assert.match(regola(`:root[data-hero-intro] ${NON_ARMATO}`), /animation: dt-reveal-failsafe 0\.5s ease 6s forwards;/);
-    assert.match(regola(`:root[data-hero-intro="intro"] ${NON_ARMATO}`), /animation-delay: 3\.33s;/);
-    assert.match(regola(`:root[data-hero-intro="short"] ${NON_ARMATO}`), /animation-delay: 1\.08s;/);
-    // A specificità pari vince l'ultima regola (spec §2.5): 3,33 s e 1,08 s valgono sullo
+    assert.match(regola(`:root[data-hero-intro="intro"] ${NON_ARMATO}`), /animation-delay: 4\.93s;/);
+    assert.match(regola(`:root[data-hero-intro="short"] ${NON_ARMATO}`), /animation-delay: 2\.68s;/);
+    // A specificità pari vince l'ultima regola (spec §2.5): 4,93 s e 2,68 s valgono sullo
     // shorthand dei 6 s solo se le due varianti seguono la base nel foglio.
     const iBase = css.indexOf(`:root[data-hero-intro] ${NON_ARMATO} {`);
     const iIntro = css.indexOf(`:root[data-hero-intro="intro"] ${NON_ARMATO} {`);
