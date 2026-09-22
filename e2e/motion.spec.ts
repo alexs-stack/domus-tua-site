@@ -179,7 +179,7 @@ test("lo scroll è quello del browser, non uno smooth scroll forzato", async ({ 
 });
 
 // La finestra di Open Domus (A19, A20) con reduced motion: nessun corridoio, nessuna tenda,
-// nessuna pista; la foto sta in testa al capitolo, quadrata sotto lg e 16:9 da lg.
+// nessuna pista; la foto sta in testa al capitolo, intera, 9:16 a ogni larghezza (A47).
 test("la finestra di Open Domus con reduced motion è la foto in testa al capitolo @layout", async ({ page, goto }) => {
   await goto("/");
   const od = page.locator("#open-domus");
@@ -192,8 +192,7 @@ test("la finestra di Open Domus con reduced motion è la foto in testa al capito
   await win.scrollIntoViewIfNeeded();
   await expect(win.locator("img")).toBeVisible();
   const box = (await win.boundingBox())!;
-  const w = page.viewportSize()?.width ?? 0;
-  expect(Math.abs(box.width / box.height - (w >= 1024 ? 16 / 9 : 1))).toBeLessThan(0.02);
+  expect(Math.abs(box.width / box.height - 2160 / 3870)).toBeLessThan(0.02);
   expect(await od.locator(".dt-od_stage").getAttribute("style")).toBeNull();
   expect(await win.getAttribute("style")).toBeNull();
 });

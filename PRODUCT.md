@@ -177,7 +177,11 @@ stanno in `DESIGN.md`.
   alla misura del lead; su /acquista la ricerca intelligente sta lì, sulla foto, dopo la scritta
   della testa (A52), e a fine foto la foto si chiude nella cornice della cartolina (A53). Per quelle
   scritte la deroga resta. Stessa cosa per la finestra di
-  Open Domus in home: il titolo «Open Domus» sta in inchiostro sul cielo, che è il fondo pagina.
+  Open Domus in home: il titolo «Open Domus» sta in inchiostro sul cielo, che è il fondo pagina, e dal
+  22 set. (A47: «deve continuare, abbiamo fatto le immagini alte apposta per poterci scrollare a schermo
+  intero senza uscire dalla foto»; «questa sezione va sopra l'immagine di open domus») la foto è la
+  facciata 9:16 intera, che continua sotto la piega dopo le tende, col capitolo di Open Domus posato
+  sulla sua metà bassa in bianco con l'ombra. Su /chi-siamo i valori posano sulla foto della testa (A54).
 - CTA corte (decisione di lavoro, 11 set.): «Richiedi la valutazione» e le sue traduzioni corte su
   tutte le superfici, perché quella lunga sul telefono andava a capo. Resta l'heroPrimary tedesco
   di `ServiziContent.tsx`.

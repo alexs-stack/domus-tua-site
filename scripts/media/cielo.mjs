@@ -104,13 +104,15 @@ export const FOTO = [
   { nome: "villa-salotto-esterno-alta", uso: "/recensioni", classe: "giorno" },
   { nome: "attico-studio-alta", uso: "/lavora-con-noi", classe: "interno" },
   { nome: "villa-piscina-lunga-alta", uso: "/domande-frequenti", classe: "giorno" },
-  /* La finestra di Open Domus in home (OpenDomus.tsx), 3:2: «Architecture» di era. Il suo cielo
-     è l'azzurro MEDIO del tardo pomeriggio (S 0,39-0,47, L 0,40-0,59): troppo scuro per la classe
-     del giorno, troppo poco saturo per quella della sera. `libere` fino al 70 %: i parapetti di
-     vetro delle terrazze lasciano vedere il cielo dietro, e senza contiguità resterebbero
-     riquadri azzurri sulla carta; così il vetro è vetro (l'avorio ci passa), restano i montanti
-     e il filo del bordo. Sotto il 70 % c'è il basamento in pietra e la siepe: niente d'azzurro. */
-  { nome: "villa-terrazze-glicine", uso: "finestra Open Domus (home)", classe: "medio", crescita: false, libere: 0.7 },
+  /* La finestra di Open Domus in home (OpenDomus.tsx): «Architecture» di era. A47 (Alberto, 22 set.
+     2026: «qua perchè hai tagliato l'immagine, deve continuare, abbiamo fatto le immagini alte
+     apposta per poterci scrollare a schermo intero senza uscire dalla foto»): la facciata a terrazze
+     che SALE, 9:16 (villa-facciata-sale-alta, il corridoio di foto-alte.mjs), al posto della 3:2 col
+     glicine di A45/A46 (villa-terrazze-glicine resta su disco come scena di riserva, senza WebP).
+     Cielo di giorno, azzurro netto fino alle colline in foschia a destra; i parapetti sono muri
+     pieni, non vetri: nessuna tasca libera. Le misure della finestra (cima, bande del segno) le
+     scrive scripts/media/finestra.mjs in app/lib/motion/finestra.json. */
+  { nome: "villa-facciata-sale-alta", uso: "finestra Open Domus (home)", classe: "giorno" },
 ];
 
 /* I parametri comuni: la soglia del flood fill, il fondo oltre cui non scende, la crescita per

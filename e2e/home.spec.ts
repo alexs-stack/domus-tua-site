@@ -1108,7 +1108,9 @@ test.describe("la finestra di Open Domus", () => {
       // Il trigger è la section: coincide con l'area, che in Era è il wrapper non sticky.
       expect(Math.abs(geo.sectionTop - geo.areaTop)).toBeLessThanOrEqual(1);
 
-      // Marcatori del tema (spec §3.10): avorio da s 0 a +150svh, foto da +150svh a +300svh.
+      // Marcatori del tema (spec §3.10): avorio da s 0 a +150svh, foto-chiara da +150svh fino al fondo
+      // dell'area (A47: la facciata continua dopo la pista, e sotto il segno c'è la carta del cielo o il
+      // muro bianco: grafite; le travi scure hanno i loro marcatori `foto`, finestra.json).
       const m = await page.evaluate(() => {
         const a = document.querySelector("#open-domus .dt-od_area")!.getBoundingClientRect();
         const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
@@ -1117,13 +1119,14 @@ test.describe("la finestra di Open Domus", () => {
           aH: r("#open-domus .dt-od_mark--a").height,
           fTop: r("#open-domus .dt-od_mark--f").top - a.top,
           fH: r("#open-domus .dt-od_mark--f").height,
+          areaH: a.height,
           vh: window.innerHeight,
         };
       });
       expect(Math.abs(m.aTop)).toBeLessThanOrEqual(1);
       expect(Math.abs(m.aH - 1.5 * m.vh)).toBeLessThanOrEqual(1);
       expect(Math.abs(m.fTop - 1.5 * m.vh)).toBeLessThanOrEqual(1);
-      expect(Math.abs(m.fH - 1.5 * m.vh)).toBeLessThanOrEqual(1);
+      expect(Math.abs(m.fTop + m.fH - m.areaH), "il marcatore foto-chiara non arriva al fondo dell'area (A47)").toBeLessThanOrEqual(1);
       await expect(page.locator("#open-domus .dt-od_mark--a")).toHaveAttribute("data-bg", "avorio");
       // A46: a schermo intero sotto il segno (in alto a sinistra) c'è il cielo trasparente, cioè la
       // carta: la zona è `foto-chiara` e il segno resta grafite.
@@ -1148,6 +1151,27 @@ test.describe("la finestra di Open Domus", () => {
       expect(overflow).toBeLessThanOrEqual(1);
       // A46: a schermo intero il cielo della facciata è la carta e «Open Domus» sta in inchiostro sopra.
       await verificaCieloFinestra(page, `${vp.width}×${vp.height} a schermo intero`);
+
+      // A47 (Alberto, 22 set. 2026: «deve continuare, abbiamo fatto le immagini alte apposta per poterci
+      // scrollare a schermo intero senza uscire dalla foto»; «questa sezione va sopra l'immagine di open
+      // domus»): dopo la pista (s = +300vh) lo stage scorre via e la facciata 9:16 PROSEGUE sotto la piega,
+      // col capitolo posato sulla sua metà bassa, in bianco con l'ombra del sito (A54).
+      await wheelTo(page, Math.round(geo.areaTop + 3 * geo.vh + 10));
+      await page.waitForTimeout(500);
+      // Il rettangolo di `.dt-od_content` comincia in cima alla cornice (porta il `padding-top` dello spazio sopra):
+      // dove il capitolo COMINCIA lo dice il suo primo figlio.
+      const dopo = await page.evaluate(() => {
+        const w = document.querySelector("#open-domus .dt-od_window")!.getBoundingClientRect();
+        const content = document.querySelector("#open-domus .dt-od_content")!;
+        const c = content.firstElementChild!.getBoundingClientRect();
+        const cb = content.getBoundingClientRect();
+        return { winTop: w.top, winBottom: w.bottom, winH: w.height, cTop: c.top, cBottom: cb.bottom, vh: window.innerHeight };
+      });
+      expect(dopo.winBottom, "la foto finisce con la pista: non continua sotto la piega (A47)").toBeGreaterThan(dopo.vh);
+      expect(dopo.winH / dopo.vh, "la finestra non è alta più di due schermi").toBeGreaterThan(2);
+      expect(dopo.cTop, "il capitolo non posa sulla metà bassa della foto (A47)").toBeGreaterThan(dopo.winTop + 0.5 * dopo.winH - 2);
+      expect(dopo.cBottom, "il capitolo esce dalla foto").toBeLessThanOrEqual(dopo.winBottom + 2);
+      await expect(page.locator("#open-domus .dt-od_content .eyebrow").first()).toHaveCSS("color", "rgb(255, 255, 255)");
     });
   }
 
@@ -1157,7 +1181,8 @@ test.describe("la finestra di Open Domus", () => {
   async function verificaCieloFinestra(page: Page, dove: string) {
     const win = page.locator("#open-domus .dt-od_window");
     const titolo = page.locator("#open-domus .dt-od_titolo");
-    await expect(page.locator("#open-domus .dt-od_window img")).toHaveAttribute("src", /villa-terrazze-glicine-cielo\.webp/);
+    // A47: la facciata che sale, 9:16, col cielo trasparente (finestra.json).
+    await expect(page.locator("#open-domus .dt-od_window img")).toHaveAttribute("src", /villa-facciata-sale-alta-cielo\.webp/);
     await expect(titolo, `${dove}: il titolo non è inchiostro`).toHaveCSS("color", "rgb(70, 66, 61)");
     await page.locator("#open-domus .dt-od_window img").evaluate((el) => (el as HTMLImageElement).decode().catch(() => undefined));
     await page.waitForTimeout(200);
@@ -1189,7 +1214,15 @@ test.describe("la finestra di Open Domus", () => {
     // A schermo intero la cima della finestra sta già sopra il bordo (−84 a 1440×900, −93 a 1024×768) e
     // dei cipressi ai lati restano le punte: la carta si cerca nella prima riga visibile, nel 60 % centrale
     // (lì il soggetto comincia a 0,150 dell'altezza della foto: 22-42 px di viewport ancora di cielo).
-    const yCielo = vis.y + 2;
+    // Sotto lg la testata sticky (avorio profondo, non la carta) copre le prime righe del viewport: il cielo si
+    // campiona sotto di lei (col quadrato aperto il cielo della facciata scende a 0,246 della foto: ci sta).
+    const testata = await page.evaluate(() => {
+      const h = document.querySelector("header");
+      if (!h) return 0;
+      const b = h.getBoundingClientRect();
+      return b.height > 0 && b.top <= 0 && b.bottom > 0 ? b.bottom : 0;
+    });
+    const yCielo = Math.max(vis.y, testata) + 2;
     for (const fx of [0.4, 0.5, 0.6] as const) {
       const x = vis.x + fx * vw;
       const p = pixel(x, yCielo);
@@ -1217,12 +1250,17 @@ test.describe("la finestra di Open Domus", () => {
     // A 1024×768 a schermo intero il titolo (104 px, appoggiato alla cima) sta già tutto sopra il bordo
     // (la finestra comincia a −93): la griglia non ha punti e la lettura vale sugli altri stage.
     if (campionati > 0) expect(campionati, `${dove}: del titolo si vede troppo poco per misurarlo`).toBeGreaterThanOrEqual(3);
-    // E la foto c'è: in basso al centro del visibile (le terrazze) il pixel non è carta.
-    const villa = pixel(vis.x + 0.5 * vw, vis.y + 0.85 * vh);
-    expect(avorio(villa), `${dove}: in basso al centro non c'è la villa`).toBe(false);
+    // E la foto c'è: sulla trave di legno della pergola più alta (x 0,15, y 0,295 della foto: scura, e in
+    // vista sia a schermo intero sia col quadrato aperto sul telefono) il pixel non è carta.
+    const trave = { x: r.x + 0.15 * r.w, y: r.y + 0.295 * r.h };
+    expect(dentro(trave.x, trave.y), `${dove}: la trave della pergola non è nel viewport`).toBe(true);
+    const villa = pixel(trave.x, trave.y);
+    expect(avorio(villa), `${dove}: sulla trave della pergola c'è la carta, non la villa`).toBe(false);
   }
 
-  test("sotto 1024 l'otturatore apre il quadrato della foto", async ({ page, goto, isMobile }) => {
+  // A47: sotto 1024 la foto è la 9:16 intera, in flusso, e il capitolo la segue in inchiostro (come le
+  // teste sotto lg); l'otturatore a tempo di spec §3.10 la apre come apriva il quadrato.
+  test("sotto 1024 l'otturatore apre la foto 9:16", async ({ page, goto, isMobile }) => {
     test.skip(!isMobile, "il ramo del telefono");
     await goto("/");
     const od = page.locator("#open-domus");

@@ -626,11 +626,72 @@ blockquote * {
    fotografato). La finestra posa sulla carta: `.dt-od_window` prende `--color-cream` al posto
    del cream-deep del modulo, così il cielo trasparente non stacca dal fondo (niente ombra,
    niente velo). */
+/* A47 (Alberto, 22 set. 2026: «qua perchè hai tagliato l'immagine, deve continuare, abbiamo fatto le
+   immagini alte apposta per poterci scrollare a schermo intero senza uscire dalla foto»; con lo
+   screenshot: «questa immagine è tagliata? se si mettila completa e scrivici sopra come hai fatto con
+   le altre pagine»; «questa sezione va sopra l'immagine di open domus»). La foto è la facciata che
+   SALE, 9:16 (finestra.json: `--dt-od-ar` è il suo rapporto, finestra.test lo confronta), INTERA a
+   ogni larghezza: la scatola `.dt-od_window` ha il rapporto della sorgente e il cover non ritaglia
+   nulla; sotto lg sta nella riga e il capitolo la segue in inchiostro, come le teste. Da lg è la
+   CORNICE ad avere il rapporto della foto, la scatola la riempie (`inset: 0`, come `.dt-testa_foto`)
+   e il capitolo (`.dt-od_content`, il gruppo in attesa) sta DENTRO la cornice dopo la foto: è lo
+   spazio sopra la foto delle teste (A48/A54), con `padding-top` = `--dt-od-sopra` (55 % dell'altezza
+   della foto, portato in frazione della larghezza: FINESTRA.sopra × h / w), bianco con l'ombra
+   attaccata alle lettere del sito (il valore di ink-media.ts, la quarta occorrenza ammessa da
+   ink-media.test) e coi corpi alla misura del lead. Se il capitolo è più alto della foto la cornice
+   cresce e la foto copre dalla cima (`objectPosition` 50 % 0 %). Nel corridoio lo schermo agganciato
+   mostra il primo schermo della foto (cielo, titolo, la terrazza alta) mentre le tende si aprono;
+   dopo la pista lo stage scorre via e la facciata PROSEGUE sotto la piega col capitolo sopra: la
+   sezione «Architecture» di era. I marcatori del segno (`.dt-od_soggetto`, `data-bg="foto"`) sono
+   le bande scure di finestra.json (le travi delle pergole), come `.dt-testa_soggetto`. */
+.dt-od {
+  --dt-od-ar: 2160 / 3870;
+  --dt-od-sopra: 0.9854;
+}
 .dt-od_cornice {
   position: relative;
 }
 .dt-od_window {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--dt-od-ar);
+  overflow: clip;
   background-color: var(--color-cream);
+}
+.dt-od_soggetto {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+@media (min-width: 64rem) {
+  .dt-od_band {
+    padding-inline: 0;
+  }
+  .dt-od_cornice {
+    aspect-ratio: var(--dt-od-ar);
+  }
+  .dt-od_window {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+  }
+  .dt-od[data-sopra="foto"] .dt-od_content {
+    position: relative;
+    z-index: 1;
+    padding-top: calc(100% * var(--dt-od-sopra));
+    color: #fff;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 0 28px rgb(0 0 0 / 0.45);
+  }
+  .dt-od[data-sopra="foto"] .dt-od_content .text-body {
+    font-size: var(--text-lead);
+  }
+  .dt-od[data-sopra="foto"] .dt-od_content :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, h2, h3, h4, p, li) {
+    color: #fff;
+  }
+  .dt-od[data-sopra="foto"] .dt-od_content :is(.bg-cream, .bg-paper, .bg-cream-deep) {
+    background-color: transparent;
+  }
 }
 .dt-od_titolo {
   position: absolute;
@@ -677,8 +738,12 @@ blockquote * {
   :root[data-hero-intro] .dt-od[data-corridor] .dt-od_mark--a {
     top: 0;
   }
+  /* A47: la facciata continua dopo la pista, fino al fondo dell'area; sotto il segno c'è la carta del
+     cielo, il muro bianco o il travertino (grafite), e le travi hanno i marcatori `foto` dentro la scatola. */
   :root[data-hero-intro] .dt-od[data-corridor] .dt-od_mark--f {
     top: 150svh;
+    bottom: 0;
+    height: auto;
   }
   :root[data-hero-intro] .dt-od[data-corridor] .dt-od_shutterzone {
     display: block;
@@ -708,12 +773,6 @@ blockquote * {
   }
   :root[data-hero-intro] .dt-od[data-corridor] .dt-od_band {
     padding: 0;
-  }
-  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_window {
-    height: 100svh;
-  }
-  :root[data-hero-intro] .dt-od[data-corridor] .dt-od_content {
-    padding-top: 22svh;
   }
   :root[data-hero-intro] .dt-od[data-corridor] .dt-od_run {
     display: block;

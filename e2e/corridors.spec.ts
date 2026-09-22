@@ -538,14 +538,24 @@ test.describe("la finestra fra i corridoi", () => {
     // «Architecture» di era), fuori dal gruppo in attesa; il primo membro del gruppo è l'occhiello
     // (Reveal `ctn`: opacità 0 → 1), e su di lui si misura l'attesa e l'entrata.
     const carattere = od.locator(".dt-od_content .eyebrow").first();
-    // s = +100vh: lo stage scalato porta il contenuto dentro il viewport, ma il gruppo è in
-    // attesa. 3 s coprono anche la rete dei 2.500 ms.
+    // s = +100vh: lo stage è agganciato e scalato; il capitolo sta SULLA foto, sotto la piega (A47:
+    // dal 55 % della facciata che sale), e il gruppo è in attesa. 3 s coprono anche la rete dei 2.500 ms.
     await wheelTo(page, Math.round(areaTop + vh));
     await page.waitForTimeout(3000);
-    expect(await od.locator(".dt-od_content").evaluate((el) => el.getBoundingClientRect().top < window.innerHeight)).toBe(true);
     expect(await productOpacity(carattere)).toBeLessThan(0.1);
-    // Oltre il cue: finestra aperta, stage sganciato, titolo in vista → entra.
-    await wheelTo(page, Math.round(areaTop + 3.2 * vh));
+    // Dove il capitolo entra in vista: dopo la pista (sgancio a +200vh dalla cima dell'area, insieme al
+    // cue di p 1) lo stage scorre via; il primo figlio del capitolo (il rettangolo di `.dt-od_content`
+    // porta il padding dello spazio sopra) sta a `contentY` dalla cima dello stage (offsetTop, senza la
+    // scala) e lo si porta a metà schermo.
+    const contentY = await od.evaluate((el) => {
+      const stage = el.querySelector<HTMLElement>(".dt-od_stage")!;
+      let y = 0;
+      for (let e = el.querySelector<HTMLElement>(".dt-od_content > *"); e && e !== stage; e = e.offsetParent as HTMLElement | null) y += e.offsetTop;
+      return y;
+    });
+    const inVista = Math.round(areaTop + 2 * vh + contentY - 0.5 * vh);
+    // Oltre il cue e col capitolo in vista: finestra aperta, stage sganciato → entra.
+    await wheelTo(page, inVista);
     await expect.poll(() => productOpacity(carattere), { timeout: 3500 }).toBeGreaterThan(0.99);
     // Ritorno sotto p 1 (s = +1,5vh): il cue all'indietro rimette lo schermo, fa uscire il testo
     // (C22, uscita speculare) e rimette l'attesa.
@@ -553,8 +563,8 @@ test.describe("la finestra fra i corridoi", () => {
     await expect.poll(() => productOpacity(carattere), { timeout: 1500 }).toBeLessThan(0.1);
     await expect(od.locator(".dt-od_screen")).toHaveCSS("visibility", "visible");
     await expect(od.locator(".dt-od_content")).toHaveAttribute("data-reveal-hold", "");
-    // Di nuovo oltre il cue: il testo rientra.
-    await wheelTo(page, Math.round(areaTop + 3.2 * vh));
+    // Di nuovo oltre il cue, col capitolo in vista: il testo rientra.
+    await wheelTo(page, inVista);
     await expect.poll(() => productOpacity(carattere), { timeout: 3500 }).toBeGreaterThan(0.99);
   });
 

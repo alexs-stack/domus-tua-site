@@ -70,11 +70,13 @@ describe("i poligoni della finestra", () => {
 });
 
 describe("i numeri della finestra", () => {
-  test("pista, soglia del contenuto, scale e tempi di spec §3.10", () => {
+  // A47 (Alberto, 22 set. 2026): la soglia del contenuto a 22svh è morta: il capitolo posa SULLA foto,
+  // dal 55 % della sua altezza (`sopra`), e la foto intera è alta quanto è resa (finestra.json).
+  test("pista, quota del capitolo sulla foto, scale e tempi di spec §3.10", () => {
     assert.deepEqual(FINESTRA, {
       endVh: 3,
       runSvh: 200,
-      contentPadSvh: 22,
+      sopra: 0.55,
       shutterScale: 1.84,
       stageFrom: 0.75,
       shutterEnd: 0.5,
@@ -86,7 +88,22 @@ describe("i numeri della finestra", () => {
   });
 
   test("la rete di fuoco porta l'elemento al 25 % dello schermo dopo lo sgancio", () => {
-    assert.equal(finestraFocusY({ start: 10_000, vh: 900, offset: 198 }), 10_000 + 3600 + 198 - 225);
+    // Lo sgancio sta a start + 3vh (la pista di 200svh dopo l'aggancio a +100vh); il contenuto sta a
+    // `contentTop` dalla cima dello stage (A47: sulla foto, non più a 122svh) e l'elemento a `offset`
+    // dentro il contenuto.
+    assert.equal(finestraFocusY({ start: 10_000, vh: 900, contentTop: 1419, offset: 198 }), 10_000 + 2700 + 1419 + 198 - 225);
+  });
+  test("finestra.json, il CSS e la quota `sopra` dicono la stessa geometria (A47)", () => {
+    const foto = JSON.parse(leggi("app/lib/motion/finestra.json")) as { file: string; sorgente: number[]; cielo: { cima: number; linea: number }; segno: number[][] };
+    assert.match(foto.file, /^\/images\/reali\/villa-facciata-sale-alta-cielo\.webp$/);
+    const [w, h] = foto.sorgente;
+    assert.ok(h / w > 1.7 && h / w < 1.8, `la facciata che sale è 9:16: ${w}×${h}`);
+    assert.ok(foto.cielo.cima > 0.15 && foto.cielo.cima < 0.35, `il cielo sopra la facciata vale ${foto.cielo.cima} dell'altezza: il titolo ci deve stare`);
+    for (const [a, b] of foto.segno) assert.ok(a >= 0 && b <= 1 && a < b, `banda del segno ${a}-${b}`);
+    const css = leggi("app/globals.css").replace(/\/\*[\s\S]*?\*\//g, " ");
+    assert.match(css, new RegExp(String.raw`\.dt-od\s*\{[^}]*--dt-od-ar:\s*${w} / ${h};`), "il rapporto della foto nel CSS non è quello di finestra.json");
+    const sopra = Number((FINESTRA.sopra * h) / w).toFixed(4);
+    assert.match(css, new RegExp(String.raw`--dt-od-sopra:\s*${sopra.replace(".", "\\.")};`), `--dt-od-sopra deve valere ${sopra} (sopra × h / w: il padding in percentuale si misura sulla larghezza)`);
   });
 
   test("l'offset nel contenuto toglie la scala dello stage", () => {
@@ -95,10 +112,8 @@ describe("i numeri della finestra", () => {
     assert.equal(offsetInside(content, el), 400);
   });
 
-  test("sizes: fermo 84vw, corridoio 100vw sui 16:10, quadrato 135vw e 126vw", () => {
-    assert.match(SIZES_FINESTRA, /^\(prefers-reduced-motion: reduce\) and \(min-width: 1024px\) 84vw, /);
-    assert.match(SIZES_FINESTRA, /\(min-width: 1024px\) and \(min-aspect-ratio: 3\/2\) 100vw/);
-    assert.match(SIZES_FINESTRA, /\(max-width: 767\.98px\) 135vw, 126vw$/);
+  test("sizes: 100vw a ogni larghezza (A47: la foto intera, larga tutto, nessun cover che ritagli)", () => {
+    assert.equal(SIZES_FINESTRA, "100vw");
   });
 });
 
@@ -115,13 +130,25 @@ describe("dove vive la finestra", () => {
   test("OpenDomus monta il corridoio `finestra` con la foto della villa e senza pin", () => {
     const t = soloCodice(leggi("app/components/OpenDomus.tsx"));
     assert.match(t, /useCorridor\(sectionRef, \{\s*id: "finestra"/);
-    // A45: la facciata a terrazze col glicine (Higgsfield, 3:2) al posto della villa reale; il titolo
-    // del capitolo sta nella cornice, prima della foto, e il corpo in home non lo ripete. A46 (Alberto,
-    // 21 set. 2026, sera): il cielo della facciata è trasparente (`-cielo.webp`, scripts/media/cielo.mjs)
-    // e il fondo pagina fa da cielo, come su era; il titolo passa dal bianco all'inchiostro.
-    assert.match(t, /src="\/images\/reali\/villa-terrazze-glicine-cielo\.webp"/, "la finestra non monta il WebP col cielo trasparente (A46)");
-    assert.doesNotMatch(t, /villa-terrazze-glicine\.jpg/);
-    assert.match(t, /<div className="dt-od_cornice">\s*<h2 className="dt-od_titolo font-display">\{titolo\}<\/h2>\s*<div className="dt-od_window/);
+    // A45: il titolo del capitolo sta nella cornice, prima della foto, e il corpo in home non lo ripete.
+    // A46 (Alberto, 21 set. 2026, sera): il cielo è trasparente (`-cielo.webp`, scripts/media/cielo.mjs) e il
+    // fondo pagina fa da cielo; il titolo è inchiostro. A47 (22 set.): la foto è la facciata che SALE, 9:16,
+    // intera (finestra.json), col capitolo posato sopra dal 55 % (la cornice tiene titolo, foto e capitolo)
+    // e i marcatori del segno sulle travi (le bande di finestra.json), come sulle teste.
+    assert.match(t, /import foto from "\.\.\/lib\/motion\/finestra\.json"/, "OpenDomus.tsx non legge finestra.json (A47)");
+    assert.match(t, /src=\{foto\.file\}/, "la finestra non monta il file di finestra.json (A47)");
+    assert.doesNotMatch(t, /villa-terrazze-glicine|villa-facciata-sale/, "un percorso della foto scritto a mano");
+    assert.match(t, /objectPosition: "50% 0%"/, "la foto della finestra non è ancorata in cima (A47: se il capitolo è più alto della foto, il cover scala dalla cima)");
+    assert.match(t, /<div className="dt-od_cornice">\s*<h2 className="dt-od_titolo font-display">\{titolo\}<\/h2>\s*<div className="dt-od_window"/);
+    assert.match(t, /foto\.segno\.map\(/, "i marcatori del segno della finestra non vengono da finestra.json");
+    assert.match(t, /data-bg="foto"\s+className="dt-od_soggetto"/, "manca il marcatore del segno sulle travi");
+    // Il capitolo (il gruppo in attesa) sta DENTRO la cornice, dopo la foto: è lo spazio sopra la foto.
+    const cornice = t.indexOf('className="dt-od_cornice"');
+    const finestraBox = t.indexOf('className="dt-od_window"', cornice);
+    const contenuto = t.indexOf('className="dt-od_content dt-chapter"', finestraBox);
+    const pista = t.indexOf('className="dt-od_run"', contenuto);
+    assert.ok(cornice > -1 && finestraBox > cornice && contenuto > finestraBox && pista > contenuto, "il capitolo non sta nella cornice dopo la foto (A47)");
+    assert.match(t, /<section[^>]*className="dt-od bg-cream"[^>]*data-sopra="foto"/, "la section della finestra non dichiara data-sopra=\"foto\" (A47)");
     const css = leggi("app/globals.css").replace(/\/\*[\s\S]*?\*\//g, " ");
     const titolo = /\.dt-od_titolo\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
     assert.match(titolo, /color:\s*var\(--color-ink\);/, "il titolo della finestra non è inchiostro (A46: «Open Domus» scuro sul cielo che è il fondo, come «ARCHITECTURE» su era)");
@@ -130,7 +157,10 @@ describe("dove vive la finestra", () => {
     assert.match(t, /sizes=\{SIZES_FINESTRA\}/);
     assert.match(t, /data-corridor="finestra"/);
     assert.match(t, /data-corridor-screen/);
-    assert.match(t, /className="dt-od_window dt-media-half lg:w-full! lg:max-w-none! lg:aspect-video!"/);
+    // A47: la scatola della foto è la sua (`.dt-od_window` col rapporto della sorgente), non il modulo
+    // media né le utility lg: la foto è intera a ogni larghezza (il video della storia di Teresa, nel
+    // corpo, resta nel modulo media 16:9).
+    assert.doesNotMatch(t, /className="dt-od_window[^"]*(dt-media-half|aspect-video)/, "la finestra usa ancora il modulo media o il 16:9 (A47: la foto intera)");
     assert.match(t, /focus: \(\) => null/);
     assert.match(t, /stage\.addEventListener\("focusin", onFocus\)/);
     assert.match(t, /e\.intersectionRatio >= FINESTRA\.phoneThreshold && !open/);
@@ -184,12 +214,32 @@ describe("dove vive la finestra", () => {
     const schermo = regole.filter((r) => /\.dt-od_screen$/.test(r.sel));
     assert.ok(schermo.some((r) => /overflow:\s*clip/.test(r.body)), "lo schermo non ritaglia sé stesso");
     assert.ok(schermo.every((r) => !/overflow:\s*hidden/.test(r.body)), "lo schermo usa hidden");
+    // A47: la scatola della foto ha il rapporto della sorgente (`--dt-od-ar`) a ogni larghezza; da lg la
+    // cornice ha lo stesso rapporto e la scatola la riempie (`inset: 0`, come `.dt-testa_foto` da lg): se il
+    // capitolo è più alto della foto la cornice cresce e il cover scala dalla cima.
     assert.ok(
-      regole.every((r) => !(/\.dt-od_window$/.test(r.sel) && /aspect-ratio/.test(r.body))),
-      "scatola a mano sulla foto: il formato lo danno dt-media-half e le utility lg",
+      regole.some((r) => /\.dt-od_window$/.test(r.sel) && /aspect-ratio:\s*var\(--dt-od-ar\)/.test(r.body)),
+      "la scatola della foto non ha il rapporto della sorgente (A47)",
     );
+    assert.ok(
+      regole.some((r) => /\.dt-od_cornice$/.test(r.sel) && /aspect-ratio:\s*var\(--dt-od-ar\)/.test(r.body)),
+      "la cornice non ha il rapporto della foto da lg (A47)",
+    );
+    assert.ok(
+      regole.some((r) => /\.dt-od_window$/.test(r.sel) && /inset:\s*0/.test(r.body) && /position:\s*absolute/.test(r.body)),
+      "da lg la scatola della foto non riempie la cornice (A47)",
+    );
+    assert.ok(regole.every((r) => !(/\.dt-od_window$/.test(r.sel) && /height:\s*100svh/.test(r.body))), "la foto è ancora ritagliata a uno schermo (A47)");
     assert.ok(regole.some((r) => /\.dt-od_run$/.test(r.sel) && /height:\s*200svh/.test(r.body)));
-    assert.ok(regole.some((r) => /\.dt-od_content$/.test(r.sel) && /padding-top:\s*22svh/.test(r.body)));
+    // Il capitolo sulla foto: dal 55 % dell'altezza (`--dt-od-sopra`), bianco con l'ombra del sito (A54).
+    assert.ok(regole.every((r) => !(/\.dt-od_content$/.test(r.sel) && /padding-top:\s*22svh/.test(r.body))), "la soglia dei 22svh è tornata (A47)");
+    const sopra = regole.find((r) => /\.dt-od\[data-sopra="foto"\] \.dt-od_content$/.test(r.sel) && /padding-top:\s*calc\(100% \* var\(--dt-od-sopra\)\)/.test(r.body));
+    assert.ok(sopra, "il capitolo non posa sulla foto dal 55 % (A47)");
+    assert.match(sopra!.body, /color:\s*#fff;/, "il capitolo sulla foto non è bianco (A54)");
+    // I marcatori del segno sulle travi: assoluti nella scatola, larghi tutto (come .dt-testa_soggetto).
+    assert.ok(regole.some((r) => /\.dt-od_soggetto$/.test(r.sel) && /position:\s*absolute/.test(r.body) && /pointer-events:\s*none/.test(r.body)), "manca la regola dei marcatori del segno");
+    // Il marcatore `foto-chiara` copre la foto fino alla fine dell'area: la facciata continua dopo la pista.
+    assert.ok(regole.some((r) => /\.dt-od_mark--f$/.test(r.sel) && /bottom:\s*0/.test(r.body)), "il marcatore foto-chiara non arriva al fondo dell'area (A47)");
   });
 
   test("le tende nascono col poligono chiuso di Era in CSS, senza stati nascosti prima del JS (spec §2.5)", () => {

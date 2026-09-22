@@ -1,4 +1,6 @@
 import type { Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { test, expect, setConsent } from "./helpers";
 import { clipOf, insetValues } from "./coreografia";
 
@@ -423,12 +425,20 @@ for (const rotta of ["/", "/vendi", "/metodo"]) {
   }
 }
 
-// A46 (Alberto, 21 set. 2026, sera): la facciata della finestra di Open Domus ha il cielo trasparente
-// (`villa-terrazze-glicine-cielo.webp`) e a schermo intero sotto il segno, in alto a sinistra, c'è il
-// cielo, cioè la carta: lì il tema resta grafite (marcatore `foto-chiara`) anche se l'elemento in cima
-// è un <img>. Sovrapposizione non vuol dire visibilità (lezione di 6a33f85): l'immagine col cielo è
-// l'eccezione dichiarata.
-const FOTO_COL_CIELO = /villa-terrazze-glicine-cielo\.webp/;
+// A46 (Alberto, 21 set. 2026, sera): la facciata della finestra di Open Domus ha il cielo trasparente e
+// a schermo intero sotto il segno, in alto a sinistra, c'è il cielo, cioè la carta: lì il tema resta
+// grafite (marcatore `foto-chiara`) anche se l'elemento in cima è un <img>. Sovrapposizione non vuol
+// dire visibilità (lezione di 6a33f85): l'immagine col cielo è l'eccezione dichiarata. A47 (22 set.): la
+// facciata è quella che SALE, 9:16 (`villa-facciata-sale-alta-cielo.webp`), intera: sotto il segno passano
+// il cielo, i muri bianchi e il travertino (grafite) e le travi scure delle pergole, che hanno i loro
+// marcatori `foto` (le bande di finestra.json, scripts/media/finestra.mjs): lì il tema vira.
+const FOTO_COL_CIELO = /villa-facciata-sale-alta-cielo\.webp/;
+const BANDE_FINESTRA = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/finestra.json"), "utf8")) as { segno: number[][] }).segno;
+/** Il tema atteso sotto il segno quando in cima c'è la facciata: `foto` dentro una banda, `grafite` fuori; null a un pelo dal bordo. */
+function temaSullaFacciata(fy: number, bande: number[][]): "foto" | "grafite" | null {
+  if (bande.some(([a, z]) => Math.abs(fy - a) < 0.004 || Math.abs(fy - z) < 0.004)) return null;
+  return bande.some(([a, z]) => fy >= a && fy <= z) ? "foto" : "grafite";
+}
 
 test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, il tema è foto (tranne il cielo trasparente della finestra, che è carta: grafite)", async ({ page, goto }, info) => {
   soloDesktop(info.project.name);
@@ -436,28 +446,46 @@ test("1440 su /, a passi di 450 px: se sotto il centro del segno c'è una foto, 
   await page.setViewportSize({ width: 1440, height: 900 });
   await goto("/");
   await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
-  const errori = await page.evaluate(async (cielo) => {
-    const segno = document.querySelector<HTMLElement>("[data-segno]")!;
-    const out: string[] = [];
-    let cieloVisto = 0;
-    const max = document.documentElement.scrollHeight - innerHeight;
-    for (let y = 0; y <= max; y += 450) {
-      window.scrollTo({ top: y, behavior: "instant" });
-      await new Promise((r) => setTimeout(r, 250));
-      if (segno.hidden || Number(getComputedStyle(segno).opacity) < 0.1) continue;
-      const r = segno.getBoundingClientRect();
-      const sotto = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-      if (sotto && (sotto.tagName === "IMG" || sotto.tagName === "VIDEO")) {
-        const src = (sotto as HTMLImageElement | HTMLVideoElement).currentSrc.split("/").pop() ?? "";
+  const errori = await page.evaluate(
+    async ({ cielo, bande }) => {
+      const segno = document.querySelector<HTMLElement>("[data-segno]")!;
+      const out: string[] = [];
+      let cieloVisto = 0;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      for (let y = 0; y <= max; y += 450) {
+        window.scrollTo({ top: y, behavior: "instant" });
+        await new Promise((r) => setTimeout(r, 250));
+        if (segno.hidden || Number(getComputedStyle(segno).opacity) < 0.1) continue;
+        const r = segno.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
         const tema = segno.getAttribute("data-tema");
-        if (new RegExp(cielo).test(decodeURIComponent(src))) {
+        // A47: la facciata si riconosce dalla geometria, non da elementFromPoint: sopra l'<img> sta il
+        // capitolo (`.dt-od_content`, col padding dello spazio sopra) e prima di p 1 lo schermo delle tende.
+        // Sulla facciata a schermo intero il tema è grafite (cielo = carta, muri, travertino) tranne nelle
+        // bande delle travi (finestra.json), dove vira foto; a un pelo dal bordo non si giudica.
+        const fb = document.querySelector<HTMLElement>("#open-domus .dt-od_window")?.getBoundingClientRect();
+        const schermo = document.querySelector<HTMLElement>("#open-domus .dt-od_screen");
+        const schermoVia = !schermo || getComputedStyle(schermo).visibility === "hidden";
+        if (fb && schermoVia && cx >= fb.left && cx <= fb.right && cy >= fb.top && cy <= fb.bottom) {
           cieloVisto += 1;
-          if (tema !== "grafite") out.push(`scroll ${y}: sul cielo trasparente della finestra (carta) il tema è ${tema}, non grafite (A46)`);
-        } else if (tema !== "foto") out.push(`scroll ${y}: ${sotto.tagName} ${src} sotto il segno col tema ${tema}`);
+          const fy = (cy - fb.top) / fb.height;
+          const alBordo = bande.some(([a, z]) => Math.abs(fy - a) < 0.004 || Math.abs(fy - z) < 0.004);
+          const atteso = bande.some(([a, z]) => fy >= a && fy <= z) ? "foto" : "grafite";
+          if (!alBordo && tema !== atteso) out.push(`scroll ${y}: sulla facciata della finestra (y ${fy.toFixed(3)}, ${atteso === "foto" ? "trave" : "carta o muro"}) il tema è ${tema}, non ${atteso} (A46, A47)`);
+          continue;
+        }
+        const sotto = document.elementFromPoint(cx, cy);
+        if (sotto && (sotto.tagName === "IMG" || sotto.tagName === "VIDEO")) {
+          const src = (sotto as HTMLImageElement | HTMLVideoElement).currentSrc.split("/").pop() ?? "";
+          if (new RegExp(cielo).test(decodeURIComponent(src))) continue;
+          if (tema !== "foto") out.push(`scroll ${y}: ${sotto.tagName} ${src} sotto il segno col tema ${tema}`);
+        }
       }
-    }
-    return { out, cieloVisto };
-  }, FOTO_COL_CIELO.source);
+      return { out, cieloVisto };
+    },
+    { cielo: FOTO_COL_CIELO.source, bande: BANDE_FINESTRA },
+  );
   expect(errori.out, errori.out.join("\n")).toEqual([]);
   expect(errori.cieloVisto, "la corsa non ha mai trovato la finestra a schermo intero sotto il segno").toBeGreaterThan(0);
 });
@@ -478,17 +506,30 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10;
   await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
   // A46: da +150svh la finestra è a schermo intero e sotto il segno c'è il cielo trasparente della
   // facciata, cioè la carta: il marcatore è `foto-chiara` e il tema resta grafite (le tacche avorio
-  // sparirebbero nell'avorio). Sotto il segno c'è davvero l'<img> col cielo.
+  // sparirebbero nell'avorio). A47: sulle travi delle pergole (bande di finestra.json) vira foto. Sotto
+  // il segno c'è davvero l'<img> col cielo.
   await scrollA(page, Math.round(area! + 2.2 * 900));
-  await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
-  expect(
-    await page.evaluate(() => {
-      const r = document.querySelector<HTMLElement>("[data-segno]")!.getBoundingClientRect();
-      const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-      return el instanceof HTMLImageElement ? decodeURIComponent(el.currentSrc) : el?.tagName ?? "";
-    }),
-    "sotto il segno non c'è la facciata col cielo trasparente",
-  ).toMatch(/villa-terrazze-glicine-cielo\.webp/);
+  // La facciata si riconosce dalla geometria (sopra l'<img> sta il capitolo con lo spazio sopra): il centro
+  // del segno dentro la scatola della foto, con lo schermo delle tende già nascosto dal cue di p 1, e la
+  // foto montata è il WebP col cielo.
+  const sotto = await page.evaluate(() => {
+    const r = document.querySelector<HTMLElement>("[data-segno]")!.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const win = document.querySelector<HTMLElement>("#open-domus .dt-od_window")!;
+    const fb = win.getBoundingClientRect();
+    const schermo = document.querySelector<HTMLElement>("#open-domus .dt-od_screen")!;
+    return {
+      dentro: cx >= fb.left && cx <= fb.right && cy >= fb.top && cy <= fb.bottom,
+      schermoVia: getComputedStyle(schermo).visibility === "hidden",
+      src: decodeURIComponent(win.querySelector("img")?.currentSrc ?? ""),
+      fy: (cy - fb.top) / fb.height,
+    };
+  });
+  expect(sotto.dentro && sotto.schermoVia, "sotto il segno non c'è la facciata a schermo intero").toBe(true);
+  expect(sotto.src, "la finestra non monta la facciata col cielo trasparente").toMatch(FOTO_COL_CIELO);
+  const atteso = temaSullaFacciata(sotto.fy, BANDE_FINESTRA);
+  if (atteso) await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe(atteso);
 });
 
 // 22 set. 2026 (revisione avversaria di A46, C01/G02): su /recensioni il muro bianco della villa tocca

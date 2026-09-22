@@ -6,6 +6,11 @@
 // 5/27, 22/27, 13/36, 107/108, 1/108, 23/36. Sotto la soglia dei corridoi la foto si apre
 // con due rettangoli sfalsati (scarto 19/68, fessura fra 49 % e 51 %). Il modulo non importa
 // GSAP e non tocca il DOM al caricamento: lo leggono OpenDomus.tsx, i test unitari e gli e2e.
+// A47 (Alberto, 22 set. 2026: «qua perchè hai tagliato l'immagine, deve continuare, abbiamo
+// fatto le immagini alte apposta per poterci scrollare a schermo intero senza uscire dalla
+// foto»; «questa sezione va sopra l'immagine di open domus»): la foto è la facciata che SALE,
+// 9:16, intera (app/lib/motion/finestra.json, scripts/media/finestra.mjs), e il capitolo posa
+// sulla foto dal 55 % della sua altezza (`sopra`); la foto continua sotto la piega dopo la pista.
 
 export const SHUTTER_L = [
   "polygon(0% 0%, 0% 100%, 44.444% 100%, 44.444% 36.111%, 98.889% 36.111%, 98.889% 99.074%, 44.444% 99.074%, 1.111% 100%, 100% 100%, 100% 0%)",
@@ -25,22 +30,23 @@ export const PHONE_CLIP = [
   "polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%, 0% 0%, 50% 0%, 100% 0%, 100% 100%, 50% 100%, 50% 0%)",
 ] as const;
 
-// La foto sta sullo stage e non subisce la 1,84: resa 100vw sui viewport larghi almeno 3:2,
-// 150vh sopra; fermo 84vw da lg; il quadrato (lato 90vw o 84vw) rende 1,5 volte il lato.
-export const SIZES_FINESTRA =
-  "(prefers-reduced-motion: reduce) and (min-width: 1024px) 84vw, " +
-  "(min-width: 1024px) and (min-aspect-ratio: 3/2) 100vw, " +
-  "(min-width: 1024px) and (min-aspect-ratio: 1/1) 150vw, " +
-  "(min-width: 1024px) 200vw, " +
-  "(max-width: 767.98px) 135vw, 126vw";
+// A47: la foto è intera e larga tutto a ogni larghezza (la scatola ha il rapporto della sorgente,
+// `--dt-od-ar`; sotto lg sta nella riga, da lg è la cornice a tutta larghezza) e lo stage del
+// corridoio la rende al più a 100vw (scala .75 → 1): nessun cover che ritagli, come SIZES_TESTA.
+export const SIZES_FINESTRA = "100vw";
 
 export const FINESTRA = {
   /** fine della timeline: 3 schermi dopo «top bottom» della section */
   endVh: 3,
   /** pista sotto lo stage: sgancia schermo e stage a +200vh */
   runSvh: 200,
-  /** vuoto sopra il contenuto: l'occhiello non compare nell'angolo del foro */
-  contentPadSvh: 22,
+  /**
+   * A47: dove comincia il capitolo sulla foto, in frazione dell'ALTEZZA della foto (dal 55 %: la
+   * metà bassa della facciata, sotto la piega dello schermo agganciato). Il CSS lo porta come
+   * `--dt-od-sopra` = sopra × h / w (il padding in percentuale si misura sulla larghezza, CSS 2.1
+   * §8.3), finestra.test.ts confronta i due numeri.
+   */
+  sopra: 0.55,
   shutterScale: 1.84,
   stageFrom: 0.75,
   /** otturatore 0 → 0,5, montanti 0,5 → 0,6, scale 0,6 → 1 */
@@ -52,9 +58,13 @@ export const FINESTRA = {
   phoneThreshold: 0.35,
 } as const;
 
-/** Scroll che porta `offset` (px dal bordo alto del contenuto) al 25 % dello schermo dopo lo sgancio. */
-export function finestraFocusY(o: { start: number; vh: number; offset: number }): number {
-  return o.start + 4 * o.vh + o.offset - 0.25 * o.vh;
+/**
+ * Scroll che porta `offset` (px dal bordo alto del contenuto) al 25 % dello schermo dopo lo sgancio.
+ * Lo sgancio sta a start + 3vh (aggancio a +1vh, pista di 2vh); il contenuto sta a `contentTop` dalla
+ * cima dello stage, senza la scala (A47: sulla foto, dal 55 % della sua altezza, non più a 122svh).
+ */
+export function finestraFocusY(o: { start: number; vh: number; contentTop: number; offset: number }): number {
+  return o.start + 3 * o.vh + o.contentTop + o.offset - 0.25 * o.vh;
 }
 
 /** Distanza di `el` dal bordo alto del contenuto, senza la scala dello stage. */

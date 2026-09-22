@@ -23,6 +23,9 @@ import {
   finestraFocusY,
   offsetInside,
 } from "../lib/motion/finestra";
+// A47 (22 set. 2026): la foto della finestra, il suo cielo e le bande del segno, misurati da
+// scripts/media/finestra.mjs sul WebP col cielo trasparente (come tinte.json per le teste).
+import foto from "../lib/motion/finestra.json";
 
 // `cardTitle` e `videoAria` non si rendono più (via la card flottante e il
 // player disegnato a mano sulla foto): l'annuncio del play lo scrive
@@ -56,7 +59,7 @@ const copy = {
     cardText: "La storia vera di Teresa, raccontata da lei.",
     videoAria: "Guarda la storia di Teresa, venduta al primo Open Domus",
     imageAlt: "Raffaela Rizza con Teresa, cliente che ha venduto al primo Open Domus",
-    villaAlt: "Facciata a terrazze bianche di una residenza contemporanea, col glicine in fiore sui parapetti e i cipressi",
+    villaAlt: "Facciata a terrazze bianche di una residenza contemporanea che sale, con le pergole di legno, il glicine in fiore, il basamento in travertino e le colline",
   },
   en: {
     eyebrow: "Our signature format",
@@ -81,7 +84,7 @@ const copy = {
     cardText: "Teresa's true story, told in her own words.",
     videoAria: "Watch Teresa's story, sold at the first Open Domus",
     imageAlt: "Raffaela Rizza with Teresa, the client who sold at the first Open Domus",
-    villaAlt: "White terraced facade of a contemporary residence, with wisteria in bloom on the parapets and cypresses",
+    villaAlt: "White terraced facade of a contemporary residence rising up, with wooden pergolas, wisteria in bloom, a travertine base and the hills",
   },
   fr: {
     eyebrow: "Notre format signature",
@@ -106,7 +109,7 @@ const copy = {
     cardText: "La véritable histoire de Teresa, racontée par elle-même.",
     videoAria: "Regardez l'histoire de Teresa, vendue au premier Open Domus",
     imageAlt: "Raffaela Rizza avec Teresa, la cliente qui a vendu au premier Open Domus",
-    villaAlt: "Façade en terrasses blanches d’une résidence contemporaine, avec la glycine en fleurs sur les parapets et des cyprès",
+    villaAlt: "Façade en terrasses blanches d’une résidence contemporaine qui s’élève, avec ses pergolas en bois, la glycine en fleurs, le soubassement en travertin et les collines",
   },
   de: {
     eyebrow: "Unser eigenes Format",
@@ -131,7 +134,7 @@ const copy = {
     cardText: "Die wahre Geschichte von Teresa, von ihr selbst erzählt.",
     videoAria: "Sehen Sie die Geschichte von Teresa, verkauft beim ersten Open Domus",
     imageAlt: "Raffaela Rizza mit Teresa, der Kundin, die beim ersten Open Domus verkauft hat",
-    villaAlt: "Weiße Terrassenfassade einer modernen Residenz, mit blühender Glyzinie an den Brüstungen und Zypressen",
+    villaAlt: "Weiße Terrassenfassade einer modernen Residenz, die in die Höhe steigt, mit Holzpergolen, blühender Glyzinie, Travertinsockel und den Hügeln",
   },
   es: {
     eyebrow: "Nuestro formato exclusivo",
@@ -156,7 +159,7 @@ const copy = {
     cardText: "La historia real de Teresa, contada por ella misma.",
     videoAria: "Mira la historia de Teresa, vendida en el primer Open Domus",
     imageAlt: "Raffaela Rizza con Teresa, la clienta que vendió en el primer Open Domus",
-    villaAlt: "Fachada de terrazas blancas de una residencia contemporánea, con la glicina en flor en los antepechos y cipreses",
+    villaAlt: "Fachada de terrazas blancas de una residencia contemporánea que se eleva, con pérgolas de madera, la glicina en flor, el basamento de travertino y las colinas",
   },
 };
 
@@ -289,7 +292,13 @@ export default function OpenDomus({ finestra = false }: Props) {
      stesso, non è antenato di nulla di sticky.
    Sotto la soglia e con motion ok: nessuno sticky, la foto si apre con due
    rettangoli sfalsati quando è in vista per il 35 % e si richiude uscendo dal basso.
-   Con reduced-motion e senza JS: nessuna delle due cose, la foto è ferma. */
+   Con reduced-motion e senza JS: nessuna delle due cose, la foto è ferma.
+   A47 (Alberto, 22 set. 2026): la foto è la facciata che SALE, 9:16, intera, e il
+   capitolo posa sopra di lei dal 55 % della sua altezza (globals.css «LA FINESTRA DI
+   OPEN DOMUS», finestra.ts `sopra`): lo stage è alto quanto la foto (più il capitolo
+   se sfora), resta agganciato per la pista mostrando il primo schermo della foto, poi
+   scorre via e la facciata continua sotto la piega — «Architecture» di era. La rete di
+   fuoco porta il contenuto a `contentTop` dalla cima dello stage, senza la scala. */
 function Finestra({ villaAlt, titolo, locale, children }: { villaAlt: string; titolo: string; locale: string; children: ReactNode }) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const group = useRef<RevealApi | null>(null);
@@ -421,7 +430,8 @@ function Finestra({ villaAlt, titolo, locale, children }: { villaAlt: string; ti
       if (!el.matches(":focus-visible") || !content.contains(el)) return;
       const r = el.getBoundingClientRect();
       if (st.progress >= 1 && r.top >= 0 && r.bottom <= window.innerHeight) return;
-      const y = finestraFocusY({ start: st.start, vh: window.innerHeight, offset: offsetInside(content, el) });
+      // A47: il contenuto sta sulla foto, a `contentTop` dalla cima dello stage (senza la scala dello stage).
+      const y = finestraFocusY({ start: st.start, vh: window.innerHeight, contentTop: offsetInside(stage, content), offset: offsetInside(content, el) });
       const lenis = getLenis();
       if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
       else window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
@@ -433,7 +443,7 @@ function Finestra({ villaAlt, titolo, locale, children }: { villaAlt: string; ti
   }, []);
 
   return (
-    <section ref={sectionRef} id="open-domus" className="dt-od bg-cream" data-corridor="finestra" data-od>
+    <section ref={sectionRef} id="open-domus" className="dt-od bg-cream" data-corridor="finestra" data-od data-sopra="foto">
       <div className="dt-od_area">
         <span aria-hidden data-bg="avorio" className="dt-od_mark dt-od_mark--a" />
         {/* A46 (Alberto, 21 set. 2026, sera): il cielo della facciata è trasparente e a schermo
@@ -453,39 +463,63 @@ function Finestra({ villaAlt, titolo, locale, children }: { villaAlt: string; ti
         <div className="dt-od_stage">
           <div className="dt-od_band dt-row">
             {/* La sezione «Architecture» di era-residence (A45): dentro la cornice, il titolo del
-                capitolo, enorme, appoggiato al bordo alto della foto, e la foto — la facciata a
-                terrazze col glicine generata con Higgsfield, ampia (3:2). A46 (Alberto, 21 set.
+                capitolo, enorme, appoggiato al bordo alto della foto, e la foto. A46 (Alberto, 21 set.
                 2026, sera: «su eraresidence questa foto … ha il cielo mascherato, è no bg … dobbiamo
-                fare la stessa cosa»): la foto è il WebP con l'alpha (`villa-terrazze-glicine-cielo.webp`,
-                scripts/media/cielo.mjs), il cielo è il fondo pagina e il titolo è in INCHIOSTRO
-                (`.dt-od_titolo`, globals.css), scuro sul cielo che è la carta, come «ARCHITECTURE»
-                su era negli screenshot di Alberto; il bianco nudo di A40 valeva per il cielo
-                fotografato. La cornice è `relative` (il modulo media ritaglia, la cornice no): il
-                titolo scala con lo stage come tutto il resto, così a schermo intero è più grande.
-                L'h2 sta prima della foto nel DOM (l'ordine di lettura) e sopra di lei nello stacking. */}
+                fare la stessa cosa»): la foto è il WebP con l'alpha (scripts/media/cielo.mjs), il cielo
+                è il fondo pagina e il titolo è in INCHIOSTRO (`.dt-od_titolo`, globals.css), scuro sul
+                cielo che è la carta, come «ARCHITECTURE» su era negli screenshot di Alberto; il bianco
+                nudo di A40 valeva per il cielo fotografato. A47 (Alberto, 22 set. 2026: «qua perchè hai
+                tagliato l'immagine, deve continuare, abbiamo fatto le immagini alte apposta per poterci
+                scrollare a schermo intero senza uscire dalla foto»; «questa immagine è tagliata? se si
+                mettila completa e scrivici sopra come hai fatto con le altre pagine»): la foto è la
+                facciata che SALE, 9:16, INTERA (finestra.json: file, misure, bande del segno), al posto
+                della 3:2 col glicine, e la cornice è alta quanto la foto; nel corridoio lo schermo
+                agganciato ne mostra il primo schermo (cielo, titolo, la terrazza alta) mentre le tende
+                si aprono, poi lo stage scorre via e la facciata prosegue sotto la piega col capitolo
+                posato sopra (`.dt-od_content`, qui sotto). La cornice è `relative` (la scatola ritaglia,
+                la cornice no): il titolo scala con lo stage come tutto il resto, così a schermo intero
+                è più grande. L'h2 sta prima della foto nel DOM (l'ordine di lettura) e sopra di lei
+                nello stacking. */}
             <div className="dt-od_cornice">
               <h2 className="dt-od_titolo font-display">{titolo}</h2>
-              <div className="dt-od_window dt-media-half lg:w-full! lg:max-w-none! lg:aspect-video!">
+              <div className="dt-od_window">
                 <Image
-                  src="/images/reali/villa-terrazze-glicine-cielo.webp"
+                  src={foto.file}
                   alt={villaAlt}
                   fill
                   sizes={SIZES_FINESTRA}
                   className="object-cover"
-                  style={{ objectPosition: "50% 30%" }}
+                  style={{ objectPosition: "50% 0%" }}
                 />
+                {/* I marcatori del segno (D34, tema.ts): uno per banda scura di finestra.json — le travi
+                    delle pergole nella striscia del segno —, assoluti nella scatola con top/bottom in
+                    percentuale dell'altezza della foto, `data-bg="foto"`: lì le tacche virano all'avorio;
+                    sul cielo (la carta), sui muri bianchi e sul travertino restano grafite (`foto-chiara`,
+                    il marcatore dell'area). Come `.dt-testa_soggetto` di PageHeroTesta. */}
+                {foto.segno.map(([da = 0, a = 0]) => (
+                  <span
+                    key={`${da}-${a}`}
+                    aria-hidden
+                    data-bg="foto"
+                    className="dt-od_soggetto"
+                    style={{ top: `${(da * 100).toFixed(2)}%`, bottom: `${((1 - a) * 100).toFixed(2)}%` }}
+                  />
+                ))}
               </div>
+              {/* A47: il capitolo sta DENTRO la cornice, dopo la foto — lo spazio sopra la foto delle teste
+                  (A48/A54): da lg posa sulla facciata dal 55 % della sua altezza, in bianco con l'ombra;
+                  sotto lg la segue in inchiostro. Resta il gruppo in attesa che il cue di p 1 libera. */}
+              <RevealGroup
+                hold
+                className="dt-od_content dt-chapter"
+                onReady={(api) => {
+                  group.current = api;
+                }}
+              >
+                {children}
+              </RevealGroup>
             </div>
           </div>
-          <RevealGroup
-            hold
-            className="dt-od_content dt-chapter"
-            onReady={(api) => {
-              group.current = api;
-            }}
-          >
-            {children}
-          </RevealGroup>
         </div>
         <div className="dt-od_run" aria-hidden />
       </div>

@@ -426,12 +426,16 @@ describe("il cielo mascherato delle foto alte (A46)", () => {
       if (INTERNI.includes(rotta)) assert.equal(f.classe, "interno", `${rotta}: è un interno`);
       else assert.ok(["giorno", "sera"].includes(f.classe), `${rotta}: classe ${f.classe}`);
     }
-    // La finestra ha l'azzurro MEDIO del tardo pomeriggio (classe `medio`, vedi cielo.mjs).
-    const finestra = CIELI.find((c) => c.nome === "villa-terrazze-glicine");
-    assert.ok(finestra && finestra.classe === "medio", "la finestra di Open Domus (villa-terrazze-glicine) manca o non è nella classe dell'azzurro medio");
-    // La finestra monta il WebP col cielo trasparente, non più il JPEG (A46).
-    assert.match(soloCodice(leggi("app/components/OpenDomus.tsx")), new RegExp(`src="${fileCielo(finestra!)}"`), "OpenDomus.tsx non monta il WebP col cielo della facciata a terrazze (A46)");
-    assert.doesNotMatch(soloCodice(leggi("app/components/OpenDomus.tsx")), /villa-terrazze-glicine\.jpg/, "OpenDomus.tsx monta ancora il JPEG col cielo azzurro (A46)");
+    // A47 (22 set. 2026): la finestra monta la facciata che SALE, 9:16, col cielo di giorno.
+    const finestra = CIELI.find((c) => c.nome === "villa-facciata-sale-alta");
+    assert.ok(finestra && finestra.classe === "giorno", "la finestra di Open Domus (villa-facciata-sale-alta) manca o non è nella classe del giorno");
+    // La finestra monta il WebP col cielo trasparente (A46) letto da finestra.json (scripts/media/finestra.mjs),
+    // non un percorso scritto a mano (A47).
+    const finestraJson = JSON.parse(leggi("app/lib/motion/finestra.json")) as { file: string };
+    assert.equal(finestraJson.file, fileCielo(finestra!), "finestra.json non porta il WebP col cielo della facciata che sale (A47)");
+    const od = soloCodice(leggi("app/components/OpenDomus.tsx"));
+    assert.match(od, /import foto from "\.\.\/lib\/motion\/finestra\.json"/, "OpenDomus.tsx non legge finestra.json (A47)");
+    assert.doesNotMatch(od, /villa-terrazze-glicine|villa-facciata-sale-alta\.(jpg|webp)/, "OpenDomus.tsx monta ancora un file a mano: il file sta in finestra.json (A47)");
   });
 
   test("le nove teste montano il WebP col cielo dove c'è: PageHero passa `tinta.cielo.file ?? image` (A46)", () => {
@@ -480,14 +484,20 @@ describe("il cielo mascherato delle foto alte (A46)", () => {
     }
   });
 
-  test("la finestra di Open Domus: villa-terrazze-glicine-cielo.webp, 3:2 come la sorgente, alpha, senza metadati", async () => {
-    const f = CIELI.find((c) => c.nome === "villa-terrazze-glicine")!;
+  test("la finestra di Open Domus: villa-facciata-sale-alta-cielo.webp, 9:16 come la sorgente, alpha, senza metadati (A47)", async () => {
+    const f = CIELI.find((c) => c.nome === "villa-facciata-sale-alta")!;
     const percorso = join(ROOT, "public", fileCielo(f)!);
     assert.ok(existsSync(percorso), `manca ${fileCielo(f)}`);
-    const sorgente = await sharp(join(ROOT, "public/images/reali/villa-terrazze-glicine.jpg")).metadata();
+    const sorgente = await sharp(join(ROOT, "public/images/reali/villa-facciata-sale-alta.jpg")).metadata();
     const w = webpInfo(readFileSync(percorso));
     assert.ok(w.alpha, "il WebP della finestra non ha l'alpha");
     assert.deepEqual([w.w, w.h], [sorgente.width, sorgente.height]);
+    assert.deepEqual([w.w, w.h], [2160, 3870], "la facciata che sale è il corridoio 9:16 di foto-alte.mjs");
+    // finestra.json (scripts/media/finestra.mjs) porta la stessa sorgente: il CSS della finestra ne legge il rapporto.
+    const finestraJson = JSON.parse(leggi("app/lib/motion/finestra.json")) as { sorgente: number[] };
+    assert.deepEqual(finestraJson.sorgente, [w.w, w.h], "finestra.json non porta la misura del WebP montato");
+    // La 3:2 col glicine di A45/A46 non ha più il WebP: è una scena di riserva.
+    assert.equal(existsSync(join(ROOT, "public/images/reali/villa-terrazze-glicine-cielo.webp")), false, "il WebP della facciata col glicine è rimasto su disco senza lettori");
     assert.deepEqual(w.metadati, []);
     const r = await righeEstreme(percorso);
     assert.ok(r.trasparentiPrima >= 0.9, `la prima riga è trasparente al ${(100 * r.trasparentiPrima).toFixed(1)} %`);
