@@ -90,6 +90,7 @@ export default function HorizonScroller({
   ease = STORIA.ease,
   scrub = STORIA.scrub,
   lead,
+  tail,
 }: {
   children: ReactNode;
   className?: string;
@@ -106,6 +107,15 @@ export default function HorizonScroller({
       px, lineare e 1:1 con lo scroll, mentre lo schermo è già agganciato; la sezione si allunga di
       altrettanto e il track parte dopo. La finestra di Open Domus ci fa salire la facciata. */
   lead?: { selector: string; distance: (el: HTMLElement, screen: HTMLElement) => number };
+  /** A67: la CODA dopo il track. L'elemento dell'ultimo pannello arriva già alzato di `from` px (≤ 0) e,
+      finito il track, scende di `distance` px, lineare e 1:1, con gli elementi `also` che scendono di
+      altrettanto da 0; la sezione si allunga di altrettanto. La finestra ci fa scendere la piscina. */
+  tail?: {
+    selector: string;
+    also?: string;
+    from: (el: HTMLElement, screen: HTMLElement) => number;
+    distance: (el: HTMLElement, screen: HTMLElement) => number;
+  };
 }) {
   const rootRef = useRef<HTMLElement | null>(null);
   const api = useRef<RevealApi | null>(null);
@@ -255,10 +265,25 @@ export default function HorizonScroller({
         // A57: la salita. Misurata a ogni refresh insieme all'altezza: la sezione è alta quanto il
         // track PIÙ la salita, così il gesto resta 1:1 anche nel tratto verticale.
         const leadEl = lead ? root.querySelector<HTMLElement>(lead.selector) : null;
+        const tailEl = tail ? root.querySelector<HTMLElement>(tail.selector) : null;
+        const tailAlso = tail?.also ? gsap.utils.toArray<HTMLElement>(tail.also, root) : [];
+        // Con la salita o la coda le quote sono esplicite e 1:1: la sezione è alta salita + corsa del
+        // track + coda + schermo. Senza, resta il conto di storia (altezza = larghezza del track).
+        const esplicito = Boolean(leadEl || tailEl);
         let leadPx = 0;
+        let run = 0;
+        let tailFrom = 0;
+        let tailPx = 0;
+        // La larghezza del track è quella dei pannelli (`offsetWidth`), NON `scrollWidth`: lo scrollWidth
+        // conta anche lo sbordo dei gradini in parallasse (fino a ~80 px), che cambia con lo scroll, e a ogni
+        // refresh spostava di altrettanto tutto quel che sta sotto il nastro (misurato il 22 set. sera sulla
+        // coda della finestra, 81 px corti a fine sezione).
         const size = () => {
           leadPx = leadEl && lead ? Math.max(0, Math.round(lead.distance(leadEl, screen))) : 0;
-          root.style.height = `${track.scrollWidth + leadPx}px`;
+          run = Math.max(0, track.offsetWidth - screen.clientWidth);
+          tailFrom = tailEl && tail ? Math.min(0, Math.round(tail.from(tailEl, screen))) : 0;
+          tailPx = tailEl && tail ? Math.max(0, Math.round(tail.distance(tailEl, screen))) : 0;
+          root.style.height = esplicito ? `${leadPx + run + tailPx + screen.clientHeight}px` : `${track.offsetWidth}px`;
         };
         size();
         ScrollTrigger.addEventListener("refreshInit", size);
@@ -282,13 +307,35 @@ export default function HorizonScroller({
           scrub,
           invalidateOnRefresh: true,
         };
-        // Con la salita il track parte quando la salita è finita (chapters.ts `finestra`: "top+=salita top").
-        if (leadEl) innesco.start = () => `top+=${leadPx} top`;
+        // Con la salita o la coda il track parte quando la salita è finita e finisce dopo la sua corsa
+        // (chapters.ts `finestra`: "top+=salita top" → "top+=salita+corsa top").
+        if (esplicito) {
+          innesco.start = () => `top+=${leadPx} top`;
+          innesco.end = () => `top+=${leadPx + run} top`;
+        }
         const tween = gsap.to(track, {
-          x: () => -(track.scrollWidth - screen.clientWidth),
+          x: () => -(track.offsetWidth - screen.clientWidth),
           ease,
           scrollTrigger: innesco,
         });
+
+        if (tailEl) {
+          const coda = (): ScrollTrigger.Vars => ({
+            trigger: root,
+            start: () => `top+=${leadPx + run} top`,
+            end: () => `+=${tailPx}`,
+            scrub,
+            invalidateOnRefresh: true,
+          });
+          gsap.fromTo(
+            tailEl,
+            { y: () => tailFrom },
+            { y: () => tailFrom - tailPx, ease: "none", immediateRender: true, scrollTrigger: coda() },
+          );
+          if (tailAlso.length) {
+            gsap.fromTo(tailAlso, { y: 0 }, { y: () => -tailPx, ease: "none", immediateRender: true, scrollTrigger: coda() });
+          }
+        }
 
         // La rete di fuoco del nastro (A57; la formula di spec §3.10 portata sui pannelli). Il Tab su un
         // focalizzabile di un pannello fuori scena farebbe scorrere lo schermo in orizzontale: `overflow:
@@ -301,7 +348,7 @@ export default function HorizonScroller({
           if (!(el instanceof HTMLElement) || !el.matches(":focus-visible") || !st) return;
           screen.scrollLeft = 0;
           const panel = el.closest<HTMLElement>(".dt-horizon_panel") ?? el;
-          const run = track.scrollWidth - screen.clientWidth;
+          const run = track.offsetWidth - screen.clientWidth;
           if (run <= 0) return;
           const target = Math.min(run, Math.max(0, panel.offsetLeft));
           const curva = gsap.parseEase(ease) as (t: number) => number;

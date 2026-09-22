@@ -161,10 +161,10 @@ export const chapters: Record<ChapterId, Chapter> = {
       ease: "dtInOut",
       curve: DT_IN_OUT,
       time: { scrub: 0.15 },
-      trigger: { el: "#open-domus", st: ["top+=salita top", "97.5% bottom"] },
+      trigger: { el: "#open-domus", st: ["top+=salita top", "top+=salita+corsa top"] },
     },
     secondary: [
-      { ease: "none", note: "la salita della facciata prima del nastro, scrub 0,15" },
+      { ease: "none", note: "la salita della facciata prima del nastro e la coda della piscina dopo (A65, A67), lineari, scrub 0,15" },
       { ease: "dtOut", curve: "0.25,1,0.5,1", note: "sipario del video e della soglia 1,6 s con scala 1,15→1 (il gesto del nastro)" },
     ],
   },

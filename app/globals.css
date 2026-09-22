@@ -640,23 +640,50 @@ blockquote * {
   text-wrap: balance;
   pointer-events: none;
 }
-/* Il terzo pannello: Raffaela sulla soglia, 2:3 (finestra.ts PORTA), intera. In colonna è larga come
-   la riga; nel nastro e da lg è alta 80svh e larga di conseguenza. */
-.dt-od_porta {
+/* Il terzo pannello, la CODA (A66, A67 di Alberto, 22 set., sera): la piscina lunga no-bg (coda.json,
+   2:3, il cielo trasparente è la carta), a tutta larghezza col rapporto del sorgente, e sopra le
+   scritte grandi del nastro: il titolo a gradini in parallasse (data-horizon-stair), le due liste in
+   misura lead col rilancio. In colonna le scritte stanno prima e la foto è in flusso, intera. Nel
+   nastro ([data-on]) il pannello è lo schermo e ritaglia: la foto arriva da destra già alzata (`from`
+   di HorizonScroller: il soggetto al 55 % del viewport, la carta del cielo sopra con le scritte) e,
+   finito il track, scende 1:1 con lo scroll insieme alle scritte (la coda) finché il suo fondo non
+   tocca il fondo dello schermo. Le bande del segno (coda.json) viaggiano con la foto. */
+.dt-od_coda {
   position: relative;
   width: 100%;
   aspect-ratio: 2560 / 3816;
-  overflow: hidden;
-  background-color: var(--color-cream-deep);
+  overflow: clip;
+  background-color: var(--color-cream);
 }
-@media (min-width: 64rem) {
-  .dt-od_porta {
-    width: auto;
-    height: 80svh;
-  }
+.dt-od_coda_foto {
+  position: absolute;
+  inset: 0;
 }
-/* Nel nastro il pannello della foto ritaglia la cornice che sale (GSAP scrive il transform sulla
-   cornice: nessun antenato sticky ne dipende, lo schermo del nastro è fuori). */
+.dt-od[data-on] .dt-od_panel--coda {
+  position: relative;
+  overflow: clip;
+}
+.dt-od[data-on] .dt-od_coda {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+}
+.dt-od[data-on] .dt-od_coda_foto {
+  bottom: auto;
+  aspect-ratio: 2560 / 3816;
+}
+.dt-od[data-on] .dt-od_coda_testo {
+  position: absolute;
+  z-index: 1;
+  top: 12svh;
+  left: 0;
+  width: min(62vw, 64rem);
+  padding-block: 0;
+  padding-inline: 9.5vw 0;
+}
+/* Nel nastro il pannello della foto ritaglia la scatola che sale (A65: sale la scatola `.dt-od_window`,
+   il titolo resta fermo nella cornice e il tetto gli passa dietro; GSAP scrive il transform sulla
+   scatola: nessun antenato sticky ne dipende, lo schermo del nastro è fuori). */
 .dt-od[data-on] .dt-od_panel--foto {
   position: relative;
   overflow: clip;

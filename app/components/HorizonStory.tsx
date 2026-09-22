@@ -206,7 +206,10 @@ export default function HorizonStory() {
             toglie, come promesso, e la colonna torna piena (605 px a 1440, 640 al massimo). La
             voce parte in vista e si ferma fuori vista (useAmbientVideo, A44). */}
         <StoryVideo
-          className="dt-media-column dt-media-column--tall lg:-mt-[10vw]"
+          /* A63 (Alberto, 22 set., sera: «rimpicciolisci il video villa di roberta di poco»): 36vw e
+             560 px al massimo invece dei 42vw / 640 del modulo (il `!` perché il modulo sta fuori dai
+             layer): 518 px a 1440, 560 da 1556. */
+          className="dt-media-column dt-media-column--tall lg:-mt-[10vw] lg:!w-[36vw] lg:!max-w-[560px]"
           title={site.videos.featured.title}
           poster="/media/open-domus-roberta-poster.jpg"
           sources={{

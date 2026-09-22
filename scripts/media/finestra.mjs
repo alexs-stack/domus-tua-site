@@ -23,8 +23,11 @@ import { FOTO, fileCielo, misuraCielo } from "./cielo.mjs";
 import { misuraSegno } from "./tinte.mjs";
 
 const ROOT = process.cwd();
-const USCITA = "app/lib/motion/finestra.json";
-const NOME = "villa-facciata-sale-alta";
+// A67 (22 set., sera): anche la coda del nastro (villa-piscina-lunga-alta → coda.json):
+//   node scripts/media/finestra.mjs villa-piscina-lunga-alta app/lib/motion/coda.json
+const [, , nomeArg, uscitaArg] = process.argv;
+const USCITA = uscitaArg ?? "app/lib/motion/finestra.json";
+const NOME = nomeArg ?? "villa-facciata-sale-alta";
 
 const foto = FOTO.find((f) => f.nome === NOME);
 if (!foto) throw new Error(`cielo.mjs non conosce ${NOME}`);

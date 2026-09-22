@@ -63,7 +63,7 @@ const NUDI_AMMESSI: Record<string, number> = {
   "app/case/[slug]/VivereInZona.tsx": 3, // D32
   "app/components/Footer.tsx": 3, // reso anche in /case/[slug] (spec §5.4); commit 17
   "app/components/Congedo.tsx": 1, // commit 17 (spec §3.18)
-  "app/components/OpenDomus.tsx": 1, // A45 (21 set.): il titolo enorme della finestra, bianco sulla foto, scala con lo stage — nessun flip per lettera dentro un nodo scalato
+  "app/components/OpenDomus.tsx": 2, // A45 (21 set.): il titolo enorme della finestra sul cielo-carta; A66 (22 set., sera): il titolo a gradini della coda (data-horizon-stair, il gesto del nastro come in HorizonStory)
   "app/components/HorizonStory.tsx": 1, // il titolo a gradini (data-horizon-stair): gesto di HorizonScroller, A12 (spec §3.5)
   "app/components/HeroCinematic.tsx": 1, // commit 8 (spec §2.5, strada «a»)
   "app/components/Contact.tsx": 1, // blocco del modulo con key={intent} (spec §8); commit 16

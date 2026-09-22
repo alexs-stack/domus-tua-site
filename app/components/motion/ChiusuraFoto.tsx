@@ -33,7 +33,8 @@ import { MQ } from "../../lib/motion/mq";
 import { clipSides } from "../../lib/motion/clip";
 
 /** La cornice della cartolina per fascia (Congedo.tsx, D29). */
-const CORNICE_LG = { t: 8, r: 22, b: 8, l: 22 };
+/** La cornice della cartolina da lg (D29): la legge anche la coda della finestra di Open Domus (A68). */
+export const CORNICE_LG = { t: 8, r: 22, b: 8, l: 22 };
 const CORNICE_TAB = { t: 4, r: 14, b: 4, l: 14 };
 const CORNICE_PHONE = { t: 4, r: 10, b: 4, l: 10 };
 const MQ_LG = "(min-width: 64rem)";

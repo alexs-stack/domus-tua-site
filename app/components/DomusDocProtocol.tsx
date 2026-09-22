@@ -425,8 +425,11 @@ export default function DomusDocProtocol({ id = "domus-doc", compact = false }: 
           <Hairline chapter="doc" axis="y" className="hidden lg:block" />
           <div>
             <ul className="grid text-body text-graphite">
+              {/* A64 (Alberto, 22 set., sera: «distanzia di più i pilastri … al momento è troppo veloce e non
+                  si fa in tempo a vedere quella successiva»): passo doppio (py-12) e la riga in misura lead,
+                  così fra uno sfoglio e l'altro passano ~220 px di scroll a 1440. */}
               {c.pillars.map((p) => (
-                <li key={p.t} data-doc-pilastro className="dt-doc_pilastro relative flex gap-3 py-6">
+                <li key={p.t} data-doc-pilastro className="dt-doc_pilastro relative flex gap-3 py-12">
                   <Hairline chapter="doc" />
                   <span aria-hidden className="dt-doc_tratto mt-3 h-px w-6 shrink-0 bg-red" />
                   <div>
@@ -434,7 +437,7 @@ export default function DomusDocProtocol({ id = "domus-doc", compact = false }: 
                       {p.t}
                     </SplitTitle>
                     {compact ? (
-                      <p className="mt-2">{p.seller}</p>
+                      <p className="mt-3 text-lead">{p.seller}</p>
                     ) : (
                       <>
                         <p className="mt-2">

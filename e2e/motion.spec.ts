@@ -191,6 +191,8 @@ test("la finestra di Open Domus con reduced motion è la foto in testa al capito
   expect(await od.locator(".dt-od_shutterzone, .dt-od_run, .dt-od_mark--a, .dt-od_mark--f, .dt-od_stage").count()).toBe(0);
   expect(await od.getAttribute("style")).toBeNull();
   expect(await od.locator(".dt-od_cornice").getAttribute("style")).toBeNull();
+  expect(await od.locator(".dt-od_window").getAttribute("style")).toBeNull();
+  expect(await od.locator(".dt-od_coda_foto").getAttribute("style")).toBeNull();
   const win = od.locator(".dt-od_window");
   await win.scrollIntoViewIfNeeded();
   await expect(win.locator("img")).toBeVisible();

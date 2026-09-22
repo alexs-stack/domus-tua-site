@@ -1095,72 +1095,81 @@ test.describe("Voci: il carosello arriva da destra", () => {
 // di lato: la foto esce a sinistra e i due pannelli del capitolo entrano coi sipari del nastro.
 test.describe("la finestra di Open Domus", () => {
   const CIMA = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/finestra.json"), "utf8")) as { cielo: { cima: number } }).cielo.cima;
+  const CIMA_CODA = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/coda.json"), "utf8")) as { cielo: { cima: number } }).cielo.cima;
   for (const vp of [
     { width: 1440, height: 900 },
     { width: 1024, height: 768 },
   ]) {
-    test(`a ${vp.width}×${vp.height} la facciata è a schermo intero da subito, sale, poi il nastro scorre di lato`, async ({ page, goto, isMobile }) => {
+    test(`a ${vp.width}×${vp.height} la facciata è a schermo intero da subito, sale dietro il titolo, poi il nastro scorre di lato e la coda scende`, async ({ page, goto, isMobile }) => {
       test.skip(!!isMobile, "il corridoio vive da 1024 px");
       await page.setViewportSize(vp);
       await goto("/");
       const od = page.locator("#open-domus");
       await expect(od).toHaveAttribute("data-on", "");
-      // A58: tende, stage, pista, marcatori, spazio sopra e chiusura sono morti.
-      expect(await od.locator(".dt-od_shutterzone, .dt-od_stage, .dt-od_run, .dt-od_mark, .dt-od_content, .dt-od_area").count()).toBe(0);
+      // A58: tende, stage, pista, marcatori, spazio sopra, chiusura e la soglia sono morti.
+      expect(await od.locator(".dt-od_shutterzone, .dt-od_stage, .dt-od_run, .dt-od_mark, .dt-od_content, .dt-od_area, .dt-od_porta").count()).toBe(0);
       await expect(od.locator(".dt-horizon_screen")).toHaveCSS("position", "sticky");
       const geo = await od.evaluate((el) => {
-        const cornice = el.querySelector<HTMLElement>(".dt-od_cornice")!;
+        const win = el.querySelector<HTMLElement>(".dt-od_window")!;
+        const titolo = el.querySelector<HTMLElement>(".dt-od_titolo")!;
         const track = el.querySelector<HTMLElement>(".dt-horizon_track")!;
+        const coda = el.querySelector<HTMLElement>(".dt-od_coda_foto")!;
         return {
           top: el.getBoundingClientRect().top + window.scrollY,
           h: (el as HTMLElement).offsetHeight,
-          corniceH: cornice.offsetHeight,
-          trackW: track.scrollWidth,
+          winH: win.offsetHeight,
+          copri: titolo.offsetTop + 0.5 * titolo.offsetHeight,
+          trackW: track.offsetWidth,
+          // La corsa del track si misura sullo schermo del nastro, senza la barra di scorrimento.
+          screenW: el.querySelector<HTMLElement>(".dt-horizon_screen")!.clientWidth,
+          codaH: coda.offsetHeight,
           vh: window.innerHeight,
           vw: window.innerWidth,
         };
       });
-      const lead = Math.max(0, CIMA * geo.corniceH - 0.1 * geo.vh);
+      const lead = Math.max(0, CIMA * geo.winH - geo.copri);
+      const run = geo.trackW - geo.screenW;
+      const from = -Math.max(0, CIMA_CODA * geo.codaH - 0.55 * geo.vh);
+      const tail = Math.max(0, geo.codaH - geo.vh + from);
       expect(lead, "la salita c'è").toBeGreaterThan(100);
-      // La sezione è alta quanto il track più la salita (il gesto resta 1:1), e il track sono tre pannelli.
-      expect(Math.abs(geo.h - (geo.trackW + lead))).toBeLessThanOrEqual(2);
+      expect(tail, "la coda c'è").toBeGreaterThan(200);
+      // La sezione è alta salita + corsa del track + coda + schermo (il gesto è 1:1), e il track sono tre pannelli.
+      expect(Math.abs(geo.h - (lead + run + tail + geo.vh))).toBeLessThanOrEqual(3);
       expect(Math.abs(geo.trackW - 3 * geo.vw)).toBeLessThanOrEqual(3);
 
-      // All'aggancio (s ≈ 0; wheelTo arriva a passi e può sforare di qualche decina di px): la cornice è
-      // salita di quanto si è sceso, il track è fermo, la foto è già a schermo intero: in cima la carta
-      // del cielo e il titolo in inchiostro (A46), la trave della pergola in vista.
+      // All'aggancio (s ≈ 0; wheelTo arriva a passi): la scatola della foto è salita di quanto la sezione è
+      // passata sotto il bordo (letto dal DOM), il titolo è fermo nella cornice, il track è fermo; in cima la
+      // carta del cielo e il titolo in inchiostro (A46), la trave della pergola in vista.
       await wheelTo(page, Math.round(geo.top));
       await page.waitForTimeout(600);
-      // La cornice sale di quanto la sezione è passata sotto il bordo alto (letto dal DOM, non dalla quota
-      // misurata prima: un refresh può spostarla), mai oltre la salita.
       const relA = await od.evaluate((el) => el.getBoundingClientRect().top);
       expect(relA, "wheelTo è finito oltre la salita").toBeGreaterThan(-(lead - 50));
-      expect(Math.abs((await matrixOf(od.locator(".dt-od_cornice"))).m42 - Math.max(-lead, Math.min(0, relA)))).toBeLessThanOrEqual(3);
+      expect(Math.abs((await matrixOf(od.locator(".dt-od_window"))).m42 - Math.max(-lead, Math.min(0, relA)))).toBeLessThanOrEqual(3);
+      expect(Math.abs((await matrixOf(od.locator(".dt-od_cornice"))).m42), "il titolo non deve muoversi (A65)").toBeLessThanOrEqual(0.5);
       expect(Math.abs((await matrixOf(od.locator(".dt-horizon_track"))).m41)).toBeLessThanOrEqual(2);
       await verificaCieloFinestra(page, `${vp.width}×${vp.height} all'aggancio`);
 
-      // Fine salita (s ≥ lead): la cornice è salita di `lead` e resta lì, la cima delle terrazze sta al 10 %
-      // del viewport (A57: «all'altezza dello screenshot»), il track ha appena cominciato, niente overflow.
+      // Fine salita (s ≥ lead): la scatola è salita di `lead` e resta lì; il tetto delle terrazze sta a metà
+      // delle lettere del titolo, che non si è mosso (A65); il track ha appena cominciato; niente overflow.
       await wheelTo(page, Math.round(geo.top + lead + 120));
       await page.waitForTimeout(700);
       const salita = await od.evaluate((el) => {
         const w = el.querySelector(".dt-od_window")!.getBoundingClientRect();
-        return { top: w.top, h: w.height };
+        const t = el.querySelector(".dt-od_titolo")!.getBoundingClientRect();
+        return { top: w.top, h: w.height, titolo: t.top + 0.5 * t.height };
       });
-      expect(Math.abs((await matrixOf(od.locator(".dt-od_cornice"))).m42 + lead)).toBeLessThanOrEqual(3);
-      expect(Math.abs(salita.top + CIMA * salita.h - 0.1 * geo.vh), "la cima delle terrazze non sta al 10 % del viewport").toBeLessThanOrEqual(4);
+      expect(Math.abs((await matrixOf(od.locator(".dt-od_window"))).m42 + lead)).toBeLessThanOrEqual(3);
+      expect(Math.abs(salita.top + CIMA * salita.h - salita.titolo), "il tetto non sta a metà delle lettere del titolo").toBeLessThanOrEqual(4);
       const xB = (await matrixOf(od.locator(".dt-horizon_track"))).m41;
       expect(xB).toBeLessThanOrEqual(0);
       expect(xB, "a inizio nastro il track è quasi fermo (dtInOut parte lenta)").toBeGreaterThan(-0.2 * geo.vw);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
 
-      // A metà nastro (p ≈ 0,5 del track: dtInOut è simmetrica, x ≈ −1vw; wheelTo e la quota misurata
-      // prima possono scostare di un centinaio di px, e la curva lì è ripida) il secondo pannello è in
-      // scena: la foto è uscita a sinistra, il video di Teresa ha il sipario aperto e l'occhiello è entrato.
-      const inizio = geo.top + lead;
-      const fine = geo.top + 0.975 * geo.h - geo.vh;
-      await wheelTo(page, Math.round(inizio + 0.5 * (fine - inizio)));
+      // A metà nastro (p ≈ 0,5: dtInOut è simmetrica, x ≈ −1vw; wheelTo può scostare e la curva lì è ripida) il
+      // secondo pannello è in scena: la foto è uscita a sinistra, il video di Teresa ha il sipario aperto e
+      // l'occhiello è entrato.
+      await wheelTo(page, Math.round(geo.top + lead + 0.5 * run));
       await page.waitForTimeout(2200);
       const x = (await matrixOf(od.locator(".dt-horizon_track"))).m41;
       expect(Math.abs(x + geo.vw), `il track sta a ${x}, non attorno a −1vw`).toBeLessThanOrEqual(0.35 * geo.vw);
@@ -1169,21 +1178,48 @@ test.describe("la finestra di Open Domus", () => {
       await expect.poll(async () => insetValues(await clipOf(video)), { timeout: 3000 }).toEqual([0, 0, 0, 0]);
       await expect.poll(() => productOpacity(od.locator(".dt-od_panel--claim .eyebrow").first()), { timeout: 3000 }).toBeGreaterThan(0.99);
 
-      // A fine nastro (bordo basso della sezione al bordo basso del viewport): il terzo pannello, con le due
-      // liste, il rilancio e Raffaela sulla soglia a sipario aperto, alta 80svh, intera e dentro lo schermo.
-      await wheelTo(page, Math.round(geo.top + geo.h - geo.vh));
+      // Fine del track (s = lead + corsa): la coda è in scena, la piscina a sipario aperto e già alzata (`from`:
+      // il soggetto al 55 % dello schermo, A67); sopra, sulla carta, il titolo a gradini, le liste e il rilancio
+      // dentro lo schermo. wheelTo può sforare: la coda è già scesa di quel tanto.
+      await wheelTo(page, Math.round(geo.top + lead + run));
       await page.waitForTimeout(2200);
-      const porta = od.locator(".dt-od_porta");
-      await expect.poll(async () => insetValues(await clipOf(porta)), { timeout: 3000 }).toEqual([0, 0, 0, 0]);
-      const pb = (await porta.boundingBox())!;
-      expect(pb.x).toBeGreaterThanOrEqual(0);
-      expect(pb.x + pb.width).toBeLessThanOrEqual(geo.vw + 1);
-      expect(Math.abs(pb.height - 0.8 * geo.vh)).toBeLessThanOrEqual(2);
-      expect(Math.abs(pb.width / pb.height - 2560 / 3816)).toBeLessThan(0.01);
+      const coda = od.locator(".dt-od_coda");
+      await expect.poll(async () => insetValues(await clipOf(coda)), { timeout: 3000 }).toEqual([0, 0, 0, 0]);
+      // wheelTo può fermarsi fino a ~100 px oltre la quota (ScrollTrigger e DOM non coincidono al pixel dopo
+      // il rientro della testata): la coda può essere già scesa di quel tanto, non di più, e mai risalita.
+      const fb = (await od.locator(".dt-od_coda_foto").boundingBox())!;
+      expect(Math.abs(fb.x)).toBeLessThanOrEqual(3);
+      expect(Math.abs(fb.width - geo.vw), "la piscina è larga tutto").toBeLessThanOrEqual(3);
+      expect(fb.y, "la piscina non è arrivata alzata quanto deve").toBeLessThanOrEqual(from + 4);
+      expect(fb.y, "la piscina è scesa troppo per la quota raggiunta").toBeGreaterThanOrEqual(from - 120);
+      const gb = (await od.locator("[data-horizon-stair]").first().boundingBox())!;
+      expect(gb.y).toBeGreaterThanOrEqual(0);
+      expect(gb.x).toBeGreaterThanOrEqual(0);
       const cta = od.getByRole("link", { name: /Scopri Open Domus/ });
       const cb = (await cta.boundingBox())!;
       expect(cb.x).toBeGreaterThanOrEqual(0);
       expect(cb.y + cb.height).toBeLessThanOrEqual(geo.vh);
+
+      // Fine della coda: 150 px oltre la fine della sezione (le quote di ScrollTrigger e il DOM possono
+      // scostare di qualche decina di px dopo il carico) lo schermo si è sganciato e sale con la pagina, la
+      // piscina è scesa di tutta la coda — il suo fondo era al fondo dello schermo e ora sta 150 px sopra —
+      // e il track non si è mosso oltre la sua corsa.
+      // La quota si rilegge dal DOM: la sezione di Voci si accorcia di ~80 px dopo il primo passaggio (misurato
+      // il 22 set. sera) e tutto quel che sta sotto sale di altrettanto.
+      const topFine = await od.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+      await wheelTo(page, Math.round(topFine + geo.h - geo.vh + 150));
+      await page.waitForTimeout(900);
+      const fine = (await od.locator(".dt-od_coda_foto").boundingBox())!;
+      expect(Math.abs(fine.y + fine.height - (geo.vh - 150)), "il fondo della piscina non è arrivato al fondo dello schermo prima dello sgancio").toBeLessThanOrEqual(6);
+      expect(Math.abs((await matrixOf(od.locator(".dt-horizon_track"))).m41 + run)).toBeLessThanOrEqual(3);
+
+      // A68: all'uscita la piscina si chiude in cartolina (8/22, ChiusuraFoto) finché il fondo della sezione
+      // non arriva al 10 % del viewport; 100 px oltre quel punto la cornice è piena.
+      await wheelTo(page, Math.round(topFine + geo.h - 0.1 * geo.vh + 100));
+      await page.waitForTimeout(1200);
+      const cartolina = insetValues(await clipOf(od.locator(".dt-od_coda")))!;
+      expect(Math.abs(cartolina[0] - 8), `cornice sopra ${cartolina[0]} %`).toBeLessThanOrEqual(1);
+      expect(Math.abs(cartolina[1] - 22), `cornice a destra ${cartolina[1]} %`).toBeLessThanOrEqual(1);
     });
   }
 
