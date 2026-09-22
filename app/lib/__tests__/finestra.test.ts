@@ -148,6 +148,14 @@ describe("dove vive la finestra", () => {
     const contenuto = t.indexOf('className="dt-od_content dt-chapter"', finestraBox);
     const pista = t.indexOf('className="dt-od_run"', contenuto);
     assert.ok(cornice > -1 && finestraBox > cornice && contenuto > finestraBox && pista > contenuto, "il capitolo non sta nella cornice dopo la foto (A47)");
+    // A53 sulla finestra (22 set., pomeriggio: «qua, la foto … deve rimpicciolirsi alla fine»): ChiusuraFoto dopo il
+    // capitolo, dentro la cornice, e ChiusuraFoto sa leggere la finestra (data-od: cornice, scatola, capitolo).
+    const chiusura = t.indexOf("<ChiusuraFoto />", contenuto);
+    assert.ok(chiusura > contenuto && chiusura < pista, "ChiusuraFoto non è montata nella cornice dopo il capitolo (A53 sulla finestra)");
+    assert.match(t, /import ChiusuraFoto from "\.\/motion\/ChiusuraFoto"/);
+    const cf = soloCodice(leggi("app/components/motion/ChiusuraFoto.tsx"));
+    assert.match(cf, /closest<HTMLElement>\("\[data-testa\], \[data-od\]"\)/, "ChiusuraFoto non riconosce la finestra (data-od)");
+    for (const s of [".dt-od_cornice", ".dt-od_window", ".dt-od_content"]) assert.ok(cf.includes(s), `ChiusuraFoto non legge ${s}`);
     assert.match(t, /<section[^>]*className="dt-od bg-cream"[^>]*data-sopra="foto"/, "la section della finestra non dichiara data-sopra=\"foto\" (A47)");
     const css = leggi("app/globals.css").replace(/\/\*[\s\S]*?\*\//g, " ");
     const titolo = /\.dt-od_titolo\s*\{[^}]*\}/.exec(css)?.[0] ?? "";

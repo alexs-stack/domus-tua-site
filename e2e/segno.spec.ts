@@ -70,7 +70,7 @@ const coloriSegno = (page: Page) =>
     };
   });
 const INK = "rgb(70, 66, 61)"; // --color-ink
-const CREAM = "rgb(249, 237, 232)"; // --color-cream
+const CREAM = "rgb(246, 217, 208)"; // --color-cream
 const MONOGRAMMA = ["rgb(89, 90, 88)", "rgb(227, 7, 22)"]; // #595a58 e #e30716, MarkDomus.tsx (C23)
 
 test.beforeEach(async ({ page }) => {

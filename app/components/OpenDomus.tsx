@@ -4,6 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
 import RevealGroup from "./motion/RevealGroup";
+import ChiusuraFoto from "./motion/ChiusuraFoto";
 import SplitTitle from "./motion/SplitTitle";
 import Lead from "./motion/Lead";
 import { useCorridor } from "./motion/useCorridor";
@@ -518,6 +519,11 @@ function Finestra({ villaAlt, titolo, locale, children }: { villaAlt: string; ti
               >
                 {children}
               </RevealGroup>
+              {/* A53 sulla finestra (Alberto, 22 set. 2026, pomeriggio: «qua, la foto, come nelle altre pagine con le
+                  foto a schermo intero no bg, deve rimpicciolirsi alla fine»): a fine coda la facciata si ritira
+                  nella cornice della cartolina mentre sale, come le teste. Si arma solo con una coda libera di
+                  almeno un quarto di viewport sotto il capitolo (a 1024 il capitolo arriva quasi al travertino). */}
+              <ChiusuraFoto />
             </div>
           </div>
         </div>

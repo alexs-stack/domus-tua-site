@@ -435,7 +435,9 @@ export default function PropertyDetail({
 
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-ui font-semibold uppercase tracking-[0.08em] text-red">{p.zone}</p>
+            {/* A51 (22 set. 2026): sulla carta rosa pesca il rosso vivo scende sotto 4,5:1 sui 16 px: il rosso cupo,
+                come gli occhielli. */}
+            <p className="text-ui font-semibold uppercase tracking-[0.08em] text-red-dark">{p.zone}</p>
             <h1 className="mt-3 max-w-[20ch] font-display text-d1 balance">{p.title}</h1>
           </div>
           <span className="tnum font-display text-d2 text-ink">{p.price}</span>

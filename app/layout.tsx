@@ -157,7 +157,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f9ede8",
+  themeColor: "#f6d9d0",
 };
 
 const jakarta = Plus_Jakarta_Sans({

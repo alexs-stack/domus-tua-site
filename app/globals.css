@@ -54,11 +54,11 @@
      paragrafo editoriale» — la gerarchia la fanno peso e misura. */
   --color-ink: #46423d;
   --color-graphite: #46423d;
-  --color-stone: #6b665f;
-  --color-line: #e8d8d0;
-  --color-cream: #f9ede8;
-  --color-cream-deep: #f6e9e1;
-  --color-paper: #fff9f6;
+  --color-stone: #625d56;
+  --color-line: #e9c9c0;
+  --color-cream: #f6d9d0;
+  --color-cream-deep: #f2cfc5;
+  --color-paper: #fdf1ec;
 
   /* Darks caldi (bordeaux/espresso) — profondità nelle sezioni scure, mai grigio/nero piatto */
   --color-espresso: #1c1512;
@@ -209,7 +209,7 @@
 }
 
 :root {
-  --background: #f9ede8;
+  --background: #f6d9d0;
   --foreground: #46423d;
 }
 
@@ -812,7 +812,10 @@ blockquote * {
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-red);
+  /* A51 (Alberto, 22 set. 2026: «è ancora troppo bianco»): sulla carta rosa pesca #f6d9d0 il rosso vivo
+     #d20a0a scende a 4,2:1 sui 16 px dell'occhiello; il rosso cupo, che è già il rosso dei testi piccoli
+     sull'avorio (PRODUCT.md), regge 6,1:1. Il rosso vivo resta ai titoli, al corsivo e ai bottoni. */
+  color: var(--color-red-dark);
 }
 
 .eyebrow::before {
@@ -1991,11 +1994,23 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
 }
 
 /* --- cta: contorno rosso → pieno --- */
+/* A51 (Alberto, 22 set. 2026: «è ancora troppo bianco»): sulla carta rosa pesca #f6d9d0 il rosso vivo
+   #d20a0a regge 4,2:1, sotto il 4,5:1 dei testi normali (a11y.spec su ogni rotta): i testi PICCOLI in
+   rosso — etichette e link a 16 px, corpi, numeri non display, e il bottone a testo rosso — passano al
+   rosso cupo #a30707 (6,1:1), che è già il rosso dei testi piccoli sull'avorio (PRODUCT.md). Titoli,
+   «Tua», corsivi e bottoni pieni restano nel rosso vivo: sono grandi, e 3:1 basta. */
+.text-ui.text-red,
+.text-body.text-red,
+:is(.text-ui, .text-body) .text-red,
+.tnum.text-red:not(.font-display),
+a.text-red {
+  color: var(--color-red-dark);
+}
 .dt-btn--cta {
   padding: var(--btn-py) var(--btn-px);
-  color: var(--color-red);
+  color: var(--color-red-dark);
   background: transparent;
-  border: 1.5px solid var(--color-red);
+  border: 1.5px solid var(--color-red-dark);
 }
 .dt-btn--cta:hover,
 .dt-btn--cta:focus-visible {

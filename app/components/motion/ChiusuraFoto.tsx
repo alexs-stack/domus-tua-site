@@ -18,7 +18,14 @@
    clip-path). Il clip si scrive con `clipSides` (spigolo vivo, C01). Con reduced-motion, sotto la
    soglia di motion e senza JS non succede niente: la foto finisce dritta, la pagina è completa.
    Il componente non ha DOM suo: uno span nascosto per trovare la testa che lo monta (PageHeroTesta
-   resta server, senza hook: a28-fallback.test). */
+   resta server, senza hook: a28-fallback.test).
+   A47 + A53 (Alberto, 22 set. 2026, pomeriggio, con lo screenshot del fondo della facciata: «qua, la
+   foto, come nelle altre pagine con le foto a schermo intero no bg, deve rimpicciolirsi alla fine»):
+   lo monta anche la finestra di Open Domus in home (OpenDomus.tsx, dentro la cornice dopo il
+   capitolo): lì lo strato è la cornice `.dt-od_cornice`, la scatola della foto `.dt-od_window` e lo
+   spazio sopra il capitolo `.dt-od_content`; la sezione porta `data-od` e `data-sopra="foto"`. La
+   scatola sta dentro lo stage sticky del corridoio, ma la chiusura parte quando lo stage è già
+   sganciato e a scala 1, e il clip sta sulla scatola, che non è antenata di nulla di sticky. */
 
 import { useRef } from "react";
 import { gsap, useGSAP } from "../../lib/motion/gsap";
@@ -36,13 +43,19 @@ export default function ChiusuraFoto() {
 
   useGSAP(
     () => {
-      const testa = ref.current?.closest<HTMLElement>("[data-testa]") ?? null;
-      const strato = testa?.querySelector<HTMLElement>("[data-testa-strato]") ?? null;
-      const foto = testa?.querySelector<HTMLElement>("[data-testa-foto-box]") ?? null;
-      const sopra = testa?.querySelector<HTMLElement>(".dt-testa_sopra") ?? null;
+      const testa = ref.current?.closest<HTMLElement>("[data-testa], [data-od]") ?? null;
+      // A47: nella finestra di Open Domus (`data-od`) le tre scatole hanno i nomi della finestra.
+      const od = testa?.hasAttribute("data-od") ?? false;
+      const strato = testa?.querySelector<HTMLElement>(od ? ".dt-od_cornice" : "[data-testa-strato]") ?? null;
+      const foto = testa?.querySelector<HTMLElement>(od ? ".dt-od_window" : "[data-testa-foto-box]") ?? null;
+      const sopra = testa?.querySelector<HTMLElement>(od ? ".dt-od_content" : ".dt-testa_sopra") ?? null;
       if (!testa || !strato || !foto) return;
       const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
+      // Nella finestra (A47) sotto lg il clip della scatola è dell'otturatore di spec §3.10 (OpenDomus.tsx,
+      // ramo `phone`): due padroni sullo stesso clip-path sono uno di troppo, e la chiusura lì non si arma.
+      mm.add({ motionOk: MQ.motionOk, lg: MQ_LG }, (ctx) => {
+        const c = ctx.conditions as { motionOk: boolean; lg: boolean };
+        if (!c.motionOk || (od && !c.lg)) return;
         const cornice = () => (window.matchMedia(MQ_LG).matches ? CORNICE_LG : window.matchMedia(MQ.desktop).matches ? CORNICE_TAB : CORNICE_PHONE);
         // Lo spazio sopra sta SULLA foto (da lg, con la banda scura): la chiusura parte quando il suo fondo passa la
         // cima del viewport, così nessuna scritta bianca resta sulla carta scoperta dal ritaglio. Altrimenti parte

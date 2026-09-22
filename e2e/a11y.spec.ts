@@ -98,7 +98,7 @@ for (const path of PAGES) {
       for (const sel of [".dt-testa_blocco h1", ".dt-testa_blocco p.lead"]) {
         const c = await contrastoSullaCarta(page, sel);
         expect(c.rapporto, `${path} ${sel}: rgb(${c.testo}) su rgb(${c.fondo}) fa ${c.rapporto.toFixed(2)}:1, sotto 4,5:1`).toBeGreaterThanOrEqual(4.5);
-        for (let i = 0; i < 3; i++) expect(Math.abs(c.fondo[i] - [249, 237, 232][i]), `${path} ${sel}: sotto il testo non c'è la carta (rgb(${c.fondo}))`).toBeLessThanOrEqual(3);
+        for (let i = 0; i < 3; i++) expect(Math.abs(c.fondo[i] - [246, 217, 208][i]), `${path} ${sel}: sotto il testo non c'è la carta (rgb(${c.fondo}))`).toBeLessThanOrEqual(3);
       }
     }
   });

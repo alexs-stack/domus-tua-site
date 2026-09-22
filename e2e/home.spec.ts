@@ -1171,6 +1171,23 @@ test.describe("la finestra di Open Domus", () => {
       expect(dopo.winH / dopo.vh, "la finestra non è alta più di due schermi").toBeGreaterThan(2);
       expect(dopo.cTop, "il capitolo non posa sulla metà bassa della foto (A47)").toBeGreaterThan(dopo.winTop + 0.5 * dopo.winH - 2);
       expect(dopo.cBottom, "il capitolo esce dalla foto").toBeLessThanOrEqual(dopo.winBottom + 2);
+      // A53 sulla finestra (Alberto, 22 set. 2026, pomeriggio: «qua, la foto, come nelle altre pagine con le foto a
+      // schermo intero no bg, deve rimpicciolirsi alla fine»): con una coda libera di almeno un quarto di viewport
+      // sotto il capitolo, quando il fondo della foto arriva al 10 % del viewport la scatola sta nella cornice 8/22.
+      const coda = dopo.winBottom - dopo.cBottom;
+      if (coda >= 0.25 * dopo.vh) {
+        const fineFoto = await page.evaluate(() => document.querySelector("#open-domus .dt-od_window")!.getBoundingClientRect().bottom + window.scrollY);
+        await wheelTo(page, Math.round(fineFoto - 0.1 * geo.vh));
+        await page.waitForTimeout(1200);
+        const clip = await page.locator("#open-domus .dt-od_window").evaluate((el) => getComputedStyle(el).clipPath);
+        const lati = clip.match(/inset\(([^)]*)\)/)?.[1].split(/\s+/).map((v) => parseFloat(v)) ?? [];
+        expect(lati.length, `a fine coda la facciata non è ritagliata: ${clip}`).toBeGreaterThan(0);
+        const [alto, destra] = [lati[0], lati[1] ?? lati[0]];
+        expect(Math.abs(alto - 8), `cornice sopra ${alto} %`).toBeLessThanOrEqual(1);
+        expect(Math.abs(destra - 22), `cornice a destra ${destra} %`).toBeLessThanOrEqual(1);
+      } else {
+        expect(await page.locator("#open-domus .dt-od_window").evaluate((el) => getComputedStyle(el).clipPath), "coda corta: nessun clip").toBe("none");
+      }
       // A56 (22 set., pomeriggio): nel grigio del lockup, senza ombra, non più in bianco.
       const occhiello = page.locator("#open-domus .dt-od_content .eyebrow").first();
       await expect(occhiello).toHaveCSS("color", "rgb(70, 66, 61)");
@@ -1206,7 +1223,7 @@ test.describe("la finestra di Open Domus", () => {
       const i = (Math.round(y * k) * info.width + Math.round(x * k)) * info.channels;
       return [data[i], data[i + 1], data[i + 2]];
     };
-    const avorio = (p: number[]) => Math.abs(p[0] - 249) <= 3 && Math.abs(p[1] - 237) <= 3 && Math.abs(p[2] - 232) <= 3;
+    const avorio = (p: number[]) => Math.abs(p[0] - 246) <= 3 && Math.abs(p[1] - 217) <= 3 && Math.abs(p[2] - 208) <= 3;
     // A schermo intero lo stage sticky può stare qualche decina di px sopra il bordo (a 1440×900 la
     // finestra comincia a −84): si campiona la parte VISIBILE della finestra. Il cielo trasparente della
     // facciata è sottile in cima (le punte dei cipressi ai lati stanno a 0,121 dell'altezza della foto).

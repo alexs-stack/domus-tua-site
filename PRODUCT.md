@@ -75,11 +75,12 @@ stanno in `DESIGN.md`.
 
 ### Colore
 
-- Palette: rosso #d20a0a (un accento per vista) + neutri caldi carta #fff9f6, avorio #f9ede8,
-  avorio profondo #f6e9e1 + inchiostro #46423d (uguale alla grafite), pietra #6b665f, filo #e8d8d0.
+- Palette: rosso #d20a0a (un accento per vista) + neutri caldi carta #fdf1ec, avorio #f6d9d0,
+  avorio profondo #f2cfc5 + inchiostro #46423d (uguale alla grafite), pietra #625d56, filo #e9c9c0.
   Il rosso cupo #a30707 è lo stato hover/focus dei bottoni rossi e, a riposo, il colore dei testi
   rossi che devono reggere sull'avorio (errori e conferme dei form, chip dei filtri, contatore
-  della mappa).
+  della mappa; dal 22 set., A51, sulla carta rosa pesca anche occhielli, etichette e numeri piccoli, link
+  e il bottone a testo rosso: il rosso vivo #d20a0a lì fa 4,2:1).
 - Niente nero (la cliente, 10 set.: «niente colore nero», «eliminare nero ovunque»): un solo fondo
   avorio, nessuna sezione scura. Restano scuri il pannello espresso #1c1512 del preloader
   (decisione di lavoro, 10 set., che nessuno ha approvato esplicitamente: domanda aperta) e

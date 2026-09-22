@@ -21,9 +21,11 @@ const INK = "rgb(70, 66, 61)";
 /** La grafite del lead (`--color-graphite`) ha lo stesso valore dell'inchiostro. */
 const GRAFITE = "rgb(70, 66, 61)";
 const ROSSO = "rgb(210, 10, 10)";
-const CREAM_DEEP = "rgb(246, 233, 225)";
+/** A51 (22 set.): sulla carta rosa pesca l'occhiello (16 px) è nel rosso cupo, il rosso dei testi piccoli sull'avorio. */
+const ROSSO_CUPO = "rgb(163, 7, 7)";
+const CREAM_DEEP = "rgb(242, 207, 197)";
 /** L'avorio della carta, in RGB: i pixel sotto le scritte devono essere questo, ±3 per canale (A46). */
-const AVORIO_RGB = [249, 237, 232] as const;
+const AVORIO_RGB = [246, 217, 208] as const;
 /** D124: dove `tinte.json` dichiara l'avorio, la pagina spedisce un token. A46 (21 set. 2026): col
     cielo mascherato il riquadro si vede attraverso la foto, quindi il token è il FONDO PAGINA. */
 const TOKEN_ALTA = "--color-cream";
@@ -254,7 +256,7 @@ test.describe("la testa", () => {
           expect(g.solid!.top, `${lang}: il bottone non sta in basso`).toBeGreaterThan(g.h1!.bottom);
           // I colori della rivista (A46), e nessuna ombra (D184).
           expect(g.stili.h1?.color, `${lang}: l'H1 non è inchiostro`).toBe(INK);
-          expect(g.stili.eyebrow?.color, `${lang}: l'occhiello non è rosso`).toBe(ROSSO);
+          expect(g.stili.eyebrow?.color, `${lang}: l'occhiello non è nel rosso cupo (A51)`).toBe(ROSSO_CUPO);
           expect(g.stili.lead?.color, `${lang}: il lead non è grafite`).toBe(GRAFITE);
           if (tinte[rotta].trattamento === "testa" || g.stili.script) expect(g.stili.script?.color, `${lang}: la calligrafia non è rossa`).toBe(ROSSO);
           for (const z of ["h1", "eyebrow", "lead", "ghost", "script", "solid"] as const) if (g.stili[z]) expect(g.stili[z]!.shadow, `${lang}: ${z} porta un'ombra (D184)`).toBe("none");
@@ -275,7 +277,7 @@ test.describe("la testa", () => {
           // Il WebP col cielo trasparente dove c'è (A46), altrimenti la sorgente.
           expect(g.currentSrc ?? "", `${lang}: la foto montata non è quella di tinte.json`).toContain(encodeURIComponent(tinte[rotta].cielo.file ?? tinte[rotta].file));
           // I fondi: il riquadro è la carta, la scatola della foto porta il placeholder (la tinta alta, D125), lo spazio sopra è nudo.
-          expect(g.fondoRiquadro, `${lang}: il riquadro non è la carta (A46)`).toBe(rgb("#f9ede8"));
+          expect(g.fondoRiquadro, `${lang}: il riquadro non è la carta (A46)`).toBe(rgb("#f6d9d0"));
           expect(g.fondoFoto, `${lang}: la scatola della foto non porta la tinta di attesa (D125)`).toBe(await tintaAttesa(page, rotta));
           expect(g.fondoStrato, `${lang}: lo strato ha un fondo: colorerebbe lo spazio sotto la foto (A48)`).toBe("rgba(0, 0, 0, 0)");
           expect(g.fondoPagina, `${lang}: lo spazio sopra la foto ha un fondo (A48: niente velo)`).toBe("rgba(0, 0, 0, 0)");
@@ -632,7 +634,7 @@ test.describe("sotto lg", () => {
       // I colori della rivista anche qui (A46).
       expect(g.stili.h1?.color).toBe(INK);
       expect(g.stili.lead?.color).toBe(GRAFITE);
-      expect(g.stili.eyebrow?.color).toBe(ROSSO);
+      expect(g.stili.eyebrow?.color).toBe(ROSSO_CUPO);
       expect(g.sizes).toBe(SIZES_TESTA);
       await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
       await page.waitForTimeout(400);
@@ -692,7 +694,7 @@ test.describe("senza JS e con moto ridotto", () => {
         expect(g.corridoi).toBe(0);
         expect(g.stili.h1!.color).toBe(INK);
         expect(g.stili.lead!.color).toBe(GRAFITE);
-        expect(g.fondoRiquadro).toBe(rgb("#f9ede8"));
+        expect(g.fondoRiquadro).toBe(rgb("#f6d9d0"));
         expect(Math.abs(g.blocco!.top)).toBeLessThanOrEqual(1);
         await page.evaluate(() => window.scrollTo({ top: 500, behavior: "instant" }));
         await page.waitForTimeout(400);
@@ -991,11 +993,11 @@ test.describe("le tinte", () => {
     expect(scatola, "la scatola della foto non prende la tinta alta").toBe(await tintaAttesa(page, "/vendi"));
     expect(await page.locator("[data-testa-strato]").first().evaluate((el) => getComputedStyle(el).backgroundColor), "lo strato ha un fondo: colorerebbe lo spazio sotto la foto (A48)").toBe("rgba(0, 0, 0, 0)");
     const riquadro = await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(riquadro, "il riquadro della testa non è la carta (A46)").toBe(rgb("#f9ede8"));
+    expect(riquadro, "il riquadro della testa non è la carta (A46)").toBe(rgb("#f6d9d0"));
     // Su un interno la tinta misurata (D123) resta sullo strato e la carta resta avorio.
     await goto("/chi-siamo");
     expect(await page.locator("[data-testa-foto-box]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await tintaAttesa(page, "/chi-siamo"));
-    expect(await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(rgb("#f9ede8"));
+    expect(await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(rgb("#f6d9d0"));
     await goto("/vendi");
     const modulo = await page.evaluate(() => {
       const el = document.createElement("div");
@@ -1005,7 +1007,7 @@ test.describe("le tinte", () => {
       el.remove();
       return c;
     });
-    expect(modulo).toBe(rgb("#f6e9e1"));
+    expect(modulo).toBe(rgb("#f2cfc5"));
   });
 });
 

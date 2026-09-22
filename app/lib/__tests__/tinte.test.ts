@@ -58,7 +58,7 @@ const tinte = JSON.parse(leggi("app/lib/motion/tinte.json")) as Record<string, V
 /* I pavimenti di §4.3: assoluto = 4,5:1 con ink #46423d («nessuna sezione scura» detto con una
    cifra); di lavoro = 4,5:1 col rosso cupo #a30707 e con «Menu» grafite sulla barra. */
 const PAVIMENTI = { assoluto: 0.4241, lavoro: 0.5329 };
-const AVORIO = "#f9ede8";
+const AVORIO = "#f6d9d0";
 
 /* D124: il token che la pagina spedisce dove il JSON dichiara l'avorio, col suo valore in
    globals.css. A46: è il FONDO PAGINA, perché col cielo trasparente il riquadro non deve
@@ -215,7 +215,7 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
   });
 
   test("i pavimenti di chiarezza, sul valore che la pagina spedisce: nessuna sezione scura (§4.3, D124)", () => {
-    assert.equal(HEX_TOKEN_ALTA, "#f9ede8", "il token dell'avorio (A46: il fondo pagina) non vale più quel che valeva");
+    assert.equal(HEX_TOKEN_ALTA, "#f6d9d0", "il token dell'avorio (A46: il fondo pagina) non vale più quel che valeva");
     const scuro = lumaY(daHex("#aeaeae"));
     for (const [rotta, v] of Object.entries(tinte)) {
       const y = spedita(v.alta).y;
@@ -467,7 +467,16 @@ describe("il cielo mascherato delle foto alte (A46)", () => {
       const v = tinte[rotta];
       assert.deepEqual(v.cielo, { file: null, linea: 0, cima: 0 }, `${rotta}: è un interno`);
       assert.equal(existsSync(join(ROOT, "public", v.file.replace(/\.jpg$/, "-cielo.webp"))), false, `${rotta}: un WebP del cielo per un interno`);
-      assert.notEqual(v.alta.hex, "avorio", `${rotta}: senza cielo la tinta resta misurata (D123)`);
+      // D123: senza cielo la tinta è quella misurata, salvo che la sua distanza di valore dall'avorio stia sotto
+      // il cancello (CANCELLO_ALTA): allora la rotta dichiara l'avorio col numero. Con la carta rosa di A51
+      // (#f6d9d0, più scura del #f9f5ef di prima) i due attici stanno a 1,48 e dichiarano l'avorio: è la regola,
+      // non un'eccezione, e qui si pretende solo che il verdetto segua il numero.
+      assert.equal(
+        v.alta.hex === "avorio",
+        v.alta.avorio < CANCELLO_ALTA,
+        `${rotta}: la tinta alta dichiara ${v.alta.hex} con una distanza dall'avorio di ${v.alta.avorio}:1 (cancello ${CANCELLO_ALTA})`,
+      );
+      if (v.alta.hex === "avorio") assert.match(v.alta.misurato ?? "", /^#[0-9a-f]{6}$/, `${rotta}: manca la tinta misurata accanto all'avorio dichiarato`);
     }
     for (const rotta of ["/privacy", "/cookie"]) assert.deepEqual(tinte[rotta].cielo, { file: null, linea: 0, cima: 0 }, `${rotta}: i legali sono fermi`);
   });

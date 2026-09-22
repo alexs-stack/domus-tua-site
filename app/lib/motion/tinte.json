@@ -12,12 +12,12 @@
     },
     "alta": {
       "hex": "avorio",
-      "sorgente": "#f9ede8",
-      "Y": 0.8653,
+      "sorgente": "#f6d9d0",
+      "Y": 0.7377,
       "dH": 0,
-      "C": 5.01,
+      "C": 11.82,
       "avorio": 1,
-      "misurato": "#f9ede8"
+      "misurato": "#f6d9d0"
     },
     "cielo": {
       "file": "/images/reali/villa-facciata-piscina-alta-cielo.webp",
@@ -52,12 +52,12 @@
     },
     "alta": {
       "hex": "avorio",
-      "sorgente": "#f9ede8",
-      "Y": 0.8653,
+      "sorgente": "#f6d9d0",
+      "Y": 0.7377,
       "dH": 0,
-      "C": 5.01,
+      "C": 11.82,
       "avorio": 1,
-      "misurato": "#f9ede8"
+      "misurato": "#f6d9d0"
     },
     "cielo": {
       "file": "/images/reali/villa-lettini-prato-alta-cielo.webp",
@@ -84,12 +84,12 @@
     },
     "alta": {
       "hex": "avorio",
-      "sorgente": "#f9ede8",
-      "Y": 0.8653,
+      "sorgente": "#f6d9d0",
+      "Y": 0.7377,
       "dH": 0,
-      "C": 5.01,
+      "C": 11.82,
       "avorio": 1,
-      "misurato": "#f9ede8"
+      "misurato": "#f6d9d0"
     },
     "cielo": {
       "file": "/images/reali/villa-angolo-piscina-alta-cielo.webp",
@@ -128,12 +128,12 @@
     },
     "alta": {
       "hex": "avorio",
-      "sorgente": "#f9ede8",
-      "Y": 0.8653,
+      "sorgente": "#f6d9d0",
+      "Y": 0.7377,
       "dH": 0,
-      "C": 5.01,
+      "C": 11.82,
       "avorio": 1,
-      "misurato": "#f9ede8"
+      "misurato": "#f6d9d0"
     },
     "cielo": {
       "file": "/images/reali/villa-vetrata-sera-alta-cielo.webp",
@@ -172,7 +172,7 @@
       "Y": 0.5331,
       "dH": 1.17,
       "C": 9.15,
-      "avorio": 1.57,
+      "avorio": 1.351,
       "misurato": "#cfbeb2"
     },
     "cielo": {
@@ -211,12 +211,13 @@
       "sotto": "50% 50%"
     },
     "alta": {
-      "hex": "#c9c0b9",
+      "hex": "avorio",
       "sorgente": "#a59183",
       "Y": 0.5362,
       "dH": 0.77,
       "C": 5.03,
-      "avorio": 1.561
+      "avorio": 1.344,
+      "misurato": "#c9c0b9"
     },
     "cielo": {
       "file": null,
@@ -247,12 +248,12 @@
     },
     "alta": {
       "hex": "avorio",
-      "sorgente": "#f9ede8",
-      "Y": 0.8653,
+      "sorgente": "#f6d9d0",
+      "Y": 0.7377,
       "dH": 0,
-      "C": 5.01,
+      "C": 11.82,
       "avorio": 1,
-      "misurato": "#f9ede8"
+      "misurato": "#f6d9d0"
     },
     "cielo": {
       "file": "/images/reali/villa-salotto-esterno-alta-cielo.webp",
@@ -278,12 +279,13 @@
       "sotto": "50% 50%"
     },
     "alta": {
-      "hex": "#c5c1be",
+      "hex": "avorio",
       "sorgente": "#aba39e",
       "Y": 0.5373,
       "dH": 0.4,
       "C": 2.17,
-      "avorio": 1.559
+      "avorio": 1.341,
+      "misurato": "#c5c1be"
     },
     "cielo": {
       "file": null,
@@ -318,12 +320,12 @@
     },
     "alta": {
       "hex": "avorio",
-      "sorgente": "#f9ede8",
-      "Y": 0.8653,
+      "sorgente": "#f6d9d0",
+      "Y": 0.7377,
       "dH": 0,
-      "C": 5.01,
+      "C": 11.82,
       "avorio": 1,
-      "misurato": "#f9ede8"
+      "misurato": "#f6d9d0"
     },
     "cielo": {
       "file": "/images/reali/villa-piscina-lunga-alta-cielo.webp",
@@ -353,12 +355,13 @@
       "sotto": "0% 50%"
     },
     "alta": {
-      "hex": "#d1beab",
+      "hex": "avorio",
       "sorgente": "#c7ae94",
       "Y": 0.5332,
       "dH": 0.04,
       "C": 12.57,
-      "avorio": 1.569
+      "avorio": 1.351,
+      "misurato": "#d1beab"
     },
     "cielo": {
       "file": null,
@@ -379,12 +382,13 @@
       "sotto": "75% 50%"
     },
     "alta": {
-      "hex": "#c0c2bf",
+      "hex": "avorio",
       "sorgente": "#525b4c",
       "Y": 0.5355,
       "dH": 0.24,
       "C": 1.77,
-      "avorio": 1.563
+      "avorio": 1.345,
+      "misurato": "#c0c2bf"
     },
     "cielo": {
       "file": null,
