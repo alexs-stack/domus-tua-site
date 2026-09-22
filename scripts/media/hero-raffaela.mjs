@@ -1,32 +1,37 @@
-// LA RAFFAELA VERA NELLA FOTO ALTA DELL'HERO (A73 di Alberto, 22 settembre 2026, notte).
+// LA RAFFAELA VERA NELLA FOTO ALTA DELL'HERO (A73 e A74 di Alberto, 22 settembre 2026, notte).
 //
 // Chi l'ha chiesto: A73, «la foto della hero va modificata: usa Higgsfield per togliere il bg (ha
 // qualche problema), e mettere la foto di Raffaela (attualmente è irriconoscibile perché modificata da
 // Higgsfield). Usa quella del preloader. È come se dobbiamo photoshoppare la foto aggiungendo
 // perfettamente la sagoma mascherata di Raffaela nella foto al posto di quella attuale. Proviamo con
-// Higgsfield se fa. Non devono cambiare né rapporti, grandezza, né qualità».
+// Higgsfield se fa. Non devono cambiare né rapporti, grandezza, né qualità». Poi A74, vedendo il primo
+// montaggio (la sagoma del preloader, tagliata alle ginocchia, sui pantaloni della foto): «abbiamo fatto
+// la foto con Higgsfield senza Raffaela apposta per poi attaccarla sopra, perché l'hai messa nella foto
+// vecchia? Se non ha le gambe quella del preloader, metti questa» — il ritaglio INTERO, con le gambe e
+// le scarpe (Downloads/higgsfield/raffaela-intera.png, 2560×3816 con l'alpha, la figura 1183×2187 px).
 //
 // Com'è fatto (un fotoritocco, non una generazione: la foto resta 2560×3812 e i suoi pixel restano
 // quelli, tranne dove stava la figura alterata):
 // 1. il PLATE: la foto alta senza la donna, chiesto a Higgsfield (gpt_image_2_5, «remove the woman …
 //    keep every other part unchanged», 2k = 1360×2048, 3 crediti; job ef80fd4b-78d1-49bc-ae07-107abc4de706,
-//    scaricato in Downloads/higgsfield come hf_20260922_181915_ef80fd4b-….png); il rendering è morbido
-//    e traslato di qualche pixel: qui lo si ALLINEA all'originale (SAD sulla balaustra a destra) e lo si
-//    usa SOLO nelle schegge della figura vecchia che la figura nuova non copre (braccio destro, fianco,
-//    capelli), con bordo sfumato — la maschera è la differenza originale/plate, misurata su copie sfumate
-//    (i bordi fini disallineati si spengono), dentro il rettangolo della figura, chiusa;
-// 2. le GAMBE: sotto il ginocchio restano i pantaloni bianchi e le scarpe della foto (nulla da inventare);
-// 3. la RAFFAELA del preloader: `public/media/raffaela-sagoma.png` (il ritaglio vero con l'alpha, figura
-//    113→902 × 401→1414, tagliato alle ginocchia) riscalata all'altezza testa→ginocchio della figura
-//    vecchia (352 px: scala 0,347) e posata sul suo centro (x 1324, testa a y 1833): stessa grandezza,
-//    stessa posizione, la gonna di pizzo sui pantaloni.
+//    scaricato in Downloads/higgsfield come hf_20260922_181915_ef80fd4b-….png). È un render 2k: usarlo
+//    come BASE vorrebbe dire ingrandirlo di 1,9 volte e perdere la qualità che A73 vieta di perdere;
+//    quindi la base resta la foto e il plate, ALLINEATO all'originale (SAD sulla balaustra a destra, il
+//    rendering è traslato di qualche pixel), copre SOLO la figura vecchia: tutta, dai capelli alle
+//    scarpe (A74), con bordo sfumato — la maschera è la differenza originale/plate su copie sfumate
+//    (i bordi fini disallineati si spengono), dentro il rettangolo della figura, chiusa e dilatata di
+//    qualche pixel perché l'alone della figura vecchia non resti;
+// 2. la RAFFAELA intera di Alberto (A74): la figura del PNG riscalata all'altezza della figura vecchia,
+//    dalla cima dei capelli alla suola delle scarpe (misurate a mano, FIGURA: la stessa grandezza), e
+//    posata coi piedi sul punto in cui stavano i suoi (le gambe centrate sulle gambe vecchie: la stessa
+//    posizione); l'ombra sul pavimento è quella della foto.
 // La JPEG esce a qualità 92 (mozjpeg, croma 4:4:4): una ricodifica sola, visivamente senza perdita.
 // Poi: `node scripts/media/cielo.mjs <dir> hero-raffaela-piscina-alta` (il cielo trasparente) e
 // `node scripts/media/hero-piscina.mjs` (la striscia del telefono e hero.json).
 //
 // Uso, dalla radice del repo:  node scripts/media/hero-raffaela.mjs [cartella dei PNG]
 // Ingressi fuori repo (cartella): `hero-raffaela-piscina-alta-upscale.jpg` (la foto alta com'era, prima
-// di questo ritocco: l'outpaint + upscale di A71) e il plate `hf_*_ef80fd4b*.png`.
+// di questo ritocco: l'outpaint + upscale di A71), il plate `hf_*_ef80fd4b*.png` e `raffaela-intera.png`.
 import sharp from "sharp";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -35,42 +40,57 @@ const ROOT = process.cwd();
 const IN = process.argv[2] ?? "C:/Users/alber/Downloads/higgsfield";
 const BASE = join(IN, "hero-raffaela-piscina-alta-upscale.jpg");
 const PLATE_JOB = "ef80fd4b";
-const SAGOMA = join(ROOT, "public/media/raffaela-sagoma.png");
+const SAGOMA = join(IN, "raffaela-intera.png");
 const OUT = join(ROOT, "public/images/reali/hero-raffaela-piscina-alta.jpg");
 const JPG = { quality: 92, mozjpeg: true, chromaSubsampling: "4:4:4" };
 
 const W = 2560;
 const H = 3812;
-/* La figura del preloader dentro il suo canvas (foto-alte.mjs). */
-const BBOX = { left: 113, top: 401, width: 902 - 113 + 1, height: 1414 - 401 + 1 };
-/* La figura vecchia nella foto alta: testa, ginocchio, centro del corpo (misurata il 22 set.). */
-const FIGURA = { testa: 1833, ginocchio: 2185, cx: 1324 };
-/* Nel ritaglio del preloader il centro del corpo sta a 300 px dal bordo sinistro del bbox. */
-const CORPO_X = 300;
-/* La zona di lavoro, il rettangolo della figura vecchia, le gambe che restano, la zona di riferimento
-   per l'allineamento (balaustra e muretto a destra, senza di lei). */
+/* La zona di lavoro, il rettangolo della figura vecchia (capelli → scarpe, il braccio teso a destra) e la
+   zona di riferimento per l'allineamento (balaustra e muretto a destra, senza di lei). Misurate il 22
+   set. sulla foto alta. La figura vecchia è misurata a mano, NON sulla maschera: il plate è un render
+   morbido e la differenza accende mezzo rettangolo (piastrelle, fronde), non solo lei. */
 const ZONA = { left: 1120, top: 1740, width: 520, height: 700 };
-const RETT = { left: 1225, top: 1815, right: 1545, bottom: 2195 };
-const GAMBE = { left: 1230, top: 2170, width: 200, height: 270 };
+const RETT = { left: 1200, top: 1810, right: 1560, bottom: 2370 };
+/* La figura vecchia: cima dei capelli, suola delle scarpe, centro delle gambe. */
+const FIGURA = { testa: 1833, piedi: 2352, gambeCx: 1325 };
 const RIF = { left: 1560, top: 1860, width: 300, height: 260 };
 const SOGLIA = 30;
 const PREBLUR = 3;
+/* La fascia bassa della figura (le gambe) su cui si centra la figura nuova: l'ultimo 15 % dell'altezza. */
+const GAMBE = 0.15;
 
 if (!existsSync(BASE)) throw new Error(`manca ${BASE}`);
 const plateFile = readdirSync(IN).find((f) => f.startsWith("hf_") && f.includes(PLATE_JOB) && f.endsWith(".png"));
 if (!plateFile) throw new Error(`manca il plate hf_*_${PLATE_JOB}*.png in ${IN}`);
 if (!existsSync(SAGOMA)) throw new Error(`manca ${SAGOMA}`);
 
-const scala = (FIGURA.ginocchio - FIGURA.testa) / BBOX.height;
-const fw = Math.round(BBOX.width * scala);
-const fh = Math.round(BBOX.height * scala);
-const fleft = Math.round(FIGURA.cx - CORPO_X * scala);
-const ftop = FIGURA.testa;
-
 const grigio = async (img, box) => {
   const { data, info } = await sharp(img).extract(box).greyscale().raw().toBuffer({ resolveWithObject: true });
   return { data, w: info.width, h: info.height };
 };
+/** Il rettangolo dei pixel accesi (> 128) di una maschera a 1 canale, e il centro x della sua fascia bassa. */
+function misura(mask, w, h) {
+  let top = h, bottom = -1, left = w, right = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (mask[y * w + x] <= 128) continue;
+      if (y < top) top = y;
+      if (y > bottom) bottom = y;
+      if (x < left) left = x;
+      if (x > right) right = x;
+    }
+  }
+  if (bottom < 0) throw new Error("maschera vuota");
+  const daY = bottom - Math.round((bottom - top) * GAMBE);
+  let sx = 0, n = 0;
+  for (let y = daY; y <= bottom; y++) {
+    for (let x = left; x <= right; x++) {
+      if (mask[y * w + x] > 128) { sx += x; n++; }
+    }
+  }
+  return { top, bottom, left, right, gambeCx: sx / n };
+}
 const plateBuf = await sharp(join(IN, plateFile)).resize(W, H, { kernel: "lanczos3" }).png().toBuffer();
 
 // 1a. L'allineamento del plate: la traslazione (dx, dy) in ±32 px che minimizza la differenza in RIF.
@@ -99,7 +119,7 @@ const sfuma = (raw) => sharp(raw.data, { raw: { width: raw.info.width, height: r
 const origS = await sfuma(orig);
 const plateS = await sfuma(plateZona);
 
-// 1b. La maschera: la differenza dentro il rettangolo della figura, chiusa, meno la figura nuova e le gambe.
+// 1b. La maschera della figura vecchia: la differenza dentro il suo rettangolo, chiusa e dilatata.
 const diff = Buffer.alloc(zw * zh);
 for (let y = 0; y < zh; y++) {
   for (let x = 0; x < zw; x++) {
@@ -114,31 +134,23 @@ for (let y = 0; y < zh; y++) {
 // `.toColourspace("b-w")`: dopo blur/threshold sharp torna a 3 canali e gli indici sarebbero sfasati.
 const chiusa = await sharp(diff, { raw: { width: zw, height: zh, channels: 1 } }).blur(4).threshold(55).blur(3).threshold(50).toColourspace("b-w").raw().toBuffer();
 if (chiusa.length !== zw * zh) throw new Error(`maschera: ${chiusa.length} byte, attesi ${zw * zh}`);
-const figuraPng = await sharp(SAGOMA).extract(BBOX).resize(fw, fh, { kernel: "lanczos3" }).png().toBuffer();
-const figAlpha = await sharp({ create: { width: zw, height: zh, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-  .composite([{ input: figuraPng, left: fleft - ZONA.left, top: ftop - ZONA.top }])
-  .extractChannel("alpha")
-  .blur(1)
-  .threshold(6)
-  .raw()
-  .toBuffer();
-const maschera = Buffer.alloc(zw * zh);
+const dilatata = await sharp(chiusa, { raw: { width: zw, height: zh, channels: 1 } }).blur(2).threshold(40).toColourspace("b-w").raw().toBuffer();
 let px = 0;
-for (let y = 0; y < zh; y++) {
-  for (let x = 0; x < zw; x++) {
-    const i = y * zw + x;
-    const gx = x + ZONA.left;
-    const gy = y + ZONA.top;
-    const gamba = gx >= GAMBE.left && gx < GAMBE.left + GAMBE.width && gy >= GAMBE.top && gy < GAMBE.top + GAMBE.height;
-    const v = chiusa[i] > 128 && figAlpha[i] < 128 && !gamba ? 255 : 0;
-    maschera[i] = v;
-    if (v) px++;
-  }
-}
-const alpha = await sharp(maschera, { raw: { width: zw, height: zh, channels: 1 } }).blur(2.5).toColourspace("b-w").png().toBuffer();
+for (let i = 0; i < dilatata.length; i++) if (dilatata[i] > 128) px++;
+const alpha = await sharp(dilatata, { raw: { width: zw, height: zh, channels: 1 } }).blur(2.5).toColourspace("b-w").png().toBuffer();
 const toppa = await sharp(plateZona.data, { raw: { width: zw, height: zh, channels: 3 } }).joinChannel(alpha).png().toBuffer();
 
-// 2 + 3. La toppa e la figura sulla foto; le gambe sono già lì.
+// 2. La figura intera: la sua alpha misurata come la maschera, poi la scala e la posa.
+const sag = await sharp(SAGOMA).ensureAlpha().extractChannel("alpha").raw().toBuffer({ resolveWithObject: true });
+const nuova = misura(sag.data, sag.info.width, sag.info.height);
+const scala = (FIGURA.piedi - FIGURA.testa) / (nuova.bottom - nuova.top);
+const fw = Math.round(sag.info.width * scala);
+const fh = Math.round(sag.info.height * scala);
+const fleft = Math.round(FIGURA.gambeCx - nuova.gambeCx * scala);
+const ftop = Math.round(FIGURA.testa - nuova.top * scala);
+const figuraPng = await sharp(SAGOMA).resize(fw, fh, { kernel: "lanczos3" }).png().toBuffer();
+
+// 3. La toppa e la figura sulla foto.
 const info = await sharp(BASE)
   .composite([
     { input: toppa, left: ZONA.left, top: ZONA.top },
@@ -147,5 +159,5 @@ const info = await sharp(BASE)
   .jpeg(JPG)
   .toFile(OUT);
 console.log(
-  `hero-raffaela-piscina-alta.jpg  ${info.width}×${info.height}  ${(info.size / 1048576).toFixed(2)} MiB  plate ${plateFile} allineato (${best.dx}, ${best.dy}), toppa ${px} px, figura ${fw}×${fh} a (${fleft}, ${ftop})`,
+  `hero-raffaela-piscina-alta.jpg  ${info.width}×${info.height}  ${(info.size / 1048576).toFixed(2)} MiB  plate ${plateFile} allineato (${best.dx}, ${best.dy}), toppa ${px} px; figura vecchia y ${FIGURA.testa}→${FIGURA.piedi} (gambe a x ${FIGURA.gambeCx}); figura nuova scala ${scala.toFixed(4)}, ${fw}×${fh} a (${fleft}, ${ftop}), testa a y ${Math.round(ftop + nuova.top * scala)}, piedi a y ${Math.round(ftop + nuova.bottom * scala)}, gambe a x ${Math.round(fleft + nuova.gambeCx * scala)}`,
 );

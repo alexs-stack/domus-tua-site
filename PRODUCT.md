@@ -147,10 +147,11 @@ stanno in `DESIGN.md`.
 - Hero: la foto alta di Raffaela davanti alla villa con piscina è la pagina (A49, Alberto, 22 set.:
   «non c'è né l'immagine alta che fa da sfondo pagina a schermo intero, né l'effetto dello scroll
   dentro l'immagine»; A71: «sì, fallo, anche il voto e i due link … e falla no-bg così è più bella»):
-  la piscina di A55 estesa a 2:3 con Higgsfield e col cielo trasparente (A73, 22 set., notte: la
-  Raffaela VERA del preloader posata al posto della figura che l'upscale aveva alterato, un
-  fotoritocco a parità di rapporto, grandezza e qualità: «non devono cambiare né rapporti, grandezza,
-  né qualità»), in flusso come le teste,
+  la piscina di A55 estesa a 2:3 con Higgsfield e col cielo trasparente (A73 e A74, 22 set., notte: la
+  Raffaela VERA — il ritaglio intero con le gambe dato da Alberto — posata al posto della figura che
+  l'upscale aveva alterato, sul plate di Higgsfield senza la donna, un fotoritocco a parità di
+  rapporto, grandezza e qualità: «non devono cambiare né rapporti, grandezza, né qualità»; «abbiamo
+  fatto la foto con Higgsfield senza Raffaela apposta per poi attaccarla sopra … metti questa»), in flusso come le teste,
   senza corridoio, tuffo, zoom né lift. A riposo il primo schermo è cielo-carta e villa (la foto sale
   sotto la testata finché la piega non cade dove comincia il blocco: decisione di lavoro, da
   mostrare); scorrendo dentro la foto, il blocco (sovratitolo, H1, «Richiedi la valutazione», «Vendi
