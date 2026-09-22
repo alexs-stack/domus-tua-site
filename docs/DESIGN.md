@@ -75,7 +75,9 @@ Titoli display fluidi impostati inline con Tailwind, non come classi di scala fi
 - **Larghezza contenuto:** container centrato con `max-w-[1240px]` (Hero) o simile,
   padding orizzontale `px-5` → `sm:px-8`.
 - **Ancore/anchor scroll:** `:where([id])` ha `scroll-margin-top: 6.5rem` per non finire
-  sotto l'header sticky. `html` ha `scroll-behavior: smooth`.
+  sotto l'header sticky. `html` ha `scroll-behavior: smooth`, tranne alla ricarica e al
+  back/forward: lì il boot script del layout mette `data-ripristino` e lo scroll è istantaneo
+  per tutta la visita, così il ripristino della quota è un salto e non una corsa dalla cima.
 - **No scroll orizzontale:** `overflow-x: clip` su `html` e `body`.
 
 ---
