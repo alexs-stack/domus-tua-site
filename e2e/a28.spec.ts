@@ -72,19 +72,21 @@ async function geometria(page: Page) {
     const section = document.querySelector<HTMLElement>("[data-testa]");
     const riquadro = section?.querySelector<HTMLElement>("[data-dive-zoom]") ?? null;
     const strato = section?.querySelector<HTMLElement>("[data-testa-strato]") ?? null;
-    const img = strato?.querySelector<HTMLImageElement>("img") ?? null;
+    // La scatola della foto (A48): dentro lo strato, alta quanto la foto (sotto lg) o quanto lo strato (da lg).
+    const foto = strato?.querySelector<HTMLElement>("[data-testa-foto-box]") ?? null;
+    const img = foto?.querySelector<HTMLImageElement>("img") ?? null;
     const soggetto = strato?.querySelector<HTMLElement>("[data-testa-soggetto]") ?? null;
     // I marcatori del segno (22 set.): uno per banda `segno` di tinte.json.
     const marcatori = Array.from(strato?.querySelectorAll<HTMLElement>("[data-testa-soggetto]") ?? []).map((m) => ({ ...(box(m) as Rett), bg: m.getAttribute("data-bg") }));
     const blocco = section?.querySelector<HTMLElement>(".dt-testa_blocco") ?? null;
-    const pagina = section?.querySelector<HTMLElement>(".dt-testa_pagina") ?? null;
+    const pagina = section?.querySelector<HTMLElement>(".dt-testa_sopra") ?? null;
     const h1 = section?.querySelector<HTMLElement>("h1") ?? null;
     const script = section?.querySelector<HTMLElement>(".script-word") ?? null;
     const eyebrow = section?.querySelector<HTMLElement>(".eyebrow") ?? null;
     const lead = section?.querySelector<HTMLElement>("p.lead") ?? null;
     const solid = section?.querySelector<HTMLElement>("a.dt-btn--cta-solid") ?? null;
     const ghost = section?.querySelector<HTMLElement>("a.dt-btn--ghost") ?? null;
-    const punti = section?.querySelector<HTMLElement>(".dt-testa_pagina ul") ?? null;
+    const punti = section?.querySelector<HTMLElement>(".dt-testa_sopra ul") ?? null;
     const stile = (el: Element | null) => {
       if (!el) return null;
       const s = getComputedStyle(el);
@@ -105,6 +107,7 @@ async function geometria(page: Page) {
       section: box(section),
       riquadro: rq,
       strato: box(strato),
+      foto: box(foto),
       img: box(img),
       soggetto: box(soggetto),
       marcatori,
@@ -118,10 +121,11 @@ async function geometria(page: Page) {
       ghost: box(ghost),
       punti: box(punti),
       nodiFuori: tuttiDentro(blocco, box(blocco)),
-      stili: { h1: stile(h1), eyebrow: stile(eyebrow), script: stile(script), lead: stile(lead), solid: stile(solid), ghost: stile(ghost) },
+      stili: { h1: stile(h1), eyebrow: stile(eyebrow), script: stile(script), lead: stile(lead), solid: stile(solid), ghost: stile(ghost), punti: stile(punti) },
       op: img ? getComputedStyle(img).objectPosition : null,
       fondoRiquadro: riquadro ? getComputedStyle(riquadro).backgroundColor : null,
       fondoStrato: strato ? getComputedStyle(strato).backgroundColor : null,
+      fondoFoto: foto ? getComputedStyle(foto).backgroundColor : null,
       fondoPagina: pagina ? getComputedStyle(pagina).backgroundColor : null,
       dataBgRiquadro: riquadro?.getAttribute("data-bg") ?? null,
       dataBgSoggetto: soggetto?.getAttribute("data-bg") ?? null,
@@ -186,8 +190,23 @@ test.describe("la testa", () => {
           // riquadro (la carta) è alto quanto blocco + strato − cielo.
           const [sw, sh] = tinte[rotta].sorgente;
           const altoFoto = (g.riquadro!.width * sh) / sw;
-          expect(Math.abs(g.strato!.height - altoFoto), `${lang}: lo strato non è alto quanto la foto resa (A45)`).toBeLessThanOrEqual(2);
-          const cielo = cieloPx(rotta, g.strato!.height);
+          // A48: lo strato è alto max(foto, cielo + contenuto sopra); sulle rotte di oggi il contenuto sta dentro la
+          // foto, così la scatola della foto (= lo strato da lg) resta la foto resa e nessuna scritta finisce sul cielo.
+          expect(g.strato!.height - altoFoto, `${lang}: lo strato è più basso della foto resa (A45)`).toBeGreaterThanOrEqual(-2);
+          if (tinte[rotta].sopra) {
+            // Una coda corta (≤ 5 % della foto: /vendi a 1024 sfora di 15 px in italiano e di 44 in francese con «Costi
+            // chiari» a due colonne) fa crescere lo strato e il cover scala la foto di altrettanto (zoom ≤ 1,05, sotto la
+            // soglia percettiva): la banda resa scende di da × Δ (≤ 55 px a 1024), un passo dei tre punti. Oltre, la coda
+            // scalerebbe la foto e il cielo. Le lingue lunghe a 1024 sono la voce 25 del foglio delle decisioni.
+            expect(g.strato!.height - altoFoto, `${lang}: le sezioni sopra la foto sono più alte della foto (A48): la coda scalerebbe la foto e il cielo`).toBeLessThanOrEqual(0.05 * altoFoto);
+            expect(Math.abs(g.foto!.height - g.strato!.height), `${lang}: da lg la scatola della foto non riempie lo strato (A48)`).toBeLessThanOrEqual(1);
+          } else {
+            // Nessuna banda scura (/recensioni): la scatola resta la foto resa e lo spazio sopra la segue, sulla carta.
+            expect(Math.abs(g.foto!.height - altoFoto), `${lang}: senza banda la scatola della foto non è la foto resa (A48)`).toBeLessThanOrEqual(2);
+          }
+          // Il cielo in px dalla foto RESA (altoFoto): il margine negativo dello strato è scritto sulla larghezza (CSS 2.1 §8.3),
+          // non sulla scatola, che con una coda corta è più alta della foto di qualche px (A48).
+          const cielo = cieloPx(rotta, altoFoto);
           expect(Math.abs(g.riquadro!.height - (g.blocco!.height + g.strato!.height - cielo)), `${lang}: il riquadro non è blocco + foto − cielo (A46)`).toBeLessThanOrEqual(2);
           expect(Math.round(g.riquadro!.width)).toBe(g.clientWidth);
           expect(g.overflow).toBe("clip");
@@ -217,7 +236,20 @@ test.describe("la testa", () => {
           expect(g.op, `${lang}: l'inquadratura da lg non è quella di tinte.json (D180)`).toBe(tinte[rotta].objectPosition.lg);
           // I nodi stanno dentro il blocco; i tre punti dopo la foto (la fascia segue il riquadro in flusso).
           expect(g.nodiFuori, `${lang}: nodi fuori dal blocco`).toBe(0);
-          if (g.punti) expect(g.punti.top, `${lang}: i tre punti non stanno dopo la foto`).toBeGreaterThanOrEqual(g.riquadro!.bottom - 1);
+          // A48 (22 set.): da lg i tre punti stanno SULLA foto, in bianco, dalla banda scura di tinte.json (`sopra`:
+          // la piscina su /vendi, il prato su /acquista), entro il loro padding; mai sul cielo trasparente.
+          if (g.punti && tinte[rotta].sopra) {
+            // La banda come la scrive il CSS: `padding-top` in percentuale della larghezza = da × altezza NATURALE della foto.
+            const banda = g.strato!.top + tinte[rotta].sopra![0] * altoFoto;
+            expect(g.punti.top, `${lang}: i tre punti non cominciano alla banda scura della foto (A48)`).toBeGreaterThanOrEqual(banda - 1);
+            expect(g.punti.top, `${lang}: i tre punti stanno troppo sotto la banda scura`).toBeLessThanOrEqual(banda + 80);
+            expect(g.punti.top, `${lang}: i tre punti stanno sul cielo trasparente`).toBeGreaterThanOrEqual(g.blocco!.bottom - 1);
+            expect(g.stili.punti?.color, `${lang}: sulla foto i tre punti non sono bianchi (A48, A40)`).toBe("rgb(255, 255, 255)");
+          } else if (g.punti) {
+            // Nessuna banda scura (/recensioni, il muro bianco a sinistra): i tre punti seguono la foto, in pietra sulla carta.
+            expect(g.punti.top, `${lang}: senza banda i tre punti non seguono la foto (A48)`).toBeGreaterThanOrEqual(g.foto!.bottom - 2);
+            expect(g.stili.punti?.color, `${lang}: senza banda i tre punti non sono in pietra`).not.toBe("rgb(255, 255, 255)");
+          }
           // Centrato (A41): H1 e lead hanno lo stesso centro del riquadro, entro 2 px.
           const cx = (g.riquadro!.left + g.riquadro!.right) / 2;
           for (const z of ["h1", "lead", "solid"] as const) if (g[z]) expect(Math.abs((g[z]!.left + g[z]!.right) / 2 - cx), `${lang}: ${z} non è centrato`).toBeLessThanOrEqual(2);
@@ -238,15 +270,18 @@ test.describe("la testa", () => {
           // I byte: `sizes` dal rapporto della sorgente; il bitmap non è più stretto di quel che lo strato dipinge.
           expect(g.sizes).toBe(SIZES_TESTA);
           const bucket = bucketDi(g.currentSrc);
-          const serve = Math.max(g.strato!.width, (g.strato!.height * sw) / sh);
-          expect(bucket, `${lang}: bucket ${bucket} più stretto di ${serve.toFixed(0)}`).toBeGreaterThanOrEqual(Math.min(serve, sw) - 1);
+          const serve = Math.max(g.foto!.width, (g.foto!.height * sw) / sh);
+          // A48: con una coda corta (≤ 5 % della foto) il cover scala la foto di altrettanto e la dipinge fino al 5 % più larga
+          // dello strato (/vendi a 1024: 1034 px contro il bucket 1024): un ingrandimento ≤ 1,05, sotto la soglia percettiva.
+          expect(bucket, `${lang}: bucket ${bucket} più stretto di ${serve.toFixed(0)}`).toBeGreaterThanOrEqual(Math.min(serve, sw) * 0.95 - 1);
           expect(g.naturalWidth).toBeGreaterThan(0);
           // Il WebP col cielo trasparente dove c'è (A46), altrimenti la sorgente.
           expect(g.currentSrc ?? "", `${lang}: la foto montata non è quella di tinte.json`).toContain(encodeURIComponent(tinte[rotta].cielo.file ?? tinte[rotta].file));
-          // I fondi: il riquadro è la carta, lo strato porta il placeholder (la tinta alta, D125), la pagina sotto l'avorio.
+          // I fondi: il riquadro è la carta, la scatola della foto porta il placeholder (la tinta alta, D125), lo spazio sopra è nudo.
           expect(g.fondoRiquadro, `${lang}: il riquadro non è la carta (A46)`).toBe(rgb("#f9f5ef"));
-          expect(g.fondoStrato).toBe(await tintaAttesa(page, rotta));
-          expect(g.fondoPagina).toBe(rgb("#f9f5ef"));
+          expect(g.fondoFoto, `${lang}: la scatola della foto non porta la tinta di attesa (D125)`).toBe(await tintaAttesa(page, rotta));
+          expect(g.fondoStrato, `${lang}: lo strato ha un fondo: colorerebbe lo spazio sotto la foto (A48)`).toBe("rgba(0, 0, 0, 0)");
+          expect(g.fondoPagina, `${lang}: lo spazio sopra la foto ha un fondo (A48: niente velo)`).toBe("rgba(0, 0, 0, 0)");
         }
       });
     }
@@ -270,6 +305,7 @@ test.describe("la foto è la pagina", () => {
       const altoFoto = riposo.riquadro!.height;
       expect(altoFoto, "il riquadro non è più alto dello schermo: la foto alta non è la pagina").toBeGreaterThan(900 + 100);
       expect(riposo.trasformata).toMatch(FERMA);
+      // A48: lo spazio sopra la foto; dove è vuoto (nessun punto, nessuna sezione) è display: none e non si misura.
       const fascia = riposo.pagina!.height;
       const st0 = await page.evaluate(() => window.__dtST!());
       // `geometria` dà quote DI PAGINA (top + scrollY): in flusso restano quelle di riposo a ogni quota.
@@ -279,11 +315,114 @@ test.describe("la foto è la pagina", () => {
         const g = await geometria(page);
         expect(Math.abs(g.riquadro!.top), `scroll ${y}: il riquadro non scorre con la pagina`).toBeLessThanOrEqual(1);
         expect(Math.abs(g.blocco!.top), `scroll ${y}: il blocco non scorre con la foto`).toBeLessThanOrEqual(1);
-        expect(Math.abs(g.pagina!.top - altoFoto), `scroll ${y}: la fascia non segue la foto`).toBeLessThanOrEqual(1);
-        expect(Math.abs(g.pagina!.height - fascia)).toBeLessThanOrEqual(1);
+        if (fascia > 0) {
+          expect(Math.abs(g.pagina!.top - riposo.pagina!.top), `scroll ${y}: lo spazio sopra la foto non scorre con la pagina`).toBeLessThanOrEqual(1);
+          expect(Math.abs(g.pagina!.height - fascia)).toBeLessThanOrEqual(1);
+        }
         expect(g.trasformata, `scroll ${y}: lo strato si è mosso`).toMatch(FERMA);
       }
       expect(await page.evaluate(() => window.__dtST!()), "scorrendo la testa ha creato altri ScrollTrigger").toBe(st0);
+    });
+  }
+});
+
+// ── sotto le scritte bianche la foto è scura (A48) ───────────────────────────
+// Le pellicole del 22 set. mostravano i tre punti e «Costi chiari» in bianco sul cielo trasparente (la
+// carta) e sui muri bianchi: la banda scura di tinte.json (`sopra`) li porta dove la foto regge il bianco.
+// Qui si misura sui pixel resi: si nasconde lo spazio sopra, si scatta il viewport e sotto ogni scritta
+// bianca i pixel CHIARI (avorio ±3, oppure Y > 0,72 in sRGB) devono essere pochi.
+test.describe("sotto le scritte bianche la foto è scura (A48)", () => {
+  const SCRITTE_SOPRA = ".dt-testa_sopra :is(li, h2, p, .eyebrow, input, a.dt-btn, button)";
+  for (const vp of [{ w: 1440, h: 900 }, { w: 1024, h: 768 }]) {
+    for (const rotta of ["/vendi", "/acquista", "/recensioni", "/lavora-con-noi"] as const) {
+      test(`${rotta} a ${vp.w}×${vp.h}: sotto ogni scritta dello spazio sopra al più il 40 % di pixel chiari`, async ({ page, goto }, info) => {
+        test.skip(info.project.name !== "desktop-1440", "le quote da lg si misurano dal desktop");
+        test.skip(!tinte[rotta].sopra, `${rotta}: nessuna banda scura, lo spazio sopra sta sulla carta (data-sopra=carta)`);
+        test.setTimeout(120_000);
+        await page.setViewportSize({ width: vp.w, height: vp.h });
+        await setConsent(page, "accepted");
+        await goto(rotta);
+        await idratata(page);
+        await page.evaluate(() => document.fonts.ready.then(() => true));
+        await page.locator("[data-testa-strato] img").first().evaluate((el) => (el as HTMLImageElement).decode().catch(() => undefined));
+        const scritte = await page.evaluate((sel) => {
+          const y = window.scrollY;
+          return Array.from(document.querySelectorAll<HTMLElement>(sel))
+            .map((el) => ({ nome: `${el.tagName.toLowerCase()}.${el.className.split(" ")[0]}`, r: el.getBoundingClientRect() }))
+            .filter(({ r }) => r.width > 0 && r.height > 0)
+            .map(({ nome, r }) => ({ nome, left: r.left, top: r.top + y, right: r.right, bottom: r.bottom + y }));
+        }, SCRITTE_SOPRA);
+        expect(scritte.length, "nessuna scritta nello spazio sopra").toBeGreaterThanOrEqual(3);
+        await page.evaluate(() => document.querySelector<HTMLElement>(".dt-testa_sopra")!.style.setProperty("visibility", "hidden"));
+        for (const s of scritte) {
+          const y = Math.max(0, Math.floor(s.top - (vp.h - (s.bottom - s.top)) / 2));
+          await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), y);
+          await page.waitForTimeout(150);
+          const scrollY = await page.evaluate(() => window.scrollY);
+          const rett = { left: s.left, right: s.right, top: Math.max(0, s.top - scrollY), bottom: Math.min(s.bottom - scrollY, vp.h) };
+          const png = await page.screenshot({ animations: "disabled", caret: "hide" });
+          const k = ((await sharp(png).metadata()).width ?? 0) / vp.w;
+          const { data, info: meta } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+          let chiari = 0, totale = 0;
+          for (let py = Math.ceil(rett.top * k); py < Math.floor(rett.bottom * k); py++) {
+            for (let px = Math.ceil(rett.left * k); px < Math.floor(rett.right * k); px++) {
+              const i = (py * meta.width + px) * meta.channels;
+              const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+              totale++;
+              const avorio = Math.abs(r - AVORIO_RGB[0]) <= 3 && Math.abs(g - AVORIO_RGB[1]) <= 3 && Math.abs(b - AVORIO_RGB[2]) <= 3;
+              if (avorio || (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.72) chiari++;
+            }
+          }
+          expect(totale, `${s.nome}: rettangolo vuoto`).toBeGreaterThan(0);
+          expect(chiari / totale, `${s.nome}: ${Math.round((100 * chiari) / totale)} % di pixel chiari sotto una scritta bianca (A48: il bianco non regge)`).toBeLessThanOrEqual(0.4);
+        }
+      });
+    }
+  }
+});
+
+// ── la ricerca sulla foto (A48) ──────────────────────────────────────────────
+// Alberto, 22 set. 2026: «la ricerca intelligente va più su, in modo che appaia sopra la foto e dopo la
+// scritta hero». Da lg la testa della ricerca (occhiello, campo, stato) sta nello spazio sopra la foto di
+// /acquista, dopo i tre punti, in bianco nudo, dentro la foto; i filtri e i risultati (#case) restano
+// sulla carta. Sotto lg segue la foto, in inchiostro. Un solo campo di ricerca nella pagina.
+test.describe("la ricerca sulla foto (A48)", () => {
+  const casi = [
+    { w: 1440, h: 900, progetto: "desktop-1440", suFoto: true },
+    { w: 1024, h: 768, progetto: "desktop-1440", suFoto: true },
+    { w: 390, h: 844, progetto: "mobile-390", suFoto: false },
+  ] as const;
+  for (const c of casi) {
+    test(`/acquista a ${c.w}×${c.h}: la testa della ricerca ${c.suFoto ? "posa sulla foto dopo i tre punti, in bianco" : "segue la foto, in inchiostro"}; filtri e risultati dopo`, async ({ page, goto }, info) => {
+      test.skip(info.project.name !== c.progetto, `${c.w}×${c.h} si misura nel progetto ${c.progetto}`);
+      await page.setViewportSize({ width: c.w, height: c.h });
+      await goto("/acquista");
+      await idratata(page);
+      await page.evaluate(() => document.fonts.ready.then(() => true));
+      const g = await geometria(page);
+      const campo = page.getByRole("textbox", { name: /descrivi la casa/i });
+      await expect(campo, "un solo campo della ricerca nella pagina").toHaveCount(1);
+      const r = await campo.first().evaluate((el) => {
+        const b = el.getBoundingClientRect();
+        const s = getComputedStyle(el);
+        const occhiello = el.closest(".dt-testa_sopra, #case")?.querySelector<HTMLElement>(".eyebrow");
+        return { top: b.top + window.scrollY, bottom: b.bottom + window.scrollY, color: s.color, dentroSopra: !!el.closest(".dt-testa_sopra"), dentroCase: !!el.closest("#case"), occhiello: occhiello ? getComputedStyle(occhiello).color : null };
+      });
+      expect(r.dentroSopra, "il campo della ricerca non sta nello spazio sopra la foto (A48)").toBe(true);
+      expect(r.dentroCase, "il campo della ricerca sta ancora in #case").toBe(false);
+      expect(r.top, "la ricerca non viene dopo i tre punti").toBeGreaterThanOrEqual(g.punti!.bottom - 1);
+      if (c.suFoto) {
+        expect(r.bottom, "la ricerca esce dalla foto").toBeLessThanOrEqual(g.foto!.bottom + 1);
+        expect(r.color, "sulla foto il campo non è bianco (A48, A40)").toBe("rgb(255, 255, 255)");
+        expect(r.occhiello, "sulla foto l'occhiello non è bianco").toBe("rgb(255, 255, 255)");
+      } else {
+        expect(r.top, "sotto lg la ricerca non segue la foto").toBeGreaterThanOrEqual(g.foto!.bottom - 1);
+        expect(r.color, "sotto lg il campo non è inchiostro").toBe(INK);
+      }
+      // I filtri e i risultati restano sulla carta, dopo la testa.
+      const caseTop = await page.locator("#case").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+      expect(caseTop, "#case non viene dopo la testa").toBeGreaterThanOrEqual(g.section!.bottom - 1);
+      await expect(page.locator("#case").getByRole("combobox").first()).toBeVisible();
     });
   }
 });
@@ -456,8 +595,9 @@ test.describe("sotto lg", () => {
       expect(Math.abs(g.riquadro!.top)).toBeLessThanOrEqual(1);
       // Lo strato è la foto resa a larghezza piena; il riquadro è blocco + foto − cielo (A46).
       const [sw, sh] = tinte[c.rotta].sorgente;
-      expect(Math.abs(g.strato!.height - (g.riquadro!.width * sh) / sw), "lo strato non è la foto resa a larghezza piena (A46)").toBeLessThanOrEqual(2);
-      const cielo = cieloPx(c.rotta, g.strato!.height);
+      expect(Math.abs(g.foto!.height - (g.riquadro!.width * sh) / sw), "la scatola della foto non è la foto resa a larghezza piena (A46, A48)").toBeLessThanOrEqual(2);
+      expect(g.strato!.height, "lo strato è più basso della foto").toBeGreaterThanOrEqual(g.foto!.height - 1);
+      const cielo = cieloPx(c.rotta, g.foto!.height);
       expect(Math.abs(g.riquadro!.height - (g.blocco!.height + g.strato!.height - cielo)), "il riquadro non è blocco + foto − cielo (A46)").toBeLessThanOrEqual(2);
       expect(g.overflow).toBe("clip");
       expect(g.posizioneRiquadro).toBe("relative");
@@ -477,7 +617,11 @@ test.describe("sotto lg", () => {
       expect(ultimo.bottom, "l'ultimo comando esce dal blocco").toBeLessThanOrEqual(g.blocco!.bottom + 1);
       expect(g.blocco!.bottom, "il blocco esce dal riquadro").toBeLessThanOrEqual(g.riquadro!.bottom + 1);
       expect(Math.abs(g.strato!.bottom - g.riquadro!.bottom)).toBeLessThanOrEqual(1);
-      if (g.punti) expect(g.punti.top).toBeGreaterThanOrEqual(g.riquadro!.bottom - 1);
+      // A48: sotto lg i tre punti stanno DOPO la foto (alta quanto la sorgente resa), in inchiostro.
+      if (g.punti) {
+        expect(g.punti.top, "sotto lg i tre punti non stanno dopo la foto").toBeGreaterThanOrEqual(g.foto!.bottom - 2);
+        expect(g.stili.punti?.color, "sotto lg i tre punti non sono in pietra").not.toBe("rgb(255, 255, 255)");
+      }
       // I colori della rivista anche qui (A46).
       expect(g.stili.h1?.color).toBe(INK);
       expect(g.stili.lead?.color).toBe(GRAFITE);
@@ -518,7 +662,7 @@ test.describe("senza JS e con moto ridotto", () => {
         const g = await geometria(page);
         expect(g.sticky, `${rotta}: uno sticky nella testa senza JS (A45)`).toBe(0);
         expect(g.corridoi).toBe(0);
-        const cielo = cieloPx(rotta, g.strato!.height);
+        const cielo = cieloPx(rotta, g.foto!.height);
         expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), `${rotta}: senza JS la foto non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
         expect(g.trasformata).toMatch(FERMA);
         expect(g.riquadro!.height).toBeGreaterThan(100);
@@ -536,7 +680,7 @@ test.describe("senza JS e con moto ridotto", () => {
         await page.waitForLoadState("load");
         expect(await page.evaluate(() => document.documentElement.hasAttribute("data-hero-intro"))).toBe(false);
         const g = await geometria(page);
-        expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cieloPx(rotta, g.strato!.height))), `${rotta}: con moto ridotto la foto non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
+        expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cieloPx(rotta, g.foto!.height))), `${rotta}: con moto ridotto la foto non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
         expect(g.corridoi).toBe(0);
         expect(g.stili.h1!.color).toBe(INK);
         expect(g.stili.lead!.color).toBe(GRAFITE);
@@ -689,7 +833,7 @@ test.describe("le scritte sull'avorio (A46)", () => {
         expect(clsDopo.totale - clsPrima.totale, "la decodifica della foto ha mosso la pagina").toBe(0);
         // Geometria: nessun buco, nulla fuori, nessun traboccamento.
         const g = await geometria(page);
-        const cielo = cieloPx(rotta, g.strato!.height);
+        const cielo = cieloPx(rotta, g.foto!.height);
         expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), "la foto non sale fino alla cima del soggetto").toBeLessThanOrEqual(2);
         // Dove la cima in px supera il blocco (/acquista a 1920×1080: 1150 contro 1080) lo strato comincia sopra la
         // carta e il clip taglia il solo cielo trasparente; altrove mai.
@@ -765,8 +909,8 @@ test.describe("sizes sotto lg", () => {
       // `naturalWidth` di un candidato `w` è corretto per la densità: il bitmap vero si legge dal file servito.
       const bitmap = (await sharp(await (await page.request.get(g.currentSrc!)).body()).metadata()).width ?? 0;
       expect(bitmap, `${c.rotta}: il bitmap non è min(1024, sorgente)`).toBe(Math.min(1024, sw));
-      // A46: lo strato ha il rapporto della foto, il cover dipinge esattamente la larghezza dello strato.
-      const dipinta = Math.max(g.strato!.width, (g.strato!.height * sw) / sh);
+      // A46/A48: la scatola della foto ha il rapporto della foto, il cover dipinge esattamente la sua larghezza.
+      const dipinta = Math.max(g.foto!.width, (g.foto!.height * sw) / sh);
       expect(Math.abs(dipinta - c.dipinta), `${c.rotta}: dipinta ${dipinta.toFixed(0)}`).toBeLessThanOrEqual(2);
       // Il bitmap chiesto (dipinta × 2 = 780) contro quello che arriva (1024): nessun ingrandimento.
       const ingr = (dipinta * 2) / bitmap;
@@ -829,15 +973,16 @@ test.describe("le tinte", () => {
     }
   });
 
-  test("il placeholder tinto sta sullo strato della foto (A46); il riquadro è la carta; gli altri moduli media restano cream-deep (D125)", async ({ page, goto }) => {
+  test("il placeholder tinto sta sulla scatola della foto (A46, A48); il riquadro è la carta; gli altri moduli media restano cream-deep (D125)", async ({ page, goto }) => {
     await goto("/vendi");
-    const strato = await page.locator("[data-testa-strato]").first().evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(strato, "lo strato della foto non prende la tinta alta").toBe(await tintaAttesa(page, "/vendi"));
+    const scatola = await page.locator("[data-testa-foto-box]").first().evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(scatola, "la scatola della foto non prende la tinta alta").toBe(await tintaAttesa(page, "/vendi"));
+    expect(await page.locator("[data-testa-strato]").first().evaluate((el) => getComputedStyle(el).backgroundColor), "lo strato ha un fondo: colorerebbe lo spazio sotto la foto (A48)").toBe("rgba(0, 0, 0, 0)");
     const riquadro = await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(riquadro, "il riquadro della testa non è la carta (A46)").toBe(rgb("#f9f5ef"));
     // Su un interno la tinta misurata (D123) resta sullo strato e la carta resta avorio.
     await goto("/chi-siamo");
-    expect(await page.locator("[data-testa-strato]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await tintaAttesa(page, "/chi-siamo"));
+    expect(await page.locator("[data-testa-foto-box]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await tintaAttesa(page, "/chi-siamo"));
     expect(await page.locator("[data-dive-zoom]").first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(rgb("#f9f5ef"));
     await goto("/vendi");
     const modulo = await page.evaluate(() => {

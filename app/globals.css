@@ -2810,8 +2810,36 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
      resta grafite (revisione avversaria di A46, 22 set. 2026, C01/G02: un solo
      marcatore dalla cima in giù faceva sparire le tacche avorio sull'avorio per
      100-940 px di scroll). Senza puntatore: elementsFromPoint non li vede;
-   - `.dt-testa_pagina` è la pagina che segue la foto in flusso, sull'avorio
-     (D187: la tinta bassa è morta, A32.3 vale sotto).
+   - `.dt-testa_sopra` è lo spazio DENTRO lo strato, dopo l'immagine (A48 di
+     Alberto, 22 set. 2026: «non devi aspettare che finisca la foto, ma portare
+     le sezioni più sopra in modo che la foto sia semplicemente lo sfondo della
+     pagina (fino ai limiti della grandezza)»): in flusso, coi tre punti e le
+     sezioni che la pagina posa sulla foto. Da lg comincia alla BANDA SCURA
+     della foto (`padding-top` = `--dt-sopra-h`, la corsa più lunga in cui la
+     colonna del testo regge il bianco, misurata per rotta da tinte.mjs: la
+     piscina su /vendi, il prato su /acquista; misurata per terzi della colonna,
+     perché i tre punti stanno in tre colonne) in BIANCO NUDO (A40: nessuna
+     ombra, nessun velo) e senza fondo (le utility di fondo e di colore dentro
+     cedono alle regole unlayered qui sotto), solo con `data-sopra="foto"`;
+     dove la foto non ha una banda (`carta`: /recensioni, il muro bianco a
+     sinistra per tutta la foto) lo spazio sopra segue la foto in inchiostro
+     anche da lg, come sotto lg. Prima
+     cominciava al fondo del blocco e il bianco posava sul cielo trasparente,
+     cioè sulla carta, e sui muri bianchi della villa (pellicole del 22 set.).
+     Lo strato è alto max(foto, banda + contenuto) e l'immagine `fill` copre
+     dall'alto (`--dt-op-lg` 50 % 0 %: se il contenuto è più alto della foto lo
+     zoom sposta la cima in basso, mai sopra il blocco). Sotto lg (la 2:3 a 390 px è alta 585 px) comincia DOPO
+     la foto (`padding-top` = l'altezza della foto, `--dt-testa-hw`), in
+     inchiostro. Le sezioni sono atomiche: o tutta sulla foto o tutta sulla
+     carta; quali, lo decide la pagina (prop `sopra`);
+   - `.dt-testa_foto` è la scatola della foto dentro lo strato: assoluta in
+     cima, larga tutto, da lg riempie lo strato (`inset: 0`: se lo strato è
+     cresciuto col contenuto il cover scala la foto all'altezza della scatola,
+     e le bande del segno restano frazioni esatte della foto), sotto lg è alta
+     quanto la foto resa (`aspect-ratio` dal sorgente) e il contenuto le
+     segue sulla carta. Porta l'immagine `fill`, i marcatori del segno e il
+     placeholder prima del decode (D125: la tinta alta), che così non colora
+     mai lo spazio sotto la foto.
    Tutto in svh, mai dvh. */
 .dt-testa {
   --dt-testa-h: 100svh;
@@ -2846,6 +2874,13 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   width: 100%;
   aspect-ratio: var(--dt-testa-ar, 2 / 3);
   margin-top: calc(-100% * var(--dt-cielo-h, 0));
+}
+.dt-testa_foto {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  aspect-ratio: var(--dt-testa-ar, 2 / 3);
   background-color: var(--dt-tinta-alta, var(--color-cream));
 }
 .dt-testa_soggetto {
@@ -2854,18 +2889,13 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   right: 0;
   pointer-events: none;
 }
-.dt-testa_pagina {
+.dt-testa_sopra {
   position: relative;
   z-index: 1;
-  background-color: var(--color-cream);
+  padding-top: calc(100% * var(--dt-testa-hw, 1.5));
 }
-/* La fascia dei tre punti è la «sezione dopo» la foto (A45: la foto è la pagina, la fascia
-   la segue in flusso), coi punti centrati in un passo di capitolo. Dove la rotta non ha
-   punti la fascia è vuota e non occupa niente. */
-.dt-testa_pagina:not(:empty) {
-  display: grid;
-  align-content: center;
-  min-height: clamp(12rem, 30svh, 22rem);
+.dt-testa_sopra:empty {
+  display: none;
 }
 @media (min-width: 64rem) {
   .dt-testa {
@@ -2873,6 +2903,34 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
   }
   .dt-testa_blocco {
     min-height: var(--dt-testa-h);
+  }
+  /* Solo dove la foto ha una banda scura per il bianco (`data-sopra="foto"`, da `sopra` di
+     tinte.json); con `carta` (/recensioni: il muro bianco a sinistra per tutta la foto) valgono le
+     regole base anche da lg: lo spazio sopra segue la foto, in inchiostro. */
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra {
+    padding-top: calc(100% * var(--dt-sopra-h, var(--dt-cielo-h, 0)));
+    color: #fff;
+  }
+  .dt-testa[data-sopra="foto"] .dt-testa_foto {
+    bottom: 0;
+    aspect-ratio: auto;
+  }
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, input, h2, h3, h4, p, li, dt, dd) {
+    color: #fff;
+  }
+  /* Il campo della ricerca di /acquista (A48): riga e segnaposto bianchi sulla foto; `border-ink!`
+     è un'utility importante, quindi anche qui serve l'importante. */
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra input::placeholder {
+    color: rgb(255 255 255 / 0.72);
+  }
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra .border-ink\! {
+    border-color: rgb(255 255 255 / 0.7) !important;
+  }
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.bg-cream, .bg-paper, .bg-cream-deep) {
+    background-color: transparent;
+  }
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.border-line, .border-t, .border-b) {
+    border-color: rgb(255 255 255 / 0.45);
   }
 }
 /* 2.4.7: sull'avorio il bottone rosso pieno tiene l'anello del sito (rosso 2 px a offset 3,

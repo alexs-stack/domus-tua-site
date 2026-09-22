@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from "react";
 import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
 import PropertyCard from "./PropertyCard";
@@ -385,9 +386,37 @@ function haystack(p: GridProperty) {
   return `${p.features.join(" ")} ${p.excerpt} ${p.badges.join(" ")}`.toLowerCase();
 }
 
-export default function PropertySearch({ properties }: { properties: GridProperty[] }) {
-  const { locale } = useLocale();
-  const c = copy[locale];
+// ── Lo stato della ricerca (A48, Alberto 22 set. 2026) ──────────────────────
+// «la ricerca intelligente va più su, in modo che appaia sopra la foto e dopo la scritta hero»:
+// la TESTA della ricerca (occhiello, campo, stato) posa sulla foto della testa di /acquista
+// (PageHero `sopra`, in bianco da lg; sotto lg segue la foto in inchiostro), i filtri e i
+// risultati restano sulla carta (#case). Le due parti vivono in due punti dell'albero: lo stato
+// che condividono (la frase, i filtri, il risultato AI, il FLIP della griglia) sta in
+// RicercaProvider, che AcquistaContent monta attorno a entrambe. Senza provider PropertySearch
+// se lo monta da solo e rende la testa in sezione, com'era prima (nessun altro chiamante oggi).
+type Ai = { query: string; slugs: string[]; key: string } | null;
+type Ricerca = {
+  properties: GridProperty[];
+  nl: string;
+  setNl: (v: string) => void;
+  f: PropertyFilters;
+  setF: Dispatch<SetStateAction<PropertyFilters>>;
+  /** Identico a setF, in più cattura il layout corrente per animare il riordino (FLIP). */
+  setFilters: Dispatch<SetStateAction<PropertyFilters>>;
+  searching: boolean;
+  aiError: boolean;
+  ai: Ai;
+  runSearch: (query?: string) => Promise<void>;
+  clearAi: () => void;
+  resetFilters: () => void;
+  filtersActive: boolean;
+  gridRef: MutableRefObject<HTMLDivElement | null>;
+  flipStateRef: MutableRefObject<ReturnType<typeof Flip.getState> | null>;
+};
+
+const RicercaContext = createContext<Ricerca | null>(null);
+
+function useRicerca(properties: GridProperty[]): Ricerca {
   const [nl, setNl] = useState("");
   const [f, setF] = useState<PropertyFilters>({
     contract: "Tutte",
@@ -401,19 +430,11 @@ export default function PropertySearch({ properties }: { properties: GridPropert
     features: [],
     availability: "available",
   });
-  const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
-  const [visible, setVisible] = useState(24);
   const [searching, setSearching] = useState(false);
-  // Vista risultati: elenco card oppure mappa dei comuni con immobili disponibili.
-  const [view, setView] = useState<"list" | "map">("list");
-  // Anteprima (CaseQuickLook): stato UI indipendente dalla ricerca.
-  const [preview, setPreview] = useState<GridProperty | null>(null);
   const [aiError, setAiError] = useState(false);
   // Risultato della ricerca AI: query mostrata + slug ordinati per rilevanza + firma dei filtri
   // applicati (per capire quando l'utente modifica un filtro a mano e uscire dalla modalità AI).
-  const [ai, setAi] = useState<{ query: string; slugs: string[]; key: string } | null>(null);
-
-  const bySlug = useMemo(() => new Map(properties.map((p) => [p.slug, p])), [properties]);
+  const [ai, setAi] = useState<Ai>(null);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
   // Layout della griglia catturato PRIMA del cambio di stato (punto di partenza del FLIP).
@@ -513,12 +534,6 @@ export default function PropertySearch({ properties }: { properties: GridPropert
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Al cambio filtri (o risultato AI) riparti dalle prime 24 case.
-  useEffect(() => {
-    /* eslint-disable-next-line react-hooks/set-state-in-effect */
-    setVisible(24);
-  }, [f, ai]);
-
   // Se l'utente modifica un filtro a mano, esci dalla modalità AI (torna al filtro client).
   // La ricerca AI imposta f = mapped e ai.key = JSON(mapped): finché combaciano, resta attiva.
   useEffect(() => {
@@ -531,6 +546,129 @@ export default function PropertySearch({ properties }: { properties: GridPropert
       /* eslint-disable-next-line react-hooks/set-state-in-effect */
       setAi(null);
     }
+  }, [f, ai]);
+
+  return { properties, nl, setNl, f, setF, setFilters, searching, aiError, ai, runSearch, clearAi, resetFilters, filtersActive, gridRef, flipStateRef };
+}
+
+/** Lo stato condiviso fra la testa della ricerca (sulla foto) e i risultati (sulla carta). */
+export function RicercaProvider({ properties, children }: { properties: GridProperty[]; children: ReactNode }) {
+  const value = useRicerca(properties);
+  return <RicercaContext.Provider value={value}>{children}</RicercaContext.Provider>;
+}
+
+/** La testa della ricerca: occhiello, campo in linguaggio naturale, stato (teaser → risultato/errore). */
+function TestaRicerca({ r }: { r: Ricerca }) {
+  const { locale } = useLocale();
+  const c = copy[locale];
+  const { nl, setNl, runSearch, searching, ai, clearAi, aiError } = r;
+  // Ricerca in linguaggio naturale (AI): campo a sola sottolineatura, come il modulo.
+  return (
+    <Reveal>
+      <div className="border-t border-line pt-6">
+        <span className="eyebrow">{c.smartBadge}</span>
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+          <input
+            value={nl}
+            onChange={(e) => setNl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void runSearch();
+              }
+            }}
+            placeholder={c.nlPlaceholder}
+            className="block w-full flex-1 border-0 border-b border-ink! bg-transparent py-3 text-lead text-ink placeholder:text-stone focus:border-red! focus:outline-none"
+            aria-label={c.nlAria}
+          />
+          <button
+            type="button"
+            onClick={() => void runSearch()}
+            disabled={searching || !nl.trim()}
+            aria-label={c.searchAria}
+            className="grid h-14 w-14 shrink-0 place-items-center self-start rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
+          >
+            {searching ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : (
+              <ArrowRight className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+      </div>
+      {/* Regione live: annuncia a screen reader il passaggio teaser → risultato/errore. */}
+      <div role="status" aria-live="polite">
+      {ai ? (
+        <p className="mt-4 flex flex-wrap items-center gap-2 text-body text-graphite">
+          <span>
+            {c.aiResultPrefix}: <span className="font-semibold text-ink">“{ai.query}”</span>
+          </span>
+          <button
+            type="button"
+            onClick={clearAi}
+            className="underline underline-offset-2 hover:text-ink"
+          >
+            {c.aiClear}
+          </button>
+        </p>
+      ) : aiError ? (
+        <p className="mt-4 text-body text-red-dark">{c.aiError}</p>
+      ) : (
+        <p className="mt-4 text-body text-graphite">{c.teaser}</p>
+      )}
+      </div>
+    </Reveal>
+  );
+}
+
+/**
+ * La testa della ricerca da posare sulla foto della testa di /acquista (PageHero `sopra`, A48):
+ * dentro RicercaProvider. Passo verticale come i tre punti (PageHero), riga `dt-row` come la sezione.
+ */
+export function SearchHead() {
+  const r = useContext(RicercaContext);
+  if (!r) throw new Error("SearchHead va montata dentro RicercaProvider (A48)");
+  return (
+    <div className="dt-row pt-[clamp(1.5rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)]">
+      <TestaRicerca r={r} />
+    </div>
+  );
+}
+
+export default function PropertySearch({ properties }: { properties: GridProperty[] }) {
+  const ctx = useContext(RicercaContext);
+  if (ctx) return <Risultati properties={properties} r={ctx} conTesta={false} />;
+  return (
+    <RicercaProvider properties={properties}>
+      <DaSolo properties={properties} />
+    </RicercaProvider>
+  );
+}
+
+function DaSolo({ properties }: { properties: GridProperty[] }) {
+  const r = useContext(RicercaContext);
+  if (!r) return null;
+  return <Risultati properties={properties} r={r} conTesta />;
+}
+
+/** I filtri e i risultati (sulla carta); con `conTesta` anche la testa della ricerca in sezione. */
+function Risultati({ properties, r, conTesta }: { properties: GridProperty[]; r: Ricerca; conTesta: boolean }) {
+  const { locale } = useLocale();
+  const c = copy[locale];
+  const { nl, f, setFilters, searching, ai, resetFilters, filtersActive, gridRef, flipStateRef } = r;
+  const money = (v: number) => new Intl.NumberFormat(LOCALE_TAG[locale] ?? "it-IT").format(v);
+  const [visible, setVisible] = useState(24);
+  // Vista risultati: elenco card oppure mappa dei comuni con immobili disponibili.
+  const [view, setView] = useState<"list" | "map">("list");
+  // Anteprima (CaseQuickLook): stato UI indipendente dalla ricerca.
+  const [preview, setPreview] = useState<GridProperty | null>(null);
+
+  const bySlug = useMemo(() => new Map(properties.map((p) => [p.slug, p])), [properties]);
+
+  // Al cambio filtri (o risultato AI) riparti dalle prime 24 case.
+  useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
+    setVisible(24);
   }, [f, ai]);
 
   // Stessa lista (e stesse chiavi) della facet passata al parser lato server: comuniFacet è la
@@ -620,7 +758,8 @@ export default function PropertySearch({ properties }: { properties: GridPropert
       if (tl.isActive()) tl.progress(1);
       tl.kill();
     };
-  }, [listedKey]);
+    // I due ref vengono dal provider (A48): identità stabili, stanno nelle dipendenze per la regola.
+  }, [listedKey, flipStateRef, gridRef]);
 
   // Lista ⇄ mappa cambia l'altezza della pagina in un colpo solo: senza refresh i
   // ScrollTrigger globali (tarati su maxScroll) restano tarati sul layout vecchio.
@@ -728,64 +867,10 @@ export default function PropertySearch({ properties }: { properties: GridPropert
   return (
     <section className="bg-cream">
       <div className="dt-row py-16 sm:py-20">
-        {/* Ricerca in linguaggio naturale (AI): campo a sola sottolineatura, come il modulo. */}
-        <Reveal>
-          <div className="border-t border-line pt-6">
-            <span className="eyebrow">{c.smartBadge}</span>
-            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
-              <input
-                value={nl}
-                onChange={(e) => setNl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void runSearch();
-                  }
-                }}
-                placeholder={c.nlPlaceholder}
-                className="block w-full flex-1 border-0 border-b border-ink! bg-transparent py-3 text-lead text-ink placeholder:text-stone focus:border-red! focus:outline-none"
-                aria-label={c.nlAria}
-              />
-              <button
-                type="button"
-                onClick={() => void runSearch()}
-                disabled={searching || !nl.trim()}
-                aria-label={c.searchAria}
-                className="grid h-14 w-14 shrink-0 place-items-center self-start rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
-              >
-                {searching ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                ) : (
-                  <ArrowRight className="h-5 w-5" />
-                )}
-              </button>
-            </div>
-          </div>
-          {/* Regione live: annuncia a screen reader il passaggio teaser → risultato/errore. */}
-          <div role="status" aria-live="polite">
-          {ai ? (
-            <p className="mt-4 flex flex-wrap items-center gap-2 text-body text-graphite">
-              <span>
-                {c.aiResultPrefix}: <span className="font-semibold text-ink">“{ai.query}”</span>
-              </span>
-              <button
-                type="button"
-                onClick={clearAi}
-                className="underline underline-offset-2 hover:text-ink"
-              >
-                {c.aiClear}
-              </button>
-            </p>
-          ) : aiError ? (
-            <p className="mt-4 text-body text-red-dark">{c.aiError}</p>
-          ) : (
-            <p className="mt-4 text-body text-graphite">{c.teaser}</p>
-          )}
-          </div>
-        </Reveal>
+        {conTesta && <TestaRicerca r={r} />}
 
         {/* Filtri */}
-        <Reveal delay={80} className="mt-12 flex flex-col gap-8">
+        <Reveal delay={80} className={`${conTesta ? "mt-12 " : ""}flex flex-col gap-8`}>
           <div className="flex flex-wrap items-center gap-2">
             <span className="mr-2 text-ui font-semibold uppercase tracking-[0.08em] text-stone">
               {c.contract}

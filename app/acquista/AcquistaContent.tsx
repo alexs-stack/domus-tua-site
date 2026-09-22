@@ -4,7 +4,7 @@ import { useLocale } from "../components/i18n/LocaleProvider";
 import PageHero from "../components/PageHero";
 import Highlights from "../components/Highlights";
 import EditorialRows from "../components/EditorialRows";
-import PropertySearch from "../components/PropertySearch";
+import PropertySearch, { RicercaProvider, SearchHead } from "../components/PropertySearch";
 import DomusDocProtocol from "../components/DomusDocProtocol";
 import FeaturedTestimonial from "../components/FeaturedTestimonial";
 import Contact from "../components/Contact";
@@ -522,6 +522,12 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
   return (
     <>
       <main className="flex-1">
+        {/* A48 (Alberto, 22 set. 2026): «la ricerca intelligente va più su, in modo che appaia sopra
+            la foto e dopo la scritta hero». La testa della ricerca posa sulla foto della testa
+            (PageHero `sopra`, dopo i tre punti, in bianco da lg; sotto lg segue la foto in
+            inchiostro); i filtri e i risultati restano sulla carta in #case. Lo stato che le due
+            parti condividono sta nel provider. */}
+        <RicercaProvider properties={listings}>
         <PageHero
           rotta="/acquista"
           id="top"
@@ -534,12 +540,14 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
           secondary={{ label: c.hero.secondaryLabel, href: "#case" }}
           trust={c.hero.trust}
           scriptWord={{ it: "Senza dubbi", en: "No doubts", fr: "Sans doutes", de: "Ohne Zweifel", es: "Sin dudas" }[locale]}
+          sopra={<SearchHead />}
         />
 
-        {/* Ricerca in alto: chi compra deve poter cercare subito (#case = target dell'hero). */}
+        {/* Filtri e risultati sulla carta (#case = target dell'hero); la testa della ricerca sta sulla foto. */}
         <div id="case">
           <PropertySearch properties={listings} />
         </div>
+        </RicercaProvider>
 
         <Highlights
           eyebrow={c.highlights.eyebrow}

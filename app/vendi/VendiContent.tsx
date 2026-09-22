@@ -946,15 +946,13 @@ export default function VendiContent() {
           secondary={{ label: c.hero.secondaryLabel, href: "#percorso" }}
           trust={c.hero.trust}
           scriptWord={{ it: "Con metodo", en: "With method", fr: "Avec méthode", de: "Mit Methode", es: "Con método" }[locale]}
+          /* A48 (Alberto, 22 set. 2026): «Costi chiari» posa SULLA foto della testa, subito dopo
+             i tre punti, in bianco da lg (sotto lg segue la foto, in inchiostro). Era in cima
+             subito sotto l'hero (§6.4): il costo è la prima obiezione di chi deve dare un
+             incarico. Cream, non paper: con lo spazio sopra il fondo è trasparente da lg. */
+          sopra={<CostiChiari surface="cream" />}
         />
 
-        {/* IN CIMA, subito sotto l'hero (§6.4). Il costo è la prima obiezione di chi
-            deve dare un incarico, e su questa pagina viveva solo come uno dei tre
-            bullet di fiducia dell'hero — una riga di otto parole per l'argomento più
-            forte che l'agenzia possiede. */}
-        {/* Cream, non paper: così l'alternanza della pagina resta quella di prima
-            (cream → paper → cream) invece di affiancare due bande dello stesso tono. */}
-        <CostiChiari surface="cream" />
 
         <Highlights
           tone="paper"

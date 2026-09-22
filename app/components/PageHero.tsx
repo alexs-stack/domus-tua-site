@@ -69,7 +69,12 @@ const GRIGLIA = "dt-row";
    tinte.json, la prima riga in cui almeno il 5 % dei pixel è opaco — sopra c'è
    solo cielo, cioè carta —, tradotta da `cieloH` di testa.ts): globals.css ne fa il margine negativo dello strato
    (`calc(-100% * var(--dt-cielo-h))`), così il soggetto comincia al fondo del
-   blocco e nessuna lettera gli sta sopra. Non `cielo.linea` (la riga in cui il
+   blocco e nessuna lettera gli sta sopra. A48 (22 set.): anche la BANDA SCURA
+   dello spazio sopra (`--dt-sopra-h`: `sopra[0]` di tinte.json, la corsa più
+   lunga in cui la colonna del testo regge il bianco nudo, misurata da
+   tinte.mjs; la cima se non c'è), stessa traduzione: da lg lo spazio sopra
+   comincia lì, così i tre punti e le sezioni in bianco non posano mai sul
+   cielo trasparente né sui muri chiari. Non `cielo.linea` (la riga in cui il
    soggetto riempie la larghezza): su /vendi la linea sta a 0,488 ma i cipressi
    cominciano a 0,219 e il tetto a 0,33, e con la linea l'H1 posava sui cipressi
    e il bottone sul tetto (misurato il 21 set. sul build a 1440×900). Vale senza
@@ -98,6 +103,7 @@ export default function PageHero({
   trust,
   scriptWord,
   tightTitle = false,
+  sopra,
 }: {
   /** Ancora della sezione (es. "top" per i link di risalita). */
   id?: string;
@@ -129,10 +135,18 @@ export default function PageHero({
       ragione visibile (revisori del 21 settembre). Le altre nove teste restano al
       pavimento di 3rem in ogni lingua; scala-telefono.test.ts lo pinna. */
   tightTitle?: boolean;
+  /** A48 (Alberto, 22 set. 2026: «portare le sezioni più sopra in modo che la foto sia semplicemente
+      lo sfondo della pagina»): le sezioni che la pagina posa SULLA foto, dopo i tre punti. Da lg
+      stanno dentro lo strato, in bianco nudo (A40), dalla banda scura della foto (`sopra` di
+      tinte.json; dove non c'è banda, `data-sopra="carta"`, seguono la foto in inchiostro anche
+      da lg); sotto lg seguono la foto
+      in inchiostro (la 2:3 a 390 px è alta 585 px: non regge una sezione). Sezioni atomiche: o tutta
+      sulla foto o tutta sulla carta. */
+  sopra?: ReactNode;
 }) {
   const tinta = tinte[rotta];
   const stile = (
-    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]};--dt-cielo-h:${cieloH(tinta.cielo.cima, tinta.sorgente)}}`}</style>
+    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]};--dt-testa-hw:${(tinta.sorgente[1] / tinta.sorgente[0]).toFixed(4)};--dt-cielo-h:${cieloH(tinta.cielo.cima, tinta.sorgente)};--dt-sopra-h:${cieloH(tinta.sopra?.[0] ?? tinta.cielo.cima, tinta.sorgente)}}`}</style>
   );
 
   /* Il blocco dei testi, centrato come «Perfect sea views» di era-residence (A41 di
@@ -205,8 +219,10 @@ export default function PageHero({
   );
 
   /* Le prove sono corpo di testo (19 px) col trattino rosso dell'eyebrow
-     davanti, sull'avorio sotto la foto, nella colonna del lead (§3.1): si
-     leggono come una riga di garanzie. */
+     davanti, nella colonna del lead (§3.1): si leggono come una riga di
+     garanzie. A48 (22 set.): stanno SULLA foto, in bianco, subito dopo il
+     blocco (da lg: globals.css `.dt-testa_sopra`); sotto lg dopo la foto,
+     sull'avorio, in pietra come prima. */
   const punti = trust?.length ? (
     <div className={`${GRIGLIA} pt-[clamp(1.5rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)]`}>
       <ul className="flex flex-col gap-y-3 text-body text-stone sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8">
@@ -225,9 +241,20 @@ export default function PageHero({
   return (
     <>
       {stile}
-      <PageHeroTesta id={id} src={tinta.cielo.file ?? image} alt={alt} segno={tinta.segno} blocco={blocco}>
-        {punti}
-      </PageHeroTesta>
+      <PageHeroTesta
+        id={id}
+        src={tinta.cielo.file ?? image}
+        alt={alt}
+        segno={tinta.segno}
+        blocco={blocco}
+        suFoto={tinta.sopra !== null}
+        sopra={
+          <>
+            {punti}
+            {sopra}
+          </>
+        }
+      />
     </>
   );
 }

@@ -33,7 +33,18 @@
 //   in percentuale, `data-bg="foto"`: le tacche virano all'avorio solo lì; sul cielo
 //   trasparente (la carta) e sui muri bianchi restano grafite (revisione avversaria di
 //   A46, 22 set. 2026, C01/G02: un marcatore unico dalla cima in giù le faceva sparire);
-// - poi `.dt-testa_pagina` (i tre punti sull'avorio) segue in flusso;
+// - `.dt-testa_sopra` è lo spazio DENTRO lo strato, dopo l'immagine (A48 di Alberto, 22 set.
+//   2026: «portare le sezioni più sopra in modo che la foto sia semplicemente lo sfondo della
+//   pagina»): in flusso, coi tre punti e le sezioni che la pagina posa sulla foto (`sopra`).
+//   Da lg comincia alla BANDA SCURA della foto (`padding-top` = `--dt-sopra-h`: la corsa in cui
+//   ogni terzo della colonna del testo regge il bianco, `sopra` di tinte.json misurata da tinte.mjs)
+//   in bianco nudo (A40) e senza fondo: lo strato è alto max(foto, banda + contenuto) e l'immagine
+//   copre dall'alto; sotto lg comincia dopo la foto (`padding-top` = l'altezza della foto,
+//   `--dt-testa-hw`), in inchiostro; da lg il bianco vale solo con `data-sopra="foto"` (la foto ha una
+//   banda scura per il bianco), altrimenti (`carta`: /recensioni) anche da lg lo spazio sopra segue la
+//   foto in inchiostro. La foto e i marcatori stanno nella scatola `.dt-testa_foto`
+//   (assoluta in cima allo strato: da lg riempie lo strato, sotto lg è alta quanto la foto resa), così
+//   le bande del segno restano frazioni della FOTO anche quando lo strato cresce col contenuto;
 // - lo stato del CSS è lo stato a riposo: senza JS e con reduced-motion la pagina è
 //   questa, completa; niente sticky, niente trasformate (D190). CLS 0 per costruzione:
 //   nulla si misura, nulla si scrive dopo il paint;
@@ -54,7 +65,8 @@ export default function PageHeroTesta({
   alt,
   segno,
   blocco,
-  children,
+  suFoto,
+  sopra,
 }: {
   id?: string;
   /** La foto: il WebP col cielo trasparente dove c'è (A46), altrimenti la sorgente (PageHero decide). */
@@ -64,38 +76,42 @@ export default function PageHeroTesta({
   segno: ReadonlyArray<ReadonlyArray<number>>;
   /** Il blocco dei testi, centrato sull'avorio sopra il soggetto (lead; occhiello, H1, calligrafia; comandi): lo compone PageHero. */
   blocco: ReactNode;
-  /** La pagina che segue la foto (i tre punti sull'avorio); vuota dove la rotta non ha prove. */
-  children?: ReactNode;
+  /** A48: la foto ha una banda scura per il bianco (`sopra` di tinte.json)? Se no, lo spazio sopra segue la foto in inchiostro anche da lg. */
+  suFoto: boolean;
+  /** Lo spazio sopra la foto (A48): i tre punti e le sezioni che la pagina posa sulla foto; vuoto dove non c'è niente. */
+  sopra?: ReactNode;
 }) {
   return (
-    <section id={id} data-testa className="dt-testa relative isolate">
+    <section id={id} data-testa data-sopra={suFoto ? "foto" : "carta"} className="dt-testa relative isolate">
       <div data-dive-zoom className="dt-testa_riquadro">
         {blocco}
         <div data-testa-strato className="dt-testa_strato">
-          <Image
-            data-testa-foto
-            src={src}
-            alt={alt}
-            fill
-            preload
-            sizes={SIZES_TESTA}
-            quality={60}
-            className="object-cover"
-            style={{ objectPosition: "var(--dt-op)" }}
-          />
-          {segno.map(([da = 0, a = 0]) => (
-            <span
-              key={`${da}-${a}`}
-              aria-hidden
-              data-testa-soggetto
-              data-bg="foto"
-              className="dt-testa_soggetto"
-              style={{ top: `${(da * 100).toFixed(2)}%`, bottom: `${((1 - a) * 100).toFixed(2)}%` }}
+          <div data-testa-foto-box className="dt-testa_foto">
+            <Image
+              data-testa-foto
+              src={src}
+              alt={alt}
+              fill
+              preload
+              sizes={SIZES_TESTA}
+              quality={60}
+              className="object-cover"
+              style={{ objectPosition: "var(--dt-op)" }}
             />
-          ))}
+            {segno.map(([da = 0, a = 0]) => (
+              <span
+                key={`${da}-${a}`}
+                aria-hidden
+                data-testa-soggetto
+                data-bg="foto"
+                className="dt-testa_soggetto"
+                style={{ top: `${(da * 100).toFixed(2)}%`, bottom: `${((1 - a) * 100).toFixed(2)}%` }}
+              />
+            ))}
+          </div>
+          <div className="dt-testa_sopra">{sopra}</div>
         </div>
       </div>
-      <div className="dt-testa_pagina">{children}</div>
     </section>
   );
 }
