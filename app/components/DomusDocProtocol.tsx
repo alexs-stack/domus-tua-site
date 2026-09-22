@@ -82,7 +82,7 @@ const copy = {
         t: "Preparazione",
         seller: "La casa si presenta al suo valore reale, valorizzata e raccontata bene.",
         buyer: "Capisci subito il potenziale dell’immobile, non solo lo stato di fatto.",
-        alt: "Il salotto a doppia altezza di una villa, con il divano di lino e la piscina oltre la vetrata",
+        alt: "La terrazza di una villa bianca affacciata sulle colline",
       },
       {
         t: "Tutela",
@@ -124,7 +124,7 @@ const copy = {
         t: "Preparation",
         seller: "The home shows at its true value, enhanced and told well.",
         buyer: "You grasp the property’s potential right away, not just its current state.",
-        alt: "The double-height living room of a villa, with a linen sofa and the pool beyond the glass wall",
+        alt: "The terrace of a white villa overlooking the hills",
       },
       {
         t: "Protection",
@@ -166,7 +166,7 @@ const copy = {
         t: "Préparation",
         seller: "Le bien se présente à sa vraie valeur, mis en valeur et bien raconté.",
         buyer: "Vous saisissez tout de suite le potentiel du bien, pas seulement son état.",
-        alt: "Le salon à double hauteur d’une villa, avec le canapé en lin et la piscine derrière la baie vitrée",
+        alt: "La terrasse d’une villa blanche donnant sur les collines",
       },
       {
         t: "Protection",
@@ -208,7 +208,7 @@ const copy = {
         t: "Vorbereitung",
         seller: "Die Immobilie zeigt ihren wahren Wert, aufgewertet und gut erzählt.",
         buyer: "Sie erfassen sofort das Potenzial, nicht nur den Ist-Zustand.",
-        alt: "Das doppelt hohe Wohnzimmer einer Villa mit Leinensofa und dem Pool hinter der Glasfront",
+        alt: "Die Terrasse einer weißen Villa mit Blick auf die Hügel",
       },
       {
         t: "Schutz",
@@ -250,7 +250,7 @@ const copy = {
         t: "Preparación",
         seller: "La casa se presenta a su valor real, revalorizada y bien contada.",
         buyer: "Entiendes enseguida el potencial del inmueble, no solo su estado actual.",
-        alt: "El salón a doble altura de una villa, con el sofá de lino y la piscina tras la cristalera",
+        alt: "La terraza de una villa blanca con vistas a las colinas",
       },
       {
         t: "Protección",
@@ -273,7 +273,8 @@ const FOTO = [
   { src: "/images/reali/attico-studio-alta.jpg", w: 2560, h: 3816 },
   { src: "/images/reali/villa-ingresso-scala-alta.jpg", w: 2560, h: 3816 },
   { src: "/images/reali/raffaela-salotto-alta.jpg", w: 2560, h: 3816 },
-  { src: "/images/reali/villa-salotto-doppio.jpg", w: 2560, h: 1717 },
+  // A69: il salotto doppio non piace ad Alberto; la piscina-facciata va al Metodo, qui la terrazza sulle colline (generata, 9:16).
+  { src: "/images/reali/villa-terrazza-colline-alta.jpg", w: 2160, h: 3870 },
   { src: "/images/reali/raffaela-portico-alta.jpg", w: 2560, h: 3816 },
 ] as const;
 /* La cornice: larga come la riga sotto lg, da lg al più 42vw / 640 px e non più alta di 80svh

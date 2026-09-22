@@ -242,8 +242,9 @@ test.describe("la testa", () => {
             expect(g.punti.top, `${lang}: i tre punti stanno troppo sotto il blocco`).toBeLessThanOrEqual(g.blocco!.bottom + 80);
             // A56 (22 set., pomeriggio: «le scritte bianche sopra le immagini, mettile di colore grigio, come quello della
             // hero della scritta "domus"»): il grigio del lockup (`--color-graphite`), senza l'ombra di A54.
-            expect(g.stili.punti?.color, `${lang}: sulla foto i tre punti non sono nel grigio del lockup (A56)`).toBe("rgb(70, 66, 61)");
-            expect(g.stili.punti?.shadow, `${lang}: sulla foto i tre punti portano ancora l'ombra (A56: col grigio non serve)`).toBe("none");
+            // A70 (22 set., sera: «prova a farle più grandi e grosse e bianche, poi lo testo»): bianche, senza ombra.
+            expect(g.stili.punti?.color, `${lang}: sulla foto i tre punti non sono bianchi (A70)`).toBe("rgb(255, 255, 255)");
+            expect(g.stili.punti?.shadow, `${lang}: sulla foto i tre punti portano un'ombra (A70 non la vuole)`).toBe("none");
           } else if (g.punti) {
             // Nessuna banda scura (/recensioni, il muro bianco a sinistra): i tre punti seguono la foto, in pietra sulla carta.
             expect(g.punti.top, `${lang}: senza banda i tre punti non seguono la foto (A48)`).toBeGreaterThanOrEqual(g.foto!.bottom - 2);
@@ -418,8 +419,9 @@ test.describe("la ricerca sulla foto (A48)", () => {
       if (c.suFoto) {
         expect(r.bottom, "la ricerca esce dalla foto").toBeLessThanOrEqual(g.foto!.bottom + 1);
         // A56: il grigio del lockup al posto del bianco.
-        expect(r.color, "sulla foto il campo non è nel grigio del lockup (A56)").toBe("rgb(70, 66, 61)");
-        expect(r.occhiello, "sulla foto l'occhiello non è nel grigio del lockup (A56)").toBe("rgb(70, 66, 61)");
+        // A70 (22 set., sera): bianco al posto del grigio, più grande.
+        expect(r.color, "sulla foto il campo non è bianco (A70)").toBe("rgb(255, 255, 255)");
+        expect(r.occhiello, "sulla foto l'occhiello non è bianco (A70)").toBe("rgb(255, 255, 255)");
       } else {
         expect(r.top, "sotto lg la ricerca non segue la foto").toBeGreaterThanOrEqual(g.foto!.bottom - 1);
         expect(r.color, "sotto lg il campo non è inchiostro").toBe(INK);

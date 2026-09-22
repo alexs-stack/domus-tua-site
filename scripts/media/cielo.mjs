@@ -104,6 +104,10 @@ export const FOTO = [
   { nome: "villa-salotto-esterno-alta", uso: "/recensioni", classe: "giorno" },
   { nome: "attico-studio-alta", uso: "/lavora-con-noi", classe: "interno" },
   { nome: "villa-piscina-lunga-alta", uso: "/domande-frequenti", classe: "giorno" },
+  // A49/A71 (22 set., sera): l'hero alto della home, la piscina di Raffaela estesa a 2:3 con
+  // Higgsfield (outpaint + upscale) e col cielo trasparente («falla no-bg così è più bella»).
+  // Non è una testa: tinte.mjs la salta (`uso` "/"), le misure le scrive finestra.mjs in hero.json.
+  { nome: "hero-raffaela-piscina-alta", uso: "/", classe: "giorno" },
   /* La finestra di Open Domus in home (OpenDomus.tsx): «Architecture» di era. A47 (Alberto, 22 set.
      2026: «qua perchè hai tagliato l'immagine, deve continuare, abbiamo fatto le immagini alte
      apposta per poterci scrollare a schermo intero senza uscire dalla foto»): la facciata a terrazze
@@ -491,9 +495,12 @@ async function contatto(esiti, dir) {
 async function main() {
   // Il foglio di contatto non entra nel repo: una fotografia committata invecchia in silenzio.
   const dir = process.argv[2] ?? join(tmpdir(), "domus-cielo");
+  // Un solo nome (argv[3]): si maschera quella foto e si salta tinte.mjs (A49: l'hero, che non è una testa).
+  const soloNome = process.argv[3];
   mkdirSync(dir, { recursive: true });
   const esiti = [];
   for (const f of FOTO) {
+    if (soloNome && f.nome !== soloNome) continue;
     if (f.classe === "interno") {
       console.log(`${f.nome}: interno, nessun cielo (${f.uso})`);
       continue;
@@ -507,6 +514,7 @@ async function main() {
     esiti.push({ nome: f.nome, ...e });
   }
   console.log(`foglio di contatto: ${await contatto(esiti, dir)}`);
+  if (soloNome) return;
   // Il JSON lo scrive tinte.mjs, che rilegge i WebP appena scritti.
   const r = spawnSync(process.execPath, [join(ROOT, "scripts/media/tinte.mjs")], { cwd: ROOT, stdio: "inherit" });
   if (r.status !== 0) throw new Error(`tinte.mjs è uscito con ${r.status}`);

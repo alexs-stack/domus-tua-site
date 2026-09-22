@@ -1,0 +1,17 @@
+{
+  "file": "/images/reali/hero-raffaela-piscina-alta-cielo.webp",
+  "sorgente": [
+    2560,
+    3812
+  ],
+  "cielo": {
+    "linea": 0.42,
+    "cima": 0.192
+  },
+  "segno": [
+    [
+      0.269,
+      0.695
+    ]
+  ]
+}

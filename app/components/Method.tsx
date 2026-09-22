@@ -45,9 +45,15 @@ const copy = {
     actVideo: "Guarda la video recensione",
     allSteps: "Vedi i nove passi",
     acts: [
-      { up: "Prima,", down: "le persone", word: "Ascolto", alt: "Raffaela Rizza, fondatrice di Domus Tua, allo specchio: il riflesso sorride a chi guarda" },
-      { up: "Poi,", down: "le immagini", word: "Racconto", alt: "Il salotto a doppia altezza di una villa, con la piscina oltre la vetrata" },
-      { up: "Infine,", down: "il rogito", word: "Firma", alt: "Raffaela Rizza consegna le chiavi davanti alla villa" },
+      { up: "Prima,", down: "le persone", word: "Ascolto" },
+      { up: "Poi,", down: "le immagini", word: "Racconto" },
+      { up: "Infine,", down: "il rogito", word: "Firma" },
+    ],
+    // Gli alt delle tre foto degli atti (ACT_IMAGES), nell'ordine: media-file.test li legge da qui.
+    actAlts: [
+      "Raffaela Rizza, fondatrice di Domus Tua, allo specchio: il riflesso sorride a chi guarda",
+      "La facciata di una villa moderna sulla piscina, con le sdraio bianche e le siepi",
+      "Raffaela Rizza consegna le chiavi davanti alla villa",
     ],
     steps: [
       { title: "Primo ascolto", copy: "Partiamo da te: obiettivi, tempi, aspettative. Prima delle case vengono le persone." },
@@ -70,9 +76,14 @@ const copy = {
     actVideo: "Watch the video review",
     allSteps: "See the nine steps",
     acts: [
-      { up: "First,", down: "the people", word: "Listening", alt: "Raffaela Rizza, founder of Domus Tua, at the mirror: her reflection smiles at the viewer" },
-      { up: "Then,", down: "the images", word: "Story", alt: "The double-height living room of a villa, with the pool beyond the glass wall" },
-      { up: "Finally,", down: "the deed", word: "Signing", alt: "Raffaela Rizza handing over the keys in front of the villa" },
+      { up: "First,", down: "the people", word: "Listening" },
+      { up: "Then,", down: "the images", word: "Story" },
+      { up: "Finally,", down: "the deed", word: "Signing" },
+    ],
+    actAlts: [
+      "Raffaela Rizza, founder of Domus Tua, at the mirror: her reflection smiles at the viewer",
+      "The facade of a modern villa over its pool, with white sun loungers and hedges",
+      "Raffaela Rizza handing over the keys in front of the villa",
     ],
     steps: [
       { title: "First, we listen", copy: "We start with you: goals, timing, expectations. People come before homes." },
@@ -95,9 +106,14 @@ const copy = {
     actVideo: "Voir l’avis en vidéo",
     allSteps: "Voir les neuf étapes",
     acts: [
-      { up: "D'abord,", down: "les personnes", word: "Écoute", alt: "Raffaela Rizza, fondatrice de Domus Tua, devant le miroir : son reflet sourit à qui regarde" },
-      { up: "Puis,", down: "les images", word: "Récit", alt: "Le salon à double hauteur d'une villa, avec la piscine derrière la baie vitrée" },
-      { up: "Enfin,", down: "l’acte", word: "Signature", alt: "Raffaela Rizza remet les clés devant la villa" },
+      { up: "D'abord,", down: "les personnes", word: "Écoute" },
+      { up: "Puis,", down: "les images", word: "Récit" },
+      { up: "Enfin,", down: "l’acte", word: "Signature" },
+    ],
+    actAlts: [
+      "Raffaela Rizza, fondatrice de Domus Tua, devant le miroir : son reflet sourit à qui regarde",
+      "La façade d'une villa moderne sur sa piscine, avec les bains de soleil blancs et les haies",
+      "Raffaela Rizza remet les clés devant la villa",
     ],
     steps: [
       { title: "Première écoute", copy: "Nous partons de vous : objectifs, délais, attentes. Avant les maisons viennent les personnes." },
@@ -120,9 +136,14 @@ const copy = {
     actVideo: "Video-Bewertung ansehen",
     allSteps: "Die neun Schritte ansehen",
     acts: [
-      { up: "Zuerst", down: "die Menschen", word: "Zuhören", alt: "Raffaela Rizza, Gründerin von Domus Tua, vor dem Spiegel: ihr Spiegelbild lächelt den Betrachter an" },
-      { up: "Dann", down: "die Bilder", word: "Erzählen", alt: "Das doppelt hohe Wohnzimmer einer Villa mit dem Pool hinter der Glasfront" },
-      { up: "Zuletzt", down: "der Notartermin", word: "Unterschrift", alt: "Raffaela Rizza übergibt die Schlüssel vor der Villa" },
+      { up: "Zuerst", down: "die Menschen", word: "Zuhören" },
+      { up: "Dann", down: "die Bilder", word: "Erzählen" },
+      { up: "Zuletzt", down: "der Notartermin", word: "Unterschrift" },
+    ],
+    actAlts: [
+      "Raffaela Rizza, Gründerin von Domus Tua, vor dem Spiegel: ihr Spiegelbild lächelt den Betrachter an",
+      "Die Fassade einer modernen Villa am Pool, mit weißen Liegen und Hecken",
+      "Raffaela Rizza übergibt die Schlüssel vor der Villa",
     ],
     steps: [
       { title: "Erstes Zuhören", copy: "Wir beginnen bei Ihnen: Ziele, Zeitrahmen, Erwartungen. Vor den Häusern kommen die Menschen." },
@@ -145,9 +166,14 @@ const copy = {
     actVideo: "Ver la reseña en vídeo",
     allSteps: "Ver los nueve pasos",
     acts: [
-      { up: "Primero,", down: "las personas", word: "Escucha", alt: "Raffaela Rizza, fundadora de Domus Tua, ante el espejo: su reflejo sonríe a quien mira" },
-      { up: "Luego,", down: "las imágenes", word: "Relato", alt: "El salón a doble altura de una villa, con la piscina tras la cristalera" },
-      { up: "Al final,", down: "la escritura", word: "Firma", alt: "Raffaela Rizza entrega las llaves delante de la villa" },
+      { up: "Primero,", down: "las personas", word: "Escucha" },
+      { up: "Luego,", down: "las imágenes", word: "Relato" },
+      { up: "Al final,", down: "la escritura", word: "Firma" },
+    ],
+    actAlts: [
+      "Raffaela Rizza, fundadora de Domus Tua, ante el espejo: su reflejo sonríe a quien mira",
+      "La fachada de una villa moderna sobre la piscina, con tumbonas blancas y setos",
+      "Raffaela Rizza entrega las llaves delante de la villa",
     ],
     steps: [
       { title: "Primera escucha", copy: "Partimos de ti: objetivos, plazos, expectativas. Antes que las casas están las personas." },
@@ -181,7 +207,8 @@ const copy = {
    della recensione (scelta del 2026-08-06). */
 const ACT_IMAGES = [
   { src: "/images/reali/raffaela-specchio-riflesso.jpg", w: 1920, h: 2560, video: null },
-  { src: "/images/reali/villa-salotto-doppio.jpg", w: 2560, h: 1717, video: null },
+  // A69 (Alberto, 22 set., sera: «salotto doppio non mi piace, usa questa»): la facciata sulla piscina, 3:2.
+  { src: "/images/reali/villa-piscina-facciata.jpg", w: 2560, h: 1707, video: null },
   { src: "/images/reali/raffaela-chiavi-alta.jpg", w: 2560, h: 3816, video: site.videos.reviews[0].id },
 ] as const;
 
@@ -237,7 +264,7 @@ export default function Method({ compact = false }: { compact?: boolean } = {}) 
                 className="dt-media-half"
                 style={{ aspectRatio: `${img.w} / ${img.h}` }}
               >
-                <Image src={img.src} alt={a.alt} fill sizes={ACT_SIZES} className="object-cover" />
+                <Image src={img.src} alt={c.actAlts[i]} fill sizes={ACT_SIZES} className="object-cover" />
               </ClipMedia>
             </div>
             <div className="lg:pr-[6vw]">

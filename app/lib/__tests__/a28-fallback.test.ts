@@ -142,8 +142,9 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
       // senza ombra; le righe e i segnaposto lo portano con color-mix, mai un bianco.
       if (r.selettore.includes(".dt-testa_sopra") && /(^|[^-])color\s*:/.test(r.corpo)) {
         assert.deepEqual(r.media, [MQ_LG], `${r.selettore}: un colore scritto fuori dalla fascia lg (sotto lg le sezioni seguono la foto in inchiostro)`);
-        assert.doesNotMatch(r.corpo, /(^|[^-])color\s*:(?!\s*(var\(--color-graphite\)|color-mix\(in srgb, var\(--color-graphite\)))/, `${r.selettore}: sulla foto solo il grigio del lockup (A56)`);
-        assert.doesNotMatch(r.corpo, /#fff\b|rgb\(255 255 255|white/, `${r.selettore}: bianco sulla foto (A56: grigio come «Domus»)`);
+        // A70 (22 set., sera): sulle bande scure le scritte tornano bianche, più grandi e grosse, senza ombra.
+        assert.doesNotMatch(r.corpo, /(^|[^-])color\s*:(?!\s*(#fff\b|color-mix\(in srgb, #fff|var\(--color-ink\)))/, `${r.selettore}: sulla foto solo il bianco (A70), o l'inchiostro delle opzioni native`);
+        assert.doesNotMatch(r.corpo, /var\(--color-graphite\)/, `${r.selettore}: grigio sulla foto (A70: bianco, più grande)`);
         continue;
       }
       assert.doesNotMatch(r.corpo, /(^|[^-])color\s*:/, `${r.selettore}: il CSS della testa scrive color (i colori sono le classi nel markup, D184)`);
@@ -264,9 +265,9 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     assert.doesNotMatch(sopraBase!.corpo, /background|position\s*:\s*(absolute|fixed|sticky)|transform|margin-top|text-shadow/);
     assert.match(sopraLg!.corpo, /padding-top\s*:\s*calc\(100% \* var\(--dt-cielo-h, 0\)\)/, "da lg lo spazio sopra non comincia subito sotto il blocco (A48, A54)");
     // A56 (22 set., pomeriggio): il grigio del lockup al posto del bianco, e nessuna ombra (l'ombra di A54 serviva al bianco).
-    assert.match(sopraLg!.corpo, /color\s*:\s*var\(--color-graphite\)/, "da lg le scritte sulla foto non sono nel grigio del lockup (A56)");
-    assert.doesNotMatch(sopraLg!.corpo, /text-shadow/, "sulla foto è tornata l'ombra: col grigio non serve (A56)");
-    assert.doesNotMatch(sopraLg!.corpo, /#fff\b|rgb\(255 255 255/, "da lg le scritte sulla foto sono ancora bianche (A56)");
+    // A70 (22 set., sera): bianche, più grandi e grosse, senza ombra; se non leggono si abbassa la luminosità della foto.
+    assert.match(sopraLg!.corpo, /color\s*:\s*#fff/, "da lg le scritte sulla foto non sono bianche (A70)");
+    assert.doesNotMatch(sopraLg!.corpo, /text-shadow/, "sulla foto è tornata l'ombra: A70 non la vuole");
     assert.doesNotMatch(sopraLg!.corpo, /text-shadow\s*:\s*0 1px 2px rgb\(0 0 0 \/ 0\.35\), 0 0 28px rgb\(0 0 0 \/ 0\.45\)/, "sulla foto l'ombra non è quella unica del sito (A54, ink-media.ts)");
     assert.doesNotMatch(sopraLg!.corpo, /background|backdrop-filter|filter\s*:/, "sulla foto niente velo (C14): solo l'ombra attaccata alle lettere");
     assert.ok(per(".dt-testa_pagina").length === 0, "la fascia dei tre punti dopo la foto è morta (A48)");

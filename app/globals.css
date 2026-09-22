@@ -3032,20 +3032,38 @@ a.text-red {
      `--color-graphite`, e senza ombra — l'ombra di A54 reggeva il bianco, il grigio non ne ha bisogno
      (ink-media.test torna alle due occorrenze di D80). Le utility di colore dentro le sezioni cedono
      al grigio; righe e segnaposto lo portano attenuato con color-mix, mai un bianco. */
+  /* A70 (Alberto, 22 set. 2026, sera, sul grigio che perde sulle bande scure: «prova a farle più grandi e
+     grosse e bianche, poi lo testo e se non si leggono abbassiamo la luminosità dell'immagine»): sulle
+     bande scure delle teste le scritte tornano BIANCHE, senza ombra (ink-media resta a due occorrenze),
+     con i titoli un quinto più grandi, il corpo alla misura d4 e il peso a 500. Supera A56 sulle teste;
+     la finestra di Open Domus non ha più scritte sulla foto. */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra {
     padding-top: calc(100% * var(--dt-cielo-h, 0));
-    color: var(--color-graphite);
+    color: #fff;
   }
-  /* «o fai le scritte più grandi» (A54): sulla foto il corpo di testo sale alla misura del lead. */
-  .dt-testa[data-sopra="foto"] .dt-testa_sopra .text-body {
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-body, .lead, p, li, dt, dd) {
     font-size: var(--text-lead);
+    line-height: 1.35;
+    font-weight: 500;
+  }
+  /* La misura in più solo da 1280: a 1024×768 in tedesco le sezioni di /metodo sforavano la foto (a28). */
+  @media (min-width: 80rem) {
+    .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-body, .lead, p, li, dt, dd) {
+      font-size: var(--text-d4);
+    }
+    .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(h2, h3) {
+      font-size: calc(var(--text-d2) * 1.2);
+    }
+  }
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.eyebrow, .dt-btn--ghost, a, button) {
+    font-weight: 600;
   }
   .dt-testa[data-sopra="foto"] .dt-testa_foto {
     bottom: 0;
     aspect-ratio: auto;
   }
   .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, input, select, h2, h3, h4, p, li, dt, dd) {
-    color: var(--color-graphite);
+    color: #fff;
   }
   /* Le tendine della ricerca sulla foto (A52): le opzioni aperte restano native (inchiostro su carta). */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra select option {
@@ -3054,13 +3072,13 @@ a.text-red {
   /* Il campo e le tendine della ricerca di /acquista (A48, A52): il segnaposto nel grigio attenuato; la riga
      sotto il campo è l'utility `border-ink!`, che col grigio è già giusta. */
   .dt-testa[data-sopra="foto"] .dt-testa_sopra input::placeholder {
-    color: color-mix(in srgb, var(--color-graphite) 72%, transparent);
+    color: color-mix(in srgb, #fff 72%, transparent);
   }
   .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.bg-cream, .bg-paper, .bg-cream-deep) {
     background-color: transparent;
   }
   .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.border-line, .border-t, .border-b) {
-    border-color: color-mix(in srgb, var(--color-graphite) 45%, transparent);
+    border-color: color-mix(in srgb, #fff 55%, transparent);
   }
 }
 /* 2.4.7: sull'avorio il bottone rosso pieno tiene l'anello del sito (rosso 2 px a offset 3,
