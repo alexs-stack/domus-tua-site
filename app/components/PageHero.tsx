@@ -65,17 +65,19 @@ const GRIGLIA = "dt-row";
    nell'HTML iniziale la tinta (il fondo dello STRATO della foto prima del
    decode, D125), le due inquadrature per fascia (`--dt-op-lg` / `--dt-op-sotto`:
    il CSS sceglie `--dt-op`), il rapporto della foto (`--dt-testa-ar`) e la CIMA
-   del soggetto (`--dt-cielo`, frazione dell'altezza della foto: `cielo.cima` di
+   del soggetto in frazione della larghezza (`--dt-cielo-h`: `cielo.cima` di
    tinte.json, la prima riga in cui almeno il 5 % dei pixel è opaco — sopra c'è
-   solo cielo, cioè carta; `--dt-cielo-h`, la stessa in frazione della larghezza,
-   `cieloH` di testa.ts): globals.css ne fa il margine negativo dello strato
+   solo cielo, cioè carta —, tradotta da `cieloH` di testa.ts): globals.css ne fa il margine negativo dello strato
    (`calc(-100% * var(--dt-cielo-h))`), così il soggetto comincia al fondo del
    blocco e nessuna lettera gli sta sopra. Non `cielo.linea` (la riga in cui il
    soggetto riempie la larghezza): su /vendi la linea sta a 0,488 ma i cipressi
    cominciano a 0,219 e il tetto a 0,33, e con la linea l'H1 posava sui cipressi
    e il bottone sul tetto (misurato il 21 set. sul build a 1440×900). Vale senza
    JS, con reduced-motion, senza fetch
-   e senza FOUC. Lo <style> sta nell'albero del componente e non in <head> con
+   e senza FOUC. Le BANDE DEL SEGNO (`tinta.segno`, 22 set. 2026, rilievi C01/G02 della
+   revisione di A46: le corse in cui la striscia del segno, 2-6 % della larghezza, è
+   opaca e scura) passano a PageHeroTesta come prop, che ne fa un marcatore `foto` per
+   corsa: sul cielo trasparente e sui muri bianchi il segno resta grafite. Lo <style> sta nell'albero del componente e non in <head> con
    `precedence`, così cambia con la pagina a ogni navigazione client
    (e2e/a28.spec.ts, «le tinte»). Dove il JSON dichiara `"avorio"` esce un
    TOKEN, mai un quarto colore (D124): col cielo trasparente il fondo si vede
@@ -130,7 +132,7 @@ export default function PageHero({
 }) {
   const tinta = tinte[rotta];
   const stile = (
-    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]};--dt-cielo:${tinta.cielo.cima};--dt-cielo-h:${cieloH(tinta.cielo.cima, tinta.sorgente)}}`}</style>
+    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]};--dt-cielo-h:${cieloH(tinta.cielo.cima, tinta.sorgente)}}`}</style>
   );
 
   /* Il blocco dei testi, centrato come «Perfect sea views» di era-residence (A41 di
@@ -223,7 +225,7 @@ export default function PageHero({
   return (
     <>
       {stile}
-      <PageHeroTesta id={id} src={tinta.cielo.file ?? image} alt={alt} ratio={tinta.sorgente[0] / tinta.sorgente[1]} blocco={blocco}>
+      <PageHeroTesta id={id} src={tinta.cielo.file ?? image} alt={alt} segno={tinta.segno} blocco={blocco}>
         {punti}
       </PageHeroTesta>
     </>

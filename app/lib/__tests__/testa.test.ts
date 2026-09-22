@@ -1,24 +1,23 @@
-// LA TESTA DI ERA, IN NUMERI (A38, A40, A41 di Alberto; D175, D176, D183 del brief T).
+// LA TESTA DI ERA, IN NUMERI (A38, A41, A45, A46 di Alberto; D176 del brief T).
 //
 // Chi l'ha chiesto: A38 (Alberto, 20 settembre 2026): la fotografia a schermo intero diventa lo
-// sfondo e le scritte stanno dentro, bianche. Com'è fatto oggi: `app/lib/motion/testa.ts` è il
-// modulo puro coi numeri (scatola 100svh, m 0,138, `yPercent 0 → 100·m/(1+m)`, curva dtTerreno,
-// la finestra dello ScrollTrigger, `sizesDi` e `sizesSottoLg`); `PageHeroTesta.tsx` monta il
-// tween; `tinte.json` porta per rotta il trattamento (`testa` | `fermo`), la foto, la sorgente,
-// le due inquadrature (`objectPosition.lg` e `.sotto`, scelte da T1.0 in cancello-T1.md), `m`
-// e la tinta alta del placeholder. A46 di Alberto (21 set. 2026, sera: «su eraresidence questa
-// foto che usa come background alta ha il cielo mascherato, è no bg … dobbiamo fare la stessa
-// cosa»): `cielo: { file, linea, cima }` per rotta, e le scritte stanno sull'avorio SOPRA il
-// soggetto, nell'inchiostro della rivista; `cieloH()` traduce la linea del cielo (frazione
-// dell'altezza della foto) in frazione della LARGHEZZA, perché margini e aspect-ratio si misurano
-// sulla larghezza. Qui si rileggono numeri e sorgenti, senza DOM: i pixel li prova e2e/a28.spec.ts.
+// sfondo; A41 e A45: la foto alta è la pagina, in flusso, senza tween; A46 (21 set. 2026, sera: «su
+// eraresidence questa foto che usa come background alta ha il cielo mascherato, è no bg … dobbiamo
+// fare la stessa cosa»): `cielo: { file, linea, cima }` per rotta, e le scritte stanno sull'avorio
+// SOPRA il soggetto, nell'inchiostro della rivista; `cieloH()` traduce la CIMA del soggetto (frazione
+// dell'altezza della foto) in frazione della LARGHEZZA, perché il margine verticale dello strato si
+// misura sulla larghezza. Com'è fatto oggi: `app/lib/motion/testa.ts` è il modulo puro coi numeri
+// (`TESTA`, `cieloH`, `SIZES_TESTA`); `PageHeroTesta.tsx` è statico; `tinte.json` porta per rotta
+// il trattamento, la foto, la sorgente, le inquadrature, la tinta alta, il cielo e le bande del segno.
+// Qui si rileggono numeri e sorgenti, senza DOM: i pixel li prova e2e/a28.spec.ts. (Intestazione
+// riscritta il 22 set. dalla revisione avversaria di A46, rilievo R10: diceva «linea del cielo».)
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gsap } from "gsap";
 import { CustomEase } from "gsap/CustomEase";
-import { BUCKETS, TESTA, cieloH, sizesDi, sizesSottoLg } from "../motion/testa";
+import { SIZES_TESTA, TESTA, cieloH } from "../motion/testa";
 
 gsap.registerPlugin(CustomEase);
 
@@ -87,9 +86,6 @@ const scelto = (sizes: string, vw: number, dpr: number) => {
 };
 /** Il primo bucket di next.config.ts non più piccolo della larghezza chiesta (DPR 1). */
 const bucket = (px: number) => CONFIG.deviceSizes.find((d) => d >= px) ?? CONFIG.deviceSizes[CONFIG.deviceSizes.length - 1];
-/** L'altezza della scatola e dello strato a un viewport da lg (§3.1: scatola 100svh, strato × (1 + m)). */
-/** A41: la foto è ferma (sticky), lo strato è il riquadro: nessun margine. */
-const scatola = (vh: number) => ({ h: vh, hs: vh });
 
 describe("testa.ts: i numeri della testa di era (D176; A41: nessun margine, la foto è ferma)", () => {
   test("la scatola è 100svh, e basta: nessun margine, nessuna ampiezza, nessuna curva (A41)", () => {
@@ -102,88 +98,35 @@ describe("testa.ts: i numeri della testa di era (D176; A41: nessun margine, la f
     assert.doesNotMatch(mod, /\bimport\b/, "testa.ts importa qualcosa: non è più un modulo puro");
     assert.doesNotMatch(mod, /tinte\.json/, "testa.ts legge tinte.json");
     assert.doesNotMatch(mod, /["']use client["']|\bgsap\b/, "testa.ts non è dati");
-    assert.deepEqual([...BUCKETS], CONFIG.deviceSizes, "i bucket copiati in testa.ts non sono i deviceSizes di next.config.ts");
     const client = soloCodice(leggi("app/components/motion/PageHeroTesta.tsx"));
     assert.doesNotMatch(client, /tinte\.json/, "PageHeroTesta legge tinte.json");
     // A45: statico di nuovo — la foto alta scorre con la pagina; nessun hook, nessun GSAP, niente `m`.
     assert.doesNotMatch(client, /\bm:\s*number|yPercent|gsap|useGSAP|ScrollTrigger|["']use client["']|\buse[A-Z]\w*(?=\s*(?:<[^>]*>)?\()/, "PageHeroTesta non è più statico (A45: la foto è la pagina)");
-    assert.match(client, /sizes=\{sizesDi\(/, "sizes non viene dal rapporto della sorgente (D183)");
+    assert.match(client, /sizes=\{SIZES_TESTA\}/, "sizes non è il 100vw dello strato in flusso (A45; 22 set.)");
   });
 });
 
-describe("sizesDi e sizesSottoLg: i byte sono un cancello (D183, §3.4)", () => {
-  test("le stringhe per 3:2 e 16:9, e il primo termine 338 / 400 / 405 per 1,5 / 16:9 / 1,8", () => {
-    // A41 (nessun margine): 3:2 dipinge 1152 / 1200 / 1350 / 1620 px ai quattro fold → 112vw, 100vw, 100vw.
-    assert.equal(sizesDi(1.5), "(max-width: 1023.98px) 338vw, (max-width: 1279.98px) 112vw, (max-width: 1439.98px) 100vw, 100vw");
-    assert.equal(sizesDi(16 / 9), "(max-width: 1023.98px) 400vw, (max-width: 1279.98px) 133vw, (max-width: 1439.98px) 111vw, 107vw");
-    assert.equal(sizesSottoLg(1.5), "338vw");
-    assert.equal(sizesSottoLg(16 / 9), "400vw");
-    assert.equal(sizesSottoLg(1.8), "405vw");
-    assert.ok(sizesDi(1.8).startsWith("(max-width: 1023.98px) 405vw, "));
-    // Il primo termine è sizesSottoLg: ceil(100 · r · 2,25).
-    for (const r of [1.5, 16 / 9, 1.8, 1.799]) assert.ok(sizesDi(r).startsWith(`(max-width: 1023.98px) ${sizesSottoLg(r)}, `), `r ${r}`);
-  });
-
-  test("ai quattro fold da lg il bucket regge quel che il cover dipinge: ingrandimento ≤ 1,000 per r ∈ {1,5; 1,778; 1,799}", () => {
-    const attesi: Record<string, Record<string, number>> = {
-      "1.5": { "1024x768": 1280, "1280x800": 1280, "1440x900": 1536, "1920x1080": 1920 },
-      "1.778": { "1024x768": 1536, "1280x800": 1536, "1440x900": 1920, "1920x1080": 2560 },
-      "1.799": { "1024x768": 1536, "1280x800": 1536, "1440x900": 1920, "1920x1080": 2560 },
-    };
-    for (const r of [1.5, 1.778, 1.799]) {
-      const sizes = sizesDi(r);
-      for (const [vw, vh] of [
-        [1024, 768],
-        [1280, 800],
-        [1440, 900],
-        [1920, 1080],
-      ] as const) {
-        const b = bucket(sizePx(sizes, vw));
-        assert.equal(b, attesi[String(r)][`${vw}x${vh}`], `r ${r} a ${vw}×${vh}: bucket`);
-        // `object-cover` sullo strato: serve max(larghezza, altezza dello strato × rapporto).
-        const serve = Math.max(vw, scatola(vh).hs * r);
-        assert.ok(serve / b <= 1 + 1e-9, `${vw}×${vh} r ${r}: servono ${Math.round(serve)} px su un bucket ${b} (×${(serve / b).toFixed(3)})`);
-      }
+describe("SIZES_TESTA: 100vw su ogni fascia (A45: lo strato è in flusso e dipinge il viewport; revisione del 22 set., C02/P01/G03)", () => {
+  test("il valore, e i bucket che il browser sceglie: 1024 a 390 @2, 1280 a 390 e 360 @3, 1536 a 768 @2 e 1440 @1, 2560 a 1440 @2, mai un ingrandimento", () => {
+    assert.equal(SIZES_TESTA, "100vw");
+    assert.equal(sizePx(SIZES_TESTA, 390), 390);
+    assert.equal(scelto(SIZES_TESTA, 390, 2), 1024);
+    assert.equal(scelto(SIZES_TESTA, 390, 3), 1280);
+    assert.equal(scelto(SIZES_TESTA, 360, 3), 1280);
+    assert.equal(scelto(SIZES_TESTA, 768, 2), 1536);
+    assert.equal(scelto(SIZES_TESTA, 1024, 1), 1024);
+    assert.equal(scelto(SIZES_TESTA, 1440, 1), 1536);
+    assert.equal(scelto(SIZES_TESTA, 1440, 2), 2560);
+    assert.equal(scelto(SIZES_TESTA, 1920, 1), 1920);
+    for (const [vw, dpr] of [[390, 2], [390, 3], [768, 2], [1024, 1], [1440, 1], [1920, 1]] as const) {
+      assert.ok(scelto(SIZES_TESTA, vw, dpr) >= Math.min(2560, vw * dpr), `${vw} @${dpr}: il bucket è più stretto dei pixel chiesti`);
     }
-    // A 1440 e 1920 le 3:2 tengono il bucket di oggi (1536 e 1920, D182): il floor e non il ceil.
-    assert.equal(bucket(sizePx(sizesDi(1.5), 1440)), 1536);
-    assert.equal(bucket(sizePx(sizesDi(1.5), 1920)), 1920);
-    // A 1280 esatti vale il termine 1439,98 (100vw): un 3:2 dipinge 1280 px e il bucket 1280 basta senza ingrandimento (A41).
-    assert.equal(bucket(sizePx(sizesDi(1.5), 1280)), 1280);
-  });
-
-  test("sotto lg (D183): a DPR 2 e 3 i telefoni comuni ricevono 2560, a DPR 1 1536; la regex di next/image ignora i vw sopra 199", () => {
-    // next/image legge solo i vw ≤ 199: con 3:2 restano 112, 100, 100 → dieci candidati da 360 a 2560.
-    assert.deepEqual(candidati(sizesDi(1.5)), [360, 384, 420, 640, 768, 1024, 1280, 1536, 1920, 2560]);
-    // 390×844: un 3:2 dipinge 844 × 1,5 = 1266 px CSS; un 16:9 1501; un 1,8 1518.
-    const dipinta = (vh: number, r: number) => Math.round(vh * r);
-    const tabella: Array<[number, number, number, number, number, number]> = [
-      // vw, vh, dpr, r, bucket atteso, ingrandimento massimo dichiarato
-      [390, 844, 2, 1.5, 2560, 1.0],
-      [390, 844, 3, 1.5, 2560, 1.49],
-      [390, 844, 1, 1.5, 1536, 1.0],
-      [390, 844, 2, 16 / 9, 2560, 1.18],
-      [390, 844, 3, 16 / 9, 2560, 1.77],
-      [390, 844, 1, 16 / 9, 1920, 1.0],
-      [360, 640, 2, 1.5, 2560, 1.0],
-      [360, 800, 3, 1.5, 2560, 1.49],
-      [375, 812, 3, 1.5, 2560, 1.44],
-      [412, 915, 2, 1.5, 2560, 1.08],
-      [412, 915, 3, 1.5, 2560, 1.61],
-    ];
-    for (const [vw, vh, dpr, r, atteso, ingr] of tabella) {
-      const b = scelto(sizesDi(r), vw, dpr);
-      assert.equal(b, atteso, `${vw}×${vh} @${dpr} r ${r.toFixed(3)}: bucket ${b}`);
-      const chiede = dipinta(vh, r) * dpr;
-      assert.ok(chiede / b <= ingr + 1e-9, `${vw}×${vh} @${dpr} r ${r.toFixed(3)}: chiede ${chiede} su ${b} (×${(chiede / b).toFixed(2)}), dichiarato ≤ ${ingr}`);
-    }
-    // 390×844 @2 con 3:2: 2532 px chiesti → 2560, ingrandimento 1,000; @1 1266 → 1536.
-    assert.equal(scelto(sizesDi(1.5), 390, 2), 2560);
-    assert.equal(scelto(sizesDi(1.5), 390, 1), 1536);
-    // Col `245vw` della prima stesura il 3:2 a 390 @2 prendeva 1920: ×1,32 (critica g1).
-    const vecchio = "(max-width: 1023.98px) 245vw, (max-width: 1279.98px) 112vw, (max-width: 1439.98px) 100vw, 100vw";
-    assert.equal(scelto(vecchio, 390, 2), 1920);
-    assert.ok((dipinta(844, 1.5) * 2) / scelto(vecchio, 390, 2) > 1.3);
+    assert.equal(bucket(sizePx(SIZES_TESTA, 1440)), 1536);
+    // Il conto per fold di D183 (151vw sotto lg per un 2:3, dal riquadro 100svh in cover di A41) chiedeva il 1920
+    // a 390 @3 dove basta il 1280: +45…+72 KB AVIF sull'immagine LCP (misurato il 22 set. sul build).
+    const vecchio = "(max-width: 1023.98px) 151vw, (max-width: 1279.98px) 100vw, (max-width: 1439.98px) 100vw, 100vw";
+    assert.equal(scelto(vecchio, 390, 3), 1920);
+    assert.equal(scelto(vecchio, 390, 2), 1280);
   });
 });
 

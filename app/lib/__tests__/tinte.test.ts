@@ -35,7 +35,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
-import { CANCELLO_ALTA, SCATOLA as SCATOLA_DELLO_SCRIPT, ritaglio } from "../../../scripts/media/tinte.mjs";
+import { CANCELLO_ALTA, SCATOLA as SCATOLA_DELLO_SCRIPT, SEGNO, misuraSegno, ritaglio } from "../../../scripts/media/tinte.mjs";
 import { FOTO as CIELI, fileCielo, misuraCielo } from "../../../scripts/media/cielo.mjs";
 
 const ROOT = process.cwd();
@@ -50,6 +50,8 @@ type Voce = {
   objectPosition: { lg: string; sotto: string };
   alta: Banda;
   cielo: Cielo;
+  /** Le bande del segno (22 set. 2026, C01/G02): dove, nella striscia del segno, la foto è opaca e scura. */
+  segno: Array<[number, number]>;
 };
 const tinte = JSON.parse(leggi("app/lib/motion/tinte.json")) as Record<string, Voce>;
 
@@ -168,7 +170,7 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
       const v = tinte[rotta];
       assert.equal(v.trattamento, trattamento, `${rotta}: trattamento fuori dal repertorio di §0`);
       assert.ok(existsSync(join(ROOT, "public", v.file)), `${rotta}: manca public${v.file}`);
-      assert.deepEqual(Object.keys(v).sort(), ["alta", "cielo", "file", "objectPosition", "sorgente", "trattamento"], `${rotta}: campi`);
+      assert.deepEqual(Object.keys(v).sort(), ["alta", "cielo", "file", "objectPosition", "segno", "sorgente", "trattamento"], `${rotta}: campi`);
     }
     // La scatola con cui lo script misura è quella dichiarata qui, non un'altra.
     assert.deepEqual(SCATOLA_DELLO_SCRIPT, SCATOLA, "la scatola di scripts/media/tinte.mjs non è il riquadro del telefono");
@@ -271,7 +273,7 @@ describe("la tinta del placeholder e i dati dell'inquadratura (D187, §4)", () =
       { cwd: ROOT, encoding: "utf8", timeout: 30_000 },
     );
     assert.equal(figlio.status, 0, figlio.stderr);
-    assert.equal(figlio.stdout.trim(), "CANCELLO_ALTA,SCATOLA,ritaglio", "l'import ha stampato altro: la pipeline è partita");
+    assert.equal(figlio.stdout.trim(), "CANCELLO_ALTA,SCATOLA,SEGNO,misuraSegno,ritaglio", "l'import ha stampato altro: la pipeline è partita");
     assert.equal(statSync(json).mtimeMs, prima, "l'import ha riscritto tinte.json");
     // A46: lo stesso per cielo.mjs, che tinte.mjs importa: nessun WebP riscritto.
     const webp = join(ROOT, "public", tinte["/vendi"].cielo.file ?? "");
@@ -505,5 +507,46 @@ describe("il cielo mascherato delle foto alte (A46)", () => {
     // Tutto opaco: 0 e 0. Tutto trasparente: 1 e 1 (il soggetto non comincia mai).
     assert.deepEqual(misuraCielo(new Uint8Array(W * H).fill(255), W, H), { linea: 0, cima: 0 });
     assert.deepEqual(misuraCielo(new Uint8Array(W * H), W, H), { linea: 1, cima: 1 });
+  });
+});
+
+// ── Le bande del segno (revisione avversaria di A46, 22 set. 2026: C01, G02) ──────────────────────
+// Il marcatore `foto` del segno partiva dalla cima del soggetto su tutta la larghezza: dove nella
+// striscia del segno (2-6 % della larghezza, MarkSegno.tsx) c'era cielo trasparente o un muro bianco, le
+// tacche viravano all'avorio sull'avorio e sparivano per 100-940 px di scroll. tinte.mjs misura le corse
+// in cui quella striscia è opaca e scura (Y < 0,30) e PageHeroTesta rende un marcatore per corsa.
+describe("le bande del segno (22 set. 2026)", () => {
+  test("ogni rotta ha `segno`: corse [da, a] in frazione dell'altezza, ordinate, separate, lunghe almeno il 2 %", () => {
+    for (const [rotta, v] of Object.entries(tinte)) {
+      assert.ok(Array.isArray(v.segno), `${rotta}: segno non è una lista`);
+      let prima = -1;
+      for (const [da, a] of v.segno) {
+        assert.ok(da >= 0 && a <= 1 && a - da >= SEGNO.minimo - 1e-9, `${rotta}: banda ${da}-${a}`);
+        assert.ok(prima < 0 || da - prima >= SEGNO.salto - 1e-9, `${rotta}: bande troppo vicine (${prima} → ${da})`);
+        prima = a;
+      }
+    }
+  });
+
+  test("le bande di /vendi, /recensioni e /chi-siamo sono quelle che misuraSegno rilegge dal file montato", async () => {
+    for (const rotta of ["/vendi", "/recensioni", "/chi-siamo"]) {
+      const v = tinte[rotta];
+      const { data, info } = await sharp(join(ROOT, "public", v.cielo.file ?? v.file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      assert.deepEqual(misuraSegno(data, info.width, info.height), v.segno, `${rotta}: le bande in tinte.json non sono quelle del file`);
+    }
+  });
+
+  test("i casi che hanno fatto nascere la misura: /recensioni non comincia sul muro bianco in cima, /vendi comincia sui cipressi (≤ 0,30), /metodo non prima del corpo della villa a sinistra", () => {
+    assert.ok(tinte["/recensioni"].segno.length > 0 && tinte["/recensioni"].segno[0][0] > 0.05, "/recensioni: il segno virerebbe avorio sul muro bianco");
+    assert.ok(tinte["/vendi"].segno.length > 0 && tinte["/vendi"].segno[0][0] <= 0.3, "/vendi: la prima banda non è sui cipressi");
+    assert.ok(tinte["/metodo"].segno.length > 0 && tinte["/metodo"].segno[0][0] >= 0.3, "/metodo: la banda partirebbe sul cielo trasparente a sinistra");
+  });
+
+  test("PageHero passa le bande a PageHeroTesta, che rende un marcatore `foto` per banda; `--dt-cielo` (la cima come quota del marcatore) è morta", () => {
+    const hero = soloCodice(leggi("app/components/PageHero.tsx"));
+    assert.match(hero, /segno=\{tinta\.segno\}/, "PageHero non passa `segno`");
+    assert.doesNotMatch(hero, /--dt-cielo:/, "PageHero scrive ancora --dt-cielo");
+    const testa = soloCodice(leggi("app/components/motion/PageHeroTesta.tsx"));
+    assert.match(testa, /segno\.map\(/, "PageHeroTesta non rende un marcatore per banda");
   });
 });

@@ -1964,13 +1964,10 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
 .dt-btn--ghost:focus-visible {
   color: var(--color-red);
 }
-.dt-btn--ghost-dark {
-  color: #fff;
-}
-.dt-btn--ghost-dark:hover,
-.dt-btn--ghost-dark:focus-visible {
-  color: var(--color-cream);
-}
+/* (`.dt-btn--ghost-dark`, il fantasma bianco per le scritte sopra una foto, è
+   morto: il Congedo non ha lettere sul video dal 20 set. (A35) e le teste
+   stanno sull'avorio dal 21 set. (A46); tolto il 22 set. dalla revisione
+   avversaria di A46, senza chiamanti.) */
 /* D174 (coordinatore, A38): il link fantasma della testa sta a 18 px (nato
    per reggere sulla foto: a 16 px cadeva in 22 celle su 27), impilato sotto il
    bottone rosso. Interlinea 1,6 e non 1,2: dove il fantasma va a capo (de, fr
@@ -2804,11 +2801,15 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
      cielo trasparente: nulla si vede. Il fondo è la tinta alta, cioè il
      placeholder prima che la foto decodifichi (D125), e col cielo trasparente è
      la carta. Il cover non ritaglia nulla: lo strato ha il rapporto della foto;
-   - `.dt-testa_soggetto` è il marcatore del soggetto per il segno (D34,
-     tema.ts): assoluto nello strato dalla cima del soggetto in giù (`top` in
-     percentuale dell'altezza dello strato, definita dall'aspect-ratio),
-     `data-bg="foto"` nel markup; sulla carta del cielo il segno resta grafite,
-     sulla villa vira all'avorio. Senza puntatore: elementsFromPoint non lo vede;
+   - `.dt-testa_soggetto` sono i marcatori del segno (D34, tema.ts): uno per
+     BANDA `segno` di tinte.json (le corse in cui la striscia del segno, 2-6 % della
+     larghezza, è opaca e scura: misurate da scripts/media/tinte.mjs), assoluti
+     nello strato, larghi tutto, con `top`/`bottom` in percentuale dell'altezza
+     dello strato scritti nel markup e `data-bg="foto"`; fuori dalle bande — sul
+     cielo trasparente, cioè la carta, e sui muri bianchi della villa — il segno
+     resta grafite (revisione avversaria di A46, 22 set. 2026, C01/G02: un solo
+     marcatore dalla cima in giù faceva sparire le tacche avorio sull'avorio per
+     100-940 px di scroll). Senza puntatore: elementsFromPoint non li vede;
    - `.dt-testa_pagina` è la pagina che segue la foto in flusso, sull'avorio
      (D187: la tinta bassa è morta, A32.3 vale sotto).
    Tutto in svh, mai dvh. */
@@ -2849,8 +2850,8 @@ html[data-hero-intro="short"] :is([data-hero-char], [data-hero-tchar], [data-her
 }
 .dt-testa_soggetto {
   position: absolute;
-  inset: auto 0 0;
-  top: calc(var(--dt-cielo, 0) * 100%);
+  left: 0;
+  right: 0;
   pointer-events: none;
 }
 .dt-testa_pagina {

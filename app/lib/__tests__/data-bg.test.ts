@@ -80,8 +80,9 @@ describe("le zone di spec §6.1 portano data-bg", () => {
 
   // A46 (Alberto, 21 set. 2026, sera): il cielo delle foto alte è trasparente e il riquadro della testa
   // è la carta — sopra il cielo il segno deve restare grafite (avorio sull'avorio non si vedrebbe). La
-  // zona `foto` è il marcatore del soggetto, dalla linea del cielo in giù (`.dt-testa_soggetto`,
-  // `top: calc(var(--dt-cielo) * 100%)` in globals.css), dentro lo strato della foto.
+  // zona `foto` sono i marcatori delle bande del segno (`.dt-testa_soggetto`, uno per corsa `segno` di
+  // tinte.json: dove nella striscia del segno la foto è opaca e scura; 22 set. 2026, C01/G02), dentro lo
+  // strato della foto: un solo tag nel sorgente, reso in un map.
   test("PageHero: il marcatore del soggetto porta data-bg=\"foto\"; il riquadro [data-dive-zoom] è la carta e non porta data-bg (§5.1, A46)", () => {
     const files = sorgenti(join(ROOT, "app/components")).filter((p) =>
       attr("data-dive-zoom").test(soloCodice(readFileSync(p, "utf8"))),

@@ -128,9 +128,10 @@ for (const vp of [
   // flusso. A46 (Alberto, 21 set., sera): il cielo della foto è trasparente e il
   // riquadro è la carta: sopra il cielo (dove stanno le scritte, in inchiostro) il
   // segno resta grafite — tacche avorio sull'avorio non si vedrebbero — e vira
-  // «foto» (tacche avorio, monogramma intatto, C23) solo sul soggetto, dalla
-  // cima del soggetto (`.dt-testa_soggetto`, data-bg="foto") alla fine della foto;
-  // poi torna grafite sull'avorio della pagina che segue.
+  // «foto» (tacche avorio, monogramma intatto, C23) solo dentro le BANDE scure della
+  // striscia del segno (`.dt-testa_soggetto`, uno per corsa `segno` di tinte.json:
+  // 22 set. 2026, C01/G02 — prima un marcatore unico dalla cima in giù le faceva
+  // sparire sul cielo trasparente e sui muri bianchi); poi torna grafite sull'avorio.
   { width: 1440, height: 900 },
   { width: 1024, height: 768 },
 ]) {
@@ -488,4 +489,29 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10;
     }),
     "sotto il segno non c'è la facciata col cielo trasparente",
   ).toMatch(/villa-terrazze-glicine-cielo\.webp/);
+});
+
+// 22 set. 2026 (revisione avversaria di A46, C01/G02): su /recensioni il muro bianco della villa tocca
+// il bordo alto della foto nella colonna del segno; con un marcatore dalla cima in giù le tacche
+// viravano all'avorio su un fondo quasi avorio (misurato: media rgb 248,238,233, 100 % entro ±8) per
+// ~400 px di scroll. Ora le bande di tinte.json cominciano dove la striscia è scura.
+test("1440 su /recensioni: sul muro bianco in cima alla foto il segno resta grafite; dentro la prima banda scura vira foto (22 set.)", async ({ page, goto }, info) => {
+  soloDesktop(info.project.name);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await goto("/recensioni");
+  await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
+  const geo = await page.locator("section[data-testa]").evaluate((el) => {
+    const s = el.querySelector("[data-testa-strato]")!.getBoundingClientRect();
+    const bande = Array.from(el.querySelectorAll("[data-testa-soggetto]")).map((m) => m.getBoundingClientRect()).map((r) => ({ top: r.top + window.scrollY, bottom: r.bottom + window.scrollY }));
+    return { stratoTop: s.top + window.scrollY, bande };
+  });
+  expect(geo.bande.length, "/recensioni senza bande").toBeGreaterThan(0);
+  expect(geo.bande[0].top - geo.stratoTop, "la prima banda comincia sul muro bianco").toBeGreaterThan(60);
+  // Il centro del segno (asse della testata, ~45 px) sul muro, fra la cima dello strato e la prima banda.
+  await scrollA(page, Math.round((geo.stratoTop + geo.bande[0].top) / 2 - 45));
+  await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
+  await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000, message: "sul muro bianco le tacche non sono --color-ink" }).toBe(INK);
+  await scrollA(page, Math.round((geo.bande[0].top + geo.bande[0].bottom) / 2 - 45));
+  await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
+  await expect.poll(async () => (await coloriSegno(page)).tacche, { timeout: 2_000 }).toBe(CREAM);
 });

@@ -82,8 +82,13 @@ const WEBP = { quality: 86, alphaQuality: 100, effort: 4 };
 /* La tabella: nome della sorgente (senza estensione), dove si usa, la classe del cielo e, per
    foto, i parametri che scostano dal default. `interno`: nessun cielo, nessun WebP. */
 export const FOTO = [
-  { nome: "villa-facciata-piscina-alta", uso: "/vendi", classe: "giorno" },
-  { nome: "villa-lettini-prato-alta", uso: "/acquista", classe: "giorno" },
+  /* Le lame di cielo fra i tronchi dei cipressi a sinistra di /vendi (tre, 1.100-2.200 px) e fra le
+     fronde dell'ulivo di /acquista (due, 800-1.700 px) stanno più in basso del cielo mascherato nelle
+     colonne vicine di oltre 80 px (e di oltre 400): la linea del cielo si cerca su ±700 px (±400 lasciava una lama su /vendi e le due di /acquista) (revisione avversaria di
+     A46, 22 set. 2026, rilievo P03; sotto la linea c'è la piscina, che la maschera non tocca perché
+     la ricerca delle tasche si ferma alla linea del cielo delle colonne accanto). */
+  { nome: "villa-facciata-piscina-alta", uso: "/vendi", classe: "giorno", raggio: 700 },
+  { nome: "villa-lettini-prato-alta", uso: "/acquista", classe: "giorno", raggio: 700 },
   { nome: "villa-angolo-piscina-alta", uso: "/servizi", classe: "giorno" },
   /* Di sera le tasche di cielo fra i cipressi, davanti al parapetto, stanno 100-250 px sotto il
      punto più basso del cielo nelle colonne accanto: la linea del cielo si cerca su ±300 px (sotto
@@ -256,7 +261,10 @@ function maschera(data, W, H, classe, p) {
     for (let k = Math.max(0, x - p.raggio); k <= Math.min(W - 1, x + p.raggio); k++) if (basso[k] > m) m = basso[k];
     for (let y = 0; y < m; y++) {
       const i = y * W + x;
-      if (!mask[i] && (score[i] > 0.5 || (haze[i] && score[i] > 0.25))) mask[i] = 1;
+      // Sopra la linea del cielo basta meno: la FOSCHIA AZZURRINA (classe 1: b ≥ r + 3, poco satura,
+      // chiara) con un punteggio appena positivo è cielo fra le fronde (le lame di /acquista e di /vendi,
+      // rilievo P03 della revisione di A46, 22 set. 2026); il bianco neutro (classe 2: i muri) no.
+      if (!mask[i] && (score[i] > 0.5 || (haze[i] && score[i] > 0.25) || (haze[i] === 1 && score[i] > 0.1))) mask[i] = 1;
     }
   }
   return { mask, score, haze };

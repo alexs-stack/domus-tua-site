@@ -1,5 +1,5 @@
 import { test, expect, setConsent } from "./helpers";
-import { sizesDi } from "../app/lib/motion/testa";
+import { SIZES_TESTA } from "../app/lib/motion/testa";
 import tinte from "../app/lib/motion/tinte.json";
 
 // Reduced motion. Chi ha chiesto meno animazioni deve vedere lo stesso sito, fermo — non un
@@ -246,7 +246,7 @@ test("su /vendi la testa resta ferma e senza corridoio @layout", async ({ page, 
   await expect(testa).toHaveCount(1);
   await expect(testa.locator(".dt-testa_riquadro")).toHaveCSS("position", "relative");
   const sorgente = tinte["/vendi"].sorgente;
-  await expect(page.locator("img[data-testa-foto]")).toHaveAttribute("sizes", sizesDi(sorgente[0] / sorgente[1]));
+  await expect(page.locator("img[data-testa-foto]")).toHaveAttribute("sizes", SIZES_TESTA);
   // Il tempo in cui un JS sbagliato scriverebbe una trasformata.
   await page.waitForTimeout(800);
   await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));

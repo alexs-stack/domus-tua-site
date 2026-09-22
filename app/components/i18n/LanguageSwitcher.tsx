@@ -20,7 +20,7 @@ function Globe({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-export default function LanguageSwitcher({ light = false }: { light?: boolean }) {
+export default function LanguageSwitcher() {
   const { locale, setLocale } = useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -37,9 +37,11 @@ export default function LanguageSwitcher({ light = false }: { light?: boolean })
   // non renderizziamo nulla quando l'i18n non è esplicitamente abilitato.
   if (!I18N_ENABLED) return null;
 
-  // `light` (D186 del brief T, A38): sulla foto della testa il selettore è bianco nudo (senza
-  // ombra, A40) col bordo bianco al 60 %, come le voci della testata; prima era `text-cream/90`.
-  const base = light ? "border-white/60 text-white hover:border-white" : "border-line text-graphite hover:border-red hover:text-red";
+  // Un solo aspetto, quello del resto della testata: grafite col filo. La variante bianca
+  // (`light`, D186 del brief T, A38: il selettore bianco nudo sulla foto della testa) è morta
+  // con A46 (Alberto, 21 set. 2026, sera): sotto la testata c'è la carta su ogni rotta, e
+  // Header.tsx non la chiedeva più; tolta il 22 set. dalla revisione avversaria di A46.
+  const base = "border-line text-graphite hover:border-red hover:text-red";
 
   return (
     <div ref={ref} className="relative">

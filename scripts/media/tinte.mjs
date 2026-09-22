@@ -103,6 +103,53 @@ const byte = (c) => Math.round(Math.min(1, Math.max(0, aSrgb(c))) * 255);
 const hex = (lin) => "#" + lin.map((c) => byte(c).toString(16).padStart(2, "0")).join("");
 const daHex = (h) => [1, 3, 5].map((i) => aLineare(parseInt(h.slice(i, i + 2), 16)));
 
+/* LE BANDE DEL SEGNO (revisione avversaria di A46, 22 set. 2026, rilievi C01 e G02; D34, spec §6.1:
+   «sovrapposizione non vuol dire visibilità»). Il segno fisso sta a cx = 4vw con lato
+   clamp(40px, 3,75vw, 56px) (MarkSegno.tsx), cioè nella striscia 2-6 % della larghezza; le sue
+   tacche virano all'avorio sopra una zona `data-bg="foto"`. Un marcatore dalla cima del soggetto in
+   giù su tutta la larghezza faceva virare le tacche all'avorio anche dove sotto il segno c'era
+   cielo trasparente (= carta) o un muro bianco: invisibili per 100-940 px di scroll su cinque rotte.
+   Qui si misura, nella striscia del segno, dove la foto è OPACA E SCURA — riga per riga, la quota di
+   pixel con alpha ≥ 128 e luminanza relativa Y < 0,30 — e si scrivono le corse (`segno: [[da, a], …]`,
+   frazioni dell'altezza): PageHeroTesta rende un marcatore `foto` per corsa e nel resto il segno resta
+   grafite. La soglia 0,30 è vicina al punto in cui tacche avorio e tacche inchiostro reggono lo stesso
+   contrasto (0,967/(Y+0,05) = (Y+0,05)/0,108 → Y ≈ 0,27): sotto vince l'avorio, sopra la grafite. Le
+   corse separate da meno del 3 % dell'altezza si uniscono (il segno è alto ~50 px: un intervallo più
+   corto farebbe lampeggiare le tacche) e quelle più corte del 2 % non contano. */
+export const SEGNO = { x0: 0.02, x1: 0.06, y: 0.3, quota: 0.5, salto: 0.03, minimo: 0.02 };
+export function misuraSegno(rgba, W, H, p = SEGNO) {
+  const xa = Math.floor(W * p.x0);
+  const xb = Math.max(xa + 1, Math.floor(W * p.x1));
+  const scura = new Uint8Array(H);
+  for (let y = 0; y < H; y++) {
+    let n = 0;
+    for (let x = xa; x < xb; x++) {
+      const i = (y * W + x) * 4;
+      if (rgba[i + 3] < 128) continue;
+      if (0.2126 * LUT[rgba[i]] + 0.7152 * LUT[rgba[i + 1]] + 0.0722 * LUT[rgba[i + 2]] < p.y) n++;
+    }
+    scura[y] = n >= p.quota * (xb - xa) ? 1 : 0;
+  }
+  const corse = [];
+  for (let y = 0; y < H; y++) {
+    if (!scura[y]) continue;
+    let a = y;
+    while (a + 1 < H && scura[a + 1]) a++;
+    const u = corse[corse.length - 1];
+    if (u && y - u[1] < p.salto * H) u[1] = a + 1;
+    else corse.push([y, a + 1]);
+    y = a;
+  }
+  return corse.filter(([a, b]) => b - a >= p.minimo * H).map(([a, b]) => [Number((a / H).toFixed(3)), Number((b / H).toFixed(3))]);
+}
+
+/* Le bande del segno di una rotta, misurate sul file che la pagina MONTA: il WebP col cielo dove c'è
+   (il cielo trasparente è carta: chiara), altrimenti la foto. */
+async function segnoDi(fileMontato) {
+  const { data, info } = await sharp(join(ROOT, "public", fileMontato)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  return misuraSegno(data, info.width, info.height);
+}
+
 /* Lab D65 dalla luce lineare sRGB, per il C* e per il ΔH′ della CIEDE2000. */
 function lab(lin) {
   const [r, g, b] = lin;
@@ -222,6 +269,7 @@ async function main() {
     const misurata = metriche(schiarisci(daHex(sorgenteAlta), PAVIMENTO), sorgenteAlta);
     // A46: col cielo trasparente la tinta è l'avorio per forza; altrimenti il cancello di D123.
     const alta = cielo || misurata.avorio < CANCELLO_ALTA ? { ...misurata, hex: "avorio", misurato: misurata.hex } : misurata;
+    const segno = await segnoDi(cielo ? cielo.file : r.file.replace(/^public/, ""));
     esito[r.rotta] = {
       trattamento: r.trattamento,
       file: r.file.replace(/^public/, ""),
@@ -229,6 +277,7 @@ async function main() {
       objectPosition: { lg: r.lg, sotto: r.sotto },
       alta,
       cielo: cielo ? { file: cielo.file, linea: cielo.linea, cima: cielo.cima } : { file: null, linea: 0, cima: 0 },
+      segno,
     };
     righe.push(
       [
@@ -240,6 +289,7 @@ async function main() {
         `righe ${box.top}-${box.top + alto.height}`.padEnd(17),
         `alta ${alta.hex.padEnd(7)} (${misurata.hex} <- ${misurata.sorgente}  Y ${misurata.Y.toFixed(4)}  C* ${String(misurata.C).padStart(5)}  dH ${String(misurata.dH).padStart(5)}  avorio ${misurata.avorio.toFixed(3)}:1)`,
         cielo ? `cielo cima ${cielo.cima} linea ${cielo.linea}` : "senza cielo",
+        `segno ${segno.map(([a, b]) => `${a}-${b}`).join(" ") || "mai"}`,
       ].join("  "),
     );
   }

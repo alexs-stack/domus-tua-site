@@ -10,10 +10,13 @@ import { ArrowUpRight, Send } from "../Icons";
    - reveal, reveal-cream  alias di cta-solid: i nomi restano per non cambiare
                    l'API, le facce a scorrimento non esistono più
    - ghost         link maiuscolo sottolineato, nessuna scatola; all'hover rosso
-   - ghost-dark    il ghost in bianco, per le scritte sopra una foto (Congedo)
+   (`ghost-dark`, il ghost in bianco per le scritte sopra una foto, è morto: il
+   Congedo non ha più lettere sul video dal 20 set., A35, e le teste stanno
+   sull'avorio dal 21 set., A46; tolto il 22 set. dalla revisione avversaria di
+   A46, senza chiamanti.)
    Tutto CSS puro: nessun hook, usabile da server e client component. */
 
-type Variant = "cta" | "cta-solid" | "reveal" | "reveal-cream" | "ghost" | "ghost-dark";
+type Variant = "cta" | "cta-solid" | "reveal" | "reveal-cream" | "ghost";
 type Size = "sm" | "md" | "lg";
 
 const variantClass: Record<Variant, string> = {
@@ -22,7 +25,6 @@ const variantClass: Record<Variant, string> = {
   reveal: "dt-btn dt-btn--cta dt-btn--cta-solid",
   "reveal-cream": "dt-btn dt-btn--cta dt-btn--cta-solid",
   ghost: "dt-btn dt-btn--ghost",
-  "ghost-dark": "dt-btn dt-btn--ghost dt-btn--ghost-dark",
 };
 
 const sizeClass: Record<Size, string> = {

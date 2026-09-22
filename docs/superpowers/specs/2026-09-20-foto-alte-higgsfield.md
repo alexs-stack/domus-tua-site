@@ -37,7 +37,7 @@ di cui ~25 entrano nel sito.
 Cosa si tiene di era: architettura contemporanea **bianca e in pietra chiara**, linee pulite,
 vetrate grandi, verde rampicante e fiori sulle facciate, **cielo azzurro limpido**, luce calda di
 tardo pomeriggio con ombre lunghe e morbide, composizione **sgombra** con molto cielo in alto
-(le scritte bianche stanno sulla sola fotografia, senza ombra né velo: deroga A40), acqua di
+(dal 21 set., A46, le scritte stanno in inchiostro sull'avorio sopra la cima del soggetto e il cielo serve a essere tolto pulito; la deroga A40 delle scritte bianche nel cielo è chiusa), acqua di
 piscina, tessuti chiari, resa da rendering fotorealistico d'agenzia.
 
 Cosa cambia perché siamo a Tradate (provincia di Varese) e non a Estepona: **niente mare e

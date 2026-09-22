@@ -163,7 +163,8 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     // placeholder prima del decode è la tinta alta (D125) qui e solo qui; nessuna trasformazione, nessun inset.
     const hero = leggi("app/components/PageHero.tsx");
     assert.match(hero, /--dt-testa-ar:\$\{tinta\.sorgente\[0\]\} \/ \$\{tinta\.sorgente\[1\]\}/, "PageHero non scrive il rapporto della foto");
-    assert.match(hero, /--dt-cielo:\$\{tinta\.cielo\.cima\}/, "PageHero non scrive la cima del soggetto (--dt-cielo, A46)");
+    // 22 set. (C01/G02): `--dt-cielo` (la cima come quota del marcatore del segno) è morta: le bande stanno in tinte.json.
+    assert.doesNotMatch(hero, /--dt-cielo:\$\{/, "PageHero scrive ancora --dt-cielo: il marcatore del segno legge le bande `segno`, non la cima");
     assert.match(hero, /--dt-cielo-h:\$\{cieloH\(tinta\.cielo\.cima, tinta\.sorgente\)\}/, "PageHero non scrive la cima del soggetto in frazione della larghezza (--dt-cielo-h, A46)");
     assert.doesNotMatch(soloCodice(hero), /cielo\.linea/, "la linea del cielo non è la cima del soggetto: con la linea l'H1 posa sui cipressi (A46, 21 set.)");
     const strato = per(STRATO_FOTO);
@@ -175,12 +176,13 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     assert.match(strato[0].corpo, /margin-top\s*:\s*calc\(-100% \* var\(--dt-cielo-h, 0\)\)/, "lo strato non è portato su fino alla cima del soggetto (A46)");
     assert.match(strato[0].corpo, /background-color\s*:\s*var\(--dt-tinta-alta, var\(--color-cream\)\)/, "il placeholder prima del decode (D125) non sta sullo strato, o non ricade sull'avorio");
     assert.doesNotMatch(strato[0].corpo, /inset\s*:|transform|clip-path|height\s*:\s*calc|position\s*:\s*absolute/);
-    // Il marcatore del soggetto: assoluto nello strato dalla cima del soggetto in giù (top in percentuale
-    // dell'ALTEZZA dello strato, che è definita dall'aspect-ratio), senza puntatore: è la zona `foto` del segno.
+    // I marcatori del segno (22 set., C01/G02): assoluti nello strato, larghi tutto, senza puntatore; le quote
+    // (top/bottom in percentuale dell'altezza dello strato) sono le bande `segno` di tinte.json, scritte nel markup.
     const soggetto = per(SOGGETTO);
     assert.equal(soggetto.length, 1);
     assert.match(soggetto[0].corpo, /position\s*:\s*absolute/);
-    assert.match(soggetto[0].corpo, /(^|[^-])top\s*:\s*calc\(var\(--dt-cielo, 0\) \* 100%\)/, "il marcatore non comincia alla cima del soggetto");
+    assert.doesNotMatch(soggetto[0].corpo, /--dt-cielo\b|(^|[^-])top\s*:/, "le quote dei marcatori stanno nel markup (le bande), non nel CSS");
+    assert.match(soggetto[0].corpo, /left\s*:\s*0/);
     assert.match(soggetto[0].corpo, /inset\s*:\s*auto 0 0(\s|;)|right\s*:\s*0/);
     assert.match(soggetto[0].corpo, /pointer-events\s*:\s*none/);
     assert.doesNotMatch(soggetto[0].corpo, /background|transform|z-index/);
@@ -252,6 +254,7 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     assert.match(header, /text-ui font-semibold uppercase tracking-\[0\.1em\] text-ink underline-offset-\[0\.45em\]/, "«Menu» non è inchiostro e basta");
     assert.match(header, /<LanguageSwitcher \/>/, "il selettore lingua della nav non è quello di sempre");
     assert.doesNotMatch(header, /<LanguageSwitcher light/, "il selettore lingua porta ancora la variante light (A46)");
+    assert.doesNotMatch(soloCodice(leggi("app/components/i18n/LanguageSwitcher.tsx")), /\blight\b|text-white|border-white/, "LanguageSwitcher porta ancora la prop `light` e il ramo bianco (morti con A46, tolti il 22 set.)");
   });
 });
 
@@ -323,7 +326,7 @@ describe("PageHero e PageHeroTesta senza JS e senza gesto", () => {
     assert.match(hero, /--dt-tinta-alta:/);
     assert.match(hero, /--dt-op-lg:/);
     assert.match(hero, /--dt-op-sotto:/);
-    assert.match(hero, /--dt-cielo:/, "lo <style> non scrive --dt-cielo (A46)");
+    assert.doesNotMatch(hero, /--dt-cielo:/, "lo <style> scrive ancora --dt-cielo (morta il 22 set.)");
     assert.match(hero, /--dt-cielo-h:/, "lo <style> non scrive --dt-cielo-h (A46)");
     assert.match(hero, /import \{ cieloH \} from "\.\.\/lib\/motion\/testa"/, "la frazione del cielo si calcola nel modulo puro dei numeri (testa.ts)");
     assert.doesNotMatch(hero, /--dt-testa-mf|tinta\.m\b/, "il margine della parallasse è morto (A41)");
@@ -359,7 +362,8 @@ describe("PageHero e PageHeroTesta senza JS e senza gesto", () => {
     assert.match(marcatore, /\baria-hidden\b/);
     assert.match(marcatore, /className="dt-testa_soggetto"/);
     assert.ok(testa.indexOf("data-testa-soggetto") > strato && testa.indexOf("data-testa-soggetto") < chiusa, "il marcatore non sta nello strato");
-    assert.match(testa, /sizes=\{sizesDi\(/, "sizes non viene dal rapporto della sorgente (D183)");
+    assert.match(testa, /sizes=\{SIZES_TESTA\}/, "sizes non è il 100vw dello strato in flusso (A45; revisione del 22 set., C02/P01/G03)");
+    assert.match(testa, /segno\.map\(/, "i marcatori del segno non vengono dalle bande di tinte.json (22 set.)");
     assert.match(testa, /quality=\{60\}/);
     assert.match(testa, /\bpreload\b/, "la foto della testa è l'LCP");
     assert.match(testa, /objectPosition:\s*"var\(--dt-op\)"/, "l'inquadratura non è --dt-op (D180)");

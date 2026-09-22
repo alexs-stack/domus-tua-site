@@ -18,33 +18,41 @@
 //   leggono) e NON porta `data-bg`: sopra il cielo trasparente il segno resta grafite;
 // - `.dt-testa_blocco` (composto da PageHero, tre livelli centrati) viene PRIMA nel DOM
 //   (l'ordine di lettura: l'H1 prima dell'immagine) e sopra nello stacking: in flusso, in
-//   cima, alto almeno quanto il cielo della foto (`aspect-ratio: 1 / var(--dt-cielo-h)`) e,
-//   da lg, almeno 100svh; le scritte, comandi compresi, stanno sull'avorio;
+//   cima, alto quanto il contenuto e, da lg, almeno 100svh (nessun aspect-ratio: con un
+//   min-height perderebbe il minimo del contenuto); le scritte, comandi compresi, stanno
+//   sull'avorio;
 // - `.dt-testa_strato` è la foto: IN FLUSSO dopo il blocco, alta quanto la foto resa a
 //   larghezza piena (`--dt-testa-ar`), portata SU di quanto vale il suo cielo trasparente
-//   (`margin-top: calc(-100% * var(--dt-cielo-h))`), così il soggetto comincia esattamente
-//   al fondo del blocco (e senza cielo — attici, legali, la tenda di /open-domus — la foto
+//   fino alla CIMA del soggetto (`margin-top: calc(-100% * var(--dt-cielo-h))`, `cielo.cima`
+//   di tinte.json in frazione della larghezza), così il soggetto comincia esattamente al
+//   fondo del blocco (e senza cielo — attici, legali, la tenda di /open-domus — la foto
 //   comincia sotto i comandi). Il suo fondo è il placeholder prima del decode (D125);
-// - `[data-testa-soggetto]` è il marcatore del soggetto: assoluto nello strato dalla linea
-//   del cielo in giù, `data-bg="foto"` per il segno (D34): le tacche virano all'avorio solo
-//   sulla villa, mai sulla carta;
+// - `[data-testa-soggetto]` sono i MARCATORI DEL SEGNO (D34): uno per banda `segno` di
+//   tinte.json — le corse in cui la striscia del segno (2-6 % della larghezza) è opaca e
+//   scura, misurate da scripts/media/tinte.mjs —, assoluti nello strato con `top`/`bottom`
+//   in percentuale, `data-bg="foto"`: le tacche virano all'avorio solo lì; sul cielo
+//   trasparente (la carta) e sui muri bianchi restano grafite (revisione avversaria di
+//   A46, 22 set. 2026, C01/G02: un marcatore unico dalla cima in giù le faceva sparire);
 // - poi `.dt-testa_pagina` (i tre punti sull'avorio) segue in flusso;
 // - lo stato del CSS è lo stato a riposo: senza JS e con reduced-motion la pagina è
 //   questa, completa; niente sticky, niente trasformate (D190). CLS 0 per costruzione:
 //   nulla si misura, nulla si scrive dopo il paint;
-// - la foto è l'LCP: `preload`, `quality 60` (l'alpha del WebP resta lossless nell'ottimizzatore:
-//   sharp tiene alphaQuality 100), `sizes` dal rapporto della sorgente (`sizesDi`, D183),
-//   inquadratura `--dt-op` scelta dal CSS per fascia (D180; con lo strato al rapporto della
-//   foto il cover non ritaglia nulla). Nessun hook.
+// - la foto è l'LCP: `preload`, `quality 60` (nel WebP l'alpha resta lossless, sharp tiene
+//   alphaQuality 100; nell'AVIF, che Chrome riceve per primo, è lossy a q 38 —
+//   image-optimizer.js — con croma 4:4:4: la frangia al bordo del cielo è misurata in
+//   C05/P04 della revisione del 22 set., appena percettibile a 1×), `sizes` 100vw
+//   (`SIZES_TESTA`: lo strato è largo tutto col rapporto della foto, il cover non
+//   ritaglia; il conto per fold di D183 è morto con A45), inquadratura `--dt-op` scelta
+//   dal CSS per fascia (D180). Nessun hook.
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { sizesDi } from "../../lib/motion/testa";
+import { SIZES_TESTA } from "../../lib/motion/testa";
 
 export default function PageHeroTesta({
   id,
   src,
   alt,
-  ratio,
+  segno,
   blocco,
   children,
 }: {
@@ -52,8 +60,8 @@ export default function PageHeroTesta({
   /** La foto: il WebP col cielo trasparente dove c'è (A46), altrimenti la sorgente (PageHero decide). */
   src: string;
   alt: string;
-  /** Il rapporto larghezza/altezza della sorgente (`sorgente` di tinte.json): decide `sizes` (D183). */
-  ratio: number;
+  /** Le bande del segno (`segno` di tinte.json): corse [da, a] in frazione dell'altezza della foto in cui il segno vira `foto`. */
+  segno: ReadonlyArray<ReadonlyArray<number>>;
   /** Il blocco dei testi, centrato sull'avorio sopra il soggetto (lead; occhiello, H1, calligrafia; comandi): lo compone PageHero. */
   blocco: ReactNode;
   /** La pagina che segue la foto (i tre punti sull'avorio); vuota dove la rotta non ha prove. */
@@ -70,12 +78,21 @@ export default function PageHeroTesta({
             alt={alt}
             fill
             preload
-            sizes={sizesDi(ratio)}
+            sizes={SIZES_TESTA}
             quality={60}
             className="object-cover"
             style={{ objectPosition: "var(--dt-op)" }}
           />
-          <span aria-hidden data-testa-soggetto data-bg="foto" className="dt-testa_soggetto" />
+          {segno.map(([da = 0, a = 0]) => (
+            <span
+              key={`${da}-${a}`}
+              aria-hidden
+              data-testa-soggetto
+              data-bg="foto"
+              className="dt-testa_soggetto"
+              style={{ top: `${(da * 100).toFixed(2)}%`, bottom: `${((1 - a) * 100).toFixed(2)}%` }}
+            />
+          ))}
         </div>
       </div>
       <div className="dt-testa_pagina">{children}</div>
