@@ -100,6 +100,7 @@ export default function PageHero({
   scriptWord,
   tightTitle = false,
   sopra,
+  cielo,
 }: {
   /** Ancora della sezione (es. "top" per i link di risalita). */
   id?: string;
@@ -141,8 +142,17 @@ export default function PageHero({
       inchiostro (la 2:3 a 390 px è alta 585 px: non regge una sezione). Sezioni atomiche: o tutta
       sulla foto o tutta sulla carta. */
   sopra?: ReactNode;
+  /** A80 (Alberto, 23 set. 2026: «la ricerca intelligente non si vede … ingegnati e stupiscimi»): ciò che la pagina
+      posa NEL CIELO della foto, fra i comandi e il soggetto, sulla carta e in inchiostro (A46: le scritte sopra il
+      soggetto, mai sopra la foto). Lo strato ci sale sotto col suo cielo trasparente; sotto lg segue la foto. Dove
+      c'è, i tre punti stanno nel blocco sotto i comandi (vedi `puntiNelBlocco`). Oggi lo usa solo /acquista. */
+  cielo?: ReactNode;
 }) {
   const tinta = tinte[rotta];
+  /* A80: dove la pagina apre il cielo, i tre punti non possono restare in bianco nello spazio sopra, che comincia
+     dove il cielo è ancora trasparente (bianco su #f6d9d0 = 1,33:1): stanno nel blocco sotto i comandi, in pietra.
+     Le altre teste restano come sono, finché Alberto non sceglie la regola per tutte (23 set.: «decido dopo»). */
+  const puntiNelBlocco = cielo != null;
   const stile = (
     <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]};--dt-testa-hw:${(tinta.sorgente[1] / tinta.sorgente[0]).toFixed(4)};--dt-cielo-h:${cieloH(tinta.cielo.cima, tinta.sorgente)}}`}</style>
   );
@@ -190,6 +200,39 @@ export default function PageHero({
       </div>
     </div>
   );
+  /* Le prove sono corpo di testo (19 px) col trattino rosso dell'eyebrow
+     davanti, nella colonna del lead (§3.1): si leggono come una riga di
+     garanzie. A48 (22 set.): stanno SULLA foto, in bianco, subito dopo il
+     blocco (da lg: globals.css `.dt-testa_sopra`); sotto lg dopo la foto,
+     sull'avorio, in pietra come prima. A80 (23 set.): dove la pagina apre il
+     cielo stanno invece nel blocco, sotto i comandi, in pietra a ogni fascia
+     (`puntiBlocco`); la lista resta la stessa. */
+  const voci = trust?.map((t) => (
+    <li key={t} className="flex gap-2">
+      {/* `mt` e non `items-center`: sulle righe che vanno a capo il
+          trattino sta sulla PRIMA riga, non a mezza altezza. */}
+      <span aria-hidden className="mt-[0.72em] h-px w-[1.75rem] shrink-0 bg-red opacity-60" />
+      {t}
+    </li>
+  ));
+  const punti = trust?.length ? (
+    <div className={`${GRIGLIA} pt-[clamp(1.5rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)]`}>
+      <ul className="flex flex-col gap-y-3 text-body text-stone sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8">
+        {voci}
+      </ul>
+    </div>
+  ) : null;
+  /* Nel blocco (A80): una lista centrata larga quanto il contenuto, le voci allineate a sinistra così i trattini
+     stanno in colonna sotto i 640 px; da sm una riga che va a capo, centrata, come i punti di sempre. */
+  const puntiBlocco =
+    puntiNelBlocco && trust?.length ? (
+      <div className="dt-testa_punti w-full pt-[clamp(1.25rem,3.2vh,2.25rem)]">
+        <ul className="mx-auto flex w-fit flex-col items-start gap-y-3 text-left text-body text-stone sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8">
+          {voci}
+        </ul>
+      </div>
+    ) : null;
+
   const piede = (
     <RevealGroup className="dt-testa_piede w-full">
       <div>
@@ -205,6 +248,7 @@ export default function PageHero({
             )}
           </div>
         </Reveal>
+        {puntiBlocco && <Reveal>{puntiBlocco}</Reveal>}
       </div>
     </RevealGroup>
   );
@@ -215,26 +259,6 @@ export default function PageHero({
       {piede}
     </RevealGroup>
   );
-
-  /* Le prove sono corpo di testo (19 px) col trattino rosso dell'eyebrow
-     davanti, nella colonna del lead (§3.1): si leggono come una riga di
-     garanzie. A48 (22 set.): stanno SULLA foto, in bianco, subito dopo il
-     blocco (da lg: globals.css `.dt-testa_sopra`); sotto lg dopo la foto,
-     sull'avorio, in pietra come prima. */
-  const punti = trust?.length ? (
-    <div className={`${GRIGLIA} pt-[clamp(1.5rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)]`}>
-      <ul className="flex flex-col gap-y-3 text-body text-stone sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8">
-        {trust.map((t) => (
-          <li key={t} className="flex gap-2">
-            {/* `mt` e non `items-center`: sulle righe che vanno a capo il
-                trattino sta sulla PRIMA riga, non a mezza altezza. */}
-            <span aria-hidden className="mt-[0.72em] h-px w-[1.75rem] shrink-0 bg-red opacity-60" />
-            {t}
-          </li>
-        ))}
-      </ul>
-    </div>
-  ) : null;
 
   return (
     <>
@@ -247,11 +271,16 @@ export default function PageHero({
         blocco={blocco}
         suFoto={tinta.trattamento === "testa"}
         sopra={
-          <>
-            {punti}
-            {sopra}
-          </>
+          puntiNelBlocco ? (
+            sopra
+          ) : (
+            <>
+              {punti}
+              {sopra}
+            </>
+          )
         }
+        cielo={cielo}
       />
     </>
   );

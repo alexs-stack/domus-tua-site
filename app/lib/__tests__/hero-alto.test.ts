@@ -22,7 +22,8 @@ import { ROLES, groupDelay } from "../motion/text-roles";
 import foto from "../motion/hero.json";
 
 const root = join(__dirname, "..", "..", "..");
-const read = (rel: string) => readFileSync(join(root, rel), "utf8");
+// CRLF in LF: su Windows il checkout può avere i CRLF (core.autocrlf), e l'entrata qui sotto cerca "{\n  html".
+const read = (rel: string) => readFileSync(join(root, rel), "utf8").replace(/\r\n/g, "\n");
 const soloCodice = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 
 const hero = soloCodice(read("app/components/HeroCinematic.tsx"));

@@ -28,7 +28,9 @@ const ROOT = process.cwd();
 function soloCodice(testo: string): string {
   return testo.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 }
-const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
+// CRLF in LF: su Windows il checkout può avere i CRLF (core.autocrlf), e senza il "\n}\n" il blocco
+// dell'entrata qui sotto correrebbe fino in fondo al file, e le regole fuori dalla media query passerebbero.
+const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8").replace(/\r\n/g, "\n");
 const congedo = soloCodice(read("app/components/Congedo.tsx"));
 const footer = soloCodice(read("app/components/Footer.tsx"));
 const css = read("app/globals.css");

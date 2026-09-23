@@ -41,10 +41,66 @@ export const PIAN_SVH = 20;
 /** La sosta: nessun evento scroll per IDLE_MS con 0 < e < 1 → k → 0 in PIEGA_S secondi (dtCartolina). */
 export const IDLE_MS = 250;
 export const PIEGA_S = 0.6;
-/** La sonda del renderer: media dei draw 2-4 (readPixels 1×1) sopra questa soglia → via scala. */
+/** La sonda del renderer: il costo di UN draw del foglio a e 0,5, dentro il viewport, AL NETTO della
+    lettura sincrona (`costoDraw`); sopra questa soglia → via scala (su canvas più grandi di PX_SONDA
+    la soglia cresce coi pixel: `sogliaSonda`). Misurato il 23 set. a 1440×828:
+    GPU vere 0,2-1 ms (Surface Pro 11, Adreno X1, Firefox a DPR 2 e Chromium), SwiftShader 5-15 ms a
+    DPR 1. La sonda di prima (media dei draw 2-4 CON la lettura) sul Surface dava 2-3 ms anche senza
+    nessun draw: svuotare la pipeline, risolvere l'MSAA del canvas intero e tornare dal processo della
+    GPU costa lì più della soglia, e Firefox arrotonda performance.now() al millisecondo. La piega,
+    disegnata davvero, ci gira a 60 fps (p95 16,7 ms). E non misura più sotto il sipario: gira a entrata
+    della home finita, a giri, e per bocciare vuole una conferma (SONDA_PASSO_MS, giudizioSonda). */
 export const SONDA_DRAW_MS = 1.5;
-/** I renderer software si riconoscono dal nome (WEBGL_debug_renderer_info). */
-export const RENDERER_SOFTWARE = /swiftshader|llvmpipe|software|basic render/i;
+/** La sonda: draw per campione pieno e coppie di campioni (vuoto, pieno) alternati, dopo un pieno di scaldo. */
+export const DRAW_SONDA = 4;
+export const CAMPIONI_SONDA = 3;
+/** Il canvas su cui SONDA_DRAW_MS è tarata: 1440×828 a DPR 1,5 (il Surface, DPR 2 fermato a DPR_MAX). */
+export const PX_SONDA = 2160 * 1242;
+/** Sopra il canvas di taratura le soglie della sonda crescono coi pixel; sotto restano quelle. */
+const perPixel = (ms: number, px: number): number => ms * Math.max(1, px / PX_SONDA);
+
+/** La soglia della sonda per un canvas di `px` pixel. Il draw colora metà del viewport, quindi il suo
+    costo cresce coi pixel: sopra PX_SONDA la soglia cresce con loro, sotto resta SONDA_DRAW_MS. Sullo
+    stesso Adreno a 2560×1440 (canvas 3840×2160, un monitor esterno) il costo va a 0,9-1,8 ms e a soglia
+    fissa la sonda rifiutava 2 volte su 20; SwiftShader resta sopra di 3 volte a ogni misura. */
+export const sogliaSonda = (px: number): number => perPixel(SONDA_DRAW_MS, px);
+
+/* IL CANCELLO A TEMPO (23 set., seconda correzione). Sulla home vera il cancello girava al whenStill
+   del montaggio, cioè sotto il sipario (idratazione, precarico di tutte le immagini, la gomma): lì le
+   letture sincrone aspettavano 6-12 ms (vuoti [11, 6, 12], pieni [11, 10, 11]) e sul Surface Pro 11 la
+   sonda leggeva, a freddo, 0,5-1,75 ms in Firefox (1,75 → scala; 1,50 sulla soglia) e 1,05-1,45 in
+   Chromium; la stessa sonda a pagina ferma 0,25-1,0. Ora useLastra la fa girare a entrata della home
+   finita, in un'`occasione` (idle, scheda in vista, scroll fermo, fuori dalla piega), a giri separati. */
+/** Il passo del cancello: la sonda parte SONDA_PASSO_MS dopo l'handoff del sipario (o dopo il montaggio,
+    se il sipario non c'è), i giri stanno a SONDA_PASSO_MS l'uno dall'altro, ed è anche il tetto dell'idle
+    e il passo con cui si riguarda un momento che non va. 1,5 s: più della coda della gomma dopo l'handoff
+    (1,05 s a tempo, 0,82 veloce), e abbastanza per scorrelare un intoppo di passaggio (GC, decodifica, la
+    GPU che sale di frequenza). */
+export const SONDA_PASSO_MS = 1500;
+/** I giri al massimo; la GPU buona ne vuole uno. */
+export const SONDA_PROVE = 3;
+/** Un giro è torbido se anche il vuoto più corto (clear + readPixels 1×1) supera questo tempo: la GPU è
+    occupata da altro e la differenza non dice niente. A riposo 1-3 ms (Adreno X1: Firefox 2-3, Chromium
+    1-1,8; SwiftShader col minimo sotto 2), sotto il sipario della home 6-12. Il vuoto risolve l'MSAA del
+    canvas intero, quindi sopra PX_SONDA la soglia cresce coi pixel (`sogliaTorbido`). */
+export const SONDA_TORBIDO_MS = 5;
+export const sogliaTorbido = (px: number): number => perPixel(SONDA_TORBIDO_MS, px);
+/** Un giro pulito oltre SONDA_TETTO volte la soglia boccia subito: nessuna GPU vera è andata oltre 1,8 ms
+    (3840×2160) né 1,75 (sotto il sipario); SwiftShader non è mai sceso sotto 4,95 a DPR 1, e il tetto a
+    1440×828 è 4,5. Niente altri giri, che lì costano 200 ms l'uno. */
+export const SONDA_TETTO = 3;
+/** L'entrata della home trattiene il cancello: il sipario (Preloader.tsx toglie data-preloader a gomma
+    finita) e la salita dell'hero (HeroCinematic.tsx toglie data-hero-entrata a salita finita: sul film a
+    ~10 s, l'handoff più 4,8). Mai oltre ENTRATA_TETTO_MS dalla navigazione: è la rete per un attributo
+    rimasto appeso. */
+export const ENTRATA_ATTR = ["data-preloader", "data-hero-entrata"] as const;
+export const ENTRATA_TETTO_MS = 15000;
+export const entrataInCorso = (ha: (attr: string) => boolean, ora: number): boolean =>
+  ora < ENTRATA_TETTO_MS && ENTRATA_ATTR.some((a) => ha(a));
+/** I renderer software si riconoscono dal nome (WEBGL_debug_renderer_info): SwiftShader (la CI), llvmpipe
+    e softpipe (Mesa), «Software Rasterizer», «Apple Software Renderer», WARP («Microsoft Basic Render
+    Driver», anche nel nome ripulito di Firefox). WARP passa la sonda (0,25-0,5 ms): lo ferma solo il nome. */
+export const RENDERER_SOFTWARE = /swiftshader|llvmpipe|softpipe|software|basic render/i;
 export type Rett = { x: number; y: number; w: number; h: number };
 
 const smooth = (e0: number, e1: number, x: number): number => {
@@ -111,6 +167,50 @@ export function ingombro(e: number, da: Rett, a: Rett, k: number, n = 17): Rett 
 export function scatolaPiatta(e: number, da: Rett, a: Rett): Rett {
   const v = vu(e);
   return { x: da.x + (a.x - da.x) * v, y: da.y + (a.y - da.y) * v, w: da.w + (a.w - da.w) * v, h: da.h + (a.h - da.h) * v };
+}
+
+/** La sonda del renderer: il costo di un draw al netto della lettura sincrona. `vuoti` sono i tempi di
+    clear + readPixels 1×1, `pieni` quelli di clear + `n` draw + readPixels; si confrontano i minimi.
+    Il rumore del cronometro si somma e basta (un'interruzione, la GPU che sale di frequenza dopo il
+    riposo: sul Surface in Chromium i pieni del primo giro scendono 7,4 → 6,3 → 5,4 ms), quindi il
+    campione più corto è il più vicino al costo vero. Mai sotto zero. */
+export function costoDraw(vuoti: number[], pieni: number[], n: number): number {
+  return Math.max(0, (Math.min(...pieni) - Math.min(...vuoti)) / n);
+}
+
+/** Le scatole della sonda: quelle vere, ma dentro il viewport `vp`. Quando il cancello gira slot e schermo
+    stanno di solito migliaia di px sotto (la home si apre in cima) e un draw fuori dal viewport non
+    colorerebbe un pixel: la sonda misurerebbe solo la lettura. La miniatura sta a metà altezza, lo
+    schermo è il viewport, come a schermo agganciato. */
+export function scatoleSonda(slot: Rett, vp: { w: number; h: number }): { da: Rett; a: Rett } {
+  return { da: { x: slot.x, y: (vp.h - slot.h) / 2, w: slot.w, h: slot.h }, a: { x: 0, y: 0, w: vp.w, h: vp.h } };
+}
+
+/** Un giro della sonda: il costo di un draw (costoDraw) e se era torbido, cioè se anche il vuoto più
+    corto supera sogliaTorbido per il canvas di `px` pixel. */
+export type Giro = { costo: number; torbido: boolean };
+export const giro = (vuoti: number[], pieni: number[], px: number): Giro => ({
+  costo: costoDraw(vuoti, pieni, DRAW_SONDA),
+  torbido: Math.min(...vuoti) > sogliaTorbido(px),
+});
+
+export type Giudizio = { esito: "gl" | "scala" | "ancora"; costo: number };
+
+/** Il giudizio del cancello dopo i giri fatti finora, asimmetrico. Il rumore (un task, la GPU che sale di
+    frequenza, il compositore) si somma ai pieni: fa sembrare lenta una GPU veloce, e veloce una lenta solo
+    se gonfia anche i vuoti, cioè in un giro torbido. Quindi un giro pulito ≤ soglia basta per gl; per la
+    scala serve una conferma: un giro pulito oltre SONDA_TETTO × soglia, o due puliti sopra soglia. Senza
+    conferma si fa un altro giro, e al SONDA_PROVE-esimo decide il minimo di tutti i giri: i torbidi non
+    promuovono da soli prima, e una GPU sulla soglia non si boccia per un giro solo. `costo` è il numero
+    su cui poggia il giudizio. */
+export function giudizioSonda(giri: readonly Giro[], soglia: number): Giudizio {
+  const puliti = giri.filter((g) => !g.torbido).map((g) => g.costo);
+  const pulito = Math.min(...puliti); // Infinity senza giri puliti
+  if (pulito <= soglia) return { esito: "gl", costo: pulito };
+  if (puliti.length > 0 && (pulito > SONDA_TETTO * soglia || puliti.length >= 2)) return { esito: "scala", costo: pulito };
+  const tutti = Math.min(...giri.map((g) => g.costo));
+  if (giri.length < SONDA_PROVE) return { esito: "ancora", costo: tutti };
+  return { esito: tutti <= soglia ? "gl" : "scala", costo: tutti };
 }
 
 /** Lo stato di `data-entrata` per un progresso. */
@@ -217,10 +317,12 @@ export function programma(gl: WebGL2RenderingContext, seg: number = SEG): Progra
   return { prog, u, n: idx.length, tex };
 }
 
-/** Un draw del foglio con gli uniform dati. */
-export function disegna(gl: WebGL2RenderingContext, p: Programma, res: { w: number; h: number }, da: Rett, a: Rett, e: number, k: number, aspetto: number): void {
-  gl.clearColor(0, 0, 0, 0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
+/** Un draw del foglio con gli uniform dati. `pulisci` false solo nella sonda, per sommare più draw sullo stesso fotogramma. */
+export function disegna(gl: WebGL2RenderingContext, p: Programma, res: { w: number; h: number }, da: Rett, a: Rett, e: number, k: number, aspetto: number, pulisci = true): void {
+  if (pulisci) {
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+  }
   gl.uniform2f(p.u.res, res.w, res.h);
   gl.uniform4f(p.u.da, da.x, da.y, da.w, da.h);
   gl.uniform4f(p.u.a, a.x, a.y, a.w, a.h);

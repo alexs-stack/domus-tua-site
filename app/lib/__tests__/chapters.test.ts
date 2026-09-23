@@ -393,6 +393,9 @@ describe("componenti dei gesti a clip", () => {
     "app/components/DomusDocProtocol.tsx",
     "app/components/motion/ClipMedia.tsx",
     "app/components/motion/Hairline.tsx",
+    // A80: la riga che si scrive della ricerca di /acquista. Il ritaglio svela le lettere del segnaposto, una
+    // passata sola dietro il cursore: è un gesto del campo, non una firma di capitolo su una foto.
+    "app/components/motion/RigaScritta.tsx",
   ]);
 
   test("il rilevatore vede i clip inset a tempo in ogni forma e ignora scrub, build, set e poligoni", () => {

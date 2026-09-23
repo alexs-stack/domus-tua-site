@@ -156,8 +156,9 @@ export default function HeroCinematic() {
   const c = copy[locale];
   const [playVideo, setPlayVideo] = useState(false);
   const sectionRef = useRef<HTMLElement | null>(null);
-  // I gruppi di lettere già entrati in questo montaggio (spec §2.3): un cambio lingua dopo non li rifà.
-  const suonati = useRef(new Set<Gruppo["nome"]>());
+  // I gruppi di lettere già entrati in questo montaggio (spec §2.3), con inizio e fine del loro
+  // ingresso sull'orologio di `gsap.globalTimeline`: un cambio lingua dopo non li rifà.
+  const suonati = useRef(new Map<Gruppo["nome"], { inizio: number; fine: number }>());
 
   // Ingresso delle lettere coi ruoli del testo di Era: `title` su lockup e H1,
   // `accent` sulla firma (A20 e A22 di Alberto, 13 settembre 2026; spec
@@ -173,11 +174,26 @@ export default function HeroCinematic() {
   // all'armamento: un gruppo armato aspetta l'entrata, non l'orologio); lockup,
   // firma e H1 non portano `data-reveal`, quindi il motore dei gruppi non li
   // tocca. Cambio lingua (spec §2.3): LocaleProvider passa alla lingua del
-  // cookie in un effetto passivo, dopo questo layout effect, e SplitChars crea
-  // span nuovi. Con `dependencies: [locale]` e `revertOnUpdate` l'effetto si
-  // rifà sugli span di oggi: un gruppo già entrato si accende senza replay; uno
-  // non ancora entrato si riarma e aspetta; a rete CSS già scattata si accendono
-  // solo gli span nati dopo, e gli altri finiscono la loro animazione CSS.
+  // cookie in un effetto passivo, dopo questo layout effect, e SplitChars riusa
+  // gli span per indice (il lockup «Domus Tua» è uguale in ogni lingua: stessi
+  // nodi) e ne aggiunge per le lettere in più. Con `dependencies: [locale]` e
+  // `revertOnUpdate` l'effetto si rifà sugli span di oggi: un gruppo già entrato
+  // non rifà l'ingresso, si accende se l'ingresso era finito e riprende dallo
+  // stesso istante se era a metà; uno non ancora entrato si riarma e aspetta; a
+  // rete CSS già scattata si accendono solo gli span nati dopo, e gli altri
+  // finiscono la loro animazione CSS.
+  //
+  // La timeline dell'ingresso nasce in un callback (il timer dei 150 ms,
+  // l'handoff, l'IntersectionObserver), cioè dopo che il Context di useGSAP ha
+  // finito di registrare: passa dal `contextSafe` del ramo di matchMedia, così
+  // `revertOnUpdate` la reverte col resto. Senza, la timeline del passaggio in
+  // italiano sopravviveva al cambio lingua sugli span riusati del lockup:
+  // il passaggio in tedesco li accendeva a 1 e le ultime lettere dello stagger
+  // ripartivano poi dal loro `from`, opacità 0 (il lampo di hero-alto.spec,
+  // «tedesco», sulla CI della PR #81). È il `contextSafe` del ramo e non quello
+  // di useGSAP: quello esterno, chiamato dentro il ramo (l'handoff già partito
+  // fa suonare subito), metterebbe i due Context uno nei dati dell'altro (D120,
+  // ricerca-idempotenza.test.ts).
   useGSAP(
     () => {
       const section = sectionRef.current;
@@ -186,7 +202,8 @@ export default function HeroCinematic() {
       if (!html.hasAttribute("data-preloader") && !html.hasAttribute("data-hero-intro")) return;
 
       const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
+      mm.add(MQ.motionOk, (ramo, contextSafe) => {
+        if (!contextSafe) return;
         const chars = (sel: string) => gsap.utils.toArray<HTMLElement>(sel, section);
         const host = (sel: string) => section.querySelector<HTMLElement>(sel);
         const candidati: Array<Omit<Gruppo, "host"> & { host: HTMLElement | null }> = [
@@ -202,9 +219,50 @@ export default function HeroCinematic() {
           });
           gsap.set(els, { opacity: 1 });
         };
+        // L'ingresso di un gruppo, `dal` secondi dopo il suo inizio (0 la prima volta). Nel Context
+        // del ramo anche quando parte da un callback: vedi il commento sopra useGSAP.
+        const ingresso = contextSafe((g: Gruppo, dal: number) => {
+          const r = g.role;
+          gsap.set(g.chars, { willChange: "transform" });
+          // Origine dei ruoli (spec §2.2): `accent` gira dalla linea di base, 50 % 100 %; `title` resta al centro.
+          if (r.origin) gsap.set(g.chars, { transformOrigin: r.origin });
+          const tl = gsap
+            .timeline({ onComplete: () => gsap.set(g.chars, { clearProps: "willChange" }) })
+            .fromTo(
+              g.chars,
+              { ...r.from },
+              {
+                ...r.to,
+                duration: r.duration,
+                ease: r.ease,
+                stagger: staggerEach(r.stagger, g.chars.length, durDt.l),
+                overwrite: true,
+              },
+              g.at,
+            );
+          // Il salto avanti gira FUORI dal Context, come l'avanzare naturale nel ticker: le lettere già
+          // partite si reinizializzano lì, e i loro `_startAt` nuovi, registrati nel ramo, al cambio
+          // lingua dopo verrebbero revertiti due volte (dal Context di useGSAP, che contiene il ramo, e
+          // dal ramo stesso), lasciando la posa `from`: rotateY 90°, lettere di taglio, larghe 0.
+          if (dal > 0) ramo.ignore(() => tl.time(dal));
+          suonati.current.set(g.nome, { inizio: tl.startTime(), fine: tl.endTime() });
+        }) as (g: Gruppo, dal: number) => void;
 
-        // I gruppi già entrati (cambio lingua) si accendono e basta.
-        for (const g of gruppi) if (suonati.current.has(g.nome)) accendi(g.chars);
+        // I gruppi già entrati (cambio lingua): a ingresso finito si accendono e basta; a metà
+        // riprendono dall'istante in cui erano, sugli span di oggi, senza ripartire da capo.
+        const ora = gsap.globalTimeline.time();
+        for (const g of gruppi) {
+          const s = suonati.current.get(g.nome);
+          if (!s) continue;
+          if (ora >= s.fine) {
+            accendi(g.chars);
+            continue;
+          }
+          g.chars.forEach((el) => {
+            el.style.animation = "none";
+          });
+          ingresso(g, ora - s.inizio);
+        }
         const daSuonare = gruppi.filter((g) => !suonati.current.has(g.nome));
         if (daSuonare.length === 0) return;
         // Rete CSS già scattata (JS arrivato tardi): nessun ingresso. Si accendono solo gli span
@@ -221,26 +279,7 @@ export default function HeroCinematic() {
 
         const osservatori: IntersectionObserver[] = [];
         const suona = (g: Gruppo) => {
-          if (suonati.current.has(g.nome)) return;
-          suonati.current.add(g.nome);
-          const r = g.role;
-          gsap.set(g.chars, { willChange: "transform" });
-          // Origine dei ruoli (spec §2.2): `accent` gira dalla linea di base, 50 % 100 %; `title` resta al centro.
-          if (r.origin) gsap.set(g.chars, { transformOrigin: r.origin });
-          gsap
-            .timeline({ onComplete: () => gsap.set(g.chars, { clearProps: "willChange" }) })
-            .fromTo(
-              g.chars,
-              { ...r.from },
-              {
-                ...r.to,
-                duration: r.duration,
-                ease: r.ease,
-                stagger: staggerEach(r.stagger, g.chars.length, durDt.l),
-                overwrite: true,
-              },
-              g.at,
-            );
+          if (!suonati.current.has(g.nome)) ingresso(g, 0);
         };
         const inScena = (el: HTMLElement) => {
           const b = el.getBoundingClientRect();

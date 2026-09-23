@@ -523,10 +523,11 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
     <>
       <main className="flex-1">
         {/* A48 (Alberto, 22 set. 2026): «la ricerca intelligente va più su, in modo che appaia sopra
-            la foto e dopo la scritta hero». La testa della ricerca posa sulla foto della testa
-            (PageHero `sopra`, dopo i tre punti, in bianco da lg; sotto lg segue la foto in
-            inchiostro); i filtri e i risultati restano sulla carta in #case. Lo stato che le due
-            parti condividono sta nel provider. */}
+            la foto e dopo la scritta hero». A80 (23 set.: «la ricerca intelligente non si vede …
+            ingegnati e stupiscimi cambiando il design dell'input della ricerca»): la testa della
+            ricerca sta NEL CIELO della foto (PageHero `cielo`), sulla carta, in inchiostro, fra i
+            comandi e la villa, che le sale sotto; sotto lg segue la foto. I filtri e i risultati
+            restano sulla carta in #case. Lo stato che le due parti condividono sta nel provider. */}
         <RicercaProvider properties={listings}>
         <PageHero
           rotta="/acquista"
@@ -540,10 +541,10 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
           secondary={{ label: c.hero.secondaryLabel, href: "#case" }}
           trust={c.hero.trust}
           scriptWord={{ it: "Senza dubbi", en: "No doubts", fr: "Sans doutes", de: "Ohne Zweifel", es: "Sin dudas" }[locale]}
-          sopra={<SearchHead />}
+          cielo={<SearchHead />}
         />
 
-        {/* Filtri e risultati sulla carta (#case = target dell'hero); la testa della ricerca sta sulla foto. */}
+        {/* Filtri e risultati sulla carta (#case = target dell'hero); la testa della ricerca sta nel cielo della foto. */}
         <div id="case">
           <PropertySearch properties={listings} />
         </div>
