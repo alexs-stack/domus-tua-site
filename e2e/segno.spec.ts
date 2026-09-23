@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test, expect, setConsent } from "./helpers";
 import { clipOf, insetValues } from "./coreografia";
+import { CHIUSURA } from "../app/lib/motion/hero";
 
 // IL MONOGRAMMA SEMPRE VISIBILE (spec §6.1). Alberto il 13 settembre 2026,
 // «Si stacca da 1024» (A21, D34): da 1280 il segno parte sopra il badge
@@ -526,12 +527,33 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10;
   await goto("/");
   await expect.poll(async () => (await leggiSegno(page))?.hidden, { timeout: 10_000 }).toBe(false);
   // A49 (22 set., sera): l'hero è la foto alta in flusso e le sue zone `foto` sono le bande di hero.json
-  // (0,269-0,695 dell'altezza: la parete dell'ala sinistra della villa). A 1440 la foto è alta 2144 px e
-  // comincia ~90 px sopra la testata (la salita a riposo): a scrollY 1000 l'asse del segno (~45 px) cade
-  // a ~0,49 della foto, dentro la banda; sul cielo (la carta) e sull'acqua chiara il tema resta grafite.
-  await scrollA(page, 1000);
+  // (0,269-0,694 dell'altezza: la parete dell'ala sinistra della villa); sul cielo (la carta) e sull'acqua
+  // chiara il tema resta grafite. A75 (D-A75-1, 141e865): a riposo la foto sale sotto la testata finché
+  // Raffaela non è intera nel primo schermo (a 1440×900 ~570 px, prima ~90) e il riquadro la ritaglia al
+  // bordo della testata (D-A75-2): il cielo resta sopra quel bordo e non passa più sotto il segno, e la banda
+  // comincia ~100 px sotto la cima del documento. A79: la cartolina parte col fondo della foto al 130 % del
+  // viewport (hero.ts CHIUSURA). Le quote fisse di prima oggi mettono l'asse del segno (~45 px) a ~0,71 della
+  // foto a scrollY 1000 (sull'acqua, a cornice quasi chiusa) e a ~0,29 a scrollY 100 (già nella banda). Si
+  // leggono dal DOM: 40 px sopra la banda, a foto intera, il tema è grafite (al posto del cielo di prima);
+  // dentro la banda, a metà del tratto che precede la cartolina (foto intera, nessun ritaglio), foto; 40 px
+  // sotto la banda, sull'acqua chiara, di nuovo grafite.
+  const hero = await page.evaluate(() => {
+    const b = document.querySelector<HTMLElement>("#top [data-testa-foto-box]")!.getBoundingClientRect();
+    return { top: b.top + window.scrollY, h: b.height, vh: window.innerHeight };
+  });
+  const asse = (await leggiSegno(page))!.cy;
+  const [da, a] = BANDE_HERO[0];
+  // La frazione della foto sotto l'asse del segno quando la cartolina parte (il fondo della foto al 130 %).
+  const fyCartolina = (hero.h - (CHIUSURA[0] / 100) * hero.vh + asse) / hero.h;
+  expect(fyCartolina - da, "la banda non passa sotto il segno prima della cartolina").toBeGreaterThan(0.05);
+  const sopraBanda = Math.round(hero.top + da * hero.h - 40 - asse);
+  expect(sopraBanda, "la banda comincia troppo in alto per leggere il tema sopra di lei").toBeGreaterThanOrEqual(0);
+  await scrollA(page, sopraBanda);
+  await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
+  await scrollA(page, Math.round(hero.top + ((da + Math.min(a, fyCartolina)) / 2) * hero.h - asse));
+  expect(await page.locator("#top [data-testa-foto-box]").evaluate((el) => (el as HTMLElement).style.clipPath), "la cartolina è già partita").toBe("");
   await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("foto");
-  await scrollA(page, 100);
+  await scrollA(page, Math.round(hero.top + a * hero.h + 40 - asse));
   await expect.poll(async () => (await leggiSegno(page))?.tema, { timeout: 3_000 }).toBe("grafite");
   // A57: la finestra è un nastro; la quota di riferimento è la cima della sezione.
   const area = await page.evaluate(() => {
@@ -550,7 +572,15 @@ test("1440: i marcatori dell'hero e della finestra di Open Domus (§3.2, §3.10;
   await scrollA(page, Math.round(area! + 300));
   // La facciata si riconosce dalla geometria (sopra l'<img> sta il capitolo con lo spazio sopra): il centro
   // del segno dentro la scatola della foto, con lo schermo delle tende già nascosto dal cue di p 1, e la
-  // foto montata è il WebP col cielo.
+  // foto montata è il WebP col cielo. La foto è pigra (next/image, loading="lazy"): dopo il salto il browser
+  // sceglie la sorgente qualche fotogramma più tardi e fino ad allora currentSrc è vuoto (misurato il 23 set.,
+  // una corsa su tre, ora che la prima parte del test non si ferma più sull'hero).
+  await expect
+    .poll(() => page.locator("#open-domus .dt-od_window img").evaluate((el) => decodeURIComponent((el as HTMLImageElement).currentSrc)), {
+      timeout: 5_000,
+      message: "la finestra non monta la facciata col cielo trasparente",
+    })
+    .toMatch(FOTO_COL_CIELO);
   const sotto = await page.evaluate(() => {
     const r = document.querySelector<HTMLElement>("[data-segno]")!.getBoundingClientRect();
     const cx = r.left + r.width / 2;

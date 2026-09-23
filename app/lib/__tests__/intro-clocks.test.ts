@@ -535,6 +535,11 @@ describe("Preloader.tsx ed e2e: nessun numero sparso", () => {
     // lo skip: l'atto I alla fine e la gomma `veloce`, con l'ora del film in --pre-skip
     assert.match(preloader, /html\.setAttribute\("data-pre-skip", ""\)/);
     assert.match(preloader, /"--pre-skip"/);
+    // e «entra adesso»: il `ready` è vero subito, la gomma non batte fino alla scadenza del precarico
+    // (in JS e nello skip già servito dal boot script)
+    assert.match(preloader, /const salta = \(\) => \{\s*unwill\(\);\s*setPronta\(true\);\s*monta\("veloce"\);\s*\};/);
+    assert.match(preloader, /html\.setAttribute\("data-pre-skip", ""\);\s*salta\(\);/);
+    assert.match(preloader, /\} else if \(giaSaltato\) \{\s*salta\(\);/);
     // e lo skip del boot script si ritira, o la sua rete strapperebbe la gomma veloce a metà
     assert.match(preloader, /boot\(\)\.__dtPreSkipOff\?\.\(\);/);
     assert.match(preloader, /window\.clearTimeout\(boot\(\)\.__dtPreFailsafe\);\s*setGomma\(/);
