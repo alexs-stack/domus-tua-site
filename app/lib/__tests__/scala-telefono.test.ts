@@ -21,10 +21,10 @@
 //    `text-d1…d3` portano il valore scritto dentro e non leggono la variabile, quindi
 //    tre righe di quel blocco (d1, d2, d3) erano morte da settimane e i numeri di V04
 //    reggevano solo perché lo erano (revisore del secondo giro);
-// 3. l'H1 di PageHero scende a 2,5rem solo nella lingua che ha la parola lunga
-//    («Besichtigung.» in tedesco su /open-domus, «currículums.» in spagnolo su
-//    /lavora-con-noi), non in tutte e cinque: chi legge in italiano vede la stessa
-//    testa su ogni rotta;
+// 3. l'H1 di PageHero scende a 2,5rem solo nelle lingue che hanno la parola lunga
+//    («Besichtigung.» in tedesco su /open-domus, «currículums.» in spagnolo e
+//    «Lebensläufe.» in tedesco su /lavora-con-noi), non in tutte e cinque: chi
+//    legge in italiano vede la stessa testa su ogni rotta;
 // 4. i nove passi di /metodo (Method.tsx) stanno su due colonne fra 768 e 1023 px e
 //    su tre da 1024, con il titolo a d4 nella griglia a tre: a 768 «Dokumentenprüfung»
 //    (275,6 px a 24 px) usciva dallo schermo di 19,6 px in una colonna di 194,6, e a
@@ -105,14 +105,15 @@ describe("V04 · il blocco «LA SCALA SOTTO I 1024» ridefinisce solo token lett
 });
 
 describe("V04 · l'H1 stretto di PageHero è per lingua, non per rotta", () => {
-  for (const [file, lingua] of [
-    ["app/open-domus/OpenDomusPageContent.tsx", "de"],
-    ["app/lavora-con-noi/LavoraConNoiContent.tsx", "es"],
+  for (const [file, lingue] of [
+    ["app/open-domus/OpenDomusPageContent.tsx", ["de"]],
+    ["app/lavora-con-noi/LavoraConNoiContent.tsx", ["es", "de"]],
   ] as const) {
-    test(`${file}: tightTitle solo in «${lingua}»`, () => {
+    test(`${file}: tightTitle solo in «${lingue.join("», «")}»`, () => {
       const src = leggi(file);
       assert.doesNotMatch(src, /^\s*tightTitle\s*$/m, "tightTitle passato a tutte le lingue");
-      assert.match(src, new RegExp(`tightTitle=\\{locale === "${lingua}"\\}`), `l'H1 stretto non è legato alla lingua «${lingua}»`);
+      const condizione = lingue.map((l) => `locale === "${l}"`).join(" \\|\\| ");
+      assert.match(src, new RegExp(`tightTitle=\\{${condizione}\\}`), `l'H1 stretto non è legato alle lingue «${lingue.join("», «")}»`);
     });
   }
   test("le altre nove rotte non passano tightTitle", () => {

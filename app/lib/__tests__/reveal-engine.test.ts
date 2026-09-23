@@ -295,7 +295,11 @@ describe("D39: il refresh del motore parte a scroll fermo", () => {
     assert.doesNotMatch(engine, /new ResizeObserver\(requestRefresh\)/);
     const still = engine.slice(engine.indexOf("function refreshWhenStill("), engine.indexOf("function armCap("));
     assert.match(still, /if \(!arriving && !ScrollTrigger\.isScrolling\(\)\) \{\s*requestRefresh\(\);\s*return;/);
-    assert.match(engine, /ScrollTrigger\.addEventListener\("scrollEnd", onStill\)/);
+    // Lo scrollEnd passa da onScrollEnd di gsap.ts: quello emesso dentro il primo evento di scroll
+    // dopo un task lungo, con l'arrivo in volo, non chiude l'arrivo e non fa partire il refresh.
+    assert.match(engine, /import \{[^}]*\bonScrollEnd\b[^}]*\} from "\.\/gsap";/);
+    assert.match(engine, /onScrollEnd\(onStill\);/);
+    assert.doesNotMatch(engine, /addEventListener\("scrollEnd"/);
     assert.match(engine, /const STILL_CAP_MS = 4000;/);
     // Il tetto chiude l'arrivo, non forza il refresh dentro uno scroll (un fling su touch si fermerebbe).
     const onStill = engine.slice(engine.indexOf("function onStill("), engine.indexOf("function fragmentPending("));

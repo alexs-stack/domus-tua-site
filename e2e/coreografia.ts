@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { cpus } from "node:os";
 import { join } from "node:path";
 import type { BrowserContext, Locator, Page } from "@playwright/test";
 import { INTRO_EVENT } from "../app/lib/motion/intro-constants";
@@ -680,6 +681,15 @@ export async function minInkOver(page: Page, selector: string, ms: number, leafS
 /** La base di spec §2.5 scritta da scripts/probe-lcp-base.mjs. */
 export function readLcpBase(): LcpBase {
   return JSON.parse(readFileSync(join(__dirname, "baseline", "lcp-base.json"), "utf8")) as LcpBase;
+}
+
+/**
+ * Chi corre è la macchina che ha misurato la base? Spec §2.5 confronta sulla «stessa macchina» e
+ * risultati.md §02 scrive «la base del test 6 su questa macchina»: stessa piattaforma e stesso
+ * modello di CPU di `machine` in lcp-base.json, che scripts/probe-lcp-base.mjs scrive con la base.
+ */
+export function stessaMacchinaLcp(base: LcpBase): boolean {
+  return base.machine.platform === process.platform && base.machine.cpu.trim() === (cpus()[0]?.model ?? "").trim();
 }
 
 /** L'unità animata dei titoli per lettera (SplitTitle, spec §2.3; A20 di Alberto). */

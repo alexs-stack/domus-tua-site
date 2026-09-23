@@ -47,11 +47,14 @@ describe("HomeSearchGateway: l'aggancio del pannello", () => {
   });
 
   // D57: con l'ancora su #cerca o più giù l'aggancio nasce a scroll fermo (whenStill di gsap.ts),
-  // così l'arrivo nativo al frammento non dipinge lo stato spento. E niente invalidateOnRefresh:
-  // col revert del refresh e immediateRender false il pannello resterebbe pieno a progresso 0.
+  // così l'arrivo nativo al frammento non dipinge lo stato spento. Anche con l'innesco già sopra la
+  // linea di start se lo scroll è in corso (idratazione lenta): armato a metà dell'arrivo il pannello
+  // nascerebbe al progresso di quel momento. E niente invalidateOnRefresh: col revert del refresh e
+  // immediateRender false il pannello resterebbe pieno a progresso 0.
   test("con l'ancora l'aggancio aspetta lo scroll fermo; nessun invalidateOnRefresh", () => {
     assert.match(ricerca, /whenStill\(arma\)/);
-    assert.match(ricerca, /ScrollTrigger\.isScrolling\(\)/);
+    assert.match(ricerca, /if \(ancoraQuiOPiuGiu && \(sottoLaLinea\(\) \|\| ScrollTrigger\.isScrolling\(\)\)\) \{/);
+    assert.match(ricerca, /if \(ScrollTrigger\.isScrolling\(\)\) parti\(\);/);
     assert.doesNotMatch(ricerca, /invalidateOnRefresh/);
   });
 

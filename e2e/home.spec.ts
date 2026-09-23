@@ -16,6 +16,7 @@ import {
   releaseTimeouts,
   wheelTo,
 } from "./coreografia";
+import { chapters } from "../app/lib/motion/chapters";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -1078,6 +1079,20 @@ test.describe("Voci: il carosello arriva da destra", () => {
 test.describe("la finestra di Open Domus", () => {
   const CIMA = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/finestra.json"), "utf8")) as { cielo: { cima: number } }).cielo.cima;
   const CIMA_CODA = (JSON.parse(readFileSync(join(__dirname, "../app/lib/motion/coda.json"), "utf8")) as { cielo: { cima: number } }).cielo.cima;
+  // La curva della cartolina della coda (OpenDomus.tsx, A68): dtCartolina, la firma della cartolina nel
+  // registro (chapters.ts `hero`, il motivo comune). y(x) della cubic-bezier, per bisezione sulla x.
+  const [x1, y1, x2, y2] = chapters.hero.signature.curve!.split(",").map(Number);
+  const dtCartolina = (x: number) => {
+    const b = (t: number, p1: number, p2: number) => 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3;
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 40; i++) {
+      const m = (lo + hi) / 2;
+      if (b(m, x1, x2) < x) lo = m;
+      else hi = m;
+    }
+    return b((lo + hi) / 2, y1, y2);
+  };
   for (const vp of [
     { width: 1440, height: 900 },
     { width: 1024, height: 768 },
@@ -1165,8 +1180,6 @@ test.describe("la finestra di Open Domus", () => {
       // dentro lo schermo. wheelTo può sforare: la coda è già scesa di quel tanto.
       await wheelTo(page, Math.round(geo.top + lead + run));
       await page.waitForTimeout(2200);
-      const coda = od.locator(".dt-od_coda");
-      await expect.poll(async () => insetValues(await clipOf(coda)), { timeout: 3000 }).toEqual([0, 0, 0, 0]);
       // wheelTo può fermarsi fino a ~100 px oltre la quota (ScrollTrigger e DOM non coincidono al pixel dopo
       // il rientro della testata): la coda può essere già scesa di quel tanto, non di più, e mai risalita.
       const fb = (await od.locator(".dt-od_coda_foto").boundingBox())!;
@@ -1174,6 +1187,27 @@ test.describe("la finestra di Open Domus", () => {
       expect(Math.abs(fb.width - geo.vw), "la piscina è larga tutto").toBeLessThanOrEqual(3);
       expect(fb.y, "la piscina non è arrivata alzata quanto deve").toBeLessThanOrEqual(from + 4);
       expect(fb.y, "la piscina è scesa troppo per la quota raggiunta").toBeGreaterThanOrEqual(from - 120);
+      // Il sipario è aperto e, sulla stessa scatola, la cartolina è cominciata quanto deve (A79, 141e865): corre
+      // col fondo della sezione dal 230 % al 70 % del viewport, cioè comincia `tail − 1,3vh` px dopo la fine del
+      // track (a 1440×900 la coda è ~1,3 schermi e comincia lì; a 1024×768 è più corta e comincia ~240 px prima,
+      // col track ancora in corsa). Il clip quindi non è più inset(0) né un residuo della tendina (che scopre
+      // da sinistra: i lati opposti diversi) ma la cornice della cartolina, 8 % sopra e sotto e 22 % ai lati per
+      // dtCartolina(p), con p letto dalla discesa della coda: stessa radice e stesso refresh di ScrollTrigger,
+      // nessuno scarto fra il DOM e le quote.
+      const coda = od.locator(".dt-od_coda");
+      const [DA, A] = [2.3, 0.7]; // "bottom 230%" → "bottom 70%" (OpenDomus.tsx, A79)
+      const pCoda = dtCartolina(Math.min(1, Math.max(0, (Math.max(0, from - fb.y) - (tail + geo.vh - DA * geo.vh)) / ((DA - A) * geo.vh))));
+      await expect
+        .poll(
+          async () => {
+            const clip = await clipOf(coda);
+            const v = clip === "none" ? [0, 0, 0, 0] : insetValues(clip);
+            if (!v || v[0] !== v[2] || v[1] !== v[3]) return Infinity;
+            return Math.max(Math.abs(v[0] / 8 - pCoda), Math.abs(v[1] / 22 - pCoda));
+          },
+          { timeout: 3000, message: `il clip della coda non è la cartolina a p ${pCoda.toFixed(3)} (A79)` },
+        )
+        .toBeLessThanOrEqual(0.01);
       const gb = (await od.locator("[data-horizon-stair]").first().boundingBox())!;
       expect(gb.y).toBeGreaterThanOrEqual(0);
       expect(gb.x).toBeGreaterThanOrEqual(0);
@@ -1356,6 +1390,63 @@ async function insetsOf(l: Locator) {
   return (await l.evaluateAll((els) => els.map((e) => getComputedStyle(e).clipPath))).map(insetValues);
 }
 
+type CronoRighe = { linea: number | null; tirata: number | null };
+
+/**
+ * Il cronometro delle righe, nella pagina (spec §3.11, D26), da armare prima
+ * dello scroll. `linea` è il `performance.now()` del primo evento di scroll col
+ * bordo alto della lista sopra il 60 % dello schermo (rootMargin −40 %); `tirata`
+ * è il primo fotogramma, da lì, con l'ultima riga tutta tirata (il giro si ferma
+ * lì, o dopo 10 s). Lo scroll istantaneo fa avvisare l'IntersectionObserver nel
+ * fotogramma stesso e manda l'evento al fotogramma dopo: il tween nasce al più un
+ * fotogramma prima di `linea`, e con la firma `tirata − linea` non scende sotto
+ * 1,32 s meno un fotogramma, a qualunque ritmo di fotogrammi.
+ */
+async function armaCronoRighe(page: Page): Promise<void> {
+  await page.evaluate(
+    ({ lista, righe }) => {
+      const c: CronoRighe = { linea: null, tirata: null };
+      (window as unknown as { __cronoRighe: CronoRighe }).__cronoRighe = c;
+      const ul = document.querySelector(lista)!;
+      const ultima = document.querySelectorAll(righe)[4];
+      const tutta = () => {
+        const v = /^inset\(([^)]*)\)$/.exec(getComputedStyle(ultima).clipPath)?.[1].split(/\s+/) ?? [];
+        return v.length > 0 && v.every((s) => parseFloat(s) === 0);
+      };
+      const scroll = () => {
+        if (ul.getBoundingClientRect().top >= 0.6 * window.innerHeight) return;
+        window.removeEventListener("scroll", scroll);
+        const linea = (c.linea = performance.now());
+        const giro = () => {
+          const t = performance.now();
+          if (tutta()) c.tirata = t;
+          else if (t - linea < 10_000) requestAnimationFrame(giro);
+        };
+        requestAnimationFrame(giro);
+      };
+      window.addEventListener("scroll", scroll, { passive: true });
+    },
+    { lista: LISTA_DOC, righe: RIGHE_DOC },
+  );
+}
+
+/** Aspetta nella pagina fino a `ms` dal passaggio della linea (subito, se sono già passati) e restituisce `linea`. */
+async function dopoLaLinea(page: Page, ms: number): Promise<number | null> {
+  return page.evaluate(async (ms) => {
+    const { linea } = (window as unknown as { __cronoRighe: CronoRighe }).__cronoRighe;
+    if (linea !== null) await new Promise((r) => setTimeout(r, Math.max(0, linea + ms - performance.now())));
+    return linea;
+  }, ms);
+}
+
+/** Il cronometro, dopo due fotogrammi: il giro ha campionato anche l'ultimo stato letto dal test. */
+async function letturaCronoRighe(page: Page): Promise<CronoRighe> {
+  return page.evaluate(async () => {
+    await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+    return (window as unknown as { __cronoRighe: CronoRighe }).__cronoRighe;
+  });
+}
+
 // Capitolo 10, Domus D.O.C. (spec §3.11; A20 di Alberto, D26). Le righe sopra i
 // pilastri si tirano da sinistra e la spina (da md) scende dall'alto quando la
 // lista passa la linea del 60 % (rootMargin −40 %); quando la lista torna sotto
@@ -1374,17 +1465,22 @@ async function righeNeiDueVersi(page: Page) {
   if (width >= 768) await expect.poll(async () => insetValues(await clipOf(spina))).toEqual([0, 0, 100, 0]);
 
   // Lista al 50 % (spec §3.11). Riga i da 0,2 + i × 0,08 s per 0,8 s: l'ultima
-  // corre fra 0,52 e 1,32 s, la spina (0,2 + 1,12 s) finisce con lei. placeEdge
-  // torna circa 0,17 s dopo lo scroll, quindi la prima lettura cade verso 0,9 s:
-  // l'ultima riga ha ancora circa il 20 % da tirare. Tempi più corti della firma
-  // (per esempio 0,5 s senza ritardo) la troverebbero già chiusa.
+  // corre fra 0,52 e 1,32 s, la spina (0,2 + 1,12 s) finisce con lei. I tempi si
+  // contano nella pagina dal passaggio della linea (armaCronoRighe), non dal
+  // ritorno di placeEdge: placeEdge aspetta 10 fotogrammi fermi dopo lo scroll, e
+  // coi fotogrammi lenti di 1440 in CI torna 0,6 s e più dopo l'avviso invece di
+  // 0,17 s, così la lettura «a 0,7 s dal ritorno» trovava l'ultima riga già tutta
+  // tirata con la firma giusta. Tempi più corti della firma (per esempio 0,5 s
+  // senza ritardo, finiti a 0,82 s) la chiuderebbero prima di 1 s dalla linea.
+  await armaCronoRighe(page);
   await placeEdge(page, LISTA_DOC, "top", 0.5);
-  await page.waitForTimeout(700);
-  expect((await insetsOf(righe))[4], "a 0,7 s dalla quota l'ultima riga è già tutta tirata").not.toEqual([0, 0, 0, 0]);
   // 1,8 s dalla quota, senza poll: la firma superata di lane-homeB (1,2 s, stagger 0,1, ritardo 0,3) finirebbe a 1,9 s.
-  await page.waitForTimeout(1_100);
+  expect(await dopoLaLinea(page, 1_800), "nessuno scroll ha portato la lista sopra la linea del 60 %").not.toBeNull();
   expect(await insetsOf(righe)).toEqual(APERTE);
   if (width >= 768) expect(insetValues(await clipOf(spina))).toEqual([0, 0, 0, 0]);
+  const crono = await letturaCronoRighe(page);
+  expect(crono.tirata, "il cronometro non ha visto l'ultima riga tutta tirata").not.toBeNull();
+  expect(crono.tirata! - crono.linea!, "a 1 s dalla linea l'ultima riga è già tutta tirata").toBeGreaterThanOrEqual(1_000);
 
   // Bordo alto a 0,61, sotto la linea: uscita 0,5 s dall'ultima riga, stagger 0,05 → 0,7 s.
   await placeEdge(page, LISTA_DOC, "top", 0.61);
@@ -1437,8 +1533,11 @@ test("D.O.C.: senza avvisi dell'IntersectionObserver la rete dei 2.500 ms tira l
   await page.waitForTimeout(600);
   expect((await insetsOf(righe))[0], "senza avvisi e prima della rete le righe restano chiuse").toEqual([0, 100, 0, 0]);
   expect(await releaseTimeouts(page)).toBeGreaterThan(0);
-  // Rete scattata adesso: ultima riga a 0,2 + 4 × 0,08 + 0,8 = 1,32 s.
-  await expect.poll(() => insetsOf(righe), { timeout: 2_000 }).toEqual(APERTE);
+  // Rete scattata adesso: ultima riga a 0,2 + 4 × 0,08 + 0,8 = 1,32 s. Una
+  // lettura ogni 100 ms fino ai 2 s: coi passi di default (100, 250, 500,
+  // 1.000 ms) expect.poll salta l'ultima lettura quando le prime quattro costano
+  // più di 150 ms in tutto (a 1440 in CI) e si arrende verso 1 s, a gesto in corsa.
+  await expect.poll(() => insetsOf(righe), { timeout: 2_000, intervals: [100] }).toEqual(APERTE);
 });
 
 // La rete vale solo finché l'IntersectionObserver non ha deciso (spec §3.11; D26,
@@ -2361,9 +2460,32 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
     expect(await sec.locator(":scope > [data-corridor-screen]").evaluate((el) => getComputedStyle(el).position)).toBe(
       "relative",
     );
-    const q = await quoteCartolina(page);
-    // Fine del ramo del telefono: bordo basso della banda al 30 % del viewport.
-    await vai(page, q.screenTop + q.screenH - q.vh * 0.3, 1500);
+    // Fine del ramo del telefono: bordo basso della banda al 30 % del viewport. goto non aspetta
+    // l'idratazione (finisce ~1 s dopo il DOMContentLoaded, di più sotto carico): prima si aspetta che il
+    // ritiro sia armato (lo ScrollTrigger dello schermo, `__dtSTList` di gsap.ts); poi la quota si rilegge
+    // dopo l'attesa e, se si è spostata, si torna lì. Subito dopo, infatti, il muro delle voci, più su, legge
+    // il consenso (useConsent, al mount): la nota del cancello (~174 px) lascia il posto al contenitore di
+    // Trustindex (480 px riservati) e tutto quel che sta sotto scende di ~300 px a 390×664. Se succede fra la
+    // lettura della quota e lo scroll e l'ancoraggio del browser non lo compensa, lo scroll cade corto, il
+    // refresh di ScrollTrigger sposta più in basso la fine del ritiro e la banda resta a metà (misurato il 23
+    // set.: 2,74 % invece di 4; in CI 3,8); con la pagina non ancora idratata il ritaglio non c'è proprio.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => (window as unknown as { __dtSTList?: () => Array<{ trigger: string }> }).__dtSTList?.().some((t) => t.trigger.includes("data-corridor-screen")) ?? false,
+          ),
+        { timeout: 15_000, message: "il ritiro del telefono non si è armato" },
+      )
+      .toBe(true);
+    let y = Number.NaN;
+    for (let giro = 0; giro < 5; giro++) {
+      const q = await quoteCartolina(page);
+      const qy = q.screenTop + q.screenH - q.vh * 0.3;
+      if (Math.abs(qy - y) <= 1) break;
+      y = qy;
+      await vai(page, y, 1500);
+    }
     const fine = insetValues(await clipOf(sec.locator("[data-postcard-clip]")))!;
     [4, 10, 4, 10].forEach((v, i) => expect(Math.abs(fine[i] - v), `lato ${i}`).toBeLessThanOrEqual(0.2));
     await testaSopra(page, "390");

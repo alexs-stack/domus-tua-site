@@ -17,6 +17,7 @@ import {
   refreshTriggers,
   registraLampi,
   routeExternal,
+  stessaMacchinaLcp,
   timeToHidden,
   waitArmed,
   watchMinInk,
@@ -54,8 +55,15 @@ import {
 test.use({ contextOptions: { reducedMotion: "no-preference" } });
 test.describe.configure({ mode: "default" });
 
-/** Titolo dell'uscita: il titolo TextLines con al più due righe a 1440 e a 390 scelto da misure/02-testo-oggi.mjs sonda. */
-const EXIT_TARGET = "#costi h2";
+/**
+ * Titolo dell'uscita: un titolo fuori dai corridoi, con al più due righe a 1440 e a 390 e lo spazio per la rotella,
+ * scelto con la regola di misure/02-testo-oggi.mjs sonda (meno righe, poi il più in fondo alla home). Fino ad A72
+ * (aa2953d) era #costi h2: da MQ.corridor Costi chiari è un nastro, il titolo sta nel track (RIBBON di
+ * reveal-engine.ts) su tre righe e il suo asse è x, quindi risalendo esce solo a destra della linea dell'85 %, mai
+ * sotto (decide() con rootFor("x")), e a 1440 restava pieno. #domus-doc h2 sta su una riga nei due progetti, a IO,
+ * senza corridoio né antenati sticky.
+ */
+const EXIT_TARGET = "#domus-doc h2";
 /** Titolo che passa sopra il bordo alto: il più lungo in fondo alla home. */
 const FROM_TOP_TARGET = "#servizi h2";
 
@@ -601,8 +609,28 @@ test.describe("6 · LCP contro la base di spec §2.5", () => {
   test.describe.configure({ mode: "serial" });
   for (const rotta of ROTTE_H1) {
     test(`6 · LCP di ${rotta} entro la base + 100 ms, senza consenso`, { tag: "@lcp" }, async ({ browser, baseURL }, info) => {
-      const rif = readLcpBase().projects[info.project.name]?.[rotta]?.lcpMs ?? 0;
+      const base = readLcpBase();
+      const rif = base.projects[info.project.name]?.[rotta]?.lcpMs ?? 0;
       expect(rif, `manca ${info.project.name} ${rotta} in e2e/baseline/lcp-base.json`).toBeGreaterThan(0);
+      // La base è una misura di macchina: spec §2.5 vuole «base = questo build, stesse rotte, senza
+      // setConsent, stessa macchina», il piano fa girare il test da solo (`--workers=1 -g "@lcp"`) e
+      // risultati.md §02 la chiama «la base del test 6 su questa macchina», il Ryzen di `machine`
+      // (build ffe4295). A rete e CPU non frenate l'LCP è tempo di CPU del primo fotogramma (stile,
+      // layout, raster, decodifica della foto): su un'altra macchina misura la macchina prima del
+      // sito. Il job e2e della CI (Linux, due worker su una VM condivisa) non ha mai retto il
+      // confronto: dal primo giro del test (ee0f0be) /vendi a 390 sfora quasi a ogni corsa, con
+      // mediane di 212-380 ms contro un tetto di 208, quando sulla macchina della base misurava 112
+      // (risultati.md, 06-h1-dipinti di f13fbce+); nei giri in cui /vendi passa sforano le altre (/ a
+      // 390: 240 contro 216; /case-vendute a 390: 216 contro 180; /contatti a 1440: 248 contro 240),
+      // e in fila seriale la prima rossa salta le altre. Con le foto alte (A44-A46: 6e7fd80, c65e44f)
+      // sfora anche /vendi a 1440 (mediane di 220-444 contro 204): il blocco è alto uno schermo e della
+      // foto entra solo il cielo trasparente (470 px di 2.147), ma il candidato LCP resta l'immagine,
+      // un AVIF 1536×2290 con l'alpha scaricato in 60-100 ms e dipinto dopo il primo fotogramma (a CPU
+      // ×2,5, in sette giri su dieci, 170-250 ms dopo l'FCP; misurato il 23 set.). A 390 della foto
+      // entrano 80 px di cielo e l'LCP è il lead. Fuori dalla macchina della base il test misura lo
+      // stesso e scrive i giri e la base in un'annotazione, senza verdetto: la CI tiene la traccia
+      // dell'LCP, il confronto in millisecondi resta sulla macchina della base.
+      const confronta = stessaMacchinaLcp(base);
       // Le condizioni della base (scripts/probe-lcp-base.mjs, block-01-02.md:2036-2083): descrittore
       // del progetto, contesto nuovo senza consenso, motion ok, sipario saltato, terze parti
       // bloccate, ultima voce LCP 4 s dopo load, mediana di tre giri.
@@ -634,7 +662,15 @@ test.describe("6 · LCP contro la base di spec §2.5", () => {
         await ctx.close();
       }
       giri.sort((a, b) => a - b);
-      expect(giri[1], `LCP ${rotta} su ${info.project.name}: giri ${giri.join(", ")} ms, base ${rif} ms`).toBeLessThanOrEqual(rif + 100);
+      const misura = `LCP ${rotta} su ${info.project.name}: giri ${giri.join(", ")} ms, base ${rif} ms`;
+      if (!confronta) {
+        info.annotations.push({
+          type: "lcp",
+          description: `${misura} (non confrontato: la base di spec §2.5 è di ${base.machine.cpu.trim()}, ${base.machine.platform})`,
+        });
+        return;
+      }
+      expect(giri[1], misura).toBeLessThanOrEqual(rif + 100);
     });
   }
 });
