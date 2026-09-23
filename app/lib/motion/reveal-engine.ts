@@ -152,6 +152,18 @@ export function entersFromTop(r: Box, root: Box, axis: Axis = "y"): boolean {
 }
 
 /**
+ * All'armamento: a cavallo del bordo alto (del sinistro nel nastro) per più di 1 px, cioè già in
+ * parte passato. Mai a scroll 0: la sonda del 23 set. su quindici rotte a 390 e 1440, con e senza
+ * sipario, ha 112 gruppi nella piega e nessuno col bordo sopra lo 0 (minimo 0, arrotondato); il
+ * pixel assorbe l'arrotondamento subpixel. Succede dopo un arrivo al frammento o uno scroll
+ * ripristinato: a 390 l'ultima domanda della FAQ di /vendi finisce a −67/+40 sotto la testata,
+ * perché lo scroll-margin-top di #contatti (80 px) supera il padding basso del capitolo (40).
+ */
+export function straddlesEdge(r: Box, root: Box, axis: Axis): boolean {
+  return intersects(r, root) && (axis === "y" ? r.top < root.top - 1 : r.left < root.left - 1);
+}
+
+/**
  * Che cosa fa una notifica dell'IO: decide() con tre regole intorno (D21, Scelte del commit 4).
  * (a) La prima notifica di un osservatore non fa uscire, ma fa entrare.
  * (b) Un nascosto già passato, o che rientra dal bordo alto, diventa shown senza animare.
@@ -195,14 +207,16 @@ export function netAction(s: GroupState, r: Box, root: Box): "in" | "shown" | nu
  * barra di scorrimento, ancora) l'IO non vede nessun cambio d'intersezione, e senza questa
  * uscita, istantanea e fuori schermo, ridiscendendo non rigiocherebbe l'ingresso (C22, D40;
  * «fuori sotto · shown → out»). La fascia 85-100 % resta com'è: al refresh un gruppo appena
- * uscito lì non deve rientrare, e uno in vista non deve uscire.
+ * uscito lì non deve rientrare, e uno in vista non deve uscire. Un nascosto a cavallo del bordo
+ * alto si mostra senza animare, come nelle notifiche (noticeAction, «rientra dal bordo alto»):
+ * l'ingresso partirebbe con il gruppo già in parte sopra il viewport.
  */
 export function sweepAction(s: GroupState, r: Box, root: Box, axis: Axis): "in" | "shown" | "out" | null {
   if (s === "shown" || s === "revealing") {
     const below = r.top >= root.bottom || (axis === "x" && r.left >= root.right);
     return below ? "out" : null;
   }
-  if (armState(r, root) === "passed") return "shown";
+  if (armState(r, root) === "passed" || entersFromTop(r, root, axis)) return "shown";
   return intersects(r, exitRoot(root, axis)) ? "in" : null;
 }
 
@@ -724,7 +738,10 @@ function arm(g: Group, vp: Box): void {
   g.el.setAttribute("data-reveal-mode", g.mode);
   g.armed = true;
   const group = g.el;
-  const where = held(g) ? "below" : armState(g.rect, vp);
+  // A cavallo del bordo alto vale come passato (spec §2.4: «già passati (ancore, scroll
+  // ripristinato) → shown»; «rientra dal bordo alto → shown senza animare»): la piega lo farebbe
+  // entrare 150 ms dopo con il bordo già sopra il viewport. Mai a scroll 0 (straddlesEdge).
+  const where = held(g) ? "below" : straddlesEdge(g.rect, vp, g.axis) ? "passed" : armState(g.rect, vp);
   if (where === "fold") {
     if (arriving) {
       // Arrivo al frammento (D39; spec §2.4, «già passato → shown senza animare (ancore,

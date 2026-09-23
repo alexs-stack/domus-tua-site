@@ -3,7 +3,8 @@
 // La piega (spec §2.5; A20 di Alberto: titoli per lettera anche sopra la piega, con il rischio
 // LCP accettato e ingegnerizzato; D21). Un gruppo che all'armamento interseca il viewport prende
 // lo stato nascosto nello stesso task in cui arma i membri, e parte all'handoff del sipario
-// (INTRO_EVENT) o 150 ms dopo. Sulle tre teste senza foto (/contatti, /case-vendute,
+// (INTRO_EVENT) o 150 ms dopo; se alla partenza lo scroll l'ha portato sopra il bordo alto (la
+// coda dell'arrivo a un frammento) nasce pieno invece di entrare fuori vista. Sulle tre teste senza foto (/contatti, /case-vendute,
 // /valutazione-immobile-tradate: section con `data-fold-lcp`) aspetta prima la prima voce LCP e
 // i suoi lead spezzati, perché lì l'H1 e il paragrafo dipinti a 0,02 restano candidati LCP.
 // Dall'inizio dell'attesa alla partenza il gruppo porta `data-fold-pending` e il motore non lo
@@ -178,6 +179,16 @@ export function foldHooks(
   };
 }
 
+/**
+ * Il bordo alto del gruppo sta sopra quello del viewport per più di 1 px: il gruppo è passato, o a
+ * cavallo del bordo. Mai a scroll 0, né col sipario (lo scroll è fermo in cima): la sonda del
+ * 23 set. su quindici rotte a 390 e 1440 ha 112 gruppi nella piega, nessuno con il bordo sopra lo 0
+ * all'armamento né alla partenza; il pixel assorbe l'arrotondamento subpixel.
+ */
+function sopraIlBordo(group: HTMLElement): boolean {
+  return group.getBoundingClientRect().top < -1;
+}
+
 /** Arma un gruppo che interseca il viewport; restituisce l'annullamento. */
 export function foldArm(group: HTMLElement, h: FoldHooks): () => void {
   const primo = group.matches("[data-reveal]") ? group : (group.querySelector("[data-reveal]") ?? group);
@@ -196,12 +207,16 @@ export function foldArm(group: HTMLElement, h: FoldHooks): () => void {
   let annullato = false;
   let ferma: () => void = () => {};
   group.setAttribute(FOLD_PENDING, "");
+  // Alla partenza si rilegge il gruppo: se nel frattempo lo scroll l'ha portato sopra il bordo alto,
+  // tutto o in parte (la coda dell'arrivo al frammento, quando l'idratazione cade lì e `arriving`
+  // non c'è), nasce pieno invece di entrare fuori dal viewport (spec §2.4, «già passati → shown»).
+  const via = () => (sopraIlBordo(group) ? h.shown() : h.start());
   const parti = () => {
     h.arm();
     if (curtainPending()) {
-      ferma = afterCurtain(h.start);
+      ferma = afterCurtain(via);
     } else {
-      const t = window.setTimeout(h.start, 150);
+      const t = window.setTimeout(via, 150);
       ferma = () => window.clearTimeout(t);
     }
   };

@@ -22,6 +22,7 @@ import {
   intersects,
   rootFor,
   entersFromTop,
+  straddlesEdge,
   noticeAction,
   indexByRole,
   extraSeconds,
@@ -135,6 +136,24 @@ describe("armamento e reti", () => {
     assert.equal(armState({ top: 0, bottom: 800, left: 1000, right: 1400 }, VIEW), "below");
   });
 
+  test("straddlesEdge: a cavallo del bordo alto (del sinistro nel nastro) oltre 1 px; mai a scroll 0", () => {
+    // L'ultima domanda della FAQ di /vendi a 390 dopo l'arrivo a #contatti: −67/+40 sotto la testata.
+    assert.equal(straddlesEdge({ top: -67, bottom: 40, left: 0, right: 390 }, VIEW, "y"), true);
+    // Il pixel assorbe l'arrotondamento subpixel di una testa in cima alla pagina.
+    assert.equal(straddlesEdge({ top: -0.6, bottom: 500, left: 0, right: 1000 }, VIEW, "y"), false);
+    assert.equal(straddlesEdge({ top: 0, bottom: 500, left: 0, right: 1000 }, VIEW, "y"), false);
+    // Tutto sopra è «passato», non a cavallo; tutto dentro non è a cavallo.
+    assert.equal(straddlesEdge({ top: -400, bottom: -1, left: 0, right: 1000 }, VIEW, "y"), false);
+    assert.equal(straddlesEdge({ top: 100, bottom: 500, left: 0, right: 1000 }, VIEW, "y"), false);
+    // Nel nastro conta il bordo sinistro, in verticale no.
+    assert.equal(straddlesEdge({ top: 100, bottom: 500, left: -50, right: 300 }, VIEW, "x"), true);
+    assert.equal(straddlesEdge({ top: 100, bottom: 500, left: -50, right: 300 }, VIEW, "y"), false);
+  });
+
+  test("arm(): un gruppo a cavallo del bordo alto vale come passato e nasce pieno, senza la piega (spec §2.4)", () => {
+    assert.match(engine, /const where = held\(g\) \? "below" : straddlesEdge\(g\.rect, vp, g\.axis\) \? "passed" : armState\(g\.rect, vp\);/);
+  });
+
   test("netAction (2.500 ms dall'armamento): hidden in vista entra, hidden passato si mostra", () => {
     assert.equal(NET_MS, 2500);
     assert.equal(netAction("hidden", { top: 900, bottom: 1300, left: 0, right: 1000 }, VIEW), "in");
@@ -150,6 +169,11 @@ describe("armamento e reti", () => {
     assert.equal(sweepAction("hiding", { top: -900, bottom: -100, left: 0, right: 1000 }, VIEW, "y"), "shown");
     assert.equal(sweepAction("hidden", { top: 100, bottom: 900, left: 400, right: 800 }, VIEW, "x"), "in");
     assert.equal(sweepAction("hidden", { top: 100, bottom: 900, left: 900, right: 1300 }, VIEW, "x"), null);
+    // Un nascosto a cavallo del bordo alto (del sinistro nel nastro) si mostra senza animare, come
+    // nelle notifiche («rientra dal bordo alto»): l'ingresso partirebbe già in parte fuori vista.
+    assert.equal(sweepAction("hidden", { top: -67, bottom: 40, left: 0, right: 1000 }, VIEW, "y"), "shown");
+    assert.equal(sweepAction("hiding", { top: -300, bottom: 200, left: 0, right: 1000 }, VIEW, "y"), "shown");
+    assert.equal(sweepAction("hidden", { top: 100, bottom: 900, left: -200, right: 300 }, VIEW, "x"), "shown");
     for (const s of ["shown", "revealing"] as const) {
       // Interamente sotto il viewport (Home, barra di scorrimento, ancora verso l'alto): l'IO non
       // vede nessun cambio d'intersezione, esce qui, istantaneo e fuori schermo (spec §2.4, «fuori sotto · shown → out»).
