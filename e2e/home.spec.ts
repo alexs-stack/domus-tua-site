@@ -2335,10 +2335,11 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
   });
 
   // ── L'entrata alla Lusion (A35, A42; qualita/a35/direttive-video-entrata.md) ──
-  // Chromium headless ha SwiftShader: il cancello del renderer sceglie la via `scala`
-  // (il ritaglio DOM riceve translate + scale, nessun canvas). Con una GPU
-  // (`--use-angle=d3d11`) la via è `gl`: il canvas disegna e il ritaglio è nascosto
-  // finché il foglio non è disteso. Il test accetta le due vie e ne prova la propria.
+  // Chromium headless ha SwiftShader: il cancello del renderer lo riconosce dal nome
+  // (`data-lastra-cancello="software"`) e la via resta `scala` (il ritaglio DOM riceve translate + scale,
+  // nessun canvas). Il cancello gira a scroll fermo e fuori dalla piega, ~1,5 s dopo il montaggio senza
+  // sipario: lo si aspetta a e 0. Con una GPU la via è `gl` quando la sonda passa e la texture è pronta:
+  // il canvas disegna e il ritaglio è nascosto finché il foglio non è disteso. Il test accetta le due vie.
   test("l'entrata: chiusa prima della quota zero, piega a metà, distesa dopo 100svh a schermo intero; il foglio si richiude risalendo", async ({ page, goto, isMobile }) => {
     test.skip(!!isMobile, "l'entrata vive coi corridoi, da 1024");
     await goto("/");
@@ -2366,7 +2367,17 @@ test.describe("capitolo 17: la cartolina del Congedo", () => {
       }, CARTOLINA);
 
     await vai(page, q.start - 40, 1500);
+    // Il cancello del renderer gira a scroll fermo e fuori dalla piega (qui e 0), ~1,5 s dopo il montaggio senza sipario.
+    await expect(sec).toHaveAttribute("data-lastra-cancello", /^(\d+\.\d\d|software|webgl2|programma|persa)$/, { timeout: 10_000 });
+    const cancello = await sec.getAttribute("data-lastra-cancello");
     let g = await stato();
+    // In CI (SwiftShader) decide il nome, senza cronometro: via scala e nessun canvas. Se il nome passasse
+    // il regex, SwiftShader prenderebbe la sonda e il test resterebbe verde su un numero: lì lo si pretende.
+    if (process.env.CI) expect(cancello, "in CI il cancello decide dal nome").toMatch(/^(software|webgl2)$/);
+    if (cancello === "software" || cancello === "webgl2") {
+      expect(g.via).toBe("scala");
+      expect(g.canvas).toBeNull();
+    }
     expect(g.entrata).toBe("chiusa");
     expect(["gl", "scala"]).toContain(g.via);
     // La miniatura sta nello slot: 16:9 largo min(42vw, 640px), a filo del margine destro (8vw).
