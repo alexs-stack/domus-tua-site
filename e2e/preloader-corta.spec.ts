@@ -81,8 +81,12 @@ function registraCorta(evento: string) {
   window.addEventListener(evento, () => {
     if (rec.handoff === null) rec.handoff = performance.now();
   });
-  // Gli stili si leggono al primo fotogramma in cui la shell esiste sotto
-  // l'attributo: prima la shell non è ancora nel DOM.
+  // Gli stili si leggono al primo fotogramma in cui la shell c'è INTERA sotto
+  // l'attributo: prima la shell non è ancora nel DOM, e al primo fotogramma
+  // può esserci a metà. Misurato su «/» dopo una pagina interna (riga 4): il
+  // parser cede dopo aver inserito `#dt-preloader` e prima dei suoi figli, la
+  // rAF gira lì, e un getComputedStyle(null) lanciava e fermava il
+  // campionamento per sempre («la home non ha sipario» col film in scena).
   const campiona = () => {
     const html = document.documentElement;
     const root = document.getElementById("dt-preloader");
@@ -97,14 +101,19 @@ function registraCorta(evento: string) {
       }
     } else if (rec.tCaduto !== null) rec.dopoMax = Math.max(rec.dopoMax, Math.round(window.scrollY));
     if (root && html?.hasAttribute("data-preloader") && rec.pannello === null) {
-      const q = (s: string) => root.querySelector(s) as HTMLElement;
+      const q = (s: string) => root.querySelector<HTMLElement>(s);
       const fig = q("[data-pre-figure]");
-      rec.contenuto = getComputedStyle(q("[data-pre-content]")).display;
-      rec.sagoma = getComputedStyle(fig).display;
-      rec.sagomaAnim = getComputedStyle(fig).animationDuration;
-      rec.pannello = getComputedStyle(q("[data-pre-panel]")).backgroundColor;
-      rec.fondo = getComputedStyle(q(".dt-pre-fondo")).display;
-      rec.t0 = (window as unknown as ConCorta).__dtPreT0 ?? null;
+      const contenuto = q("[data-pre-content]");
+      const pannello = q("[data-pre-panel]");
+      const fondo = q(".dt-pre-fondo");
+      if (fig && contenuto && pannello && fondo) {
+        rec.contenuto = getComputedStyle(contenuto).display;
+        rec.sagoma = getComputedStyle(fig).display;
+        rec.sagomaAnim = getComputedStyle(fig).animationDuration;
+        rec.pannello = getComputedStyle(pannello).backgroundColor;
+        rec.fondo = getComputedStyle(fondo).display;
+        rec.t0 = (window as unknown as ConCorta).__dtPreT0 ?? null;
+      }
     }
     if (performance.now() < 15_000) requestAnimationFrame(campiona);
   };
@@ -363,7 +372,13 @@ test("riga 11 con la chiave c: navigazione client verso «/», ricarica a due sc
     "il link verso «/» ha caricato un documento nuovo: non è una navigazione client",
   ).toBe(1);
   await page.waitForFunction(() => document.querySelector("#top") !== null, undefined, { timeout: 15_000 });
-  await page.evaluate(() => window.scrollTo(0, 2 * window.innerHeight));
+  // Uno scroll istantaneo, come in D65: dopo una navigazione nuova la radice
+  // è `scroll-behavior: smooth` (Lenis mette `lenis-smooth` solo mentre corre
+  // lui), e un scrollTo nudo è una corsa. Se il refresh di ScrollTrigger al
+  // montaggio della home arriva durante la corsa, la ferma alla quota che ha
+  // letto: misurato a 390, la pagina restava in cima per 3 s e l'attesa qui
+  // sotto scadeva (il rosso a intermittenza della CI).
+  await page.evaluate(() => window.scrollTo({ top: 2 * window.innerHeight, behavior: "instant" }));
   await page.waitForFunction(() => window.scrollY >= 2 * window.innerHeight - 2, undefined, { timeout: 5_000 });
   await page.reload({ waitUntil: "commit" });
   expect(await compareEntro(page, 1500), "ricaricando a due schermi con la chiave c è suonato un sipario").toBe(false);
