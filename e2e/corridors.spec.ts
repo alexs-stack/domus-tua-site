@@ -151,11 +151,14 @@ test.describe("quali corridoi si accendono", () => {
 });
 
 test.describe("prima dell'idratazione", () => {
+  /** I chunk JS di Next: abortiti, resta il primo paint (boot script e CSS); in ritardo, il primo paint si separa dall'idratazione. */
+  const CHUNK = /\/_next\/static\/chunks\/[^?]+\.js(\?.*)?$/;
+
   test("a 1440×900 le stelle hanno runway e schermo sticky dal CSS (spec §4, D22)", async ({ page, goto, isMobile }) => {
     test.skip(!!isMobile, "misura dei corridoi da desktop");
     // Layout prima del paint (D22): si fermano solo i chunk JS di Next. Lo script
     // di boot inline gira e scrive data-hero-intro, React no. Il CSS resta servito.
-    await page.route(/\/_next\/static\/chunks\/[^?]+\.js(\?.*)?$/, (route) => route.abort());
+    await page.route(CHUNK, (route) => route.abort());
     await goto("/");
     const m = await page.evaluate(() => {
       const section = document.querySelector<HTMLElement>(".dt-starrev");
@@ -174,6 +177,125 @@ test.describe("prima dell'idratazione", () => {
     expect(Math.abs(m.runway - 3.6 * m.ih)).toBeLessThanOrEqual(2);
     expect(m.position).toBe("sticky");
   });
+
+  // I nastri e la rotaia prima del paint (23 set. 2026; globals.css, nastro-prepaint.test.ts). Fino ad
+  // allora [data-on] e l'altezza arrivavano solo da JS: a 1440×900 storia passava da 1264 a 2995 px
+  // all'idratazione, la finestra da 6170 a 5501, i costi da 4002 a 5103, la rotaia da 819 a 1513, e
+  // tutto ciò che sta sotto saltava con loro. Qui la stessa home due volte: coi chunk JS abortiti (il
+  // primo paint, solo boot script e CSS) e idratata. Host, stage delle stelle e capitoli dopo devono
+  // stare alla stessa quota e alla stessa altezza, al più 2 px (gli arrotondamenti di size()).
+  // Col consenso accettato (il beforeEach del file) anche il cancello di Trustindex in Voci conta: il
+  // server lo rende e all'idratazione arriva il widget, che prima del paint era 375 px più alto
+  // (globals.css, `.dt-voci_cancello`). Le terze parti restano finte (`guards`): il widget vero dichiara
+  // la sua altezza quando carica (399 px a 1440×900 contro i 480 riservati), e quel salto è di Trustindex,
+  // non del layout del sito.
+  const geometria = (page: Page) =>
+    page.evaluate(() => {
+      const box = (sel: string) => {
+        const el = document.querySelector<HTMLElement>(sel);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { top: Math.round(r.top + window.scrollY), h: Math.round(r.height) };
+      };
+      return {
+        host: {
+          storia: box("#storia"),
+          finestra: box("#open-domus"),
+          costi: box("#costi"),
+          rotaia: box('.dt-railway[data-corridor="team"]'),
+          stage: box(".dt-starrev_stage"),
+          metodo: box("#metodo"),
+          contatti: box("#contatti"),
+        },
+        doc: document.documentElement.scrollHeight,
+        on: Array.from(document.querySelectorAll("[data-corridor][data-on]")).length,
+        schermo: getComputedStyle(document.querySelector("#storia .dt-horizon_screen")!).position,
+      };
+    });
+  for (const vp of [
+    { width: 1440, height: 900 },
+    { width: 1024, height: 768 },
+  ]) {
+    test(`a ${vp.width}×${vp.height} nastri, rotaia e stelle hanno al primo paint la geometria dell'idratazione`, async ({ page, goto, guards, isMobile }) => {
+      test.skip(!!isMobile, "misura dei corridoi da desktop");
+      void guards; // il mock delle terze parti
+      await page.setViewportSize(vp);
+      await page.route(CHUNK, (route) => route.abort());
+      await goto("/");
+      await page.evaluate(() => document.fonts.ready.then(() => true));
+      const prima = await geometria(page);
+      expect(prima.on, "c'è data-on: React ha girato e il test non misura il CSS").toBe(0);
+      expect(prima.schermo, "lo schermo del nastro non è sticky prima del paint").toBe("sticky");
+
+      await page.unroute(CHUNK);
+      await goto("/");
+      await waitGate(page);
+      await expect.poll(() => hostsOn(page)).toEqual(EXPECTED_HOME);
+      await page.evaluate(() => document.fonts.ready.then(() => true));
+      const dopo = await geometria(page);
+      for (const [nome, p] of Object.entries(prima.host)) {
+        const d = dopo.host[nome as keyof typeof dopo.host];
+        expect(p && d, `${nome}: manca`).toBeTruthy();
+        expect(Math.abs(p!.h - d!.h), `${nome}: alto ${p!.h} px al primo paint e ${d!.h} idratato`).toBeLessThanOrEqual(2);
+        expect(Math.abs(p!.top - d!.top), `${nome}: a ${p!.top} px al primo paint e a ${d!.top} idratato`).toBeLessThanOrEqual(2);
+      }
+      expect(Math.abs(prima.doc - dopo.doc)).toBeLessThanOrEqual(2);
+    });
+
+    // La misura del 23 settembre (1440×900, chunk in ritardo di 1,5 s, ricarica appena sotto #voci):
+    // il ripristino nativo arrivava a 12018 e all'idratazione una voce layout-shift da 1,0. Qui la
+    // stessa ricarica e altre tre quote: dentro la finestra (il nastro con salita e coda), a metà delle
+    // stelle (lo stage) e su #contatti (sotto tutti i nastri e la rotaia).
+    test(`a ${vp.width}×${vp.height} ricaricando sotto #voci, nella finestra, fra le stelle e su #contatti il layout non salta all'idratazione`, async ({ page, goto, guards, isMobile }) => {
+      test.skip(!!isMobile, "i nastri e la rotaia vivono da 1024");
+      void guards; // il mock delle terze parti
+      await page.setViewportSize(vp);
+      // L'osservatore entra a ogni caricamento prima degli script della pagina.
+      await page.addInitScript(() => {
+        const w = window as unknown as { __cls: { v: number; src: string[] }[] };
+        w.__cls = [];
+        new PerformanceObserver((lista) => {
+          for (const e of lista.getEntries() as unknown as { value: number; hadRecentInput: boolean; sources?: { node?: Node | null }[] }[]) {
+            if (e.hadRecentInput) continue;
+            w.__cls.push({
+              v: e.value,
+              src: (e.sources ?? []).map((s) => (s.node instanceof Element ? `${s.node.tagName.toLowerCase()}${s.node.id ? `#${s.node.id}` : ""}.${Array.from(s.node.classList).slice(0, 2).join(".")}` : "?")),
+            });
+          }
+        }).observe({ type: "layout-shift", buffered: true });
+      });
+      // Il primo paint si separa dall'idratazione: i chunk arrivano 1,5 s dopo il documento.
+      await page.route(CHUNK, async (route) => {
+        await new Promise((r) => setTimeout(r, 1_500));
+        await route.continue();
+      });
+      await goto("/");
+      await waitGate(page);
+      const quote: Array<[string, string, number, number]> = [
+        ["sotto #voci", "#voci", 1, 0.5],
+        ["a metà della finestra", "#open-domus", 0.5, 0],
+        ["a metà delle stelle", "#recensioni", 0.5, 0],
+        ["su #contatti", "#contatti", 0.2, 0],
+      ];
+      for (const [dove, sel, frazione, sopra] of quote) {
+        const y = await page.evaluate(
+          ([s, f, o]) => {
+            const r = document.querySelector(s as string)!.getBoundingClientRect();
+            return Math.round(r.top + window.scrollY + (f as number) * r.height - (o as number) * window.innerHeight);
+          },
+          [sel, frazione, sopra] as const,
+        );
+        await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), y);
+        await page.waitForTimeout(800);
+        await page.reload({ waitUntil: "load" });
+        await waitGate(page);
+        await page.waitForTimeout(1_500);
+        const voci = await page.evaluate(() => (window as unknown as { __cls: { v: number; src: string[] }[] }).__cls);
+        const cls = voci.reduce((a, e) => a + e.v, 0);
+        expect(cls, `${dove} (y ${y}): CLS ${cls.toFixed(4)} — ${voci.map((e) => `${e.v.toFixed(3)} ${e.src.join(", ")}`).join(" | ")}`).toBeLessThan(0.01);
+      }
+    });
+  }
 });
 
 test.describe("con reduced motion", () => {

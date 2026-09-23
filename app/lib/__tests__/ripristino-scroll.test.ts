@@ -18,6 +18,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import * as C from "../motion/intro-constants";
+import { writeConsent } from "../consent";
 
 const root = join(__dirname, "..", "..", "..");
 const layout = readFileSync(join(root, "app/layout.tsx"), "utf8");
@@ -47,8 +48,8 @@ function bootScript(): string {
 
 type Esito = { attributi: Map<string, string>; scrollRestoration: string };
 
-/** Esegue il boot script su «/» con il tipo di navigazione, l'ancora e la chiave dell'intro dati. */
-function esegui(nav: string, { hash = "", chiave = C.INTRO_QUIET as string | null } = {}): Esito {
+/** Esegue il boot script su «/» con il tipo di navigazione, l'ancora, la chiave dell'intro e i cookie dati. */
+function esegui(nav: string, { hash = "", chiave = C.INTRO_QUIET as string | null, cookie = "" } = {}): Esito {
   const attributi = new Map<string, string>();
   const html = {
     setAttribute: (k: string, v: string) => void attributi.set(k, v),
@@ -61,7 +62,7 @@ function esegui(nav: string, { hash = "", chiave = C.INTRO_QUIET as string | nul
   const finto: Record<string, unknown> = {
     document: {
       documentElement: html,
-      cookie: "",
+      cookie,
       visibilityState: "visible",
       prerendering: false,
       head: { appendChild() {} },
@@ -120,5 +121,56 @@ describe("il ripristino dello scroll alla ricarica è istantaneo (Voci, D22)", (
     // `\r?\n`: su Windows il checkout può avere i CRLF (core.autocrlf).
     assert.match(css, /\nhtml\[data-ripristino\] \{\r?\n\s*scroll-behavior: auto;\r?\n\}/);
     assert.match(css, /\nhtml \{\r?\n\s*scroll-behavior: smooth;/);
+  });
+});
+
+// Col consenso già dato il server rende in Voci il cancello di Trustindex, e all'idratazione arriva il
+// widget alto 480 px: a 1440×900 tutto ciò che segue scendeva di 375 px (globals.css, 23 set. 2026).
+describe("il consenso già dato prima del paint (il cancello di Trustindex in Voci)", () => {
+  test("il boot script mette data-consent-accepted solo col cookie «accepted», intero", () => {
+    for (const [cookie, atteso] of [
+      ["dt_consent=accepted", true],
+      ["dt_locale=de; dt_consent=accepted", true],
+      ["dt_consent=accepted; dt_locale=de", true],
+      ["dt_consent=rejected", false],
+      ["xdt_consent=accepted", false],
+      ["dt_consent=acceptedx", false],
+      ["", false],
+    ] as const) {
+      const { attributi } = esegui("reload", { cookie });
+      assert.ok(attributi.has("data-locale"), "il boot script non è partito");
+      assert.equal(attributi.has("data-consent-accepted"), atteso, `cookie «${cookie}»`);
+      if (!cookie) assert.ok(attributi.has("data-consent"), "il boot script si è fermato prima della fine");
+    }
+  });
+
+  test("writeConsent tiene l'attributo allineato alla scelta, revoca compresa", () => {
+    const attributi = new Set<string>();
+    const g = globalThis as Record<string, unknown>;
+    const prima = { document: g.document, window: g.window };
+    g.document = {
+      cookie: "",
+      documentElement: { toggleAttribute: (k: string, si: boolean) => void (si ? attributi.add(k) : attributi.delete(k)) },
+    };
+    g.window = { dispatchEvent: () => true };
+    try {
+      writeConsent("accepted");
+      assert.ok(attributi.has("data-consent-accepted"));
+      writeConsent("rejected");
+      assert.equal(attributi.has("data-consent-accepted"), false);
+    } finally {
+      g.document = prima.document;
+      g.window = prima.window;
+    }
+  });
+
+  test("globals.css: il cancello riserva l'altezza iniziale di TrustindexEmbed, e i due rami di Voci hanno lo stesso margine", () => {
+    const embed = readFileSync(join(root, "app/components/TrustindexEmbed.tsx"), "utf8");
+    const h0 = embed.match(/const \[frameH, setFrameH\] = useState\((\d+)\)/);
+    assert.ok(h0, "l'altezza iniziale di TrustindexEmbed non è più uno useState numerico");
+    assert.match(css, new RegExp(`\\nhtml\\[data-consent-accepted\\] \\.dt-voci_cancello \\{\\r?\\n\\s*min-height: ${h0![1]}px;\\r?\\n\\}`));
+    const voci = readFileSync(join(root, "app/components/Voci.tsx"), "utf8");
+    assert.match(voci, /<div className="mt-6">\s*<TrustindexEmbed /, "il ramo del widget in Voci non è più un div mt-6 col solo widget");
+    assert.match(voci, /"dt-voci_cancello mt-6"/, "Voci non marca più il cancello");
   });
 });
