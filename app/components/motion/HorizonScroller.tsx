@@ -27,6 +27,13 @@
 // quindi con reduced-motion o senza JS i pannelli restano in colonna, statici
 // e completi — nessuno stato nascosto o clippato. La <section> porta
 // data-corridor (A19): corridors.spec.ts conta gli host accesi.
+// PRIMA DELL'IDRATAZIONE il layout a track c'è già (23 set. 2026): con
+// `:root[data-hero-intro]` del boot script e la stessa media query, globals.css
+// («I nastri e la rotaia prima del paint») arma schermo, track e pannelli e dà
+// alla sezione l'altezza che `size()` qui sotto scriverà, così il ripristino
+// dello scroll alla ricarica e le ancore trovano già la pagina finale. Il JS
+// resta il solo a mettere [data-on]: le regole gemelle valgono finché manca.
+// Chi cambia la corsa, la salita o la coda cambi anche l'altezza lì.
 //
 // Sotto quella soglia la stessa storia si racconta in VERTICALE. Non è una
 // versione ridotta: è lo stesso film senza lo schermo sticky (verdetto 15

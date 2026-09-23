@@ -1285,6 +1285,23 @@ html[data-consent] .dt-consent {
   display: block;
 }
 
+/* Il consenso GIÀ DATO, prima del paint (23 set. 2026). Il server non legge il
+   cookie e rende in Voci il cancello di Trustindex (il testo e il link a
+   Google, ~105 px); all'idratazione useConsent legge «accepted» e al suo posto
+   monta il widget, che riserva da subito l'altezza iniziale di TrustindexEmbed.
+   Ricaricando sotto #voci col consenso dato, tutto ciò che segue scendeva di
+   375 px (CLS 0,58 a 1440×900, 0,36 a 1024×768: corridors.spec.ts, che gira
+   col consenso accettato). Qui il boot script ha messo `data-consent-accepted`
+   e il cancello tiene già l'altezza del widget; senza consenso, o col rifiuto,
+   resta alto quanto il suo testo. Il widget vero dichiara la sua altezza solo
+   quando carica (a 1440×900 399 px, non 480: 81 px di salto se sta sopra lo
+   schermo), e TrustindexEmbed se la ricorda per pagina e larghezza; il boot
+   script la rende `--dt-ti-h`. Senza, la riserva è l'altezza da cui parte
+   frameH in TrustindexEmbed (ripristino-scroll.test.ts li confronta). */
+html[data-consent-accepted] .dt-voci_cancello {
+  min-height: var(--dt-ti-h, 480px);
+}
+
 /* ---------- Preloader: l'atto I e la gomma ----------
    L'inline script nel layout marca <html data-preloader> PRIMA del primo
    paint (motion ok, nessuna ancora nell'URL; il film alla prima entrata nella
@@ -2212,12 +2229,36 @@ a.text-red {
    animazioni che non erano curve … lo scroll orizzontale nella sezione
    perché domus tua»). La cupola (`.dt-dome`, un bordo curvo) non torna:
    niente curve nella rivista bianca. Resta la meccanica: screen sticky +
-   track in riga, accesa SOLO da JS con MQ.corridor (D22: 1024 px di
-   larghezza, 640 di altezza, motion ok). */
+   track in riga, accesa da JS con MQ.corridor (D22: 1024 px di
+   larghezza, 640 di altezza, motion ok) e armata prima del paint dal
+   blocco dei corridoi, più in basso. */
 /* Scroller orizzontale. Default (sotto la soglia dei corridoi / reduced-motion
    / no-JS): pannelli in colonna, tutto visibile e statico. [data-on] arriva
-   SOLO via JS (MQ.corridor, D22) e attiva screen sticky + track in riga:
-   senza JS non esiste alcuno stato clippato o nascosto. */
+   SOLO via JS (MQ.corridor, D22) e attiva screen sticky + track in riga; lo
+   stesso layout, con l'altezza finale della sezione, lo arma prima del paint
+   `:root[data-hero-intro]` sotto la media query dei corridoi (il blocco «I
+   nastri e la rotaia prima del paint», 23 set. 2026). Senza JS e con
+   reduced-motion il boot script non scrive l'attributo: colonna, e nessuno
+   stato clippato o nascosto. */
+/* LA COLONNA dei nastri, per le utility che valgono solo lì
+   (`nastro-colonna:lg:py-[8vh]` nei pannelli): il nastro non è acceso e non
+   è neppure armato prima del paint. Erano scritte `[.dt-horizon:not([data-on])_&]`,
+   che sul nastro armato, fra il primo paint e l'idratazione, scatterebbe:
+   8vh di padding in più su ogni pannello e il territorio rientrato di 8vw
+   invece che di 9,5vw. Le due vie sono i due modi di non essere armato:
+   nessun attributo del boot script (senza JS, reduced-motion al caricamento),
+   oppure la media query dei corridoi che non vale (sotto 1024 × 640, o
+   reduced-motion acceso dopo). */
+@custom-variant nastro-colonna {
+  :root:not([data-hero-intro]) .dt-horizon:not([data-on]) & {
+    @slot;
+  }
+  @media not all and (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
+    .dt-horizon:not([data-on]) & {
+      @slot;
+    }
+  }
+}
 /* Rete contro lo sbordo laterale in COLONNA (onda «parità mobile 2», verdetto
    15): i gradini del titolo scivolano in x anche qui, e a 390 fra la riga
    (350px) e il bordo restano 20px per lato. Le ampiezze sono già clampate a
@@ -2581,7 +2622,8 @@ a.text-red {
    [data-on] e le due misure arrivano SOLO da JS (MQ.corridor, D22, e solo se
    `runway` è dichiarata): senza, questo blocco è un div qualunque e il
    nastro resta esattamente dov'era. --rail-len è l'altezza vera del nastro,
-   --rail-top la quota a cui si aggancia. */
+   --rail-top la quota a cui si aggancia. L'altezza del corridoio c'è già
+   prima dell'idratazione (blocco «I nastri e la rotaia prima del paint»). */
 .dt-railway[data-on] {
   position: relative;
   height: calc(var(--rail-len, 0px) + var(--rail-run, 120) * 1svh);
@@ -2645,8 +2687,9 @@ a.text-red {
    senza JS e con reduced-motion nessun corridoio.
    `overflow: clip` e non `hidden`: `hidden` farebbe dello schermo un
    contenitore di scroll, e un focus() ne sposterebbe lo scrollTop.
-   Il JS scrive solo --corridor-stick e [data-on]. Nastro e rotaia hanno i
-   loro blocchi qui sopra; delle stelle qui c'è il layout prima del paint. */
+   Il JS scrive solo --corridor-stick e [data-on]. Nastri e rotaia hanno i
+   loro blocchi qui sopra; delle stelle qui c'è il layout prima del paint, e
+   dei nastri e della rotaia nel blocco che segue. */
 @media (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
   :root[data-hero-intro] [data-corridor] > [data-corridor-screen] {
     position: sticky;
@@ -2662,9 +2705,14 @@ a.text-red {
   }
   /* Le stelle (A12 invariato; spec §4, D22): runway e schermo sticky prima
      del paint, così una ricarica o un'ancora sotto il film non vede saltare il
-     layout all'idratazione. [data-on] resta per stage e intro. `clip` batte
+     layout all'idratazione. [data-on] resta per l'intro, che è il layer della
+     foto e senza JS non deve esistere. `clip` batte
      l'`overflow: hidden` di `.dt-starrev[data-on] .dt-starrev_screen`
-     (specificità 0,4,0 contro 0,3,0). */
+     (specificità 0,4,0 contro 0,3,0). Anche lo stage, dal 23 settembre 2026:
+     centrato in uno schermo intero come con [data-on], ma già al primo paint.
+     Prima era una colonna in cima allo schermo, e ricaricando a metà delle
+     stelle la testa e la fila scendevano all'idratazione di 67 px a 1440×900
+     e di 17 px a 1024×768 (CLS 0,19 e 0,23). */
   :root[data-hero-intro] .dt-starrev .dt-starrev_runway {
     height: 360svh;
   }
@@ -2673,6 +2721,175 @@ a.text-red {
     top: 0;
     height: 100svh;
     overflow: clip;
+  }
+  :root[data-hero-intro] .dt-starrev .dt-starrev_stage {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+  }
+}
+
+/* ---------- I nastri e la rotaia prima del paint (23 set. 2026) ----------
+   Ricaricando la home a 1440×900 appena sotto #voci, il ripristino nativo
+   dello scroll arrivava sul layout del primo paint e all'idratazione una voce
+   layout-shift da 1,0 portava via lo schermo: i tre nastri (HorizonScroller) e
+   la rotaia del team (HorizontalRail con `runway`) mettevano [data-on] e
+   l'altezza SOLO da JS, e fino ad allora erano colonne alte un'altra cosa.
+   Misurato col build, a 1440×900: storia 1264 → 2995 px, la finestra di Open
+   Domus 6170 → 5501, Costi chiari 4002 → 5103, la rotaia 819 → 1513 (a
+   1024×768: +1025, −601, +531, +588); CLS 1,0 ricaricando dentro o sotto uno
+   qualunque dei quattro. Qui il loro layout finale, come per le stelle e i
+   corridoi del hook: sotto `:root[data-hero-intro]` (il boot script, solo con
+   motion ok) e la media query dei corridoi, e solo finché il JS non ha acceso
+   l'host (`:not([data-on])`): da lì valgono le regole [data-on] di sempre, con
+   le stesse dichiarazioni (nastro-prepaint.test.ts le confronta una per una),
+   e il cambio di attributo non sposta niente. Le altezze sono quelle che
+   `size()` scrive, rifatte in CSS: Chromium non conta gli spostamenti sotto i
+   3 px, e gli arrotondamenti di offsetWidth, offsetHeight e Math.round restano
+   sotto il pixel (misurato a 1440×900 e 1024×768).
+   Il prezzo, dichiarato: se il boot script gira e il bundle non arriva mai,
+   i pannelli oltre il primo restano fuori dallo schermo, come il film delle
+   stelle resta fermo. Senza JS e con reduced-motion l'attributo non c'è:
+   colonna, tutto visibile (D22).
+   Due limiti noti. La corsa del track della finestra e dei costi sottrae
+   lo schermo, che è largo quanto la pagina: con una barra di scorrimento
+   classica (non sovrapposta) la pagina è più stretta di 100vw e l'altezza
+   qui è corta di quella barra, ~15 px spostati all'idratazione. E la rotaia
+   prima del paint non è sticky: la quota d'aggancio dipende dall'altezza
+   del nastro, che il CSS non conosce. Ricaricando nella sua corsa il nastro
+   raggiunge lo schermo all'idratazione; sotto la rotaia nulla si muove. */
+@media (min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
+  /* Il layout del nastro, gemello di `.dt-horizon[data-on]` e dintorni. Lo
+     schermo ritaglia con `clip` e non con l'`hidden` di [data-on] (vedi il
+     blocco dei corridoi qui sopra): senza scroll non c'è differenza di layout.
+     La rete di 2rem della colonna (`.dt-horizon:not([data-on])`) non serve. */
+  :root[data-hero-intro] .dt-horizon:not([data-on]) {
+    overflow: clip;
+    overflow-clip-margin: 0px;
+  }
+  :root[data-hero-intro] .dt-horizon:not([data-on]) .dt-horizon_screen {
+    position: sticky;
+    top: 0;
+    display: flex;
+    height: 100svh;
+    overflow: clip;
+  }
+  :root[data-hero-intro] .dt-horizon:not([data-on]) .dt-horizon_track {
+    display: flex;
+    width: max-content;
+    height: 100%;
+    will-change: transform;
+  }
+  :root[data-hero-intro] .dt-horizon:not([data-on]) .dt-horizon_panel {
+    flex: none;
+    height: 100%;
+    width: 100vw;
+  }
+  :root[data-hero-intro] .dt-horizon:not([data-on]) .dt-horizon_panel--territory {
+    width: 108vw;
+    padding-left: 8vw;
+  }
+  :root[data-hero-intro] .dt-horizon:not([data-on]) .dt-horizon_stairs {
+    position: relative;
+    z-index: 2;
+    margin-right: -11vw;
+  }
+  :root[data-hero-intro] .dt-horizon:not([data-on]) .dt-horizon_text {
+    margin-right: calc(11vw + 2rem);
+  }
+  /* La finestra di Open Domus (A57, A65, A67): gemelli di `.dt-od[data-on]`. */
+  :root[data-hero-intro] .dt-od:not([data-on]) .dt-od_panel--coda {
+    position: relative;
+    overflow: clip;
+  }
+  :root[data-hero-intro] .dt-od:not([data-on]) .dt-od_coda {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+  }
+  :root[data-hero-intro] .dt-od:not([data-on]) .dt-od_coda_foto {
+    bottom: auto;
+    aspect-ratio: 2560 / 3816;
+  }
+  :root[data-hero-intro] .dt-od:not([data-on]) .dt-od_coda_testo {
+    position: absolute;
+    z-index: 1;
+    top: 12svh;
+    left: 0;
+    width: min(62vw, 64rem);
+    padding-block: 0;
+    padding-inline: 9.5vw 0;
+  }
+  :root[data-hero-intro] .dt-od:not([data-on]) .dt-od_panel--foto {
+    position: relative;
+    overflow: clip;
+  }
+  /* Costi chiari (A72): gemelli di `.dt-cc[data-on]`; la cornice non risale
+     sotto il titolo (quel −20vw è della colonna). */
+  :root[data-hero-intro] .dt-cc:not([data-on]) .dt-cc_panel--foto {
+    position: relative;
+    overflow: clip;
+  }
+  :root[data-hero-intro] .dt-cc:not([data-on]) .dt-cc_cornice {
+    margin-top: 0;
+  }
+  :root[data-hero-intro] .dt-cc:not([data-on]) .dt-horizon_panel.dt-cc_panel--claim {
+    width: 60vw;
+  }
+  :root[data-hero-intro] .dt-cc:not([data-on]) .dt-cc_riga {
+    position: absolute;
+    z-index: 1;
+    top: 12svh;
+    left: 0;
+    right: 0;
+    padding-block: 0;
+  }
+  /* LE ALTEZZE. Storia: la larghezza del track (i due pannelli, 100vw e
+     108vw), che `size()` scrive quando non c'è né salita né coda. */
+  :root[data-hero-intro] .dt-horizon[data-corridor="storia"]:not([data-on]) {
+    height: calc(100vw + 108vw);
+  }
+  /* La finestra: salita + corsa del track + coda + schermo, cioè `size()` con
+     leadDistance, codaFrom e codaDistance di finestra.ts. La salita porta la
+     cima del soggetto della facciata (finestra.json `cielo.cima`, sulla foto
+     alta 100vw / --dt-od-ar) a metà del titolo, che sta a 0,05em dalla cima
+     della cornice ed è UNA riga da 0,85em (`.dt-od_titolo`, «Open Domus»).
+     La coda: la piscina (coda.json `cielo.cima`, 2560 × 3816) arriva col
+     soggetto al 55 % dello schermo (FINESTRA.codaSopra) e scende finché il
+     suo fondo non tocca il fondo dello schermo. La corsa: tre pannelli da
+     100vw meno lo schermo. */
+  :root[data-hero-intro] .dt-od:not([data-on]) {
+    --dt-od-foto-h: calc(100vw / (var(--dt-od-ar)));
+    --dt-od-coda-h: calc(100vw * 3816 / 2560);
+    --dt-od-titolo-fs: clamp(2.6rem, 12vw, 13rem);
+    --dt-od-salita: max(0px, calc(0.246 * var(--dt-od-foto-h) - (0.05 * var(--dt-od-titolo-fs) + 0.5 * 0.85 * var(--dt-od-titolo-fs))));
+    --dt-od-discesa: max(0px, calc(var(--dt-od-coda-h) - 100svh - max(0px, calc(0.267 * var(--dt-od-coda-h) - 0.55 * 100svh))));
+    height: calc(var(--dt-od-salita) + 300vw - 100vw + var(--dt-od-discesa) + 100svh);
+  }
+  /* Costi chiari: salita + corsa del track + schermo (niente coda). La salita
+     porta il tetto della villa (COSTI.cimaTitolo, sulla foto alta 100vw /
+     --dt-cc-ar) a metà del titolo (COSTI.copri), che posa a 12svh
+     (COSTI.rigaTop) ed è di TRE righe da 0,9em («Nessun / costo /
+     anticipato.», `.dt-cc_titolo`). La corsa: 100 + 60 + 100 + 100vw meno lo
+     schermo. */
+  :root[data-hero-intro] .dt-cc:not([data-on]) {
+    --dt-cc-foto-h: calc(100vw / (var(--dt-cc-ar)));
+    --dt-cc-titolo-fs: clamp(2.4rem, 7.5vw, 8.5rem);
+    --dt-cc-salita: max(0px, calc(0.332 * var(--dt-cc-foto-h) - (12svh + 0.5 * 3 * 0.9 * var(--dt-cc-titolo-fs))));
+    height: calc(var(--dt-cc-salita) + 360vw - 100vw + 100svh);
+  }
+  /* La rotaia del team (`.dt-railway[data-on]`): alta quanto il nastro più la
+     corsa, --rail-len + --rail-run svh. --rail-len la scrive `size()` dopo
+     l'idratazione; qui la fa il flusso (il nastro in `auto`) e la corsa è un
+     padding. RailProgress esce dal flusso: da questa soglia è invisibile, e
+     [data-on] lo tiene dentro l'altezza dichiarata. Il margine del nastro
+     (`mt-8`) continua a collassare fuori dal wrapper, come con [data-on]. */
+  :root[data-hero-intro] .dt-railway[data-corridor]:not([data-on]) {
+    padding-bottom: calc(var(--rail-run, 120) * 1svh);
+  }
+  :root[data-hero-intro] .dt-railway[data-corridor]:not([data-on]) > .dt-rail ~ * {
+    position: absolute;
   }
 }
 /* La corsa di ogni corridoio del hook (spec §2.7 e §4, D22). Il corridoio dell'hero (200svh, A19) è

@@ -269,8 +269,9 @@ export default function HorizonStory() {
       {/* I pannelli orizzontali: manifesto e territorio. Con MQ.corridor
           (D22: 1024 px di larghezza, 640 di altezza, motion ok) lo screen è
           sticky e il track scorre in orizzontale mentre la pagina scende
-          (l'altezza della sezione È la larghezza del track); senza JS, con
-          reduced-motion o sotto quella soglia restano due blocchi in
+          (l'altezza della sezione È la larghezza del track, già dal primo
+          paint: globals.css, «I nastri e la rotaia prima del paint»); senza
+          JS, con reduced-motion o sotto quella soglia restano due blocchi in
           colonna, completi e statici. Sopra i pannelli non c'è più nessuna
           foto aerea né velo: solo l'avorio della pagina. */}
       <div className="mt-[clamp(3rem,7vh,5rem)]">
@@ -280,11 +281,12 @@ export default function HorizonStory() {
               gruppo solo, <HorizonEnter>: col nastro acceso lo fa entrare il
               cue «top 70%» della radice e uscire la risalita sotto quel punto;
               sotto MQ.corridor (D22) entra con l'IO del motore.
-              La variante `[.dt-horizon:not([data-on])_&]` vale SOLO quando il
-              nastro non è acceso (reduced-motion, niente JS, sotto la soglia):
-              lì i pannelli sono blocchi in colonna e `lg:py-0` — giusto dentro
-              uno schermo sticky da 100svh — li faceva combaciare, con la fine
-              del manifesto attaccata all'eyebrow del territorio. */}
+              La variante `nastro-colonna` (globals.css) vale SOLO quando il
+              nastro non è acceso né armato prima del paint (reduced-motion,
+              niente JS, sotto la soglia): lì i pannelli sono blocchi in
+              colonna e `lg:py-0` — giusto dentro uno schermo sticky da 100svh —
+              li faceva combaciare, con la fine del manifesto attaccata
+              all'eyebrow del territorio. */}
           <div className="dt-horizon_panel dt-horizon_panel--statement relative flex items-center">
             {/* Il manifesto era una colonna di testo centrata, larga al piu' 1000
                 px, sola in un pannello di 100vw: 292 px di avorio per lato a
@@ -297,7 +299,7 @@ export default function HorizonStory() {
                 parola per parola (valutare sui dati, documenti prima, raccontare,
                 fino al rogito). Sotto la soglia del nastro le due colonne si
                 impilano, foto sotto le frasi. */}
-            <HorizonEnter className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+            <HorizonEnter className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 nastro-colonna:lg:py-[8vh]">
               <SplitTitle as="h3" className="font-display text-d2">
                 {c.statement}
               </SplitTitle>
@@ -332,11 +334,11 @@ export default function HorizonStory() {
               è 8,9vw a 1024, e 9,5vw porta il gradino a 22,9 / 29,1 / 33,4 px e
               l'h3 col link a 36,5 / 46,2 / 52,6, al prezzo di 15,4 px di
               larghezza utile a 1024 (misure/20-territorio.mjs). In colonna la
-              variante `[.dt-horizon:not([data-on])_&]` tiene 8vw sui due lati:
+              variante `nastro-colonna` tiene 8vw sui due lati:
               lì nessun gradino cavalca la foto e il titolo è già a 20,9 px dal
               segno. A 1920 il pannello è centrato dal max-w e sta a 209 px. */}
           <div className="dt-horizon_panel dt-horizon_panel--territory relative flex items-center">
-            <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-10 px-[5vw] py-20 lg:pl-[9.5vw] [.dt-horizon:not([data-on])_&]:lg:px-[8vw] lg:grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)] lg:items-center lg:gap-0 lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+            <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-10 px-[5vw] py-20 lg:pl-[9.5vw] nastro-colonna:lg:px-[8vw] lg:grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)] lg:items-center lg:gap-0 lg:py-0 nastro-colonna:lg:py-[8vh]">
               <div className="dt-horizon_stairs">
                 <p className="eyebrow">{c.cap}</p>
                 <h3 className="mt-6 font-display leading-[0.95] tracking-[-0.01em]">

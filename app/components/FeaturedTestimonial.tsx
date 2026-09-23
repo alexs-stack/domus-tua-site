@@ -292,7 +292,7 @@ export default function FeaturedTestimonial(props: Props) {
          sipario e la foto che affonda, a destra i testi come gruppo del motore dei reveal (nel nastro
          entrano quando sono in scena, spec §2.4). In colonna il pannello prende il passo dei blocchi. */
       <div className="dt-horizon_panel dt-cc_panel dt-cc_panel--carmine relative flex items-center">
-        <div className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+        <div className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 nastro-colonna:lg:py-[8vh]">
           {linkPanel}
           <RevealGroup className="lg:pl-[6vw]">{testo}</RevealGroup>
         </div>
