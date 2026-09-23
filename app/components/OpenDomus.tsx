@@ -461,7 +461,7 @@ export default function OpenDomus({ finestra = false }: Props) {
         {/* La riga a due colonne del sito, come il manifesto del nastro: a sinistra occhiello, claim in
             d2 (A66) e intro in misura lead; a destra il video di Teresa nella metà 16:9, col sipario. In
             colonna (sotto la soglia) il pannello prende il passo dei blocchi. */}
-        <div className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+        <div className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-2 lg:items-center lg:py-0 nastro-colonna:lg:py-[8vh]">
           <RevealGroup className="lg:pr-[4vw]">
             <Reveal role="ctn">
               <span className="eyebrow">{c.eyebrow}</span>
@@ -480,7 +480,7 @@ export default function OpenDomus({ finestra = false }: Props) {
         {/* Le scritte della coda (A66): il titolo a gradini (data-horizon-stair: parallasse contraria del
             nastro), le due liste in misura lead con la loro etichetta e il rilancio. Nel nastro posano
             sulla carta del cielo della piscina e scendono con lei; in colonna stanno prima della foto. */}
-        <div className="dt-od_coda_testo dt-row py-20 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+        <div className="dt-od_coda_testo dt-row py-20 nastro-colonna:lg:py-[8vh]">
           <h3 className="font-display leading-[0.95] tracking-[-0.01em]">
             {c.stairs.map((line, i) => (
               <span

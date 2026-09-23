@@ -131,7 +131,7 @@ export default function Social() {
     /* Il pannello: la riga a due colonne sulla carta. `overflow-x-clip` qui non serve più: lo dà la
        sezione del nastro (blocco dt-horizon, anche in colonna). */
     <div className="dt-horizon_panel dt-cc_panel dt-cc_panel--seguici relative flex items-center">
-      <div className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-[3fr_2fr] lg:items-end lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+      <div className="dt-row grid w-full gap-[6vw] py-20 lg:grid-cols-[3fr_2fr] lg:items-end lg:py-0 nastro-colonna:lg:py-[8vh]">
         <div ref={triggerRef}>
           <div ref={blockRef} data-seguici-congedo>
             <Reveal>

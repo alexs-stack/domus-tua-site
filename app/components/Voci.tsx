@@ -431,7 +431,10 @@ export default function Voci() {
               <TrustindexEmbed title={c.iframeTitle} />
             </div>
           ) : (
-            <div className="mt-6">
+            // `dt-voci_cancello`: col consenso già dato, prima dell'idratazione il cancello tiene
+            // l'altezza del widget che lo sostituirà (globals.css). Senza loader il widget non
+            // arriva mai, e la riserva non serve.
+            <div className={site.embeds.trustindexLoader.length > 0 ? "dt-voci_cancello mt-6" : "mt-6"}>
               <p className="max-w-[50ch] text-body text-graphite">
                 {awaitingConsent ? c.consentGate : c.widgetNote}
               </p>

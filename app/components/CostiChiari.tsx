@@ -247,7 +247,7 @@ export default function CostiChiari({
             cipressi arrivano al 36 %, e sotto il titolo c'è cielo fino al tetto piatto, che nella salita
             gli passa dietro fino a metà delle lettere, A65). In colonna è in flusso e la carta del cielo lo
             continua. Per lettera (SplitTitle) nella misura del nastro (`.dt-cc_titolo`, 7,5vw: tre righe su 52vw). */}
-        <div className="dt-cc_riga dt-row py-20 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+        <div className="dt-cc_riga dt-row py-20 nastro-colonna:lg:py-[8vh]">
           <SplitTitle as="h2" className="dt-cc_titolo font-display lg:ml-auto lg:w-[52vw] lg:text-right">
             {c.title}
           </SplitTitle>
@@ -266,7 +266,7 @@ export default function CostiChiari({
             incontro senza costi, se non vendiamo non ci pagate) e il rilancio PIENO, quello dell'hero
             (A66: nel nastro le scritte sono grandi). Gruppo del motore dei reveal: entra quando è in
             scena. In colonna prende il passo dei blocchi. */}
-        <div className="dt-row w-full py-20 lg:py-0 [.dt-horizon:not([data-on])_&]:lg:py-[8vh]">
+        <div className="dt-row w-full py-20 lg:py-0 nastro-colonna:lg:py-[8vh]">
           <RevealGroup className="max-w-[64ch]">
             {occhiello}
             <SplitTitle as="h3" className="mt-6 font-display text-d2">
