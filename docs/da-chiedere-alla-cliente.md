@@ -14,6 +14,8 @@ Questo documento raccoglie **tutto** ciò che manca da parte vostra per mandare 
 
 **Come consegnare:** foto e video via WeTransfer o Google Drive (file originali, non passati da WhatsApp, che li rimpicciolisce); testi in una mail o in un Word; conferme e autorizzazioni anche solo per mail — ci basta una risposta scritta.
 
+**Aggiornamento al 2026-09-23:** chiuse le voci 2.2, 2.13 e 6.2 (foto e riprese della villa autorizzate): le bloccanti scendono da 21 a 18.
+
 **In sintesi, al 2026-09-13:** 21 voci bloccanti — 9 testi da approvare, 3 chiarimenti su foto e video, 4 fra liberatorie e testi legali, 3 dati da confermare e 2 accessi. Tutto il resto è migliorativo.
 
 ---
@@ -136,7 +138,8 @@ Nelle pagine Vendi e Servizi la sezione "Rendering & home staging" mostra sei im
 - *Vanno benissimo* anche coppie "rendering / realizzato".
 - *Dove serve:* pagine Vendi e Servizi.
 
-**2.2 La foto aerea del territorio in home — [BLOCCANTE]**
+**2.2 La foto aerea del territorio in home — [CHIUSA il 23/09]**
+*Chiusa:* autorizzazione ricevuta (conferma di Alberto, 23 settembre 2026). Il testo qui sotto resta come traccia di cosa si è chiesto.
 Nel capitolo "Perché scegliere Domus Tua", subito dopo la ricerca delle case, il pannello sul territorio è illustrato con una ripresa da drone. Non è più il fondale a tutta pagina di agosto, ma è lo stesso scatto, e ha due problemi da chiudere con voi.
 - *Cosa mostra davvero:* una ripresa quasi a picco su **una singola villa privata** con giardino, piscina, arredi da esterno e le case dei vicini nell'inquadratura — riconoscibile. Il 13 settembre abbiamo corretto la descrizione dell'immagine (quella che leggono Google e chi usa un lettore di schermo): prima diceva "vista aerea dei tetti e del verde attorno a Tradate", ora dice "Ripresa col drone di una villa con giardino e piscina". Ci serve sapere di quale immobile si tratta, se è ancora un vostro immobile, e se esiste l'autorizzazione del proprietario a mostrarlo dall'alto.
 - *I diritti:* il file che abbiamo è stato ritagliato per togliere dei watermark presenti sull'originale. Ci serve il file sorgente pulito e il nome dell'autore o la licenza d'uso.
@@ -207,7 +210,8 @@ In apertura della home, sotto il nome "Domus Tua", c'è scritto "Raffaela Rizza"
 - *Cosa ci serve, se la volete:* firma a penna nera su foglio bianco liscio, scansionata a 300-600 dpi (o fotografata perfettamente dall'alto, senza ombre). Alla pulizia dello sfondo e alla vettorializzazione pensiamo noi, e la firma vera prende il posto del nome in corsivo.
 - *Se non la volete:* resta il nome in corsivo; basta dirlo e chiudiamo il punto.
 
-**2.13 La licenza delle foto della villa — [BLOCCANTE]**
+**2.13 La licenza delle foto della villa — [CHIUSA il 23/09]**
+*Chiusa:* licenza e autorizzazione del proprietario ricevute (conferma di Alberto, 23 settembre 2026). Il testo qui sotto resta come traccia di cosa si è chiesto.
 Le cinque foto professionali della villa del video tour (portico con la tenda, facciata con la piscina, lettini) portano nei dati del file la firma del fotografo Davide Salerno. Ci servono: la licenza d'uso per il sito (per quanto tempo, se si possono ritagliare e animare, cioè aprire a finestra o ingrandire durante lo scorrimento); se va citato l'autore, e dove; la stessa autorizzazione del proprietario del punto 2.2. Nei file pubblicati togliamo i dati del file, compreso il contatto del fotografo: se la licenza chiede di mantenerli, ditecelo.
 
 ---
@@ -360,7 +364,8 @@ Sul sito, la storia in evidenza è attribuita per nome a **Teresa**, e altri due
 - *Cosa ci serve:* il consenso scritto (basta una mail) all'uso di nome, voce e immagine sul sito, per ciascuna delle persone citate.
 - *Una precisazione utile:* nella pagina Open Domus, accanto alla storia di Teresa, usiamo il ritratto della fondatrice, ma la descrizione dell'immagine dice "Raffaela Rizza con Teresa" — cita cioè una persona che nella foto non c'è. In home, invece, la storia si apre con un fotogramma del suo video in cui ci sono due donne: **confermateci che una delle due è Teresa**. Poi sistemiamo noi le descrizioni.
 
-**6.2 Chi ha girato la clip aerea di chiusura — [BLOCCANTE]**
+**6.2 Chi ha girato la clip aerea di chiusura — [CHIUSA il 23/09]**
+*Chiusa:* autore e licenza d'uso chiariti (conferma di Alberto, 23 settembre 2026). Il testo qui sotto resta come traccia di cosa si è chiesto.
 Il video girato col drone oggi **chiude la home**: è la banda a tutta larghezza con la frase "Vendere casa, senza stress.", e parte da tablet e computer (sul telefono al suo posto c'è una foto). Arriva dalla stessa consegna della foto aerea del punto 2.2, e ha lo stesso punto interrogativo.
 - *Cosa ci serve:* chi l'ha girata e con quale autorizzazione o licenza d'uso. Se non è vostra e non avete la licenza, ci serve una clip sostitutiva.
 

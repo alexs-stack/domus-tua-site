@@ -39,8 +39,8 @@ export type AmbientSource = { webm: string; mp4: string };
 // il capitolo è un nastro con la facciata); i file restano in public/media, non montati (Alberto,
 // 22 set.: i file non montati restano). `hd` 1920×1080, `sd` 1280×720: la sorgente la scrive
 // useAmbientVideo la prima volta che l'host si avvicina (warm 50 %): 720p fino a 1.408 px resi,
-// 1080p oltre. La produzione aspetta i punti 2.2, 2.13 e 6.2 del documento per la cliente
-// (assertVillaMediaCleared in launchReadiness.ts, chiamata da next.config.ts al build).
+// 1080p oltre. I punti 2.2, 2.13 e 6.2 del documento per la cliente (foto e riprese della villa)
+// sono chiusi dal 23 settembre 2026: autorizzazioni ricevute, niente più cancello al build.
 export const ambient: {
   congedo: { hd: AmbientSource; sd: AmbientSource; poster: string };
 } = {
