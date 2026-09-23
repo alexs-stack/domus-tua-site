@@ -202,7 +202,7 @@ export default function HeroCinematic() {
       if (!html.hasAttribute("data-preloader") && !html.hasAttribute("data-hero-intro")) return;
 
       const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, (_ramo, contextSafe) => {
+      mm.add(MQ.motionOk, (ramo, contextSafe) => {
         if (!contextSafe) return;
         const chars = (sel: string) => gsap.utils.toArray<HTMLElement>(sel, section);
         const host = (sel: string) => section.querySelector<HTMLElement>(sel);
@@ -240,7 +240,11 @@ export default function HeroCinematic() {
               },
               g.at,
             );
-          if (dal > 0) tl.time(dal);
+          // Il salto avanti gira FUORI dal Context, come l'avanzare naturale nel ticker: le lettere già
+          // partite si reinizializzano lì, e i loro `_startAt` nuovi, registrati nel ramo, al cambio
+          // lingua dopo verrebbero revertiti due volte (dal Context di useGSAP, che contiene il ramo, e
+          // dal ramo stesso), lasciando la posa `from`: rotateY 90°, lettere di taglio, larghe 0.
+          if (dal > 0) ramo.ignore(() => tl.time(dal));
           suonati.current.set(g.nome, { inizio: tl.startTime(), fine: tl.endTime() });
         }) as (g: Gruppo, dal: number) => void;
 
