@@ -187,8 +187,12 @@ stanno in `DESIGN.md`.
   una lieve ombra se non si legge, o fai le scritte più grandi») i tre punti e le sezioni che la
   pagina posa sulla foto partono subito sotto il blocco e la riempiono, nel grigio del lockup e senza ombra (A56, 22 set.: «le scritte bianche sopra le immagini, mettile di colore grigio, come quello della hero della scritta "domus"»; fino ad A56 in bianco con l'ombra)
   attaccata alle lettere (il valore unico del sito, decisione di lavoro D80) e coi corpi di testo
-  alla misura del lead; su /acquista la ricerca intelligente sta lì, sulla foto, dopo la scritta
-  della testa (A52), e a fine foto la foto si chiude nella cornice della cartolina (A53). Per quelle
+  alla misura del lead, e a fine foto la foto si chiude nella cornice della cartolina (A53). Su
+  /acquista la ricerca intelligente stava lì (A52) e in bianco non si leggeva: dal 23 set. (A80,
+  Alberto: «la ricerca intelligente non si vede … ingegnati e stupiscimi cambiando il design
+  dell'input della ricerca») sta nel cielo della foto, sulla carta, in inchiostro, subito dopo i
+  comandi, con la villa che le sale sotto; il campo è una riga in Playfair col segnaposto che si
+  scrive da solo una volta, e i tre punti stanno nel blocco sotto i comandi. Per quelle
   scritte la deroga resta. Stessa cosa per la finestra di
   Open Domus in home: il titolo «Open Domus» sta in inchiostro sul cielo, che è il fondo pagina, e dal
   22 set. (A47: «deve continuare, abbiamo fatto le immagini alte apposta per poterci scrollare a schermo
