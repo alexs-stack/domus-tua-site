@@ -24,6 +24,8 @@ const ROSSO = "rgb(210, 10, 10)";
 /** A51 (22 set.): sulla carta rosa pesca l'occhiello (16 px) è nel rosso cupo, il rosso dei testi piccoli sull'avorio. */
 const ROSSO_CUPO = "rgb(163, 7, 7)";
 const CREAM_DEEP = "rgb(242, 207, 197)";
+/** La pietra (`--color-stone`): etichette, segnaposto, i tre punti sulla carta. */
+const PIETRA = "rgb(98, 93, 86)";
 /** L'avorio della carta, in RGB: i pixel sotto le scritte devono essere questo, ±3 per canale (A46). */
 const AVORIO_RGB = [246, 217, 208] as const;
 /** D124: dove `tinte.json` dichiara l'avorio, la pagina spedisce un token. A46 (21 set. 2026): col
@@ -82,13 +84,16 @@ async function geometria(page: Page) {
     const marcatori = Array.from(strato?.querySelectorAll<HTMLElement>("[data-testa-soggetto]") ?? []).map((m) => ({ ...(box(m) as Rett), bg: m.getAttribute("data-bg") }));
     const blocco = section?.querySelector<HTMLElement>(".dt-testa_blocco") ?? null;
     const pagina = section?.querySelector<HTMLElement>(".dt-testa_sopra") ?? null;
+    // A80 (23 set.): lo spazio nel cielo, fra il blocco e lo strato (oggi solo /acquista, con la ricerca).
+    const cieloSlot = section?.querySelector<HTMLElement>(".dt-testa_cielo") ?? null;
     const h1 = section?.querySelector<HTMLElement>("h1") ?? null;
     const script = section?.querySelector<HTMLElement>(".script-word") ?? null;
     const eyebrow = section?.querySelector<HTMLElement>(".eyebrow") ?? null;
     const lead = section?.querySelector<HTMLElement>("p.lead") ?? null;
     const solid = section?.querySelector<HTMLElement>("a.dt-btn--cta-solid") ?? null;
     const ghost = section?.querySelector<HTMLElement>("a.dt-btn--ghost") ?? null;
-    const punti = section?.querySelector<HTMLElement>(".dt-testa_sopra ul") ?? null;
+    // A80: dove c'è il cielo i tre punti stanno nel blocco, sotto i comandi (`.dt-testa_punti`).
+    const punti = section?.querySelector<HTMLElement>(".dt-testa_punti ul, .dt-testa_sopra ul") ?? null;
     const stile = (el: Element | null) => {
       if (!el) return null;
       const s = getComputedStyle(el);
@@ -115,6 +120,9 @@ async function geometria(page: Page) {
       marcatori,
       blocco: box(blocco),
       pagina: box(pagina),
+      cieloSlot: box(cieloSlot),
+      puntiNelBlocco: !!section?.querySelector(".dt-testa_punti"),
+      daLg: matchMedia("(min-width: 1024px)").matches,
       h1: box(h1),
       eyebrow: box(eyebrow),
       script: box(script),
@@ -148,6 +156,13 @@ async function geometria(page: Page) {
     };
   });
 }
+
+type Geo = Awaited<ReturnType<typeof geometria>>;
+/** A80: ciò che sta subito sopra la foto. Da lg, dove la pagina apre il cielo, lo spazio nel cielo (lo strato ci sale
+    sotto e il soggetto comincia al suo fondo); altrimenti, e sotto lg (dove il cielo segue la foto), il blocco. */
+const tetto = (g: Geo) => (g.daLg && g.cieloSlot ? g.cieloSlot : g.blocco)!;
+/** Il riquadro è blocco + spazio nel cielo (se c'è, a ogni fascia) + strato − cielo trasparente (A46, A80). */
+const riquadroAtteso = (g: Geo, cielo: number) => g.blocco!.height + (g.cieloSlot?.height ?? 0) + g.strato!.height - cielo;
 
 /** Il bucket `w` dell'ottimizzatore in `currentSrc`. */
 const bucketDi = (src: string | null) => Number(/[?&]w=(\d+)(&|$)/.exec(src ?? "")?.[1] ?? 0);
@@ -204,7 +219,7 @@ test.describe("la testa", () => {
           // Il cielo in px dalla foto RESA (altoFoto): il margine negativo dello strato è scritto sulla larghezza (CSS 2.1 §8.3),
           // non sulla scatola, che con una coda corta è più alta della foto di qualche px (A48).
           const cielo = cieloPx(rotta, altoFoto);
-          expect(Math.abs(g.riquadro!.height - (g.blocco!.height + g.strato!.height - cielo)), `${lang}: il riquadro non è blocco + foto − cielo (A46)`).toBeLessThanOrEqual(2);
+          expect(Math.abs(g.riquadro!.height - riquadroAtteso(g, cielo)), `${lang}: il riquadro non è blocco + cielo + foto − cielo trasparente (A46, A80)`).toBeLessThanOrEqual(2);
           expect(Math.round(g.riquadro!.width)).toBe(g.clientWidth);
           expect(g.overflow).toBe("clip");
           expect(g.posizioneBlocco, `${lang}: il blocco sta dentro il riquadro, in flusso e in cima (A45)`).toBe("relative");
@@ -214,7 +229,8 @@ test.describe("la testa", () => {
           expect(g.blocco!.bottom, `${lang}: il blocco esce dal riquadro`).toBeLessThanOrEqual(g.riquadro!.bottom + 1);
           // Lo strato parte a blocco − cima (a 1440 e 1024 mai sopra il pixel 0: la cima più profonda, /acquista, sta
           // a 863 px) e chiude il riquadro; il soggetto comincia al fondo del blocco.
-          expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), `${lang}: lo strato non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
+          expect(Math.abs(g.strato!.top - (tetto(g).bottom - cielo)), `${lang}: lo strato non sale fino alla cima del soggetto (A46, A80)`).toBeLessThanOrEqual(2);
+          if (g.cieloSlot) expect(g.cieloSlot.top, `${lang}: lo spazio nel cielo non segue il blocco (A80)`).toBeGreaterThanOrEqual(g.blocco!.bottom - 1);
           expect(g.strato!.top, `${lang}: lo strato esce sopra la carta`).toBeGreaterThanOrEqual(-1);
           expect(Math.abs(g.strato!.bottom - g.riquadro!.bottom), `${lang}: lo strato non chiude il riquadro`).toBeLessThanOrEqual(1);
           // I marcatori del segno (22 set., C01/G02): uno per banda di tinte.json, tutti dentro lo strato e tutti `foto`.
@@ -235,7 +251,14 @@ test.describe("la testa", () => {
           expect(g.nodiFuori, `${lang}: nodi fuori dal blocco`).toBe(0);
           // A48 (22 set.): da lg i tre punti stanno SULLA foto, in bianco, dalla banda scura di tinte.json (`sopra`:
           // la piscina su /vendi, il prato su /acquista), entro il loro padding; mai sul cielo trasparente.
-          if (g.punti && tinte[rotta].trattamento === "testa") {
+          if (g.punti && g.puntiNelBlocco) {
+            // A80 (23 set.): dove la pagina apre il cielo (/acquista) i tre punti stanno nel blocco, sotto i comandi, in
+            // pietra sulla carta: in bianco sarebbero caduti sul cielo trasparente (1,33:1).
+            expect(g.punti.bottom, `${lang}: i tre punti escono dal blocco (A80)`).toBeLessThanOrEqual(g.blocco!.bottom + 1);
+            expect(g.punti.top, `${lang}: i tre punti non stanno sotto i comandi (A80)`).toBeGreaterThanOrEqual((g.ghost ?? g.solid)!.bottom - 1);
+            expect(g.stili.punti?.color, `${lang}: nel blocco i tre punti non sono in pietra (A80)`).toBe(PIETRA);
+            expect(g.stili.punti?.shadow, `${lang}: i tre punti portano un'ombra (D184)`).toBe("none");
+          } else if (g.punti && tinte[rotta].trattamento === "testa") {
             // A48/A54 (22 set.): da lg i tre punti stanno SULLA foto subito sotto il blocco (entro il loro padding), in
             // bianco con l'ombra attaccata alle lettere (A54): le sezioni riempiono la foto da lì in giù.
             expect(g.punti.top, `${lang}: i tre punti non stanno sulla foto subito dopo il blocco (A48)`).toBeGreaterThanOrEqual(g.blocco!.bottom - 1);
@@ -336,19 +359,20 @@ test.describe("la foto è la pagina", () => {
 const insetValues = (v: string) => (v.match(/[\d.]+(?=%)/g) ?? []).map(Number);
 
 test.describe("la foto si chiude (A53)", () => {
-  test("/acquista a 1440×900: a riposo nessun clip; a fine coda la cornice 8/22; lo strato resta in flusso e senza trasformate", async ({ page, goto }, info) => {
+  test("/acquista a 1440×900: a riposo nessun clip; col fondo della foto al 10 % la cornice 8/22; lo strato resta in flusso e senza trasformate", async ({ page, goto }, info) => {
     test.skip(info.project.name !== "desktop-1440", "la coda del prato si misura dal desktop");
     await goto("/acquista");
     await idratata(page);
     const g = await geometria(page);
     const clip = () => page.locator("[data-testa-foto-box]").first().evaluate((el) => getComputedStyle(el).clipPath);
     expect(await clip(), "a riposo la foto è già ritagliata").toBe("none");
-    const coda = g.foto!.bottom - g.pagina!.bottom;
-    expect(coda, "su /acquista non resta una coda libera sotto la ricerca: niente da chiudere").toBeGreaterThanOrEqual(900 * 0.25);
-    // Prima della coda: il fondo dello spazio sopra ancora nel viewport → nessun ritaglio.
-    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), Math.round(g.pagina!.bottom - 200));
+    // A80 (23 set.): la ricerca sta nel cielo, lo spazio sopra la foto è vuoto (display: none) e la chiusura segue il
+    // ramo «carta»: parte quando il fondo della foto arriva al fondo del viewport e finisce quando sale al 30 %.
+    expect(g.pagina!.height, "su /acquista lo spazio sopra la foto non è vuoto (A80)").toBe(0);
+    // Prima della chiusura: il fondo della foto ancora sotto il viewport → nessun ritaglio.
+    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), Math.round(g.foto!.bottom - 900 - 60));
     await page.waitForTimeout(1200);
-    expect(await clip(), "la foto si chiude mentre la ricerca è ancora in vista").toMatch(/^none$|^inset\(0(px|%)?( 0(px|%)?){0,3}\)$/);
+    expect(await clip(), "la foto si chiude prima che il suo fondo entri nello schermo").toMatch(/^none$|^inset\(0(px|%)?( 0(px|%)?){0,3}\)$/);
     // Fine della coda: il fondo della foto al 10 % del viewport → la cornice della cartolina.
     await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), Math.round(g.foto!.bottom - 90));
     await page.waitForTimeout(1500);
@@ -386,56 +410,179 @@ test.describe("la foto si chiude (A53)", () => {
   });
 });
 
-// ── la ricerca sulla foto (A48) ──────────────────────────────────────────────
-// Alberto, 22 set. 2026: «la ricerca intelligente va più su, in modo che appaia sopra la foto e dopo la
-// scritta hero». Da lg la testa della ricerca (occhiello, campo, stato) sta nello spazio sopra la foto di
-// /acquista, dopo i tre punti, in bianco nudo, dentro la foto; i filtri e i risultati (#case) restano
-// sulla carta. Sotto lg segue la foto, in inchiostro. Un solo campo di ricerca nella pagina.
-test.describe("la ricerca sulla foto (A48)", () => {
+// ── la ricerca nel cielo (A80) ───────────────────────────────────────────────
+// A48 (Alberto, 22 set. 2026): «la ricerca intelligente va più su, in modo che appaia sopra la foto e dopo la
+// scritta hero». A80 (23 set.: «la ricerca intelligente non si vede … ingegnati e stupiscimi cambiando il design
+// dell'input della ricerca, con qualcosa di figo e bello e consono al design del sito»): sulla foto il bianco
+// cadeva per metà sul cielo trasparente, cioè sulla carta. Da lg la testa della ricerca (occhiello, la domanda in
+// Playfair, lo stato, le cinque tendine) sta NEL CIELO della foto di /acquista, sulla carta, in inchiostro, fra i
+// comandi e la villa, che le sale sotto; sotto lg segue la foto. I filtri e i risultati (#case) restano dopo.
+// Un solo campo di ricerca nella pagina; sotto ogni scritta della ricerca solo carta.
+test.describe("la ricerca nel cielo (A80)", () => {
+  const NOME_CAMPO = /descrivi la casa|describe the home|décrivez|beschreiben sie|describe la casa/i;
   const casi = [
-    { w: 1440, h: 900, progetto: "desktop-1440", suFoto: true },
-    { w: 1024, h: 768, progetto: "desktop-1440", suFoto: true },
-    { w: 390, h: 844, progetto: "mobile-390", suFoto: false },
+    { w: 1440, h: 900, progetto: "desktop-1440", lingue: ["it", "de"] },
+    { w: 1024, h: 768, progetto: "desktop-1440", lingue: ["it", "de", "es"] },
+    { w: 1280, h: 800, progetto: "desktop-1440", lingue: ["it"] },
+    { w: 1920, h: 1080, progetto: "desktop-1440", lingue: ["it"] },
+    { w: 390, h: 844, progetto: "mobile-390", lingue: ["it", "de", "es"] },
   ] as const;
   for (const c of casi) {
-    test(`/acquista a ${c.w}×${c.h}: la testa della ricerca ${c.suFoto ? "posa sulla foto dopo i tre punti, in bianco" : "segue la foto, in inchiostro"}; filtri e risultati dopo`, async ({ page, goto }, info) => {
+    test(`/acquista a ${c.w}×${c.h}: la ricerca ${c.w >= 1024 ? "nel cielo, sulla carta, sopra il soggetto" : "dopo la foto"}, in inchiostro; il segnaposto entra nel campo; sotto le scritte solo carta`, async ({ page, goto }, info) => {
       test.skip(info.project.name !== c.progetto, `${c.w}×${c.h} si misura nel progetto ${c.progetto}`);
+      test.setTimeout(180_000);
       await page.setViewportSize({ width: c.w, height: c.h });
-      await goto("/acquista");
-      await idratata(page);
-      await page.evaluate(() => document.fonts.ready.then(() => true));
-      const g = await geometria(page);
-      const campo = page.getByRole("textbox", { name: /descrivi la casa/i });
-      await expect(campo, "un solo campo della ricerca nella pagina").toHaveCount(1);
-      const r = await campo.first().evaluate((el) => {
-        const b = el.getBoundingClientRect();
-        const s = getComputedStyle(el);
-        const occhiello = el.closest(".dt-testa_sopra, #case")?.querySelector<HTMLElement>(".eyebrow");
-        return { top: b.top + window.scrollY, bottom: b.bottom + window.scrollY, color: s.color, dentroSopra: !!el.closest(".dt-testa_sopra"), dentroCase: !!el.closest("#case"), occhiello: occhiello ? getComputedStyle(occhiello).color : null };
-      });
-      expect(r.dentroSopra, "il campo della ricerca non sta nello spazio sopra la foto (A48)").toBe(true);
-      expect(r.dentroCase, "il campo della ricerca sta ancora in #case").toBe(false);
-      expect(r.top, "la ricerca non viene dopo i tre punti").toBeGreaterThanOrEqual(g.punti!.bottom - 1);
-      if (c.suFoto) {
-        expect(r.bottom, "la ricerca esce dalla foto").toBeLessThanOrEqual(g.foto!.bottom + 1);
-        // A56: il grigio del lockup al posto del bianco.
-        // A70 (22 set., sera): bianco al posto del grigio, più grande.
-        expect(r.color, "sulla foto il campo non è bianco (A70)").toBe("rgb(255, 255, 255)");
-        expect(r.occhiello, "sulla foto l'occhiello non è bianco (A70)").toBe("rgb(255, 255, 255)");
-      } else {
-        expect(r.top, "sotto lg la ricerca non segue la foto").toBeGreaterThanOrEqual(g.foto!.bottom - 1);
-        expect(r.color, "sotto lg il campo non è inchiostro").toBe(INK);
+      await setConsent(page, "accepted");
+      const daLg = c.w >= 1024;
+      for (const lang of c.lingue) {
+        await lingua(page, lang);
+        await goto("/acquista");
+        await idratata(page);
+        await page.evaluate(() => document.fonts.ready.then(() => true));
+        const g = await geometria(page);
+        const campo = page.getByRole("textbox", { name: NOME_CAMPO });
+        await expect(campo, `${lang}: un solo campo della ricerca nella pagina`).toHaveCount(1);
+        const r = await campo.evaluate((el) => {
+          const b = el.getBoundingClientRect();
+          const s = getComputedStyle(el);
+          const occhiello = el.closest(".dt-ricerca")?.querySelector<HTMLElement>(".eyebrow");
+          // Il segnaposto intero (da lg) o corto (sotto) misurato nel font del campo, in corsivo, contro la larghezza utile.
+          const cx = document.createElement("canvas").getContext("2d")!;
+          cx.font = `italic ${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
+          const utile = el.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
+          return {
+            top: b.top + window.scrollY,
+            bottom: b.bottom + window.scrollY,
+            color: s.color,
+            size: parseFloat(s.fontSize),
+            nelCielo: !!el.closest(".dt-testa_cielo"),
+            nelloSopra: !!el.closest(".dt-testa_sopra"),
+            inCase: !!el.closest("#case"),
+            occhiello: occhiello ? getComputedStyle(occhiello).color : null,
+            segnaposto: (el as HTMLInputElement).placeholder,
+            largoSegnaposto: cx.measureText((el as HTMLInputElement).placeholder).width,
+            utile,
+          };
+        });
+        expect(r.nelCielo, `${lang}: la ricerca non sta nello spazio nel cielo (A80)`).toBe(true);
+        expect(r.nelloSopra, `${lang}: la ricerca sta ancora sulla foto`).toBe(false);
+        expect(r.inCase, `${lang}: la ricerca sta in #case`).toBe(false);
+        expect(r.color, `${lang}: la domanda non è inchiostro`).toBe(INK);
+        expect(r.occhiello, `${lang}: l'occhiello non è nel rosso cupo (A51)`).toBe(ROSSO_CUPO);
+        expect(r.largoSegnaposto, `${lang}: «${r.segnaposto}» (${Math.round(r.largoSegnaposto)} px) non entra nel campo (${Math.round(r.utile)} px)`).toBeLessThanOrEqual(r.utile);
+        if (daLg) {
+          // Da lg: dopo il blocco (i comandi e i tre punti), e tutta sopra la cima del soggetto.
+          const cielo = cieloPx("/acquista", (g.strato!.width * tinte["/acquista"].sorgente[1]) / tinte["/acquista"].sorgente[0]);
+          expect(r.top, `${lang}: la ricerca non viene dopo il blocco (A48: dopo la scritta hero)`).toBeGreaterThanOrEqual(g.blocco!.bottom - 1);
+          expect(g.cieloSlot!.bottom, `${lang}: la ricerca scende sul soggetto (A80: sopra il soggetto, mai sopra la foto)`).toBeLessThanOrEqual(g.strato!.top + cielo + 2);
+          expect(g.strato!.top, `${lang}: lo strato comincia sopra la carta`).toBeGreaterThanOrEqual(-1);
+        } else {
+          expect(r.top, `${lang}: sotto lg la ricerca non segue la foto`).toBeGreaterThanOrEqual(g.foto!.bottom - 1);
+          expect(r.size, `${lang}: sul telefono la domanda è più piccola di 20 px`).toBeGreaterThanOrEqual(20);
+        }
+        // A52: la ricerca è un blocco solo: le cinque tendine stanno col campo; sulla carta (#case) restano gli
+        // affinamenti (chip di testo) e i risultati, dopo la testa.
+        await expect(page.locator(".dt-testa_cielo").getByRole("combobox"), `${lang}: le cinque tendine non stanno con il campo (A52)`).toHaveCount(5);
+        await expect(page.locator("#case").getByRole("combobox"), `${lang}: una tendina è rimasta sulla carta (A52)`).toHaveCount(0);
+        const caseTop = await page.locator("#case").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+        expect(caseTop, `${lang}: #case non viene dopo la testa`).toBeGreaterThanOrEqual(g.section!.bottom - 1);
       }
-      // A52: la ricerca è un blocco solo: le cinque tendine stanno col campo, nello spazio sopra; sulla carta (#case)
-      // restano gli affinamenti (chip di testo) e i risultati, dopo la testa.
-      await expect(page.locator(".dt-testa_sopra").getByRole("combobox"), "le cinque tendine non stanno con il campo (A52)").toHaveCount(5);
-      await expect(page.locator("#case").getByRole("combobox"), "una tendina è rimasta sulla carta: ricerca spezzata in due (A52)").toHaveCount(0);
-      if (c.suFoto) expect(g.pagina!.bottom, "la ricerca esce dalla foto").toBeLessThanOrEqual(g.foto!.bottom + 1);
-      const caseTop = await page.locator("#case").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
-      expect(caseTop, "#case non viene dopo la testa").toBeGreaterThanOrEqual(g.section!.bottom - 1);
-      await expect(page.locator("#case").getByRole("button", { pressed: true }).first()).toBeVisible();
+      // Il clic arriva al campo e al pulsante: la cima trasparente dell'immagine passa sotto lo spazio nel cielo (z 1).
+      const campo = page.getByRole("textbox", { name: NOME_CAMPO });
+      await campo.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(300);
+      const colpito = await page.evaluate(() => {
+        const dentro = (el: Element | null) => {
+          const b = el!.getBoundingClientRect();
+          const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+          return !!hit && (hit === el || el!.contains(hit) || !!hit.closest(".dt-ricerca_campo")?.contains(el));
+        };
+        return { campo: dentro(document.querySelector(".dt-ricerca_domanda")), punto: dentro(document.querySelector(".dt-ricerca_punto")) };
+      });
+      expect(colpito.campo, "un clic al centro del campo non arriva al campo").toBe(true);
+      expect(colpito.punto, "un clic al centro del pulsante non arriva al pulsante").toBe(true);
+      // Il punto fermo: a vuoto anello d'inchiostro e disabilitato; con una frase disco rosso e attivo.
+      const punto = page.locator(".dt-ricerca_punto");
+      await expect(punto).toBeDisabled();
+      expect(await punto.getAttribute("data-pieno")).toBeNull();
+      expect(await punto.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe(INK);
+      await campo.fill("villa");
+      await expect(punto).toBeEnabled();
+      expect(await punto.getAttribute("data-pieno")).toBe("");
+      await campo.fill("");
+      await campo.blur();
+      // I pixel sotto le scritte della ricerca: si spengono lettere, righe e cursore, si guarda la carta che resta.
+      if (daLg) {
+        await page.addStyleTag({
+          content: `.dt-testa_cielo * { color: transparent !important; border-color: transparent !important; caret-color: transparent !important; text-decoration-color: transparent !important; } .dt-testa_cielo ::placeholder { color: transparent !important; } .dt-testa_cielo .dt-ricerca_esempio, .dt-testa_cielo .dt-ricerca_campo::after { display: none !important; }`,
+        });
+        // La riga delle tendine è `border-ink!` di Tailwind, dentro @layer: un !important in un layer batte quello non
+        // stratificato qui sopra; lo stile in linea batte tutti e due.
+        await page.evaluate(() => {
+          for (const s of document.querySelectorAll<HTMLElement>(".dt-testa_cielo select")) s.style.setProperty("border-color", "transparent", "important");
+        });
+        const scritte = await page.evaluate(() => {
+          const y = window.scrollY;
+          return Array.from(document.querySelectorAll<HTMLElement>(".dt-testa_cielo :is(.eyebrow, .dt-ricerca_domanda, [role=status] p, label > span:first-child, select)"))
+            .map((el) => ({ nome: `${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0]}`, r: el.getBoundingClientRect() }))
+            .filter(({ r }) => r.width > 0 && r.height > 0)
+            .map(({ nome, r }) => ({ nome, left: r.left, top: r.top + y, right: r.right, bottom: r.bottom + y }));
+        });
+        expect(scritte.length, "le scritte della ricerca non ci sono").toBeGreaterThanOrEqual(12);
+        for (const s of scritte) {
+          const y = Math.max(0, Math.floor(s.top - (c.h - (s.bottom - s.top)) / 2));
+          await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), y);
+          await page.waitForTimeout(150);
+          const scrollY = await page.evaluate(() => window.scrollY);
+          const rett = { left: s.left, right: s.right, top: Math.max(0, s.top - scrollY), bottom: Math.min(s.bottom - scrollY, c.h) };
+          const png = await page.screenshot({ animations: "disabled", caret: "hide" });
+          const k = ((await sharp(png).metadata()).width ?? 0) / c.w;
+          const esito = await pixelNonAvorio(png, rett, k);
+          expect(esito.totale, `${s.nome}: rettangolo vuoto`).toBeGreaterThan(0);
+          expect(esito.fuori, `${s.nome}: ${esito.fuori} pixel su ${esito.totale} sotto la scritta non sono carta, es. ${esito.esempio} (A80: nessuna lettera sulla foto)`).toBe(0);
+        }
+      }
     });
   }
+
+  test("/acquista a 1440×900: l'esempio si scrive da solo una volta quando il campo entra nello schermo, e poi resta il segnaposto", async ({ page, goto }, info) => {
+    test.skip(info.project.name !== "desktop-1440", "si misura dal desktop");
+    await goto("/acquista");
+    await idratata(page);
+    const scrive = () => page.locator(".dt-ricerca_campo").evaluate((el) => el.hasAttribute("data-scrive"));
+    // Armato al montaggio (il campo sta sotto la piega): il segnaposto nativo aspetta la scrittura e il sovrapposto c'è.
+    await expect.poll(scrive, { timeout: 5000 }).toBe(true);
+    const esempio = page.locator(".dt-ricerca_esempio");
+    expect(await esempio.evaluate((el) => getComputedStyle(el).display), "armato, il sovrapposto che scrive non c'è").toBe("flex");
+    const top = await page.locator(".dt-ricerca_campo").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+    await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), Math.round(top - 900 * 0.6));
+    // A metà della passata le lettere sono in parte scoperte: il ritaglio si è mosso dal tutto chiuso.
+    await expect
+      .poll(() => page.locator(".dt-ricerca_testo").evaluate((el) => getComputedStyle(el).clipPath), { timeout: 3000, message: "la riga non ha cominciato a scriversi" })
+      .not.toMatch(/^inset\(0(px)? 100% 0(px)? 0(px)?\)$/);
+    // Una passata sola: al più ~3,3 s, poi il sovrapposto si spegne e torna il segnaposto nativo.
+    await expect.poll(scrive, { timeout: 6000, message: "la scrittura non finisce" }).toBe(false);
+    expect(await page.locator(".dt-ricerca_esempio").evaluate((el) => getComputedStyle(el).display)).toBe("none");
+    await page.waitForTimeout(1500);
+    expect(await scrive(), "la scrittura è ripartita (una passata sola)").toBe(false);
+  });
+
+  test("/acquista con moto ridotto e con ?q=: l'esempio non si scrive, il segnaposto è fermo", async ({ page, goto }, info) => {
+    test.skip(info.project.name !== "desktop-1440", "si misura dal desktop");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await goto("/acquista");
+    await idratata(page);
+    await page.waitForTimeout(1000);
+    expect(await page.locator(".dt-ricerca_campo").evaluate((el) => el.hasAttribute("data-scrive")), "con moto ridotto la riga si scrive").toBe(false);
+    // Lo stato fermo: il segnaposto nativo in pietra, il sovrapposto spento.
+    expect(await page.locator(".dt-ricerca_domanda").evaluate((el) => getComputedStyle(el, "::placeholder").color), "con moto ridotto il segnaposto non è in pietra").toBe(PIETRA);
+    expect(await page.locator(".dt-ricerca_esempio").evaluate((el) => getComputedStyle(el).display)).toBe("none");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await goto("/acquista?q=villa");
+    await idratata(page);
+    await expect(page.getByRole("textbox", { name: /descrivi la casa/i })).toHaveValue("villa");
+    await expect.poll(() => page.locator(".dt-ricerca_campo").evaluate((el) => el.hasAttribute("data-scrive")), { timeout: 3000, message: "con una frase arrivata dalla home la riga resta armata" }).toBe(false);
+  });
 });
 
 // ── la testata ─────────────────────────────────────────────────────────────
@@ -675,7 +822,7 @@ test.describe("senza JS e con moto ridotto", () => {
         expect(g.corridoi).toBe(0);
         // Il cielo dalla foto RESA (larghezza × rapporto): con le sezioni sulla foto la scatola può crescere (A54).
         const cielo = cieloPx(rotta, (g.strato!.width * tinte[rotta].sorgente[1]) / tinte[rotta].sorgente[0]);
-        expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), `${rotta}: senza JS la foto non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
+        expect(Math.abs(g.strato!.top - (tetto(g).bottom - cielo)), `${rotta}: senza JS la foto non sale fino alla cima del soggetto (A46, A80)`).toBeLessThanOrEqual(2);
         expect(g.trasformata).toMatch(FERMA);
         expect(g.riquadro!.height).toBeGreaterThan(100);
         expect(g.stili.h1!.shadow).toBe("none");
@@ -692,7 +839,7 @@ test.describe("senza JS e con moto ridotto", () => {
         await page.waitForLoadState("load");
         expect(await page.evaluate(() => document.documentElement.hasAttribute("data-hero-intro"))).toBe(false);
         const g = await geometria(page);
-        expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cieloPx(rotta, (g.strato!.width * tinte[rotta].sorgente[1]) / tinte[rotta].sorgente[0]))), `${rotta}: con moto ridotto la foto non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
+        expect(Math.abs(g.strato!.top - (tetto(g).bottom - cieloPx(rotta, (g.strato!.width * tinte[rotta].sorgente[1]) / tinte[rotta].sorgente[0]))), `${rotta}: con moto ridotto la foto non sale fino alla cima del soggetto (A46)`).toBeLessThanOrEqual(2);
         expect(g.corridoi).toBe(0);
         expect(g.stili.h1!.color).toBe(INK);
         expect(g.stili.lead!.color).toBe(GRAFITE);
@@ -850,10 +997,10 @@ test.describe("le scritte sull'avorio (A46)", () => {
         // Geometria: nessun buco, nulla fuori, nessun traboccamento.
         const g = await geometria(page);
         const cielo = cieloPx(rotta, (g.strato!.width * tinte[rotta].sorgente[1]) / tinte[rotta].sorgente[0]);
-        expect(Math.abs(g.strato!.top - (g.blocco!.bottom - cielo)), "la foto non sale fino alla cima del soggetto").toBeLessThanOrEqual(2);
-        // Dove la cima in px supera il blocco (/acquista a 1920×1080: 1150 contro 1080) lo strato comincia sopra la
-        // carta e il clip taglia il solo cielo trasparente; altrove mai.
-        if (!(rotta === "/acquista" && vp.w === 1920)) expect(g.strato!.top, "lo strato esce sopra la carta").toBeGreaterThanOrEqual(-1);
+        expect(Math.abs(g.strato!.top - (tetto(g).bottom - cielo)), "la foto non sale fino alla cima del soggetto").toBeLessThanOrEqual(2);
+        // A80: su /acquista a 1920×1080 la cima (1150 px) superava il blocco (1080) e lo strato cominciava sopra la carta;
+        // con lo spazio nel cielo in mezzo comincia sotto il pixel 0 anche lì: nessuna eccezione.
+        expect(g.strato!.top, "lo strato esce sopra la carta").toBeGreaterThanOrEqual(-1);
         if (vp.w >= 1024) expect(g.blocco!.height, "da lg il blocco non è alto almeno 100svh").toBeGreaterThanOrEqual(vp.h - 1);
         expect(g.nodiFuori, "nodi fuori dal blocco").toBe(0);
         const trabocco = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
