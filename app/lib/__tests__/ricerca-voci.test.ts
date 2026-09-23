@@ -59,7 +59,7 @@ describe("HomeSearchGateway: l'aggancio del pannello", () => {
   });
 
   // Un frammento malformato (`/#%`, `/#a%E2`) fa lanciare decodeURIComponent dentro il layout
-  // effect: la decodifica sta in try/catch col ripiego sull'id grezzo, come fragmentPending di
+  // effect: la decodifica sta in try/catch col ripiego sull'id grezzo, come fragmentTarget di
   // reveal-engine.ts, e la home non cade su app/error.tsx.
   test("il frammento malformato non lancia: decodeURIComponent in try/catch con ripiego sull'id grezzo", () => {
     assert.doesNotMatch(ricerca, /getElementById\(decodeURIComponent\(location\.hash/);

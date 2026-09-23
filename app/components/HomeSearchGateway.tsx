@@ -130,7 +130,7 @@ export default function HomeSearchGateway() {
         const docTop = (el: Element) => el.getBoundingClientRect().top + window.scrollY;
         const sezione = dock.closest("section");
         // Un frammento malformato (`/#%`, `/#a%E2`, link troncati) fa lanciare decodeURIComponent, e qui
-        // siamo nel layout effect: la home cadrebbe su app/error.tsx. Stessa guardia di fragmentPending
+        // siamo nel layout effect: la home cadrebbe su app/error.tsx. Stessa guardia di fragmentTarget
         // (reveal-engine.ts): ripiego sull'id grezzo, che basta agli id ASCII del sito.
         const ancoraDelFrammento = (): HTMLElement | null => {
           const id = location.hash.slice(1);
