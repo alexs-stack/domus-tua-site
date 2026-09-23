@@ -132,11 +132,9 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     for (const r of dellaTesta) {
       // A48 (22 set.): l'unico colore scritto dal CSS della testa è il bianco nudo dello spazio sopra la foto, da lg
       // (le utility della rivista dentro le sezioni cedono al bianco): fuori di lì i colori restano le classi nel markup.
-      // A52: le opzioni aperte delle tendine sulla foto restano native, inchiostro su carta (il menu del sistema è chiaro).
-      if (/\.dt-testa_sopra select option$/.test(r.selettore)) {
-        assert.match(r.corpo, /(^|[^-])color\s*:\s*var\(--color-ink\)/, `${r.selettore}: le opzioni della tendina non sono inchiostro`);
-        continue;
-      }
+      // A80 (23 set.): le tendine della ricerca non stanno più sulla foto ma nel cielo, e con loro è andata la regola
+      // delle opzioni native in inchiostro.
+      assert.doesNotMatch(r.selettore, /\.dt-testa_sopra (select|input)/, `${r.selettore}: una regola per i campi sulla foto (A80: la ricerca sta nel cielo)`);
       // A56 (Alberto, 22 set. 2026, pomeriggio: «le scritte bianche sopra le immagini, mettile di colore grigio, come
       // quello della hero della scritta "domus"»): sulla foto il colore è il grigio del lockup, `--color-graphite`,
       // senza ombra; le righe e i segnaposto lo portano con color-mix, mai un bianco.
@@ -271,6 +269,25 @@ describe("D190: lo stato del CSS è lo stato a riposo, e fuori dal gesto la test
     assert.doesNotMatch(sopraLg!.corpo, /text-shadow\s*:\s*0 1px 2px rgb\(0 0 0 \/ 0\.35\), 0 0 28px rgb\(0 0 0 \/ 0\.45\)/, "sulla foto l'ombra non è quella unica del sito (A54, ink-media.ts)");
     assert.doesNotMatch(sopraLg!.corpo, /background|backdrop-filter|filter\s*:/, "sulla foto niente velo (C14): solo l'ombra attaccata alle lettere");
     assert.ok(per(".dt-testa_pagina").length === 0, "la fascia dei tre punti dopo la foto è morta (A48)");
+    // A80 (23 set.): lo spazio nel CIELO, in flusso fra il blocco e lo strato, sulla carta: una regola base (relative,
+    // z 1 sopra la cima trasparente dell'immagine), nessun colore, nessun fondo, nessuna ombra; sotto lg segue la foto
+    // (il riquadro colonna flessibile, lo spazio in fondo con `order`), da lg nessuna regola propria.
+    const cielo = per(".dt-testa_cielo");
+    assert.equal(cielo.length, 1, "lo spazio nel cielo ha una regola base sola (A80)");
+    assert.deepEqual(cielo[0].media, []);
+    assert.match(cielo[0].corpo, /position\s*:\s*relative/);
+    assert.match(cielo[0].corpo, /z-index\s*:\s*1/, "senza z-index la cima trasparente dell'immagine si prende i clic della ricerca");
+    assert.doesNotMatch(cielo[0].corpo, /(^|[^-])color\s*:|background|transform|text-shadow|box-shadow|margin/, "lo spazio nel cielo è carta nuda (A80)");
+    const MQ_SOTTO_LG = "@media (max-width: 1023.98px)";
+    const colonna = per(".dt-testa[data-cielo] .dt-testa_riquadro");
+    assert.equal(colonna.length, 1);
+    assert.deepEqual(colonna[0].media, [MQ_SOTTO_LG], "il riquadro è una colonna flessibile solo sotto lg e solo dove c'è il cielo");
+    assert.match(colonna[0].corpo, /display\s*:\s*flex/);
+    assert.match(colonna[0].corpo, /flex-direction\s*:\s*column/);
+    const inFondo = per(".dt-testa[data-cielo] .dt-testa_cielo");
+    assert.equal(inFondo.length, 1);
+    assert.deepEqual(inFondo[0].media, [MQ_SOTTO_LG]);
+    assert.match(inFondo[0].corpo, /order\s*:\s*1/, "sotto lg la ricerca non segue la foto");
     assert.doesNotMatch(css, /--dt-tinta-bassa/, "la tinta bassa è morta (D187)");
     // L'inquadratura per fascia (D180): --dt-op dalla media query.
     assert.ok(base.some((r) => /--dt-op\s*:\s*var\(--dt-op-sotto/.test(r.corpo)), "sotto lg --dt-op non legge --dt-op-sotto");
@@ -425,6 +442,18 @@ describe("PageHero e PageHeroTesta senza JS e senza gesto", () => {
     // sopra: PageHeroTesta resta server e senza stili scritti da JS.
     assert.match(testa, /<div className="dt-testa_sopra">\{sopra\}<\/div>\s*<ChiusuraFoto \/>/, "la chiusura della foto non è montata dopo lo spazio sopra (A53)");
     assert.match(testa, /<section[^>]*\bdata-sopra=\{suFoto \? "foto" : "carta"\}/, "la section non porta data-sopra (A48: il bianco solo dove la foto ha una banda scura)");
+    // A80 (23 set.): lo spazio nel cielo sta fra il blocco e lo strato, e c'è solo se la pagina lo passa.
+    const spazioCielo = testa.indexOf('{cielo ? <div className="dt-testa_cielo">{cielo}</div> : null}');
+    assert.ok(spazioCielo > blocco && spazioCielo < strato, "lo spazio nel cielo non sta fra il blocco e lo strato (A80)");
+    assert.match(testa, /<section[^>]*\bdata-cielo=\{cielo \? "" : undefined\}/, "la section non dice al CSS che c'è il cielo (A80)");
+    // Dove c'è il cielo i tre punti stanno nel blocco, sotto i comandi, e lo spazio sopra non li rende più.
+    const hero = soloCodice(leggi("app/components/PageHero.tsx"));
+    assert.match(hero, /const puntiNelBlocco = cielo != null;/);
+    const piede = hero.indexOf('className="dt-testa_piede');
+    assert.ok(hero.indexOf("{puntiBlocco && <Reveal>{puntiBlocco}</Reveal>}") > hero.indexOf("<Cta href={primary.href}", piede), "i tre punti non stanno nel piede dopo i comandi (A80)");
+    assert.match(hero, /className="dt-testa_punti /, "i tre punti nel blocco non hanno la loro classe");
+    assert.match(hero, /puntiNelBlocco \? \(\s*sopra\s*\) : \(\s*<>\s*\{punti\}\s*\{sopra\}\s*<\/>\s*\)/, "lo spazio sopra rende ancora i tre punti dove c'è il cielo (A80)");
+    assert.match(hero, /cielo=\{cielo\}/, "PageHero non passa il cielo a PageHeroTesta");
   });
 
   test("SplitTitle, ScriptWord e SplitChars sono quelli di sempre: nessuna copia, nessun `alone`, nessun `statico` (A40)", () => {

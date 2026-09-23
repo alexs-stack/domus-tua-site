@@ -47,6 +47,13 @@
 //   cartolina mentre sale. La foto e i marcatori stanno nella scatola `.dt-testa_foto`
 //   (assoluta in cima allo strato: da lg riempie lo strato, sotto lg è alta quanto la foto resa), così
 //   le bande del segno restano frazioni della FOTO anche quando lo strato cresce col contenuto;
+// - `.dt-testa_cielo` è lo spazio NEL CIELO (A80 di Alberto, 23 set. 2026: «la ricerca intelligente non si
+//   vede … ingegnati e stupiscimi cambiando il design dell'input della ricerca»): in flusso fra il blocco e lo
+//   strato, sulla carta, in inchiostro. Lo strato ci sale sotto col suo cielo trasparente (margine negativo
+//   invariato), così il soggetto comincia al fondo dello spazio e nessuna lettera sta sulla foto (A46 applicata
+//   a ciò che la pagina posa dopo i comandi). z-index 1: la cima trasparente dell'immagine, che ci passa sotto,
+//   altrimenti si prenderebbe i clic. Sotto lg segue la foto (globals.css, `order` nella colonna flessibile del
+//   riquadro): l'ordine del DOM resta blocco → cielo → strato. Oggi lo usa solo /acquista, per la ricerca;
 // - lo stato del CSS è lo stato a riposo: senza JS e con reduced-motion la pagina è
 //   questa, completa; niente sticky, niente trasformate (D190). CLS 0 per costruzione:
 //   nulla si misura, nulla si scrive dopo il paint;
@@ -70,6 +77,7 @@ export default function PageHeroTesta({
   blocco,
   suFoto,
   sopra,
+  cielo,
 }: {
   id?: string;
   /** La foto: il WebP col cielo trasparente dove c'è (A46), altrimenti la sorgente (PageHero decide). */
@@ -83,11 +91,15 @@ export default function PageHeroTesta({
   suFoto: boolean;
   /** Lo spazio sopra la foto (A48): i tre punti e le sezioni che la pagina posa sulla foto; vuoto dove non c'è niente. */
   sopra?: ReactNode;
+  /** Lo spazio nel cielo (A80): in flusso fra il blocco e lo strato, sulla carta, in inchiostro; lo strato ci sale
+      sotto col suo cielo trasparente e il soggetto comincia al suo fondo. Sotto lg segue la foto (CSS, order). */
+  cielo?: ReactNode;
 }) {
   return (
-    <section id={id} data-testa data-sopra={suFoto ? "foto" : "carta"} className="dt-testa relative isolate">
+    <section id={id} data-testa data-sopra={suFoto ? "foto" : "carta"} data-cielo={cielo ? "" : undefined} className="dt-testa relative isolate">
       <div data-dive-zoom className="dt-testa_riquadro">
         {blocco}
+        {cielo ? <div className="dt-testa_cielo">{cielo}</div> : null}
         <div data-testa-strato className="dt-testa_strato">
           <div data-testa-foto-box className="dt-testa_foto">
             <Image
