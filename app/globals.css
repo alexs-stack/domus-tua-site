@@ -2934,6 +2934,25 @@ a.text-red {
 .dt-testa_sopra:empty {
   display: none;
 }
+/* IL CIELO (A80 di Alberto, 23 set. 2026: «la ricerca intelligente non si vede»). Lo spazio in flusso fra il
+   blocco e lo strato: lo strato ci sale sotto col suo cielo trasparente (margine negativo invariato) e il soggetto
+   comincia al suo fondo, così nessuna lettera sta sulla foto (A46). z-index 1: sopra la cima trasparente
+   dell'immagine, che altrimenti si prenderebbe i clic. Nessun colore: le classi nel markup (D184). */
+.dt-testa_cielo {
+  position: relative;
+  z-index: 1;
+}
+/* Sotto lg lo spazio del cielo segue la foto (la ricerca sulla carta dopo la foto, come prima): il riquadro diventa
+   una colonna flessibile e lo spazio va in fondo. L'ordine del DOM resta blocco → cielo → strato. */
+@media (max-width: 1023.98px) {
+  .dt-testa[data-cielo] .dt-testa_riquadro {
+    display: flex;
+    flex-direction: column;
+  }
+  .dt-testa[data-cielo] .dt-testa_cielo {
+    order: 1;
+  }
+}
 @media (min-width: 64rem) {
   .dt-testa {
     --dt-op: var(--dt-op-lg, 50% 50%);
@@ -2980,17 +2999,10 @@ a.text-red {
     bottom: 0;
     aspect-ratio: auto;
   }
-  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, input, select, h2, h3, h4, p, li, dt, dd) {
+  /* A80 (23 set.): la ricerca di /acquista non sta più qui ma nel cielo (`.dt-testa_cielo`), in inchiostro; con
+     lei sono andate le regole del campo e delle tendine sulla foto. Nessun'altra sezione posata sulla foto ha campi. */
+  .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.text-ink, .text-graphite, .text-stone, .lead, .eyebrow, .dt-btn--ghost, a, button, h2, h3, h4, p, li, dt, dd) {
     color: #fff;
-  }
-  /* Le tendine della ricerca sulla foto (A52): le opzioni aperte restano native (inchiostro su carta). */
-  .dt-testa[data-sopra="foto"] .dt-testa_sopra select option {
-    color: var(--color-ink);
-  }
-  /* Il campo e le tendine della ricerca di /acquista (A48, A52): il segnaposto nel grigio attenuato; la riga
-     sotto il campo è l'utility `border-ink!`, che col grigio è già giusta. */
-  .dt-testa[data-sopra="foto"] .dt-testa_sopra input::placeholder {
-    color: color-mix(in srgb, #fff 72%, transparent);
   }
   .dt-testa[data-sopra="foto"] .dt-testa_sopra :is(.bg-cream, .bg-paper, .bg-cream-deep) {
     background-color: transparent;
@@ -3255,3 +3267,222 @@ a.text-red {
    sticky sotto lg tinta come la foto) è morta con A46 nello stesso modo: sotto la barra c'è la
    carta, poi la foto, e la barra solida è `bg-cream-deep` come su ogni altra rotta (la classe
    nel markup, Header.tsx). Nessuna regola CSS su `header` (D186). */
+
+/* -- LA RICERCA NEL CIELO (A80) -----------------------------------------------
+   A80 di Alberto (23 set. 2026): «dobbiamo risolvere la pagina acquista, la ricerca intelligente non si vede …
+   ingegnati e stupiscimi cambiando il design dell'input della ricerca, con qualcosa di figo e bello e consono
+   al design del sito». La testa della ricerca sta nel cielo della foto (`.dt-testa_cielo`), sulla carta, in
+   inchiostro; il campo è LA DOMANDA: una riga in Playfair alla misura di una testata (22 px a 390, 24,6 a 1024,
+   34,6 a 1440, 42 a 1920), il segnaposto in corsivo pietra, il testo scritto in tondo inchiostro, centrata
+   sull'asse del titolo da lg (il rientro a sinistra vale il pulsante più il suo spazio). Al fuoco una riga rossa
+   di 2 px si disegna sulla riga d'inchiostro (entra da sinistra in 750 ms, esce verso destra in 350 ms): è
+   l'indicatore del fuoco di questo campo, al posto dell'anello. Il pulsante tondo sta col centro SULLA riga,
+   come il punto fermo della frase: a vuoto anello d'inchiostro, con una frase disco rosso che si riempie.
+   L'esempio che si scrive da solo è RigaScritta.tsx. Solo transform, opacity e clip-path si muovono; nessuna
+   ombra, nessun raggio fuori dal pulsante tondo, nessun velo. Fuori da ogni selettore `.dt-testa`: la ricerca
+   può stare anche sulla carta di una sezione (PropertySearch da solo). */
+.dt-ricerca {
+  --dt-punto: 3rem;
+  --dt-domanda: clamp(1.375rem, 5.4vw, 1.75rem);
+}
+.dt-ricerca_riga {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--dt-punto);
+  column-gap: 0.875rem;
+  align-items: end;
+}
+.dt-ricerca_campo {
+  position: relative;
+  display: block;
+  min-width: 0;
+  font-size: var(--dt-domanda);
+}
+.dt-ricerca_domanda {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-ink);
+  border-radius: 0;
+  background: transparent;
+  padding: 0.28em 0 0.34em;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1em;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--color-ink);
+  caret-color: var(--color-red);
+  text-overflow: ellipsis;
+  outline: none;
+  /* 44 px, la soglia dei comandi del sito: a 22 px (il telefono) la riga da sola ne fa 42. */
+  min-height: 2.75rem;
+}
+/* Il campo è l'eccezione all'anello globale: l'indicatore del fuoco è la riga rossa disegnata qui sotto. */
+.dt-ricerca_domanda:focus-visible {
+  outline: none;
+}
+.dt-ricerca_domanda::placeholder {
+  font-style: italic;
+  color: var(--color-stone);
+  opacity: 1;
+}
+.dt-ricerca_campo::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.5px;
+  height: 2px;
+  background: var(--color-red);
+  transform: scaleX(0);
+  transform-origin: 100% 50%;
+  transition: transform 0.35s var(--ease-domus);
+  pointer-events: none;
+}
+.dt-ricerca_campo:focus-within::after {
+  transform: scaleX(1);
+  transform-origin: 0 50%;
+  transition-duration: 0.75s;
+}
+/* La riga che si scrive (RigaScritta): nascosta finché il campo non è armato; armato, il segnaposto nativo
+   si fa trasparente e il sovrapposto, con le stesse misure, lo scrive. */
+.dt-ricerca_esempio {
+  display: none;
+  position: absolute;
+  inset: 0 0 1px 0;
+  align-items: center;
+  padding: 0.28em 0 0.34em;
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--color-stone);
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none;
+}
+.dt-ricerca_campo[data-scrive] .dt-ricerca_esempio {
+  display: flex;
+}
+.dt-ricerca_campo[data-scrive]:not(:focus-within) .dt-ricerca_domanda::placeholder {
+  color: transparent;
+}
+.dt-ricerca_campo:focus-within .dt-ricerca_esempio,
+.dt-ricerca_campo:has(.dt-ricerca_domanda:not(:placeholder-shown)) .dt-ricerca_esempio {
+  visibility: hidden;
+}
+.dt-ricerca_scritto {
+  position: relative;
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+.dt-ricerca_testo {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  clip-path: inset(0 100% 0 0);
+}
+.dt-ricerca_cursore {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.dt-ricerca_cursore::after {
+  content: "";
+  position: absolute;
+  right: -0.12em;
+  top: 0.14em;
+  bottom: 0.1em;
+  width: 2px;
+  background: var(--color-red);
+}
+/* Il punto: il pulsante tondo della ricerca, col centro SULLA riga, come il punto fermo della frase. A vuoto è
+   un anello d'inchiostro (la forma delle frecce del carosello); con una frase il disco rosso si riempie (scala)
+   e la freccia diventa bianca. È un tasto tondo, la curva ammessa (DESIGN.md, Shapes). */
+.dt-ricerca_punto {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: var(--dt-punto);
+  height: var(--dt-punto);
+  margin-bottom: calc(var(--dt-punto) / -2);
+  border: 1px solid var(--color-ink);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-domus);
+}
+.dt-ricerca_punto::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--color-red);
+  transform: scale(0);
+  transition: transform 0.45s var(--ease-domus);
+}
+.dt-ricerca_punto[data-pieno] {
+  border-color: var(--color-red);
+  color: #fff;
+}
+.dt-ricerca_punto[data-pieno]::before {
+  transform: scale(1);
+}
+.dt-ricerca_punto[data-pieno]:hover:not(:disabled)::before {
+  background: var(--color-red-dark);
+}
+.dt-ricerca_punto:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.dt-ricerca_punto:disabled {
+  cursor: not-allowed;
+}
+@media (min-width: 64rem) {
+  .dt-ricerca {
+    --dt-punto: 3.5rem;
+    --dt-domanda: clamp(1.5rem, 2.4vw, 2.625rem);
+  }
+  .dt-ricerca_testa {
+    text-align: center;
+  }
+  .dt-ricerca_testa .eyebrow::before {
+    display: none;
+  }
+  .dt-ricerca_domanda {
+    text-align: center;
+    padding-inline-start: calc(var(--dt-punto) + 0.875rem);
+  }
+  .dt-ricerca_esempio {
+    justify-content: center;
+    padding-inline-start: calc(var(--dt-punto) + 0.875rem);
+  }
+}
+/* Sotto 768 la regola dei 16 px dei campi (in cima al file, !important) cede per specificità: 22 px a 390 stanno
+   già sopra la soglia dello zoom di iOS. */
+@media (max-width: 767px) {
+  .dt-ricerca_campo > input.dt-ricerca_domanda:not([type="checkbox"]) {
+    font-size: 1em !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-ricerca_campo::after,
+  .dt-ricerca_punto,
+  .dt-ricerca_punto::before {
+    transition: none;
+  }
+}
+/* Con i colori forzati il rosso diventerebbe il fondo del sistema e la riga del fuoco coprirebbe la riga del campo:
+   prende il colore dell'evidenziazione, così il fuoco resta un segno in più e non uno in meno. */
+@media (forced-colors: active) {
+  .dt-ricerca_campo::after {
+    background: Highlight;
+  }
+}

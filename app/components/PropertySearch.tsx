@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from "react";
 import { Flip } from "gsap/Flip";
 import Reveal from "./Reveal";
@@ -13,6 +13,7 @@ const PropertyMap = dynamic(() => import("./PropertyMap"), {
   loading: () => <div className="h-[420px] animate-pulse bg-cream-deep" aria-hidden />,
 });
 import CaseQuickLook from "./CaseQuickLook";
+import RigaScritta from "./motion/RigaScritta";
 import { ArrowRight } from "./Icons";
 import { Cta, CtaButton } from "./primitives/Cta";
 import { useLocale } from "./i18n/LocaleProvider";
@@ -36,6 +37,8 @@ gsap.registerPlugin(Flip);
 const copy = {
   it: {
     nlPlaceholder: "Es. trilocale con giardino a Tradate sotto 300.000 €",
+    // Sotto lg il campo è largo quanto il telefono: l'esempio intero finiva tagliato (A80).
+    nlPlaceholderBreve: "Es. trilocale con giardino",
     nlAria: "Descrivi la casa che cerchi",
     resultsHeading: "Immobili trovati",
     smartBadge: "Ricerca intelligente",
@@ -91,6 +94,7 @@ const copy = {
   },
   en: {
     nlPlaceholder: "E.g. two-bed with garden in Tradate under €300,000",
+    nlPlaceholderBreve: "E.g. two-bed with garden",
     nlAria: "Describe the home you’re looking for",
     resultsHeading: "Homes found",
     smartBadge: "Smart search",
@@ -146,6 +150,7 @@ const copy = {
   },
   fr: {
     nlPlaceholder: "Ex. trois-pièces avec jardin à Tradate sous 300 000 €",
+    nlPlaceholderBreve: "Ex. trois-pièces avec jardin",
     nlAria: "Décrivez la maison que vous cherchez",
     resultsHeading: "Biens trouvés",
     smartBadge: "Recherche intelligente",
@@ -201,6 +206,7 @@ const copy = {
   },
   de: {
     nlPlaceholder: "Z. B. Dreizimmerwohnung mit Garten in Tradate unter 300.000 €",
+    nlPlaceholderBreve: "Z. B. 3 Zimmer mit Garten",
     nlAria: "Beschreiben Sie das Zuhause, das Sie suchen",
     resultsHeading: "Gefundene Objekte",
     smartBadge: "Intelligente Suche",
@@ -259,7 +265,9 @@ const copy = {
     showingHint: "{n} von {tot} werden angezeigt",
   },
   es: {
-    nlPlaceholder: "P. ej. piso de tres ambientes con jardín en Tradate por menos de 300.000 €",
+    // A80: 74 segni uscivano dal campo a ogni larghezza da lg e l'ellissi tagliava il prezzo.
+    nlPlaceholder: "P. ej. piso de 3 ambientes con jardín en Tradate hasta 300.000 €",
+    nlPlaceholderBreve: "P. ej. piso con jardín",
     nlAria: "Describe la casa que buscas",
     resultsHeading: "Inmuebles encontrados",
     smartBadge: "Búsqueda inteligente",
@@ -589,9 +597,30 @@ export function RicercaProvider({ properties, children }: { properties: GridProp
    budget, locali, tipologia, contratto), nella forma dei campi del modulo (DESIGN.md «Inputs / Fields»:
    nessuna scatola, la riga sotto, etichetta 1rem 600 maiuscola). I rettangoli con bordo dei filtri sono
    morti: i chip restano solo per gli affinamenti (caratteristiche, venduti) sopra i risultati, nella
-   forma del modulo (testo con la riga sotto rossa quando selezionato). Sulla foto (da lg, con la banda
-   scura) tutto vira al bianco per le regole di globals.css; sotto lg e sulla carta è inchiostro. */
+   forma del modulo (testo con la riga sotto rossa quando selezionato).
+   LA DOMANDA (A80 di Alberto, 23 set. 2026: «la ricerca intelligente non si vede … ingegnati e stupiscimi
+   cambiando il design dell'input della ricerca, con qualcosa di figo e bello e consono al design del sito»).
+   Sulla foto il bianco cadeva per metà sul cielo trasparente (la carta) e per metà sull'ulivo e sul muro
+   bianco: la testa ora sta NEL CIELO della foto (PageHero `cielo`), sulla carta, in inchiostro, e la villa le
+   sale sotto. Il campo è una seconda testata in cui si scrive: una riga in Playfair (il segnaposto in corsivo
+   pietra, il testo scritto in tondo inchiostro), centrata sull'asse del titolo da lg; l'esempio si scrive da
+   solo una volta dietro un cursore rosso (RigaScritta); al fuoco una riga rossa di 2 px si disegna sulla riga
+   d'inchiostro; il pulsante tondo sta sulla riga come il punto fermo della frase: anello d'inchiostro a vuoto,
+   disco rosso quando c'è una frase. Tutto su carta piatta: inchiostro 7,5:1, pietra 4,9:1, rosso cupo 6,1:1. */
 type Opzione = { value: string; label: string };
+
+// Il segnaposto per fascia: l'esempio intero da lg, quello corto sul telefono e sul tablet, dove il campo
+// è stretto e l'intero finiva tagliato. Il server e il primo render del client usano quello corto (nessun
+// mismatch d'idratazione); da lg cambia dopo l'idratazione, e cambiare un segnaposto non sposta nessuna
+// scatola (da lg la ricerca sta sempre sotto la piega: il blocco è alto almeno 100svh).
+const iscriviLg = (cb: () => void) => {
+  const m = window.matchMedia(MQ.lg);
+  m.addEventListener("change", cb);
+  return () => m.removeEventListener("change", cb);
+};
+function useDaLg() {
+  return useSyncExternalStore(iscriviLg, () => window.matchMedia(MQ.lg).matches, () => false);
+}
 
 // La freccia della tendina: `appearance-none` toglie quella del browser (come nel modulo, Contact.tsx).
 function Caret() {
@@ -610,7 +639,7 @@ function Tendina({ label, value, onChange, options, attivo }: { label: string; v
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`block w-full appearance-none border-0 border-b border-ink! bg-transparent py-3 pr-8 text-body text-ink transition-colors focus:border-red! focus:outline-none ${attivo ? "font-medium" : ""}`}
+          className={`block w-full appearance-none truncate border-0 border-b border-ink! bg-transparent py-3 pr-8 text-body text-ink transition-colors focus:border-red! focus:outline-none ${attivo ? "font-medium" : ""}`}
         >
           {options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -628,32 +657,44 @@ function TestaRicerca({ r }: { r: Ricerca }) {
   const { locale } = useLocale();
   const c = copy[locale];
   const { nl, setNl, runSearch, searching, ai, clearAi, aiError, f, setFilters, comuni, budgetChoices } = r;
+  const daLg = useDaLg();
+  const esempio = daLg ? c.nlPlaceholder : c.nlPlaceholderBreve;
+  // La riga di stato: centrata sotto la domanda da lg, a sinistra sotto.
+  const stato = "mt-[clamp(2rem,3.4vh,2.25rem)] text-body lg:mx-auto lg:max-w-[48rem] lg:text-center lg:text-balance";
   return (
-    <div className="dt-ricerca">
-      {/* Ricerca in linguaggio naturale (AI): campo a sola sottolineatura, come il modulo, alla misura d4. */}
+    <div className="dt-ricerca mx-auto max-w-[84rem]">
+      {/* La domanda (A80): nessuna utility sul campo e sul pulsante — le `!` di Tailwind batterebbero le regole
+          .dt-ricerca_* di globals.css e coprirebbero la riga rossa disegnata. */}
       <Reveal>
-        <div className="border-t border-line pt-6">
+        <div className="dt-ricerca_testa">
           <span className="eyebrow">{c.smartBadge}</span>
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
-            <input
-              value={nl}
-              onChange={(e) => setNl(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void runSearch();
-                }
-              }}
-              placeholder={c.nlPlaceholder}
-              className="block w-full flex-1 border-0 border-b border-ink! bg-transparent py-3 text-d4 font-light text-ink placeholder:text-stone focus:border-red! focus:outline-none"
-              aria-label={c.nlAria}
-            />
+          <div className="dt-ricerca_riga mt-[clamp(0.5rem,1.6vh,1rem)]">
+            <span className="dt-ricerca_campo">
+              <input
+                className="dt-ricerca_domanda"
+                value={nl}
+                onChange={(e) => setNl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void runSearch();
+                  }
+                }}
+                placeholder={esempio}
+                aria-label={c.nlAria}
+                enterKeyHint="search"
+                autoComplete="off"
+              />
+              <RigaScritta testo={esempio} fermo={!!nl} />
+            </span>
             <button
               type="button"
+              className="dt-ricerca_punto"
+              // Il disco resta pieno anche mentre cerca: lo spinner è bianco, sull'anello vuoto sparirebbe.
+              data-pieno={nl.trim() || searching ? "" : undefined}
               onClick={() => void runSearch()}
               disabled={searching || !nl.trim()}
               aria-label={c.searchAria}
-              className="grid h-14 w-14 shrink-0 place-items-center self-start rounded-full bg-red text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
             >
               {searching ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -662,27 +703,27 @@ function TestaRicerca({ r }: { r: Ricerca }) {
               )}
             </button>
           </div>
-        </div>
-        {/* Regione live: annuncia a screen reader il passaggio teaser → risultato/errore. */}
-        <div role="status" aria-live="polite">
-          {ai ? (
-            <p className="mt-4 flex flex-wrap items-center gap-2 text-body text-graphite">
-              <span>
-                {c.aiResultPrefix}: <span className="font-semibold text-ink">“{ai.query}”</span>
-              </span>
-              <button type="button" onClick={clearAi} className="underline underline-offset-2 hover:text-ink">
-                {c.aiClear}
-              </button>
-            </p>
-          ) : aiError ? (
-            <p className="mt-4 text-body text-red-dark">{c.aiError}</p>
-          ) : (
-            <p className="mt-4 text-body text-graphite">{c.teaser}</p>
-          )}
+          {/* Regione live: annuncia a screen reader il passaggio teaser → risultato/errore. */}
+          <div role="status" aria-live="polite">
+            {ai ? (
+              <p className={`${stato} flex flex-wrap items-center gap-x-2 text-graphite lg:justify-center`}>
+                <span>
+                  {c.aiResultPrefix}: <span className="font-display text-[1.3125rem] italic text-ink">“{ai.query}”</span>
+                </span>
+                <button type="button" onClick={clearAi} className="inline-flex min-h-11 items-center text-ink underline underline-offset-2 hover:text-red-dark">
+                  {c.aiClear}
+                </button>
+              </p>
+            ) : aiError ? (
+              <p className={`${stato} text-red-dark`}>{c.aiError}</p>
+            ) : (
+              <p className={`${stato} text-graphite`}>{c.teaser}</p>
+            )}
+          </div>
         </div>
       </Reveal>
       {/* Le cinque tendine in una riga: la zona per prima (è quella che restringe davvero, e2e search.spec). */}
-      <Reveal delay={80} className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-5">
+      <Reveal delay={80} className="mt-[clamp(2rem,5vh,3.25rem)] grid gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-5 xl:gap-x-8">
         <Tendina label={c.zone} value={f.comune} onChange={(v) => setFilters((s) => ({ ...s, comune: v }))} options={comuni.map((z) => ({ value: z, label: z === "Tutti" ? c.zoneAll : z }))} attivo={f.comune !== "Tutti"} />
         <Tendina label={c.budget} value={String(f.maxBudget)} onChange={(v) => setFilters((s) => ({ ...s, maxBudget: Number(v) }))} options={budgetChoices.map((b) => ({ value: String(b.value), label: b.label }))} attivo={f.maxBudget !== 0} />
         <Tendina label={c.rooms} value={String(f.minRooms)} onChange={(v) => setFilters((s) => ({ ...s, minRooms: Number(v) }))} options={roomOptions.map((o) => ({ value: String(o.value), label: o.value === 0 ? c.roomsAny : o.label }))} attivo={f.minRooms !== 0} />
@@ -694,14 +735,15 @@ function TestaRicerca({ r }: { r: Ricerca }) {
 }
 
 /**
- * La testa della ricerca da posare sulla foto della testa di /acquista (PageHero `sopra`, A48):
- * dentro RicercaProvider. Passo verticale come i tre punti (PageHero), riga `dt-row` come la sezione.
+ * La testa della ricerca da posare nel cielo della testa di /acquista (PageHero `cielo`, A80): dentro
+ * RicercaProvider. Riga `dt-row` come la sezione; da lg un passo più corto in alto, perché la segue subito il
+ * blocco dei comandi, e più lungo in basso, prima che la villa salga.
  */
 export function SearchHead() {
   const r = useContext(RicercaContext);
   if (!r) throw new Error("SearchHead va montata dentro RicercaProvider (A48)");
   return (
-    <div className="dt-row pt-[clamp(1.5rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)]">
+    <div className="dt-row pt-[clamp(1.75rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)] lg:pt-[clamp(0.5rem,2.5vh,1.75rem)] lg:pb-[clamp(1.5rem,4.5vh,3.25rem)]">
       <TestaRicerca r={r} />
     </div>
   );
