@@ -215,13 +215,44 @@ describe("requestRefresh(): un refresh per fotogramma, chiesto al cambio lingua 
     );
   });
 
+  // Lo scrollEnd che ScrollTrigger emette dentro il primo evento di scroll dopo un task lungo
+  // (l'idratazione con l'arrivo a /#contatti o a /#cerca in volo) non è la fine dello scroll: lo
+  // stesso evento rimette subito l'ora dell'ultimo scroll. onScrollEnd lo conferma al fotogramma
+  // dopo, con `isScrolling()` ancora falso; whenStill e il motore dei reveal passano da lì, e nessun
+  // altro modulo ascolta lo scrollEnd diretto.
+  test("onScrollEnd(): lo scrollEnd vale se al fotogramma dopo ScrollTrigger non scorre più; unico ascoltatore diretto", () => {
+    const fine = gsapTs.slice(gsapTs.indexOf("export function onScrollEnd("), gsapTs.indexOf("export function whenStill("));
+    assert.ok(fine.length > 0, "manca export function onScrollEnd in gsap.ts, prima di whenStill");
+    assert.match(fine, /ScrollTrigger\.addEventListener\("scrollEnd", onEnd\)/);
+    assert.match(
+      fine,
+      /cancelAnimationFrame\(raf\);\s*raf = requestAnimationFrame\(\(\) => \{\s*raf = 0;\s*if \(!ScrollTrigger\.isScrolling\(\)\) fn\(\);/,
+    );
+    assert.match(fine, /return \(\) => \{\s*ScrollTrigger\.removeEventListener\("scrollEnd", onEnd\);\s*cancelAnimationFrame\(raf\);/);
+    const diretti: string[] = [];
+    const scan = (dir: string) => {
+      for (const nome of readdirSync(dir)) {
+        if (nome === "node_modules" || nome === "__tests__") continue;
+        const p = join(dir, nome);
+        if (statSync(p).isDirectory()) scan(p);
+        else if (/\.tsx?$/.test(nome) && /addEventListener\("scrollEnd"/.test(soloCodice(readFileSync(p, "utf8")))) {
+          diretti.push(p.slice(ROOT.length + 1).split(sep).join("/"));
+        }
+      }
+    };
+    scan(join(ROOT, "app"));
+    assert.deepEqual(diretti, ["app/lib/motion/gsap.ts"]);
+    assert.equal(soloCodice(gsapTs).match(/addEventListener\("scrollEnd"/g)?.length, 1, "in gsap.ts lo ascolta solo onScrollEnd");
+  });
+
   test("whenStill(): subito a scroll fermo, altrimenti a scrollEnd col tetto del motore; uno solo per corridoi e cambio lingua (D53, D54)", () => {
     const still = gsapTs.slice(gsapTs.indexOf("export function whenStill("), gsapTs.indexOf("export const requestRefresh"));
     assert.ok(still.length > 0, "manca export function whenStill in gsap.ts, prima di requestRefresh");
     assert.match(still, /if \(!ScrollTrigger\.isScrolling\(\)\) \{\s*fn\(\);\s*return \(\) => \{\};/);
-    assert.match(still, /ScrollTrigger\.addEventListener\("scrollEnd", onEnd\)/);
+    assert.match(still, /stopEnd = onScrollEnd\(onEnd\);/);
+    assert.match(still, /const onEnd = \(\) => \{\s*stopEnd\(\);\s*window\.clearTimeout\(cap\);\s*fn\(\);/);
     assert.match(still, /if \(!ScrollTrigger\.isScrolling\(\)\) onEnd\(\);\s*\}, STILL_CAP_MS\)/);
-    assert.match(still, /return \(\) => \{\s*ScrollTrigger\.removeEventListener\("scrollEnd", onEnd\);\s*window\.clearTimeout\(cap\);/);
+    assert.match(still, /return \(\) => \{\s*stopEnd\(\);\s*window\.clearTimeout\(cap\);/);
     assert.match(gsapTs, /^const STILL_CAP_MS = 4000;/m);
     const hook = soloCodice(read("app/components/motion/useCorridor.ts"));
     assert.match(hook, /whenStill\(\(\) => requestRefresh\(\)\)/);

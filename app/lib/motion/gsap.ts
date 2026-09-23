@@ -28,7 +28,8 @@
 // solo via JS (mai SSR/CSS, salvo lo stato dipinto a 0.02 di spec §2.5); mai
 // transform su antenati sticky/fixed; i refresh di ScrollTrigger si chiedono
 // con requestRefresh e, a scroll in corso, con whenStill (D39, D53, D54, D56:
-// mai un refresh forzato dentro l'arrivo nativo a un frammento); uno stato
+// mai un refresh forzato dentro l'arrivo nativo a un frammento), e lo
+// scrollEnd di ScrollTrigger si ascolta con onScrollEnd, mai diretto; uno stato
 // nascosto che contiene un link o
 // un bottone usa opacity, mai autoAlpha — autoAlpha scrive visibility:hidden,
 // che sfila il link dalla tab order e impedisce persino alla rete di sicurezza
@@ -185,16 +186,46 @@ export const ctnY = (): string =>
 const STILL_CAP_MS = 4000;
 
 /**
+ * Lo scrollEnd di ScrollTrigger, preso solo se regge al fotogramma dopo (D39). ScrollTrigger lo
+ * emette da `_updateAll` quando l'ultimo evento di scroll è più vecchio di 200 ms
+ * (ScrollTrigger.js 3.15, righe 589-594), ma `_onScroll` chiama `_updateAll` PRIMA di segnare
+ * l'ora dell'evento nuovo (righe 374-388): il primo evento di uno scroll che continua dopo un task
+ * lungo del thread principale porta con sé uno scrollEnd, e dentro quello scrollEnd
+ * `isScrolling()` è falso. È l'idratazione (task di 250-510 ms misurati a 1440×900 e a 390×664)
+ * con l'arrivo smooth al frammento in volo: il refresh forzato che partiva da lì cancellava
+ * l'arrivo (/vendi#contatti fermo fra 2.000 e 9.300 px con l'ancora a 14.800-15.000; /#cerca
+ * fermo col pannello della ricerca a 0,90). Lo stesso evento rimette subito l'ora dell'ultimo
+ * scroll, quindi al fotogramma dopo `isScrolling()` è di nuovo vero e quello scrollEnd non vale: si
+ * aspetta il prossimo. Quello vero arriva a scroll fermo dal giro di `_sync` (ogni 250 ms, riga
+ * 2115), e al fotogramma dopo `isScrolling()` resta falso. Restituisce l'annullamento.
+ */
+export function onScrollEnd(fn: () => void): () => void {
+  let raf = 0;
+  const onEnd = () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      if (!ScrollTrigger.isScrolling()) fn();
+    });
+  };
+  ScrollTrigger.addEventListener("scrollEnd", onEnd);
+  return () => {
+    ScrollTrigger.removeEventListener("scrollEnd", onEnd);
+    cancelAnimationFrame(raf);
+  };
+}
+
+/**
  * Esegue `fn` a scroll fermo: subito se `ScrollTrigger.isScrolling()` è falso, altrimenti allo
- * scrollEnd di ScrollTrigger (200 ms dopo l'ultimo evento di scroll); al tetto STILL_CAP_MS parte
- * solo se lo scroll è fermo, altrimenti aspetta ancora lo scrollEnd. Restituisce l'annullamento,
- * per i cleanup degli effetti. Serve ai refresh: `ScrollTrigger.refresh()` è forzato, cioè
- * scrollBehavior ad "auto", scroll a 0, misure, ritorno alla posizione registrata, e i due scroll
- * programmatici cancellano uno scroll nativo in corso, l'arrivo smooth al frammento (/#contatti,
- * html { scroll-behavior: smooth }) o un fling su touch. È la regola D39 del motore dei reveal,
- * che tiene la sua versione con lo stato dell'arrivo (reveal-engine.ts); qui la leggono i corridoi
- * dopo `data-on` (useCorridor.ts, D53), il cambio lingua (LocaleProvider.tsx, D54) e il refresh
- * dopo load (D56, sotto).
+ * scrollEnd di ScrollTrigger (200 ms dopo l'ultimo evento di scroll, confermato da onScrollEnd);
+ * al tetto STILL_CAP_MS parte solo se lo scroll è fermo, altrimenti aspetta ancora lo scrollEnd.
+ * Restituisce l'annullamento, per i cleanup degli effetti. Serve ai refresh:
+ * `ScrollTrigger.refresh()` è forzato, cioè scrollBehavior ad "auto", scroll a 0, misure, ritorno
+ * alla posizione registrata, e i due scroll programmatici cancellano uno scroll nativo in corso,
+ * l'arrivo smooth al frammento (/#contatti, html { scroll-behavior: smooth }) o un fling su touch.
+ * È la regola D39 del motore dei reveal, che tiene la sua versione con lo stato dell'arrivo
+ * (reveal-engine.ts); qui la leggono i corridoi dopo `data-on` (useCorridor.ts, D53), il cambio
+ * lingua (LocaleProvider.tsx, D54) e il refresh dopo load (D56, sotto).
  */
 export function whenStill(fn: () => void): () => void {
   if (!ScrollTrigger.isScrolling()) {
@@ -202,17 +233,18 @@ export function whenStill(fn: () => void): () => void {
     return () => {};
   }
   let cap = 0;
+  let stopEnd = () => {};
   const onEnd = () => {
-    ScrollTrigger.removeEventListener("scrollEnd", onEnd);
+    stopEnd();
     window.clearTimeout(cap);
     fn();
   };
-  ScrollTrigger.addEventListener("scrollEnd", onEnd);
+  stopEnd = onScrollEnd(onEnd);
   cap = window.setTimeout(() => {
     if (!ScrollTrigger.isScrolling()) onEnd();
   }, STILL_CAP_MS);
   return () => {
-    ScrollTrigger.removeEventListener("scrollEnd", onEnd);
+    stopEnd();
     window.clearTimeout(cap);
   };
 }

@@ -75,7 +75,7 @@
 //     senza tween; i membri di prima tengono stato e transizione (spec §2.3).
 //   - Reduced-motion a pagina aperta: via stati, attributi e data-hero-intro.
 //   - Sotto [data-motion-freeze] (/case/[slug], A26 e D32) non arma nulla.
-import { gsap, ScrollTrigger, MQ, requestRefresh } from "./gsap";
+import { gsap, ScrollTrigger, MQ, requestRefresh, onScrollEnd } from "./gsap";
 import { ROLES, demote, restVars, tweenVars, type Role } from "./text-roles";
 import { FOLD_PENDING, foldArm, foldHooks } from "./fold";
 
@@ -339,8 +339,11 @@ function applySweep(g: Group, a: "in" | "shown" | "out", instant: boolean): void
  * programmatici che cancellano uno scroll nativo in corso, cioè l'arrivo smooth al frammento
  * (html { scroll-behavior: smooth }, ~1,5 s) o un fling su touch. ScrollTrigger.isScrolling()
  * legge i suoi eventi di scroll sul documento e "scrollEnd" arriva 200 ms dopo l'ultimo: è la
- * stessa attesa dei refresh automatici di ScrollTrigger. Il tetto STILL_CAP_MS chiude solo
- * l'attesa dell'arrivo: il refresh rimandato non parte mai a scroll in corso.
+ * stessa attesa dei refresh automatici di ScrollTrigger. Lo scrollEnd passa da onScrollEnd di
+ * gsap.ts, che lo conferma al fotogramma dopo: quello che ScrollTrigger emette dentro il primo
+ * evento di scroll dopo un task lungo (l'idratazione con l'arrivo in volo) non chiude l'arrivo e
+ * non fa partire il refresh. Il tetto STILL_CAP_MS chiude solo l'attesa dell'arrivo: il refresh
+ * rimandato non parte mai a scroll in corso.
  */
 function refreshWhenStill(): void {
   if (!arriving && !ScrollTrigger.isScrolling()) {
@@ -354,7 +357,7 @@ function armCap(): void {
   if (!stillCap) stillCap = window.setTimeout(onStill, STILL_CAP_MS);
 }
 
-/** scrollEnd di ScrollTrigger, o il tetto dell'arrivo: l'arrivo è finito e, a scroll fermo, il refresh rimandato parte. */
+/** scrollEnd di ScrollTrigger (confermato da onScrollEnd), o il tetto dell'arrivo: l'arrivo è finito e, a scroll fermo, il refresh rimandato parte. */
 function onStill(): void {
   window.clearTimeout(stillCap);
   stillCap = 0;
@@ -655,7 +658,7 @@ function install(): void {
     x: new IntersectionObserver((es) => onHits(es, "exit"), { threshold: 0, rootMargin: "0px -15% 0px 0px" }),
   };
   ScrollTrigger.addEventListener("refresh", sweep);
-  ScrollTrigger.addEventListener("scrollEnd", onStill);
+  onScrollEnd(onStill);
   window.addEventListener("resize", () => {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(sweep, RESIZE_MS);

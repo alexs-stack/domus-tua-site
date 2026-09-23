@@ -744,11 +744,14 @@ export default function LavoraConNoiContent() {
 
   return (
     <main className="flex-1">
-      {/* `tightTitle` solo in spagnolo: «currículums.» (356 px a 48 px) non entra nei
-          324 px della colonna a 360 — audit del 21 settembre 2026 (blocco 23), difetto
-          V04; nelle altre quattro lingue l'H1 resta quello di ogni rotta. */}
+      {/* `tightTitle` in spagnolo e in tedesco: «currículums.» (356 px a 48 px) e
+          «Lebensläufe.» (341 px a 48 px su Windows, 344 su Linux) non entrano nei 324
+          px della colonna a 360 — audit del 21 settembre 2026 (blocco 23), difetto V04.
+          Il tedesco era sfuggito al primo giro: misurato su Windows restava 1 px
+          dentro lo schermo, in CI ne usciva di 1,7 (mobile-motion.spec, rosso da
+          allora). Nelle altre tre lingue l'H1 resta quello di ogni rotta. */}
       <PageHero
-        tightTitle={locale === "es"}
+        tightTitle={locale === "es" || locale === "de"}
         rotta="/lavora-con-noi"
         eyebrow={c.heroEyebrow}
         title={c.heroTitle()}

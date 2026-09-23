@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect, setConsent } from "./helpers";
-import { HERO, RAFFAELA, RESPIRO_SVH, hwDi, salitaRiposo } from "../app/lib/motion/hero";
+import { CHIUSURA, HERO, RAFFAELA, RESPIRO_SVH, hwDi, salitaRiposo } from "../app/lib/motion/hero";
 import foto from "../app/lib/motion/hero.json";
 
 // L'HERO ALTO della home (A49 e A71 di Alberto, 22 settembre 2026): la foto alta col cielo trasparente
@@ -133,20 +133,29 @@ test.describe("l'hero alto da 1024 px con motion ok (A49)", () => {
       }
     });
 
-    test(`${vp.width}×${vp.height}: all'uscita la foto si ritira nella cornice 8/22 (A53), prima no`, async ({ page, goto }) => {
+    test(`${vp.width}×${vp.height}: all'uscita la foto si ritira nella cornice 8/22 (A53) mentre il suo fondo va dal 130 % al 35 % del viewport (A79), prima no`, async ({ page, goto }) => {
       await page.setViewportSize(vp);
       await goto("/");
       await idratata(page);
       const g = await geometria(page);
       const H = g.docW * hwDi(foto.sorgente);
       const clip = () => page.locator("#top [data-testa-foto-box]").evaluate((el) => getComputedStyle(el).clipPath);
-      // Il fondo dello spazio sopra ancora in vista: nessun ritaglio.
-      await scrollaA(page, g.sopra.bottom - 200);
+      // A79: la corsa della chiusura va dal fondo della foto al 130 % del viewport (ancora sotto il bordo) al fondo
+      // della foto al 35 % (CHIUSURA di hero.ts, prop `fondo` di ChiusuraFoto). Prima di A79 partiva quando il fondo
+      // dello spazio sopra passava la cima del viewport, a lockup uscito, e finiva col fondo della foto al 10 %.
+      const fondoFoto = g.strato.top + H;
+      const inizio = fondoFoto - (CHIUSURA[0] / 100) * g.vh;
+      const fine = fondoFoto - (CHIUSURA[1] / 100) * g.vh;
+      const medio = (inizio + fine) / 2;
+      // Il fondo della foto ancora 200 px sotto il 130 %: nessun ritaglio.
+      await scrollaA(page, inizio - 200);
       await page.waitForTimeout(1000);
-      expect(await clip(), "la foto si chiude mentre il lockup è ancora in vista").toMatch(/^none$|^inset\(0(px|%)?( 0(px|%)?){0,3}\)$/);
-      // A metà coda un ritaglio parziale; a fine coda (il fondo della foto al 10 % del viewport) la cornice
-      // della cartolina. Lo scrub (0,9 s) si aspetta col poll; il messaggio porta la diagnosi (scroll, clip,
-      // pagina visibile, frame) perché uno scrub di GSAP non avanza se la pagina è nascosta.
+      expect(await clip(), "la foto si chiude prima che il suo fondo arrivi al 130 % del viewport").toMatch(/^none$|^inset\(0(px|%)?( 0(px|%)?){0,3}\)$/);
+      // A79 («si chiude troppo in fondo e non si nota neanche quando scrolli»): a metà corsa il lockup è in scena.
+      expect(g.marca.bottom > medio && g.marca.top < medio + g.vh, "a metà corsa il lockup non è in scena: la chiusura non si nota scorrendo").toBe(true);
+      // A metà corsa un ritaglio parziale; a fine corsa la cornice della cartolina. Lo scrub (0,9 s) si aspetta
+      // col poll; il messaggio porta la diagnosi (scroll, clip, pagina visibile, frame) perché uno scrub di GSAP
+      // non avanza se la pagina è nascosta.
       const diagnosi = () =>
         page.evaluate(async () => {
           let frames = 0;
@@ -165,50 +174,70 @@ test.describe("l'hero alto da 1024 px con motion ok (A49)", () => {
           const strato = lista.filter((t) => t.trigger.includes("data-testa-strato")).map((t) => `${t.trigger}: ${Math.round(t.start)}→${Math.round(t.end)} p ${t.progress.toFixed(3)}`);
           return `scrollY ${window.scrollY}, clip ${getComputedStyle(box).clipPath}, hidden ${document.hidden}, frame in 300 ms ${frames}, trigger ${lista.length}, sullo strato [${strato.join("; ")}]`;
         });
-      // La corsa della chiusura va dal fondo dello spazio sopra (alla cima del viewport) al fondo della foto (al 10 %).
-      const inizio = g.sopra.bottom;
-      const fine = g.strato.top + H - 0.1 * g.vh;
-      await scrollaA(page, (inizio + fine) / 2);
-      await expect.poll(async () => insetValues(await clip()).length, { timeout: 4_000, message: `a metà coda (${Math.round((inizio + fine) / 2)}, fra ${Math.round(inizio)} e ${Math.round(fine)}) la foto non si ritira: ${await diagnosi()}` }).toBeGreaterThan(0);
+      await scrollaA(page, medio);
+      await expect.poll(async () => insetValues(await clip()).length, { timeout: 4_000, message: `a metà corsa (${Math.round(medio)}, fra ${Math.round(inizio)} e ${Math.round(fine)}) la foto non si ritira: ${await diagnosi()}` }).toBeGreaterThan(0);
       await scrollaA(page, fine);
+      // Si aspetta che lo scrub si posi sulla cornice intera, al decimo di punto (la tolleranza di toBeCloseTo(…, 1)):
+      // letta subito dopo il primo valore oltre 7,5, la cornice poteva essere ancora in corsa.
       await expect
-        .poll(async () => insetValues(await clip())[0] ?? 0, { timeout: 4_000, message: `a fine coda la foto non è nella cornice della cartolina: ${await diagnosi()}` })
-        .toBeGreaterThan(7.5);
-      const cornice = insetValues(await clip());
-      expect(cornice, "a fine coda la cornice non è quella simmetrica 8/22").toHaveLength(2);
-      expect(cornice[0]).toBeCloseTo(8, 1);
-      expect(cornice[1]).toBeCloseTo(22, 1);
+        .poll(async () => insetValues(await clip()).map((v) => Math.round(v * 10) / 10), { timeout: 4_000, message: `a fine corsa la foto non è nella cornice simmetrica 8/22 della cartolina: ${await diagnosi()}` })
+        .toEqual([8, 22]);
       const dopo = await geometria(page);
       expect(dopo.boxTransform, "la chiusura ha scritto una trasformata (A45)").toBe("none");
       expect(dopo.sticky).toBe(0);
     });
   }
 
-  // A75: l'entrata col film intero (niente fixture `goto`, che spegne il sipario). Fra la fine del tuffo
-  // (4,63 s) e la salita (3,13 + 2,2 = 5,33 s) il lockup d'entrata è intero al centro della banda, sulla
-  // carta, e il tetto della foto sta sotto il fondo dello schermo; poi la foto sale, si ferma alla salita a
-  // riposo (Raffaela intera) e HeroCinematic toglie l'attributo.
+  // A75: l'entrata col film intero (niente fixture `goto`, che spegne il sipario). Con la gomma (22 set.,
+  // 376c591) l'orologio dell'entrata non è più il tuffo a un'ora fissa del film: Preloader.tsx lo tiene
+  // lontano finché la gomma disegna e ci scrive l'ora quando la cancellatura comincia ad allargarsi
+  // (`html[data-gomma="reveal"]`) più DISCESA.entrata (0,5 s). Da lì, fra le lettere accese (0,3 s + stagger,
+  // 1,2 s) e la salita (+2,2 s) il lockup d'entrata è intero al centro della banda, sulla carta, e il tetto
+  // della foto sta sotto il fondo dello schermo; poi la foto sale, si ferma alla salita a riposo (Raffaela
+  // intera) e HeroCinematic toglie l'attributo. Si misura al primo fotogramma con le lettere accese.
   test("1440×900: l'entrata col film (A75): il lockup al centro sulla carta, la foto sotto la piega, poi sale fino a Raffaela", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     expect(await page.evaluate(() => document.documentElement.getAttribute("data-hero-entrata"))).toBe("intro");
-    await page.waitForFunction(() => performance.now() - ((window as unknown as { __dtPreT0?: number }).__dtPreT0 ?? 0) > 4_850, undefined, { timeout: 15_000 });
-    const meta = await page.evaluate((cima) => {
-      const strato = document.querySelector<HTMLElement>("#top [data-testa-strato]")!;
-      const s = strato.getBoundingClientRect();
-      const e = document.querySelector<HTMLElement>("#top .dt-hero_entrata")!.getBoundingClientRect();
-      const head = document.querySelector<HTMLElement>("header")!.getBoundingClientRect().bottom;
-      const chars = Array.from(document.querySelectorAll<HTMLElement>("#top .dt-hero_entrata [data-entrata-riga] .dt-c"));
-      const lettere = chars.map((c) => c.getBoundingClientRect());
-      return {
-        tetto: s.top + cima * s.height,
-        vh: innerHeight,
-        head,
-        banda: [e.top, e.bottom],
-        min: Math.min(...chars.map((c) => Number(getComputedStyle(c).opacity))),
-        centroLettere: (Math.min(...lettere.map((r) => r.top)) + Math.max(...lettere.map((r) => r.bottom))) / 2,
-      };
-    }, foto.cielo.cima);
+    // L'handoff della gomma; o il sipario caduto senza gomma (JS arrivato dopo la rete CSS: allora
+    // l'orologio dell'entrata è quello della rete, PRE_AUTOHIDE_MS).
+    await page.waitForFunction(
+      () =>
+        /^(reveal|done)$/.test(document.documentElement.getAttribute("data-gomma") ?? "") ||
+        !document.documentElement.hasAttribute("data-preloader"),
+      undefined,
+      { timeout: 20_000, polling: "raf" },
+    );
+    const meta = await page.evaluate(
+      (cima) =>
+        new Promise<{ tetto: number; vh: number; head: number; banda: number[]; min: number; centroLettere: number }>((fatto) => {
+          const misura = () => {
+            const strato = document.querySelector<HTMLElement>("#top [data-testa-strato]")!;
+            const s = strato.getBoundingClientRect();
+            const e = document.querySelector<HTMLElement>("#top .dt-hero_entrata")!.getBoundingClientRect();
+            const head = document.querySelector<HTMLElement>("header")!.getBoundingClientRect().bottom;
+            const chars = Array.from(document.querySelectorAll<HTMLElement>("#top .dt-hero_entrata [data-entrata-riga] .dt-c"));
+            const lettere = chars.map((c) => c.getBoundingClientRect());
+            return {
+              tetto: s.top + cima * s.height,
+              vh: innerHeight,
+              head,
+              banda: [e.top, e.bottom],
+              min: Math.min(...chars.map((c) => Number(getComputedStyle(c).opacity))),
+              centroLettere: (Math.min(...lettere.map((r) => r.top)) + Math.max(...lettere.map((r) => r.bottom))) / 2,
+            };
+          };
+          // Il primo fotogramma con le lettere accese, o l'ultimo dopo 6 s (le asserzioni dicono cosa manca).
+          const t0 = performance.now();
+          const giro = () => {
+            const m = misura();
+            if (m.min > 0.9 || performance.now() - t0 > 6_000) fatto(m);
+            else requestAnimationFrame(giro);
+          };
+          giro();
+        }),
+      foto.cielo.cima,
+    );
     expect(meta.tetto, "il tetto si vede prima della salita").toBeGreaterThanOrEqual(meta.vh);
     expect(Math.abs(meta.banda[0] - meta.head), "il lockup d'entrata non comincia sotto la testata").toBeLessThanOrEqual(2);
     expect(meta.min, "le lettere del lockup d'entrata non sono accese").toBeGreaterThan(0.9);

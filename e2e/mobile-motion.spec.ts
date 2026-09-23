@@ -105,6 +105,15 @@ for (const rotta of ROTTE) {
 //   sotto i 640 la scala segue la larghezza per tutte (globals.css), non per
 //   il componente che ha la parola lunga — sulla stessa colonna due misure per
 //   lo stesso rango erano il rilievo dei revisori (31,2 e 38,4 px a 390).
+//   UNA PER SUPERFICIE, da lg: le sezioni che la pagina posa sulla foto della
+//   testa (`.dt-testa[data-sopra="foto"] .dt-testa_sopra`, A48/A54) non stanno
+//   nella colonna della carta, e A70 (Alberto, 22 set. 2026, sera: «prova a
+//   farle più grandi e grosse e bianche») dà ai loro titoli una misura propria
+//   da 1280 (globals.css: `calc(var(--text-d2) * 1.2)`, 69,12 px a 1440×900
+//   contro i 90 del d1 sulla carta: i Valori di /chi-siamo e le tre leve di
+//   /metodo). Lì la regola vale dentro ciascuna superficie; sotto lg quelle
+//   sezioni seguono la foto in inchiostro, nella colonna di tutte, e si
+//   contano con le altre.
 const ROTTE_PAROLE = [
   ...ROTTE,
   "/servizi",
@@ -185,24 +194,33 @@ for (const lingua of LINGUE) {
             }
           }
         }
-        // Una taglia sola per le teste d1.
-        const taglie = new Map<string, string>();
+        // Una taglia sola per le teste d1, per superficie: da lg (il blocco
+        // `min-width: 64rem` di globals.css) quelle posate sulla foto della
+        // testa fanno gruppo a sé (A70), sotto lg sono sulla carta con le altre.
+        const daLg = matchMedia("(min-width: 64rem)").matches;
+        const taglie = { carta: new Map<string, string>(), foto: new Map<string, string>() };
         for (const h of document.querySelectorAll(":is(h1, h2, h3).text-d1")) {
           const fs = getComputedStyle(h).fontSize;
-          if (!taglie.has(fs)) taglie.set(fs, `${h.tagName} «${breve(h)}»`);
+          const sup = daLg && h.closest('.dt-testa[data-sopra="foto"] .dt-testa_sopra') ? taglie.foto : taglie.carta;
+          if (!sup.has(fs)) sup.set(fs, `${h.tagName} «${breve(h)}»`);
         }
         return {
           lang: document.documentElement.lang,
           fuori: out,
           fuoriColonna: colonna,
-          taglieD1: [...taglie].map(([fs, chi]) => `${fs}: ${chi}`),
+          taglieD1: Object.entries(taglie).map(([sup, m]) => ({
+            sup,
+            elenco: [...m].map(([fs, chi]) => `${fs}: ${chi}`),
+          })),
         };
       });
       expect(lang, "la lingua del documento non è quella del cookie").toBe(lingua);
       const elenco = fuori.map((f) => `${rotta} [${lingua}] ${f.tag} «${f.testo}»: +${f.px}px a ${f.lato}`).join("\n");
       expect(fuori, `parole o titoli fuori dallo schermo:\n${elenco}`).toEqual([]);
       expect(fuoriColonna, `parole fuori dalla colonna del loro titolo su ${rotta} [${lingua}]:\n${fuoriColonna.join("\n")}`).toEqual([]);
-      expect(taglieD1.length, `le teste d1 di ${rotta} [${lingua}] hanno più di una taglia:\n${taglieD1.join("\n")}`).toBeLessThanOrEqual(1);
+      for (const { sup, elenco: misure } of taglieD1) {
+        expect(misure.length, `le teste d1 sulla ${sup} di ${rotta} [${lingua}] hanno più di una taglia:\n${misure.join("\n")}`).toBeLessThanOrEqual(1);
+      }
     });
   }
 }
@@ -1208,15 +1226,33 @@ test.describe("il sipario Arco Domus a sessione fredda", () => {
     });
     expect(await page.evaluate((k) => sessionStorage.getItem(k), INTRO_KEY)).toBe(INTRO_FILM);
 
-    // E l'hero è leggibile davvero dopo la corta.
+    // E l'hero è leggibile davvero dopo la corta: i gruppi di lettere IN SCENA
+    // si accendono. D-A49-5 (52fad5e): il rito suona all'handoff per i gruppi
+    // in scena e alla prima entrata nel viewport per gli altri; a 1440 a
+    // riposo il lockup e la firma stanno sull'acqua sotto la piega e restano
+    // armati (0,02) finché non ci si arriva, e in scena c'è l'H1; a 390 in
+    // scena c'è il lockup. «In scena» come lo legge HeroCinematic: il
+    // riquadro del gruppo nel viewport. Nessun gruppo in scena vale 0.
     await expect
       .poll(
         () =>
           page.evaluate(() => {
-            const el = document.querySelector("[data-hero-char]");
-            return el ? Number(getComputedStyle(el).opacity) : 0;
+            const gruppi = [
+              ["[data-hero-char]", "[data-hero-lockup]"],
+              ["[data-hero-tchar]", "h1"],
+              ["[data-hero-schar]", "[data-hero-script]"],
+            ] as const;
+            const inScena: number[] = [];
+            for (const [lettera, host] of gruppi) {
+              const el = document.querySelector(`#top ${lettera}`);
+              const h = document.querySelector(`#top ${host}`);
+              if (!el || !h) continue;
+              const b = h.getBoundingClientRect();
+              if (b.bottom > 0 && b.top < window.innerHeight) inScena.push(Number(getComputedStyle(el).opacity));
+            }
+            return inScena.length > 0 ? Math.min(...inScena) : 0;
           }),
-        { timeout: 10_000, message: "le lettere dell'hero sono rimaste nascoste dopo la corta" },
+        { timeout: 10_000, message: "le lettere dell'hero in scena sono rimaste nascoste dopo la corta" },
       )
       .toBeGreaterThan(0.9);
   });
