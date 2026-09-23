@@ -305,28 +305,45 @@ test("2b · uscita del titolo più lungo: col bordo alto fra 85 % e 100 % i cara
   expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
 });
 
-test("4 · ancora /#contatti: i titoli sopra l'ancora sono già pieni al primo campione", { tag: "@titoli" }, async ({ page, goto, guards }) => {
+/**
+ * Lo scarto (px) fra il bordo alto di #contatti e il suo scroll-margin-top, a scroll fermo da 250 ms;
+ * +∞ se lo scroll si muove, se è ancora in cima o se l'ancora manca.
+ */
+function scartoAncora(page: Page): Promise<number> {
+  return page.evaluate(async () => {
+    const y = window.scrollY;
+    await new Promise((r) => setTimeout(r, 250));
+    const a = document.getElementById("contatti");
+    if (!a || y === 0 || window.scrollY !== y) return Number.POSITIVE_INFINITY;
+    return Math.abs(a.getBoundingClientRect().top - parseFloat(getComputedStyle(a).scrollMarginTop));
+  });
+}
+
+test("4 · ancora /#contatti: l'arrivo atterra sull'ancora e i titoli sopra sono già pieni al primo campione", { tag: "@titoli" }, async ({ page, goto, guards }) => {
   await goto("/#contatti");
   await waitArmed(page);
   // D45: l'arrivo all'ancora è lo scroll nativo al frammento (html { scroll-behavior: smooth }),
-  // e il motore fa nascere shown i gruppi che attraversa (D39). Il salto a #servizi parte a
-  // scroll fermo, con l'h2 di #servizi già passato sopra il viewport. A 1440 lo scroll nativo si
-  // ferma prima di #contatti, perché la pagina cresce dopo load (difetto del sito riferito al
-  // coordinatore): qui si misura l'attraversamento, e l'arrivo lo presidia reveal-engine.spec.ts
-  // su /vendi. Il campione legge l'h2, in vista dopo il salto: gli h3 dei servizi finiscono
-  // sotto il viewport e il motore li nasconde (D40).
+  // e il motore fa nascere shown i gruppi che attraversa (D39). A 1440 la home cresce sopra
+  // #contatti dopo che lo scroll nativo ha fissato la quota (altezze misurate dal JS
+  // all'idratazione, diagnosi della PR #81): l'atterraggio del motore (watchLanding in
+  // reveal-engine.ts) porta l'ancora al suo posto ad arrivo finito. A scroll fermo il bordo alto
+  // di #contatti sta a meno di 100 px dal suo scroll-margin-top (sotto la testata dove la testata
+  // c'è, al bordo da lg), e ci resta dopo un refresh dei ScrollTrigger (refreshTriggers aspetta
+  // il contatore __dtSTRefresh di gsap.ts).
   await expect
-    .poll(
-      () =>
-        page.evaluate(async () => {
-          const y = window.scrollY;
-          await new Promise((r) => setTimeout(r, 250));
-          const h = document.querySelector('#servizi [data-reveal="title"]');
-          return !!h && y > 0 && window.scrollY === y && h.getBoundingClientRect().bottom < 0;
-        }),
-      { message: "l'arrivo a /#contatti non attraversa il titolo di #servizi", timeout: 10_000, intervals: [100] },
-    )
-    .toBe(true);
+    .poll(() => scartoAncora(page), { message: "/#contatti non atterra sull'ancora", timeout: 10_000, intervals: [100] })
+    .toBeLessThanOrEqual(100);
+  await refreshTriggers(page);
+  await expect
+    .poll(() => scartoAncora(page), { message: "/#contatti si stacca dall'ancora dopo un refresh", timeout: 3_000, intervals: [100] })
+    .toBeLessThanOrEqual(100);
+  // Il salto a #servizi parte a scroll fermo, con l'h2 di #servizi già passato sopra il viewport.
+  // Il campione legge l'h2, in vista dopo il salto: gli h3 dei servizi finiscono sotto il
+  // viewport e il motore li nasconde (D40).
+  expect(
+    await page.evaluate(() => document.querySelector('#servizi [data-reveal="title"]')?.getBoundingClientRect().bottom ?? 0),
+    "l'arrivo a /#contatti non attraversa il titolo di #servizi",
+  ).toBeLessThan(0);
   await page.evaluate(() => {
     const h = document.querySelector('#servizi [data-reveal="title"]');
     if (!h) throw new Error("manca il titolo di #servizi");
@@ -336,6 +353,84 @@ test("4 · ancora /#contatti: i titoli sopra l'ancora sono già pieni al primo c
   expect(await unita.count()).toBeGreaterThan(0);
   expect(await productOpacity(unita.first())).toBeGreaterThan(0.99);
   expect(await productOpacity(unita.last())).toBeGreaterThan(0.99);
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
+});
+
+test("4b · ancora /#contatti: dopo una rotella durante l'arrivo nessuna correzione, la pagina resta dove lo scroll si ferma", { tag: "@titoli" }, async ({ page, goto, guards }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "la home cresce sopra #contatti coi corridoi, da MQ.corridor");
+  // A ogni fotogramma il tempo, scrollY e lo scarto di #contatti dal suo scroll-margin-top: il test
+  // cerca dove lo scroll si ferma dopo la rotella, e quanto lontano dall'ancora.
+  await page.addInitScript(() => {
+    const w = window as unknown as { __dtTr: [number, number, number][] };
+    w.__dtTr = [];
+    let margine = Number.NaN;
+    const f = () => {
+      const a = document.getElementById("contatti");
+      if (a && Number.isNaN(margine)) margine = parseFloat(getComputedStyle(a).scrollMarginTop) || 0;
+      w.__dtTr.push([performance.now(), scrollY, a ? Math.abs(a.getBoundingClientRect().top - margine) : Number.POSITIVE_INFINITY]);
+      requestAnimationFrame(f);
+    };
+    requestAnimationFrame(f);
+  });
+  await goto("/#contatti");
+  // Una rotella durante l'arrivo: da lì la quota è dell'utente, e l'atterraggio (watchLanding di
+  // reveal-engine.ts) si ferma al gesto (__dtGesto del boot script di layout.tsx). In Chromium la
+  // rotella non interrompe lo scroll morbido al frammento, che finisce alla sua meta stantia; la
+  // regola resta prudente: nessuna correzione dopo un gesto, mai peggio di senza atterraggio.
+  await page.waitForFunction(() => window.scrollY > 2000, null, { timeout: 10_000 });
+  const prima = await page.evaluate(() => document.getElementById("contatti")!.getBoundingClientRect().top / innerHeight);
+  test.skip(prima < 2, `l'arrivo era già a ${prima.toFixed(1)} viewport dall'ancora: il caso non si esercita`);
+  const tRotella = await page.evaluate(() => performance.now());
+  await page.mouse.move(12, 450);
+  await page.mouse.wheel(0, -600);
+  // Ogni via dell'atterraggio si esaurisce entro il tetto dell'arrivo (STILL_CAP_MS, 4 s) più
+  // l'attesa della pagina ferma: dopo 6 s una correzione mancata non arriva più.
+  await page.waitForTimeout(6_000);
+  const esito = await page.evaluate((t0) => {
+    const tr = (window as unknown as { __dtTr: [number, number, number][] }).__dtTr.filter(([t]) => t >= t0);
+    // Il primo riposo: 200 ms e almeno 6 fotogrammi senza che scrollY cambi (un task lungo
+    // dell'idratazione lascia buchi di centinaia di ms senza fotogrammi, con lo scroll che corre).
+    // Una correzione (land) viene dopo un riposo di almeno 250 ms, quindi da qui in poi.
+    let riposo = -1;
+    for (let i = 0, da = 0; i < tr.length; i++) {
+      if (tr[i][1] !== tr[da][1]) da = i;
+      else if (tr[i][0] - tr[da][0] >= 200 && i - da >= 6) {
+        riposo = da;
+        break;
+      }
+    }
+    let salto = 0;
+    for (let i = Math.max(riposo, 0) + 1; i < tr.length; i++) salto = Math.max(salto, Math.abs(tr[i][1] - tr[i - 1][1]));
+    return {
+      gesto: (window as unknown as { __dtGesto?: number }).__dtGesto,
+      riposo: riposo >= 0,
+      salto: salto / innerHeight,
+      // Lo scarto al riposo, non alla fine: una correzione sopra il gesto porterebbe la fine all'ancora.
+      scarto: riposo >= 0 ? tr[riposo][2] : Number.POSITIVE_INFINITY,
+    };
+  }, tRotella);
+  expect(esito.gesto, "il boot script non ha registrato la rotella").toBe(1);
+  expect(esito.riposo, "dopo la rotella lo scroll non si è mai fermato per 200 ms").toBe(true);
+  test.skip(esito.scarto <= 100, "al riposo l'arrivo era già sull'ancora: nessuna correzione da vedere");
+  expect(esito.salto, "dopo il riposo la pagina è saltata di mezzo viewport o più: una correzione sopra un gesto").toBeLessThan(0.5);
+  expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
+});
+
+test("4c · ancora /#contatti: un clic che non scorre (il banner dei cookie) non ferma l'atterraggio", { tag: "@titoli" }, async ({ page, goto, guards }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "la home cresce sopra #contatti coi corridoi, da MQ.corridor");
+  // Prima visita: nessuna scelta sui cookie, il banner c'è fin dal primo paint (html[data-consent]
+  // del boot script) e lo si accetta durante l'arrivo. Il clic non scorre la pagina: l'arrivo deve
+  // atterrare lo stesso, altrimenti chi accetta resta migliaia di px sopra l'ancora.
+  await page.context().clearCookies();
+  await goto("/#contatti");
+  await page.waitForFunction(() => window.scrollY > 2000, null, { timeout: 10_000 });
+  const prima = await page.evaluate(() => document.getElementById("contatti")!.getBoundingClientRect().top / innerHeight);
+  test.skip(prima < 2, `l'arrivo era già a ${prima.toFixed(1)} viewport dall'ancora: il caso non si esercita`);
+  await page.locator(".dt-consent").getByRole("button", { name: "Accetta", exact: true }).click();
+  expect(await page.evaluate(() => (window as unknown as { __dtGesto?: number }).__dtGesto), "il clic sul banner conta come gesto").toBe(0);
+  await expect
+    .poll(() => scartoAncora(page), { message: "dopo il clic sul banner /#contatti non atterra sull'ancora", timeout: 10_000, intervals: [100] })
+    .toBeLessThanOrEqual(100);
   expect(guards.failedRequests, guards.failedRequests.join("\n")).toEqual([]);
 });
 

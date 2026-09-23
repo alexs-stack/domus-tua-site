@@ -49,6 +49,17 @@
 //     ripristinato) → shown»): finché lo scroll nativo a location.hash è in
 //     corso le notifiche e gli sweep sono istantanei, così i gruppi che
 //     l'arrivo attraversa nascono shown senza animare.
+//   - Atterraggio (watchLanding): lo scroll nativo fissa la quota dell'ancora
+//     quando parte, e la home a 1440 cresce sopra #contatti dopo (altezze
+//     misurate dal JS all'idratazione): a load di /#contatti l'arrivo si
+//     fermava 3.248 px prima dell'ancora (produzione, 1440×900, 23 set.; 3.415
+//     al commit 8, misure/risultati.md). Ad arrivo finito e con il layout sopra
+//     l'ancora fermo, se il bordo dell'ancora sta a più di LANDING_SLACK dal suo
+//     scroll-margin-top, uno scroll istantaneo ce la porta, come un altro tratto
+//     dell'arrivo. Mai un refresh; mai dopo un gesto che scorre (lo registra il
+//     boot script di layout.tsx dal primo byte) né dopo uno scroll d'altri; mai
+//     alla ricarica, al back/forward o dopo una navigazione client (lì la quota
+//     è del ripristino, o di Next).
 //   - Notifiche (noticeAction): la prima notifica di un osservatore non fa
 //     uscire, ma fa entrare; un nascosto già passato o che rientra dal bordo
 //     alto diventa shown senza animare; decide() riceve la radice dell'asse.
@@ -97,6 +108,16 @@ const HOLD = "data-reveal-hold";
 const RESIZE_MS = 150;
 /** Tetto all'attesa dell'arrivo al frammento (D39): lo chiude anche se il browser non scrolla. */
 const STILL_CAP_MS = 4000;
+/** Atterraggio: lo scarto tollerato (px) fra il bordo alto dell'ancora e il suo scroll-margin-top. */
+export const LANDING_SLACK = 48;
+/** Atterraggio: quanto il layout sopra l'ancora deve restare fermo prima di una correzione. */
+const LANDING_STILL_MS = 250;
+/** Atterraggio: da quanto la pagina è ferma quando uno scroll che parte lì è d'altri, anche verso l'ancora. */
+const LANDING_SETTLED_MS = 100;
+/** Atterraggio: tetto dell'attesa, dalla prima passata; oltre si lascia la pagina dov'è. */
+const LANDING_CAP_MS = 8000;
+/** Atterraggio: correzioni al massimo (la seconda solo se un refresh sposta ancora il layout sopra l'ancora). */
+const LANDING_FIXES = 2;
 
 // ── Logica pura (app/lib/__tests__/reveal-engine.test.ts) ─────────────────
 
@@ -193,6 +214,16 @@ export function manualNetDue(s: GroupState, since: number | null, now: number): 
   return s === "hidden" && since !== null && now - since >= NET_MS;
 }
 
+/**
+ * La quota dell'atterraggio: lo scroll che mette il bordo alto dell'ancora (`top`, dal viewport)
+ * al suo scroll-margin-top, entro [0, maxY]. null se l'ancora ci sta già entro LANDING_SLACK, o
+ * se la quota giusta non si raggiunge (un'ancora in fondo al documento, con lo scroll già a maxY).
+ */
+export function landingFix(top: number, margin: number, scrollY: number, maxY: number): number | null {
+  const want = Math.min(Math.max(scrollY + top - margin, 0), Math.max(maxY, 0));
+  return Math.abs(want - scrollY) > LANDING_SLACK ? Math.round(want) : null;
+}
+
 // ── Stato della pagina ────────────────────────────────────────────────────
 
 type Member = { el: HTMLElement; declared: Role; role: Role; i: number; extra: number };
@@ -233,6 +264,21 @@ let arrivalRaf = 0;
 /** Un refresh chiesto a scroll in corso: parte a scrollEnd di ScrollTrigger o al tetto. */
 let refreshDue = false;
 let stillCap = 0;
+/**
+ * Una correzione dell'atterraggio (land) il cui scroll ScrollTrigger non ha ancora visto: uno
+ * scrollEnd di prima, confermato nello stesso fotogramma della correzione, non chiude il suo arrivo.
+ */
+let landingUnseen = false;
+
+/**
+ * Il gesto dell'utente registrato dal boot script di layout.tsx: 0 finché nessun gesto che scorre
+ * (rotella, trascinamento al tocco, tasti di scorrimento, Tab, clic su un link, barra di
+ * scorrimento), 1 dopo. C'è solo in un caricamento con frammento, fuori da ricarica e back/forward:
+ * altrove, e dopo una navigazione client, è assente e l'atterraggio non parte.
+ */
+function gesture(): number | undefined {
+  return (window as Window & { __dtGesto?: number }).__dtGesto;
+}
 
 const isRole = (v: string | null): v is Role => v !== null && Object.prototype.hasOwnProperty.call(ROLES, v);
 const boxOf = (r: DOMRectReadOnly): Box => ({ top: r.top, left: r.left, bottom: r.bottom, right: r.right });
@@ -362,6 +408,7 @@ function onStill(): void {
   window.clearTimeout(stillCap);
   stillCap = 0;
   arriving = false;
+  landingUnseen = false;
   cancelAnimationFrame(arrivalRaf);
   arrivalRaf = 0;
   // Al tetto con lo scroll ancora in corso il refresh aspetta il suo scrollEnd.
@@ -370,19 +417,32 @@ function onStill(): void {
   requestRefresh();
 }
 
-/** Alla prima passata: c'è un frammento nell'URL e il browser deve ancora portarcelo (l'ancora non è in vista). */
-function fragmentPending(): boolean {
-  const id = location.hash.slice(1);
-  if (!id) return false;
-  let target: HTMLElement | null = null;
-  try {
-    target = document.getElementById(decodeURIComponent(id));
-  } catch {
-    target = document.getElementById(id);
-  }
-  if (!target) return false;
+/**
+ * Lo scrollEnd confermato (onScrollEnd di gsap.ts). Non chiude l'arrivo di una correzione
+ * dell'atterraggio che ScrollTrigger non ha ancora visto: la conferma gira in un rAF, e se land()
+ * scrolla nello stesso fotogramma isScrolling() è ancora falso (l'evento di scroll arriva al
+ * fotogramma dopo). Chiuso l'arrivo lì, le notifiche del salto arriverebbero non istantanee.
+ */
+function onScrollStill(): void {
+  if (landingUnseen) return;
+  onStill();
+}
+
+/** Alla prima passata: il browser deve ancora portare lo scroll all'ancora del frammento (non è in vista). */
+function fragmentPending(target: HTMLElement): boolean {
   const max = document.documentElement.scrollHeight - window.innerHeight;
   return target.getBoundingClientRect().top >= window.innerHeight && window.scrollY < max - 1;
+}
+
+/** L'ancora del frammento nell'URL, o null; un frammento malformato (`/#%`) ripiega sull'id grezzo. */
+function fragmentTarget(): HTMLElement | null {
+  const id = location.hash.slice(1);
+  if (!id) return null;
+  try {
+    return document.getElementById(decodeURIComponent(id));
+  } catch {
+    return document.getElementById(id);
+  }
 }
 
 /**
@@ -403,6 +463,7 @@ function watchArrival(): void {
     if (y !== last) {
       moved = true;
       still = 0;
+      landingUnseen = false;
     } else if (moved && ++still >= 2) {
       arriving = false;
       return;
@@ -411,6 +472,105 @@ function watchArrival(): void {
     arrivalRaf = requestAnimationFrame(tick);
   };
   arrivalRaf = requestAnimationFrame(tick);
+}
+
+/**
+ * L'atterraggio all'ancora di un caricamento con frammento (diagnosi della PR #81). Lo scroll
+ * nativo al frammento fissa la quota quando parte, e dopo load Chrome non la rincorre più; a 1440
+ * la home cresce sopra #contatti a metà arrivo: su produzione +3.232 px in un fotogramma a +1,6 s,
+ * con lo scroll a 10.577 di 30.541 (le altezze che il JS misura all'idratazione, arrotondate:
+ * Perché scegliere +1.731, Costi +1.101, Chi siamo +694, Voci +376, Open Domus −669), e l'arrivo
+ * si fermava a 30.541 con l'ancora 3.248 px sotto il bordo. Qui, a ogni fotogramma, la quota
+ * dell'ancora nel documento: ad arrivo finito e con quella quota ferma da LANDING_STILL_MS, se il
+ * bordo dell'ancora non sta al suo scroll-margin-top (landingFix) uno scroll istantaneo ce lo porta
+ * (land). Atterrati, si guarda ancora finché la pagina non è quieta (load passato, nessun refresh
+ * dovuto, in corso o appena fatto da LANDING_STILL_MS): un refresh (D39, D53, D54, D56) può ancora
+ * muovere il layout sopra l'ancora, e allora c'è una seconda correzione (LANDING_FIXES).
+ * Ci si ferma:
+ * - al primo gesto che scorre, anche di prima dell'idratazione (gesture(), dal boot script); un
+ *   clic che non scorre (il banner dei cookie, il menu) non ferma niente;
+ * - a uno scroll d'altri che parte da pagina ferma col layout fermo (un test, le tecnologie
+ *   assistive, un'altra parte del sito). Dentro l'arrivo non si distingue: lo scroll morbido
+ *   nativo, sotto carico, fa anche passi indietro di 600-800 px senza che il layout si muova
+ *   (misurato a 1440 e 390 su /#contatti), e la direzione non basta a riconoscerlo. Uno scroll
+ *   d'altri che parte dentro l'arrivo, senza un gesto, la correzione lo può quindi annullare;
+ * - all'ancora staccata o al tetto.
+ * Nessun refresh: lo scroll istantaneo non ne chiede, e quello rimandato parte come sempre a
+ * scroll fermo.
+ */
+function watchLanding(target: HTMLElement): void {
+  const t0 = performance.now();
+  const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+  let lastDoc = Number.NaN;
+  let lastY = window.scrollY;
+  let since = t0;
+  let quietSince = t0;
+  let settled = false;
+  let fixes = 0;
+  // Un refresh fatto, o il load: il refresh di D56 lo chiede il load con requestRefresh, e parte al
+  // fotogramma dopo, quando il tick di qui è già in coda e lo vedrebbe quieto.
+  const onNoise = () => {
+    quietSince = performance.now();
+  };
+  ScrollTrigger.addEventListener("refresh", onNoise);
+  window.addEventListener("load", onNoise);
+  const stop = () => {
+    ScrollTrigger.removeEventListener("refresh", onNoise);
+    window.removeEventListener("load", onNoise);
+  };
+  const tick = () => {
+    const now = performance.now();
+    if (gesture() !== 0 || !target.isConnected || now - t0 > LANDING_CAP_MS) return stop();
+    const top = target.getBoundingClientRect().top;
+    const y = window.scrollY;
+    const doc = top + y;
+    const moved = Math.abs(y - lastY) > 1;
+    // Il layout sopra l'ancora si è mosso, anche per lo scroll anchoring del browser (che sposta
+    // insieme scrollY e l'ancora).
+    const shifted = Math.abs(doc - lastDoc) > 1;
+    // Uno scroll d'altri: parte da pagina ferma da LANDING_SETTLED_MS, col layout fermo. Un
+    // fotogramma fermo in coda all'arrivo nativo, sotto carico, non basta.
+    const fromStill = settled && !arriving && now - since >= LANDING_SETTLED_MS;
+    if (moved && !shifted && fromStill) return stop();
+    lastDoc = doc;
+    lastY = y;
+    // Si aspetta la pagina ferma: né l'arrivo (anche oltre il tetto di STILL_CAP_MS, finché lo
+    // scroll nativo corre) né il layout sopra l'ancora si muovono da LANDING_STILL_MS.
+    settled = !arriving && !moved && !shifted;
+    if (!settled) since = now;
+    if (refreshDue || ScrollTrigger.isScrolling()) quietSince = now;
+    if (now - since >= LANDING_STILL_MS) {
+      const fix = landingFix(top, margin, y, document.documentElement.scrollHeight - window.innerHeight);
+      if (fix === null) {
+        // Atterrati: si smette di guardare a pagina quieta, dopo load e dopo i refresh.
+        if (document.readyState === "complete" && now - quietSince >= LANDING_STILL_MS) return stop();
+      } else {
+        if (fixes++ >= LANDING_FIXES) return stop();
+        land(fix);
+        lastY = window.scrollY;
+        since = now;
+        settled = false;
+      }
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+/**
+ * La correzione dell'atterraggio: uno scroll istantaneo dentro un arrivo (watchArrival), come un
+ * altro tratto di quello nativo, così i gruppi che attraversa nascono shown senza animare (spec
+ * §2.4). Il tetto dell'arrivo riparte dalla correzione, e uno scrollEnd di prima non la chiude
+ * (landingUnseen, onScrollStill). Lenis segue da sé: a uno scroll nativo riallinea la sua quota
+ * (onNativeScroll di lenis 1.3), e uno scroll suo in corso nasce solo da un gesto, che qui ha già
+ * fermato tutto.
+ */
+function land(y: number): void {
+  window.clearTimeout(stillCap);
+  stillCap = 0;
+  watchArrival();
+  landingUnseen = true;
+  window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
 }
 
 function apply(g: Group, dir: Dir, instant: boolean): void {
@@ -523,10 +683,14 @@ function flush(): void {
   if (!window.matchMedia(MQ.motionOk).matches) return;
   const t0 = performance.now();
   const vp = viewport();
-  // Prima passata: con un frammento nell'URL e l'ancora fuori vista l'arrivo è in corso.
+  // Prima passata: con un frammento nell'URL e l'ancora fuori vista l'arrivo è in corso; se il
+  // documento è nato col frammento (fuori da ricarica e back/forward) e nessun gesto ha ancora
+  // scorso la pagina, si guarda anche dove atterra (watchLanding).
   if (!arrivalChecked) {
     arrivalChecked = true;
-    if (fragmentPending()) watchArrival();
+    const target = fragmentTarget();
+    if (target && fragmentPending(target)) watchArrival();
+    if (target && gesture() === 0) watchLanding(target);
   }
   const ready: Group[] = [];
   for (const g of pending) {
@@ -658,7 +822,7 @@ function install(): void {
     x: new IntersectionObserver((es) => onHits(es, "exit"), { threshold: 0, rootMargin: "0px -15% 0px 0px" }),
   };
   ScrollTrigger.addEventListener("refresh", sweep);
-  onScrollEnd(onStill);
+  onScrollEnd(onScrollStill);
   window.addEventListener("resize", () => {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(sweep, RESIZE_MS);

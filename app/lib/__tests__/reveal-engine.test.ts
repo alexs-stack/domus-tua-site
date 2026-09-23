@@ -25,7 +25,9 @@ import {
   noticeAction,
   indexByRole,
   extraSeconds,
+  landingFix,
   NET_MS,
+  LANDING_SLACK,
   EXIT_LINE,
   CUE_ANCESTOR,
   FREEZE,
@@ -298,7 +300,10 @@ describe("D39: il refresh del motore parte a scroll fermo", () => {
     // Lo scrollEnd passa da onScrollEnd di gsap.ts: quello emesso dentro il primo evento di scroll
     // dopo un task lungo, con l'arrivo in volo, non chiude l'arrivo e non fa partire il refresh.
     assert.match(engine, /import \{[^}]*\bonScrollEnd\b[^}]*\} from "\.\/gsap";/);
-    assert.match(engine, /onScrollEnd\(onStill\);/);
+    // Passa da onScrollStill, che salta solo la conferma di uno scrollEnd arrivata nello stesso
+    // fotogramma di una correzione dell'atterraggio (land) che ScrollTrigger non ha ancora visto.
+    assert.match(engine, /onScrollEnd\(onScrollStill\);/);
+    assert.match(engine, /function onScrollStill\(\): void \{\s*if \(landingUnseen\) return;\s*onStill\(\);\s*\}/);
     assert.doesNotMatch(engine, /addEventListener\("scrollEnd"/);
     assert.match(engine, /const STILL_CAP_MS = 4000;/);
     // Il tetto chiude l'arrivo, non forza il refresh dentro uno scroll (un fling su touch si fermerebbe).
@@ -307,6 +312,75 @@ describe("D39: il refresh del motore parte a scroll fermo", () => {
     assert.doesNotMatch(still, /armCap\(\)/);
     // Durante l'arrivo al frammento le notifiche sono istantanee (spec §2.4: già passati → shown).
     assert.match(engine, /apply\(g, n\.dir, n\.instant \|\| arriving\)/);
+  });
+});
+
+describe("atterraggio all'ancora: la pagina che cresce dopo l'arrivo (diagnosi della PR #81)", () => {
+  test("landingFix(): la quota che mette il bordo dell'ancora al suo scroll-margin-top, dentro [0, maxY]", () => {
+    // Produzione a 1440×900: l'arrivo fermo a 30.541 con #contatti a 3.248 dal viewport (margine 16,
+    // documento 38.803 → maxY 37.903). La correzione porta l'ancora a 16 px dal bordo.
+    assert.equal(landingFix(3248, 16, 30541, 37903), 33773);
+    // Entro lo scarto si resta: un arrivo giusto (390, /vendi#contatti, /#cerca) non si tocca.
+    assert.equal(landingFix(16 + LANDING_SLACK, 16, 30541, 37903), null);
+    assert.equal(landingFix(16 - LANDING_SLACK, 16, 30541, 37903), null);
+    assert.equal(landingFix(16 + LANDING_SLACK + 1, 16, 30541, 37903), 30541 + LANDING_SLACK + 1);
+    // Oltre l'ancora (arrivo lungo) si torna su; mai sotto 0.
+    assert.equal(landingFix(-500, 16, 10000, 37903), 9484);
+    assert.equal(landingFix(-500, 16, 100, 37903), 0);
+    // Un'ancora in fondo al documento: si va a maxY, e a maxY non c'è altro da correggere.
+    assert.equal(landingFix(3248, 16, 30541, 32000), 32000);
+    assert.equal(landingFix(1757, 16, 32000, 32000), null);
+    // Lo scarto sta sotto i 100 px che l'e2e concede (text-motion.spec.ts, test 4).
+    assert.ok(LANDING_SLACK < 100);
+  });
+
+  test("watchLanding: nessun refresh; fermo al primo gesto che scorre e a uno scroll d'altri; parte solo se il boot script l'ha armato", () => {
+    const watch = engine.slice(engine.indexOf("function watchLanding("), engine.indexOf("function land("));
+    const land = engine.slice(engine.indexOf("function land("), engine.indexOf("function apply("));
+    // D39, D45, D53, D54, D56: mai un refresh dentro l'arrivo, e l'atterraggio non ne chiede nessuno.
+    for (const pezzo of [watch, land]) {
+      assert.doesNotMatch(soloCodice(pezzo), /refresh\(|requestRefresh|refreshWhenStill/);
+    }
+    // Si corregge solo a pagina ferma da LANDING_STILL_MS (arrivo finito, scroll e layout sopra
+    // l'ancora fermi), al più LANDING_FIXES volte.
+    assert.match(watch, /settled = !arriving && !moved && !shifted;\s*if \(!settled\) since = now;/);
+    assert.match(watch, /if \(now - since >= LANDING_STILL_MS\) \{/);
+    assert.match(watch, /if \(fixes\+\+ >= LANDING_FIXES\) return stop\(\);/);
+    // Fermo al primo gesto che scorre (anche di prima dell'idratazione: lo registra il boot script,
+    // ripristino-scroll.test.ts), all'ancora staccata, al tetto.
+    assert.match(watch, /if \(gesture\(\) !== 0 \|\| !target\.isConnected \|\| now - t0 > LANDING_CAP_MS\) return stop\(\);/);
+    assert.match(engine, /return \(window as Window & \{ __dtGesto\?: number \}\)\.__dtGesto;/);
+    // Fermo a uno scroll d'altri che parte da pagina ferma da LANDING_SETTLED_MS, col layout fermo.
+    // Nessuna regola sulla direzione: dentro l'arrivo lo scroll morbido nativo fa anche passi
+    // indietro senza che il layout si muova (misurato a 1440 e 390), e fermarsi lì lasciava
+    // /#contatti 3.232 px sopra l'ancora.
+    assert.match(watch, /const fromStill = settled && !arriving && now - since >= LANDING_SETTLED_MS;/);
+    assert.match(watch, /if \(moved && !shifted && fromStill\) return stop\(\);/);
+    assert.doesNotMatch(watch, /\bdy [<>]|lastGap|\bhi - 1\b/);
+    // Atterrati, si guarda fino a pagina quieta: load passato, nessun refresh dovuto, in corso o
+    // appena fatto (l'evento "refresh" di ScrollTrigger), e l'ascolto si stacca a ogni uscita.
+    // Anche il load rompe la quiete: il refresh di D56 lo chiede il load e parte al fotogramma dopo.
+    assert.match(watch, /ScrollTrigger\.addEventListener\("refresh", onNoise\);\s*window\.addEventListener\("load", onNoise\);/);
+    assert.match(
+      watch,
+      /const stop = \(\) => \{\s*ScrollTrigger\.removeEventListener\("refresh", onNoise\);\s*window\.removeEventListener\("load", onNoise\);\s*\};/,
+    );
+    assert.match(watch, /if \(refreshDue \|\| ScrollTrigger\.isScrolling\(\)\) quietSince = now;/);
+    assert.match(watch, /if \(document\.readyState === "complete" && now - quietSince >= LANDING_STILL_MS\) return stop\(\);/);
+    assert.doesNotMatch(watch.replace(/return stop\(\);/g, ""), /\breturn;/, "un'uscita di watchLanding non stacca l'ascolto dei refresh");
+    // La correzione è istantanea e dentro un arrivo nuovo, col tetto che riparte da lì e uno
+    // scrollEnd di prima che non la chiude: i gruppi attraversati nascono shown (spec §2.4).
+    assert.match(
+      land,
+      /window\.clearTimeout\(stillCap\);\s*stillCap = 0;\s*watchArrival\(\);\s*landingUnseen = true;\s*window\.scrollTo\(\{ top: y, behavior: "instant" as ScrollBehavior \}\);/,
+    );
+    const arrivo = engine.slice(engine.indexOf("function watchArrival("), engine.indexOf("function watchLanding("));
+    assert.match(arrivo, /moved = true;\s*still = 0;\s*landingUnseen = false;/);
+    // Parte solo se il documento è nato col frammento, fuori da ricarica e back/forward, e nessun
+    // gesto ha ancora scorso la pagina: il boot script ha messo __dtGesto a 0. Dopo una navigazione
+    // client __dtGesto non c'è, e l'atterraggio non parte.
+    assert.match(engine, /if \(target && gesture\(\) === 0\) watchLanding\(target\);/);
+    assert.doesNotMatch(engine, /addEventListener\(t, onGesture/, "il gesto lo registra il boot script, non il modulo");
   });
 });
 
