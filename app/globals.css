@@ -1293,11 +1293,13 @@ html[data-consent] .dt-consent {
    375 px (CLS 0,58 a 1440×900, 0,36 a 1024×768: corridors.spec.ts, che gira
    col consenso accettato). Qui il boot script ha messo `data-consent-accepted`
    e il cancello tiene già l'altezza del widget; senza consenso, o col rifiuto,
-   resta alto quanto il suo testo. Quando il widget vero dichiara la sua altezza
-   il contenitore la segue, come prima. Il valore è lo useState di frameH in
-   TrustindexEmbed (ripristino-scroll.test.ts li confronta). */
+   resta alto quanto il suo testo. Il widget vero dichiara la sua altezza solo
+   quando carica (a 1440×900 399 px, non 480: 81 px di salto se sta sopra lo
+   schermo), e TrustindexEmbed se la ricorda per pagina e larghezza; il boot
+   script la rende `--dt-ti-h`. Senza, la riserva è l'altezza da cui parte
+   frameH in TrustindexEmbed (ripristino-scroll.test.ts li confronta). */
 html[data-consent-accepted] .dt-voci_cancello {
-  min-height: 480px;
+  min-height: var(--dt-ti-h, 480px);
 }
 
 /* ---------- Preloader: l'atto I e la gomma ----------

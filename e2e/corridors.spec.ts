@@ -212,6 +212,26 @@ test.describe("prima dell'idratazione", () => {
         schermo: getComputedStyle(document.querySelector("#storia .dt-horizon_screen")!).position,
       };
     });
+  // Le voci layout-shift senza input recente: l'osservatore entra a ogni caricamento prima degli
+  // script della pagina, e leggiCls somma quelle del documento corrente.
+  const osservaCls = (page: Page) =>
+    page.addInitScript(() => {
+      const w = window as unknown as { __cls: { v: number; src: string[] }[] };
+      w.__cls = [];
+      new PerformanceObserver((lista) => {
+        for (const e of lista.getEntries() as unknown as { value: number; hadRecentInput: boolean; sources?: { node?: Node | null }[] }[]) {
+          if (e.hadRecentInput) continue;
+          w.__cls.push({
+            v: e.value,
+            src: (e.sources ?? []).map((s) => (s.node instanceof Element ? `${s.node.tagName.toLowerCase()}${s.node.id ? `#${s.node.id}` : ""}.${Array.from(s.node.classList).slice(0, 2).join(".")}` : "?")),
+          });
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+  const leggiCls = async (page: Page) => {
+    const voci = await page.evaluate(() => (window as unknown as { __cls: { v: number; src: string[] }[] }).__cls);
+    return { cls: voci.reduce((a, e) => a + e.v, 0), dettaglio: voci.map((e) => `${e.v.toFixed(3)} ${e.src.join(", ")}`).join(" | ") };
+  };
   for (const vp of [
     { width: 1440, height: 900 },
     { width: 1024, height: 768 },
@@ -250,20 +270,7 @@ test.describe("prima dell'idratazione", () => {
       test.skip(!!isMobile, "i nastri e la rotaia vivono da 1024");
       void guards; // il mock delle terze parti
       await page.setViewportSize(vp);
-      // L'osservatore entra a ogni caricamento prima degli script della pagina.
-      await page.addInitScript(() => {
-        const w = window as unknown as { __cls: { v: number; src: string[] }[] };
-        w.__cls = [];
-        new PerformanceObserver((lista) => {
-          for (const e of lista.getEntries() as unknown as { value: number; hadRecentInput: boolean; sources?: { node?: Node | null }[] }[]) {
-            if (e.hadRecentInput) continue;
-            w.__cls.push({
-              v: e.value,
-              src: (e.sources ?? []).map((s) => (s.node instanceof Element ? `${s.node.tagName.toLowerCase()}${s.node.id ? `#${s.node.id}` : ""}.${Array.from(s.node.classList).slice(0, 2).join(".")}` : "?")),
-            });
-          }
-        }).observe({ type: "layout-shift", buffered: true });
-      });
+      await osservaCls(page);
       // Il primo paint si separa dall'idratazione: i chunk arrivano 1,5 s dopo il documento.
       await page.route(CHUNK, async (route) => {
         await new Promise((r) => setTimeout(r, 1_500));
@@ -290,12 +297,47 @@ test.describe("prima dell'idratazione", () => {
         await page.reload({ waitUntil: "load" });
         await waitGate(page);
         await page.waitForTimeout(1_500);
-        const voci = await page.evaluate(() => (window as unknown as { __cls: { v: number; src: string[] }[] }).__cls);
-        const cls = voci.reduce((a, e) => a + e.v, 0);
-        expect(cls, `${dove} (y ${y}): CLS ${cls.toFixed(4)} — ${voci.map((e) => `${e.v.toFixed(3)} ${e.src.join(", ")}`).join(" | ")}`).toBeLessThan(0.01);
+        const { cls, dettaglio } = await leggiCls(page);
+        expect(cls, `${dove} (y ${y}): CLS ${cls.toFixed(4)} — ${dettaglio}`).toBeLessThan(0.01);
       }
     });
   }
+
+  // Il widget vero di Trustindex dichiara la sua altezza quando carica: a 1440×900 399 px, non i 480
+  // che TrustindexEmbed riserva da subito. Ricaricando sotto #voci col consenso dato il widget sta in
+  // cima allo schermo, e tutto ciò che segue saliva di 81 px (CLS 0,037; 23 set. 2026). Qui un widget
+  // finto alto 399 px, servito sopra il mock vuoto di `guards` (vince la rotta registrata per ultima):
+  // la prima visita gli fa dichiarare l'altezza, la ricarica deve ritrovarla senza salti.
+  test("a 1440×900 col consenso dato il widget di Trustindex ritrova la sua altezza alla ricarica, senza salti", async ({ page, goto, guards, isMobile }) => {
+    test.skip(!!isMobile, "la quota di ricarica è quella dei corridoi da desktop");
+    void guards; // il mock delle terze parti
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.route(/cdn\.trustindex\.io\/loader\.js/, (route) =>
+      route.fulfill({
+        contentType: "application/javascript",
+        body: "var d=document.createElement('div');d.style.height='399px';document.body.appendChild(d);",
+      }),
+    );
+    await osservaCls(page);
+    await goto("/");
+    await waitGate(page);
+    const widget = page.locator("[data-reviews-widget] > div");
+    const altezza = () => widget.evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    const y = await page.evaluate(() => {
+      const r = document.querySelector("#voci")!.getBoundingClientRect();
+      return Math.round(r.top + window.scrollY + r.height - 0.5 * window.innerHeight);
+    });
+    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), y);
+    await expect.poll(altezza, { timeout: 10_000, message: "il widget non ha dichiarato i suoi 399 px" }).toBe(399);
+    await page.reload({ waitUntil: "load" });
+    await waitGate(page);
+    await expect(page.locator("[data-reviews-widget] iframe")).toHaveCount(1);
+    // I messaggi d'altezza del widget partono al load e a 300, 800 e 1.500 ms.
+    await page.waitForTimeout(2_000);
+    expect(await altezza()).toBe(399);
+    const { cls, dettaglio } = await leggiCls(page);
+    expect(cls, `ricarica a y ${y}: CLS ${cls.toFixed(4)} — ${dettaglio}`).toBeLessThan(0.01);
+  });
 });
 
 test.describe("con reduced motion", () => {

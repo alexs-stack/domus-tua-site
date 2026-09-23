@@ -46,17 +46,24 @@ function bootScript(): string {
   });
 }
 
-type Esito = { attributi: Map<string, string>; scrollRestoration: string };
+type Esito = { attributi: Map<string, string>; stili: Map<string, string>; scrollRestoration: string };
 
-/** Esegue il boot script su «/» con il tipo di navigazione, l'ancora, la chiave dell'intro e i cookie dati. */
-function esegui(nav: string, { hash = "", chiave = C.INTRO_QUIET as string | null, cookie = "" } = {}): Esito {
+/**
+ * Esegue il boot script su «/» con il tipo di navigazione, l'ancora, la chiave dell'intro, i cookie, il
+ * localStorage (`archivio`) e la larghezza del viewport dati.
+ */
+function esegui(
+  nav: string,
+  { hash = "", chiave = C.INTRO_QUIET as string | null, cookie = "", archivio = {} as Record<string, string>, larghezza = 1440 } = {},
+): Esito {
   const attributi = new Map<string, string>();
+  const stili = new Map<string, string>();
   const html = {
     setAttribute: (k: string, v: string) => void attributi.set(k, v),
     getAttribute: (k: string) => attributi.get(k) ?? null,
     hasAttribute: (k: string) => attributi.has(k),
     removeAttribute: (k: string) => void attributi.delete(k),
-    style: { setProperty() {} },
+    style: { setProperty: (k: string, v: string) => void stili.set(k, v) },
   };
   const storia = { scrollRestoration: "auto" };
   const finto: Record<string, unknown> = {
@@ -72,6 +79,8 @@ function esegui(nav: string, { hash = "", chiave = C.INTRO_QUIET as string | nul
     performance: { getEntriesByType: () => [{ type: nav }], now: () => 0 },
     matchMedia: () => ({ matches: true }),
     sessionStorage: { getItem: (k: string) => (k === C.INTRO_KEY ? chiave : null), setItem() {}, removeItem() {} },
+    localStorage: { getItem: (k: string) => archivio[k] ?? null },
+    innerWidth: larghezza,
     innerHeight: 664,
     CSS: { registerProperty() {}, supports: () => true },
     history: storia,
@@ -89,7 +98,7 @@ function esegui(nav: string, { hash = "", chiave = C.INTRO_QUIET as string | nul
   };
   finto.window = finto;
   new Function(...Object.keys(finto), bootScript())(...Object.values(finto));
-  return { attributi, scrollRestoration: storia.scrollRestoration };
+  return { attributi, stili, scrollRestoration: storia.scrollRestoration };
 }
 
 describe("il ripristino dello scroll alla ricarica è istantaneo (Voci, D22)", () => {
@@ -164,11 +173,41 @@ describe("il consenso già dato prima del paint (il cancello di Trustindex in Vo
     }
   });
 
-  test("globals.css: il cancello riserva l'altezza iniziale di TrustindexEmbed, e i due rami di Voci hanno lo stesso margine", () => {
+  test("l'altezza dichiarata dal widget diventa --dt-ti-h: solo col consenso, su questa pagina, alla stessa larghezza, se è un numero positivo", () => {
+    const ok = JSON.stringify({ w: 1440, h: 399 });
+    const casi: { caso: string; cookie?: string; archivio: Record<string, string>; larghezza?: number; atteso: string | null }[] = [
+      { caso: "ricordata qui, a 1440", cookie: "dt_consent=accepted", archivio: { "dt-ti-h/": ok }, atteso: "399px" },
+      { caso: "larghezza diversa", cookie: "dt_consent=accepted", archivio: { "dt-ti-h/": ok }, larghezza: 1024, atteso: null },
+      { caso: "un'altra pagina", cookie: "dt_consent=accepted", archivio: { "dt-ti-h/recensioni": ok }, atteso: null },
+      { caso: "zero", cookie: "dt_consent=accepted", archivio: { "dt-ti-h/": JSON.stringify({ w: 1440, h: 0 }) }, atteso: null },
+      { caso: "non un numero", cookie: "dt_consent=accepted", archivio: { "dt-ti-h/": JSON.stringify({ w: 1440, h: "399" }) }, atteso: null },
+      { caso: "valore rotto", cookie: "dt_consent=accepted", archivio: { "dt-ti-h/": "{" }, atteso: null },
+      { caso: "senza scelta", archivio: { "dt-ti-h/": ok }, atteso: null },
+      { caso: "rifiutato", cookie: "dt_consent=rejected", archivio: { "dt-ti-h/": ok }, atteso: null },
+    ];
+    for (const { caso, atteso, ...opzioni } of casi) {
+      const { attributi, stili } = esegui("reload", opzioni);
+      assert.equal(stili.get("--dt-ti-h") ?? null, atteso, caso);
+      const accettato = opzioni.cookie === "dt_consent=accepted";
+      assert.equal(attributi.has("data-consent-accepted"), accettato, `${caso}: l'attributo del consenso non dipende dall'altezza`);
+    }
+  });
+
+  test("TrustindexEmbed e il boot script parlano della stessa altezza: chiave, pagina, larghezza e controllo", () => {
     const embed = readFileSync(join(root, "app/components/TrustindexEmbed.tsx"), "utf8");
-    const h0 = embed.match(/const \[frameH, setFrameH\] = useState\((\d+)\)/);
-    assert.ok(h0, "l'altezza iniziale di TrustindexEmbed non è più uno useState numerico");
-    assert.match(css, new RegExp(`\\nhtml\\[data-consent-accepted\\] \\.dt-voci_cancello \\{\\r?\\n\\s*min-height: ${h0![1]}px;\\r?\\n\\}`));
+    assert.match(embed, /const ALTEZZA_KEY = "dt-ti-h";/);
+    assert.match(embed, /localStorage\.setItem\(ALTEZZA_KEY \+ location\.pathname, JSON\.stringify\(\{ w: window\.innerWidth, h \}\)\)/);
+    assert.match(embed, /s\.w === window\.innerWidth && typeof s\.h === "number" && s\.h > 0/, "TrustindexEmbed non rilegge più l'altezza come il boot script");
+    const boot = bootScript();
+    assert.ok(boot.includes('localStorage.getItem("dt-ti-h"+p)'), "il boot script non legge la chiave di TrustindexEmbed per questa pagina");
+    assert.ok(boot.includes('tih.w===innerWidth&&typeof tih.h=="number"&&tih.h>0'), "il boot script non controlla larghezza e altezza come TrustindexEmbed");
+  });
+
+  test("globals.css: il cancello riserva l'altezza ricordata o quella iniziale di TrustindexEmbed, e i due rami di Voci hanno lo stesso margine", () => {
+    const embed = readFileSync(join(root, "app/components/TrustindexEmbed.tsx"), "utf8");
+    const h0 = embed.match(/const \[frameH, setFrameH\] = useState\(\(\) => altezzaRicordata\(\) \?\? (\d+)\)/);
+    assert.ok(h0, "l'altezza iniziale di TrustindexEmbed non è più «la ricordata, se no un numero»");
+    assert.match(css, new RegExp(`\\nhtml\\[data-consent-accepted\\] \\.dt-voci_cancello \\{\\r?\\n\\s*min-height: var\\(--dt-ti-h, ${h0![1]}px\\);\\r?\\n\\}`));
     const voci = readFileSync(join(root, "app/components/Voci.tsx"), "utf8");
     assert.match(voci, /<div className="mt-6">\s*<TrustindexEmbed /, "il ramo del widget in Voci non è più un div mt-6 col solo widget");
     assert.match(voci, /"dt-voci_cancello mt-6"/, "Voci non marca più il cancello");

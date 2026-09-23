@@ -26,10 +26,37 @@ import { site } from "../lib/site";
 // questo è il secondo cancello, di sola performance. Fuori da un browser, o
 // senza IntersectionObserver, si arma subito: nessuna regressione dove la
 // pigrizia non è osservabile.
+//
+// L'ALTEZZA SI RICORDA (23 set. 2026). Il widget dichiara la sua altezza solo
+// quando ha caricato, e non è quella riservata da subito: a 1440×900 399 px
+// contro 480. Ricaricando la home col widget in cima allo schermo (sotto
+// #voci), un secondo dopo l'idratazione tutto ciò che segue saliva di 81 px.
+// Ogni altezza dichiarata si scrive in localStorage (ALTEZZA_KEY + pathname,
+// { w: innerWidth, h }); alla visita dopo, alla stessa larghezza, il
+// contenitore nasce già con quella, e il boot script del layout la fa
+// riservare prima del paint al cancello di Voci (--dt-ti-h, globals.css).
+const ALTEZZA_KEY = "dt-ti-h";
+/** I limiti dell'altezza del widget, applicati quando la dichiara: in localStorage non entra altro. */
+const H_MIN = 240;
+const H_MAX = 1800;
+
+/** L'altezza dichiarata l'ultima volta su questa pagina e a questa larghezza, o null (stesso controllo del boot script). */
+function altezzaRicordata(): number | null {
+  try {
+    const s = JSON.parse(localStorage.getItem(ALTEZZA_KEY + location.pathname) ?? "null") as { w?: unknown; h?: unknown } | null;
+    return s && s.w === window.innerWidth && typeof s.h === "number" && s.h > 0 ? s.h : null;
+  } catch {
+    return null; // storage negato o valore rotto: si parte dall'altezza di sempre
+  }
+}
+
 export default function TrustindexEmbed({ title }: { title: string }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const holderRef = useRef<HTMLDivElement>(null);
-  const [frameH, setFrameH] = useState(480);
+  // Parte dall'altezza che il widget aveva l'ultima volta, se c'è. Leggere localStorage durante il
+  // render qui è sicuro: chi monta questo componente lo fa solo col consenso dato, che sul server e
+  // all'idratazione è ancora null (useConsent), quindi nasce sempre nel browser, già idratato.
+  const [frameH, setFrameH] = useState(() => altezzaRicordata() ?? 480);
   const [armed, setArmed] = useState(false);
 
   useEffect(() => {
@@ -62,7 +89,13 @@ export default function TrustindexEmbed({ title }: { title: string }) {
       if (e.source !== frameRef.current?.contentWindow) return;
       const d = e.data as { type?: string; h?: number };
       if (d?.type === "dt-ti-height" && typeof d.h === "number") {
-        setFrameH(Math.max(240, Math.min(1800, Math.round(d.h))));
+        const h = Math.max(H_MIN, Math.min(H_MAX, Math.round(d.h)));
+        setFrameH(h);
+        try {
+          localStorage.setItem(ALTEZZA_KEY + location.pathname, JSON.stringify({ w: window.innerWidth, h }));
+        } catch {
+          /* storage negato: alla visita dopo si riparte dall'altezza di sempre */
+        }
       }
     }
     window.addEventListener("message", onMsg);
