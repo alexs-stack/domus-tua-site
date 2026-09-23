@@ -122,8 +122,9 @@ export default function PageHero({
   scriptWord?: string;
   /** Pavimento dell'H1 più basso sotto lg (2,5rem invece di 3rem) per la LINGUA in cui
       una parola sola del titolo non entra nei 324 px della colonna a 360 px:
-      «Besichtigung.» di /open-domus in tedesco (368 px a 48 px) e «currículums.» di
-      /lavora-con-noi in spagnolo (356 px). Audit del 21 settembre 2026 (blocco 23),
+      «Besichtigung.» di /open-domus in tedesco (368 px a 48 px), «currículums.» di
+      /lavora-con-noi in spagnolo (356 px) e «Lebensläufe.» della stessa rotta in
+      tedesco (341-344 px secondo il sistema). Audit del 21 settembre 2026 (blocco 23),
       difetto V04: taglia più piccola, mai testo nascosto né lettere spezzate. Il
       chiamante lo passa legato alla lingua (`tightTitle={locale === "de"}`): il primo
       giro lo passava secco e l'H1 scendeva a 40 px in tutte e cinque le lingue su due

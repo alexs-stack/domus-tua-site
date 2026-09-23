@@ -213,8 +213,12 @@ export default function HomeSearchGateway() {
         // gsap.ts), aspettando il primo scroll se non è ancora partito, col tetto ARRIVO_CAP_MS. Creato
         // durante l'arrivo, lo ScrollTrigger renderebbe il pannello a 0,02 e lo scrub lo farebbe salire
         // mentre l'innesco attraversa il viewport (misurato: 0,02 a 265 ms, 0,39 a 526 ms, 1 a 1 s).
+        // Lo stesso con l'innesco già sopra la linea ma lo scroll in corso: sotto un'idratazione lenta
+        // (un task di 300-510 ms, misurato a 390×664 e a 1440×900) l'arrivo porta l'innesco oltre il
+        // 95 % prima che questo effetto giri, e armato lì il pannello nasce al progresso di quel
+        // momento (0,83-0,94) e torna a 1 solo se l'arrivo lo porta oltre il 55 %.
         let annulla = () => {};
-        if (ancoraQuiOPiuGiu && sottoLaLinea()) {
+        if (ancoraQuiOPiuGiu && (sottoLaLinea() || ScrollTrigger.isScrolling())) {
           let fermo = () => {};
           let cap = 0;
           const parti = () => {

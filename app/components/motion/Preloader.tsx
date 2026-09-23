@@ -32,7 +32,8 @@
 // Il `ready` della gomma è il precarico di sempre (tutte le immagini con
 // scadenza sul desktop, la prima piega sul telefono), NON l'evento `load`: qui
 // il precarico del desktop promuove a eager ogni immagine della pagina, e il
-// `load` arriverebbe solo quando le ha scaricate tutte.
+// `load` arriverebbe solo quando le ha scaricate tutte. Dopo uno skip il
+// `ready` è vero subito: chi salta non aspetta il precarico.
 // La gomma è JavaScript. Senza JS, o col JS arrivato quando la rete CSS è già
 // partita (PRE_AUTOHIDE_MS), il sipario sfuma da solo e l'hero entra per conto
 // suo: nessuno resta chiuso fuori perché un chunk tarda.
@@ -648,12 +649,22 @@ export default function Preloader() {
     // subito, `veloce`. «Entra ADESSO»: si taglia il preambolo, non la porta.
     // `--pre-skip` è l'ora del film: la rete CSS dello skip ci si allinea (e
     // la gomma la spegne un fotogramma dopo).
+    // E chi salta non aspetta il precarico: aspettarlo contraddirebbe l'unico
+    // gesto con cui ha detto che ha fretta (era `saltata` prima della gomma).
+    // Il `ready` della gomma diventa vero subito e la cancellatura si allarga
+    // appena il cuore è disegnato, invece di battere fino alla scadenza del
+    // precarico (4,5 s sul film da 768 in su: misurato in CI a 768, handoff a
+    // +4,2 s dal JS al timone). Il precarico non si annulla, prosegue dietro.
+    const salta = () => {
+      unwill();
+      setPronta(true);
+      monta("veloce");
+    };
     const skip = () => {
       if (montata) return;
       html.style.setProperty("--pre-skip", `${now().toFixed(3)}s`);
       html.setAttribute("data-pre-skip", "");
-      unwill();
-      monta("veloce");
+      salta();
     };
     const onPointerSkip = () => skip();
     const onKeySkip = (e: KeyboardEvent) => {
@@ -686,8 +697,7 @@ export default function Preloader() {
     if (short) {
       monta("veloce");
     } else if (giaSaltato) {
-      unwill();
-      monta("veloce");
+      salta();
     } else {
       at(INTRO_T.gomma, () => monta(now() >= INTRO_T.tardi ? "veloce" : "normale"));
     }
