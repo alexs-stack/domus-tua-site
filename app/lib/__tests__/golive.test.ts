@@ -9,7 +9,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { nextConfig } from "../../../next.config";
+import nextConfig from "../../../next.config";
 import { buildSitemap, SITEMAP_ROUTES, NON_INDEXABLE_ROUTES } from "../../sitemap";
 import { robotsRules, RETRIEVAL_BOTS } from "../../robots";
 import { organizationJsonLd, siteUrl } from "../site";
