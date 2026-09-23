@@ -125,6 +125,18 @@ describe("la piega", () => {
     assert.ok(iFold > -1 && iArmed > iFold, "data-reveal-armed scritto prima del ramo della piega: la regola dello 0,02 smetterebbe di valere");
   });
 
+  test("alla partenza la piega rilegge il gruppo: sopra il bordo alto nasce pieno invece di entrare fuori vista (spec §2.4)", () => {
+    // /vendi#contatti a 390 con l'idratazione nella coda dell'arrivo (reveal-engine.spec.ts,
+    // «con l'ancora…»): le domande della FAQ in vista all'armamento finivano sopra il viewport e
+    // la piega le faceva entrare lì, «revealing» con il bordo sopra lo 0.
+    const f = corpo("foldArm", fold);
+    assert.match(f, /const via = \(\) => \(sopraIlBordo\(group\) \? h\.shown\(\) : h\.start\(\)\);/);
+    assert.match(f, /ferma = afterCurtain\(via\);/);
+    assert.match(f, /window\.setTimeout\(via, 150\)/);
+    assert.doesNotMatch(f, /afterCurtain\(h\.start\)|setTimeout\(h\.start/);
+    assert.match(corpo("sopraIlBordo", fold), /return group\.getBoundingClientRect\(\)\.top < -1;/);
+  });
+
   test("durante l'arrivo al frammento la testa in vista nasce piena senza passare dalla piega (D39, spec §2.4)", () => {
     // Su /vendi#contatti le teste in vista alla prima passata le scavalca lo scroll nativo:
     // l'attesa della piega le farebbe entrare sopra il viewport (reveal-engine.spec.ts, «con l'ancora…»).
