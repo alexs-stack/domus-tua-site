@@ -15,6 +15,8 @@
      renderer non gira mai al montaggio, che sulla home cade sotto il sipario: parte all'handoff più
      SONDA_PASSO_MS (senza sipario, dal montaggio), e ogni suo task passa da un'`occasione`: idle, scheda
      in vista, scroll fermo, fuori dalla piega, entrata della home finita (sipario e salita dell'hero).
+     Con la section a tre schermi (l'ultima chiamata, VICINO_MARGINE) restano solo scheda in vista e fuori
+     dalla piega: chi scorre senza fermarsi arriva al Congedo col giudizio già dato.
      Due tempi: `prepara` (contesto su un canvas staccato; nome del renderer, software → scala;
      programma e un draw che paga la pipeline, senza lettura), poi i giri della sonda (il costo di un
      draw del foglio dentro il viewport al netto della lettura readPixels 1×1; lastra.ts,
@@ -61,6 +63,8 @@ import {
   PIEGA_S,
   RENDERER_SOFTWARE,
   SONDA_PASSO_MS,
+  SONDA_URGENTE_MS,
+  VICINO_MARGINE,
   type Giro,
   type Programma,
   disegna,
@@ -68,6 +72,7 @@ import {
   giro,
   giudizioSonda,
   ingombro,
+  occasioneManca,
   programma,
   rettDi,
   scatolaPiatta,
@@ -304,32 +309,56 @@ export function useLastra(refs: LastraRefs, ponteRef: RefObject<Lastra>): void {
         tAttesa = 0;
         idAttesa = 0;
       };
-      // Il momento buono manca se la scheda è nascosta, se si scorre (la lettura di whenStill), a metà
-      // piega (0 < e < 1: il foglio è a schermo e un task lungo fermerebbe la distensione) o durante
-      // l'entrata della home (sipario e salita dell'hero: lastra.ts, entrataInCorso).
+      // L'ultima chiamata (lastra.ts, VICINO_MARGINE): col Congedo a tre schermi il cancello non aspetta più.
+      let urgente = false;
+      // Il tempo del cancello in attesa di un'occasione: l'ultima chiamata lo anticipa.
+      let prossimo: (() => void) | null = null;
+      // Il momento buono manca se la scheda è nascosta, a metà piega (0 < e < 1: il foglio è a schermo e un
+      // task lungo fermerebbe la distensione) e, finché il Congedo è lontano, se si scorre (la lettura di
+      // whenStill) o durante l'entrata della home (sipario e salita dell'hero: lastra.ts, entrataInCorso).
       const daAspettare = () =>
-        document.hidden ||
-        ScrollTrigger.isScrolling() ||
-        (S.e > 0 && S.e < 1) ||
-        entrataInCorso((a) => html.hasAttribute(a), performance.now());
+        occasioneManca({
+          nascosta: document.hidden,
+          e: S.e,
+          urgente,
+          scorre: ScrollTrigger.isScrolling(),
+          entrata: entrataInCorso((a) => html.hasAttribute(a), performance.now()),
+        });
       /* L'occasione: `fn` dopo `ms`, in un idle (tetto SONDA_PASSO_MS, perché in una scheda in background
          l'idle può non arrivare mai; senza requestIdleCallback, Safari, al timer), nel momento buono; se no
          si riguarda dopo SONDA_PASSO_MS: un timer, nessun ascolto. Sonda e texture passano di qui: mai
-         dentro uno scroll, mai sotto il sipario. Un'occasione alla volta. */
+         dentro uno scroll, mai sotto il sipario, finché il Congedo è lontano; all'ultima chiamata niente
+         idle e al più SONDA_URGENTE_MS. Un'occasione alla volta. */
       const occasione = (ms: number, fn: () => void) => {
         fermaAttesa();
-        tAttesa = window.setTimeout(() => {
-          tAttesa = 0;
-          const vai = () => {
-            idAttesa = 0;
-            if (daAspettare()) occasione(SONDA_PASSO_MS, fn);
-            else fn();
-          };
-          const w = window as Idle;
-          if (typeof w.requestIdleCallback === "function") idAttesa = w.requestIdleCallback(vai, { timeout: SONDA_PASSO_MS });
-          else vai();
-        }, ms);
+        prossimo = fn;
+        tAttesa = window.setTimeout(
+          () => {
+            tAttesa = 0;
+            const vai = () => {
+              idAttesa = 0;
+              if (daAspettare()) occasione(SONDA_PASSO_MS, fn);
+              else {
+                prossimo = null;
+                fn();
+              }
+            };
+            const w = window as Idle;
+            if (!urgente && typeof w.requestIdleCallback === "function") idAttesa = w.requestIdleCallback(vai, { timeout: SONDA_PASSO_MS });
+            else vai();
+          },
+          urgente ? Math.min(ms, SONDA_URGENTE_MS) : ms,
+        );
       };
+      const vicino = new IntersectionObserver(
+        (voci) => {
+          if (!voci.some((v) => v.isIntersecting)) return;
+          vicino.disconnect();
+          urgente = true;
+          if (prossimo) occasione(0, prossimo);
+        },
+        { rootMargin: VICINO_MARGINE },
+      );
       // Il primo tempo, un task: contesto su un canvas staccato, nome del renderer, programma, e un draw
       // sulle scatole della sonda che fa pagare alla GPU la pipeline (7-9 ms, 57 a cache fredda) senza
       // lettura: il thread principale non lo aspetta. Restituisce la sonda, o il motivo della via scala.
@@ -531,10 +560,14 @@ export function useLastra(refs: LastraRefs, ponteRef: RefObject<Lastra>): void {
       // del documento: `scala` subito e senza contesto, `gl` senza misura.
       const parti = () => occasione(ricordo ? 0 : SONDA_PASSO_MS, primo);
       if (ricordo?.via === "scala") decidi("scala", ricordo.motivo, ricordo.giri);
-      else if (curtainPending()) fermaSipario = afterCurtain(parti);
-      else parti();
+      else {
+        vicino.observe(section);
+        if (curtainPending()) fermaSipario = afterCurtain(parti);
+        else parti();
+      }
 
       smonta = () => {
+        vicino.disconnect();
         fermaAttesa();
         fermaSipario();
         if (sonda) molla(sonda.ctx);

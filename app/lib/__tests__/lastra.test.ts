@@ -31,11 +31,14 @@ import {
   SONDA_PROVE,
   SONDA_TETTO,
   SONDA_TORBIDO_MS,
+  SONDA_URGENTE_MS,
+  VICINO_MARGINE,
   VS,
   costoDraw,
   entrataInCorso,
   giro,
   giudizioSonda,
+  occasioneManca,
   sogliaSonda,
   sogliaTorbido,
   ingombro,
@@ -197,6 +200,24 @@ describe("il cancello a tempo e il giudizio a giri", () => {
     assert.match(leggi("app/components/HeroCinematic.tsx"), /html\.removeAttribute\("data-hero-entrata"\);/);
   });
 
+  test("l'ultima chiamata: col Congedo a tre schermi contano solo la piega e la scheda nascosta", () => {
+    const m = { nascosta: false, e: 0, urgente: false, scorre: false, entrata: false };
+    assert.equal(occasioneManca(m), false, "pagina ferma, entrata finita, fuori dalla piega");
+    // Lontano dal Congedo si aspetta lo scroll fermo e la fine dell'entrata.
+    assert.equal(occasioneManca({ ...m, scorre: true }), true);
+    assert.equal(occasioneManca({ ...m, entrata: true }), true);
+    // Vicino no: chi scorre senza fermarsi (misurato il 24 set.: 300 px ogni 120 ms dall'handoff) arrivava
+    // al Congedo col cancello mai partito, e la piega passava piatta.
+    assert.equal(occasioneManca({ ...m, urgente: true, scorre: true, entrata: true }), false);
+    // Mai a metà piega né a scheda nascosta, nemmeno all'ultima chiamata.
+    for (const e of [0.01, 0.5, 0.99]) assert.equal(occasioneManca({ ...m, urgente: true, e }), true, `e ${e}`);
+    assert.equal(occasioneManca({ ...m, urgente: true, e: 1 }), false, "a foglio disteso sì");
+    assert.equal(occasioneManca({ ...m, urgente: true, nascosta: true }), true);
+    // Tre schermi di margine sotto il viewport; all'ultima chiamata il passo scende sotto quello del cancello.
+    assert.equal(VICINO_MARGINE, "0px 0px 300% 0px");
+    assert.ok(SONDA_URGENTE_MS < SONDA_PASSO_MS && SONDA_URGENTE_MS >= IDLE_MS, "il passo urgente sta fra la sosta e il passo del cancello");
+  });
+
   test("giro: torbido quando anche il vuoto più corto supera la soglia, che cresce coi pixel", () => {
     assert.deepEqual(intro, { costo: 1, torbido: true });
     assert.deepEqual(giro([3, 2, 2], [4, 4, 6], PX_SONDA), { costo: 0.5, torbido: false });
@@ -347,12 +368,18 @@ describe("gli shader e il DOM", () => {
     // Quando (23 set.): mai al montaggio, che sulla home cade sotto il sipario; all'handoff, poi in un'occasione.
     assert.doesNotMatch(h, /whenStill\(/);
     assert.match(h, /if \(curtainPending\(\)\) fermaSipario = afterCurtain\(parti\);\s*else parti\(\);/);
-    assert.match(h, /requestIdleCallback\(vai, \{ timeout: SONDA_PASSO_MS \}\)/);
+    assert.match(h, /if \(!urgente && typeof w\.requestIdleCallback === "function"\) idAttesa = w\.requestIdleCallback\(vai, \{ timeout: SONDA_PASSO_MS \}\)/);
     assert.match(
       h,
-      /document\.hidden \|\|\s*ScrollTrigger\.isScrolling\(\) \|\|\s*\(S\.e > 0 && S\.e < 1\) \|\|\s*entrataInCorso\(\(a\) => html\.hasAttribute\(a\), performance\.now\(\)\)/,
+      /occasioneManca\(\{\s*nascosta: document\.hidden,\s*e: S\.e,\s*urgente,\s*scorre: ScrollTrigger\.isScrolling\(\),\s*entrata: entrataInCorso\(\(a\) => html\.hasAttribute\(a\), performance\.now\(\)\),\s*\}\)/,
     );
-    assert.match(h, /if \(daAspettare\(\)\) occasione\(SONDA_PASSO_MS, fn\);\s*else fn\(\);/);
+    assert.match(h, /if \(daAspettare\(\)\) occasione\(SONDA_PASSO_MS, fn\);\s*else \{\s*prossimo = null;\s*fn\(\);\s*\}/);
+    // L'ultima chiamata (24 set.): la section nel margine accende `urgente` e anticipa il tempo in attesa;
+    // da lì niente idle e al più SONDA_URGENTE_MS. Si osserva solo se il giudizio del documento non è già scala.
+    assert.match(h, /urgente \? Math\.min\(ms, SONDA_URGENTE_MS\) : ms/);
+    assert.match(h, /vicino\.disconnect\(\);\s*urgente = true;\s*if \(prossimo\) occasione\(0, prossimo\);[\s\S]*?\{ rootMargin: VICINO_MARGINE \}/);
+    assert.match(h, /else \{\s*vicino\.observe\(section\);\s*if \(curtainPending\(\)\)/);
+    assert.match(h, /smonta = \(\) => \{\s*vicino\.disconnect\(\);/);
     // La texture passa dalla stessa porta: il poster pigro arriva di solito mentre si scorre.
     assert.match(h, /const onPosterLoad = \(\) => occasione\(0, caricaTexture\);/);
     // Il giudizio vale per il documento: un rimontaggio con `scala` non crea il contesto.
