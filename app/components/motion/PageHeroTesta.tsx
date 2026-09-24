@@ -57,10 +57,9 @@
 // - lo stato del CSS è lo stato a riposo: senza JS e con reduced-motion la pagina è
 //   questa, completa; niente sticky, niente trasformate (D190). CLS 0 per costruzione:
 //   nulla si misura, nulla si scrive dopo il paint;
-// - la foto è l'LCP: `preload`, `quality 60` (nel WebP l'alpha resta lossless, sharp tiene
-//   alphaQuality 100; nell'AVIF, che Chrome riceve per primo, è lossy a q 38 —
-//   image-optimizer.js — con croma 4:4:4: la frangia al bordo del cielo è misurata in
-//   C05/P04 della revisione del 22 set., appena percettibile a 1×), `sizes` 100vw
+// - la foto è l'LCP: `preload`, la qualità del sito (next.config: solo WebP a 85 dal 24 set.;
+//   nel WebP l'alpha resta lossless, sharp tiene alphaQuality 100, quindi niente frangia al
+//   bordo del cielo, C05/P04 della revisione del 22 set., che l'AVIF lossy lasciava), `sizes` 100vw
 //   (`SIZES_TESTA`: lo strato è largo tutto col rapporto della foto, il cover non
 //   ritaglia; il conto per fold di D183 è morto con A45), inquadratura `--dt-op` scelta
 //   dal CSS per fascia (D180). Nessun hook.
@@ -109,7 +108,6 @@ export default function PageHeroTesta({
               fill
               preload
               sizes={SIZES_TESTA}
-              quality={60}
               className="object-cover"
               style={{ objectPosition: "var(--dt-op)" }}
             />

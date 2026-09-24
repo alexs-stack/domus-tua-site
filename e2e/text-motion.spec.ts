@@ -720,8 +720,9 @@ test.describe("6 · LCP contro la base di spec §2.5", () => {
       // e in fila seriale la prima rossa salta le altre. Con le foto alte (A44-A46: 6e7fd80, c65e44f)
       // sfora anche /vendi a 1440 (mediane di 220-444 contro 204): il blocco è alto uno schermo e della
       // foto entra solo il cielo trasparente (470 px di 2.147), ma il candidato LCP resta l'immagine,
-      // un AVIF 1536×2290 con l'alpha scaricato in 60-100 ms e dipinto dopo il primo fotogramma (a CPU
-      // ×2,5, in sette giri su dieci, 170-250 ms dopo l'FCP; misurato il 23 set.). A 390 della foto
+      // allora un AVIF 1536×2290 con l'alpha, scaricato in 60-100 ms e dipinto dopo il primo fotogramma (a
+      // CPU ×2,5, in sette giri su dieci, 170-250 ms dopo l'FCP; misurato il 23 set.). Dal 24 set. è un
+      // WebP a 85, più pesante (next.config: solo WebP, una qualità). A 390 della foto
       // entrano 80 px di cielo e l'LCP è il lead. Fuori dalla macchina della base il test misura lo
       // stesso e scrive i giri e la base in un'annotazione, senza verdetto: la CI tiene la traccia
       // dell'LCP, il confronto in millisecondi resta sulla macchina della base.

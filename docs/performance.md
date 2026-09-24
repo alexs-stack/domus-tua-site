@@ -71,7 +71,7 @@ In transito reale (Lighthouse, compresso): **~1,0 MB**, di cui **~550 kB di Java
 | **WebGL fuori dal percorso critico** | `HoverDistort` è un import dinamico: `ogl` non finisce più nel chunk condiviso con GSAP, che si carica su **ogni** pagina |
 | **Cromo animato differito** | Preloader, transizione di pagina e cursore d'intento arrivano dopo il primo paint: −53 kB di JS in transito |
 | **Effetti costosi spenti dove non servono** | WebGL già escluso da reduced motion, puntatore grosso e schermi stretti; ora anche da `saveData`, meno di 4 GB di RAM o meno di 4 core |
-| **Foto di sfondo a qualità 60** | Sono sotto due velature scure e in movimento: il file dimezza e la differenza non si vede. È l'LCP di `/acquista`, `/vendi`, `/metodo` |
+| **Foto di sfondo a qualità 60** (fino al 24 set. 2026) | Erano sotto due velature scure e in movimento: il file dimezzava e la differenza non si vedeva. Le velature non ci sono più e dal 24 set. tutte le immagini escono in WebP a 85 (Alberto: sul PC fisso si vedevano morbide; next.config `qualities`) |
 | **Gerarchia dei titoli** | Un `h2` solo-per-screen-reader sulla griglia dei risultati: le schede (`h3`) non seguono più l'`h1` saltando un livello (a11y 99 → 100 su `/acquista`) |
 
 Nessun contenuto e nessuna funzionalità sono stati rimossi per guadagnare punti.

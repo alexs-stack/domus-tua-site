@@ -97,6 +97,20 @@ export const ENTRATA_ATTR = ["data-preloader", "data-hero-entrata"] as const;
 export const ENTRATA_TETTO_MS = 15000;
 export const entrataInCorso = (ha: (attr: string) => boolean, ora: number): boolean =>
   ora < ENTRATA_TETTO_MS && ENTRATA_ATTR.some((a) => ha(a));
+/* L'ULTIMA CHIAMATA (24 set.). Lo scroll fermo come condizione ha un buco: chi scorre senza fermarsi
+   (la rotella di un fisso, 300 px ogni 120 ms dall'handoff) arrivava al Congedo al secondo 31 col
+   cancello mai partito, e la piega passava piatta per tutto il passaggio, a ogni visita; prima del
+   23 set. il giudizio era pronto dal sipario. Quando la section entra nel margine VICINO_MARGINE sotto
+   il viewport (tre schermi) e il giudizio o la texture mancano ancora, ogni tempo del cancello (primo,
+   giri, texture) smette di aspettare lo scroll fermo, l'idle e l'entrata della home: parte entro
+   SONDA_URGENTE_MS. Resta fuori solo la piega (0 < e < 1: mai un task lungo mentre il foglio è a
+   schermo) e la scheda nascosta. Un intoppo una volta, mentre si scorre verso il Congedo. */
+export const VICINO_MARGINE = "0px 0px 300% 0px";
+export const SONDA_URGENTE_MS = 250;
+/** L'occasione manca: scheda nascosta, a metà piega, o, finché il Congedo è lontano, scroll in corso o entrata
+    della home in corso. */
+export const occasioneManca = (m: { nascosta: boolean; e: number; urgente: boolean; scorre: boolean; entrata: boolean }): boolean =>
+  m.nascosta || (m.e > 0 && m.e < 1) || (!m.urgente && (m.scorre || m.entrata));
 /** I renderer software si riconoscono dal nome (WEBGL_debug_renderer_info): SwiftShader (la CI), llvmpipe
     e softpipe (Mesa), «Software Rasterizer», «Apple Software Renderer», WARP («Microsoft Basic Render
     Driver», anche nel nome ripulito di Firefox). WARP passa la sonda (0,25-0,5 ms): lo ferma solo il nome. */

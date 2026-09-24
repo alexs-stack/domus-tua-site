@@ -189,7 +189,6 @@ export default function FeaturedTestimonial(props: Props) {
       fill
       sizes={panel ? "(max-width:1024px) 132vw, 61vw" : "(max-width:1024px) 132vw, 56vw"}
       // Niente `priority`: l'unica immagine prioritaria del sito è l'hero.
-      quality={75}
       className={cotta ? "dt-still-trim--top object-cover" : "object-cover"}
     />
   );
