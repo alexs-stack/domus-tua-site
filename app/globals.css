@@ -19,6 +19,12 @@
    `_refs/` e `reverse-engineering/` non servono qui: sono gitignorati, e Tailwind li salta già. */
 @source not "../docs";
 
+/* Riga di servizio (24 set. 2026). Il sito del 19 settembre è tornato in produzione,
+   ma Vercel ha ripreso la cache di build della rivista bianca e Turbopack non ha
+   ricompilato questo foglio: la pagina usciva con l'HTML giusto e la CSS vecchia
+   (fondo rosa #f6d9d0, nessuna regola .dt-dome, quindi la cupola piatta). Cambiare
+   il contenuto di questo file obbliga Turbopack a ricompilarlo. Non tocca nessuno stile. */
+
 /* ============================================================
    DOMUS TUA — DESIGN SYSTEM
    Editorial Luxury × fiducia locale. Palette: rosso / grigio / bianco caldo.
