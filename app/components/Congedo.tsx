@@ -416,12 +416,11 @@ export default function Congedo() {
         <div ref={clipRef} data-postcard-clip className="pointer-events-auto absolute inset-0 bg-cream-deep">
           {/* `sizes` della resa al taglio più stretto di ogni larghezza (lane-homeC
               §7.4): sul telefono della banda 16:9 si vede un terzo della
-              larghezza. `quality` 60 per non pagarla due volte. */}
+              larghezza. La qualità è quella del sito (next.config `qualities`). */}
           <Image
             src={ambient.congedo.poster}
             alt=""
             fill
-            quality={60}
             sizes="(max-width: 767px) 270vw, (max-width: 1023px) 166vw, 134vw"
             className="object-cover"
             style={{ objectPosition: "var(--pc-focus)" }}

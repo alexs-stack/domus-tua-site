@@ -8,7 +8,7 @@
 > di `Voci.tsx` e con JavaScript si aprono in pagina. La regola YouTube resta.
 
 > Documento **interno sersan**. Target e regole per mantenere il sito **dinamico ma veloce**.
-> Le immagini passano da `next/image` (ottimizzazione on-the-fly in WebP/AVIF + resize per
+> Le immagini passano da `next/image` (ottimizzazione on-the-fly in WebP a qualità 85 + resize per
 > breakpoint), quindi ciò che conta di più è: **una sola immagine priority per pagina** (LCP),
 > tutto il resto lazy, e **sorgenti non enormi**. Vedi anche `docs/media-optimization.md` e
 > `docs/performance-notes.md`.
@@ -39,7 +39,8 @@
 | Loghi / premi | PNG/SVG, **≤ 150 KB** | preferire SVG dove possibile |
 
 **Formati:** esportare in **WebP** (o AVIF) dove possibile; `next/image` serve comunque
-WebP/AVIF ai browser che li supportano, ma sorgenti più leggere aiutano build e Data Cache.
+WebP (solo WebP, a qualità 85, dal 24 set. 2026) ai browser che lo supportano, ma sorgenti più
+leggere aiutano build e Data Cache.
 
 ## Regola YouTube (mantenere)
 

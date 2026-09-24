@@ -397,11 +397,11 @@ export default function HeroCinematic() {
 
   // I due file dell'hero (A49): il WebP col cielo trasparente 2:3 da 768, la striscia 9:16 sotto;
   // stesso alt, stessi `sizes` (100vw: la scatola ha il rapporto della foto, il cover non ritaglia),
-  // stessa qualità (75, la voce di next.config `qualities` fra i 60 delle teste e i 78 dell'hero di
-  // prima: è la foto LCP e la più grande del sito). `fotoImg` porta src/width/height/loading/
+  // stessa qualità (quella del sito, l'unica voce di next.config `qualities`: nessun componente la
+  // passa). `fotoImg` porta src/width/height/loading/
   // fetchPriority del ramo telefono; il srcSet lo rimettiamo esplicito per chiarezza. `preload` (non
   // `priority`, deprecata): è l'unica immagine prioritaria del sito.
-  const comuni = { alt: c.heroAlt, sizes: SIZES_HERO, quality: 75, preload: true } as const;
+  const comuni = { alt: c.heroAlt, sizes: SIZES_HERO, preload: true } as const;
   const {
     props: { srcSet: fotoDesktop },
   } = getImageProps({ ...comuni, src: heroCinematic.base, width: heroCinematic.baseSize.w, height: heroCinematic.baseSize.h });

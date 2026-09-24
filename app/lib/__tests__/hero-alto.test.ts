@@ -338,9 +338,9 @@ describe("HeroCinematic: il DOM della testa senza blocco (A49)", () => {
     assert.match(chaptersTs, /export type CorridorId = "cartolina";/);
   });
 
-  test("la foto: due WebP in art direction a 768, sizes 100vw, dalla cima, qualità 75 (una voce di next.config), preload (LCP)", () => {
-    assert.match(hero, /const comuni = \{ alt: c\.heroAlt, sizes: SIZES_HERO, quality: 75, preload: true \} as const;/);
-    assert.match(read("next.config.ts"), /qualities:\s*\[[^\]]*\b75\b/, "75 non è fra le qualità ammesse di next.config");
+  test("la foto: due WebP in art direction a 768, sizes 100vw, dalla cima, la qualità del sito (next.config), preload (LCP)", () => {
+    assert.match(hero, /const comuni = \{ alt: c\.heroAlt, sizes: SIZES_HERO, preload: true \} as const;/);
+    assert.match(read("next.config.ts"), /qualities:\s*\[85\]/, "la qualità del sito non è 85 (24 set.)");
     assert.match(hero, /<source media="\(min-width: 768px\)" srcSet=\{fotoDesktop\} sizes=\{SIZES_HERO\} \/>/);
     assert.match(hero, /srcSet=\{fotoTelefono\}\s+className="absolute inset-0 h-full w-full object-cover"\s+style=\{\{ objectPosition: "50% 0%" \}\}/);
     assert.match(hero, /src: heroCinematic\.base, width: heroCinematic\.baseSize\.w, height: heroCinematic\.baseSize\.h/);

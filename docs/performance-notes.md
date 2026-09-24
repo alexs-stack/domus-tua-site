@@ -45,15 +45,17 @@ Stato attuale: alcune immagini in `public/` sono pesanti/grandi. Esempi reali:
 Raccomandazioni:
 
 - **Usare sempre `next/image`** (`Image`), mai `<img>` grezzo. Già fatto in Hero, Team, OpenDomus,
-  SocialVideoWall, Social. `next/image` genera automaticamente AVIF/WebP e i formati responsive.
+  SocialVideoWall, Social. `next/image` genera automaticamente il WebP e i formati responsive.
 - **`sizes` corretto** su ogni immagine `fill`: già impostato bene nei componenti. Serve a non
   scaricare la versione 1920px su mobile. Verificarlo su ogni nuova immagine.
 - **`priority`** solo sull'immagine above-the-fold (l'hero) — già così. Non metterlo altrove:
   toglie priorità alle risorse critiche.
 - **Ridimensionare i sorgenti** prima del commit: non serve un master 2560px per un banner mostrato
   a ~1200px. Regola pratica: sorgente ≈ 1.5–2× la dimensione massima di rendering.
-- **Config già ottimizzata** (`next.config.ts`): `formats: ["image/avif","image/webp"]` e
-  `deviceSizes`/`imageSizes` calibrati. **Non rimuovere.**
+- **Config già ottimizzata** (`next.config.ts`): `formats: ["image/webp"]`, `qualities: [85]`
+  (una qualità per tutto il sito: nessun componente passa `quality`) e `deviceSizes`/`imageSizes`
+  calibrati. **Non rimuovere.** Dal 24 set. 2026 niente AVIF (Alberto: a DPR 1 l'AVIF
+  dell'ottimizzatore, codificato a quality × 50/80, si vedeva morbido; `image-quality.test.ts`).
 - **Alt text**: mantenere alt descrittivi (SEO + a11y); le immagini puramente decorative (griglia
   Social) usano `alt=""`, corretto.
 - **Pulizia asset**: in `public/images/reali/yt/` ci sono thumbnail per-ID **non tutte referenziate**
@@ -69,8 +71,9 @@ Quando gli immobili arriveranno dal feed RealSmart, le **foto saranno su un host
   `images.remotePatterns`, es.:
   ```ts
   images: {
-    formats: ["image/avif", "image/webp"],
-    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920],
+    formats: ["image/webp"],
+    qualities: [85],
+    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920, 2560],
     imageSizes: [16, 32, 48, 64, 96, 128, 220, 300, 384],
     remotePatterns: [
       { protocol: "https", hostname: "cdn.realsmart.example", pathname: "/**" },

@@ -123,7 +123,7 @@ describe("SIZES_TESTA: 100vw su ogni fascia (A45: lo strato è in flusso e dipin
     }
     assert.equal(bucket(sizePx(SIZES_TESTA, 1440)), 1536);
     // Il conto per fold di D183 (151vw sotto lg per un 2:3, dal riquadro 100svh in cover di A41) chiedeva il 1920
-    // a 390 @3 dove basta il 1280: +45…+72 KB AVIF sull'immagine LCP (misurato il 22 set. sul build).
+    // a 390 @3 dove basta il 1280: +45…+72 KB (AVIF, il formato di allora) sull'immagine LCP (misurato il 22 set. sul build).
     const vecchio = "(max-width: 1023.98px) 151vw, (max-width: 1279.98px) 100vw, (max-width: 1439.98px) 100vw, 100vw";
     assert.equal(scelto(vecchio, 390, 3), 1920);
     assert.equal(scelto(vecchio, 390, 2), 1280);

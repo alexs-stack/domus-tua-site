@@ -60,7 +60,7 @@ magick sorgente.jpg -resize '1920x1920>' -quality 82 public/images/reali/nome.jp
 ## 2. `next/image` — linee guida
 
 - **Usa sempre `next/image`** (`import Image from "next/image"`), mai `<img>` grezzo.
-  Genera automaticamente AVIF/WebP e le varianti responsive. Già così in `Hero`,
+  Genera automaticamente il WebP e le varianti responsive. Già così in `Hero`,
   `HeroCinematic`, `Team`, `OpenDomus`, `Services`, `Paths`, `EditorialRows`,
   `PropertyCard`, `PropertyGallery`, `SocialVideoWall`, `PageHero`.
 - **`sizes` corretto su ogni immagine `fill`.** Descrive quanto spazio occupa l'immagine
@@ -82,8 +82,9 @@ magick sorgente.jpg -resize '1920x1920>' -quality 82 public/images/reali/nome.jp
 - **Config già ottimizzata** in `next.config.ts` — **non rimuovere**:
   ```ts
   images: {
-    formats: ["image/avif", "image/webp"],
-    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920],
+    formats: ["image/webp"], // niente AVIF dal 24 set. 2026: a DPR 1 si vedeva morbido
+    qualities: [85], // una qualità per tutto il sito: nessun componente passa `quality`
+    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920, 2560],
     imageSizes: [16, 32, 48, 64, 96, 128, 220, 300, 384],
   }
   ```

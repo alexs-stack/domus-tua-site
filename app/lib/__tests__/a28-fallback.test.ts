@@ -430,7 +430,7 @@ describe("PageHero e PageHeroTesta senza JS e senza gesto", () => {
     assert.ok(testa.indexOf("data-testa-soggetto") > scatola && testa.indexOf("data-testa-soggetto") < chiusa, "il marcatore non sta nella scatola della foto");
     assert.match(testa, /sizes=\{SIZES_TESTA\}/, "sizes non è il 100vw dello strato in flusso (A45; revisione del 22 set., C02/P01/G03)");
     assert.match(testa, /segno\.map\(/, "i marcatori del segno non vengono dalle bande di tinte.json (22 set.)");
-    assert.match(testa, /quality=\{60\}/);
+    assert.doesNotMatch(testa, /\bquality\b\s*[=:]/, "la qualità è quella del sito, in next.config (24 set.: WebP a 85)");
     assert.match(testa, /\bpreload\b/, "la foto della testa è l'LCP");
     assert.match(testa, /objectPosition:\s*"var\(--dt-op\)"/, "l'inquadratura non è --dt-op (D180)");
     // Il riquadro è la carta: nessun data-bg (il segno vi resta grafite); la zona foto è il marcatore.

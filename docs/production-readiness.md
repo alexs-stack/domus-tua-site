@@ -62,7 +62,7 @@ Riferimenti: `docs/env-and-deploy.md`, `docs/deployment-notes.md`,
 ## 7. Performance
 
 - [ ] `next build` verde in locale e su Vercel; `npm run check` (lint + typecheck + build) pulito.
-- [ ] Immagini ottimizzate (`next/image`, `formats` avif/webp, `sizes` corretti) — `docs/performance-notes.md`.
+- [ ] Immagini ottimizzate (`next/image`, solo WebP a qualità 85, `sizes` corretti) — `docs/performance-notes.md`.
 - [ ] Lighthouse sulla Preview: LCP, CLS, TBT nella norma; niente layout shift sull'hero.
 - [ ] Font caricati senza FOIT/FOUT vistosi; video hero con `poster` e non bloccante.
 - [ ] Nessun payload inutile (asset di lavoro esclusi dal repo/bundle).
