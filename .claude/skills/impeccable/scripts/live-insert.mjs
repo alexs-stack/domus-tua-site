@@ -26,7 +26,6 @@ import {
   scaffoldSvelteComponentInsertSession,
   shouldUseSvelteComponentInjection,
 } from './live/svelte-component.mjs';
-import { enterLiveRoot } from './live/roots.mjs';
 
 const INSERT_POSITIONS = new Set(['before', 'after']);
 
@@ -287,6 +286,5 @@ Output (JSON):
 
 const _running = process.argv[1];
 if (_running?.endsWith('live-insert.mjs') || _running?.endsWith('live-insert.mjs/')) {
-  enterLiveRoot();
   insertCli();
 }

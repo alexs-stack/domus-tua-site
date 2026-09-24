@@ -1,9 +1,8 @@
 import { ImageResponse } from "next/og";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { site } from "./lib/site";
 
-// Card social 1200x630 di marca (Playfair Display + Jakarta + logo reale), generata a build.
+// Card social 1200x630 di marca (Fraunces + Jakarta + logo reale), generata a build.
 // File-convention Next: diventa l'og:image / twitter:image di default del sito.
 export const runtime = "nodejs";
 export const alt = "Domus Tua Immobiliare — Vendere senza stress, acquistare con sicurezza";
@@ -11,7 +10,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function OpengraphImage() {
-  const playfair = readFileSync(join(process.cwd(), "app/og/fonts/PlayfairDisplayStatic.ttf"));
+  const fraunces = readFileSync(join(process.cwd(), "app/og/fonts/FrauncesStatic.ttf"));
   const jakarta = readFileSync(join(process.cwd(), "app/og/fonts/Jakarta.ttf"));
   const logo = readFileSync(join(process.cwd(), "public/logo-domustua-original.png"));
   const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
@@ -59,7 +58,7 @@ export default async function OpengraphImage() {
           <div
             style={{
               display: "flex",
-              fontFamily: "Playfair Display",
+              fontFamily: "Fraunces",
               fontSize: 68,
               lineHeight: 1.08,
               color: "#1a1816",
@@ -87,7 +86,7 @@ export default async function OpengraphImage() {
               fontWeight: 600,
             }}
           >
-            Dal {site.since} · {site.rating.replace(".", ",")} ★ Google
+            Dal 2007 · 4,9 ★ Google
           </div>
         </div>
       </div>
@@ -95,7 +94,7 @@ export default async function OpengraphImage() {
     {
       ...size,
       fonts: [
-        { name: "Playfair Display", data: playfair, weight: 600, style: "normal" },
+        { name: "Fraunces", data: fraunces, weight: 600, style: "normal" },
         { name: "Jakarta", data: jakarta, weight: 600, style: "normal" },
       ],
     },

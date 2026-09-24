@@ -1,34 +1,20 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import PropertyGallery from "../../components/PropertyGallery";
 import PropertyFacts from "./PropertyFacts";
-import ListingCopy from "./ListingCopy";
-import { formatListingDescription } from "../../lib/listingCopy/format";
-import { isAvailable } from "../../lib/availability";
-import { domusDocSafety } from "../../lib/domusDoc";
 import PropertyCard from "../../components/PropertyCard";
 import ListingsGrid from "../../components/ListingsGrid";
-import dynamic from "next/dynamic";
-
-// Code-split: "Vivere in zona" entra nel bundle SOLO quando c'è territorio approvato da mostrare.
-// A feature spenta (territory=null) non viene mai renderizzato → costo client effettivamente zero.
-// Nessun ssr:false: le card statiche restano nell'HTML server (constraint 5), solo l'esploratore è lazy.
-const VivereInZona = dynamic(() => import("./VivereInZona"));
 import Badge from "../../components/primitives/Badge";
 import Contact from "../../components/Contact";
 import DrawOnScroll from "../../components/motion/DrawOnScroll";
 import { SegnoDomusBadge, SegnoDomusCorner, SegnoDomusDivider, SegnoTick } from "../../components/BrandMotif";
-import { ArrowRight, Whatsapp } from "../../components/Icons";
-import { Cta } from "../../components/primitives/Cta";
+import { ArrowRight, ArrowUpRight, Whatsapp } from "../../components/Icons";
 import { site } from "../../lib/site";
 import { buildWhatsAppUrl } from "../../lib/forms/whatsapp";
 import { gsap, ScrollTrigger, useGSAP, MQ, dur, stagger } from "../../lib/motion/gsap";
 import type { Property } from "../../lib/properties";
-import type { PublicListingTerritory } from "../../lib/territory/types";
-import type { PublicAreaProfile } from "../../lib/territory/area/types";
-import { factApplies, type CoreFactKey } from "../../lib/propertyKind";
 import { useLocale } from "../../components/i18n/LocaleProvider";
 
 const copy = {
@@ -54,7 +40,7 @@ const copy = {
     specStatus: "Stato",
     specEnergy: "Classe energetica",
     requestVisit: "Richiedi una visita",
-    whatsapp: "Parla con noi su WhatsApp",
+    whatsapp: "Parla con Domus Tua",
     refLabel: "Rif.",
     assistTitle: "Con te in ogni passo",
     assistPoints: [
@@ -71,8 +57,14 @@ const copy = {
     notRightText:
       "Raccontaci cosa cerchi: seguiamo anche richieste su misura, prima ancora che l’immobile arrivi online.",
     notRightCta: "Raccontaci cosa cerchi",
+    safetyEyebrow: "Domus D.O.C.",
+    safetyTitle: "Una casa verificata, prima ancora di entrare.",
+    safetyText:
+      "Questo immobile segue il protocollo Domus di Origine Certificata: documenti, conformità e trasparenza controllati prima della vendita. Così visiti e scegli con serenità, senza sorprese.",
+    safetyLink: "Scopri il protocollo Domus D.O.C.",
+    safetyPoints: ["Documenti in ordine", "Conformità controllata", "Trasparenza pre-visita"],
     related: "Altre case da scoprire",
-    viewAll: "Vedi le case in vendita",
+    viewAll: "Vedi tutte le case",
   },
   en: {
     backToAll: "All properties",
@@ -96,7 +88,7 @@ const copy = {
     specStatus: "Status",
     specEnergy: "Energy class",
     requestVisit: "Request a viewing",
-    whatsapp: "Talk to us on WhatsApp",
+    whatsapp: "Talk to Domus Tua",
     refLabel: "Ref.",
     assistTitle: "With you every step",
     assistPoints: [
@@ -108,13 +100,19 @@ const copy = {
     soldTitle: "This property has been sold",
     soldText:
       "It’s been sold — but we can help you find a similar one. Tell us what you’re after: we find many homes ourselves.",
-    soldCta: "I’m looking for a similar home",
+    soldCta: "Find me a similar home",
     notRightTitle: "Not the right one?",
     notRightText:
       "Tell us what you’re after: we also handle bespoke requests, before a home even goes online.",
     notRightCta: "Tell us what you’re looking for",
+    safetyEyebrow: "Domus D.O.C.",
+    safetyTitle: "A verified home, before you even step inside.",
+    safetyText:
+      "This property follows the Domus of Certified Origin protocol: documents, compliance and transparency checked before the sale. So you view and choose with peace of mind, no surprises.",
+    safetyLink: "Discover the Domus D.O.C. protocol",
+    safetyPoints: ["Documents in order", "Compliance checked", "Pre-visit transparency"],
     related: "More homes to discover",
-    viewAll: "See the homes for sale",
+    viewAll: "View all properties",
   },
   fr: {
     backToAll: "Tous les biens",
@@ -138,7 +136,7 @@ const copy = {
     specStatus: "Statut",
     specEnergy: "Classe énergétique",
     requestVisit: "Demander une visite",
-    whatsapp: "Parlez-nous sur WhatsApp",
+    whatsapp: "Parler à Domus Tua",
     refLabel: "Réf.",
     assistTitle: "À vos côtés à chaque étape",
     assistPoints: [
@@ -155,8 +153,14 @@ const copy = {
     notRightText:
       "Dites-nous ce que vous cherchez : nous suivons aussi les demandes sur mesure, avant même la mise en ligne.",
     notRightCta: "Dites-nous ce que vous cherchez",
+    safetyEyebrow: "Domus D.O.C.",
+    safetyTitle: "Un logement vérifié, avant même d’entrer.",
+    safetyText:
+      "Ce bien suit le protocole Domus d’Origine Certifiée : documents, conformité et transparence contrôlés avant la vente. Vous visitez et choisissez en toute sérénité, sans surprises.",
+    safetyLink: "Découvrir le protocole Domus D.O.C.",
+    safetyPoints: ["Documents en ordre", "Conformité contrôlée", "Transparence avant visite"],
     related: "D’autres biens à découvrir",
-    viewAll: "Voir les biens à vendre",
+    viewAll: "Voir tous les biens",
   },
   de: {
     backToAll: "Alle Immobilien",
@@ -180,7 +184,7 @@ const copy = {
     specStatus: "Status",
     specEnergy: "Energieklasse",
     requestVisit: "Besichtigung anfragen",
-    whatsapp: "Sprechen Sie mit uns auf WhatsApp",
+    whatsapp: "Mit Domus Tua sprechen",
     refLabel: "Ref.",
     assistTitle: "An Ihrer Seite bei jedem Schritt",
     assistPoints: [
@@ -192,13 +196,19 @@ const copy = {
     soldTitle: "Diese Immobilie wurde verkauft",
     soldText:
       "Sie ist verkauft — aber wir helfen Ihnen, eine ähnliche zu finden. Sagen Sie uns, was Sie suchen.",
-    soldCta: "Ich suche ein ähnliches Zuhause",
+    soldCta: "Ähnliche Immobilie suchen",
     notRightTitle: "Nicht die richtige?",
     notRightText:
       "Sagen Sie uns, was Sie suchen: Wir betreuen auch maßgeschneiderte Anfragen, noch bevor eine Immobilie online geht.",
     notRightCta: "Sagen Sie uns, was Sie suchen",
+    safetyEyebrow: "Domus D.O.C.",
+    safetyTitle: "Eine geprüfte Immobilie, noch bevor Sie eintreten.",
+    safetyText:
+      "Diese Immobilie folgt dem Protokoll Domus di Origine Certificata: Unterlagen, Konformität und Transparenz werden vor dem Verkauf geprüft. So besichtigen und entscheiden Sie mit Ruhe, ohne Überraschungen.",
+    safetyLink: "Das Protokoll Domus D.O.C. entdecken",
+    safetyPoints: ["Unterlagen in Ordnung", "Konformität geprüft", "Transparenz vor der Besichtigung"],
     related: "Weitere Immobilien entdecken",
-    viewAll: "Immobilien zum Verkauf ansehen",
+    viewAll: "Alle Immobilien ansehen",
   },
   es: {
     backToAll: "Todas las propiedades",
@@ -222,7 +232,7 @@ const copy = {
     specStatus: "Estado",
     specEnergy: "Clase energética",
     requestVisit: "Solicita una visita",
-    whatsapp: "Habla con nosotras por WhatsApp",
+    whatsapp: "Habla con Domus Tua",
     refLabel: "Ref.",
     assistTitle: "Contigo en cada paso",
     assistPoints: [
@@ -239,64 +249,34 @@ const copy = {
     notRightText:
       "Cuéntanos qué buscas: también gestionamos peticiones a medida, antes incluso de que el inmueble esté online.",
     notRightCta: "Cuéntanos qué buscas",
+    safetyEyebrow: "Domus D.O.C.",
+    safetyTitle: "Una casa verificada, antes incluso de entrar.",
+    safetyText:
+      "Esta propiedad sigue el protocolo Domus di Origine Certificata: documentos, conformidad y transparencia comprobados antes de la venta. Así visitas y eliges con tranquilidad, sin sorpresas.",
+    safetyLink: "Descubre el protocolo Domus D.O.C.",
+    safetyPoints: ["Documentos en orden", "Conformidad comprobada", "Transparencia previa a la visita"],
     related: "Más casas por descubrir",
-    viewAll: "Ver las casas en venta",
+    viewAll: "Ver todas las casas",
   },
 };
 
 // ⚠️ DATI DEMO / FIXTURE — `p` e `related` arrivano dalla facciata getVisibleListing/
 // getVisibleListings (oggi fixture demo, domani RealSmart). Qui nessun dato viene
 // inventato: la striscia "related" è opzionale e, se assente, mostra solo il link a /acquista.
-export default function PropertyDetail({
-  p,
-  related,
-  territory,
-  area,
-}: {
-  p: Property;
-  related?: Property[];
-  territory?: PublicListingTerritory | null;
-  area?: PublicAreaProfile | null;
-}) {
+export default function PropertyDetail({ p, related }: { p: Property; related?: Property[] }) {
   const { locale, d } = useLocale();
   const c = copy[locale];
-  // Blocco Domus D.O.C.: copy da FONTE UNICA (app/lib/domusDoc.ts). L'affermazione sul singolo
-  // immobile ("verificato") appare SOLO con evidenza esplicita (p.docVerified); altrimenti la
-  // variante neutra che descrive il metodo, coerente con l'assistente.
-  const doc = domusDocSafety(locale, p.docVerified === true);
 
   // Striscia sotto la gallery: SOLO i quattro numeri che si leggono a colpo d'occhio.
   // Tipologia, piano, contratto e classe energetica vivono nel box "Dati principali" della
   // sidebar: ripeterli qui era la duplicazione più evidente della vecchia scheda.
   // Il filtro su "—" resta perché Terreno/Commerciale non hanno locali, camere o bagni.
-  // `p.rooms` vale "4 locali": giusto sulle card, dove il numero sta accanto a un'icona e
-  // senza etichetta. Qui l'etichetta c'è già, e "Locali / 4 locali" ripete il sostantivo
-  // dentro il suo stesso rigo. Si toglie solo in questa vista: la sorgente non cambia.
-  const bare = (value: string) => value.replace(/\s+(?:local[ei]|camere?|bagn[oi])$/i, "");
-
-  // Il filtro su "—" copre il caso normale (un terreno non ha locali → il feed
-  // dà "—"); `factApplies` copre il caso di rumore (il feed che riporta comunque
-  // camere/bagni su un commerciale): camere e bagni sono residenziali e non
-  // vanno su un negozio o un terreno, i locali non su un terreno. Un posto solo
-  // per la regola: lib/propertyKind.ts.
-  const specs = (
-    [
-      { factKey: "superficie", core: "sqm", label: c.specSqm, value: p.sqm },
-      { factKey: "locali", core: "rooms", label: c.specRooms, value: p.rooms },
-      { factKey: "camere", core: "beds", label: c.specBeds, value: p.beds },
-      { factKey: "bagni", core: "baths", label: c.specBaths, value: p.baths },
-    ] satisfies { factKey: string; core: CoreFactKey; label: string; value: string }[]
-  )
-    .filter((s) => s.value && s.value !== "—" && factApplies(p.type, s.core))
-    .map((s) => ({ ...s, value: bare(s.value) }));
-
-  // Un fatto, un posto solo. I quattro numeri della striscia stanno sopra la piega, in
-  // display, ed erano ripetuti tali e quali dentro "Dati principali" — con perfino una
-  // formattazione diversa ("4 locali" contro "4"), che è peggio di una ripetizione: sembra
-  // che due fonti non vadano d'accordo. La striscia li tiene, il box tiene tutto il resto.
-  // L'elenco è DERIVATO da ciò che la striscia ha davvero reso: su un terreno senza locali
-  // la striscia non li mostra, e allora il box torna a essere il loro unico posto.
-  const specKeys = specs.map((s) => s.factKey);
+  const specs = [
+    { label: c.specSqm, value: p.sqm },
+    { label: c.specRooms, value: p.rooms },
+    { label: c.specBeds, value: p.beds },
+    { label: c.specBaths, value: p.baths },
+  ].filter((s) => s.value && s.value !== "—");
 
   // Etichetta del <details> quando un gruppo supera le voci immediatamente visibili.
   const moreFactsLabel = (n: number) =>
@@ -305,11 +285,6 @@ export default function PropertyDetail({
   // Con i dati live ogni caratteristica è già distribuita nei box: la vecchia lista
   // "Caratteristiche" sotto la descrizione resta solo per le fixture demo, che non hanno fatti.
   const hasFacts = (p.facts?.length ?? 0) > 0;
-
-  // Composizione della descrizione. La funzione è pura e deterministica: gira identica in
-  // SSR e dopo l'idratazione (nessun mismatch), e il testo resta per intero nell'HTML
-  // iniziale. useMemo perché il risultato dipende solo dai paragrafi dell'immobile.
-  const copyBlocks = useMemo(() => formatListingDescription(p.description), [p.description]);
 
   // Specs strip: micro-ingresso dei soli VALORI (dd) della striscia sotto la
   // gallery. I numeri restano nell'HTML SSR: nascosti solo post-idratazione e
@@ -326,37 +301,30 @@ export default function PropertyDetail({
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
         gsap.set(values, { opacity: 0, y: 8 });
-        // Replay a ogni passaggio (richiesta cliente): tween persistente in
-        // closure (niente clearProps, romperebbe restart/reverse) — restart a
-        // ogni ingresso, reverse risalendo oltre l'inizio.
-        let tween: gsap.core.Tween | null = null;
         const st = ScrollTrigger.create({
           trigger: strip,
           start: "top 92%",
-          onEnter: () => {
-            if (!tween) {
-              tween = gsap.fromTo(
-                values,
-                { opacity: 0, y: 8 },
-                {
-                  opacity: 1,
-                  y: 0,
-                  duration: dur.micro,
-                  ease: "domus",
-                  stagger: stagger.chars,
-                  paused: true,
-                }
-              );
-            }
-            tween.restart();
-          },
-          onLeaveBack: () => tween?.reverse(),
+          once: true,
+          onEnter: () =>
+            gsap.fromTo(
+              values,
+              { opacity: 0, y: 8 },
+              {
+                opacity: 1,
+                y: 0,
+                duration: dur.micro,
+                ease: "domus",
+                stagger: stagger.chars,
+                clearProps: "opacity,transform",
+              }
+            ),
         });
 
-        // Rete di sicurezza: i dati chiave non restano mai nascosti se il
-        // trigger non scatta mai; a tween creato ci pensano restart/reverse.
+        // Rete di sicurezza: i dati chiave non restano mai nascosti.
+        let done = false;
         const showAll = () => {
-          if (tween) return;
+          if (done) return;
+          done = true;
           st.kill();
           gsap.set(values.filter((el) => !gsap.isTweening(el)), { clearProps: "opacity,transform" });
         };
@@ -364,7 +332,6 @@ export default function PropertyDetail({
         return () => {
           window.clearTimeout(safety);
           st.kill();
-          tween?.kill();
         };
       });
     },
@@ -372,12 +339,7 @@ export default function PropertyDetail({
   );
 
   // Related: solo altre case fornite via props (stessa sorgente). Mai fetch/invenzione.
-  // Difesa in profondità: anche se a monte arrivasse un venduto, qui non viene mai reso —
-  // stesso predicato di disponibilità della selezione (app/lib/related.ts), niente stato
-  // "venduto" duplicato a mano.
-  const relatedItems = (related ?? [])
-    .filter((r) => r.slug !== p.slug && isAvailable(r))
-    .slice(0, 3);
+  const relatedItems = (related ?? []).filter((r) => r.slug !== p.slug).slice(0, 3);
 
   // WhatsApp precompilato con titolo + riferimento immobile → conversazione già in contesto.
   const waTalk = buildWhatsAppUrl(
@@ -391,10 +353,7 @@ export default function PropertyDetail({
   );
 
   return (
-    // `data-conv-source`: un contatto che parte da una scheda immobile è la conversione
-    // più preziosa del sito — la persona sa già cosa vuole vedere. Va distinta da tutte
-    // le altre nelle misure. Vedi SiteAnalytics.tsx.
-    <main data-conv-source="scheda-immobile" className="flex-1 bg-paper">
+    <main className="flex-1 bg-paper">
       <div className="mx-auto max-w-[1240px] px-5 pt-32 sm:px-8 sm:pt-36">
         {/* Breadcrumb: orientamento Home › Case › immobile corrente (allineato al JSON-LD). */}
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-stone">
@@ -421,16 +380,15 @@ export default function PropertyDetail({
               <p className="font-display text-lg font-medium text-red-dark">{c.soldTitle}</p>
               <p className="mt-1 max-w-lg text-sm text-graphite">{c.soldText}</p>
             </div>
-            <Cta
+            <a
               href={waSimilar}
-              variant="cta-solid"
-              size="sm"
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 self-start sm:self-auto"
+              className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-red px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-red-dark sm:self-auto"
             >
               {c.soldCta}
-            </Cta>
+              <ArrowRight className="h-4 w-4" />
+            </a>
           </div>
         )}
 
@@ -448,13 +406,7 @@ export default function PropertyDetail({
 
         {/* Gallery hero */}
         <div className="mt-8">
-          {/* Alt della foto principale da campi VERIFICATI (titolo + zona
-              dell'annuncio), non dal nome file né generato a runtime. */}
-          <PropertyGallery
-            images={p.gallery}
-            title={p.title}
-            principalAlt={p.zone ? `${p.title}, ${p.zone}` : p.title}
-          />
+          <PropertyGallery images={p.gallery} title={p.title} />
         </div>
 
         {/* Key facts strip sotto la gallery */}
@@ -462,10 +414,10 @@ export default function PropertyDetail({
           <dl ref={specsRef} className="flex min-w-max gap-8 rounded-[2rem] border border-line bg-cream px-7 py-5 sm:min-w-0 sm:justify-between">
             {specs.map((s) => (
               <div key={s.label} className="shrink-0">
-                <dt className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-graphite">
+                <dt className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-stone">
                   {s.label}
                 </dt>
-                <dd className="tnum mt-1 font-display text-xl font-medium text-ink">{s.value}</dd>
+                <dd className="tnum mt-1 font-display text-lg font-medium text-ink">{s.value}</dd>
               </div>
             ))}
           </dl>
@@ -501,29 +453,27 @@ export default function PropertyDetail({
                 </p>
               )}
 
-              <Cta href="#contatti" variant="cta" size="md" className="mt-5 w-full">
+              <a
+                href="#contatti"
+                className="group mt-5 flex items-center justify-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-soft hover:bg-red-dark active:scale-[0.98]"
+              >
                 {c.requestVisit}
-              </Cta>
-              <Cta
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
+              <a
                 href={waTalk}
-                variant="ghost"
-                size="md"
-                arrow={false}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 w-full"
+                className="mt-3 flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-3.5 text-sm font-semibold text-ink transition-all duration-300 ease-soft hover:border-red hover:text-red active:scale-[0.98]"
               >
                 <Whatsapp className="h-5 w-5 text-red" /> {c.whatsapp}
-              </Cta>
+              </a>
             </div>
 
             {/* Box dei dati: uno per gruppo con contenuto, mai box vuoti, mai "—". */}
-            <PropertyFacts
-              facts={p.facts}
-              labels={c.factGroups}
-              moreLabel={moreFactsLabel}
-              hiddenKeys={specKeys}
-            />
+            <PropertyFacts facts={p.facts} labels={c.factGroups} moreLabel={moreFactsLabel} />
           </aside>
 
           {/* ── Colonna sinistra: il racconto ─────────────────────────────────────── */}
@@ -531,30 +481,11 @@ export default function PropertyDetail({
             <h2 className="font-display text-2xl font-medium tracking-tight text-ink">
               {c.description}
             </h2>
-            <div className="mt-6">
-              <ListingCopy blocks={copyBlocks.blocks} />
+            <div className="mt-4 flex max-w-[68ch] flex-col gap-4 text-[1rem] leading-relaxed text-graphite">
+              {p.description.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
             </div>
-
-            {/* Il gradino di conversione in coda al racconto. Su mobile la card con le CTA
-                sta in cima alla colonna e a fine descrizione è lontanissima: qui l'invito
-                torna sotto il pollice, con le stesse etichette e le stesse primitive. */}
-            {copyBlocks.blocks.length > 0 && (
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Cta href="#contatti" variant="cta" size="md">
-                  {c.requestVisit}
-                </Cta>
-                <Cta
-                  href={waTalk}
-                  variant="ghost"
-                  size="md"
-                  arrow={false}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Whatsapp className="h-5 w-5 text-red" /> {c.whatsapp}
-                </Cta>
-              </div>
-            )}
 
             {/* Fallback per le fixture demo, che non hanno fatti strutturati: con i dati live
                 queste voci sono già distribuite nei box e la lista non viene renderizzata. */}
@@ -585,16 +516,16 @@ export default function PropertyDetail({
               <DrawOnScroll>
                 <SegnoDomusCorner className="right-5 top-5 opacity-70" rotate={90} size={30} />
               </DrawOnScroll>
-              <SegnoDomusBadge>{doc.eyebrow}</SegnoDomusBadge>
+              <SegnoDomusBadge>{c.safetyEyebrow}</SegnoDomusBadge>
               <h2 className="mt-4 max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-ink balance">
-                {doc.title}
+                {c.safetyTitle}
               </h2>
               <p className="mt-3 max-w-xl text-[0.98rem] leading-relaxed text-graphite">
-                {doc.text}
+                {c.safetyText}
               </p>
-              <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2.5">
-                {doc.points.map((point) => (
-                  <li key={point} className="inline-flex items-center gap-2 text-[1rem] text-ink">
+              <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+                {c.safetyPoints.map((point) => (
+                  <li key={point} className="inline-flex items-center gap-2 text-[0.9rem] text-ink">
                     <span
                       aria-hidden
                       className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
@@ -609,7 +540,7 @@ export default function PropertyDetail({
                 href="/metodo"
                 className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-red transition-colors hover:text-red-dark"
               >
-                {doc.linkLabel}
+                {c.safetyLink}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
             </div>
@@ -617,12 +548,12 @@ export default function PropertyDetail({
 
           {/* ── Elemento secondario finale della sidebar ──────────────────────────── */}
           <div className="order-3 rounded-[2rem] border border-line bg-paper p-6 lg:order-none lg:col-start-2 lg:row-start-2">
-            <h2 className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-graphite">
+            <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-stone">
               {c.assistTitle}
             </h2>
-            <ul className="mt-4 flex flex-col gap-2.5">
+            <ul className="mt-3 flex flex-col gap-2.5">
               {c.assistPoints.map((point) => (
-                <li key={point} className="flex items-start gap-2.5 text-[1rem] leading-snug text-graphite">
+                <li key={point} className="flex items-start gap-2.5 text-[0.9rem] text-graphite">
                   <span
                     aria-hidden
                     className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
@@ -637,13 +568,9 @@ export default function PropertyDetail({
         </div>
       </div>
 
-      {/* Vivere in zona: territorio + descrizioni d'area APPROVATI, letti server-side (niente
-          coordinate). Renderizzato SOLO se c'è almeno un dato: altrimenti nessun componente/chunk. */}
-      {territory || area ? <VivereInZona territory={territory} area={area} /> : null}
-
       {/* Related properties strip: solo se fornite via props (stessa sorgente). */}
       {relatedItems.length > 0 && (
-        <section data-testid="related-listings" className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
+        <section className="mx-auto max-w-[1240px] px-5 pb-4 sm:px-8">
           <SegnoDomusDivider className="mb-12" />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <h2 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
@@ -677,9 +604,13 @@ export default function PropertyDetail({
             </h2>
             <p className="mt-2 max-w-xl text-graphite">{c.notRightText}</p>
           </div>
-          <Cta href="#contatti" variant="cta" size="md" className="shrink-0">
+          <a
+            href="#contatti"
+            className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors duration-300 hover:bg-red-dark"
+          >
             {c.notRightCta}
-          </Cta>
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </a>
         </div>
       </section>
 

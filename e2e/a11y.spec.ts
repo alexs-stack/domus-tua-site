@@ -14,15 +14,7 @@ test.beforeEach(async ({ page }) => {
   await setConsent(page, "accepted");
 });
 
-// Le rotte scoperte erano sei — /chi-siamo, /recensioni, /servizi, /lavora-con-noi,
-// /domande-frequenti e /cookie — cioè un terzo del sito fuori dalla passata axe. Il §4.5
-// del Documento finale smonta il falso positivo sui «9 link privi di nome accessibile»,
-// e ha ragione: ma un presidio vale solo per le pagine che guarda.
-const PAGES = [
-  "/", "/acquista", "/case-vendute", "/valutazione-immobile-tradate", "/vendi", "/metodo",
-  "/open-domus", "/contatti", "/privacy", "/chi-siamo", "/recensioni", "/servizi",
-  "/lavora-con-noi", "/domande-frequenti", "/cookie",
-];
+const PAGES = ["/", "/acquista", "/vendi", "/metodo", "/open-domus", "/contatti", "/privacy"];
 
 for (const path of PAGES) {
   test(`${path} non ha violazioni di accessibilità`, async ({ page, goto }) => {
@@ -42,9 +34,6 @@ test("il contrasto regge anche sul pannello dell'assistente", async ({ page, got
   const launcher = page.getByRole("button", { name: /assistente/i }).first();
   await expect(async () => {
     await launcher.click();
-    // Il pannello dell'assistente è un dialogo VERO — si apre perché lo si è
-    // chiesto, e intrappola il focus davvero. Resta `role="dialog"`: è il
-    // banner cookie ad aver smesso di fingersi modale (Fase 4), non questo.
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 2_000 });
   }).toPass({ timeout: 25_000 });
 
@@ -55,7 +44,7 @@ test("il contrasto regge anche sul pannello dell'assistente", async ({ page, got
 test("il banner cookie è accessibile", async ({ page }) => {
   await page.context().clearCookies();
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("region", { name: /cookie/i })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("dialog", { name: /cookie/i })).toBeVisible({ timeout: 15_000 });
 
   const violations = await a11yViolations(page);
   expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
@@ -95,30 +84,4 @@ test("la gerarchia dei titoli parte da un solo h1", async ({ page, goto }) => {
     const h1 = await page.locator("h1").count();
     expect(h1, `${path} ha ${h1} h1`).toBe(1);
   }
-});
-
-// Il dialog del video in pagina (§6.5). Sta qui e non in home.spec.ts perché la
-// domanda è la stessa delle altre passate axe: una superficie nuova che copre lo
-// schermo è anche una superficie nuova da cui non si deve restare intrappolati.
-test("il dialog del video non ha violazioni di accessibilità", async ({ page, goto }) => {
-  await goto("/");
-  await page
-    .getByRole("link", { name: /guarda il video|watch the video|regarder|video ansehen|ver el v/i })
-    .first()
-    .click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-
-  // Si usa l helper condiviso, che esclude gli iframe: dentro il player c e il markup di
-  // YouTube, che non e nostro e che non possiamo correggere. Fuori dall iframe, invece,
-  // la passata copre TUTTA la pagina con il dialog aperto — cosi si vede anche se il
-  // dialog rompe qualcosa dietro di se.
-  const violazioni = await a11yViolations(page);
-  expect(violazioni, JSON.stringify(violazioni, null, 2)).toEqual([]);
-
-  // Il bersaglio per chiudere è da dito, non da mouse: 44×44 pieni (WCAG 2.5.8).
-  const chiudi = dialog.getByRole("button", { name: /chiud|clos|ferm|schließ|cerrar/i }).last();
-  const box = await chiudi.boundingBox();
-  expect(box?.width ?? 0, "larghezza del comando chiudi").toBeGreaterThanOrEqual(44);
-  expect(box?.height ?? 0, "altezza del comando chiudi").toBeGreaterThanOrEqual(44);
 });

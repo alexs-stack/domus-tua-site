@@ -22,12 +22,9 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger, MQ, dur } from "../../lib/motion/gsap";
-import { MarkBadge, spinMarkBadge } from "./RotatingMark";
+import { MarkBadge } from "./RotatingMark";
 import { useDict } from "../i18n/LocaleProvider";
 import { getLenis } from "./SmoothScroll";
-// La mappa pathname → nome di pagina vive in un modulo puro: è l'unico pezzo
-// testabile di questo file, e il test le impone di coprire OGNI rotta pubblica.
-import { labelForPath, wordFontSize } from "./transitionLabel";
 
 const CLOSED = "inset(100% 0% 0% 0%)";
 const OPEN = "inset(0% 0% 0% 0%)";
@@ -41,39 +38,34 @@ const ARCH_GONE = { "--arch-w": "125vw", "--arch-y": "-100vh" } as const;
 const supportsArchMask = () =>
   typeof CSS !== "undefined" && CSS.supports("mask-composite", "add");
 
-/* La parola-destinazione si compone LETTERA PER LETTERA, con lo stesso gesto
-   del preloader (rotazione su Y + salita da sotto la maschera). Il testo
-   arriva da labelForPath a runtime, quindi lo split va fatto qui e non nel
-   markup: `textContent = label` avrebbe un glifo solo da animare. */
-const CHAR = "dt-tr-char";
+type NavDict = ReturnType<typeof useDict>["nav"];
 
-/** Riempie il layer con la parola splittata; ritorna i glifi da animare. */
-function writeWord(el: HTMLElement, text: string): HTMLElement[] {
-  clearWord(el);
-  if (!text) return [];
-  // Il corpo lo decide la parola: «Domande frequenti» e «Lavora con noi» sono
-  // più lunghe di qualunque etichetta storica e su un telefono da 360px, dove
-  // il clamp è già al minimo, toccherebbero il bordo.
-  el.style.fontSize = wordFontSize(text);
-  const line = document.createElement("span");
-  line.className = "dt-tr-line";
-  for (const ch of text) {
-    const glyph = document.createElement("span");
-    glyph.className = CHAR;
-    // Spazio unificatore: uno spazio normale collassa fra due inline-block e
-    // la parola si salderebbe mentre le lettere entrano.
-    glyph.textContent = ch === " " ? " " : ch;
-    line.appendChild(glyph);
+// Il sipario annuncia la destinazione: pathname → etichetta tradotta (d.nav.*).
+// Route non mappate (privacy, cookie, servizi…) → null: resta solo il marchio.
+function labelForPath(rawPath: string, nav: NavDict): string | null {
+  const path =
+    rawPath.length > 1 && rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
+  if (path === "/") return "Domus Tua"; // nome proprio: identico in ogni lingua
+  // Solo le schede /case/<slug>: l'indice /case non esiste più (redirect a /acquista).
+  if (path.startsWith("/case/")) return nav.case;
+  switch (path) {
+    case "/vendi":
+      return nav.vendi;
+    case "/acquista":
+      return nav.acquista;
+    case "/metodo":
+      return nav.metodo;
+    case "/open-domus":
+      return nav.openDomus;
+    case "/recensioni":
+      return nav.recensioni;
+    case "/chi-siamo":
+      return nav.chiSiamo;
+    case "/contatti":
+      return nav.contatti;
+    default:
+      return null;
   }
-  el.appendChild(line);
-  return Array.from(line.children) as HTMLElement[];
-}
-
-/** Svuota il layer uccidendo prima i tween dei glifi che sta per rimuovere. */
-function clearWord(el: HTMLElement) {
-  const glyphs = el.querySelectorAll<HTMLElement>(`.${CHAR}`);
-  if (glyphs.length) gsap.killTweensOf(glyphs);
-  el.textContent = "";
 }
 
 let navigateImpl: ((href: string) => void) | null = null;
@@ -96,12 +88,10 @@ export default function PageTransition() {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const markLayerRef = useRef<HTMLDivElement | null>(null);
   const wordRef = useRef<HTMLDivElement | null>(null);
-  const spinRef = useRef<gsap.core.Timeline | null>(null);
+  const spinRef = useRef<gsap.core.Tween | null>(null);
   const coveringRef = useRef(false);
   const navSeqRef = useRef(0);
   const safetyRef = useRef<number | null>(null);
-  /** La scadenza del push (vedi `navigate`): va spenta se il componente muore. */
-  const deadlineRef = useRef<number | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -124,10 +114,13 @@ export default function PageTransition() {
     spinRef.current = null;
   };
   const startSpin = () => {
-    if (spinRef.current) return;
-    // Anello e monogramma in versi opposti, come nell'header: il gesto del badge
-    // e' uno solo in tutto il sito.
-    spinRef.current = spinMarkBadge(markLayerRef.current, 5);
+    const ring = markLayerRef.current?.querySelector("[data-rot-core]");
+    if (!ring || spinRef.current) return;
+    spinRef.current = gsap.fromTo(
+      ring,
+      { rotation: 0 },
+      { rotation: 360, duration: 5, ease: "none", repeat: -1, transformOrigin: "center center" }
+    );
   };
 
   // Uscita: la porta si chiude + monogramma rotante, poi push.
@@ -147,7 +140,7 @@ export default function PageTransition() {
       const tl = gsap.timeline({
         onComplete() {
           gsap.set(panel, arch ? { autoAlpha: 0 } : { autoAlpha: 0, clipPath: CLOSED });
-          if (word) clearWord(word); // a riposo il layer resta vuoto
+          if (word) word.textContent = ""; // a riposo il layer resta vuoto
           stopSpin();
           setCovering(false);
           getLenis()?.start();
@@ -174,10 +167,7 @@ export default function PageTransition() {
       const navId = ++navSeqRef.current;
       getLenis()?.stop();
 
-      // Nessun ramo per larghezza: la porta chiude con lo stesso tempo su
-      // telefono e desktop (verdetto PORT, scheda 10). Il vecchio 0,5/0,32 sul
-      // mobile era un «gate fuori da mm.add» che accorciava il gesto proprio
-      // dove la parola per lettere ha meno tempo per comporsi.
+      const mobile = !window.matchMedia(MQ.desktop).matches;
       gsap.set(root, { pointerEvents: "auto" });
       gsap.set(panel, arch ? { autoAlpha: 1, ...ARCH_GONE } : { autoAlpha: 1, clipPath: CLOSED });
       gsap.set(markLayerRef.current, { autoAlpha: 0 });
@@ -185,7 +175,7 @@ export default function PageTransition() {
 
       // La parola-destinazione va nel DOM ORA, prima che il sipario copra.
       // Timeline separata da quella della porta: non deve spostare l'onComplete
-      // che fa il push — la composizione può proseguire mentre la route carica.
+      // che fa il push — la scivolata può proseguire mentre la route carica.
       const word = wordRef.current;
       if (word) {
         let destPath = href;
@@ -194,117 +184,54 @@ export default function PageTransition() {
         } catch {
           /* href relativo malformato: nessuna parola, il sipario resta com'è */
         }
-        const label = labelForPath(destPath, dictRef.current);
+        const label = labelForPath(destPath, dictRef.current.nav);
         gsap.killTweensOf(word);
-        const glyphs = writeWord(word, label ?? "");
-        if (glyphs.length) {
-          // Il contenitore è visibile subito: il reveal ce l'hanno le lettere,
-          // e un secondo fade sopra darebbe il doppio-hide (stessa regola dei
-          // rivelatori di testo del sito).
-          gsap.set(word, { autoAlpha: 1 });
-          gsap.fromTo(
-            glyphs,
-            { opacity: 0, yPercent: 60, rotateY: 90, transformPerspective: 800 },
-            {
-              opacity: 1,
-              yPercent: 0,
-              rotateY: 0,
-              // Più stretti del preloader (1.3s / 0.075): là il lockup ha
-              // cinque secondi davanti, qui la porta chiude in poco più di
-              // mezzo — con le misure dell'intro la parola arriverebbe a
-              // sipario già alzato.
-              duration: 0.72,
-              stagger: 0.042,
-              ease: "dtOut",
-              delay: 0.14,
-            }
-          );
+        word.textContent = label ?? "";
+        if (label) {
+          gsap
+            .timeline()
+            // Alpha rapida mentre la porta chiude…
+            .fromTo(
+              word,
+              { xPercent: -6, autoAlpha: 0 },
+              { autoAlpha: 1, duration: 0.3, ease: "none" },
+              0.1
+            )
+            // …scivolata orizzontale sottile con la coda lunga della firma.
+            .to(word, { xPercent: 0, duration: dur.transition, ease: "domus" }, 0.1);
         } else {
           gsap.set(word, { autoAlpha: 0 });
         }
       }
 
-      // La composizione progressiva della corona: le 60 tacche dell'anello si
-      // accendono una dopo l'altra, come un quadrante che si riempie. Non è il
-      // logo a comporsi — quello il brand book vieta di ridisegnarlo — è la
-      // cornice attorno, e il monogramma ci entra dentro girando.
-      const ticks = markLayerRef.current?.querySelectorAll<SVGLineElement>(
-        "[data-rot-ring] line"
-      );
-      if (ticks?.length) {
-        gsap.killTweensOf(ticks);
-        gsap.fromTo(
-          ticks,
-          { opacity: 0 },
-          {
-            // Ogni tacca torna alla PROPRIA opacità (le cardinali sono più
-            // marcate): un valore unico appiattirebbe il rosone.
-            opacity: (_i, el: SVGLineElement) => Number(el.getAttribute("opacity") ?? 1),
-            duration: 0.45,
-            stagger: { each: 0.009, from: "start" },
-            ease: "none",
-            delay: 0.22,
-          }
-        );
-      }
-
-      // LA NAVIGAZIONE NON È OSTAGGIO DELL'ANIMAZIONE. Il push partiva solo
-      // dall'`onComplete` della timeline: con il thread principale affamato
-      // (telefono lento, idratazione in corso, o quattro worker della suite
-      // e2e sulla stessa macchina) il ticker di GSAP arriva tardi e la
-      // timeline «di 0,65 s» ne mette molti di più — chi ha toccato il link
-      // resta a guardare una porta chiusa senza che la pagina cambi. Da qui
-      // il push ha una SCADENZA: parte alla fine del gesto o alla scadenza,
-      // qualunque venga prima, e una sola volta. Non è un taglio all'effetto:
-      // a quel punto lo schermo è già coperto dalla porta, e ciò che segue —
-      // l'apertura sulla pagina nuova — è un'altra timeline.
-      let partito = false;
-      const vai = () => {
-        if (partito) return;
-        partito = true;
-        window.clearTimeout(scadenza);
-        // Un popstate nel frattempo ha già cambiato pagina: il push
-        // pendente sarebbe una seconda navigazione non richiesta.
-        if (navSeqRef.current !== navId) return;
-        router.push(href);
-        // Se la pagina nuova non arriva (errore, route lentissima),
-        // il sipario si riapre comunque: mai lasciare l'utente al buio.
-        safetyRef.current = window.setTimeout(() => {
-          if (coveringRef.current) reveal();
-        }, 4000);
-      };
-      // Il margine (250 ms) copre il jitter di un ticker sano: su una macchina
-      // libera vince sempre `onComplete`, e questa rete non si vede mai.
-      const scadenza = window.setTimeout(vai, (arch ? 0.65 : 0.45) * 1000 + 250);
-      deadlineRef.current = scadenza;
-
-      const tl = gsap.timeline({ onComplete: vai });
+      const tl = gsap.timeline({
+        onComplete() {
+          // Un popstate nel frattempo ha già cambiato pagina: il push
+          // pendente sarebbe una seconda navigazione non richiesta.
+          if (navSeqRef.current !== navId) return;
+          router.push(href);
+          // Se la pagina nuova non arriva (errore, route lentissima),
+          // il sipario si riapre comunque: mai lasciare l'utente al buio.
+          safetyRef.current = window.setTimeout(() => {
+            if (coveringRef.current) reveal();
+          }, 4000);
+        },
+      });
       if (arch) {
         // La porta "si chiude": il buco ad arco scende sotto il viewport.
-        // Stesso effetto, stessi parametri a ogni larghezza (PORT): la
-        // geometria ARCH_* è già in vw/vh, quindi non serve alcun ramo.
-        // Alleggerimento: −1 matchMedia per navigazione (compensa il costo
-        // del gesto sui telefoni: è solo una maschera + variabili CSS).
         tl.fromTo(panel, { ...ARCH_GONE }, {
           ...ARCH_COVERED,
-          duration: 0.65,
+          duration: mobile ? 0.5 : 0.65,
           ease: "domus.inOut",
         });
       } else {
         tl.fromTo(panel, { clipPath: CLOSED }, {
           clipPath: OPEN,
-          duration: 0.45,
+          duration: mobile ? 0.32 : 0.45,
           ease: "domus.inOut",
         });
       }
-      // Il marchio non compare: si posa. Alpha corta più una scala che si
-      // apre, così la corona "arriva" invece di accendersi a interruttore.
-      tl.to(markLayerRef.current, { autoAlpha: 1, duration: 0.25, ease: "none" }, 0.2).fromTo(
-        markLayerRef.current,
-        { scale: 0.84 },
-        { scale: 1, duration: 0.8, ease: "dtOut" },
-        0.2
-      );
+      tl.to(markLayerRef.current, { autoAlpha: 1, duration: 0.25, ease: "none" }, 0.2);
     };
 
     navigateImpl = navigate;
@@ -347,7 +274,6 @@ export default function PageTransition() {
       document.removeEventListener("click", onClick, true);
       if (navigateImpl === navigate) navigateImpl = null;
       if (safetyRef.current) window.clearTimeout(safetyRef.current);
-      if (deadlineRef.current) window.clearTimeout(deadlineRef.current);
       stopSpin();
     };
   }, [router]);
@@ -403,7 +329,7 @@ export default function PageTransition() {
         const tl = gsap.timeline({
           onComplete() {
             gsap.set(panel, arch ? { autoAlpha: 0 } : { autoAlpha: 0, clipPath: CLOSED });
-            if (word) clearWord(word); // a riposo il layer resta vuoto
+            if (word) word.textContent = ""; // a riposo il layer resta vuoto
             stopSpin();
             setCovering(false);
             getLenis()?.start();
@@ -449,47 +375,29 @@ export default function PageTransition() {
             "radial-gradient(120% 90% at 50% -10%, rgba(150, 26, 24, 0.28), transparent 60%), radial-gradient(120% 100% at 50% 115%, rgba(24, 12, 12, 0.85), transparent 65%)",
         }}
       >
-        {/* Una colonna sola al centro: la corona col marchio, e sotto il nome
-            della pagina in arrivo. Prima erano due segni scollegati — il
-            monogramma piccolo al centro e la parola in un angolo — con in
-            mezzo uno schermo vuoto. */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-[5vh] px-[6vw]">
-          {/* Il marchio dentro la corona: monogramma e anello in
-              controrotazione (tween avviato da navigate, fermato a fine
-              entrata), la corona di luce in CSS. */}
-          {/* `text-graphite`: le tacche dell'anello prendono currentColor e
-              ora cadono sul cuore CHIARO del loader (globals.css), non più su
-              un pozzo scuro. */}
-          <div ref={markLayerRef} className="dt-loader text-graphite" style={{ opacity: 0 }}>
-            <span aria-hidden className="dt-loader_halo">
-              {/* Tre copie via via più sfocate: sono loro l'alone, non un
-                  box-shadow — un'ombra non gira col gradiente e resterebbe
-                  ferma mentre la corona ruota. */}
-              <span />
-              <span />
-              <span />
-            </span>
-            <span aria-hidden className="dt-loader_core" />
-            {/* Senza `dark`: il monogramma resta quello depositato, grigio
-                e rosso. È il cuore chiaro del loader a renderlo leggibile
-                sull'espresso del sipario, non una seconda versione del logo. */}
-            <MarkBadge className="dt-loader_mark" />
-          </div>
-          {/* Parola-destinazione: nome tradotto della pagina in arrivo, nella
-              didone dei momenti-hero e con lo stesso gesto del lockup del
-              preloader. A riposo: vuota e autoAlpha 0 — il testo, e lo split
-              in lettere, li scrive navigate. */}
-          <div
-            ref={wordRef}
-            aria-hidden
-            className="pointer-events-none select-none whitespace-nowrap text-center font-hero italic leading-[0.95] tracking-[-0.01em] text-cream"
-            style={{
-              fontSize: "clamp(2.75rem, 7.5vw, 7rem)",
-              opacity: 0,
-              visibility: "hidden",
-            }}
-          />
+        {/* Il marchio vive sopra il pannello: monogramma fermo, anello in
+            rotazione (tween avviato da navigate, fermato a fine entrata). */}
+        <div
+          ref={markLayerRef}
+          className="absolute inset-0 flex items-center justify-center text-cream/90"
+          style={{ opacity: 0 }}
+        >
+          <MarkBadge className="h-14 w-14" dark />
         </div>
+        {/* Parola-destinazione: nome tradotto della pagina in arrivo, outline
+            nella didone dei momenti-hero, composizione editoriale in basso a
+            sinistra. A riposo: vuota e autoAlpha 0 (il testo lo scrive navigate). */}
+        <div
+          ref={wordRef}
+          aria-hidden
+          className="pointer-events-none absolute bottom-[7vh] left-[4vw] select-none whitespace-nowrap font-hero italic leading-none text-transparent"
+          style={{
+            fontSize: "11vw",
+            WebkitTextStroke: "1.5px rgba(255, 252, 244, 0.35)",
+            opacity: 0,
+            visibility: "hidden",
+          }}
+        />
       </div>
     </div>
   );

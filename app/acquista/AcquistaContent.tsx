@@ -12,13 +12,10 @@ import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import SectionDivider from "../components/SectionDivider";
 import Reveal from "../components/Reveal";
-import FaqTeaser from "../components/FaqTeaser";
-import { Whatsapp } from "../components/Icons";
-import { Cta } from "../components/primitives/Cta";
+import { ArrowRight, Whatsapp } from "../components/Icons";
 import { SegnoDomusCorner, SegnoDomusBadge, SegnoTick } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
-import { FAQ_BUYER } from "../domande-frequenti/faq";
 import type { GridProperty } from "../lib/properties";
 
 const copy = {
@@ -33,36 +30,36 @@ const copy = {
         </>
       ),
       subcopy:
-        "Non ti mostriamo solo case. Verifichiamo i documenti prima della visita, ti diciamo cosa abbiamo controllato e restiamo con te fino al rogito.",
+        "Non ti mostriamo solo case. Ti accompagniamo verso una scelta sicura, con informazioni chiare, documenti verificati e assistenza in ogni passaggio.",
       alt: "Living moderno bianco e luminoso",
       primaryLabel: "Cerco casa",
-      secondaryLabel: "Vedi le case in vendita",
+      secondaryLabel: "Vedi le case",
       trust: ["Informazioni prima della visita", "Documenti verificati", "Assistenza fino al rogito"],
     },
     highlights: {
       eyebrow: "Comprare sereni",
-      title: "Comprare casa è una scelta importante. Meriti chiarezza, prima di decidere.",
+      title: "Una casa è una scelta importante. Meriti di farla informato.",
       intro:
         "Acquistare casa non dovrebbe significare dubbi e ansie. Con Domus Tua ogni decisione poggia su informazioni chiare e su un team al tuo fianco.",
       items: [
         {
-          title: "Pregi e vincoli",
+          title: "Trasparenza totale",
           copy: "Ti diciamo come stanno davvero le cose: pregi, vincoli e contesto di ogni immobile.",
         },
         {
-          title: "Documenti verificati",
+          title: "Nessuna sorpresa",
           copy: "Documentazione verificata prima della proposta: sai esattamente cosa stai acquistando.",
         },
         {
-          title: "La stessa persona",
-          copy: "Dalla prima visita al rogito parli sempre con la stessa persona, non con un centralino.",
+          title: "Sempre accompagnato",
+          copy: "Dalla prima visita al rogito, hai un riferimento che ti guida in ogni passaggio.",
         },
       ],
     },
     steps: {
       eyebrow: "Come funziona l'acquisto",
       title: "Il percorso che ti porta alle chiavi, con serenità.",
-      intro: "Il percorso di chi compra — diverso da quello di chi vende, che è il Metodo Domus in nove passaggi. Qui sono quattro, e servono a scegliere bene senza fretta.",
+      intro: "Un metodo chiaro per scegliere bene, senza fretta e senza pressioni.",
       rows: [
         {
           title: "Ricerca mirata",
@@ -76,7 +73,7 @@ const copy = {
         },
         {
           title: "Visite guidate e documenti chiari",
-          copy: "Veniamo in visita con te e mettiamo nero su bianco la documentazione: conformità, titoli e spese. Quello che non sappiamo ancora, te lo diciamo.",
+          copy: "Ti accompagniamo in visita e mettiamo nero su bianco la documentazione, con trasparenza totale su ogni aspetto dell'immobile.",
           alt: "Soggiorno arredato con divano",
         },
         {
@@ -127,36 +124,36 @@ const copy = {
         </>
       ),
       subcopy:
-        "We don’t just show you houses. We check the paperwork before the viewing, tell you what we verified, and stay with you through to the deed.",
+        "We don’t just show you houses. We guide you towards a confident choice, with clear information, verified documents and support at every step.",
       alt: "Bright, modern white living room",
       primaryLabel: "I’m looking for a home",
-      secondaryLabel: "See the homes for sale",
+      secondaryLabel: "See the homes",
       trust: ["Information before the viewing", "Verified documents", "Support all the way to closing"],
     },
     highlights: {
       eyebrow: "Buy with peace of mind",
-      title: "Buying a home is an important choice. You deserve clarity, before you decide.",
+      title: "A home is an important choice. You deserve to make it well informed.",
       intro:
         "Buying a home shouldn’t mean doubts and anxiety. With Domus Tua every decision rests on clear information and on a team by your side.",
       items: [
         {
-          title: "Strengths and limits",
+          title: "Complete transparency",
           copy: "We tell you how things really are: the strengths, the constraints and the setting of every property.",
         },
         {
-          title: "Documents checked",
+          title: "No surprises",
           copy: "Documentation verified before the offer: you know exactly what you are buying.",
         },
         {
-          title: "The same person",
-          copy: "From the first viewing to the deed you always speak to the same person, not a switchboard.",
+          title: "Always accompanied",
+          copy: "From the first viewing to closing, you have a point of reference guiding you at every step.",
         },
       ],
     },
     steps: {
       eyebrow: "How buying works",
       title: "The journey that brings you to the keys, with peace of mind.",
-      intro: "The buyer’s path — different from the seller’s, which is the Domus Method in nine steps. Here there are four, and they are there to help you choose well, without haste.",
+      intro: "A clear method to choose well, without haste and without pressure.",
       rows: [
         {
           title: "Targeted search",
@@ -170,7 +167,7 @@ const copy = {
         },
         {
           title: "Guided viewings and clear documents",
-          copy: "We come to the viewing with you and put the paperwork in writing: compliance, titles and costs. What we don’t know yet, we tell you.",
+          copy: "We accompany you on the viewing and put the documentation in writing, with total transparency on every aspect of the property.",
           alt: "Living room furnished with a sofa",
         },
         {
@@ -221,36 +218,36 @@ const copy = {
         </>
       ),
       subcopy:
-        "Nous ne vous montrons pas seulement des maisons. Nous contrôlons les documents avant la visite, nous vous disons ce que nous avons vérifié, et nous restons à vos côtés jusqu’à l’acte.",
+        "Nous ne vous montrons pas seulement des maisons. Nous vous accompagnons vers un choix serein, avec des informations claires, des documents vérifiés et un soutien à chaque étape.",
       alt: "Séjour moderne, blanc et lumineux",
-      primaryLabel: "Je cherche un bien",
-      secondaryLabel: "Voir les biens à vendre",
+      primaryLabel: "Je cherche une maison",
+      secondaryLabel: "Voir les biens",
       trust: ["Les informations avant la visite", "Documents vérifiés", "Accompagnement jusqu’à l’acte"],
     },
     highlights: {
       eyebrow: "Acheter sereinement",
-      title: "Acheter un bien est un choix important. Vous méritez d’y voir clair, avant de décider.",
+      title: "Une maison est un choix important. Vous méritez de le faire en connaissance de cause.",
       intro:
         "Acheter une maison ne devrait pas rimer avec doutes et inquiétudes. Avec Domus Tua, chaque décision repose sur des informations claires et sur une équipe à vos côtés.",
       items: [
         {
-          title: "Atouts et contraintes",
+          title: "Transparence totale",
           copy: "Nous vous disons les choses telles qu’elles sont vraiment : atouts, contraintes et contexte de chaque bien.",
         },
         {
-          title: "Documents vérifiés",
+          title: "Aucune surprise",
           copy: "Documentation vérifiée avant l’offre : vous savez exactement ce que vous achetez.",
         },
         {
-          title: "La même personne",
-          copy: "De la première visite à l’acte, vous parlez toujours à la même personne, pas à un standard.",
+          title: "Toujours accompagné",
+          copy: "De la première visite à l’acte, vous avez un interlocuteur qui vous guide à chaque étape.",
         },
       ],
     },
     steps: {
       eyebrow: "Comment se passe l’achat",
       title: "Le parcours qui vous mène jusqu’aux clés, en toute sérénité.",
-      intro: "Le parcours de l’acquéreur — distinct de celui du vendeur, qui est la Méthode Domus en neuf étapes. Ici elles sont quatre, et servent à bien choisir, sans hâte.",
+      intro: "Une méthode claire pour bien choisir, sans hâte et sans pression.",
       rows: [
         {
           title: "Recherche ciblée",
@@ -264,7 +261,7 @@ const copy = {
         },
         {
           title: "Visites guidées et documents clairs",
-          copy: "Nous venons à la visite avec vous et mettons la documentation par écrit : conformité, titres et charges. Ce que nous ne savons pas encore, nous vous le disons.",
+          copy: "Nous vous accompagnons en visite et mettons la documentation noir sur blanc, avec une transparence totale sur chaque aspect du bien.",
           alt: "Salon meublé avec un canapé",
         },
         {
@@ -315,36 +312,36 @@ const copy = {
         </>
       ),
       subcopy:
-        "Wir zeigen Ihnen nicht nur Häuser. Wir prüfen die Unterlagen vor der Besichtigung, sagen Ihnen, was wir kontrolliert haben, und bleiben bis zum Notartermin an Ihrer Seite.",
+        "Wir zeigen Ihnen nicht nur Häuser. Wir begleiten Sie zu einer sicheren Entscheidung, mit klaren Informationen, geprüften Unterlagen und Unterstützung bei jedem Schritt.",
       alt: "Helles, modernes weißes Wohnzimmer",
       primaryLabel: "Ich suche ein Zuhause",
-      secondaryLabel: "Immobilien zum Verkauf ansehen",
+      secondaryLabel: "Immobilien ansehen",
       trust: ["Informationen vor der Besichtigung", "Geprüfte Unterlagen", "Begleitung bis zum Notartermin"],
     },
     highlights: {
       eyebrow: "Entspannt kaufen",
-      title: "Ein Haus zu kaufen ist eine wichtige Entscheidung. Sie verdienen Klarheit, bevor Sie entscheiden.",
+      title: "Ein Zuhause ist eine wichtige Entscheidung. Sie verdienen es, sie gut informiert zu treffen.",
       intro:
         "Ein Zuhause zu kaufen sollte nicht Zweifel und Sorgen bedeuten. Mit Domus Tua ruht jede Entscheidung auf klaren Informationen und auf einem Team an Ihrer Seite.",
       items: [
         {
-          title: "Vorzüge und Einschränkungen",
+          title: "Vollständige Transparenz",
           copy: "Wir sagen Ihnen, wie die Dinge wirklich stehen: Vorzüge, Einschränkungen und Umfeld jeder Immobilie.",
         },
         {
-          title: "Geprüfte Unterlagen",
+          title: "Keine Überraschungen",
           copy: "Unterlagen werden vor dem Angebot geprüft: Sie wissen genau, was Sie kaufen.",
         },
         {
-          title: "Dieselbe Person",
-          copy: "Von der ersten Besichtigung bis zum Notartermin sprechen Sie immer mit derselben Person, nicht mit einer Zentrale.",
+          title: "Immer begleitet",
+          copy: "Von der ersten Besichtigung bis zum Notartermin haben Sie einen Ansprechpartner, der Sie bei jedem Schritt führt.",
         },
       ],
     },
     steps: {
       eyebrow: "So läuft der Kauf",
       title: "Der Weg, der Sie zu den Schlüsseln bringt, ganz entspannt.",
-      intro: "Der Weg des Käufers — ein anderer als der des Verkäufers, der die Domus-Methode in neun Schritten ist. Hier sind es vier, und sie helfen, ohne Eile gut zu wählen.",
+      intro: "Eine klare Methode, um gut zu wählen, ohne Eile und ohne Druck.",
       rows: [
         {
           title: "Gezielte Suche",
@@ -358,7 +355,7 @@ const copy = {
         },
         {
           title: "Begleitete Besichtigungen und klare Unterlagen",
-          copy: "Wir kommen mit zur Besichtigung und legen die Unterlagen schriftlich vor: Konformität, Titel und Kosten. Was wir noch nicht wissen, sagen wir Ihnen.",
+          copy: "Wir begleiten Sie bei der Besichtigung und halten die Unterlagen schriftlich fest, mit völliger Transparenz zu jedem Aspekt der Immobilie.",
           alt: "Mit einem Sofa eingerichtetes Wohnzimmer",
         },
         {
@@ -409,36 +406,36 @@ const copy = {
         </>
       ),
       subcopy:
-        "No solo te mostramos casas. Comprobamos los documentos antes de la visita, te decimos qué hemos verificado y seguimos contigo hasta la escritura.",
+        "No solo te mostramos casas. Te acompañamos hacia una elección segura, con información clara, documentos verificados y asistencia en cada paso.",
       alt: "Salón moderno blanco y luminoso",
       primaryLabel: "Busco casa",
-      secondaryLabel: "Ver las casas en venta",
+      secondaryLabel: "Ver las casas",
       trust: ["Información antes de la visita", "Documentos verificados", "Asistencia hasta la escritura"],
     },
     highlights: {
       eyebrow: "Comprar con tranquilidad",
-      title: "Comprar casa es una elección importante. Mereces claridad, antes de decidir.",
+      title: "Una casa es una elección importante. Mereces hacerla bien informado.",
       intro:
         "Comprar casa no debería significar dudas y ansiedad. Con Domus Tua cada decisión se apoya en información clara y en un equipo a tu lado.",
       items: [
         {
-          title: "Ventajas y límites",
+          title: "Transparencia total",
           copy: "Te contamos cómo están realmente las cosas: virtudes, limitaciones y contexto de cada inmueble.",
         },
         {
-          title: "Documentos verificados",
+          title: "Ninguna sorpresa",
           copy: "Documentación verificada antes de la propuesta: sabes exactamente qué estás comprando.",
         },
         {
-          title: "La misma persona",
-          copy: "Desde la primera visita hasta la escritura hablas siempre con la misma persona, no con una centralita.",
+          title: "Siempre acompañado",
+          copy: "Desde la primera visita hasta la escritura, tienes un referente que te guía en cada paso.",
         },
       ],
     },
     steps: {
       eyebrow: "Cómo funciona la compra",
       title: "El recorrido que te lleva hasta las llaves, con tranquilidad.",
-      intro: "El recorrido de quien compra — distinto del de quien vende, que es el Método Domus en nueve pasos. Aquí son cuatro, y sirven para elegir bien, sin prisas.",
+      intro: "Un método claro para elegir bien, sin prisas y sin presiones.",
       rows: [
         {
           title: "Búsqueda selectiva",
@@ -452,7 +449,7 @@ const copy = {
         },
         {
           title: "Visitas guiadas y documentos claros",
-          copy: "Vamos contigo a la visita y ponemos por escrito la documentación: conformidad, títulos y gastos. Lo que aún no sabemos, te lo decimos.",
+          copy: "Te acompañamos en la visita y ponemos por escrito la documentación, con transparencia total sobre cada aspecto del inmueble.",
           alt: "Salón amueblado con sofá",
         },
         {
@@ -600,20 +597,22 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
                     {c.reassure.ctaCopy}
                   </p>
                   <div className="mt-7 flex flex-wrap items-center gap-3">
-                    <Cta href="#contatti" variant="cta" size="md">
+                    <a
+                      href="#contatti"
+                      className="group inline-flex items-center gap-2 rounded-full bg-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-dark"
+                    >
                       {c.reassure.ctaLabel}
-                    </Cta>
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </a>
                     {/* Canale immediato: WhatsApp precompilato con l'intento acquirente. */}
-                    <Cta
+                    <a
                       href={buyerWa}
                       target="_blank"
                       rel="noopener noreferrer"
-                      variant="ghost"
-                      size="md"
-                      arrow={false}
+                      className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-5 py-3 text-sm font-semibold text-ink transition-colors hover:border-red hover:text-red"
                     >
                       <Whatsapp className="h-4 w-4 text-red" /> WhatsApp
-                    </Cta>
+                    </a>
                   </div>
 
                   <p className="mt-7 border-t border-line pt-6 text-[0.9rem] leading-relaxed text-stone">
@@ -639,19 +638,10 @@ export default function AcquistaContent({ listings }: { listings: GridProperty[]
           context={c.testimonial.context}
           image="/images/reali/consulenza.jpg"
           alt={c.testimonial.alt}
-          /* NIENTE videoHref: il default del componente è il video-testimonianza
-             preciso (FeaturedTestimonial.tsx:195). Qui c’era l’URL del CANALE scritto
-             a mano, sotto un pulsante che dice «Guarda la video recensione»: chi
-             cliccava atterrava su una griglia e doveva scegliere da solo quale.
-             È il difetto che il §6.5 descrive per l’hero, sopravvissuto qui. */
+          videoHref="https://www.youtube.com/@DOMUSTUASRLIMMOBILIARE"
         />
         <DomusDocProtocol tone="cream" />
         <Reviews />
-
-        {/* Le domande di chi compra, prima del modulo: chi sta per scrivere ha ancora
-            un dubbio in testa, e spesso e' uno di questi quattro. */}
-        <FaqTeaser ids={FAQ_BUYER} surface="cream" />
-
         <div className="bg-cream-deep">
           <SectionDivider tone="cream-deep" />
         </div>
