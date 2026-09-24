@@ -7,7 +7,7 @@ import VelocityMarquee from "./motion/VelocityMarquee";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
 import { SegnoDomus } from "./BrandMotif";
-import { site } from "../lib/site";
+import { site, yearsActive } from "../lib/site";
 import { useLocale } from "./i18n/LocaleProvider";
 
 // ⚠️ SOLO NUMERI VERIFICABILI.
@@ -23,14 +23,14 @@ type Stat = {
   count: { value: number; decimals?: number; suffix?: string };
 };
 
-/** Anni di attività: calcolati dall'anno di costituzione, non scritti a mano. */
-const yearsActive = new Date().getFullYear() - site.since;
-
 /** La cifra maggiore fa da stat "eroe"; le altre stanno in una riga secondaria. */
 const heroStat: Stat = { count: { value: Number(site.reviewsCount) }, labelKey: "reviews" };
 const secondaryStats: Stat[] = [
   { count: { value: Number(site.rating), decimals: 1 }, labelKey: "rating" },
-  { count: { value: yearsActive }, labelKey: "years" },
+  // `yearsActive()` sta in site.ts: lo stesso numero lo dicono anche il Metodo e Chi
+  // siamo, e finché ognuno se lo calcolava (o peggio, se lo scriveva a parole) il sito
+  // dichiarava età diverse in pagine diverse.
+  { count: { value: yearsActive() }, labelKey: "years" },
 ];
 
 /** Locale del sito → BCP-47 per il raggruppamento delle migliaia (269395 → "269.395"). */

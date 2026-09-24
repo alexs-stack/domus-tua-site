@@ -71,6 +71,28 @@ export const test = base.extend<Fixtures>({
       if (IGNORED_FAILURES.some((re) => re.test(url))) return;
       // Le terze parti le blocchiamo noi: non sono un fallimento del sito.
       if (EXTERNAL_HOSTS.some((h) => url.includes(h))) return;
+      // RICHIESTA ANNULLATA ≠ RICHIESTA FALLITA.
+      //
+      // Quando si clicca un link, il browser ANNULLA tutto ciò che è ancora in volo per la
+      // pagina che si sta lasciando: il prefetch RSC di Next (`?_rsc=`), i chunk della rotta,
+      // le immagini non ancora arrivate. Playwright le riporta tutte come `requestfailed` con
+      // `net::ERR_ABORTED`, ma non è un guasto del sito: è una richiesta che non serviva più.
+      //
+      // La regola è scritta sul CODICE D'ERRORE e non su un elenco di URL perché l'elenco non
+      // finisce: provando a chiuderlo sono usciti in fila un prefetch RSC, poi un chunk JS, poi
+      // un'immagine — e sarebbero seguiti i font e i CSS. Ciò che accomuna quei casi non è il
+      // tipo di risorsa, è l'annullamento.
+      //
+      // Perché adesso e non prima: da quando le rotte del catalogo sono dinamiche — /acquista e
+      // /case/[slug], necessario per non servire un catalogo congelato in build — le risposte
+      // non sono più pronte in anticipo, e la finestra fra «richiesta partita» e «utente che
+      // clicca» si è allargata abbastanza da rendere l'annullamento normale invece che raro.
+      //
+      // Cosa NON si sta perdendo: Playwright emette `requestfailed` solo per fallimenti di
+      // RETE — un 404 o un 500 non passano di qui, sono risposte valide — e fra questi
+      // `ERR_ABORTED` è l'unico che significa «annullata dal client». Un DNS che non risolve,
+      // una connessione rifiutata, un TLS rotto continuano a far fallire il test.
+      if (r.failure()?.errorText === "net::ERR_ABORTED") return;
       guards.failedRequests.push(`${url} :: ${r.failure()?.errorText}`);
     });
 

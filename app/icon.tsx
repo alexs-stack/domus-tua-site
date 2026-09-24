@@ -2,13 +2,14 @@ import { ImageResponse } from "next/og";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-// Favicon di marca generato con next/og: monogramma "D" (Fraunces) su rosso Domus Tua.
+// Favicon di marca generato con next/og: monogramma "D" (Playfair Display,
+// la didone di hero e display) su rosso Domus Tua.
 export const runtime = "nodejs";
 export const size = { width: 256, height: 256 };
 export const contentType = "image/png";
 
 export default function Icon() {
-  const fraunces = readFileSync(join(process.cwd(), "app/og/fonts/FrauncesStatic.ttf"));
+  const playfair = readFileSync(join(process.cwd(), "app/og/fonts/PlayfairDisplayStatic.ttf"));
   return new ImageResponse(
     (
       <div
@@ -20,7 +21,7 @@ export default function Icon() {
           justifyContent: "center",
           background: "#d20a0a",
           color: "#faf7f1",
-          fontFamily: "Fraunces",
+          fontFamily: "Playfair Display",
           fontSize: 190,
           fontWeight: 600,
           borderRadius: 56,
@@ -30,6 +31,6 @@ export default function Icon() {
         D
       </div>
     ),
-    { ...size, fonts: [{ name: "Fraunces", data: fraunces, weight: 600, style: "normal" }] },
+    { ...size, fonts: [{ name: "Playfair Display", data: playfair, weight: 600, style: "normal" }] },
   );
 }

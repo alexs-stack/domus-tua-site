@@ -11,7 +11,9 @@ test.describe("apertura e chiusura", () => {
     await apriAssistente(page);
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(/assistente di Domus Tua/i)).toBeVisible();
+    // Il pannello si presenta col nome: "Assistente Raffaela" (una L sola). Si guarda il
+    // titolo, non un testo qualunque: il nome ricorre anche nel saluto.
+    await expect(dialog.locator("#assistant-title")).toHaveText("Assistente Raffaela");
 
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
@@ -160,9 +162,22 @@ test.describe("passaggio a un canale umano", () => {
     await page.getByPlaceholder(/scrivi qui/i).fill("Voglio parlare con voi");
     await page.getByRole("button", { name: /invia/i }).click();
 
-    const wa = page.getByRole("link", { name: /scrivi su whatsapp/i });
+    // Si cerca dentro il pannello, e per «WhatsApp» soltanto: l'etichetta INTERA la sceglie il
+    // client dal dizionario di lingua (Assistant.tsx, `c.whatsappCta`), non il tool. Questo test
+    // pretendeva la stringa fissa del tool — «Scrivi su WhatsApp» — ed è rimasto rosso dal
+    // 2026-08-20, quando le CTA sono state unificate in una formula per famiglia (88970b8):
+    // in italiano oggi si legge «Parla con noi su WhatsApp». Agganciarsi di nuovo al testo esatto
+    // rifarebbe lo stesso errore, quindi si verifica ciò che il test deve davvero garantire —
+    // numero giusto, messaggio precompilato, nuova scheda — e della copy solo che nomini il
+    // canale, cosa vera in tutte e cinque le lingue.
+    const wa = page.getByRole("dialog").getByRole("link", { name: /whatsapp/i });
     await expect(wa).toHaveAttribute("href", /^https:\/\/wa\.me\/393466042314\?text=/);
     await expect(wa).toHaveAttribute("target", "_blank");
+    await expect(wa).toHaveAttribute("rel", /noopener/);
+
+    // E che l'etichetta del tool NON venga usata: è il senso della modifica di 88970b8 — il tool
+    // non conosce la lingua della conversazione, il client sì.
+    await expect(wa).not.toHaveText("Scrivi su WhatsApp");
   });
 
   test("il modulo email invia e conferma solo dopo la risposta del server", async ({ page }) => {
@@ -351,7 +366,7 @@ test.describe("audit finale — regressioni", () => {
     sblocca();
 
     // Il saluto deve restare: l'annullamento riguardava la conversazione precedente.
-    await expect(bolla(page, /Sono l’assistente di Domus Tua/)).toBeVisible();
+    await expect(bolla(page, /sono Assistente Raffaela/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Cerco una villa" })).toBeVisible();
   });
 });

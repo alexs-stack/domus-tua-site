@@ -1,0 +1,123 @@
+{
+  "generatedAt": "2026-08-14T10:00:00.000Z",
+  "mode": "fixture",
+  "pilotMunicipalities": [
+    "lonate-ceppino",
+    "tradate",
+    "venegono-inferiore",
+    "venegono-superiore"
+  ],
+  "municipalities": [
+    {
+      "municipality": "lonate-ceppino",
+      "listingsInScope": 3,
+      "drafts": 3,
+      "originBasis": {
+        "precision": "municipality-centroid",
+        "label": "Lonate Ceppino",
+        "accuracyMeters": 2000
+      },
+      "poisByCategory": {
+        "railway-station": 3,
+        "pharmacy": 6,
+        "supermarket": 6,
+        "school": 3,
+        "park": 6
+      },
+      "sampleSources": [],
+      "areaFactsApproved": 0,
+      "areaFactsStatus": "empty-pending-research",
+      "missingOrAmbiguous": [],
+      "changedOrStale": 3
+    },
+    {
+      "municipality": "tradate",
+      "listingsInScope": 3,
+      "drafts": 3,
+      "originBasis": {
+        "precision": "municipality-centroid",
+        "label": "Tradate",
+        "accuracyMeters": 2000
+      },
+      "poisByCategory": {
+        "railway-station": 3,
+        "pharmacy": 6,
+        "supermarket": 6,
+        "school": 3,
+        "park": 6
+      },
+      "sampleSources": [],
+      "areaFactsApproved": 0,
+      "areaFactsStatus": "empty-pending-research",
+      "missingOrAmbiguous": [],
+      "changedOrStale": 3
+    },
+    {
+      "municipality": "venegono-inferiore",
+      "listingsInScope": 3,
+      "drafts": 3,
+      "originBasis": {
+        "precision": "municipality-centroid",
+        "label": "Venegono Inferiore",
+        "accuracyMeters": 2000
+      },
+      "poisByCategory": {
+        "railway-station": 3,
+        "pharmacy": 6,
+        "supermarket": 6,
+        "school": 3,
+        "park": 6
+      },
+      "sampleSources": [],
+      "areaFactsApproved": 0,
+      "areaFactsStatus": "empty-pending-research",
+      "missingOrAmbiguous": [],
+      "changedOrStale": 3
+    },
+    {
+      "municipality": "venegono-superiore",
+      "listingsInScope": 3,
+      "drafts": 3,
+      "originBasis": {
+        "precision": "municipality-centroid",
+        "label": "Venegono Superiore",
+        "accuracyMeters": 2000
+      },
+      "poisByCategory": {
+        "railway-station": 3,
+        "pharmacy": 6,
+        "supermarket": 6,
+        "school": 3,
+        "park": 6
+      },
+      "sampleSources": [],
+      "areaFactsApproved": 0,
+      "areaFactsStatus": "empty-pending-research",
+      "missingOrAmbiguous": [],
+      "changedOrStale": 3
+    }
+  ],
+  "totals": {
+    "listingsInScope": 12,
+    "drafts": 12
+  },
+  "providerUsage": {
+    "providerCalls": 4,
+    "profileHits": 0,
+    "profilesRefreshed": 4,
+    "failures": 0,
+    "uniqueOrigins": 4,
+    "listingsPerQuery": 3
+  },
+  "pendingHumanDecisions": [
+    "Approvare/rifiutare i draft POI per ogni comune (CLI territory:review) — nessun draft è approvato automaticamente.",
+    "Autorizzare la ricerca dei fatti d'area (fonti primarie) — oggi vuoti in attesa di autorizzazione.",
+    "Autorizzare (se voluto) l'uso dell'origine a livello di immobile per singoli annunci — altrimenti resta il centroide comunale.",
+    "Confermare l'attivazione dello storage durevole e dei flag di produzione SOLO alla verifica finale (Prompt 18)."
+  ],
+  "notes": [
+    "MODALITÀ FIXTURE: provider e immobili SINTETICI, nessuna rete. Dimostra il flusso; i POI NON sono reali.",
+    "Nessun flag di produzione è stato attivato; nessun draft è stato approvato; nulla è pubblicato.",
+    "Riuso del profilo: con più immobili nello stesso comune, una sola query per origine (vedi listingsPerQuery)."
+  ]
+}

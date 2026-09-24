@@ -82,7 +82,7 @@ Il **badge di anteprima** (in basso a sx) + la sua checklist lo ricordano in tem
 | `NEXT_PUBLIC_ENABLE_I18N` | `false` | `false` |
 | `SHEETS_WEBHOOK_URL` | impostato (persistenza lead) | opzionale |
 | `TRUSTINDEX_WIDGET_URL` / `INSTAGRAM_WIDGET_URL` | opzionale | opzionale |
-| `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` | opzionale (ricerca funziona senza) | opzionale |
+| `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` | opzionale (la ricerca funziona senza, e il ranking semantico gli basta `GEMINI_API_KEY`) | opzionale |
 
 Check: `curl https://www.domustua.com/api/health` → `listingsMode:"realsmart"`, `previewBadge:false`,
 `i18nEnabled:false`. Dettaglio: `docs/vercel-live-checklist.md`.

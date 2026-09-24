@@ -6,6 +6,7 @@ import { useLocale } from "./i18n/LocaleProvider";
 import { getLenis } from "./motion/SmoothScroll";
 import { readAssistantStream } from "../lib/assistant/client";
 import AssistantLeadForm from "./AssistantLeadForm";
+import { Cta } from "./primitives/Cta";
 import { hasOverlay, subscribeOverlays } from "../lib/ui/overlays";
 import { site } from "../lib/site";
 import type { Handoff } from "../lib/assistant/types";
@@ -30,15 +31,21 @@ type Msg = {
   incomplete?: boolean;
 };
 
+// "Assistente Raffaela" è un nome proprio di marca, come Open Domus e Domus D.O.C.:
+// resta identico in tutte e cinque le lingue e NON si traduce. La grafia è "Raffaela",
+// una sola L — la stessa con cui la fondatrice si firma (vedi app/lib/team.ts).
+// Il disclaimer dice in chiaro che porta la sua voce senza essere lei: è la riga che
+// tiene insieme il calore della persona e l'onestà verso chi scrive.
 const copy = {
   it: {
-    launcher: "Apri l’assistente Domus Tua",
-    title: "Assistente Domus Tua",
-    subtitle: "Ti aiuto a trovare casa",
+    launcher: "Scrivi ad Assistente Raffaela",
+    title: "Assistente Raffaela",
+    subtitle: "Ti aiuto a trovare casa, con calma",
     close: "Chiudi",
     placeholder: "Scrivi qui la tua domanda…",
     send: "Invia",
-    greeting: "Ciao! Sono l’assistente di Domus Tua. Posso aiutarti a trovare casa, capire come vendere o rispondere alle domande più comuni. Come posso aiutarti?",
+    greeting: "Ciao, sono Assistente Raffaela. Posso aiutarti a cercare casa, a capire come si vende o a togliere qualche dubbio: qui nessuno ha fretta. Da dove partiamo?",
+    whatsappCta: "Parla con noi su WhatsApp",
     suggestions: ["Cerco una villa", "Vorrei vendere casa", "Come funziona Open Domus?", "Voglio parlare con voi"],
     error: "Ops, qualcosa è andato storto. Riprova o scrivici su WhatsApp.",
     rateLimited: "Hai scritto molti messaggi di fila. Riprova tra un minuto, oppure scrivici su WhatsApp.",
@@ -49,17 +56,18 @@ const copy = {
     reset: "Nuova conversazione",
     offline: "Sembri offline. Controlla la connessione e riprova.",
     followUps: ["Confronta le prime due", "Qualcosa in un comune vicino"],
-    disclaimer: "Assistente virtuale. La conversazione non viene conservata.",
+    disclaimer: "Assistente virtuale: porto la voce di Raffaela, non sono lei. La conversazione non viene conservata.",
     privacy: "Informativa privacy",
   },
   en: {
-    launcher: "Open the Domus Tua assistant",
-    title: "Domus Tua assistant",
-    subtitle: "I’ll help you find a home",
+    launcher: "Message Assistente Raffaela",
+    title: "Assistente Raffaela",
+    subtitle: "I’ll help you find a home, unhurried",
     close: "Close",
     placeholder: "Type your question here…",
     send: "Send",
-    greeting: "Hi! I’m the Domus Tua assistant. I can help you find a home, understand how to sell, or answer the most common questions. How can I help?",
+    greeting: "Hi, I’m Assistente Raffaela. I can help you look for a home, understand how selling works, or clear up a doubt — nobody is in a hurry here. Where shall we start?",
+    whatsappCta: "Talk to us on WhatsApp",
     suggestions: ["I’m looking for a villa", "I’d like to sell my home", "How does Open Domus work?", "I’d like to talk to someone"],
     error: "Oops, something went wrong. Please try again or message us on WhatsApp.",
     rateLimited: "That’s a lot of messages in a row. Try again in a minute, or message us on WhatsApp.",
@@ -70,17 +78,18 @@ const copy = {
     reset: "New conversation",
     offline: "You seem to be offline. Check your connection and try again.",
     followUps: ["Compare the first two", "Something in a nearby town"],
-    disclaimer: "Virtual assistant. This conversation is not stored.",
+    disclaimer: "Virtual assistant: I carry Raffaela’s voice, I am not her. This conversation is not stored.",
     privacy: "Privacy policy",
   },
   fr: {
-    launcher: "Ouvrir l’assistant Domus Tua",
-    title: "Assistant Domus Tua",
-    subtitle: "Je vous aide à trouver un bien",
+    launcher: "Écrire à Assistente Raffaela",
+    title: "Assistente Raffaela",
+    subtitle: "Je vous aide à trouver un bien, sans hâte",
     close: "Fermer",
     placeholder: "Écrivez votre question ici…",
     send: "Envoyer",
-    greeting: "Bonjour ! Je suis l’assistant de Domus Tua. Je peux vous aider à trouver un bien, à comprendre comment vendre ou répondre aux questions courantes. Comment puis-je vous aider ?",
+    greeting: "Bonjour, je suis Assistente Raffaela. Je peux vous aider à chercher un bien, à comprendre comment vendre ou à lever un doute : ici, rien ne presse. Par où commençons-nous ?",
+    whatsappCta: "Parlez-nous sur WhatsApp",
     suggestions: ["Je cherche une villa", "Je voudrais vendre mon bien", "Comment fonctionne Open Domus ?", "Je voudrais vous parler"],
     error: "Oups, une erreur est survenue. Réessayez ou écrivez-nous sur WhatsApp.",
     rateLimited: "Beaucoup de messages d’affilée. Réessayez dans une minute, ou écrivez-nous sur WhatsApp.",
@@ -91,17 +100,18 @@ const copy = {
     reset: "Nouvelle conversation",
     offline: "Vous semblez hors ligne. Vérifiez la connexion et réessayez.",
     followUps: ["Comparez les deux premiers", "Quelque chose dans une commune voisine"],
-    disclaimer: "Assistant virtuel. Cette conversation n’est pas conservée.",
+    disclaimer: "Assistant virtuel : je porte la voix de Raffaela, je ne suis pas elle. Cette conversation n’est pas conservée.",
     privacy: "Politique de confidentialité",
   },
   de: {
-    launcher: "Domus-Tua-Assistenten öffnen",
-    title: "Domus-Tua-Assistent",
-    subtitle: "Ich helfe Ihnen, ein Zuhause zu finden",
+    launcher: "Assistente Raffaela schreiben",
+    title: "Assistente Raffaela",
+    subtitle: "Ich helfe Ihnen in Ruhe bei der Haussuche",
     close: "Schließen",
     placeholder: "Schreiben Sie hier Ihre Frage…",
     send: "Senden",
-    greeting: "Hallo! Ich bin der Assistent von Domus Tua. Ich helfe Ihnen beim Suchen, beim Verkaufen und bei den häufigsten Fragen. Wie kann ich helfen?",
+    greeting: "Hallo, ich bin Assistente Raffaela. Ich helfe Ihnen beim Suchen, beim Verkaufen oder bei einer offenen Frage — hier drängt nichts. Wo fangen wir an?",
+    whatsappCta: "Sprechen Sie mit uns auf WhatsApp",
     suggestions: ["Ich suche eine Villa", "Ich möchte verkaufen", "Wie funktioniert Open Domus?", "Ich möchte mit jemandem sprechen"],
     error: "Ups, etwas ist schiefgelaufen. Bitte erneut versuchen oder auf WhatsApp schreiben.",
     rateLimited: "Das waren viele Nachrichten hintereinander. Bitte in einer Minute erneut versuchen oder auf WhatsApp schreiben.",
@@ -112,17 +122,18 @@ const copy = {
     reset: "Neues Gespräch",
     offline: "Sie scheinen offline zu sein. Prüfen Sie die Verbindung und versuchen Sie es erneut.",
     followUps: ["Die ersten beiden vergleichen", "Etwas in einer Nachbargemeinde"],
-    disclaimer: "Virtueller Assistent. Dieses Gespräch wird nicht gespeichert.",
+    disclaimer: "Virtueller Assistent: Ich spreche mit Raffaelas Stimme, bin aber nicht sie. Dieses Gespräch wird nicht gespeichert.",
     privacy: "Datenschutz",
   },
   es: {
-    launcher: "Abrir el asistente de Domus Tua",
-    title: "Asistente Domus Tua",
-    subtitle: "Te ayudo a encontrar casa",
+    launcher: "Escribe a Assistente Raffaela",
+    title: "Assistente Raffaela",
+    subtitle: "Te ayudo a encontrar casa, con calma",
     close: "Cerrar",
     placeholder: "Escribe aquí tu pregunta…",
     send: "Enviar",
-    greeting: "¡Hola! Soy el asistente de Domus Tua. Puedo ayudarte a encontrar casa, entender cómo vender o responder a las dudas más comunes. ¿En qué te ayudo?",
+    greeting: "Hola, soy Assistente Raffaela. Puedo ayudarte a buscar casa, a entender cómo se vende o a resolver una duda: aquí nadie tiene prisa. ¿Por dónde empezamos?",
+    whatsappCta: "Habla con nosotras por WhatsApp",
     suggestions: ["Busco una villa", "Quiero vender mi casa", "¿Cómo funciona Open Domus?", "Quiero hablar con vosotros"],
     error: "Vaya, algo salió mal. Inténtalo de nuevo o escríbenos por WhatsApp.",
     rateLimited: "Has enviado muchos mensajes seguidos. Inténtalo en un minuto, o escríbenos por WhatsApp.",
@@ -133,7 +144,7 @@ const copy = {
     reset: "Nueva conversación",
     offline: "Pareces estar sin conexión. Comprueba la conexión e inténtalo de nuevo.",
     followUps: ["Compara los dos primeros", "Algo en un municipio cercano"],
-    disclaimer: "Asistente virtual. Esta conversación no se conserva.",
+    disclaimer: "Asistente virtual: llevo la voz de Raffaela, pero no soy ella. Esta conversación no se conserva.",
     privacy: "Política de privacidad",
   },
 } as const;
@@ -419,6 +430,10 @@ export default function Assistant() {
         onClick={() => setOpen(true)}
         aria-label={c.launcher}
         aria-expanded={open}
+        // Aggancio per il footer: da qui globals.css capisce che la chat è montata e
+        // riserva lo spazio in fondo alla pagina. Con la chat spenta niente attributo,
+        // niente spazio morto — e in produzione oggi è spenta.
+        data-assistant-launcher
         className={`fixed right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-red text-white shadow-[0_20px_40px_-16px_rgba(210,10,10,0.7)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red motion-reduce:transition-none ${
           open || blocked ? "pointer-events-none scale-90 opacity-0" : "opacity-100"
         }`}
@@ -541,21 +556,35 @@ export default function Assistant() {
                     />
                   ) : (
                     <div key={k} className="mt-3 flex flex-wrap gap-2">
-                      <a
+                      <Cta
                         href={h.url}
+                        variant="cta-solid"
+                        size="sm"
+                        arrow={false}
+                        className="min-h-11"
                         target={h.kind === "whatsapp" ? "_blank" : undefined}
                         rel={h.kind === "whatsapp" ? "noopener noreferrer" : undefined}
-                        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-red px-4 py-2.5 text-[0.85rem] font-semibold text-white transition-colors duration-200 hover:bg-red-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                       >
-                        {h.label}
-                      </a>
+                        {/* L'etichetta WhatsApp la decide QUI il client, non il tool.
+                            Il tool server-side la scriveva in italiano fisso («Scrivi su
+                            WhatsApp»), e su un sito in cinque lingue quella riga arrivava
+                            uguale a chiunque — oltre a essere una nona variante di una
+                            famiglia che il §6.7 vuole con UNA formula sola. Il tool non
+                            conosce la lingua della conversazione; il client sì, e il
+                            dizionario ce l'ha già. Le altre etichette di handoff restano
+                            quelle del tool: non sono CTA di famiglia. */}
+                        {h.kind === "whatsapp" ? c.whatsappCta : h.label}
+                      </Cta>
                       {/* Su mobile la telefonata è spesso il canale più rapido. */}
-                      <a
+                      <Cta
                         href={PHONE_HREF}
-                        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-4 py-2.5 text-[0.85rem] font-semibold text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink sm:hidden"
+                        variant="ghost"
+                        size="sm"
+                        arrow={false}
+                        className="min-h-11 sm:hidden"
                       >
                         {c.call}
-                      </a>
+                      </Cta>
                     </div>
                   ),
                 )}
@@ -670,10 +699,15 @@ export default function Assistant() {
   );
 }
 
+// Puntini dell'indicatore di scrittura: respirano (vedi `dt-typing` in globals.css),
+// non rimbalzano. Il rimbalzo verticale della prima versione era l'unico gesto del
+// sito a muoversi a scatti, e su una superficie che si muove sempre per attenuazione
+// si notava. (Il nome della vecchia utility non è citato apposta: il rilevatore
+// legge anche i commenti e lo segnalerebbe qui, dove non c'è più.)
 function Dot({ delay = "0s" }: { delay?: string }) {
   return (
     <span
-      className="inline-block h-2 w-2 animate-bounce rounded-full bg-stone/50 motion-reduce:animate-none"
+      className="dt-typing-dot inline-block h-2 w-2 rounded-full bg-stone/50 motion-reduce:animate-none"
       style={{ animationDelay: delay }}
     />
   );

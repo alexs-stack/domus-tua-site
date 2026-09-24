@@ -294,3 +294,48 @@ describe("descriptionExcerpt — estratto pulito quanto i paragrafi", () => {
     assert.equal(descriptionExcerpt("Con Domus Tua è facile vendere ed è sicuro acquistare."), "");
   });
 });
+
+// ── La coda troncata alla fonte (§5.8) ───────────────────────────────────────
+//
+// Sei annunci su 196 finiscono a metà frase, e finiscono TUTTI su una parola-funzione:
+// «che» (quattro volte), «con», «e». I casi qui sotto sono quelli veri del feed, più i due
+// che NON devono sparire — perché il valore di questa potatura sta tutto lì.
+
+describe("coda troncata: si toglie la frase a metà, non il paragrafo", () => {
+  test("«E ricorda che» (annunci 1751 e 1768) se ne va", () => {
+    const p = descriptionParagraphs("Appartamento ristrutturato al secondo piano.\nE ricorda che");
+    assert.deepEqual(p, ["Appartamento ristrutturato al secondo piano."]);
+  });
+
+  test("«…in serenità con» (annuncio 1825) se ne va", () => {
+    const p = descriptionParagraphs("Trilocale con terrazzo.\nGoditi la tua vita compra e vendi in serenità con");
+    assert.deepEqual(p, ["Trilocale con terrazzo."]);
+  });
+
+  test("(annuncio 1640) il contenuto vero resta, se ne va solo la frase monca", () => {
+    const p = descriptionParagraphs(
+      "Villa con giardino.\nUna casa unica nel suo genere, capace di farci sognare ad occhi aperti. Abbandonati a questo incanto chiamandoci per un appuntamento, ricordando che",
+    );
+    assert.equal(p.length, 2);
+    assert.ok(p[1].includes("sognare ad occhi aperti"), "il copy dell'agenzia resta");
+    assert.ok(!p[1].includes("ricordando che"), "il congedo troncato se ne va");
+  });
+
+  test("una riga-elenco senza punto finale NON è una coda troncata", () => {
+    const riga = "Classe B · Doppio terrazzo · Vista Monte Rosa · Due autorimesse";
+    const p = descriptionParagraphs(`Villa singola.\n${riga}`);
+    assert.deepEqual(p, ["Villa singola.", riga]);
+  });
+
+  test("una frase lunga rimasta aperta NON si tocca: oltre 200 caratteri non è un congedo", () => {
+    const lunga = `${"un contesto residenziale tranquillo servito da scuole negozi e mezzi pubblici ".repeat(4)}e`;
+    const p = descriptionParagraphs(`Casa.\n${lunga}`);
+    assert.equal(p.length, 2);
+    assert.ok(p[1].endsWith("e"), "resta intera, e l'audit la segnala alla fonte");
+  });
+
+  test("si guarda solo l'ULTIMO paragrafo: un frammento in mezzo è una riga da ricucire", () => {
+    const p = descriptionParagraphs("Prima riga che\ncontinua qui sotto.\nSeconda riga chiusa.");
+    assert.ok(p.join(" ").includes("continua qui sotto"), "la giuntura si ricuce, non si butta");
+  });
+});

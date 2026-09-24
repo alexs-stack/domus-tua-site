@@ -20,8 +20,8 @@ Oggi vale `false`. Deve restare così finché la checklist qui sotto non è tutt
 | `ASSISTANT_EMAIL_API_KEY` | server | Il modulo email dichiara di non poter inviare; WhatsApp e telefono restano |
 | `ASSISTANT_EMAIL_FROM` | server | Default `assistente@domustua.it`; dev'essere su dominio verificato |
 | `ASSISTANT_LEAD_EMAIL_TO` | server | Default `immobiliare@domustua.it` |
-| `VOYAGE_API_KEY` | server | Retrieval solo lessicale (sufficiente) |
-| `ASSISTANT_SEMANTIC_FLOOR` | server | Default 0.6, mai tarato su dati reali |
+| `VOYAGE_API_KEY` | server | Embeddings da Gemini invece che da Voyage. Non tocca la knowledge base, che è lessicale |
+| `ASSISTANT_SEMANTIC_FLOOR` | server | **Va lasciata vuota**: retrieval semantico spento, per misura ([assistant-knowledge.md](assistant-knowledge.md)) |
 | `NEXT_PUBLIC_SITE_URL` | public | Link relativi nei messaggi di handoff |
 
 Elenco completo con commenti: [`.env.example`](../.env.example).

@@ -4,8 +4,9 @@
 // Per questo la validazione è severa (una chiave con un refuso è un errore, non un campo
 // ignorato) e ogni voce deve dichiarare motivo, fonte, data e autore.
 //
-// Le fixture qui sotto sono di prova: nessun immobile reale viene modificato (il file dati di
-// produzione, app/lib/realsmart/overrides.data.ts, è volutamente vuoto).
+// Le fixture qui sotto sono di prova: nessun immobile reale viene modificato. Il file dati di
+// produzione (app/lib/realsmart/overrides.data.ts) contiene solo decisioni davvero prese, ed è
+// verificato in fondo a questo file — tracciabilità piena, nessun contenuto di esempio.
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
@@ -169,7 +170,33 @@ describe("report degli override", () => {
 });
 
 describe("file dati di produzione", () => {
-  test("non contiene contenuti demo", () => {
-    assert.equal(listingOverrides.size, 0);
+  // Il file è stato a lungo VUOTO, e questo test lo verificava contando le voci. Ma «vuoto» era
+  // solo il modo più comodo di dire «nessun contenuto demo»: dal momento in cui una decisione
+  // vera viene registrata (T447/2055, la quarantena del segnaposto approvata), contare non
+  // distingue più ciò che va impedito — un immobile di esempio finito in produzione — da ciò che
+  // il file serve a contenere. Quindi si verifica la cosa vera.
+
+  test("ogni override è tracciato: motivo, fonte, data e autore", () => {
+    for (const [codice, o] of listingOverrides) {
+      for (const campo of ["motivo", "fonte", "data", "autore"] as const) {
+        assert.ok(
+          typeof o[campo] === "string" && o[campo].trim().length > 0,
+          `override ${codice}: "${campo}" mancante — un override senza traccia non è approvato, è solo scritto`,
+        );
+      }
+      assert.match(o.data, /^\d{4}-\d{2}-\d{2}$/, `override ${codice}: data non ISO`);
+    }
+  });
+
+  test("nessun contenuto demo o di esempio", () => {
+    const demo = /\b(demo|esempio|example|lorem|ipsum|fixture|placeholder|foo|bar)\b/i;
+    for (const [codice, o] of listingOverrides) {
+      for (const campo of ["codice", "motivo", "fonte", "autore"] as const) {
+        assert.ok(
+          !demo.test(o[campo]),
+          `override ${codice}: "${campo}" sembra un contenuto di esempio ("${o[campo]}")`,
+        );
+      }
+    }
   });
 });

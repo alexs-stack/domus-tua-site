@@ -1,7 +1,8 @@
 // Esecuzione dell'eval: prende un caso, esegue il turno, raccoglie i segnali, applica i grader.
 //
 // Il modello è iniettabile. Due modalità:
-//  • REALE — con ANTHROPIC_API_KEY: misura il comportamento vero e la latenza vera.
+//  • REALE — con un provider configurato (Gemini o Claude): misura il comportamento vero
+//    e la latenza vera.
 //  • SIMULATA — con MockLanguageModelV4: verifica che l'harness e i grader funzionino, e
 //    copre per intero il gruppo "errore". Serve a sapere che l'eval è affidabile PRIMA di
 //    spendere in chiamate reali: un grader che non sa riconoscere un immobile inventato darebbe
@@ -14,6 +15,7 @@ import { normalizedToProperty } from "../../realsmart/toProperty";
 import type { NormalizedProperty } from "../../realsmart/types";
 import type { ClientMessage } from "../types";
 import type { EvalCase } from "./cases";
+import type { AssistantTerritoryReader } from "../tools/territory";
 import { CRITERI_BLOCCANTI, grade, type EvalSignals, type Verdict } from "./graders";
 
 export interface EvalResult {
@@ -51,13 +53,15 @@ export interface RunOptions {
    * Non un'istanza sola: un modello simulato che tiene il conto dei passi arriverebbe al
    * secondo turno già "esaurito" e salterebbe la chiamata allo strumento, facendo sembrare
    * un difetto dell'assistente quello che è un difetto del banco di prova.
-   * Assente = modello di produzione (richiede ANTHROPIC_API_KEY).
+   * Assente = modello di produzione (richiede un provider configurato).
    */
   makeModel?: () => LanguageModel;
   /** Catalogo immobili. */
   listings: AssistantListings;
   /** Slug non disponibili (venduti), che non devono mai comparire. */
   slugNonDisponibili: string[];
+  /** Lettore territoriale (Prompt 13): attiva get_area_profile e il territorio in get_listing_details. */
+  territory?: AssistantTerritoryReader;
 }
 
 /**
@@ -128,6 +132,7 @@ async function eseguiTurno(
     messages: messaggi,
     model: options.makeModel?.(),
     listings: options.listings,
+    ...(options.territory ? { territory: options.territory } : {}),
     onToolCall: (name) => toolUsati.push(name),
   })) {
     if (evento.type === "text") {

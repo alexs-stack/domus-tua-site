@@ -10,31 +10,28 @@
 // per schermata. Vedi docs/segno-domus.md.
 // ═══════════════════════════════════════════════════════════════════════════
 
+import MarkDomus from "./MarkDomus";
+
 type MotifProps = {
   className?: string;
   /** compat storica (variante col tetto disegnato): oggi ignorata */
   embrace?: boolean;
-  /** "light" = variante negativa (crema + rosso) per superfici scure */
-  variant?: "color" | "light";
 };
 
-// ── Segno base: il MONOGRAMMA UFFICIALE (crop del logo depositato) ───────────
-// Sostituisce la vecchia linea-tetto ridisegnata (direttiva cliente: usare il
-// logo reale ovunque). L'immagine si adatta al box dei call-site esistenti
-// con object-contain; niente stroke-draw (il brand book vieta di animare il
-// logo con morph/draw — le entrance restano fade/scale dei wrapper).
-export function SegnoDomus({ className = "h-4 w-10", variant = "color" }: MotifProps) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={variant === "light" ? "/logo-domustua-mark-dark.png" : "/logo-domustua-mark.png"}
-      alt=""
-      aria-hidden
-      width={99}
-      height={92}
-      className={`object-contain ${className}`}
-    />
-  );
+// ── Segno base: il MONOGRAMMA UFFICIALE ──────────────────────────────────────
+// Non ha una variante di colore, e non deve averne: la prop `variant="light"`
+// che stava qui era una porta aperta sul logo bianco (nessun call-site la
+// usava, ma bastava un giorno e qualcuno l'avrebbe usata). Su fondo scuro il
+// segno va posato su una pastiglia chiara, non ricolorato.
+// Direttiva cliente: usare il logo reale ovunque. Dal 2026-08-06 è VETTORIALE
+// (vedi MarkDomus.tsx): il PNG da 99×92 si sgranava appena passava i ~50px,
+// e il monogramma serve anche grande. Il viewBox con preserveAspectRatio di
+// default si comporta esattamente come l'object-contain di prima, quindi tutti
+// i call-site con box larghi (h-4 w-10) restano validi. Niente stroke-draw:
+// il brand book vieta di animare il logo con morph/draw — le entrance restano
+// fade/scale/maschere del CONTENITORE.
+export function SegnoDomus({ className = "h-4 w-10" }: MotifProps) {
+  return <MarkDomus className={className} />;
 }
 
 // Alias semantico: la linea-tetto come elemento a sé.

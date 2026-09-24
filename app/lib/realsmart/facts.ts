@@ -15,6 +15,9 @@
 // PRESENZA ("Terrazzo: Sì") e quella inferiore aggiunge una MISURA coerente ("Terrazzi: 2"),
 // vince il valore più preciso. Le due fonti non si contraddicono: una conta, l'altra conferma.
 
+import { toType } from "./toProperty";
+import { factApplies } from "../propertyKind";
+
 /** Gruppi in cui i fatti vengono presentati nella scheda. L'ordine è quello di rendering. */
 export const FACT_GROUPS = ["principali", "esterni", "comfort", "spazi", "forza"] as const;
 export type FactGroup = (typeof FACT_GROUPS)[number];
@@ -597,10 +600,31 @@ export function factsFromFields(input: FieldFactsInput): PropertyFact[] {
     const c = input.contratto.toLowerCase() === "affitto" ? "Affitto" : "Vendita";
     facts.push(fieldFact("contratto", c));
   }
+  // I numeri della casa si pubblicano solo dove SIGNIFICANO qualcosa. Il §4.1 del
+  // Documento finale lo cita come esempio di sciatteria: «Negozio 130 mq in centro
+  // Tradate con 3 vetrine — 130 m² · 3 locali · 3 camere · 1 bagno». Un negozio con
+  // tre camere.
+  //
+  // Il filtro esisteva già, ma solo A VALLE (factApplies, usato da card, anteprima e
+  // striscia della scheda) e non alla sorgente. Il risultato era peggio di niente: la
+  // striscia toglieva «camere» a un ufficio, il box «Dati principali» la rimetteva —
+  // perché nasconde solo ciò che la striscia ha già mostrato. Lo stesso sito si
+  // contraddiceva a due centimetri di distanza.
+  //
+  // Si riusa la classificazione che decide già tutto il resto invece di riscrivere qui
+  // una seconda regex sulla tipologia: due elenchi di parole che devono restare
+  // allineati divergono sempre, e la prima volta che è successo l'abbiamo pagata così.
+  const kind = toType(input.tipologia ?? "");
   if (input.mq && input.mq > 0) facts.push(fieldFact("superficie", `${input.mq} m²`));
-  if (input.locali && input.locali > 0) facts.push(fieldFact("locali", String(input.locali)));
-  if (input.camere && input.camere > 0) facts.push(fieldFact("camere", String(input.camere)));
-  if (input.bagni && input.bagni > 0) facts.push(fieldFact("bagni", String(input.bagni)));
+  if (input.locali && input.locali > 0 && factApplies(kind, "rooms")) {
+    facts.push(fieldFact("locali", String(input.locali)));
+  }
+  if (input.camere && input.camere > 0 && factApplies(kind, "beds")) {
+    facts.push(fieldFact("camere", String(input.camere)));
+  }
+  if (input.bagni && input.bagni > 0 && factApplies(kind, "baths")) {
+    facts.push(fieldFact("bagni", String(input.bagni)));
+  }
   const floor = floorLabel(input.piano);
   if (floor) facts.push(fieldFact("piano", floor));
   if (input.classeEnergetica) {

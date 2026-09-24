@@ -45,6 +45,10 @@ next-env.d.ts
 /_assets_raw
 /public/images/reali/yt
 
+# Materiale di studio/reverse engineering: vive solo in locale, mai nel repo
+# (contiene asset di riferimento di terzi che non vanno ridistribuiti).
+/reverse-engineering
+
 # dati lingua tesseract scaricati da scripts/detect-sold.ts (rigenerabili)
 *.traineddata
 
@@ -54,8 +58,31 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache
 
-# Report dell'eval dell'assistente (generato: npm run eval)
+# Report delle eval (generati: npm run eval, npm run eval:search).
+# Fuori dal repository per lo stesso motivo di sempre: un report committato invecchia in
+# silenzio e qualcuno ci decide sopra credendolo attuale.
 eval-report.md
+eval-search-report.md
 
 # Lighthouse CI
 /.lighthouseci/
+
+# Impeccable: cache locale del design hook (la config condivisa si committa)
+.impeccable/hook.cache.json
+
+# Materiale di studio temporaneo (mai importato, mai spedito)
+_refs/
+
+# Screenshot di riferimento della wave "parità mobile" (scripts/mobile-shots.ts,
+# scripts/mobile-filmstrip.ts). Sono ~90 MB di PNG a pagina intera: servono a
+# confrontare un prima e un dopo sulla propria macchina, non a stare in un
+# repository — e una fotografia committata invecchia in silenzio, come i report
+# delle eval qui sopra. Si rigenerano con un comando.
+/docs/shots/
+
+# Sonde usa-e-getta della wave "parità mobile" (probe di misura scritti in
+# radice per poter risolvere @playwright/test, e cancellati subito dopo).
+.dt-*.mjs
+
+# Report generati dall'audit contenuti (artefatti CI, non versionati)
+reports/

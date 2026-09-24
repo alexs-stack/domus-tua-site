@@ -24,21 +24,67 @@ import { verifiedEntries, type KnowledgeEntry } from "./entries";
  * corpus otterrebbe comunque una fonte e l'assistente risponderebbe a fianco della domanda
  * invece di ammettere che non lo sa.
  *
- * ⚠️ Valore di partenza prudente, NON ancora tarato su dati reali: serve VOYAGE_API_KEY per
- * misurarlo. Fino ad allora conviene tenerlo alto: essere troppo selettivi costa una
- * risposta "non lo so" (recuperabile), essere troppo permissivi costa una risposta sbagliata.
+ * NON HA PIÙ UN DEFAULT, ed è una decisione presa su una misura (2026-08-06,
+ * `npm run calibrate:semantic` su gemini-embedding-001):
+ *
+ *                                      soglia assoluta      z (quanto svetta)
+ *     domanda pertinente più debole              0.550                 -0.475
+ *     domanda fuori corpus più vicina            0.667                  3.159
+ *
+ * I due gruppi si sovrappongono: non esiste una soglia che li separi. "Che voto avete su
+ * Google?" arriva a 0,625 contro `valutazione-immobile` — col vecchio default di 0,6
+ * sarebbe passata, aggirando per caso la voce `reputazione-recensioni`, che è disabilitata
+ * APPOSTA. Provata anche la strada relativa (z-score: "somiglia a UNA voce più che alle
+ * altre?"), che va persino peggio. Verificato a 512, 1536 e 3072 dimensioni: non è un
+ * artefatto del troncamento dei vettori.
+ *
+ * Quindi: il livello semantico sulla knowledge base è SPENTO finché qualcuno non scrive un
+ * numero in `ASSISTANT_SEMANTIC_FLOOR`. Non è un interruttore da girare a occhio — è il
+ * modo di dire "ho misurato, ed ecco il valore". Con un altro modello di embeddings la
+ * forbice potrebbe esistere: rimisura prima di accendere.
+ *
+ * Il ranking semantico della RICERCA immobili non è toccato: là i vettori servono a
+ * ORDINARE candidati già filtrati, non a decidere se qualcosa è pertinente. Senza soglia
+ * da superare, la sovrapposizione misurata qui non lo riguarda.
  */
-export const SEMANTIC_FLOOR = Number(process.env.ASSISTANT_SEMANTIC_FLOOR) || 0.6;
+const configuredFloor = Number(process.env.ASSISTANT_SEMANTIC_FLOOR);
+export const SEMANTIC_FLOOR = Number.isFinite(configuredFloor) && configuredFloor > 0
+  ? configuredFloor
+  : null;
 
 /** Testo rappresentativo di una voce per l'embedding. */
-function entryText(entry: KnowledgeEntry): string {
+export function entryText(entry: KnowledgeEntry): string {
   return `${entry.title}. ${entry.content} ${entry.keywords.join(", ")}`.trim();
+}
+
+/**
+ * Impronta del corpus verificato: cambia se cambia una sola parola di una sola voce.
+ *
+ * Serve nella chiave della cache, e non è un dettaglio. La Data Cache di Vercel sopravvive
+ * ai deploy: con una chiave fissa, riscrivere una voce avrebbe lasciato in giro i vettori
+ * del testo VECCHIO per un'altra giornata intera, cioè un retrieval semantico che punta a
+ * frasi non più esistenti mentre il lessicale è già aggiornato. Con l'impronta nella
+ * chiave, un corpus nuovo è semplicemente una voce di cache nuova.
+ *
+ * FNV-1a a 32 bit: non è crittografia, è un modo compatto di dire "questo testo è cambiato".
+ */
+function corpusFingerprint(entries: KnowledgeEntry[]): string {
+  let hash = 0x811c9dc5;
+  for (const entry of entries) {
+    const text = `${entry.id} ${entryText(entry)} `;
+    for (let i = 0; i < text.length; i++) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193);
+    }
+  }
+  return (hash >>> 0).toString(36);
 }
 
 /**
  * Vettori delle voci verificate, calcolati una volta e messi in cache.
  * Il corpus vive nel codice, quindi cambia solo con un deploy: la finestra di rivalidazione
- * è lunga e il tag permette comunque di invalidare a mano.
+ * è lunga, l'impronta nella chiave garantisce che un deploy che tocca i testi non riusi i
+ * vettori vecchi, e il tag permette comunque di invalidare a mano.
  */
 const loadVectors = async (): Promise<Record<string, number[]> | null> => {
   const entries = verifiedEntries();
@@ -54,10 +100,14 @@ const loadVectors = async (): Promise<Record<string, number[]> | null> => {
   return map;
 };
 
-export const getKnowledgeVectors = unstable_cache(loadVectors, ["assistant-knowledge-vectors-v1"], {
-  revalidate: 24 * 60 * 60,
-  tags: ["assistant-knowledge"],
-});
+export const getKnowledgeVectors = unstable_cache(
+  loadVectors,
+  ["assistant-knowledge-vectors-v2", corpusFingerprint(verifiedEntries())],
+  {
+    revalidate: 24 * 60 * 60,
+    tags: ["assistant-knowledge"],
+  },
+);
 
 /**
  * Similarità della domanda con ogni voce verificata.
@@ -65,7 +115,9 @@ export const getKnowledgeVectors = unstable_cache(loadVectors, ["assistant-knowl
  * di proseguire col solo lessicale, non un errore.
  */
 export async function semanticScores(query: string): Promise<Map<string, number> | null> {
-  if (!semanticEnabled) return null;
+  // Serve un provider di embeddings E una soglia misurata. Senza la seconda il livello
+  // resta spento anche quando la chiave c'è: vedi SEMANTIC_FLOOR.
+  if (!semanticEnabled || SEMANTIC_FLOOR === null) return null;
 
   try {
     const [vectors, queryVectors] = await Promise.all([

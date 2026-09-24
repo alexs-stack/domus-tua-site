@@ -91,3 +91,35 @@ test("il lightbox occupa lo schermo senza traboccare @layout", async ({ page, go
   expect(box!.height).toBeLessThanOrEqual(viewport.height + 1);
   await page.keyboard.press("Escape");
 });
+
+// Correlati: un immobile venduto non deve MAI comparire come "correlato" di una scheda.
+// Nel dataset audìto ogni scheda disponibile aveva almeno una card venduta tra i correlati.
+// La logica di selezione è verificata a unità (app/lib/__tests__/related.test.ts); qui si
+// presidia l'invariante RESA in pagina. In modalità demo i dati non hanno venduti, quindi è
+// una guardia di regressione: se la pagina tornasse a pescare dal feed venduti inclusi e uno
+// finisse tra i correlati, il badge lo tradirebbe e il test fallirebbe.
+test("nessun immobile venduto tra i correlati di una scheda disponibile", async ({ page, goto }) => {
+  await goto("/acquista");
+  const hrefs = await page.locator('a[href^="/case/"]').evaluateAll((els) =>
+    [...new Set(els.map((e) => (e as HTMLAnchorElement).getAttribute("href")!))],
+  );
+
+  let sezioniViste = 0;
+  for (const href of hrefs.slice(0, 10)) {
+    await goto(href);
+    const related = page.getByTestId("related-listings");
+    if ((await related.count()) === 0) continue;
+    sezioniViste++;
+
+    // Nessun badge "Venduto"/"Affittato" dentro la striscia dei correlati.
+    await expect(related.getByText(/Venduto|Affittato/)).toHaveCount(0);
+    // Ogni card è un link a una scheda, e non se ne mostrano mai più di tre.
+    const cardLinks = related.locator('a[href^="/case/"]');
+    const n = await cardLinks.count();
+    expect(n).toBeGreaterThan(0);
+    expect(n).toBeLessThanOrEqual(3);
+  }
+
+  // Il test non deve passare a vuoto: almeno una scheda deve avere avuto dei correlati.
+  expect(sezioniViste).toBeGreaterThan(0);
+});

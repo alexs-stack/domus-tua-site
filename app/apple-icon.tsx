@@ -8,7 +8,7 @@ export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
 export default function AppleIcon() {
-  const fraunces = readFileSync(join(process.cwd(), "app/og/fonts/FrauncesStatic.ttf"));
+  const playfair = readFileSync(join(process.cwd(), "app/og/fonts/PlayfairDisplayStatic.ttf"));
   return new ImageResponse(
     (
       <div
@@ -20,7 +20,7 @@ export default function AppleIcon() {
           justifyContent: "center",
           background: "#d20a0a",
           color: "#faf7f1",
-          fontFamily: "Fraunces",
+          fontFamily: "Playfair Display",
           fontSize: 132,
           fontWeight: 600,
           paddingBottom: 10,
@@ -29,6 +29,6 @@ export default function AppleIcon() {
         D
       </div>
     ),
-    { ...size, fonts: [{ name: "Fraunces", data: fraunces, weight: 600, style: "normal" }] },
+    { ...size, fonts: [{ name: "Playfair Display", data: playfair, weight: 600, style: "normal" }] },
   );
 }

@@ -45,20 +45,16 @@ export default function DrawOnScroll({
           p.style.strokeDasharray = `${len}`;
           p.style.strokeDashoffset = `${len}`;
         });
+        // Replay a ogni passaggio: niente ripristino a fine tween — i dash
+        // inline devono restare vivi per restart/reverse (li toglie il cleanup
+        // della media query qui sotto).
         gsap.to(paths, {
           strokeDashoffset: 0,
           duration,
           delay,
           stagger,
           ease: "power2.inOut",
-          scrollTrigger: { trigger: el, start: "top 88%", once: true },
-          onComplete: () => {
-            // Ripristina lo stato pristino: nessun residuo inline sul segno.
-            paths.forEach((p) => {
-              p.style.removeProperty("stroke-dasharray");
-              p.style.removeProperty("stroke-dashoffset");
-            });
-          },
+          scrollTrigger: { trigger: el, start: "top 88%", toggleActions: "restart none none reverse" },
         });
 
         return () => {

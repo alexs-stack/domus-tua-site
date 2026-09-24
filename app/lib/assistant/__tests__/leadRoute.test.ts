@@ -72,7 +72,7 @@ describe("POST /api/assistant/lead", () => {
   it("limita le richieste ripetute dallo stesso IP", async () => {
     const ip = "203.0.113.9";
     const esiti: number[] = [];
-    // LEAD_LIMIT è 5 in 10 minuti: il sesto invio deve essere respinto.
+    // ASSISTANT_LEAD_LIMIT è 5 in 10 minuti: il sesto invio deve essere respinto.
     for (let i = 0; i < 6; i++) esiti.push((await POST(post(VALIDO, ip))).status);
 
     assert.ok(!esiti.slice(0, 5).includes(429), `limite scattato troppo presto: ${esiti}`);

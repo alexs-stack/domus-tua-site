@@ -9,7 +9,7 @@
 // Volutamente minimale: nessun context provider, nessuna dipendenza. Solo un Set e dei
 // sottoscrittori. Client-only — su server `hasOverlay()` risponde false.
 
-export type OverlayName = "cookie-consent" | "mobile-menu" | "quick-look";
+export type OverlayName = "cookie-consent" | "mobile-menu" | "quick-look" | "video";
 
 const active = new Set<OverlayName>();
 const listeners = new Set<() => void>();

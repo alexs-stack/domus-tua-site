@@ -50,15 +50,18 @@ export default function MaskReveal({
 
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
+        // Replay a ogni passaggio: il sipario rigioca a ogni ingresso e si
+        // riavvolge risalendo oltre l'inizio (niente clearProps: romperebbe
+        // restart/reverse).
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: outer, start: "top 82%", once: true },
+          scrollTrigger: { trigger: outer, start: "top 82%", toggleActions: "restart none none reverse" },
           defaults: { duration, ease: "expo.out" },
           delay,
         });
         tl.fromTo(outer, { clipPath: CLIP[from] }, { clipPath: "inset(0% 0% 0% 0%)" }).fromTo(
           inner,
           { scale: zoom },
-          { scale: 1, clearProps: "all" },
+          { scale: 1 },
           "<"
         );
       });

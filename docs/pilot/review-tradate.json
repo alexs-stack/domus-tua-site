@@ -1,0 +1,410 @@
+{
+  "packVersion": 1,
+  "generatedAt": "2026-08-14T10:00:00.000Z",
+  "municipality": "tradate",
+  "includesCoordinates": false,
+  "items": [
+    {
+      "realSmartCode": "PILOT-00",
+      "municipality": "tradate",
+      "status": "draft",
+      "originBasis": {
+        "precision": "municipality-centroid",
+        "label": "Tradate",
+        "accuracyMeters": 2000
+      },
+      "fingerprintHash": "a5e94fee",
+      "retrievedAt": "2026-08-14T10:00:00.000Z",
+      "pois": [
+        {
+          "providerId": "fake/railway-station/0",
+          "category": "railway-station",
+          "name": "Stazione di Prova",
+          "distanceMeters": 319,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/pharmacy/0",
+          "category": "pharmacy",
+          "name": "Farmacia Alfa",
+          "distanceMeters": 91,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/pharmacy/1",
+          "category": "pharmacy",
+          "name": "Farmacia Beta",
+          "distanceMeters": 170,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/supermarket/0",
+          "category": "supermarket",
+          "name": "Supermercato Centro",
+          "distanceMeters": 137,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/supermarket/1",
+          "category": "supermarket",
+          "name": "Supermercato Nord",
+          "distanceMeters": 263,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/school/0",
+          "category": "school",
+          "name": "Scuola Primaria di Prova",
+          "distanceMeters": 154,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/park/0",
+          "category": "park",
+          "name": "Parco Comunale",
+          "distanceMeters": 136,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/park/1",
+          "category": "park",
+          "name": "Parco delle Rimembranze",
+          "distanceMeters": 248,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        }
+      ],
+      "diff": {
+        "added": [
+          {
+            "category": "railway-station",
+            "name": "Stazione di Prova",
+            "distanceMeters": 319
+          },
+          {
+            "category": "pharmacy",
+            "name": "Farmacia Alfa",
+            "distanceMeters": 91
+          },
+          {
+            "category": "pharmacy",
+            "name": "Farmacia Beta",
+            "distanceMeters": 170
+          },
+          {
+            "category": "supermarket",
+            "name": "Supermercato Centro",
+            "distanceMeters": 137
+          },
+          {
+            "category": "supermarket",
+            "name": "Supermercato Nord",
+            "distanceMeters": 263
+          },
+          {
+            "category": "school",
+            "name": "Scuola Primaria di Prova",
+            "distanceMeters": 154
+          },
+          {
+            "category": "park",
+            "name": "Parco Comunale",
+            "distanceMeters": 136
+          },
+          {
+            "category": "park",
+            "name": "Parco delle Rimembranze",
+            "distanceMeters": 248
+          }
+        ],
+        "removed": [],
+        "unchanged": []
+      },
+      "audit": [],
+      "version": "2026-08-14T10:00:00.000Z"
+    },
+    {
+      "realSmartCode": "PILOT-01",
+      "municipality": "tradate",
+      "status": "draft",
+      "originBasis": {
+        "precision": "municipality-centroid",
+        "label": "Tradate",
+        "accuracyMeters": 2000
+      },
+      "fingerprintHash": "a5e94fee",
+      "retrievedAt": "2026-08-14T10:00:00.000Z",
+      "pois": [
+        {
+          "providerId": "fake/railway-station/0",
+          "category": "railway-station",
+          "name": "Stazione di Prova",
+          "distanceMeters": 319,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/pharmacy/0",
+          "category": "pharmacy",
+          "name": "Farmacia Alfa",
+          "distanceMeters": 91,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/pharmacy/1",
+          "category": "pharmacy",
+          "name": "Farmacia Beta",
+          "distanceMeters": 170,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/supermarket/0",
+          "category": "supermarket",
+          "name": "Supermercato Centro",
+          "distanceMeters": 137,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/supermarket/1",
+          "category": "supermarket",
+          "name": "Supermercato Nord",
+          "distanceMeters": 263,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/school/0",
+          "category": "school",
+          "name": "Scuola Primaria di Prova",
+          "distanceMeters": 154,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/park/0",
+          "category": "park",
+          "name": "Parco Comunale",
+          "distanceMeters": 136,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/park/1",
+          "category": "park",
+          "name": "Parco delle Rimembranze",
+          "distanceMeters": 248,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        }
+      ],
+      "diff": {
+        "added": [
+          {
+            "category": "railway-station",
+            "name": "Stazione di Prova",
+            "distanceMeters": 319
+          },
+          {
+            "category": "pharmacy",
+            "name": "Farmacia Alfa",
+            "distanceMeters": 91
+          },
+          {
+            "category": "pharmacy",
+            "name": "Farmacia Beta",
+            "distanceMeters": 170
+          },
+          {
+            "category": "supermarket",
+            "name": "Supermercato Centro",
+            "distanceMeters": 137
+          },
+          {
+            "category": "supermarket",
+            "name": "Supermercato Nord",
+            "distanceMeters": 263
+          },
+          {
+            "category": "school",
+            "name": "Scuola Primaria di Prova",
+            "distanceMeters": 154
+          },
+          {
+            "category": "park",
+            "name": "Parco Comunale",
+            "distanceMeters": 136
+          },
+          {
+            "category": "park",
+            "name": "Parco delle Rimembranze",
+            "distanceMeters": 248
+          }
+        ],
+        "removed": [],
+        "unchanged": []
+      },
+      "audit": [],
+      "version": "2026-08-14T10:00:00.000Z"
+    },
+    {
+      "realSmartCode": "PILOT-02",
+      "municipality": "tradate",
+      "status": "draft",
+      "originBasis": {
+        "precision": "municipality-centroid",
+        "label": "Tradate",
+        "accuracyMeters": 2000
+      },
+      "fingerprintHash": "a5e94fee",
+      "retrievedAt": "2026-08-14T10:00:00.000Z",
+      "pois": [
+        {
+          "providerId": "fake/railway-station/0",
+          "category": "railway-station",
+          "name": "Stazione di Prova",
+          "distanceMeters": 319,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/pharmacy/0",
+          "category": "pharmacy",
+          "name": "Farmacia Alfa",
+          "distanceMeters": 91,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/pharmacy/1",
+          "category": "pharmacy",
+          "name": "Farmacia Beta",
+          "distanceMeters": 170,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/supermarket/0",
+          "category": "supermarket",
+          "name": "Supermercato Centro",
+          "distanceMeters": 137,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/supermarket/1",
+          "category": "supermarket",
+          "name": "Supermercato Nord",
+          "distanceMeters": 263,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/school/0",
+          "category": "school",
+          "name": "Scuola Primaria di Prova",
+          "distanceMeters": 154,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/park/0",
+          "category": "park",
+          "name": "Parco Comunale",
+          "distanceMeters": 136,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        },
+        {
+          "providerId": "fake/park/1",
+          "category": "park",
+          "name": "Parco delle Rimembranze",
+          "distanceMeters": 248,
+          "approvalState": "draft",
+          "sourceOwner": "© Dati sintetici di test",
+          "retrievedAt": "2026-08-13T00:00:00.000Z"
+        }
+      ],
+      "diff": {
+        "added": [
+          {
+            "category": "railway-station",
+            "name": "Stazione di Prova",
+            "distanceMeters": 319
+          },
+          {
+            "category": "pharmacy",
+            "name": "Farmacia Alfa",
+            "distanceMeters": 91
+          },
+          {
+            "category": "pharmacy",
+            "name": "Farmacia Beta",
+            "distanceMeters": 170
+          },
+          {
+            "category": "supermarket",
+            "name": "Supermercato Centro",
+            "distanceMeters": 137
+          },
+          {
+            "category": "supermarket",
+            "name": "Supermercato Nord",
+            "distanceMeters": 263
+          },
+          {
+            "category": "school",
+            "name": "Scuola Primaria di Prova",
+            "distanceMeters": 154
+          },
+          {
+            "category": "park",
+            "name": "Parco Comunale",
+            "distanceMeters": 136
+          },
+          {
+            "category": "park",
+            "name": "Parco delle Rimembranze",
+            "distanceMeters": 248
+          }
+        ],
+        "removed": [],
+        "unchanged": []
+      },
+      "audit": [],
+      "version": "2026-08-14T10:00:00.000Z"
+    }
+  ]
+}

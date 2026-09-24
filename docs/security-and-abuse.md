@@ -8,13 +8,15 @@
 
 ## 1. Endpoint pubblici
 
-Due sole API pubbliche, entrambe `POST`, entrambe difensive:
+Quattro API pubbliche `POST`, tutte difensive e tutte dietro lo **stesso** rate limiter condiviso:
 
+- **`/api/assistant`** — turno di chat dell'assistente (streaming SSE).
+- **`/api/assistant/lead`** — richiesta scritta dell'assistente → email all'agenzia.
+- **`/api/lead`** — cattura lead dal form contatti → email (Resend) e/o Google Sheet.
 - **`/api/search`** — frase in linguaggio naturale → filtri → ranking. Non scrive nulla.
-- **`/api/lead`** — cattura lead dal form contatti; inoltra al Google Sheet se configurato.
 
-Un terzo endpoint, **`/api/health`** (`GET`), espone solo booleani/enum di stato — **mai segreti**
-(vedi `docs/vercel-live-checklist.md`).
+Un quinto endpoint, **`/api/health`** (`GET`), espone solo booleani/enum di stato — **mai segreti**
+(vedi `docs/vercel-live-checklist.md`) — e non è rate-limited.
 
 ---
 
@@ -33,17 +35,42 @@ nessun CAPTCHA. (`app/api/lead/route.ts`.)
 
 | Endpoint | Limite | Finestra |
 |---|---|---|
-| `/api/search` | 20 richieste | 10 minuti |
-| `/api/lead` | 8 invii | 10 minuti |
+| Endpoint | Limite | Finestra | Chiave |
+|---|---|---|---|
+| `/api/assistant` | 30 turni (env `ASSISTANT_RATE_LIMIT`) | 10 min | `assistant:<hash IP>` |
+| `/api/assistant/lead` | 5 invii | 10 min | `assistant-lead:<hash IP>` |
+| `/api/lead` | 8 invii | 10 min | `lead:<hash IP>` |
+| `/api/search` | 20 richieste | 10 min | `search:<hash IP>` |
 
-- IP letto da `x-forwarded-for` (primo valore), poi `x-real-ip`, fallback `"unknown"`.
-- Oltre il limite → **`429`** con body `{ ok:false, reason:"rate-limited" }` e header `Retry-After`.
-- Il client fa comunque fallback: la ricerca ripiega sui filtri manuali, il lead sul WhatsApp.
+**Un solo argine condiviso.** Tutte le route pubbliche passano da `rateLimitShared()`
+(`app/lib/security/rateLimit.ts`), che usa un contatore **condiviso tra le istanze** su Redis REST
+(Upstash/Vercel KV) quando `RATE_LIMIT_REDIS_URL` + `RATE_LIMIT_REDIS_TOKEN` sono impostate. Prima
+lead e search usavano il contatore in-memory: su serverless ogni lambda aveva la sua Map, quindi
+il limite reale era un multiplo imprevedibile. Ora è un limite unico e globale.
 
-> **Limite noto (MVP):** la memoria è **per-istanza** serverless — il limite è best-effort,
-> non globale, e si azzera a freddo. Sufficiente per preview/lancio. In **produzione** ad alto
-> traffico spostare lo store su **Upstash Redis** o **Vercel KV** (stessa firma `rateLimit()`,
-> cambia solo l'implementazione dello store).
+- **Chiave privacy-conscious:** `clientKey(req, prefix)` — l'IP è **hashato** (SHA-256 troncato),
+  non finisce in chiaro nello store, e la chiave scade con la finestra (TTL Redis). Il `prefix`
+  **isola gli endpoint**: un flood sulla ricerca non consuma la quota dei lead.
+- **IP** letto da `x-forwarded-for` (primo valore = client su Vercel), poi `x-real-ip`, fallback
+  `"unknown"` (un solo bucket). L'IP non è un'identità: NAT/reti mobili lo condividono e chi vuole
+  può cambiarlo — è un argine contro flood/scraping, non contro un attaccante determinato.
+- Oltre il limite → **`429`** con `{ ok:false, reason:"rate-limited" }` e header `Retry-After`.
+
+**Comportamento in caso di outage dello store (fail-open):** se Redis non è configurato, è in
+errore o è lento (timeout 1,5s), `rateLimitShared` **ripiega sul contatore in-memory** per-istanza
+e logga il fatto. Scelta deliberata e uguale per tutti gli endpoint: un limite più debole è
+preferibile a un sito che smette di rispondere perché Redis ha singhiozzato. Nessun endpoint
+fallisce **chiuso** (nessuno restituisce 429/500 quando il limiter è giù): lead e search hanno
+comunque un fallback client (WhatsApp; filtri manuali), l'assistente degrada a fallback testuale.
+
+**Health e build non consumano quota:** `/api/health` (`GET`) **non** è rate-limited; le route
+pubbliche non vengono chiamate durante `next build` (SSG legge il feed, non le API).
+
+**Test:** `app/lib/security/__tests__/rateLimit.test.ts` (parsing IP, chiave hashata/deterministica,
+isolamento per endpoint, finestra, fail-open sul locale) + `app/lib/assistant/__tests__/security.test.ts`.
+
+**Env richieste (produzione):** `RATE_LIMIT_REDIS_URL`, `RATE_LIMIT_REDIS_TOKEN` (Upstash REST o
+compatibile). Vuote = fallback in-memory (ok per preview, sconsigliato in produzione ad alto traffico).
 
 ---
 
@@ -82,7 +109,9 @@ nessun CAPTCHA. (`app/api/lead/route.ts`.)
 
 ## 6. Da rivedere prima di scalare (produzione ad alto traffico)
 
-- [ ] Store rate-limit condiviso (Upstash/Vercel KV) al posto dell'in-memory.
+- [x] Store rate-limit condiviso (Upstash/Vercel KV) al posto dell'in-memory — fatto: tutte le
+      route usano `rateLimitShared`. Resta da IMPOSTARE `RATE_LIMIT_REDIS_URL`/`_TOKEN` in produzione
+      (senza, fallback in-memory).
 - [ ] Eventuale token/header su `/api/health` se un domani esponesse dati più sensibili.
 - [ ] Monitoraggio dei `429` e degli errori webhook (log drain / alerting).
 - [ ] Valutare un CAPTCHA invisibile solo se l'honeypot non bastasse contro spam mirato.

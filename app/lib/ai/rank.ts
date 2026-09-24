@@ -107,6 +107,17 @@ function rankByKeywords(
 /**
  * Ordina i candidati per rilevanza rispetto alla query.
  * Prova il ranking semantico (embeddings); se non disponibile, usa le parole chiave.
+ *
+ * Il percorso semantico è avvolto in un try/catch, e non è prudenza generica: `embed` è già
+ * difensiva e ritorna null sui suoi errori, ma `getListingVectors` è avvolta in
+ * `unstable_cache`, che LANCIA fuori da un contesto di richiesta Next ("Invariant:
+ * incrementalCache missing"). Finché non c'era un provider di embeddings il ramo non veniva
+ * mai eseguito e la cosa non si vedeva; da quando gli embeddings esistono (2026-08-06, via
+ * Gemini) qualunque chiamata fuori da una request — uno script, un eval, un job — faceva
+ * fallire l'INTERA ricerca, non solo il ranking.
+ *
+ * L'ordinamento semantico è un miglioramento dell'ordine, mai un prerequisito per avere dei
+ * risultati: se salta, si ordina per parole chiave e l'utente vede comunque le sue case.
  */
 export async function rankResults(
   candidates: Pick<Property, "slug" | "title" | "type" | "zone" | "excerpt" | "features">[],
@@ -115,13 +126,20 @@ export async function rankResults(
   const query = (parsed.semanticQuery || parsed.keywords?.join(" ") || "").trim();
 
   if (semanticEnabled && query && candidates.length > 1) {
-    const [vectors, queryVec] = await Promise.all([getListingVectors(), embed([query], "query")]);
-    if (vectors && queryVec && queryVec[0]) {
-      const q = queryVec[0];
-      const scored = candidates
-        .map((p, i) => ({ slug: p.slug, i, score: vectors[p.slug] ? cosine(q, vectors[p.slug]) : -1 }))
-        .sort((a, b) => (b.score - a.score) || (a.i - b.i));
-      return { slugs: scored.map((s) => s.slug), semantic: true };
+    try {
+      const [vectors, queryVec] = await Promise.all([getListingVectors(), embed([query], "query")]);
+      if (vectors && queryVec && queryVec[0]) {
+        const q = queryVec[0];
+        const scored = candidates
+          .map((p, i) => ({ slug: p.slug, i, score: vectors[p.slug] ? cosine(q, vectors[p.slug]) : -1 }))
+          .sort((a, b) => (b.score - a.score) || (a.i - b.i));
+        return { slugs: scored.map((s) => s.slug), semantic: true };
+      }
+    } catch (err) {
+      console.error(
+        "[search] ranking semantico non disponibile, si prosegue per parole chiave:",
+        err instanceof Error ? err.message : err,
+      );
     }
   }
 

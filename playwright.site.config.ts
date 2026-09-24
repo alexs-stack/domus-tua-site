@@ -96,6 +96,8 @@ export default defineConfig({
       NEXT_PUBLIC_ENABLE_ASSISTANT: "true",
       // Dati stabili: in CI si usano le fixture del repo, mai il feed dell'agenzia.
       NEXT_PUBLIC_USE_REALSMART: "false",
+      // Autorizzazione server-only ai mock: necessaria da Prompt 3 (mai in produzione vera).
+      REALSMART_ALLOW_MOCK: "true",
       NEXT_PUBLIC_SITE_URL: `http://127.0.0.1:${PORT}`,
     },
   },

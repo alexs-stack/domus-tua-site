@@ -22,13 +22,26 @@ export type Lead = {
   intent: LeadIntent;
   /** Nome e cognome. */
   name: string;
-  /** Telefono o email (canale di ricontatto). */
-  contact: string;
+  /**
+   * Canale di ricontatto combinato (telefono O email in un campo solo). Usato
+   * OGGI solo dal form candidature (/lavora-con-noi, CareerApplication): il form
+   * contatti lo ha sostituito con `phone`/`email` distinti. Resta qui per non
+   * rompere quel flusso e per retro-compatibilità del backend.
+   */
+  contact?: string;
+  /** Telefono (form contatti — canale separato da email). */
+  phone?: string;
+  /** Email (form contatti — canale separato da telefono). */
+  email?: string;
   // ── Campi opzionali (dipendono dall'intento) ──────────────────────────────
   /** SELLER: comune/indirizzo dell'immobile. BUYER: zona desiderata. */
   place?: string;
   /** SELLER + BUYER: tipologia immobile (es. Trilocale, Villa…). */
   propertyType?: string;
+  /** SELLER + BUYER: superficie indicativa in m² (numero, come stringa). */
+  surface?: string;
+  /** SELLER + BUYER: tempistica prevista (etichetta leggibile già tradotta). */
+  timing?: string;
   /** BUYER: budget indicativo. */
   budget?: string;
   /** BUYER: caratteristiche desiderate (giardino, box, ascensore…). */
@@ -74,14 +87,18 @@ export function formatLeadMessage(lead: Lead): string {
       lines.push("Vorrei vendere un immobile.");
       if (lead.place) lines.push(`Immobile a: ${lead.place}`);
       if (lead.propertyType) lines.push(`Tipologia: ${lead.propertyType}`);
+      if (lead.surface) lines.push(`Superficie: ${lead.surface} m²`);
+      if (lead.timing) lines.push(`Tempistica: ${lead.timing}`);
       break;
     }
     case "buyer": {
       lines.push("Sto cercando casa.");
       if (lead.place) lines.push(`Zona desiderata: ${lead.place}`);
       if (lead.propertyType) lines.push(`Tipologia: ${lead.propertyType}`);
+      if (lead.surface) lines.push(`Superficie: ${lead.surface} m²`);
       if (lead.budget) lines.push(`Budget: ${lead.budget}`);
       if (lead.features) lines.push(`Caratteristiche: ${lead.features}`);
+      if (lead.timing) lines.push(`Tempistica: ${lead.timing}`);
       break;
     }
     case "open-domus": {
@@ -104,7 +121,15 @@ export function formatLeadMessage(lead: Lead): string {
 
   if (lead.message) lines.push("", lead.message.trim());
 
-  lines.push("", `Contatto: ${lead.contact.trim()}`);
+  // Recapiti: telefono ed email separati (form contatti); `contact` combinato è
+  // il ripiego per il form candidature, che non li ha ancora distinti.
+  const recapiti: string[] = [];
+  if (lead.phone?.trim()) recapiti.push(`Telefono: ${lead.phone.trim()}`);
+  if (lead.email?.trim()) recapiti.push(`Email: ${lead.email.trim()}`);
+  if (recapiti.length === 0 && lead.contact?.trim()) {
+    recapiti.push(`Contatto: ${lead.contact.trim()}`);
+  }
+  lines.push("", ...recapiti);
 
   const context = [
     lead.propertyRef ? `immobile ${lead.propertyRef}` : null,

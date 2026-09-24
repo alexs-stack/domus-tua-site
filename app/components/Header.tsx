@@ -5,7 +5,8 @@ import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import RotatingMark from "./motion/RotatingMark";
-import { ArrowUpRight, Whatsapp } from "./Icons";
+import { Whatsapp } from "./Icons";
+import { Cta } from "./primitives/Cta";
 import { nav, site } from "../lib/site";
 import { useDict } from "./i18n/LocaleProvider";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
@@ -69,6 +70,14 @@ export default function Header() {
     { scope: pillRef }
   );
 
+  /* Qui c'era il precarico del SECONDO wordmark. L'header ne scambiava due al
+     primo scroll — quella a colori e la negativa — e la variante non montata
+     non stava nel DOM, quindi nessun precarico generico la trovava: arrivava
+     in ritardo proprio mentre si cominciava a scorrere, e serviva chiederla a
+     mano dietro il sipario. Da quando il logo non cambia più colore il file è
+     UNO, sta nel markup dal primo frame, e il precarico normale basta: quel
+     warmup non aveva più niente da scaldare. */
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
@@ -79,16 +88,43 @@ export default function Header() {
   // Ownership dello scroll-lock: start() SOLO se è stato questo menu a fare
   // stop() (mai al mount con open=false) e MAI mentre il sipario di
   // PageTransition copre (è lui il proprietario dello stop in quel momento).
+  //
+  // [2026-08-11] Il lock stava su `body` e non bloccava un bel niente
+  // (docs/mobile-parity.md §6.16, dubbio ora sciolto leggendo la regola CSS).
+  // L'overflow del body governa il viewport SOLO se la radice è `visible` su
+  // entrambi gli assi; `html { overflow-x: clip }` (globals.css:147) glielo
+  // toglie, quindi quella riga era una scrittura a vuoto. A bloccare davvero
+  // era il solo `getLenis()?.stop()`, che mette `lenis-stopped` su <html> e da
+  // lì `overflow: hidden`. Ma con prefers-reduced-motion Lenis viene distrutto
+  // e `getLenis()` torna null (SmoothScroll.tsx:135-150): su quel telefono il
+  // menu si apriva sopra una pagina che continuava a scorrere sotto il dito.
+  // Ora il lock è scritto dove l'overflow conta — su <html> — con la stessa
+  // forma già usata da Assistant e CaseQuickLook, e Lenis resta la seconda
+  // mandata dove esiste (le due serrature dicono la stessa cosa, non litigano).
   const menuLockedRef = useRef(false);
   useEffect(() => {
+    const root = document.documentElement;
     const release = () => {
       if (!menuLockedRef.current) return;
       menuLockedRef.current = false;
-      document.body.style.overflow = "";
+      root.style.overflowY = "";
+      root.style.scrollbarGutter = "";
       if (!isTransitionCovering()) getLenis()?.start();
     };
     if (open) {
-      document.body.style.overflow = "hidden";
+      // Prima il posto della barra di scorrimento, poi il blocco. Dove le barre
+      // occupano spazio (Windows/Linux, e il menu vive fino a 1279px: succede
+      // anche su un desktop stretto) farla sparire allarga il viewport e sposta
+      // TUTTO di quei ~15px, compresi gli elementi fixed — l'ICB è il viewport.
+      // `scrollbar-gutter: stable` glielo tiene occupato. Con le barre a
+      // sovrapposizione (telefoni, macOS) la misura è 0 e non si tocca nulla,
+      // così non si introduce un vuoto dove non c'era.
+      if (window.innerWidth - root.clientWidth > 0) root.style.scrollbarGutter = "stable";
+      // Solo l'asse Y: la scorciatoia `overflow` sovrascriverebbe anche
+      // l'`overflow-x: clip` della radice, e `hidden` — a differenza di `clip` —
+      // fa di <html> un contenitore di scorrimento orizzontale (un focus() su un
+      // nodo che sborda lo trascinerebbe di lato, senza tornare indietro).
+      root.style.overflowY = "hidden";
       // Con Lenis attivo lo scroll virtuale va fermato insieme a quello nativo,
       // altrimenti la pagina dietro il menu continua a "muoversi" con la rotella.
       getLenis()?.stop();
@@ -96,6 +132,9 @@ export default function Header() {
     } else {
       release();
     }
+    // Un solo punto di rilascio per tutte le vie d'uscita: Escape, il click su
+    // una voce, il passaggio del breakpoint xl (l'effetto matchMedia qui sotto)
+    // e lo smontaggio passano tutti da `open=false` o da questa cleanup.
     return release;
   }, [open]);
 
@@ -106,10 +145,11 @@ export default function Header() {
     return () => setOverlay("mobile-menu", false);
   }, [open]);
 
-  // Se il viewport supera il breakpoint lg con il menu aperto, overlay e
-  // hamburger spariscono (lg:hidden) ma il lock resterebbe: chiudiamo il menu.
+  // Se il viewport supera il breakpoint xl con il menu aperto, overlay e
+  // hamburger spariscono (xl:hidden) ma il lock resterebbe: chiudiamo il menu.
+  // ⚠️ Il valore deve restare allineato al breakpoint delle classi `xl:` qui sotto.
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
+    const mq = window.matchMedia("(min-width: 1280px)");
     const onChange = (e: MediaQueryListEvent) => {
       if (e.matches) setOpen(false);
     };
@@ -260,20 +300,36 @@ export default function Header() {
         <Link href="/" className="shrink-0" aria-label="Domus Tua, vai alla home">
           {/* Badge di marca rif. era-residence: monogramma ufficiale fermo,
               anello ornamentale che ruota con lo scroll (RotatingMark).
-              Sopra l'hero scuro diventa silhouette chiara; da scrollato
-              l'anello passa a grafite e il monogramma torna a colori. */}
+
+              IL LOGO NON CAMBIA COLORE (direttiva cliente, ribadita il
+              2026-08-26). Qui il marchio girava alla variante negativa sopra
+              l'hero — monogramma crema e wordmark preso da
+              `logo-domustua-wordmark-dark.png`, che è la NEGATIVA del file
+              depositato — e tornava grigio+rosso solo da scrollato. Cioè: al
+              primo impatto su ogni pagina il logo del cliente era bianco e
+              rosso. Ora è sempre e solo quello depositato, grigio e rosso.
+
+              Il fondo scuro lo risolve la TARGHETTA, non il colore del
+              marchio: sopra l'hero il lockup si posa su una pastiglia chiara
+              — la stessa soluzione che il footer usa già dal 2026-08-09 —
+              e la pastiglia si dissolve quando la pill dell'header diventa
+              chiara di suo. La geometria non cambia mai (stesso padding in
+              entrambi gli stati): si muove solo il colore, quindi il logo non
+              sobbalza allo scroll. */}
           <span
-            className={`flex items-center gap-2.5 transition-colors duration-500 ${
-              scrolled ? "text-graphite" : "text-cream"
+            className={`flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-3.5 text-graphite transition-[background-color,box-shadow] duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              scrolled
+                ? "bg-transparent shadow-none"
+                : "bg-paper shadow-[0_12px_36px_-20px_rgba(26,24,22,0.75)]"
             }`}
           >
-            <RotatingMark className="block h-12 w-12 shrink-0" dark={!scrolled} />
+            <RotatingMark className="block h-12 w-12 shrink-0" />
             {/* Wordmark ufficiale (crop del PNG depositato: stesso font e
-                stessi colori). Sul velo scuro dell'hero: variante negativa —
-                "Domus" in crema, "Tua" resta ROSSA come nel logo. */}
+                stessi colori). Un file solo: la variante `-dark` non la usa
+                più nessuno. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={scrolled ? "/logo-domustua-wordmark.png" : "/logo-domustua-wordmark-dark.png"}
+              src="/logo-domustua-wordmark.png"
               alt=""
               width={388}
               height={92}
@@ -282,8 +338,14 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 lg:flex">
+        {/* Desktop nav.
+            Il breakpoint è `xl` (1280), non `lg`: con otto voci la pill a 1024 e a 1152
+            chiedeva 1193px in uno spazio di 992 e le voci si schiacciavano una sull'altra.
+            Il difetto c'era già a sette voci (1069 in 992): l'ottava l'ha solo reso
+            impossibile da non vedere. Fino a 1279 vale il menu a tutto schermo, che è
+            completo e ben animato — meglio di una barra compressa.
+            Il padding cresce con lo spazio: stretto dove serve, arioso da 1536 in su. */}
+        <nav className="hidden items-center gap-0.5 xl:flex 2xl:gap-1">
           {nav.map((item) => {
             const active = isActive(item.href);
             return (
@@ -291,7 +353,7 @@ export default function Header() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`whitespace-nowrap rounded-full px-3.5 py-2 text-[0.82rem] transition-colors duration-300 ${
+                className={`whitespace-nowrap rounded-full px-2.5 py-2 text-[0.82rem] transition-colors duration-300 2xl:px-3.5 ${
                   active ? "font-semibold" : "font-medium"
                 } ${
                   scrolled
@@ -310,17 +372,17 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Icona social del sistema CTA: tooltip elastico, variante dark sopra l'hero */}
           <a
             href={site.whatsapp.href}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={d.header.whatsapp}
-            className={`hidden h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 sm:flex ${
-              scrolled
-                ? "border-line text-graphite hover:border-red hover:text-red"
-                : "border-cream/40 text-cream hover:border-cream hover:text-white"
-            }`}
+            className={`dt-social__link !hidden sm:!flex ${scrolled ? "" : "dt-social__link--dark"}`}
           >
+            <span className="dt-social__tip" aria-hidden>
+              WhatsApp
+            </span>
             <Whatsapp className="h-5 w-5" />
           </a>
 
@@ -328,15 +390,14 @@ export default function Header() {
             <LanguageSwitcher light={!scrolled} />
           </div>
 
-          <Link
-            href="/#contatti"
-            className="group hidden items-center gap-2 rounded-full bg-red py-2.5 pl-5 pr-2.5 text-[0.85rem] font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] sm:flex"
+          <Cta
+            href="/valutazione-immobile-tradate"
+            variant="cta-solid"
+            size="sm"
+            className="!hidden sm:!inline-flex"
           >
             {d.header.valuta}
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
-          </Link>
+          </Cta>
 
           {/* Hamburger */}
           <button
@@ -345,7 +406,7 @@ export default function Header() {
             aria-label={open ? "Chiudi menu" : "Apri menu"}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            className={`relative flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 active:scale-95 lg:hidden ${
+            className={`relative flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 active:scale-95 xl:hidden ${
               scrolled
                 ? "border-line text-ink hover:border-red hover:text-red"
                 : "border-cream/40 text-cream hover:border-cream"
@@ -377,7 +438,18 @@ export default function Header() {
         // bg pieno, niente backdrop-blur: un blur full-viewport ricalcolato a
         // ogni frame del clip-path sarebbe il costo compositor peggiore
         // possibile proprio sull'interazione mobile più frequente.
-        className={`fixed inset-0 z-40 flex flex-col bg-cream px-6 pb-10 pt-28 lg:hidden ${
+        //
+        // `overflow-y-auto`: il pannello è `fixed inset-0` e otto voci in
+        // font-display 3xl più il blocco in coda chiedono ~900px — su un
+        // telefono basso, o su qualunque telefono in orizzontale, WhatsApp e la
+        // lingua finivano fuori schermo e IRRAGGIUNGIBILI (un elemento fixed non
+        // si raggiunge scorrendo la pagina). `data-lenis-prevent` qui sopra
+        // dichiarava già l'intenzione — "questo sottoalbero scorre per conto
+        // suo" — ma senza un contenitore di scorrimento non aveva niente da
+        // proteggere. Ora ce l'ha, e con la radice bloccata è l'unico modo per
+        // arrivare in fondo al menu. `overscroll-contain` perché la regola
+        // gemella in globals.css vale solo con Lenis attivo.
+        className={`fixed inset-0 z-40 flex flex-col overflow-y-auto overscroll-contain bg-cream px-6 pb-10 pt-28 xl:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
@@ -401,22 +473,26 @@ export default function Header() {
         </nav>
 
         <div data-menu-bottom className="mt-auto flex flex-col gap-3 pt-8">
-          <Link
-            href="/#contatti"
+          <Cta
+            href="/valutazione-immobile-tradate"
+            variant="cta-solid"
+            size="lg"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center gap-2 rounded-full bg-red py-4 text-base font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
+            className="w-full"
           >
             {d.header.valuta}
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
-          <a
+          </Cta>
+          <Cta
             href={site.whatsapp.href}
+            variant="ghost"
+            size="lg"
+            arrow={false}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-4 text-base font-semibold text-ink transition-colors duration-300 hover:border-red active:scale-[0.98]"
+            className="w-full"
           >
             <Whatsapp className="h-5 w-5 text-red" /> {d.header.whatsapp}
-          </a>
+          </Cta>
           <div className="pt-2">
             <LanguageSwitcher />
           </div>

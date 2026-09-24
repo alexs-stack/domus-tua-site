@@ -31,7 +31,7 @@ lettera, la lista di cose da fare in Vercel.
 | WhatsApp | il numero non c'è (problema di codice, non di Vercel) | sì |
 | chatbot | è **visibile senza provider** | sì |
 | Trustindex | il widget recensioni non è collegato | sì (avviso in anteprima) |
-| ranking semantico | manca `VOYAGE_API_KEY` | no |
+| ranking semantico | manca un provider di embeddings (`GEMINI_API_KEY` basta) | no |
 | hero video | non è ancora stato caricato | no |
 
 `--preview` non abbassa le soglie: trasforma in avvisi le verifiche che dipendono da variabili
@@ -83,7 +83,7 @@ Niente di tutto questo può farlo il codice: sono valori che vivono nella dashbo
 | # | Variabile | Valore | Perché |
 |---|---|---|---|
 | 1 | `NEXT_PUBLIC_SITE_URL` | l'URL Vercel dell'anteprima | metadata, OG, sitemap; senza, il sito resta non indicizzabile |
-| 2 | `ANTHROPIC_API_KEY` | la chiave | ricerca in linguaggio naturale + eval dell'assistente |
+| 2 | `GEMINI_API_KEY` | la chiave | ricerca in linguaggio naturale + assistente (alternativa: `ANTHROPIC_API_KEY`) |
 | 3 | `TRUSTINDEX_WIDGET_URL` | URL del widget | recensioni (si caricano comunque solo dopo il consenso) |
 
 Poi **Redeploy** dell'anteprima e `npm run verify:deploy -- <url-anteprima> --preview`.
@@ -100,8 +100,45 @@ Poi **Redeploy** dell'anteprima e `npm run verify:deploy -- <url-anteprima> --pr
 | 11 | **`NEXT_PUBLIC_PREVIEW_BADGE`** | **da NON impostare** | il badge "contenuti in verifica" non deve comparire ai clienti |
 | 12 | **`NEXT_PUBLIC_ENABLE_ASSISTANT`** | **da NON impostare** | la chat si accende solo dopo gli eval con soglie verdi ([assistant-rollout.md](assistant-rollout.md)) |
 
-Facoltative: `VOYAGE_API_KEY` (ranking semantico; senza, la ricerca usa le parole chiave),
-`AI_SEARCH_MODEL` / `AI_ASSISTANT_MODEL` (override dei modelli), `INSTAGRAM_WIDGET_URL`.
+Facoltative: `VOYAGE_API_KEY` (embeddings da Voyage invece che da Gemini — il ranking
+semantico funziona già con `GEMINI_API_KEY`), `AI_SEARCH_MODEL` / `AI_ASSISTANT_MODEL`
+(override dei modelli), `INSTAGRAM_WIDGET_URL`.
+
+**Da NON impostare:** `ASSISTANT_SEMANTIC_FLOOR`. Vuota tiene spento il retrieval semantico
+sulla knowledge base, che è la configurazione voluta e misurata ([assistant-knowledge.md](assistant-knowledge.md)).
+
+### Misurazione — da accendere nella dashboard, non nel codice
+
+Il codice è già a posto: `<Analytics />` e `<SpeedInsights />` sono montati in
+[app/components/SiteAnalytics.tsx](../app/components/SiteAnalytics.tsx) e gli eventi di
+conversione partono da [app/lib/analytics.ts](../app/lib/analytics.ts). Ma **finché i due
+prodotti non sono attivati nel progetto Vercel, gli script non vengono serviti e non si
+raccoglie niente.** Sono due interruttori, non uno.
+
+| # | Azione | Dove | Perché |
+|---|---|---|---|
+| 16 | Attivare **Web Analytics** | Vercel → progetto → Analytics | pagine viste e conversioni (`lead_valutazione`, `lead_whatsapp`, `lead_telefono`) |
+| 17 | Attivare **Speed Insights** | Vercel → progetto → Speed Insights | Core Web Vitals sul traffico vero — è l'unico modo di chiudere il punto 34 della checklist, che chiede dati reali e non di laboratorio |
+
+> Va fatto **prima** del cutover del dominio, non dopo. Il valore di queste misure sta quasi
+> tutto nelle due settimane successive alla migrazione: se si accendono dopo, manca proprio
+> la finestra in cui servivano.
+
+Nessuna variabile d'ambiente, nessun consenso cookie: la misurazione è cookieless (il perché
+sta nel commento in testa a `app/lib/analytics.ts`). Resta però un adempimento **non** tecnico:
+nominare il fornitore fra i responsabili nell'informativa privacy — vedi
+[legal-launch-inventory.md](legal-launch-inventory.md).
+
+### Search Console — l'unica che vede la migrazione andare male
+
+| # | Azione | Dove |
+|---|---|---|
+| 18 | Verificare la proprietà del dominio e inviare `https://www.domustua.com/sitemap.xml` | [Google Search Console](https://search.google.com/search-console), account Google dell'agenzia |
+| 19 | **Prima** del cutover: esportare il rapporto Pagine degli ultimi 16 mesi dal vecchio sito | idem — è l'inventario reale dell'indicizzato, che il sitemap WordPress non dà (§5.0-5.1 di [retainer-plan.md](retainer-plan.md)) |
+| 20 | **Dopo** il cutover: sorvegliare gli errori 404 e le impression per due settimane | idem |
+
+Il punto 20 è la ragione per cui esiste il punto 18. Senza Search Console, una mappa di
+redirect sbagliata si scopre dal telefono che smette di squillare, con settimane di ritardo.
 
 ### Fuori da Vercel
 
@@ -150,7 +187,7 @@ curl -s https://<dominio>/api/health | jq
     "heroVideoLive": false,
     "searchAiConfigured": true,
     "semanticRankingConfigured": false,
-    "assistant":  { "enabled": false, "providerConfigured": true, "model": "claude-haiku-4-5-20251001" }
+    "assistant":  { "enabled": false, "providerConfigured": true, "provider": "google", "model": "gemini-3.6-flash" }
   }
 }
 ```

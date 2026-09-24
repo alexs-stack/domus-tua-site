@@ -24,10 +24,10 @@ o fallisce, il WhatsApp funziona comunque (nessun blocco).
        || SpreadsheetApp.getActiveSpreadsheet().insertSheet('Lead');
      const d = JSON.parse(e.postData.contents || '{}');
      if (sheet.getLastRow() === 0) {
-       sheet.appendRow(['createdAt','intent','name','contact','consent','place','propertyType','budget','features','message','sourcePage','propertyRef']);
+       sheet.appendRow(['createdAt','intent','name','phone','email','contact','consent','place','propertyType','surface','timing','budget','features','message','sourcePage','propertySlug']);
      }
-     sheet.appendRow([d.createdAt||'', d.intent||'', d.name||'', d.contact||'', d.consent?'sì':'', d.place||'',
-       d.propertyType||'', d.budget||'', d.features||'', d.message||'', d.sourcePage||'', d.propertyRef||'']);
+     sheet.appendRow([d.createdAt||'', d.intent||'', d.name||'', d.phone||'', d.email||'', d.contact||'', d.consent?'sì':'', d.place||'',
+       d.propertyType||'', d.surface||'', d.timing||'', d.budget||'', d.features||'', d.message||'', d.sourcePage||'', d.propertySlug||d.propertyRef||'']);
      return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
    }
    ```
@@ -49,14 +49,37 @@ Questo è pensato come **ponte**: `/api/lead` può poi instradare anche verso em
 
 ---
 
+## ✅ ATTIVO ORA (in codice): notifica email — riuso del canale Resend dell'assistente
+
+`/api/lead` invia anche una **notifica email** all'agenzia, riusando lo stesso trasporto Resend
+dell'assistente (`app/lib/assistant/lead/send.ts` — HTTP diretto, nessuna dipendenza npm).
+Composizione in `app/lib/forms/leadEmail.ts`. È **best-effort e server-only**.
+
+**Configurazione (env, già usate dall'assistente — un solo canale email per il sito):**
+
+| Variabile | A cosa serve | Default |
+|---|---|---|
+| `ASSISTANT_EMAIL_API_KEY` | Chiave Resend. **Senza, il canale non parte** (nessuna consegna). | vuota |
+| `ASSISTANT_EMAIL_FROM` | Mittente verificato su Resend (dominio con SPF/DKIM già a posto). | `assistente@domustua.it` |
+| `ASSISTANT_LEAD_EMAIL_TO` | Destinatario in agenzia. **Da confermare col cliente.** | `immobiliare@domustua.it` |
+
+> **Nessuna consegna in produzione finché la chiave non è impostata di proposito**: oggi la
+> variabile è vuota, quindi la route torna «non-configurato» e non contatta nessun provider.
+> La regola del trasporto è: si dichiara «inviato» solo con conferma (id) del provider — mai un
+> falso successo. Il tasto «Rispondi» dell'email scrive al cliente (reply-to = email lasciata).
+> DNS/SPF/DKIM/DMARC **non** vengono toccati qui: sono un prerequisito lato dominio.
+
+---
+
 ## Da dove partiamo (stato attuale — MVP)
 
 Il form in `app/components/Contact.tsx` ha **tre intenti chiari** (`Voglio vendere` / `Cerco casa` /
-`Ho una domanda`) più `Open Domus`, con **campi diversi per intento**:
+`Ho una domanda`) più `Open Domus`, con **campi diversi per intento**. Telefono ed email sono
+**campi distinti** (non più un unico «telefono o email»); ne serve almeno uno, validato nel formato:
 
-- **Venditore**: nome, telefono/email, comune dell'immobile, tipologia, messaggio.
-- **Acquirente**: nome, telefono/email, zona desiderata, budget, tipologia, caratteristiche.
-- **Domanda**: nome, contatto, messaggio.
+- **Venditore**: nome, telefono, email, comune dell'immobile, tipologia, **superficie (m²)**, **tempistica**, messaggio.
+- **Acquirente**: nome, telefono, email, zona desiderata, budget, **superficie (m²)**, tipologia, caratteristiche, **tempistica**.
+- **Domanda**: nome, telefono, email, messaggio.
 
 Al submit **non c'è backend**: si valida lato client (nome + contatto obbligatori), si costruisce
 un oggetto `Lead` tipizzato e si apre **WhatsApp** con il messaggio precompilato.

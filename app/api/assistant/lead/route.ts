@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { LEAD_LIMIT, MAX_BODY_BYTES } from "../../../lib/assistant/config";
+import { ASSISTANT_LEAD_LIMIT, MAX_BODY_BYTES } from "../../../lib/assistant/config";
 import { composeLeadEmail, type ListingContext } from "../../../lib/assistant/lead/format";
 import { sendLeadEmail } from "../../../lib/assistant/lead/send";
 import { validateLead } from "../../../lib/assistant/lead/validate";
 import { getAssistantListings } from "../../../lib/assistant/listings";
-import { clientIp, rateLimitShared } from "../../../lib/security/rateLimit";
+import { clientKey, rateLimitShared } from "../../../lib/security/rateLimit";
 
 // Richiesta scritta lasciata dall'assistente → email a immobiliare@domustua.it.
 //
@@ -24,7 +24,7 @@ type LeadResponse = {
 
 export async function POST(req: Request): Promise<NextResponse<LeadResponse>> {
   // 1. Rate limit per IP: qui ogni richiesta finisce nella casella di una persona.
-  const rl = await rateLimitShared(`assistant-lead:${clientIp(req)}`, LEAD_LIMIT);
+  const rl = await rateLimitShared(clientKey(req, "assistant-lead"), ASSISTANT_LEAD_LIMIT);
   if (!rl.ok) {
     return NextResponse.json(
       { ok: false, code: "rate-limited" },

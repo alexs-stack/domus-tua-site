@@ -9,6 +9,10 @@
 
 import type { FactReviewItem, PropertyFact } from "./facts";
 import type { FactLineOutcome } from "./descriptionSplit";
+// Type-only (erasi a runtime): nessun ciclo di import a runtime.
+import type { NormalizationSource } from "./aiNormalizer";
+import type { ListingWarning } from "./validate";
+import type { AreaIdentity } from "../territory/area/identity";
 
 // ─────────────────────────────────────────────────────────────
 // Stato di pubblicazione di un annuncio (union chiusa).
@@ -146,7 +150,7 @@ export interface NormalizedImage {
 export interface NormalizedProperty {
   /** Identificativo stabile lato sito (deriva dal codice gestionale). */
   id: string;
-  /** Slug URL-safe generato da titolo + comune + codice. */
+  /** Slug URL-safe: il codice univoco RealSmart (es. "2079"), fedele al gestionale. */
   slug: string;
   title: string;
   /** Paragrafi NARRATIVI pubblicabili: le righe interamente tecniche sono già uscite. */
@@ -157,6 +161,8 @@ export interface NormalizedProperty {
   keptFactLines: FactLineOutcome[];
   /** Quota di parole conservate rispetto alla descrizione normalizzata (1 = nessuna rimozione). */
   contentPreservation: number;
+  /** true se una frase con segnaposto non compilato («____») è stata messa in quarantena. */
+  placeholderQuarantined: boolean;
   /** Estratto già pulito per card, meta description e JSON-LD. */
   excerpt: string;
   /** Prezzo numerico (0 se non disponibile / su richiesta). */
@@ -168,9 +174,29 @@ export interface NormalizedProperty {
   type: string;
   town: string;
   province: string;
+  /**
+   * IDENTITÀ GEOGRAFICA CANONICA (chiave d'area, frazione, provincia/regione se note).
+   *
+   * Perché è un campo a sé e non tre stringhe sparse: `town`/`province` sono ETICHETTE, e come
+   * tali finivano usate anche da chiave di lettura dei contenuti d'area — con l'effetto che
+   * "Tradate (VA)" e "Tradate" erano due aree diverse. Qui dentro etichetta e chiave sono
+   * separate, e il `<Zona>` del gestionale (la frazione) smette di essere buttato via dal
+   * normalizzatore: senza, due immobili in due frazioni dello stesso comune sono indistinguibili
+   * e non possono ricevere contesto locale diverso.
+   *
+   * Vedi app/lib/territory/area/identity.ts per la forma della chiave e per la regola —
+   * provincia e regione vengono SOLO dal registro controllato, mai dedotte dal nome o dal CAP.
+   */
+  area: AreaIdentity;
   address?: string;
   /** True solo se un override manuale autorizza la pubblicazione dell'indirizzo civico. */
   showAddress: boolean;
+  /**
+   * True solo se un override manuale ATTESTA che il protocollo Domus D.O.C. è stato applicato a
+   * questo immobile. Mai dedotto da caratteristiche/descrizione. Abilita l'affermazione D.O.C.
+   * "verificata" e il badge "Documenti verificati" sul singolo immobile.
+   */
+  docVerified: boolean;
   /** Metri quadri (0 se ignoto). */
   sqm: number;
   /** Numero locali (0 se ignoto). */
@@ -198,4 +224,16 @@ export interface NormalizedProperty {
     codice: string;
     riferimento?: string;
   };
+  /**
+   * Come è stato prodotto il record: "deterministic" (default e unica strada
+   * oggi) o "ai" se un normalizzatore AI opzionale l'ha migliorato. Metadato di
+   * diagnostica, mai mostrato in pagina. Vedi ./aiNormalizer.ts.
+   */
+  normalizedBy: NormalizationSource;
+  /**
+   * Avvisi deterministici sui dati sospetti (niente foto, prezzo mancante, stato
+   * non mappato…). Alimentano audit e log di go-live: MAI resi in pagina.
+   * Vedi ./validate.ts. Assente/undefined = nessun avviso.
+   */
+  warnings?: ListingWarning[];
 }

@@ -5,13 +5,34 @@ import { siteUrl } from "./lib/site";
 // Origin: fonte unica in app/lib/site.ts (era ricalcolato qui, in robots, nel layout e nella scheda).
 const base = siteUrl;
 
+/**
+ * RESA DINAMICA, DICHIARATA — il sitemap elenca le schede del catalogo LIVE del gestionale.
+ *
+ * Senza questa riga la classificazione statico/dinamico dipendeva dall'ORDINE con cui i worker
+ * di build rendono le pagine. Il motivo: `getLiveListingsSnapshot()` tiene uno snapshot
+ * in-process, quindi solo la PRIMA pagina che legge il catalogo esegue davvero la `fetch`
+ * `no-store` che Next osserva per marcare la rotta dinamica; le successive leggono il memo,
+ * Next non vede alcun accesso dinamico e le PRERENDERIZZA. Esito misurato su questo repo:
+ * /acquista usciva `ƒ` e /case-vendute usciva `○`, con il catalogo congelato al momento della
+ * build. Un sitemap congelato indicizza immobili ritirati e ignora quelli nuovi: qui la resa
+ * dinamica non è un dettaglio di prestazioni, è la correttezza dell'elenco.
+ */
+export const dynamic = "force-dynamic";
+
 // Solo pagine INDICIZZABILI. /privacy e /cookie sono escluse finché restano `noindex`
 // (testo legale placeholder da validare): rimetterle qui quando saranno finalizzate e indicizzabili
 // — includere URL noindex nel sitemap è una segnalazione contraddittoria per i crawler.
-const routes = [
+export const SITEMAP_ROUTES = [
   "",
   "/vendi",
+  // La ricerca a più alta intenzione commerciale del settore. Fino a ieri era un 404 e i
+  // pulsanti "Richiedi la valutazione" saltavano a un'ancora in fondo alla home (§5.4).
+  "/valutazione-immobile-tradate",
   "/acquista",
+  // I risultati reali. È la pagina che nessun concorrente della zona ha, quindi è anche
+  // quella che non deve restare invisibile: senza questa riga esisterebbe solo per chi
+  // conosce già l'indirizzo.
+  "/case-vendute",
   "/metodo",
   "/open-domus",
   "/servizi",
@@ -19,23 +40,48 @@ const routes = [
   "/chi-siamo",
   "/contatti",
   "/lavora-con-noi",
-];
+  "/domande-frequenti",
+] as const;
+
+/** Rotte NON indicizzabili: non devono MAI comparire nel sitemap (segnalazione
+    contraddittoria). Serve al test di go-live per accorgersene se una rientra. */
+export const NON_INDEXABLE_ROUTES = ["/privacy", "/cookie"] as const;
+
+/**
+ * Costruisce il sitemap da host + rotte + immobili. Puro e deterministico:
+ * verificabile senza rete né cache (sitemap() gli passa gli immobili veri).
+ */
+export function buildSitemap(
+  origin: string,
+  routes: readonly string[],
+  listings: readonly { slug: string; cover: string }[],
+): MetadataRoute.Sitemap {
+  const pages = routes.map((r) => ({ url: `${origin}${r}` }));
+  const casePages = listings.map((p) => ({
+    url: `${origin}/case/${p.slug}`,
+    images: [p.cover.startsWith("http") ? p.cover : `${origin}${p.cover}`],
+  }));
+  return [...pages, ...casePages];
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const listings = await getVisibleListings();
-  // Property (forma consumata dalla UI) non espone updatedAt/publishedAt: il feed
-  // RealSmart li scarta nel mapping. Usiamo la data di build come freshness per tutte
-  // le voci, così i crawler ricevono comunque un lastModified valido.
-  const now = new Date();
-  const pages = routes.map((r) => ({
-    url: `${base}${r}`,
-    lastModified: now,
-    changeFrequency: "monthly" as const,
-  }));
-  const casePages = listings.map((p) => ({
-    url: `${base}/case/${p.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-  }));
-  return [...pages, ...casePages];
+
+  // NIENTE lastModified, ed è una scelta.
+  //
+  // Prima qui c'era un solo `new Date()` applicato a ogni URL: a ogni deploy l'intero sito
+  // dichiarava di essere cambiato, comprese pagine ferme da mesi. Google usa lastmod solo
+  // "if it's consistently and verifiably accurate" — una data uguale ovunque e mossa da
+  // ogni build non lo è, e il campo smette di essere creduto per tutto l'host.
+  // Omettere è legittimo e non costa niente; mentire costa.
+  //
+  // La forma di Property consumata dalla UI non espone updatedAt/publishedAt (il mapping
+  // RealSmart li scarta). Quando il feed li fornirà — è una domanda aperta al fornitore,
+  // docs/retainer-plan.md §11.9 — qui torna un lastModified vero PER URL, non uno per tutti.
+  //
+  // Niente `changeFrequency`: Google lo ignora, dichiarato. Era codice morto che prometteva
+  // una cadenza che nessuno rispetta e nessuno legge.
+  // Le foto degli immobili sono un asset proprietario: buildSitemap le dichiara
+  // (image sitemap inline) invece di una sitemap immagini separata.
+  return buildSitemap(base, SITEMAP_ROUTES, listings);
 }

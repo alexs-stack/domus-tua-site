@@ -13,7 +13,9 @@ import { jsonLdScript } from "../site";
 
 const root = (...p: string[]) => path.join(process.cwd(), ...p);
 const CONFIG = fs.readFileSync(root("next.config.ts"), "utf8");
-const REVIEWS = fs.readFileSync(root("app", "components", "Reviews.tsx"), "utf8");
+// L'iframe di Trustindex vive in TrustindexEmbed.tsx (estratto da Reviews.tsx per essere
+// condiviso col capitolo recensioni della home): le garanzie si verificano lì.
+const TRUSTINDEX = fs.readFileSync(root("app", "components", "TrustindexEmbed.tsx"), "utf8");
 
 /** Ogni sorgente sotto app/, escluse le cartelle di test. */
 function sourceFiles(dir = root("app")): string[] {
@@ -80,14 +82,27 @@ describe("dati strutturati — nessuna via d'uscita dal tag script", () => {
 
 describe("widget di terze parti — confinato", () => {
   test("l'iframe delle recensioni è in sandbox, senza accesso alla nostra origine", () => {
-    assert.match(REVIEWS, /sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"/);
+    assert.match(TRUSTINDEX, /sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"/);
     // allow-same-origin annullerebbe la sandbox: con srcDoc l'iframe erediterebbe la nostra
     // origine e lo script di Trustindex vedrebbe cookie e localStorage del sito.
-    assert.doesNotMatch(REVIEWS, /sandbox="[^"]*allow-same-origin/);
+    assert.doesNotMatch(TRUSTINDEX, /sandbox="[^"]*allow-same-origin/);
   });
 
-  test("il widget resta dietro il consenso", () => {
-    assert.match(REVIEWS, /consent === "accepted"/);
+  test("il widget resta dietro il consenso in ogni punto di montaggio", () => {
+    // Si scandisce l'albero, non un elenco a mano (stessa regola dei JSON-LD qui sopra),
+    // e si scopre dai file che IMPORTANO il modulo: un import rinominato o dinamico
+    // non può uscire dalla scansione in silenzio.
+    const consumers = sourceFiles().filter((f) =>
+      /(?:from\s*|import\()\s*["'][^"']*TrustindexEmbed["']/.test(fs.readFileSync(f, "utf8")),
+    );
+    assert.ok(consumers.length > 0, "nessun componente importa TrustindexEmbed: il controllo non sta guardando niente");
+    for (const file of consumers) {
+      assert.match(
+        fs.readFileSync(file, "utf8"),
+        /consent === "accepted"/,
+        `${path.relative(process.cwd(), file)}: monta TrustindexEmbed senza il gate sul consenso`,
+      );
+    }
   });
 });
 

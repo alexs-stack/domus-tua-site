@@ -2,7 +2,7 @@ import { runAssistantTurn } from "../../lib/assistant/agent";
 import { ASSISTANT_LIMIT, MAX_BODY_BYTES } from "../../lib/assistant/config";
 import { parseAssistantRequest } from "../../lib/assistant/request";
 import { errorStreamResponse, eventStreamResponse } from "../../lib/assistant/stream";
-import { clientIp, rateLimitShared } from "../../lib/security/rateLimit";
+import { clientKey, rateLimitShared } from "../../lib/security/rateLimit";
 
 // Assistente conversazionale. Il client invia la cronologia, il server esegue il turno e
 // risponde in STREAMING (SSE): il primo testo compare subito, senza attendere i tool.
@@ -18,7 +18,7 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   // 1. Rate limit per IP: è l'endpoint più costoso del sito (più chiamate modello per turno).
-  const rl = await rateLimitShared(`assistant:${clientIp(req)}`, ASSISTANT_LIMIT);
+  const rl = await rateLimitShared(clientKey(req, "assistant"), ASSISTANT_LIMIT);
   if (!rl.ok) {
     return errorStreamResponse("rate-limited", 429, {
       "retry-after": String(rl.retryAfterSeconds),

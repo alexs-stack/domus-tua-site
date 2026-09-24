@@ -87,7 +87,10 @@ export default function HoverDistort({ children, className = "" }: Props) {
       if (!root) return;
       const mm = gsap.matchMedia();
 
-      mm.add(`${MQ.motionOk} and ${MQ.finePointer} and (min-width: 1024px)`, () => {
+      // Niente gemello mobile, e non è una dimenticanza della wave "parità mobile":
+      // qui l'effetto È il puntatore (l'onda insegue il cursore e la sua velocità) e
+      // il dito non ha un equivalente. Sul telefono il chunk ogl non viene mai chiesto.
+      mm.add(`${MQ.motionOk} and ${MQ.finePointer} and ${MQ.lg}`, () => {
         // Effetto costoso: si accende solo dove ha senso. Oltre a reduced motion, puntatore
         // fine e larghezza desktop (i gate della matchMedia qui sopra), si rinuncia su
         // connessioni a consumo ridotto e su macchine deboli — un canvas WebGL a tutto schermo

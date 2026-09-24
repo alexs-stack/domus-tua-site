@@ -27,10 +27,33 @@ if (typeof window !== "undefined") {
 /**
  * Override attivi in produzione.
  *
- * Volutamente VUOTO: nessun contenuto demo, nessun immobile di esempio. Gli esempi vivono
- * solo nelle fixture di test (app/lib/realsmart/__tests__/overrides.test.ts).
+ * Nessun contenuto demo, nessun immobile di esempio: gli esempi vivono solo nelle fixture di
+ * test (app/lib/realsmart/__tests__/overrides.test.ts). Qui entra solo ciò che è stato deciso.
  */
-const OVERRIDES: ListingOverride[] = [];
+const OVERRIDES: ListingOverride[] = [
+  {
+    // T447, l'attico duplex di Tradate. La descrizione a gestionale contiene un segnaposto mai
+    // compilato — «un ampio bagno di oltre ____ mq» — scritto da qualcuno che pensava di
+    // tornarci. La pipeline toglie da sola la sola frase-misura incompleta e pubblica «un ampio
+    // bagno, un disimpegno con arredo e un sottoscala che funge da comodo ripostiglio»: nessun
+    // «____» è mai arrivato in pagina, e nessuna misura è stata inventata.
+    //
+    // Questa riga non cambia una virgola di ciò che si legge sul sito: dichiara che quel testo,
+    // senza la misura, è quello VOLUTO. Serviva perché finché la decisione non era registrata
+    // l'audit lo trattava — giustamente — come un difetto ancora da riparare, e teneva rossa la
+    // CI di ogni PR, difetto o no.
+    //
+    // Resta comunque nell'elenco delle cose da sistemare alla fonte: chi rientra nel gestionale
+    // può completare la misura e togliere anche questa riga.
+    codice: "2055",
+    motivo:
+      "segnaposto «____» mai compilato nella descrizione: approvata la pubblicazione senza la misura (la frase-misura incompleta viene tolta dalla pipeline, nessun dato inventato)",
+    fonte: "approvazione del titolare del sito, in sessione di lavoro sul repository",
+    data: "2026-08-23",
+    autore: "a.serratt94@gmail.com",
+    segnapostoApprovato: true,
+  },
+];
 
 /** Indice codice → override. La validazione avviene qui, a import-time (quindi in build). */
 export const listingOverrides = indexOverrides(OVERRIDES);

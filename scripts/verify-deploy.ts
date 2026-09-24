@@ -28,15 +28,42 @@ type Health = {
     previewBadge?: boolean;
   };
   integrations?: {
-    realsmart?: { live?: boolean; feedConfigured?: boolean };
+    realsmart?: {
+      live?: boolean;
+      feedConfigured?: boolean;
+      productionRuntime?: boolean;
+      lastKnownGood?: string;
+      runtime?: {
+        source?: string;
+        ok?: boolean;
+        stale?: boolean;
+        itemCount?: number;
+        lastFetch?: string | null;
+        lastAttempt?: string;
+      } | null;
+      release?: {
+        ready?: boolean;
+        verdict?: string;
+        requireLive?: boolean;
+        minListings?: number;
+        reasons?: string[];
+      };
+    };
     soldMap?: { present?: boolean; detected?: number; manual?: number };
-    leadBackend?: string;
+    /** I due canali di consegna VERI del form, più il loro OR. WhatsApp non è qui: apre
+        una chat dal browser, non recapita niente. Vedi app/lib/demoStatus.ts. */
+    leadDelivery?: { email?: boolean; sheet?: boolean; ok?: boolean };
     emailLead?: { configured?: boolean };
     whatsappConfigured?: boolean;
     trustindexLive?: boolean;
     heroVideoLive?: boolean;
     semanticRankingConfigured?: boolean;
-    assistant?: { enabled?: boolean; providerConfigured?: boolean; model?: string };
+    assistant?: {
+      enabled?: boolean;
+      providerConfigured?: boolean;
+      provider?: string | null;
+      model?: string;
+    };
   };
 };
 
@@ -144,6 +171,21 @@ async function main() {
       fix: "NEXT_PUBLIC_USE_REALSMART=true + REALSMART_* nell'ambiente.",
     },
     {
+      // Cancello di RILASCIO (Prompt 3): un deploy di PRODUZIONE non deve promuovere un catalogo
+      // vuoto/implausibile con il feed richiesto. `release.ready` viene dal gate server-side
+      // (evaluateRelease). In anteprima è un avviso; in produzione è bloccante.
+      name: "catalogo pronto al rilascio",
+      pass: i.realsmart?.release ? i.realsmart.release.ready === true : null,
+      detail: i.realsmart?.release
+        ? `verdetto ${i.realsmart.release.verdict}` +
+          `, sorgente ${i.realsmart.runtime?.source ?? "?"}` +
+          `, immobili ${i.realsmart.runtime?.itemCount ?? "?"}` +
+          `, soglia ${i.realsmart.release.minListings ?? "?"}`
+        : "campo release assente (endpoint /api/health precedente a Prompt 3)",
+      required: hard(true),
+      fix: "Verifica che il feed live risponda con abbastanza immobili. Override esplicito solo se necessario: REALSMART_ALLOW_EMPTY_RELEASE=true (auditabile).",
+    },
+    {
       name: "mappa dei venduti presente",
       pass: i.soldMap?.present === true,
       detail: `${i.soldMap?.detected ?? 0} da OCR + ${i.soldMap?.manual ?? 0} manuali`,
@@ -151,14 +193,20 @@ async function main() {
       fix: "Esegui npm run detect-sold e committa sold-detected.json: senza, un venduto può comparire fra i disponibili.",
     },
     {
-      name: "lead del form: destinazione configurata",
-      // Il caso da impedire è "not-configured": il form accetta la richiesta e non la
-      // consegna a nessuno. Con "whatsapp" il canale c'è, ma il lead non viene archiviato:
-      // è una scelta legittima, non un guasto — quindi avviso, non blocco.
-      pass: i.leadBackend !== undefined && i.leadBackend !== "not-configured",
-      detail: `destinazione: ${i.leadBackend ?? "—"}`,
+      name: "lead del form: almeno un canale di consegna",
+      // Il caso da impedire è che il form accetti la richiesta e non la consegni a
+      // nessuno. Prima questo controllo passava anche con la sola "destinazione whatsapp",
+      // che consegna a zero: WhatsApp apre una chat dal BROWSER: se la persona non preme
+      // invio, del lead non resta traccia da nessuna parte. I canali server sono due, la
+      // notifica email e il Google Sheet, e ne basta uno.
+      pass: i.leadDelivery?.ok === true,
+      detail: `canali: ${
+        [i.leadDelivery?.email ? "email" : null, i.leadDelivery?.sheet ? "sheet" : null]
+          .filter(Boolean)
+          .join(" + ") || "nessuno"
+      }`,
       required: hard(true),
-      fix: "SHEETS_WEBHOOK_URL per archiviare i lead, oppure CONTACT_FORM_MODE=whatsapp per il solo canale immediato.",
+      fix: "RESEND_API_KEY + LEAD_EMAIL_TO per la notifica email, oppure SHEETS_WEBHOOK_URL per archiviare i lead. Almeno uno dei due.",
     },
     {
       name: "WhatsApp configurato",
@@ -171,9 +219,9 @@ async function main() {
       name: "chatbot: acceso solo con un provider",
       // Il caso da impedire è uno solo: widget visibile e provider assente.
       pass: !(i.assistant?.enabled === true && i.assistant?.providerConfigured !== true),
-      detail: `visibile: ${i.assistant?.enabled}, provider: ${i.assistant?.providerConfigured}, modello: ${i.assistant?.model ?? "—"}`,
+      detail: `visibile: ${i.assistant?.enabled}, provider: ${i.assistant?.provider ?? "—"} (${i.assistant?.providerConfigured}), modello: ${i.assistant?.model ?? "—"}`,
       required: true,
-      fix: "Imposta ANTHROPIC_API_KEY, oppure togli NEXT_PUBLIC_ENABLE_ASSISTANT.",
+      fix: "Imposta GEMINI_API_KEY (o ANTHROPIC_API_KEY), oppure togli NEXT_PUBLIC_ENABLE_ASSISTANT.",
     },
     {
       name: "recensioni Trustindex collegate",
@@ -188,7 +236,9 @@ async function main() {
       detail: String(i.semanticRankingConfigured),
       // Opzionale: senza, la ricerca resta su parole chiave e funziona comunque.
       required: false,
-      fix: "VOYAGE_API_KEY (facoltativa: senza, la ricerca usa le parole chiave).",
+      // Riguarda SOLO l'ordinamento degli immobili. Il retrieval della knowledge base è
+      // lessicale per scelta misurata e non si accende da qui: vedi docs/assistant-knowledge.md.
+      fix: "GEMINI_API_KEY basta (gli embeddings li fa Gemini). VOYAGE_API_KEY solo se si preferisce Voyage. Senza nessuna delle due, la ricerca usa le parole chiave e funziona.",
     },
     {
       name: "hero video",

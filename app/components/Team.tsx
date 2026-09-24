@@ -1,18 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
 import Reveal from "./Reveal";
+import Fioritura from "./motion/Fioritura";
 import MaskReveal from "./motion/MaskReveal";
 import Atmosphere from "./motion/Atmosphere";
 import Parallax from "./motion/Parallax";
 import TextLines from "./motion/TextLines";
+import CharFlip from "./motion/CharFlip";
+import TeamTrail from "./TeamTrail";
 import { ArrowUpRight, Play, Quote } from "./Icons";
 import { SegnoDomus } from "./BrandMotif";
 import { useLocale } from "./i18n/LocaleProvider";
-import { gsap, useGSAP, MQ } from "../lib/motion/gsap";
 import { site } from "../lib/site";
-import { team, teamInitials, teamRoleLabels } from "../lib/team";
 import { youtubeWatch } from "../lib/videos";
 
 const copy = {
@@ -20,7 +20,7 @@ const copy = {
     eyebrow: "Chi siamo",
     title: "Persone prima degli immobili.",
     lead: "Dietro ogni casa c’è una storia. Dietro ogni percorso Domus Tua c’è un team che ascolta, guida e accompagna, dalla prima telefonata fino alla firma.",
-    body: "Tutto è nato nel 2007 dalla visione di Raffaela Rizza: un’agenzia immobiliare indipendente a Tradate dove professionalità, innovazione e integrità non sono parole, ma il modo in cui lavoriamo ogni giorno.",
+    body: "Tutto è nato nel 2007 dalla visione di Raffaela Rizza: un’agenzia immobiliare indipendente a Tradate. Non prendiamo un incarico se il prezzo non sta in piedi, controlliamo i documenti prima di pubblicare, e al telefono rispondiamo noi — la stessa persona, dalla prima chiamata al rogito.",
     quote: "“Per noi una casa non è un annuncio: è la storia di una famiglia. La trattiamo così.”",
     role: "Fondatrice · Domus Tua",
     cta: "Conosci Domus Tua",
@@ -33,12 +33,13 @@ const copy = {
     founderCaption: "Founder & CEO",
     rosterTitle: "Il team",
     rosterIntro: "Un’agenzia a guida femminile che mette le persone al centro. Volti veri, competenze vere.",
+    floralWord: "Insieme",
   },
   en: {
     eyebrow: "About us",
     title: "People before properties.",
     lead: "Behind every home there is a story. Behind every Domus Tua journey there is a team that listens, guides and supports you, from the first phone call to the signing.",
-    body: "It all began in 2007 from Raffaela Rizza’s vision: an independent real estate agency in Tradate where professionalism, innovation and integrity aren’t just words, but the way we work every day.",
+    body: "It all began in 2007 from Raffaela Rizza’s vision: an independent estate agency in Tradate. We turn down a mandate if the price does not hold up, we check the paperwork before listing, and we answer the phone ourselves — the same person, from the first call to the deed.",
     quote: "“For us a home is not a listing: it’s a family’s story. And we treat it that way.”",
     role: "Founder · Domus Tua",
     cta: "Get to know Domus Tua",
@@ -51,12 +52,13 @@ const copy = {
     founderCaption: "Founder & CEO",
     rosterTitle: "The team",
     rosterIntro: "A woman-led agency that puts people first. Real faces, real expertise.",
+    floralWord: "Together",
   },
   fr: {
     eyebrow: "Qui sommes-nous",
     title: "Les personnes avant les biens.",
     lead: "Derrière chaque maison, il y a une histoire. Derrière chaque parcours Domus Tua, il y a une équipe qui écoute, guide et accompagne, du premier appel jusqu’à la signature.",
-    body: "Tout est né en 2007 de la vision de Raffaela Rizza : une agence immobilière indépendante à Tradate où professionnalisme, innovation et intégrité ne sont pas de simples mots, mais notre façon de travailler chaque jour.",
+    body: "Tout est né en 2007 de la vision de Raffaela Rizza : une agence immobilière indépendante à Tradate. Nous refusons un mandat si le prix ne tient pas, nous contrôlons les documents avant la mise en ligne, et c’est nous qui répondons au téléphone — la même personne, du premier appel à l’acte.",
     quote: "« Pour nous, une maison n’est pas une annonce : c’est l’histoire d’une famille. Nous la traitons ainsi. »",
     role: "Fondatrice · Domus Tua",
     cta: "Découvrir Domus Tua",
@@ -69,12 +71,13 @@ const copy = {
     founderCaption: "Fondatrice & CEO",
     rosterTitle: "L’équipe",
     rosterIntro: "Une agence dirigée par des femmes qui place les personnes au centre. Des visages vrais, des compétences vraies.",
+    floralWord: "Ensemble",
   },
   de: {
     eyebrow: "Über uns",
     title: "Menschen vor Immobilien.",
     lead: "Hinter jedem Zuhause steht eine Geschichte. Hinter jedem Weg mit Domus Tua steht ein Team, das zuhört, begleitet und unterstützt – vom ersten Anruf bis zur Unterschrift.",
-    body: "Alles begann 2007 mit der Vision von Raffaela Rizza: eine unabhängige Immobilienagentur in Tradate, in der Professionalität, Innovation und Integrität keine Worte sind, sondern die Art, wie wir jeden Tag arbeiten.",
+    body: "Alles begann 2007 mit der Vision von Raffaela Rizza: eine unabhängige Immobilienagentur in Tradate. Wir lehnen einen Auftrag ab, wenn der Preis nicht trägt, wir prüfen die Unterlagen vor der Veröffentlichung, und wir gehen selbst ans Telefon — dieselbe Person, vom ersten Anruf bis zum Notartermin.",
     quote: "„Für uns ist ein Zuhause keine Anzeige: Es ist die Geschichte einer Familie. So behandeln wir es.“",
     role: "Gründerin · Domus Tua",
     cta: "Domus Tua kennenlernen",
@@ -87,12 +90,13 @@ const copy = {
     founderCaption: "Gründerin & CEO",
     rosterTitle: "Das Team",
     rosterIntro: "Eine von Frauen geführte Agentur, die den Menschen in den Mittelpunkt stellt. Echte Gesichter, echte Kompetenzen.",
+    floralWord: "Zusammen",
   },
   es: {
     eyebrow: "Quiénes somos",
     title: "Personas antes que inmuebles.",
     lead: "Detrás de cada casa hay una historia. Detrás de cada recorrido Domus Tua hay un equipo que escucha, guía y acompaña, desde la primera llamada hasta la firma.",
-    body: "Todo nació en 2007 de la visión de Raffaela Rizza: una agencia inmobiliaria independiente en Tradate donde profesionalidad, innovación e integridad no son palabras, sino la forma en que trabajamos cada día.",
+    body: "Todo nació en 2007 de la visión de Raffaela Rizza: una agencia inmobiliaria independiente en Tradate. No aceptamos un encargo si el precio no se sostiene, comprobamos los documentos antes de publicar, y al teléfono respondemos nosotras — la misma persona, desde la primera llamada hasta la escritura.",
     quote: "“Para nosotros una casa no es un anuncio: es la historia de una familia. Y así la tratamos.”",
     role: "Fundadora · Domus Tua",
     cta: "Conoce Domus Tua",
@@ -105,65 +109,76 @@ const copy = {
     founderCaption: "Fundadora & CEO",
     rosterTitle: "El equipo",
     rosterIntro: "Una agencia dirigida por mujeres que pone a las personas en el centro. Rostros reales, competencias reales.",
+    floralWord: "Juntos",
   },
 };
 
 export default function Team() {
   const { locale } = useLocale();
   const c = copy[locale];
-  const rootRef = useRef<HTMLElement | null>(null);
-  const rosterRef = useRef<HTMLUListElement | null>(null);
-
-  // Roster: le righe del team entrano in sequenza, un volto dopo l'altro.
-  // Stato nascosto solo via JS (fromTo): senza JS la lista resta visibile.
-  useGSAP(
-    () => {
-      const list = rosterRef.current;
-      if (!list) return;
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motionOk, () => {
-        gsap.fromTo(
-          list.querySelectorAll("li"),
-          { y: 14, autoAlpha: 0 },
-          {
-            y: 0,
-            autoAlpha: 1,
-            duration: 0.8,
-            ease: "expo.out",
-            stagger: 0.05,
-            clearProps: "all",
-            scrollTrigger: { trigger: list, start: "top 85%", once: true },
-          }
-        );
-      });
-    },
-    { scope: rootRef }
-  );
-
-  // Roster e titoli: app/lib/team.ts (stessa fonte usata da /lavora-con-noi).
-  const roleLabels = teamRoleLabels[locale];
 
   return (
-    <section ref={rootRef} id="chi-siamo" className="relative bg-cream">
+    <section id="chi-siamo" data-tone="cream" className="relative bg-cream">
+      {/* Atmosfera e angolo vivono sull'INTRO, non sull'intera sezione: i
+          pannelli opachi a piena pagina di TeamTrail coprirebbero qualsiasi
+          decoro ancorato al fondo della sezione. */}
+      <div className="relative">
       <Atmosphere word="Domus Tua" glow drift={1} wordClassName="left-[2%] bottom-[4%] text-[13vw]" />
-      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+      {/* Angolo fiorito: il capitolo umano è un giardino.
+          Lo scudo overflow-hidden lascia sbordare i tralci senza scrollbar.
+          Sotto lg resta `hidden` per la regola «una Fioritura per sezione a
+          390» (docs/effetti-reference.md, onda «parità mobile 2» verdetto 6):
+          questa sezione ha già la scritta in fiori qui sotto (`center`,
+          accesa a ogni larghezza), che è la sua. Non è la vecchia dottrina
+          «tradurre»: è un tetto di densità. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Fioritura
+          variant="corner-tr"
+          className="absolute -right-5 -top-6 hidden h-[30vh] w-[14vw] lg:block"
+        />
+      </div>
+      {/* La scritta in fiori che si digita da sola (rif. WebGL-typing-tutorial):
+          apre il capitolo e si ridigita a ogni ritorno in viewport. */}
+      <div className="relative mx-auto max-w-[1240px] px-5 pt-20 sm:px-8 sm:pt-24">
+        <Fioritura
+          word={c.floralWord}
+          typing
+          variant="center"
+          className="mx-auto block h-[clamp(120px,17vw,210px)] w-full max-w-[860px]"
+        />
+        <span className="sr-only">{c.floralWord}</span>
+      </div>
+      <div className="relative mx-auto max-w-[1240px] px-5 pb-24 pt-10 sm:px-8 sm:pb-32 sm:pt-12">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
-          {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
+          {/* Reveal spezzato: titolo e paragrafo d'apertura restano nudi
+              (chi si splitta da sé non va anche sfumato da fuori). */}
           <div>
             <Reveal>
               <span className="eyebrow">{c.eyebrow}</span>
             </Reveal>
-            {/* Titolo display: le righe salgono dalla maschera (SplitText). */}
-            <TextLines
+            {/* Testa di capitolo: d2 (il gradino delle teste di capitolo) e i
+                caratteri che girano uno a uno. `balance` va tolta da OGNI
+                titolo splittato: text-wrap si ricalcola dopo lo split e fa
+                saltare una riga. Interlinea e tracking li detta
+                `display-tight`, che è unlayered e batte le utility. */}
+            <CharFlip
               as="h2"
-              className="mt-5 font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.4rem]"
+              exit
+              className="mt-5 font-display text-d3 display-tight font-medium text-ink"
             >
               {c.title}
+            </CharFlip>
+            {/* Il paragrafo d'apertura esce dal Reveal e passa a TextLines:
+                dentro il Reveal sarebbe doppio-nascosto e la maschera per
+                righe si sprecherebbe su un blocco già sfumato. */}
+            <TextLines
+              as="p"
+              exit
+              className="mt-7 max-w-xl text-lg leading-relaxed text-graphite"
+            >
+              {c.lead}
             </TextLines>
             <Reveal delay={100}>
-            <p className="mt-7 max-w-xl text-lg leading-relaxed text-graphite">
-              {c.lead}
-            </p>
             <p className="mt-4 max-w-xl text-[1.02rem] leading-relaxed text-stone">
               {c.body}
             </p>
@@ -193,35 +208,8 @@ export default function Team() {
               <p className="mt-3 text-[0.95rem] leading-relaxed text-stone">
                 {c.rosterIntro}
               </p>
-              <ul ref={rosterRef} className="mt-6 grid gap-x-7 gap-y-px sm:grid-cols-2">
-                {team.map((member, i) => (
-                  <li
-                    key={member.name}
-                    className="group flex items-center gap-3.5 border-t border-line/70 py-3.5 sm:first:border-t-0 sm:[&:nth-child(2)]:border-t-0"
-                  >
-                    <span
-                      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] font-display text-[0.95rem] font-semibold text-graphite ring-1 ring-inset ring-line transition-[background-color,color,box-shadow] duration-300 group-hover:bg-red group-hover:text-white group-hover:ring-red ${
-                        i % 2 === 0 ? "bg-paper" : "bg-cream-deep"
-                      }`}
-                    >
-                      {teamInitials(member.name)}
-                      {member.founder && (
-                        /* Sul cerchio rosso il pallino passa a bianco: resterebbe invisibile. */
-                        <span
-                          className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red ring-2 ring-cream transition-colors duration-300 group-hover:bg-white"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </span>
-                    <span className="leading-tight">
-                      <span className="block text-sm font-semibold text-ink transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1">
-                        {member.name}
-                      </span>
-                      <span className="block text-[0.8rem] text-stone">{roleLabels[member.role]}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              {/* Il roster vero e proprio vive sotto, a piena pagina: TeamTrail
+                  (rif. codrops/IntroTrailEffect), una persona per schermata. */}
             </div>
 
             <a
@@ -236,46 +224,28 @@ export default function Team() {
             </Reveal>
           </div>
 
-          {/* Colonna foto: leggera deriva in primo piano allo scroll (solo desktop);
-              nessun elemento sticky all'interno. */}
-          <Parallax speed={-0.08}>
+          {/* Colonna foto: leggera deriva in primo piano allo scroll; nessun
+              elemento sticky all'interno.
+              La foto di GRUPPO non sta più qui: è diventata la banda a tutta
+              larghezza che apre il corridoio delle persone (in fondo al file).
+              Resta il ritratto della fondatrice, che in colonna stretta
+              funziona proprio perché è un ritratto.
+              Il «(solo desktop)» che stava scritto qui è stato tolto, non
+              dimenticato: dalla parità mobile (2026-08-11) la deriva vale a
+              ogni larghezza. La ragione della riga sopra è anche la ragione per
+              accenderla — il ritratto regge la colonna stretta, e sotto lg è
+              l'unica immagine di questo capitolo prima del corridoio. */}
+          {/* mob off (misura): la figura è alta 284px e `speed -0.08` vale
+              ±1,12% di quella, cioè 6,4px di corsa totale — ~3px con la corsa
+              dimezzata che Parallax applica sotto 768 (onda «parità mobile 2»),
+              sotto i ~10px del criterio. Il ritratto sul telefono ha già il
+              sipario di Reveal: quello si vede. */}
+          <Parallax speed={-0.08} mobile={false}>
             <Reveal delay={120}>
-              <figure className="overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
-                {/* Sipario dal basso sulla cornice interna: il raggio resta a clippare. */}
-                <MaskReveal from="bottom" zoom={1.1} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
-                  <a
-                    href={youtubeWatch(site.videos.team.id)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group relative block aspect-[4/3] overflow-hidden rounded-[calc(2rem-0.5rem)]"
-                    aria-label={c.videoAria}
-                  >
-                    <Image
-                      src="/images/reali/team-group.jpg"
-                      alt={c.imageAlt}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 520px"
-                      className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                    />
-                    <span className="absolute inset-0 bg-gradient-to-t from-ink/40 to-transparent" />
-                    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
-                      <Play className="h-5 w-5" />
-                    </span>
-                  </a>
-                </MaskReveal>
-                <figcaption className="flex items-center justify-between gap-3 px-4 py-4">
-                  <span className="text-sm leading-tight text-graphite">
-                    <span className="block font-semibold text-ink">{c.captionName}</span>
-                    {c.captionPlace}
-                  </span>
-                  <span className="shrink-0 rounded-full bg-red-soft px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
-                    {c.badge}
-                  </span>
-                </figcaption>
-              </figure>
-
-              <figure className="group mt-5 overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
-                {/* Secondo sipario, da sinistra e in leggero ritardo: overlap ritmico col primo. */}
+              <figure className="group overflow-hidden rounded-[2rem] border border-line bg-paper p-2">
+                {/* Sipario da sinistra e in leggero ritardo: il verso è
+                    l'opposto di quello della banda di gruppo, così i due
+                    ingressi non si sovrappongono come lo stesso gesto. */}
                 <MaskReveal from="left" zoom={1.1} delay={0.18} className="overflow-hidden rounded-[calc(2rem-0.5rem)]">
                   <div className="relative aspect-[5/4] overflow-hidden rounded-[calc(2rem-0.5rem)]">
                     <Image
@@ -302,6 +272,68 @@ export default function Team() {
           </Parallax>
         </div>
       </div>
+      </div>
+
+      {/* LA BANDA DI GRUPPO — la squadra a tutta larghezza, non più una
+          cartolina in colonna: è l'ultima cosa che si vede prima di entrare
+          nel corridoio delle persone, e deve avere la stessa scala.
+          Sta FUORI dallo scudo dell'intro: lì dentro la Fioritura d'angolo
+          (absolute inset-0) le passerebbe sopra.
+          Il fondale è uno studio chiarissimo, quindi la banda NON taglia la
+          superficie crema — le accosta un valore vicino. Per la stessa
+          ragione la didascalia non sta in overlay su un velo scuro (quello
+          sì disegnerebbe una riga netta in fondo alla banda) ma sotto, sulla
+          superficie, dentro la colonna di lettura.
+          Sipario dal basso: era il gesto di questa foto e resta. */}
+      <figure className="relative mb-16 sm:mb-24">
+        <MaskReveal from="bottom" zoom={1.1} className="overflow-hidden">
+          <a
+            href={youtubeWatch(site.videos.team.id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            // Sotto lg la banda torna un 4/3: a 68svh su una colonna stretta
+            // il ritaglio è verticale e decapiterebbe metà squadra.
+            className="group relative block aspect-[4/3] overflow-hidden sm:aspect-[16/9] lg:aspect-auto lg:h-[68svh]"
+            aria-label={c.videoAria}
+          >
+            <Image
+              src="/images/reali/team-group.jpg"
+              alt={c.imageAlt}
+              fill
+              sizes="100vw"
+              // Nessun `priority` (l'unica prioritaria è l'hero); 75 è uno dei
+              // valori dichiarati in images.qualities.
+              quality={75}
+              className="photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+              // Sorgente 1920×1280 con i volti nel terzo alto: centrando il
+              // ritaglio, in banda larga le teste di chi sta in piedi
+              // uscirebbero dall'inquadratura.
+              style={{ objectPosition: "50% 18%" }}
+            />
+            {/* Il play NON sta al centro: in banda larga il centro è il volto
+                della fondatrice e il bottone glielo copre. Scende nell'angolo
+                basso, incolonnato con la didascalia qui sotto. */}
+            <span className="pointer-events-none absolute inset-0 mx-auto flex max-w-[1240px] items-end justify-end px-5 pb-6 sm:px-8 sm:pb-8">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-paper/90 text-red shadow-lg transition-transform duration-300 group-hover:scale-110">
+                <Play className="h-6 w-6" />
+              </span>
+            </span>
+          </a>
+        </MaskReveal>
+        <figcaption className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3 px-5 pt-5 sm:px-8">
+          <span className="text-sm leading-tight text-graphite">
+            <span className="block font-semibold text-ink">{c.captionName}</span>
+            {c.captionPlace}
+          </span>
+          <span className="shrink-0 rounded-full bg-red-soft px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-red-dark">
+            {c.badge}
+          </span>
+        </figcaption>
+      </figure>
+
+      {/* Una schermata piena per ogni persona del team: il trail del
+          riferimento Codrops, scrubbato dallo scroll. */}
+      <TeamTrail />
     </section>
   );
 }

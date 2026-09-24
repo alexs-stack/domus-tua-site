@@ -4,10 +4,10 @@
 // Al submit naviga a /acquista con query params (q, comune, budget, type, rooms) che PropertySearch
 // legge e pre-imposta. La ricerca in linguaggio naturale resta un teaser (nessuna finta AI).
 import { useState, useRef } from "react";
-import Link from "next/link";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
-import { ArrowUpRight, ArrowRight, Search } from "./Icons";
+import { Search } from "./Icons";
+import { Cta, CtaButton } from "./primitives/Cta";
 import { useDict, useLocale } from "./i18n/LocaleProvider";
 import { transitionTo } from "./motion/PageTransition";
 import { gsap, MQ } from "../lib/motion/gsap";
@@ -105,7 +105,7 @@ export default function HomeSearchGateway() {
     "rounded-xl border border-line bg-cream px-3.5 py-3 text-sm text-ink transition-colors focus:border-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red";
 
   return (
-    <section id="cerca" className="bg-cream-deep segno-ambient">
+    <section id="cerca" data-tone="cream-deep" className="bg-cream-deep segno-ambient">
       <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20">
         <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
           {/* Buyer search — il Reveal vive DENTRO la card (sul corpo del form),
@@ -163,7 +163,9 @@ export default function HomeSearchGateway() {
                       setQ(chip);
                       inputRef.current?.focus();
                     }}
-                    className="inline-flex min-h-[40px] items-center rounded-full border border-line bg-cream px-3.5 py-2 text-[0.8rem] text-graphite transition-colors duration-300 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+                    // 44px, non 40: la soglia di tocco è quella, e questi chip sono il
+                    // primo gesto che si fa sulla home da telefono.
+                    className="inline-flex min-h-11 items-center rounded-full border border-line bg-cream px-3.5 py-2 text-[0.8rem] text-graphite transition-colors duration-300 hover:border-red/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
                   >
                     {chip}
                   </button>
@@ -203,15 +205,9 @@ export default function HomeSearchGateway() {
                 </label>
               </div>
 
-              <button
-                type="submit"
-                className="group mt-6 inline-flex items-center justify-center gap-2 self-start rounded-full bg-red py-3.5 pl-6 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
-              >
+              <CtaButton type="submit" variant="cta" size="md" className="mt-6 self-start">
                 {c.search}
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </button>
+              </CtaButton>
             </Reveal>
           </form>
 
@@ -225,16 +221,24 @@ export default function HomeSearchGateway() {
                 <h2 className="mt-5 font-display text-2xl font-medium leading-tight tracking-tight sm:text-[1.8rem]">
                   {d.search.sellerTitle}
                 </h2>
+                {/* §9 — la RAGIONE fra la domanda e il pulsante.
+                    Questa card faceva la domanda e saltava alla CTA: era l'unico blocco
+                    della home che si limitava a mostrare immobili, cioè proprio il
+                    «pubblicare semplicemente» da cui la frase-criterio del §9 prende le
+                    distanze. Nessun fatto nuovo qui: «la prepariamo» sta già in
+                    Posizionamento, la verifica prima della pubblicazione in Method e in
+                    Team, «fino al rogito» in HorizonStory. È la stessa cosa detta dove
+                    serve decidere. */}
+                <p className="mt-3 text-[0.95rem] leading-relaxed text-white/85">
+                  {d.search.sellerCopy}
+                </p>
               </div>
-              <Link
-                href="/#contatti"
-                className="group mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-white py-3.5 pl-6 pr-3 text-sm font-semibold text-red transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-cream active:scale-[0.98]"
-              >
+              {/* Doppia faccia: crema a riposo (come la vecchia pill bianca), il
+                  gradiente rosso dell'hover si fonde con la card = il bottone
+                  "si apre" verso la sezione contatti. */}
+              <Cta href="/#contatti" variant="reveal-cream" size="md" className="mt-8">
                 {d.search.sellerCta}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red/10 transition-transform duration-300 group-hover:translate-x-0.5">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </Link>
+              </Cta>
             </div>
           </Reveal>
         </div>

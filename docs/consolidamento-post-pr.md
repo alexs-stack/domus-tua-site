@@ -58,7 +58,7 @@ Queste modifiche toccano testo visibile e vanno confermate (o sostituite con i d
    domotica", "Quadrilocale con giardino di 870 mq") **non corrispondevano** ai video linkati.
    Ora ci sono le tre video recensioni reali, con il titolo effettivo del canale. Se il cliente
    fornisce ID e titoli dei tour, si riaggiungono in `site.videos`.
-4. Firma della fondatrice: serve l'SVG/PNG reale (vedi `docs/client-assets-needed.md`).
+4. Firma della fondatrice: serve l'SVG/PNG reale (vedi `docs/da-chiedere-alla-cliente.md`).
    L'animazione `DrawOnScroll` è pronta nella sezione contatti.
 
 ## 4. Rete di sicurezza

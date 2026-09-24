@@ -79,7 +79,7 @@ Legenda stato:
 | Titoli video (es. "La storia di Teresa…", "Villa Mozart, Tradate", "Domus Tua al cinema, su Prime Video") | `app/components/SocialVideoWall.tsx` (`featured`, `wall[]`) | Titoli editoriali | 🟡 Da confermare | I titoli sono redazionali (non necessariamente i titoli YouTube originali): confermare che descrivano correttamente il video linkato. |
 | ID/URL video YouTube | `app/components/SocialVideoWall.tsx`, `Team.tsx` (`PRB3exiOa3I`), `OpenDomus.tsx` (`gYePYQHNTUM`) | Link | 🟡 Da confermare | Conferma che gli ID video (`gYePYQHNTUM`, `BEmbT6WbZ-c`, `PRB3exiOa3I`, `X8dRz1629F0`, `E70G5l_CTWg`, `qXYpUw3QC2E`, `rARkECgXUbU`) siano quelli giusti e pubblici. |
 | Thumbnail video | `public/images/reali/video/*.jpg` (usate) + `public/images/reali/yt/*.jpg` (per-ID, non tutte referenziate) | Immagini | 🟡 Da confermare | Le thumbnail in `video/` sono nomi curati; in `yt/` sono per-ID YouTube ma **non tutte usate** nel codice. Confermare mappatura corretta ID→thumbnail. |
-| Video hero (riquadro fondatrice) | `app/components/Hero.tsx` (`heroVideo = ""`) | Video | 🔶 Demo | Attualmente vuoto → mostra la foto come fallback. Fornire clip 15–35s (vedi `docs/client-assets-needed.md`). |
+| Video hero (riquadro fondatrice) | `app/components/Hero.tsx` (`heroVideo = ""`) | Video | 🔶 Demo | Attualmente vuoto → mostra la foto come fallback. Fornire clip 15–35s (vedi `docs/da-chiedere-alla-cliente.md`). |
 
 ---
 

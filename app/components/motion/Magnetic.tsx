@@ -59,8 +59,11 @@ export default function Magnetic({ children, className = "", strength = 0.22 }: 
   );
 
   return (
-    // data-magnetic: hook passivo per il cursor custom (l'anello si fonde
-    // col bottone quando il magnetismo prende il controllo).
+    // data-magnetic: marcatore del bottone magnetico. Serviva anche al
+    // vecchio cursore ad anello (l'anello si rimpiccioliva dentro il
+    // bottone); da quando il cursore compare solo sui bersagli con
+    // `data-cursor` (Cursor.tsx) resta un marcatore e basta — il magnetismo
+    // vero lo fa l'effetto qui sopra, non ha mai avuto bisogno di lui.
     <div ref={ref} data-magnetic className={`inline-flex ${className}`}>
       {children}
     </div>

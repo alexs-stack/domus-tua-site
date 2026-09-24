@@ -211,9 +211,11 @@ app/
 | Variabile | Ambito | Ruolo | Fase |
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_ENABLE_ASSISTANT` | public | Mostra l'assistente. **Resta `false` fino al Prompt 9.** | esiste |
-| `ANTHROPIC_API_KEY` | server | Provider AI. Assente → fallback onesto. | esiste |
-| `AI_ASSISTANT_MODEL` | server | Override modello (default `claude-haiku-4-5-20251001`). | esiste |
-| `VOYAGE_API_KEY` / `VOYAGE_MODEL` | server | Ranking semantico opzionale. | esiste |
+| `GEMINI_API_KEY` | server | Provider AI predefinito (Gemini). Assente → si prova Anthropic. | esiste |
+| `ANTHROPIC_API_KEY` | server | Provider AI alternativo (Claude). Nessuna delle due → fallback onesto. | esiste |
+| `AI_PROVIDER` | server | `google` \| `anthropic`. Forza la scelta (default: Gemini se ha la chiave). | esiste |
+| `AI_ASSISTANT_MODEL` | server | Override modello (default `gemini-3.6-flash`, o `claude-haiku-4-5-20251001` su Anthropic). | esiste |
+| `VOYAGE_API_KEY` / `VOYAGE_MODEL` | server | Embeddings da Voyage. FACOLTATIVA: senza, li fa Gemini con la chiave già configurata. | esiste |
 | `ASSISTANT_LEAD_EMAIL_TO` | server | Destinatario richieste (`immobiliare@domustua.it`). | Prompt 5 |
 | `ASSISTANT_EMAIL_PROVIDER_KEY` | server | Chiave provider email. Assente → nessun falso successo. | Prompt 5 |
 | `ASSISTANT_RATE_LIMIT` | server | Override del limite per IP. | Prompt 7 |
@@ -354,7 +356,8 @@ cliente ed è finita; i testi sì, e restano `pending`.
 **Fatto**
 
 - Corpus versionato sulle 12 aree previste, con ID stabile, stato, fonte controllabile, data
-  di verifica, locale e keywords. 9 voci `verified`, 12 `pending`, 3 `disabled`.
+  di verifica, locale e keywords. Alla chiusura dell'onda: 9 voci `verified`, 12 `pending`,
+  3 `disabled`. Oggi 36 / 3 / 3 — vedi l'aggiornamento in fondo alla sezione.
 - Ogni voce non verificata porta una `note` che dice cosa serve per sbloccarla — verificato
   da un test, così l'informazione non si perde.
 - Retrieval **ibrido**: lessicale sempre attivo (nessuna chiave, nessuna rete) + semantico
@@ -375,8 +378,36 @@ serve una keyword curata oppure più segnali concordi (`MIN_LEXICAL_SCORE = 2`).
 prudenza costa un "non lo so"; sbagliare per zelo costa una risposta a fianco della domanda,
 data con sicurezza.
 
-**Non tarabile senza chiavi:** `ASSISTANT_SEMANTIC_FLOOR` (0.6) è un valore prudente di
-partenza, mai misurato su dati reali. Serve `VOYAGE_API_KEY`.
+**Aggiornamento 2026-08-06 — i testi non erano più in attesa.** Le voci `pending` aspettavano
+un'approvazione che in gran parte era già arrivata: l'agenzia aveva pubblicato quei contenuti
+sul proprio sito. Da lì il criterio nuovo — *una frase che l'agenzia ha già messo online è
+approvata dal fatto di essere online* — e il corpus è passato da 11 voci `verified` a 36, con
+la pagina come fonte. Restano `pending` solo tre voci, su temi che il sito **non tratta**.
+Dettagli e criterio in [`assistant-knowledge.md`](assistant-knowledge.md).
+
+Due conseguenze misurate, che vale la pena ricordare prima del prossimo allargamento:
+
+- **Più conoscenza deve dare risposte più giuste, non più lunghe.** Le prime voci nuove erano
+  2-3 volte più lunghe delle preesistenti e il modello le parafrasava tutte. Corretto
+  accorciandole e dicendo allo strumento di **scegliere**, non riassumere: la scelta dello
+  strumento è tornata al 100% in `npm run eval`.
+- **Sapere rispondere ha fatto sparire il passo successivo.** Finché l'assistente non sapeva,
+  nel dire "non lo so" proponeva il team, e il passo successivo arrivava per forza. Appena ha
+  imparato a rispondere su vendita, Domus D.O.C. e Open Domus si è fermato alla spiegazione —
+  più informato e meno utile. È il tipo di regressione che una knowledge base migliore
+  produce da sola, e che nessuno cerca perché sembra un miglioramento. Corretto nel prompt:
+  quando dietro la domanda c'è un'intenzione, si chiude offrendo il passo concreto.
+- **Le keyword generiche si pagano a ogni voce nuova.** Con 36 voci, "aperto" su
+  `orari-apertura` ha cominciato ad agganciare *"non ci sono posizioni aperte?"*. Stessa
+  famiglia dei due falsi positivi qui sopra; il registro dei casi reali sta in
+  `knowledge.test.ts`.
+
+**Livello semantico: misurato e spento.** `ASSISTANT_SEMANTIC_FLOOR` non ha più un default.
+`npm run calibrate:semantic` (su `gemini-embedding-001`, che riusa `GEMINI_API_KEY`: Voyage
+non è più necessario) ha misurato che domande fuori corpus e domande pertinenti si
+sovrappongono — 0,667 contro 0,550 — e che nemmeno una regola relativa le separa. Accenderlo
+peggiorerebbe l'assistente. Il ranking semantico della **ricerca immobili** invece è attivo:
+là i vettori ordinano candidati già filtrati e non c'è nessuna soglia da superare.
 
 **Trovato sul sito, non modificato** (è contenuto marketing approvato dal cliente: la
 decisione è sua, non nostra — ma la knowledge base non lo contiene):
@@ -521,11 +552,11 @@ tastiera e screen reader, non solo dalla vista.
 - I puntini di attesa stanno **dentro** la bolla vuota: l'altezza non salta quando arriva il
   primo token.
 
-**Dipendenza da segnalare:** due dei quattro suggerimenti richiesti ("Vorrei vendere casa",
-"Come funziona Open Domus?") toccano temi ancora `pending` nella knowledge base. Oggi
-l'assistente risponde onestamente "non lo so" e propone il team. Si risolvono da soli quando
-arrivano i testi di Raffaela — ma finché non arrivano, due chip su quattro sono promesse che
-l'assistente non può mantenere.
+**Dipendenza risolta (2026-08-06).** Due dei quattro suggerimenti ("Vorrei vendere casa",
+"Come funziona Open Domus?") toccavano temi `pending`, e l'assistente rispondeva "non lo so":
+due chip su quattro erano promesse che non poteva mantenere. Ora le mantiene entrambe —
+`processo-vendita` e `open-domus` sono voci verificate, prese dal copy che l'agenzia aveva
+già pubblicato su /vendi e /open-domus.
 
 **Non verificato:** screen reader reale e connessione lenta. Le semantiche ARIA sono a posto
 nell'albero di accessibilità, ma non ho provato VoiceOver né throttling di rete.
@@ -577,7 +608,7 @@ disattivato, ed è peggio di non averlo.
 ## 9-decies. Onda 8 — eval del comportamento
 
 ```bash
-npm run eval            # contro il modello reale (richiede ANTHROPIC_API_KEY)
+npm run eval            # contro il modello reale (richiede GEMINI_API_KEY o ANTHROPIC_API_KEY)
 npm run eval -- --mock  # verifica l'harness, nessun costo
 ```
 
@@ -617,8 +648,53 @@ volta per turno.
 **Il report** (`eval-report.md`) è generato e resta fuori dal repository: committarne uno in
 modalità simulata lascerebbe in giro un 100% ingannevole.
 
-**Cosa manca:** la misura vera. Servono `ANTHROPIC_API_KEY` e una singola esecuzione di
-`npm run eval` per sapere davvero come si comporta l'assistente e quanto costa.
+**Difetto trovato di nuovo nel banco di prova, non nell'assistente.** In modalità reale i
+cinque casi del gruppo `errore` finivano al provider vero. Ma `provider-giu`, `output-vuoto`,
+`tool-inesistente` e `tool-input-invalido` sono guasti **del provider**: un provider che
+funziona non li può riprodurre. Il modello rispondeva normalmente e il grader gli contestava
+di non aver proposto un canale umano — fallimenti inventati su un gruppo che sembrava
+misurare la degradazione dell'assistente e invece non misurava niente. Ora
+`richiedeModelloSimulato()` manda quei casi al modello simulato **anche in modalità reale**, e
+il report lo dichiara in testa. `feed-giu` resta reale: il catalogo vuoto si riproduce davvero.
+
+**La misura vera — fatta, su Gemini.** Nove esecuzioni complete (100 casi ciascuna) hanno
+scelto modello e livello di ragionamento sui numeri, non a intuito. Le ultime quattro sono
+sull'harness corretto:
+
+| Modello | Ragionamento | Superati | Scelta strumento | p95 primo token |
+| --- | --- | --- | --- | --- |
+| `gemini-2.5-flash` | spento | 71/100 | 67% | 1432 ms |
+| `gemini-2.5-flash` | budget 256 | 81/100 | 81% | 2351 ms |
+| `gemini-2.5-flash` | dinamico | 84/100 | 84% | 3022 ms |
+| `gemini-3.6-flash` | dinamico | 97/100 | 100% | 6032 ms |
+| `gemini-3.6-flash` | `low` | 98/100 | 100% | 3715 ms |
+| **`gemini-3.6-flash`** | **`minimal`** | **100/100** | **100%** | **2111-2250 ms** |
+| `gemini-3.5-flash` | `minimal` | 100/100 | 100% | 2392 ms |
+| `gemini-3.5-flash-lite` | `minimal` | 94/100 | 93% | 1339 ms |
+| `gemini-3.1-flash-lite` | `minimal` | 81/100 | 73% | 1133 ms |
+
+Tre letture che contano più della riga vincente:
+
+1. **Il salto di qualità è il modello, non il prompt.** Stesso prompt, stessi tool, stessi
+   grader: da 2.5 a 3.6 la scelta dello strumento passa dal 67-84% al 100%. Sotto la soglia,
+   2.5 Flash rispondeva con domande di chiarimento invece di cercare ("Che tipo di casa stai
+   cercando?") — comportamento educato e inutile.
+2. **Il ragionamento si paga tutto sul primo token, e qui non serve.** Da `dinamico` a
+   `minimal` non si perde un caso e l'attesa passa da 6 s a 2,2 s.
+3. **La soglia p95 ≤ 2 s non è raggiungibile con un modello di questa qualità**, e non per
+   colpa del modello: su una domanda di ricerca il primo token arriva dopo *due* generazioni
+   (decidere lo strumento, poi comporre la risposta). A ~1,1 s ciascuna si sta a 2,2 s. I
+   modelli che scendono sotto i 1,4 s pagano in scelta dello strumento (93% e 73%), che è la
+   soglia più importante dopo l'assenza di invenzioni. Il p95 su 100 casi oscilla di suo di
+   ~150 ms fra un'esecuzione e l'altra: va letto come intervallo, non come cifra secca.
+
+**Il compromesso, esplicito.** Il default resta la qualità: `gemini-3.6-flash`, 100/100, unica
+soglia mancata p95 per un centinaio di millisecondi. Chi preferisce la reattività ha una manopola misurata:
+`AI_ASSISTANT_MODEL=gemini-3.5-flash-lite` porta il p95 a 1339 ms e costa 6 casi su 100 e il
+93% di scelta dello strumento. Non è una scelta da fare di nascosto in un default.
+
+**Non è un confronto con Claude:** su questo ambiente non c'è una `ANTHROPIC_API_KEY`, quindi
+la riga di paragone con Haiku 4.5 non è mai stata misurata.
 
 ---
 
@@ -675,13 +751,56 @@ pagina leggera (l'assistente è nel layout, è identico ovunque), con quattro wo
 
 ---
 
+## 9-duodecies. Onda 11 — la voce (2026-08-06)
+
+Allargata la knowledge base, è emerso un difetto che prima non si poteva vedere: finché
+l'assistente sapeva poco, rispondeva poco, e la voce non aveva occasione di ripetersi.
+
+### Il tic
+
+Il prompt dava un esempio di registro per i limiti: *"Su questo preferisco non sbilanciarmi:
+te lo dice con precisione il team"*. Su risposte vere, il modello lo produceva **parola per
+parola** ogni volta che incontrava un limite. Una formula azzeccata ripetuta è peggio di una
+mediocre variata: alla prima risposta sembra una persona, alla terza un disco.
+
+### Il tentativo sbagliato, che è la parte utile
+
+Primo rimedio: sostituire l'esempio con **tre** modi alternativi di dire la stessa cosa. Il
+modello ha iniziato a ricopiare quelli — *"su questo ti risponde meglio il team"* e *"non
+voglio darti un numero a caso"* sono usciti alla prima prova. Non era quella frase a essere
+appiccicosa: **è appiccicoso qualunque esempio positivo citabile**.
+
+Regola che ne è uscita, e che vale per ogni prompt di questo progetto:
+
+> Gli esempi di ciò che NON si deve suonare si possono citare: ricopiarli non fa danno.
+> La guida positiva va **descritta**, mai virgolettata — o diventa un copione.
+
+Nel prompt restano tre anti-modelli concreti (l'impiegato entusiasta, il burocrate, l'ufficio
+stampa) e nessuna frase buona da imitare. Tre risposte di prova su un limite, tre formulazioni
+diverse. Il grader `voce propria` (`__evals__/graders.ts`) fallisce se una frase d'esempio
+riappare: la lista tiene anche quelle non più nel prompt, come memoria di cosa è già successo.
+
+### L'effetto collaterale del rimedio
+
+Le fonti sono scritte per essere verificabili, non lette ad alta voce: `domus-doc` dice
+"catasto, urbanistica e impianti in regola" perché è il testo pubblicato. Aggiunta la regola
+"spiega il termine in tre parole", l'assistente ha spiegato l'IMU **e ha aggiunto** *"per la
+prima casa di solito non si paga"* — vero, non richiesto, preso dal nulla, e proprio la
+materia su cui non deve pronunciarsi.
+
+Spiegare una parola è cortesia linguistica; aggiungere una regola è consulenza. Il confine
+ora è scritto nel prompt, perché non è ovvio: **si traduce il termine, non si insegna la
+materia**.
+
+---
+
 ## 10. Sequenza di lavoro
 
 | Onda | Contenuto | Stato |
 | --- | --- | --- |
 | 1 | Audit + architettura + fondamenta + 5 tool (questo documento) | **fatto** |
 | 1.5 | Consolidamento: precisione retrieval, latenza, troncamento, abort | **fatto** |
-| 2 | Knowledge base verificata + retrieval ibrido | **motore fatto**, testi in attesa del cliente |
+| 2 | Knowledge base verificata + retrieval ibrido | **fatto** — 37 voci, tutto il copy pubblicato; restano 3 `pending` su cui il sito tace |
 | 3 | Motore conversazionale e 5 tool | da fare |
 | 4 | Ricerca immobiliare + suite 50 query | **fatto** |
 | 5 | Email + WhatsApp + health | **fatto**, invio reale da verificare con chiave provider |
@@ -690,3 +809,4 @@ pagina leggera (l'assistente è nel layout, è identico ovunque), con quattro wo
 | 8 | Eval 100 casi | **fatto**, misura reale in attesa della chiave |
 | 9 | E2E + rollout controllato | **E2E fatti**, rilascio in attesa di ambiente e contenuti |
 | 10 | Audit red team finale | **fatto** su codice e comportamento verificabile — [audit](assistant-audit-finale.md) |
+| 11 | La voce: tic degli esempi, gergo delle fonti | **fatto** (sezione 9-duodecies) |

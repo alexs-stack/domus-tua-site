@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import YoutubeThumb from "./YoutubeThumb";
 import { Play } from "./Icons";
+import { useVideoPlayLabel } from "./VideoLightbox";
 
 type Props = {
   id: string;
@@ -16,12 +18,24 @@ type Props = {
 // Facciata leggera per YouTube: mostra solo il poster finché l'utente non clicca.
 // L'iframe (e quindi tutto il peso di YouTube) viene caricato SOLO dopo il click,
 // mai al mount. Questo tiene la sezione veloce anche con più player nella pagina.
+//
+// PRIVACY. Doppia protezione: (1) click-to-load — nessuna richiesta a YouTube prima che
+// l'utente prema play, quindi il video non parte da solo e non traccia chi non lo guarda;
+// (2) dominio "youtube-nocookie.com" (privacy-enhanced di YouTube): niente cookie di
+// tracciamento finché non c'è interazione col player. Comportamento documentato in
+// docs/legal-launch-inventory.md.
 export default function LazyYouTubeEmbed({ id, title, poster }: Props) {
   const [active, setActive] = useState(false);
+  // L etichetta era italiana fissa («Riproduci il video: …») su un sito in cinque lingue:
+  // chi naviga in tedesco con uno screen reader si sentiva annunciare una frase italiana.
+  // La formula sta accanto al dialog del video, cosi le due superfici che riproducono un
+  // filmato lo annunciano allo stesso modo.
+  const playLabel = useVideoPlayLabel();
 
-  // Poster curato > thumbnail YouTube (i.ytimg.com è abilitato nei remotePatterns).
-  const thumb = poster ?? `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-  const embed = `https://www.youtube.com/embed/${id}?autoplay=1`;
+  const embed = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
+  const posterSizes = "(max-width:768px) 100vw, (max-width:1240px) 60vw, 720px";
+  const posterClassName =
+    "photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105";
 
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-[1.5rem] border border-line bg-ink shadow-[var(--shadow-card)]">
@@ -38,16 +52,16 @@ export default function LazyYouTubeEmbed({ id, title, poster }: Props) {
         <button
           type="button"
           onClick={() => setActive(true)}
-          aria-label={`Riproduci il video: ${title}`}
+          aria-label={playLabel(title)}
           className="group absolute inset-0 block h-full w-full cursor-pointer"
         >
-          <Image
-            src={thumb}
-            alt={title}
-            fill
-            sizes="(max-width:768px) 100vw, (max-width:1240px) 60vw, 720px"
-            className="photo-warm object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-          />
+          {poster ? (
+            /* Poster MUTO: il bottone che lo contiene ha gia il suo nome accessibile
+               (aria-label), e ripetere il titolo nell alt lo fa annunciare due volte. */
+            <Image src={poster} alt="" fill sizes={posterSizes} className={posterClassName} />
+          ) : (
+            <YoutubeThumb id={id} alt="" sizes={posterSizes} className={posterClassName} />
+          )}
           {/* Velo caldo per profondità + leggibilità del play */}
           <span className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/10 to-ink/5" />
           {/* Play "premium": vetro morbido, anello sottile, ombra calda; triangolo otticamente centrato */}

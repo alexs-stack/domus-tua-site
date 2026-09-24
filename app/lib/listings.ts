@@ -7,8 +7,12 @@
 //       impostando NEXT_PUBLIC_USE_REALSMART="false". Vedi docs/realsmart-integration-notes.md.
 
 import { properties, getProperty, type Property } from "./properties";
-import { getLiveListings } from "./realsmart/client";
-import { isRealSmartLive } from "./realsmart/env";
+import {
+  getLiveListings,
+  getLiveListingsSnapshot,
+  mockModeAllowed,
+  type ListingsSource,
+} from "./realsmart/client";
 import { normalizedToProperty } from "./realsmart/toProperty";
 
 // Stato server-safe della sorgente dati (modalità PREVISTA + feed configurato). Riesportato
@@ -32,17 +36,49 @@ export { isAvailable, isSold, onlyAvailable } from "./availability";
  * nessun venduto tra i disponibili.
  */
 export async function getVisibleListings(): Promise<Property[]> {
-  if (isRealSmartLive()) {
-    const live = await getLiveListings();
-    return live.map(normalizedToProperty);
-  }
-  return properties;
+  // Fixture statica demo SOLO nella modalità offline esplicita fuori produzione (stesso cancello
+  // dei mock RealSmart). In produzione reale non viene mai servita: si va live (che a sua volta
+  // fallisce chiuso su errore, mai mock).
+  if (mockModeAllowed()) return properties;
+  const live = await getLiveListings();
+  return live.map(normalizedToProperty);
 }
 
 export async function getVisibleListing(slug: string): Promise<Property | undefined> {
-  if (isRealSmartLive()) {
-    const live = await getVisibleListings();
-    return live.find((p) => p.slug === slug);
-  }
-  return getProperty(slug);
+  if (mockModeAllowed()) return getProperty(slug);
+  const live = await getVisibleListings();
+  return live.find((p) => p.slug === slug);
+}
+
+/** Stato REALE della sorgente immobili a runtime (per /api/health). Nessun segreto esposto. */
+export interface ListingsRuntimeStatus {
+  /** Provenienza effettiva: live | stale | mock | unavailable. */
+  source: ListingsSource;
+  /** true se lo snapshot ha dati usabili; false = fail-closed vuoto. */
+  ok: boolean;
+  /** true se serve l'ultimo-buono dopo un refresh fallito. */
+  stale: boolean;
+  /** Immobili pubblicabili nello snapshot attuale. */
+  itemCount: number;
+  /** ISO 8601: quando il dato servito è stato scaricato (freschezza reale). null se nessun dato reale. */
+  fetchedAt: string | null;
+  /** ISO 8601: quando è stato tentato l'ultimo refresh (successo o meno). */
+  lastAttemptAt: string;
+}
+
+/**
+ * Legge lo snapshot reale (stessa cache del sito) e ne estrae lo stato diagnostico.
+ * In modalità mock offline (dev/test) riporta `source: "mock"`. In produzione riflette
+ * live/stale/unavailable senza mai esporre URL o credenziali del feed.
+ */
+export async function getListingsRuntimeStatus(): Promise<ListingsRuntimeStatus> {
+  const snap = await getLiveListingsSnapshot();
+  return {
+    source: snap.source,
+    ok: snap.ok,
+    stale: snap.stale,
+    itemCount: snap.itemCount,
+    fetchedAt: snap.fetchedAt,
+    lastAttemptAt: snap.lastAttemptAt,
+  };
 }

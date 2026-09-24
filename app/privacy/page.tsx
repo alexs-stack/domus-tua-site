@@ -3,14 +3,15 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import PrivacyContent from "./PrivacyContent";
+import { legalRobots } from "../lib/legal";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "Informativa sul trattamento dei dati personali di Domus Tua srl ai sensi del Regolamento UE 2016/679 (GDPR).",
-  // Testo placeholder non ancora validato da legale/DPO: escluso dall'indicizzazione
-  // finché non sarà finalizzato. I link restano seguibili.
-  robots: { index: false, follow: true },
+  // Indicizzazione governata dall'approvazione legale (app/lib/legal.ts): finché il testo è
+  // placeholder resta noindex; con LEGAL_DOCS_APPROVED=true (testo definitivo) diventa indicizzabile.
+  robots: legalRobots(),
 };
 
 // ⚠️ ATTENZIONE: testo placeholder redatto per finalità di impaginazione.

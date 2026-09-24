@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useId, useRef, useState } from "react";
+import { Cta, SendCta } from "./primitives/Cta";
 import type { Handoff } from "../lib/assistant/types";
 
 // Mini-form per lasciare una richiesta scritta all'agenzia, dentro la chat.
@@ -176,31 +177,27 @@ export default function AssistantLeadForm({
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="submit"
-          disabled={stato === "invio"}
-          className="inline-flex min-h-11 items-center rounded-full bg-red px-4 py-2.5 text-[0.85rem] font-semibold text-white transition-colors duration-200 hover:bg-red-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <SendCta submitting={stato === "invio"} size="sm" className="min-h-11">
           {stato === "invio" ? "Invio…" : "Invia richiesta"}
-        </button>
+        </SendCta>
 
         {/* Canali umani sempre in vista: se l'email non parte, restano questi. */}
         {whatsappUrl && (
-          <a
+          <Cta
             href={whatsappUrl}
+            variant="ghost"
+            size="sm"
+            arrow={false}
+            className="min-h-11"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center rounded-full border border-line bg-paper px-4 py-2.5 text-[0.85rem] font-semibold text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink"
           >
             WhatsApp
-          </a>
+          </Cta>
         )}
-        <a
-          href={phoneHref}
-          className="inline-flex min-h-11 items-center rounded-full border border-line bg-paper px-4 py-2.5 text-[0.85rem] font-semibold text-graphite transition-colors duration-200 hover:border-red/40 hover:text-ink sm:hidden"
-        >
+        <Cta href={phoneHref} variant="ghost" size="sm" arrow={false} className="min-h-11 sm:hidden">
           Chiama
-        </a>
+        </Cta>
       </div>
     </form>
   );

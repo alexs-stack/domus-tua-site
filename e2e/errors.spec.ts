@@ -55,7 +55,8 @@ test("l'endpoint dei lead rifiutato non blocca la navigazione", async ({ page, g
   await page.route("**/api/lead", (route) => route.abort("failed"));
   await goto("/contatti");
   await page.getByRole("textbox", { name: /nome e cognome/i }).first().fill("Mario Rossi");
-  await page.getByRole("textbox", { name: /telefono o email/i }).first().fill("mario@example.com");
+  // Telefono ed email sono ora campi distinti (ne basta uno): si usa l'email.
+  await page.getByRole("textbox", { name: /^email$/i }).first().fill("mario@example.com");
   await page.getByRole("checkbox").first().check();
   await page.getByRole("button", { name: /invia|richiedi|valuta|trova|scopri/i }).first().click();
 

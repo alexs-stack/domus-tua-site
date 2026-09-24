@@ -51,8 +51,8 @@ Legenda ambiti: **Prod** = Production, **Prev** = Preview, **Dev** = locale.
 | `REALSMART_FTP_PASS` | _(vuoto)_ | Prod | Sì | Password FTP/SFTP. |
 | `REALSMART_FTP_PATH` | _(vuoto)_ | Prod | Sì (percorso riservato) | Percorso remoto del file feed. |
 | `REALSMART_WEBHOOK_SECRET` | _(vuoto)_ | Prod | Sì | Segreto per verificare la firma dei webhook RealSmart (rivalidazione on-demand). |
-| `CONTACT_FORM_MODE` | `whatsapp` | Prod, Prev | No | Destinazione form contatti: `whatsapp` \| `email` (vedi `docs/forms-crm-notes.md`). |
-| `CONTACT_EMAIL_TO` | _(vuoto)_ | Prod | No (ma privato) | Destinatario lead quando `CONTACT_FORM_MODE=email`. |
+| ~~`CONTACT_FORM_MODE`~~ | — | — | — | **Non si legge più.** Non guidava alcun comportamento e decideva solo il colore della riga «Lead» nella dashboard: senza Google Sheet segnava verde «Solo WhatsApp» mentre l'email non veniva guardata. Impostarla oggi non ha effetto. |
+| ~~`CONTACT_EMAIL_TO`~~ | — | — | — | **Non si legge più**, insieme alla riga sopra. Il destinatario della notifica lead è `LEAD_EMAIL_TO`. |
 | `TRUSTINDEX_WIDGET_URL` | _(vuoto)_ | Prod, Prev | No | URL/script del widget recensioni Trustindex (`docs/reviews-integration.md`). |
 | `INSTAGRAM_WIDGET_URL` | _(vuoto)_ | Prod, Prev | No | URL/embed del feed Instagram. |
 
