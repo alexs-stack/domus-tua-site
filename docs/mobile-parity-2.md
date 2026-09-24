@@ -1,5 +1,3 @@
-> **Storia — superato dalla rivista bianca del 2026-09-10.** Audit di Fase 0 di un'onda che portava sul telefono effetti che il redesign ha tolto: le Fioriture, il cursore, `TeamTrail`, `ReviewsWall`, il footer che si scopre, le transizioni di `PageTransition`. Le fasi successive non lo aggiornano più, e il suo prompt (`docs/mobile-parity-2-prompt.md`) non va eseguito. Per era-residence, che resta un riferimento vivo per la tecnica, vedi i riferimenti in `DESIGN.md` alla radice del repo.
-
 # Parità mobile 2 — «stessi effetti sul telefono»: audit di Fase 0
 
 > Onda «parità mobile 2», 2026-08-17, mandato in `docs/mobile-parity-2-prompt.md`.

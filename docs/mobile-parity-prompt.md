@@ -1,5 +1,3 @@
-> **Storia: non eseguire — superato dalla rivista bianca del 2026-09-10.** Questo prompt porta sul telefono i set piece e la coreografia di prima del redesign (fra gli altri `ReviewsWall`, `TeamTrail`, i fiori e il cursore, che non esistono più) e rende lettura obbligatoria `docs/effetti-reference.md` e `docs/wow-layer-plan.md`, superati anche loro. Una sessione che lo eseguisse prenderebbe per attuale una direzione che non lo è più. Il rimando a era-residence.com resta valido come riferimento per la tecnica, ma solo dentro il perimetro in cui è un riferimento vivo (Alberto, 2026-09-11 e 2026-09-13): il preloader con la maschera ad arco e la sua timeline d'ingresso, il logo rotante, il reveal dei testi per righe, lo scroller orizzontale pilotato dallo scroll con le parallasse interne. I fiori SVG che il prompt ne ricava, come le cupole e le transizioni di pagina, restano esclusi dalle direttive della cliente del 2026-09-10, e il mandato del prompt non vale più. Il sistema vivo è `DESIGN.md` alla radice del repo.
-
 # Prompt — Mobile Parity Wave (paste into a fresh Claude Code session)
 
 > Usage: open a new Claude Code session at the repo root and paste everything

@@ -1,5 +1,3 @@
-> **Chiuso; superato il 2026-09-10.** Le cinque tappe avviate il 2026-08-05 sono state eseguite (non resta nessuna casella aperta): questo non è più la fonte di verità sull'avanzamento. Il sistema visivo che le regole di ingaggio danno per esistente, `docs/DESIGN.md`, è superato dal redesign «rivista bianca»; quello vivo è `DESIGN.md` alla radice del repo. Col redesign sono spariti anche diversi oggetti del piano: `PageTransition` è ridotto a uno stub, `spinMarkBadge()` non esiste più, `Fioritura` e i fiori della sezione sulle prestazioni sono stati tolti, e la contro-rotazione della tappa 5 è superata dal cuore che ruota in senso orario (la cliente, 2026-09-10). Resta come storia, non come guida.
-
 # Sprint a cinque tappe — piano operativo
 
 > Unica fonte di verità sull'avanzamento. Aggiornata dopo OGNI passo completato:

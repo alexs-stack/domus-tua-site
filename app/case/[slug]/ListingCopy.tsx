@@ -75,11 +75,16 @@ function Runs({ runs }: { runs: Run[] }) {
  */
 function Item({ children }: { children: string }) {
   return (
-    <li className="flex items-start gap-3 text-body text-ink">
+    <li className="flex items-start gap-3 text-[1rem] leading-[1.6] text-ink">
       {/* Stesso punto elenco del resto della scheda (blocco D.O.C., "Con te in ogni
           passo"). `mt` ottico, non centrato: il segno deve stare sulla prima riga del
           testo, non a metà della voce quando questa va a capo. */}
-      <SegnoTick className="mt-2 h-4 w-4 shrink-0 text-red" />
+      <span
+        aria-hidden
+        className="mt-[0.3rem] flex h-[1.2rem] w-[1.2rem] shrink-0 items-center justify-center rounded-full bg-red-soft text-red"
+      >
+        <SegnoTick className="h-2.5 w-2.5" />
+      </span>
       <span>{children}</span>
     </li>
   );
@@ -99,7 +104,7 @@ function ListBlock({ block }: { block: Extract<ListingBlock, { kind: "list" }> }
   return (
     <div className="max-w-[39rem]">
       {hasLead && (
-        <p id={leadId} className="mb-4 text-body text-graphite text-pretty">
+        <p id={leadId} className="mb-3.5 text-[1.0625rem] leading-[1.75] text-graphite text-pretty">
           <Runs runs={block.lead} />
         </p>
       )}
@@ -107,7 +112,7 @@ function ListBlock({ block }: { block: Extract<ListingBlock, { kind: "list" }> }
           lascerebbero metà riga vuota per tutta l'altezza del pannello. */}
       <ul
         aria-labelledby={hasLead ? leadId : undefined}
-        className="grid gap-x-8 gap-y-3 border-t border-b border-line py-5 sm:grid-cols-2 sm:py-6"
+        className="grid gap-x-8 gap-y-3 rounded-[1.5rem] border border-line bg-cream/60 px-6 py-5 sm:grid-cols-2 sm:px-7 sm:py-6"
       >
         {block.items.map((item, i) => (
           <Item key={i}>{item}</Item>
@@ -149,7 +154,7 @@ function Block({ block }: { block: ListingBlock }) {
     case "closing":
       return (
         <Reveal as="div" className="max-w-[30rem]">
-          <span aria-hidden className="mb-7 block border-t border-line" />
+          <span aria-hidden className="hairline mb-7 block" />
           <p className="font-display text-[1.2rem] font-medium leading-[1.5] tracking-[-0.01em] text-ink balance sm:text-[1.35rem]">
             <Runs runs={block.runs} />
           </p>

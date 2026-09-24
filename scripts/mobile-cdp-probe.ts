@@ -17,7 +17,7 @@
  * Ogni run è un context nuovo: cache vuota, sessionStorage vuoto.
  *   · a freddo (`cold`): nessuna chiave → l'intro suona (su OGNI rotta, non solo la home:
  *     PreloaderShell/Preloader stanno nel root layout);
- *   · a caldo (`warm`): `sessionStorage['dt-intro-seen']='q'` (INTRO_QUIET, spec §6.2) via addInitScript → nessun sipario.
+ *   · a caldo (`warm`): `sessionStorage['dt-intro-seen']='1'` via addInitScript → niente intro.
  *
  * Cosa misura, per run (poi mediana per metrica su `--runs`):
  *   · FCP e LCP con il NOME dell'elemento LCP (tag#id.classi + src o testo abbreviato):
@@ -195,7 +195,7 @@ async function measure(browser: Browser, route: string, mode: Mode, run: number)
     if (mode === "warm") {
       await page.addInitScript(() => {
         try {
-          sessionStorage.setItem("dt-intro-seen", "q");
+          sessionStorage.setItem("dt-intro-seen", "1");
         } catch {}
       });
     }

@@ -1,9 +1,8 @@
 # Modalità demo / presentazione cliente
 
 > Documento **interno sersan**. Come configurare il sito per una presentazione cliente onesta e
-> senza distrazioni. Vedi anche `docs/vercel-live-checklist.md` (verifica ambiente). Il talk-track
-> `docs/client-review-script.md` descrive la home di prima della rivista bianca ed è superato dal
-> 2026-09-10.
+> senza distrazioni. Vedi anche `docs/client-review-script.md` (talk-track) e
+> `docs/vercel-live-checklist.md` (verifica ambiente).
 
 ## Configurazione consigliata per la PRIMA presentazione
 

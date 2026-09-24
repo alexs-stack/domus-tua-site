@@ -39,7 +39,7 @@ import { setOverlay } from "../lib/ui/overlays";
 import Link from "next/link";
 import { useLocale } from "./i18n/LocaleProvider";
 import { isIntroRunning, hasIntroFired } from "./motion/Preloader";
-import { afterCurtain } from "../lib/motion/fold";
+import { INTRO_EVENT, HERO_REST_MS } from "../lib/motion/intro-constants";
 import { readConsent, writeConsent, CONSENT_REOPEN_EVENT, type ConsentValue } from "../lib/consent";
 
 const copy = {
@@ -116,25 +116,19 @@ export default function CookieConsent() {
       setShow(true);
       return;
     }
-    // LA RETE È QUELLA DI TUTTI: afterCurtain (fold.ts), E NON RIAPRE UNA SCELTA FATTA.
-    // Audit del 21 settembre 2026 (blocco 23), difetto V01: la rete restava armata
-    // dopo l'handoff e scattava a HERO_REST_MS dal mount, cioè DOPO la scelta di chi
-    // cliccava «Solo necessari» entro ~1,3 s dalla fine della porta corta — il
-    // banner tornava col cookie già scritto (sonda probe-cookie2.mjs: mutazioni
-    // [1136 consent=true] [2622 …]). Il primo giro rifaceva a mano ciò che fold.ts
-    // espone già: `afterCurtain` ascolta INTRO_EVENT una volta, arma la rete col
-    // ritardo di heroRestMs (film, porta corta o a caldo: intro-constants.ts, e il
-    // test «le reti a valle scelgono il ritardo con heroRestMs») e all'handoff la
-    // cancella. Il secondo giro (revisori del 21 settembre) l'ha rimesso in fila:
-    // qui c'era HERO_REST_MS secco, l'orologio del film anche sulla corta (2,25 s
-    // in più a evento perso). Il callback rilegge il cookie: se davvero l'evento è
-    // andato perso e la rete scatta dopo una scelta, la scelta resta chiusa
-    // (e2e/cookie-banner.spec.ts).
-    return afterCurtain(() => {
-      if (readConsent() !== null) return;
+    const onIntroDone = () => {
       html.setAttribute("data-consent", "");
       setShow(true);
-    });
+    };
+    window.addEventListener(INTRO_EVENT, onIntroDone, { once: true });
+    // Safety: se l'evento va perso, il banner appare comunque — HERO_REST_MS
+    // (intro-constants.ts: dive + 200 ms, contato da qui), lo stesso orologio
+    // dell'hero. Il handoff vero arriva da Preloader.tsx a INTRO_T.dive.
+    const safety = window.setTimeout(onIntroDone, HERO_REST_MS);
+    return () => {
+      window.removeEventListener(INTRO_EVENT, onIntroDone);
+      window.clearTimeout(safety);
+    };
   }, []);
 
   // Riapertura: un link "Preferenze cookie" (footer/Cookie Policy) rimostra il banner anche
@@ -200,7 +194,7 @@ export default function CookieConsent() {
     <div
       role="region"
       aria-labelledby="cookie-consent-title"
-      className="dt-consent fixed inset-x-3 z-[60] mx-auto max-w-2xl border border-ink! bg-paper p-4 sm:inset-x-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:p-5"
+      className="dt-consent fixed inset-x-3 z-[60] mx-auto max-w-2xl rounded-[1.5rem] border border-line bg-paper/95 p-4 shadow-[0_30px_70px_-30px_rgba(26,24,22,0.5)] backdrop-blur-xl sm:inset-x-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:p-5"
       // Era `bottom-3` e basta: con `viewportFit: "cover"` (layout.tsx) quei 12px si
       // misurano ora dal bordo FISICO dello schermo, cioè il banner finirebbe a
       // cavallo della barra gesti dell'iPhone — proprio sopra i due bottoni. Stessa
@@ -215,7 +209,7 @@ export default function CookieConsent() {
         <div className="flex items-start gap-3">
           {/* Monogramma ufficiale, non un segno ridisegnato. Vettoriale. */}
           <MarkDomus className="mt-0.5 hidden h-7 w-auto shrink-0 sm:block" />
-          <p id="cookie-consent-desc" className="text-ui leading-relaxed text-graphite">
+          <p id="cookie-consent-desc" className="text-[0.86rem] leading-relaxed text-graphite">
             {c.text}{" "}
             <Link href="/cookie" className="font-semibold text-red underline underline-offset-2 hover:text-red-dark">
               {c.policy}
@@ -239,6 +233,7 @@ export default function CookieConsent() {
             className="dt-btn dt-btn--cta dt-btn--cta-solid dt-btn--sm"
           >
             <span className="dt-btn__label">{c.accept}</span>
+            <span className="dt-btn__fill" aria-hidden />
           </button>
         </div>
       </div>

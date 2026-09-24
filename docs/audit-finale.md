@@ -1,5 +1,3 @@
-> **In parte storia (2026-09-13).** Audit del 2026-08-01 (`72f7063`), scritto prima del ritiro di Fraunces e della rivista bianca; dopo, il 2026-08-06 (`1eb947b`), è cambiato solo il link del punto 4 del §5, che oggi punta a `da-chiedere-alla-cliente.md`. Non valgono più: la voce 6 del §1, «8 voci, tutte in chiaro nella barra desktop», perché oggi la testata è una riga sola con sei voci primarie e le altre tre (Servizi, Recensioni, Lavora con noi) stanno nel pannello del telefono e nel footer (`nav` in `app/lib/site.ts`); il punto 1 del §5, e i rimandi del §1 e del §2 a una «decisione sulla tipografia», perché Fraunces è stato ritirato il 2026-08-03 (`eb3f1a8`) e oggi i font sono Playfair Display, Plus Jakarta Sans e Pinyon Script (`app/layout.tsx`); le prove su `/case` del §3, che oggi reindirizza a `/acquista`. I numeri di performance sono di quel giorno: per quelli successivi vedi la nota in testa a `docs/performance.md`. Il resto descrive il sito di quel giorno.
-
 # Audit finale — Domus Tua
 
 Verifica indipendente del sito, fatta **guardandolo funzionare**, non leggendo i report delle PR

@@ -3,7 +3,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    RAILPROGRESS — l'invito dei nastri touch.
 
-   PERCHÉ ESISTE. Sotto la soglia dei corridoi (MQ.belowCorridor, D22) i due nastri del sito (.dt-rail di
+   PERCHÉ ESISTE. Sotto i 1024 i due nastri del sito (.dt-rail di
    HorizontalRail e .dt-socialrail di Social) sono uno scroll orizzontale
    NATIVO: comanda il dito, ed è la scelta giusta — pilotare una fila
    orizzontale dallo scroll verticale toglierebbe alla gente il gesto che si
@@ -29,9 +29,8 @@
    barra di scorrimento — spegnerlo toglierebbe informazione a chi ha chiesto
    meno movimento, non movimento.
 
-   DOVE NON ESISTE. Con MQ.corridor (D22: 1024 px di larghezza, 640 di
-   altezza, motion ok) il nastro è pilotato da GSAP e non ha nulla fuori
-   campo da dichiarare. Con JS spento non esiste affatto: la pagina
+   DOVE NON ESISTE. Da 1024 in su il nastro è pilotato da GSAP e non ha nulla
+   fuori campo da dichiarare. Con JS spento non esiste affatto: la pagina
    resta completa senza, perché è un'affordance dello scroll, non contenuto.
    Ed è `aria-hidden`, perché duplica in figura un'informazione che la
    posizione di scroll già porta con sé: a chi legge a schermo letto sarebbe
@@ -71,7 +70,7 @@ export default function RailProgress({
   // di parità). Qui il prezzo dell'errore sarebbe un indicatore appeso sotto
   // un nastro che ormai è di GSAP.
   useEffect(() => {
-    const mql = window.matchMedia(MQ.belowCorridor);
+    const mql = window.matchMedia(MQ.belowLg);
     const sync = () => setTouchRail(mql.matches);
     sync();
     mql.addEventListener("change", sync);
@@ -162,10 +161,8 @@ export default function RailProgress({
       // da invisibile a visibile all'idratazione non sposta una riga. Con JS
       // spento `touchRail` non diventa mai vero e la pista non compare — un
       // indicatore di posizione senza nessuno che lo aggiorni sarebbe un
-      // ornamento che mente. Con MQ.corridor comanda GSAP e l'indicatore non
-      // serve; sotto la soglia (anche a 1440×600, D22) la rotaia è nativa e
-      // lo mostra `touchRail`, senza una classe `lg:` che lo spenga.
-      className={`pointer-events-none mx-auto h-[2px] w-16 overflow-hidden rounded-full bg-ink/15 transition-opacity duration-500 data-[flat]:opacity-0 motion-reduce:transition-none ${
+      // ornamento che mente. Da lg in su comanda GSAP e l'indicatore non serve.
+      className={`pointer-events-none mx-auto h-[2px] w-16 overflow-hidden rounded-full bg-ink/15 transition-opacity duration-500 data-[flat]:opacity-0 motion-reduce:transition-none lg:invisible ${
         touchRail ? "" : "invisible"
       } ${className}`}
     >

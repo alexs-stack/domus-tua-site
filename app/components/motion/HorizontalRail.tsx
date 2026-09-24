@@ -19,21 +19,18 @@
    centro dello schermo e la corsa si prende tutta la sua strada davanti agli
    occhi prima che la pagina riprenda a scendere (2026-08-09, direttiva
    cliente: «l'effetto del carosello vorrei durasse un po' di più»).
-   Sticky su un corridoio alto, MAI il pin di GSAP: il pin scrive
-   `position: fixed` e uno spacer sul contenitore, e litiga con lo stacking
-   di main e footer (era il male dei vecchi corridoi, tolti il 2026-09-10:
-   questa rotaia è l'unica rimasta).
+   Sticky su un corridoio alto, MAI il pin di GSAP: è la grammatica già
+   collaudata da dt-horizon / dt-wall / dt-paths / dt-tt, e la ragione è
+   scritta lì — il pin litiga con lo stacking di main/footer-uncover.
 
    PROGRESSIVE ENHANCEMENT. Il default è uno scroll orizzontale NATIVO — sul
    touch trascinare è il gesto che la gente si aspetta, e pilotarlo dallo
-   scroll verticale glielo toglierebbe. Solo con MQ.corridor (D22: 1024 px di
-   larghezza, 640 di altezza, motion ok) il JS mette [data-on], spegne lo
-   scroll nativo e passa il nastro a GSAP. Col corridoio (`runway`) il
-   wrapper porta data-corridor (A19), che corridors.spec.ts conta.
+   scroll verticale glielo toglierebbe. Solo da 1024px in su e con motion ok
+   il JS mette [data-on], spegne lo scroll nativo e passa il nastro a GSAP.
    Senza JS resta tutto visibile e trascinabile, e il corridoio non esiste.
    Il ramo mobile quindi ESISTE GIÀ ed è in CSS: sotto la soglia comanda il
    dito, con l'aggancio opt-in di `snapMobile` (".dt-rail[data-snap]", che
-   Services usa). Chi aggiunge coreografia non porti [data-on] sotto MQ.corridor (D22):
+   Services usa). Chi aggiunge coreografia non porti [data-on] sotto 1024:
    ".dt-rail[data-on]" mette `overflow: hidden; scroll-snap-type: none` e
    spegnerebbe insieme il trascinamento e lo snap.
 
@@ -55,42 +52,31 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { useRef } from "react";
-import type { ChapterId } from "../../lib/motion/chapters";
 import { gsap, ScrollTrigger, useGSAP, MQ } from "../../lib/motion/gsap";
 import RailProgress from "./RailProgress";
-import { getLenis } from "./SmoothScroll";
 
 export default function HorizontalRail({
   children,
   className = "",
   trackClassName = "",
-  corridor,
   /** quanto della corsa consumare: 1 = tutta l'eccedenza */
   speed = 1,
   /** aggancio allo snap nella versione touch (opt-in: su tessere di larghezza
       disuguale l'aggancio obbligatorio a volte ruba l'inerzia) */
   snapMobile = false,
+  /** etichetta del cursore custom mentre il nastro è sotto il puntatore */
+  cursor = "trascina",
   /** corridoio in svh: quanto scroll il nastro si tiene, parcheggiato al
       centro dello schermo, per compiere la sua corsa. 0 = nessun corridoio. */
   runway = 0,
-  /** Scrub del track e dei pan. Il Team passa 0,7: due capitoli della home non
-      condividono lo scrub e 0,6 è del film delle stelle (A20 di Alberto, spec
-      2026-09-13 §3.1 e §3.16). */
-  scrub = 0.6,
-  /** Ease del track e dei pan, la stessa per i due piani così le velocità
-      restano proporzionali. Il Team passa "dtRail" (spec §3.16). */
-  ease = "none",
 }: {
   children: React.ReactNode;
   className?: string;
   trackClassName?: string;
   speed?: number;
   snapMobile?: boolean;
+  cursor?: string;
   runway?: number;
-  /** Nome del corridoio in chapters.ts (A19): data-corridor sul wrapper, solo con `runway`. */
-  corridor?: ChapterId;
-  scrub?: number;
-  ease?: string;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const railRef = useRef<HTMLDivElement | null>(null);
@@ -103,9 +89,7 @@ export default function HorizontalRail({
       if (!wrap || !rail || !track) return;
 
       const mm = gsap.matchMedia();
-      // Gate MQ.corridor (D22): 1024 px di larghezza, 640 di altezza, motion
-      // ok, con o senza corridoio; sotto, scroll nativo con snap.
-      mm.add(MQ.corridor, () => {
+      mm.add(`${MQ.motionOk} and ${MQ.lg}`, () => {
         rail.setAttribute("data-on", "");
 
         // Le due misure del corridoio, rifatte a ogni refresh: l'altezza vera
@@ -133,21 +117,21 @@ export default function HorizontalRail({
               trigger: wrap,
               start: () => `top ${top}px`,
               end: () => `bottom ${top + rail.offsetHeight}px`,
-              scrub,
+              scrub: 0.6,
               invalidateOnRefresh: true,
             }
           : {
               trigger: rail,
               start: "top 96%",
               end: "bottom 4%",
-              scrub,
+              scrub: 0.6,
               invalidateOnRefresh: true,
             };
 
         // Eccedenza ricalcolata a ogni refresh: le larghezze sono in vw, e una
         // misura congelata al primo layout diventa un bug al primo resize.
         const overflow = () => Math.max(0, track.scrollWidth - rail.clientWidth) * speed;
-        const move = gsap.fromTo(track, { x: 0 }, { x: () => -overflow(), ease, scrollTrigger: st });
+        const move = gsap.fromTo(track, { x: 0 }, { x: () => -overflow(), ease: "none", scrollTrigger: st });
 
         const pans = gsap.utils.toArray<HTMLElement>(rail.querySelectorAll(".dt-rail_pan"));
         const pan = pans.length
@@ -156,57 +140,13 @@ export default function HorizontalRail({
               { xPercent: (i, el) => -Number((el as HTMLElement).dataset.depth ?? 6) },
               {
                 xPercent: (i, el) => Number((el as HTMLElement).dataset.depth ?? 6),
-                ease,
+                ease: "none",
                 scrollTrigger: st,
               }
             )
           : null;
 
-        // LA RETE DI TASTIERA (spec 2026-09-13 §3.16, A20 di Alberto). Con
-        // [data-on] lo scroll nativo della rotaia resta a 0: GSAP scrive `x` e
-        // il fuoco da tastiera su una tessera porta la pagina alla quota in cui
-        // il track la mostra, progresso p con ease(p) = scarto / eccedenza
-        // trovato per bisezione, poi lo scrub chiuso subito. Scatta solo col
-        // fuoco visibile, come la rete dei corridoi (correzione bloccante 3 di
-        // homeC, spec §3.18): un clic del mouse su una tessera, che ha
-        // tabIndex 0, la mette a fuoco senza spostare la pagina. Il rAF lascia
-        // passare prima lo scroll-into-view che il browser fa dopo `focusin`.
-        const zeroLeft = () => {
-          if (rail.scrollLeft !== 0) rail.scrollLeft = 0;
-        };
-        const onFocus = (e: FocusEvent) => {
-          const t = e.target instanceof Element ? e.target : null;
-          const tile = t?.closest<HTMLElement>(".dt-rail_track > *");
-          if (!parked || !tile || !t?.matches(":focus-visible")) return;
-          requestAnimationFrame(() => {
-            const trig = move.scrollTrigger;
-            if (!trig) return;
-            zeroLeft();
-            const over = overflow();
-            const shift = tile.getBoundingClientRect().left - track.getBoundingClientRect().left;
-            const target = over > 0 ? Math.min(1, Math.max(0, shift / over)) : 0;
-            const curve = gsap.parseEase(ease);
-            let lo = 0;
-            let hi = 1;
-            for (let i = 0; i < 24; i++) {
-              const mid = (lo + hi) / 2;
-              if (curve(mid) < target) lo = mid;
-              else hi = mid;
-            }
-            const y = trig.start + hi * (trig.end - trig.start);
-            const lenis = getLenis();
-            if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
-            else window.scrollTo({ top: y, behavior: "instant" });
-            ScrollTrigger.update();
-            trig.getTween()?.progress(1);
-          });
-        };
-        rail.addEventListener("scroll", zeroLeft);
-        rail.addEventListener("focusin", onFocus);
-
         return () => {
-          rail.removeEventListener("scroll", zeroLeft);
-          rail.removeEventListener("focusin", onFocus);
           rail.removeAttribute("data-on");
           if (parked) {
             ScrollTrigger.removeEventListener("refreshInit", size);
@@ -221,29 +161,28 @@ export default function HorizontalRail({
         };
       });
     },
-    { scope: wrapRef, dependencies: [speed, runway, scrub, ease], revertOnUpdate: true }
+    { scope: wrapRef, dependencies: [speed, runway], revertOnUpdate: true }
   );
 
   return (
     <div
       ref={wrapRef}
       className="dt-railway"
-      data-corridor={runway > 0 ? corridor : undefined}
       style={runway > 0 ? ({ "--rail-run": runway } as React.CSSProperties) : undefined}
     >
       <div
         ref={railRef}
         className={`dt-rail ${className}`}
         data-snap={snapMobile ? "" : undefined}
+        data-cursor={cursor}
       >
         <div className={`dt-rail_track ${trackClassName}`}>{children}</div>
       </div>
       {/* In flusso, non in sovrimpressione: il corridoio non tiene aria di
           riserva sotto il nastro (la tiene sopra e sotto la sezione), quindi
-          l'indicatore la sua riga se la prende. Si vede solo sotto la soglia
-          dei corridoi (MQ.belowCorridor, D22), dove ".dt-railway" è un div
-          qualunque: a [data-on] la sua altezza è dichiarata in CSS e nessun
-          figlio in più la sposta. */}
+          l'indicatore la sua riga se la prende. Esiste solo sotto i 1024,
+          dove ".dt-railway" è un div qualunque: a [data-on] la sua altezza è
+          dichiarata in CSS e nessun figlio in più la sposta. */}
       <RailProgress scroller={railRef} className="mt-6" />
     </div>
   );

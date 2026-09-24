@@ -40,9 +40,6 @@ export function readConsent(): ConsentValue | null {
 /** Registra la scelta e notifica i gate montati nella pagina. */
 export function writeConsent(value: ConsentValue): void {
   document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${MAX_AGE_SECONDS}; samesite=lax`;
-  // L'attributo che il boot script del layout mette prima del paint (la riserva del cancello di
-  // Trustindex in Voci, globals.css): segue la scelta nuova, o una revoca terrebbe la riserva.
-  document.documentElement.toggleAttribute("data-consent-accepted", value === "accepted");
   window.dispatchEvent(new CustomEvent<ConsentValue>(CONSENT_EVENT, { detail: value }));
 }
 

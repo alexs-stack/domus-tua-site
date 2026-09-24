@@ -1,63 +1,60 @@
 import Reveal from "./Reveal";
-import RevealGroup from "./motion/RevealGroup";
-import SplitTitle from "./motion/SplitTitle";
-import Lead from "./motion/Lead";
+import { SegnoDomus } from "./BrandMotif";
+import DrawOnScroll from "./motion/DrawOnScroll";
 
 export default function Highlights({
   eyebrow,
   title,
   intro,
   items,
+  tone = "cream",
 }: {
   eyebrow: string;
   title: string;
   intro?: string;
   items: { title: string; copy: string }[];
-  /** Conservata per i chiamanti: il fondo è uno solo (avorio) dal 2026-09-10. */
   tone?: "paper" | "cream";
 }) {
   return (
-    <section className="dt-chapter bg-cream">
-      <div className="dt-row">
-        <RevealGroup>
-          <Reveal>
-            <span className="eyebrow">{eyebrow}</span>
-          </Reveal>
-          {/* Nessuna taglia propria: sotto i 640 px `text-d1` segue la larghezza
-              per OGNI testa di capitolo (globals.css, «La scala dei capitoli sotto
-              i 640 px») — audit del 21 settembre 2026 (blocco 23), difetto V04: a
-              390 px «accompagnamento.» (/metodo, 413 px) non entrava nei 351 px
-              della colonna e finiva fuori dallo schermo di 42 px (70 a 360). Il
-              primo giro metteva qui una classe `dt-d1-lunga`; il secondo l'ha
-              tolta perché sulla stessa pagina lasciava teste dello stesso rango a
-              due taglie (regola della colonna, DESIGN.md). */}
-          <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+    <section className={tone === "cream" ? "bg-cream" : "bg-paper"}>
+      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+        <Reveal className="max-w-2xl">
+          <span className="eyebrow">{eyebrow}</span>
+          <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
             {title}
-          </SplitTitle>
-          {intro && <Lead className="mt-8">{intro}</Lead>}
-        </RevealGroup>
+          </h2>
+          {intro && <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-stone">{intro}</p>}
+        </Reveal>
 
         {/* Lista editoriale numerata: righe asimmetriche separate da hairline,
             l'indice tabellare in rosso è l'unico accento (no card identiche). */}
-        <ol className="mt-16 border-t border-line">
+        <ol className="mt-14 border-t border-line sm:mt-16">
           {items.map((it, i) => (
-            <RevealGroup
+            <Reveal
               as="li"
               key={it.title}
+              delay={i * 45}
               className="group grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-line py-8 sm:grid-cols-[7rem_1fr] sm:gap-x-10 sm:py-10 md:grid-cols-[10rem_1fr] md:gap-x-16"
             >
-              <Reveal as="span" className="tnum font-display text-d2 text-red">
-                {String(i + 1).padStart(2, "0")}
-              </Reveal>
-              <div className="max-w-[60ch] pt-1">
-                <SplitTitle as="h3" className="font-display text-d3">
-                  {it.title}
-                </SplitTitle>
-                <Reveal>
-                  <p className="mt-4 text-body text-graphite">{it.copy}</p>
-                </Reveal>
+              <div className="flex flex-col items-start gap-3">
+                {/* Il segno si disegna all'ingresso della riga (IO per-riga = timing naturale). */}
+                <DrawOnScroll duration={0.8}>
+                  <SegnoDomus
+                    className="h-4 w-11 opacity-70 transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:opacity-100"
+                    embrace={false}
+                  />
+                </DrawOnScroll>
+                <span className="tnum font-display text-3xl font-medium leading-none text-red sm:text-4xl md:text-5xl">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
               </div>
-            </RevealGroup>
+              <div className="max-w-xl pt-0.5">
+                <h3 className="font-display text-xl font-medium leading-snug tracking-tight text-ink sm:text-2xl">
+                  {it.title}
+                </h3>
+                <p className="mt-2.5 text-[0.98rem] leading-relaxed text-stone">{it.copy}</p>
+              </div>
+            </Reveal>
           ))}
         </ol>
       </div>

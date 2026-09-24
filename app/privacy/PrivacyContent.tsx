@@ -5,7 +5,6 @@
 import type { ReactNode } from "react";
 import { useLocale } from "../components/i18n/LocaleProvider";
 import PageHero from "../components/PageHero";
-import SplitTitle from "../components/motion/SplitTitle";
 import { site } from "../lib/site";
 
 type Block = {
@@ -406,12 +405,7 @@ export default function PrivacyContent() {
 
   return (
     <main className="flex-1">
-      {/* L'unica testa senza una foto della villa (D63, 18 settembre 2026): il fermo del video tour
-          destinato a questa pagina non esiste, e ognuna delle sette foto della villa sta già in
-          un'altra testa, che spec §7.4 vuole tutte diverse. La banda tiene quindi la foto di
-          repertorio, centrata come le altre pagine senza `objectPosition`. */}
       <PageHero
-        rotta="/privacy"
         eyebrow={c.hero.eyebrow}
         title={c.hero.title()}
         subcopy={c.hero.subcopy}
@@ -421,20 +415,24 @@ export default function PrivacyContent() {
         secondary={{ label: c.hero.secondaryLabel, href: "/cookie" }}
       />
 
-      <section className="dt-chapter bg-cream">
-        <div className="dt-row max-w-[calc(820px+16vw)]">
-          <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.lastUpdated}</p>
+      <section className="bg-paper">
+        <div className="mx-auto max-w-[820px] px-5 py-24 sm:px-8 sm:py-32">
+          <p className="text-[0.82rem] uppercase tracking-[0.16em] text-stone">
+            {c.lastUpdated}
+          </p>
 
           {/* ⚠️ Avviso interno: testo da validare con un legale prima del go-live. */}
-          <div className="mt-6 border-t border-b border-line py-5 text-body text-graphite">{c.notice}</div>
+          <div className="mt-6 rounded-2xl border border-line bg-cream-deep px-5 py-4 text-sm leading-relaxed text-graphite">
+            {c.notice}
+          </div>
 
           <div className="mt-12 flex flex-col gap-12">
             {c.blocks.map((block) => (
               <div key={block.title}>
-                <SplitTitle as="h2" className="font-display text-d3">
+                <h2 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink balance sm:text-[1.7rem]">
                   {block.title}
-                </SplitTitle>
-                <div className="mt-5 flex flex-col gap-5 text-body text-graphite">
+                </h2>
+                <div className="mt-4 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
                   {block.body.map((p, i) => (
                     <p key={i}>{p}</p>
                   ))}

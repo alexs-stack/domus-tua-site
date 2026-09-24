@@ -1,94 +1,18 @@
-import type { ReactNode } from "react";
-import tinte from "../lib/motion/tinte.json";
-import { cieloH } from "../lib/motion/testa";
+"use client";
+
+import Image from "next/image";
+import { useRef, type ReactNode } from "react";
+import { SegnoDomusBadge } from "./BrandMotif";
 import { Cta } from "./primitives/Cta";
-import Reveal from "./Reveal";
-import Lead from "./motion/Lead";
-import PageHeroTesta from "./motion/PageHeroTesta";
-import RevealGroup from "./motion/RevealGroup";
-import ScriptWord from "./motion/ScriptWord";
-import SplitTitle from "./motion/SplitTitle";
+import Parallax from "./motion/Parallax";
+import TextLines from "./motion/TextLines";
+import { isTransitionCovering } from "./motion/PageTransition";
+import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 
 type CTA = { label: string; href: string };
 
-/* La taglia segue la COLONNA, non la gerarchia (DESIGN.md, «regola della
-   colonna»): finché il titolo possiede tutta la riga resta la misura del
-   riferimento (8vw ≈ 115 px a 1440), ma da lg vive nella colonna di sinistra e
-   scende a 4.8vw — a 115 px una parola sola come «VALORIZZARE,» (12 segni)
-   sfonderebbe la colonna. `16ch` tiene corte le righe sugli schermi larghi.
-   Gli span dei chiamanti (`text-red-soft`, nato per l'hero scuro) sull'avorio
-   non si leggono (#fbeaea): il titolo è di un colore solo, l'inchiostro (D184,
-   A46). */
-const TITLE =
-  "mx-auto max-w-[18ch] font-display text-[clamp(3rem,9vw,9rem)] leading-[0.92] [&_span]:text-inherit lg:text-[clamp(3.5rem,7vw,8rem)]";
-
-/* La riga dei tre punti sotto la foto: la griglia di sempre (`dt-row`), centrata
-   come il blocco. */
-const GRIGLIA = "dt-row";
-
-/* «LA TESTA DI ERA» (A38 di Alberto, 20 settembre 2026; brief T, D172-D198):
-   «quando entri nella foto a schermo intero, la foto stessa diventa lo sfondo,
-   e le scritte sopra». Il riferimento è «Perfect sea views» di era-residence.
-   Questo file non ha hook né "use client" (spec §5.1: «PageHero resta server»);
-   lo importano gli undici *Content.tsx, che sono client, e PageHeroTesta
-   (client) riceve i figli React così come li compone.
-
-   Un ramo solo (D175): la carta è il primo pixel della pagina, sotto la testata
-   trasparente (PageHeroTesta), e in cima, nella griglia, stanno occhiello, H1,
-   calligrafia, lead e i due comandi; poi la foto alta, poi i tre punti. Le nove
-   rotte e i due legali seguono lo stesso passo: lo dice `tinte.json` per rotta,
-   con la foto, la sorgente, le due inquadrature (D180: `lg` e `sotto`) e, da
-   A46, il cielo. Sul telefono la stessa testa, colonna unica (D177).
-
-   IL CIELO MASCHERATO (A46 di Alberto, 21 set. 2026, sera: «su eraresidence
-   questa foto che usa come background alta ha il cielo mascherato, è no bg: ecco
-   perché sembra un tutt'uno il cielo con il colore dello sfondo del sito.
-   Dobbiamo fare la stessa cosa nel nostro sito, dove ci sono le immagini così
-   alte»). Le sette teste col cielo montano il WebP con l'alpha
-   (`tinta.cielo.file`, scripts/media/cielo.mjs) al posto del JPEG: il cielo è
-   trasparente e la villa posa sulla carta. Le scritte, che con A38/A40 stavano
-   «nel cielo» in bianco nudo, tornano nell'inchiostro della rivista — occhiello
-   rosso, H1 `text-ink`, lead grafite, corsivo rosso, bottone rosso pieno, link
-   fantasma inchiostro (`ghost`, non più `ghost-dark`) — e stanno SOPRA il
-   soggetto, mai sopra la foto: il bianco nudo valeva per il cielo fotografato,
-   che non c'è più, e la deroga a WCAG 1.4.3 è chiusa (h1 e lead reggono 4,5:1
-   sulla carta, e2e/a11y.spec.ts). Regola unica per le undici teste: dove la
-   foto non ha cielo (i due attici, i due legali, la tenda di /open-domus) il
-   blocco sta comunque sull'avorio e la foto comincia sotto i comandi. Le classi
-   sono quelle di sempre, senza `!` (`.eyebrow`, `.lead`, `.script-word`): il
-   sito non ha più una scritta bianca fuori dal rosso e dalle immagini scure
-   (ink-media.ts). Niente velo, niente rettangolo, niente gradiente (C14). */
-
-/* LA TINTA DEL PLACEHOLDER, LE INQUADRATURE E IL CIELO NELL'HTML INIZIALE (D78,
-   D125, D180, D187, A46): `scripts/media/tinte.mjs` misura la banda alta della
-   foto e scrive `tinte.json`, committato; qui il server emette in uno <style>
-   nell'HTML iniziale la tinta (il fondo dello STRATO della foto prima del
-   decode, D125), le due inquadrature per fascia (`--dt-op-lg` / `--dt-op-sotto`:
-   il CSS sceglie `--dt-op`), il rapporto della foto (`--dt-testa-ar`) e la CIMA
-   del soggetto in frazione della larghezza (`--dt-cielo-h`: `cielo.cima` di
-   tinte.json, la prima riga in cui almeno il 5 % dei pixel è opaco — sopra c'è
-   solo cielo, cioè carta —, tradotta da `cieloH` di testa.ts): globals.css ne fa il margine negativo dello strato
-   (`calc(-100% * var(--dt-cielo-h))`), così il soggetto comincia al fondo del
-   blocco e nessuna lettera gli sta sopra; da lg lo spazio sopra la foto
-   comincia lì (globals.css `.dt-testa_sopra`, A48/A54). Non `cielo.linea` (la riga in cui il
-   soggetto riempie la larghezza): su /vendi la linea sta a 0,488 ma i cipressi
-   cominciano a 0,219 e il tetto a 0,33, e con la linea l'H1 posava sui cipressi
-   e il bottone sul tetto (misurato il 21 set. sul build a 1440×900). Vale senza
-   JS, con reduced-motion, senza fetch
-   e senza FOUC. Le BANDE DEL SEGNO (`tinta.segno`, 22 set. 2026, rilievi C01/G02 della
-   revisione di A46: le corse in cui la striscia del segno, 2-6 % della larghezza, è
-   opaca e scura) passano a PageHeroTesta come prop, che ne fa un marcatore `foto` per
-   corsa: sul cielo trasparente e sui muri bianchi il segno resta grafite. Lo <style> sta nell'albero del componente e non in <head> con
-   `precedence`, così cambia con la pagina a ogni navigazione client
-   (e2e/a28.spec.ts, «le tinte»). Dove il JSON dichiara `"avorio"` esce un
-   TOKEN, mai un quarto colore (D124): col cielo trasparente il fondo si vede
-   attraverso la foto per sempre, quindi il token è il FONDO PAGINA,
-   `--color-cream` (A46); sugli interni resta la tinta misurata, sul solo strato. */
-const tintaCss = (b: { hex: string }, avorio: string) => (b.hex === "avorio" ? avorio : b.hex);
-
 export default function PageHero({
   id,
-  rotta,
   eyebrow,
   title,
   subcopy,
@@ -97,191 +21,181 @@ export default function PageHero({
   primary,
   secondary,
   trust,
-  scriptWord,
-  tightTitle = false,
-  sopra,
-  cielo,
+  scrim = "default",
 }: {
-  /** Ancora della sezione (es. "top" per i link di risalita). */
+  /** Ancora della sezione (es. "top" per il nodo di risalita di ThreadNav). */
   id?: string;
-  /** La rotta, chiave di `tinte.json` (D78, D122). È il chiamante a dirla: PageHero
-      è server e un componente server non conosce il pathname. */
-  rotta: keyof typeof tinte;
   eyebrow: string;
   title: ReactNode;
   subcopy: string;
-  /** La fotografia sorgente: la stessa di `tinte.json` per la rotta (tinte.test.ts lo pretende); l'inquadratura
-      viene dal JSON (D180). Dove la rotta ha il cielo mascherato (A46) si monta `tinta.cielo.file`, il WebP con
-      l'alpha, e questa resta la sorgente di riserva. */
   image: string;
   alt: string;
   primary: CTA;
   secondary?: CTA;
   trust?: string[];
-  /** Parola-ornamento in corsivo, una per pagina (es. "Vendere"), rossa sull'avorio come nel resto
-      della rivista (A46). Le pagine legali non la passano. */
-  scriptWord?: string;
-  /** Pavimento dell'H1 più basso sotto lg (2,5rem invece di 3rem) per la LINGUA in cui
-      una parola sola del titolo non entra nei 324 px della colonna a 360 px:
-      «Besichtigung.» di /open-domus in tedesco (368 px a 48 px), «currículums.» di
-      /lavora-con-noi in spagnolo (356 px) e «Lebensläufe.» della stessa rotta in
-      tedesco (341-344 px secondo il sistema). Audit del 21 settembre 2026 (blocco 23),
-      difetto V04: taglia più piccola, mai testo nascosto né lettere spezzate. Il
-      chiamante lo passa legato alla lingua (`tightTitle={locale === "de"}`): il primo
-      giro lo passava secco e l'H1 scendeva a 40 px in tutte e cinque le lingue su due
-      rotte, così chi legge in italiano vedeva due testate di taglia diversa senza una
-      ragione visibile (revisori del 21 settembre). Le altre nove teste restano al
-      pavimento di 3rem in ogni lingua; scala-telefono.test.ts lo pinna. */
-  tightTitle?: boolean;
-  /** A48 (Alberto, 22 set. 2026: «portare le sezioni più sopra in modo che la foto sia semplicemente
-      lo sfondo della pagina»; la sera: «dobbiamo riempire più spazi possibili nelle foto alte a
-      schermo intero»): le sezioni che la pagina posa SULLA foto, dopo i tre punti. Da lg stanno
-      dentro lo strato subito sotto il blocco, in bianco con l'ombra attaccata alle lettere del sito
-      (A54: «metti una lieve ombra se non si legge, o fai le scritte più grandi»: ink-media.ts, la
-      stessa delle cinque stelle) e riempiono la foto verso il basso; sotto lg seguono la foto in
-      inchiostro (la 2:3 a 390 px è alta 585 px: non regge una sezione). Sezioni atomiche: o tutta
-      sulla foto o tutta sulla carta. */
-  sopra?: ReactNode;
-  /** A80 (Alberto, 23 set. 2026: «la ricerca intelligente non si vede … ingegnati e stupiscimi»): ciò che la pagina
-      posa NEL CIELO della foto, fra i comandi e il soggetto, sulla carta e in inchiostro (A46: le scritte sopra il
-      soggetto, mai sopra la foto). Lo strato ci sale sotto col suo cielo trasparente; sotto lg segue la foto. Dove
-      c'è, i tre punti stanno nel blocco sotto i comandi (vedi `puntiNelBlocco`). Oggi lo usa solo /acquista. */
-  cielo?: ReactNode;
+  /**
+   * Intensità dei gradienti di leggibilità.
+   *
+   * `default` va bene sulle foto scure o comunque scure dietro al testo. Su una
+   * foto CHIARA e affollata (interni luminosi, finestre) il titolo crema perde
+   * contrasto: lì serve `strong`, la stessa scelta già fatta sull'hero della home
+   * quando è passato a una foto luminosa. Non è un vezzo grafico: sotto il titolo
+   * deve restare leggibile, non "suggestivo".
+   */
+  scrim?: "default" | "strong";
 }) {
-  const tinta = tinte[rotta];
-  /* A80: dove la pagina apre il cielo, i tre punti non possono restare in bianco nello spazio sopra, che comincia
-     dove il cielo è ancora trasparente (bianco su #f6d9d0 = 1,33:1): stanno nel blocco sotto i comandi, in pietra.
-     Le altre teste restano come sono, finché Alberto non sceglie la regola per tutte (23 set.: «decido dopo»). */
-  const puntiNelBlocco = cielo != null;
-  const stile = (
-    <style>{`:root{--dt-tinta-alta:${tintaCss(tinta.alta, "var(--color-cream)")};--dt-op-lg:${tinta.objectPosition.lg};--dt-op-sotto:${tinta.objectPosition.sotto};--dt-testa-ar:${tinta.sorgente[0]} / ${tinta.sorgente[1]};--dt-testa-hw:${(tinta.sorgente[1] / tinta.sorgente[0]).toFixed(4)};--dt-cielo-h:${cieloH(tinta.cielo.cima, tinta.sorgente)}}`}</style>
+  const rootRef = useRef<HTMLElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  // Entrata standard delle pagine interne (atterraggio delle page transition):
+  // badge → subcopy → CTA → trust in coda alle righe del titolo (TextLines si
+  // coreografa da sé). Il blocco contiene link: opacity + reti di sicurezza.
+  // Uscita: leggera deriva verso l'alto in scrub, a ogni larghezza.
+  useGSAP(
+    () => {
+      const root = rootRef.current;
+      if (!root) return;
+      const mm = gsap.matchMedia();
+
+      mm.add(MQ.motionOk, () => {
+        const els = gsap.utils.toArray<HTMLElement>("[data-ph-el]", root);
+        if (!els.length) return;
+        // NIENTE LAMPO (verdetto 11 di docs/mobile-parity.md). Un fromTo rende
+        // il proprio stato di partenza nell'istante stesso in cui nasce: se la
+        // pagina è già dipinta sotto gli occhi di chi legge, badge, subcopy,
+        // CTA e riga trust SPARISCONO all'idratazione e rientrano un quarto di
+        // secondo dopo. Non era un difetto del telefono e il gate non c'entrava
+        // — succedeva a ogni larghezza, su ogni pagina interna aperta da un
+        // link esterno, da una ricarica o dal tasto Indietro.
+        //
+        // Quindi lo stato nascosto si scrive solo su ciò che nessuno ha ancora
+        // visto: sotto il sipario di PageTransition, dove la porta ad arco
+        // copre l'intero viewport e dove questa entrata è esattamente la
+        // coreografia d'atterraggio per cui è nata — si compone al buio e
+        // arriva a porta aperta. A freddo il primo paint è già avvenuto: la
+        // pagina si lascia com'è, che è poi ciò che si vede anche senza JS.
+        if (!isTransitionCovering()) return;
+        const tween = gsap.fromTo(
+          els,
+          { y: 22, opacity: 0 },
+          { y: 0, opacity: 1, duration: dur.short, ease: "domus", stagger: 0.09, delay: 0.25, clearProps: "all" }
+        );
+        const reveal = () => tween.progress(1);
+        root.addEventListener("focusin", reveal, { once: true });
+        const safety = window.setTimeout(reveal, 2500);
+        return () => {
+          root.removeEventListener("focusin", reveal);
+          window.clearTimeout(safety);
+        };
+      });
+
+      // La deriva d'uscita si apre a TUTTE le larghezze (verdetto 11): è una
+      // `gsap.to` scrubbata, solo transform + opacità, e non scrive nessuno
+      // stato al caricamento — l'immagine LCP non la vede passare. Il gate
+      // desktop non la stava proteggendo da niente.
+      //
+      // Qui era registrata un'ASIMMETRIA vista in ricognizione (2026-08-11):
+      // «l'entrata qui sopra NON è gated, quindi sul telefono scrive
+      // `opacity: 0` su [data-ph-el] già all'idratazione — badge, subcopy e CTA
+      // spariscono e rientrano, e si vede», con la chiusa «non la tocchiamo
+      // adesso: è coreografia». Adesso è la Fase 2 e la si è toccata, quindi lo
+      // metto per iscritto: il difetto non era del telefono né del gate, era il
+      // fromTo che rende il from-state a pagina già dipinta — a ogni larghezza.
+      // La correzione sta nel blocco qui sopra.
+      mm.add(MQ.motionOk, () => {
+        gsap.to(contentRef.current, {
+          yPercent: -8,
+          opacity: 0.3,
+          ease: "none",
+          scrollTrigger: { trigger: root, start: "top top", end: "bottom top", scrub: true },
+        });
+      });
+    },
+    { scope: rootRef }
   );
 
-  /* Il blocco dei testi, centrato come «Perfect sea views» di era-residence (A41 di
-     Alberto, 20 set. 2026: «preferisco il layout centrato tipo Perfect sea views»),
-     in tre livelli sull'avorio sopra il soggetto (A46):
-     - in alto il lead (il paragrafo breve di era), centrato, largo al massimo 40rem;
-     - al centro l'occhiello (senza trattino: `eyebrow--center`), l'H1 per lettera
-       (A20 di Alberto: SplitTitle spezza nel server le stringhe, il <br/> e la span
-       dei chiamanti, e dà all'h1 il nome accessibile intero) e la calligrafia, che
-       attraversa l'ultima riga del titolo (`.script-word`; sulla testa il tuck vale
-       0, D185) e sta un poco a destra del centro, come una firma;
-     - in basso il bottone rosso pieno e, sotto, il link fantasma a 18 px (D174).
-     Nell'inchiostro della rivista (A46): nessun `color` nel CSS della testa, le
-     classi di sempre nel markup. La testa è un gruppo (spec §2.5; A20): i tre livelli
-     si armano insieme sopra la piega; il livello del piede è un gruppo annidato (D50).
-     Il blocco è `.dt-testa_blocco` (globals.css): in flusso, sopra lo strato della
-     foto, alto quanto il contenuto (e almeno 100svh da lg), con la griglia a tre
-     righe (auto 1fr auto); la foto sale sotto di lui fino alla cima del soggetto. */
-  const capo = (
-    <div className="dt-testa_capo w-full">
-      <Reveal>
-        <Lead className="mx-auto max-w-[40rem] text-center">{subcopy}</Lead>
-      </Reveal>
-    </div>
-  );
-  const centro = (
-    <div className="dt-testa_centro w-full text-center text-ink">
-      <Reveal>
-        <span className="eyebrow eyebrow--center">{eyebrow}</span>
-      </Reveal>
-      {/* `tightTitle`: la taglia stretta sta sul contenitore (`[&_h1]`), non su
-          TITLE, che resta la classe unica dell'H1 (a28-fallback.test.ts); sotto lg
-          batte `text-[clamp(3rem,…)]` per specificità, da lg vale il ramo lg di TITLE. */}
-      <div className={tightTitle ? "mt-5 max-lg:[&_h1]:text-[clamp(2.5rem,9vw,9rem)]" : "mt-5"}>
-        <SplitTitle as="h1" className={TITLE}>
-          {title}
-        </SplitTitle>
-        {scriptWord && (
-          <ScriptWord className="pl-[18vw] lg:pl-[10vw] lg:!text-[clamp(2.6rem,5.6vw,6rem)]">
-            {scriptWord}
-          </ScriptWord>
-        )}
-      </div>
-    </div>
-  );
-  /* Le prove sono corpo di testo (19 px) col trattino rosso dell'eyebrow
-     davanti, nella colonna del lead (§3.1): si leggono come una riga di
-     garanzie. A48 (22 set.): stanno SULLA foto, in bianco, subito dopo il
-     blocco (da lg: globals.css `.dt-testa_sopra`); sotto lg dopo la foto,
-     sull'avorio, in pietra come prima. A80 (23 set.): dove la pagina apre il
-     cielo stanno invece nel blocco, sotto i comandi, in pietra a ogni fascia
-     (`puntiBlocco`); la lista resta la stessa. */
-  const voci = trust?.map((t) => (
-    <li key={t} className="flex gap-2">
-      {/* `mt` e non `items-center`: sulle righe che vanno a capo il
-          trattino sta sulla PRIMA riga, non a mezza altezza. */}
-      <span aria-hidden className="mt-[0.72em] h-px w-[1.75rem] shrink-0 bg-red opacity-60" />
-      {t}
-    </li>
-  ));
-  const punti = trust?.length ? (
-    <div className={`${GRIGLIA} pt-[clamp(1.5rem,4vh,2.5rem)] pb-[clamp(1.5rem,4vh,2.5rem)]`}>
-      <ul className="flex flex-col gap-y-3 text-body text-stone sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8">
-        {voci}
-      </ul>
-    </div>
-  ) : null;
-  /* Nel blocco (A80): una lista centrata larga quanto il contenuto, le voci allineate a sinistra così i trattini
-     stanno in colonna sotto i 640 px; da sm una riga che va a capo, centrata, come i punti di sempre. */
-  const puntiBlocco =
-    puntiNelBlocco && trust?.length ? (
-      <div className="dt-testa_punti w-full pt-[clamp(1.25rem,3.2vh,2.25rem)]">
-        <ul className="mx-auto flex w-fit flex-col items-start gap-y-3 text-left text-body text-stone sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8">
-          {voci}
-        </ul>
-      </div>
-    ) : null;
+  return (
+    // `bg-ink`: sul desktop non si vede mai — la foto copre `inset-0` per
+    // intero — ma sotto i 768 la foto diventa una fascia (globals.css, «Le
+    // foto a tutto schermo diventano fasce») e sotto di lei ci vuole il fondo
+    // scuro su cui si spegne, lo stesso tono dei due scrim qui sotto.
+    <section ref={rootRef} id={id} className="relative flex min-h-[82vh] w-full items-end overflow-hidden bg-ink">
+      {/* Media in un layer parallax: allo scroll l'immagine resta "indietro" (profondità).
+          I gradienti di leggibilità restano fissi sopra il layer. */}
+      <Parallax
+        className="dt-mob-band absolute inset-0"
+        innerClassName="absolute inset-0"
+        speed={0.22}
+        scale={1.08}
+        mobile
+      >
+        {/* preload (non priority, deprecata in Next 16): è la LCP della pagina. */}
+        <Image
+          src={image}
+          alt={alt}
+          fill
+          preload
+          sizes="100vw"
+          // Foto di sfondo sotto due velature scure e in movimento (ken-burns): è l'LCP della
+          // pagina e su rete lenta il download è il collo di bottiglia. A qualità 60 il file
+          // dimezza e la differenza, sotto quelle velature, non si vede — la foto non è il
+          // soggetto, è l'atmosfera.
+          quality={60}
+          className="ken-burns object-cover"
+        />
+      </Parallax>
+      <div
+        className={`absolute inset-0 bg-gradient-to-t ${
+          scrim === "strong" ? "from-ink/90 via-ink/55" : "from-ink/78 via-ink/28"
+        } to-transparent`}
+      />
+      <div
+        className={`absolute inset-0 bg-gradient-to-r ${
+          scrim === "strong" ? "from-ink/70 via-ink/25" : "from-ink/45"
+        } to-transparent`}
+      />
 
-  const piede = (
-    <RevealGroup className="dt-testa_piede w-full">
-      <div>
-        <Reveal role="still">
-          <div className="flex flex-col items-center gap-y-4">
+      <div ref={contentRef} className="relative mx-auto w-full max-w-[1240px] px-5 pb-14 pt-36 sm:px-8 sm:pb-20">
+        <div className="max-w-3xl">
+          <span data-ph-el className="inline-flex">
+            <SegnoDomusBadge light className="bg-ink/40 backdrop-blur-md">
+              {eyebrow}
+            </SegnoDomusBadge>
+          </span>
+
+          <TextLines
+            as="h1"
+            className="mt-6 font-display text-[2.6rem] font-medium leading-[1.03] tracking-[-0.02em] text-cream balance sm:text-6xl lg:text-[4.4rem]"
+          >
+            {title}
+          </TextLines>
+
+          <p data-ph-el className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-cream/85 sm:text-lg">
+            {subcopy}
+          </p>
+
+          <div data-ph-el className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Cta href={primary.href} variant="cta-solid" size="lg">
               {primary.label}
             </Cta>
             {secondary && (
-              <Cta href={secondary.href} variant="ghost" arrow={false} className="dt-btn--ghost-testa">
+              <Cta href={secondary.href} variant="ghost-dark" size="lg">
                 {secondary.label}
               </Cta>
             )}
           </div>
-        </Reveal>
-        {puntiBlocco && <Reveal>{puntiBlocco}</Reveal>}
-      </div>
-    </RevealGroup>
-  );
-  const blocco = (
-    <RevealGroup className="dt-testa_blocco">
-      {capo}
-      {centro}
-      {piede}
-    </RevealGroup>
-  );
 
-  return (
-    <>
-      {stile}
-      <PageHeroTesta
-        id={id}
-        src={tinta.cielo.file ?? image}
-        alt={alt}
-        segno={tinta.segno}
-        blocco={blocco}
-        suFoto={tinta.trattamento === "testa"}
-        sopra={
-          puntiNelBlocco ? (
-            sopra
-          ) : (
-            <>
-              {punti}
-              {sopra}
-            </>
-          )
-        }
-        cielo={cielo}
-      />
-    </>
+          {trust && trust.length > 0 && (
+            <div data-ph-el className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-cream/15 pt-6">
+              {trust.map((t) => (
+                <span key={t} className="text-[0.8rem] font-medium text-cream/75">
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }

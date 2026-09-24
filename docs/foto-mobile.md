@@ -1,15 +1,5 @@
 # Le foto sul telefono — il ritaglio, misurato e chiuso
 
-> **In parte storia (2026-09-13).** Restano valide la regola del §1 (quanto si vede dipende solo dal
-> rapporto della scatola) e la sonda `npm run probe:crop` del §7. Non vale più il §3 così com'è
-> scritto. Dal 2026-09-11 la sagoma del preloader e la foto dell'hero condividono, a ogni larghezza,
-> la stessa banda di 60svh sotto la testata (`--dt-head-h` e `--dt-band-h` in `app/globals.css`), e
-> le variabili `--dt-fascia-*` non esistono più. La regola `.dt-mob-band` è ancora in `globals.css`,
-> ma nessun componente la usa. I fondi scuri messi sotto le fasce (`bg-ink` su `PageHero`,
-> `bg-espresso` sui percorsi, `bg-graphite` sulla lastra Servizi) non ci sono più: la rivista bianca
-> non ha sezioni scure. Le tabelle del §1 e del §4 misurano il sito del 2026-08-19; l'aerea di
-> HorizonStory, per esempio, oggi non è un fondale ma la foto del pannello territorio.
-
 **Data:** 2026-08-19 · **Richiesta cliente:** «su mobile la foto di Raffaela è tagliata, e anche
 l'immagine di sfondo sotto quando si entra nel sito. Stessa cosa per altre foto nel sito.
 Dobbiamo rimpicciolirle e posizionarle bene in modo che siano proporzionate come nella versione

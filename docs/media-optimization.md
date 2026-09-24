@@ -1,12 +1,3 @@
-> **In parte storia (2026-09-13).** Dopo il redesign «rivista bianca» del 2026-09-10 non valgono più:
-> - lo scheletro di `LazyYouTubeEmbed` del §5b, con `rounded-[1.5rem] bg-ink`, il velo `from-ink/70` e il play bianco con ombra. Il componente vero è `app/components/LazyYouTubeEmbed.tsx`: nessun raggio, fondo avorio profondo, nessun velo, play in un cerchio rosso con triangolo bianco (56 px sul telefono, 96 px da desktop). La regola «un solo iframe, solo al click» resta.
-> - il «muro video» e `SocialVideoWall.tsx`, che non esistono più, e gli esempi di `sizes` presi da lì. Le video-recensioni stanno nel carosello di `Voci.tsx`: ogni copertina è un link a YouTube che, con JavaScript, apre il video in pagina.
-> - fra i componenti citati, `Hero.tsx`, `SocialVideoWall.tsx` e `CountUp.tsx`, che non esistono più; l'effetto `.ken-burns`, ritirato; la cartella `public/videos/` del §6.
-> - `priority` sull'hero: in Next 16 è deprecata, e `HeroCinematic` e `PageHero` usano `preload`.
-> - il poster `domus-hero-poster.jpg` e il testo «in basso a sinistra»: oggi poster e base dell'hero sono `/media/hero-raffaela.jpg`, e l'hero è una banda fotografica di 60svh (vedi `docs/hero-video.md`).
->
-> Restano valide le regole su dimensioni dei sorgenti, compressione, poster, YouTube, nomi dei file e `prefers-reduced-motion`. Il sistema visivo è in `DESIGN.md` alla radice del repo.
-
 # Ottimizzazione media — Domus Tua
 
 Guida operativa per **immagini, video e YouTube** sul sito. Domus Tua è un sito
@@ -60,7 +51,7 @@ magick sorgente.jpg -resize '1920x1920>' -quality 82 public/images/reali/nome.jp
 ## 2. `next/image` — linee guida
 
 - **Usa sempre `next/image`** (`import Image from "next/image"`), mai `<img>` grezzo.
-  Genera automaticamente il WebP e le varianti responsive. Già così in `Hero`,
+  Genera automaticamente AVIF/WebP e le varianti responsive. Già così in `Hero`,
   `HeroCinematic`, `Team`, `OpenDomus`, `Services`, `Paths`, `EditorialRows`,
   `PropertyCard`, `PropertyGallery`, `SocialVideoWall`, `PageHero`.
 - **`sizes` corretto su ogni immagine `fill`.** Descrive quanto spazio occupa l'immagine
@@ -82,9 +73,8 @@ magick sorgente.jpg -resize '1920x1920>' -quality 82 public/images/reali/nome.jp
 - **Config già ottimizzata** in `next.config.ts` — **non rimuovere**:
   ```ts
   images: {
-    formats: ["image/webp"], // niente AVIF dal 24 set. 2026: a DPR 1 si vedeva morbido
-    qualities: [85], // una qualità per tutto il sito: nessun componente passa `quality`
-    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920, 2560],
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 220, 300, 384],
   }
   ```

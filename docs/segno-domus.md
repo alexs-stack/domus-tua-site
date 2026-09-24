@@ -1,5 +1,3 @@
-> **Superato il 2026-09-10.** Il redesign «rivista bianca» (spec `docs/superpowers/specs/2026-09-10-redesign-rivista-bianca-design.md`) ha tolto card e curve, e questo documento le prescrive: `SegnoDomusFrame` per incorniciare «una card premium», `MotifCorner` nell'angolo di una card, `SegnoDomusBadge` come pill, l'abbraccio come «curva morbida». Rimanda a `docs/brand-motif.md` e `docs/brand-direction.md`, superati anche loro, e cita come usi reali `Hero.tsx` e `SectionDivider.tsx`, che non esistono più. Di `app/components/BrandMotif.tsx` il sito oggi importa solo `SegnoDomus` (in `DomusDocProtocol.tsx`, `PreviewBadge.tsx`, `app/error.tsx` e `app/not-found.tsx`) e `SegnoTick` (nelle pagine Acquista, Vendi e Open Domus e nella scheda immobile): chi li tocca segue `DESIGN.md` alla radice del repo. Resta come storia, non come guida.
-
 # Il Segno Domus — sistema d’identità
 
 Guida operativa al **Segno Domus**, la firma visiva ricorrente di Domus Tua.

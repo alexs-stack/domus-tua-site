@@ -84,16 +84,15 @@ Oggi tutte le immagini sono **locali** (`/public/images/...`, `/public/images/re
 quindi `next.config.ts` non ha `remotePatterns` e va bene così.
 
 **Quando arriveranno le foto RealSmart** (host esterno), `next/image` le rifiuterà finché
-il loro dominio non è in allowlist. Aggiungere a `next.config.ts` (mantenendo `formats`,
-`qualities` e `sizes` esistenti):
+il loro dominio non è in allowlist. Aggiungere a `next.config.ts` (mantenendo `formats` e
+`sizes` esistenti):
 
 ```ts
 // next.config.ts — DA COMPILARE quando si conosce il dominio media RealSmart
 const nextConfig: NextConfig = {
   images: {
-    formats: ["image/webp"],
-    qualities: [85],
-    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920, 2560],
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 220, 300, 384],
     remotePatterns: [
       {

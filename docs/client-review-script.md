@@ -1,5 +1,3 @@
-> **Superato il 2026-09-10.** Questo talk-track descrive la home di prima della rivista bianca, e l'«ordine delle sezioni allineato alla homepage reale» dichiarato qui sotto non è più vero. L'hero non è più un video: è una banda fotografica di 60svh col lockup «Domus Tua», e il video è spento (`heroCinematic.enabled = false`). `/case` reindirizza a `/acquista`. `SocialVideoWall`, il «muro video» e `Authority` non esistono più: le video-recensioni stanno nel carosello di `#voci` (`Voci.tsx`). Nel gateway non c'è nessuna card: la scorciatoia per chi vende è una riga di testo (`HomeSearchGateway.tsx`). L'ordine vero è quello di `app/page.tsx`, il sistema visivo è in `DESIGN.md` alla radice del repo. Prima di usarlo per una call va riscritto; resta come storia.
-
 # Script di presentazione al cliente — Domus Tua
 
 > Documento **interno sersan**. Non condividere così com'è: è il talk-track per la prossima

@@ -40,9 +40,7 @@
 
 import Contact from "../components/Contact";
 import Reveal from "../components/Reveal";
-import RevealGroup from "../components/motion/RevealGroup";
-import Lead from "../components/motion/Lead";
-import SplitTitle from "../components/motion/SplitTitle";
+import TextLines from "../components/motion/TextLines";
 import { Cta } from "../components/primitives/Cta";
 import { useLocale } from "../components/i18n/LocaleProvider";
 import type { Locale } from "../lib/i18n/dictionaries";
@@ -71,7 +69,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Valutazione immobile · Tradate e provincia",
     title: "Quanto vale davvero la tua casa.",
     lead: "Non lo dice un calcolatore in trenta secondi. Lo dice chi viene a vederla, controlla i documenti e mette per iscritto come è arrivato a quel numero. Il primo incontro è senza impegno e senza costi.",
-    ctaPrimary: "Richiedi la valutazione",
+    ctaPrimary: "Richiedi la valutazione del tuo immobile",
     ctaSecondary: "Come funziona",
     tiersEyebrow: "Come funziona",
     tiersTitle: "Due passaggi, non uno.",
@@ -125,7 +123,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Property valuation · Tradate and province",
     title: "What your home is actually worth.",
     lead: "Not something a calculator decides in thirty seconds. It's decided by someone who comes to see it, checks the paperwork and writes down how they reached that figure. The first meeting carries no obligation and no cost.",
-    ctaPrimary: "Request a valuation",
+    ctaPrimary: "Request a valuation of your property",
     ctaSecondary: "How it works",
     tiersEyebrow: "How it works",
     tiersTitle: "Two steps, not one.",
@@ -179,7 +177,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Estimation immobilière · Tradate et sa province",
     title: "Ce que vaut vraiment votre bien.",
     lead: "Pas ce qu'un calculateur décide en trente secondes. Ce que décide quelqu'un qui vient le voir, vérifie les documents et écrit comment il est arrivé à ce chiffre. Le premier rendez-vous est sans engagement et sans frais.",
-    ctaPrimary: "Demander l’estimation",
+    ctaPrimary: "Demandez l’estimation de votre bien",
     ctaSecondary: "Comment ça marche",
     tiersEyebrow: "Comment ça marche",
     tiersTitle: "Deux étapes, pas une.",
@@ -233,7 +231,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Immobilienbewertung · Tradate und Provinz",
     title: "Was Ihre Immobilie wirklich wert ist.",
     lead: "Das entscheidet kein Rechner in dreißig Sekunden. Das entscheidet jemand, der sie ansieht, die Unterlagen prüft und aufschreibt, wie er auf diese Zahl gekommen ist. Das erste Gespräch ist unverbindlich und kostenfrei.",
-    ctaPrimary: "Bewertung anfordern",
+    ctaPrimary: "Bewertung Ihrer Immobilie anfordern",
     ctaSecondary: "So funktioniert es",
     tiersEyebrow: "So funktioniert es",
     tiersTitle: "Zwei Schritte, nicht einer.",
@@ -287,7 +285,7 @@ const copy: Record<Locale, Copy> = {
     eyebrow: "Valoración de inmuebles · Tradate y provincia",
     title: "Cuánto vale de verdad tu casa.",
     lead: "No lo decide una calculadora en treinta segundos. Lo decide quien viene a verla, comprueba los documentos y escribe cómo ha llegado a esa cifra. El primer encuentro es sin compromiso y sin coste.",
-    ctaPrimary: "Solicita la valoración",
+    ctaPrimary: "Solicita la valoración de tu inmueble",
     ctaSecondary: "Cómo funciona",
     tiersEyebrow: "Cómo funciona",
     tiersTitle: "Dos pasos, no uno.",
@@ -345,22 +343,21 @@ export default function ValutazioneContent() {
 
   return (
     <main className="flex-1 bg-paper">
-      {/* Testa senza foto: la piega aspetta la prima voce LCP (spec §2.5, A20 di Alberto). */}
-      <section className="relative bg-cream-deep" data-fold-lcp="">
-        <RevealGroup className="mx-auto max-w-[1240px] px-5 pb-16 pt-32 sm:px-8 sm:pb-20 sm:pt-36">
+      <section className="relative bg-cream-deep">
+        <div className="mx-auto max-w-[1240px] px-5 pb-16 pt-32 sm:px-8 sm:pb-20 sm:pt-36">
           <Reveal>
             <span className="eyebrow">{c.eyebrow}</span>
           </Reveal>
-          <SplitTitle
+          <TextLines
             as="h1"
             className="mt-5 max-w-[24ch] font-display text-d2 display-tight font-medium text-ink balance"
           >
             {c.title}
-          </SplitTitle>
-          <Reveal>
+          </TextLines>
+          <Reveal delay={120}>
             <p className="mt-7 max-w-2xl text-[1.05rem] leading-relaxed text-graphite">{c.lead}</p>
           </Reveal>
-          <Reveal role="still">
+          <Reveal delay={180}>
             <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
               <Cta href="#richiesta" variant="cta" size="md">
                 {c.ctaPrimary}
@@ -370,7 +367,7 @@ export default function ValutazioneContent() {
               </Cta>
             </div>
           </Reveal>
-        </RevealGroup>
+        </div>
       </section>
 
       {/* I DUE LIVELLI — il contenuto vero della pagina (§3.2). */}
@@ -379,44 +376,46 @@ export default function ValutazioneContent() {
           <Reveal>
             <span className="eyebrow">{c.tiersEyebrow}</span>
           </Reveal>
-          <SplitTitle
+          <TextLines
             as="h2"
             className="mt-5 max-w-[20ch] font-display text-d3 display-tight font-medium text-ink"
           >
             {c.tiersTitle}
-          </SplitTitle>
+          </TextLines>
           <Reveal delay={120}>
             <p className="mt-6 max-w-2xl text-[1.02rem] leading-relaxed text-graphite">
               {c.tiersIntro}
             </p>
           </Reveal>
 
-          {/* Due livelli come due colonne di testo su hairline: niente card (2026-09-10). */}
-          <ol className="mt-16 grid gap-x-16 lg:grid-cols-2">
-            {c.tiers.map((t) => (
-              <li key={t.step} className="border-t border-line pt-8">
-                <RevealGroup className="flex h-full flex-col">
-                  <Reveal as="span" className="tnum font-display text-d2 text-red">
-                    {t.step}
-                  </Reveal>
-                  <SplitTitle as="h3" className="mt-5 font-display text-d3">
-                    {t.name}
-                  </SplitTitle>
-                  <Lead className="mt-6">{t.lead}</Lead>
-                  <Reveal>
-                    <ul className="mt-8 border-t border-line pt-2">
+          <ol className="mt-14 grid gap-6 lg:grid-cols-2 lg:gap-8">
+            {c.tiers.map((t, i) => (
+              <li key={t.step}>
+                <Reveal delay={140 + i * 90}>
+                  <div className="flex h-full flex-col rounded-card border border-line bg-cream p-7 sm:p-9">
+                    <span className="tnum font-display text-3xl font-medium leading-none text-red">
+                      {t.step}
+                    </span>
+                    <h3 className="mt-5 font-display text-2xl font-medium leading-snug text-ink">
+                      {t.name}
+                    </h3>
+                    <p className="mt-3 text-[0.98rem] leading-relaxed text-graphite">{t.lead}</p>
+                    <ul className="mt-6 space-y-3 border-t border-line pt-6">
                       {t.items.map((item) => (
-                        <li key={item} className="flex items-start gap-4 border-b border-line py-4 text-body text-graphite">
-                          <span aria-hidden className="mt-3.5 h-px w-5 shrink-0 bg-red" />
+                        <li
+                          key={item}
+                          className="flex items-start gap-3 text-[0.95rem] leading-snug text-graphite"
+                        >
+                          <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-red" />
                           {item}
                         </li>
                       ))}
                     </ul>
-                  </Reveal>
-                  <Reveal className="mt-auto">
-                    <p className="border-l-2 border-red pl-5 pt-8 text-body text-graphite">{t.note}</p>
-                  </Reveal>
-                </RevealGroup>
+                    <p className="mt-auto border-l-2 border-red pl-4 pt-6 text-[0.9rem] italic leading-relaxed text-stone">
+                      {t.note}
+                    </p>
+                  </div>
+                </Reveal>
               </li>
             ))}
           </ol>
@@ -427,12 +426,12 @@ export default function ValutazioneContent() {
         <div className="mx-auto max-w-[1240px] px-5 py-20 sm:px-8 sm:py-24">
           <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <div>
-              <SplitTitle
+              <TextLines
                 as="h2"
                 className="max-w-[18ch] font-display text-d3 display-tight font-medium text-ink"
               >
                 {c.costTitle}
-              </SplitTitle>
+              </TextLines>
               <Reveal delay={120}>
                 <p className="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-graphite">
                   {c.costBody}
@@ -460,8 +459,10 @@ export default function ValutazioneContent() {
                     delay={100 + i * 80}
                     className="border-t border-line pt-5"
                   >
-                    <dt className="text-ui font-semibold uppercase tracking-[0.08em] text-red">{w.t}</dt>
-                    <dd className="mt-3 text-body text-graphite">{w.c}</dd>
+                    <dt className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-red">
+                      {w.t}
+                    </dt>
+                    <dd className="mt-2 text-[0.98rem] leading-relaxed text-graphite">{w.c}</dd>
                   </Reveal>
                 ))}
               </dl>

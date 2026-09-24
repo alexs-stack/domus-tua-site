@@ -8,7 +8,6 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import PageHero from "../components/PageHero";
-import SplitTitle from "../components/motion/SplitTitle";
 import { site } from "../lib/site";
 
 type CookieType = { label: string; copy: string };
@@ -44,7 +43,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Quali cookie utilizziamo, perché lo facciamo e come puoi gestire in ogni momento le tue preferenze.",
-      alt: "Giardino con ulivi, prato e un vialetto in pietra accanto alla casa",
+      alt: "Salotto luminoso di un attico con travi a vista",
       primaryLabel: "Parla con Domus Tua",
       secondaryLabel: "Privacy Policy",
     },
@@ -118,7 +117,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Which cookies we use, why we use them and how you can manage your preferences at any time.",
-      alt: "Garden with olive trees, a lawn and a stone path beside the house",
+      alt: "Bright penthouse living room with exposed beams",
       primaryLabel: "Talk to Domus Tua",
       secondaryLabel: "Privacy Policy",
     },
@@ -192,7 +191,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Quels cookies nous utilisons, pourquoi nous le faisons et comment gérer vos préférences à tout moment.",
-      alt: "Jardin avec des oliviers, une pelouse et une allée en pierre à côté de la maison",
+      alt: "Salon lumineux d’un attique avec poutres apparentes",
       primaryLabel: "Parler à Domus Tua",
       secondaryLabel: "Politique de confidentialité",
     },
@@ -266,7 +265,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Welche Cookies wir verwenden, warum wir das tun und wie Sie Ihre Einstellungen jederzeit verwalten können.",
-      alt: "Garten mit Olivenbäumen, Rasen und einem Steinweg neben dem Haus",
+      alt: "Helles Wohnzimmer eines Penthouses mit sichtbaren Balken",
       primaryLabel: "Mit Domus Tua sprechen",
       secondaryLabel: "Datenschutzerklärung",
     },
@@ -340,7 +339,7 @@ const copy: Record<"it" | "en" | "fr" | "de" | "es", Copy> = {
       ),
       subcopy:
         "Qué cookies utilizamos, por qué lo hacemos y cómo puedes gestionar tus preferencias en cualquier momento.",
-      alt: "Jardín con olivos, césped y un sendero de piedra junto a la casa",
+      alt: "Salón luminoso de un ático con vigas a la vista",
       primaryLabel: "Habla con Domus Tua",
       secondaryLabel: "Política de privacidad",
     },
@@ -413,29 +412,35 @@ export default function CookieContent() {
       <Header />
       <main className="flex-1">
         <PageHero
-          rotta="/cookie"
           eyebrow={c.hero.eyebrow}
           title={c.hero.title()}
           subcopy={c.hero.subcopy}
-          image="/images/reali/villa-uliveto.jpg"
+          image="/images/hero_01_attico_travi_salotto.jpg"
           alt={c.hero.alt}
           primary={{ label: c.hero.primaryLabel, href: "/contatti" }}
           secondary={{ label: c.hero.secondaryLabel, href: "/privacy" }}
         />
 
-        <section className="dt-chapter bg-cream">
-          <div className="dt-row max-w-[calc(820px+16vw)]">
-            <p className="text-ui font-semibold uppercase tracking-[0.08em] text-stone">{c.lastUpdate}</p>
+        <section className="bg-paper">
+          <div className="mx-auto max-w-[820px] px-5 py-24 sm:px-8 sm:py-32">
+            <p className="text-[0.82rem] uppercase tracking-[0.16em] text-stone">
+              {c.lastUpdate}
+            </p>
 
             {/* ⚠️ Avviso interno: testo da validare con un legale prima del go-live. */}
-            <div className="mt-6 border-t border-b border-line py-5 text-body text-graphite">{c.notice}</div>
+            <div className="mt-6 rounded-2xl border border-line bg-cream-deep px-5 py-4 text-sm leading-relaxed text-graphite">
+              {c.notice}
+            </div>
 
-            {/* Tipologie di cookie: tre colonne di testo su hairline, niente card. */}
-            <div className="mt-12 grid gap-x-8 sm:grid-cols-3">
+            {/* Tipologie di cookie */}
+            <div className="mt-12 grid gap-4 sm:grid-cols-3">
               {c.cookieTypes.map((ct) => (
-                <div key={ct.label} className="border-t border-line pt-5">
+                <div
+                  key={ct.label}
+                  className="rounded-2xl border border-line bg-cream p-5"
+                >
                   <span className="eyebrow">{ct.label}</span>
-                  <p className="mt-3 text-body text-graphite">{ct.copy}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-stone">{ct.copy}</p>
                 </div>
               ))}
             </div>
@@ -443,10 +448,10 @@ export default function CookieContent() {
             <div className="mt-12 flex flex-col gap-12">
               {c.blocks.map((block) => (
                 <div key={block.title}>
-                  <SplitTitle as="h2" className="font-display text-d3">
+                  <h2 className="font-display text-2xl font-medium leading-snug tracking-tight text-ink balance sm:text-[1.7rem]">
                     {block.title}
-                  </SplitTitle>
-                  <div className="mt-5 flex flex-col gap-5 text-body text-graphite">
+                  </h2>
+                  <div className="mt-4 flex flex-col gap-4 text-[1.02rem] leading-relaxed text-stone">
                     {block.body.map((p, i) => (
                       <p key={i}>{p}</p>
                     ))}

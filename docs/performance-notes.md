@@ -1,12 +1,5 @@
 # Note di performance — Domus Tua
 
-> **In parte storia (2026-09-13).** Note di luglio 2026. Non valgono più i riferimenti a file che
-> non esistono più: `Hero.tsx` e `heroVideo` (l'hero è `HeroCinematic.tsx`, configurato in
-> `app/lib/media.ts`, e il video è spento), il poster `raffaela-ritratto.jpg` (oggi poster e base
-> sono `/media/hero-raffaela.jpg`), `SocialVideoWall.tsx` e la «video wall» (le video-recensioni
-> stanno in `Voci.tsx`). `priority` in Next 16 è deprecata: l'hero e `PageHero` usano `preload`.
-> Le raccomandazioni su compressione, `next/image`, `sizes` e widget restano valide.
-
 Raccomandazioni operative per mantenere il sito veloce man mano che si sostituiscono i contenuti
 demo con quelli reali (video pesanti, feed RealSmart, molte foto). Il sito è già impostato bene:
 queste note servono a **non regredire** quando arrivano gli asset veri.
@@ -45,17 +38,15 @@ Stato attuale: alcune immagini in `public/` sono pesanti/grandi. Esempi reali:
 Raccomandazioni:
 
 - **Usare sempre `next/image`** (`Image`), mai `<img>` grezzo. Già fatto in Hero, Team, OpenDomus,
-  SocialVideoWall, Social. `next/image` genera automaticamente il WebP e i formati responsive.
+  SocialVideoWall, Social. `next/image` genera automaticamente AVIF/WebP e i formati responsive.
 - **`sizes` corretto** su ogni immagine `fill`: già impostato bene nei componenti. Serve a non
   scaricare la versione 1920px su mobile. Verificarlo su ogni nuova immagine.
 - **`priority`** solo sull'immagine above-the-fold (l'hero) — già così. Non metterlo altrove:
   toglie priorità alle risorse critiche.
 - **Ridimensionare i sorgenti** prima del commit: non serve un master 2560px per un banner mostrato
   a ~1200px. Regola pratica: sorgente ≈ 1.5–2× la dimensione massima di rendering.
-- **Config già ottimizzata** (`next.config.ts`): `formats: ["image/webp"]`, `qualities: [85]`
-  (una qualità per tutto il sito: nessun componente passa `quality`) e `deviceSizes`/`imageSizes`
-  calibrati. **Non rimuovere.** Dal 24 set. 2026 niente AVIF (Alberto: a DPR 1 l'AVIF
-  dell'ottimizzatore, codificato a quality × 50/80, si vedeva morbido; `image-quality.test.ts`).
+- **Config già ottimizzata** (`next.config.ts`): `formats: ["image/avif","image/webp"]` e
+  `deviceSizes`/`imageSizes` calibrati. **Non rimuovere.**
 - **Alt text**: mantenere alt descrittivi (SEO + a11y); le immagini puramente decorative (griglia
   Social) usano `alt=""`, corretto.
 - **Pulizia asset**: in `public/images/reali/yt/` ci sono thumbnail per-ID **non tutte referenziate**
@@ -71,9 +62,8 @@ Quando gli immobili arriveranno dal feed RealSmart, le **foto saranno su un host
   `images.remotePatterns`, es.:
   ```ts
   images: {
-    formats: ["image/webp"],
-    qualities: [85],
-    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920, 2560],
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 220, 300, 384],
     remotePatterns: [
       { protocol: "https", hostname: "cdn.realsmart.example", pathname: "/**" },
@@ -139,8 +129,7 @@ Regola App Router: **server component di default**, `"use client"` solo dove ser
 - **Widget di terze parti** (Trustindex, feed Instagram) caricano **script/iframe esterni**: sono già
   isolati in `WidgetEmbeds.tsx` con `async`/`defer` e `loading="lazy"` sull'iframe. Caricano solo se
   configurati (`site.embeds`), quindi zero costo finché non attivati. Non spostarli fuori da lì.
-- **Font**: `next/font` (Playfair Display, Plus Jakarta Sans e Pinyon Script, in `app/layout.tsx`;
-  Fraunces è stato ritirato il 2026-08-03), tutti e tre con `display: "swap"` — già ottimale
+- **Font**: `next/font` (Fraunces + Plus Jakarta Sans) con `display: "swap"` — già ottimale
   (self-hosted, niente richiesta a Google runtime). Limitare i pesi/assi ai necessari.
 
 ---

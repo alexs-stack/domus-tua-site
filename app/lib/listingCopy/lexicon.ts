@@ -154,28 +154,13 @@ export const ITEM_STOP_OPENERS: ReadonlySet<string> = new Set([
  * energetica): evidenziarli non aggiunge una promessa, mette a fuoco un fatto.
  * Il terzo gruppo è un elenco chiuso di dotazioni ad alto valore, sempre inequivocabili.
  */
-/**
- * Una superficie: il numero e l'unità (mq, m², m2), senza il prefisso («circa», «oltre»).
- * Il confine finale è una lookahead, non `\b`: dopo "²" (carattere non-word) un `\b`
- * non scatta mai, e "45 m²" resterebbe senza evidenza mentre "45 mq" ce l'avrebbe.
- * Le migliaia col punto (`\d{1,3}(?:\.\d{3})+`, con o senza decimali con la virgola)
- * stanno PRIMA della forma con i decimali: audit del 21 settembre 2026 (blocco 23),
- * difetto V06 — con sole due cifre ammesse dopo il separatore, «2.000 mq» su /case/2083
- * usciva in grassetto come «000 mq», un numero che nell'annuncio non esiste; il secondo
- * giro ha aggiunto «1.250,50 mq», che usciva come «250,50 mq». I decimali («176,5 mq»,
- * «12.5 mq») e le forme senza separatore restano quelle di prima.
- * È UNA regex sola per un concetto solo: la legge anche `hasMeasurement` in format.ts,
- * che ne portava una copia col `\b` finale (quindi «30 m²» lì non era una misura e la
- * frase passava per atmosfera). Nessun flag `g`: `.test` resta senza stato.
- */
-export const SURFACE_RE = /(?:\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d{1,5}(?:[.,]\d{1,2})?)\s?(?:mq|m²|m2)(?![\p{L}\p{N}])/iu;
-
 export const HIGHLIGHTS: readonly { priority: number; re: RegExp }[] = [
-  // Superfici: "circa 176 mq", "di ben 60mq", "oltre 1200 m²", "2.000 mq" — SURFACE_RE
-  // con il prefisso ammesso davanti.
+  // Superfici: "circa 176 mq", "di ben 60mq", "oltre 1200 m²".
+  // Il confine finale è una lookahead, non `\b`: dopo "²" (carattere non-word) un `\b`
+  // non scatta mai, e "45 m²" resterebbe senza evidenza mentre "45 mq" ce l'avrebbe.
   {
     priority: 0,
-    re: new RegExp(String.raw`\b(?:circa |oltre |ben )?` + SURFACE_RE.source, SURFACE_RE.flags),
+    re: /\b(?:circa |oltre |ben )?\d{1,5}(?:[.,]\d{1,2})?\s?(?:mq|m²|m2)(?![\p{L}\p{N}])/iu,
   },
   // Classe energetica. Due forme distinte, ed è una distinzione che serve davvero:
   // con "energetica" la lettera può essere minuscola; senza, DEVE essere maiuscola e non

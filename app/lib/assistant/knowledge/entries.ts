@@ -194,12 +194,8 @@ const VERIFIED: KnowledgeEntry[] = [
     id: "area-servita",
     category: "area",
     title: "Zona in cui operiamo",
-    // «nei comuni di la provincia…» era il refuso di H03 (audit del 21 settembre 2026,
-    // blocco 23, secondo giro): la label di site.ts comincia con l'articolo, quindi la
-    // frase non interpola più un «di» davanti (territorio-copy.test.ts). «Comuni» resta
-    // nel testo perché è la parola con cui la gente chiede («coprite anche i comuni…»).
     content:
-      `Lavoriamo su Tradate e sui comuni intorno, in tutta ${territoryLabel}. Gli immobili che trovi sul sito sono quelli che seguiamo direttamente.`,
+      `Lavoriamo su Tradate e nei comuni di ${territoryLabel}. Gli immobili che trovi sul sito sono quelli che seguiamo direttamente.`,
     status: "verified",
     source: "catalogo immobili RealSmart (comuni effettivamente presenti nel feed)",
     lastVerified: "2026-07-31",

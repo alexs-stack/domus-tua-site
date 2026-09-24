@@ -1,14 +1,5 @@
 # Checklist sostituzione contenuti — pre-demo cliente
 
-> **In parte storia (2026-09-13).** Mappa scritta prima della rivista bianca (ultimo aggiornamento
-> 2026-08-06). Diversi file citati non esistono più: `Hero.tsx` (l'hero è `HeroCinematic.tsx`),
-> `Authority.tsx` e `SocialVideoWall.tsx` (le video-recensioni stanno in `Voci.tsx`). Nel §1 il
-> widget Trustindex è già attivo e il campo si chiama `embeds.trustindexLoader`; `reviewSummary`
-> legge voto e conteggio da `app/lib/site.ts` (4,9 e 542, un numero vivo), e il «500+» non c'è più.
-> Nel §4 la grafia «Raffaela», con una L, è decisa (il commento in `app/lib/team.ts` dice di non
-> correggerla). Nel §5 gli orari ci sono (`hours` in `site.ts`). Per sapere cosa manca oggi vale
-> `docs/da-chiedere-alla-cliente.md`.
-
 Mappa di **ogni contenuto demo o da verificare** presente nel sito, con file esatto, stato e
 cosa serve dal cliente per andare in produzione. Obiettivo: sapere in un colpo d'occhio cosa
 è reale, cosa è placeholder e cosa va confermato **prima della demo/messa online**.

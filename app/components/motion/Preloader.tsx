@@ -1,48 +1,62 @@
 "use client";
 
-// Preloader — l'ORCHESTRATORE del sipario: il film intero alla prima entrata
-// nella home e la porta corta agli altri caricamenti completi (Alberto, 13
-// settembre 2026: A18, A20; spec §6.2). Il markup è di PreloaderShell.tsx
-// (server), l'atto I è CSS (globals.css, «Preloader»); qui si decide QUANDO
-// entra la porta, e la porta è la GOMMA.
+// Preloader "Arco Domus" — prima visita della sessione: l'ORCHESTRATORE del
+// film, non più il suo motore. Non rende markup: quello è di
+// PreloaderShell.tsx (server). Non muove più la maschera: quello è CSS.
 //
-// LA GOMMA (22 settembre 2026). Alberto: «devi sostituire l'entrata ad arco del
-// preloader con questo, al centro dello schermo, affianco a Raffaela, alla sua
-// destra», con DomusTuaPreloader.tsx (un preloader a gomma scritto per un sito
-// generico); poi: «nel preloader sotto lo sfondo scuro mettiamo, invisibile, la
-// foto dell'hero rimpicciolita al centro dello schermo, così quando avviene
-// l'animazione della gomma a forma del logo del cuore fa il reveal; poi, allo
-// zoom del cuore, contemporaneamente la foto scende dove doveva essere, e poi
-// risale come fa già». Com'è fatto:
-//   • a INTRO_T.gomma (2,25 s, dove partiva la porta ad arco) questo modulo
-//     monta DomusTuaPreloader in un PORTALE nello slot `[data-pre-gomma]` della
-//     shell, primo figlio del pannello, con `zIndex` 0: il suo foglio (espresso,
-//     come il pannello, che da lì diventa trasparente) sta SOTTO il fondo caldo
-//     e la sagoma di Raffaela. La gomma disegna il cuore al centro dello
-//     schermo, a destra della mano tesa di lei, mentre il lockup si congeda;
-//   • dentro il cuore c'è la foto vera dell'hero, rimpicciolita e centrata sul
-//     rombo del logo (hero.ts `DISCESA`, le var `--gomma-foto-*` scritte qui);
-//   • quando la cancellatura comincia ad allargarsi (`onReveal`) parte
-//     l'handoff: INTRO_EVENT, l'orologio dell'entrata dell'hero
-//     (`--dt-entrata-t` = l'ora del film) e la discesa della foto (CSS, su
-//     `html[data-gomma="reveal"]`); intanto un rAF legge la larghezza del tratto
-//     e buca col cerchio che la segue il fondo caldo e la sagoma, che sono HTML
-//     e non stanno nella maschera della gomma;
-//   • a gomma finita (`onDone`) si chiude: attributo, Lenis, precarico.
-// Il `ready` della gomma è il precarico di sempre (tutte le immagini con
-// scadenza sul desktop, la prima piega sul telefono), NON l'evento `load`: qui
-// il precarico del desktop promuove a eager ogni immagine della pagina, e il
-// `load` arriverebbe solo quando le ha scaricate tutte. Dopo uno skip il
-// `ready` è vero subito: chi salta non aspetta il precarico.
-// La gomma è JavaScript. Senza JS, o col JS arrivato quando la rete CSS è già
-// partita (PRE_AUTOHIDE_MS), il sipario sfuma da solo e l'hero entra per conto
-// suo: nessuno resta chiuso fuori perché un chunk tarda.
-// Il tempo della gomma è `normale` nel film a tempo e `veloce` nella porta
-// corta, dopo uno skip (tocco, click, tasto: «entra adesso») e col JS arrivato
-// dopo INTRO_T.tardi.
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { gsap, useGSAP, MQ, ScrollTrigger, requestRefresh } from "../../lib/motion/gsap";
+// Coreografia rif. era-residence.com (reverse-engineering/era-residence/):
+// lockup + progress, poi una PORTA AD ARCO sale dal fondo (maschera CSS a
+// 4 layer, vedi globals.css) e ci si "tuffa" dentro l'hero: al tuffo parte
+// INTRO_EVENT e HeroCinematic accende le lettere. La foto dell'hero resta a
+// scale 1 — è la sagoma del preloader a coincidere con lei pixel su pixel.
+//
+// COM'È FATTA, DAL 2026-08-17 (onda «parità mobile 2», Fase 1, opzione D —
+// docs/mobile-parity-2.md §8.5):
+//   • IL FILM INTERO È CSS. Atto I (sagoma, marchio, lettere, firma, caps,
+//     payoff), atto II (linea di carica), atto III (porta ad arco), atto IV
+//     (tuffo), congedo del lockup, anelli eco, autohide: tutto @keyframes in
+//     globals.css («Preloader»), sul markup reso dal server, deterministico
+//     dal primo paint. La ragione è misurata due volte: la baseline di Fase 0
+//     (§5.3) aveva visto che con questo componente in `dynamic ssr:false` il
+//     chunk arrivava dopo il failsafe (opzione C: atto I in CSS); poi la
+//     misura di Fase 1 (build pulita, CPU ×4 + Slow-4G, 390: docs/shots/
+//     intro-390-fase1-smoke2) ha visto che il JS della home atterra a 8-12 s,
+//     `data-pre-live` non compare mai e porta+tuffo — ancora GSAP — NON
+//     suonavano mai sul telefono lento. Nessuna scelta «al mount» può
+//     ripararlo: il film doveva esistere PRIMA del JavaScript, tutto.
+//   • QUESTO MODULO, al mount, trova la shell (#dt-preloader), legge quanto
+//     tempo è già passato sull'orologio CSS (`getAnimations()` sull'anello
+//     del badge o sul primo char, `timeline.currentTime − startTime`; di
+//     riserva `performance.now() − __dtPreT0` del boot script) e da lì:
+//       (a) mette i TIMER relativi a quell'orologio: `data-pre-act2` a
+//           INTRO_T.act1End (chiude la finestra del will-change), INTRO_EVENT a
+//           INTRO_T.dive (l'handoff all'hero), `finish()` a INTRO_MS (Lenis,
+//           sessionStorage, attributi, warmup) — se un istante è già passato,
+//           subito;
+//       (b) gestisce lo SKIP (tocco/click/tasto): `html[data-pre-skip]` +
+//           `--pre-skip` (l'ora CSS) mandano le keyframe dritte al tuffo, e i
+//           timer si riallineano;
+//       (c) RIPIEGA su GSAP — `html[data-pre-gsap]`, che spegne le keyframe
+//           CSS degli atti II-IV — SOLO se il browser non registra le custom
+//           property (`!("registerProperty" in CSS)`: Safari < 16.4, Firefox <
+//           128 — senza @property i valori scatterebbero al 50 % invece di
+//           interpolare) o se le keyframe non sono mai partite. Lì guidano i
+//           tween di sempre, posizionati sull'orologio CSS.
+//   • È UN SOLO MONTAGGIO: 4,63 s su telefono e desktop (INTRO_T in
+//     lib/motion/intro-constants.ts). Sotto i 768 cambiano SOLO le geometrie
+//     dell'arco (40→58→165 vw contro 24→36→125) e il congedo del lockup —
+//     parametri (custom property in globals.css; `G` qui è il ripiego), non
+//     atti (legge 1 e 3 del mandato; è ciò che fa ERA).
+//   • L'attributo <html data-preloader> è messo dal boot script del layout
+//     PRIMA del primo paint: qui si orchestra e si smonta.
+//   • Una volta per sessione (sessionStorage), skip con tocco/click/tasto.
+//   • Assente con reduced-motion e senza JS (l'attributo non c'è mai).
+//   • Non blocca l'LCP: l'hero sotto continua fetch/decode; l'overlay è solo
+//     un layer fixed sopra — ed è proprio ciò che l'arco rivela.
+//   • Ripiego senza mask-composite: sipario a salire (clip-path), stesso
+//     ritmo — in CSS, e in GSAP nel ramo di ripiego.
+import { useEffect } from "react";
+import { gsap, useGSAP, MQ } from "../../lib/motion/gsap";
 import {
   registerWarmup,
   runWarmup,
@@ -51,28 +65,14 @@ import {
   warmFirstFold,
 } from "../../lib/motion/warmup";
 import { getLenis } from "./SmoothScroll";
-import DomusTuaPreloader, { BOX, type PreloaderSpeed } from "./DomusTuaPreloader";
 import {
-  GOMMA_LOGO,
   INTRO_EVENT,
-  INTRO_FILM,
   INTRO_KEY,
+  INTRO_MS,
   INTRO_T,
-  LAST_Y_KEY,
-  PRE_AUTOHIDE_MS,
   PRE_FAILSAFE_MS,
-  PRE_SHORT_AUTOHIDE_MS,
-  PRE_SHORT_FAILSAFE_MS,
   WARM_FIRST_FOLD_MS,
 } from "../../lib/motion/intro-constants";
-import { DISCESA } from "../../lib/motion/hero";
-import {
-  parseLastY,
-  restoreTarget,
-  snapshot,
-  type ChapterTop,
-  type LastY,
-} from "../../lib/motion/chapter-scroll";
 
 // Ri-esportati per i chiamanti storici (HeroCinematic, CookieConsent, e2e):
 // la sorgente è lib/motion/intro-constants.ts, che non è "use client" e la
@@ -85,12 +85,12 @@ export function isIntroRunning(): boolean {
 }
 
 // L'evento di handoff parte UNA SOLA VOLTA per documento, da qualunque
-// percorso: la cancellatura che si allarga, lo skip, gli abort, la scheda
-// nascosta, e anche il percorso di recupero (il chunk atterrato dopo che la
-// rete CSS ha già tolto il sipario). Chi ascolta — HeroCinematic per le
-// lettere, CookieConsent per il banner — non deve mai restare appeso. Sta a
-// livello di modulo e non dentro l'effect proprio perché i percorsi sono più
-// d'uno: la bandiera dev'essere la stessa per tutti.
+// percorso: fine naturale, skip, abort, scheda nascosta, e anche dal
+// percorso di recupero (il chunk atterrato dopo che il failsafe ha già tolto
+// l'attributo). Chi ascolta — HeroCinematic per le lettere, CookieConsent per
+// il banner — non deve mai restare appeso. Sta a livello di modulo e non
+// dentro l'effect proprio perché i percorsi sono più d'uno: la bandiera
+// dev'essere la stessa per tutti.
 let introFired = false;
 function fireIntro() {
   if (introFired) return;
@@ -100,24 +100,23 @@ function fireIntro() {
 
 /**
  * L'handoff è già partito? Per chi si iscrive a INTRO_EVENT DOPO che è stato
- * sparato (un modulo idratato a sipario già caduto). Chi ascolta chiede prima
- * qui, poi si iscrive.
+ * sparato. Il caso è reale con il film in CSS: se questo modulo idrata a tuffo
+ * già cominciato (elapsed ≥ INTRO_T.dive) spara l'evento nel proprio layout
+ * effect, che nell'albero viene PRIMA di quello di HeroCinematic e del banner
+ * cookie — l'evento è già passato quando loro attaccano il listener, e senza
+ * questa lettura resterebbero appesi alla propria rete (HERO_REST_MS dal
+ * mount) con l'arco già aperto. Chi ascolta chiede prima qui, poi si iscrive.
  */
 export function hasIntroFired(): boolean {
   return introFired;
 }
 
 /** Il boot script segna qui che il sipario era previsto (vedi layout.tsx). */
-type BootFlags = {
-  __dtPreArmed?: number;
-  __dtPreFailsafe?: number;
-  __dtPreT0?: number;
-  __dtPreTop?: number;
-  __dtPreTopOff?: () => void;
-  __dtPreSkipAt?: number;
-  __dtPreSkipOff?: () => void;
-};
+type BootFlags = { __dtPreArmed?: number; __dtPreFailsafe?: number; __dtPreT0?: number };
 const boot = () => window as unknown as BootFlags;
+
+// Le ease dell'arco ("dtLoader", "dtDiveIn") vivono nel vocabolario condiviso
+// (lib/motion/gsap.ts): le usa anche il sipario ad arco di PageTransition.
 
 /**
  * Quanto è già passato dell'intro, in secondi, letto dall'OROLOGIO CSS.
@@ -125,18 +124,21 @@ const boot = () => window as unknown as BootFlags;
  * Si legge `timeline.currentTime − startTime` di un'animazione CSS della
  * shell, NON il suo `currentTime`: un'animazione finita (fill `both`) tiene
  * il `currentTime` FERMO alla propria fine — la prima lettera del titolo
- * finisce a 1,42 s, e un JS arrivato a 2,5 s avrebbe letto 1,42. `startTime`
- * invece resta l'istante in cui la CSS l'ha fatta partire (il primo style
- * della shell, con l'attributo già su <html>), anche a animazione finita. Si
- * campionano più nodi in ordine — l'overlay stesso (la rete dell'autohide),
- * poi l'anello del badge (giro infinito: il suo `currentTime` è di riserva
- * anche dove `startTime` non fosse un numero), poi la prima lettera — e vince
- * il primo che risponde: partono tutti nello stesso style update.
+ * finisce a 1,42 s, e un JS arrivato a 2,5 s avrebbe letto 1,42 e messo la
+ * porta un secondo in ritardo. `startTime` invece resta l'istante in cui la
+ * CSS l'ha fatta partire (il primo style della shell, con l'attributo già
+ * su <html>), anche a animazione finita. Si campionano più nodi in ordine —
+ * l'overlay stesso (porta/tuffo: l'animazione che lo skip riposiziona), poi
+ * l'anello del badge (giro infinito: non finisce mai, e il suo `currentTime`
+ * è di riserva anche dove `startTime` non fosse un numero), poi la prima
+ * lettera — e vince il primo che risponde: partono tutti nello stesso style
+ * update, quindi segnano la stessa ora.
  *
  * Se `getAnimations()` manca (browser datati) si ripiega su `performance.now()
  * − __dtPreT0`, l'istante in cui il boot script ha messo l'attributo — di poco
  * anteriore al primo paint, quindi al più si è in leggero anticipo, mai in
- * ritardo. Zero se il boot script non è mai girato.
+ * ritardo. Zero se il boot script non è mai girato (non dovrebbe: senza di
+ * lui non c'è l'attributo e non si arriva qui).
  */
 function elapsedFromCss(samples: ReadonlyArray<Element | null | undefined>): number {
   let ms = NaN;
@@ -167,62 +169,34 @@ function elapsedFromCss(samples: ReadonlyArray<Element | null | undefined>): num
   return Math.max(0, ms / 1000);
 }
 
-/** Dove sta il logo della gomma, letto dal suo `transform` (px dello schermo, e la scala del logo). */
-type LogoGeo = { x: number; y: number; k: number };
+/** Le keyframe degli atti III-IV (porta/tuffo, o il sipario di ripiego). */
+const FILM_ANIMATIONS = new Set(["dt-pre-door", "dt-pre-dive", "dt-pre-curtain"]);
 
 /**
- * Il componente posa il logo con `translate(cx cy) scale(k) translate(-mx -my)`
- * (mx, my = centro di BOX): il centro del rombo, l'origine del tracciato, cade
- * in (cx, cy − my·k). Null finché il componente non l'ha scritto.
+ * La CSS sta davvero guidando il film? Vero se su uno dei nodi c'è
+ * un'animazione CSS con uno dei nomi di FILM_ANIMATIONS: `getAnimations()`
+ * restituisce anche le animazioni ancora nel proprio delay (la porta parte a
+ * 2,25: al mount è quasi sempre lì) e quelle finite con fill. Falso se
+ * `getAnimations` manca, se le keyframe non sono partite (foglio di stile
+ * non applicato, attributo caduto) o se il browser non le ha riconosciute:
+ * in tutti questi casi guida GSAP.
  */
-function logoGeo(logo: Element | null): LogoGeo | null {
-  const t = logo?.getAttribute("transform");
-  const m = t ? /translate\(\s*([-\d.e]+)[\s,]+([-\d.e]+)\s*\)\s*scale\(\s*([-\d.e]+)\s*\)/.exec(t) : null;
-  if (!m) return null;
-  const [cx, cy, k] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  if (![cx, cy, k].every(Number.isFinite)) return null;
-  return { x: cx, y: cy - (BOX.y + BOX.h / 2) * k, k };
+function cssFilmAlive(nodes: ReadonlyArray<Element | null | undefined>): boolean {
+  for (const node of nodes) {
+    try {
+      const anims = node?.getAnimations?.() ?? [];
+      for (const a of anims) {
+        const name = (a as CSSAnimation).animationName;
+        if (typeof name === "string" && FILM_ANIMATIONS.has(name)) return true;
+      }
+    } catch {
+      /* getAnimations assente o capriccioso: si passa al prossimo */
+    }
+  }
+  return false;
 }
 
-/**
- * Il raggio del cerchio che buca sagoma e fondo, in unità del logo, oltre la
- * metà del tratto che si allarga: il tracciato arriva a 43 unità dall'origine
- * verso sinistra (il lobo sinistro, dalla parte di Raffaela) e a 51 in
- * diagonale. Col fronte vero in anticipo di qualche pixel la sagoma sparisce
- * sul foglio scuro un istante prima che il foglio sotto di lei si scopra:
- * invisibile. In ritardo resterebbe sopra il sito già scoperto.
- */
-const BUCO_OLTRE = 46;
-
-/** La gomma montata: dove (lo slot della shell), a che velocità, e i due richiami. */
-type Gomma = {
-  slot: HTMLElement;
-  speed: PreloaderSpeed;
-  onReveal: () => void;
-  onDone: () => void;
-};
-
 export default function Preloader() {
-  const [gomma, setGomma] = useState<Gomma | null>(null);
-  // Il `ready` della gomma: il precarico dietro il sipario (vedi l'intestazione).
-  const [pronta, setPronta] = useState(false);
-
-  /* D65: alla ricarica con un sipario il guardiano del boot script (layout.tsx)
-     tiene la pagina in cima con `history.scrollRestoration = "manual"` e lo
-     rimette "auto" quando si ritira (`__dtPreTop` 1 → 0). ScrollTrigger, se è
-     partito sotto il guardiano, si è segnato "manual" e lo riscriverebbe dopo
-     ogni refresh: al ritiro, o subito se è già avvenuto, gli si dice "auto". */
-  useEffect(() => {
-    const flags = boot();
-    if (flags.__dtPreTop === undefined) return;
-    const auto = () => ScrollTrigger.clearScrollMemory("auto");
-    if (flags.__dtPreTop === 0) auto();
-    else flags.__dtPreTopOff = auto;
-    return () => {
-      if (flags.__dtPreTopOff === auto) flags.__dtPreTopOff = undefined;
-    };
-  }, []);
-
   /* Chi torna sul sito, o chi ha reduced-motion, non vede il sipario: il
      precarico non ha una copertura dietro cui girare e non deve rubare tempo
      al primo rendering. Parte quindi a ruota libera, appena il thread respira.
@@ -231,14 +205,14 @@ export default function Preloader() {
     if (document.documentElement.hasAttribute("data-preloader")) return;
 
     /* IL RECUPERO — il difetto §5.3 dell'audit di parità mobile.
-       Se la rete del boot script (PRE_FAILSAFE_MS) è scattata PRIMA che
+       Se il failsafe del boot script (PRE_FAILSAFE_MS) è scattato PRIMA che
        questo modulo idratasse — rete lentissima, thread bloccato — l'attributo
-       è già sparito: l'atto I in CSS è comunque suonato, la gomma no, e non la
-       si replica. Resterebbe appeso chi aspettava l'handoff: HeroCinematic e
-       CookieConsent avrebbero atteso la propria rete a HERO_REST_MS per
-       accorgersene. `__dtPreArmed` distingue "sipario mai previsto" da
-       "sipario previsto e già ritirato" — a posteriori non c'è altro modo di
-       saperlo — e qui l'evento parte subito.
+       è già sparito: l'atto I in CSS è comunque suonato, l'arco no, e non lo
+       si replica. Fin qui si usciva in silenzio, e restava appeso chi
+       aspettava l'handoff: HeroCinematic e CookieConsent avrebbero atteso la
+       propria rete a HERO_REST_MS per accorgersene. `__dtPreArmed` distingue
+       "sipario mai previsto" da "sipario previsto e già ritirato" — a
+       posteriori non c'è altro modo di saperlo — e qui l'evento parte subito.
        Le due righe su Lenis sono la cintura: la bretella l'ha SmoothScroll,
        che osserva la caduta dell'attributo e si rilascia da solo (serve anche
        per il caso in cui questo modulo non idrati MAI, che da qui dentro
@@ -251,165 +225,61 @@ export default function Preloader() {
     scheduleIdleWarmup();
   }, []);
 
-  /* Lo scroll torna al capitolo alla ricarica (D22, spec §2.7).
-     - Al pagehide si salva { p, y, id, dy } in LAST_Y_KEY, su ogni rotta.
-     - Alla ricarica, coi corridoi accesi (MQ.corridor), lo scroll va a
-       top(id) + dy a ogni refresh di ScrollTrigger, fino a quello dopo il load
-       compreso. Il primo arriva subito dopo il montaggio: i useGSAP dei nastri
-       sono effetti di layout e hanno già scritto le loro misure. L'ultimo
-       arriva dopo il load, quando è passato anche il ripristino nativo del
-       browser.
-     - Il primo gesto (rotella, tocco, tasto, puntatore) ferma tutto: chi
-       scorre non viene riportato indietro.
-     - Non si arma su /case/* né sotto [data-motion-freeze]: /case/[slug]
-       resta ferma (A26, D32).
-     - Col sipario in scena ([data-preloader]) si ferma: il film porta la
-       pagina in cima.
-     Fuori dal film: data-preloader si legge e non si scrive. */
-  useEffect(() => {
-    const tops = (): ChapterTop[] =>
-      Array.from(document.querySelectorAll<HTMLElement>("#main section[id]"), (el) => ({
-        id: el.id,
-        top: Math.round(el.getBoundingClientRect().top + window.scrollY),
-      }));
-    const save = () => {
-      try {
-        const state = snapshot(location.pathname, Math.round(window.scrollY), tops());
-        sessionStorage.setItem(LAST_Y_KEY, JSON.stringify(state));
-      } catch {
-        /* storage negato (D22): alla ricarica decide il browser */
-      }
-    };
-    window.addEventListener("pagehide", save);
-
-    let saved: LastY | null = null;
-    try {
-      saved = parseLastY(sessionStorage.getItem(LAST_Y_KEY));
-    } catch {
-      saved = null;
-    }
-    const entry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-    const navigation = entry?.type;
-
-    const frozen = location.pathname.startsWith("/case/") || document.querySelector("[data-motion-freeze]") !== null;
-    const armed = saved !== null && navigation === "reload" && !frozen && window.matchMedia(MQ.corridor).matches;
-    const INPUTS = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
-    let loaded = document.readyState === "complete";
-
-    function stop() {
-      ScrollTrigger.removeEventListener("refresh", onRefresh);
-      window.removeEventListener("load", onLoad);
-      for (const type of INPUTS) window.removeEventListener(type, stop, true);
-    }
-    function onLoad() {
-      loaded = true;
-      requestRefresh();
-    }
-    function onRefresh() {
-      if (document.documentElement.hasAttribute("data-preloader")) {
-        stop();
-        return;
-      }
-      const y = restoreTarget(saved, {
-        pathname: location.pathname,
-        hash: location.hash,
-        navigation,
-        tops: tops(),
-        maxY: document.documentElement.scrollHeight - window.innerHeight,
-      });
-      if (y !== null && Math.abs(window.scrollY - y) > 1) {
-        // Senza `force` (D22): se qualcuno ha fermato Lenis, non si scrolla sotto di lui.
-        const lenis = getLenis();
-        if (lenis) lenis.scrollTo(y, { immediate: true });
-        else window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
-        ScrollTrigger.update();
-      }
-      if (loaded) stop();
-    }
-
-    if (armed) {
-      ScrollTrigger.addEventListener("refresh", onRefresh);
-      for (const type of INPUTS) window.addEventListener(type, stop, { capture: true, passive: true });
-      if (!loaded) window.addEventListener("load", onLoad, { once: true });
-      requestRefresh();
-    }
-
-    return () => {
-      window.removeEventListener("pagehide", save);
-      stop();
-    };
-  }, []);
 
   useGSAP(() => {
     const html = document.documentElement;
     // La shell resa dal server: se manca (layout diverso, test) non c'è
     // niente da orchestrare — si esce senza toccare l'attributo, che cadrà
-    // con la rete del boot script.
+    // col failsafe del boot script.
     const root = document.getElementById("dt-preloader");
     if (!root || !html.hasAttribute("data-preloader")) return;
 
-    // Il precarico del telefono aspetta solo la prima piega (vedi sotto).
-    // `MQ.belowDesktop` (767.98) e non 767: alle larghezze frazionarie un buco
-    // di un pixel lascerebbe spenti sia questo ramo sia le regole CSS gemelle.
+    // Le geometrie del telefono, decise una volta sola e lette da qui in poi.
+    // `MQ.belowDesktop` (767.98) e non 767: alle larghezze frazionarie — zoom
+    // del browser, dpr non interi — un buco di un pixel lascerebbe spenti sia
+    // questo ramo sia le regole CSS gemelle, che usano la stessa soglia.
     const mobile = window.matchMedia(MQ.belowDesktop).matches;
 
-    // La porta corta (Alberto, 13 settembre 2026: A18, A20; spec §6.2): il
-    // boot script scrive "short" su «/» e "short-page" sulle interne. Solo la
-    // gomma, `veloce`: nessuno skip, nessun precarico da aspettare, nessuna
-    // chiave del film.
-    const short = html.getAttribute("data-preloader")?.startsWith("short") ?? false;
-
-    // Il JS è al timone: lo dice a e2e, filmstrip e sonde. Siamo in un layout
-    // effect: l'attributo entra nel paint in cui l'orchestrazione si arma.
+    // Il JS è al timone (dei timer, dello skip, della chiusura — il film è
+    // CSS): lo dice a e2e, filmstrip e sonde. Siamo in un layout effect:
+    // l'attributo entra nel paint in cui l'orchestrazione si arma.
     html.setAttribute("data-pre-live", "");
 
+    // I timer sull'orologio CSS: si cancellano tutti negli abort e in finish.
     const timers = new Set<number>();
     const clearTimers = () => {
       timers.forEach((t) => window.clearTimeout(t));
       timers.clear();
     };
-    // Il rAF del cerchio che segue la cancellatura (da `onReveal` a `finish`).
-    let buco = 0;
-    // I listener: lo skip si stacca quando la gomma parte, gli altri a `finish`.
-    // Il componente resta montato per tutta la sessione, e un preventDefault
-    // residuo sul keydown romperebbe ogni campo di testo del sito dopo l'intro.
-    let removeSkipListeners = () => {};
-    let removeCloseListeners = () => {};
-    // L'effect è vivo (StrictMode e HMR lo smontano e lo rifanno).
-    let vivo = true;
 
     // `completed`: sessionStorage va scritto solo quando l'intro è stata
     // davvero vista/saltata dall'utente — mai negli abort (StrictMode/HMR),
     // altrimenti in dev l'intro non si rivede più.
+    // I listener di skip vanno TOLTI qui: il componente resta montato per
+    // tutta la sessione e un preventDefault residuo sul keydown romperebbe
+    // ogni input di testo del sito dopo l'intro.
+    let removeSkipListeners = () => {};
     let finished = false;
     const finish = (completed: boolean) => {
       if (finished) return;
       finished = true;
-      // La chiave del film la scrive già il boot script all'armamento: qui
-      // resta la cintura. La corta non la tocca mai: se scrivesse INTRO_FILM
-      // dopo una corta interna, la home non darebbe più il film (riga 4 della
-      // macchina a stati di spec §6.2; Alberto, 13 set. 2026, A18 e A20).
-      if (completed && !short) {
+      if (completed) {
         try {
-          sessionStorage.setItem(INTRO_KEY, INTRO_FILM);
+          sessionStorage.setItem(INTRO_KEY, "1");
         } catch {
           /* storage pieno/bloccato: pazienza, si rivedrà */
         }
       }
       clearTimers();
-      window.cancelAnimationFrame(buco);
       removeSkipListeners();
-      removeCloseListeners();
       html.removeAttribute("data-preloader");
       html.removeAttribute("data-pre-live");
       html.removeAttribute("data-pre-act2");
+      html.removeAttribute("data-pre-gsap");
       html.removeAttribute("data-pre-skip");
       // Ripristina il contratto Lenis↔ScrollTrigger (vedi sotto).
       gsap.ticker.lagSmoothing(0);
       getLenis()?.start();
-      // La gomma si smonta da sola a fine corsa; negli altri percorsi (scheda
-      // nascosta, reduced-motion in corsa) la si smonta qui, col suo rAF.
-      setGomma(null);
       // Sul telefono il registro del precarico NON è stato drenato dietro il
       // sipario (vedi più sotto il perché): parte adesso, a ruota libera,
       // dopo l'handoff. Su desktop `runWarmup` è già partito e questa riga
@@ -426,324 +296,499 @@ export default function Preloader() {
       return;
     }
 
-    // Deep-link con ancora (/#contatti): il sipario presuppone la pagina in
-    // cima e combatterebbe lo scroll all'ancora di Next. Il boot script in quel
-    // caso non mette nemmeno l'attributo: qui non ci si arriva più, la guardia
-    // resta come rete.
+    // Deep-link con ancora (/#contatti): la coreografia dell'arco presuppone
+    // pagina in cima e combatterebbe lo scroll all'ancora di Next — niente
+    // intro, si va dritti al contenuto richiesto.
+    // La decisione è già stata presa prima del paint dallo script di boot
+    // (layout.tsx), che in quel caso non mette nemmeno l'attributo: qui non
+    // ci si arriva più. La guardia resta come rete — costa un confronto,
+    // e l'alternativa è un sipario che litiga con uno scroll all'ancora.
     if (window.location.hash) {
       fireIntro();
       finish(true);
       return;
     }
 
-    const slot = root.querySelector<HTMLElement>("[data-pre-gomma]");
-    const firstChar = root.querySelector<HTMLElement>("[data-pre-char]");
-    const ring = root.querySelector<SVGElement>("[data-rot-ring]");
-    if (!slot) {
-      fireIntro();
-      finish(true);
-      return;
-    }
-
-    // L'orologio: quanto è già passato del film in CSS. Tutto ciò che segue
-    // si posiziona qui, così i suoi istanti sono quelli del film, non «da
-    // quando è arrivato il JavaScript».
-    const elapsed = elapsedFromCss([root, ring, firstChar]);
-    const mountedAt = performance.now();
-    /** L'ora del film ADESSO, in secondi: l'orologio CSS più il tempo da qui. */
-    const now = () => elapsed + (performance.now() - mountedAt) / 1000;
-    /** `fn` all'istante `t` del film; se è già passato, subito. */
-    const at = (t: number, fn: () => void) => {
-      const ms = (t - now()) * 1000;
-      if (ms <= 0) fn();
-      else timers.add(window.setTimeout(fn, ms));
-    };
-
-    // L'unica cosa che il JS fa per l'atto I è chiudere la finestra del
-    // `will-change` delle lettere quando l'ultima ha finito (INTRO_T.act1End):
-    // `data-pre-act2` su <html> toglie la promozione (globals.css).
-    const unwill = () => html.setAttribute("data-pre-act2", "");
-
-    // LA RETE CSS È GIÀ PARTITA: il sipario sta sfumando da solo (autohide) e
-    // l'hero entra per conto suo. Il JS è arrivato tardi (il telefono lento
-    // misurato: 8-12 s) e non si rimonta niente: si chiude come la rete avrebbe
-    // fatto, e l'handoff parte per chi lo aspetta.
-    const reteAt = (short ? PRE_SHORT_AUTOHIDE_MS : PRE_AUTOHIDE_MS) / 1000;
-    if (elapsed >= reteAt) {
-      unwill();
-      fireIntro();
-      finish(true);
-      return;
-    }
-
-    // Il JS è arrivato in tempo: la rete del boot script (PRE_FAILSAFE_MS) non
-    // deve più strappare l'attributo per conto suo. Da qui la responsabilità di
-    // chiudere è SOLO di questo effect.
+    // Il JS è arrivato: il failsafe del boot script (PRE_FAILSAFE_MS, il
+    // numero sta in intro-constants.ts e layout.tsx lo interpola) non deve
+    // più strappare l'attributo per conto suo (tab nascosta, idratazione
+    // lenta). Da qui la responsabilità di chiudere è SOLO di questo effect.
     try {
       window.clearTimeout(boot().__dtPreFailsafe);
     } catch {
       /* boot script mai eseguito: nulla da pulire */
     }
-    // Lo skip del boot script (quello che serve il primo tocco prima di React)
-    // si ritira: da qui lo serve questo modulo. Restando acceso ri-armerebbe
-    // la rete a SKIP_TAIL_MS dal tocco, e la gomma `veloce` (2,76 s) verrebbe
-    // strappata a metà (misurato il 23 set.: il sipario cadeva a +1,85 s).
-    boot().__dtPreSkipOff?.();
 
     getLenis()?.stop();
-    // La gomma scopre l'hero: la pagina deve essere in cima. Alla ricarica la
-    // tiene lì il guardiano del boot script (D65, layout.tsx); questa è la
-    // cintura. `instant` perché `html` ha `scroll-behavior: smooth` finché
-    // Lenis non mette la sua classe.
-    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    // L'arco rivela l'hero: la pagina deve essere in cima (reload a metà
+    // pagina, scroll restoration). Lenis è già fermo: salto istantaneo.
+    window.scrollTo(0, 0);
+
     // Il jank di avvio (idratazione, decode immagini) con lagSmoothing(0)
-    // farebbe saltare le timeline GSAP in avanti di secondi al primo tick.
+    // farebbe saltare la timeline in avanti di secondi al primo tick.
     // Durante l'intro lo scroll è bloccato, quindi lo smoothing è sicuro;
-    // finish() lo riporta a 0 (contratto SmoothScroll/Lenis).
+    // finish() lo riporta a 0 (contratto SmoothScroll/Lenis). Vale per il
+    // ramo GSAP; nel ramo CSS non c'è timeline, ma il contratto è lo stesso.
     gsap.ticker.lagSmoothing(500, 33);
 
-    // ── IL PRECARICO: DIETRO IL SIPARIO, ED È IL `ready` DELLA GOMMA ─────
-    // Su DESKTOP tutte le immagini della pagina (richiesta del cliente:
-    // «caricare tutto prima di entrare»), con scadenza 4,5 s SUL FILM; sul
-    // TELEFONO solo la prima piega, senza svegliare niente, con scadenza
-    // WARM_FIRST_FOLD_MS (e il registro dopo l'handoff, in `finish`): sulla
-    // connessione del telefono `warmAllImages` metterebbe in gara ogni
-    // immagine con la foto dell'hero. Entrambe le scadenze stanno prima che
-    // la gomma a tempo finisca di disegnare (GOMMA_REVEAL_MS): la gomma di
-    // norma trova la pagina pronta e non batte il cuore; se il precarico
-    // rifiuta, la promessa si risolve lo stesso (`.catch`), e la gomma ha
-    // comunque il suo `maxWait`.
+    const panel = root.querySelector<HTMLElement>("[data-pre-panel]");
+    const content = root.querySelector<HTMLElement>("[data-pre-content]");
+    const firstChar = root.querySelector<HTMLElement>("[data-pre-char]");
+    const ring = root.querySelector<SVGElement>("[data-rot-ring]");
+    const progress = root.querySelector<HTMLElement>("[data-pre-progress]");
+    const track = root.querySelector<HTMLElement>("[data-pre-track]");
+    if (!panel || !content) {
+      fireIntro();
+      finish(true);
+      return;
+    }
+
+    // La porta ad arco vive su una maschera additiva con mask-composite: la
+    // CSS la applica da sé (`@supports`), qui si aggiunge la classe storica
+    // per e2e e sonde; dove non è supportata (browser datati) si ripiega sul
+    // sipario clip-path — anche lui in CSS, e in GSAP nel ramo di ripiego.
+    const supportsArch =
+      typeof CSS !== "undefined" && CSS.supports("mask-composite", "add");
+    if (supportsArch) root.classList.add("is-arch", "dt-arch-mask");
+
+    // L'orologio: quanto è già passato del film in CSS. Tutto ciò che segue
+    // — timer, timeline di ripiego, skip — si posiziona qui, così i suoi
+    // istanti sono quelli del film, non «da quando è arrivato il JavaScript».
+    // Si campiona PRIMA la root: è la sua animazione (porta/tuffo) che lo skip
+    // riposiziona con `--pre-skip`, quindi è il SUO start time che conta; poi
+    // l'anello e la prima lettera (stesso style update, stessa ora).
+    const elapsed = elapsedFromCss([root, ring, firstChar]);
+    const mountedAt = performance.now();
+    /** L'ora del film ADESSO, in secondi: l'orologio CSS più il tempo da qui. */
+    const now = () => elapsed + (performance.now() - mountedAt) / 1000;
+
+    // ── IL PRECARICO: DIETRO IL SIPARIO, MAI OLTRE IL SIPARIO ───────────
+    // Parte SUBITO, in parallelo all'intro: i secondi dell'animazione sono
+    // tempo che l'utente sta gia' aspettando: e' li' che va messo il lavoro
+    // che altrimenti cadrebbe sul primo scroll.
+    //
+    // Su DESKTOP: tutte le immagini della pagina, non solo quelle delle scene
+    // animate (richiesta del cliente: «caricare tutto prima di entrare»). Si
+    // iscrive PRIMA di avviare il precarico, cosi' entra nel primo giro di
+    // raccolta. Scadenza 4,5 s SUL FILM contro un'intro di 4,63: l'attesa è
+    // coperta dal sipario per costruzione, non per fortuna. (Il conto
+    // comprende la corsa dei font: vedi il commento in warmup.ts.)
+    //
+    // Su TELEFONO no, ed è una decisione, non una svista: `warmAllImages`
+    // sveglia OGNI immagine del documento e le mette in gara con la foto
+    // dell'hero — cioè con l'unica immagine che l'arco sta per scoprire —
+    // sulla connessione in cui quella gara si perde. Qui si aspetta solo il
+    // primo schermo, senza svegliare niente, con scadenza WARM_FIRST_FOLD_MS
+    // (3 s ≤ intro − tuffo: sta dentro il sipario per costruzione); il
+    // registro (Header, CharFlip, Fioritura, TeamTrail) passa da
+    // `scheduleIdleWarmup()` in `finish()`, cioè DOPO l'handoff. Il «caricare
+    // tutto prima di entrare» del cliente resta com'è dove è stato misurato —
+    // su desktop. Su un telefono significherebbe spendere il piano dati del
+    // visitatore per immagini sette schermate più in basso.
+    //
+    // ENTRAMBE LE SCADENZE SONO SULL'OROLOGIO DEL FILM, non «da adesso»: il
+    // film è partito `elapsed` secondi fa e `finish()` aspetta questa promessa.
+    // Con il JS arrivato a 2 s (il caso normale sul telefono, non quello di
+    // scuola) una scadenza contata dal mount finirebbe 2 s dopo il tuffo: la
+    // CSS ha già sfumato l'overlay (autohide) ma l'attributo — e con lui
+    // overflow:hidden e Lenis fermo — resterebbe fino a 6,5 s. Si sottrae
+    // quindi ciò che è già passato; a zero la promessa si risolve subito.
     const filmMs = Math.round(elapsed * 1000);
     let scaldata: Promise<void>;
-    if (short) {
-      scaldata = Promise.resolve();
-    } else if (mobile) {
+    if (mobile) {
       scaldata = warmFirstFold(Math.max(0, WARM_FIRST_FOLD_MS - filmMs));
     } else {
       registerWarmup(warmAllImages);
       scaldata = runWarmup(Math.max(0, 4500 - filmMs));
     }
-    void scaldata
-      .catch(() => {})
-      .then(() => {
-        if (vivo) setPronta(true);
+    /** true se l'utente ha saltato l'intro: allora non si aspetta il precarico. */
+    let saltata = false;
+
+    // La fine del film: il sipario si alza solo quando le scene pesanti sono
+    // calde. `runWarmup` e' partito insieme all'intro e ha una scadenza sua:
+    // nel caso normale ha gia' finito e questo `then` e' immediato, su rete
+    // lenta rinuncia e si entra comunque. Nessuno resta chiuso fuori dal
+    // sito perche' un fiore non era pronto.
+    // `.catch` prima del `.then`: se il precarico rifiuta (basta una immagine
+    // che non arriva), senza questa rete la promessa non si risolve mai,
+    // `finish` non viene chiamato e il sipario resta su per sempre.
+    const onFilmEnd = () => {
+      if (saltata) finish(true);
+      else void scaldata.catch(() => {}).then(() => finish(true));
+    };
+
+    // L'unica cosa che il JS fa per l'atto I è chiudere la finestra del
+    // `will-change` delle lettere quando l'ultima ha finito (INTRO_T.act1End):
+    // `data-pre-act2` su <html> toglie la promozione (globals.css). Sagoma,
+    // marchio, lettere, firma, caps e payoff stanno già salendo per conto della
+    // CSS: qui NON si tocca nessuno di quei nodi — un `fromTo` li riporterebbe
+    // a zero con un salto visibile.
+    const unwill = () => html.setAttribute("data-pre-act2", "");
+
+    // Gli istanti del film che contano qui: l'handoff (il tuffo, o il bordo
+    // del sipario che scopre l'hero) e la fine.
+    const diveAt = supportsArch ? INTRO_T.dive : INTRO_T.curtain;
+    const endAt = supportsArch ? INTRO_MS / 1000 : INTRO_T.curtain + INTRO_T.curtainDur;
+    const diveDur = supportsArch ? INTRO_T.diveDur : INTRO_T.curtainDur;
+
+    // ── CHI GUIDA? ──────────────────────────────────────────────────────
+    // La CSS, di default (le keyframe di globals.css stanno correndo da prima
+    // di questo mount). GSAP SOLO in ripiego: browser che non registra le
+    // custom property (senza @property la maschera scatterebbe al 50 %), o
+    // keyframe della porta/tuffo/sipario mai partite (getAnimations non le
+    // vede), o un remount (StrictMode/HMR) che trova già `data-pre-gsap` —
+    // le keyframe CSS sono spente da allora e riaccenderle le farebbe
+    // RIPARTIRE da zero (un'animazione tolta e rimessa riparte), non
+    // riprendere dal punto giusto.
+    const cssDrives =
+      !html.hasAttribute("data-pre-gsap") &&
+      typeof CSS !== "undefined" &&
+      "registerProperty" in CSS &&
+      cssFilmAlive([root, panel]);
+
+    // Se l'orologio CSS dice che il film è già FINITO non c'è più niente da
+    // orchestrare: si chiude subito, come il failsafe avrebbe fatto. Il caso è
+    // reale, non di scuola (ed è ESATTAMENTE il telefono lento misurato: JS a
+    // 8-12 s): il failsafe è un setTimeout, e su un thread bloccato
+    // dall'idratazione gli effect girano PRIMA dei timer in coda —
+    // l'attributo è ancora su <html> col film finito da un pezzo. Senza
+    // questa uscita, nel ramo GSAP `time()` arriverebbe in fondo e farebbe
+    // scattare `onComplete` (→ finish) qui dentro, PRIMA che i listener di
+    // skip siano attaccati: resterebbero appesi per tutta la sessione.
+    if (elapsed >= endAt) {
+      unwill();
+      fireIntro();
+      finish(true);
+      return;
+    }
+
+    /** Il tuffo è già cominciato (o lo skip l'ha fatto cominciare)? */
+    let diving = elapsed >= diveAt;
+    /** Chiamato dallo skip: salta al tuffo. Impostato dal ramo che guida. */
+    let seekToDive: () => void;
+    /** Chiusura immediata (reduced-motion in corsa, scheda nascosta). */
+    let closeNow: () => void = () => finish(true);
+    /** Pulizia della timeline di ripiego negli abort (nel ramo CSS: niente). */
+    let abortTimeline = () => {};
+
+    if (cssDrives) {
+      // ── LA CSS GUIDA: qui solo i timer, sull'orologio del film ─────────
+      // `at(t, fn)`: fn all'istante t del film; se è già passato, subito.
+      const at = (t: number, fn: () => void) => {
+        const ms = (t - now()) * 1000;
+        if (ms <= 0) fn();
+        else timers.add(window.setTimeout(fn, ms));
+      };
+      // LO SKIP PUÒ ESSERE GIÀ AVVENUTO, PRIMA CHE QUESTO CODICE ESISTESSE.
+      // Dal 2026-08-18 il primo tocco lo raccoglie lo script di boot (vedi
+      // layout.tsx): il film è in CSS, e sarebbe assurdo che il suo unico
+      // comando aspettasse React — misurato a 360, un tocco a 650 ms veniva
+      // servito a 2 792, cioè 2,1 s dopo, perché l'idratazione arrivava
+      // allora. Se l'attributo c'è già, qui si prende atto: il tuffo sta
+      // suonando dall'ora scritta in `__dtPreSkipAt`, e i timer si allineano
+      // a quella invece che al film intero.
+      const skipAt = html.hasAttribute("data-pre-skip")
+        ? (window as unknown as { __dtPreSkipAt?: number }).__dtPreSkipAt
+        : undefined;
+      const giaSaltato = typeof skipAt === "number";
+
+      at(INTRO_T.act1End, unwill);
+      if (giaSaltato) {
+        diving = true;
+        unwill();
+        fireIntro();
+      } else {
+        at(diveAt, () => {
+          diving = true;
+          fireIntro();
+        });
+      }
+      // La chiusura: a fine film. Se un timer arriva in ritardo (thread
+      // occupato) l'autohide CSS ha già sfumato l'overlay a PRE_AUTOHIDE_MS:
+      // l'utente vede la pagina, e qui si tolgono attributo e blocco scroll
+      // appena si può. Il timer sta in `endTimer` perché lo skip lo sposta.
+      let endTimer = 0;
+      const scheduleEnd = (t: number) => {
+        window.clearTimeout(endTimer);
+        timers.delete(endTimer);
+        const ms = Math.max(0, (t - now()) * 1000);
+        endTimer = window.setTimeout(onFilmEnd, ms);
+        timers.add(endTimer);
+      };
+      // Con lo skip già avvenuto la fine è «ora dello skip + tuffo», non la
+      // fine del film: è lo stesso conto che fa `seekToDive` qui sotto.
+      scheduleEnd(giaSaltato ? skipAt! + diveDur : endAt);
+
+      // ── GLI EVENTI DEL FILM PRIMA DEI TIMER ──────────────────────────
+      // I setTimeout qui sopra sono una rete, non l'orologio: sotto carico
+      // (misurato in e2e con quattro worker, 2026-08-18) un timer arriva
+      // 200-1 000 ms DOPO l'istante del film — l'hero si accendeva fino a un
+      // secondo dopo che la porta l'aveva già scoperto, e l'attributo restava
+      // su <html> a film finito. Le animazioni CSS invece corrono sul loro
+      // orologio e Chromium privilegia rAF/animazioni sui timer: quindi
+      // l'handoff parte da `animationstart` del tuffo (o del sipario di
+      // ripiego) e la chiusura da `animationend` dello stesso — l'istante
+      // vero, non la sua stima. Con lo skip la CSS cambia gli animation-delay
+      // e il tuffo entra in fase attiva «adesso»: `animationstart` scatta
+      // ancora (l'animazione entra nella fase attiva), e `animationend`
+      // segue 1,5 s dopo — coerente coi timer che seekToDive risposta.
+      // Gli eventi dei figli (le lettere, la linea) risalgono fino a `root`:
+      // si filtra sul nome, e si ascolta solo il bersaglio giusto.
+      const isDiveAnim = (e: AnimationEvent) =>
+        e.target === root && (e.animationName === "dt-pre-dive" || e.animationName === "dt-pre-curtain");
+      const onAnimStart = (e: AnimationEvent) => {
+        if (!isDiveAnim(e)) return;
+        diving = true;
+        fireIntro();
+      };
+      const onAnimEnd = (e: AnimationEvent) => {
+        if (!isDiveAnim(e)) return;
+        onFilmEnd();
+      };
+      root.addEventListener("animationstart", onAnimStart);
+      root.addEventListener("animationend", onAnimEnd);
+      const prevAbort = abortTimeline;
+      abortTimeline = () => {
+        root.removeEventListener("animationstart", onAnimStart);
+        root.removeEventListener("animationend", onAnimEnd);
+        prevAbort();
+      };
+
+      // Lo skip in CSS: «entra ADESSO». `html[data-pre-skip]` cambia gli
+      // animation-delay delle keyframe (globals.css): ciò che precede il
+      // tuffo va alla propria fine, il tuffo parte dall'ora del film che si
+      // scrive in `--pre-skip` (la CSS non sa che ora è; il delay va contato
+      // dallo start time dell'animazione, cioè dal primo paint). Il tuffo
+      // suona comunque per intero (1,5 s a ogni larghezza): lo skip taglia il
+      // preambolo, non la porta — un taglio secco lascerebbe l'arco a metà.
+      seekToDive = () => {
+        // I listener del boot script non servono più: da qui comanda questo
+        // modulo (e un doppio `--pre-skip` riposizionerebbe il tuffo).
+        (window as unknown as { __dtPreSkipOff?: () => void }).__dtPreSkipOff?.();
+        const t = now();
+        root.style.setProperty("--pre-skip", `${t.toFixed(3)}s`);
+        html.setAttribute("data-pre-skip", "");
+        diving = true;
+        fireIntro();
+        scheduleEnd(t + diveDur);
+      };
+    } else {
+      // ── IL RIPIEGO: GSAP guida gli atti II-IV, come prima di D ─────────
+      // `data-pre-gsap` spegne le keyframe CSS degli atti II-IV (le regole in
+      // globals.css sono `:not([data-pre-gsap])`); l'autohide CSS della ROOT
+      // va disattivato (quelle dei figli — l'atto I — continuano: sono il
+      // film). Da qui l'attributo resta fino a finish (vedi «CHI GUIDA?»).
+      html.setAttribute("data-pre-gsap", "");
+      root.style.animation = "none";
+
+      const tl = gsap.timeline({
+        defaults: { ease: "domus" },
+        onComplete: onFilmEnd,
       });
 
-    // Nella corta l'atto I non si dipinge (D31: salta [data-pre-content]):
-    // la finestra del will-change si chiude subito.
-    if (short) unwill();
-    else at(INTRO_T.act1End, unwill);
+      // ── LE GEOMETRIE, IN UN POSTO SOLO ────────────────────────────────
+      // I TEMPI sono di INTRO_T (intro-constants.ts) e sono gli stessi a ogni
+      // larghezza; qui stanno solo i numeri che dipendono dallo schermo — gli
+      // stessi delle custom property di globals.css (--arch-w0/1/2, --arch-y1,
+      // --pre-exit-y), che sono la sorgente per il film CSS:
+      //   • l'arco: 40→58→165 vw sotto i 768 (su 390px 24 vw sarebbero 94px,
+      //     una feritoia, non una porta), 24→36→125 vw sopra;
+      //   • la quota di riposo 16 vh / 15 vh, e le quote 104 vh → −100 vh
+      //     restano `vh` PURI, come ERA: sui browser mobili `vh` è il viewport
+      //     grande, quindi 104vh sta sotto il bordo anche a barra URL nascosta
+      //     e 16vh è visibile in entrambi gli stati della barra. Un `svh` qui
+      //     sarebbe l'errore, non la correzione — e dentro un singolo tween di
+      //     custom property NON si mescolano unità (CSSPlugin le convertirebbe
+      //     misurandole, e sarebbe un salto);
+      //   • `s1`/`s2` = arch-w / arch-w0: il fattore unitless che gli anelli
+      //     eco usano in `scale()` (globals.css: --arch-s) invece di
+      //     ricalcolare width/height/top per frame — transform, non layout;
+      //   • il congedo del lockup: −20 px sul telefono, −28 su desktop.
+      const G = mobile
+        ? { w0: 40, w1: 58, w2: 165, y1: "16vh", uscitaY: -20 }
+        : { w0: 24, w1: 36, w2: 125, y1: "15vh", uscitaY: -28 };
+      const vw = (n: number) => `${n}vw`;
+      const s1 = G.w1 / G.w0;
+      const s2 = G.w2 / G.w0;
 
-    // L'ENTRATA DELL'HERO aspetta la gomma: il suo orologio (`--dt-entrata-t`,
-    // globals.css) ha nel CSS la rete senza JS; da qui lo tiene lontano questo
-    // modulo, e ci scrive l'ora vera quando la cancellatura si allarga.
-    // L'ora si legge sull'orologio delle animazioni DELL'HERO (la salita dello
-    // strato), non su quello della shell: partono nello stesso style update
-    // solo se il foglio di stile arriva prima del primo paint. Col CSS caricato
-    // dopo (il dev, misurato il 23 set.) l'hero partiva mezzo secondo prima
-    // della shell, e le lettere dell'entrata arrivavano in anticipo.
-    const entrata = html.hasAttribute("data-hero-entrata");
-    const oraEntrata = () => {
-      const salita = document
-        .querySelector(".dt-hero [data-testa-strato]")
-        ?.getAnimations?.()
-        .find((a) => (a as CSSAnimation).animationName === "dt-hero-sale");
-      const adesso = document.timeline?.currentTime;
-      const via = salita?.startTime;
-      return typeof adesso === "number" && typeof via === "number" ? (adesso - via) / 1000 : now();
-    };
-    const orologioEntrata = (dopo: number | null) => {
-      if (!entrata) return;
-      html.style.setProperty("--dt-entrata-t", dopo === null ? "9999s" : `${(oraEntrata() + dopo).toFixed(3)}s`);
-    };
-    orologioEntrata(null);
+      tl.addLabel("act1done", INTRO_T.act1End).call(unwill, [], "act1done");
 
-    let logo: Element | null = null;
-    let tratto: Element | null = null;
-
-    // LA FOTO NEL CUORE (hero.ts `DISCESA`): la scatola della foto dell'hero,
-    // rimpicciolita a `larghezza` volte il logo e con la quota `centro` (il
-    // centro di Raffaela) sull'origine del rombo, che il componente ha appena
-    // posato. La trasformata parte dal bordo alto della scatola, che è quello
-    // dello strato (in questo istante giù fuori campo: il `from` della salita).
-    const inquadra = () => {
-      if (!entrata) return;
-      const g = logoGeo(logo);
-      const strato = document.querySelector<HTMLElement>(".dt-hero [data-testa-strato]");
-      const box = strato?.querySelector<HTMLElement>("[data-testa-foto-box]");
-      if (!g || !strato || !box || box.offsetWidth === 0) return;
-      const s = (BOX.w * g.k * DISCESA.larghezza) / box.offsetWidth;
-      const y = g.y - strato.getBoundingClientRect().top - s * DISCESA.centro * box.offsetHeight;
-      html.style.setProperty("--gomma-foto-s", s.toFixed(4));
-      html.style.setProperty("--gomma-foto-y", `${y.toFixed(1)}px`);
-    };
-
-    // IL CERCHIO CHE SEGUE LA CANCELLATURA: a ogni fotogramma la larghezza del
-    // tratto che si allarga (`stroke-width`, unità del logo) e la posa del logo;
-    // centro e raggio vanno sulla shell, dove li leggono le maschere del fondo
-    // caldo e della sagoma (globals.css, «La gomma»). Il tratto lo scrive il rAF
-    // del componente, e questo può leggerlo un fotogramma prima che lo aggiorni:
-    // sulla coda della cancellatura (easeInCubic) il fronte fa 40-50 px a
-    // fotogramma, e il fondo caldo restava indietro come una fascia bruna sul
-    // sito già scoperto (pellicola a 1440, 23 set.). Si guarda quindi DUE
-    // fotogrammi avanti, con la crescita dell'ultimo.
-    let wPrima = 0;
-    const segui = () => {
-      const g = logoGeo(logo);
-      const w = Number.parseFloat(tratto?.getAttribute("stroke-width") ?? "0") || 0;
-      const avanti = w + 2 * Math.max(0, w - wPrima);
-      wPrima = w;
-      if (g) {
-        root.style.setProperty("--gomma-x", `${g.x.toFixed(1)}px`);
-        root.style.setProperty("--gomma-y", `${g.y.toFixed(1)}px`);
-        root.style.setProperty("--gomma-r", `${((avanti / 2 + BUCO_OLTRE) * g.k).toFixed(1)}px`);
+      // ── Atto II — la linea di carica (a scatti, come un vero load) ────
+      if (progress && track) {
+        tl.to(progress, { autoAlpha: 1, duration: 0.25, ease: "none" }, INTRO_T.progress).fromTo(
+          track,
+          { yPercent: -100 },
+          { yPercent: 0, duration: INTRO_T.trackDur, ease: "dtLoader" },
+          INTRO_T.track
+        );
       }
-      buco = window.requestAnimationFrame(segui);
-    };
 
-    const onReveal = () => {
-      if (!vivo) return;
-      // L'handoff: le lettere dell'hero, il banner cookie, l'orologio
-      // dell'entrata (la foto intanto scende: CSS su `data-gomma="reveal"`),
-      // che parte `DISCESA.entrata` dopo, quando la foto ha lasciato il centro.
-      fireIntro();
-      orologioEntrata(DISCESA.entrata);
-      window.cancelAnimationFrame(buco);
-      segui();
-    };
-    const onDone = () => {
-      if (vivo) finish(true);
-    };
-
-    // Il componente scrive la posa del logo nel suo effect, dopo il commit:
-    // la si aspetta qualche fotogramma (durante il suo `delay` il foglio è
-    // pieno, niente è ancora scoperto) e da lì si centra la foto.
-    let posa = 0;
-    const aspettaLogo = (giri: number) => {
-      logo = slot.querySelector("[data-gomma-logo]");
-      tratto = slot.querySelector("[data-gomma-swell]");
-      if (logoGeo(logo)) {
-        inquadra();
-        return;
+      // ── Atto III — la porta ad arco, e il tuffo ───────────────────────
+      // Il contenuto si congeda mentre la porta sale; l'handoff all'hero
+      // (INTRO_EVENT → le lettere di HeroCinematic) parte esattamente col tuffo.
+      tl.addLabel("arch", INTRO_T.arch);
+      tl.to(
+        content,
+        { y: G.uscitaY, autoAlpha: 0, duration: INTRO_T.exitDur, ease: "domus.inOut" },
+        INTRO_T.exit
+      );
+      const markDive = () => {
+        diving = true;
+        fireIntro();
+      };
+      if (supportsArch) {
+        tl.fromTo(
+          root,
+          { "--arch-w": vw(G.w0), "--arch-y": "104vh", "--arch-s": 1 },
+          {
+            "--arch-w": vw(G.w1),
+            "--arch-y": G.y1,
+            "--arch-s": s1,
+            duration: INTRO_T.archDur,
+            ease: "domus.inOut",
+          },
+          "arch"
+        )
+          .addLabel("dive", INTRO_T.dive)
+          .call(markDive, [], "dive")
+          .to(
+            root,
+            {
+              "--arch-w": vw(G.w2),
+              "--arch-y": "-100vh",
+              "--arch-s": s2,
+              duration: INTRO_T.diveDur,
+              ease: "dtDiveIn",
+            },
+            "dive"
+          );
+      } else {
+        // Fallback: sipario che sale, handoff appena il bordo scopre l'hero.
+        // Stessi tempi del desktop, a ogni larghezza (2,6 + 0,9 = 3,50 s).
+        tl.addLabel("dive", INTRO_T.curtain)
+          .call(markDive, [], "dive")
+          .to(
+            panel,
+            {
+              clipPath: "inset(0% 0% 100% 0%)",
+              duration: INTRO_T.curtainDur,
+              ease: "domus.inOut",
+            },
+            "dive"
+          );
       }
-      if (giri > 0) posa = window.requestAnimationFrame(() => aspettaLogo(giri - 1));
-    };
-    const onResize = () => inquadra();
 
-    let montata = false;
-    const monta = (speed: PreloaderSpeed) => {
-      if (montata || finished || !vivo) return;
-      montata = true;
-      // Da qui lo skip non ha più niente da anticipare, e la chiusura è della
-      // gomma: nessuna rete del boot script (ri-armata da uno skip servito
-      // prima di React) deve togliere l'attributo mentre disegna.
-      removeSkipListeners();
-      window.clearTimeout(boot().__dtPreFailsafe);
-      setGomma({ slot, speed, onReveal, onDone });
-      aspettaLogo(30);
-      window.addEventListener("resize", onResize);
-    };
+      // ── L'ALLINEAMENTO ALL'OROLOGIO CSS ───────────────────────────────
+      // La timeline è nata a t=0 ma il film sta suonando da `elapsed`
+      // secondi: la si porta lì. `time()` non attraversa le callback (come
+      // `seek`), quindi ciò che è già passato va rifatto a mano — la finestra
+      // del will-change, e l'handoff se il JS è arrivato a tuffo iniziato.
+      tl.time(elapsed);
+      if (elapsed >= INTRO_T.act1End) unwill();
+      if (diving) fireIntro();
 
-    // Skip (solo nel film, D31): al primo tocco/click/tasto prima che la gomma
-    // entri, l'atto I va alla fine (CSS su `data-pre-skip`) e la gomma parte
-    // subito, `veloce`. «Entra ADESSO»: si taglia il preambolo, non la porta.
-    // `--pre-skip` è l'ora del film: la rete CSS dello skip ci si allinea (e
-    // la gomma la spegne un fotogramma dopo).
-    // E chi salta non aspetta il precarico: aspettarlo contraddirebbe l'unico
-    // gesto con cui ha detto che ha fretta (era `saltata` prima della gomma).
-    // Il `ready` della gomma diventa vero subito e la cancellatura si allarga
-    // appena il cuore è disegnato, invece di battere fino alla scadenza del
-    // precarico (4,5 s sul film da 768 in su: misurato in CI a 768, handoff a
-    // +4,2 s dal JS al timone). Il precarico non si annulla, prosegue dietro.
-    const salta = () => {
-      unwill();
-      setPronta(true);
-      monta("veloce");
-    };
+      // Skip: seek() sopprime le callback attraversate: l'evento va sparato
+      // a mano. Il tuffo suona comunque per intero.
+      seekToDive = () => {
+        diving = true;
+        fireIntro();
+        tl.seek("dive");
+      };
+
+      // Reduced-motion o scheda nascosta a metà: `tl.progress(1)` chiama
+      // onComplete → finish. Nel ramo CSS lo fa `finish` direttamente.
+      closeNow = () => tl.progress(1);
+      abortTimeline = () => tl.kill();
+    }
+
+    // Skip: al primo tocco/click/tasto si salta dritti al tuffo (mai
+    // bloccare). IL TOCCO È COPERTO: il listener è `pointerdown`, che nasce
+    // anche dal dito. Da sapere: saltare fa il tuffo intero (1,5 s a ogni
+    // larghezza): lo skip taglia il preambolo, non la porta.
     const skip = () => {
-      if (montata) return;
-      html.style.setProperty("--pre-skip", `${now().toFixed(3)}s`);
-      html.setAttribute("data-pre-skip", "");
-      salta();
+      if (diving) return;
+      // Saltare vuol dire "entra ADESSO": aspettare il precarico
+      // contraddirebbe l'unico gesto con cui l'utente ha detto che ha fretta.
+      // Il riscaldamento non si annulla, prosegue per conto suo — arrivera'
+      // in ritardo su qualche scena, che e' esattamente il compromesso che
+      // chi salta ha scelto.
+      saltata = true;
+      unwill();
+      seekToDive();
     };
     const onPointerSkip = () => skip();
     const onKeySkip = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       // Solo tasti "di contenuto": F5/DevTools/media key restano al browser.
-      const usable = e.key === "Enter" || e.key === " " || e.key === "Escape" || e.key.length === 1;
+      const usable =
+        e.key === "Enter" || e.key === " " || e.key === "Escape" || e.key.length === 1;
       if (!usable) return;
-      // La guardia PRIMA di preventDefault: è l'inversione che nell'onda 9
-      // rese i campi inservibili in produzione.
-      if (montata) return;
+      // La guardia "intro già al tuffo" PRIMA di preventDefault, non dentro
+      // skip(): è l'inversione che nell'onda 9 rese i campi inservibili in
+      // produzione. Qui il listener viene staccato a fine intro, quindi oggi
+      // non fa danno — ma l'ordine sbagliato resta una trappola per il
+      // prossimo che tocchi la pulizia.
+      if (diving) return;
       // preventDefault: sotto l'overlay può esserci un elemento focalizzato
       // (es. un bottone) — il tasto salta l'intro, non deve attivare altro.
       e.preventDefault();
       skip();
     };
-    if (!short) {
-      window.addEventListener("pointerdown", onPointerSkip);
-      window.addEventListener("keydown", onKeySkip);
-      removeSkipListeners = () => {
-        window.removeEventListener("pointerdown", onPointerSkip);
-        window.removeEventListener("keydown", onKeySkip);
-      };
-    }
-
-    // ── QUANDO ENTRA LA GOMMA ───────────────────────────────────────────
-    // Nel film a INTRO_T.gomma, `normale`; subito e `veloce` nella corta, dopo
-    // uno skip già servito dal boot script (il primo tocco lo raccoglie lui,
-    // prima di React: layout.tsx) e col JS arrivato dopo INTRO_T.tardi.
-    const giaSaltato = html.hasAttribute("data-pre-skip") && typeof boot().__dtPreSkipAt === "number";
-    if (short) {
-      monta("veloce");
-    } else if (giaSaltato) {
-      salta();
-    } else {
-      at(INTRO_T.gomma, () => monta(now() >= INTRO_T.tardi ? "veloce" : "normale"));
-    }
-
-    // Chiusura immediata, senza la cancellatura (motion ampio non richiesto):
-    // reduced-motion attivato DURANTE l'intro, o scheda nascosta (la gomma è
-    // rAF, che in background si ferma: al ritorno si trova la pagina pronta).
-    // L'entrata dell'hero parte adesso.
+    // Chiusura immediata, senza suonare il tuffo (1.5s di motion ampio non
+    // richiesto): reduced-motion attivato DURANTE l'intro, o scheda nascosta.
+    // `saltata` come nello skip: chi ha lasciato la scheda o vuole meno
+    // movimento non sta aspettando il precarico. Senza questa riga la
+    // chiusura passa dal ramo che ATTENDE `scaldata`, e al ritorno si trova
+    // la pagina finita che non scorre.
     const closeImmediately = () => {
+      saltata = true;
       fireIntro();
-      orologioEntrata(0);
-      finish(true);
+      closeNow();
     };
     const onMediaChange = () => {
       if (media.matches) return;
       closeImmediately();
     };
+    // Tab in background: il ticker GSAP si congela e la timeline non
+    // avanzerebbe (col rischio di riaffiorare a caso al rientro); le
+    // animazioni CSS invece corrono anche in background, ma i timer no — si
+    // chiude subito in entrambi i casi, l'utente al ritorno trova la pagina
+    // pronta.
     const onVisibility = () => {
       if (!document.hidden) return;
       closeImmediately();
     };
+    window.addEventListener("pointerdown", onPointerSkip);
+    window.addEventListener("keydown", onKeySkip);
     media.addEventListener("change", onMediaChange);
     document.addEventListener("visibilitychange", onVisibility);
-    removeCloseListeners = () => {
+    removeSkipListeners = () => {
+      window.removeEventListener("pointerdown", onPointerSkip);
+      window.removeEventListener("keydown", onKeySkip);
       media.removeEventListener("change", onMediaChange);
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("resize", onResize);
     };
     // Caso limite: la pagina è già nascosta al mount (aperta in tab in
     // background) — chiudi subito invece di strisciare.
     if (document.hidden) onVisibility();
 
     return () => {
-      vivo = false;
       clearTimers();
-      window.cancelAnimationFrame(buco);
-      window.cancelAnimationFrame(posa);
+      abortTimeline();
       removeSkipListeners();
-      removeCloseListeners();
       // Abort a metà intro (StrictMode double-mount, HMR): l'attributo
       // `data-preloader` RESTA, così il re-run immediato ricostruisce
-      // l'orchestrazione dal punto giusto — l'orologio è quello CSS. Si
-      // ripristinano solo i contratti globali e si ri-arma la rete del boot
-      // script: se il remount non arrivasse mai, l'overlay si toglie comunque.
-      // `data-pre-live` invece va tolto: dice "il JS è al timone", e in questo
-      // istante non lo è più. Il remount lo rimette.
+      // l'orchestrazione dal punto giusto — l'orologio è quello CSS, non «da
+      // quando è nato l'effect» (prima veniva rimosso e in dev l'intro non
+      // si vedeva mai). Restano anche `data-pre-gsap` (le keyframe spente non
+      // vanno riaccese: ripartirebbero da zero) e `data-pre-skip`. Si
+      // ripristinano solo i contratti globali e si ri-arma il failsafe del
+      // boot script: se il remount non arrivasse mai, l'overlay si toglie
+      // comunque. `data-pre-live` invece va tolto: dice "il JS è al timone",
+      // e in questo istante non lo è più. Il remount lo rimette.
+      // Il riarmo è lo stesso numero del failsafe di boot (PRE_FAILSAFE_MS):
+      // stesso mestiere, stesso orologio — non un terzo numero che si
+      // dichiara allineato agli altri due senza esserlo.
       if (html.hasAttribute("data-preloader")) {
         html.removeAttribute("data-pre-live");
         gsap.ticker.lagSmoothing(0);
@@ -751,26 +796,12 @@ export default function Preloader() {
         boot().__dtPreFailsafe = window.setTimeout(() => {
           fireIntro();
           html.removeAttribute("data-preloader");
-        }, short ? PRE_SHORT_FAILSAFE_MS : PRE_FAILSAFE_MS);
+        }, PRE_FAILSAFE_MS);
       }
     };
   });
 
-  // Fuori dal sipario non si rende niente: server e primo render client danno
-  // null, e l'idratazione resta pulita. La gomma entra dopo, in un portale nello
-  // slot della shell.
-  if (!gomma) return null;
-  return createPortal(
-    <DomusTuaPreloader
-      speed={gomma.speed}
-      sheetColor="var(--dt-gomma-foglio)"
-      zIndex={0}
-      size={{ ratio: GOMMA_LOGO.ratio, min: GOMMA_LOGO.min, max: GOMMA_LOGO.max }}
-      verticalCenter={GOMMA_LOGO.centroY}
-      ready={pronta}
-      onReveal={gomma.onReveal}
-      onDone={gomma.onDone}
-    />,
-    gomma.slot,
-  );
+  // Nessun markup: la shell è di PreloaderShell.tsx (server). Rendere null a
+  // ogni render — server e client — è ciò che tiene l'idratazione pulita.
+  return null;
 }

@@ -1,17 +1,14 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
+import MaskReveal from "./motion/MaskReveal";
 import Parallax from "./motion/Parallax";
-import RevealGroup from "./motion/RevealGroup";
-import SplitTitle from "./motion/SplitTitle";
-import Lead from "./motion/Lead";
 
 export type EditorialRow = {
   n: string;
   title: string;
   copy: string;
-  /** Facoltativa: una riga senza scatto vero si racconta col suo numero. */
-  image?: string;
-  alt?: string;
+  image: string;
+  alt: string;
 };
 
 export default function EditorialRows({
@@ -20,87 +17,27 @@ export default function EditorialRows({
   title,
   intro,
   rows,
-  media,
+  tone = "paper",
 }: {
   id?: string;
   eyebrow: string;
   title: string;
   intro?: string;
   rows: EditorialRow[];
-  /** Forza la variante. Senza, decide la regola qui sotto. */
-  media?: boolean;
-  /** Conservata per i chiamanti: il fondo è uno solo (avorio) dal 2026-09-10. */
   tone?: "paper" | "cream";
 }) {
-  /* UNA FOTO VERA O NIENTE.
-     Questo modulo si ripeteva dodici volte su quattro pagine e le sue foto
-     erano sempre le stesse quattro stanze in 3D: le «cinque fasi di un Open
-     Domus» — preparazione, accoglienza, visite, feedback — illustrate da
-     soggiorni renderizzati vuoti, e `home_staging_01` in fila su /vendi,
-     /servizi e /open-domus. Un render non dice nulla del passo che
-     accompagna: e' riempimento, e si vede.
-     La regola e' automatica perche' sia difficile da violare: il modulo
-     mostra le fotografie solo se OGNI riga ne ha una vera (`reali/`).
-     Altrimenti diventa quello che il riferimento fa con i suoi valori — un
-     elenco numerato, col numerale grande al posto dell'immagine. */
-  const withMedia = media ?? rows.every((r) => r.image?.includes("/reali/"));
-
-  if (!withMedia) {
-    return (
-      <section id={id} className="dt-chapter bg-cream">
-        <div className="dt-row">
-          <RevealGroup>
-            <Reveal>
-              <span className="eyebrow">{eyebrow}</span>
-            </Reveal>
-            <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
-              {title}
-            </SplitTitle>
-            {intro && <Lead className="mt-8">{intro}</Lead>}
-          </RevealGroup>
-          <ol className="mt-16 flex flex-col">
-            {rows.map((r) => (
-              <li key={r.n} className="border-t border-line py-10 lg:py-12">
-                <RevealGroup className="grid gap-4 lg:grid-cols-[1fr_3fr] lg:gap-16">
-                  {/* Pietra, non rosso: nel riferimento il numerale grande e'
-                      grigio e l'accento sta sul TITOLO. Sei numerali rossi in
-                      colonna sarebbero sei richieste d'attenzione dove ce n'e'
-                      una sola, la CTA. Stesso trattamento dell'elenco dei
-                      Servizi, perche' l'elenco del sito sia uno. */}
-                  <Reveal>
-                    <span className="tnum block font-display text-d1 font-light leading-[0.85] text-stone">
-                      {r.n}
-                    </span>
-                  </Reveal>
-                  <div>
-                    <SplitTitle as="h3" className="max-w-[20ch] font-display text-d2 balance">
-                      {r.title}
-                    </SplitTitle>
-                    <Lead className="mt-5">{r.copy}</Lead>
-                  </div>
-                </RevealGroup>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section id={id} className="dt-chapter bg-cream">
-      <div className="dt-row">
-        <RevealGroup>
-          <Reveal>
-            <span className="eyebrow">{eyebrow}</span>
-          </Reveal>
-          <SplitTitle as="h2" className="mt-6 max-w-[20ch] font-display text-d1">
+    <section id={id} className={tone === "cream" ? "bg-cream" : "bg-paper"}>
+      <div className="mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
+        <Reveal className="max-w-2xl">
+          <span className="eyebrow">{eyebrow}</span>
+          <h2 className="mt-5 font-display text-4xl font-medium leading-[1.05] tracking-tight text-ink balance sm:text-5xl">
             {title}
-          </SplitTitle>
-          {intro && <Lead className="mt-8">{intro}</Lead>}
-        </RevealGroup>
+          </h2>
+          {intro && <p className="mt-5 max-w-lg text-[1.02rem] leading-relaxed text-stone">{intro}</p>}
+        </Reveal>
 
-        <div className="mt-20 flex flex-col gap-20 sm:gap-28">
+        <div className="mt-16 flex flex-col gap-16 sm:gap-24">
           {rows.map((r, i) => {
             const reversed = i % 2 === 1;
             return (
@@ -110,9 +47,18 @@ export default function EditorialRows({
                   reversed ? "lg:[&>*:first-child]:order-2" : ""
                 }`}
               >
-                {/* Foto squadrata (4:3), senza cornice né raggio, con la sola
-                    parallasse lenta all'interno (righe dispari invertite via order). */}
-                <div className="relative aspect-[4/3] overflow-hidden">
+                {/* Cornice immagine: sipario che si apre dal lato visivo del capitolo
+                    (righe dispari invertite via order) + parallasse lenta all'interno.
+                    `mobile`: la deriva vive dentro la cornice, sotto l'overscan
+                    1.1 — sul telefono si muove la fotografia, non il suo bordo.
+                    È l'unico posto di questa riga dove la parallasse aggiunge
+                    profondità invece di far ballare quello che si sta leggendo. */}
+                <MaskReveal
+                  from={reversed ? "right" : "left"}
+                  zoom={1.14}
+                  className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-line"
+                  innerClassName="absolute inset-0"
+                >
                   {/* mob off (misura): sotto sm la cornice è `aspect-[5/4]` in
                       una colonna da 350px, quindi alta 306px, e `speed 0.1`
                       vale ±1,4% — 7,8px di corsa totale, che con la corsa
@@ -130,16 +76,16 @@ export default function EditorialRows({
                     innerClassName="absolute inset-0"
                   >
                     <Image
-                      src={r.image ?? ""}
-                      alt={r.alt ?? ""}
+                      src={r.image}
+                      alt={r.alt}
                       fill
-                      sizes="(max-width: 1024px) 100vw, 42vw"
-                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 560px"
+                      className="photo-warm object-cover"
                     />
                   </Parallax>
-                </div>
-                {/* Il gruppo sta solo sulla colonna testo: l'immagine ha già il suo ingresso. */}
-                <RevealGroup className={reversed ? "lg:pr-6" : "lg:pl-6"}>
+                </MaskReveal>
+                {/* Il Reveal resta solo sulla colonna testo: l'immagine ha già il suo ingresso. */}
+                <Reveal className={reversed ? "lg:pr-6" : "lg:pl-6"}>
                   {/* Numero-fantasma: deriva più veloce del flusso, effetto collage editoriale.
                       Acceso anche sul telefono (default di Parallax dall'onda
                       «parità mobile 2», verdetto 7). L'onda precedente lo
@@ -151,14 +97,14 @@ export default function EditorialRows({
                       (`range` dimezzato dal componente): sopra i ~10px del
                       criterio, dunque visibile, e su un numerale decorativo al
                       25% che sta SOPRA il titolo, non dentro. */}
-                  <Reveal>
-                    <span className="tnum block text-ui font-semibold uppercase tracking-[0.08em] text-red">{r.n}</span>
-                  </Reveal>
-                  <SplitTitle as="h3" className="mt-4 max-w-[20ch] font-display text-d2 balance">
+                  <Parallax speed={-1} range={26} className="w-fit">
+                    <span className="font-display text-5xl font-medium text-red/25">{r.n}</span>
+                  </Parallax>
+                  <h3 className="mt-4 font-display text-[1.8rem] font-medium leading-[1.1] tracking-tight text-ink balance sm:text-[2.2rem]">
                     {r.title}
-                  </SplitTitle>
-                  <Lead className="mt-6">{r.copy}</Lead>
-                </RevealGroup>
+                  </h3>
+                  <p className="mt-4 max-w-md text-[1rem] leading-relaxed text-stone">{r.copy}</p>
+                </Reveal>
               </div>
             );
           })}

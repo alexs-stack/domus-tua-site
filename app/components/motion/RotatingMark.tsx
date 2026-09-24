@@ -1,51 +1,63 @@
 "use client";
 
-// RotatingMark: il badge di marca, anello di tacche e monogramma, rif.
-// era-residence.com (reverse-engineering/era-residence/README.md §5).
+// RotatingMark — badge di marca in alto a sinistra, rif. era-residence.com
+// (reverse-engineering/era-residence/README.md §5).
 //
-// Senso ORARIO, anello e monogramma nello stesso verso: richiesta della
-// cliente del 2026-09-10 («il cuore deve ruotare in senso orario», C06). A
-// riposo MARK_REST_DEG_S gradi al secondo; con lo scroll di Lenis
-// MARK_REST_DEG_S + MARK_GAIN·min(|v|, MARK_VMAX), mai invertito. Il tetto è
-// della spec del 13 settembre 2026 (§6.1, D34): un End nativo dava una velocità
-// pari all'intero salto. La modulazione si arma alla prima interazione vera:
-// rotella, dito, o un tasto di scorrimento premuto fuori dai campi.
-//
-// `paused` ferma il ticker. Lo usa la testata da 1280 px quando il segno fisso
-// di MarkSegno ha preso il posto del badge (Alberto, «Si stacca da 1024», A21).
-// Il ticker è fermo anche sotto il sipario del preloader, dove non si vede.
+// CONTROROTAZIONE (richiesta cliente, 2026-08)
+// L'anello ornamentale e il monogramma girano in VERSI OPPOSTI: l'anello a
+// 30°/s, il monogramma a −30°/s. È il gesto di un meccanismo — due ingranaggi
+// che si tengono — invece di un blocco unico che ruota. Le due velocità sono le
+// stesse di prima e restano legate: la modulazione dello scroll Lenis
+// (30 + 10·|v|) e il cambio di direzione valgono per entrambi, quindi il verso
+// opposto è invariante, non un caso.
 //
 // Il logo NON viene ridisegnato né deformato (divieto del brand book su morph e
 // draw): è il monogramma depositato, ruotato attorno al proprio centro.
 //
-// Con reduced-motion o senza JS nulla si muove e il badge resta com'è
-// nell'HTML: il monogramma è centrato con flexbox, non con un transform,
-// perché GSAP possa scrivere `transform` senza portarsi via il centraggio.
-import { useEffect, useRef } from "react";
-import { gsap, useGSAP, dur } from "../../lib/motion/gsap";
-import { MQ } from "../../lib/motion/mq";
-import { MARK_GAIN, MARK_REST_DEG_S, MARK_VMAX } from "../../lib/motion/mark";
+// Con reduced-motion o senza JS nulla si muove e il badge resta esattamente
+// com'è nell'HTML — il monogramma è centrato con flexbox, non con un transform,
+// proprio perché GSAP possa scrivere `transform` senza portarsi via il centraggio.
+import { useRef } from "react";
+import { gsap, useGSAP, MQ, dur } from "../../lib/motion/gsap";
 import { getLenis } from "./SmoothScroll";
 // Il badge statico (anello + monogramma) vive in MarkBadge.tsx, SENZA
-// "use client": lo rende anche la shell del preloader dal server
-// (PreloaderShell.tsx). Qui si aggiunge solo il moto da GSAP.
+// "use client": dal 2026-08-17 lo rende anche la shell del preloader dal server
+// (PreloaderShell.tsx), e un client component lì sarebbe un confine di
+// idratazione per del puro markup. Ri-esportato da qui perché i chiamanti
+// storici — questo file, il sipario di PageTransition — lo importano da questo
+// modulo insieme a `spinMarkBadge`.
 import { MarkBadge } from "./MarkBadge";
+export { MarkBadge };
 
-/** I tasti che scorrono la pagina e armano la modulazione. */
-const TASTI_SCROLL = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", " ", "Home", "End"]);
+/**
+ * Giro continuo del badge: anello in un verso, monogramma nell'altro.
+ *
+ * Lo usano il preloader e il sipario delle transizioni, che hanno lo stesso gesto
+ * dell'header ma a velocità fissa. Restituisce UN oggetto da uccidere (come il
+ * singolo tween di prima), così i chiamanti non devono ricordarsi di ucciderne due.
+ *
+ * @param root      contenitore che ospita il badge
+ * @param duration  secondi per un giro completo
+ * @param repeat    -1 per il loop infinito (default), come i due chiamanti
+ */
+export function spinMarkBadge(
+  root: Element | null | undefined,
+  duration: number,
+  repeat = -1
+): gsap.core.Timeline | null {
+  const ring = root?.querySelector("[data-rot-ring]");
+  const mark = root?.querySelector("[data-rot-mark]");
+  if (!ring && !mark) return null;
 
-export default function RotatingMark({
-  className = "h-12 w-12",
-  paused = false,
-}: {
-  className?: string;
-  paused?: boolean;
-}) {
+  const tl = gsap.timeline();
+  const common = { duration, ease: "none", repeat, transformOrigin: "center center" } as const;
+  if (ring) tl.fromTo(ring, { rotation: 0 }, { rotation: 360, ...common }, 0);
+  if (mark) tl.fromTo(mark, { rotation: 0 }, { rotation: -360, ...common }, 0);
+  return tl;
+}
+
+export default function RotatingMark({ className = "h-12 w-12" }: { className?: string }) {
   const rootRef = useRef<HTMLSpanElement | null>(null);
-  const pausedRef = useRef(paused);
-  useEffect(() => {
-    pausedRef.current = paused;
-  }, [paused]);
 
   useGSAP(
     () => {
@@ -55,48 +67,44 @@ export default function RotatingMark({
 
       const mm = gsap.matchMedia();
       mm.add(MQ.motionOk, () => {
-        const html = document.documentElement;
-        const state = { speed: MARK_REST_DEG_S };
+        const state = { speed: 30 }; // gradi/secondo a riposo
+        let dir = 1;
         let rotation = 0;
         let armed = false;
         let idleTimer = 0;
 
+        // La modulazione da scroll si attiva alla prima interazione reale
+        // (la rotazione base parte subito).
         const arm = () => {
           armed = true;
         };
-        const onKey = (e: KeyboardEvent) => {
-          if (!TASTI_SCROLL.has(e.key)) return;
-          const t = e.target;
-          if (t instanceof HTMLElement && (t.isContentEditable || t.closest("input, textarea, select"))) return;
-          armed = true;
-          window.removeEventListener("keydown", onKey);
-        };
         window.addEventListener("wheel", arm, { once: true, passive: true });
         window.addEventListener("touchmove", arm, { once: true, passive: true });
-        window.addEventListener("keydown", onKey);
 
-        // Rotazione continua, indipendente dal frame rate (delta limitato: una
-        // scheda in background non deve produrre salti di mezzo giro).
+        // Rotazione continua, frame-rate independent (delta clampato: i tab
+        // in background non devono produrre salti di mezzo giro).
         const tick = (_t: number, deltaMS: number) => {
-          if (pausedRef.current || html.hasAttribute("data-preloader")) return;
           const dt = Math.min(deltaMS, 100);
           rotation += state.speed * (dt / 1000);
+          // Un solo angolo, due segni: qualunque cosa faccia lo scroll — accelerare,
+          // rallentare, invertire — i due elementi restano opposti per costruzione.
           gsap.set(ring, { rotation, transformOrigin: "center center" });
-          gsap.set(mark, { rotation, transformOrigin: "center center" });
+          gsap.set(mark, { rotation: -rotation, transformOrigin: "center center" });
         };
         gsap.ticker.add(tick);
 
         const onScroll = ({ velocity }: { velocity: number }) => {
           if (!armed) return;
+          if (velocity !== 0) dir = velocity > 0 ? 1 : -1;
           gsap.to(state, {
-            speed: MARK_REST_DEG_S + MARK_GAIN * Math.min(Math.abs(velocity), MARK_VMAX),
+            speed: dir * (30 + 10 * Math.abs(velocity)),
             duration: 0.3,
             ease: "domus",
             overwrite: true,
           });
           window.clearTimeout(idleTimer);
           idleTimer = window.setTimeout(() => {
-            gsap.to(state, { speed: MARK_REST_DEG_S, duration: dur.transition, ease: "domus" });
+            gsap.to(state, { speed: 30 * dir, duration: dur.transition, ease: "domus" });
           }, 100);
         };
         // Lenis può montare dopo di noi: aggancio pigro al primo tick utile.
@@ -116,7 +124,6 @@ export default function RotatingMark({
           gsap.ticker.remove(tick);
           window.removeEventListener("wheel", arm);
           window.removeEventListener("touchmove", arm);
-          window.removeEventListener("keydown", onKey);
           window.clearTimeout(idleTimer);
           if (lateAttach) window.clearInterval(lateAttach);
           lenis?.off("scroll", onScroll);

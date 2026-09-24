@@ -137,18 +137,13 @@ const nextConfig: NextConfig = {
   // vendored di Next 16.2.9) non esporta <ViewTransition> → percorso coperto
   // dalla page transition GSAP. Da rivalutare a runtime React canary.
   images: {
-    // Solo WebP (Alberto, 24 set. 2026: «passa a WebP e alza la qualità a 85»).
-    // L'AVIF dell'ottimizzatore esce a quality × 50/80 (75 → 47, 60 → 38:
-    // image-optimizer.js), e su uno schermo a DPR 1 come il PC fisso la
-    // morbidezza si vede: a parità di `q` perdeva 1,5-2,3 dB di PSNR sul WebP
-    // (misurato sul build il 24 set.). Nel WebP l'alpha delle foto col cielo
-    // resta lossless (niente frangia al bordo, P04 del 22 set.).
-    formats: ["image/webp"],
-    // UNA qualità per tutto il sito: Next 16 porta ogni `quality` (e il default
-    // 75, quando il componente non la dà) alla voce più vicina della lista, e un
-    // URL con un'altra `q` riceve 400. Per questo nessun componente passa
-    // `quality`: il numero vive solo qui (image-quality.test.ts).
-    qualities: [85],
+    // Formati moderni: meno peso, stessa qualità.
+    formats: ["image/avif", "image/webp"],
+    // Next 16: le qualità NON in lista vengono riportate alla più vicina
+    // (default [75]) — senza questa lista i quality={} dei componenti sono
+    // silenziosamente ignorati. 60 = immagini velate/di sfondo; 78 = hero
+    // (sorgente WhatsApp già compressa, non va ricompressa aggressivamente).
+    qualities: [60, 75, 78],
     // 2560: l'hero è full-bleed anche su schermi QHD — senza questo taglio
     // il browser stira la variante 1920.
     deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920, 2560],
