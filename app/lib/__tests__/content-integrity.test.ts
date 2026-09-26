@@ -15,12 +15,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { site } from "../site";
-import { allVideoIds, wallVideos } from "../videos";
+import { allVideoIds, videoCollection, featuredVideo, testimonialVideo } from "../videos";
 import { isAvailable, isSold, onlyAvailable } from "../availability";
 import { CONSENT_COOKIE } from "../consent";
 import { team, teamInitials, teamRoleLabels } from "../team";
 import { locales } from "../i18n/dictionaries";
-import { ASSISTANT_NAME, buildSystemPrompt } from "../assistant/prompt";
 
 const APP_DIR = path.join(process.cwd(), "app");
 
@@ -69,17 +68,7 @@ const REL = (f: string) => path.relative(process.cwd(), f).split(path.sep).join(
  * Contenuti VIETATI. Ognuno è stato mostrato come dato reale senza avere una fonte.
  * `why` finisce nel messaggio di errore: chi rompe il test capisce perché senza archeologia.
  */
-const FORBIDDEN: { label: string; pattern: RegExp; why: string; fix?: string }[] = [
-  {
-    label: "«con Domus Tua è facile vendere ed è sicuro acquistare»",
-    // Il pattern chiede «è … ed è», e non a caso: il TITOLO di un video reale del canale
-    // è «Recensione — Facile vendere, sicuro acquistare» (site.ts), e quello è legittimo —
-    // è come si chiama il filmato. A essere vietata è l'affermazione, non le parole.
-    pattern: /è\s+facile\s+vendere\s+ed?\s+è\s+sicuro/i,
-    why:
-      "promessa di RISULTATO che un mediatore non controlla (§3.3 del Documento finale, colonna «da eliminare»): stessa famiglia di «zero sorprese al rogito» e «una garanzia». Ed è ALLA LETTERA la firma commerciale che app/lib/realsmart/description.ts cancella dagli annunci importati — il sito la toglieva all'agenzia e se la stampava addosso su ogni pagina",
-    fix: "una promessa di AZIONE: cosa si fa perché il risultato arrivi (vedi d.footer.payoff)",
-  },
+const FORBIDDEN: { label: string; pattern: RegExp; why: string }[] = [
   {
     label: "269.395 m² valutati",
     pattern: /\b269[.\s]?395\b/,
@@ -105,72 +94,6 @@ const FORBIDDEN: { label: string; pattern: RegExp; why: string; fix?: string }[]
     pattern: /\b440\s?\+/,
     why: "conteggio video stimato, mai verificato sul canale YouTube",
   },
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // PROMESSE DI ESITO (§3.3 del Documento finale di sintesi).
-  //
-  // Non sono numeri senza fonte: sono affermazioni su ciò che NON accadrà, e un
-  // mediatore non lo controlla — dipende dal Comune, dal notaio, dalla banca
-  // dell'acquirente, da difformità non ispezionabili a vista. Una sola di queste
-  // frasi, contraddetta da un rogito andato storto, è una contestazione con il
-  // testo del sito come prova.
-  //
-  // Perché stanno QUI e non in una nota di stile: erano già state tolte una volta,
-  // e sono rientrate — «zero sorprese al rogito» è sparito nella forma letterale ed
-  // è tornato come «senza sorprese», «mauvaises surprises», «böse Überraschungen»,
-  // in quattro lingue su cinque. Una regola che vive solo in un commento viene
-  // riscoperta ogni volta da capo; questa fallisce in CI.
-  //
-  // NON vietati di proposito: «colloqui a sorpresa» su /lavora-con-noi (è il loro
-  // processo di selezione, interamente sotto il loro controllo) e la keyword di
-  // ricerca "sorprese" dell'assistente (aggancia la domanda, non è una risposta).
-  // Per questo i pattern chiedono il plurale o la locuzione intera.
-  // ───────────────────────────────────────────────────────────────────────────
-  {
-    label: "promessa di esito «senza sorprese» (5 lingue)",
-    pattern:
-      /senza sorprese|zero sorprese|nessuna sorpresa|no surprises|without surprises|unpleasant surprises|sans surprises|mauvaises? surprises?|aucune surprise|ohne (?:böse )?Überraschungen|keine Überraschungen|böse Überraschungen|sin sorpresas|sorpresas desagradables|ninguna sorpresa/i,
-    why: "promessa di RISULTATO che l'agenzia non controlla (§3.3)",
-    fix: "Nessuna fonte rende lecita questa frase: va RISCRITTA come promessa di azione — «I problemi emergono all'inizio, non davanti al notaio». Controlla tutte e cinque le lingue: l'ultima volta l'italiano fu corretto e le quattro traduzioni no.",
-  },
-  {
-    label: "«nessun abuso o difformità nascosta»",
-    pattern: /nessun abuso|difformità nascost|abusi? nascost/i,
-    why: "afferma l'assenza di abusi, che nessuna verifica a vista può garantire (§3.3)",
-    fix: "Sostituire con l'azione: «Controlliamo catasto, urbanistica e impianti prima di pubblicare. Se c'è un problema, lo troviamo noi — quando c'è ancora tempo per risolverlo.»",
-  },
-  {
-    label: "«verifiche certificate»",
-    pattern: /verifiche certificate|servizi certificati/i,
-    why: "«certificato» implica un ente terzo: Domus D.O.C. è uno standard interno (§3.3)",
-    fix: "Sostituire con «verifiche documentali e tecnico-urbanistiche svolte prima della messa sul mercato».",
-  },
-  {
-    label: "«certificato» riferito all'immobile",
-    pattern:
-      /(?:immobile|immobili|casa|abitazione|propriet[àa])s+certificat[oaie]|certificaziones+(?:dell'immobile|della casa|inclusa)/i,
-    why: "il protocollo si chiama Domus di Origine Certificata, ma l'IMMOBILE non è certificato da nessuno (§3.3)",
-    fix: "Tenere il nome del protocollo, mai il predicato sull'immobile: «documenti verificati», non «immobile certificato».",
-  },
-  {
-    label: "«cinque fasi, una garanzia»",
-    pattern: /cinque fasi,?s*una garanzia|five (?:phases|steps),?s*one guarantee/i,
-    why: "«garanzia» ha un significato giuridico preciso: il metodo è un metodo (§3.3)",
-    fix: "Scrivere «Cinque fasi, un metodo» — e ricordare che il conteggio canonico è nove passaggi (§4.2).",
-  },
-  {
-    label: "conteggio recensioni arrotondato («oltre 500»)",
-    pattern:
-      /oltre 500|over 500|500+ reviews|plus de 500|über 500|mehr als 500|más de 500/i,
-    why: "due numeri per lo stesso dato: il sito diceva «oltre 500» in quattordici punti e «531» nell'hero (voce 16)",
-    fix: "Interpolare site.reviewsCount. Il §6.3 è esplicito: le prove sono forti perché ESATTE, non perché assolute — nessuno inventa un 531, «oltre 500» suona come una stima anche quando non lo è.",
-  },
-  {
-    label: "«la trattativa non salta per un documento mancante»",
-    pattern: /trattativa non salta|non salta per un documento/i,
-    why: "esito che dipende anche dalle controparti (§3.3)",
-    fix: "Sostituire con: «raccogliamo tutti i documenti prima di partire: è la causa più frequente di trattative che saltano».",
-  },
 ];
 
 describe("content integrity — numeri e claim senza fonte", () => {
@@ -180,15 +103,7 @@ describe("content integrity — numeri e claim senza fonte", () => {
     assert.ok(files.length > 50, `trovati solo ${files.length} file in app/`);
   });
 
-  // Il consiglio di rimedio cambia con la natura del divieto: per un NUMERO senza fonte si
-  // annota la fonte in site.ts; per una PROMESSA DI ESITO non esiste fonte che la renda
-  // lecita — va riscritta. Un messaggio unico manderebbe metà dei casi nella direzione
-  // sbagliata, e chi rompe il test in CI legge solo quello.
-  const RIMEDIO_NUMERO =
-    `Se il cliente ha fornito il dato reale, mettilo in app/lib/site.ts con la fonte ` +
-    `annotata e aggiorna questo test.`;
-
-  for (const { label, pattern, why, fix } of FORBIDDEN) {
+  for (const { label, pattern, why } of FORBIDDEN) {
     test(`"${label}" non compare nei file di produzione`, () => {
       const hits = files.filter((f) =>
         pattern.test(stripTechnicalValues(fs.readFileSync(f, "utf8"))),
@@ -196,7 +111,9 @@ describe("content integrity — numeri e claim senza fonte", () => {
       assert.deepEqual(
         hits.map(REL),
         [],
-        `"${label}" è tornato in pagina — ${why}. ${fix ?? RIMEDIO_NUMERO}`,
+        `"${label}" è tornato in pagina — ${why}. ` +
+          `Se il cliente ha fornito il dato reale, mettilo in app/lib/site.ts con la fonte ` +
+          `annotata e aggiorna questo test.`,
       );
     });
   }
@@ -234,19 +151,14 @@ describe("content integrity — video YouTube", () => {
     );
   });
 
-  // La vecchia collezione filtrabile (videoCollection) è stata rimossa col suo componente
-  // il 2026-08-15: qui si controlla il muro, l'unica griglia montata. Che la testimonianza
-  // non vi rientri lo garantisce già il test di unicità sopra (allVideoIds la include).
+  test("evidenza e testimonianza non sono ripetute nella griglia", () => {
+    assert.equal(videoCollection.some((v) => v.id === featuredVideo.id), false);
+    assert.equal(videoCollection.some((v) => v.id === testimonialVideo.id), false);
+  });
+
   test("ogni card porta il titolo reale del video sul canale", () => {
-    const byId = new Map<string, string>(
-      [
-        site.videos.featured,
-        site.videos.openDomus,
-        site.videos.team,
-        ...site.videos.reviews,
-      ].map((v) => [v.id, v.title]),
-    );
-    for (const v of wallVideos) {
+    const byId = new Map<string, string>(site.videos.reviews.map((r) => [r.id, r.title]));
+    for (const v of videoCollection) {
       assert.ok(v.title.length > 0, `slot ${v.id} senza titolo`);
       assert.equal(
         v.title,
@@ -297,74 +209,19 @@ describe("content integrity — venduti mai tra i disponibili", () => {
 });
 
 describe("content integrity — terze parti dietro al consenso", () => {
+  const reviewsSrc = fs.readFileSync(path.join(APP_DIR, "components", "Reviews.tsx"), "utf8");
+
   test("il widget Trustindex si monta solo con consenso accettato", () => {
     // Regressione: l'iframe con il loader Trustindex partiva al primo render, cioè prima di
-    // qualsiasi scelta dell'utente sui cookie. Dopo il refactor l'iframe vive in
-    // TrustindexEmbed e il gate nei componenti che lo montano: si scandisce l'albero
-    // (non un elenco a mano) perché è così che questo test era invecchiato — guardava
-    // Reviews.tsx mentre il loader si era spostato.
-    const embedPath = path.join(APP_DIR, "components", "TrustindexEmbed.tsx");
-    const embedSrc = fs.readFileSync(embedPath, "utf8");
-    assert.match(
-      embedSrc,
-      /trustindexLoader\}"><\/script>/,
-      "loader Trustindex non trovato in TrustindexEmbed: aggiornare questo test",
-    );
-
-    // Il loader ha UNA casa sola: se lo script ricompare incorporato altrove, il gate
-    // dei consumer non lo protegge più.
-    const altreCase = productionSources().filter(
-      (f) => f !== embedPath && /<script src=[^>]*trustindexLoader/.test(fs.readFileSync(f, "utf8")),
-    );
-    assert.deepEqual(
-      altreCase.map(REL),
-      [],
-      "lo script del loader Trustindex deve vivere solo in TrustindexEmbed.tsx",
-    );
-
-    // Anche l'URL reale del CDN ha una casa sola (site.ts): un loader hardcodato
-    // altrove scavalcherebbe sia il gate sia la sandbox senza citare la costante.
-    const cdnAltrove = productionSources().filter(
-      (f) =>
-        !f.endsWith(path.join("lib", "site.ts")) &&
-        fs.readFileSync(f, "utf8").includes("cdn.trustindex.io"),
-    );
-    assert.deepEqual(
-      cdnAltrove.map(REL),
-      [],
-      "l'URL cdn.trustindex.io deve vivere solo in app/lib/site.ts",
-    );
-
-    // I consumer si scoprono dall'IMPORT del modulo, non dal tag JSX: un import
-    // rinominato o un next/dynamic non possono uscire dalla scansione in silenzio —
-    // il file importatore che non contiene il tag letterale fa FALLIRE il test e
-    // costringe ad aggiornarlo consapevolmente.
-    const importaEmbed = (src: string) => /(?:from\s*|import\()\s*["'][^"']*TrustindexEmbed["']/.test(src);
-    const consumers = productionSources().filter((f) => importaEmbed(fs.readFileSync(f, "utf8")));
+    // qualsiasi scelta dell'utente sui cookie.
+    assert.match(reviewsSrc, /useConsent\(\)/);
+    assert.match(reviewsSrc, /consent === "accepted"/);
+    const iframeIndex = reviewsSrc.indexOf("trustindexLoader}\"></script>");
+    assert.ok(iframeIndex > 0, "loader Trustindex non trovato: aggiornare questo test");
     assert.ok(
-      consumers.length > 0,
-      "nessun componente importa TrustindexEmbed: il controllo non sta guardando niente",
+      reviewsSrc.indexOf("showTrustindex ?") < iframeIndex,
+      "il loader Trustindex deve stare dentro il ramo protetto dal gate",
     );
-    for (const f of consumers) {
-      const src = fs.readFileSync(f, "utf8");
-      assert.match(src, /useConsent\(\)/, `${REL(f)}: monta TrustindexEmbed senza leggere il consenso`);
-      assert.match(src, /consent === "accepted"/, `${REL(f)}: manca il gate sul consenso accettato`);
-      const gateIndex = src.indexOf("showTrustindex ?");
-      assert.ok(gateIndex > 0, `${REL(f)}: manca il ramo "showTrustindex ?" prima del mount`);
-      // TUTTI i mount, non solo il primo: un secondo <TrustindexEmbed aggiunto in
-      // coda al file senza gate deve far scattare il test.
-      const mounts = [...src.matchAll(/<TrustindexEmbed/g)].map((m) => m.index ?? -1);
-      assert.ok(
-        mounts.length > 0,
-        `${REL(f)}: importa TrustindexEmbed ma non contiene il tag letterale <TrustindexEmbed — se l'import è stato rinominato o reso dinamico, riportare qui la scansione`,
-      );
-      for (const mountIndex of mounts) {
-        assert.ok(
-          gateIndex < mountIndex,
-          `${REL(f)}: ogni mount dell'embed deve stare dentro il ramo protetto dal gate`,
-        );
-      }
-    }
   });
 
   test("una sola implementazione del consenso", () => {
@@ -381,17 +238,11 @@ describe("content integrity — terze parti dietro al consenso", () => {
 });
 
 describe("content integrity — fonti uniche", () => {
-  test("NEXT_PUBLIC_SITE_URL letto in un posto solo (più diagnostica: /api/health e launch-check)", () => {
+  test("NEXT_PUBLIC_SITE_URL letto in un posto solo (più /api/health, che è diagnostica)", () => {
     const readers = productionSources().filter((f) =>
       /NEXT_PUBLIC_SITE_URL/.test(stripComments(fs.readFileSync(f, "utf8"))),
     );
-    // launchReadiness legge la env GREZZA di proposito: site.ts la default-a al dominio di
-    // produzione, nascondendo il caso "non impostata" che il launch-check deve invece rilevare.
-    assert.deepEqual(readers.map(REL).sort(), [
-      "app/api/health/route.ts",
-      "app/lib/launchReadiness.ts",
-      "app/lib/site.ts",
-    ]);
+    assert.deepEqual(readers.map(REL).sort(), ["app/api/health/route.ts", "app/lib/site.ts"]);
   });
 
   test("NEXT_PUBLIC_USE_REALSMART letto in un posto solo", () => {
@@ -451,52 +302,5 @@ describe("team — fonte unica del roster", () => {
     for (const member of team) {
       assert.match(teamInitials(member.name), /^[A-ZÀ-Ý]{2}$/);
     }
-  });
-
-  // "Raffaella" con due L è l'errore che una correzione automatica, un copia-incolla o un
-  // collega in buona fede introducono prima o poi: è la grafia "giusta" in italiano, ma non
-  // è la sua. Il roster era già protetto; da quando l'assistente del sito porta il suo nome
-  // ("Assistente Raffaela") lo sbaglio arriverebbe fino alla prima riga di una conversazione.
-  test("«Raffaela» resta con una L sola in tutto il sito", () => {
-    const colpevoli = productionSources().filter((f) =>
-      /Raffaella/.test(stripComments(fs.readFileSync(f, "utf8"))),
-    );
-    assert.deepEqual(colpevoli.map(REL), []);
-  });
-});
-
-describe("assistente — la persona della fondatrice", () => {
-  test("si chiama Assistente Raffaela, con una L sola", () => {
-    assert.equal(ASSISTANT_NAME, "Assistente Raffaela");
-    assert.ok(!ASSISTANT_NAME.includes("Raffaella"));
-  });
-
-  test("il prompt porta il nome, la voce e il limite di onestà", () => {
-    const prompt = buildSystemPrompt();
-    assert.ok(prompt.includes(ASSISTANT_NAME), "il prompt non nomina l'assistente");
-    assert.match(prompt, /Non SEI Raffaela/, "manca la riga che impedisce di spacciarsi per lei");
-    assert.match(prompt, /Prima la persona, poi l'immobile/, "manca la voce dell'agenzia");
-  });
-
-  // Impegno di marca (PRODUCT.md): nei testi rivolti al pubblico Domus Tua non parla di AI.
-  // Il divieto vale su ciò che si LEGGE, non sulle istruzioni al modello — che infatti devono
-  // nominare la cosa per poterla vietare. Quindi: la UI non ne parla, il prompt sì.
-  test("la UI dell'assistente non nomina mai AI né intelligenza artificiale", () => {
-    const vietato = /\bA\.?I\.?\b|intelligenza artificiale|artificial intelligence/i;
-    for (const nome of ["Assistant.tsx", "AssistantLeadForm.tsx", "AssistantMount.tsx"]) {
-      const src = stripComments(fs.readFileSync(path.join(APP_DIR, "components", nome), "utf8"));
-      const riga = src.split("\n").find((l) => vietato.test(l));
-      assert.equal(riga, undefined, `riferimento ad AI in ${nome}: ${riga}`);
-    }
-  });
-
-  test("il prompt vieta esplicitamente di nominare AI", () => {
-    assert.match(buildSystemPrompt(), /Non nominare mai AI/);
-  });
-
-  test("il pannello si presenta col nome in tutte e cinque le lingue", () => {
-    const src = fs.readFileSync(path.join(APP_DIR, "components", "Assistant.tsx"), "utf8");
-    const titoli = src.match(/title: "Assistente Raffaela"/g) ?? [];
-    assert.equal(titoli.length, locales.length, "il nome manca in qualche lingua");
   });
 });

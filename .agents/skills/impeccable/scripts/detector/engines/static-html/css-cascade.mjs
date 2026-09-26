@@ -952,10 +952,7 @@ function collectStaticCssText(root, fileDir, profile, filePath, modules) {
     const rel = link.attribs?.rel || '';
     const href = link.attribs?.href || '';
     if (!/\bstylesheet\b/i.test(rel) || !href || /^(https?:)?\/\//i.test(href)) continue;
-    // Cache-busting hrefs (styles.css?v=3) resolve to the file, not to a
-    // literal path with the query in it; a versioned link otherwise made the
-    // whole stylesheet invisible to every element-level check.
-    const cssPath = path.resolve(fileDir, href.split(/[?#]/)[0]);
+    const cssPath = path.resolve(fileDir, href);
     try {
       const css = profileStep(profile, {
         engine: 'static-html',

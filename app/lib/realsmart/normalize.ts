@@ -2,16 +2,11 @@
 // (forma pulita usata dal sito). Funzione PURA e difensiva: nessun side effect, nessuna
 // eccezione su campi mancanti. Se il feed reale userà nomi diversi, si adatta qui la mappatura.
 
-import { normalizeDescription, buildExcerpt, dropDanglingTailFromParagraphs } from "./description";
-import { redactParagraphs } from "./privacy";
-import { quarantineParagraphs } from "./placeholders";
+import { normalizeDescription } from "./description";
 import { factsFromDescription, factsFromFields, mergeFacts } from "./facts";
 import { splitDescription } from "./descriptionSplit";
 import { getListingOverride } from "./overrides.data";
 import { applyRemovals, overrideFacts } from "./overrides";
-import { cleanField, validateListing } from "./validate";
-import { resolveAreaIdentity } from "../territory/area/identity";
-import { applyAiNormalization, type AiNormalizer } from "./aiNormalizer";
 import type {
   ContractType,
   ListingStatus,
@@ -51,19 +46,15 @@ function toNumber(value: number | string | undefined | null): number {
   return 0;
 }
 
-/**
- * Rende URL-safe il codice RealSmart preservandone la forma (maiuscole incluse):
- * lo slug dell'immobile È il suo codice univoco. Sostituisce solo i caratteri non
- * ammessi in un segmento di path con un trattino; ripiega sul codice grezzo nel
- * caso-limite di un codice fatto di soli simboli (mai visto nel feed reale).
- */
-function codeSlug(codice: string): string {
-  const cleaned = codice
-    .trim()
-    .replace(/[^A-Za-z0-9-]+/g, "-") // spazi/simboli → trattino
+/** Rende una stringa URL-safe (accenti rimossi, spazi → trattini). */
+function slugify(input: string): string {
+  return input
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // rimuove i diacritici (combining marks)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-") // non alfanumerici → trattino
     .replace(/^-+|-+$/g, "") // trim dei trattini
     .replace(/-{2,}/g, "-"); // collassa trattini multipli
-  return cleaned.length > 0 ? cleaned : codice.trim();
 }
 
 /**
@@ -138,9 +129,7 @@ function deriveBadges(
   if (has("esclusiv")) badges.push("In esclusiva");
   if (has("virtual") || has("tour")) badges.push("Virtual tour");
   if (has("open domus")) badges.push("Open Domus");
-  // NB: il badge "Documenti verificati" NON si deduce più dal testo di marketing (era
-  // has("document") && has("verific")): è un'affermazione sul singolo immobile e si abilita
-  // solo con evidenza esplicita (override docVerified), aggiunta in normalizeRealSmartListing.
+  if (has("document") && has("verific")) badges.push("Documenti verificati");
 
   // Deduplica preservando l'ordine.
   return Array.from(new Set(badges));
@@ -161,25 +150,9 @@ function toImage(media: RealSmartMedia): NormalizedImage {
  * Difensiva: gestisce campi mancanti senza lanciare eccezioni.
  */
 export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedProperty {
-  // Campi testuali passano TUTTI da cleanField: trim + i segnaposto ("N/D", "-",
-  // "da definire"…) diventano assenti, mai dati (vedi ./validate.ts).
-  const title = cleanField(raw.titolo) ?? "";
-  const town = cleanField(raw.localita?.comune) ?? "";
-  const province = cleanField(raw.localita?.provincia) ?? "";
-
-  // IDENTITÀ GEOGRAFICA. `cleanField` toglie prima i segnaposto, così una <Zona> scritta "N/D"
-  // diventa assenza e non una frazione di nome "N/D". Il feed reale non espone coordinate
-  // (docs/adr/001-territorial-enrichment.md §2) e qui non se ne inventano: l'identità è
-  // amministrativa — comune, frazione, e provincia/regione SOLO se il comune è nel registro.
-  const area = resolveAreaIdentity({
-    municipality: town || undefined,
-    neighbourhood: cleanField(raw.localita?.zona),
-    province: province || undefined,
-    postalCode: cleanField(raw.localita?.cap),
-  });
-  const typology = cleanField(raw.tipologia);
-  const energyClass = cleanField(raw.classeEnergetica);
-  const floorValue = cleanField(typeof raw.piano === "number" ? String(raw.piano) : raw.piano);
+  const title = raw.titolo?.trim() ?? "";
+  const town = raw.localita?.comune?.trim() ?? "";
+  const province = raw.localita?.provincia?.trim() ?? "";
 
   const contract = normalizeContract(raw.contratto);
   const status = normalizeStatus(raw.statoPubblicazione);
@@ -191,64 +164,35 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     .map((f) => f.trim())
     .filter((f) => f.length > 0);
 
-  // Slug = codice univoco RealSmart (es. "2079", "T123"), fedele al sistema
-  // originale del gestionale: annunci.domustua.com/case/<codice>. NON è un testo
-  // derivato da titolo/comune. Il codice è tenuto VERBATIM (maiuscole comprese: il
-  // vecchio sito serviva /case/T123, non /case/t123); si sanificano solo i caratteri
-  // non-URL, e il fallback copre l'improbabile codice fatto di soli simboli.
-  const slug = codeSlug(raw.codice);
+  // Slug stabile: titolo + comune + codice (il codice garantisce univocità).
+  const slug = slugify([title, town, raw.codice].filter(Boolean).join(" "));
 
   // Media → solo foto per la gallery del sito, ordinate.
   const images: NormalizedImage[] = sortMedia(raw.media ?? [])
     .filter((m) => m.tipo === undefined || m.tipo === "foto")
     .map(toImage);
 
-  const addressRaw = cleanField(raw.localita?.indirizzo);
+  const addressRaw = raw.localita?.indirizzo?.trim();
 
   // Override manuale approvato: è la fonte con priorità massima (vedi ./overrides.ts).
   const override = getListingOverride(raw.codice);
 
-  // Privacy-first: l'indirizzo civico si pubblica SOLO se un override lo autorizza. È una policy,
-  // decisa qui una volta e applicata a ogni output (testo compreso), non un dettaglio di rendering.
-  const showAddress = override?.mostraIndirizzo === true;
-
   // Descrizione: una sola normalizzazione, riusata da paragrafi, estratto ed estrazione fatti.
   // Se il cliente ci ha fornito un testo approvato, quello sostituisce integralmente il feed.
   const description = normalizeDescription(raw.descrizione);
-  const sourceParagraphs = override?.descrizione ?? description.paragraphs;
-
-  // REDAZIONE PRIVACY DETERMINISTICA (app/lib/realsmart/privacy.ts). Applicata PRIMA di estrarre
-  // fatti/estratto, così indirizzi civici (se showAddress=false) e telefoni non escono da nessun
-  // output pubblico. Il comune sostituisce l'indirizzo redatto, preservando il contesto di zona.
-  // `sourceAddress` è l'indirizzo strutturato del gestionale: alimenta il layer a più alta
-  // precisione (redazione dell'indirizzo NOTO e delle sue varianti), oltre al pattern generico.
-  const redactedParagraphs = redactParagraphs(sourceParagraphs, {
-    showAddress,
-    comune: town,
-    sourceAddress: addressRaw,
-  }).paragraphs;
-
-  // QUARANTENA SEGNAPOSTO (app/lib/realsmart/placeholders.ts). Un «____» non compilato non deve mai
-  // finire in pagina: si toglie la frase-misura incompleta (senza inventare la misura). Il segnale
-  // viaggia su `placeholderQuarantined` e fa fallire l'audit — la correzione vera è alla fonte/override.
-  const quarantine = quarantineParagraphs(redactedParagraphs);
-  // Ultima potatura della coda troncata: qui, e non prima, perché la redazione privacy e la
-  // quarantena possono CREARLE loro. Sull'annuncio 2044 del feed reale il telefono tolto lascia
-  // «per una valutazione della tua casa chiama ora lo e» — un moncone nostro, non del gestionale.
-  const paragraphs = dropDanglingTailFromParagraphs(quarantine.paragraphs);
-  const placeholderQuarantined = quarantine.quarantined > 0;
+  const paragraphs = override?.descrizione ?? description.paragraphs;
 
   // Fatti strutturati, in ordine di priorità: campo esplicito RealSmart > descrizione.
   // Gli override manuali approvati si innestano davanti a tutto in ./overrides.ts.
   const fieldFacts = factsFromFields({
-    tipologia: typology,
+    tipologia: raw.tipologia?.trim(),
     contratto: contract,
     mq: toNumber(raw.mq),
     locali: toNumber(raw.locali),
     camere: toNumber(raw.camere), // MAI dedotte da "locali - 1"
     bagni: toNumber(raw.bagni),
-    piano: floorValue,
-    classeEnergetica: energyClass,
+    piano: typeof raw.piano === "number" ? String(raw.piano) : raw.piano,
+    classeEnergetica: raw.classeEnergetica,
     statoAttestatoEnergetico: raw.statoAttestatoEnergetico,
     dettagli: raw.dettagli,
   });
@@ -263,17 +207,7 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
   // I fatti pubblicati decidono quali righe telegrafiche possono uscire dal testo.
   const split = splitDescription(paragraphs, facts);
 
-  // Evidenza esplicita del protocollo D.O.C. su QUESTO immobile: SOLO dall'override manuale
-  // (con fonte/data/autore), mai dedotta dal testo di marketing. Abilita l'affermazione
-  // "verificata" sulla scheda e il badge "Documenti verificati".
-  const docVerified = override?.docVerified === true;
-  const derivedBadges = deriveBadges(status, features, contract);
-  const verifiedBadges = docVerified ? [...derivedBadges, "Documenti verificati"] : derivedBadges;
-  const badges = raw.inEvidenza
-    ? Array.from(new Set(["In evidenza", ...verifiedBadges]))
-    : Array.from(new Set(verifiedBadges));
-
-  const property: NormalizedProperty = {
+  return {
     id: raw.codice,
     slug,
     title: titleize(title),
@@ -282,82 +216,35 @@ export function normalizeRealSmartListing(raw: RealSmartListingRaw): NormalizedP
     structuredFactLines: split.structuredFactLines.map((l) => l.line),
     keptFactLines: split.keptFactLines,
     contentPreservation: split.contentPreservation,
-    // true se una frase-segnaposto è stata messa in quarantena: l'audit lo trasforma in FAIL.
-    placeholderQuarantined,
-    // Estratto (card, meta description, JSON-LD): DERIVATO dal corpo GIÀ redatto (`paragraphs`),
-    // non dall'estratto del feed. Due conseguenze volute:
-    //   • se un override sostituisce il corpo, l'estratto nasce dal testo approvato — scheda e meta
-    //     description non mostrano più due testi diversi (era la incoerenza estratto/override);
-    //   • l'estratto è per costruzione un sottoinsieme del corpo redatto: non può contenere un
-    //     indirizzo/telefono che il corpo non contiene già.
-    excerpt: buildExcerpt(paragraphs),
+    excerpt: description.excerpt,
     price,
     priceLabel,
     contract,
-    type: typology ?? "Immobile",
+    type: raw.tipologia?.trim() ?? "Immobile",
     town,
     province,
-    area,
-    address: addressRaw,
+    address: addressRaw && addressRaw.length > 0 ? addressRaw : undefined,
     // Privacy-first: l'indirizzo civico si pubblica solo se un override lo autorizza.
-    // `showAddress` è la const decisa una volta sopra (riusata dalla redazione dei paragrafi/estratto).
-    showAddress,
-    docVerified,
+    showAddress: override?.mostraIndirizzo === true,
     sqm: toNumber(raw.mq),
     rooms: toNumber(raw.locali),
     bedrooms: toNumber(raw.camere),
     baths: toNumber(raw.bagni),
-    floor: floorValue,
-    energyClass,
+    floor: typeof raw.piano === "number" ? String(raw.piano) : raw.piano?.trim() || undefined,
+    energyClass: raw.classeEnergetica?.trim() || undefined,
     features,
     facts,
     factsReview: descriptionFacts.review,
     images,
     status,
-    badges,
+    badges: raw.inEvidenza
+      ? Array.from(new Set(["In evidenza", ...deriveBadges(status, features, contract)]))
+      : deriveBadges(status, features, contract),
     publishedAt: raw.dataPubblicazione?.trim() ?? "",
     updatedAt: raw.dataAggiornamento?.trim() ?? "",
     sourceRef: {
       codice: raw.codice,
-      riferimento: cleanField(raw.riferimento),
+      riferimento: raw.riferimento?.trim() || undefined,
     },
-    // Default e unica strada oggi: la normalizzazione è deterministica.
-    // L'eventuale passo AI (opzionale, spento) lo riscrive in applyAiNormalization.
-    normalizedBy: "deterministic",
   };
-
-  // Avvisi deterministici sui dati sospetti (audit/go-live, mai in pagina).
-  const warnings = validateListing(property, raw);
-  return warnings.length > 0 ? { ...property, warnings } : property;
-}
-
-/**
- * Normalizza un LOTTO di annunci con ISOLAMENTO DEGLI ERRORI: un singolo record
- * malformato che facesse lanciare `normalizeRealSmartListing` viene SCARTATO
- * (mai un catalogo vuoto per un record rotto), gli altri passano. Restituisce
- * anche i grezzi scartati, per diagnostica.
- *
- * `ai` è iniettabile: di norma `null` (deterministico, il default); un provider
- * (reale o finto nei test) migliora ogni record con fallback sicuro.
- */
-export async function normalizeListings(
-  raw: readonly RealSmartListingRaw[],
-  ai: AiNormalizer | null = null,
-): Promise<{ listings: NormalizedProperty[]; skipped: RealSmartListingRaw[] }> {
-  const listings: NormalizedProperty[] = [];
-  const skipped: RealSmartListingRaw[] = [];
-  for (const r of raw) {
-    try {
-      let n = normalizeRealSmartListing(r);
-      if (ai) n = await applyAiNormalization(n, r, ai);
-      listings.push(n);
-    } catch (err) {
-      skipped.push(r);
-      console.error(
-        `[realsmart] annuncio ${r?.codice ?? "(codice ignoto)"} scartato — normalizzazione fallita:`,
-        err instanceof Error ? err.message : "errore",
-      );
-    }
-  }
-  return { listings, skipped };
 }

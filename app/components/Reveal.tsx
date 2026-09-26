@@ -28,19 +28,20 @@ export default function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    // Replay a ogni passaggio (richiesta cliente 2026-08-04): niente unobserve —
-    // l'osservatore accende E spegne, così il reveal rigioca in entrambe le
-    // direzioni di scroll ogni volta che l'elemento rientra nel viewport.
     const io = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => setShown(entry.isIntersecting));
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShown(true);
+            io.unobserve(entry.target);
+          }
+        });
       },
       { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
     );
     io.observe(el);
     // Rete di sicurezza: se l'observer non scatta mai (blocco più alto del viewport,
-    // errore di layout), rivela comunque il contenuto; se l'observer è vivo, le
-    // sue notifiche successive riprendono il controllo.
+    // errore di layout), rivela comunque il contenuto per non lasciarlo invisibile.
     const safety = window.setTimeout(() => setShown(true), 2500);
     return () => {
       io.disconnect();

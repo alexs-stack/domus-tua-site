@@ -5,8 +5,7 @@
 
 import { createLiveSessionStore } from './live/session-store.mjs';
 import { readLiveServerInfo } from './lib/impeccable-paths.mjs';
-import { manualApplyResumeHint, mountFailureAction, renderSummary } from './live-resume.mjs';
-import { enterLiveRoot } from './live/roots.mjs';
+import { manualApplyResumeHint } from './live-resume.mjs';
 
 function readServerInfo() {
   return readLiveServerInfo(process.cwd())?.info || null;
@@ -29,8 +28,6 @@ export async function statusCli() {
   const store = createLiveSessionStore({ cwd: process.cwd() });
   const activeSessions = store.listActiveSessions();
   const manualApply = findPendingManualApply(server, activeSessions);
-  const sessions = server?.activeSessions || activeSessions;
-  const renderFailure = sessions.find((session) => session?.renderState === 'failed') || null;
   const payload = {
     liveServer: server ? {
       status: server.status,
@@ -39,16 +36,14 @@ export async function statusCli() {
       agentPolling: server.agentPolling,
       pendingEvents: server.pendingEvents,
     } : null,
-    activeSessions: sessions,
-    render: sessions.map((session) => ({ id: session?.id ?? null, ...renderSummary(session) })),
-    recoveryHint: recoveryHint({ server, manualApply, renderFailure }),
+    activeSessions: server?.activeSessions || activeSessions,
+    recoveryHint: recoveryHint({ server, manualApply }),
   };
   console.log(JSON.stringify(payload, null, 2));
 }
 
-function recoveryHint({ server, manualApply, renderFailure }) {
+function recoveryHint({ server, manualApply }) {
   if (manualApply) return manualApplyResumeHint(manualApply);
-  if (renderFailure) return mountFailureAction(renderFailure);
   if (server) {
     return 'Run live-poll.mjs to continue pending work, or live-complete.mjs --id <session> after manual cleanup.';
   }
@@ -66,6 +61,5 @@ function findPendingManualApply(server, activeSessions) {
 
 const _running = process.argv[1];
 if (_running?.endsWith('live-status.mjs') || _running?.endsWith('live-status.mjs/')) {
-  enterLiveRoot();
   statusCli();
 }

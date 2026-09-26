@@ -31,10 +31,7 @@ export default function PreviewBadge({ checklist = [] }: { checklist?: DemoCheck
   if (process.env.NEXT_PUBLIC_PREVIEW_BADGE !== "true" || hidden) return null;
 
   return (
-    <div
-      style={{ bottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
-      className="fixed left-5 z-40 max-w-[calc(100vw-2.5rem)] print:hidden"
-    >
+    <div className="fixed bottom-5 left-5 z-40 max-w-[calc(100vw-2.5rem)] print:hidden">
       {/* Pannello espanso: checklist onesta di cosa è live e cosa è ancora demo. */}
       {open && checklist.length > 0 && (
         <div className="mb-2 w-[17rem] max-w-[calc(100vw-2.5rem)] rounded-2xl border border-red/20 bg-paper/95 p-3.5 shadow-[0_24px_60px_-28px_rgba(26,24,22,0.6)] backdrop-blur-md">

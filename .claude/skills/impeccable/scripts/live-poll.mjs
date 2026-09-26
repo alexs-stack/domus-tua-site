@@ -14,8 +14,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { completionAckForAcceptResult, completionTypeForAcceptResult } from './live/completion.mjs';
 import { readLiveServerInfo } from './lib/impeccable-paths.mjs';
-import { enterLiveRoot } from './live/roots.mjs';
-import { instructionsForEvent } from './live/instructions.mjs';
 
 // Absolute path to a sibling script in this skill's scripts dir, so runtime
 // error hints print a directly-runnable command instead of a placeholder.
@@ -29,7 +27,7 @@ const scriptCmd = (name) => `node "${path.join(SELF_DIR, name)}"`;
 export const PER_REQUEST_TIMEOUT_MS = 270_000;
 export const DEFAULT_EVENT_LEASE_MS = 600_000;
 
-const EVENT_TYPES_NEEDING_AGENT_REPLY = new Set(['generate', 'steer', 'manual_edit_apply', 'carbonize_cleanup', 'variant_mount_failed']);
+const EVENT_TYPES_NEEDING_AGENT_REPLY = new Set(['generate', 'steer', 'manual_edit_apply', 'carbonize_cleanup']);
 
 function readServerInfo() {
   const record = readLiveServerInfo(process.cwd());
@@ -119,11 +117,8 @@ export async function postReply(base, token, reply) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const failureLines = Array.isArray(body.failures)
-      ? body.failures.map((f) => `  ${f.file}${f.line != null ? `:${f.line}` : ''} ${f.message}`).join('\n')
-      : null;
-    const parts = [body.error || res.statusText, body.reason, body.hint, failureLines, body._instructions].filter(Boolean);
-    throw new Error(parts.join('\n'));
+    const parts = [body.error || res.statusText, body.reason, body.hint].filter(Boolean);
+    throw new Error(parts.join(': '));
   }
 }
 
@@ -266,13 +261,6 @@ export function writeCarbonizeBanner(event) {
 }
 
 export function printPollEvent(event) {
-  // Situational plumbing rides with the event itself: `_instructions` is the
-  // authoritative next step, with real ids and paths substituted, so the
-  // reference doc can stay lean and can never drift from script behavior.
-  if (event && typeof event === 'object' && !event._instructions) {
-    const instructions = instructionsForEvent(event, { scriptsPath: SELF_DIR });
-    if (instructions) event._instructions = instructions;
-  }
   console.log(JSON.stringify(event));
 }
 
@@ -424,6 +412,5 @@ export function normalizePollTypes(value) {
 // Auto-execute when run directly
 const _running = process.argv[1];
 if (_running?.endsWith('live-poll.mjs') || _running?.endsWith('live-poll.mjs/')) {
-  enterLiveRoot();
   pollCli();
 }

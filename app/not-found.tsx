@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { SegnoDomus } from "./components/BrandMotif";
-import { Cta } from "./components/primitives/Cta";
+import { ArrowUpRight, ArrowRight } from "./components/Icons";
 
 export const metadata: Metadata = {
   title: "Pagina non trovata",
@@ -31,15 +32,22 @@ export default function NotFound() {
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Cta href="/" variant="cta" size="lg">
+              <Link
+                href="/"
+                className="group flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
                 Torna alla home
-              </Cta>
-              {/* §6.7, famiglia acquirente: il pulsante porta a /acquista, quindi
-                  «Vedi le case in vendita» — che è la formula, e descrive esattamente
-                  ciò che succede al clic. «Cerca una casa» era una nona variante. */}
-              <Cta href="/acquista" variant="ghost" size="lg">
-                Vedi le case in vendita
-              </Cta>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </Link>
+              <Link
+                href="/acquista"
+                className="group flex items-center justify-center gap-1.5 rounded-full border border-line bg-paper px-7 py-4 text-base font-semibold text-ink transition-all duration-300 hover:border-red/40"
+              >
+                Cerca una casa
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
             </div>
           </div>
         </div>

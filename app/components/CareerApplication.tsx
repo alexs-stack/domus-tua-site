@@ -4,12 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { gsap, MQ } from "../lib/motion/gsap";
 import { ArrowUpRight, Mail, Pin, Whatsapp } from "./Icons";
-import { SendCta } from "./primitives/Cta";
 import { SegnoDomusBadge } from "./BrandMotif";
-import { site, territoryLabelBy } from "../lib/site";
+import { site } from "../lib/site";
 import { buildWhatsAppUrl } from "../lib/forms/whatsapp";
 import { formatLeadMessage, submitLead, type Lead } from "../lib/forms/lead";
-import { CONVERSIONS, trackConversion } from "../lib/analytics";
 import WordReveal from "./WordReveal";
 import Atmosphere from "./motion/Atmosphere";
 import CameraIn from "./motion/CameraIn";
@@ -125,10 +123,10 @@ const copy = {
       "Il sito non riceve allegati. Lascia qui un link al tuo profilo, oppure inviaci il CV per email: lo leggiamo con la stessa attenzione.",
     cvCta: "Scrivici a",
     whereTitle: "Dove si lavora",
-    whereCopy: `In sede, a Tradate. Il lavoro è sul territorio: Tradate e ${territoryLabelBy.it}.`,
+    whereCopy: "In sede, a Tradate. Il lavoro è sul territorio: Tradate e la provincia di Varese.",
     whatsappTitle: "Preferisci scrivere?",
     whatsappCopy: "Mandaci un messaggio: rispondiamo negli orari di apertura.",
-    whatsappCta: "Parla con noi su WhatsApp",
+    whatsappCta: "Scrivici su WhatsApp",
     imageAlt: "Il team Domus Tua nella sede di Tradate",
   },
   en: {
@@ -176,10 +174,10 @@ const copy = {
       "The website doesn’t accept attachments. Leave a link to your profile here, or email us your CV: we read it just as carefully.",
     cvCta: "Write to",
     whereTitle: "Where you’ll work",
-    whereCopy: `At our office in Tradate. The work is local: Tradate and ${territoryLabelBy.en}.`,
+    whereCopy: "At our office in Tradate. The work is local: Tradate and the province of Varese.",
     whatsappTitle: "Prefer to write?",
     whatsappCopy: "Send us a message: we reply during opening hours.",
-    whatsappCta: "Talk to us on WhatsApp",
+    whatsappCta: "Message us on WhatsApp",
     imageAlt: "The Domus Tua team at the Tradate office",
   },
   fr: {
@@ -227,10 +225,10 @@ const copy = {
       "Le site ne reçoit pas de pièces jointes. Laissez ici un lien vers votre profil, ou envoyez-nous votre CV par e-mail : nous le lisons avec la même attention.",
     cvCta: "Écrivez à",
     whereTitle: "Où l’on travaille",
-    whereCopy: `Dans nos locaux, à Tradate. Le travail est local : Tradate et ${territoryLabelBy.fr}.`,
+    whereCopy: "Dans nos locaux, à Tradate. Le travail est local : Tradate et la province de Varese.",
     whatsappTitle: "Vous préférez écrire ?",
     whatsappCopy: "Envoyez-nous un message : nous répondons aux heures d’ouverture.",
-    whatsappCta: "Parlez-nous sur WhatsApp",
+    whatsappCta: "Écrivez-nous sur WhatsApp",
     imageAlt: "L’équipe Domus Tua dans les locaux de Tradate",
   },
   de: {
@@ -278,10 +276,10 @@ const copy = {
       "Die Website nimmt keine Anhänge entgegen. Hinterlassen Sie hier einen Link zu Ihrem Profil oder senden Sie uns den Lebenslauf per E-Mail: Wir lesen ihn genauso aufmerksam.",
     cvCta: "Schreiben Sie an",
     whereTitle: "Wo gearbeitet wird",
-    whereCopy: `In unserem Büro in Tradate. Die Arbeit findet vor Ort statt: Tradate und ${territoryLabelBy.de}.`,
+    whereCopy: "In unserem Büro in Tradate. Die Arbeit findet vor Ort statt: Tradate und die Provinz Varese.",
     whatsappTitle: "Lieber schreiben?",
     whatsappCopy: "Senden Sie uns eine Nachricht: Wir antworten während der Öffnungszeiten.",
-    whatsappCta: "Sprechen Sie mit uns auf WhatsApp",
+    whatsappCta: "Schreiben Sie uns auf WhatsApp",
     imageAlt: "Das Domus-Tua-Team im Büro in Tradate",
   },
   es: {
@@ -329,10 +327,10 @@ const copy = {
       "La web no recibe archivos adjuntos. Deja aquí un enlace a tu perfil, o envíanos el CV por correo: lo leemos con la misma atención.",
     cvCta: "Escríbenos a",
     whereTitle: "Dónde se trabaja",
-    whereCopy: `En la oficina, en Tradate. El trabajo es local: Tradate y ${territoryLabelBy.es}.`,
+    whereCopy: "En la oficina, en Tradate. El trabajo es local: Tradate y la provincia de Varese.",
     whatsappTitle: "¿Prefieres escribir?",
     whatsappCopy: "Mándanos un mensaje: respondemos en horario de apertura.",
-    whatsappCta: "Habla con nosotras por WhatsApp",
+    whatsappCta: "Escríbenos por WhatsApp",
     imageAlt: "El equipo Domus Tua en la sede de Tradate",
   },
 } as const;
@@ -440,15 +438,6 @@ export default function CareerApplication({
     setSubmitting(true);
     void submitLead(lead).finally(() => setSubmitting(false));
 
-    // La conversione, come nel modulo contatti: QUI, dopo la validazione e prima di aprire
-    // WhatsApp — è il momento in cui la candidatura esiste davvero. Passa solo il ruolo per
-    // cui ci si candida, mai il contenuto del lead: quello ha il suo canale (submitLead).
-    // `intent` porta l'ID stabile del ruolo, non l'etichetta italiana: per una candidatura
-    // il "tipo di richiesta" È l'area per cui ci si candida, e gli ID non cambiano quando
-    // cambia il copy. Si riusa la dimensione che c'è invece di allargare la whitelist di
-    // trackConversion, che è una garanzia privacy e non una svista.
-    trackConversion(CONVERSIONS.candidatura, "modulo", { intent: currentRole });
-
     // Canale immediato: WhatsApp precompilato (apertura sincrona col gesto = niente popup block).
     const url = buildWhatsAppUrl(site.whatsapp.href, formatLeadMessage(lead));
     window.open(url, "_blank", "noopener,noreferrer");
@@ -485,21 +474,6 @@ export default function CareerApplication({
               <SegnoDomusBadge>{c.badge}</SegnoDomusBadge>
             </div>
             <span className="eyebrow mt-4">{c.eyebrow}</span>
-            {/* Meccanica per-parola a ogni larghezza: dall'onda «parità mobile
-                2» è il default di WordReveal (verdetto 8) e l'opt-in `mobile`
-                che stava qui è caduto — non cambia niente per questo titolo,
-                che era già acceso sul telefono. La domanda da farsi resta
-                quella dell'LCP, e la risposta è ancora questa: è un <h2>
-                nell'ULTIMA sezione di /lavora-con-noi — sopra ci sono l'hero,
-                le cinque aree e le FAQ — quindi non entra mai nel primo
-                viewport e non può essere candidato LCP. Regge anche il caso
-                scomodo, un link condiviso a /lavora-con-noi#candidatura: il
-                browser atterra qui, ma nel viewport la foto del team (240px
-                per ~320, circa 60.000px² visibili) è più grande del titolo
-                intero (~25.000px²) — spezzarlo in tre parole non toglie un
-                candidato che comunque non vince. Se un giorno questo titolo
-                sale in cima alla pagina, qui si passa `immediate` (SSR
-                visibile a ogni larghezza), non si tocca la larghezza. */}
             <WordReveal
               as="h2"
               className="mt-5 block font-display text-4xl font-medium leading-[1.04] tracking-tight text-ink balance sm:text-[3.2rem]"
@@ -579,7 +553,6 @@ export default function CareerApplication({
                 placeholder={c.namePlaceholder}
                 required
                 autoComplete="name"
-                autoCapitalize="words"
                 error={errors.name}
               />
               <Field
@@ -587,8 +560,6 @@ export default function CareerApplication({
                 label={c.contactLabel}
                 placeholder={c.contactPlaceholder}
                 required
-                autoCapitalize="none"
-                spellCheck={false}
                 error={errors.contact}
               />
 
@@ -635,9 +606,21 @@ export default function CareerApplication({
                 ) : null}
               </div>
 
-              <SendCta submitting={submitting} size="lg" className="mt-1 w-full">
+              <button
+                type="submit"
+                disabled={submitting}
+                aria-busy={submitting}
+                className="group mt-1 flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-6 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+              >
                 {c.submit}
-              </SendCta>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  {submitting ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  ) : (
+                    <ArrowUpRight className="h-4 w-4" />
+                  )}
+                </span>
+              </button>
 
               {sent ? (
                 <p
@@ -683,8 +666,6 @@ function Field({
   error,
   autoComplete,
   inputMode,
-  autoCapitalize,
-  spellCheck,
 }: {
   name: string;
   label: string;
@@ -694,10 +675,6 @@ function Field({
   error?: string;
   autoComplete?: string;
   inputMode?: "text" | "url" | "email" | "tel";
-  /** "words" per i nomi; "none" dove si scrive un'email (vedi Contact.tsx). */
-  autoCapitalize?: "none" | "words" | "sentences";
-  /** false su email e link: l'autocorrezione di iOS li riscrive. */
-  spellCheck?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -712,9 +689,6 @@ function Field({
         required={required}
         autoComplete={autoComplete}
         inputMode={inputMode}
-        autoCapitalize={autoCapitalize}
-        spellCheck={spellCheck}
-        autoCorrect={spellCheck === false ? "off" : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}
         // text-base su mobile: sotto i 16px iOS zooma al focus.

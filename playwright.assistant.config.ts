@@ -44,8 +44,6 @@ export default defineConfig({
       NEXT_PUBLIC_ENABLE_ASSISTANT: "true",
       NEXT_PUBLIC_SITE_URL: BASE_URL,
       NEXT_PUBLIC_USE_REALSMART: "false",
-      // Autorizzazione server-only ai mock (Prompt 3): necessaria per i test, mai in produzione.
-      REALSMART_ALLOW_MOCK: "true",
     },
   },
 });

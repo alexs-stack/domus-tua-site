@@ -13,17 +13,15 @@
 //   di Lenis rispetta l'ownership del sipario (isTransitionCovering).
 // - La CTA è un <a>: la intercetta PageTransition (sipario) come ogni link.
 import { useCallback, useEffect, useRef } from "react";
-import { useModalBehaviour } from "./hooks/useModalBehaviour";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Flip } from "gsap/Flip";
-import { Bed, Ruler, Rooms } from "./Icons";
-import { Cta } from "./primitives/Cta";
+import { ArrowUpRight, Bed, Ruler, Rooms } from "./Icons";
 import { useLocale } from "./i18n/LocaleProvider";
+import { getLenis } from "./motion/SmoothScroll";
 import { isTransitionCovering } from "./motion/PageTransition";
 import { gsap, useGSAP, MQ, dur } from "../lib/motion/gsap";
 import type { GridProperty } from "../lib/properties";
-import { factApplies } from "../lib/propertyKind";
 
 // Registrazione locale (come in PropertySearch): Flip non entra nel chunk del layout.
 gsap.registerPlugin(Flip);
@@ -58,6 +56,7 @@ export default function CaseQuickLook({
   const imgRef = useRef<HTMLDivElement | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const closingRef = useRef(false);
+  const restoreRef = useRef<HTMLElement | null>(null);
 
   // Chiusura coreografata: la foto torna alla card, il foglio svanisce.
   // Fuori da useGSAP (evento-driven): check runtime, mai ritardare lo stato
@@ -94,19 +93,68 @@ export default function CaseQuickLook({
     tl.to(backdropRef.current, { autoAlpha: 0, duration: dur.micro, ease: "none" }, 0.18);
   }, [property, onClose]);
 
-  // Scroll bloccato, focus dentro, Esc per uscire, focus restituito a chi ha aperto.
-  // La meccanica sta in ./hooks/useModalBehaviour, condivisa col dialog del video: due
-  // copie di un focus trap divergono al primo ritocco. `closingRef` si azzera qui perche
-  // e specifico di questo dialog (l uscita animata), non del comportamento modale.
+  // Lock dello scroll + gestione focus per la durata del dialog.
   useEffect(() => {
-    if (property) closingRef.current = false;
+    if (!property) return;
+    closingRef.current = false;
+    restoreRef.current = document.activeElement as HTMLElement | null;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflow;
+    const prevBody = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    getLenis()?.stop();
+    // Focus sul pannello (tabIndex -1), non sul bottone Chiudi: con motion
+    // attivo il bottone parte autoAlpha 0 (visibility:hidden) e focus() su un
+    // nodo hidden è un no-op — il focus resterebbe dietro l'overlay.
+    panelRef.current?.focus();
+    return () => {
+      html.style.overflow = prevHtml;
+      body.style.overflow = prevBody;
+      if (!isTransitionCovering()) getLenis()?.start();
+      const t = restoreRef.current;
+      if (t && document.contains(t)) t.focus();
+    };
   }, [property]);
-  useModalBehaviour({
-    open: !!property,
-    panelRef,
-    onClose: requestClose,
-    keepScrollStopped: isTransitionCovering,
-  });
+
+  // Esc chiude, Tab resta nel dialog (stesso trap dell'Assistant).
+  useEffect(() => {
+    if (!property) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        requestClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const dialog = panelRef.current;
+      if (!dialog) return;
+      const focusable = dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      // Focus scappato fuori dal pannello (click su zona non interattiva,
+      // backdrop…): il Tab lo riporta dentro invece di scorrere lo sfondo.
+      if (!dialog.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [property, requestClose]);
 
   // Volo di apertura: la foto della card diventa il foglio. Stati nascosti
   // impostati SOLO qui (fromTo): senza motion il dialog appare già completo.
@@ -216,19 +264,17 @@ export default function CaseQuickLook({
               data-ql-fact
               className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.85rem] text-stone"
             >
-              {/* Solo i numeri pertinenti alla categoria (vedi lib/propertyKind.ts):
-                  camere fuori da un commerciale/terreno, locali fuori da un terreno. */}
               {p.sqm !== "—" && (
                 <span className="tnum inline-flex items-center gap-1.5">
                   <Ruler className="h-4 w-4 text-graphite" /> {p.sqm}
                 </span>
               )}
-              {p.rooms !== "—" && factApplies(p.type, "rooms") && (
+              {p.rooms !== "—" && (
                 <span className="tnum inline-flex items-center gap-1.5">
                   <Rooms className="h-4 w-4 text-graphite" /> {p.rooms}
                 </span>
               )}
-              {p.beds !== "—" && factApplies(p.type, "beds") && (
+              {p.beds !== "—" && (
                 <span className="tnum inline-flex items-center gap-1.5">
                   <Bed className="h-4 w-4 text-graphite" /> {p.beds}
                 </span>
@@ -247,9 +293,15 @@ export default function CaseQuickLook({
               >
                 {p.price}
               </span>
-              <Cta href={`/case/${p.slug}`} variant="cta" size="md">
+              <a
+                href={`/case/${p.slug}`}
+                className="group inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
                 {c.goTo}
-              </Cta>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
             </div>
           </div>
         </div>

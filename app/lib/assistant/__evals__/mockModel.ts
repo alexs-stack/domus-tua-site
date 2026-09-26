@@ -40,9 +40,6 @@ function toolPlausibile(caso: EvalCase): { name: string; input: unknown } | null
     case "get_listing_details":
       // Slug plausibile del catalogo di prova: il grader verificherà che esista.
       return { name: "get_listing_details", input: { slug: "villa-giardino-tradate" } };
-    case "get_area_profile":
-      // Comune plausibile citato dall'utente (Prompt 13): il reader fixture risponde per Tradate.
-      return { name: "get_area_profile", input: { comune: "Tradate" } };
     case "retrieve_agency_knowledge":
       return { name: "retrieve_agency_knowledge", input: { domanda: ultimo } };
     case "prepare_whatsapp_handoff":
@@ -67,25 +64,6 @@ function rispostaGenerica(caso: EvalCase): string {
     return `Ecco quello che posso dirti: ${caso.deveContenere.join(", ")}.`;
   }
   return "Su questo non ho informazioni verificate. Preferisci che ti metta in contatto con il team?";
-}
-
-/**
- * Guasti che vivono NEL provider o nel comportamento del modello: un modello vero, che
- * funziona, non può riprodurli. `feed-giu` non è qui perché quello si riproduce davvero —
- * `runCase` svuota il catalogo e il modello reale ci ragiona sopra.
- */
-const GUASTI_DA_SIMULARE = ["provider-giu", "output-vuoto", "tool-inesistente", "tool-input-invalido"];
-
-/**
- * true se il caso va eseguito col modello simulato ANCHE in modalità reale.
- *
- * Senza questo, in modalità reale i casi di guasto finivano al provider vero, che rispondeva
- * normalmente: il grader chiedeva un canale umano a una risposta che non ne aveva bisogno e
- * il gruppo "errore" produceva fallimenti inventati. Peggio: un gruppo che sembra misurare la
- * degradazione dell'assistente e invece non misura niente.
- */
-export function richiedeModelloSimulato(caso: EvalCase): boolean {
-  return caso.guasto !== undefined && GUASTI_DA_SIMULARE.includes(caso.guasto);
 }
 
 /** Costruisce il modello simulato adatto al caso, incluso il guasto da riprodurre. */

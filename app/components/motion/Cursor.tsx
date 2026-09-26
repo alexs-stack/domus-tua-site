@@ -1,34 +1,12 @@
 "use client";
 
-// ═══════════════════════════════════════════════════════════════════════════
-// LA TARGHETTA — il cursore d'intento.
-//
-// Prima qui c'era il cerchio: un anello di 40px in mix-blend-difference che
-// seguiva il puntatore ovunque con mezzo secondo di ritardo, più un punto
-// rosso. È l'effetto più copiato del web e su questo sito non diceva niente:
-// stava addosso al puntatore anche mentre si leggeva un paragrafo, dove non
-// c'era nessun gesto da annunciare. Il cliente l'ha chiamato orribile e
-// aveva ragione (2026-08-26).
-//
-// La regola nuova è una sola: IL CURSORE NATIVO RESTA. Il novantacinque per
-// cento del tempo si naviga con la freccia del sistema — nessun anello,
-// nessun ritardo, nessun blend. Il segno custom compare SOLO dove c'è
-// davvero un gesto da dichiarare, cioè sugli elementi che portano
-// `data-cursor`: le schede immobile e le tessere servizi («Scopri»), il
-// nastro orizzontale e il confronto prima/dopo («Trascina»), i video («play»).
-//
-// E quando compare non è un cerchio: è una TARGHETTA. La targhetta
-// dell'agenzia — crema, angoli tondi, il tetto rosso del monogramma davanti
-// alla parola, un'ombra corta che la stacca dalla foto. Si porta dietro
-// l'inclinazione del movimento (come un cartoncino tenuto in mano) e si
-// schiaccia sul click. Fuori da quegli elementi non esiste proprio.
-//
-// Gating invariato: solo `pointer: fine` + motion ok (gsap.matchMedia). Su
-// touch non esiste e niente lo presuppone. `cursor: none` è SCOPED ai soli
-// bersagli (globals.css, sotto html.dt-cursor-active): fuori di lì il
-// puntatore di sistema non viene mai tolto — se questo file smettesse di
-// montare, il sito resterebbe navigabile com'è.
-// ═══════════════════════════════════════════════════════════════════════════
+// Cursor custom — punto rosso 8px + anello follower con lerp.
+// Solo pointer fine + motion ok (gsap.matchMedia): su touch non esiste e
+// niente lo presuppone. Il cursore nativo resta su input/textarea/select/
+// iframe (regole in globals.css, classe html.dt-cursor-active).
+// Morph contestuali via attributi sui componenti:
+//   data-cursor="scopri|trascina|play" (+ data-cursor-label per testo custom)
+//   data-magnetic → l'anello si fonde col bottone (gestito da Magnetic).
 import { useEffect, useRef } from "react";
 import { gsap, useGSAP, MQ } from "../../lib/motion/gsap";
 import { useDict } from "../i18n/LocaleProvider";
@@ -53,135 +31,132 @@ export default function Cursor() {
     () => {
       const root = rootRef.current;
       if (!root) return;
-      const plate = root.querySelector<HTMLElement>("[data-cur-plate]");
+      const dot = root.querySelector<HTMLElement>("[data-cur-dot]");
+      const ring = root.querySelector<HTMLElement>("[data-cur-ring]");
+      const fill = root.querySelector<HTMLElement>("[data-cur-fill]");
       const label = root.querySelector<HTMLElement>("[data-cur-label]");
-      const roof = root.querySelector<HTMLElement>("[data-cur-roof]");
       const play = root.querySelector<HTMLElement>("[data-cur-play]");
-      if (!plate || !label || !roof || !play) return;
+      if (!dot || !ring || !fill || !label || !play) return;
 
       const mm = gsap.matchMedia();
       mm.add(`${MQ.motionOk} and ${MQ.finePointer}`, () => {
         const html = document.documentElement;
         html.classList.add("dt-cursor-active");
 
-        gsap.set(plate, { xPercent: -50, yPercent: -50, autoAlpha: 0, scale: 0.6 });
+        gsap.set([dot, ring], { xPercent: -50, yPercent: -50, autoAlpha: 0 });
+        gsap.set([fill, play], { scale: 0, autoAlpha: 0 });
 
-        // Inseguimento CORTO (0.22s): il ritardo lungo del vecchio anello era
-        // metà del problema — una targhetta che arriva in ritardo sembra
-        // scollata dalla mano. Qui accompagna, non insegue.
-        const toX = gsap.quickTo(plate, "x", { duration: 0.22, ease: "power3.out" });
-        const toY = gsap.quickTo(plate, "y", { duration: 0.22, ease: "power3.out" });
-        // L'inclinazione è l'unica cosa che resta "morbida": è lei a dare il
-        // peso del cartoncino.
-        const toRot = gsap.quickTo(plate, "rotation", { duration: 0.5, ease: "power2.out" });
+        const dotX = gsap.quickTo(dot, "x", { duration: 0.14, ease: "power3.out" });
+        const dotY = gsap.quickTo(dot, "y", { duration: 0.14, ease: "power3.out" });
+        const ringX = gsap.quickTo(ring, "x", { duration: 0.5, ease: "power3.out" });
+        const ringY = gsap.quickTo(ring, "y", { duration: 0.5, ease: "power3.out" });
 
-        let lastX: number | null = null;
-        let shown = false;
-
-        const onMove = (e: PointerEvent) => {
-          toX(e.clientX);
-          toY(e.clientY);
-          // Inclinazione dalla velocità orizzontale, con un tetto stretto:
-          // sopra gli 8 gradi non è più un cartoncino, è una giostra.
-          if (shown) {
-            const dx = lastX === null ? 0 : e.clientX - lastX;
-            toRot(gsap.utils.clamp(-8, 8, dx * 0.45));
-          }
-          lastX = e.clientX;
+        let visible = false;
+        let hiddenState = false;
+        const show = () => {
+          // Mai riapparire mentre lo stato è "hidden" (input/iframe sotto il
+          // puntatore): onMove continua a scattare anche lì.
+          if (visible || hiddenState) return;
+          visible = true;
+          gsap.to([dot, ring], { autoAlpha: 1, duration: 0.25, ease: "none" });
+        };
+        const hide = () => {
+          visible = false;
+          gsap.to([dot, ring], { autoAlpha: 0, duration: 0.2, ease: "none" });
         };
 
-        // Un solo owner delle transizioni della targhetta (overwrite "auto" su
-        // ogni tween) + dedup su (stato, testo): pointerover scatta a ogni
-        // attraversamento di confine, ma i tween partono solo quando qualcosa
-        // cambia davvero — niente churn sul percorso caldo.
-        let current = "";
+        const onMove = (e: PointerEvent) => {
+          dotX(e.clientX);
+          dotY(e.clientY);
+          ringX(e.clientX);
+          ringY(e.clientY);
+          show();
+        };
 
-        const show = (text: string, isPlay: boolean) => {
+        // Stati contestuali. Un solo owner delle transizioni dell'anello
+        // (overwrite: "auto" su ogni tween) + dedup: pointerover scatta a ogni
+        // attraversamento di confine elemento, ma i tween partono solo quando
+        // (stato, testo) cambiano davvero — niente churn sul percorso caldo.
+        let current = "";
+        const setState = (state: "default" | "link" | "label" | "magnetic" | "hidden", text = "") => {
+          const key = `${state}:${text}`;
+          if (key === current) return;
+          current = key;
+          hiddenState = state === "hidden";
+          if (state === "hidden") {
+            hide();
+            return;
+          }
+          show();
+          const isLabel = state === "label";
+          const isPlay = isLabel && text === "";
           label.textContent = isPlay ? "" : text;
-          gsap.set(label, { display: isPlay ? "none" : "block" });
-          gsap.set(roof, { display: isPlay || !text ? "none" : "block" });
-          gsap.set(play, { display: isPlay ? "block" : "none" });
-          if (shown) return; // già in scena: cambia solo il contenuto
-          shown = true;
-          gsap.to(plate, {
-            autoAlpha: 1,
-            scale: 1,
-            duration: 0.34,
+          // Con l'etichetta l'anello passa a blend normale: il difference del
+          // parent invertirebbe anche il riempimento rosso dei figli.
+          gsap.set(ring, { mixBlendMode: isLabel ? "normal" : "difference" });
+          gsap.to(ring, {
+            scale: state === "magnetic" ? 0.35 : isLabel ? 2.4 : state === "link" ? 1.5 : 1,
+            duration: 0.35,
+            ease: "domus",
+            overwrite: "auto",
+          });
+          gsap.to(dot, {
+            scale: state === "magnetic" ? 1.8 : state === "link" ? 0.5 : isLabel ? 0 : 1,
+            duration: 0.3,
+            ease: "domus",
+            overwrite: "auto",
+          });
+          gsap.to(fill, {
+            scale: isLabel ? 1 : 0,
+            autoAlpha: isLabel ? 1 : 0,
+            duration: 0.32,
+            ease: "domus",
+            overwrite: "auto",
+          });
+          gsap.to(label, {
+            autoAlpha: isLabel && !isPlay ? 1 : 0,
+            duration: 0.25,
+            ease: "none",
+            overwrite: "auto",
+          });
+          gsap.to(play, {
+            scale: isPlay ? 1 : 0,
+            autoAlpha: isPlay ? 1 : 0,
+            duration: 0.3,
             ease: "domus",
             overwrite: "auto",
           });
         };
 
-        const hide = () => {
-          if (!shown) return;
-          shown = false;
-          gsap.to(plate, {
-            autoAlpha: 0,
-            scale: 0.72,
-            rotation: 0,
-            duration: 0.2,
-            ease: "power2.out",
-            overwrite: "auto",
-          });
-        };
-
         const resolve = (target: Element | null) => {
-          const tagged = (target as HTMLElement | null)?.closest?.<HTMLElement>("[data-cursor]");
-          // Campi e widget di terzi non vengono mai coperti, nemmeno se
-          // stanno dentro un bersaglio.
-          const inField = (target as HTMLElement | null)?.closest?.(
-            "input, textarea, select, [contenteditable='true'], iframe"
-          );
-          if (!tagged || inField) {
-            current = "";
-            hide();
-            return;
+          if (!target) return setState("default");
+          const el = target as HTMLElement;
+          if (el.closest("input, textarea, select, [contenteditable='true'], iframe"))
+            return setState("hidden");
+          const tagged = el.closest<HTMLElement>("[data-cursor]");
+          if (tagged) {
+            const kind = tagged.dataset.cursor || "scopri";
+            const text =
+              tagged.dataset.cursorLabel ?? labelsRef.current[kind] ?? labelsRef.current.scopri;
+            return setState("label", kind === "play" ? "" : text);
           }
-          const kind = tagged.dataset.cursor || "scopri";
-          const isPlay = kind === "play";
-          const text = isPlay
-            ? ""
-            : tagged.dataset.cursorLabel ?? labelsRef.current[kind] ?? labelsRef.current.scopri;
-          const key = `${kind}:${text}`;
-          if (key === current) return;
-          current = key;
-          show(text, isPlay);
+          if (el.closest("[data-magnetic]")) return setState("magnetic");
+          if (el.closest("a, button, [role='button'], label, summary")) return setState("link");
+          setState("default");
         };
 
         const onOver = (e: PointerEvent) => resolve(e.target as Element);
-        const onDown = () => {
-          if (shown) gsap.to(plate, { scale: 0.9, duration: 0.14, ease: "power2.out" });
-        };
-        const onUp = () => {
-          if (shown) gsap.to(plate, { scale: 1, duration: 0.24, ease: "domus" });
-        };
-        const onLeaveDoc = () => {
-          current = "";
-          hide();
-        };
-
-        // UNA NAVIGAZIONE PORTA VIA LA TARGHETTA. La targhetta sta a z-120,
-        // il sipario delle transizioni a z-92 (PageTransition.tsx): senza
-        // questo, cliccare una scheda immobile lasciava «Scopri» a
-        // galleggiare sopra la porta chiusa per tutto il cambio pagina, e poi
-        // sopra la pagina nuova finché il puntatore non attraversava un
-        // confine (`pointerover` non riscatta da solo se il mouse sta fermo
-        // mentre il DOM sotto viene sostituito).
-        // Un click su un link dentro un bersaglio è sempre una navigazione:
-        // le schede sono link, il nastro e il confronto prima/dopo no.
-        const onClick = (e: MouseEvent) => {
-          if ((e.target as Element | null)?.closest?.("a[href]")) onLeaveDoc();
-        };
+        const onDown = () => gsap.to(dot, { scale: 0.65, duration: 0.15, ease: "power2.out" });
+        const onUp = (e: PointerEvent) => resolve(e.target as Element);
+        const onLeaveDoc = () => hide();
+        const onEnterDoc = () => show();
 
         window.addEventListener("pointermove", onMove, { passive: true });
         document.addEventListener("pointerover", onOver, { passive: true });
         window.addEventListener("pointerdown", onDown, { passive: true });
         window.addEventListener("pointerup", onUp, { passive: true });
         document.documentElement.addEventListener("pointerleave", onLeaveDoc);
-        document.addEventListener("click", onClick, true);
-        // Cambio di scheda o di finestra: il puntatore se ne va senza
-        // attraversare il bordo del documento.
-        window.addEventListener("blur", onLeaveDoc);
+        document.documentElement.addEventListener("pointerenter", onEnterDoc);
 
         return () => {
           html.classList.remove("dt-cursor-active");
@@ -190,8 +165,7 @@ export default function Cursor() {
           window.removeEventListener("pointerdown", onDown);
           window.removeEventListener("pointerup", onUp);
           document.documentElement.removeEventListener("pointerleave", onLeaveDoc);
-          document.removeEventListener("click", onClick, true);
-          window.removeEventListener("blur", onLeaveDoc);
+          document.documentElement.removeEventListener("pointerenter", onEnterDoc);
         };
       });
     },
@@ -200,44 +174,30 @@ export default function Cursor() {
 
   return (
     <div ref={rootRef} aria-hidden className="pointer-events-none fixed left-0 top-0 z-[120]">
-      {/* La targhetta: crema, testo grafite, tetto rosso. Nessun blend mode —
-          il vecchio anello viveva in `difference` per restare leggibile sulle
-          foto; una targhetta piena con la sua ombra è leggibile e basta, e
-          soprattutto non inverte i colori del brand. */}
+      {/* Anello follower: in difference sopra le foto resta sempre leggibile. */}
       <div
-        data-cur-plate
-        className="fixed left-0 top-0 flex items-center gap-1.5 whitespace-nowrap rounded-full border border-graphite/12 bg-cream px-3 py-1.5 opacity-0 shadow-[0_8px_24px_-10px_rgba(26,24,22,0.55)]"
+        data-cur-ring
+        className="fixed left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border border-white/90 opacity-0 mix-blend-difference"
       >
-        {/* Il tetto del monogramma, in rosso: la firma Domus Tua in 12px.
-            Non è il logo ridisegnato — è la linea-tetto già usata come segno
-            di marca (SegnoTick in BrandMotif). */}
-        <svg
-          data-cur-roof
-          viewBox="0 0 24 24"
-          fill="none"
-          className="h-2.5 w-2.5 shrink-0 text-red"
-        >
-          <path
-            d="M4 15 L12 7 L20 15"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        {/* Riempimento rosso per gli stati con etichetta (blend normale). */}
+        <div
+          data-cur-fill
+          className="absolute inset-0 rounded-full bg-red opacity-0 mix-blend-normal"
+        />
         <span
           data-cur-label
-          className="text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-graphite"
+          className="relative whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.14em] text-white opacity-0 mix-blend-normal"
         />
         <svg
           data-cur-play
           viewBox="0 0 24 24"
-          className="hidden h-3 w-3 text-red"
+          className="relative h-3.5 w-3.5 text-white opacity-0 mix-blend-normal"
           fill="currentColor"
         >
           <path d="M8 5.5v13l11-6.5-11-6.5Z" />
         </svg>
       </div>
+      <div data-cur-dot className="fixed left-0 top-0 h-2 w-2 rounded-full bg-red opacity-0" />
     </div>
   );
 }

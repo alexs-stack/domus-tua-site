@@ -13,8 +13,7 @@ import EditorialRows from "../components/EditorialRows";
 import Reviews from "../components/Reviews";
 import Contact from "../components/Contact";
 import ScrubWords from "../components/motion/ScrubWords";
-import { ArrowRight, Check, Play } from "../components/Icons";
-import { Cta } from "../components/primitives/Cta";
+import { ArrowUpRight, ArrowRight, Check, Play } from "../components/Icons";
 import {
   SegnoDomusBadge,
   SegnoDomusCorner,
@@ -23,7 +22,6 @@ import {
 } from "../components/BrandMotif";
 import { site } from "../lib/site";
 import { youtubeWatch } from "../lib/videos";
-import { faqIt } from "./faq";
 
 const copy = {
   it: {
@@ -38,7 +36,7 @@ const copy = {
     heroSubcopy:
       "Un format evoluto che unisce preparazione, accoglienza, documentazione e prequalifica. Trasforma la visita in un momento consapevole, ordinato e professionale.",
     heroAlt: "Living moderno con accenti senape",
-    heroPrimary: "Scopri se Open Domus è adatto al tuo immobile",
+    heroPrimary: "Vorrei vendere con Open Domus",
     heroSecondary: "Come si svolge",
     heroSubtitle: "Non una semplice visita. Un’esperienza preparata per vendere meglio.",
 
@@ -62,7 +60,7 @@ const copy = {
     ],
 
     rowsEyebrow: "Come si svolge",
-    rowsTitle: "Le cinque fasi di un Open Domus.",
+    rowsTitle: "Dietro ogni Open Domus, un metodo.",
     phases: [
       {
         title: "Preparazione dell’immobile",
@@ -86,7 +84,7 @@ const copy = {
       },
       {
         title: "Dalla proposta al rogito",
-        copy: "Accettata la proposta, seguiamo gli adempimenti fino alla firma: documenti, scadenze e rapporti con il notaio.",
+        copy: "Accettata la proposta, ti accompagniamo in ogni adempimento fino alla firma dal notaio: documenti, tempi e serenità. Non lasciamo nulla al caso.",
         alt: "Consegna delle chiavi al rogito",
       },
     ],
@@ -140,13 +138,29 @@ const copy = {
 
     faqEyebrow: "Domande frequenti",
     faqTitle: "Quello che i proprietari ci chiedono.",
-    // Stesse voci del JSON-LD FAQPage in page.tsx: fonte unica in ./faq.ts.
-    faq: faqIt,
+    faq: [
+      {
+        q: "Quanto dura un Open Domus?",
+        a: "In genere una giornata dedicata, con visite per appuntamento distribuite in fasce orarie. Concentrare l’interesse in poche ore crea slancio e comparabilità tra le proposte.",
+      },
+      {
+        q: "Devo lasciare libera la casa?",
+        a: "No. Ci occupiamo noi della preparazione, dell’accoglienza e della gestione delle visite. A te chiediamo solo di fidarti del metodo: al resto pensiamo noi.",
+      },
+      {
+        q: "Chi partecipa alle visite?",
+        a: "Solo acquirenti prequalificati e realmente interessati. Filtriamo a monte per proteggere la tua casa e il tuo tempo.",
+      },
+      {
+        q: "È adatto a qualsiasi immobile?",
+        a: "Open Domus dà il meglio quando c’è una storia da raccontare. Ne parliamo insieme e ti diciamo con onestà se è il format giusto per te.",
+      },
+    ],
 
     finalTitle: "La tua casa merita più di una visita qualunque.",
     finalText:
       "Raccontaci il tuo immobile: valutiamo insieme se Open Domus è la strada giusta per venderlo meglio.",
-    finalCta: "Scopri se Open Domus è adatto al tuo immobile",
+    finalCta: "Vorrei vendere con Open Domus",
   },
   en: {
     heroEyebrow: "Proprietary asset",
@@ -160,7 +174,7 @@ const copy = {
     heroSubcopy:
       "A refined format that brings together preparation, hospitality, documentation and pre-qualification. It turns a viewing into a considered, orderly and professional moment.",
     heroAlt: "Modern living room with mustard accents",
-    heroPrimary: "See if Open Domus suits your property",
+    heroPrimary: "I’d like to sell with Open Domus",
     heroSecondary: "How it works",
     heroSubtitle: "Not just a viewing. An experience prepared to sell better.",
 
@@ -184,7 +198,7 @@ const copy = {
     ],
 
     rowsEyebrow: "How it works",
-    rowsTitle: "The five phases of an Open Domus.",
+    rowsTitle: "Behind every Open Domus, a method.",
     phases: [
       {
         title: "Preparing the property",
@@ -208,7 +222,7 @@ const copy = {
       },
       {
         title: "From offer to deed",
-        copy: "Once the offer is accepted, we handle the formalities through to signing: documents, deadlines and dealings with the notary.",
+        copy: "Once the offer is accepted, we guide you through every step up to signing at the notary: documents, timing and peace of mind. We leave nothing to chance.",
         alt: "Handing over the keys at the deed",
       },
     ],
@@ -284,7 +298,7 @@ const copy = {
     finalTitle: "Your home deserves more than an ordinary viewing.",
     finalText:
       "Tell us about your property: together we’ll assess whether Open Domus is the right way to sell it better.",
-    finalCta: "See if Open Domus suits your property",
+    finalCta: "I’d like to sell with Open Domus",
   },
   fr: {
     heroEyebrow: "Atout propriétaire",
@@ -298,7 +312,7 @@ const copy = {
     heroSubcopy:
       "Un format évolué qui réunit préparation, accueil, documentation et préqualification. Il transforme la visite en un moment réfléchi, ordonné et professionnel.",
     heroAlt: "Séjour moderne aux accents moutarde",
-    heroPrimary: "Découvrez si Open Domus convient à votre bien",
+    heroPrimary: "Je veux vendre avec Open Domus",
     heroSecondary: "Comment ça se passe",
     heroSubtitle: "Pas une simple visite. Une expérience préparée pour mieux vendre.",
 
@@ -322,7 +336,7 @@ const copy = {
     ],
 
     rowsEyebrow: "Comment ça se passe",
-    rowsTitle: "Les cinq phases d’un Open Domus.",
+    rowsTitle: "Derrière chaque Open Domus, une méthode.",
     phases: [
       {
         title: "Préparation du bien",
@@ -346,7 +360,7 @@ const copy = {
       },
       {
         title: "De l’offre à l’acte",
-        copy: "Une fois l’offre acceptée, nous suivons les démarches jusqu’à la signature : documents, délais et relations avec le notaire.",
+        copy: "Une fois l’offre acceptée, nous vous accompagnons dans chaque démarche jusqu’à la signature chez le notaire : documents, délais et sérénité. Nous ne laissons rien au hasard.",
         alt: "Remise des clés à l’acte",
       },
     ],
@@ -422,7 +436,7 @@ const copy = {
     finalTitle: "Votre maison mérite mieux qu’une visite ordinaire.",
     finalText:
       "Parlez-nous de votre bien : ensemble, nous évaluons si Open Domus est la bonne voie pour mieux le vendre.",
-    finalCta: "Découvrez si Open Domus convient à votre bien",
+    finalCta: "Je veux vendre avec Open Domus",
   },
   de: {
     heroEyebrow: "Eigenes Format",
@@ -436,7 +450,7 @@ const copy = {
     heroSubcopy:
       "Ein durchdachtes Format, das Vorbereitung, Empfang, Dokumentation und Vorqualifizierung vereint. Es verwandelt die Besichtigung in einen bewussten, geordneten und professionellen Moment.",
     heroAlt: "Modernes Wohnzimmer mit senffarbenen Akzenten",
-    heroPrimary: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
+    heroPrimary: "Ich möchte mit Open Domus verkaufen",
     heroSecondary: "So läuft es ab",
     heroSubtitle: "Keine gewöhnliche Besichtigung. Ein Erlebnis, vorbereitet für den besseren Verkauf.",
 
@@ -460,7 +474,7 @@ const copy = {
     ],
 
     rowsEyebrow: "So läuft es ab",
-    rowsTitle: "Die fünf Phasen eines Open Domus.",
+    rowsTitle: "Hinter jedem Open Domus steht eine Methode.",
     phases: [
       {
         title: "Vorbereitung der Immobilie",
@@ -484,7 +498,7 @@ const copy = {
       },
       {
         title: "Vom Angebot bis zum Notartermin",
-        copy: "Sobald das Angebot angenommen ist, kümmern wir uns um die Formalitäten bis zur Unterschrift: Unterlagen, Fristen und Abstimmung mit dem Notar.",
+        copy: "Sobald das Angebot angenommen ist, begleiten wir Sie bei jedem Schritt bis zur Unterschrift beim Notar: Unterlagen, Fristen und Gelassenheit. Wir überlassen nichts dem Zufall.",
         alt: "Schlüsselübergabe beim Notartermin",
       },
     ],
@@ -560,7 +574,7 @@ const copy = {
     finalTitle: "Ihr Zuhause verdient mehr als eine gewöhnliche Besichtigung.",
     finalText:
       "Erzählen Sie uns von Ihrer Immobilie: Gemeinsam prüfen wir, ob Open Domus der richtige Weg ist, sie besser zu verkaufen.",
-    finalCta: "Prüfen Sie, ob Open Domus zu Ihrer Immobilie passt",
+    finalCta: "Ich möchte mit Open Domus verkaufen",
   },
   es: {
     heroEyebrow: "Formato propio",
@@ -574,7 +588,7 @@ const copy = {
     heroSubcopy:
       "Un formato evolucionado que reúne preparación, acogida, documentación y precalificación. Convierte la visita en un momento consciente, ordenado y profesional.",
     heroAlt: "Salón moderno con acentos mostaza",
-    heroPrimary: "Descubre si Open Domus encaja con tu inmueble",
+    heroPrimary: "Quiero vender con Open Domus",
     heroSecondary: "Cómo se desarrolla",
     heroSubtitle: "No una simple visita. Una experiencia preparada para vender mejor.",
 
@@ -598,7 +612,7 @@ const copy = {
     ],
 
     rowsEyebrow: "Cómo se desarrolla",
-    rowsTitle: "Las cinco fases de un Open Domus.",
+    rowsTitle: "Detrás de cada Open Domus, un método.",
     phases: [
       {
         title: "Preparación del inmueble",
@@ -622,7 +636,7 @@ const copy = {
       },
       {
         title: "De la propuesta a la escritura",
-        copy: "Aceptada la oferta, nos ocupamos de los trámites hasta la firma: documentos, plazos y trato con el notario.",
+        copy: "Aceptada la propuesta, te acompañamos en cada trámite hasta la firma ante notario: documentos, plazos y tranquilidad. No dejamos nada al azar.",
         alt: "Entrega de llaves en la escritura",
       },
     ],
@@ -698,7 +712,7 @@ const copy = {
     finalTitle: "Tu casa merece más que una visita cualquiera.",
     finalText:
       "Cuéntanos tu inmueble: valoramos juntos si Open Domus es el camino adecuado para venderlo mejor.",
-    finalCta: "Descubre si Open Domus encaja con tu inmueble",
+    finalCta: "Quiero vender con Open Domus",
   },
 };
 
@@ -877,16 +891,17 @@ export default function OpenDomusPageContent() {
                 <p className="mt-5 max-w-md text-[1.02rem] leading-relaxed text-cream/80">
                   {c.videoText}
                 </p>
-                <Cta
+                <a
                   href={youtubeWatch(site.videos.openDomus.id)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  variant="reveal-cream"
-                  size="md"
-                  className="mt-9"
+                  className="group mt-9 inline-flex items-center gap-2 rounded-full bg-red py-3.5 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
                 >
                   {c.videoCta}
-                </Cta>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                    <ArrowUpRight className="h-4 w-4" />
+                  </span>
+                </a>
               </Reveal>
             </div>
           </div>
@@ -1015,15 +1030,21 @@ export default function OpenDomusPageContent() {
               <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-cream/80">
                 {c.finalText}
               </p>
-              <Cta href="#contatti" variant="reveal-cream" size="lg" className="mt-9">
+              <a
+                href="#contatti"
+                className="group mt-9 inline-flex items-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
                 {c.finalCta}
-              </Cta>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </a>
             </Reveal>
           </div>
         </section>
 
         <Reviews />
-        <Contact initialIntent="open-domus" />
+        <Contact />
       </main>
     </>
   );

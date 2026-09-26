@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Reveal from "./Reveal";
 import TextLines from "./motion/TextLines";
 import CountUp from "./CountUp";
 import Parallax from "./motion/Parallax";
 import Atmosphere from "./motion/Atmosphere";
-import { Star, Google, Check } from "./Icons";
-import { Cta } from "./primitives/Cta";
-import TrustindexEmbed from "./TrustindexEmbed";
+import { Star, Google, ArrowUpRight, Check } from "./Icons";
 import { site } from "../lib/site";
-import { nativeReviews, hasApprovedNativeReviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
+import { reviews, reviewSummary, type ReviewCategory } from "../lib/reviews";
 import { useConsent } from "../lib/consent";
 import { useLocale } from "./i18n/LocaleProvider";
 
@@ -27,7 +25,7 @@ const copy = {
     eyebrow: "Recensioni",
     title: "Lo raccontano le persone che hanno scelto Domus Tua.",
     subtitle:
-      `Ogni recensione è una storia di fiducia, cura e accompagnamento. Su Google ne trovi ${site.reviewsCount}, e raccontano un modo diverso di affrontare la vendita e l’acquisto.`,
+      "Ogni recensione è una storia di fiducia, cura e accompagnamento. Oltre 500 famiglie hanno vissuto un modo diverso di affrontare la vendita e l’acquisto.",
     averageOver: (count: number | string) => `Media su oltre ${count} recensioni`,
     seeAllGoogle: "Leggi tutte le recensioni su Google",
     verifiedVia: "Recensioni Google verificate tramite Trustindex.",
@@ -53,7 +51,7 @@ const copy = {
     eyebrow: "Reviews",
     title: "Told by the people who chose Domus Tua.",
     subtitle:
-      `Every review is a story of trust, care and guidance. There are ${site.reviewsCount} of them on Google, describing a different way to approach selling and buying.`,
+      "Every review is a story of trust, care and guidance. More than 500 families have experienced a different way to approach selling and buying.",
     averageOver: (count: number | string) => `Average across more than ${count} reviews`,
     seeAllGoogle: "Read all reviews on Google",
     verifiedVia: "Google reviews verified via Trustindex.",
@@ -79,7 +77,7 @@ const copy = {
     eyebrow: "Avis",
     title: "Racontés par ceux qui ont choisi Domus Tua.",
     subtitle:
-      `Chaque avis est une histoire de confiance, d’attention et d’accompagnement. Il y en a ${site.reviewsCount} sur Google, et ils racontent une autre façon d’aborder la vente et l’achat.`,
+      "Chaque avis est une histoire de confiance, d’attention et d’accompagnement. Plus de 500 familles ont vécu une autre façon d’aborder la vente et l’achat.",
     averageOver: (count: number | string) => `Moyenne sur plus de ${count} avis`,
     seeAllGoogle: "Lire tous les avis sur Google",
     verifiedVia: "Avis Google vérifiés via Trustindex.",
@@ -105,7 +103,7 @@ const copy = {
     eyebrow: "Bewertungen",
     title: "Erzählt von den Menschen, die sich für Domus Tua entschieden haben.",
     subtitle:
-      `Jede Bewertung ist eine Geschichte von Vertrauen, Sorgfalt und Begleitung. Auf Google sind es ${site.reviewsCount}, und sie zeigen eine andere Art, Verkauf und Kauf anzugehen.`,
+      "Jede Bewertung ist eine Geschichte von Vertrauen, Sorgfalt und Begleitung. Mehr als 500 Familien haben eine andere Art erlebt, Verkauf und Kauf anzugehen.",
     averageOver: (count: number | string) => `Durchschnitt aus über ${count} Bewertungen`,
     seeAllGoogle: "Alle Bewertungen auf Google lesen",
     verifiedVia: "Google-Bewertungen, verifiziert über Trustindex.",
@@ -131,7 +129,7 @@ const copy = {
     eyebrow: "Reseñas",
     title: "Lo cuentan las personas que han elegido Domus Tua.",
     subtitle:
-      `Cada reseña es una historia de confianza, cuidado y acompañamiento. En Google hay ${site.reviewsCount}, y cuentan una forma diferente de afrontar la venta y la compra.`,
+      "Cada reseña es una historia de confianza, cuidado y acompañamiento. Más de 500 familias han vivido una forma diferente de afrontar la venta y la compra.",
     averageOver: (count: number | string) => `Media sobre más de ${count} reseñas`,
     seeAllGoogle: "Leer todas las reseñas en Google",
     verifiedVia: "Reseñas de Google verificadas mediante Trustindex.",
@@ -164,14 +162,10 @@ export default function Reviews() {
   const { locale } = useLocale();
   const c = copy[locale];
   const [filter, setFilter] = useState<(typeof filters)[number]>("Tutte");
-  // In produzione NON mostriamo mai recensioni demo come reali: `nativeReviews`
-  // torna le APPROVATE (oggi nessuna) o, solo in anteprima, le demo — mai
-  // fabbricate. Vedi app/lib/reviews.ts e docs/reviews-integration.md.
+  const shown = filter === "Tutte" ? reviews : reviews.filter((r) => r.category === filter);
+  // In produzione NON mostriamo mai recensioni demo come reali: le card di esempio (con nota
+  // "esempi dimostrativi") compaiono solo in anteprima. Vedi docs/reviews-integration.md.
   const PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_BADGE === "true";
-  const native = nativeReviews({ preview: PREVIEW });
-  const shown = filter === "Tutte" ? native : native.filter((r) => r.category === filter);
-  // Le card mostrate sono demo (da etichettare) o approvate (reali, prima parte)?
-  const showingDemo = native.length > 0 && !hasApprovedNativeReviews;
 
   // GATE DI CONSENSO. Trustindex è un terzo che carica script e cookie propri: prima del
   // consolidamento l'iframe partiva al primo render, cioè PRIMA di qualsiasi scelta
@@ -181,22 +175,27 @@ export default function Reviews() {
   const consent = useConsent();
   const showTrustindex = site.embeds.trustindexLoader.length > 0 && consent === "accepted";
   const awaitingConsent = site.embeds.trustindexLoader.length > 0 && consent !== "accepted";
-  // Le recensioni approvate sono di prima parte (nessun cookie): si mostrano
-  // anche se il consenso a Trustindex è negato — negarlo non deve nascondere le
-  // NOSTRE recensioni. Le demo, invece, restano fuori dallo stato "attesa
-  // consenso" (lì la pagina mostra la prova reale: voto + link a Google).
-  const showNativeCards = shown.length > 0 && (hasApprovedNativeReviews || !awaitingConsent);
+
+  // Auto-altezza del widget Trustindex: lo srcDoc misura la propria altezza e la posta al
+  // parent (niente box vuoto sotto le card). Fallback iniziale contenuto, poi si adatta.
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [frameH, setFrameH] = useState(480);
+  useEffect(() => {
+    function onMsg(e: MessageEvent) {
+      if (e.source !== frameRef.current?.contentWindow) return;
+      const d = e.data as { type?: string; h?: number };
+      if (d?.type === "dt-ti-height" && typeof d.h === "number") {
+        setFrameH(Math.max(240, Math.min(1800, Math.round(d.h))));
+      }
+    }
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
 
   return (
     <section id="recensioni" className="relative bg-paper">
       {/* Aria: il voto in filigrana (numero, identico in ogni lingua) */}
-      {/* Il voto arriva da site.rating, non è più scritto a mano: se un giorno la media
-          cambia, questa parola-fantasma cambia con lei invece di restare indietro.
-          Resta nella forma MACCHINA ("4.9") e non in quella localizzata: la regola di
-          Atmosphere è che la parola sia identica in tutte le lingue (è un segno grafico
-          aria-hidden, non copy). Se si volesse la virgola per chi legge in italiano,
-          è quella regola che va cambiata prima — non questa riga di nascosto. */}
-      <Atmosphere word={site.rating} glow drift={1} wordClassName="left-[2%] top-[5%] text-[19vw]" />
+      <Atmosphere word="4.9" glow drift={1} wordClassName="left-[2%] top-[5%] text-[19vw]" />
       <div className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 sm:py-32">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           {/* Reveal spezzato in due: il titolo TextLines resta nudo (niente doppio-hide) */}
@@ -217,15 +216,9 @@ export default function Reviews() {
             </Reveal>
           </div>
 
-          {/* Card riepilogo — deriva leggera contro la colonna titolo.
-              mob off (misura): `speed -0.06` su una card alta ~200px vale
-              ±1,7px, meno di un pixel con la corsa dimezzata che Parallax
-              applica sotto 768 (onda «parità mobile 2») — invisibile, sotto i
-              ~10px del criterio. E c'è un motivo in più per lasciarla ferma:
-              dentro la card c'è una CTA verso Google, e un bersaglio che
-              deriva sotto il dito è un bersaglio più difficile da prendere. */}
+          {/* Card riepilogo — deriva leggera contro la colonna titolo (solo desktop) */}
           <Reveal delay={100}>
-            <Parallax speed={-0.06} mobile={false}>
+            <Parallax speed={-0.06}>
               <div className="rounded-[1.75rem] border border-line bg-cream p-6">
                 <div className="flex items-center gap-5">
                   <CountUp
@@ -234,10 +227,9 @@ export default function Reviews() {
                     className="font-display text-6xl font-medium text-ink"
                   />
                   <div>
-                    {/* Oro: è il voto, non il marchio (vedi globals.css) */}
                     <span className="flex gap-1">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 text-gold" />
+                        <Star key={i} className="h-4 w-4 text-red" />
                       ))}
                     </span>
                     <p className="mt-1.5 text-sm font-medium text-graphite">
@@ -249,16 +241,17 @@ export default function Reviews() {
                   </div>
                 </div>
                 <p className="mt-4 text-[0.8rem] text-stone">{c.verifiedVia}</p>
-                <Cta
+                <a
                   href={site.googleReviewsUrl}
-                  variant="cta"
-                  size="sm"
-                  className="mt-5"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="group mt-5 inline-flex items-center gap-2 rounded-full bg-red py-2.5 pl-5 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
                 >
                   {c.seeAllGoogle}
-                </Cta>
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </span>
+                </a>
               </div>
             </Parallax>
           </Reveal>
@@ -269,42 +262,47 @@ export default function Reviews() {
             <h3 className="font-display text-2xl font-medium tracking-tight text-ink sm:text-3xl">
               {c.realReviews}
             </h3>
-            {/* Nessun box: il widget vive direttamente sulla sezione (iframe
-                estratto in TrustindexEmbed, condiviso col capitolo stelle). */}
+            {/* Nessun box: il widget vive direttamente sulla sezione. Altezza dinamica (auto-resize)
+                → niente spazio vuoto sotto le card. Loader Trustindex dentro un srcDoc UTF-8
+                (charset corretto, document.currentScript valido) + script che posta l'altezza. */}
             <div className="mt-6">
-              <TrustindexEmbed title={c.iframeTitle} />
+              <iframe
+                ref={frameRef}
+                // Sandbox SENZA allow-same-origin: lo script di Trustindex gira in un'origine
+                // opaca, quindi non vede i nostri cookie né il nostro localStorage. Con srcDoc
+                // e senza sandbox erediterebbe la nostra origine — cioè un terzo con pieno
+                // accesso al sito. Gli permessi restano quelli che gli servono: eseguire e
+                // aprire i link delle recensioni in una scheda nuova. Il postMessage con
+                // l'altezza funziona comunque (parent.postMessage a "*" è consentito).
+                sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+                srcDoc={`<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>html,body{margin:0;padding:0;background:transparent;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}</style></head><body><script src="${site.embeds.trustindexLoader}"></script><script>(function(){function p(){try{var h=document.body.scrollHeight;if(h>0)parent.postMessage({type:'dt-ti-height',h:h},'*');}catch(e){}}if(window.ResizeObserver){new ResizeObserver(p).observe(document.body);}window.addEventListener('load',p);[300,800,1500,2500,4000].forEach(function(t){setTimeout(p,t);});})();</script></body></html>`}
+                title={c.iframeTitle}
+                loading="lazy"
+                className="w-full"
+                style={{ border: 0, height: frameH }}
+              />
             </div>
           </Reveal>
-        ) : showNativeCards ? (
+        ) : PREVIEW && !awaitingConsent ? (
           <>
-            {/* Nota onestà: quando le card sono DEMO (nessuna recensione nativa
-                approvata) va sempre detto. In produzione le demo non arrivano
-                mai qui (nativeReviews torna []); l'etichetta è la cintura in più. */}
-            {showingDemo ? (
-              <Reveal className="mt-10">
-                <p className="inline-flex items-center gap-2 rounded-full border border-line bg-cream px-4 py-2 text-[0.8rem] text-stone">
-                  <span className="h-1.5 w-1.5 rounded-full bg-red" />
-                  {c.demoBanner}
-                </p>
-              </Reveal>
-            ) : null}
+            {/* Nota onestà: finché il widget Trustindex non è collegato, queste sono demo.
+                Questo ramo è raggiungibile SOLO in anteprima (NEXT_PUBLIC_PREVIEW_BADGE=true):
+                in produzione non mostriamo mai recensioni demo come reali. */}
+            <Reveal className="mt-10">
+              <p className="inline-flex items-center gap-2 rounded-full border border-line bg-cream px-4 py-2 text-[0.8rem] text-stone">
+                <span className="h-1.5 w-1.5 rounded-full bg-red" />
+                {c.demoBanner}
+              </p>
+            </Reveal>
             {/* Filtri categoria */}
             <Reveal className="mt-6">
-              {/* `tap-target` e non un `min-h-11` come le pill di PropertySearch: qui la
-                  pillola disegnata è alta 42 e deve restare 42 — allungarla di due pixel
-                  si vedrebbe, e la regola di questa fase è che il riquadro disegnato non
-                  si muove. Il ::before porta l'area a 44 sbordando un pixel per lato.
-                  Niente `tap-list`: il passo verticale quando le pill vanno a capo è
-                  42+8 = 50, quindi fra due bande da 44 restano 6px liberi; in orizzontale
-                  il ::before non si allarga (`inset-inline: 0`), e le pill affiancate non
-                  si contendono nessun pixel. */}
               <div className="flex flex-wrap gap-2">
                 {filters.map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
                     aria-pressed={filter === f}
-                    className={`tap-target rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
+                    className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red ${
                       filter === f
                         ? "border-red bg-red text-white hover:bg-red-dark"
                         : "border-line bg-paper text-graphite hover:border-red/40 hover:text-ink"
@@ -337,7 +335,7 @@ export default function Reviews() {
                       </span>
                       <span className="flex gap-0.5" aria-label={c.outOf5(r.rating)}>
                         {Array.from({ length: r.rating }).map((_, k) => (
-                          <Star key={k} className="h-3.5 w-3.5 text-gold" />
+                          <Star key={k} className="h-3.5 w-3.5 text-red" />
                         ))}
                       </span>
                     </div>
@@ -361,10 +359,7 @@ export default function Reviews() {
                       <span className="flex-1 leading-tight">
                         <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
                           {r.name}
-                          {/* Il bollino "verificata" è SOLO per le recensioni
-                              approvate reali: una demo non può portarlo (prima il
-                              vecchio `verified:true` glielo dava, sembrando vera). */}
-                          {r.status === "approved" && (
+                          {r.verified && (
                             <span
                               className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red text-white"
                               title={c.verifiedReview}
@@ -401,16 +396,17 @@ export default function Reviews() {
               <p className="mx-auto max-w-md text-[0.98rem] leading-relaxed text-graphite">
                 {awaitingConsent ? c.consentGate : c.verifiedVia}
               </p>
-              <Cta
+              <a
                 href={site.googleReviewsUrl}
-                variant="cta"
-                size="md"
-                className="mt-5"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="group mt-5 inline-flex items-center gap-2 rounded-full bg-red py-3 pl-6 pr-2.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-dark active:scale-[0.98]"
               >
                 {c.seeAllGoogle}
-              </Cta>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </span>
+              </a>
             </div>
           </Reveal>
         )}

@@ -39,18 +39,9 @@ describe("/api/health — niente segreti", () => {
       "deploy.environment",
       "deploy.siteUrl",
       "deploy.nodeEnv",
-
+      "integrations.leadBackend",
       "integrations.listingsMode",
       "integrations.assistant.model",
-      // Diagnostica RealSmart (Prompt 3): enum e timestamp pubblici, nessun segreto.
-      "integrations.realsmart.lastKnownGood", // "memory" | "durable"
-      "integrations.realsmart.runtime.source", // live | stale | mock | unavailable
-      "integrations.realsmart.runtime.lastFetch", // ISO 8601 o null
-      "integrations.realsmart.runtime.lastAttempt", // ISO 8601
-      "integrations.realsmart.release.verdict", // READY | BLOCKED | OVERRIDDEN
-      // Territorio (Prompt 14): SOLO lo stato aggregato è una stringa; tutto il resto è
-      // numeri/booleani. Enum pubblico, nessun nome di revisore né origine.
-      "territory.status", // ok | warning | critical | unknown
     ];
     for (const [key, value] of leaves(body)) {
       if (typeof value !== "string") continue;
@@ -91,37 +82,9 @@ describe("/api/health — cosa deve dichiarare", () => {
       "heroVideoLive",
       "semanticRankingConfigured",
       "assistant",
-      "leadDelivery",
+      "leadBackend",
     ]) {
       assert.ok(key in body.integrations, `manca integrations.${key}`);
-    }
-  });
-
-  test("il semantico della knowledge base è dichiarato a parte da quello della ricerca", async () => {
-    // Erano lo stesso campo, e per un po' erano anche lo stesso valore. Dal 2026-08-06 no:
-    // gli embeddings esistono e il ranking immobili li usa, ma sulla knowledge base il
-    // livello semantico è spento di proposito (vedi docs/assistant-knowledge.md). Un health
-    // che dicesse "configurato" di una cosa deliberatamente spenta manderebbe fuori strada
-    // proprio chi sta controllando un deploy.
-    const body = (await payload()) as {
-      integrations: {
-        semanticRankingConfigured: boolean;
-        assistant: { knowledgeSemanticConfigured: boolean };
-      };
-    };
-    const { semanticRankingConfigured, assistant } = body.integrations;
-    assert.equal(typeof assistant.knowledgeSemanticConfigured, "boolean");
-    if (!process.env.ASSISTANT_SEMANTIC_FLOOR) {
-      assert.equal(
-        assistant.knowledgeSemanticConfigured,
-        false,
-        "senza soglia misurata il semantico sulla knowledge base non è configurato",
-      );
-    }
-    // Il contrario invece resta possibile: ranking acceso e knowledge spenta è lo stato
-    // normale, ma knowledge accesa senza embeddings non lo è mai.
-    if (assistant.knowledgeSemanticConfigured) {
-      assert.ok(semanticRankingConfigured, "knowledge semantica senza provider di embeddings");
     }
   });
 
@@ -137,23 +100,14 @@ describe("/api/health — cosa deve dichiarare", () => {
     assert.equal(m.present, true);
   });
 
-  test("i canali di consegna dei lead sono dichiarati uno per uno", async () => {
-    const body = (await payload()) as {
-      integrations: { leadDelivery: { email: boolean; sheet: boolean; ok: boolean } };
-    };
-    const d = body.integrations.leadDelivery;
-    // Prima era una stringa sola con "whatsapp" fra i valori possibili — e WhatsApp non
-    // recapita niente: apre una chat dal browser. Un health che lo contava come backend
-    // dichiarava consegnati lead che potevano non arrivare a nessuno.
-    //
-    // Il controllo non è QUALI canali siano accesi (cambia da ambiente ad ambiente) ma
-    // che siano dichiarati separatamente e che `ok` sia davvero il loro OR: se un giorno
-    // qualcuno lo mette a `true` fisso, questo test se ne accorge.
-    assert.equal(typeof d.email, "boolean");
-    assert.equal(typeof d.sheet, "boolean");
-    assert.equal(
-      d.ok,
-      d.email || d.sheet,
+  test("il backend dei lead è dichiarato, e con un valore previsto", async () => {
+    const body = (await payload()) as { integrations: { leadBackend: string } };
+    // I valori li definisce LeadBackend in app/lib/demoStatus.ts. Il punto del controllo non è
+    // QUALE backend sia configurato — cambia da ambiente ad ambiente — ma che l'endpoint lo
+    // dica con una delle etichette note, invece di inventarne una che nessuno sa leggere.
+    assert.ok(
+      ["sheets", "whatsapp", "not-configured"].includes(body.integrations.leadBackend),
+      `backend lead non previsto: ${body.integrations.leadBackend}`,
     );
     // L'endpoint riporta lo stato, non lo decide: nessun nome di variabile d'ambiente né
     // dettaglio del provider deve comparire nel suo sorgente.

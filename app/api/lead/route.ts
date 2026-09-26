@@ -1,20 +1,14 @@
 import { NextResponse } from "next/server";
-import { rateLimitShared, clientKey, LEAD_LIMIT } from "../../lib/security/rateLimit";
+import { rateLimit, clientIp, LEAD_LIMIT } from "../../lib/security/rateLimit";
 import { validateLead } from "../../lib/forms/validateLead";
-import { notifyLeadByEmail } from "../../lib/forms/leadEmail";
 
 // Endpoint di cattura lead. Riceve il Lead dal form contatti, lo VALIDA/ripulisce
-// (app/lib/forms/validateLead.ts) e lo instrada su DUE canali best-effort:
-//  • notifica EMAIL all'agenzia (Resend, riuso del trasporto dell'assistente —
-//    app/lib/forms/leadEmail.ts). Server-only, chiave in env: senza chiave non
-//    parte (stato di oggi in produzione), quindi nessuna consegna finché non la
-//    si configura di proposito;
-//  • riga su GOOGLE SHEET se SHEETS_WEBHOOK_URL è configurato (Apps Script Web
-//    App — vedi docs/form-backend-next-step.md).
-// Entrambe le credenziali sono SERVER-ONLY (mai NEXT_PUBLIC_): mai esposte al client.
+// (app/lib/forms/validateLead.ts) e, se SHEETS_WEBHOOK_URL è configurato (Google Apps Script
+// Web App legato a un Google Sheet — vedi docs/form-backend-next-step.md), inoltra il record.
+// L'URL del webhook è SERVER-ONLY (mai NEXT_PUBLIC_): non viene mai esposto al client.
 //
-// Best-effort: se nessun canale è configurato o entrambi falliscono, rispondiamo
-// comunque con ok:false — il form usa WhatsApp come canale immediato e non deve mai rompersi.
+// Best-effort: se il webhook non è configurato o fallisce, rispondiamo comunque 200 con
+// ok:false — il form usa WhatsApp come canale immediato e non deve mai rompersi.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -22,10 +16,8 @@ const WEBHOOK = process.env.SHEETS_WEBHOOK_URL;
 const IS_PROD = process.env.NODE_ENV === "production";
 
 export async function POST(req: Request) {
-  // Rate limit CONDIVISO tra le istanze (Redis se configurato, altrimenti in-memory best-effort):
-  // argine contro submit ripetuti/flood. Chiave con IP hashato (privacy). Fail-open: se lo store
-  // condiviso è giù si ripiega sul locale — un lead in più è meglio di un form che si blocca.
-  const rl = await rateLimitShared(clientKey(req, "lead"), LEAD_LIMIT);
+  // Rate limit per IP (best-effort in-memory): argine contro submit ripetuti/flood.
+  const rl = rateLimit(`lead:${clientIp(req)}`, LEAD_LIMIT);
   if (!rl.ok) {
     return NextResponse.json(
       { ok: false, reason: "rate-limited" },
@@ -60,48 +52,29 @@ export async function POST(req: Request) {
 
   const record = { ...result.lead, createdAt: new Date().toISOString() };
 
-  // ── Canale 1: notifica email (Resend condiviso). Best-effort, env-gated. ──
-  // Senza chiave torna "non-configurato" e NON contatta nessun provider: nessuna
-  // consegna in produzione finché la chiave non è impostata. Mai PII nei log.
-  let emailSent = false;
-  try {
-    const mail = await notifyLeadByEmail(result.lead);
-    emailSent = mail.esito === "inviato";
-    if (mail.esito === "fallito") {
-      console.error("[lead] notifica email: invio non riuscito");
-    }
-  } catch (err) {
-    console.error("[lead] notifica email: errore", err instanceof Error ? err.message : err);
-  }
-
-  // ── Canale 2: Google Sheet, se configurato. ──
-  let sheetSaved = false;
-  if (WEBHOOK) {
-    try {
-      const res = await fetch(WEBHOOK, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(record),
-        // Apps Script può essere lento a freddo: non teniamo appesa la richiesta.
-        signal: AbortSignal.timeout(8000),
-      });
-      sheetSaved = res.ok;
-    } catch (err) {
-      // Logghiamo l'errore di rete, MAI il contenuto del lead (PII).
-      console.error("[lead] invio al webhook fallito:", err instanceof Error ? err.message : err);
-    }
-  } else if (!IS_PROD) {
-    // Solo in sviluppo: eco del record per ispezione locale (in prod mai PII).
-    console.info("[lead] SHEETS_WEBHOOK_URL non configurato — lead non salvato su foglio:", record);
-  }
-
-  if (!emailSent && !sheetSaved) {
-    // Nessun canale ha preso in carico il lead: non fingiamo un successo.
-    // In PRODUZIONE il log resta non identificante (solo l'intento).
+  if (!WEBHOOK) {
+    // Backend non ancora configurato: non persistiamo, ma non blocchiamo il flusso.
+    // In PRODUZIONE non logghiamo PII (nome/contatto): solo un riassunto non identificante.
     if (IS_PROD) {
-      console.info(`[lead] nessun canale configurato/riuscito (intent=${record.intent})`);
+      console.info(`[lead] SHEETS_WEBHOOK_URL non configurato — lead non salvato (intent=${record.intent})`);
+    } else {
+      console.info("[lead] SHEETS_WEBHOOK_URL non configurato — lead non salvato:", record);
     }
-    return NextResponse.json({ ok: false, reason: "not-delivered" });
+    return NextResponse.json({ ok: false, reason: "not-configured" });
   }
-  return NextResponse.json({ ok: true });
+
+  try {
+    const res = await fetch(WEBHOOK, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(record),
+      // Apps Script può essere lento a freddo: non teniamo appesa la richiesta.
+      signal: AbortSignal.timeout(8000),
+    });
+    return NextResponse.json({ ok: res.ok });
+  } catch (err) {
+    // Logghiamo l'errore di rete, MAI il contenuto del lead (PII).
+    console.error("[lead] invio al webhook fallito:", err instanceof Error ? err.message : err);
+    return NextResponse.json({ ok: false, reason: "webhook-failed" });
+  }
 }

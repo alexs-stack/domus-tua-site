@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { SegnoDomus } from "./components/BrandMotif";
-import { Cta, CtaButton } from "./components/primitives/Cta";
+import { ArrowUpRight, ArrowRight } from "./components/Icons";
 
 export default function Error({
   error,
@@ -40,12 +41,23 @@ export default function Error({
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <CtaButton type="button" onClick={() => reset()} variant="cta" size="lg">
+              <button
+                type="button"
+                onClick={() => reset()}
+                className="group flex items-center justify-center gap-2 rounded-full bg-red py-4 pl-7 pr-3 text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-red-dark active:scale-[0.98]"
+              >
                 Riprova
-              </CtaButton>
-              <Cta href="/" variant="ghost" size="lg">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </button>
+              <Link
+                href="/"
+                className="group flex items-center justify-center gap-1.5 rounded-full border border-line bg-paper px-7 py-4 text-base font-semibold text-ink transition-all duration-300 hover:border-red/40"
+              >
                 Torna alla home
-              </Cta>
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
             </div>
           </div>
         </div>
